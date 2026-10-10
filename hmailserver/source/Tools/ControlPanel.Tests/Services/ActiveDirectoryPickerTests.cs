@@ -51,7 +51,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("SamAccountName", columns[0].Groups[2].Value);
          Assert.Equal("Name", columns[1].Groups[1].Value);
          Assert.Equal("DisplayName", columns[1].Groups[2].Value);
-         Assert.Equal("E-mail", columns[2].Groups[1].Value);
+         Assert.Equal("Email", columns[2].Groups[1].Value);
          Assert.Equal("Email", columns[2].Groups[2].Value);
 
          Assert.Contains("DataGridLengthUnitType.Star", source, StringComparison.Ordinal);

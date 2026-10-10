@@ -185,6 +185,24 @@ The domains page is master and detail, four lists in one page, and keeps its own
 - **It is the Control Deck**, never the Web Control Deck or the Deck alone, and a text on a page, in a dialog or on the setup checklist that sends the reader there has the Open the Control Deck button beside it (`Views/ControlDeckLink`: `Button` in a header, `Row` on a card, `DialogRow` under a dialog's note, `SetupFinding.NamesControlDeck` on the checklist), except a text that sends the reader to the Deck on the server itself, which a Control Panel on another machine cannot open (a settings tab's notice for a REST API that listens on the server alone). The button opens the REST listener's root, where the Deck is served, and while the REST API cannot serve it here - off, its listener's settings saved and not yet applied, on the loopback address seen from another machine, or beyond it without a certificate - it is disabled and says why (`Services/ControlDeck`). `ControlDeckTests` holds every English text to the one name and the dialogs' notes to their button.
 - **A tour is never the only way to do anything, and never blocks the product while it runs.** See *Tours* below.
 
+## Words
+
+One name for one thing, in every text the Control Panel shows, so that a reader who learns a word on one page meets the same word on the next (review findings F143 and F301). The catalogues translate these words once each; a translator who meets a second English word for the same thing writes a second word too.
+
+| Say | Not | Notes |
+|---|---|---|
+| **sign in** (the verb), **sign-in** (the noun), for people and mail clients alike | log on, logon, log in, login | *Logon* stays for Windows alone: Windows logon, `LogonUser`, a Windows account's logon restrictions, the service's *Log on as a service* right. A protocol's own word stays as the protocol spells it (`AUTH LOGIN`), as does a product's (Entra ID's *Login URL*) and a database's (a SQL Server login). Japanese says サインイン, and ログオン only after Windows. |
+| **mail** or **message** in prose, **email address** for the field | e-mail | The page *Delivery of e-mail* keeps its title until the page names are decided again; the texts that name it say its title. |
+| **smart host** | relayer, relay (for the server-wide host) | The Delivery of e-mail page's *Smart host* tab; a domain's own *Relay host* and a route are relays to a host of their own. |
+| **two-factor authentication** for the scheme, a **second factor** for what is enrolled | | *Two-factor* is the Administrative access page's tab. |
+| **hMailServer.ini**, the file's own name | hMailServer.INI | Its sections and keys as the file writes them: `[LDAP]`, `[Settings] SmtpTarpitCount`. |
+| **server error NNNN** | error NNNN, error HMNNNN | The number the server's log and event log give the condition. |
+| **Could not ...** | Couldn't ... | Whole words in every message. |
+| **client ID**, **key ID** | client id, key id | |
+| **connection security** | security | The setting a port, a route, a domain's relay and the directory share, and the TCP/IP ports grid's column. |
+
+A field's caption ends with no colon: the row's layout already says that the editor below belongs to it.
+
 ## Tours
 
 A tour teaches a page while somebody uses it. One mechanism, the same shape in all three surfaces - this

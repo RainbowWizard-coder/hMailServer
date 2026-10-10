@@ -169,7 +169,7 @@ namespace hMailServer.ControlPanel.Views
          page.Children.Add(new PageHeader
          {
             PageKey = "ldap",
-            Subtitle = L("Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.ini; the server re-reads that section within two seconds of a save, so these settings need no service restart."),
+            Subtitle = L("Accounts marked as directory-linked sign in with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.ini; the server re-reads that section within two seconds of a save, so these settings need no service restart."),
             Status = statePill_,
             Actions = BuildActions_()
          });
@@ -465,7 +465,7 @@ namespace hMailServer.ControlPanel.Views
          content.Children.Add(LabelledCheck_(allowUnprotected_,
             L("_Allow sending the password over an unprotected connection"),
             "ldap-allow-unprotected",
-            StoredAs_(L("Off by default. With unprotected LDAP and a simple bind, the server does NOT send the password and does NOT guess what you meant: it refuses the logon and reports the contradiction, once per minute. Turning this on sends passwords in the clear and should only ever happen on a network you control end to end."), "AllowUnprotectedPassword")));
+            StoredAs_(L("Off by default. With unprotected LDAP and a simple bind, the server does NOT send the password and does NOT guess what you meant: it refuses the sign-in and reports the contradiction, once per minute. Turning this on sends passwords in the clear and should only ever happen on a network you control end to end."), "AllowUnprotectedPassword")));
 
          return card;
       }
@@ -480,7 +480,7 @@ namespace hMailServer.ControlPanel.Views
             placeholder: ExamplePlaceholder.Of("DC=example,DC=local")));
 
          content.Children.Add(LabelledBox_(L("User search _filter"), userSearchFilter_, "ldap-user-search-filter",
-            StoredAs_(F("Left empty, the server uses the shipped filter, {0} - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design.", DefaultUserSearchFilter), "UserSearchFilter"),
+            StoredAs_(F("Left empty, the server uses the shipped filter, {0} - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile sign-in name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design.", DefaultUserSearchFilter), "UserSearchFilter"),
             placeholder: DefaultUserSearchFilter));
          // Wide, wrapping and monospaced, with the default named in the hint's
          // first sentence, as Directory synchronisation's filter is (F131).
@@ -546,7 +546,7 @@ namespace hMailServer.ControlPanel.Views
          content.Children.Add(LabelledCheck_(fallback_,
             L("Retr_y through Windows logon when the directory is unavailable"),
             "ldap-fallback",
-            StoredAs_(L("Off by default. When off, an unreachable directory refuses the logon and the server reports the real reason (throttled to once per minute per distinct problem) instead of retrying through Windows logon - which cannot succeed on a host that is not domain-joined, and whose failure would bury a precise diagnostic under an indistinguishable one. Turn on only on a domain-joined host that wants LDAP as its first choice. A password the directory REJECTED never falls back either way: retrying it would double every failed attempt and let one wrong password trigger a directory lockout policy."), "FallbackToWindowsLogon")));
+            StoredAs_(L("Off by default. When off, an unreachable directory refuses the sign-in and the server reports the real reason (throttled to once per minute per distinct problem) instead of retrying through Windows logon - which cannot succeed on a host that is not domain-joined, and whose failure would bury a precise diagnostic under an indistinguishable one. Turn on only on a domain-joined host that wants LDAP as its first choice. A password the directory REJECTED never falls back either way: retrying it would double every failed attempt and let one wrong password trigger a directory lockout policy."), "FallbackToWindowsLogon")));
 
          return card;
       }
@@ -613,7 +613,7 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetAutomationId(testPassword_, "ldap-test-password");
          content.Children.Add(new FieldRow
          {
-            Label = L("Password (optional - only to test a real lo_gon)"),
+            Label = L("Password (optional - only to test a real si_gn-in)"),
             Content = testPassword_,
             Hint = L("Used once for a test bind and never stored. With no password the test still proves the connection, the transport, the service credential and the search.")
          });
@@ -1169,13 +1169,13 @@ namespace hMailServer.ControlPanel.Views
          {
             level = StatusLevel.Warning;
             headline = MissingWhileEnabled_(serverMissing, searchBaseMissing);
-            detail = L("No LDAP authentication is attempted. Directory-linked accounts keep validating through Windows logon, and the server reports this (error 5922) once per minute so it cannot fail silently.");
+            detail = L("No LDAP authentication is attempted. Directory-linked accounts keep validating through Windows logon, and the server reports this (server error 5922) once per minute so it cannot fail silently.");
          }
          else if (!config.PasswordIsProtected() && !config.AllowUnprotectedPassword)
          {
             level = StatusLevel.Critical;
             headline = L("Every LDAP sign-in will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and 'Allow sending the password over an unprotected connection' is off.");
-            detail = L("The server fails closed rather than guessing (error 5921): no password is sent and the logon is refused. Fix it by choosing LDAPS or StartTLS, or the Negotiate bind method (which never transmits the password) - or, on a network you control end to end, by explicitly allowing the unprotected password.");
+            detail = L("The server fails closed rather than guessing (server error 5921): no password is sent and the sign-in is refused. Fix it by choosing LDAPS or StartTLS, or the Negotiate bind method (which never transmits the password) - or, on a network you control end to end, by explicitly allowing the unprotected password.");
          }
          else if (config.UsesSearch() && config.ServiceUsername.Length == 0)
          {
@@ -1901,7 +1901,7 @@ namespace hMailServer.ControlPanel.Views
 
          private static LdapProbeResult Unavailable(Session session, Snapshot config, string stage)
          {
-            string text = Sentences(F("Infrastructure failure, unrelated to any password - every account authenticated against this directory would be unable to log in. Stage: {0}. Directory: {1} over {2}. Reason: {3} (LDAP error {4}).",
+            string text = Sentences(F("Infrastructure failure, unrelated to any password - every account authenticated against this directory would be unable to sign in. Stage: {0}. Directory: {1} over {2}. Reason: {3} (LDAP error {4}).",
                   stage, config.Target(), config.TransportName(), DescribeError(session.LastError), session.LastError),
                string.IsNullOrEmpty(session.LastDiagnostic) ? null : F("The directory said: {0}", session.LastDiagnostic));
 
@@ -1960,7 +1960,7 @@ namespace hMailServer.ControlPanel.Views
                if (username.Length == 0)
                {
                   return LdapProbeResult.Make(StatusLevel.Good, Sentences([.. proven,
-                     L("Type a user name to also test the search and, with a password, a real logon.")]));
+                     L("Type a user name to also test the search and, with a password, a real sign-in.")]));
                }
 
                string filter = ExpandTemplate(config.EffectiveFilter(), username, domain, address, forFilter: true);
@@ -1973,7 +1973,7 @@ namespace hMailServer.ControlPanel.Views
                if (matchCount == 0)
                {
                   return LdapProbeResult.Make(StatusLevel.Warning, Sentences([.. proven,
-                     F("The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Windows directory tab, and the filter and search base against the directory.", filter, config.SearchBase)]));
+                     F("The search matched nothing (filter {0} under {1}). As a sign-in this is a refusal, not an outage - check the user name against the account's Windows directory tab, and the filter and search base against the directory.", filter, config.SearchBase)]));
                }
 
                if (matchCount > 1)
@@ -1997,7 +1997,7 @@ namespace hMailServer.ControlPanel.Views
             {
                if (config.UsesSearch())
                   return LdapProbeResult.Make(StatusLevel.Good, Sentences([.. proven,
-                     L("No password was typed, so no logon was tested - the infrastructure half all works.")]));
+                     L("No password was typed, so no sign-in was tested - the infrastructure half all works.")]));
 
                // Negotiate or DN-template mode with nothing to prove: the useful
                // test left is the connection itself.
@@ -2007,7 +2007,7 @@ namespace hMailServer.ControlPanel.Views
 
                string extra = config.BindMethod == 1
                   ? L("Negotiate binds authenticate per user, so type a user name, domain and password to test one.")
-                  : L("Type a user name and password to test a real logon through the DN template.");
+                  : L("Type a user name and password to test a real sign-in through the DN template.");
 
                return LdapProbeResult.Make(StatusLevel.Good, Sentences(
                   F("Connected to {0} over {1}.", config.Target(), config.TransportName()),
@@ -2039,7 +2039,7 @@ namespace hMailServer.ControlPanel.Views
             if (outcome == Outcome.Success)
             {
                return LdapProbeResult.Make(StatusLevel.Good, Sentences([.. proven,
-                  F("The directory ACCEPTED the credentials: bound as {0}. This account would log on.", boundAs)]));
+                  F("The directory ACCEPTED the credentials: bound as {0}. This account would sign in.", boundAs)]));
             }
 
             if (outcome == Outcome.Rejected)

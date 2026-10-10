@@ -1327,7 +1327,7 @@ namespace hMailServer.ControlPanel.Views
       {
          Card card = Section(F("TLS-RPT - ask other servers to report TLS failures when delivering to {0}", domain.Name), out StackPanel content);
 
-         content.Children.Add(Paragraph(F("Publishing this record asks every server that delivers to {0} to e-mail you a daily report when TLS to you fails or is downgraded. The reports go to the rua= mailbox, which must exist and accept mail from strangers. This works regardless of any hMailServer setting - the senders do the reporting.", domain.Name),
+         content.Children.Add(Paragraph(F("Publishing this record asks every server that delivers to {0} to mail you a daily report when TLS to you fails or is downgraded. The reports go to the rua= mailbox, which must exist and accept mail from strangers. This works regardless of any hMailServer setting - the senders do the reporting.", domain.Name),
             Typography.Caption));
 
          bool havePostmaster = domain.Postmaster.Contains("@");

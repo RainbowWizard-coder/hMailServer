@@ -88,7 +88,7 @@
                         <DataGridTextColumn x:Name="AddressColumn" Header="{loc:L 'Address'}" Binding="{Binding Address}" Width="170" />
                         <DataGridTextColumn x:Name="PortColumn" Header="{loc:L 'Port'}" Binding="{Binding Port}" Width="90"
                                             ElementStyle="{StaticResource GridNumberText}" HeaderStyle="{StaticResource GridNumberHeader}" />
-                        <DataGridTextColumn x:Name="SecurityColumn" Header="{loc:L 'Security'}" Binding="{Binding Security}" Width="180" />
+                        <DataGridTextColumn x:Name="SecurityColumn" Header="{loc:L 'Connection security'}" Binding="{Binding Security}" Width="180" />
                         <DataGridTextColumn x:Name="AuthColumn" Header="{loc:L 'SMTP authentication'}" Binding="{Binding Auth}" Width="170" />
                         <!-- A shape as well as a word, so the difference between a live
                              port and a dead one survives greyscale, colour blindness and

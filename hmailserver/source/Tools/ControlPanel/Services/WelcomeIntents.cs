@@ -66,7 +66,7 @@ namespace hMailServer.ControlPanel.Services
             N("What every spam check is doing right now, in the order the server runs them, and where each is switched on."),
             "spamoverview"),
          new WelcomeIntent(N("Someone is guessing passwords"),
-            N("Auto-ban by address, the per-name lockout, and the logon tarpit that makes each guess cost seconds."),
+            N("Auto-ban by address, the per-name lockout, and the sign-in tarpit that makes each guess cost seconds."),
             "autoban"),
          new WelcomeIntent(N("Let a device or printer send mail"),
             N("IP ranges: which addresses may relay, which must authenticate, and which are exempt from spam checks."),

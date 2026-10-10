@@ -115,7 +115,7 @@ namespace hMailServer.ControlPanel.Services
             N("Open the domain, then add the account - accounts live inside their domain.")),
          new IntentEntry(N("add a mailbox"), "domains",
             N("Accounts are added inside the domain that owns the address.")),
-         new IntentEntry(N("create an e-mail address"), "domains",
+         new IntentEntry(N("create an email address"), "domains",
             N("Add an account for a real mailbox, or an alias to point one address at another.")),
          new IntentEntry(N("add a domain"), "domains",
             N("Add the domain first; accounts, aliases and lists all hang off it.")),
@@ -142,7 +142,7 @@ namespace hMailServer.ControlPanel.Services
          new IntentEntry(N("remove a mailbox"), "domains",
             N("Open the domain, select the account, and delete it. Consider an alias if the address must keep receiving.")),
          new IntentEntry(N("disable an account"), "domains",
-            N("An account can be switched off without deleting it, which keeps the mail and refuses new logons.")),
+            N("An account can be switched off without deleting it, which keeps the mail and refuses new sign-ins.")),
          new IntentEntry(N("remove a domain"), "domains",
             N("Deleting a domain deletes the accounts inside it. Check for aliases and lists pointing at it first.")),
          new IntentEntry(N("remove an alias"), "domains",
@@ -205,7 +205,7 @@ namespace hMailServer.ControlPanel.Services
             N("Add an IP range with everything denied - ranges are matched most specific first.")),
          new IntentEntry(N("let a device send mail"), "ipranges",
             N("Add an IP range for the device that allows SMTP delivery without requiring authentication.")),
-         new IntentEntry(N("let the office printer send e-mail"), "ipranges",
+         new IntentEntry(N("let the office printer send mail"), "ipranges",
             N("Give the printer's address its own IP range with authentication not required.")),
          new IntentEntry(N("require authentication to send mail"), "ipranges",
             N("Turn on the require-authentication options for the range that covers your clients.")),
@@ -216,8 +216,8 @@ namespace hMailServer.ControlPanel.Services
          // for and the third showed them a lockout threshold. The page is now two
          // pages and the phrases point at the half each one is about.
          new IntentEntry(N("someone is trying to guess passwords"), "autoban",
-            N("Auto-ban locks out an address after repeated logon failures.")),
-         new IntentEntry(N("lock out repeated failed logons"), "autoban",
+            N("Auto-ban locks out an address after repeated failed sign-ins.")),
+         new IntentEntry(N("lock out repeated failed sign-ins"), "autoban",
             N("Set the auto-ban threshold and how long the lockout lasts.")),
          // Deliberately phrased with "unban" rather than "unblock": "block" is
          // folded onto by ban/deny/reject and is the word the IP ranges page owns,
@@ -247,7 +247,7 @@ namespace hMailServer.ControlPanel.Services
 
          // ---- Getting mail in and out --------------------------------------
          new IntentEntry(N("send all mail through my provider"), "delivery",
-            N("Set the SMTP relayer, and its credentials if the provider needs them.")),
+            N("Set the smart host, and its credentials if the provider needs them.")),
          new IntentEntry(N("send mail for one domain to a different server"), "routes",
             N("A route overrides MX lookup for named domains.")),
          new IntentEntry(N("retry failed deliveries sooner"), "delivery",
@@ -315,7 +315,7 @@ namespace hMailServer.ControlPanel.Services
          new IntentEntry(N("make awstats work"), "logging",
             N("Turn on the AWStats-compatible log. That is a separate file - the log line format setting does not change it.")),
          new IntentEntry(N("run code when mail arrives"), "scripts",
-            N("Event scripts run on delivery, logon and error events.")),
+            N("Event scripts run on delivery, sign-in and error events.")),
          new IntentEntry(N("keep a copy of every message"), "advanced",
             N("Archiving writes a copy of every message to a folder you choose.")),
          new IntentEntry(N("change a setting with no page"), "hardening",

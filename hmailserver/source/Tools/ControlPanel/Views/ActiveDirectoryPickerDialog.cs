@@ -177,7 +177,7 @@ namespace hMailServer.ControlPanel.Views
          // scalings (see the grids' note in docs/ControlPanelDesign.md).
          list_.Columns.Add(Column(L("Account"), nameof(AdUser.SamAccountName), 1));
          list_.Columns.Add(Column(L("Name"), nameof(AdUser.DisplayName), 1.2));
-         list_.Columns.Add(Column(L("E-mail"), nameof(AdUser.Email), 1.4));
+         list_.Columns.Add(Column(L("Email"), nameof(AdUser.Email), 1.4));
          ScrollViewer.SetHorizontalScrollBarVisibility(list_, ScrollBarVisibility.Disabled);
 
          AutomationProperties.SetName(list_, multiSelect_

@@ -699,7 +699,7 @@
   <data name="A spam trap is an address in one of your domains that nobody uses, so whoever writes to it is sending spam. These settings say what happens to a server that does. The trap addresses are declared per domain in the Control Deck; until a domain has one, nothing here does anything." xml:space="preserve">
     <value>垃圾邮件陷阱是你某个域中无人使用的地址，因此向它写信的人就是在发送垃圾邮件。这些设置决定这样做的服务器会遭遇什么。陷阱地址在 Control Deck 中按域声明；在域还没有任何陷阱地址时，这里的设置都不起作用。</value>
   </data>
-  <data name="A successful logon clears the name's counters, and attempts made while it is locked are not counted - so an attacker cannot hold a mailbox locked indefinitely with a trickle of guesses." xml:space="preserve">
+  <data name="A successful sign-in clears the name's counters, and attempts made while it is locked are not counted - so an attacker cannot hold a mailbox locked indefinitely with a trickle of guesses." xml:space="preserve">
     <value>一次成功登录会清除该名称的计数器，而锁定期间的尝试不计入计数 - 因此攻击者无法靠涓滴式的猜测把一个邮箱无限期地锁住。</value>
   </data>
   <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt." xml:space="preserve">
@@ -927,7 +927,7 @@
   <data name="Accounts in the group {0}" xml:space="preserve">
     <value>组 {0} 中的账户</value>
   </data>
-  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.ini; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
+  <data name="Accounts marked as directory-linked sign in with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.ini; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
     <value>标记为目录关联的账户，通过 LDAP 绑定使用其域密码登录 - 与 Windows 登录不同，这在未加入域的主机上同样有效，而这正是 DMZ 中的邮件服务器的常见情形。它会修改 hMailServer.ini 的 [LDAP] 节；服务器会在保存后两秒内重新读取该节，因此这些设置无需重启服务。</value>
   </data>
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Windows directory tab tick 'Check this password against Windows (Active Directory, or a local Windows account)' and fill in 'Windows user name' - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
@@ -1149,7 +1149,7 @@
   <data name="Add route" xml:space="preserve">
     <value>添加路由</value>
   </data>
-  <data name="Add signature to _local e-mail" xml:space="preserve">
+  <data name="Add signature to _local mail" xml:space="preserve">
     <value>为本地邮件添加签名(_L)</value>
   </data>
   <data name="Add signature to _replies" xml:space="preserve">
@@ -1542,7 +1542,7 @@
   <data name="An account address is required." xml:space="preserve">
     <value>需要账户地址。</value>
   </data>
-  <data name="An account can be switched off without deleting it, which keeps the mail and refuses new logons." xml:space="preserve">
+  <data name="An account can be switched off without deleting it, which keeps the mail and refuses new sign-ins." xml:space="preserve">
     <value>账户可以在不删除的情况下关闭，这样既保留邮件，又拒绝新的登录。</value>
   </data>
   <data name="An account encrypted at rest can be read by the server only while its mailbox key is open, which the account's password opens at sign-in." xml:space="preserve">
@@ -1945,10 +1945,10 @@
   <data name="Auto-ban IP ranges" xml:space="preserve">
     <value>自动封禁 IP 范围</value>
   </data>
-  <data name="Auto-ban by address, the per-name lockout, and the logon tarpit that makes each guess cost seconds." xml:space="preserve">
+  <data name="Auto-ban by address, the per-name lockout, and the sign-in tarpit that makes each guess cost seconds." xml:space="preserve">
     <value>按地址自动封禁、按用户名的锁定，以及让每一次猜测都要耗费数秒的登录延迟陷阱。</value>
   </data>
-  <data name="Auto-ban locks out an address after repeated logon failures." xml:space="preserve">
+  <data name="Auto-ban locks out an address after repeated failed sign-ins." xml:space="preserve">
     <value>自动封禁会在多次登录失败后把某个地址锁定在外。</value>
   </data>
   <data name="Auto-detect ClamWin" xml:space="preserve">
@@ -1974,6 +1974,9 @@
   </data>
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>自动证书（ACME）</value>
+  </data>
+  <data name="Automatic lockout of an address that keeps failing to sign in. The ban itself is an expiring IP range, so it is listed on the IP ranges page." xml:space="preserve">
+    <value>自动锁定反复登录失败的地址。封禁本身是一个会过期的 IP 范围，因此它会列在“IP 范围”页上。</value>
   </data>
   <data name="Automatic lockout of an address that keeps failing to sign in. The bans in force are listed first, each with Lift ban, which lets the address in again at once." xml:space="preserve">
     <value>自动锁定反复登录失败的地址。当前有效的封禁列在最前面，每项都带有“解除封禁”，可立即让该地址重新进入。</value>
@@ -2599,7 +2602,7 @@
   <data name="Checking…" xml:space="preserve">
     <value>正在检查…</value>
   </data>
-  <data name="Checks a new password against the published breach corpus when it is chosen - here, in the account editor, in the webmail, by a script or over the REST API - and refuses one that has appeared in it. Only the first five characters of the password's SHA-1 hash leave this server; the endpoint answers with every hash that begins with them, padded so that the size of the answer says nothing either, and the comparison is made here. It is never applied at logon, so a password that works today keeps working. Off by default, because it sends something off the server." xml:space="preserve">
+  <data name="Checks a new password against the published breach corpus when it is chosen - here, in the account editor, in the webmail, by a script or over the REST API - and refuses one that has appeared in it. Only the first five characters of the password's SHA-1 hash leave this server; the endpoint answers with every hash that begins with them, padded so that the size of the answer says nothing either, and the comparison is made here. It is never applied at sign-in, so a password that works today keeps working. Off by default, because it sends something off the server." xml:space="preserve">
     <value>在设置新密码时（无论是在这里、在账户编辑器、在网页邮箱、通过脚本还是通过 REST API），将其与公开的泄露密码语料库比对，并拒绝其中出现过的密码。离开本服务器的只有密码 SHA-1 哈希的前五个字符；端点会返回所有以这五个字符开头的哈希，并加以填充，使响应的大小也不透露任何信息，比对在本服务器上进行。登录时从不应用此检查，因此今天能用的密码会继续可用。默认关闭，因为它会向服务器外部发送内容。</value>
   </data>
   <data name="Checks the sender's SPF policy against the connecting address. A pass can also bypass greylisting." xml:space="preserve">
@@ -2713,7 +2716,7 @@
   <data name="Clear greylisting triplets" xml:space="preserve">
     <value>清除灰名单三元组</value>
   </data>
-  <data name="Clear logon-failure list" xml:space="preserve">
+  <data name="Clear sign-in failure list" xml:space="preserve">
     <value>清除登录失败列表</value>
   </data>
   <data name="Clear the recovery address" xml:space="preserve">
@@ -2740,6 +2743,9 @@
   <data name="Client ID" xml:space="preserve">
     <value>客户端 ID</value>
   </data>
+  <data name="Client ID this server introspects as" xml:space="preserve">
+    <value>本服务器进行内省时所用的客户端 ID</value>
+  </data>
   <data name="Client autoconfiguration (autoconfig &amp; autodiscover)" xml:space="preserve">
     <value>客户端自动配置（autoconfig 和 autodiscover）</value>
   </data>
@@ -2751,9 +2757,6 @@
   </data>
   <data name="Client certificates can only be requested or required on a port that uses SSL/TLS or STARTTLS. On a port with no connection security there is no TLS handshake, so no client would ever be asked for a certificate." xml:space="preserve">
     <value>只有在使用 SSL/TLS 或 STARTTLS 的端口上才能请求或要求客户端证书。在没有连接安全的端口上不存在 TLS 握手，因此永远不会向任何客户端索要证书。</value>
-  </data>
-  <data name="Client id this server introspects as" xml:space="preserve">
-    <value>本服务器进行内省时所用的客户端 id</value>
   </data>
   <data name="Client secret" xml:space="preserve">
     <value>客户端机密</value>
@@ -2923,7 +2926,7 @@
   <data name="Contact (sysContact)" xml:space="preserve">
     <value>联系人（sysContact）</value>
   </data>
-  <data name="Contact e-mail (CA expiry notices)" xml:space="preserve">
+  <data name="Contact email address (CA expiry notices)" xml:space="preserve">
     <value>联系电子邮件（CA 到期通知）</value>
   </data>
   <data name="Contact for push services (a mailto: or https: address)" xml:space="preserve">
@@ -3103,6 +3106,9 @@
   <data name="Could not determine the event-script path." xml:space="preserve">
     <value>无法确定事件脚本的路径。</value>
   </data>
+  <data name="Could not determine the executable from the command." xml:space="preserve">
+    <value>无法从该命令中确定可执行文件。</value>
+  </data>
   <data name="Could not empty the mailbox: {0}" xml:space="preserve">
     <value>无法清空该邮箱：{0}</value>
   </data>
@@ -3129,6 +3135,12 @@
   </data>
   <data name="Could not list the messages: {0}" xml:space="preserve">
     <value>无法列出邮件: {0}</value>
+  </data>
+  <data name="Could not load aliases: " xml:space="preserve">
+    <value>无法加载别名： </value>
+  </data>
+  <data name="Could not load distribution lists: " xml:space="preserve">
+    <value>无法加载分发列表： </value>
   </data>
   <data name="Could not load folders: " xml:space="preserve">
     <value>无法加载文件夹： </value>
@@ -3411,13 +3423,10 @@
   <data name="Could not write {0} to {1}" xml:space="preserve">
     <value>无法将 {0} 写入 {1}</value>
   </data>
-  <data name="Couldn't determine the executable from the command." xml:space="preserve">
-    <value>无法从该命令中确定可执行文件。</value>
-  </data>
   <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
     <value>将邮箱已满计为硬退信</value>
   </data>
-  <data name="Counted per account from the last login that was allowed, so a refused attempt does not push the next one further away. It is advertised only while it is set, because announcing a limit that is not enforced is worse than announcing nothing." xml:space="preserve">
+  <data name="Counted per account from the last sign-in that was allowed, so a refused attempt does not push the next one further away. It is advertised only while it is set, because announcing a limit that is not enforced is worse than announcing nothing." xml:space="preserve">
     <value>按账户从上一次被允许的登录起计数，因此被拒绝的尝试不会把下一次推得更远。只在设置了该值时才会通告，因为宣布一个并不强制执行的限制比什么都不宣布更糟。</value>
   </data>
   <data name="Counted per connecting IP address across every protocol that authenticates - SMTP AUTH, POP3, IMAP, ManageSieve and the REST API all feed the same counter. On reaching the limit the server clears that address's counted failures and creates an IP range named &quot;Auto-ban: &lt;user&gt;&quot; at priority 100 covering that one address, which expires on its own." xml:space="preserve">
@@ -3425,6 +3434,9 @@
   </data>
   <data name="Counted per user name rather than per address, across every protocol that authenticates, so a botnet spreading its guesses over thousands of addresses still locks the mailbox it is guessing at. A locked name is refused with the ordinary invalid-credentials reply and cannot be unlocked by typing the right password - the lock is checked first - so the ceiling is worth setting with the cost in mind. Failures against a name that does not exist lock that name too, deliberately: doing otherwise would let an attacker use the lockout to discover which accounts are real." xml:space="preserve">
     <value>按用户名而不是按地址计数，覆盖所有进行身份验证的协议，因此把猜测分散到数千个地址上的僵尸网络仍然会锁住它所猜测的那个邮箱。被锁定的用户名会以普通的凭据无效应答拒绝，而且无法通过输入正确密码来解锁 - 锁定会先被检查 - 因此设置此上限时值得权衡代价。针对不存在的用户名的失败同样会锁定该用户名，这是有意的：否则攻击者就能利用锁定来发现哪些账户是真实存在的。</value>
+  </data>
+  <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their &quot;Auto-ban:&quot; range expires - delete it on the IP ranges page to release one now." xml:space="preserve">
+    <value>已清除计数的登录失败。已被封禁的地址在其“Auto-ban:”范围过期之前仍保持封禁 - 要立即解除某一个，请在“IP 范围”页删除它。</value>
   </data>
   <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
     <value>已清除计数的登录失败。已被封禁的地址在其封禁结束之前仍保持封禁 - 在“当前封禁”下使用“解除封禁”可立即让其进入。</value>
@@ -3756,8 +3768,8 @@
   <data name="Default 10, allowed range 1 to 90. The server reads values below 1 as 10 and clamps values above 90, because &quot;wait forever&quot; for an unreachable directory is how connection threads get exhausted." xml:space="preserve">
     <value>默认 10，允许范围 1 至 90。服务器把小于 1 的值当作 10，并把大于 90 的值限制到 90，因为对无法访问的目录“永远等待”正是连接线程被耗尽的原因。</value>
   </data>
-  <data name="Default domain (for unqualified logons)" xml:space="preserve">
-    <value>默认域（用于不带域名的登录）</value>
+  <data name="Default domain (for sign-ins without a domain)" xml:space="preserve">
+    <value>默认域（用于不带域的登录）</value>
   </data>
   <data name="Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no &quot;never&quot; option." xml:space="preserve">
     <value>默认为 {0} 天，这也是 API 本身在请求未指定时使用的值。没有到期时间的密钥正是让管理员密码变得危险的那个特性，因此没有“永不”选项。</value>
@@ -3771,8 +3783,8 @@
   <data name="Delay for each further recipient (seconds, at most 30; 0 = off)" xml:space="preserve">
     <value>每增加一个收件人的延迟（秒，最多 30；0 = 关闭）</value>
   </data>
-  <data name="Delay per failed logon, multiplied by the failures so far on that connection (seconds; 0 = off)" xml:space="preserve">
-    <value>每次登录失败的延迟，乘以该连接上到目前为止的失败次数（秒；0 = 关闭）</value>
+  <data name="Delay per failed sign-in (seconds; 0 = off)" xml:space="preserve">
+    <value>每次登录失败的延迟（秒；0 = 关闭）</value>
   </data>
   <data name="Delete" xml:space="preserve">
     <value>删除</value>
@@ -4363,15 +4375,6 @@
   <data name="Due for delivery" xml:space="preserve">
     <value>等待投递</value>
   </data>
-  <data name="E-mail" xml:space="preserve">
-    <value>电子邮件</value>
-  </data>
-  <data name="E-mail address" xml:space="preserve">
-    <value>电子邮件地址</value>
-  </data>
-  <data name="E-mail every account on the server at once - for maintenance announcements." xml:space="preserve">
-    <value>一次性向服务器上的每个账户发送电子邮件 - 用于维护公告。</value>
-  </data>
   <data name="E_rrors" xml:space="preserve">
     <value>错误(_R)</value>
   </data>
@@ -4468,7 +4471,7 @@
   <data name="Edit the entry" xml:space="preserve">
     <value>编辑条目</value>
   </data>
-  <data name="Edit the event-handler script the server runs on delivery, logon and error events. The engine itself is switched on under Advanced." xml:space="preserve">
+  <data name="Edit the event-handler script the server runs on delivery, sign-in and error events. The engine itself is switched on under Advanced." xml:space="preserve">
     <value>编辑服务器在投递、登录和错误事件上运行的事件处理脚本。引擎本身在“高级”下打开。</value>
   </data>
   <data name="Edit the external account" xml:space="preserve">
@@ -4521,6 +4524,15 @@
   </data>
   <data name="Either the envelope sender's domain or the HELO name" xml:space="preserve">
     <value>信封发件人的域或 HELO 名称</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>电子邮件</value>
+  </data>
+  <data name="Email address" xml:space="preserve">
+    <value>电子邮件地址</value>
+  </data>
+  <data name="Email address to add to the list" xml:space="preserve">
+    <value>要添加到列表的电子邮件地址</value>
   </data>
   <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should. Worth doing when the index has more entries than the server has messages, which means entries for mail that no longer exists." xml:space="preserve">
     <value>清空索引并要求索引器重建。不会触及任何邮件 - 索引是派生数据 - 但在重建赶上进度之前，IMAP SEARCH 找到的结果会比应有的少。当索引中的条目比服务器上的邮件还多时值得这样做，因为那意味着存在指向已不存在邮件的条目。</value>
@@ -4891,7 +4903,7 @@
   <data name="Event scripts" xml:space="preserve">
     <value>事件脚本</value>
   </data>
-  <data name="Event scripts run on delivery, logon and error events." xml:space="preserve">
+  <data name="Event scripts run on delivery, sign-in and error events." xml:space="preserve">
     <value>事件脚本在投递、登录和错误事件上运行。</value>
   </data>
   <data name="Events - a message received, delivered, bounced or quarantined, an account locked - posted to the receivers subscribed in the Control Deck or over the REST API. Nothing is sent until a subscription exists." xml:space="preserve">
@@ -5134,7 +5146,7 @@
   <data name="External accounts fetch mail from a remote POP3 or IMAP mailbox into a local one." xml:space="preserve">
     <value>外部账户把邮件从远程 POP3 或 IMAP 邮箱收取到本地邮箱。</value>
   </data>
-  <data name="External accounts whose server is named here log in with a bearer token from the same token endpoint above; every other external account keeps USER/PASS. Collecting from Microsoft 365 with a password has not been possible since 2022." xml:space="preserve">
+  <data name="External accounts whose server is named here sign in with a bearer token from the same token endpoint above; every other external account keeps USER/PASS. Collecting from Microsoft 365 with a password has not been possible since 2022." xml:space="preserve">
     <value>服务器名称列在此处的外部账户会使用来自上面同一个令牌端点的持有者令牌登录；其他所有外部账户保持使用 USER/PASS。自 2022 年起，已无法用密码从 Microsoft 365 收取邮件。</value>
   </data>
   <data name="External filtering engine" xml:space="preserve">
@@ -5175,6 +5187,12 @@
   </data>
   <data name="Failed sign-ins as {0}" xml:space="preserve">
     <value>以 {0} 登录失败</value>
+  </data>
+  <data name="Failed sign-ins before an address is banned (0 = off)" xml:space="preserve">
+    <value>封禁地址前允许的登录失败次数（0 = 关闭）</value>
+  </data>
+  <data name="Failed sign-ins from a listed address are not counted at all, so it can never be banned. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine. Example: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. An entry that is not an address is reported by name in the error log and ignored." xml:space="preserve">
+    <value>来自列表中地址的登录失败根本不计数，因此它永远不会被封禁。在启用防火墙选项之前，请先在此填入您用于管理的地址：到达防火墙的封禁会把该地址挡在本机所有邮件端口之外。示例：192.0.2.10, 203.0.113.0/24, 2001:db8::/32。不是地址的条目会在错误日志中按名称报告并被忽略。</value>
   </data>
   <data name="Fails when the connecting address has no reverse DNS record." xml:space="preserve">
     <value>当连接地址没有反向 DNS 记录时判定失败。</value>
@@ -5293,6 +5311,9 @@
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>文件夹层次分隔符</value>
   </data>
+  <data name="Folder name" xml:space="preserve">
+    <value>文件夹名称</value>
+  </data>
   <data name="Folder name (use the hierarchy delimiter for sub-folders)" xml:space="preserve">
     <value>文件夹名称（子文件夹请使用层次分隔符）</value>
   </data>
@@ -5317,7 +5338,7 @@
   <data name="For a MinIO or Ceph gateway behind a CA of your own. The host name is checked either way." xml:space="preserve">
     <value>适用于位于自有证书颁发机构后面的 MinIO 或 Ceph 网关。无论如何都会验证主机名。</value>
   </data>
-  <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed logons, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the allowed and blocked domains still apply. Empty, the default, changes nothing." xml:space="preserve">
+  <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed sign-ins, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the allowed and blocked domains still apply. Empty, the default, changes nothing." xml:space="preserve">
     <value>适用于主机共用一个反向名称、地址经常变动的提供商：当连接地址的某个反向名称被此处的名称覆盖、并且正向解析回该地址时，该地址永远不会被自动封禁——无论是登录失败、垃圾邮件陷阱还是空发件人。其他检查一概不跳过：灰名单、SPF、DKIM、DMARC 以及允许与拦截的域仍然适用。为空（默认）时不做任何改变。</value>
   </data>
   <data name="For a record of who corresponds with whom, keeping it for ever should be a decision rather than a default - which is why 0 is offered as an option instead of being one." xml:space="preserve">
@@ -5677,7 +5698,7 @@
   <data name="Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious." xml:space="preserve">
     <value>保留附有可执行文件或文档的外部邮件，直到沙箱打开文件并答复干净或恶意。</value>
   </data>
-  <data name="Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on." xml:space="preserve">
+  <data name="Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed sign-ins costs the server nothing but the sockets they arrive on." xml:space="preserve">
     <value>在发送错误密码的拒绝应答之前先等待一段时间：连接上的第一次失败等待这么多秒，第二次等待两倍时间，依此类推，最多 30 秒，SMTP、POP3 和 IMAP 一视同仁。正确的密码永远不会被延迟。这个等待是连接上的定时器，而不是休眠的线程，因此大量失败登录除了它们所到达的套接字之外不会给服务器带来任何开销。</value>
   </data>
   <data name="Honeypot" xml:space="preserve">
@@ -5746,7 +5767,7 @@
   <data name="How a request names the bucket (S3)" xml:space="preserve">
     <value>请求如何指定存储桶（S3）</value>
   </data>
-  <data name="How account passwords are hashed, how much work a new hash costs, and the weakest stored hash still allowed to log on. Existing passwords keep their current hash until they are next changed - or, when a work factor was raised, until they are next used to log on." xml:space="preserve">
+  <data name="How account passwords are hashed, how much work a new hash costs, and the weakest stored hash still allowed to sign in. Existing passwords keep their current hash until they are next changed - or, when a work factor was raised, until they are next used to sign in." xml:space="preserve">
     <value>账户密码如何哈希、新哈希要花费多少工作量，以及仍允许登录的最弱存储哈希。现有密码保持其当前哈希，直到下一次更改 - 或者在工作因子提高后，直到下一次用它登录。</value>
   </data>
   <data name="How entries reach the collector" xml:space="preserve">
@@ -6037,7 +6058,7 @@
   <data name="Information" xml:space="preserve">
     <value>信息</value>
   </data>
-  <data name="Infrastructure failure, unrelated to any password - every account authenticated against this directory would be unable to log in. Stage: {0}. Directory: {1} over {2}. Reason: {3} (LDAP error {4})." xml:space="preserve">
+  <data name="Infrastructure failure, unrelated to any password - every account authenticated against this directory would be unable to sign in. Stage: {0}. Directory: {1} over {2}. Reason: {3} (LDAP error {4})." xml:space="preserve">
     <value>基础设施故障，与任何密码无关 - 针对此目录进行身份验证的每个账户都将无法登录。阶段：{0}。目录：{1}，通过 {2}。原因：{3}（LDAP 错误 {4}）。</value>
   </data>
   <data name="Initial delay (minutes)" xml:space="preserve">
@@ -6135,8 +6156,8 @@
   <data name="Issued" xml:space="preserve">
     <value>颁发时间</value>
   </data>
-  <data name="Issued by the provider together with the client id" xml:space="preserve">
-    <value>由提供方连同客户端 id 一起颁发</value>
+  <data name="Issued by the provider together with the client ID" xml:space="preserve">
+    <value>由提供方连同客户端 ID 一起颁发</value>
   </data>
   <data name="Issued certificates are stored in Data\ACME and assigned to TLS ports without a restart. Key reuse keeps published DANE TLSA records valid across renewals." xml:space="preserve">
     <value>颁发的证书存储在 Data\ACME 中，并且无需重启即可分配给 TLS 端口。密钥重用可以让已发布的 DANE TLSA 记录在续期后保持有效。</value>
@@ -6147,8 +6168,8 @@
   <data name="Issues and renews certificates automatically, but only if the certificate authority can fetch the http-01 challenge from this server." xml:space="preserve">
     <value>自动颁发和续期证书，但前提是证书颁发机构能够从本服务器获取 http-01 质询。</value>
   </data>
-  <data name="It governs two kinds of stored secret. Those bound to this machine - the database password in hMailServer.ini, the SMTP relayer password, and the passwords, tokens and passphrases of routes, external fetch accounts, SSL certificates and the rest kept in the database - are put in a Windows DPAPI envelope when they are next saved, or in the legacy Blowfish scheme while this is switched off. The secrets in the [Settings] section - the SRS and BATV secrets, the OAuth2 secrets, the metrics bearer token and HTTP Basic password, the Windows service account password and the GSSAPI service password - and each account's second factor are sealed under the installation's stored-secrets key once it has one, at the next start and at every save; switched off, the next start stores them as written again. Only the password pepper is always stored as you typed it, so hMailServer.ini should still be readable only by Administrators and by the account the service runs as." xml:space="preserve">
-    <value>它管理两类存储的机密。绑定到这台计算机的机密 - hMailServer.ini 中的数据库密码、SMTP 中继服务器密码，以及路由、外部收取账户、SSL 证书和数据库中其余内容的密码、令牌和密码短语 - 在下次保存时放入 Windows DPAPI 封装，关闭此项时则使用旧的 Blowfish 方案。[Settings] 部分中的机密 - SRS 和 BATV 机密、OAuth2 机密、指标持有者令牌和 HTTP Basic 密码、Windows 服务账户密码以及 GSSAPI 服务密码 - 和每个账户的第二因素，在安装拥有存储机密密钥后，于下次启动时和每次保存时用该密钥密封；关闭此项后，下次启动会再次按原样存储它们。只有密码 pepper 始终按您输入的原样存储，因此 hMailServer.ini 仍应只允许 Administrators 和服务运行所用的账户读取。</value>
+  <data name="It governs two kinds of stored secret. Those bound to this machine - the database password in hMailServer.ini, the smart host's password, and the passwords, tokens and passphrases of routes, external fetch accounts, SSL certificates and the rest kept in the database - are put in a Windows DPAPI envelope when they are next saved, or in the legacy Blowfish scheme while this is switched off. The secrets in the [Settings] section - the SRS and BATV secrets, the OAuth2 secrets, the metrics bearer token and HTTP Basic password, the Windows service account password and the GSSAPI service password - and each account's second factor are sealed under the installation's stored-secrets key once it has one, at the next start and at every save; switched off, the next start stores them as written again. Only the password pepper is always stored as you typed it, so hMailServer.ini should still be readable only by Administrators and by the account the service runs as." xml:space="preserve">
+    <value>它管理两类存储的机密。绑定到这台计算机的机密 - hMailServer.ini 中的数据库密码、智能主机密码，以及路由、外部收取账户、SSL 证书和数据库中其余内容的密码、令牌和密码短语 - 在下次保存时放入 Windows DPAPI 封装，关闭此项时则使用旧的 Blowfish 方案。[Settings] 部分中的机密 - SRS 和 BATV 机密、OAuth2 机密、指标持有者令牌和 HTTP Basic 密码、Windows 服务账户密码以及 GSSAPI 服务密码 - 和每个账户的第二因素，在安装拥有存储机密密钥后，于下次启动时和每次保存时用该密钥密封；关闭此项后，下次启动会再次按原样存储它们。只有密码 pepper 始终按您输入的原样存储，因此 hMailServer.ini 仍应只允许 Administrators 和服务运行所用的账户读取。</value>
   </data>
   <data name="It has no rua= tag, so nobody sends you reports - fine, but you learn nothing; add one when you have a mailbox for it." xml:space="preserve">
     <value>其中没有 rua= 标记，因此不会有人向您发送报告 - 这没有问题，但您也无从了解情况；等您有了接收报告的邮箱，再加上一个。</value>
@@ -6342,8 +6363,8 @@
   <data name="Leave empty to test only the infrastructure" xml:space="preserve">
     <value>留空则只测试基础设施</value>
   </data>
-  <data name="Leave the host empty and the domain has no opinion: the server-wide SMTP relayer applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination." xml:space="preserve">
-    <value>主机留空则该域不表态：应用服务器范围的 SMTP 中继服务器，与此设置出现之前完全一样。路由仍然优先于两者，因为路由是关于目标的声明。</value>
+  <data name="Leave the host empty and the domain has no opinion: the server-wide smart host applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination." xml:space="preserve">
+    <value>主机留空则该域不表态：应用服务器范围的智能主机，与此设置出现之前完全一样。路由仍然优先于两者，因为路由是关于目标的声明。</value>
   </data>
   <data name="Leave this account _out of the directory" xml:space="preserve">
     <value>不要把此帐户列入通讯录 (_I)</value>
@@ -6351,7 +6372,7 @@
   <data name="Left Edge" xml:space="preserve">
     <value>左边缘</value>
   </data>
-  <data name="Left empty, the server uses the shipped filter, {0} - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
+  <data name="Left empty, the server uses the shipped filter, {0} - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile sign-in name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>留空时，服务器使用出厂过滤器 {0} - 先用 objectCategory，因为它在 Active Directory 中有索引；再用 sAMAccountName，因为账户的“Windows 目录”选项卡存储的正是它。%u 是账户的 Active Directory 用户名，%d 是其 AD 域，%m 是其完整邮件地址；三者在替换前都会被转义，因此恶意的登录名无法改写过滤器。匹配到多个条目的过滤器不会验证任何人，这是有意为之。</value>
   </data>
   <data name="Left where they were: {0}. The first reason: {1}" xml:space="preserve">
@@ -6387,7 +6408,7 @@
   <data name="Let those events carry a message's s_ubject" xml:space="preserve">
     <value>允许这些事件携带邮件的主题(_U)</value>
   </data>
-  <data name="Lets Outlook, Thunderbird and mobile clients set themselves up from an e-mail address alone, by fetching this server's configuration URLs." xml:space="preserve">
+  <data name="Lets Outlook, Thunderbird and mobile clients set themselves up from an email address alone, by fetching this server's configuration URLs." xml:space="preserve">
     <value>让 Outlook、Thunderbird 和移动客户端仅凭电子邮件地址就能自行设置，方法是获取本服务器的配置 URL。</value>
   </data>
   <data name="Lets a client ask for the rest of the session to be compressed, which is worth most on a slow or metered link where a large mailbox listing is mostly repeated text. On by default; a client that does not ask is unaffected." xml:space="preserve">
@@ -6396,7 +6417,7 @@
   <data name="Lets a person bring their mail over from Gmail or Outlook.com by signing in there, without giving this server their password. Register this server with Google and with Microsoft first, with the redirect address that is the base address below followed by /portal/oauth/callback. A provider is offered once it has a client ID - and, for Google, a secret." xml:space="preserve">
     <value>让用户登录 Gmail 或 Outlook.com，把邮件从那里搬过来，而无需把密码告诉本服务器。请先在 Google 和 Microsoft 注册本服务器，重定向地址为下面的基础地址加上 /portal/oauth/callback。提供商一旦有了客户端 ID（Google 还需要密码）就会被提供。</value>
   </data>
-  <data name="Lets clients log on with bearer tokens from an identity provider instead of passwords; tokens are only accepted if their signature verifies against key material you install." xml:space="preserve">
+  <data name="Lets clients sign in with bearer tokens from an identity provider instead of passwords; tokens are only accepted if their signature verifies against key material you install." xml:space="preserve">
     <value>让客户端用来自身份提供方的持有者令牌而不是密码登录；只有当令牌的签名能通过您安装的密钥材料验证时才会被接受。</value>
   </data>
   <data name="Lets it through" xml:space="preserve">
@@ -6510,7 +6531,7 @@
   <data name="Lock a name after this many failures (0 = off)" xml:space="preserve">
     <value>在多少次失败后锁定用户名（0 = 关闭）</value>
   </data>
-  <data name="Lock out an address that keeps failing to log on - and let one back in that should not have been locked out; refuse or allow whole countries, and hold the mail of an account that looks taken over." xml:space="preserve">
+  <data name="Lock out an address that keeps failing to sign in - and let one back in that should not have been locked out; refuse or allow whole countries, and hold the mail of an account that looks taken over." xml:space="preserve">
     <value>把反复登录失败的地址锁定在外 - 并放行那些本不应被锁定的地址；拒绝或允许整个国家，并扣留看起来已被盗用的账户的邮件。</value>
   </data>
   <data name="Lockout duration (minutes)" xml:space="preserve">
@@ -6555,9 +6576,6 @@
   <data name="Logon failures" xml:space="preserve">
     <value>登录失败</value>
   </data>
-  <data name="Logon tarpit" xml:space="preserve">
-    <value>登录延迟陷阱</value>
-  </data>
   <data name="Longest such window, in minutes" xml:space="preserve">
     <value>此类窗口的最长时间 (分钟)</value>
   </data>
@@ -6570,7 +6588,7 @@
   <data name="Look up the MX records for any domain." xml:space="preserve">
     <value>查询任意域的 MX 记录。</value>
   </data>
-  <data name="Look up where e-mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
+  <data name="Look up where mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
     <value>查询某个域的电子邮件投递到哪里，以便在归咎于服务器之前先检查 DNS。</value>
   </data>
   <data name="Looking up {0}…" xml:space="preserve">
@@ -6899,9 +6917,6 @@
   <data name="Max delivery threads" xml:space="preserve">
     <value>最大投递线程数</value>
   </data>
-  <data name="Max invalid logon attempts" xml:space="preserve">
-    <value>最大无效登录尝试次数</value>
-  </data>
   <data name="Max message size (KB, 0 = unlimited)" xml:space="preserve">
     <value>最大邮件大小（KB，0 = 不限制）</value>
   </data>
@@ -7186,7 +7201,7 @@
   <data name="Minimum length (0 = no minimum)" xml:space="preserve">
     <value>最小长度（0 = 无最小值）</value>
   </data>
-  <data name="Minimum seconds between logins to one account (0 = no limit)" xml:space="preserve">
+  <data name="Minimum seconds between sign-ins to one account (0 = no limit)" xml:space="preserve">
     <value>同一账户两次登录之间的最小间隔秒数（0 = 不限制）</value>
   </data>
   <data name="Minimum severity that becomes an event" xml:space="preserve">
@@ -7465,8 +7480,8 @@
   <data name="No IP ranges, so this server refuses every SMTP, POP3 and IMAP connection until one exists." xml:space="preserve">
     <value>没有 IP 范围，因此在创建一个范围之前，此服务器会拒绝所有 SMTP、POP3 和 IMAP 连接。</value>
   </data>
-  <data name="No LDAP authentication is attempted. Directory-linked accounts keep validating through Windows logon, and the server reports this (error 5922) once per minute so it cannot fail silently." xml:space="preserve">
-    <value>不会尝试任何 LDAP 身份验证。关联目录的账户继续通过 Windows 登录验证，服务器每分钟报告一次这种情况（错误 5922），这样它就不会悄无声息地失败。</value>
+  <data name="No LDAP authentication is attempted. Directory-linked accounts keep validating through Windows logon, and the server reports this (server error 5922) once per minute so it cannot fail silently." xml:space="preserve">
+    <value>不会尝试任何 LDAP 身份验证。关联目录的账户继续通过 Windows 登录验证，服务器每分钟报告一次这种情况（服务器错误 5922），这样它就不会悄无声息地失败。</value>
   </data>
   <data name="No MX record was found for {0} through this machine's resolver." xml:space="preserve">
     <value>通过本机的解析器未找到 {0} 的 MX 记录。</value>
@@ -7813,7 +7828,7 @@
   <data name="No password on port 25 - the port other servers deliver to" xml:space="preserve">
     <value>端口 25 不接受密码 - 其他服务器投递邮件的端口</value>
   </data>
-  <data name="No password was typed, so no logon was tested - the infrastructure half all works." xml:space="preserve">
+  <data name="No password was typed, so no sign-in was tested - the infrastructure half all works." xml:space="preserve">
     <value>未输入密码，因此未测试登录 - 基础设施这一半全部正常。</value>
   </data>
   <data name="No pattern covers {0}, and it does not resolve back to {1}, so no pattern would spare the address." xml:space="preserve">
@@ -7930,7 +7945,7 @@
   <data name="None is needed for a public client, which PKCE makes safe." xml:space="preserve">
     <value>由 PKCE 保证安全的公共客户端不需要。</value>
   </data>
-  <data name="None of the selected accounts have an e-mail address." xml:space="preserve">
+  <data name="None of the selected accounts have an email address." xml:space="preserve">
     <value>所选账户都没有电子邮件地址。</value>
   </data>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
@@ -7942,7 +7957,7 @@
   <data name="None of the {0} most recent held messages has &quot;{1}&quot; in its sender, recipients, subject or reason. The server lists no more than those." xml:space="preserve">
     <value>最近的 {0} 封暂留邮件中，没有任何一封的发件人、收件人、主题或原因包含“{1}”。服务器列出的不超过这些。</value>
   </data>
-  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
+  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that signed in, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
     <value>这些都不适用于已通过身份验证的会话 - 对于已登录的客户端、来自关闭了垃圾邮件防护的 IP 范围的连接，以及反垃圾邮件豁免中的发件人和 IP 范围（条目：{0}），垃圾邮件防护会被完全跳过。</value>
   </data>
   <data name="None yet: make one with the button below." xml:space="preserve">
@@ -8188,7 +8203,7 @@
   <data name="OAuth2 is on and allows RS256, but 'RSA/EC public key file' on the Authentication page is empty - every RS256 token fails signature verification, so no client can sign in with a token. Install the identity provider's public key as a PEM file and choose it there." xml:space="preserve">
     <value>OAuth2 已启用并允许 RS256，但“身份验证”页上的“RSA/EC 公钥文件”为空 - 每个 RS256 令牌都会签名验证失败，因此没有客户端能用令牌登录。请把身份提供方的公钥安装为 PEM 文件，并在那里选择它。</value>
   </data>
-  <data name="OAuth2 is switched on but no client can log on with a token, because it is missing {0}. Signature verification cannot run at all, so every token is rejected and the log records only a failed logon - which reads as &quot;the password is wrong&quot; rather than as a configuration gap." xml:space="preserve">
+  <data name="OAuth2 is switched on but no client can sign in with a token, because it is missing {0}. Signature verification cannot run at all, so every token is rejected and the log records only a failed sign-in - which reads as &quot;the password is wrong&quot; rather than as a configuration gap." xml:space="preserve">
     <value>OAuth2 已打开，但没有客户端能用令牌登录，因为缺少 {0}。签名验证完全无法运行，因此每个令牌都被拒绝，日志只记录一次失败的登录 - 读起来像是“密码错误”而不是配置缺失。</value>
   </data>
   <data name="OK" xml:space="preserve">
@@ -8260,7 +8275,7 @@
   <data name="Off by default. Useful on shared machines." xml:space="preserve">
     <value>默认关闭。在共用计算机上很有用。</value>
   </data>
-  <data name="Off by default. When off, an unreachable directory refuses the logon and the server reports the real reason (throttled to once per minute per distinct problem) instead of retrying through Windows logon - which cannot succeed on a host that is not domain-joined, and whose failure would bury a precise diagnostic under an indistinguishable one. Turn on only on a domain-joined host that wants LDAP as its first choice. A password the directory REJECTED never falls back either way: retrying it would double every failed attempt and let one wrong password trigger a directory lockout policy." xml:space="preserve">
+  <data name="Off by default. When off, an unreachable directory refuses the sign-in and the server reports the real reason (throttled to once per minute per distinct problem) instead of retrying through Windows logon - which cannot succeed on a host that is not domain-joined, and whose failure would bury a precise diagnostic under an indistinguishable one. Turn on only on a domain-joined host that wants LDAP as its first choice. A password the directory REJECTED never falls back either way: retrying it would double every failed attempt and let one wrong password trigger a directory lockout policy." xml:space="preserve">
     <value>默认关闭。关闭时，无法访问的目录会拒绝登录，服务器报告真实原因（每个不同的问题每分钟最多一次），而不是通过 Windows 登录重试 - 那在未加入域的主机上不可能成功，而且其失败会把精确的诊断埋没在无法区分的诊断之下。只在希望把 LDAP 作为首选的已加入域的主机上打开。被目录拒绝的密码无论如何都不会回退：重试它会让每次失败尝试翻倍，并让一个错误密码触发目录锁定策略。</value>
   </data>
   <data name="Off by default. With it off nothing is queued and no push service is reached." xml:space="preserve">
@@ -8269,7 +8284,7 @@
   <data name="Off by default. With it off nothing is read, counted or written." xml:space="preserve">
     <value>默认关闭。关闭时不读取、不计数、也不写入任何内容。</value>
   </data>
-  <data name="Off by default. With unprotected LDAP and a simple bind, the server does NOT send the password and does NOT guess what you meant: it refuses the logon and reports the contradiction, once per minute. Turning this on sends passwords in the clear and should only ever happen on a network you control end to end." xml:space="preserve">
+  <data name="Off by default. With unprotected LDAP and a simple bind, the server does NOT send the password and does NOT guess what you meant: it refuses the sign-in and reports the contradiction, once per minute. Turning this on sends passwords in the clear and should only ever happen on a network you control end to end." xml:space="preserve">
     <value>默认关闭。在未受保护的 LDAP 配合简单绑定时，服务器不会发送密码，也不会猜测您的本意：它会拒绝登录并每分钟报告一次这一矛盾。打开此项会以明文发送密码，只应在您端到端完全掌控的网络上进行。</value>
   </data>
   <data name="Off by default. user@[192.0.2.7], user@localhost and user@co.uk are refused; MAIL FROM:&lt;&gt; has no domain and is not judged by this switch." xml:space="preserve">
@@ -8800,7 +8815,7 @@
   <data name="POP3 conversations to syslog" xml:space="preserve">
     <value>POP3 会话发送到 syslog</value>
   </data>
-  <data name="POP3 has no way for the server to tell a client that mail has arrived, so clients that want to look responsive poll - and some poll every few seconds. Each poll is a new connection, a TLS handshake and a password verification, which with Argon2id is deliberately expensive, so a handful of eager clients can cost more than the mail does. Setting a delay tells clients the interval in the server's capability list and refuses logins that arrive early with a code the client understands as &quot;slow down&quot; rather than as a wrong password." xml:space="preserve">
+  <data name="POP3 has no way for the server to tell a client that mail has arrived, so clients that want to look responsive poll - and some poll every few seconds. Each poll is a new connection, a TLS handshake and a password verification, which with Argon2id is deliberately expensive, so a handful of eager clients can cost more than the mail does. Setting a delay tells clients the interval in the server's capability list and refuses sign-ins that arrive early with a code the client understands as &quot;slow down&quot; rather than as a wrong password." xml:space="preserve">
     <value>POP3 没有办法让服务器告诉客户端邮件已到达，因此想要显得灵敏的客户端会轮询 - 有些每隔几秒就轮询一次。每次轮询都是一个新连接、一次 TLS 握手和一次密码验证，而用 Argon2id 时密码验证是有意昂贵的，因此少数几个急切的客户端的开销可能比邮件本身还大。设置延迟会在服务器的能力列表中告知客户端间隔，并用客户端理解为“慢一点”而不是“密码错误”的代码拒绝过早到达的登录。</value>
   </data>
   <data name="POP3 or IMAP mailboxes hMailServer collects mail from on behalf of this account. Connection security and port go together: SSL/TLS on 995 (POP3) or 993 (IMAP), STARTTLS on 110 or 143." xml:space="preserve">
@@ -8902,7 +8917,7 @@
   <data name="Password (leave empty to keep current)" xml:space="preserve">
     <value>密码（留空则保持当前密码）</value>
   </data>
-  <data name="Password (optional - only to test a real lo_gon)" xml:space="preserve">
+  <data name="Password (optional - only to test a real si_gn-in)" xml:space="preserve">
     <value>密码（可选 - 仅用于测试真实登录）(_J)</value>
   </data>
   <data name="Password hash for new or changed account passwords" xml:space="preserve">
@@ -9288,7 +9303,7 @@
   <data name="Publishing puts an account's OpenPGP public keys where other people's mail programs look for them: the Web Key Directory, served by the web services listener. A key is published only while the server's switch on the Webmail page, this domain's and the account's own are all on." xml:space="preserve">
     <value>发布会把账户的 OpenPGP 公钥放到其他人的邮件程序查找的位置：由 Web 服务监听器提供的 Web Key Directory。只有当“网页邮箱”页面上的服务器开关、此域的开关以及账户自己的开关都打开时，密钥才会发布。</value>
   </data>
-  <data name="Publishing this record asks every server that delivers to {0} to e-mail you a daily report when TLS to you fails or is downgraded. The reports go to the rua= mailbox, which must exist and accept mail from strangers. This works regardless of any hMailServer setting - the senders do the reporting." xml:space="preserve">
+  <data name="Publishing this record asks every server that delivers to {0} to mail you a daily report when TLS to you fails or is downgraded. The reports go to the rua= mailbox, which must exist and accept mail from strangers. This works regardless of any hMailServer setting - the senders do the reporting." xml:space="preserve">
     <value>发布此记录会要求每个向 {0} 投递的服务器在到您这里的 TLS 失败或被降级时，每天向您发送一份电子邮件报告。报告发往 rua= 邮箱，它必须存在并接受来自陌生人的邮件。这与任何 hMailServer 设置无关 - 报告由发送方完成。</value>
   </data>
   <data name="Push subscriptions removed" xml:space="preserve">
@@ -9766,7 +9781,7 @@
   <data name="Reject empty sender addresses (MAIL FROM:&lt;&gt;)" xml:space="preserve">
     <value>拒绝空的发件人地址（MAIL FROM:&lt;&gt;）</value>
   </data>
-  <data name="Reject logins using a weaker stored hash than" xml:space="preserve">
+  <data name="Reject sign-ins using a weaker stored hash than" xml:space="preserve">
     <value>拒绝使用弱于以下强度的已存储哈希的登录</value>
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
@@ -9801,9 +9816,6 @@
   </data>
   <data name="Relay requires authentication" xml:space="preserve">
     <value>中继需要身份验证</value>
-  </data>
-  <data name="Relayer" xml:space="preserve">
-    <value>中继服务器</value>
   </data>
   <data name="Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
     <value>中继到上游服务器、重试间隔、退信处理，以及本地邮件的处理方式。</value>
@@ -10479,9 +10491,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="SMTP conversations to syslog" xml:space="preserve">
     <value>SMTP 会话发送到 syslog</value>
   </data>
-  <data name="SMTP relayer (smart host)" xml:space="preserve">
-    <value>SMTP 中继服务器（智能主机）</value>
-  </data>
   <data name="SMTP server" xml:space="preserve">
     <value>SMTP 服务器</value>
   </data>
@@ -11052,7 +11061,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Seconds between verdict checks" xml:space="preserve">
     <value>查询判定的间隔秒数</value>
   </data>
-  <data name="Seconds to keep the JWK Set before re-fetching (a token naming an unknown key id re-fetches at once)" xml:space="preserve">
+  <data name="Seconds to keep the JWK Set before re-fetching (a token naming an unknown key ID re-fetches at once)" xml:space="preserve">
     <value>重新获取前保留 JWK Set 的秒数 (指明未知密钥 ID 的令牌会立即重新获取)</value>
   </data>
   <data name="Seconds to wait for the service after an apply before rolling back" xml:space="preserve">
@@ -11159,6 +11168,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Send a dail_y digest to the members who choose it" xml:space="preserve">
     <value>向选择接收的成员发送每日摘要(_Y)</value>
+  </data>
+  <data name="Send a message to every account on the server at once - for maintenance announcements." xml:space="preserve">
+    <value>一次性向服务器上的每个账户发送电子邮件 - 用于维护公告。</value>
   </data>
   <data name="Send alerts and the daily digest to" xml:space="preserve">
     <value>将警报和每日摘要发送到</value>
@@ -11385,6 +11397,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Server-wide secret mixed into password hashes" xml:space="preserve">
     <value>混入密码哈希的服务器范围机密</value>
   </data>
+  <data name="Server-wide smart host" xml:space="preserve">
+    <value>服务器范围的智能主机</value>
+  </data>
   <data name="Service account (search mode only)" xml:space="preserve">
     <value>服务账户 (仅搜索模式)</value>
   </data>
@@ -11454,9 +11469,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Set the HTTPS port on the Web services &amp; autoconfiguration page (RFC 8461 requires the policy over HTTPS), give the listener a certificate that covers mta-sts.&lt;domain&gt;, then for each domain publish an A/AAAA (or CNAME) record for mta-sts.&lt;domain&gt; pointing at this server and a TXT record at _mta-sts.&lt;domain&gt; (v=STSv1; id=...). This page checks the TXT record; the address record and the certificate's name coverage cannot be checked from here." xml:space="preserve">
     <value>在“Web 服务和自动配置”页面设置 HTTPS 端口（RFC 8461 要求通过 HTTPS 提供策略），为侦听器提供覆盖 mta-sts.&lt;domain&gt; 的证书，然后为每个域发布指向此服务器的 mta-sts.&lt;domain&gt; 的 A/AAAA（或 CNAME）记录，以及 _mta-sts.&lt;domain&gt; 的 TXT 记录（v=STSv1; id=...）。此页面检查 TXT 记录；地址记录和证书的名称覆盖范围无法从此处检查。</value>
   </data>
-  <data name="Set the SMTP relayer, and its credentials if the provider needs them." xml:space="preserve">
-    <value>设置 SMTP 中继，以及提供商需要时的凭据。</value>
-  </data>
   <data name="Set the auto-ban threshold and how long the lockout lasts." xml:space="preserve">
     <value>设置自动封禁阈值和锁定持续时间。</value>
   </data>
@@ -11477,6 +11489,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Set the resumption lifetime and ticket-key rotation, which bound how long a captured resumption secret stays useful." xml:space="preserve">
     <value>设置恢复有效期和票据密钥轮换，它们限制被截获的恢复机密能有效多久。</value>
+  </data>
+  <data name="Set the smart host, and its credentials if the provider needs them." xml:space="preserve">
+    <value>设置智能主机，以及提供商要求时的凭据。</value>
   </data>
   <data name="Set up Control-Panel-only two-factor authentication" xml:space="preserve">
     <value>设置仅控制面板的双因素身份验证</value>
@@ -11661,8 +11676,14 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Sign-in &amp; access" xml:space="preserve">
     <value>登录与访问</value>
   </data>
+  <data name="Sign-in _name attribute" xml:space="preserve">
+    <value>登录名属性(_N)</value>
+  </data>
   <data name="Sign-in cancelled." xml:space="preserve">
     <value>登录已取消。</value>
+  </data>
+  <data name="Sign-in tarpit" xml:space="preserve">
+    <value>登录延迟陷阱</value>
   </data>
   <data name="Sign-in to the webmail and the Control Deck" xml:space="preserve">
     <value>登录网页邮箱和 Control Deck</value>
@@ -11762,6 +11783,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Smallest part held once (KB; 0 holds nothing once)" xml:space="preserve">
     <value>只存一次的最小部分（KB；0 表示不只存一次任何部分）</value>
+  </data>
+  <data name="Smart host" xml:space="preserve">
+    <value>智能主机</value>
   </data>
   <data name="Soft" xml:space="preserve">
     <value>软退信</value>
@@ -12483,7 +12507,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The accounts, mailboxes and quarantine of named domains." xml:space="preserve">
     <value>指定域的账户、邮箱和隔离。</value>
   </data>
-  <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
+  <data name="The address is banned as a run of failed sign-ins bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>该地址会像连续登录失败那样被一个会过期的 IP 范围封禁，但“自动封禁”页上“永不自动封禁这些地址”中的地址和入站中继永远不会被封禁。默认关闭，上面的拒绝关闭时不起任何作用。</value>
   </data>
   <data name="The address is shown masked here and everywhere else, and no interface answers it whole: it is a mailbox belonging to the person, and nothing an administrator does needs to read it." xml:space="preserve">
@@ -12705,8 +12729,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The certificate files are on the server and this Control Panel is connected to it remotely, so expiry dates and file contents cannot be checked from here. Everything else on this page is read over COM and is accurate." xml:space="preserve">
     <value>证书文件在服务器上，而此控制面板是远程连接到服务器的，因此无法从此处检查到期日期和文件内容。本页的其他所有内容都通过 COM 读取，是准确的。</value>
   </data>
-  <data name="The certificate is not valid until {0}. The server serves it (error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
-    <value>证书在 {0} 之前尚未生效。服务器仍会提供它 (应用程序日志中的错误 5991)，而客户端在该日期之前都会拒绝它 - 请检查证书和本服务器的时钟。</value>
+  <data name="The certificate is not valid until {0}. The server serves it (server error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
+    <value>证书在 {0} 之前尚未生效。服务器仍会提供它 (应用程序日志中的服务器错误 5991)，而客户端在该日期之前都会拒绝它 - 请检查证书和本服务器的时钟。</value>
   </data>
   <data name="The certificate keeps its place on every TCP/IP port that presents it. Those ports read the files again when the server is next reinitialised." xml:space="preserve">
     <value>该证书在出示它的每个 TCP/IP 端口上保持不变。这些端口会在服务器下次重新初始化时重新读取文件。</value>
@@ -12836,7 +12860,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The delivery that takes a mailbox past this percentage produces one notice to the person whose mailbox it is, from their own domain's postmaster. ONE, not one per message: the server treats the threshold as something the mailbox CROSSES rather than a state it is in, so a mailbox sitting at 95% is not warned about again on every delivery - which would fill it faster than the mail does. Emptying the mailbox and filling it again warns again, which is the behaviour anyone would expect and is free here rather than something that had to be remembered and expired. On by default, because the alternative is what this server did before: say nothing at all until mail starts being refused, by which point the person it happens to is the last to know." xml:space="preserve">
     <value>使邮箱越过此百分比的那次投递，会以该邮箱所属域的 postmaster 名义向邮箱所有者发出一条通知。只有一条，而不是每封邮件一条: 服务器把阈值当作邮箱“越过”的一条线，而不是它所处的一种状态，因此停留在 95% 的邮箱不会在每次投递时都被再次警告 - 那样填满邮箱的速度会比邮件本身还快。清空邮箱再重新填满会再次警告，这是任何人都会预期的行为，而且在这里无需记录和过期机制就自然实现了。默认开启，因为另一种做法就是本服务器以前的做法: 在邮件开始被拒绝之前什么也不说，而到那时，受影响的人是最后一个知道的。</value>
   </data>
-  <data name="The directory ACCEPTED the credentials: bound as {0}. This account would log on." xml:space="preserve">
+  <data name="The directory ACCEPTED the credentials: bound as {0}. This account would sign in." xml:space="preserve">
     <value>目录已接受该凭据: 以 {0} 身份绑定。该账户可以登录。</value>
   </data>
   <data name="The directory answered and REFUSED these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see." xml:space="preserve">
@@ -13470,7 +13494,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The search matched more than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make the user search filter or the search base select exactly one entry." xml:space="preserve">
     <value>搜索匹配了多于一个目录条目 (过滤器 {0}，基准 {1})。服务器拒绝针对有歧义的匹配进行身份验证 - 请让用户搜索过滤器或搜索基准只选出恰好一个条目。</value>
   </data>
-  <data name="The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Windows directory tab, and the filter and search base against the directory." xml:space="preserve">
+  <data name="The search matched nothing (filter {0} under {1}). As a sign-in this is a refusal, not an outage - check the user name against the account's Windows directory tab, and the filter and search base against the directory." xml:space="preserve">
     <value>搜索没有匹配到任何内容 (在 {1} 下使用过滤器 {0})。作为登录，这是拒绝而不是故障 - 请对照账户的“Windows 目录”选项卡检查用户名，对照目录检查过滤器和搜索基准。</value>
   </data>
   <data name="The search stops when this is reached and the client is told the search failed, rather than being given a partial result it would mistake for a complete one." xml:space="preserve">
@@ -13533,8 +13557,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The server does not answer {0} in {1}; it may be older than this Control Panel." xml:space="preserve">
     <value>服务器在 {1} 上不响应 {0}；它可能比此控制面板旧。</value>
   </data>
-  <data name="The server fails closed rather than guessing (error 5921): no password is sent and the logon is refused. Fix it by choosing LDAPS or StartTLS, or the Negotiate bind method (which never transmits the password) - or, on a network you control end to end, by explicitly allowing the unprotected password." xml:space="preserve">
-    <value>服务器宁可安全失败也不猜测 (错误 5921): 不发送密码，登录被拒绝。修复方法是选择 LDAPS 或 StartTLS，或选择 Negotiate 绑定方法 (它从不传输密码) - 或者，在您端到端控制的网络上，明确允许未受保护的密码。</value>
+  <data name="The server fails closed rather than guessing (server error 5921): no password is sent and the sign-in is refused. Fix it by choosing LDAPS or StartTLS, or the Negotiate bind method (which never transmits the password) - or, on a network you control end to end, by explicitly allowing the unprotected password." xml:space="preserve">
+    <value>服务器宁可安全失败也不猜测 (服务器错误 5921): 不发送密码，登录被拒绝。修复方法是选择 LDAPS 或 StartTLS，或选择 Negotiate 绑定方法 (它从不传输密码) - 或者，在您端到端控制的网络上，明确允许未受保护的密码。</value>
   </data>
   <data name="The server found no mail servers for {0}, so mail sent to that domain from this server would not be deliverable right now." xml:space="preserve">
     <value>服务器没有找到 {0} 的邮件服务器，因此从本服务器发往该域的邮件目前无法投递。</value>
@@ -14134,7 +14158,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Token introspection endpoint (RFC 7662; empty = no revocation check)" xml:space="preserve">
     <value>令牌自省端点 (RFC 7662；为空 = 不做吊销检查)</value>
   </data>
-  <data name="Tokens are accepted, but {0}: the server applies each of those only when you have set it, and blank is the default. That is wider than it looks. Any token your identity provider signs with this key is accepted - including one it issued to a different application entirely, which is enough to log in as whichever mailbox that token names. Set both to the exact values your provider puts in its tokens." xml:space="preserve">
+  <data name="Tokens are accepted, but {0}: the server applies each of those only when you have set it, and blank is the default. That is wider than it looks. Any token your identity provider signs with this key is accepted - including one it issued to a different application entirely, which is enough to sign in as whichever mailbox that token names. Set both to the exact values your provider puts in its tokens." xml:space="preserve">
     <value>令牌会被接受，但 {0}: 服务器只在您设置了它们时才逐一应用，而默认为空。这比看起来的范围要宽。您的身份提供者用此密钥签名的任何令牌都会被接受 - 包括它签发给完全不同的应用程序的令牌，而这足以登录该令牌所指定的任何邮箱。请把两者都设为您的提供者放入令牌中的确切值。</value>
   </data>
   <data name="Tokens are also accepted over unencrypted connections, so a recorded one can be replayed until it expires." xml:space="preserve">
@@ -14278,10 +14302,10 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Type a domain and press Query. The answer lists the servers that receive that domain's mail, most preferred first, as this server's own resolver sees them." xml:space="preserve">
     <value>输入域名并点击 查询。结果按优先级从高到低列出接收该域邮件的服务器，即本服务器自身的解析器所看到的结果。</value>
   </data>
-  <data name="Type a user name and password to test a real logon through the DN template." xml:space="preserve">
+  <data name="Type a user name and password to test a real sign-in through the DN template." xml:space="preserve">
     <value>输入用户名和密码，通过 DN 模板测试一次真实登录。</value>
   </data>
-  <data name="Type a user name to also test the search and, with a password, a real logon." xml:space="preserve">
+  <data name="Type a user name to also test the search and, with a password, a real sign-in." xml:space="preserve">
     <value>输入用户名以同时测试搜索；再加上密码，则测试一次真实登录。</value>
   </data>
   <data name="Type the administrator password in use now." xml:space="preserve">
@@ -14662,7 +14686,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="What happened to a particular message. Search by any address - it matches senders and recipients - then follow one row to see every event for that message in order." xml:space="preserve">
     <value>某一封邮件遭遇了什么。按任意地址搜索 - 它会匹配发件人和收件人 - 然后沿着一行查看该邮件的每个事件的先后顺序。</value>
   </data>
-  <data name="What happens to a TCP connection this server refuses before any protocol conversation starts: one from an address no IP range allows, or one over that range's connection limit. Both of those are configured on the IP ranges page. Locking out an address that keeps failing to log on is a different mechanism entirely and is on the Auto-ban page." xml:space="preserve">
+  <data name="What happens to a TCP connection this server refuses before any protocol conversation starts: one from an address no IP range allows, or one over that range's connection limit. Both of those are configured on the IP ranges page. Locking out an address that keeps failing to sign in is a different mechanism entirely and is on the Auto-ban page." xml:space="preserve">
     <value>对于本服务器在任何协议会话开始之前就拒绝的 TCP 连接会发生什么: 来自没有任何 IP 范围允许的地址的连接，或超过该范围连接上限的连接。这两者都在“IP 范围”页配置。把反复登录失败的地址锁定在外是完全不同的机制，位于“自动封禁”页。</value>
   </data>
   <data name="What happens to a listed recipient" xml:space="preserve">
@@ -15565,9 +15589,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Log" xml:space="preserve">
     <value>日志(_L)</value>
   </data>
-  <data name="_Logon name attribute" xml:space="preserve">
-    <value>登录名属性(_L)</value>
-  </data>
   <data name="_Lower IP" xml:space="preserve">
     <value>起始 IP(_L)</value>
   </data>
@@ -15757,8 +15778,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Reinitialise" xml:space="preserve">
     <value>重新初始化(_R)</value>
   </data>
-  <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
-    <value>中继主机(_R)（留空 = 使用服务器范围的中继服务器）</value>
+  <data name="_Relay host (empty = the server-wide smart host)" xml:space="preserve">
+    <value>中继主机(_R)（留空 = 服务器范围的智能主机）</value>
   </data>
   <data name="_Reload" xml:space="preserve">
     <value>重新加载(_R)</value>
@@ -16099,7 +16120,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="contains" xml:space="preserve">
     <value>包含</value>
   </data>
-  <data name="create an e-mail address" xml:space="preserve">
+  <data name="create an email address" xml:space="preserve">
     <value>创建电子邮件地址</value>
   </data>
   <data name="dash-dotted line" xml:space="preserve">
@@ -16421,7 +16442,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="let a sender through the spam filter" xml:space="preserve">
     <value>让某个发件人通过垃圾邮件过滤</value>
   </data>
-  <data name="let the office printer send e-mail" xml:space="preserve">
+  <data name="let the office printer send mail" xml:space="preserve">
     <value>让办公室打印机可以发送电子邮件</value>
   </data>
   <data name="limit how long a tls session can be resumed" xml:space="preserve">
@@ -16433,7 +16454,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="list entry" xml:space="preserve">
     <value>名单条目</value>
   </data>
-  <data name="lock out repeated failed logons" xml:space="preserve">
+  <data name="lock out repeated failed sign-ins" xml:space="preserve">
     <value>锁定反复失败的登录</value>
   </data>
   <data name="logon from this computer is not permitted" xml:space="preserve">
@@ -16910,8 +16931,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="write the log to a database" xml:space="preserve">
     <value>把日志写入数据库</value>
   </data>
-  <data name="your application / client id" xml:space="preserve">
-    <value>您的应用程序 / 客户端 id</value>
+  <data name="your application / client ID" xml:space="preserve">
+    <value>您的应用程序 / 客户端 ID</value>
   </data>
   <data name="{0}  (not subscribed)" xml:space="preserve">
     <value>{0}  （未订阅）</value>
@@ -17702,10 +17723,10 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} with no usable digest, which the server ignores" xml:space="preserve">
     <value>{0} 没有可用的摘要，服务器会将其忽略</value>
   </data>
-  <data name="{0} {1} account had no e-mail address and was skipped." xml:space="preserve">
+  <data name="{0} {1} account had no email address and was skipped." xml:space="preserve">
     <value>{0}有 {1} 个账户没有电子邮件地址，已被跳过。</value>
   </data>
-  <data name="{0} {1} accounts had no e-mail address and were skipped." xml:space="preserve">
+  <data name="{0} {1} accounts had no email address and were skipped." xml:space="preserve">
     <value>{0}有 {1} 个账户没有电子邮件地址，已被跳过。</value>
   </data>
   <data name="{0} {1} message is on its way into them and arrives in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
@@ -17780,7 +17801,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0}. Active: {1} of {2}." xml:space="preserve">
     <value>{0}。已启用：{1}/{2}。</value>
   </data>
-  <data name="{0}. Any token the identity provider signs with this key is then accepted, including one it issued to a different application - which is enough to log in as whichever mailbox that token names. Set both to the exact values the provider puts in its tokens. The values come from the provider, which is why they are on this list." xml:space="preserve">
+  <data name="{0}. Any token the identity provider signs with this key is then accepted, including one it issued to a different application - which is enough to sign in as whichever mailbox that token names. Set both to the exact values the provider puts in its tokens. The values come from the provider, which is why they are on this list." xml:space="preserve">
     <value>{0}。这样一来，身份提供方用此密钥签名的任何令牌都会被接受，包括它签发给另一个应用程序的令牌 - 而那已经足以让人以该令牌所指的任意邮箱身份登录。请把两者都设置为提供方写进其令牌中的确切值。这些值来自提供方，这也正是它们出现在此列表中的原因。</value>
   </data>
   <data name="{0}. No entries are configured, so the check does not run." xml:space="preserve">

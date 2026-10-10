@@ -1933,7 +1933,7 @@ namespace hMailServer.ControlPanel.Views
             return new WarningState
             {
                Level = StatusLevel.Warning,
-               Text = F("OAuth2 is switched on but no client can log on with a token, because it is missing {0}. Signature verification cannot run at all, so every token is rejected and the log records only a failed logon - which reads as \"the password is wrong\" rather than as a configuration gap.", string.Join("; ", blocking))
+               Text = F("OAuth2 is switched on but no client can sign in with a token, because it is missing {0}. Signature verification cannot run at all, so every token is rejected and the log records only a failed sign-in - which reads as \"the password is wrong\" rather than as a configuration gap.", string.Join("; ", blocking))
             };
          }
 
@@ -1964,7 +1964,7 @@ namespace hMailServer.ControlPanel.Views
             return new WarningState
             {
                Level = StatusLevel.Warning,
-               Text = Sentences(F("Tokens are accepted, but {0}: the server applies each of those only when you have set it, and blank is the default. That is wider than it looks. Any token your identity provider signs with this key is accepted - including one it issued to a different application entirely, which is enough to log in as whichever mailbox that token names. Set both to the exact values your provider puts in its tokens.", unchecked_),
+               Text = Sentences(F("Tokens are accepted, but {0}: the server applies each of those only when you have set it, and blank is the default. That is wider than it looks. Any token your identity provider signs with this key is accepted - including one it issued to a different application entirely, which is enough to sign in as whichever mailbox that token names. Set both to the exact values your provider puts in its tokens.", unchecked_),
                   LiveBool_("OAuth2RequireTLS", true)
                      ? null
                      : L("Tokens are also accepted over unencrypted connections, so a recorded one can be replayed until it expires."))
@@ -2328,7 +2328,7 @@ namespace hMailServer.ControlPanel.Views
                   Settings =
                   {
                      new BoolSetting { Key = "AcmeEnabled", Default = false, Label = L("Issue and renew certificates automatically") },
-                     new TextSetting { Key = "AcmeContactEmail", DependsOn = AcmeSwitch, Label = L("Contact e-mail (CA expiry notices)"), Placeholder = "admin@yourdomain.com" },
+                     new TextSetting { Key = "AcmeContactEmail", DependsOn = AcmeSwitch, Label = L("Contact email address (CA expiry notices)"), Placeholder = "admin@yourdomain.com" },
                      new TextSetting { Key = "AcmeDomains", DependsOn = AcmeSwitch, Label = L("Host names for the certificate (comma separated)"), Placeholder = "mail.yourdomain.com, mta-sts.yourdomain.com" }, // no-loc
                      new TextSetting { Key = "AcmeDirectoryUrl", DependsOn = AcmeSwitch, Default = "https://acme-v02.api.letsencrypt.org/directory", Placeholder = "https://acme-v02.api.letsencrypt.org/directory", Label = L("ACME directory URL") }, // no-loc: a URL
                      new NumberSetting { Key = "AcmeHttpPort", DependsOn = AcmeSwitch, Minimum = 1, Maximum = 65535, Default = "80", Label = L("Port for http-01 challenges") },
@@ -2835,7 +2835,7 @@ namespace hMailServer.ControlPanel.Views
                   // setting, and the blurb says which page each of those is on so
                   // nobody comes here looking for one and changes this instead.
                   Title = L("Refused connections"),
-                  Blurb = L("What happens to a TCP connection this server refuses before any protocol conversation starts: one from an address no IP range allows, or one over that range's connection limit. Both of those are configured on the IP ranges page. Locking out an address that keeps failing to log on is a different mechanism entirely and is on the Auto-ban page."),
+                  Blurb = L("What happens to a TCP connection this server refuses before any protocol conversation starts: one from an address no IP range allows, or one over that range's connection limit. Both of those are configured on the IP ranges page. Locking out an address that keeps failing to sign in is a different mechanism entirely and is on the Auto-ban page."),
                   Settings =
                   {
                      new NumberSetting
@@ -2992,7 +2992,7 @@ namespace hMailServer.ControlPanel.Views
                         Key = "ProtectStoredSecretsWithDPAPI",
                         Default = true,
                         Label = L("Protect stored secrets with Windows DPAPI"),
-                        Blurb = L("It governs two kinds of stored secret. Those bound to this machine - the database password in hMailServer.ini, the SMTP relayer password, and the passwords, tokens and passphrases of routes, external fetch accounts, SSL certificates and the rest kept in the database - are put in a Windows DPAPI envelope when they are next saved, or in the legacy Blowfish scheme while this is switched off. The secrets in the [Settings] section - the SRS and BATV secrets, the OAuth2 secrets, the metrics bearer token and HTTP Basic password, the Windows service account password and the GSSAPI service password - and each account's second factor are sealed under the installation's stored-secrets key once it has one, at the next start and at every save; switched off, the next start stores them as written again. Only the password pepper is always stored as you typed it, so hMailServer.ini should still be readable only by Administrators and by the account the service runs as.")
+                        Blurb = L("It governs two kinds of stored secret. Those bound to this machine - the database password in hMailServer.ini, the smart host's password, and the passwords, tokens and passphrases of routes, external fetch accounts, SSL certificates and the rest kept in the database - are put in a Windows DPAPI envelope when they are next saved, or in the legacy Blowfish scheme while this is switched off. The secrets in the [Settings] section - the SRS and BATV secrets, the OAuth2 secrets, the metrics bearer token and HTTP Basic password, the Windows service account password and the GSSAPI service password - and each account's second factor are sealed under the installation's stored-secrets key once it has one, at the next start and at every save; switched off, the next start stores them as written again. Only the password pepper is always stored as you typed it, so hMailServer.ini should still be readable only by Administrators and by the account the service runs as.")
                      }
                   }
                });
@@ -3102,7 +3102,7 @@ namespace hMailServer.ControlPanel.Views
                      new BoolSetting { Key = "OAuth2Enabled", Default = false, Label = L("Accept OAuth2 bearer tokens (XOAUTH2)"), Blurb = L("While this is off the server uses none of the settings below, so they cannot be changed until it is on.") },
                      new BoolSetting { Key = "OAuth2RequireTLS", DependsOn = OAuth2Switch, Default = true, Label = L("Require TLS for token authentication") },
                      new TextSetting { Key = "OAuth2Issuer", DependsOn = OAuth2Switch, Label = L("Expected token issuer (iss)"), Placeholder = ExamplePlaceholder.Of("https://login.microsoftonline.com/<tenant>/v2.0") }, // no-loc: an example issuer, the same in every language
-                     new TextSetting { Key = "OAuth2Audience", DependsOn = OAuth2Switch, Label = L("Expected audience (aud)"), Placeholder = L("your application / client id") },
+                     new TextSetting { Key = "OAuth2Audience", DependsOn = OAuth2Switch, Label = L("Expected audience (aud)"), Placeholder = L("your application / client ID") },
                      new TextSetting { Key = "OAuth2AllowedAlgorithms", DependsOn = OAuth2Switch, Default = "RS256", Label = L("Allowed signing algorithms (comma separated)"), Placeholder = "RS256, ES256" }, // no-loc
                      new TextSetting { Key = "OAuth2UsernameClaim", DependsOn = OAuth2Switch, Default = "email", Label = L("Claim that holds the mailbox address"), Placeholder = "email" },
                      new PathSetting { Key = "OAuth2PublicKeyFile", DependsOn = OAuth2Switch, FileFilter = L("PEM/key files (*.pem;*.crt;*.cer;*.key;*.pub)|*.pem;*.crt;*.cer;*.key;*.pub|All files (*.*)|*.*"), Label = L("RSA/EC public key file (PEM, for RS*/ES* tokens)"), Placeholder = L("Path to the issuer's public key") },
@@ -3111,10 +3111,10 @@ namespace hMailServer.ControlPanel.Views
                      // published keys instead of a hand-copied PEM file, and a live
                      // revocation check after a token verifies.
                      new TextSetting { Key = "OAuth2JwksUrl", DependsOn = OAuth2Switch, Label = L("JWK Set URL (the provider's published signing keys; empty = the key file only)"), Placeholder = ExamplePlaceholder.Of("https://login.microsoftonline.com/<tenant>/discovery/v2.0/keys") }, // no-loc: an example URL, the same in every language
-                     new NumberSetting { Key = "OAuth2JwksCacheSeconds", DependsOn = OAuth2Switch, Minimum = 10, Default = "3600", Label = L("Seconds to keep the JWK Set before re-fetching (a token naming an unknown key id re-fetches at once)") },
+                     new NumberSetting { Key = "OAuth2JwksCacheSeconds", DependsOn = OAuth2Switch, Minimum = 10, Default = "3600", Label = L("Seconds to keep the JWK Set before re-fetching (a token naming an unknown key ID re-fetches at once)") },
                      new TextSetting { Key = "OAuth2IntrospectionUrl", DependsOn = OAuth2Switch, Label = L("Token introspection endpoint (RFC 7662; empty = no revocation check)"), Placeholder = ExamplePlaceholder.Of("https://idp.example.com/oauth2/introspect") }, // no-loc: an example URL, the same in every language
-                     new TextSetting { Key = "OAuth2IntrospectionClientId", DependsOn = OAuth2Switch, Label = L("Client id this server introspects as") },
-                     new SecretSetting { Key = "OAuth2IntrospectionClientSecret", DependsOn = OAuth2Switch, Label = L("Client secret for introspection"), Hint = L("Issued by the provider together with the client id") },
+                     new TextSetting { Key = "OAuth2IntrospectionClientId", DependsOn = OAuth2Switch, Label = L("Client ID this server introspects as") },
+                     new SecretSetting { Key = "OAuth2IntrospectionClientSecret", DependsOn = OAuth2Switch, Label = L("Client secret for introspection"), Hint = L("Issued by the provider together with the client ID") },
                      new NumberSetting { Key = "OAuth2IntrospectionCacheSeconds", DependsOn = OAuth2Switch, Minimum = 0, Default = "300", Label = L("Seconds an introspection verdict is reused (never past the token's own expiry)") },
                      new BoolSetting { Key = "OAuth2IntrospectionFailOpen", DependsOn = OAuth2Switch, Default = false, Label = L("Accept a token when the introspection endpoint cannot answer (availability over the revocation check)") }
                   },
@@ -3136,7 +3136,7 @@ namespace hMailServer.ControlPanel.Views
                cards_.Add(new CardDef
                {
                   Title = L("Password storage"),
-                  Blurb = L("How account passwords are hashed, how much work a new hash costs, and the weakest stored hash still allowed to log on. Existing passwords keep their current hash until they are next changed - or, when a work factor was raised, until they are next used to log on."),
+                  Blurb = L("How account passwords are hashed, how much work a new hash costs, and the weakest stored hash still allowed to sign in. Existing passwords keep their current hash until they are next changed - or, when a work factor was raised, until they are next used to sign in."),
                   Settings =
                   {
                      new ChoiceSetting
@@ -3158,7 +3158,7 @@ namespace hMailServer.ControlPanel.Views
                      {
                         Key = "MinimumAcceptedHashAlgorithm",
                         Default = 0,
-                        Label = L("Reject logins using a weaker stored hash than"),
+                        Label = L("Reject sign-ins using a weaker stored hash than"),
                         Options = new (int, string)[]
                         {
                            (0, L("Accept any stored hash")),

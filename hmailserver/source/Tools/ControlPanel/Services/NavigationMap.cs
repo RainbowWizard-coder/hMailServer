@@ -625,7 +625,7 @@ namespace hMailServer.ControlPanel.Services
                   seeAlso: "delivery|protocols"),
 
                Page("sendout", N("Server sendout"),
-                  N("E-mail every account on the server at once - for maintenance announcements."),
+                  N("Send a message to every account on the server at once - for maintenance announcements."),
                   aliases: "Announcement|Mail all users|Broadcast|Notify everyone|Maintenance notice",
                   seeAlso: "domains")),
 
@@ -882,7 +882,7 @@ namespace hMailServer.ControlPanel.Services
                // lets each half sit in the group where its subject lives - this one
                // beside IP ranges, which is where the ban it creates ends up.
                Page("autoban", N("Auto-ban"),
-                  N("Lock out an address that keeps failing to log on - and let one back in that should not have been locked out; refuse or allow whole countries, and hold the mail of an account that looks taken over."),
+                  N("Lock out an address that keeps failing to sign in - and let one back in that should not have been locked out; refuse or allow whole countries, and hold the mail of an account that looks taken over."),
                   aliases: "Auto-ban & SSL/TLS|Autoban|Banned now|Banned addresses|Lift a ban|Lift ban|Unban|Countries|Country blocking|Block a country|GeoIP|MaxMind|Compromised accounts|Account takeover|Hijacked account|Brute force|Bruteforce|Lockout|Locked out|Failed logons|Failed logins|Password guessing|Dictionary attack|Fail2ban|Hammering|Temporary ban|Logon failure list|Never ban|Never-ban list|Do not ban|Reverse name|Provider banned|Widen ban|Neighbours|Neighbors|PTR|Subnet ban",
                   // "tls" is here, and "autoban" is on the SSL/TLS page, so a
                   // reader who followed an old note about the combined page and
@@ -960,7 +960,7 @@ namespace hMailServer.ControlPanel.Services
                   seeAlso: "mxquery|logs|queue"),
 
                Page("mxquery", N("MX query"),
-                  N("Look up where e-mail for a domain is delivered, to check DNS before blaming the server."),
+                  N("Look up where mail for a domain is delivered, to check DNS before blaming the server."),
                   aliases: "MX-query|MX lookup|DNS lookup|nslookup|Mail exchanger|Where does mail go",
                   seeAlso: "routes|dns|diagnostics"),
 
@@ -1056,7 +1056,7 @@ namespace hMailServer.ControlPanel.Services
                   seeAlso: "scripts|hardening"),
 
                Page("scripts", N("Event scripts"),
-                  N("Edit the event-handler script the server runs on delivery, logon and error events. The engine itself is switched on under Advanced."),
+                  N("Edit the event-handler script the server runs on delivery, sign-in and error events. The engine itself is switched on under Advanced."),
                   aliases: "EventHandlers|Scripts|OnDeliverMessage|OnClientLogon|OnAcceptMessage|VBScript|JScript|JavaScript|Run code on mail",
                   seeAlso: "advanced|rules"),
 

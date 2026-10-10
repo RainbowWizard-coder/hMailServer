@@ -2261,13 +2261,13 @@ namespace hMailServer.ControlPanel.Views
          // that is where the question is asked, and next to the connection ceiling it
          // is the gentler alternative to.
          var pop3Polling = Card(L("How often a client may check for mail"),
-            L("POP3 has no way for the server to tell a client that mail has arrived, so clients that want to look responsive poll - and some poll every few seconds. Each poll is a new connection, a TLS handshake and a password verification, which with Argon2id is deliberately expensive, so a handful of eager clients can cost more than the mail does. Setting a delay tells clients the interval in the server's capability list and refuses logins that arrive early with a code the client understands as \"slow down\" rather than as a wrong password."));
+            L("POP3 has no way for the server to tell a client that mail has arrived, so clients that want to look responsive poll - and some poll every few seconds. Each poll is a new connection, a TLS handshake and a password verification, which with Argon2id is deliberately expensive, so a handful of eager clients can cost more than the mail does. Setting a delay tells clients the interval in the server's capability list and refuses sign-ins that arrive early with a code the client understands as \"slow down\" rather than as a wrong password."));
          pop3Polling.Settings.Add(new IniNumber
          {
             Path = "Pop3LoginDelaySeconds",
-            Label = L("Minimum seconds between logins to one account (0 = no limit)"),
+            Label = L("Minimum seconds between sign-ins to one account (0 = no limit)"),
             Default = 0,
-            Blurb = L("Counted per account from the last login that was allowed, so a refused attempt does not push the next one further away. It is advertised only while it is set, because announcing a limit that is not enforced is worse than announcing nothing."),
+            Blurb = L("Counted per account from the last sign-in that was allowed, so a refused attempt does not push the next one further away. It is advertised only while it is set, because announcing a limit that is not enforced is worse than announcing nothing."),
             IniStore = iniStore_
          });
          Tab(L("POP3")).Cards.Add(pop3Polling);
@@ -2455,7 +2455,7 @@ namespace hMailServer.ControlPanel.Views
          });
          Tab(L("Delivery")).Cards.Add(bounces);
 
-         var relay = Card(L("SMTP relayer (smart host)"),
+         var relay = Card(L("Server-wide smart host"),
             L("Route all outbound mail through another SMTP server instead of delivering directly. For failover, separate several hosts with a vertical bar: the next host is tried when one cannot be reached (all hosts share the port, security and credentials below)."));
          relay.Settings.Add(new ComText { Path = "SMTPRelayer", Label = L("Relay host name (empty = direct delivery; use host1|host2 for failover)") });
          relay.Settings.Add(new ComText { Path = "SMTPRelayerPort", Label = L("Port"), Numeric = true });
@@ -2463,7 +2463,7 @@ namespace hMailServer.ControlPanel.Views
          relay.Settings.Add(new ComBool { Path = "SMTPRelayerRequiresAuthentication", Label = L("Relay requires authentication") });
          relay.Settings.Add(new ComText { Path = "SMTPRelayerUsername", Label = L("User name") });
          relay.Settings.Add(new ComPassword { Path = "SetSMTPRelayerPassword", MethodName = "SetSMTPRelayerPassword", Label = L("Password (leave empty to keep current)") });
-         Tab(L("Relayer")).Cards.Add(relay);
+         Tab(L("Smart host")).Cards.Add(relay);
 
          var oauth = Card(L("OAuth2 for the relay (Microsoft 365)"),
             L("Microsoft 365 turns Basic authentication for SMTP AUTH off at the end of December 2026. When the relay host below is listed here, hMailServer authenticates with an OAuth2 bearer token (XOAUTH2) instead of the password - fetched from your tenant's token endpoint with the client credentials of an app registration that has the SMTP.SendAsApp permission. The user name above stays: it is the mailbox being relayed as."));
@@ -2521,10 +2521,10 @@ namespace hMailServer.ControlPanel.Views
             Label = L("External-account hosts to FETCH from with OAuth2 (comma separated; blank this to use none)"),
             Default = "outlook.office365.com",
             Placeholder = "outlook.office365.com",
-            Blurb = L("External accounts whose server is named here log in with a bearer token from the same token endpoint above; every other external account keeps USER/PASS. Collecting from Microsoft 365 with a password has not been possible since 2022."),
+            Blurb = L("External accounts whose server is named here sign in with a bearer token from the same token endpoint above; every other external account keeps USER/PASS. Collecting from Microsoft 365 with a password has not been possible since 2022."),
             IniStore = iniStore_
          });
-         Tab(L("Relayer")).Cards.Add(oauth);
+         Tab(L("Smart host")).Cards.Add(oauth);
 
          var rules = Card(L("Rules"));
          rules.Settings.Add(new ComText { Path = "RuleLoopLimit", Label = L("Rule loop limit"), Numeric = true });
@@ -2850,7 +2850,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "AntiSpam.BanMultiRcptNullSender",
             Label = L("Also ban the connecting address for a while"),
-            Blurb = L("The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off.")
+            Blurb = L("The address is banned as a run of failed sign-ins bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off.")
          });
          nullSender.Settings.Add(new ComText { Path = "AntiSpam.BanMultiRcptNullSenderHours", Label = L("Ban for (hours, 1 to 8760)"), Numeric = true });
          Tab(L("Host checks")).Cards.Add(nullSender);
@@ -3425,7 +3425,7 @@ namespace hMailServer.ControlPanel.Views
          ban.Settings.Add(new ComText
          {
             Path = "MaxInvalidLogonAttempts",
-            Label = L("Max invalid logon attempts"),
+            Label = L("Failed sign-ins before an address is banned (0 = off)"),
             Numeric = true,
             Blurb = L("0 disables auto-ban entirely, even with the box above ticked.")
          });
@@ -3479,7 +3479,7 @@ namespace hMailServer.ControlPanel.Views
          ban.Settings.Add(new ComAction
          {
             Path = "AutoBanOnLogonFailure",
-            ButtonText = L("Clear logon-failure list"),
+            ButtonText = L("Clear sign-in failure list"),
             Action = () =>
             {
                dynamic s = ServerSession.Current.Application.Settings;
@@ -3504,7 +3504,7 @@ namespace hMailServer.ControlPanel.Views
          // list of addresses above, for a provider whose addresses move. A table
          // of the server's, written by its own buttons; see NeverBanNameRows.
          var byName = Card(L("Never auto-ban by reverse name"),
-            L("For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed logons, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the allowed and blocked domains still apply. Empty, the default, changes nothing."));
+            L("For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed sign-ins, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the allowed and blocked domains still apply. Empty, the default, changes nothing."));
          byName.Settings.Add(new NeverBanNameRows
          {
             Path = "AutoBanNeverBanNames",
@@ -3553,7 +3553,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "AccountLockoutMinutes",
             Label = L("Lockout duration (minutes)"),
             Default = 30,
-            Blurb = L("A successful logon clears the name's counters, and attempts made while it is locked are not counted - so an attacker cannot hold a mailbox locked indefinitely with a trickle of guesses."),
+            Blurb = L("A successful sign-in clears the name's counters, and attempts made while it is locked are not counted - so an attacker cannot hold a mailbox locked indefinitely with a trickle of guesses."),
             IniStore = iniStore_
          });
          Tab(L("Auto-ban")).Cards.Add(lockout);
@@ -3561,12 +3561,12 @@ namespace hMailServer.ControlPanel.Views
          // The third measure on the same subject: auto-ban and the lockout decide
          // WHETHER a guess is answered; this decides HOW SOON, and it applies from
          // the first wrong password rather than after a threshold.
-         var tarpit = Card(L("Logon tarpit"),
-            L("Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on."));
+         var tarpit = Card(L("Sign-in tarpit"),
+            L("Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed sign-ins costs the server nothing but the sockets they arrive on."));
          tarpit.Settings.Add(new IniNumber
          {
             Path = "LogonTarpitSeconds",
-            Label = L("Delay per failed logon, multiplied by the failures so far on that connection (seconds; 0 = off)"),
+            Label = L("Delay per failed sign-in (seconds; 0 = off)"),
             Default = 0,
             Blurb = L("0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess."),
             IniStore = iniStore_
@@ -4579,7 +4579,7 @@ namespace hMailServer.ControlPanel.Views
 
          var general = Card(L("General"),
             L("The administrator password and two-factor authentication are on the Administrative access page."));
-         general.Settings.Add(new ComText { Path = "DefaultDomain", Label = L("Default domain (for unqualified logons)") });
+         general.Settings.Add(new ComText { Path = "DefaultDomain", Label = L("Default domain (for sign-ins without a domain)") });
          general.Settings.Add(new ComBool { Path = "IPv6PreferredEnabled", Label = L("Prefer IPv6 when delivering") });
 
          // The help panes' "Open on the wiki" link, in all three surfaces. The
@@ -5412,7 +5412,7 @@ namespace hMailServer.ControlPanel.Views
          // passwords before it. In hm_settings, unlike the policy above - which is why
          // these rows are COM properties and those are INI rows.
          var breach = Card(L("Passwords found in published breaches"),
-            L("Checks a new password against the published breach corpus when it is chosen - here, in the account editor, in the webmail, by a script or over the REST API - and refuses one that has appeared in it. Only the first five characters of the password's SHA-1 hash leave this server; the endpoint answers with every hash that begins with them, padded so that the size of the answer says nothing either, and the comparison is made here. It is never applied at logon, so a password that works today keeps working. Off by default, because it sends something off the server."));
+            L("Checks a new password against the published breach corpus when it is chosen - here, in the account editor, in the webmail, by a script or over the REST API - and refuses one that has appeared in it. Only the first five characters of the password's SHA-1 hash leave this server; the endpoint answers with every hash that begins with them, padded so that the size of the answer says nothing either, and the comparison is made here. It is never applied at sign-in, so a password that works today keeps working. Off by default, because it sends something off the server."));
          breach.Settings.Add(new ComBool
          {
             Path = "BreachCheckEnabled",
@@ -6374,7 +6374,7 @@ namespace hMailServer.ControlPanel.Views
          // ran and failed.
          string path = ExtractProgramPath(command);
          if (string.IsNullOrEmpty(path))
-            return (StatusLevel.Warning, L("Couldn't determine the executable from the command."));
+            return (StatusLevel.Warning, L("Could not determine the executable from the command."));
 
          if (System.IO.File.Exists(path))
             return (StatusLevel.Good, F("Executable found: {0}", path));

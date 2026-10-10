@@ -124,7 +124,7 @@ namespace hMailServer.ControlPanel.Views
          {
             new FieldSpec { Prop = "LowerIPAddress", Label = L("Lower IP"), GridWidth = 150 },
             new FieldSpec { Prop = "UpperIPAddress", Label = L("Upper IP"), GridWidth = 150 },
-            new FieldSpec { Prop = "EmailAddress", Label = L("E-mail address") },
+            new FieldSpec { Prop = "EmailAddress", Label = L("Email address") },
             new FieldSpec { Prop = "Description", Label = L("Description") }
          }
       });

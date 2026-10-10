@@ -699,8 +699,8 @@
   <data name="A spam trap is an address in one of your domains that nobody uses, so whoever writes to it is sending spam. These settings say what happens to a server that does. The trap addresses are declared per domain in the Control Deck; until a domain has one, nothing here does anything." xml:space="preserve">
     <value>スパム トラップとは、自分のドメインにある誰も使っていないアドレスで、そこに送ってくる相手はスパムを送っています。これらの設定は、そうしたサーバーに何が起こるかを決めます。トラップ アドレスは Control Deck でドメインごとに宣言します。ドメインに 1 つもない間は、ここの設定は何も働きません。</value>
   </data>
-  <data name="A successful logon clears the name's counters, and attempts made while it is locked are not counted - so an attacker cannot hold a mailbox locked indefinitely with a trickle of guesses." xml:space="preserve">
-    <value>ログオンに成功すると、その名前のカウンターは消去されます。またロックされている間の試行は数えられません。そのため攻撃者が、少しずつ推測を続けてメールボックスを無期限にロックし続けることはできません。</value>
+  <data name="A successful sign-in clears the name's counters, and attempts made while it is locked are not counted - so an attacker cannot hold a mailbox locked indefinitely with a trickle of guesses." xml:space="preserve">
+    <value>サインインに成功すると、その名前のカウンターは消去されます。またロックされている間の試行は数えられません。そのため攻撃者が、少しずつ推測を続けてメールボックスを無期限にロックし続けることはできません。</value>
   </data>
   <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt." xml:space="preserve">
     <value>これだけの回数、早すぎる再試行をしたトリプレットは、下のロックの間 451 ではなく 550 で応答され、数秒おきに同じメッセージを叩き続ける送信者はこれで止まります。設定を誤った再試行ループはロックが解けるまで立ち往生し、その後トリプレットは最初の試行としてやり直します。</value>
@@ -927,8 +927,8 @@
   <data name="Accounts in the group {0}" xml:space="preserve">
     <value>グループ {0} のアカウント</value>
   </data>
-  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.ini; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
-    <value>ディレクトリ連携としてマークされたアカウントは、LDAP バインドを通じてドメインのパスワードでログオンします。Windows のログオンとは異なり、ドメインに参加していないホストからでも機能します。DMZ に置かれたメール サーバーでは、それが通常の状況です。この設定は hMailServer.ini の [LDAP] セクションを書き換えます。サーバーは保存から 2 秒以内にそのセクションを読み直すため、これらの設定にはサービスの再起動は不要です。</value>
+  <data name="Accounts marked as directory-linked sign in with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.ini; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
+    <value>ディレクトリ連携としてマークされたアカウントは、LDAP バインドを通じてドメインのパスワードでサインインします。Windows のサインインとは異なり、ドメインに参加していないホストからでも機能します。DMZ に置かれたメール サーバーでは、それが通常の状況です。この設定は hMailServer.ini の [LDAP] セクションを書き換えます。サーバーは保存から 2 秒以内にそのセクションを読み直すため、これらの設定にはサービスの再起動は不要です。</value>
   </data>
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Windows directory tab tick 'Check this password against Windows (Active Directory, or a local Windows account)' and fill in 'Windows user name' - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>ディレクトリ連携としてマークされたアカウントが必要です。その部分はすでにこの GUI にあります。「ドメイン」を開いてアカウントを編集し、その [Windows ディレクトリ] タブで「このパスワードを Windows (Active Directory またはローカルの Windows アカウント) で確認する」をオンにして、「Windows ユーザー名」(sAMAccountName、%u が運ぶ値です) を入力してください。このマークが付いていないアカウントは、通常の hMailServer のパスワードを使い続け、ディレクトリには一切触れません。</value>
@@ -1149,7 +1149,7 @@
   <data name="Add route" xml:space="preserve">
     <value>ルートを追加</value>
   </data>
-  <data name="Add signature to _local e-mail" xml:space="preserve">
+  <data name="Add signature to _local mail" xml:space="preserve">
     <value>ローカル宛てメールに署名を追加する(_L)</value>
   </data>
   <data name="Add signature to _replies" xml:space="preserve">
@@ -1542,8 +1542,8 @@
   <data name="An account address is required." xml:space="preserve">
     <value>アカウントのアドレスが必要です。</value>
   </data>
-  <data name="An account can be switched off without deleting it, which keeps the mail and refuses new logons." xml:space="preserve">
-    <value>アカウントは削除せずに無効にできます。メールはそのまま残り、新しいログオンは拒否されます。</value>
+  <data name="An account can be switched off without deleting it, which keeps the mail and refuses new sign-ins." xml:space="preserve">
+    <value>アカウントは削除せずに無効にできます。メールはそのまま残り、新しいサインインは拒否されます。</value>
   </data>
   <data name="An account encrypted at rest can be read by the server only while its mailbox key is open, which the account's password opens at sign-in." xml:space="preserve">
     <value>保存時に暗号化されたアカウントは、メールボックス キーが開いている間だけサーバーが読むことができ、アカウントのパスワードがサインイン時にそれを開きます。</value>
@@ -1945,11 +1945,11 @@
   <data name="Auto-ban IP ranges" xml:space="preserve">
     <value>自動ブロックの IP 範囲</value>
   </data>
-  <data name="Auto-ban by address, the per-name lockout, and the logon tarpit that makes each guess cost seconds." xml:space="preserve">
-    <value>アドレス単位の自動ブロック、名前単位のロックアウト、そして 1 回の推測ごとに数秒のコストを課すログオン タールピット。</value>
+  <data name="Auto-ban by address, the per-name lockout, and the sign-in tarpit that makes each guess cost seconds." xml:space="preserve">
+    <value>アドレス単位の自動ブロック、名前単位のロックアウト、そして 1 回の推測ごとに数秒のコストを課すサインイン タールピット。</value>
   </data>
-  <data name="Auto-ban locks out an address after repeated logon failures." xml:space="preserve">
-    <value>自動ブロックは、ログオンの失敗が繰り返されたアドレスを締め出します。</value>
+  <data name="Auto-ban locks out an address after repeated failed sign-ins." xml:space="preserve">
+    <value>自動ブロックは、サインインの失敗が繰り返されたアドレスを締め出します。</value>
   </data>
   <data name="Auto-detect ClamWin" xml:space="preserve">
     <value>ClamWin を自動検出</value>
@@ -1974,6 +1974,9 @@
   </data>
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>自動証明書 (ACME)</value>
+  </data>
+  <data name="Automatic lockout of an address that keeps failing to sign in. The ban itself is an expiring IP range, so it is listed on the IP ranges page." xml:space="preserve">
+    <value>サインインに失敗し続けるアドレスの自動ロックアウト。ブロック自体は期限付きの IP 範囲なので、IP 範囲ページに一覧表示されます。</value>
   </data>
   <data name="Automatic lockout of an address that keeps failing to sign in. The bans in force are listed first, each with Lift ban, which lets the address in again at once." xml:space="preserve">
     <value>サインインに失敗し続けるアドレスの自動ロックアウト。有効なブロックが最初に一覧表示され、それぞれの「ブロックを解除」でそのアドレスをすぐに再び受け入れます。</value>
@@ -2599,8 +2602,8 @@
   <data name="Checking…" xml:space="preserve">
     <value>確認中…</value>
   </data>
-  <data name="Checks a new password against the published breach corpus when it is chosen - here, in the account editor, in the webmail, by a script or over the REST API - and refuses one that has appeared in it. Only the first five characters of the password's SHA-1 hash leave this server; the endpoint answers with every hash that begins with them, padded so that the size of the answer says nothing either, and the comparison is made here. It is never applied at logon, so a password that works today keeps working. Off by default, because it sends something off the server." xml:space="preserve">
-    <value>新しいパスワードが設定されるとき (ここ、アカウント エディター、Web メール、スクリプト、REST API のいずれでも) に、公開されている漏えいパスワードのコーパスと照合し、そこに現れたパスワードを拒否します。このサーバーから送信されるのは、パスワードの SHA-1 ハッシュの先頭 5 文字だけです。エンドポイントはその 5 文字で始まるすべてのハッシュを返し、応答のサイズからも何も分からないようにパディングされます。比較はこのサーバーで行われます。ログオン時には決して適用されないため、今日使えているパスワードはそのまま使えます。サーバーの外に何かを送信するため、既定ではオフです。</value>
+  <data name="Checks a new password against the published breach corpus when it is chosen - here, in the account editor, in the webmail, by a script or over the REST API - and refuses one that has appeared in it. Only the first five characters of the password's SHA-1 hash leave this server; the endpoint answers with every hash that begins with them, padded so that the size of the answer says nothing either, and the comparison is made here. It is never applied at sign-in, so a password that works today keeps working. Off by default, because it sends something off the server." xml:space="preserve">
+    <value>新しいパスワードが設定されるとき (ここ、アカウント エディター、Web メール、スクリプト、REST API のいずれでも) に、公開されている漏えいパスワードのコーパスと照合し、そこに現れたパスワードを拒否します。このサーバーから送信されるのは、パスワードの SHA-1 ハッシュの先頭 5 文字だけです。エンドポイントはその 5 文字で始まるすべてのハッシュを返し、応答のサイズからも何も分からないようにパディングされます。比較はこのサーバーで行われます。サインイン時には決して適用されないため、今日使えているパスワードはそのまま使えます。サーバーの外に何かを送信するため、既定ではオフです。</value>
   </data>
   <data name="Checks the sender's SPF policy against the connecting address. A pass can also bypass greylisting." xml:space="preserve">
     <value>送信者の SPF ポリシーを接続元アドレスと照らし合わせて確認します。合格するとグレイリスティングもバイパスできます。</value>
@@ -2713,8 +2716,8 @@
   <data name="Clear greylisting triplets" xml:space="preserve">
     <value>グレイリスティングのトリプレットをクリア</value>
   </data>
-  <data name="Clear logon-failure list" xml:space="preserve">
-    <value>ログオン失敗リストをクリア</value>
+  <data name="Clear sign-in failure list" xml:space="preserve">
+    <value>サインイン失敗リストをクリア</value>
   </data>
   <data name="Clear the recovery address" xml:space="preserve">
     <value>回復用アドレスを消去</value>
@@ -2740,6 +2743,9 @@
   <data name="Client ID" xml:space="preserve">
     <value>クライアント ID</value>
   </data>
+  <data name="Client ID this server introspects as" xml:space="preserve">
+    <value>このサーバーがイントロスペクションに使うクライアント ID</value>
+  </data>
   <data name="Client autoconfiguration (autoconfig &amp; autodiscover)" xml:space="preserve">
     <value>クライアントの自動設定 (autoconfig と autodiscover)</value>
   </data>
@@ -2751,9 +2757,6 @@
   </data>
   <data name="Client certificates can only be requested or required on a port that uses SSL/TLS or STARTTLS. On a port with no connection security there is no TLS handshake, so no client would ever be asked for a certificate." xml:space="preserve">
     <value>クライアント証明書を要求または必須にできるのは、SSL/TLS または STARTTLS を使うポートだけです。接続セキュリティのないポートでは TLS ハンドシェイクがないため、クライアントに証明書が求められることはありません。</value>
-  </data>
-  <data name="Client id this server introspects as" xml:space="preserve">
-    <value>このサーバーがイントロスペクションに使うクライアント ID</value>
   </data>
   <data name="Client secret" xml:space="preserve">
     <value>クライアント シークレット</value>
@@ -2923,7 +2926,7 @@
   <data name="Contact (sysContact)" xml:space="preserve">
     <value>連絡先 (sysContact)</value>
   </data>
-  <data name="Contact e-mail (CA expiry notices)" xml:space="preserve">
+  <data name="Contact email address (CA expiry notices)" xml:space="preserve">
     <value>連絡先メール アドレス (CA からの有効期限通知用)</value>
   </data>
   <data name="Contact for push services (a mailto: or https: address)" xml:space="preserve">
@@ -3103,6 +3106,9 @@
   <data name="Could not determine the event-script path." xml:space="preserve">
     <value>イベント スクリプトのパスを特定できませんでした。</value>
   </data>
+  <data name="Could not determine the executable from the command." xml:space="preserve">
+    <value>コマンドから実行ファイルを特定できませんでした。</value>
+  </data>
   <data name="Could not empty the mailbox: {0}" xml:space="preserve">
     <value>メールボックスを空にできませんでした: {0}</value>
   </data>
@@ -3129,6 +3135,12 @@
   </data>
   <data name="Could not list the messages: {0}" xml:space="preserve">
     <value>メッセージを一覧表示できませんでした: {0}</value>
+  </data>
+  <data name="Could not load aliases: " xml:space="preserve">
+    <value>エイリアスを読み込めませんでした: </value>
+  </data>
+  <data name="Could not load distribution lists: " xml:space="preserve">
+    <value>配布リストを読み込めませんでした: </value>
   </data>
   <data name="Could not load folders: " xml:space="preserve">
     <value>フォルダーを読み込めませんでした: </value>
@@ -3411,20 +3423,20 @@
   <data name="Could not write {0} to {1}" xml:space="preserve">
     <value>{0} を {1} に書き込めませんでした</value>
   </data>
-  <data name="Couldn't determine the executable from the command." xml:space="preserve">
-    <value>コマンドから実行ファイルを特定できませんでした。</value>
-  </data>
   <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
     <value>満杯のメールボックスをハード バウンスとして数える</value>
   </data>
-  <data name="Counted per account from the last login that was allowed, so a refused attempt does not push the next one further away. It is advertised only while it is set, because announcing a limit that is not enforced is worse than announcing nothing." xml:space="preserve">
-    <value>最後に許可されたログインからアカウントごとに数えるため、拒否された試行によって次の試行がさらに遠ざけられることはありません。設定されている間だけアドバタイズされます。強制されない制限を告知するのは、何も告知しないより悪いからです。</value>
+  <data name="Counted per account from the last sign-in that was allowed, so a refused attempt does not push the next one further away. It is advertised only while it is set, because announcing a limit that is not enforced is worse than announcing nothing." xml:space="preserve">
+    <value>最後に許可されたサインインからアカウントごとに数えるため、拒否された試行によって次の試行がさらに遠ざけられることはありません。設定されている間だけアドバタイズされます。強制されない制限を告知するのは、何も告知しないより悪いからです。</value>
   </data>
   <data name="Counted per connecting IP address across every protocol that authenticates - SMTP AUTH, POP3, IMAP, ManageSieve and the REST API all feed the same counter. On reaching the limit the server clears that address's counted failures and creates an IP range named &quot;Auto-ban: &lt;user&gt;&quot; at priority 100 covering that one address, which expires on its own." xml:space="preserve">
     <value>認証を行うすべてのプロトコルにわたって、接続元 IP アドレスごとに数えます。SMTP AUTH、POP3、IMAP、ManageSieve、REST API はすべて同じカウンターに加算されます。上限に達すると、サーバーはそのアドレスの失敗回数をクリアし、その 1 アドレスだけを対象とする優先度 100 の "Auto-ban: &lt;user&gt;" という名前の IP 範囲を作成します。この範囲は自動的に期限切れになります。</value>
   </data>
   <data name="Counted per user name rather than per address, across every protocol that authenticates, so a botnet spreading its guesses over thousands of addresses still locks the mailbox it is guessing at. A locked name is refused with the ordinary invalid-credentials reply and cannot be unlocked by typing the right password - the lock is checked first - so the ceiling is worth setting with the cost in mind. Failures against a name that does not exist lock that name too, deliberately: doing otherwise would let an attacker use the lockout to discover which accounts are real." xml:space="preserve">
     <value>アドレスごとではなくユーザー名ごとに、認証を行うすべてのプロトコルにわたって数えます。そのため、推測を何千ものアドレスに分散させるボットネットでも、狙っているメールボックスはロックされます。ロックされた名前は通常の「資格情報が無効」応答で拒否され、正しいパスワードを入力してもロックは解除されません (ロックが先に確認されます)。したがって上限は、そのコストを念頭に置いて設定する価値があります。存在しない名前に対する失敗もその名前をロックします。これは意図的で、そうしなければ攻撃者がロックアウトを使ってどのアカウントが実在するかを発見できてしまいます。</value>
+  </data>
+  <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their &quot;Auto-ban:&quot; range expires - delete it on the IP ranges page to release one now." xml:space="preserve">
+    <value>数えられていたサインイン失敗をクリアしました。すでにブロックされているアドレスは、その "Auto-ban:" 範囲が期限切れになるまでブロックされたままです。今すぐ解除するには、IP 範囲ページでその範囲を削除してください。</value>
   </data>
   <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
     <value>数えられていたサインインの失敗をクリアしました。すでにブロックされているアドレスは、そのブロックが終わるまでブロックされたままです。「現在のブロック」の「ブロックを解除」で、すぐに受け入れることができます。</value>
@@ -3756,8 +3768,8 @@
   <data name="Default 10, allowed range 1 to 90. The server reads values below 1 as 10 and clamps values above 90, because &quot;wait forever&quot; for an unreachable directory is how connection threads get exhausted." xml:space="preserve">
     <value>既定は 10 で、指定できる範囲は 1 から 90 です。サーバーは 1 未満の値を 10 として読み、90 を超える値は 90 に丸めます。到達できないディレクトリを「永遠に待つ」ことが、接続スレッドが枯渇する原因だからです。</value>
   </data>
-  <data name="Default domain (for unqualified logons)" xml:space="preserve">
-    <value>既定のドメイン (ドメイン修飾のないログオン用)</value>
+  <data name="Default domain (for sign-ins without a domain)" xml:space="preserve">
+    <value>既定のドメイン (ドメインのないサインイン用)</value>
   </data>
   <data name="Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no &quot;never&quot; option." xml:space="preserve">
     <value>既定は {0} 日で、リクエストで指定がない場合に API 自身が使う値です。有効期限のないキーこそが管理者パスワードを危険にしている性質なので、「無期限」という選択肢はありません。</value>
@@ -3771,8 +3783,8 @@
   <data name="Delay for each further recipient (seconds, at most 30; 0 = off)" xml:space="preserve">
     <value>受信者が増えるごとの遅延 (秒、最大 30、0 = 無効)</value>
   </data>
-  <data name="Delay per failed logon, multiplied by the failures so far on that connection (seconds; 0 = off)" xml:space="preserve">
-    <value>ログオン失敗ごとの遅延。その接続でのこれまでの失敗回数を掛けます (秒、0 = 無効)</value>
+  <data name="Delay per failed sign-in (seconds; 0 = off)" xml:space="preserve">
+    <value>サインイン失敗ごとの遅延 (秒、0 = 無効)</value>
   </data>
   <data name="Delete" xml:space="preserve">
     <value>削除</value>
@@ -4363,15 +4375,6 @@
   <data name="Due for delivery" xml:space="preserve">
     <value>配信待ち</value>
   </data>
-  <data name="E-mail" xml:space="preserve">
-    <value>メール</value>
-  </data>
-  <data name="E-mail address" xml:space="preserve">
-    <value>メール アドレス</value>
-  </data>
-  <data name="E-mail every account on the server at once - for maintenance announcements." xml:space="preserve">
-    <value>サーバー上のすべてのアカウントに一度にメールを送ります。メンテナンスの告知向けです。</value>
-  </data>
   <data name="E_rrors" xml:space="preserve">
     <value>エラー(_R)</value>
   </data>
@@ -4468,8 +4471,8 @@
   <data name="Edit the entry" xml:space="preserve">
     <value>エントリを編集</value>
   </data>
-  <data name="Edit the event-handler script the server runs on delivery, logon and error events. The engine itself is switched on under Advanced." xml:space="preserve">
-    <value>配信、ログオン、エラーの各イベントでサーバーが実行するイベント ハンドラー スクリプトを編集します。エンジン自体は詳細設定でオンにします。</value>
+  <data name="Edit the event-handler script the server runs on delivery, sign-in and error events. The engine itself is switched on under Advanced." xml:space="preserve">
+    <value>配信、サインイン、エラーの各イベントでサーバーが実行するイベント ハンドラー スクリプトを編集します。エンジン自体は詳細設定でオンにします。</value>
   </data>
   <data name="Edit the external account" xml:space="preserve">
     <value>外部アカウントを編集</value>
@@ -4521,6 +4524,15 @@
   </data>
   <data name="Either the envelope sender's domain or the HELO name" xml:space="preserve">
     <value>エンベロープ送信者のドメインまたは HELO 名</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>メール</value>
+  </data>
+  <data name="Email address" xml:space="preserve">
+    <value>メール アドレス</value>
+  </data>
+  <data name="Email address to add to the list" xml:space="preserve">
+    <value>リストに追加するメール アドレス</value>
   </data>
   <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should. Worth doing when the index has more entries than the server has messages, which means entries for mail that no longer exists." xml:space="preserve">
     <value>インデックスを空にし、インデクサーに再構築を依頼します。メールには触れません (インデックスは派生データです) が、再構築が追いつくまでは、IMAP SEARCH の検索結果が本来より少なくなります。インデックスのエントリ数がサーバーのメッセージ数より多い場合、つまりすでに存在しないメールのエントリがある場合に行う価値があります。</value>
@@ -4891,8 +4903,8 @@
   <data name="Event scripts" xml:space="preserve">
     <value>イベント スクリプト</value>
   </data>
-  <data name="Event scripts run on delivery, logon and error events." xml:space="preserve">
-    <value>イベント スクリプトは配信、ログオン、エラーの各イベントで実行されます。</value>
+  <data name="Event scripts run on delivery, sign-in and error events." xml:space="preserve">
+    <value>イベント スクリプトは配信、サインイン、エラーの各イベントで実行されます。</value>
   </data>
   <data name="Events - a message received, delivered, bounced or quarantined, an account locked - posted to the receivers subscribed in the Control Deck or over the REST API. Nothing is sent until a subscription exists." xml:space="preserve">
     <value>イベント (メッセージの受信、配信、バウンス、検疫、アカウントのロック) は、Control Deck または REST API で購読した受信先に送られます。購読がない間は何も送られません。</value>
@@ -5134,8 +5146,8 @@
   <data name="External accounts fetch mail from a remote POP3 or IMAP mailbox into a local one." xml:space="preserve">
     <value>外部アカウントは、リモートの POP3 または IMAP メールボックスからローカルのメールボックスにメールを取り込みます。</value>
   </data>
-  <data name="External accounts whose server is named here log in with a bearer token from the same token endpoint above; every other external account keeps USER/PASS. Collecting from Microsoft 365 with a password has not been possible since 2022." xml:space="preserve">
-    <value>ここにサーバーが指定されている外部アカウントは、上と同じトークン エンドポイントから得たベアラー トークンでログインします。それ以外の外部アカウントは USER/PASS のままです。パスワードで Microsoft 365 から収集することは 2022 年以降できなくなっています。</value>
+  <data name="External accounts whose server is named here sign in with a bearer token from the same token endpoint above; every other external account keeps USER/PASS. Collecting from Microsoft 365 with a password has not been possible since 2022." xml:space="preserve">
+    <value>ここにサーバーが指定されている外部アカウントは、上と同じトークン エンドポイントから得たベアラー トークンでサインインします。それ以外の外部アカウントは USER/PASS のままです。パスワードで Microsoft 365 から収集することは 2022 年以降できなくなっています。</value>
   </data>
   <data name="External filtering engine" xml:space="preserve">
     <value>外部フィルタリング エンジン</value>
@@ -5175,6 +5187,12 @@
   </data>
   <data name="Failed sign-ins as {0}" xml:space="preserve">
     <value>{0} としてのサインイン失敗</value>
+  </data>
+  <data name="Failed sign-ins before an address is banned (0 = off)" xml:space="preserve">
+    <value>アドレスをブロックするまでのサインイン失敗回数 (0 = オフ)</value>
+  </data>
+  <data name="Failed sign-ins from a listed address are not counted at all, so it can never be banned. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine. Example: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. An entry that is not an address is reported by name in the error log and ignored." xml:space="preserve">
+    <value>登録されたアドレスからのサインイン失敗はまったく数えられないため、そのアドレスが BAN されることはありません。ファイアウォールのオプションを有効にする前に、管理に使うアドレスをここに登録してください。ファイアウォールまで届く BAN は、そのアドレスをこのマシンのすべてのメールポートから締め出します。例: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32。アドレスでない項目はエラーログに名前付きで報告され、無視されます。</value>
   </data>
   <data name="Fails when the connecting address has no reverse DNS record." xml:space="preserve">
     <value>接続元アドレスに逆引き DNS レコードがない場合に失敗します。</value>
@@ -5293,6 +5311,9 @@
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>フォルダー階層の区切り文字</value>
   </data>
+  <data name="Folder name" xml:space="preserve">
+    <value>フォルダー名</value>
+  </data>
   <data name="Folder name (use the hierarchy delimiter for sub-folders)" xml:space="preserve">
     <value>フォルダー名 (サブフォルダーには階層の区切り文字を使用)</value>
   </data>
@@ -5317,8 +5338,8 @@
   <data name="For a MinIO or Ceph gateway behind a CA of your own. The host name is checked either way." xml:space="preserve">
     <value>独自の認証局の背後にある MinIO や Ceph のゲートウェイ向けです。ホスト名はいずれの場合も検証されます。</value>
   </data>
-  <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed logons, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the allowed and blocked domains still apply. Empty, the default, changes nothing." xml:space="preserve">
-    <value>ホストが共通の逆引き名を持ち、アドレスが変わるプロバイダー向け: 接続元アドレスの逆引き名のいずれかがここにある名前の対象に含まれ、かつアドレスに正引きで戻る場合、そのアドレスは決して自動 BAN されません (ログオンの失敗、スパムトラップ、空の送信者のいずれでも)。ほかは何も省略されません: グレーリスト、SPF、DKIM、DMARC、許可・ブロックするドメインは引き続き適用されます。空 (既定) の場合は何も変わりません。</value>
+  <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed sign-ins, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the allowed and blocked domains still apply. Empty, the default, changes nothing." xml:space="preserve">
+    <value>ホストが共通の逆引き名を持ち、アドレスが変わるプロバイダー向け: 接続元アドレスの逆引き名のいずれかがここにある名前の対象に含まれ、かつアドレスに正引きで戻る場合、そのアドレスは決して自動 BAN されません (サインインの失敗、スパムトラップ、空の送信者のいずれでも)。ほかは何も省略されません: グレーリスト、SPF、DKIM、DMARC、許可・ブロックするドメインは引き続き適用されます。空 (既定) の場合は何も変わりません。</value>
   </data>
   <data name="For a record of who corresponds with whom, keeping it for ever should be a decision rather than a default - which is why 0 is offered as an option instead of being one." xml:space="preserve">
     <value>誰と誰がやり取りしているかの記録については、永久に保持するのは既定ではなく決断であるべきです。だからこそ 0 は既定値ではなく選択肢として提供されています。</value>
@@ -5677,8 +5698,8 @@
   <data name="Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious." xml:space="preserve">
     <value>実行ファイルまたは文書が添付された外部からのメッセージを、サンドボックスがファイルを開いてクリーンまたは悪意ありと回答するまで保留します。</value>
   </data>
-  <data name="Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on." xml:space="preserve">
-    <value>誤ったパスワードの拒否をしばらく保留してから送ります。接続での最初の失敗はこの秒数だけ待ち、2 回目はその 2 倍、というように最大 30 秒まで、SMTP、POP3、IMAP のいずれでも同様です。正しいパスワードが遅延されることはありません。待機は接続上のタイマーであり、スレッドをスリープさせるものではないため、ログオン失敗が殺到しても、サーバーが失うのはそれらが到着するソケットだけです。</value>
+  <data name="Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed sign-ins costs the server nothing but the sockets they arrive on." xml:space="preserve">
+    <value>誤ったパスワードの拒否をしばらく保留してから送ります。接続での最初の失敗はこの秒数だけ待ち、2 回目はその 2 倍、というように最大 30 秒まで、SMTP、POP3、IMAP のいずれでも同様です。正しいパスワードが遅延されることはありません。待機は接続上のタイマーであり、スレッドをスリープさせるものではないため、サインイン失敗が殺到しても、サーバーが失うのはそれらが到着するソケットだけです。</value>
   </data>
   <data name="Honeypot" xml:space="preserve">
     <value>ハニーポット</value>
@@ -5746,8 +5767,8 @@
   <data name="How a request names the bucket (S3)" xml:space="preserve">
     <value>要求でのバケットの指定方法 (S3)</value>
   </data>
-  <data name="How account passwords are hashed, how much work a new hash costs, and the weakest stored hash still allowed to log on. Existing passwords keep their current hash until they are next changed - or, when a work factor was raised, until they are next used to log on." xml:space="preserve">
-    <value>アカウントのパスワードをどうハッシュするか、新しいハッシュにどれだけの計算を課すか、そしてログオンを許可する最も弱い保存済みハッシュ。既存のパスワードは次に変更されるまで (ワーク ファクターが引き上げられた場合は、次にログオンに使われるまで) 現在のハッシュのままです。</value>
+  <data name="How account passwords are hashed, how much work a new hash costs, and the weakest stored hash still allowed to sign in. Existing passwords keep their current hash until they are next changed - or, when a work factor was raised, until they are next used to sign in." xml:space="preserve">
+    <value>アカウントのパスワードをどうハッシュするか、新しいハッシュにどれだけの計算を課すか、そしてサインインを許可する最も弱い保存済みハッシュ。既存のパスワードは次に変更されるまで (ワーク ファクターが引き上げられた場合は、次にサインインに使われるまで) 現在のハッシュのままです。</value>
   </data>
   <data name="How entries reach the collector" xml:space="preserve">
     <value>コレクターへの送信方法</value>
@@ -6037,8 +6058,8 @@
   <data name="Information" xml:space="preserve">
     <value>情報</value>
   </data>
-  <data name="Infrastructure failure, unrelated to any password - every account authenticated against this directory would be unable to log in. Stage: {0}. Directory: {1} over {2}. Reason: {3} (LDAP error {4})." xml:space="preserve">
-    <value>インフラの障害であり、パスワードとは無関係です。このディレクトリで認証するすべてのアカウントがログインできなくなります。ステージ: {0}。ディレクトリ: {2} 経由の {1}。理由: {3} (LDAP エラー {4})。</value>
+  <data name="Infrastructure failure, unrelated to any password - every account authenticated against this directory would be unable to sign in. Stage: {0}. Directory: {1} over {2}. Reason: {3} (LDAP error {4})." xml:space="preserve">
+    <value>インフラの障害であり、パスワードとは無関係です。このディレクトリで認証するすべてのアカウントがサインインできなくなります。ステージ: {0}。ディレクトリ: {2} 経由の {1}。理由: {3} (LDAP エラー {4})。</value>
   </data>
   <data name="Initial delay (minutes)" xml:space="preserve">
     <value>初期遅延 (分)</value>
@@ -6135,7 +6156,7 @@
   <data name="Issued" xml:space="preserve">
     <value>発行日</value>
   </data>
-  <data name="Issued by the provider together with the client id" xml:space="preserve">
+  <data name="Issued by the provider together with the client ID" xml:space="preserve">
     <value>クライアント ID とともにプロバイダーから発行されます</value>
   </data>
   <data name="Issued certificates are stored in Data\ACME and assigned to TLS ports without a restart. Key reuse keeps published DANE TLSA records valid across renewals." xml:space="preserve">
@@ -6147,8 +6168,8 @@
   <data name="Issues and renews certificates automatically, but only if the certificate authority can fetch the http-01 challenge from this server." xml:space="preserve">
     <value>証明書を自動的に発行・更新しますが、認証局がこのサーバーから http-01 チャレンジを取得できる場合に限られます。</value>
   </data>
-  <data name="It governs two kinds of stored secret. Those bound to this machine - the database password in hMailServer.ini, the SMTP relayer password, and the passwords, tokens and passphrases of routes, external fetch accounts, SSL certificates and the rest kept in the database - are put in a Windows DPAPI envelope when they are next saved, or in the legacy Blowfish scheme while this is switched off. The secrets in the [Settings] section - the SRS and BATV secrets, the OAuth2 secrets, the metrics bearer token and HTTP Basic password, the Windows service account password and the GSSAPI service password - and each account's second factor are sealed under the installation's stored-secrets key once it has one, at the next start and at every save; switched off, the next start stores them as written again. Only the password pepper is always stored as you typed it, so hMailServer.ini should still be readable only by Administrators and by the account the service runs as." xml:space="preserve">
-    <value>二種類の保存シークレットを管理します。このコンピューターに結び付いたもの - hMailServer.ini のデータベース パスワード、SMTP リレーのパスワード、そしてルート、外部取り込みアカウント、SSL 証明書などデータベースに保存されるもののパスワード、トークン、パスフレーズ - は、次に保存されるときに Windows DPAPI の封筒に入れられ、これがオフの間は従来の Blowfish 方式になります。[Settings] セクションのシークレット - SRS と BATV のシークレット、OAuth2 のシークレット、メトリクス ベアラー トークンと HTTP Basic パスワード、Windows サービス アカウントのパスワード、GSSAPI サービスのパスワード - と各アカウントの第二要素は、インストールに保存シークレットの鍵ができしだい、次の起動時と保存のたびにその鍵で封印されます。オフにすると、次の起動時に書かれたままの形に戻して保存されます。パスワード ペッパーだけは常に入力したとおりに保存されるため、hMailServer.ini は引き続き Administrators と、サービスの実行アカウントだけが読み取れるようにしてください。</value>
+  <data name="It governs two kinds of stored secret. Those bound to this machine - the database password in hMailServer.ini, the smart host's password, and the passwords, tokens and passphrases of routes, external fetch accounts, SSL certificates and the rest kept in the database - are put in a Windows DPAPI envelope when they are next saved, or in the legacy Blowfish scheme while this is switched off. The secrets in the [Settings] section - the SRS and BATV secrets, the OAuth2 secrets, the metrics bearer token and HTTP Basic password, the Windows service account password and the GSSAPI service password - and each account's second factor are sealed under the installation's stored-secrets key once it has one, at the next start and at every save; switched off, the next start stores them as written again. Only the password pepper is always stored as you typed it, so hMailServer.ini should still be readable only by Administrators and by the account the service runs as." xml:space="preserve">
+    <value>二種類の保存シークレットを管理します。このコンピューターに結び付いたもの - hMailServer.ini のデータベース パスワード、スマート ホストのパスワード、そしてルート、外部取り込みアカウント、SSL 証明書などデータベースに保存されるもののパスワード、トークン、パスフレーズ - は、次に保存されるときに Windows DPAPI の封筒に入れられ、これがオフの間は従来の Blowfish 方式になります。[Settings] セクションのシークレット - SRS と BATV のシークレット、OAuth2 のシークレット、メトリクス ベアラー トークンと HTTP Basic パスワード、Windows サービス アカウントのパスワード、GSSAPI サービスのパスワード - と各アカウントの第二要素は、インストールに保存シークレットの鍵ができしだい、次の起動時と保存のたびにその鍵で封印されます。オフにすると、次の起動時に書かれたままの形に戻して保存されます。パスワード ペッパーだけは常に入力したとおりに保存されるため、hMailServer.ini は引き続き Administrators と、サービスの実行アカウントだけが読み取れるようにしてください。</value>
   </data>
   <data name="It has no rua= tag, so nobody sends you reports - fine, but you learn nothing; add one when you have a mailbox for it." xml:space="preserve">
     <value>rua= タグがないため、誰もレポートを送ってきません。それ自体は問題ありませんが、何も分かりません。受け取るメールボックスを用意できたら追加してください。</value>
@@ -6342,8 +6363,8 @@
   <data name="Leave empty to test only the infrastructure" xml:space="preserve">
     <value>インフラのみをテストするには空のままにしてください</value>
   </data>
-  <data name="Leave the host empty and the domain has no opinion: the server-wide SMTP relayer applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination." xml:space="preserve">
-    <value>ホストを空のままにすると、ドメインは何も指定しません: この設定が存在する前とまったく同じように、サーバー全体の SMTP リレーが適用されます。ルートは依然としてどちらにも優先します。ルートは宛先についての宣言だからです。</value>
+  <data name="Leave the host empty and the domain has no opinion: the server-wide smart host applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination." xml:space="preserve">
+    <value>ホストを空のままにすると、ドメインは何も指定しません: この設定が存在する前とまったく同じように、サーバー全体のスマート ホストが適用されます。ルートは依然としてどちらにも優先します。ルートは宛先についての宣言だからです。</value>
   </data>
   <data name="Leave this account _out of the directory" xml:space="preserve">
     <value>このアカウントをディレクトリに載せない (_I)</value>
@@ -6351,8 +6372,8 @@
   <data name="Left Edge" xml:space="preserve">
     <value>左端</value>
   </data>
-  <data name="Left empty, the server uses the shipped filter, {0} - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
-    <value>空のままにすると、サーバーは出荷時のフィルター {0} を使います。objectCategory が先なのは Active Directory でインデックス化されているためで、sAMAccountName はアカウントの [Windows ディレクトリ] タブが保存しているものだからです。%u はアカウントの Active Directory ユーザー名、%d はその AD ドメイン、%m は完全なメール アドレスです。3 つとも置換前にエスケープされるため、悪意のあるログオン名でフィルターを書き換えることはできません。複数のエントリに一致するフィルターは、意図的に誰も認証しません。</value>
+  <data name="Left empty, the server uses the shipped filter, {0} - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile sign-in name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
+    <value>空のままにすると、サーバーは出荷時のフィルター {0} を使います。objectCategory が先なのは Active Directory でインデックス化されているためで、sAMAccountName はアカウントの [Windows ディレクトリ] タブが保存しているものだからです。%u はアカウントの Active Directory ユーザー名、%d はその AD ドメイン、%m は完全なメール アドレスです。3 つとも置換前にエスケープされるため、悪意のあるサインイン名でフィルターを書き換えることはできません。複数のエントリに一致するフィルターは、意図的に誰も認証しません。</value>
   </data>
   <data name="Left where they were: {0}. The first reason: {1}" xml:space="preserve">
     <value>そのままにしたメッセージ: {0} 件。最初の理由: {1}</value>
@@ -6387,7 +6408,7 @@
   <data name="Let those events carry a message's s_ubject" xml:space="preserve">
     <value>これらのイベントにメッセージの件名を含めることを許可する(_U)</value>
   </data>
-  <data name="Lets Outlook, Thunderbird and mobile clients set themselves up from an e-mail address alone, by fetching this server's configuration URLs." xml:space="preserve">
+  <data name="Lets Outlook, Thunderbird and mobile clients set themselves up from an email address alone, by fetching this server's configuration URLs." xml:space="preserve">
     <value>Outlook、Thunderbird、モバイル クライアントが、このサーバーの設定 URL を取得することで、メール アドレスだけで自分自身を設定できるようにします。</value>
   </data>
   <data name="Lets a client ask for the rest of the session to be compressed, which is worth most on a slow or metered link where a large mailbox listing is mostly repeated text. On by default; a client that does not ask is unaffected." xml:space="preserve">
@@ -6396,8 +6417,8 @@
   <data name="Lets a person bring their mail over from Gmail or Outlook.com by signing in there, without giving this server their password. Register this server with Google and with Microsoft first, with the redirect address that is the base address below followed by /portal/oauth/callback. A provider is offered once it has a client ID - and, for Google, a secret." xml:space="preserve">
     <value>利用者が、このサーバーにパスワードを渡さずに Gmail や Outlook.com にサインインして、そこからメールを移せるようにします。まずこのサーバーを Google と Microsoft に登録し、リダイレクト アドレスには下のベース アドレスに /portal/oauth/callback を付けたものを指定します。プロバイダーは、クライアント ID を持った時点 (Google の場合はシークレットも) で提供されます。</value>
   </data>
-  <data name="Lets clients log on with bearer tokens from an identity provider instead of passwords; tokens are only accepted if their signature verifies against key material you install." xml:space="preserve">
-    <value>クライアントがパスワードの代わりに ID プロバイダーのベアラー トークンでログオンできるようにします。トークンは、インストールした鍵素材で署名が検証できる場合にのみ受け入れられます。</value>
+  <data name="Lets clients sign in with bearer tokens from an identity provider instead of passwords; tokens are only accepted if their signature verifies against key material you install." xml:space="preserve">
+    <value>クライアントがパスワードの代わりに ID プロバイダーのベアラー トークンでサインインできるようにします。トークンは、インストールした鍵素材で署名が検証できる場合にのみ受け入れられます。</value>
   </data>
   <data name="Lets it through" xml:space="preserve">
     <value>通す</value>
@@ -6510,8 +6531,8 @@
   <data name="Lock a name after this many failures (0 = off)" xml:space="preserve">
     <value>この回数失敗したら名前をロックする (0 = 無効)</value>
   </data>
-  <data name="Lock out an address that keeps failing to log on - and let one back in that should not have been locked out; refuse or allow whole countries, and hold the mail of an account that looks taken over." xml:space="preserve">
-    <value>ログオンに失敗し続けるアドレスを締め出し、締め出すべきでなかったアドレスを再び受け入れます。国単位での拒否や許可、乗っ取られたように見えるアカウントのメールの保留も行います。</value>
+  <data name="Lock out an address that keeps failing to sign in - and let one back in that should not have been locked out; refuse or allow whole countries, and hold the mail of an account that looks taken over." xml:space="preserve">
+    <value>サインインに失敗し続けるアドレスを締め出し、締め出すべきでなかったアドレスを再び受け入れます。国単位での拒否や許可、乗っ取られたように見えるアカウントのメールの保留も行います。</value>
   </data>
   <data name="Lockout duration (minutes)" xml:space="preserve">
     <value>ロックアウト期間 (分)</value>
@@ -6555,9 +6576,6 @@
   <data name="Logon failures" xml:space="preserve">
     <value>ログオンの失敗</value>
   </data>
-  <data name="Logon tarpit" xml:space="preserve">
-    <value>ログオン タールピット</value>
-  </data>
   <data name="Longest such window, in minutes" xml:space="preserve">
     <value>このウィンドウの最長時間 (分)</value>
   </data>
@@ -6570,7 +6588,7 @@
   <data name="Look up the MX records for any domain." xml:space="preserve">
     <value>任意のドメインの MX レコードを参照します。</value>
   </data>
-  <data name="Look up where e-mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
+  <data name="Look up where mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
     <value>ドメイン宛てのメールがどこに配信されるかを参照し、サーバーを疑う前に DNS を確認します。</value>
   </data>
   <data name="Looking up {0}…" xml:space="preserve">
@@ -6899,9 +6917,6 @@
   <data name="Max delivery threads" xml:space="preserve">
     <value>配信スレッドの最大数</value>
   </data>
-  <data name="Max invalid logon attempts" xml:space="preserve">
-    <value>無効なログオン試行の最大数</value>
-  </data>
   <data name="Max message size (KB, 0 = unlimited)" xml:space="preserve">
     <value>メッセージの最大サイズ (KB、0 = 無制限)</value>
   </data>
@@ -7186,8 +7201,8 @@
   <data name="Minimum length (0 = no minimum)" xml:space="preserve">
     <value>最小の長さ (0 = 最小なし)</value>
   </data>
-  <data name="Minimum seconds between logins to one account (0 = no limit)" xml:space="preserve">
-    <value>1 つのアカウントへのログイン間の最小秒数 (0 = 制限なし)</value>
+  <data name="Minimum seconds between sign-ins to one account (0 = no limit)" xml:space="preserve">
+    <value>1 つのアカウントへのサインイン間の最小秒数 (0 = 制限なし)</value>
   </data>
   <data name="Minimum severity that becomes an event" xml:space="preserve">
     <value>イベントになる最小の重大度</value>
@@ -7465,8 +7480,8 @@
   <data name="No IP ranges, so this server refuses every SMTP, POP3 and IMAP connection until one exists." xml:space="preserve">
     <value>IP 範囲がないため、範囲が作成されるまで、このサーバーはすべての SMTP、POP3、IMAP 接続を拒否します。</value>
   </data>
-  <data name="No LDAP authentication is attempted. Directory-linked accounts keep validating through Windows logon, and the server reports this (error 5922) once per minute so it cannot fail silently." xml:space="preserve">
-    <value>LDAP 認証は試みられません。ディレクトリ連携アカウントは引き続き Windows ログオンで検証され、サーバーは黙って失敗しないよう、これを 1 分に 1 回報告します (エラー 5922)。</value>
+  <data name="No LDAP authentication is attempted. Directory-linked accounts keep validating through Windows logon, and the server reports this (server error 5922) once per minute so it cannot fail silently." xml:space="preserve">
+    <value>LDAP 認証は試みられません。ディレクトリ連携アカウントは引き続き Windows ログオンで検証され、サーバーは黙って失敗しないよう、これを 1 分に 1 回報告します (サーバー エラー 5922)。</value>
   </data>
   <data name="No MX record was found for {0} through this machine's resolver." xml:space="preserve">
     <value>このコンピューターのリゾルバーでは、{0} の MX レコードが見つかりませんでした。</value>
@@ -7813,8 +7828,8 @@
   <data name="No password on port 25 - the port other servers deliver to" xml:space="preserve">
     <value>ポート 25 ではパスワードを受け付けない - 他のサーバーが配送するポート</value>
   </data>
-  <data name="No password was typed, so no logon was tested - the infrastructure half all works." xml:space="preserve">
-    <value>パスワードが入力されなかったため、ログオンはテストされていません。インフラの側はすべて動作しています。</value>
+  <data name="No password was typed, so no sign-in was tested - the infrastructure half all works." xml:space="preserve">
+    <value>パスワードが入力されなかったため、サインインはテストされていません。インフラの側はすべて動作しています。</value>
   </data>
   <data name="No pattern covers {0}, and it does not resolve back to {1}, so no pattern would spare the address." xml:space="preserve">
     <value>{0} を対象に含むパターンはなく、{1} にも正引きで戻らないため、どのパターンでもアドレスは免除されません。</value>
@@ -7930,7 +7945,7 @@
   <data name="None is needed for a public client, which PKCE makes safe." xml:space="preserve">
     <value>PKCE で安全になる公開クライアントには不要です。</value>
   </data>
-  <data name="None of the selected accounts have an e-mail address." xml:space="preserve">
+  <data name="None of the selected accounts have an email address." xml:space="preserve">
     <value>選択したアカウントのいずれにもメール アドレスがありません。</value>
   </data>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
@@ -7942,8 +7957,8 @@
   <data name="None of the {0} most recent held messages has &quot;{1}&quot; in its sender, recipients, subject or reason. The server lists no more than those." xml:space="preserve">
     <value>最新の保留中メッセージ {0} 件のうち、送信者、受信者、件名、理由に「{1}」を含むものはありません。サーバーはそれ以上を一覧表示しません。</value>
   </data>
-  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
-    <value>認証済みのセッションにはこのいずれも当てはまりません。ログオンしたクライアント、スパム対策がオフの IP 範囲からの接続、およびスパム対策の除外にある送信者と IP 範囲 (エントリ数: {0}) については、スパム対策は完全にスキップされます。</value>
+  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that signed in, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
+    <value>認証済みのセッションにはこのいずれも当てはまりません。サインインしたクライアント、スパム対策がオフの IP 範囲からの接続、およびスパム対策の除外にある送信者と IP 範囲 (エントリ数: {0}) については、スパム対策は完全にスキップされます。</value>
   </data>
   <data name="None yet: make one with the button below." xml:space="preserve">
     <value>まだありません。下のボタンで作成してください。</value>
@@ -8188,8 +8203,8 @@
   <data name="OAuth2 is on and allows RS256, but 'RSA/EC public key file' on the Authentication page is empty - every RS256 token fails signature verification, so no client can sign in with a token. Install the identity provider's public key as a PEM file and choose it there." xml:space="preserve">
     <value>OAuth2 は有効で RS256 を許可していますが、[認証] ページの「RSA/EC 公開鍵ファイル」が空です。すべての RS256 トークンが署名検証に失敗するため、どのクライアントもトークンでサインインできません。ID プロバイダーの公開鍵を PEM ファイルとしてインストールし、そこでそれを選択してください。</value>
   </data>
-  <data name="OAuth2 is switched on but no client can log on with a token, because it is missing {0}. Signature verification cannot run at all, so every token is rejected and the log records only a failed logon - which reads as &quot;the password is wrong&quot; rather than as a configuration gap." xml:space="preserve">
-    <value>OAuth2 はオンになっていますが、{0} がないため、どのクライアントもトークンでログオンできません。署名検証をまったく実行できないため、すべてのトークンが拒否され、ログにはログオンの失敗しか記録されません。それは設定の不備ではなく「パスワードが違う」と読めてしまいます。</value>
+  <data name="OAuth2 is switched on but no client can sign in with a token, because it is missing {0}. Signature verification cannot run at all, so every token is rejected and the log records only a failed sign-in - which reads as &quot;the password is wrong&quot; rather than as a configuration gap." xml:space="preserve">
+    <value>OAuth2 はオンになっていますが、{0} がないため、どのクライアントもトークンでサインインできません。署名検証をまったく実行できないため、すべてのトークンが拒否され、ログにはサインインの失敗しか記録されません。それは設定の不備ではなく「パスワードが違う」と読めてしまいます。</value>
   </data>
   <data name="OK" xml:space="preserve">
     <value>OK</value>
@@ -8260,8 +8275,8 @@
   <data name="Off by default. Useful on shared machines." xml:space="preserve">
     <value>既定ではオフです。共用のコンピューターで役立ちます。</value>
   </data>
-  <data name="Off by default. When off, an unreachable directory refuses the logon and the server reports the real reason (throttled to once per minute per distinct problem) instead of retrying through Windows logon - which cannot succeed on a host that is not domain-joined, and whose failure would bury a precise diagnostic under an indistinguishable one. Turn on only on a domain-joined host that wants LDAP as its first choice. A password the directory REJECTED never falls back either way: retrying it would double every failed attempt and let one wrong password trigger a directory lockout policy." xml:space="preserve">
-    <value>既定ではオフです。オフの場合、到達できないディレクトリはログオンを拒否し、サーバーは Windows ログオンで再試行する代わりに本当の理由を報告します (異なる問題ごとに 1 分に 1 回に抑制)。Windows ログオンはドメインに参加していないホストでは成功し得ず、その失敗は正確な診断を区別のつかない診断で埋もれさせてしまいます。LDAP を第一候補にしたいドメイン参加ホストでのみオンにしてください。ディレクトリが「拒否した」パスワードはどちらの場合もフォールバックしません。再試行すれば失敗した試行がすべて 2 倍になり、1 つの誤ったパスワードでディレクトリのロックアウト ポリシーが発動しかねないからです。</value>
+  <data name="Off by default. When off, an unreachable directory refuses the sign-in and the server reports the real reason (throttled to once per minute per distinct problem) instead of retrying through Windows logon - which cannot succeed on a host that is not domain-joined, and whose failure would bury a precise diagnostic under an indistinguishable one. Turn on only on a domain-joined host that wants LDAP as its first choice. A password the directory REJECTED never falls back either way: retrying it would double every failed attempt and let one wrong password trigger a directory lockout policy." xml:space="preserve">
+    <value>既定ではオフです。オフの場合、到達できないディレクトリはサインインを拒否し、サーバーは Windows ログオンで再試行する代わりに本当の理由を報告します (異なる問題ごとに 1 分に 1 回に抑制)。Windows ログオンはドメインに参加していないホストでは成功し得ず、その失敗は正確な診断を区別のつかない診断で埋もれさせてしまいます。LDAP を第一候補にしたいドメイン参加ホストでのみオンにしてください。ディレクトリが「拒否した」パスワードはどちらの場合もフォールバックしません。再試行すれば失敗した試行がすべて 2 倍になり、1 つの誤ったパスワードでディレクトリのロックアウト ポリシーが発動しかねないからです。</value>
   </data>
   <data name="Off by default. With it off nothing is queued and no push service is reached." xml:space="preserve">
     <value>既定ではオフです。オフの間は何もキューに入れず、どのプッシュ サービスにも接続しません。</value>
@@ -8269,8 +8284,8 @@
   <data name="Off by default. With it off nothing is read, counted or written." xml:space="preserve">
     <value>既定ではオフです。オフの間は何も読まず、数えず、書き込みません。</value>
   </data>
-  <data name="Off by default. With unprotected LDAP and a simple bind, the server does NOT send the password and does NOT guess what you meant: it refuses the logon and reports the contradiction, once per minute. Turning this on sends passwords in the clear and should only ever happen on a network you control end to end." xml:space="preserve">
-    <value>既定ではオフです。保護されていない LDAP でシンプル バインドを使う場合、サーバーはパスワードを送信せず、意図を推測もしません: ログオンを拒否し、その矛盾を 1 分に 1 回報告します。これをオンにするとパスワードが平文で送信されるため、端から端まで自分で管理しているネットワークでのみ行ってください。</value>
+  <data name="Off by default. With unprotected LDAP and a simple bind, the server does NOT send the password and does NOT guess what you meant: it refuses the sign-in and reports the contradiction, once per minute. Turning this on sends passwords in the clear and should only ever happen on a network you control end to end." xml:space="preserve">
+    <value>既定ではオフです。保護されていない LDAP でシンプル バインドを使う場合、サーバーはパスワードを送信せず、意図を推測もしません: サインインを拒否し、その矛盾を 1 分に 1 回報告します。これをオンにするとパスワードが平文で送信されるため、端から端まで自分で管理しているネットワークでのみ行ってください。</value>
   </data>
   <data name="Off by default. user@[192.0.2.7], user@localhost and user@co.uk are refused; MAIL FROM:&lt;&gt; has no domain and is not judged by this switch." xml:space="preserve">
     <value>既定ではオフです。user@[192.0.2.7]、user@localhost、user@co.uk は拒否されます。MAIL FROM:&lt;&gt; にはドメインがないため、このスイッチでは判定されません。</value>
@@ -8800,8 +8815,8 @@
   <data name="POP3 conversations to syslog" xml:space="preserve">
     <value>POP3 の通信を syslog へ</value>
   </data>
-  <data name="POP3 has no way for the server to tell a client that mail has arrived, so clients that want to look responsive poll - and some poll every few seconds. Each poll is a new connection, a TLS handshake and a password verification, which with Argon2id is deliberately expensive, so a handful of eager clients can cost more than the mail does. Setting a delay tells clients the interval in the server's capability list and refuses logins that arrive early with a code the client understands as &quot;slow down&quot; rather than as a wrong password." xml:space="preserve">
-    <value>POP3 には、メールが届いたことをサーバーからクライアントに伝える手段がありません。そのため、反応がよく見えるようにしたいクライアントはポーリングを行い、数秒ごとにポーリングするものもあります。1 回のポーリングごとに新しい接続、TLS ハンドシェイク、パスワードの検証が発生し、Argon2id では検証は意図的に重いため、熱心なクライアントが数台あるだけで、メールそのものより多くのコストがかかることがあります。遅延を設定すると、サーバーは機能一覧でクライアントにその間隔を伝え、早すぎるログインは、誤ったパスワードではなく「速度を落とせ」という意味だとクライアントが解釈できるコードで拒否します。</value>
+  <data name="POP3 has no way for the server to tell a client that mail has arrived, so clients that want to look responsive poll - and some poll every few seconds. Each poll is a new connection, a TLS handshake and a password verification, which with Argon2id is deliberately expensive, so a handful of eager clients can cost more than the mail does. Setting a delay tells clients the interval in the server's capability list and refuses sign-ins that arrive early with a code the client understands as &quot;slow down&quot; rather than as a wrong password." xml:space="preserve">
+    <value>POP3 には、メールが届いたことをサーバーからクライアントに伝える手段がありません。そのため、反応がよく見えるようにしたいクライアントはポーリングを行い、数秒ごとにポーリングするものもあります。1 回のポーリングごとに新しい接続、TLS ハンドシェイク、パスワードの検証が発生し、Argon2id では検証は意図的に重いため、熱心なクライアントが数台あるだけで、メールそのものより多くのコストがかかることがあります。遅延を設定すると、サーバーは機能一覧でクライアントにその間隔を伝え、早すぎるサインインは、誤ったパスワードではなく「速度を落とせ」という意味だとクライアントが解釈できるコードで拒否します。</value>
   </data>
   <data name="POP3 or IMAP mailboxes hMailServer collects mail from on behalf of this account. Connection security and port go together: SSL/TLS on 995 (POP3) or 993 (IMAP), STARTTLS on 110 or 143." xml:space="preserve">
     <value>hMailServer がこのアカウントに代わってメールを収集する POP3 または IMAP のメールボックスです。接続のセキュリティとポートは対応しています: SSL/TLS は 995 (POP3) または 993 (IMAP)、STARTTLS は 110 または 143 です。</value>
@@ -8902,8 +8917,8 @@
   <data name="Password (leave empty to keep current)" xml:space="preserve">
     <value>パスワード (空のままにすると現在のものを維持)</value>
   </data>
-  <data name="Password (optional - only to test a real lo_gon)" xml:space="preserve">
-    <value>パスワード (任意 - 実際のログオンをテストする場合のみ)(_G)</value>
+  <data name="Password (optional - only to test a real si_gn-in)" xml:space="preserve">
+    <value>パスワード (任意 - 実際のサインインをテストする場合のみ)(_G)</value>
   </data>
   <data name="Password hash for new or changed account passwords" xml:space="preserve">
     <value>新規または変更されたアカウント パスワードに使うパスワード ハッシュ</value>
@@ -9288,7 +9303,7 @@
   <data name="Publishing puts an account's OpenPGP public keys where other people's mail programs look for them: the Web Key Directory, served by the web services listener. A key is published only while the server's switch on the Webmail page, this domain's and the account's own are all on." xml:space="preserve">
     <value>公開すると、アカウントの OpenPGP 公開キーが、他の人のメール プログラムが探す場所、つまり Web サービスのリスナーが提供する Web Key Directory に置かれます。キーが公開されるのは、「ウェブメール」ページのサーバーのスイッチ、このドメインのスイッチ、アカウント自身のスイッチがすべてオンのときだけです。</value>
   </data>
-  <data name="Publishing this record asks every server that delivers to {0} to e-mail you a daily report when TLS to you fails or is downgraded. The reports go to the rua= mailbox, which must exist and accept mail from strangers. This works regardless of any hMailServer setting - the senders do the reporting." xml:space="preserve">
+  <data name="Publishing this record asks every server that delivers to {0} to mail you a daily report when TLS to you fails or is downgraded. The reports go to the rua= mailbox, which must exist and accept mail from strangers. This works regardless of any hMailServer setting - the senders do the reporting." xml:space="preserve">
     <value>このレコードを公開すると、{0} へ配信するすべてのサーバーに対して、こちらへの TLS が失敗またはダウングレードされたときに日次レポートをメールで送るよう求めることになります。レポートは rua= のメールボックスに届きます。そのメールボックスは存在し、見知らぬ相手からのメールを受け入れる必要があります。これは hMailServer のどの設定にもかかわらず機能します。レポートを作成するのは送信側だからです。</value>
   </data>
   <data name="Push subscriptions removed" xml:space="preserve">
@@ -9766,8 +9781,8 @@
   <data name="Reject empty sender addresses (MAIL FROM:&lt;&gt;)" xml:space="preserve">
     <value>空の送信者アドレスを拒否する (MAIL FROM:&lt;&gt;)</value>
   </data>
-  <data name="Reject logins using a weaker stored hash than" xml:space="preserve">
-    <value>保存済みハッシュが次より弱いログインを拒否する</value>
+  <data name="Reject sign-ins using a weaker stored hash than" xml:space="preserve">
+    <value>保存済みハッシュが次より弱いサインインを拒否する</value>
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>よく使われるパスワードを拒否する</value>
@@ -9801,9 +9816,6 @@
   </data>
   <data name="Relay requires authentication" xml:space="preserve">
     <value>リレーに認証が必要</value>
-  </data>
-  <data name="Relayer" xml:space="preserve">
-    <value>リレー サーバー</value>
   </data>
   <data name="Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
     <value>上流サーバーへのリレー、再試行間隔、バウンスの処理、そしてローカル メールの扱い。</value>
@@ -10479,9 +10491,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="SMTP conversations to syslog" xml:space="preserve">
     <value>SMTP の通信を syslog へ</value>
   </data>
-  <data name="SMTP relayer (smart host)" xml:space="preserve">
-    <value>SMTP リレー (スマート ホスト)</value>
-  </data>
   <data name="SMTP server" xml:space="preserve">
     <value>SMTP サーバー</value>
   </data>
@@ -11052,7 +11061,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Seconds between verdict checks" xml:space="preserve">
     <value>判定を確認する間隔 (秒)</value>
   </data>
-  <data name="Seconds to keep the JWK Set before re-fetching (a token naming an unknown key id re-fetches at once)" xml:space="preserve">
+  <data name="Seconds to keep the JWK Set before re-fetching (a token naming an unknown key ID re-fetches at once)" xml:space="preserve">
     <value>JWK Set を再取得するまで保持する秒数 (未知の鍵 ID を示すトークンは直ちに再取得します)</value>
   </data>
   <data name="Seconds to wait for the service after an apply before rolling back" xml:space="preserve">
@@ -11159,6 +11168,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Send a dail_y digest to the members who choose it" xml:space="preserve">
     <value>選択したメンバーへ毎日ダイジェストを送信する(_Y)</value>
+  </data>
+  <data name="Send a message to every account on the server at once - for maintenance announcements." xml:space="preserve">
+    <value>サーバー上のすべてのアカウントに一度にメールを送ります。メンテナンスの告知向けです。</value>
   </data>
   <data name="Send alerts and the daily digest to" xml:space="preserve">
     <value>アラートと毎日のダイジェストの送信先</value>
@@ -11385,6 +11397,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Server-wide secret mixed into password hashes" xml:space="preserve">
     <value>パスワード ハッシュに混ぜ込むサーバー全体のシークレット</value>
   </data>
+  <data name="Server-wide smart host" xml:space="preserve">
+    <value>サーバー全体のスマート ホスト</value>
+  </data>
   <data name="Service account (search mode only)" xml:space="preserve">
     <value>サービス アカウント (検索モードのみ)</value>
   </data>
@@ -11454,9 +11469,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Set the HTTPS port on the Web services &amp; autoconfiguration page (RFC 8461 requires the policy over HTTPS), give the listener a certificate that covers mta-sts.&lt;domain&gt;, then for each domain publish an A/AAAA (or CNAME) record for mta-sts.&lt;domain&gt; pointing at this server and a TXT record at _mta-sts.&lt;domain&gt; (v=STSv1; id=...). This page checks the TXT record; the address record and the certificate's name coverage cannot be checked from here." xml:space="preserve">
     <value>Web サービスと自動設定ページで HTTPS ポートを設定し (RFC 8461 はポリシーを HTTPS で提供することを要求します)、リスナーに mta-sts.&lt;domain&gt; をカバーする証明書を与え、次に各ドメインについて、このサーバーを指す mta-sts.&lt;domain&gt; の A/AAAA (または CNAME) レコードと、_mta-sts.&lt;domain&gt; の TXT レコード (v=STSv1; id=...) を公開してください。このページは TXT レコードを確認します。アドレス レコードと証明書の名前のカバー範囲はここからは確認できません。</value>
   </data>
-  <data name="Set the SMTP relayer, and its credentials if the provider needs them." xml:space="preserve">
-    <value>SMTP リレーと、プロバイダーが必要とする場合はその資格情報を設定します。</value>
-  </data>
   <data name="Set the auto-ban threshold and how long the lockout lasts." xml:space="preserve">
     <value>自動ブロックのしきい値とロックアウトの継続時間を設定します。</value>
   </data>
@@ -11477,6 +11489,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Set the resumption lifetime and ticket-key rotation, which bound how long a captured resumption secret stays useful." xml:space="preserve">
     <value>再開の有効期間とチケット鍵のローテーションを設定します。これらは、捕捉された再開シークレットが有用であり続ける期間を制限します。</value>
+  </data>
+  <data name="Set the smart host, and its credentials if the provider needs them." xml:space="preserve">
+    <value>スマート ホストと、プロバイダーが必要とする場合はその資格情報を設定します。</value>
   </data>
   <data name="Set up Control-Panel-only two-factor authentication" xml:space="preserve">
     <value>コントロールパネルのみの 2 要素認証を設定</value>
@@ -11661,8 +11676,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Sign-in &amp; access" xml:space="preserve">
     <value>サインインとアクセス</value>
   </data>
+  <data name="Sign-in _name attribute" xml:space="preserve">
+    <value>サインイン名の属性(_N)</value>
+  </data>
   <data name="Sign-in cancelled." xml:space="preserve">
     <value>サインインがキャンセルされました。</value>
+  </data>
+  <data name="Sign-in tarpit" xml:space="preserve">
+    <value>サインイン タールピット</value>
   </data>
   <data name="Sign-in to the webmail and the Control Deck" xml:space="preserve">
     <value>ウェブメールと Control Deck へのサインイン</value>
@@ -11762,6 +11783,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Smallest part held once (KB; 0 holds nothing once)" xml:space="preserve">
     <value>一度だけ保存する最小の部分 (KB、0 で一度だけの保存を行いません)</value>
+  </data>
+  <data name="Smart host" xml:space="preserve">
+    <value>スマート ホスト</value>
   </data>
   <data name="Soft" xml:space="preserve">
     <value>ソフト</value>
@@ -12483,8 +12507,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The accounts, mailboxes and quarantine of named domains." xml:space="preserve">
     <value>指定したドメインのアカウント、メールボックス、検疫。</value>
   </data>
-  <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
-    <value>連続したログオン失敗と同じく期限付きの IP 範囲でアドレスをブロックしますが、[自動ブロック] ページの「これらのアドレスは決して自動 BAN しない」にあるアドレスや受信リレーは決してブロックしません。既定ではオフで、上の拒否がオフの間は何もしません。</value>
+  <data name="The address is banned as a run of failed sign-ins bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
+    <value>連続したサインイン失敗と同じく期限付きの IP 範囲でアドレスをブロックしますが、[自動ブロック] ページの「これらのアドレスは決して自動 BAN しない」にあるアドレスや受信リレーは決してブロックしません。既定ではオフで、上の拒否がオフの間は何もしません。</value>
   </data>
   <data name="The address is shown masked here and everywhere else, and no interface answers it whole: it is a mailbox belonging to the person, and nothing an administrator does needs to read it." xml:space="preserve">
     <value>アドレスはここでも他のどこでもマスクして表示され、どのインターフェイスも完全な形では返しません。本人のメールボックスであり、管理者が行う作業にそれを読む必要はありません。</value>
@@ -12705,8 +12729,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The certificate files are on the server and this Control Panel is connected to it remotely, so expiry dates and file contents cannot be checked from here. Everything else on this page is read over COM and is accurate." xml:space="preserve">
     <value>証明書ファイルはサーバー上にあり、このコントロールパネルはサーバーにリモート接続しているため、有効期限とファイルの内容をここから確認することはできません。このページのそれ以外の項目は COM 経由で読み取られており、正確です。</value>
   </data>
-  <data name="The certificate is not valid until {0}. The server serves it (error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
-    <value>証明書は {0} まで有効になりません。サーバーはそれを提示し (アプリケーション ログのエラー 5991)、クライアントはその日付までそれを拒否します。証明書とこのサーバーの時計を確認してください。</value>
+  <data name="The certificate is not valid until {0}. The server serves it (server error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
+    <value>証明書は {0} まで有効になりません。サーバーはそれを提示し (アプリケーション ログのサーバー エラー 5991)、クライアントはその日付までそれを拒否します。証明書とこのサーバーの時計を確認してください。</value>
   </data>
   <data name="The certificate keeps its place on every TCP/IP port that presents it. Those ports read the files again when the server is next reinitialised." xml:space="preserve">
     <value>証明書は、それを提示しているすべての TCP/IP ポートでそのまま使われます。それらのポートは、次にサーバーが再初期化されたときにファイルを読み直します。</value>
@@ -12836,8 +12860,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The delivery that takes a mailbox past this percentage produces one notice to the person whose mailbox it is, from their own domain's postmaster. ONE, not one per message: the server treats the threshold as something the mailbox CROSSES rather than a state it is in, so a mailbox sitting at 95% is not warned about again on every delivery - which would fill it faster than the mail does. Emptying the mailbox and filling it again warns again, which is the behaviour anyone would expect and is free here rather than something that had to be remembered and expired. On by default, because the alternative is what this server did before: say nothing at all until mail starts being refused, by which point the person it happens to is the last to know." xml:space="preserve">
     <value>メールボックスをこのパーセンテージ超に押し上げた配信は、そのメールボックスの所有者に、所有者自身のドメインのポストマスターから通知を 1 通生成します。メッセージごとに 1 通ではなく、1 通です。サーバーはしきい値を、メールボックスが「ある状態にある」ものではなく「越える」ものとして扱うため、95% に留まっているメールボックスが配信のたびに再警告されることはありません。そうすると、メールよりも速くメールボックスが埋まってしまいます。メールボックスを空にして再び埋めれば再度警告されます。これは誰もが期待する動作であり、ここでは記憶して期限切れにする仕組みを必要とせず、自然に得られます。既定で有効です。そうでなければ、このサーバーが以前していたこと、つまりメールが拒否され始めるまで何も言わず、その時点で当事者が最後に知る、という状態になるからです。</value>
   </data>
-  <data name="The directory ACCEPTED the credentials: bound as {0}. This account would log on." xml:space="preserve">
-    <value>ディレクトリは資格情報を受け入れました: {0} としてバインドしました。このアカウントはログオンできます。</value>
+  <data name="The directory ACCEPTED the credentials: bound as {0}. This account would sign in." xml:space="preserve">
+    <value>ディレクトリは資格情報を受け入れました: {0} としてバインドしました。このアカウントはサインインできます。</value>
   </data>
   <data name="The directory answered and REFUSED these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see." xml:space="preserve">
     <value>ディレクトリは応答し、この資格情報を拒否しました: {0} (LDAP エラー {1})。接続、トランスポート、設定はすべて機能しています。これは資格情報の問題であり、誤ったパスワードを入力したユーザーに見えるものとまったく同じです。</value>
@@ -13470,8 +13494,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The search matched more than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make the user search filter or the search base select exactly one entry." xml:space="preserve">
     <value>検索が複数のディレクトリ エントリに一致しました (フィルター {0}、ベース {1})。サーバーはあいまいな一致に対する認証を拒否します。ユーザー検索フィルターまたは検索ベースがちょうど 1 つのエントリを選ぶようにしてください。</value>
   </data>
-  <data name="The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Windows directory tab, and the filter and search base against the directory." xml:space="preserve">
-    <value>検索は何にも一致しませんでした (フィルター {0}、{1} 配下)。ログオンとしては、これは障害ではなく拒否です。ユーザー名をアカウントの [Windows ディレクトリ] タブと、フィルターと検索ベースをディレクトリと照らし合わせてください。</value>
+  <data name="The search matched nothing (filter {0} under {1}). As a sign-in this is a refusal, not an outage - check the user name against the account's Windows directory tab, and the filter and search base against the directory." xml:space="preserve">
+    <value>検索は何にも一致しませんでした (フィルター {0}、{1} 配下)。サインインとしては、これは障害ではなく拒否です。ユーザー名をアカウントの [Windows ディレクトリ] タブと、フィルターと検索ベースをディレクトリと照らし合わせてください。</value>
   </data>
   <data name="The search stops when this is reached and the client is told the search failed, rather than being given a partial result it would mistake for a complete one." xml:space="preserve">
     <value>これに達すると検索は停止し、クライアントには検索が失敗したと伝えられます。完全だと誤解される部分的な結果を渡すことはありません。</value>
@@ -13533,8 +13557,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The server does not answer {0} in {1}; it may be older than this Control Panel." xml:space="preserve">
     <value>サーバーは {1} で {0} に応答しません。このコントロール パネルより古いサーバーの可能性があります。</value>
   </data>
-  <data name="The server fails closed rather than guessing (error 5921): no password is sent and the logon is refused. Fix it by choosing LDAPS or StartTLS, or the Negotiate bind method (which never transmits the password) - or, on a network you control end to end, by explicitly allowing the unprotected password." xml:space="preserve">
-    <value>サーバーは推測せず、安全側に倒します (エラー 5921)。パスワードは送信されず、ログオンは拒否されます。LDAPS または StartTLS を選ぶか、Negotiate バインド方式 (パスワードを決して送信しない) を選ぶことで解決します。あるいは、端から端まで管理下にあるネットワークでは、保護されていないパスワードを明示的に許可することでも解決します。</value>
+  <data name="The server fails closed rather than guessing (server error 5921): no password is sent and the sign-in is refused. Fix it by choosing LDAPS or StartTLS, or the Negotiate bind method (which never transmits the password) - or, on a network you control end to end, by explicitly allowing the unprotected password." xml:space="preserve">
+    <value>サーバーは推測せず、安全側に倒します (サーバー エラー 5921)。パスワードは送信されず、サインインは拒否されます。LDAPS または StartTLS を選ぶか、Negotiate バインド方式 (パスワードを決して送信しない) を選ぶことで解決します。あるいは、端から端まで管理下にあるネットワークでは、保護されていないパスワードを明示的に許可することでも解決します。</value>
   </data>
   <data name="The server found no mail servers for {0}, so mail sent to that domain from this server would not be deliverable right now." xml:space="preserve">
     <value>サーバーは {0} のメール サーバーを見つけられませんでした。そのため、このサーバーからそのドメインに送るメールは、現時点では配信できません。</value>
@@ -14134,8 +14158,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Token introspection endpoint (RFC 7662; empty = no revocation check)" xml:space="preserve">
     <value>トークン イントロスペクション エンドポイント (RFC 7662。空 = 失効チェックなし)</value>
   </data>
-  <data name="Tokens are accepted, but {0}: the server applies each of those only when you have set it, and blank is the default. That is wider than it looks. Any token your identity provider signs with this key is accepted - including one it issued to a different application entirely, which is enough to log in as whichever mailbox that token names. Set both to the exact values your provider puts in its tokens." xml:space="preserve">
-    <value>トークンは受け入れられますが、{0}: サーバーはこれらを設定した場合にのみ適用し、既定は空です。これは見た目より広い範囲に影響します。ID プロバイダーがこの鍵で署名したあらゆるトークンが受け入れられます。まったく別のアプリケーションに発行されたトークンも含まれ、それはそのトークンが指定するメールボックスとしてログインするのに十分です。プロバイダーがトークンに入れる正確な値を両方に設定してください。</value>
+  <data name="Tokens are accepted, but {0}: the server applies each of those only when you have set it, and blank is the default. That is wider than it looks. Any token your identity provider signs with this key is accepted - including one it issued to a different application entirely, which is enough to sign in as whichever mailbox that token names. Set both to the exact values your provider puts in its tokens." xml:space="preserve">
+    <value>トークンは受け入れられますが、{0}: サーバーはこれらを設定した場合にのみ適用し、既定は空です。これは見た目より広い範囲に影響します。ID プロバイダーがこの鍵で署名したあらゆるトークンが受け入れられます。まったく別のアプリケーションに発行されたトークンも含まれ、それはそのトークンが指定するメールボックスとしてサインインするのに十分です。プロバイダーがトークンに入れる正確な値を両方に設定してください。</value>
   </data>
   <data name="Tokens are also accepted over unencrypted connections, so a recorded one can be replayed until it expires." xml:space="preserve">
     <value>トークンは暗号化されていない接続でも受け入れられるため、記録されたトークンは有効期限が切れるまで再生 (リプレイ) される可能性があります。</value>
@@ -14278,11 +14302,11 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Type a domain and press Query. The answer lists the servers that receive that domain's mail, most preferred first, as this server's own resolver sees them." xml:space="preserve">
     <value>ドメインを入力して 照会 を押してください。そのドメインのメールを受け取るサーバーが、優先度の高い順に、このサーバー自身のリゾルバーから見たとおりに表示されます。</value>
   </data>
-  <data name="Type a user name and password to test a real logon through the DN template." xml:space="preserve">
-    <value>DN テンプレートを通じた実際のログオンをテストするには、ユーザー名とパスワードを入力してください。</value>
+  <data name="Type a user name and password to test a real sign-in through the DN template." xml:space="preserve">
+    <value>DN テンプレートを通じた実際のサインインをテストするには、ユーザー名とパスワードを入力してください。</value>
   </data>
-  <data name="Type a user name to also test the search and, with a password, a real logon." xml:space="preserve">
-    <value>検索もテストするにはユーザー名を、実際のログオンもテストするにはさらにパスワードを入力してください。</value>
+  <data name="Type a user name to also test the search and, with a password, a real sign-in." xml:space="preserve">
+    <value>検索もテストするにはユーザー名を、実際のサインインもテストするにはさらにパスワードを入力してください。</value>
   </data>
   <data name="Type the administrator password in use now." xml:space="preserve">
     <value>現在使用している管理者パスワードを入力してください。</value>
@@ -14662,8 +14686,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="What happened to a particular message. Search by any address - it matches senders and recipients - then follow one row to see every event for that message in order." xml:space="preserve">
     <value>特定のメッセージに何が起きたか。任意のアドレスで検索し (送信者と受信者の両方に一致します)、1 行をたどってそのメッセージのすべてのイベントを順に表示します。</value>
   </data>
-  <data name="What happens to a TCP connection this server refuses before any protocol conversation starts: one from an address no IP range allows, or one over that range's connection limit. Both of those are configured on the IP ranges page. Locking out an address that keeps failing to log on is a different mechanism entirely and is on the Auto-ban page." xml:space="preserve">
-    <value>プロトコル会話が始まる前にこのサーバーが拒否する TCP 接続に何が起きるか。どの IP 範囲も許可しないアドレスからの接続や、その範囲の接続制限を超えた接続です。どちらも IP 範囲ページで設定します。ログオンに失敗し続けるアドレスのロックアウトはまったく別の仕組みで、自動ブロック ページにあります。</value>
+  <data name="What happens to a TCP connection this server refuses before any protocol conversation starts: one from an address no IP range allows, or one over that range's connection limit. Both of those are configured on the IP ranges page. Locking out an address that keeps failing to sign in is a different mechanism entirely and is on the Auto-ban page." xml:space="preserve">
+    <value>プロトコル会話が始まる前にこのサーバーが拒否する TCP 接続に何が起きるか。どの IP 範囲も許可しないアドレスからの接続や、その範囲の接続制限を超えた接続です。どちらも IP 範囲ページで設定します。サインインに失敗し続けるアドレスのロックアウトはまったく別の仕組みで、自動ブロック ページにあります。</value>
   </data>
   <data name="What happens to a listed recipient" xml:space="preserve">
     <value>リストにある受信者の扱い</value>
@@ -15565,9 +15589,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Log" xml:space="preserve">
     <value>ログ(_L)</value>
   </data>
-  <data name="_Logon name attribute" xml:space="preserve">
-    <value>ログオン名の属性(_L)</value>
-  </data>
   <data name="_Lower IP" xml:space="preserve">
     <value>下限 IP(_L)</value>
   </data>
@@ -15757,8 +15778,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Reinitialise" xml:space="preserve">
     <value>再初期化(_R)</value>
   </data>
-  <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
-    <value>リレー ホスト (空 = サーバー全体のリレーを使用)(_R)</value>
+  <data name="_Relay host (empty = the server-wide smart host)" xml:space="preserve">
+    <value>リレー ホスト (空 = サーバー全体のスマート ホスト)(_R)</value>
   </data>
   <data name="_Reload" xml:space="preserve">
     <value>再読み込み(_R)</value>
@@ -16099,7 +16120,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="contains" xml:space="preserve">
     <value>次を含む</value>
   </data>
-  <data name="create an e-mail address" xml:space="preserve">
+  <data name="create an email address" xml:space="preserve">
     <value>メール アドレスを作成する</value>
   </data>
   <data name="dash-dotted line" xml:space="preserve">
@@ -16421,7 +16442,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="let a sender through the spam filter" xml:space="preserve">
     <value>送信者をスパム フィルターの対象外にする</value>
   </data>
-  <data name="let the office printer send e-mail" xml:space="preserve">
+  <data name="let the office printer send mail" xml:space="preserve">
     <value>オフィスのプリンターにメールを送信させる</value>
   </data>
   <data name="limit how long a tls session can be resumed" xml:space="preserve">
@@ -16433,8 +16454,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="list entry" xml:space="preserve">
     <value>一覧のエントリ</value>
   </data>
-  <data name="lock out repeated failed logons" xml:space="preserve">
-    <value>繰り返されるログオン失敗をロックアウトする</value>
+  <data name="lock out repeated failed sign-ins" xml:space="preserve">
+    <value>繰り返されるサインイン失敗をロックアウトする</value>
   </data>
   <data name="logon from this computer is not permitted" xml:space="preserve">
     <value>このコンピューターからのログオンは許可されていません</value>
@@ -16910,7 +16931,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="write the log to a database" xml:space="preserve">
     <value>ログをデータベースに書き込む</value>
   </data>
-  <data name="your application / client id" xml:space="preserve">
+  <data name="your application / client ID" xml:space="preserve">
     <value>アプリケーション / クライアント ID</value>
   </data>
   <data name="{0}  (not subscribed)" xml:space="preserve">
@@ -17702,10 +17723,10 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} with no usable digest, which the server ignores" xml:space="preserve">
     <value>{0} 件は使用できるダイジェストがなく、サーバーはそれらを無視します</value>
   </data>
-  <data name="{0} {1} account had no e-mail address and was skipped." xml:space="preserve">
+  <data name="{0} {1} account had no email address and was skipped." xml:space="preserve">
     <value>{0}{1} 件のアカウントにはメール アドレスがなく、スキップされました。</value>
   </data>
-  <data name="{0} {1} accounts had no e-mail address and were skipped." xml:space="preserve">
+  <data name="{0} {1} accounts had no email address and were skipped." xml:space="preserve">
     <value>{0}{1} 件のアカウントにはメール アドレスがなく、スキップされました。</value>
   </data>
   <data name="{0} {1} message is on its way into them and arrives in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
@@ -17780,8 +17801,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0}. Active: {1} of {2}." xml:space="preserve">
     <value>{0}。有効: {2} 件中 {1} 件。</value>
   </data>
-  <data name="{0}. Any token the identity provider signs with this key is then accepted, including one it issued to a different application - which is enough to log in as whichever mailbox that token names. Set both to the exact values the provider puts in its tokens. The values come from the provider, which is why they are on this list." xml:space="preserve">
-    <value>{0}。そのため、ID プロバイダーがこの鍵で署名したトークンはすべて受け入れられます。別のアプリケーション向けに発行したトークンも含まれ、それだけで、そのトークンが指すメールボックスとしてログインできてしまいます。どちらも、プロバイダーがトークンに入れる値とまったく同じ値に設定してください。値はプロバイダーから提供されるものであり、それがこのリストに載っている理由です。</value>
+  <data name="{0}. Any token the identity provider signs with this key is then accepted, including one it issued to a different application - which is enough to sign in as whichever mailbox that token names. Set both to the exact values the provider puts in its tokens. The values come from the provider, which is why they are on this list." xml:space="preserve">
+    <value>{0}。そのため、ID プロバイダーがこの鍵で署名したトークンはすべて受け入れられます。別のアプリケーション向けに発行したトークンも含まれ、それだけで、そのトークンが指すメールボックスとしてサインインできてしまいます。どちらも、プロバイダーがトークンに入れる値とまったく同じ値に設定してください。値はプロバイダーから提供されるものであり、それがこのリストに載っている理由です。</value>
   </data>
   <data name="{0}. No entries are configured, so the check does not run." xml:space="preserve">
     <value>{0}。エントリが 1 つも設定されていないため、このチェックは実行されません。</value>

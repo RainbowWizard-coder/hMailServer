@@ -244,7 +244,7 @@ namespace hMailServer.ControlPanel.Services
          {
             health.CertificateFile = new CertificateFinding(StatusLevel.Warning,
                F("Not valid until {0}", certificate.NotBefore.ToString("yyyy-MM-dd")),
-               F("The certificate is not valid until {0}. The server serves it (error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock.", certificate.NotBefore.ToString("yyyy-MM-dd")));
+               F("The certificate is not valid until {0}. The server serves it (server error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock.", certificate.NotBefore.ToString("yyyy-MM-dd")));
          }
          else if (daysRemaining <= ExpiryWarningDays)
          {

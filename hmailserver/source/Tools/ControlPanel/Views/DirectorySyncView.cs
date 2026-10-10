@@ -362,7 +362,7 @@ namespace hMailServer.ControlPanel.Views
             L("Which attribute holds the mailbox address - mail when left empty. proxyAddresses is understood: its scheme prefix is removed and the primary SMTP: value is preferred over the lower-case aliases."),
             placeholder: "mail"));
 
-         content.Children.Add(LabelledBox_(L("_Logon name attribute"), usernameAttribute_, "dirsync-username-attribute",
+         content.Children.Add(LabelledBox_(L("Sign-in _name attribute"), usernameAttribute_, "dirsync-username-attribute",
             L("Which attribute holds the name the person signs in with - sAMAccountName when left empty. This is what is stored against the account and what the directory is asked about at every sign-in afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned."),
             placeholder: "sAMAccountName"));
 

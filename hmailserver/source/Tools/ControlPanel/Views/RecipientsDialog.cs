@@ -269,7 +269,7 @@ namespace hMailServer.ControlPanel.Views
 
          if (emails.Count == 0)
          {
-            notice_.Show(StatusLevel.Warning, L("None of the selected accounts have an e-mail address."));
+            notice_.Show(StatusLevel.Warning, L("None of the selected accounts have an email address."));
             return;
          }
 
@@ -305,8 +305,8 @@ namespace hMailServer.ControlPanel.Views
          Reload();
          if (skipped > 0)
             notice_.Show(StatusLevel.Information, PluralF(skipped,
-               "{0} {1} account had no e-mail address and was skipped.",
-               "{0} {1} accounts had no e-mail address and were skipped.",
+               "{0} {1} account had no email address and was skipped.",
+               "{0} {1} accounts had no email address and were skipped.",
                Plural(added, "{0} member added.", "{0} members added."), skipped));
       }
 

@@ -776,7 +776,7 @@ namespace hMailServer.ControlPanel.Services
          if (config.WasRead(nameof(config.WhiteListEntries)))
          {
             notes.Add(new SpamPipelineNote(StatusLevel.Information,
-               F("None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0}).", config.WhiteListEntries)));
+               F("None of this applies to an authenticated session - spam protection is skipped entirely for a client that signed in, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0}).", config.WhiteListEntries)));
          }
 
          return notes;

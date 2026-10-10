@@ -1724,7 +1724,7 @@ namespace hMailServer.ControlPanel.Services
          var item = new SetupItem
          {
             Title = L("OAuth2 / XOAUTH2 - the identity provider's key material must be installed"),
-            Purpose = L("Lets clients log on with bearer tokens from an identity provider instead of passwords; tokens are only accepted if their signature verifies against key material you install."),
+            Purpose = L("Lets clients sign in with bearer tokens from an identity provider instead of passwords; tokens are only accepted if their signature verifies against key material you install."),
             Action = L("Register this server as an application with the identity provider, download the provider's public signing key as a PEM file, and choose it as 'RSA/EC public key file' on the Authentication page (or set 'Shared HMAC secret' there for HS256). Set 'Expected token issuer' and 'Expected audience' to the values the provider puts in its tokens, or validation will reject them."),
             Page = "authentication"
          };
@@ -1795,7 +1795,7 @@ namespace hMailServer.ControlPanel.Services
                           : L("The expected audience is not set, so the audience is not checked");
 
             item.Add(SetupItemState.ActionNeeded,
-               F("{0}. Any token the identity provider signs with this key is then accepted, including one it issued to a different application - which is enough to log in as whichever mailbox that token names. Set both to the exact values the provider puts in its tokens. The values come from the provider, which is why they are on this list.", unchecked_));
+               F("{0}. Any token the identity provider signs with this key is then accepted, including one it issued to a different application - which is enough to sign in as whichever mailbox that token names. Set both to the exact values the provider puts in its tokens. The values come from the provider, which is why they are on this list.", unchecked_));
          }
 
          if (!anythingWrong)
@@ -1821,7 +1821,7 @@ namespace hMailServer.ControlPanel.Services
          var item = new SetupItem
          {
             Title = L("Client autoconfiguration - a listener plus the DNS names clients probe"),
-            Purpose = L("Lets Outlook, Thunderbird and mobile clients set themselves up from an e-mail address alone, by fetching this server's configuration URLs."),
+            Purpose = L("Lets Outlook, Thunderbird and mobile clients set themselves up from an email address alone, by fetching this server's configuration URLs."),
             Action = L("Set the HTTP or HTTPS port on the Web services & autoconfiguration page so the URLs answer, then publish autoconfig.<domain> and autodiscover.<domain> DNS records for each mail domain, pointing at this server. These are address records, and this page checks TXT records only, so they cannot be confirmed from here."),
             Page = "webservices"
          };

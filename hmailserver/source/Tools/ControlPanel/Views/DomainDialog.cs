@@ -83,7 +83,7 @@ namespace hMailServer.ControlPanel.Views
       private readonly CheckBox signatureOn_ = new() { Content = L("_Add signature to outgoing messages") };
       private readonly ComboBox signatureMethod_ = new();
       private readonly CheckBox signReplies_ = new() { Content = L("Add signature to _replies") };
-      private readonly CheckBox signLocal_ = new() { Content = L("Add signature to _local e-mail") };
+      private readonly CheckBox signLocal_ = new() { Content = L("Add signature to _local mail") };
       private readonly TextBox signaturePlain_ = NewMemo();
       private readonly TextBox signatureHtml_ = NewMemo();
 
@@ -531,9 +531,9 @@ namespace hMailServer.ControlPanel.Views
 
          var panel = DialogFields.TabPanel();
          panel.Children.Add(DialogFields.Note(L("Where mail FROM this domain leaves through. This is a different question from a route, which decides where mail addressed TO a domain is sent - it is for a server hosting several independent domains where each has its own delivery provider.")));
-         panel.Children.Add(DialogFields.Note(L("Leave the host empty and the domain has no opinion: the server-wide SMTP relayer applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination.")));
+         panel.Children.Add(DialogFields.Note(L("Leave the host empty and the domain has no opinion: the server-wide smart host applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination.")));
          panel.Children.Add(DialogFields.Separator());
-         panel.Children.Add(Label(L("_Relay host (empty = use the server-wide relayer)"), relayHost_));
+         panel.Children.Add(Label(L("_Relay host (empty = the server-wide smart host)"), relayHost_));
          relayPortRow_ = Label(L("_Port (0 = 25)"), relayPort_);
          panel.Children.Add(relayPortRow_);
          panel.Children.Add(Label(L("_Connection security"), relaySecurity_));

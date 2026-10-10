@@ -3120,6 +3120,22 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   grows; this prunes it.", in every language; the Auto-ban tarpit's history of TarpitDelay had gone with the copy
   pass. `HintAsidesTests` holds the catalogue to none of the asides.
 
+- **Fixed: the Control Panel called signing in by eight names, and one setting a relayer, a relay and a smart host.**
+  The group called Sign-in & access said "keeps failing to log on", "Max invalid logon attempts", "Logon tarpit",
+  "Delay per failed logon", "Minimum seconds between logins" and "log on with their domain password" beside webmail
+  texts that said sign in. Every text now says sign in for the act and sign-in for the noun, for people and mail
+  clients alike, and logon only for Windows - Windows logon, LogonUser, an account's logon restrictions, the service's
+  Log on as a service right; the Auto-ban captions read "Failed sign-ins before an address is banned (0 = off)",
+  "Sign-in tarpit" and "Delay per failed sign-in (seconds; 0 = off)", and Japanese says サインイン and Brazilian Portuguese
+  login wherever the English says sign in. The glossary the review asked for is a section of
+  docs/ControlPanelDesign.md, Words, and applied in one pass: the Delivery of e-mail page's Relayer tab and its SMTP
+  relayer (smart host) card are Smart host and Server-wide smart host, as the domain dialog's relay host, its hint and
+  the stored-secrets note say; e-mail is mail in prose and email address for the field ("Email" in the Active
+  Directory picker); Couldn't is Could not, client id and key id are client ID and key ID, three server errors gain
+  their "server", the TCP/IP ports grid's Security column is Connection security, and three captions lose the colon at
+  their end (the public folder's name, the code the second factor asks for, the DKIM record). `GlossaryTests` holds
+  the English to the glossary, the Brazilian catalogue to login, and every caption to no colon.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
