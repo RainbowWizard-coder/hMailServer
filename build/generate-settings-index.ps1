@@ -212,16 +212,21 @@ for ($i = 1; $i -lt $featureParts.Count; $i += 2) {
    if (-not $page) { continue }
 
    # One card at a time: each is a cards_.Add(new CardDef { Title = L("..."), ...
-   # Settings = { ... } }), and the first Title in it is the card's. These pages
-   # have no tabs.
+   # Settings = { ... } }), and the first Title in it is the card's. A section whose
+   # cards name tabs - Transport security, Tab = L("Signing") - is drawn as a page
+   # of tabs, and each setting is placed on its card's tab as on ServerSettingsView's
+   # pages, so that the palette's row says the tab and opens the page on it.
    foreach ($cardText in [regex]::Split($body, 'cards_\.Add\(new CardDef')) {
       $titleMatch = [regex]::Match($cardText, 'Title = L\("((?:[^"\\]|\\.)*)"\)')
       $card = ''
       if ($titleMatch.Success) { $card = ConvertFrom-CSharpLiteral $titleMatch.Groups[1].Value }
+      $tabMatch = [regex]::Match($cardText, '\bTab = L\("((?:[^"\\]|\\.)*)"\)')
+      $tab = ''
+      if ($tabMatch.Success) { $tab = ConvertFrom-CSharpLiteral $tabMatch.Groups[1].Value }
 
       # \bKey, not Key: a section's header names its page as PageKey = "acme", which is no setting.
       foreach ($m in [regex]::Matches($cardText, '\bKey = "([^"]+)"[^}]*?Label = (?:L\()?"((?:[^"\\]|\\.)*)"')) {
-         Add-Entry $entries (ConvertFrom-CSharpLiteral $m.Groups[2].Value) $m.Groups[1].Value $page '' $card
+         Add-Entry $entries (ConvertFrom-CSharpLiteral $m.Groups[2].Value) $m.Groups[1].Value $page $tab $card
       }
    }
 }

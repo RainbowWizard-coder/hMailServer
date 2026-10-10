@@ -43,7 +43,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("AntiSpam.SpamAssassinHost", "antispam", "SpamAssassin", "SpamAssassin")]
       [InlineData("UpdateWindow", "updates", null, "How this server updates")]
       [InlineData("SMTPProxyProtocolEnabled", "hardening", null, "Front-end proxies (PROXY protocol and XCLIENT)")]
-      [InlineData("DkimOversignHeaders", "security", null, "DKIM oversigning")]
+      [InlineData("DkimOversignHeaders", "security", "Signing", "DKIM oversigning")]
+      [InlineData("SRSEnabled", "security", "Forwarding", "Forwarded mail & bounce protection (SRS / BATV)")]
       public void TheIndexRecordsWhereOnItsPageASettingIs(string key, string page, string tab, string card)
       {
          SettingEntry entry = SettingsSearchIndex.Entries.Single(e => e.Key == key);
@@ -65,6 +66,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          var tabs = new HashSet<string>(Regex.Matches(server, "Tab\\(L\\(\"((?:[^\"\\\\]|\\\\.)*)\"\\)\\)").Select(m => Unescape_(m.Groups[1].Value)), StringComparer.Ordinal);
          var cards = new HashSet<string>(Regex.Matches(server, "Card\\(L\\(\"((?:[^\"\\\\]|\\\\.)*)\"\\)").Select(m => Unescape_(m.Groups[1].Value)), StringComparer.Ordinal);
          cards.UnionWith(Regex.Matches(feature, "Title = L\\(\"((?:[^\"\\\\]|\\\\.)*)\"\\)").Select(m => Unescape_(m.Groups[1].Value)));
+         // The tabs a section of the hMailServer.ini pages names (Transport security's).
+         var featureTabs = new HashSet<string>(Regex.Matches(feature, "\\bTab = L\\(\"((?:[^\"\\\\]|\\\\.)*)\"\\)").Select(m => Unescape_(m.Groups[1].Value)), StringComparer.Ordinal);
 
          var unplaced = new List<string>();
          foreach (SettingEntry entry in SettingsSearchIndex.Entries)
@@ -76,7 +79,9 @@ namespace hMailServer.ControlPanel.Tests.Services
             }
             else if (FeaturePages.Contains(entry.Page))
             {
-               if (entry.Tab != null || entry.Card == null || !cards.Contains(entry.Card))
+               // A tab on Transport security, a page of tabs, and on no other.
+               if ((entry.Page == "security") != (entry.Tab != null) || (entry.Tab != null && !featureTabs.Contains(entry.Tab))
+                   || entry.Card == null || !cards.Contains(entry.Card))
                   unplaced.Add(entry.Page + " " + entry.Key + " (" + entry.Tab + " / " + entry.Card + ")");
             }
          }
@@ -96,6 +101,12 @@ namespace hMailServer.ControlPanel.Tests.Services
          PaletteRow scroll = PaletteSearch.Query("Unattended window", null, null).First(r => r.Kind == PaletteRowKind.Setting);
          Assert.Equal("updates", scroll.Page);
          Assert.Equal("Maintenance > Updates > How this server updates", scroll.Location);
+
+         // Transport security is a page of tabs since F228: the row says the tab, which
+         // the page chooses as it shows the setting (FeatureSettingsView.RevealSetting).
+         PaletteRow tabbed = PaletteSearch.Query("Header fields to oversign", null, null).First(r => r.Kind == PaletteRowKind.Setting);
+         Assert.Equal("security", tabbed.Page);
+         Assert.Equal("Certificates & encryption > Transport security > Signing", tabbed.Location);
 
          // Only a setting row carries a setting.
          Assert.All(PaletteSearch.Query("logging", null, null).Where(r => r.Kind != PaletteRowKind.Setting), r => Assert.Null(r.Setting));
