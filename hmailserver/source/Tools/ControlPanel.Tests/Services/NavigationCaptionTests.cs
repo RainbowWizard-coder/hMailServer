@@ -165,6 +165,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Match label = Regex.Match(app, @"<Style x:Key=""KpiLabel""[^>]*>(.*?)</Style>", RegexOptions.Singleline);
          Assert.True(label.Success, "App.xaml has no KpiLabel style.");
          Assert.Contains("<Setter Property=\"FontSize\" Value=\"{StaticResource AppFontSizeCaption}\" />", label.Value, StringComparison.Ordinal);
+         Assert.Contains("<Setter Property=\"TextWrapping\" Value=\"Wrap\" />", label.Value, StringComparison.Ordinal);
       }
 
       private static bool EndsInEllipsis(string caption)

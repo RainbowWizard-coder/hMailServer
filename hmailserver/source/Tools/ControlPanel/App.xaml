@@ -225,9 +225,12 @@
             </Style>
 
             <!-- A KPI's label at the ramp's Caption size, where it was 11, below
-                 the ramp (review finding F305). -->
+                 the ramp (review finding F305), wrapping onto a second line where
+                 its card is narrower than it, as "Verarbeitete Nachrichten" and
+                 処理したメッセージ are in a 760-pixel window, where they were cut. -->
             <Style x:Key="KpiLabel" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="{StaticResource AppFontSizeCaption}" />
+                <Setter Property="TextWrapping" Value="Wrap" />
                 <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
                 <Setter Property="VerticalAlignment" Value="Bottom" />
                 <Setter Property="Margin" Value="0,10,0,0" />
