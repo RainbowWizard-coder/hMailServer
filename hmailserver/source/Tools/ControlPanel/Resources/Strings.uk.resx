@@ -105,12 +105,6 @@
   <data name=", so verification can never succeed." xml:space="preserve">
     <value>, тому перевірка ніколи не зможе бути успішною.</value>
   </data>
-  <data name="...counted within (minutes)" xml:space="preserve">
-    <value>…підраховано протягом (хвилин)</value>
-  </data>
-  <data name="...within (minutes)" xml:space="preserve">
-    <value>…протягом (хвилин)</value>
-  </data>
   <data name="0 by default. The copies count against no quota." xml:space="preserve">
     <value>Типово 0. Копії не зараховуються до жодної квоти.</value>
   </data>
@@ -126,8 +120,8 @@
   <data name="0 is the shipped default and disables the whole mechanism." xml:space="preserve">
     <value>0 — типове значення з постачання; воно вимикає весь механізм.</value>
   </data>
-  <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess." xml:space="preserve">
-    <value>0 — типове значення з постачання. 2 — розумний початок: помилково введений пароль коштує людині двох секунд один раз, а клієнтові, який перебирає паролі, — двох, чотирьох, шести… секунд на кожну спробу.</value>
+  <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six seconds and so on per guess." xml:space="preserve">
+    <value>0 — типове значення з постачання. 2 — розумний початок: помилково введений пароль коштує людині двох секунд один раз, а клієнтові, який перебирає паролі, — двох, чотирьох, шести секунд і так далі на кожну спробу.</value>
   </data>
   <data name="0 keeps every message until it is released or deleted, so watch the disk." xml:space="preserve">
     <value>0 зберігає кожне повідомлення, доки його не випустять або не видалять, тож стежте за диском.</value>
@@ -466,7 +460,7 @@
     <value>Домен, поштова скринька, слухач із TLS і те, що з цього робить Інформаційна панель. Чотири хвилини; вийти можна будь-коли.</value>
   </data>
   <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
-    <value>Файл типу, що надсилається, у повідомленні ззовні надсилається до пісочниці, яку ви обслуговуєте або на яку підписані, а повідомлення чекає на її вердикт – у жодній поштовій скриньці й не в карантині: чисте доставляється, шкідливе потрапляє до карантину. Нічого не затримується, доки не задано обидві адреси й не ввімкнено цей параметр.</value>
+    <value>Файл типу, що надсилається, у повідомленні ззовні надсилається до пісочниці, яку ви обслуговуєте або на яку підписані, а повідомлення чекає на її вердикт — у жодній поштовій скриньці й не в карантині: чисте доставляється, шкідливе потрапляє до карантину. Нічого не затримується, доки не задано обидві адреси й не ввімкнено цей параметр.</value>
   </data>
   <data name="A folder can be at most {0} levels down." xml:space="preserve">
     <value>Папка може бути не глибше ніж на {0} рівнів.</value>
@@ -570,7 +564,7 @@
   <data name="A new value has been typed for &quot;{0}&quot;, and &quot;Remove the stored secret when saving&quot; is ticked under it. Clear the value or untick the box - guessing which was meant is not this page's decision to make." xml:space="preserve">
     <value>Для «{0}» введено нове значення, і водночас під ним встановлено прапорець «Вилучити збережений секрет під час збереження». Очистьте значення або зніміть прапорець — вгадувати, що саме малося на увазі, ця сторінка не має права.</value>
   </data>
-  <data name="A notice is sent to the envelope sender of every infected message. Virus senders forge that address almost without exception, so this mostly delivers mail to people who did not send anything — which is backscatter, and it is what gets a server onto a block list." xml:space="preserve">
+  <data name="A notice is sent to the envelope sender of every infected message. Virus senders forge that address almost without exception, so this mostly delivers mail to people who did not send anything - which is backscatter, and it is what gets a server onto a block list." xml:space="preserve">
     <value>Сповіщення надсилається відправникові конверта кожного зараженого повідомлення. Розповсюджувачі вірусів підробляють цю адресу майже без винятку, тож здебільшого пошта надходитиме людям, які нічого не надсилали, — це зворотне розсіювання (backscatter), і саме через нього сервер потрапляє до списку блокування.</value>
   </data>
   <data name="A one-time code required in addition to the administrator password, checked by the server - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator deletes AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restarts the hMailServer service." xml:space="preserve">
@@ -681,7 +675,7 @@
   <data name="A second factor is enrolled: every sign-in with the administrator credential - this tool, the COM API and the REST API - needs a code. Turning it off removes that requirement, and the administrator password alone signs in again." xml:space="preserve">
     <value>Другий фактор зареєстровано: кожен вхід з обліковими даними адміністратора - цей засіб, COM API та REST API - потребує коду. Його вимкнення скасовує цю вимогу, і для входу знову достатньо самого пароля адміністратора.</value>
   </data>
-  <data name="A secret is configured — leave blank to keep it" xml:space="preserve">
+  <data name="A secret is configured - leave blank to keep it" xml:space="preserve">
     <value>Секрет налаштовано — залиште поле порожнім, щоб зберегти його</value>
   </data>
   <data name="A separate ceiling from the time limit, because a search that reads enormous amounts of message content is expensive even when it finishes quickly." xml:space="preserve">
@@ -1362,7 +1356,7 @@
   <data name="After the body has arrived" xml:space="preserve">
     <value>Після надходження тіла листа</value>
   </data>
-  <data name="After the body has been received — a refusal here is a 554" xml:space="preserve">
+  <data name="After the body has been received - a refusal here is a 554" xml:space="preserve">
     <value>Після отримання тіла повідомлення — відмова тут має код 554</value>
   </data>
   <data name="Against {0} over {1}. Set the service account user name (and its password), or switch to a user DN template or the Negotiate bind method, neither of which searches at all." xml:space="preserve">
@@ -1572,7 +1566,7 @@
   <data name="An SPF record - which servers may send this domain's mail" xml:space="preserve">
     <value>Запис SPF - які сервери можуть надсилати пошту цього домену</value>
   </data>
-  <data name="An SPF record is live at {0} and it is not the suggested one. That may well be deliberate - the suggestion cannot know your other senders. Published: {1} — just confirm everything that really sends mail as {0} is covered." xml:space="preserve">
+  <data name="An SPF record is live at {0} and it is not the suggested one. That may well be deliberate - the suggestion cannot know your other senders. Published: {1} - just confirm everything that really sends mail as {0} is covered." xml:space="preserve">
     <value>За адресою {0} діє SPF-запис, і він не той, що пропонується. Цілком можливо, це навмисно — пропозиція не може знати про інших ваших відправників. Опубліковано: {1} — просто переконайтеся, що охоплено все, що справді надсилає пошту від імені {0}.</value>
   </data>
   <data name="An absolute path on the server. A PST job names a file in the subfolder for the target account's domain, such as example.com\archive.pst, and nowhere else." xml:space="preserve">
@@ -1825,8 +1819,8 @@
   <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back.|few" xml:space="preserve">
     <value>Застосувати профіль {0}? Зміняться параметри: {1}; їхні попередні значення збережуться, щоб їх можна було повернути.</value>
   </data>
-  <data name="Applying..." xml:space="preserve">
-    <value>Застосування...</value>
+  <data name="Applying…" xml:space="preserve">
+    <value>Застосування…</value>
   </data>
   <data name="Ar_chive" xml:space="preserve">
     <value>А_рхів</value>
@@ -1891,7 +1885,7 @@
   <data name="At RCPT TO, before greylisting" xml:space="preserve">
     <value>На етапі RCPT TO, до сірого списку</value>
   </data>
-  <data name="At RCPT TO, before the body is transferred — a refusal here is a 550" xml:space="preserve">
+  <data name="At RCPT TO, before the body is transferred - a refusal here is a 550" xml:space="preserve">
     <value>На етапі RCPT TO, до передавання тіла повідомлення — відмова тут має код 550</value>
   </data>
   <data name="At RCPT TO, or after DATA for an entry that needs DKIM or DMARC" xml:space="preserve">
@@ -1921,7 +1915,7 @@
   <data name="At most one backup per calendar day, taken at the first check at or after this time (the server's local time). If an interval is also set below, the daily time wins." xml:space="preserve">
     <value>Не більше однієї резервної копії на календарний день, створеної під час першої перевірки в цей час або після нього (за місцевим часом сервера). Якщо нижче також задано інтервал, перевагу має щоденний час.</value>
   </data>
-  <data name="At most {0} scans run at once. Beyond that, delivery threads wait — and after 60 seconds of waiting the server gives up waiting and scans anyway, so a slow scanner shows up as slow mail rather than as unscanned mail." xml:space="preserve">
+  <data name="At most {0} scans run at once. Beyond that, delivery threads wait - and after 60 seconds of waiting the server gives up waiting and scans anyway, so a slow scanner shows up as slow mail rather than as unscanned mail." xml:space="preserve">
     <value>Одночасно виконується щонайбільше {0} сканувань. Понад це потоки доставки чекають — а після 60 секунд очікування сервер припиняє чекати й усе одно сканує, тож повільний сканер виявляється як повільна пошта, а не як неперевірена пошта.</value>
   </data>
   <data name="At your DNS host, publish a TXT record at the domain, such as v=spf1 mx -all, naming the servers that send its mail. The DNS records page shows the record to publish." xml:space="preserve">
@@ -1958,7 +1952,7 @@
     <value>Ім’я вкладення</value>
   </data>
   <data name="Attachment sandbox - a service that opens files" xml:space="preserve">
-    <value>Пісочниця для вкладень – служба, яка відкриває файли</value>
+    <value>Пісочниця для вкладень — служба, яка відкриває файли</value>
   </data>
   <data name="Attachment type" xml:space="preserve">
     <value>Тип вкладення</value>
@@ -2410,8 +2404,8 @@
   <data name="C_heck an address…" xml:space="preserve">
     <value>_Перевірити адресу…</value>
   </data>
-  <data name="C_hoose a photo..." xml:space="preserve">
-    <value>Вибрати фотографію... (_G)</value>
+  <data name="C_hoose a photo…" xml:space="preserve">
+    <value>Вибрати фотографію (_G)…</value>
   </data>
   <data name="Cache" xml:space="preserve">
     <value>Кеш</value>
@@ -2752,7 +2746,7 @@
   <data name="Cipher list: OpenSSL defaults for TLS 1.2 and below. TLS 1.3 has its own separate list." xml:space="preserve">
     <value>Список шифрів: типові значення OpenSSL для TLS 1.2 і нижче. TLS 1.3 має власний окремий список.</value>
   </data>
-  <data name="Cipher list: the AEAD-ONLY preset — forward-secret AEAD suites only, with every CBC-mode suite and static-RSA key exchange excluded. This governs TLS 1.2 and below; TLS 1.3 has its own list and is AEAD by construction." xml:space="preserve">
+  <data name="Cipher list: the AEAD-ONLY preset - forward-secret AEAD suites only, with every CBC-mode suite and static-RSA key exchange excluded. This governs TLS 1.2 and below; TLS 1.3 has its own list and is AEAD by construction." xml:space="preserve">
     <value>Список шифрів: готовий набір AEAD-ONLY — лише набори AEAD із прямою секретністю, без жодного набору в режимі CBC і без обміну ключами зі статичним RSA. Це стосується TLS 1.2 і нижче; TLS 1.3 має власний список і є AEAD за самою побудовою.</value>
   </data>
   <data name="Ciphers &amp; verification" xml:space="preserve">
@@ -4586,8 +4580,8 @@
   <data name="Edit the security group" xml:space="preserve">
     <value>Редагувати групу безпеки</value>
   </data>
-  <data name="Edit the server event-handler script (OnAcceptMessage, OnDeliveryStart, OnHELO, ...). Saving writes the file and reloads the scripting engine. The engine's on/off switch and its language are on the Advanced page." xml:space="preserve">
-    <value>Редагувати серверний скрипт обробника подій (OnAcceptMessage, OnDeliveryStart, OnHELO, ...). Збереження записує файл і перезавантажує рушій скриптів. Перемикач рушія та його мова - на сторінці «Додатково».</value>
+  <data name="Edit the server event-handler script (OnAcceptMessage, OnDeliveryStart, OnHELO and others). Saving writes the file and reloads the scripting engine. The engine's on/off switch and its language are on the Advanced page." xml:space="preserve">
+    <value>Редагувати серверний скрипт обробника подій (OnAcceptMessage, OnDeliveryStart, OnHELO та інші). Збереження записує файл і перезавантажує рушій скриптів. Перемикач рушія та його мова - на сторінці «Додатково».</value>
   </data>
   <data name="Edit the server message" xml:space="preserve">
     <value>Редагувати повідомлення сервера</value>
@@ -4937,8 +4931,8 @@
   <data name="Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains." xml:space="preserve">
     <value>Відправники конверта, яких відхиляють одразу або оцінюють. Запис із @ - це одна точна адреса; без нього - цілий домен разом із піддоменами.</value>
   </data>
-  <data name="Erase _traces..." xml:space="preserve">
-    <value>Стерти с_ліди...</value>
+  <data name="Erase _traces…" xml:space="preserve">
+    <value>Стерти с_ліди…</value>
   </data>
   <data name="Erase every stored trace of {0}? Quarantine entries, trace rows, greylisting, list memberships, aliases, the address-book entries, certificates, keys and memories other accounts keep of it, the messages outside any mailbox that name it - held for review (discarded for every recipient), expiring or password-protected - the archive tree and the log lines that name the address. What a legal hold covers is left in place. This cannot be undone." xml:space="preserve">
     <value>Стерти кожен збережений слід адреси {0}? Записи карантину, рядки трасування, greylisting, членство в списках, псевдоніми, записи адресних книг, сертифікати, ключі та пам'ять, які про неї зберігають інші облікові записи, повідомлення поза поштовими скриньками, що її називають, - затримані для перевірки (відкидаються для всіх одержувачів), з терміном дії або захищені паролем, - дерево архіву і рядки журналу, що називають адресу. Те, що охоплює юридичне утримання, лишається на місці. Скасувати не можна.</value>
@@ -5192,6 +5186,9 @@
   <data name="Expires on (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>Спливає (YYYY-MM-DD HH:MM:SS)</value>
   </data>
+  <data name="Expires on (YYYY-MM-DD HH:MM:SS, when it stops mattering)" xml:space="preserve">
+    <value>Спливає (YYYY-MM-DD HH:MM:SS, коли перестає діяти)</value>
+  </data>
   <data name="Expires on {0} (in less than a day)" xml:space="preserve">
     <value>Спливає {0} (менш ніж за добу)</value>
   </data>
@@ -5219,8 +5216,8 @@
   <data name="Export" xml:space="preserve">
     <value>Експорт</value>
   </data>
-  <data name="Export everythin_g..." xml:space="preserve">
-    <value>_Експортувати все...</value>
+  <data name="Export everythin_g…" xml:space="preserve">
+    <value>_Експортувати все…</value>
   </data>
   <data name="Exported {0} message and everything else the server holds to {1}." xml:space="preserve">
     <value>Експортовано {0} повідомлення і все інше, що зберігає сервер, до {1}.</value>
@@ -5309,8 +5306,14 @@
   <data name="Fails when the name the client gave in HELO/EHLO does not resolve to the address it is connecting from." xml:space="preserve">
     <value>Не проходить, коли ім'я, яке клієнт назвав у HELO/EHLO, не розв'язується в адресу, з якої він підключається.</value>
   </data>
-  <data name="Fair password – consider adding {0}." xml:space="preserve">
-    <value>Посередній пароль – додайте {0}.</value>
+  <data name="Failures counted within (minutes)" xml:space="preserve">
+    <value>Невдачі підраховуються протягом (хвилин)</value>
+  </data>
+  <data name="Failures for a name counted within (minutes)" xml:space="preserve">
+    <value>Невдачі для імені підраховуються протягом (хвилин)</value>
+  </data>
+  <data name="Fair password - consider adding {0}." xml:space="preserve">
+    <value>Посередній пароль — додайте {0}.</value>
   </data>
   <data name="Fair password." xml:space="preserve">
     <value>Посередній пароль.</value>
@@ -5582,8 +5585,8 @@
   <data name="Generated password" xml:space="preserve">
     <value>Згенерований пароль</value>
   </data>
-  <data name="Generated password copied to clipboard — reveal it with the eye icon." xml:space="preserve">
-    <value>Згенерований пароль скопійовано в буфер обміну — покажіть його значком ока.</value>
+  <data name="Generated password copied to the clipboard; reveal it with the eye icon." xml:space="preserve">
+    <value>Згенерований пароль скопійовано в буфер обміну; покажіть його значком ока.</value>
   </data>
   <data name="Get help" xml:space="preserve">
     <value>Отримати допомогу</value>
@@ -6841,13 +6844,13 @@
   <data name="Mail clients send through the submission port, and without TLS their passwords cross the network in the clear." xml:space="preserve">
     <value>Поштові клієнти надсилають через порт надсилання, і без TLS їхні паролі йдуть мережею відкритим текстом.</value>
   </data>
-  <data name="Mail collected from external POP3 accounts is scanned only when that fetch account says so — {0} of {1} currently has anti-virus switched off. That switch is on the account, not on this page." xml:space="preserve">
+  <data name="Mail collected from external POP3 accounts is scanned only when that fetch account says so - {0} of {1} currently has anti-virus switched off. That switch is on the account, not on this page." xml:space="preserve">
     <value>Пошта, зібрана із зовнішніх облікових записів POP3, сканується лише тоді, коли так каже відповідний обліковий запис збирання — у {0} з {1} зараз антивірус вимкнено. Цей перемикач на обліковому записі, а не на цій сторінці.</value>
   </data>
-  <data name="Mail collected from external POP3 accounts is scanned only when that fetch account says so — {0} of {1} currently have anti-virus switched off. That switch is on the account, not on this page." xml:space="preserve">
+  <data name="Mail collected from external POP3 accounts is scanned only when that fetch account says so - {0} of {1} currently have anti-virus switched off. That switch is on the account, not on this page." xml:space="preserve">
     <value>Пошта, зібрана із зовнішніх облікових записів POP3, сканується лише тоді, коли так каже відповідний обліковий запис збирання — у {0} з {1} зараз антивірус вимкнено. Цей перемикач на обліковому записі, а не на цій сторінці.</value>
   </data>
-  <data name="Mail collected from external POP3 accounts is scanned only when that fetch account says so — {0} of {1} currently have anti-virus switched off. That switch is on the account, not on this page.|few" xml:space="preserve">
+  <data name="Mail collected from external POP3 accounts is scanned only when that fetch account says so - {0} of {1} currently have anti-virus switched off. That switch is on the account, not on this page.|few" xml:space="preserve">
     <value>Пошта, зібрана із зовнішніх облікових записів POP3, сканується лише тоді, коли так каже відповідний обліковий запис збирання — у {0} з {1} зараз антивірус вимкнено. Цей перемикач на обліковому записі, а не на цій сторінці.</value>
   </data>
   <data name="Mail flow &amp; delivery" xml:space="preserve">
@@ -7179,11 +7182,11 @@
   <data name="Members of {0}" xml:space="preserve">
     <value>Учасники {0}</value>
   </data>
+  <data name="Membership - only list members can send" xml:space="preserve">
+    <value>Членство — надсилати можуть лише учасники списку</value>
+  </data>
   <data name="Membership _query (empty = the recipients alone)" xml:space="preserve">
     <value>Запит учасників (порожньо = лише отримувачі) (_Q)</value>
-  </data>
-  <data name="Membership — only list members can send" xml:space="preserve">
-    <value>Членство — надсилати можуть лише учасники списку</value>
   </data>
   <data name="Merge SpamAssassin score into hMailServer score" xml:space="preserve">
     <value>Об’єднувати оцінку SpamAssassin з оцінкою hMailServer</value>
@@ -7238,7 +7241,7 @@
   <data name="Message indexing is switched off, so there is no indexer running to ask. Tick &quot;Enable message indexing&quot; above and save first - nothing was done." xml:space="preserve">
     <value>Індексування повідомлень вимкнено, тому немає працюючого індексатора, який можна було б запитати. Спершу встановіть прапорець «Увімкнути індексування повідомлень» вище та збережіть — нічого не зроблено.</value>
   </data>
-  <data name="Message metadata _only — do not copy the message files" xml:space="preserve">
+  <data name="Message metadata _only - do not copy the message files" xml:space="preserve">
     <value>_Лише метадані повідомлень — не копіювати файли повідомлень</value>
   </data>
   <data name="Message modifications: the spam headers, the signature, the List-* headers, or the write of the modified message back to disk." xml:space="preserve">
@@ -7298,7 +7301,7 @@
   <data name="Messages larger than {0} KB skip every check that needs the body (SURBL, DKIM, DMARC, SpamAssassin and the external filtering engine). The connection checks still run, and the message is delivered." xml:space="preserve">
     <value>Повідомлення, більші за {0} КБ, пропускають кожну перевірку, якій потрібне тіло (SURBL, DKIM, DMARC, SpamAssassin і зовнішній рушій фільтрації). Перевірки підключення все одно виконуються, і повідомлення доставляється.</value>
   </data>
-  <data name="Messages larger than {0} are not scanned. They are delivered, not refused, and nothing is written to the log when it happens — so this limit is invisible in normal operation. 0 means &quot;no limit&quot; and is the setting that closes the gap." xml:space="preserve">
+  <data name="Messages larger than {0} are not scanned. They are delivered, not refused, and nothing is written to the log when it happens - so this limit is invisible in normal operation. 0 means &quot;no limit&quot; and is the setting that closes the gap." xml:space="preserve">
     <value>Повідомлення, більші за {0}, не скануються. Вони доставляються, а не відхиляються, і в журнал при цьому нічого не записується — тож за звичайної роботи цього обмеження не видно. 0 означає «без обмеження» і є тим значенням, яке закриває прогалину.</value>
   </data>
   <data name="Messages one backfill pass reads before pausing (1 to 100,000)" xml:space="preserve">
@@ -7325,7 +7328,7 @@
   <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message or a group, and the buttons over the list on every checked message." xml:space="preserve">
     <value>Повідомлення, які сервер інакше відхилив би, затримані, щоб хтось міг на них подивитися. Відправнику кожного з них сказали, що його прийнято, тому ніщо не надійде знову само собою: випуск одного доставляє його, а видалення остаточне. Піктограми діють на одне повідомлення або групу, а кнопки над списком - на кожне позначене повідомлення.</value>
   </data>
-  <data name="Messages up to {0}. A larger message is delivered without being scanned — it is not refused, and nothing is logged." xml:space="preserve">
+  <data name="Messages up to {0}. A larger message is delivered without being scanned - it is not refused, and nothing is logged." xml:space="preserve">
     <value>Повідомлення до {0}. Більше повідомлення доставляється без сканування — воно не відхиляється, і в журнал нічого не записується.</value>
   </data>
   <data name="Messages waiting for delivery." xml:space="preserve">
@@ -7421,8 +7424,8 @@
   <data name="Mirroring" xml:space="preserve">
     <value>Дзеркалювання</value>
   </data>
-  <data name="Mo_ve or rename..." xml:space="preserve">
-    <value>Перенести або пере_йменувати...</value>
+  <data name="Mo_ve or rename…" xml:space="preserve">
+    <value>Перенести або пере_йменувати…</value>
   </data>
   <data name="Mode and max_age read from hMailServer.ini on this machine." xml:space="preserve">
     <value>Режим і max_age прочитано з hMailServer.ini на цьому комп’ютері.</value>
@@ -7887,7 +7890,7 @@
     <value>Сьогодні помилок не записано: у {1} немає файлу {0}.</value>
   </data>
   <data name="No events for that address. Either nothing has happened to it, or the trace was switched off at the time - it records only while message tracing is on (Logging page)." xml:space="preserve">
-    <value>Подій для цієї адреси немає. Або з нею нічого не відбувалося, або трасування тоді було вимкнене – воно записує лише доки трасування повідомлень увімкнене (сторінка «Журналювання»).</value>
+    <value>Подій для цієї адреси немає. Або з нею нічого не відбувалося, або трасування тоді було вимкнене — воно записує лише доки трасування повідомлень увімкнене (сторінка «Журналювання»).</value>
   </data>
   <data name="No events for that message." xml:space="preserve">
     <value>Подій для цього повідомлення немає.</value>
@@ -8282,7 +8285,7 @@
   <data name="Nothing at all happens on score: both thresholds are 0, and the server only marks or refuses when the threshold is above 0." xml:space="preserve">
     <value>За оцінкою взагалі нічого не відбувається: обидва пороги дорівнюють 0, а сервер позначає або відхиляє лише тоді, коли поріг більший за 0.</value>
   </data>
-  <data name="Nothing below is served until a port is set here. The server answers on either port, but an MTA-STS policy is only valid over HTTPS and Outlook only accepts autodiscover over HTTPS — so in practice set the HTTPS port and a certificate covering the host names clients use." xml:space="preserve">
+  <data name="Nothing below is served until a port is set here. The server answers on either port, but an MTA-STS policy is only valid over HTTPS and Outlook only accepts autodiscover over HTTPS - so in practice set the HTTPS port and a certificate covering the host names clients use." xml:space="preserve">
     <value>Ніщо з наведеного нижче не надається, доки тут не задано порт. Сервер відповідає на будь-якому з портів, але політика MTA-STS дійсна лише через HTTPS, а Outlook приймає autodiscover лише через HTTPS — тож на практиці задайте порт HTTPS і сертифікат, який охоплює імена вузлів, що їх використовують клієнти.</value>
   </data>
   <data name="Nothing between 354 and silence" xml:space="preserve">
@@ -8310,7 +8313,7 @@
     <value>Тут нічого не потребує рішення: жодну поштову скриньку не пропущено й жодну не вимикають.</value>
   </data>
   <data name="Nothing here yet - Add creates the first entry." xml:space="preserve">
-    <value>Поки що порожньо – кнопка «Додати» створює перший запис.</value>
+    <value>Поки що порожньо — кнопка «Додати» створює перший запис.</value>
   </data>
   <data name="Nothing is ever marked as spam: marking needs a mark threshold above 0, and a 0 there means &quot;never&quot; rather than &quot;always&quot;. Messages reaching {0} are still refused." xml:space="preserve">
     <value>Ніщо ніколи не позначається як спам: для позначення потрібен поріг позначення більший за 0, а 0 там означає «ніколи», а не «завжди». Повідомлення, що досягають {0}, усе одно відхиляються.</value>
@@ -9328,7 +9331,7 @@
   <data name="Presented as &quot;Authorization: Bearer ...&quot; - in Prometheus, the scrape config's bearer_token. Leading and trailing spaces are trimmed. The health probes /livez, /readyz and /healthz never require it, so load balancers keep working." xml:space="preserve">
     <value>Передається як "Authorization: Bearer ..." — у Prometheus це bearer_token конфігурації збирання. Пробіли на початку та в кінці відкидаються. Зонди справності /livez, /readyz і /healthz ніколи його не вимагають, тому балансувальники навантаження працюють далі.</value>
   </data>
-  <data name="Preset engine (fills the command line and return value below – adjust the path/exit code for your version)" xml:space="preserve">
+  <data name="Preset engine (fills the command line and return value below - adjust the path/exit code for your version)" xml:space="preserve">
     <value>Попередньо налаштований рушій (заповнює командний рядок і значення повернення нижче — підправте шлях/код виходу для вашої версії)</value>
   </data>
   <data name="Press &quot;Check policy (HTTPS)&quot; to fetch https://mta-sts.{0}/.well-known/mta-sts.txt from this machine." xml:space="preserve">
@@ -9397,6 +9400,9 @@
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>Програма, що запускається, коли адресу забанено або розбанено (порожньо = немає)</value>
   </data>
+  <data name="Progressive Robot Ltd is a software engineering company that builds and modernizes production software - taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
+    <value>Progressive Robot Ltd — компанія з розробки програмного забезпечення, яка створює та модернізує робоче програмне забезпечення: бере зрілі системи з реального світу й доводить їх до сучасних стандартів безпеки, надійності та інструментарію.</value>
+  </data>
   <data name="Progressive Robot Ltd is a software engineering company. It maintains the hMailServer 6.x line, an independent fork of the open-source mail server." xml:space="preserve">
     <value>Progressive Robot Ltd - компанія з розроблення програмного забезпечення. Вона супроводжує лінійку hMailServer 6.x, незалежний форк поштового сервера з відкритим кодом.</value>
   </data>
@@ -9451,14 +9457,14 @@
   <data name="Public" xml:space="preserve">
     <value>Публічний</value>
   </data>
+  <data name="Public - anyone can send" xml:space="preserve">
+    <value>Публічний — надсилати може будь-хто</value>
+  </data>
   <data name="Public folder name" xml:space="preserve">
     <value>Назва публічної папки</value>
   </data>
   <data name="Public folders" xml:space="preserve">
     <value>Публічні папки</value>
-  </data>
-  <data name="Public — anyone can send" xml:space="preserve">
-    <value>Публічний — надсилати може будь-хто</value>
   </data>
   <data name="Publish" xml:space="preserve">
     <value>Опублікувати</value>
@@ -9562,8 +9568,8 @@
   <data name="Query failed: {0}" xml:space="preserve">
     <value>Запит не вдався: {0}</value>
   </data>
-  <data name="Querying MX records for {0}..." xml:space="preserve">
-    <value>Запит MX-записів для {0}...</value>
+  <data name="Querying MX records for {0}…" xml:space="preserve">
+    <value>Запит MX-записів для {0}…</value>
   </data>
   <data name="Queue ID {0} - select and choose &quot;Follow this message&quot;." xml:space="preserve">
     <value>Ідентифікатор черги {0} — виберіть і оберіть «Стежити за цим повідомленням».</value>
@@ -9733,11 +9739,11 @@
   <data name="Reading the cases…" xml:space="preserve">
     <value>Читання справ…</value>
   </data>
-  <data name="Reading the directory..." xml:space="preserve">
-    <value>Читання каталогу...</value>
+  <data name="Reading the directory…" xml:space="preserve">
+    <value>Читання каталогу…</value>
   </data>
-  <data name="Reading the recovery report..." xml:space="preserve">
-    <value>Читання звіту про відновлення...</value>
+  <data name="Reading the recovery report…" xml:space="preserve">
+    <value>Читання звіту про відновлення…</value>
   </data>
   <data name="Reads everything and changes nothing, the audit trail included." xml:space="preserve">
     <value>Читає все й нічого не змінює, зокрема журнал аудиту.</value>
@@ -9977,8 +9983,8 @@
   <data name="Reinitialised - the settings that waited for a reinitialise are in effect; {0} still waits for a service restart." xml:space="preserve">
     <value>Повторну ініціалізацію виконано — налаштування, що на неї чекали, діють; {0} ще чекає на перезапуск служби.</value>
   </data>
-  <data name="Reinitialising the server..." xml:space="preserve">
-    <value>Повторна ініціалізація сервера...</value>
+  <data name="Reinitialising the server…" xml:space="preserve">
+    <value>Повторна ініціалізація сервера…</value>
   </data>
   <data name="Reject empty sender addresses (MAIL FROM:&lt;&gt;)" xml:space="preserve">
     <value>Відхиляти порожні адреси відправника (MAIL FROM:&lt;&gt;)</value>
@@ -10369,8 +10375,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Restart to apply" xml:space="preserve">
     <value>Чекає на перезапуск</value>
   </data>
-  <data name="Restarting the hMailServer service..." xml:space="preserve">
-    <value>Перезапуск служби hMailServer...</value>
+  <data name="Restarting the hMailServer service…" xml:space="preserve">
+    <value>Перезапуск служби hMailServer…</value>
   </data>
   <data name="Restarting…" xml:space="preserve">
     <value>Перезапуск…</value>
@@ -10642,11 +10648,11 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Running" xml:space="preserve">
     <value>Працює</value>
   </data>
-  <data name="Running diagnostics..." xml:space="preserve">
-    <value>Виконання діагностики...</value>
+  <data name="Running diagnostics…" xml:space="preserve">
+    <value>Виконання діагностики…</value>
   </data>
-  <data name="Runs event scripts (OnAcceptMessage, OnDeliveryStart...) from the Events folder; the script itself is edited on the Event scripts page. The engine reloads when you save." xml:space="preserve">
-    <value>Виконує скрипти подій (OnAcceptMessage, OnDeliveryStart...) із папки Events; сам скрипт редагується на сторінці «Скрипти подій». Рушій перезавантажується під час збереження.</value>
+  <data name="Runs event scripts (OnAcceptMessage, OnDeliveryStart and others) from the Events folder; the script itself is edited on the Event scripts page. The engine reloads when you save." xml:space="preserve">
+    <value>Виконує скрипти подій (OnAcceptMessage, OnDeliveryStart та інші) із папки Events; сам скрипт редагується на сторінці «Скрипти подій». Рушій перезавантажується під час збереження.</value>
   </data>
   <data name="Runs hMailServer.exe /GrantServiceAccess as an administrator, after Windows asks: NT SERVICE\hMailServer is given Modify on the program folder's own Data, Logs, Temp and Database folders and on the folders an administrator has approved, and Read on the program folder - never hMailServer.ini. A folder the configuration names elsewhere, such as a backup or archive folder set later, is approved only after a question that names it; key files outside those folders are listed. It can be run again at any time, and removes nobody else's permission." xml:space="preserve">
     <value>Запускає hMailServer.exe /GrantServiceAccess від імені адміністратора після запиту Windows: NT SERVICE\hMailServer отримує право «Змінення» на власні папки Data, Logs, Temp і Database папки програми та на папки, схвалені адміністратором, і «Читання» на папку програми — але ніколи на hMailServer.ini. Папка, яку конфігурація називає деінде, наприклад задана пізніше папка резервних копій чи архіву, схвалюється лише після запитання, в якому її названо; файли ключів поза цими папками перелічуються. Його можна запускати повторно будь-коли, і він ні в кого не забирає дозволів.</value>
@@ -11761,8 +11767,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Setting" xml:space="preserve">
     <value>Налаштування</value>
   </data>
-  <data name="Setting  -  {0}" xml:space="preserve">
-    <value>Параметр  -  {0}</value>
+  <data name="Setting - {0}" xml:space="preserve">
+    <value>Параметр - {0}</value>
   </data>
   <data name="Setting profile" xml:space="preserve">
     <value>Профіль параметрів</value>
@@ -12136,7 +12142,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="SpamTestSpamAssassin with a large Time:" xml:space="preserve">
     <value>SpamTestSpamAssassin з великим Time:</value>
   </data>
-  <data name="Specialist knobs — leave at the defaults unless you have a specific reason." xml:space="preserve">
+  <data name="Specialist knobs - leave at the defaults unless you have a specific reason." xml:space="preserve">
     <value>Спеціалізовані регулятори — залиште типові значення, якщо немає конкретної причини.</value>
   </data>
   <data name="Specific addresses to rou_te" xml:space="preserve">
@@ -12547,8 +12553,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Test the endpoint…" xml:space="preserve">
     <value>Перевірити кінцеву точку…</value>
   </data>
-  <data name="Testing against {0} over {1}..." xml:space="preserve">
-    <value>Перевірка {0} через {1}...</value>
+  <data name="Testing against {0} over {1}…" xml:space="preserve">
+    <value>Перевірка {0} через {1}…</value>
   </data>
   <data name="Text" xml:space="preserve">
     <value>Текст</value>
@@ -12865,8 +12871,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The attachment blocking settings could not be read." xml:space="preserve">
     <value>Параметри блокування вкладень не вдалося прочитати.</value>
   </data>
-  <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
-    <value>Вкладення замінюються, і повідомлення доставляється. Жоден із параметрів сповіщення до цієї дії не застосовується — сервер надсилає сповіщення «повідомлення видалено» лише тоді, коли дія - видалити повідомлення.</value>
+  <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action - the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
+    <value>Вкладення замінюються, і повідомлення доставляється. Жоден із параметрів сповіщення до цієї дії не застосовується — сервер надсилає сповіщення «повідомлення видалено» лише тоді, коли дія — видалити повідомлення.</value>
   </data>
   <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
     <value>Для рядків журналу аудиту потрібен також view_audit, якого ці облікові дані не мають.</value>
@@ -14825,6 +14831,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Version and updates" xml:space="preserve">
     <value>Версія та оновлення</value>
   </data>
+  <data name="Version {0} - .NET {1}" xml:space="preserve">
+    <value>Версія {0} - .NET {1}</value>
+  </data>
   <data name="Version, build and licence information." xml:space="preserve">
     <value>Відомості про версію, збірку та ліцензію.</value>
   </data>
@@ -14921,8 +14930,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Watch: raise the alert only (default)" xml:space="preserve">
     <value>Спостерігати: лише піднімати оповіщення (типово)</value>
   </data>
-  <data name="Weak password – add {0}." xml:space="preserve">
-    <value>Слабкий пароль – додайте {0}.</value>
+  <data name="Weak password - add {0}." xml:space="preserve">
+    <value>Слабкий пароль — додайте {0}.</value>
   </data>
   <data name="Web" xml:space="preserve">
     <value>Веб</value>
@@ -15212,8 +15221,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Whether it is on could not be read from the server." xml:space="preserve">
     <value>Не вдалося прочитати із сервера, чи його ввімкнено.</value>
   </data>
-  <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
-    <value>Чи можуть запити отримувати відповідь із кешу розв'язувача DNS Windows. Вимкнено - кожен запит іде в мережу. Ігнорується, коли вище задано перевизначальний DNS-сервер — ті запити завжди оминають системний кеш, бо його відповіді надходили б від не того розв'язувача.</value>
+  <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above - those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
+    <value>Чи можуть запити отримувати відповідь із кешу розв'язувача DNS Windows. Вимкнено — кожен запит іде в мережу. Ігнорується, коли вище задано перевизначальний DNS-сервер — ті запити завжди оминають системний кеш, бо його відповіді надходили б від не того розв'язувача.</value>
   </data>
   <data name="Whether new mail is stored compressed, with the large attachments it shares with other messages kept once. Clients see every message exactly as it arrived. Turning it off stores new mail as it comes and leaves the stored messages readable; hmailserver --compress-store rewrites the messages already there, and --decompress puts them back." xml:space="preserve">
     <value>Чи зберігається нова пошта стисненою, а великі вкладення, спільні з іншими повідомленнями, — лише один раз. Клієнти бачать кожне повідомлення точно таким, яким воно надійшло. Якщо вимкнути, нова пошта зберігається такою, як надходить, а збережені повідомлення лишаються читабельними; hmailserver --compress-store переписує вже збережені повідомлення, а --decompress повертає їх до початкового вигляду.</value>
@@ -17277,12 +17286,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="your application / client ID" xml:space="preserve">
     <value>ідентифікатор вашої програми / клієнта</value>
   </data>
-  <data name="{0}  (not subscribed)" xml:space="preserve">
-    <value>{0}  (без підписки)</value>
-  </data>
-  <data name="{0}  -  {1}, expires {2}" xml:space="preserve">
-    <value>{0}  -  {1}, термін дії спливає {2}</value>
-  </data>
   <data name="{0} (a value this Control Panel does not know)" xml:space="preserve">
     <value>{0} (значення, невідоме цій Панелі керування)</value>
   </data>
@@ -17298,6 +17301,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} (inactive)" xml:space="preserve">
     <value>{0} (неактивний)</value>
   </data>
+  <data name="{0} (not subscribed)" xml:space="preserve">
+    <value>{0} (без підписки)</value>
+  </data>
   <data name="{0} (server time)" xml:space="preserve">
     <value>{0} (час сервера)</value>
   </data>
@@ -17310,6 +17316,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} - accounts" xml:space="preserve">
     <value>{0} — облікові записи</value>
   </data>
+  <data name="{0} - exit code {1} means infected" xml:space="preserve">
+    <value>{0} — код виходу {1} означає зараження</value>
+  </data>
   <data name="{0} - put back: {1}, left as they were: {2}; waiting for a reinitialise: {3}, for a restart: {4}." xml:space="preserve">
     <value>{0} — повернуто: {1}, залишено як було: {2}; чекають на повторну ініціалізацію: {3}, на перезапуск: {4}.</value>
   </data>
@@ -17318,6 +17327,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>
+  </data>
+  <data name="{0} - {1}, expires {2}" xml:space="preserve">
+    <value>{0} - {1}, термін дії спливає {2}</value>
   </data>
   <data name="{0} DNS record is being looked up in the background; the row marked &quot;checking&quot; will update." xml:space="preserve">
     <value>У фоновому режимі виконується пошук DNS-записів ({0}); рядки з позначкою «перевіряється» оновляться.</value>
@@ -18220,7 +18232,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>Правило {0} увімкнено.</value>
   </data>
   <data name="{0} to {1} of {2}" xml:space="preserve">
-    <value>{0}–{1} з {2}</value>
+    <value>{0}-{1} з {2}</value>
   </data>
   <data name="{0} value could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>{0} значення не вдалося прочитати з сервера, тому цей підсумок може бути неповним.</value>
@@ -18332,9 +18344,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} {1} settings on this page wait for a reinitialise or a restart.|few" xml:space="preserve">
     <value>{0} {1} параметри цієї сторінки чекають на повторну ініціалізацію або перезапуск.</value>
-  </data>
-  <data name="{0} — exit code {1} means infected" xml:space="preserve">
-    <value>{0} — код виходу {1} означає зараження</value>
   </data>
   <data name="{0} →" xml:space="preserve">
     <value>{0} →</value>

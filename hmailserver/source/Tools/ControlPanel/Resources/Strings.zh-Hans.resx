@@ -105,12 +105,6 @@
   <data name=", so verification can never succeed." xml:space="preserve">
     <value>，因此验证永远不可能成功。</value>
   </data>
-  <data name="...counted within (minutes)" xml:space="preserve">
-    <value>…在此时间内计数（分钟）</value>
-  </data>
-  <data name="...within (minutes)" xml:space="preserve">
-    <value>…在此时间内（分钟）</value>
-  </data>
   <data name="0 by default. The copies count against no quota." xml:space="preserve">
     <value>默认 0。副本不计入任何配额。</value>
   </data>
@@ -126,8 +120,8 @@
   <data name="0 is the shipped default and disables the whole mechanism." xml:space="preserve">
     <value>0 是出厂默认值，会禁用整个机制。</value>
   </data>
-  <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess." xml:space="preserve">
-    <value>0 是出厂默认值。2 是一个合理的起点：密码输错一次只会让人多等两秒，而对密码喷洒的客户端来说，每猜一次要等两秒、四秒、六秒……。</value>
+  <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six seconds and so on per guess." xml:space="preserve">
+    <value>0 是出厂默认值。2 是一个合理的起点：密码输错一次只会让人多等两秒，而对密码喷洒的客户端来说，每猜一次要等两秒、四秒、六秒，依此类推。</value>
   </data>
   <data name="0 keeps every message until it is released or deleted, so watch the disk." xml:space="preserve">
     <value>0 会保留每封邮件，直到它被放行或删除，因此请留意磁盘空间。</value>
@@ -567,8 +561,8 @@
   <data name="A new value has been typed for &quot;{0}&quot;, and &quot;Remove the stored secret when saving&quot; is ticked under it. Clear the value or untick the box - guessing which was meant is not this page's decision to make." xml:space="preserve">
     <value>既为“{0}”输入了新值，又勾选了其下方的“保存时移除已存储的机密”。请清除该值或取消勾选 - 猜测您的本意不是本页应当作出的决定。</value>
   </data>
-  <data name="A notice is sent to the envelope sender of every infected message. Virus senders forge that address almost without exception, so this mostly delivers mail to people who did not send anything — which is backscatter, and it is what gets a server onto a block list." xml:space="preserve">
-    <value>会向每一封受感染邮件的信封发件人发送通知。病毒发送方几乎无一例外地伪造该地址，因此这多半只是把邮件投递给什么都没发过的人 — 这就是反向散射，也正是让服务器进入拦截列表的原因。</value>
+  <data name="A notice is sent to the envelope sender of every infected message. Virus senders forge that address almost without exception, so this mostly delivers mail to people who did not send anything - which is backscatter, and it is what gets a server onto a block list." xml:space="preserve">
+    <value>会向每一封受感染邮件的信封发件人发送通知。病毒发送方几乎无一例外地伪造该地址，因此这多半只是把邮件投递给什么都没发过的人 - 这就是反向散射，也正是让服务器进入拦截列表的原因。</value>
   </data>
   <data name="A one-time code required in addition to the administrator password, checked by the server - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator deletes AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restarts the hMailServer service." xml:space="preserve">
     <value>除管理员密码之外还需要的一次性验证码，由服务器校验 - 因此它适用于该凭据的每一个客户端：本控制面板、使用 COM API 的脚本，以及 REST API（后者从 X-hMailServer-OTP 标头读取验证码）。该机密存储在服务器上的 hMailServer.ini 中，受计算机级保护。它使管理员密码本身不再足以登录。请妥善保管设置密钥：如果身份验证器丢失，由本地管理员用以管理员身份运行的编辑器从 hMailServer.ini 的 [Security] 节中删除 AdministratorTotpSecret，然后重新启动 hMailServer 服务。</value>
@@ -604,7 +598,7 @@
     <value>此服务器的配置方案</value>
   </data>
   <data name="A profile sets the thirty or so settings one kind of server needs - which, to what and why - shows the difference from this server before anything changes, and keeps what it replaces so that it can be put back." xml:space="preserve">
-    <value>配置方案会设置某类服务器所需的约三十项设置——设置哪些、设为何值、为何如此——在任何更改之前显示与此服务器的差异，并保留它所替换的值以便恢复。</value>
+    <value>配置方案会设置某类服务器所需的约三十项设置 - 设置哪些、设为何值、为何如此 - 在任何更改之前显示与此服务器的差异，并保留它所替换的值以便恢复。</value>
   </data>
   <data name="A quota can be set on the domain and overridden per account." xml:space="preserve">
     <value>可以在域上设置配额，并在账户上逐个覆盖。</value>
@@ -675,8 +669,8 @@
   <data name="A second factor is enrolled: every sign-in with the administrator credential - this tool, the COM API and the REST API - needs a code. Turning it off removes that requirement, and the administrator password alone signs in again." xml:space="preserve">
     <value>已注册第二重验证：使用管理员凭据的每一次登录 - 本工具、COM API 和 REST API - 都需要验证码。将其关闭会取消这一要求，仅凭管理员密码即可再次登录。</value>
   </data>
-  <data name="A secret is configured — leave blank to keep it" xml:space="preserve">
-    <value>已配置机密 — 留空则保持不变</value>
+  <data name="A secret is configured - leave blank to keep it" xml:space="preserve">
+    <value>已配置机密 - 留空则保持不变</value>
   </data>
   <data name="A separate ceiling from the time limit, because a search that reads enormous amounts of message content is expensive even when it finishes quickly." xml:space="preserve">
     <value>与时间限制分开的另一个上限，因为读取大量邮件内容的搜索即使很快完成，代价也很高。</value>
@@ -1261,7 +1255,7 @@
     <value>地址</value>
   </data>
   <data name="Addresses a domain no longer sends to because mail to them bounced - visible, and removable by hand." xml:space="preserve">
-    <value>域因邮件被退回而不再向其发送的地址——可查看，也可手动移除。</value>
+    <value>域因邮件被退回而不再向其发送的地址 - 可查看，也可手动移除。</value>
   </data>
   <data name="Addresses a domain no longer sends to because mail to them bounced for good, or because somebody put them here - with the counts behind each one. The list is per sending domain." xml:space="preserve">
     <value>域因邮件被永久退回、或有人将其加入此处而不再向其发送的地址，以及每个地址背后的计数。列表按发件域分别维护。</value>
@@ -1270,7 +1264,7 @@
     <value>所有账户想要或不想要的地址和域名，排在每个账户自己的名单及其域名的名单之后。</value>
   </data>
   <data name="Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted." xml:space="preserve">
-    <value>所有账户想要或不想要的地址和整个域名。被允许的发件人的邮件会跳过垃圾邮件判定；被拦截的发件人的邮件在开启隔离时被扣留在隔离区，未开启时被标记为垃圾邮件——永远不会被删除。</value>
+    <value>所有账户想要或不想要的地址和整个域名。被允许的发件人的邮件会跳过垃圾邮件判定；被拦截的发件人的邮件在开启隔离时被扣留在隔离区，未开启时被标记为垃圾邮件 - 永远不会被删除。</value>
   </data>
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>{0} 的账户想要或不想要的地址和整个域名。在账户自己的名单之后、服务器的名单之前参考。</value>
@@ -1350,8 +1344,8 @@
   <data name="After the body has arrived" xml:space="preserve">
     <value>正文到达之后</value>
   </data>
-  <data name="After the body has been received — a refusal here is a 554" xml:space="preserve">
-    <value>在正文接收完毕之后 — 此处的拒绝是 554</value>
+  <data name="After the body has been received - a refusal here is a 554" xml:space="preserve">
+    <value>在正文接收完毕之后 - 此处的拒绝是 554</value>
   </data>
   <data name="Against {0} over {1}. Set the service account user name (and its password), or switch to a user DN template or the Negotiate bind method, neither of which searches at all." xml:space="preserve">
     <value>在 {1} 上针对 {0} 进行。请设置服务账户用户名（及其密码），或者改用用户 DN 模板或 Negotiate 绑定方式，这两者都完全不进行搜索。</value>
@@ -1554,8 +1548,8 @@
   <data name="An SPF record - which servers may send this domain's mail" xml:space="preserve">
     <value>一条 SPF 记录 - 哪些服务器可以发送此域的邮件</value>
   </data>
-  <data name="An SPF record is live at {0} and it is not the suggested one. That may well be deliberate - the suggestion cannot know your other senders. Published: {1} — just confirm everything that really sends mail as {0} is covered." xml:space="preserve">
-    <value>{0} 上有一条 SPF 记录处于生效状态，而且它不是建议的那一条。这很可能是有意为之 - 建议值无从知晓您的其他发件源。发布时间：{1} — 只需确认真正以 {0} 名义发信的一切都已被涵盖。</value>
+  <data name="An SPF record is live at {0} and it is not the suggested one. That may well be deliberate - the suggestion cannot know your other senders. Published: {1} - just confirm everything that really sends mail as {0} is covered." xml:space="preserve">
+    <value>{0} 上有一条 SPF 记录处于生效状态，而且它不是建议的那一条。这很可能是有意为之 - 建议值无从知晓您的其他发件源。发布时间：{1} - 只需确认真正以 {0} 名义发信的一切都已被涵盖。</value>
   </data>
   <data name="An absolute path on the server. A PST job names a file in the subfolder for the target account's domain, such as example.com\archive.pst, and nowhere else." xml:space="preserve">
     <value>服务器上的绝对路径。PST 作业只能指定目标账户所在域的子文件夹中的文件，例如 example.com\archive.pst，不能指定其他位置。</value>
@@ -1775,7 +1769,7 @@
     <value>保存即生效</value>
   </data>
   <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted." xml:space="preserve">
-    <value>仅在退信处理开启时生效。只有当报告指明本服务器确实已投递给该收件人的邮件、从外部未经身份验证到达、并在有记录的情况下通过了 SPF 和 DMARC 检查时，才会计入——但收到同一封邮件的任何人都可以为另一位可见收件人伪造报告。关闭后将完全不读取报告；投递过程中遇到的拒绝仍会计入。</value>
+    <value>仅在退信处理开启时生效。只有当报告指明本服务器确实已投递给该收件人的邮件、从外部未经身份验证到达、并在有记录的情况下通过了 SPF 和 DMARC 检查时，才会计入 - 但收到同一封邮件的任何人都可以为另一位可见收件人伪造报告。关闭后将完全不读取报告；投递过程中遇到的拒绝仍会计入。</value>
   </data>
   <data name="Applies to the accounts made from now on; it changes no account that already exists." xml:space="preserve">
     <value>适用于今后创建的账户；现有账户不变。</value>
@@ -1804,8 +1798,8 @@
   <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back." xml:space="preserve">
     <value>应用 {0} 配置方案？将更改 {1} 项设置，原有的值会被保留以便恢复。</value>
   </data>
-  <data name="Applying..." xml:space="preserve">
-    <value>正在应用...</value>
+  <data name="Applying…" xml:space="preserve">
+    <value>正在应用…</value>
   </data>
   <data name="Ar_chive" xml:space="preserve">
     <value>存档(_C)</value>
@@ -1870,8 +1864,8 @@
   <data name="At RCPT TO, before greylisting" xml:space="preserve">
     <value>在 RCPT TO 时，灰名单处理之前</value>
   </data>
-  <data name="At RCPT TO, before the body is transferred — a refusal here is a 550" xml:space="preserve">
-    <value>在 RCPT TO 时、正文传输之前 — 此处的拒绝是 550</value>
+  <data name="At RCPT TO, before the body is transferred - a refusal here is a 550" xml:space="preserve">
+    <value>在 RCPT TO 时、正文传输之前 - 此处的拒绝是 550</value>
   </data>
   <data name="At RCPT TO, or after DATA for an entry that needs DKIM or DMARC" xml:space="preserve">
     <value>在 RCPT TO 时；需要 DKIM 或 DMARC 的条目在 DATA 之后</value>
@@ -1897,8 +1891,8 @@
   <data name="At most one backup per calendar day, taken at the first check at or after this time (the server's local time). If an interval is also set below, the daily time wins." xml:space="preserve">
     <value>每个日历日最多一次备份，在到达或超过此时间的第一次检查时执行（服务器的本地时间）。如果下面同时设置了间隔，则以每日时间为准。</value>
   </data>
-  <data name="At most {0} scans run at once. Beyond that, delivery threads wait — and after 60 seconds of waiting the server gives up waiting and scans anyway, so a slow scanner shows up as slow mail rather than as unscanned mail." xml:space="preserve">
-    <value>最多同时运行 {0} 次扫描。超出之后，投递线程会等待 — 而在等待 60 秒之后，服务器会放弃等待并照常扫描，因此扫描器慢只会表现为邮件慢，而不是邮件未经扫描。</value>
+  <data name="At most {0} scans run at once. Beyond that, delivery threads wait - and after 60 seconds of waiting the server gives up waiting and scans anyway, so a slow scanner shows up as slow mail rather than as unscanned mail." xml:space="preserve">
+    <value>最多同时运行 {0} 次扫描。超出之后，投递线程会等待 - 而在等待 60 秒之后，服务器会放弃等待并照常扫描，因此扫描器慢只会表现为邮件慢，而不是邮件未经扫描。</value>
   </data>
   <data name="At your DNS host, publish a TXT record at the domain, such as v=spf1 mx -all, naming the servers that send its mail. The DNS records page shows the record to publish." xml:space="preserve">
     <value>在您的 DNS 托管商处，为该域发布一条 TXT 记录，例如 v=spf1 mx -all，列出发送其邮件的服务器。DNS 记录页面会显示要发布的记录。</value>
@@ -2380,8 +2374,8 @@
   <data name="C_heck an address…" xml:space="preserve">
     <value>检查地址(_H)…</value>
   </data>
-  <data name="C_hoose a photo..." xml:space="preserve">
-    <value>选择照片...(_G)</value>
+  <data name="C_hoose a photo…" xml:space="preserve">
+    <value>选择照片(_G)…</value>
   </data>
   <data name="Cache" xml:space="preserve">
     <value>缓存</value>
@@ -2722,8 +2716,8 @@
   <data name="Cipher list: OpenSSL defaults for TLS 1.2 and below. TLS 1.3 has its own separate list." xml:space="preserve">
     <value>密码套件列表：TLS 1.2 及更低版本使用 OpenSSL 默认值。TLS 1.3 有自己单独的列表。</value>
   </data>
-  <data name="Cipher list: the AEAD-ONLY preset — forward-secret AEAD suites only, with every CBC-mode suite and static-RSA key exchange excluded. This governs TLS 1.2 and below; TLS 1.3 has its own list and is AEAD by construction." xml:space="preserve">
-    <value>密码套件列表：AEAD-ONLY 预设 — 仅限具备前向保密的 AEAD 套件，排除所有 CBC 模式套件和静态 RSA 密钥交换。此项管辖 TLS 1.2 及更低版本；TLS 1.3 有自己的列表，并且在设计上就是 AEAD。</value>
+  <data name="Cipher list: the AEAD-ONLY preset - forward-secret AEAD suites only, with every CBC-mode suite and static-RSA key exchange excluded. This governs TLS 1.2 and below; TLS 1.3 has its own list and is AEAD by construction." xml:space="preserve">
+    <value>密码套件列表：AEAD-ONLY 预设 - 仅限具备前向保密的 AEAD 套件，排除所有 CBC 模式套件和静态 RSA 密钥交换。此项管辖 TLS 1.2 及更低版本；TLS 1.3 有自己的列表，并且在设计上就是 AEAD。</value>
   </data>
   <data name="Ciphers &amp; verification" xml:space="preserve">
     <value>密码套件与验证</value>
@@ -4528,7 +4522,7 @@
   <data name="Edit the security group" xml:space="preserve">
     <value>编辑安全组</value>
   </data>
-  <data name="Edit the server event-handler script (OnAcceptMessage, OnDeliveryStart, OnHELO, ...). Saving writes the file and reloads the scripting engine. The engine's on/off switch and its language are on the Advanced page." xml:space="preserve">
+  <data name="Edit the server event-handler script (OnAcceptMessage, OnDeliveryStart, OnHELO and others). Saving writes the file and reloads the scripting engine. The engine's on/off switch and its language are on the Advanced page." xml:space="preserve">
     <value>编辑服务器事件处理脚本（OnAcceptMessage、OnDeliveryStart、OnHELO 等）。保存会写入文件并重新加载脚本引擎。引擎的开关及其语言在“高级”页。</value>
   </data>
   <data name="Edit the server message" xml:space="preserve">
@@ -4879,8 +4873,8 @@
   <data name="Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains." xml:space="preserve">
     <value>被直接拒绝或计分的信封发件人。带 @ 的条目是一个精确地址；不带 @ 的条目是整个域，包括其子域。</value>
   </data>
-  <data name="Erase _traces..." xml:space="preserve">
-    <value>清除痕迹(_T)...</value>
+  <data name="Erase _traces…" xml:space="preserve">
+    <value>清除痕迹(_T)…</value>
   </data>
   <data name="Erase every stored trace of {0}? Quarantine entries, trace rows, greylisting, list memberships, aliases, the address-book entries, certificates, keys and memories other accounts keep of it, the messages outside any mailbox that name it - held for review (discarded for every recipient), expiring or password-protected - the archive tree and the log lines that name the address. What a legal hold covers is left in place. This cannot be undone." xml:space="preserve">
     <value>清除 {0} 的所有存储痕迹？隔离条目、跟踪行、灰名单、列表成员资格、别名、其他账户保存的关于它的通讯录条目、证书、密钥和记忆，任何邮箱之外提到它的邮件（待审核的邮件 - 对所有收件人丢弃 -、会过期的邮件或受密码保护的邮件）、归档树以及提到该地址的日志行。法律保全涵盖的内容保持不变。此操作无法撤销。</value>
@@ -4904,7 +4898,7 @@
     <value>错误和警告（严重级别 4）</value>
   </data>
   <data name="Errors are always sent, whichever of these are off - the error log is written even when logging is disabled, and this follows it." xml:space="preserve">
-    <value>无论以上哪几项处于关闭状态，错误始终会被发送——即使停用日志记录，错误日志仍会写入，本功能与之一致。</value>
+    <value>无论以上哪几项处于关闭状态，错误始终会被发送 - 即使停用日志记录，错误日志仍会写入，本功能与之一致。</value>
   </data>
   <data name="Errors only (severity 3)" xml:space="preserve">
     <value>仅错误（严重级别 3）</value>
@@ -5122,6 +5116,9 @@
   <data name="Expires on (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>失效时间（YYYY-MM-DD HH:MM:SS）</value>
   </data>
+  <data name="Expires on (YYYY-MM-DD HH:MM:SS, when it stops mattering)" xml:space="preserve">
+    <value>失效时间 (YYYY-MM-DD HH:MM:SS，即失效的时间)</value>
+  </data>
   <data name="Expires on {0} (in less than a day)" xml:space="preserve">
     <value>{0} 到期（不到一天后）</value>
   </data>
@@ -5146,8 +5143,8 @@
   <data name="Export" xml:space="preserve">
     <value>导出</value>
   </data>
-  <data name="Export everythin_g..." xml:space="preserve">
-    <value>导出全部(_G)...</value>
+  <data name="Export everythin_g…" xml:space="preserve">
+    <value>导出全部(_G)…</value>
   </data>
   <data name="Exported {0} message and everything else the server holds to {1}." xml:space="preserve">
     <value>已将 {0} 封邮件及服务器保存的其他所有内容导出到 {1}。</value>
@@ -5233,8 +5230,14 @@
   <data name="Fails when the name the client gave in HELO/EHLO does not resolve to the address it is connecting from." xml:space="preserve">
     <value>当客户端在 HELO/EHLO 中给出的名称不能解析到它的连接地址时判定失败。</value>
   </data>
-  <data name="Fair password – consider adding {0}." xml:space="preserve">
-    <value>密码强度一般 – 建议添加{0}。</value>
+  <data name="Failures counted within (minutes)" xml:space="preserve">
+    <value>失败计数时段（分钟）</value>
+  </data>
+  <data name="Failures for a name counted within (minutes)" xml:space="preserve">
+    <value>每个名称的失败计数时段（分钟）</value>
+  </data>
+  <data name="Fair password - consider adding {0}." xml:space="preserve">
+    <value>密码强度一般 - 建议添加{0}。</value>
   </data>
   <data name="Fair password." xml:space="preserve">
     <value>密码强度一般。</value>
@@ -5506,8 +5509,8 @@
   <data name="Generated password" xml:space="preserve">
     <value>已生成的密码</value>
   </data>
-  <data name="Generated password copied to clipboard — reveal it with the eye icon." xml:space="preserve">
-    <value>已生成的密码已复制到剪贴板 — 用眼睛图标可显示它。</value>
+  <data name="Generated password copied to the clipboard; reveal it with the eye icon." xml:space="preserve">
+    <value>已生成的密码已复制到剪贴板；用眼睛图标可显示它。</value>
   </data>
   <data name="Get help" xml:space="preserve">
     <value>获取帮助</value>
@@ -5564,7 +5567,7 @@
     <value>授予访问权限…</value>
   </data>
   <data name="Grants the folders as Grant access does - asking about any folder or key file the configuration names outside them - and registers the service as NT SERVICE\hMailServer only if that ends cleanly. The service keeps its old account until it is restarted." xml:space="preserve">
-    <value>像“授予访问权限”一样授予文件夹——先询问配置在其外指定的每个文件夹或密钥文件——只有在此过程顺利完成时才将服务注册为 NT SERVICE\hMailServer。服务在重新启动前保留原来的账户。</value>
+    <value>像“授予访问权限”一样授予文件夹 - 先询问配置在其外指定的每个文件夹或密钥文件 - 只有在此过程顺利完成时才将服务注册为 NT SERVICE\hMailServer。服务在重新启动前保留原来的账户。</value>
   </data>
   <data name="Greylisting" xml:space="preserve">
     <value>灰名单</value>
@@ -6765,11 +6768,11 @@
   <data name="Mail clients send through the submission port, and without TLS their passwords cross the network in the clear." xml:space="preserve">
     <value>邮件客户端通过提交端口发送，没有 TLS，密码就会以明文穿过网络。</value>
   </data>
-  <data name="Mail collected from external POP3 accounts is scanned only when that fetch account says so — {0} of {1} currently has anti-virus switched off. That switch is on the account, not on this page." xml:space="preserve">
-    <value>从外部 POP3 账户收取的邮件只有在该收取账户如此指定时才会被扫描 — 目前 {1} 个中有 {0} 个关闭了反病毒。该开关在账户上，不在本页。</value>
+  <data name="Mail collected from external POP3 accounts is scanned only when that fetch account says so - {0} of {1} currently has anti-virus switched off. That switch is on the account, not on this page." xml:space="preserve">
+    <value>从外部 POP3 账户收取的邮件只有在该收取账户如此指定时才会被扫描 - 目前 {1} 个中有 {0} 个关闭了反病毒。该开关在账户上，不在本页。</value>
   </data>
-  <data name="Mail collected from external POP3 accounts is scanned only when that fetch account says so — {0} of {1} currently have anti-virus switched off. That switch is on the account, not on this page." xml:space="preserve">
-    <value>从外部 POP3 账户收取的邮件只有在该收取账户如此指定时才会被扫描 — 目前 {1} 个中有 {0} 个关闭了反病毒。该开关在账户上，不在本页。</value>
+  <data name="Mail collected from external POP3 accounts is scanned only when that fetch account says so - {0} of {1} currently have anti-virus switched off. That switch is on the account, not on this page." xml:space="preserve">
+    <value>从外部 POP3 账户收取的邮件只有在该收取账户如此指定时才会被扫描 - 目前 {1} 个中有 {0} 个关闭了反病毒。该开关在账户上，不在本页。</value>
   </data>
   <data name="Mail flow &amp; delivery" xml:space="preserve">
     <value>邮件流与投递</value>
@@ -7097,11 +7100,11 @@
   <data name="Members of {0}" xml:space="preserve">
     <value>{0} 的成员</value>
   </data>
+  <data name="Membership - only list members can send" xml:space="preserve">
+    <value>成员资格 - 只有列表成员可以发信</value>
+  </data>
   <data name="Membership _query (empty = the recipients alone)" xml:space="preserve">
     <value>成员查询（留空 = 仅收件人）(_Q)</value>
-  </data>
-  <data name="Membership — only list members can send" xml:space="preserve">
-    <value>成员资格 — 只有列表成员可以发信</value>
   </data>
   <data name="Merge SpamAssassin score into hMailServer score" xml:space="preserve">
     <value>把 SpamAssassin 分数合并到 hMailServer 分数中</value>
@@ -7156,8 +7159,8 @@
   <data name="Message indexing is switched off, so there is no indexer running to ask. Tick &quot;Enable message indexing&quot; above and save first - nothing was done." xml:space="preserve">
     <value>邮件索引已关闭，因此没有正在运行的索引器可供询问。请先勾选上面的“启用邮件索引”并保存 - 未执行任何操作。</value>
   </data>
-  <data name="Message metadata _only — do not copy the message files" xml:space="preserve">
-    <value>仅邮件元数据(_O) — 不复制邮件文件</value>
+  <data name="Message metadata _only - do not copy the message files" xml:space="preserve">
+    <value>仅邮件元数据(_O) - 不复制邮件文件</value>
   </data>
   <data name="Message modifications: the spam headers, the signature, the List-* headers, or the write of the modified message back to disk." xml:space="preserve">
     <value>邮件修改：垃圾邮件标头、签名、List-* 标头，或者把修改后的邮件写回磁盘。</value>
@@ -7216,8 +7219,8 @@
   <data name="Messages larger than {0} KB skip every check that needs the body (SURBL, DKIM, DMARC, SpamAssassin and the external filtering engine). The connection checks still run, and the message is delivered." xml:space="preserve">
     <value>大于 {0} KB 的邮件会跳过所有需要正文的检查（SURBL、DKIM、DMARC、SpamAssassin 和外部过滤引擎）。连接检查仍会运行，邮件也会投递。</value>
   </data>
-  <data name="Messages larger than {0} are not scanned. They are delivered, not refused, and nothing is written to the log when it happens — so this limit is invisible in normal operation. 0 means &quot;no limit&quot; and is the setting that closes the gap." xml:space="preserve">
-    <value>大于 {0} 的邮件不会被扫描。它们会被投递，不会被拒绝，发生时也不会向日志写入任何内容 — 因此这个限制在正常运行中是看不见的。0 表示“不限制”，是弥补这一漏洞的设置。</value>
+  <data name="Messages larger than {0} are not scanned. They are delivered, not refused, and nothing is written to the log when it happens - so this limit is invisible in normal operation. 0 means &quot;no limit&quot; and is the setting that closes the gap." xml:space="preserve">
+    <value>大于 {0} 的邮件不会被扫描。它们会被投递，不会被拒绝，发生时也不会向日志写入任何内容 - 因此这个限制在正常运行中是看不见的。0 表示“不限制”，是弥补这一漏洞的设置。</value>
   </data>
   <data name="Messages one backfill pass reads before pausing (1 to 100,000)" xml:space="preserve">
     <value>一次回填遍历在暂停之前读取的邮件数（1 到 100,000）</value>
@@ -7243,8 +7246,8 @@
   <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message or a group, and the buttons over the list on every checked message." xml:space="preserve">
     <value>这些是服务器原本会拒绝、但被暂挂以便有人查看的邮件。发件人都已被告知邮件已被接受，因此放着不管也不会再次收到：放行会投递它，删除则是最终操作。图标作用于一封邮件或一个组，列表上方的按钮则作用于每一封已勾选的邮件。</value>
   </data>
-  <data name="Messages up to {0}. A larger message is delivered without being scanned — it is not refused, and nothing is logged." xml:space="preserve">
-    <value>不超过 {0} 的邮件。更大的邮件会在不扫描的情况下投递 — 不会被拒绝，也不会记录任何内容。</value>
+  <data name="Messages up to {0}. A larger message is delivered without being scanned - it is not refused, and nothing is logged." xml:space="preserve">
+    <value>不超过 {0} 的邮件。更大的邮件会在不扫描的情况下投递 - 不会被拒绝，也不会记录任何内容。</value>
   </data>
   <data name="Messages waiting for delivery." xml:space="preserve">
     <value>等待投递的邮件。</value>
@@ -7339,8 +7342,8 @@
   <data name="Mirroring" xml:space="preserve">
     <value>镜像</value>
   </data>
-  <data name="Mo_ve or rename..." xml:space="preserve">
-    <value>迁移或重命名...(_V)</value>
+  <data name="Mo_ve or rename…" xml:space="preserve">
+    <value>迁移或重命名(_V)…</value>
   </data>
   <data name="Mode and max_age read from hMailServer.ini on this machine." xml:space="preserve">
     <value>mode 和 max_age 读取自本机上的 hMailServer.ini。</value>
@@ -7967,7 +7970,7 @@
     <value>未发现问题 - 每一行邮件记录在磁盘上都有对应的文件。</value>
   </data>
   <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
-    <value>尚未应用任何配置方案。配置方案会按此服务器的类型——小型办公室、位于过滤网关之后、出站中继、大批量发件方——设置约三十项设置，并在进行每项更改之前先显示出来。</value>
+    <value>尚未应用任何配置方案。配置方案会按此服务器的类型 - 小型办公室、位于过滤网关之后、出站中继、大批量发件方 - 设置约三十项设置，并在进行每项更改之前先显示出来。</value>
   </data>
   <data name="No public folder has &quot;{0}&quot; in its name." xml:space="preserve">
     <value>没有名称中包含“{0}”的公用文件夹。</value>
@@ -8188,8 +8191,8 @@
   <data name="Nothing at all happens on score: both thresholds are 0, and the server only marks or refuses when the threshold is above 0." xml:space="preserve">
     <value>分数完全不会引发任何事情：两个阈值都是 0，而服务器只在阈值大于 0 时才标记或拒绝。</value>
   </data>
-  <data name="Nothing below is served until a port is set here. The server answers on either port, but an MTA-STS policy is only valid over HTTPS and Outlook only accepts autodiscover over HTTPS — so in practice set the HTTPS port and a certificate covering the host names clients use." xml:space="preserve">
-    <value>在此处设置端口之前，下面的内容都不会提供。服务器在任一端口上都会应答，但 MTA-STS 策略只有通过 HTTPS 才有效，而 Outlook 只接受通过 HTTPS 的 autodiscover — 因此实际上请设置 HTTPS 端口，并准备一个涵盖客户端所用主机名的证书。</value>
+  <data name="Nothing below is served until a port is set here. The server answers on either port, but an MTA-STS policy is only valid over HTTPS and Outlook only accepts autodiscover over HTTPS - so in practice set the HTTPS port and a certificate covering the host names clients use." xml:space="preserve">
+    <value>在此处设置端口之前，下面的内容都不会提供。服务器在任一端口上都会应答，但 MTA-STS 策略只有通过 HTTPS 才有效，而 Outlook 只接受通过 HTTPS 的 autodiscover - 因此实际上请设置 HTTPS 端口，并准备一个涵盖客户端所用主机名的证书。</value>
   </data>
   <data name="Nothing between 354 and silence" xml:space="preserve">
     <value>354 之后便没有下文</value>
@@ -8570,7 +8573,7 @@
     <value>九项检查的一份清单：哪些已打开，以及每一项在两个阶段中的哪一个运行。</value>
   </data>
   <data name="One message to each account of this domain that has something newly held for it, listing what was held with a link that delivers it. A link works once and stops working after the hours set on the Quarantine page, which is also where the address the links point at is set - without that address nothing is sent. An empty digest is never sent, and each message says how to stop it." xml:space="preserve">
-    <value>给本域名中新近有邮件被扣留的每个账户发送一封邮件，列出被扣留的邮件，并附上投递它们的链接。链接只能用一次，并在 隔离 页面设置的小时数过后失效；链接指向的地址也在该页面设置——没有这个地址就不会发送任何内容。空的摘要永远不会发送，每封邮件都会说明如何停止接收。</value>
+    <value>给本域名中新近有邮件被扣留的每个账户发送一封邮件，列出被扣留的邮件，并附上投递它们的链接。链接只能用一次，并在 隔离 页面设置的小时数过后失效；链接指向的地址也在该页面设置 - 没有这个地址就不会发送任何内容。空的摘要永远不会发送，每封邮件都会说明如何停止接收。</value>
   </data>
   <data name="One point per {0}, from the {1}-day history the server keeps. Throughput is the change in the processed-messages total per minute." xml:space="preserve">
     <value>每 {0} 一个数据点，取自服务器保留的 {1} 天历史。吞吐量是已处理邮件总数每分钟的变化量。</value>
@@ -9228,8 +9231,8 @@
   <data name="Presented as &quot;Authorization: Bearer ...&quot; - in Prometheus, the scrape config's bearer_token. Leading and trailing spaces are trimmed. The health probes /livez, /readyz and /healthz never require it, so load balancers keep working." xml:space="preserve">
     <value>以 "Authorization: Bearer ..." 的形式出示 - 在 Prometheus 中即抓取配置的 bearer_token。首尾空格会被去除。健康探测 /livez、/readyz 和 /healthz 从不要求它，因此负载均衡器可以继续工作。</value>
   </data>
-  <data name="Preset engine (fills the command line and return value below – adjust the path/exit code for your version)" xml:space="preserve">
-    <value>预设引擎（填充下面的命令行和返回值 – 请根据您的版本调整路径/退出代码）</value>
+  <data name="Preset engine (fills the command line and return value below - adjust the path/exit code for your version)" xml:space="preserve">
+    <value>预设引擎（填充下面的命令行和返回值 - 请根据您的版本调整路径/退出代码）</value>
   </data>
   <data name="Press &quot;Check policy (HTTPS)&quot; to fetch https://mta-sts.{0}/.well-known/mta-sts.txt from this machine." xml:space="preserve">
     <value>按“检查策略（HTTPS）”从本机获取 https://mta-sts.{0}/.well-known/mta-sts.txt。</value>
@@ -9297,6 +9300,9 @@
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>封禁或解封地址时运行的程序（留空 = 无）</value>
   </data>
+  <data name="Progressive Robot Ltd is a software engineering company that builds and modernizes production software - taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
+    <value>Progressive Robot Ltd 是一家构建并现代化生产软件的软件工程公司 - 接手成熟的、真实世界中的系统，并把它们提升到当前的安全、可靠性和工具链标准。</value>
+  </data>
   <data name="Progressive Robot Ltd is a software engineering company. It maintains the hMailServer 6.x line, an independent fork of the open-source mail server." xml:space="preserve">
     <value>Progressive Robot Ltd 是一家软件工程公司。它维护 hMailServer 6.x 系列，这是该开源邮件服务器的一个独立分支。</value>
   </data>
@@ -9351,14 +9357,14 @@
   <data name="Public" xml:space="preserve">
     <value>公开</value>
   </data>
+  <data name="Public - anyone can send" xml:space="preserve">
+    <value>公开 - 任何人都可以发信</value>
+  </data>
   <data name="Public folder name" xml:space="preserve">
     <value>公用文件夹名称</value>
   </data>
   <data name="Public folders" xml:space="preserve">
     <value>公用文件夹</value>
-  </data>
-  <data name="Public — anyone can send" xml:space="preserve">
-    <value>公开 — 任何人都可以发信</value>
   </data>
   <data name="Publish" xml:space="preserve">
     <value>发布</value>
@@ -9462,8 +9468,8 @@
   <data name="Query failed: {0}" xml:space="preserve">
     <value>查询失败：{0}</value>
   </data>
-  <data name="Querying MX records for {0}..." xml:space="preserve">
-    <value>正在查询 {0} 的 MX 记录...</value>
+  <data name="Querying MX records for {0}…" xml:space="preserve">
+    <value>正在查询 {0} 的 MX 记录…</value>
   </data>
   <data name="Queue ID {0} - select and choose &quot;Follow this message&quot;." xml:space="preserve">
     <value>队列 ID {0} - 选中后选择“跟踪此邮件”。</value>
@@ -9633,11 +9639,11 @@
   <data name="Reading the cases…" xml:space="preserve">
     <value>正在读取案件…</value>
   </data>
-  <data name="Reading the directory..." xml:space="preserve">
-    <value>正在读取目录...</value>
+  <data name="Reading the directory…" xml:space="preserve">
+    <value>正在读取目录…</value>
   </data>
-  <data name="Reading the recovery report..." xml:space="preserve">
-    <value>正在读取恢复报告...</value>
+  <data name="Reading the recovery report…" xml:space="preserve">
+    <value>正在读取恢复报告…</value>
   </data>
   <data name="Reads everything and changes nothing, the audit trail included." xml:space="preserve">
     <value>读取一切且不做任何更改，包括审计记录。</value>
@@ -9874,8 +9880,8 @@
   <data name="Reinitialised - the settings that waited for a reinitialise are in effect; {0} still waits for a service restart." xml:space="preserve">
     <value>已重新初始化 - 等待重新初始化的设置已生效；仍有 {0} 项等待重启服务。</value>
   </data>
-  <data name="Reinitialising the server..." xml:space="preserve">
-    <value>正在重新初始化服务器...</value>
+  <data name="Reinitialising the server…" xml:space="preserve">
+    <value>正在重新初始化服务器…</value>
   </data>
   <data name="Reject empty sender addresses (MAIL FROM:&lt;&gt;)" xml:space="preserve">
     <value>拒绝空的发件人地址（MAIL FROM:&lt;&gt;）</value>
@@ -10254,8 +10260,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Restart to apply" xml:space="preserve">
     <value>需重启才能生效</value>
   </data>
-  <data name="Restarting the hMailServer service..." xml:space="preserve">
-    <value>正在重启 hMailServer 服务...</value>
+  <data name="Restarting the hMailServer service…" xml:space="preserve">
+    <value>正在重启 hMailServer 服务…</value>
   </data>
   <data name="Restarting…" xml:space="preserve">
     <value>正在重启…</value>
@@ -10527,11 +10533,11 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Running" xml:space="preserve">
     <value>正在运行</value>
   </data>
-  <data name="Running diagnostics..." xml:space="preserve">
-    <value>正在运行诊断...</value>
+  <data name="Running diagnostics…" xml:space="preserve">
+    <value>正在运行诊断…</value>
   </data>
-  <data name="Runs event scripts (OnAcceptMessage, OnDeliveryStart...) from the Events folder; the script itself is edited on the Event scripts page. The engine reloads when you save." xml:space="preserve">
-    <value>从 Events 文件夹运行事件脚本（OnAcceptMessage、OnDeliveryStart...）；脚本本身在“事件脚本”页上编辑。保存时引擎会重新加载。</value>
+  <data name="Runs event scripts (OnAcceptMessage, OnDeliveryStart and others) from the Events folder; the script itself is edited on the Event scripts page. The engine reloads when you save." xml:space="preserve">
+    <value>从 Events 文件夹运行事件脚本（OnAcceptMessage、OnDeliveryStart等）；脚本本身在“事件脚本”页上编辑。保存时引擎会重新加载。</value>
   </data>
   <data name="Runs hMailServer.exe /GrantServiceAccess as an administrator, after Windows asks: NT SERVICE\hMailServer is given Modify on the program folder's own Data, Logs, Temp and Database folders and on the folders an administrator has approved, and Read on the program folder - never hMailServer.ini. A folder the configuration names elsewhere, such as a backup or archive folder set later, is approved only after a question that names it; key files outside those folders are listed. It can be run again at any time, and removes nobody else's permission." xml:space="preserve">
     <value>在 Windows 询问后，以管理员身份运行 hMailServer.exe /GrantServiceAccess：NT SERVICE\hMailServer 获得程序文件夹自身的 Data、Logs、Temp 和 Database 文件夹以及管理员已批准的文件夹的修改权限，以及程序文件夹的读取权限——但绝不包括 hMailServer.ini。配置在其他位置指定的文件夹（例如之后设置的备份或存档文件夹）只有在指明它的询问之后才会被批准；这些文件夹之外的密钥文件会被列出。可以随时再次运行，且不会移除任何人的权限。</value>
@@ -10738,7 +10744,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
     <value>将 LDAP 设置保存到 hMailServer.ini</value>
   </data>
   <data name="Save the account and reopen it - a recovery address belongs to an account that exists." xml:space="preserve">
-    <value>请先保存账户再重新打开 —— 恢复地址属于一个已经存在的账户。</value>
+    <value>请先保存账户再重新打开 - 恢复地址属于一个已经存在的账户。</value>
   </data>
   <data name="Save the account and reopen it - a second factor belongs to an account that exists." xml:space="preserve">
     <value>请保存账户后再重新打开 - 第二因素属于一个已存在的账户。</value>
@@ -11347,7 +11353,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
     <value>发送域(_D)</value>
   </data>
   <data name="Sending domains this server has decided about: an allowed one skips greylisting and the score's refusals, a blocked one is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
-    <value>本服务器已做出决定的发件域：允许的域跳过灰名单和按分数的拒绝，拦截的域在 MAIL FROM 时拒绝——按域或 HELO 后缀，而不是按 IP 地址。</value>
+    <value>本服务器已做出决定的发件域：允许的域跳过灰名单和按分数的拒绝，拦截的域在 MAIL FROM 时拒绝 - 按域或 HELO 后缀，而不是按 IP 地址。</value>
   </data>
   <data name="Sending organisations allowed or blocked by their domain or HELO name, in inbound sessions that have not signed in. To exempt an address or an IP range from every check use the spam exemptions; to decide per recipient use the allow and block list." xml:space="preserve">
     <value>在未登录的入站会话中，按发件组织的域或 HELO 名称允许或拦截。要让某个地址或 IP 范围跳过所有检查，请使用反垃圾邮件豁免；要按收件人决定，请使用允许与拦截名单。</value>
@@ -11616,8 +11622,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Setting" xml:space="preserve">
     <value>设置</value>
   </data>
-  <data name="Setting  -  {0}" xml:space="preserve">
-    <value>设置  -  {0}</value>
+  <data name="Setting - {0}" xml:space="preserve">
+    <value>设置 - {0}</value>
   </data>
   <data name="Setting profile" xml:space="preserve">
     <value>配置方案</value>
@@ -11988,8 +11994,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="SpamTestSpamAssassin with a large Time:" xml:space="preserve">
     <value>Time: 值很大的 SpamTestSpamAssassin</value>
   </data>
-  <data name="Specialist knobs — leave at the defaults unless you have a specific reason." xml:space="preserve">
-    <value>专业选项 — 除非有明确原因，否则请保留默认值。</value>
+  <data name="Specialist knobs - leave at the defaults unless you have a specific reason." xml:space="preserve">
+    <value>专业选项 - 除非有明确原因，否则请保留默认值。</value>
   </data>
   <data name="Specific addresses to rou_te" xml:space="preserve">
     <value>要路由的特定地址(_T)</value>
@@ -12396,8 +12402,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Test the endpoint…" xml:space="preserve">
     <value>测试端点…</value>
   </data>
-  <data name="Testing against {0} over {1}..." xml:space="preserve">
-    <value>正在通过 {1} 测试 {0}...</value>
+  <data name="Testing against {0} over {1}…" xml:space="preserve">
+    <value>正在通过 {1} 测试 {0}…</value>
   </data>
   <data name="Text" xml:space="preserve">
     <value>文本</value>
@@ -12714,8 +12720,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The attachment blocking settings could not be read." xml:space="preserve">
     <value>附件拦截设置无法读取。</value>
   </data>
-  <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
-    <value>附件被替换，邮件被投递。两个通知设置都不适用于此操作 — 服务器只在操作是删除邮件时才发送“邮件已删除”通知。</value>
+  <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action - the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
+    <value>附件被替换，邮件被投递。两个通知设置都不适用于此操作 - 服务器只在操作是删除邮件时才发送“邮件已删除”通知。</value>
   </data>
   <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
     <value>审计记录行还需要 view_audit 权限，而此凭据没有该权限。</value>
@@ -12859,7 +12865,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
     <value>链完好无损。已检查 {0} 行。</value>
   </data>
   <data name="The check did not finish - DNS timed out or answered SERVFAIL, or the lookup limit was reached - and the record may be fine. Scoring it like a fail drops mail on resolver blips; the switch below is the other answer." xml:space="preserve">
-    <value>检查未完成——DNS 超时或回应 SERVFAIL，或达到了查询上限——而记录本身可能没有问题。把它当作 fail 计分会在解析器每次抖动时丢失邮件；下面的开关是另一种答案。</value>
+    <value>检查未完成 - DNS 超时或回应 SERVFAIL，或达到了查询上限 - 而记录本身可能没有问题。把它当作 fail 计分会在解析器每次抖动时丢失邮件；下面的开关是另一种答案。</value>
   </data>
   <data name="The check finished and the domain's published record is unusable: two records, a bad mechanism, a redirect loop, too many lookups. A retry will not fix it, so it is never deferred; strict sites treat it as a fail and lenient sites ignore it." xml:space="preserve">
     <value>检查已完成，但该域发布的记录无法使用：两条记录、无效的机制、重定向循环、查询过多。重试也无济于事，因此从不延迟；严格的站点将其视为 fail，宽松的站点则忽略它。</value>
@@ -14641,6 +14647,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Version and updates" xml:space="preserve">
     <value>版本和更新</value>
   </data>
+  <data name="Version {0} - .NET {1}" xml:space="preserve">
+    <value>版本 {0} - .NET {1}</value>
+  </data>
   <data name="Version, build and licence information." xml:space="preserve">
     <value>版本、构建和许可证信息。</value>
   </data>
@@ -14737,8 +14746,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Watch: raise the alert only (default)" xml:space="preserve">
     <value>监视：只触发警报（默认）</value>
   </data>
-  <data name="Weak password – add {0}." xml:space="preserve">
-    <value>弱密码 – 请添加 {0}。</value>
+  <data name="Weak password - add {0}." xml:space="preserve">
+    <value>弱密码 - 请添加 {0}。</value>
   </data>
   <data name="Web" xml:space="preserve">
     <value>网站</value>
@@ -15028,8 +15037,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Whether it is on could not be read from the server." xml:space="preserve">
     <value>无法从服务器读取它是否已打开。</value>
   </data>
-  <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
-    <value>查询是否可以由 Windows DNS 解析器缓存应答。关闭时，每次查询都走网络。在上面设置了覆盖 DNS 服务器时会被忽略 — 那些查询总是绕过系统缓存，因为缓存的应答会来自错误的解析器。</value>
+  <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above - those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
+    <value>查询是否可以由 Windows DNS 解析器缓存应答。关闭时，每次查询都走网络。在上面设置了覆盖 DNS 服务器时会被忽略 - 那些查询总是绕过系统缓存，因为缓存的应答会来自错误的解析器。</value>
   </data>
   <data name="Whether new mail is stored compressed, with the large attachments it shares with other messages kept once. Clients see every message exactly as it arrived. Turning it off stores new mail as it comes and leaves the stored messages readable; hmailserver --compress-store rewrites the messages already there, and --decompress puts them back." xml:space="preserve">
     <value>新邮件是否以压缩形式存储，并将其与其他邮件共享的大附件只保存一次。客户端看到的每封邮件都与到达时完全相同。关闭后，新邮件按到达时的原样存储，已存储的邮件仍可读取；hmailserver --compress-store 会重写已存储的邮件，--decompress 则将其恢复原样。</value>
@@ -17075,12 +17084,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="your application / client ID" xml:space="preserve">
     <value>您的应用程序 / 客户端 ID</value>
   </data>
-  <data name="{0}  (not subscribed)" xml:space="preserve">
-    <value>{0}  （未订阅）</value>
-  </data>
-  <data name="{0}  -  {1}, expires {2}" xml:space="preserve">
-    <value>{0}  -  {1}，{2} 到期</value>
-  </data>
   <data name="{0} (a value this Control Panel does not know)" xml:space="preserve">
     <value>{0}（此控制面板不认识的值）</value>
   </data>
@@ -17096,6 +17099,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} (inactive)" xml:space="preserve">
     <value>{0}（非活动）</value>
   </data>
+  <data name="{0} (not subscribed)" xml:space="preserve">
+    <value>{0}（未订阅）</value>
+  </data>
   <data name="{0} (server time)" xml:space="preserve">
     <value>{0}（服务器时间）</value>
   </data>
@@ -17108,6 +17114,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} - accounts" xml:space="preserve">
     <value>{0} - 账户</value>
   </data>
+  <data name="{0} - exit code {1} means infected" xml:space="preserve">
+    <value>{0} - 退出代码 {1} 表示已感染</value>
+  </data>
   <data name="{0} - put back: {1}, left as they were: {2}; waiting for a reinitialise: {3}, for a restart: {4}." xml:space="preserve">
     <value>{0} - 已恢复：{1}，保持原样：{2}；等待重新初始化：{3}，等待重启：{4}。</value>
   </data>
@@ -17116,6 +17125,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>
+  </data>
+  <data name="{0} - {1}, expires {2}" xml:space="preserve">
+    <value>{0} - {1}，{2} 到期</value>
   </data>
   <data name="{0} DNS record is being looked up in the background; the row marked &quot;checking&quot; will update." xml:space="preserve">
     <value>正在后台查询 {0} 条 DNS 记录；标记为“正在检查”的行会自动更新。</value>
@@ -17899,9 +17911,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} {1} settings on this page wait for a reinitialise or a restart." xml:space="preserve">
     <value>{0}本页有 {1} 项设置等待重新初始化或重启。</value>
-  </data>
-  <data name="{0} — exit code {1} means infected" xml:space="preserve">
-    <value>{0} — 退出代码 {1} 表示已感染</value>
   </data>
   <data name="{0} →" xml:space="preserve">
     <value>{0} →</value>

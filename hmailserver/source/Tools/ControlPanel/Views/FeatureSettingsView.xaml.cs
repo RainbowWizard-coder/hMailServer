@@ -756,7 +756,7 @@ namespace hMailServer.ControlPanel.Views
          // box ticked under it.
          private string Placeholder_()
             => RemovesStored ? ""
-               : hasStored_ ? L("A secret is configured — leave blank to keep it")
+               : hasStored_ ? L("A secret is configured - leave blank to keep it")
                : string.IsNullOrEmpty(Hint) ? L("Enter a secret")
                : Hint;
 
@@ -2946,7 +2946,7 @@ namespace hMailServer.ControlPanel.Views
                cards_.Add(new CardDef
                {
                   Title = L("Low-level tuning"),
-                  Blurb = L("Specialist knobs — leave at the defaults unless you have a specific reason."),
+                  Blurb = L("Specialist knobs - leave at the defaults unless you have a specific reason."),
                   Settings =
                   {
                      new NumberSetting { Key = "SMTPDMaxSizeDrop", Minimum = 0, Default = "0", Label = L("Drop inbound messages larger than this mid-transfer (KB; 0 = off)") },
@@ -3226,7 +3226,7 @@ namespace hMailServer.ControlPanel.Views
                   // call - i.e. whether WINDOWS' resolver cache is consulted - and a custom DNS
                   // server forces the bypass regardless, because the system cache would answer
                   // from the wrong resolver.
-                  Blurb = L("Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver."),
+                  Blurb = L("Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above - those lookups always bypass the system cache, because its answers would come from the wrong resolver."),
                   Settings =
                   {
                      new BoolSetting { Key = "UseDNSCache", Default = true, Label = L("Answer from the Windows DNS resolver cache when possible") }
@@ -3249,7 +3249,7 @@ namespace hMailServer.ControlPanel.Views
                cards_.Add(new CardDef
                {
                   Title = L("Listener"),
-                  Blurb = L("Nothing below is served until a port is set here. The server answers on either port, but an MTA-STS policy is only valid over HTTPS and Outlook only accepts autodiscover over HTTPS — so in practice set the HTTPS port and a certificate covering the host names clients use."),
+                  Blurb = L("Nothing below is served until a port is set here. The server answers on either port, but an MTA-STS policy is only valid over HTTPS and Outlook only accepts autodiscover over HTTPS - so in practice set the HTTPS port and a certificate covering the host names clients use."),
                   Settings =
                   {
                      new NumberSetting { Key = "WebServicesHttpPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("HTTP port (0 = off)"), Blurb = L("80 is the port clients expect.") },
@@ -4027,7 +4027,7 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private async void RestartService()
       {
-         SetState_(SettingsPageState.Restarting, L("Restarting the hMailServer service..."), StatusLevel.Information);
+         SetState_(SettingsPageState.Restarting, L("Restarting the hMailServer service\u2026"), StatusLevel.Information);
 
          (ServiceRestartOutcome outcome, string reason) = await ServiceRestart.RunAsync();
          switch (outcome)

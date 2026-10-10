@@ -609,7 +609,7 @@ namespace hMailServer.ControlPanel.Services
             .DistinctBy(match => match.Label + " | " + match.Page, StringComparer.OrdinalIgnoreCase))
          {
             rows.Add(new PaletteRow(PaletteRowKind.Setting, SettingSection, L(match.Label),
-               match.Location, F("Setting  -  {0}", match.Key),
+               match.Location, F("Setting - {0}", match.Key),
                match.Page, Add(match.Rank, SettingBase), setting: match.Key, settingLabel: match.Label));
          }
 

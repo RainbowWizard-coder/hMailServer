@@ -185,7 +185,7 @@ namespace hMailServer.ControlPanel.Views
          if (!MessageBox.Confirm(question, L("Control Panel"), L("_Restart the service"), cancelByDefault: true))
             return;
 
-         Settle(SettingsPageState.Restarting, L("Restarting the hMailServer service..."), StatusLevel.Information);
+         Settle(SettingsPageState.Restarting, L("Restarting the hMailServer service\u2026"), StatusLevel.Information);
          (ServiceRestartOutcome outcome, string reason) = await ServiceRestart.RunAsync();
          switch (outcome)
          {

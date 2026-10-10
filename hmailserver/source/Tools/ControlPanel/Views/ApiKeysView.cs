@@ -496,7 +496,7 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         newKeyLabel_.Text = F("{0}  -  {1}, expires {2}", request.Label, request.Full ? L("Full authority") : L("Read-only"),
+         newKeyLabel_.Text = F("{0} - {1}, expires {2}", request.Label, request.Full ? L("Full authority") : L("Read-only"),
                              request.Expires.ToString("d MMMM yyyy HH:mm", CultureInfo.CurrentCulture)); // no-loc // no-loc
          newKeyToken_.Text = result.Token;
          newKeyCard_.Visibility = Visibility.Visible;

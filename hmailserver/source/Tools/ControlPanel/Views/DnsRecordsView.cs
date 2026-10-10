@@ -617,7 +617,7 @@ namespace hMailServer.ControlPanel.Views
                   // senders, so a difference from the suggestion may be deliberate
                   // and better. Show what is published so they can judge.
                   block.SetResult(StatusLevel.Information, L("Published, differs from the suggestion"),
-                     F("An SPF record is live at {0} and it is not the suggested one. That may well be deliberate - the suggestion cannot know your other senders. Published: {1} — just confirm everything that really sends mail as {0} is covered.", domainName, spf[0]));
+                     F("An SPF record is live at {0} and it is not the suggested one. That may well be deliberate - the suggestion cannot know your other senders. Published: {1} - just confirm everything that really sends mail as {0} is covered.", domainName, spf[0]));
                }
             });
          });

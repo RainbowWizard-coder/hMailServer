@@ -3396,6 +3396,24 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   cut to "128,43"), and the labels under them are the Caption size, where they were 11 pixels. `NavigationCaptionTests`
   holds the captions, the style and the figures.
 
+- **Fixed: the Control Panel wrote three dashes and two ellipses, sometimes two of them in one sentence.** Most texts
+  used the spaced hyphen, but 21 used an em dash and 3 an en dash ("Public — anyone can send" beside "Nobody - the
+  members are added here"; "That may well be deliberate - the suggestion ... Published: {0} — just confirm"), the
+  code joined a state word, a certificate's name and a folder permission with " — ", and captions and progress words
+  ended in three dots ("Applying...", "C_hoose a photo...", "Restarting the hMailServer service...") beside the
+  ellipsis character ("Saving…"). Every text now writes the spaced hyphen - the owner's choice - and every caption
+  that opens a dialog, progress word and unfinished list the ellipsis character; three dots stay only for omitted
+  literal text (p=..., https://host/...). The two "...within (minutes)" captions of Auto-ban are worded whole
+  ("Failures counted within (minutes)", "Failures for a name counted within (minutes)"), "two, four, six...
+  seconds" says "and so on", the generated password's toast reads "copied to the clipboard; reveal it with the eye
+  icon", texts padded with spaces for an alignment the layout never kept ("Version {0}  -  .NET {1}") have single
+  spaces, and the one date format written in lower case is "YYYY-MM-DD HH:MM:SS" as the others are. Each change is
+  made in the seventeen translations, and their own dashes follow the same rule: the hyphen, but for Russian and
+  Ukrainian (the em dash) and Czech (the en dash), whose typography and catalogues write a dash of their own, one
+  kind to a text, and a range written "1-14". `build/check-catalogues.py` holds the English to no em or en dash and
+  three dots only for literal text, and each translation to its catalogue's dash and to three dots only where its
+  English has them; `docs/ControlPanelDesign.md` states the rule.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

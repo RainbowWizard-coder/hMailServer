@@ -1646,7 +1646,7 @@ namespace hMailServer.ControlPanel
          ApplyPendingButton.IsEnabled = false;
          RestartServiceButton.IsEnabled = false;
          PendingNotice.Level = StatusLevel.Information;
-         PendingNotice.Text = L("Restarting the hMailServer service...");
+         PendingNotice.Text = L("Restarting the hMailServer service\u2026");
 
          (ServiceRestartOutcome outcome, string reason) = await ServiceRestart.RunAsync();
          PendingNotice.Level = StatusLevel.Warning;
@@ -1698,7 +1698,7 @@ namespace hMailServer.ControlPanel
          ApplyPendingButton.IsEnabled = false;
          RestartServiceButton.IsEnabled = false;
          PendingNotice.Level = StatusLevel.Information;
-         PendingNotice.Text = L("Reinitialising the server...");
+         PendingNotice.Text = L("Reinitialising the server…");
          Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Render);
 
          Mouse.OverrideCursor = Cursors.Wait;

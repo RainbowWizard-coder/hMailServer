@@ -223,7 +223,7 @@ namespace hMailServer.ControlPanel.Views
          foreach ((int bit, string word) in RightWords)
             if ((value & bit) != 0)
                rights.Add(word);
-         return subject + "   —   " + (rights.Count == 0 ? L("no rights") : string.Join(", ", rights));
+         return subject + " - " + (rights.Count == 0 ? L("no rights") : string.Join(", ", rights));
       }
 
       private static string SafeAccount(dynamic p)

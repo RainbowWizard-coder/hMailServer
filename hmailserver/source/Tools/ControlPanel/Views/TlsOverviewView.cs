@@ -657,7 +657,7 @@ namespace hMailServer.ControlPanel.Views
 
          var text = new TextBlock
          {
-            Text = certificate.Name + " — " + detail + ", " + usage,
+            Text = certificate.Name + " - " + detail + ", " + usage,
             TextWrapping = TextWrapping.Wrap,
             MaxWidth = 820,
             VerticalAlignment = VerticalAlignment.Center
@@ -680,7 +680,7 @@ namespace hMailServer.ControlPanel.Views
             !config.WasRead(nameof(config.CipherList))
                ? L("The cipher list could not be read.")
                : TlsPosture.IsAeadOnlyPreset(config.CipherList)
-               ? L("Cipher list: the AEAD-ONLY preset — forward-secret AEAD suites only, with every CBC-mode suite and static-RSA key exchange excluded. This governs TLS 1.2 and below; TLS 1.3 has its own list and is AEAD by construction.")
+               ? L("Cipher list: the AEAD-ONLY preset - forward-secret AEAD suites only, with every CBC-mode suite and static-RSA key exchange excluded. This governs TLS 1.2 and below; TLS 1.3 has its own list and is AEAD by construction.")
                : string.IsNullOrWhiteSpace(config.CipherList)
                   ? L("Cipher list: OpenSSL defaults for TLS 1.2 and below. TLS 1.3 has its own separate list.")
                   : F("Cipher list for TLS 1.2 and below: {0}. TLS 1.3 suites are configured separately and are not restricted by this.", config.CipherList),

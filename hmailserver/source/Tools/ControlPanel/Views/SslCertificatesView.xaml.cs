@@ -412,7 +412,7 @@ namespace hMailServer.ControlPanel.Views
 
          var text = new TextBlock { FontSize = Typography.Label, TextWrapping = TextWrapping.Wrap };
          text.Inlines.Add(new Run(caption + ": ") { FontWeight = FontWeights.SemiBold });
-         var word = new Run(finding.Word + " — ") { FontWeight = FontWeights.SemiBold };
+         var word = new Run(finding.Word + " - ") { FontWeight = FontWeights.SemiBold };
          word.SetResourceReference(TextElement.ForegroundProperty, presentation.FillTextBrushKey);
          text.Inlines.Add(word);
          text.Inlines.Add(new Run(finding.Detail));

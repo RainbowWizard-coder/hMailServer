@@ -307,7 +307,7 @@ namespace hMailServer.ControlPanel.Services
             config.CustomScannerEnabled && !IsBlank(config.CustomScannerExecutable),
             IsBlank(config.CustomScannerExecutable)
                ? L("No executable set")
-               : F("{0} — exit code {1} means infected", config.CustomScannerExecutable, config.CustomScannerVirusReturnValue),
+               : F("{0} - exit code {1} means infected", config.CustomScannerExecutable, config.CustomScannerVirusReturnValue),
             config.CustomScannerEnabled && IsBlank(config.CustomScannerExecutable)
                ? L("No executable path is set.")
                : null,
@@ -499,7 +499,7 @@ namespace hMailServer.ControlPanel.Services
          {
             // Deliberately says what does NOT happen: this action is the one people
             // choose expecting the notifications below it to apply, and they do not.
-            return L("The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the \"message deleted\" notice when the action is to delete the message.");
+            return L("The attachments are replaced and the message is delivered. Neither notification setting applies to this action - the server only sends the \"message deleted\" notice when the action is to delete the message.");
          }
 
          if (!config.NotifySender && !config.NotifyRecipient)
@@ -576,7 +576,7 @@ namespace hMailServer.ControlPanel.Services
          if (scannersRead && usable > 0 && config.WasRead(nameof(config.MaxScanKilobytes)) && config.MaxScanKilobytes > 0)
          {
             notes.Add(new VirusPipelineNote(StatusLevel.Warning,
-               F("Messages larger than {0} are not scanned. They are delivered, not refused, and nothing is written to the log when it happens — so this limit is invisible in normal operation. 0 means \"no limit\" and is the setting that closes the gap.", Kilobytes(config.MaxScanKilobytes))));
+               F("Messages larger than {0} are not scanned. They are delivered, not refused, and nothing is written to the log when it happens - so this limit is invisible in normal operation. 0 means \"no limit\" and is the setting that closes the gap.", Kilobytes(config.MaxScanKilobytes))));
          }
 
          if (scannersRead && action && usable > 0 && config.Action == VirusAction.StripAttachments)
@@ -588,7 +588,7 @@ namespace hMailServer.ControlPanel.Services
          if (scannersRead && action && usable > 0 && config.Action == VirusAction.DeleteMessage && config.NotifySender)
          {
             notes.Add(new VirusPipelineNote(StatusLevel.Warning,
-               L("A notice is sent to the envelope sender of every infected message. Virus senders forge that address almost without exception, so this mostly delivers mail to people who did not send anything — which is backscatter, and it is what gets a server onto a block list.")));
+               L("A notice is sent to the envelope sender of every infected message. Virus senders forge that address almost without exception, so this mostly delivers mail to people who did not send anything - which is backscatter, and it is what gets a server onto a block list.")));
          }
 
          // The sandbox switched on with an address empty: on the page that sets it,
@@ -663,7 +663,7 @@ namespace hMailServer.ControlPanel.Services
          if (scannersRead && usable > 0)
          {
             notes.Add(new VirusPipelineNote(StatusLevel.Information,
-               F("At most {0} scans run at once. Beyond that, delivery threads wait — and after 60 seconds of waiting the server gives up waiting and scans anyway, so a slow scanner shows up as slow mail rather than as unscanned mail.", MaxConcurrentScans)));
+               F("At most {0} scans run at once. Beyond that, delivery threads wait - and after 60 seconds of waiting the server gives up waiting and scans anyway, so a slow scanner shows up as slow mail rather than as unscanned mail.", MaxConcurrentScans)));
          }
 
          return notes;

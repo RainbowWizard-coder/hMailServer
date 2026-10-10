@@ -55,9 +55,9 @@ namespace hMailServer.ControlPanel.Services
          {
             Level.Strong => L("Strong password."),
             Level.Fair => missing.Count > 0
-               ? F("Fair password \u2013 consider adding {0}.", string.Join(", ", missing))
+               ? F("Fair password - consider adding {0}.", string.Join(", ", missing))
                : L("Fair password."),
-            _ => F("Weak password \u2013 add {0}.", string.Join(", ", missing)),
+            _ => F("Weak password - add {0}.", string.Join(", ", missing)),
          };
 
          return (level, summary);

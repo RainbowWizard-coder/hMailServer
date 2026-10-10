@@ -754,7 +754,7 @@ namespace hMailServer.ControlPanel.Views
          string pw = Services.PasswordGenerator.Generate(16);
          NewAccountPassword.Password = pw;
          ClipboardWriter.TrySetText(pw);   // best effort: the eye icon shows the password as well
-         Services.Toast.Info(L("Generated password copied to clipboard \u2014 reveal it with the eye icon."), L("Password"));
+         Services.Toast.Info(L("Generated password copied to the clipboard; reveal it with the eye icon."), L("Password"));
       }
 
       /// <summary>The level the strength line last said, so that a keystroke that keeps it is not announced again.</summary>

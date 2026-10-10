@@ -1262,7 +1262,7 @@ namespace hMailServer.ControlPanel.Views
          }
 
          testButton_.IsEnabled = false;
-         ShowTestResult_(StatusLevel.Information, F("Testing against {0} over {1}...", config.Target(), config.TransportName()));
+         ShowTestResult_(StatusLevel.Information, F("Testing against {0} over {1}\u2026", config.Target(), config.TransportName()));
 
          try
          {

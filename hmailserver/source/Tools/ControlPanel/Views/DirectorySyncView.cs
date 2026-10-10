@@ -940,7 +940,7 @@ namespace hMailServer.ControlPanel.Views
          previewButton_.IsEnabled = false;
          applyButton_.IsEnabled = false;
          saveAndPreviewButton_.IsEnabled = false;
-         Summary_(StatusLevel.Information, apply ? L("Applying...") : L("Reading the directory..."));
+         Summary_(StatusLevel.Information, apply ? L("Applying\u2026") : L("Reading the directory…"));
          attentionText_.Visibility = Visibility.Collapsed;
          rows_.Children.Clear();
 

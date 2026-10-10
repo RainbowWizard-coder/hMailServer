@@ -459,8 +459,8 @@ namespace hMailServer.ControlPanel.Views
             var phaseHeading = new TextBlock
             {
                Text = phase == SpamCheckPhase.BeforeTheBody
-                  ? L("At RCPT TO, before the body is transferred — a refusal here is a 550")
-                  : L("After the body has been received — a refusal here is a 554"),
+                  ? L("At RCPT TO, before the body is transferred - a refusal here is a 550")
+                  : L("After the body has been received - a refusal here is a 554"),
                TextWrapping = TextWrapping.Wrap,
                FontWeight = FontWeights.SemiBold,
                Margin = new Thickness(0, 12, 0, 4)

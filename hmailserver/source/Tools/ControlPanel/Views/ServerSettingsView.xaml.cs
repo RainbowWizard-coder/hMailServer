@@ -3233,7 +3233,7 @@ namespace hMailServer.ControlPanel.Views
          var customReturn = new ComText { Path = "AntiVirus.CustomScannerReturnValue", Label = L("Exit code that means infected"), Numeric = true };
          custom.Settings.Add(new ComPreset
          {
-            Label = L("Preset engine (fills the command line and return value below \u2013 adjust the path/exit code for your version)"),
+            Label = L("Preset engine (fills the command line and return value below - adjust the path/exit code for your version)"),
             ExeTarget = customExe,
             ReturnTarget = customReturn,
             Presets = CustomScannerPresets
@@ -3461,7 +3461,7 @@ namespace hMailServer.ControlPanel.Views
          ban.Settings.Add(new ComText
          {
             Path = "MaxInvalidLogonAttemptsWithin",
-            Label = L("...within (minutes)"),
+            Label = L("Failures counted within (minutes)"),
             Numeric = true,
             Blurb = L("How long a counted failure is kept, rather than a sliding window: a housekeeping pass running once a minute deletes failure records older than this - and only while auto-ban is enabled.")
          });
@@ -3573,7 +3573,7 @@ namespace hMailServer.ControlPanel.Views
          lockout.Settings.Add(new IniNumber
          {
             Path = "AccountLockoutWindowMinutes",
-            Label = L("...counted within (minutes)"),
+            Label = L("Failures for a name counted within (minutes)"),
             Default = 30,
             IniStore = iniStore_
          });
@@ -3597,7 +3597,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "LogonTarpitSeconds",
             Label = L("Delay per failed sign-in (seconds; 0 = off)"),
             Default = 0,
-            Blurb = L("0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess."),
+            Blurb = L("0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six seconds and so on per guess."),
             IniStore = iniStore_
          });
          Tab(L("Auto-ban")).Cards.Add(tarpit);
@@ -4734,7 +4734,7 @@ namespace hMailServer.ControlPanel.Views
          });
          copies.Cards.Add(disk);
 
-         var script = Card(L("Scripting engine"), L("Runs event scripts (OnAcceptMessage, OnDeliveryStart...) from the Events folder; the script itself is edited on the Event scripts page. The engine reloads when you save."));
+         var script = Card(L("Scripting engine"), L("Runs event scripts (OnAcceptMessage, OnDeliveryStart and others) from the Events folder; the script itself is edited on the Event scripts page. The engine reloads when you save."));
          script.Settings.Add(new ComBool { Path = "Scripting.Enabled", Label = L("Enable server-side event scripts") });
          script.Settings.Add(new ComText { Path = "Scripting.Language", Label = L("Language (VBScript, JScript or JavaScript)") });
          var allowedObjects = new IniText

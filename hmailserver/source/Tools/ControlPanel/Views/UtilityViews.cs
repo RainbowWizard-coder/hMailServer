@@ -486,7 +486,7 @@ namespace hMailServer.ControlPanel.Views
          hint_.Visibility = Visibility.Collapsed;
          summary_.Visibility = Visibility.Collapsed;
          details_.Text = "";
-         loading_.Text = F("Querying MX records for {0}...", domain);
+         loading_.Text = F("Querying MX records for {0}\u2026", domain);
          loading_.Visibility = Visibility.Visible;
 
          try
@@ -799,7 +799,7 @@ namespace hMailServer.ControlPanel.Views
       // and "Diagnostics failed" landed in the same box.
       private readonly InlineNotice summary_ = new() { Visibility = Visibility.Collapsed };
       private readonly StackPanel rows_ = new();
-      private readonly LoadingState loading_ = new() { Text = L("Running diagnostics..."), Visibility = Visibility.Collapsed };
+      private readonly LoadingState loading_ = new() { Text = L("Running diagnostics…"), Visibility = Visibility.Collapsed };
       private readonly TextBlock hint_ = new()
       {
          Text = L("Nothing has been run yet. Press Run diagnostics and the result of each check appears here, with what to do about any that fails."),
@@ -1216,7 +1216,7 @@ namespace hMailServer.ControlPanel.Views
          consistencyList_.ItemsSource = null;
          consistencyList_.Visibility = Visibility.Collapsed;
          consistencyStatus_.Level = StatusLevel.Information;
-         consistencyStatus_.Text = L("Reading the recovery report...");
+         consistencyStatus_.Text = L("Reading the recovery report…");
          reportPath_ = null;
 
          try

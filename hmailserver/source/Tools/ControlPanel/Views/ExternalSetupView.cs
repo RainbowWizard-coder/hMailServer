@@ -371,7 +371,7 @@ namespace hMailServer.ControlPanel.Views
                FontSize = Typography.Label,
                TextWrapping = TextWrapping.Wrap
             };
-            text.Inlines.Add(new Run(ExternalSetupChecks.StateWord(finding.State) + " — ") { FontWeight = FontWeights.SemiBold });
+            text.Inlines.Add(new Run(ExternalSetupChecks.StateWord(finding.State) + " - ") { FontWeight = FontWeights.SemiBold });
             text.Inlines.Add(new Run(finding.Text));
             Grid.SetColumn(text, 1);
             row.Children.Add(text);

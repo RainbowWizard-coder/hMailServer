@@ -252,6 +252,57 @@ WORDS = re.compile(r"[A-Za-z]+(?:[ -][A-Za-z]+)*")
 QUOTES = {"de": ("„", "“"), "cs": ("„", "“"), "pl": ("„", "”")}
 
 
+# One dash and one ellipsis (review findings F037, F046, F090, F091, F134, F299; the
+# owner's choice of 9 October 2026: the spaced hyphen). The English writes its dash as
+# the spaced hyphen, " - ", and no em or en dash at all: 479 texts did, 45 the em dash
+# and 3 the en dash, sometimes two kinds in one sentence. A translation writes the
+# hyphen too, but for the three catalogues whose typography and whose bulk write a dash
+# of their own - Russian and Ukrainian the em dash, Czech the en dash - which may write
+# that dash or the hyphen, never both in one text and never the other dash; a range
+# between two numbers is the hyphen everywhere, as English writes it. A caption that
+# opens a dialog, progress text and the rest of a list end in the ellipsis character;
+# three dots stand only for omitted literal text - p=..., ip=..., https://host/...,
+# Bearer ..., hmapi_... - which the reader types or reads as it is, and a translation
+# writes three dots only where its English does.
+EM, EN, ELLIPSIS = "\u2014", "\u2013", "\u2026"
+OWN_DASH = {"ru": EM, "uk": EM, "cs": EN}
+LITERAL_DOTS = re.compile(r"(?:[=/_]|Bearer |; )\.\.\.")
+RANGE_DASH = re.compile(r"(?<=[\d}])[\u2013\u2014](?=[\d{])")
+
+
+def english_punctuation_findings(text):
+   """The dashes and three dots an English text should not have."""
+   findings = []
+   for char, name in ((EM, "em"), (EN, "en")):
+      if char in text:
+         findings.append("an %s dash; the Control Panel's dash is the spaced hyphen (\" - \")" % name)
+   for match in re.finditer(r"\.\.\.", text):
+      if not LITERAL_DOTS.search(text[max(0, match.start() - 7):match.end()]):
+         findings.append("three dots; a caption that opens a dialog, progress text and the rest of a list end in "
+                         "the ellipsis character, and three dots stand only for omitted literal text (p=...)")
+         break
+   return findings
+
+
+def dash_findings(tag, source, target):
+   """The dashes and three dots a translation should not have."""
+   findings = []
+   own = OWN_DASH.get(tag)
+   for match in RANGE_DASH.finditer(target):
+      findings.append("the range %r is written with the hyphen, as the English writes it"
+                      % target[max(0, match.start() - 4):match.end() + 4])
+   bare = RANGE_DASH.sub("-", target)
+   for char, name in ((EM, "em"), (EN, "en")):
+      if char in bare and char != own:
+         findings.append("an %s dash; this catalogue's dash is the spaced hyphen%s"
+                         % (name, "" if own is None else " or the %s dash" % ("em" if own == EM else "en")))
+   if own is not None and " - " in bare and (" " + own + " ") in bare:
+      findings.append("both the hyphen and the %s dash as dashes in one text; use one" % ("em" if own == EM else "en"))
+   if "..." in target and "..." not in source:
+      findings.append("three dots where the English has none; the ellipsis character is " + ELLIPSIS)
+   return findings
+
+
 def quotation_findings(tag, target):
    """What is wrong with the quotation marks of one translation: a quotation that its
    language's closing mark does not close before the next one opens or the text ends,
@@ -352,6 +403,9 @@ def check(tag, catalogue, pages=None):
       for problem in quotation_findings(tag, target):
          findings.append((source, problem))
 
+      for problem in dash_findings(tag, source, target):
+         findings.append((source, problem))
+
       wanted = {digits(m.group(0)) for m in NUMBER.finditer(bare)}
       have = {digits(m.group(0)) for m in NUMBER.finditer(PLACEHOLDER.sub(" ", target))}
       for number in sorted(w for w in wanted - have if len(w) >= 2):
@@ -427,6 +481,49 @@ def self_test():
       found = bool(quotation_findings(tag, value))
       if found != expected:
          print("FAIL: [%s] %r is %s as a quotation closed wrongly" % (tag, value, "reported" if found else "not reported"))
+         failures += 1
+
+   # The dash and ellipsis rules: the English writes the spaced hyphen and the ellipsis
+   # character, and three dots only for literal text; a translation writes the hyphen,
+   # or its own dash where its catalogue keeps one, one kind to a text.
+   english_cases = {
+      "Public " + EM + " anyone can send": True,
+      "Weak password " + EN + " add {0}.": True,
+      "Public - anyone can send": False,
+      "Applying...": True,
+      "Open Domains...": True,
+      "Applying" + ELLIPSIS: False,
+      "Address, domain or URL (https://host/...)": False,
+      "Publish it (v=STSv1; id=...) - or wait.": False,
+      "Send it as Authorization: Bearer hmapi_...": False,
+      "Trust anchor override (tag alg digesttype hex; ...)": False,
+   }
+   for text, expected in english_cases.items():
+      found = bool(english_punctuation_findings(text))
+      if found != expected:
+         print("FAIL: English %r is %s for its dash or its dots" % (text, "reported" if found else "not reported"))
+         failures += 1
+   translation_cases = {
+      ("de", "Public - anyone can send", "Öffentlich " + EM + " jeder kann senden"): True,
+      ("de", "Public - anyone can send", "Öffentlich - jeder kann senden"): False,
+      ("zh-Hans", "A - B", "甲" + EM + EM + "乙"): True,
+      ("fi", "Values 1-14", "Arvot 1" + EN + "14"): True,
+      ("fi", "Values 1-14", "Arvot 1-14"): False,
+      ("ru", "Public - anyone can send", "Открытый " + EM + " любой"): False,
+      ("ru", "Public - anyone can send", "Открытый - любой"): False,
+      ("ru", "Public - anyone can send", "Открытый " + EN + " любой"): True,
+      ("ru", "A - b - c", "А " + EM + " б - в"): True,
+      ("ru", "{0}-{1} of {2}", "{0}" + EN + "{1} из {2}"): True,
+      ("cs", "Public - anyone can send", "Veřejný " + EN + " kdokoli"): False,
+      ("cs", "Public - anyone can send", "Veřejný " + EM + " kdokoli"): True,
+      ("de", "Applying" + ELLIPSIS, "Wird angewendet..."): True,
+      ("de", "Applying" + ELLIPSIS, "Wird angewendet" + ELLIPSIS): False,
+      ("de", "Address (https://host/...)", "Adresse (https://host/...)"): False,
+   }
+   for (tag, source, value), expected in translation_cases.items():
+      found = bool(dash_findings(tag, source, value))
+      if found != expected:
+         print("FAIL: [%s] %r is %s for its dash or its dots" % (tag, value, "reported" if found else "not reported"))
          failures += 1
 
    # The page rule reads every navigation title: a page outside the old list of
@@ -510,6 +607,7 @@ def main():
 
    # The English itself: every page and tab it names is one the Control Panel has.
    references = reference_findings(english, set(PAGE_TITLES), tab_headers(), set(navigation_groups()))
+   references += [(text, what) for text in sorted(english) for what in english_punctuation_findings(text)]
    for source, what in references:
       print("  [en] %s\n        in %r" % (what, source[:110]))
    total = len(references)

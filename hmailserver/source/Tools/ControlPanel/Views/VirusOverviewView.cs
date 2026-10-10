@@ -701,7 +701,7 @@ namespace hMailServer.ControlPanel.Views
             !config.WasRead(nameof(config.MaxScanKilobytes))
                ? L("The size limit could not be read.")
                : config.MaxScanKilobytes > 0
-               ? F("Messages up to {0}. A larger message is delivered without being scanned — it is not refused, and nothing is logged.", VirusPipeline.Kilobytes(config.MaxScanKilobytes))
+               ? F("Messages up to {0}. A larger message is delivered without being scanned - it is not refused, and nothing is logged.", VirusPipeline.Kilobytes(config.MaxScanKilobytes))
                : L("Every message, whatever its size. The size limit is 0, which here means \"no limit\"."),
             Typography.Body));
 
@@ -718,8 +718,8 @@ namespace hMailServer.ControlPanel.Views
          else if (config.WasRead(nameof(config.FetchAccountsWithScanningOff)) && config.FetchAccountsTotal > 0)
          {
             content.Children.Add(Paragraph(Sentences(PluralF(config.FetchAccountsWithScanningOff,
-                  "Mail collected from external POP3 accounts is scanned only when that fetch account says so — {0} of {1} currently has anti-virus switched off. That switch is on the account, not on this page.",
-                  "Mail collected from external POP3 accounts is scanned only when that fetch account says so — {0} of {1} currently have anti-virus switched off. That switch is on the account, not on this page.",
+                  "Mail collected from external POP3 accounts is scanned only when that fetch account says so - {0} of {1} currently has anti-virus switched off. That switch is on the account, not on this page.",
+                  "Mail collected from external POP3 accounts is scanned only when that fetch account says so - {0} of {1} currently have anti-virus switched off. That switch is on the account, not on this page.",
                   config.FetchAccountsWithScanningOff, config.FetchAccountsTotal),
                config.FetchAccountScanIncomplete
                   ? F("These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest.", MaxAccountsWalked)

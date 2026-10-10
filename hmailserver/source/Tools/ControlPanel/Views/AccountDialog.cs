@@ -262,7 +262,7 @@ namespace hMailServer.ControlPanel.Views
          // one box that sometimes means something larger.
          var moveButton = new Wpf.Ui.Controls.Button
          {
-            Content = L("Mo_ve or rename..."),
+            Content = L("Mo_ve or rename…"),
             Margin = new Thickness(0, 0, 0, DesignTokens.Space.Sm)
          };
          AutomationProperties.SetAutomationId(moveButton, "AccountMove");
@@ -528,7 +528,7 @@ namespace hMailServer.ControlPanel.Views
          dirPhotoState_.SetResourceReference(FrameworkElement.StyleProperty, "TextCaption");
 
          var photoButtons = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md) };
-         var choose = new Wpf.Ui.Controls.Button { Content = L("C_hoose a photo..."), Margin = new Thickness(0, 0, DesignTokens.Space.Sm, 0) };
+         var choose = new Wpf.Ui.Controls.Button { Content = L("C_hoose a photo…"), Margin = new Thickness(0, 0, DesignTokens.Space.Sm, 0) };
          choose.Click += (s, e) => ChooseDirectoryPhoto();
          var remove = new Wpf.Ui.Controls.Button { Content = L("Remo_ve the photo") };
          remove.Click += (s, e) => RemoveDirectoryPhoto();
@@ -798,9 +798,9 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(DialogFields.Separator());
          panel.Children.Add(DialogFields.Caption(L("The person's data")));
          var privacy = new StackPanel { Orientation = Orientation.Horizontal };
-         var exportAll = new Wpf.Ui.Controls.Button { Content = L("Export everythin_g...") };
+         var exportAll = new Wpf.Ui.Controls.Button { Content = L("Export everythin_g\u2026") };
          exportAll.Click += (s, e) => ExportEverything();
-         var erase = new Wpf.Ui.Controls.Button { Content = L("Erase _traces..."), Margin = new Thickness(8, 0, 0, 0) };
+         var erase = new Wpf.Ui.Controls.Button { Content = L("Erase _traces\u2026"), Margin = new Thickness(8, 0, 0, 0) };
          ButtonStyles.DangerText(erase);
          erase.Click += (s, e) => EraseTraces();
          privacy.Children.Add(exportAll);
@@ -827,7 +827,7 @@ namespace hMailServer.ControlPanel.Views
                string name = (string)f.Name;
                bool sub = (bool)f.Subscribed;
                folderNames_.Add(name);
-               folderList_.Items.Add(sub ? name : F("{0}  (not subscribed)", name));
+               folderList_.Items.Add(sub ? name : F("{0} (not subscribed)", name));
                ServerSession.Release(f);
             }
             ServerSession.Release(folders);

@@ -90,8 +90,8 @@ namespace hMailServer.ControlPanel.Views
          // "anyone..." entries, to keep outsiders off a list, was silently given
          // the single most permissive setting the server has. put_Mode now refuses
          // the value outright; the option is gone from here so nobody can reach it.
-         mode_.Items.Add(DialogFields.Combo(L("Public — anyone can send"), 0));
-         mode_.Items.Add(DialogFields.Combo(L("Membership — only list members can send"), 1));
+         mode_.Items.Add(DialogFields.Combo(L("Public - anyone can send"), 0));
+         mode_.Items.Add(DialogFields.Combo(L("Membership - only list members can send"), 1));
          mode_.Items.Add(DialogFields.Combo(L("Announcements only"), 2));
          mode_.Items.Add(DialogFields.Combo(L("Anyone in the domain can send"), 3));
          body.Children.Add(Label(L("_Who may send to this list"), mode_)
