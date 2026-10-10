@@ -63,6 +63,12 @@ namespace hMailServer.ControlPanel.Views
          FrozenColumnCount = 1
       };
 
+      // The four columns of dates, floored at their widest date whenever the rows are read (FloorAtCells_).
+      private DataGridTextColumn sinceColumn_;
+      private DataGridTextColumn expiresColumn_;
+      private DataGridTextColumn lastBounceColumn_;
+      private DataGridTextColumn lastDeliveredColumn_;
+
       private readonly InlineNotice status_ = new() { Visibility = Visibility.Collapsed };
 
       // How many addresses the domain's list holds, beside the title, where an
@@ -215,8 +221,14 @@ namespace hMailServer.ControlPanel.Views
                return;
             }
 
-            entries_.ItemsSource = Present_(list.Entries);
-            counts_.ItemsSource = PresentCounts_(counts.Counts);
+            List<EntryView> entries = Present_(list.Entries);
+            List<CountView> countRows = PresentCounts_(counts.Counts);
+            entries_.ItemsSource = entries;
+            counts_.ItemsSource = countRows;
+            FloorAtCells_(sinceColumn_, entries, e => e.Since);
+            FloorAtCells_(expiresColumn_, entries, e => e.Expires);
+            FloorAtCells_(lastBounceColumn_, countRows, c => c.LastBounce);
+            FloorAtCells_(lastDeliveredColumn_, countRows, c => c.LastDelivered);
 
             StatusText.Show(empty_, null, list.Total, null,
                L("No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one."));
@@ -602,18 +614,24 @@ namespace hMailServer.ControlPanel.Views
       // sideways, and floored at 64 the column read "ステー…" in the smallest window.
       // The same cut the counts' Mailbox full to "メール…" over its 64, and Last
       // status, fixed at 90, to "最後のステ…": no column of either grid is narrower
-      // than its own header now, measured in the header's font (Floor_).
+      // than its own header now, measured in the header's font (Floor_). And no
+      // column of words or dates is a fixed number of pixels, which larger text cuts
+      // short - at 150 per cent the dates read "2026-10-08 18:3" and Why "Added by
+      // h…" (review finding F317): each is as wide as its words, over a floor of its
+      // widest, measured in the grid's font at the Windows text size.
       private void BuildColumns_()
       {
          // Reason and Status code, where Why and Status named the same two things
          // the bounce counts call by other words (review finding F318); the code is
          // the enhanced status code the receiving server answered with, 5.1.1.
          entries_.Columns.Add(Trimmed_(L("Address"), nameof(EntryView.Address), new DataGridLength(1, DataGridLengthUnitType.Star), 200));
-         entries_.Columns.Add(Trimmed_(L("Reason"), nameof(EntryView.Why), new DataGridLength(140), 140));
+         entries_.Columns.Add(Trimmed_(L("Reason"), nameof(EntryView.Why), DataGridLength.Auto, WidestCategory_()));
          entries_.Columns.Add(Fitted_(L("Status code"), nameof(EntryView.Status), 84));
          entries_.Columns.Add(Trimmed_(L("Source"), nameof(EntryView.Source), new DataGridLength(1, DataGridLengthUnitType.Star), 160));
-         entries_.Columns.Add(Sorted_(Text_(L("Since (server time)"), nameof(EntryView.Since), new DataGridLength(150)), nameof(EntryView.SinceAt)));
-         entries_.Columns.Add(Sorted_(Text_(L("Expires (server time)"), nameof(EntryView.Expires), new DataGridLength(150)), nameof(EntryView.ExpiresAt)));
+         sinceColumn_ = Dated_(L("Since (server time)"), nameof(EntryView.Since), nameof(EntryView.SinceAt));
+         expiresColumn_ = Dated_(L("Expires (server time)"), nameof(EntryView.Expires), nameof(EntryView.ExpiresAt));
+         entries_.Columns.Add(sinceColumn_);
+         entries_.Columns.Add(expiresColumn_);
 
          // The remote's own words, or the note, on the row's tip rather than in a
          // column: they are sentences, and a column of sentences takes the width
@@ -637,23 +655,42 @@ namespace hMailServer.ControlPanel.Views
          // Its codes' width over a floor, as the list's Status code is: fixed at its
          // header's measured width, "Last status code" was cut by its last letters.
          counts_.Columns.Add(Fitted_(L("Last status code"), nameof(CountView.LastStatus), 90));
-         counts_.Columns.Add(Sorted_(Text_(L("Last bounce (server time)"), nameof(CountView.LastBounce), new DataGridLength(150)), nameof(CountView.LastBounceAt)));
-         counts_.Columns.Add(Sorted_(Text_(L("Last delivered (server time)"), nameof(CountView.LastDelivered), new DataGridLength(150)), nameof(CountView.LastDeliveredAt)));
-         counts_.Columns.Add(Text_(L("Listed"), nameof(CountView.Listed), new DataGridLength(70)));
+         lastBounceColumn_ = Dated_(L("Last bounce (server time)"), nameof(CountView.LastBounce), nameof(CountView.LastBounceAt));
+         lastDeliveredColumn_ = Dated_(L("Last delivered (server time)"), nameof(CountView.LastDelivered), nameof(CountView.LastDeliveredAt));
+         counts_.Columns.Add(lastBounceColumn_);
+         counts_.Columns.Add(lastDeliveredColumn_);
+         counts_.Columns.Add(Fitted_(L("Listed"), nameof(CountView.Listed), Math.Ceiling(GridStyles.CellWidth(L("Listed")))));
       }
 
-      /// <summary>A column of so many pixels, or its header's width where that is more, which is its floor; a star column keeps its star.</summary>
-      private static DataGridTextColumn Text_(string header, string path, DataGridLength width)
+      /// <summary>
+      /// A column of dates: as wide as its dates over a floor of its header, which the rows
+      /// raise to their widest when they are read (FloorAtCells_), sorted by the time itself,
+      /// not by the words the reader's culture writes it in.
+      /// </summary>
+      private static DataGridTextColumn Dated_(string header, string path, string sortPath)
+         => new() { Header = header, Binding = new System.Windows.Data.Binding(path), SortMemberPath = sortPath, Width = DataGridLength.Auto, MinWidth = Floor_(header, 0) };
+
+      /// <summary>
+      /// A column's floor raised to its widest cell, measured in the grid's font at the
+      /// Windows text size, from its header's: given less than its columns ask for, a
+      /// DataGrid takes the difference from an Auto column down to its floor, and a date
+      /// wider than the floor was cut mid-glyph.
+      /// </summary>
+      private static void FloorAtCells_<T>(DataGridTextColumn column, IEnumerable<T> rows, Func<T, string> cell)
       {
-         double floor = Floor_(header, width.IsAbsolute ? width.Value : 0);
-         return new() { Header = header, Binding = new System.Windows.Data.Binding(path), Width = width.IsAbsolute ? new DataGridLength(floor) : width, MinWidth = floor };
+         double floor = Floor_((string)column.Header, 0);
+         foreach (T row in rows)
+            floor = Math.Max(floor, GridStyles.CellWidth(cell(row)));
+         column.MinWidth = Math.Ceiling(floor);
       }
 
-      /// <summary>A column of dates sorted by the time itself, not by the words the reader's culture writes it in.</summary>
-      private static DataGridTextColumn Sorted_(DataGridTextColumn column, string sortPath)
+      /// <summary>The widest of the words the Why column says, measured in the grid's font at the Windows text size.</summary>
+      private static double WidestCategory_()
       {
-         column.SortMemberPath = sortPath;
-         return column;
+         double widest = 0;
+         foreach (string category in new[] { "hard", "mailbox_full", "policy", "soft", "other", "" })
+            widest = Math.Max(widest, GridStyles.CellWidth(CategoryText_(category)));
+         return Math.Ceiling(widest);
       }
 
       /// <summary>A column of names: a star's share of the width over a floor, each cut short with an ellipsis and whole in its tool tip.</summary>

@@ -31,7 +31,10 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          string address = WithheldRowTests.MemberText(page, "private static DataGridTextColumn AddressColumn_(string header, string path)");
          Assert.True(address != null, "IncomingRelaysView.AddressColumn_ is gone.");
-         Assert.Contains("Math.Max(170, GridStyles.HeaderWidth(header))", address, StringComparison.Ordinal);
+         // As wide as its addresses over a floor of 170 at 100 per cent that rises with the
+         // Windows text size, where a fixed 170 cut an address short at 150 per cent.
+         Assert.Contains("Width = DataGridLength.Auto,", address, StringComparison.Ordinal);
+         Assert.Contains("MinWidth = Math.Max(TextScaleFactor.Scaled(170), GridStyles.HeaderWidth(header))", address, StringComparison.Ordinal);
          Assert.Contains("GridStyles.Trimmed(", address, StringComparison.Ordinal);
 
          Assert.Contains("rows.Children.Add(FillPanel.Filling(relays_, FillPanel.ListRowsFloor));", page, StringComparison.Ordinal);

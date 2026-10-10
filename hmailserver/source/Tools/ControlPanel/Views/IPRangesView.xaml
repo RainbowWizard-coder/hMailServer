@@ -93,22 +93,26 @@
                         <!-- A floor under every column, so that a narrow window scrolls
                              the grid sideways rather than squeezing columns: the name,
                              the one column that says which range a row is, went to
-                             nothing, and then the upper address was cut short. -->
+                             nothing, and then the upper address was cut short. The
+                             addresses and the three permissions are as wide as their
+                             words, over floors of their widest, which the code-behind
+                             measures at the Windows text size (FloorColumns_): fixed at
+                             150 and 70 pixels, larger text cut them short. -->
                         <DataGridTextColumn Header="{loc:L 'Name'}" Binding="{Binding Name}" Width="*" MinWidth="160" ElementStyle="{StaticResource GridTrimmedText}" />
-                        <DataGridTextColumn Header="{loc:L 'Lower IP'}" Binding="{Binding LowerIP}" Width="150" MinWidth="120" />
-                        <DataGridTextColumn Header="{loc:L 'Upper IP'}" Binding="{Binding UpperIP}" Width="150" MinWidth="120" />
+                        <DataGridTextColumn x:Name="LowerColumn" Header="{loc:L 'Lower IP'}" Binding="{Binding LowerIP}" Width="Auto" MinWidth="120" />
+                        <DataGridTextColumn x:Name="UpperColumn" Header="{loc:L 'Upper IP'}" Binding="{Binding UpperIP}" Width="Auto" MinWidth="120" />
                         <DataGridTextColumn x:Name="PriorityColumn" Header="{loc:L 'Priority'}" Binding="{Binding Priority}" Width="80" MinWidth="64"
                                             ElementStyle="{StaticResource GridNumberText}" HeaderStyle="{StaticResource GridNumberHeader}" />
-                        <DataGridTextColumn Header="SMTP" Binding="{Binding Smtp}" Width="70" MinWidth="56" />
-                        <DataGridTextColumn Header="IMAP" Binding="{Binding Imap}" Width="70" MinWidth="56" />
-                        <DataGridTextColumn Header="POP3" Binding="{Binding Pop3}" Width="70" MinWidth="56" />
+                        <DataGridTextColumn x:Name="SmtpColumn" Header="SMTP" Binding="{Binding Smtp}" Width="Auto" MinWidth="70" />
+                        <DataGridTextColumn x:Name="ImapColumn" Header="IMAP" Binding="{Binding Imap}" Width="Auto" MinWidth="70" />
+                        <DataGridTextColumn x:Name="Pop3Column" Header="POP3" Binding="{Binding Pop3}" Width="Auto" MinWidth="70" />
                         <!-- When a range ends - Never, or "23 min from now" for a ban - and
                              whether it relays, the open relay marked Critical as Server
                              status's check marks it (Services/IpRangeCells; review
                              finding F231): the bans looked like permanent ranges, and
                              relaying was on the card of the one range selected. -->
-                        <DataGridTextColumn Header="{loc:L 'Expires'}" Binding="{Binding Expires}" Width="150" MinWidth="110" ElementStyle="{StaticResource GridTrimmedText}" />
-                        <DataGridTemplateColumn Header="{loc:L 'Relay'}" Width="130" MinWidth="104" SortMemberPath="Relay">
+                        <DataGridTextColumn Header="{loc:L 'Expires'}" Binding="{Binding Expires}" Width="Auto" MinWidth="110" ElementStyle="{StaticResource GridTrimmedText}" />
+                        <DataGridTemplateColumn Header="{loc:L 'Relay'}" Width="Auto" MinWidth="104" SortMemberPath="Relay">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid>

@@ -185,16 +185,19 @@ namespace hMailServer.ControlPanel.Views
          Content = grid;
       }
 
-      /// <summary>One end of a relay's range: 170 pixels, or its header's width where that is more.</summary>
+      /// <summary>
+      /// One end of a relay's range: as wide as its addresses, over a floor of 170 pixels at
+      /// 100 per cent that rises with the Windows text size, or of its header's width where
+      /// that is more; fixed, larger text cut an address short (review finding F317).
+      /// </summary>
       private static DataGridTextColumn AddressColumn_(string header, string path)
       {
-         double width = Math.Max(170, GridStyles.HeaderWidth(header));
          return GridStyles.Trimmed(new DataGridTextColumn
          {
             Header = header,
             Binding = new System.Windows.Data.Binding(path),
-            Width = new DataGridLength(width),
-            MinWidth = width
+            Width = DataGridLength.Auto,
+            MinWidth = Math.Max(TextScaleFactor.Scaled(170), GridStyles.HeaderWidth(header))
          });
       }
 

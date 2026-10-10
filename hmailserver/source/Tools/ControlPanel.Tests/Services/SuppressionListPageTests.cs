@@ -65,8 +65,11 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       /// <summary>
       /// The list's columns: the address and the source share the width over
-      /// floors, trimmed; Why is 140 pixels, trimmed too ("Harte
-      /// Unzustellbarkeit" in German); Status, Since and Expires keep theirs.
+      /// floors, trimmed; Why is as wide as its words over a floor of the widest,
+      /// trimmed too ("Harte Unzustellbarkeit" in German); Status, Since and
+      /// Expires are as wide as theirs over floors of their widest. At a fixed
+      /// 140 and 150 pixels, 150 per cent text cut Why to "Added by h…" and the
+      /// dates mid-glyph (review finding F317).
       /// </summary>
       [Fact]
       public void EveryColumnOfTheList_KeepsAWidth_AndTheNamesAreTrimmed()
@@ -75,17 +78,19 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(columns != null, "BuildColumns_ is gone.");
 
          Assert.Contains("Trimmed_(L(\"Address\"), nameof(EntryView.Address), new DataGridLength(1, DataGridLengthUnitType.Star), 200)", columns, StringComparison.Ordinal);
-         Assert.Contains("Trimmed_(L(\"Reason\"), nameof(EntryView.Why), new DataGridLength(140), 140)", columns, StringComparison.Ordinal);
+         Assert.Contains("Trimmed_(L(\"Reason\"), nameof(EntryView.Why), DataGridLength.Auto, WidestCategory_())", columns, StringComparison.Ordinal);
          Assert.Contains("Fitted_(L(\"Status code\"), nameof(EntryView.Status), 84)", columns, StringComparison.Ordinal);
          Assert.Contains("Trimmed_(L(\"Source\"), nameof(EntryView.Source), new DataGridLength(1, DataGridLengthUnitType.Star), 160)", columns, StringComparison.Ordinal);
-         Assert.Contains("Text_(L(\"Since (server time)\"), nameof(EntryView.Since), new DataGridLength(150))", columns, StringComparison.Ordinal);
-         Assert.Contains("Text_(L(\"Expires (server time)\"), nameof(EntryView.Expires), new DataGridLength(150))", columns, StringComparison.Ordinal);
+         Assert.Contains("sinceColumn_ = Dated_(L(\"Since (server time)\"), nameof(EntryView.Since), nameof(EntryView.SinceAt));", columns, StringComparison.Ordinal);
+         Assert.Contains("expiresColumn_ = Dated_(L(\"Expires (server time)\"), nameof(EntryView.Expires), nameof(EntryView.ExpiresAt));", columns, StringComparison.Ordinal);
 
-         // No column of the list, or of the counts, is left to size itself to its
-         // cells with no floor, which is what let the address take the width the
-         // dates needed.
-         Assert.DoesNotContain("DataGridLength.Auto)", columns, StringComparison.Ordinal);
+         // No column of the list, or of the counts, sizes itself to its cells with no
+         // floor, which is what let the address take the width the dates needed, and
+         // none is a fixed number of pixels, which larger text cuts short.
          Assert.DoesNotContain("new DataGridLength(2, DataGridLengthUnitType.Star)", columns, StringComparison.Ordinal);
+         Assert.DoesNotMatch(@"new DataGridLength\(\d+\)", Source());
+         string widest = WithheldRowTests.MemberText(Source(), "private static double WidestCategory_()");
+         Assert.True(widest != null && widest.Contains("GridStyles.CellWidth(CategoryText_(category))", StringComparison.Ordinal), "Why's floor is not its widest word.");
 
          // A column of short codes is its floor or its header's width, whichever
          // is more; the floor holds "ステータス" on its own (84: five 12-pixel glyphs
@@ -102,19 +107,25 @@ namespace hMailServer.ControlPanel.Tests.Services
          string code = Source();
          string columns = WithheldRowTests.MemberText(code, "private void BuildColumns_()");
          Assert.Contains("Trimmed_(L(\"Address\"), nameof(CountView.Address), new DataGridLength(1, DataGridLengthUnitType.Star), 180)", columns, StringComparison.Ordinal);
-         Assert.Contains("Text_(L(\"Last bounce (server time)\"), nameof(CountView.LastBounce), new DataGridLength(150))", columns, StringComparison.Ordinal);
-         Assert.Contains("Text_(L(\"Last delivered (server time)\"), nameof(CountView.LastDelivered), new DataGridLength(150))", columns, StringComparison.Ordinal);
-         Assert.Contains("Text_(L(\"Listed\"), nameof(CountView.Listed), new DataGridLength(70))", columns, StringComparison.Ordinal);
+         Assert.Contains("lastBounceColumn_ = Dated_(L(\"Last bounce (server time)\"), nameof(CountView.LastBounce), nameof(CountView.LastBounceAt));", columns, StringComparison.Ordinal);
+         Assert.Contains("lastDeliveredColumn_ = Dated_(L(\"Last delivered (server time)\"), nameof(CountView.LastDelivered), nameof(CountView.LastDeliveredAt));", columns, StringComparison.Ordinal);
+         Assert.Contains("Fitted_(L(\"Listed\"), nameof(CountView.Listed), Math.Ceiling(GridStyles.CellWidth(L(\"Listed\"))))", columns, StringComparison.Ordinal);
 
          // The six counts: 64 pixels, or the header's width where that is more, so
          // that "Mailbox full" is not cut to "Mailb…".
          string number = WithheldRowTests.MemberText(code, "private static DataGridTextColumn Number_(string header, string path)");
          Assert.True(number != null && number.Contains("Fitted_(header, path, 64)", StringComparison.Ordinal), "A count column has no floor of 64 pixels.");
 
-         // A fixed column's width is its floor too, so a narrow window scrolls
-         // the grid sideways rather than squeezing the dates.
-         string text = WithheldRowTests.MemberText(code, "private static DataGridTextColumn Text_(string header, string path, DataGridLength width)");
-         Assert.True(text != null && text.Contains("double floor = Floor_(header, width.IsAbsolute ? width.Value : 0);", StringComparison.Ordinal) && text.Contains("MinWidth = floor", StringComparison.Ordinal), "A fixed column can be squeezed below its width.");
+         // A column of dates is floored at its header and, once the rows are read,
+         // at its widest date, so a narrow window scrolls the grid sideways rather
+         // than squeezing the dates.
+         string dated = WithheldRowTests.MemberText(code, "private static DataGridTextColumn Dated_(string header, string path, string sortPath)");
+         Assert.True(dated != null && dated.Contains("Width = DataGridLength.Auto, MinWidth = Floor_(header, 0)", StringComparison.Ordinal), "A column of dates has no floor.");
+         string floor = WithheldRowTests.MemberText(code, "private static void FloorAtCells_<T>(DataGridTextColumn column, IEnumerable<T> rows, Func<T, string> cell)");
+         Assert.True(floor != null && floor.Contains("floor = Math.Max(floor, GridStyles.CellWidth(cell(row)));", StringComparison.Ordinal), "A column of dates is not floored at its widest date.");
+         string reload = WithheldRowTests.MemberText(code, "private void Reload()");
+         foreach (string column in new[] { "sinceColumn_, entries, e => e.Since", "expiresColumn_, entries, e => e.Expires", "lastBounceColumn_, countRows, c => c.LastBounce", "lastDeliveredColumn_, countRows, c => c.LastDelivered" })
+            Assert.Contains("FloorAtCells_(" + column + ");", reload, StringComparison.Ordinal);
       }
 
       /// <summary>
@@ -133,7 +144,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("private static double Floor_(string header, double floor) => Math.Max(floor, GridStyles.HeaderWidth(header));", code, StringComparison.Ordinal);
          foreach (string member in new[]
          {
-            "private static DataGridTextColumn Text_(string header, string path, DataGridLength width)",
+            "private static DataGridTextColumn Dated_(string header, string path, string sortPath)",
             "private static DataGridTextColumn Trimmed_(string header, string path, DataGridLength width, double minWidth)",
             "private static DataGridTextColumn Fitted_(string header, string path, double minWidth)",
          })

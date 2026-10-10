@@ -63,6 +63,9 @@ namespace hMailServer.ControlPanel.Views
 
       private List<EntryView> all_ = new();
 
+      // The Added column, floored at its widest date whenever the rows are read (FloorAdded_).
+      private DataGridTextColumn addedColumn_;
+
       // Add waits for a read that works (Services/ReadFailure).
       private Button addButton_;
 
@@ -240,6 +243,7 @@ namespace hMailServer.ControlPanel.Views
          }
 
          entries_.ItemsSource = shown;
+         FloorAdded_();
 
          // The count beside the title, and while a search is typed in how many it
          // shows: no notice, which the search left saying "1 of 4" under a list of
@@ -456,7 +460,7 @@ namespace hMailServer.ControlPanel.Views
       // the Action column spent about 250 pixels on "Allowed: not greylisted, not
       // refused on score" in every row (review finding F266). Action is one word
       // now, what it does its tool tip; Added is the reader's short date and
-      // time, marked as the server's.
+      // time, marked as the server's, as wide as its widest date (FloorAdded_).
       private void BuildColumns_()
       {
          entries_.Columns.Add(Shared_(L("Domain or suffix"), nameof(EntryView.Pattern), 160));
@@ -464,16 +468,31 @@ namespace hMailServer.ControlPanel.Views
          entries_.Columns.Add(ActionColumn_());
          entries_.Columns.Add(Shared_(L("Note"), nameof(EntryView.Note), 100));
          string added = L("Added (server time)");
-         entries_.Columns.Add(GridStyles.Trimmed(new DataGridTextColumn
+         addedColumn_ = GridStyles.Trimmed(new DataGridTextColumn
          {
             Header = added,
             Binding = new System.Windows.Data.Binding(nameof(EntryView.Added)),
             // Sorted by the server's own yyyy-MM-dd HH:mm:ss, which sorts as the times
             // do, not by the reader's form of it, in which 10/1/2026 comes before 9/28/2026.
             SortMemberPath = nameof(EntryView.Created),
-            Width = new DataGridLength(Math.Max(150, GridStyles.HeaderWidth(added))),
-            MinWidth = Math.Max(150, GridStyles.HeaderWidth(added))
-         }));
+            Width = DataGridLength.Auto,
+            MinWidth = GridStyles.HeaderWidth(added)
+         });
+         entries_.Columns.Add(addedColumn_);
+      }
+
+      /// <summary>
+      /// The Added column as wide as its header and the widest of every entry's dates,
+      /// measured in the grid's font at the Windows text size, as the quarantine's Held
+      /// is: fixed at 150 pixels, it read "9/28/2026 8:18 P…" at 150 per cent. Measured
+      /// over every entry, not the ones a search leaves, so that a search does not move it.
+      /// </summary>
+      private void FloorAdded_()
+      {
+         double floor = GridStyles.HeaderWidth((string)addedColumn_.Header);
+         foreach (EntryView entry in all_)
+            floor = Math.Max(floor, GridStyles.CellWidth(entry.Added));
+         addedColumn_.MinWidth = Math.Ceiling(floor);
       }
 
       /// <summary>A column of names that shares the width the others leave, over a floor of so many pixels or its header's width where that is more.</summary>

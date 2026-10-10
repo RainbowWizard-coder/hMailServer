@@ -118,13 +118,16 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// Every column keeps its width, so that a grid wider than its card scrolls
       /// sideways rather than squeezing its columns, which cut the remote domains
       /// grid's headers at every width their fields named; and a grid that
-      /// scrolls sideways keeps its vertical bar.
+      /// scrolls sideways keeps its vertical bar. A field's width is its pixels at
+      /// 100 per cent, raised with the Windows text size as its words are, where at
+      /// 150 per cent a fixed width cut them short.
       /// </summary>
       [Fact]
       public void EveryColumn_KeepsItsWidth_AndTheGridScrollsSideways()
       {
          string editor = ReadControlPanelFile(Path.Join("Views", "CollectionEditorView.cs"));
-         Assert.Contains("MinWidth = double.IsNaN(f.GridWidth) ? StarColumnFloor : f.GridWidth", editor, StringComparison.Ordinal);
+         Assert.Contains(": new DataGridLength(TextScaleFactor.Scaled(f.GridWidth)),", editor, StringComparison.Ordinal);
+         Assert.Contains("MinWidth = TextScaleFactor.Scaled(double.IsNaN(f.GridWidth) ? StarColumnFloor : f.GridWidth)", editor, StringComparison.Ordinal);
          Assert.Contains("private const double StarColumnFloor = 120;", editor, StringComparison.Ordinal);
          Assert.Contains("ScrollViewer.SetVerticalScrollBarVisibility(grid_, ScrollBarVisibility.Visible);", editor, StringComparison.Ordinal);
       }

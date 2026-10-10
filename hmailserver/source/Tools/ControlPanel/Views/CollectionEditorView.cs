@@ -496,16 +496,19 @@ namespace hMailServer.ControlPanel.Views
                      ? new CellConverter(f.Options)
                      : new CellConverter(f.GridTrue, f.GridFalse, f.GridEmpty)
                },
+               // A field's width is its pixels at 100 per cent, and rises with the
+               // Windows text size, as the text in it does: fixed, larger text cut the
+               // words short (review finding F317).
                Width = double.IsNaN(f.GridWidth)
                   ? new DataGridLength(1, DataGridLengthUnitType.Star)
-                  : new DataGridLength(f.GridWidth),
+                  : new DataGridLength(TextScaleFactor.Scaled(f.GridWidth)),
                // A floor under every column, as the IP ranges page's columns
                // have, so that a grid wider than its card scrolls sideways
                // rather than squeezing its columns: given less than its
                // columns ask for, a DataGrid takes the difference from them,
                // down to 20 pixels each, and the remote domains grid's
                // headers were cut at every width their fields named.
-               MinWidth = double.IsNaN(f.GridWidth) ? StarColumnFloor : f.GridWidth
+               MinWidth = TextScaleFactor.Scaled(double.IsNaN(f.GridWidth) ? StarColumnFloor : f.GridWidth)
             };
 
             // A value that applies only while another is true - an expiry

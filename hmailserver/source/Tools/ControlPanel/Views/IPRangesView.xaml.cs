@@ -75,6 +75,7 @@ namespace hMailServer.ControlPanel.Views
             DeliveryRow.Wire(allowed, authentication);
 
          ShowNoRange();
+         FloorColumns_(Array.Empty<RangeRow>());
 
          // Enter and F2 open the selected range, Delete deletes it after asking,
          // Insert goes to the add form, and Enter in the form adds the range;
@@ -241,6 +242,7 @@ namespace hMailServer.ControlPanel.Views
             ListSortDirection?[] directions = RangeGrid.Columns.Select(column => column.SortDirection).ToArray();
             RangeGrid.ItemsSource = rows;
             SortRows_(order, directions);
+            FloorColumns_(rows);
             CountPill.Visibility = Visibility.Visible;
             ShowListState_();
 
@@ -362,6 +364,36 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>The directions to an external address the card's boxes let through without signing in.</summary>
       private RelayExposure.Open OpenOnCard_()
          => RelayExposure.OpenDirections(PermLR.IsChecked is true, PermAuthLR.IsChecked is true, PermRR.IsChecked is true, PermAuthRR.IsChecked is true);
+
+      /// <summary>
+      /// No column of addresses or permissions is narrower than its header or than the
+      /// widest of its words - the widest IPv4 address and the ranges' own, Yes and No in
+      /// the current language - measured in the grid's font at the Windows text size, so
+      /// that a narrow window scrolls the grid sideways rather than cutting a word: fixed
+      /// at 150 and 70 pixels, larger text cut them short (review finding F317).
+      /// </summary>
+      private void FloorColumns_(IEnumerable<RangeRow> rows)
+      {
+         foreach (DataGridColumn column in new DataGridColumn[] { LowerColumn, UpperColumn, SmtpColumn, ImapColumn, Pop3Column })
+            Floor_(column, GridStyles.HeaderWidth(column.Header as string));
+
+         foreach (DataGridColumn column in new DataGridColumn[] { LowerColumn, UpperColumn })
+            Floor_(column, GridStyles.CellWidth("255.255.255.255")); // no-loc: the widest IPv4 address
+         foreach (RangeRow row in rows)
+         {
+            Floor_(LowerColumn, GridStyles.CellWidth(row.LowerIP));
+            Floor_(UpperColumn, GridStyles.CellWidth(row.UpperIP));
+         }
+
+         foreach (DataGridColumn column in new DataGridColumn[] { SmtpColumn, ImapColumn, Pop3Column })
+         {
+            Floor_(column, GridStyles.CellWidth(L("Yes")));
+            Floor_(column, GridStyles.CellWidth(L("No")));
+         }
+      }
+
+      /// <summary>Raises a column's floor to <paramref name="width"/>, a whole pixel, where that is more.</summary>
+      private static void Floor_(DataGridColumn column, double width) => column.MinWidth = Math.Max(column.MinWidth, Math.Ceiling(width));
 
       private void Search_TextChanged(object sender, EventArgs e) => ShowListState_();
 

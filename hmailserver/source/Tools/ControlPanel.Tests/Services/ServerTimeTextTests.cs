@@ -211,7 +211,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          foreach ((string header, string sort) in new[] { ("Since (server time)", "EntryView.SinceAt"), ("Expires (server time)", "EntryView.ExpiresAt"),
             ("Last bounce (server time)", "CountView.LastBounceAt"), ("Last delivered (server time)", "CountView.LastDeliveredAt") })
          {
-            Match column = Regex.Match(built, @"Columns\.Add\((.*L\(""" + Regex.Escape(header) + @"""\).*)\);");
+            Match column = Regex.Match(built, @"^.*L\(""" + Regex.Escape(header) + @"""\).*$", RegexOptions.Multiline);
             Assert.True(column.Success, "The suppression list has no column headed " + header + ".");
             Assert.Contains("nameof(" + sort + ")", column.Value, StringComparison.Ordinal);
          }

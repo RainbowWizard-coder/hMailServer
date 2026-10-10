@@ -321,6 +321,118 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("column.MinWidth = TextScaleFactor.Scaled(column.MinWidth);", Read("Views", "SslCertificatesView.xaml.cs"), StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// No grid column of words in a page's XAML is a fixed number of pixels wide, which
+      /// larger text cuts short; a column of numbers (GridNumberText) keeps its pixels. The
+      /// IP ranges' addresses and permissions were 150 and 70 pixels. The TCP/IP ports and
+      /// routes grids are review finding F322's, whose columns that page floors at their
+      /// widest words in its code (TcpIpPortsView.FloorColumns_).
+      /// </summary>
+      [Fact]
+      public void NoColumnOfWordsInXaml_IsAFixedWidth()
+      {
+         string root = ContrastTokensTests.FindControlPanelDirectory();
+         Assert.True(root != null, "The ControlPanel folder could not be found from the test binaries.");
+
+         var found = new List<string>();
+         foreach (string path in Directory.EnumerateFiles(Path.Join(root, "Views"), "*.xaml", SearchOption.AllDirectories))
+         {
+            string file = Path.GetFileName(path);
+            if (file is "TcpIpPortsView.xaml" or "RoutesView.xaml")
+               continue;
+
+            foreach (XElement column in XDocument.Parse(File.ReadAllText(path)).Root.Descendants()
+               .Where(e => e.Name.LocalName is "DataGridTextColumn" or "DataGridTemplateColumn" or "DataGridCheckBoxColumn"))
+            {
+               string width = (string)column.Attribute("Width");
+               bool pixels = width != null && double.TryParse(width, NumberStyles.Float, CultureInfo.InvariantCulture, out _);
+               bool number = (string)column.Attribute("ElementStyle") == "{StaticResource GridNumberText}";
+               if (pixels && !number)
+                  found.Add(file + ": " + ((string)column.Attribute("Header") ?? (string)column.Attribute("Binding")) + " is " + width + " pixels wide");
+            }
+         }
+
+         Assert.True(found.Count == 0, "Columns of words at a fixed width, which larger text cuts short: " + string.Join("; ", found));
+      }
+
+      /// <summary>
+      /// No grid column built in code is a fixed number of pixels wide, which larger text
+      /// cuts short: the allowed and blocked domains' Added, at 150, read "9/28/2026 8:18 P…"
+      /// at 150 per cent, and the suppression list's dates, at 150, were cut mid-glyph. A
+      /// width is a share, or Auto over a floor, or measured from its words (GridStyles.CellWidth) or
+      /// raised with the text (TextScaleFactor.Scaled). The quarantine's tick box and its
+      /// four icon buttons hold no words, and its Held is measured from its header and its
+      /// widest time (SizeFixedColumns_); the roles' columns of words are measured from
+      /// their headers and their widest words (FixedWidth_).
+      /// </summary>
+      [Fact]
+      public void NoColumnBuiltInCode_IsAFixedWidth()
+      {
+         string root = ContrastTokensTests.FindControlPanelDirectory();
+         Assert.True(root != null, "The ControlPanel folder could not be found from the test binaries.");
+
+         var allowed = new HashSet<string>(StringComparer.Ordinal)
+         {
+            "Views/QuarantineView.cs: CheckWidth",
+            "Views/QuarantineView.cs: ActionsWidth",
+            "Views/QuarantineView.cs: Math.Ceiling(held)",
+            "Views/RolesView.cs: floor",
+         };
+
+         var found = new List<string>();
+         foreach (string path in Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories))
+         {
+            string file = Path.GetRelativePath(root, path).Replace('\\', '/');
+            if (file.StartsWith("bin/", StringComparison.Ordinal) || file.StartsWith("obj/", StringComparison.Ordinal))
+               continue;
+
+            string code = File.ReadAllText(path);
+            foreach (Match m in Regex.Matches(code, @"new DataGridLength\("))
+            {
+               string width = ValueAfter_(code, m.Index + m.Length);
+               string rest = code.Substring(m.Index + m.Length + width.Length).TrimStart();
+               bool share = rest.StartsWith(",", StringComparison.Ordinal);
+               // A header's width alone is no measure of the words under it: Added was
+               // Math.Max(150, GridStyles.HeaderWidth(added)) and its dates were cut.
+               bool measured = width.Contains("TextScaleFactor.Scaled(", StringComparison.Ordinal) || width.Contains("GridStyles.CellWidth(", StringComparison.Ordinal);
+               if (!share && !measured && !allowed.Contains(file + ": " + width))
+                  found.Add(file + " line " + LineOf_(code, m.Index) + ": new DataGridLength(" + width + ")");
+            }
+         }
+
+         Assert.True(found.Count == 0, "Columns at a fixed width, which larger text cuts short: " + string.Join("; ", found));
+      }
+
+      /// <summary>
+      /// The columns that were fixed widths of words are floored at their widest words,
+      /// measured in the grid's font at the Windows text size, whenever their rows are read:
+      /// the allowed and blocked domains' Added over every entry, and the IP ranges'
+      /// addresses (the widest IPv4 address and the ranges' own) and their permissions'
+      /// Yes and No.
+      /// </summary>
+      [Fact]
+      public void TheColumnsThatWereFixed_AreFlooredAtTheirWidestWords()
+      {
+         string policy = Read("Views", "DomainPolicyListView.cs");
+         string added = WithheldRowTests.MemberText(policy, "private void FloorAdded_()");
+         Assert.True(added != null, "DomainPolicyListView.FloorAdded_ is gone.");
+         Assert.Contains("foreach (EntryView entry in all_)", added, StringComparison.Ordinal);
+         Assert.Contains("floor = Math.Max(floor, GridStyles.CellWidth(entry.Added));", added, StringComparison.Ordinal);
+         Assert.Matches(@"entries_\.ItemsSource = shown;\s+FloorAdded_\(\);", policy);
+         Assert.Contains("Width = DataGridLength.Auto,", WithheldRowTests.MemberText(policy, "private void BuildColumns_()"), StringComparison.Ordinal);
+
+         string ranges = Read("Views", "IPRangesView.xaml.cs");
+         string floors = WithheldRowTests.MemberText(ranges, "private void FloorColumns_(IEnumerable<RangeRow> rows)");
+         Assert.True(floors != null, "IPRangesView.FloorColumns_ is gone.");
+         Assert.Contains("Floor_(column, GridStyles.CellWidth(\"255.255.255.255\"));", floors, StringComparison.Ordinal);
+         Assert.Contains("Floor_(LowerColumn, GridStyles.CellWidth(row.LowerIP));", floors, StringComparison.Ordinal);
+         Assert.Contains("Floor_(UpperColumn, GridStyles.CellWidth(row.UpperIP));", floors, StringComparison.Ordinal);
+         Assert.Contains("Floor_(column, GridStyles.CellWidth(L(\"Yes\")));", floors, StringComparison.Ordinal);
+         Assert.Contains("Floor_(column, GridStyles.CellWidth(L(\"No\")));", floors, StringComparison.Ordinal);
+         Assert.Contains("RangeGrid.ItemsSource = rows;", ranges, StringComparison.Ordinal);
+         Assert.Contains("FloorColumns_(rows);", ranges, StringComparison.Ordinal);
+      }
+
       /// <summary>A token's size at 100 per cent, as Tokens.xaml holds it.</summary>
       internal static string TokenSize(string key)
       {

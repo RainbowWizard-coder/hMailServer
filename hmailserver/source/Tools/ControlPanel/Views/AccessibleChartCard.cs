@@ -361,7 +361,10 @@ namespace hMailServer.ControlPanel.Views
          {
             Header = definition_.TimeHeader,
             Binding = new Binding("TimeLabel"),
-            Width = new DataGridLength(92)
+            // As wide as its times over a floor that rises with the Windows text size,
+            // where a fixed 92 pixels cut them short at 150 per cent (review finding F317).
+            Width = DataGridLength.Auto,
+            MinWidth = TextScaleFactor.Scaled(92)
          });
 
          for (int i = 0; i < definition_.SeriesNames.Count; i++)
