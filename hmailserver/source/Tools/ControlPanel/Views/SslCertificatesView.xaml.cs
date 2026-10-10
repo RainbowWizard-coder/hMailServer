@@ -172,7 +172,6 @@ namespace hMailServer.ControlPanel.Views
             ComposeFindings(row);
 
          CertGrid.ItemsSource = rows;
-         ListSearch.Apply(CertGrid, SearchBar.SearchText);
          if (failure != null)
          {
             // A read that failed is said as on the other list pages (Services/ReadFailure):
@@ -184,10 +183,10 @@ namespace hMailServer.ControlPanel.Views
          else
          {
             ReadFailure.Clear(LoadNotice, AddCertButton);
-            StatusText.Show(EmptyStatus, LoadNotice, rows.Count, null, L("No certificates yet, so no port can offer TLS. Add one from PEM files below, or let ACME issue one."));
+            StatusText.Show(EmptyStatus, LoadNotice, rows.Count, null, EmptyText_);
          }
-         CountPill.Text = Plural(rows.Count, "{0} certificate", "{0} certificates");
          CountPill.Visibility = failure == null ? Visibility.Visible : Visibility.Collapsed;
+         ShowListState_();
 
          if (reselectId != 0)
          {
@@ -523,8 +522,20 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>The header's Refresh: the certificates and their file checks read again, as F5 reads them.</summary>
       private void Refresh_Click(object sender, RoutedEventArgs e) => Reload((CertGrid.SelectedItem as CertRow)?.Id ?? 0);
 
-      private void Search_TextChanged(object sender, EventArgs e)
-         => ListSearch.Apply(CertGrid, SearchBar.SearchText);
+      // What an empty list means, said by a read that finds no certificate and by
+      // a search cleared over none.
+      private static string EmptyText_ => L("No certificates yet, so no port can offer TLS. Add one from PEM files below, or let ACME issue one.");
+
+      private void Search_TextChanged(object sender, EventArgs e) => ShowListState_();
+
+      /// <summary>
+      /// The search over the certificates read, the count beside the title and the empty
+      /// state: "Shown: 1 of 4" while a search is typed in, and where it hides every
+      /// row, the sentence that says so in place of the empty list's
+      /// (Services/ListSearchState).
+      /// </summary>
+      private void ShowListState_() => ListSearchState.Show(CertGrid, SearchBar.SearchText, CountPill,
+         n => Plural(n, "{0} certificate", "{0} certificates"), EmptyStatus, EmptyText_);
 
       private static string BrowsePem()
       {

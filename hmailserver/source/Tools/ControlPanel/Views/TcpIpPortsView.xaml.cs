@@ -231,10 +231,8 @@ namespace hMailServer.ControlPanel.Views
 
          ReadFailure.Clear(Notice, AddPortButton, RestoreDefaultsButton);
          PortGrid.ItemsSource = rows;
-         ListSearch.Apply(PortGrid, SearchBar.SearchText);
-         StatusText.Show(EmptyStatus, null, rows.Count, null, L("No ports, so from its next start or reinitialise the server takes no SMTP, POP3 or IMAP connection."));
-         CountPill.Text = Plural(rows.Count, "{0} port", "{0} ports");
          CountPill.Visibility = Visibility.Visible;
+         ShowListState_();
 
          ShowListenerSummary(rows, local, serverState);
       }
@@ -450,8 +448,16 @@ namespace hMailServer.ControlPanel.Views
          return map;
       }
 
-      private void Search_TextChanged(object sender, EventArgs e)
-         => ListSearch.Apply(PortGrid, SearchBar.SearchText);
+      private void Search_TextChanged(object sender, EventArgs e) => ShowListState_();
+
+      /// <summary>
+      /// The search over the ports read, the count beside the title and the empty
+      /// state: "Shown: 1 of 4" while a search is typed in, and where it hides every
+      /// row, the sentence that says so in place of the empty list's
+      /// (Services/ListSearchState).
+      /// </summary>
+      private void ShowListState_() => ListSearchState.Show(PortGrid, SearchBar.SearchText, CountPill,
+         n => Plural(n, "{0} port", "{0} ports"), EmptyStatus, L("No ports, so from its next start or reinitialise the server takes no SMTP, POP3 or IMAP connection."));
 
       private static Dictionary<int, string> LoadCertNames()
       {

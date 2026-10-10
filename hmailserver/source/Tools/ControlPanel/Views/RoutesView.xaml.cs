@@ -92,17 +92,23 @@ namespace hMailServer.ControlPanel.Views
 
          ReadFailure.Clear(Notice, AddRouteButton);
          RouteGrid.ItemsSource = rows;
-         ListSearch.Apply(RouteGrid, SearchBar.SearchText);
-         StatusText.Show(EmptyStatus, null, rows.Count, null, L("No routes, so every domain's mail is delivered the usual way: to its MX hosts, or through the relay set on the Delivery of e-mail page."));
-         CountPill.Text = Plural(rows.Count, "{0} route", "{0} routes");
          CountPill.Visibility = Visibility.Visible;
+         ShowListState_();
       }
 
       /// <summary>The header's Refresh: the list read again, as F5 reads it.</summary>
       private void Refresh_Click(object sender, RoutedEventArgs e) => Reload();
 
-      private void Search_TextChanged(object sender, EventArgs e)
-         => ListSearch.Apply(RouteGrid, SearchBar.SearchText);
+      private void Search_TextChanged(object sender, EventArgs e) => ShowListState_();
+
+      /// <summary>
+      /// The search over the routes read, the count beside the title and the empty
+      /// state: "Shown: 1 of 4" while a search is typed in, and where it hides every
+      /// row, the sentence that says so in place of the empty list's
+      /// (Services/ListSearchState).
+      /// </summary>
+      private void ShowListState_() => ListSearchState.Show(RouteGrid, SearchBar.SearchText, CountPill,
+         n => Plural(n, "{0} route", "{0} routes"), EmptyStatus, L("No routes, so every domain's mail is delivered the usual way: to its MX hosts, or through the relay set on the Delivery of e-mail page."));
 
       /// <summary>The empty list's action: the keyboard in the add form's Domain box, the next thing to fill in.</summary>
       private void AddRouteAction_Click(object sender, RoutedEventArgs e)

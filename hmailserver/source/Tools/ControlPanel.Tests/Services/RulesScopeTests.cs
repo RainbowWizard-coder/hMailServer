@@ -51,7 +51,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("Server-wide message rules, evaluated top to bottom.", subtitle, StringComparison.Ordinal);
          Assert.Contains("Message rules of {0}, evaluated top to bottom.", subtitle, StringComparison.Ordinal);
          Assert.Contains("scopeDomain_", subtitle, StringComparison.Ordinal);
-         Assert.Contains("CountPill.Text = Plural(rows.Count, \"{0} rule\", \"{0} rules\");", code, StringComparison.Ordinal);
+         Assert.Contains("n => Plural(n, \"{0} rule\", \"{0} rules\")", code, StringComparison.Ordinal);
 
          string changed = WithheldRowTests.MemberText(code, "private void Scope_Changed(object sender, SelectionChangedEventArgs e)");
          Assert.True(changed != null, "RulesView.Scope_Changed is gone.");

@@ -274,11 +274,9 @@ namespace hMailServer.ControlPanel.Views
 
          ReadFailure.Clear(Notice, AddRuleButton);
          RuleGrid.ItemsSource = rows;
-         ListSearch.Apply(RuleGrid, SearchBar.SearchText);
-         StatusText.Show(EmptyStatus, null, rows.Count, null, L("No rules defined yet - create one below."));
          HeaderPanel.Subtitle = Subtitle_();
-         CountPill.Text = Plural(rows.Count, "{0} rule", "{0} rules");
          CountPill.Visibility = Visibility.Visible;
+         ShowListState_();
 
          CriteriaGrid.ItemsSource = null;
          ActionsGrid.ItemsSource = null;
@@ -295,8 +293,16 @@ namespace hMailServer.ControlPanel.Views
             ? L("Server-wide message rules, evaluated top to bottom.")
             : F("Message rules of {0}, evaluated top to bottom.", scopeDomain_);
 
-      private void Search_TextChanged(object sender, EventArgs e)
-         => ListSearch.Apply(RuleGrid, SearchBar.SearchText);
+      private void Search_TextChanged(object sender, EventArgs e) => ShowListState_();
+
+      /// <summary>
+      /// The search over the rules read, the count beside the title and the empty
+      /// state: "Shown: 1 of 4" while a search is typed in, and where it hides every
+      /// row, the sentence that says so in place of the empty list's
+      /// (Services/ListSearchState).
+      /// </summary>
+      private void ShowListState_() => ListSearchState.Show(RuleGrid, SearchBar.SearchText, CountPill,
+         n => Plural(n, "{0} rule", "{0} rules"), EmptyStatus, L("No rules defined yet - create one below."));
 
       /// <summary>The header's Refresh: the list read again, as F5 reads it.</summary>
       private void Refresh_Click(object sender, RoutedEventArgs e) => Reload();

@@ -2371,31 +2371,33 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   bypass list, blocked attachments, remote domains, server messages and groups - had no search box, so a list of
   hundreds of entries could only be scrolled, and the Groups page had none beside the domains page's two; the public
   folders had none either. Each now has one over its list, named for what it searches, that filters as it is typed in
-  over every column the list shows, as the domains, IP ranges and rules pages do; while it hides entries the count
-  beside the title says how many it shows ("Shown: 2 of 40"), and where it hides them all the list says that no entry
-  has what was typed in it. The allowed and blocked domains filter as they are typed in where they waited for Enter,
-  and their "Entries that match the search" notice no longer stays once the search is cleared; the suppression list
-  and the audit trail, whose searches ask the server, search once typing pauses for 300 milliseconds, and at once on
-  Enter.
+  over every column the list shows, as the domains, IP ranges and rules pages do. On every list page whose search
+  filters the rows it read - these, the routes, TCP/IP ports, IP ranges, SSL certificates, rules, the delivery queue,
+  the allowed and blocked domains and the quarantine - the count beside the title says how many the search shows while
+  one is typed in ("Shown: 2 of 40"), and where it hides every entry the list says that no entry has what was typed in
+  it, where the routes, TCP/IP ports, IP ranges, SSL certificates, rules and delivery queue pages showed an empty list
+  and said nothing. The allowed and blocked domains filter as they are typed in where they waited for Enter, and their
+  "Entries that match the search" notice no longer stays once the search is cleared; the suppression list and the
+  audit trail, whose searches ask the server, search once typing pauses for 300 milliseconds, and at once on Enter.
 
 - **Fixed: the list pages laid out their actions four ways and showed their counts five.** The collection lists put
   Add, Edit, Delete and Refresh in the header, each with a glyph; the routes, TCP/IP ports, IP ranges, SSL
-  certificates and rules pages had their verbs in a toolbar, no count and no Refresh; the delivery queue had its verbs
-  in the header between glyphs and its count in the subtitle; and a count was a pill, a caption under the list ("4
-  public folders."), the subtitle ("4 messages waiting for delivery.", "4 rules of the server") or an Information
-  notice ("3 addresses listed.", "5 messages held.", "Entries that match the search: 1 of 4."). Every list page now
-  has one shape (docs/ControlPanelDesign.md, List pages): the count beside the title as a grey pill - "4 routes",
-  "Active: 2 of 3", "Shown: 2 of 40", "1 to 100 of 1284" - that a screen reader hears as it changes, as it heard the
-  notices, and Refresh in the header; the search, the filters and the list's verbs in the toolbar over the list - the
-  selected entry's Edit or Properties, then Delete, then Add…, the Primary, at the right edge - in words without
-  glyphs; and one way to add on each page, the toolbar's Add… or the form under the list. The toolbar puts its actions
-  on a row of their own under the search where the widest of them does not fit beside it, and its filters under the
-  search where the two do not fit side by side, so that the suppression list's Remove and Add…, which had moved to the
-  header because beside its domain box they were not drawn in the narrowest window, are in its toolbar again; the
-  quarantine's Group by is a filter beside its search and Remove expired is in its toolbar, where all four were in the
-  header and squeezed its title. Five captions moved their Alt key to leave R to Refresh - Deliver lo_cal → remote,
-  Add a ro_ute, Rem_ove criterion, Re_move stored passphrase and Proto_col - and thirty-five translated captions moved
-  theirs in their own language.
+  certificates and rules pages had their verbs in a toolbar, no count and no Refresh, and the message trace F5 alone;
+  the delivery queue had its verbs in the header between glyphs and its count in the subtitle; and a count was a pill,
+  a caption under the list ("4 public folders."), the subtitle ("4 messages waiting for delivery.", "4 rules of the
+  server") or an Information notice ("3 addresses listed.", "5 messages held.", "Entries that match the search: 1 of
+  4."). Every list page now has one shape (docs/ControlPanelDesign.md, List pages): the count beside the title as a
+  grey pill - "4 routes", "Active: 2 of 3", "Shown: 2 of 40", "1 to 100 of 1284" - that a screen reader hears as it
+  changes, as it heard the notices, and Refresh in the header; the search, the filters and the list's verbs in the
+  toolbar over the list - the selected entry's Edit or Properties, then Delete, then Add…, the Primary, at the right
+  edge - in words without glyphs; and one way to add on each page, the toolbar's Add… or the form under the list. The
+  toolbar puts its actions on a row of their own under the search where the widest of them does not fit beside it, and
+  its filters under the search where the two do not fit side by side, so that the suppression list's Remove and Add…,
+  which had moved to the header because beside its domain box they were not drawn in the narrowest window, are in its
+  toolbar again; the quarantine's Group by is a filter beside its search and Remove expired is in its toolbar, where
+  all four were in the header and squeezed its title. Five captions moved their Alt key to leave R to Refresh -
+  Deliver lo_cal → remote, Add a ro_ute, Rem_ove criterion, Re_move stored passphrase and Proto_col - and thirty-six
+  translated captions moved theirs in their own language.
 
 - **Fixed: the Primary button came first on some pages, in the middle on others and last on the rest.** The REST API
   keys page put Create a key… before Refresh, the event scripts Save & reload before Check syntax and Reload from

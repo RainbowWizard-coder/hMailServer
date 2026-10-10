@@ -136,11 +136,10 @@ namespace hMailServer.ControlPanel.Views
             }
 
             QueueGrid.ItemsSource = rows;
-            ListSearch.Apply(QueueGrid, SearchBar.SearchText);
             ReadFailure.Clear(Notice);
-            StatusText.Show(EmptyStatus, Notice, rows.Count, null, L("The delivery queue is empty."));
-            CountPill.Text = Plural(rows.Count, "{0} message", "{0} messages");
+            StatusText.Show(EmptyStatus, Notice, rows.Count, null, EmptyText_);
             CountPill.Visibility = Visibility.Visible;
+            ShowListState_();
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -162,7 +161,19 @@ namespace hMailServer.ControlPanel.Views
          Notice.Visibility = Visibility.Visible;
       }
 
-      private void Search_TextChanged(object sender, EventArgs e)
-         => ListSearch.Apply(QueueGrid, SearchBar.SearchText);
+      // What an empty queue means, said by a read that finds no message and by a
+      // search cleared over none.
+      private static string EmptyText_ => L("The delivery queue is empty.");
+
+      private void Search_TextChanged(object sender, EventArgs e) => ShowListState_();
+
+      /// <summary>
+      /// The search over the messages read, the count beside the title and the empty
+      /// state: "Shown: 1 of 4" while a search is typed in, and where it hides every
+      /// row, the sentence that says so in place of the empty list's
+      /// (Services/ListSearchState).
+      /// </summary>
+      private void ShowListState_() => ListSearchState.Show(QueueGrid, SearchBar.SearchText, CountPill,
+         n => Plural(n, "{0} message", "{0} messages"), EmptyStatus, EmptyText_);
    }
 }

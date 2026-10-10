@@ -29,8 +29,13 @@ namespace hMailServer.ControlPanel.Views
    /// </summary>
    public class MessageTraceView : UserControl, IRefreshablePage
    {
-      // The last search, an address or a followed message, which F5 runs again.
+      // The last search, an address or a followed message, which Refresh and F5
+      // run again.
       private Action rerun_;
+
+      // The header's Refresh, as on every list page (docs/ControlPanelDesign.md,
+      // List pages): it can be pressed once there is a search to run again.
+      private Button refresh_;
 
       /// <summary>
       /// The toolbar's search box is the address: the search runs on Enter or the
@@ -173,11 +178,19 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>F5: the last search again, for what has happened since; nothing before the first.</summary>
       void IRefreshablePage.Refresh() => rerun_?.Invoke();
 
+      /// <summary>The search or the followed message that Refresh and F5 run again, which Refresh waits for.</summary>
+      private void Remember_(Action rerun)
+      {
+         rerun_ = rerun;
+         if (refresh_ != null)
+            refresh_.IsEnabled = true;
+      }
+
       private void Search() => Search_(toolbar_.SearchText.Trim());
 
       private void Search_(string address)
       {
-         rerun_ = () => Search_(address);
+         Remember_(() => Search_(address));
          count_.Visibility = Visibility.Collapsed;
          try
          {
@@ -219,7 +232,7 @@ namespace hMailServer.ControlPanel.Views
 
       private void Follow_(int queueId)
       {
-         rerun_ = () => Follow_(queueId);
+         Remember_(() => Follow_(queueId));
          count_.Visibility = Visibility.Collapsed;
          try
          {
@@ -322,9 +335,16 @@ namespace hMailServer.ControlPanel.Views
          // The count is a polite live region, so that a screen reader hears it as
          // it changes, as the notice it replaced was heard (Scaffold/StatusPill).
          System.Windows.Automation.AutomationProperties.SetLiveSetting(count_, System.Windows.Automation.AutomationLiveSetting.Polite);
+
+         // Refresh in the header, as on every list page, where the page had F5
+         // alone: the last search again, for what has happened since. Before the
+         // first there is nothing to run again, and it cannot be pressed.
+         refresh_ = MakeButton(L("_Refresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => rerun_?.Invoke());
+         refresh_.IsEnabled = rerun_ != null;
          root.Children.Add(new PageHeader
          {
             Status = count_,
+            Actions = refresh_,
             PageKey = "messagetrace",
             Subtitle = L("What happened to a particular message. Search by any address - it matches senders and recipients - then follow one row to see every event for that message in order.")
          });

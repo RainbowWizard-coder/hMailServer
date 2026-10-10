@@ -140,8 +140,6 @@ namespace hMailServer.ControlPanel.Views
                   names.Add((string)f.Name);
                   ServerSession.Release(f);
                }
-               count_.Text = Plural(count, "{0} public folder", "{0} public folders");
-               count_.Visibility = Visibility.Visible;
             }
             finally
             {
@@ -161,6 +159,7 @@ namespace hMailServer.ControlPanel.Views
 
          ReadFailure.Clear(notice_, addButton_);
          list_.ItemsSource = names;
+         count_.Visibility = Visibility.Visible;
          // The empty state says what to do, not only that there is nothing:
          // "0 public folders." left a first-time administrator with a blank card.
          StatusText.Show(empty_, notice_, names.Count, null, EmptySentence_);
@@ -168,9 +167,10 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// The search over the folders read: the list filtered as it is typed in, and
-      /// where it hides every folder, the empty state saying that none has what was
-      /// typed in its name.
+      /// The search over the folders read: the list filtered as it is typed in, the
+      /// count beside the title saying how many it shows while it is ("Shown: 3 of
+      /// 4", Services/ListSearchCount), and where it hides every folder, the empty
+      /// state saying that none has what was typed in its name.
       /// </summary>
       private void ShowSearch_()
       {
@@ -179,7 +179,9 @@ namespace hMailServer.ControlPanel.Views
 
          string query = search_.SearchText?.Trim() ?? "";
          ListSearch.Apply(list_, query);
-         if (query.Length > 0 && names.Count > 0 && !names.Exists(name => ListSearch.Contains(name, query)))
+         int shown = names.FindAll(name => ListSearch.Contains(name, query)).Count;
+         count_.Text = ListSearchCount.PillText(query, shown, names.Count, Plural(names.Count, "{0} public folder", "{0} public folders"));
+         if (ListSearchCount.NothingMatches(query, shown, names.Count))
          {
             empty_.Text = F("No public folder has \"{0}\" in its name.", query);
             empty_.Visibility = Visibility.Visible;

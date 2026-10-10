@@ -57,6 +57,10 @@ namespace hMailServer.ControlPanel.Views
       // match the search: 1 of 4." (review findings F288, F210).
       private readonly StatusPill count_ = new() { Level = StatusLevel.Normal, Visibility = Visibility.Collapsed };
 
+      // The empty state's way to add the first domain, which a search that hides
+      // every entry takes away and its clearing gives back.
+      private Wpf.Ui.Controls.Button addFirst_;
+
       private List<EntryView> all_ = new();
 
       // Add waits for a read that works (Services/ReadFailure).
@@ -226,16 +230,25 @@ namespace hMailServer.ControlPanel.Views
 
          entries_.ItemsSource = shown;
 
+         // The count beside the title, and while a search is typed in how many it
+         // shows: no notice, which the search left saying "1 of 4" under a list of
+         // four once it was typed away (review findings F288, F210).
+         count_.Text = ListSearchCount.PillText(search, shown.Count, all_.Count, Plural(all_.Count, "{0} entry", "{0} entries"));
+         count_.Visibility = Visibility.Visible;
+
+         // A search that hides every entry says so, without the way to add the
+         // first domain to a list that has some; it showed a blank card.
+         if (ListSearchCount.NothingMatches(search, shown.Count, all_.Count))
+         {
+            empty_.Action = null;
+            empty_.Text = ListSearchCount.NothingMatchesText(search);
+            empty_.Visibility = Visibility.Visible;
+            return;
+         }
+
+         empty_.Action = addFirst_;
          StatusText.Show(empty_, null, all_.Count, null,
             L("The list is empty, and an empty list changes nothing: every domain is greylisted and scored as before."));
-
-         // The count beside the title, and while the search hides entries how
-         // many it shows: no notice, which the search left saying "1 of 4" under a
-         // list of four once it was typed away (review findings F288, F210).
-         count_.Text = search.Length > 0 && all_.Count > 0
-            ? F("Shown: {0} of {1}", shown.Count, all_.Count)
-            : Plural(all_.Count, "{0} entry", "{0} entries");
-         count_.Visibility = Visibility.Visible;
       }
 
       private void AddEntry()
@@ -363,6 +376,7 @@ namespace hMailServer.ControlPanel.Views
          var first = new Wpf.Ui.Controls.Button { Content = L("Add the _first domain…") };
          AutomationProperties.SetAutomationId(first, "domainpolicy-add-first");
          first.Click += (_, _) => AddEntry();
+         addFirst_ = first;
          empty_.Action = first;
          var host = new Grid();
          host.Children.Add(rows);

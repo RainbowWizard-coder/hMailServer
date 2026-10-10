@@ -51,11 +51,132 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(actions != null && actions.Descendants(Ui + "Button").Any(b => (string)b.Attribute("Content") == "{loc:L '_Refresh'}"),
             file + ": the header has no Refresh.");
 
-         // The code behind counts with the catalogue's plural forms and hides the
+         // The code behind counts with the catalogue's plural forms, and hides the
          // count with a read that failed.
          string code = ReadControlPanelFile(Path.Join("Views", file + ".cs"));
-         Assert.Matches(new Regex(@"CountPill\.Text = Plural\(rows\.Count, ""\{0\} [^""]+"", ""\{0\} [^""]+""\);"), code);
+         Assert.Matches(new Regex(@"n => Plural\(n, ""\{0\} [^""]+"", ""\{0\} [^""]+""\)"), code);
          Assert.Contains("CountPill.Visibility = ", code, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The XAML list pages' search says what it shows (review findings F288 and
+      /// F210): the count, the filter and the empty state go through one place,
+      /// Services/ListSearchState, after every read that worked and every keystroke
+      /// in the search - "Shown: 1 of 2" while a search is typed in, and the no-match
+      /// sentence without the add action where it hides every row. These pages
+      /// filtered the grid alone: "2 routes" beside a blank card while a search hid
+      /// both.
+      /// </summary>
+      [Theory]
+      [MemberData(nameof(XamlListPages))]
+      public void AXamlListPage_SaysWhatItsSearchShows(string file)
+      {
+         string code = ReadControlPanelFile(Path.Join("Views", file + ".cs"));
+         Assert.Contains("private void Search_TextChanged(object sender, EventArgs e) => ShowListState_();", code, StringComparison.Ordinal);
+
+         string state = WithheldRowTests.MemberText(code, "private void ShowListState_()");
+         Assert.True(state != null, file + ".cs has no ShowListState_.");
+         Assert.Contains("ListSearchState.Show(", state, StringComparison.Ordinal);
+         Assert.Contains("SearchBar.SearchText, CountPill,", state, StringComparison.Ordinal);
+         Assert.Contains("EmptyStatus, ", state, StringComparison.Ordinal);
+
+         // Reload shows the pill and then the state, so that a read that failed -
+         // whose pill is hidden - is neither counted nor called empty.
+         Assert.True(Regex.IsMatch(code, @"CountPill\.Visibility = [^;]+;\s*ShowListState_\(\);"),
+            file + ".cs does not show its list's state after showing its pill.");
+
+         // No one sets the count or filters the grid past the state.
+         Assert.DoesNotContain("CountPill.Text =", code, StringComparison.Ordinal);
+         Assert.DoesNotContain("ListSearch.Apply(", code, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The one place: the filter, then the pill and the empty state only while the
+      /// pill is shown, the add action taken away for the no-match sentence and
+      /// given back, both through Services/ListSearchCount.
+      /// </summary>
+      [Fact]
+      public void TheListSearchState_FiltersAndThenSaysWhatItShows()
+      {
+         string code = ReadControlPanelFile(Path.Join("Services", "ListSearchState.cs"));
+         string show = WithheldRowTests.MemberText(code, "public static void Show(");
+         Assert.True(show != null, "ListSearchState.Show is gone.");
+
+         int apply = show.IndexOf("ListSearch.Apply(list, query);", StringComparison.Ordinal);
+         int guard = show.IndexOf("pill.Visibility != Visibility.Visible", StringComparison.Ordinal);
+         int text = show.IndexOf("pill.Text = ListSearchCount.PillText(query, shown, total, count(total));", StringComparison.Ordinal);
+         Assert.True(apply >= 0 && guard > apply && text > guard, "ListSearchState.Show does not filter, then ask whether the read worked, then count.");
+         Assert.Contains("if (ListSearchCount.NothingMatches(query, shown, total))", show, StringComparison.Ordinal);
+         Assert.Contains("empty.Action = null;", show, StringComparison.Ordinal);
+         Assert.Contains("empty.Text = ListSearchCount.NothingMatchesText(query);", show, StringComparison.Ordinal);
+         Assert.Contains("empty.Action = held.Action;", show, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The pages that filter their rows themselves say the same: the allowed and
+      /// blocked domains count what they show and say where nothing matches, which
+      /// was a blank card; the public folders and the quarantine count what their
+      /// search shows, where they kept the whole list's number.
+      /// </summary>
+      [Fact]
+      public void TheSelfFilteringLists_CountWhatTheirSearchShows()
+      {
+         string policy = WithheldRowTests.MemberText(ReadControlPanelFile(Path.Join("Views", "DomainPolicyListView.cs")), "private void Present_()");
+         Assert.True(policy != null, "DomainPolicyListView.Present_ is gone.");
+         Assert.Contains("count_.Text = ListSearchCount.PillText(search, shown.Count, all_.Count,", policy, StringComparison.Ordinal);
+         int nothing = policy.IndexOf("if (ListSearchCount.NothingMatches(search, shown.Count, all_.Count))", StringComparison.Ordinal);
+         int back = policy.IndexOf("empty_.Action = addFirst_;", StringComparison.Ordinal);
+         Assert.True(nothing >= 0 && back > nothing, "DomainPolicyListView.Present_ has no no-match state, or does not give the add action back after it.");
+         Assert.Contains("empty_.Text = ListSearchCount.NothingMatchesText(search);", policy, StringComparison.Ordinal);
+
+         string folders = WithheldRowTests.MemberText(ReadControlPanelFile(Path.Join("Views", "PublicFoldersView.cs")), "private void ShowSearch_()");
+         Assert.True(folders != null, "PublicFoldersView.ShowSearch_ is gone.");
+         Assert.Contains("count_.Text = ListSearchCount.PillText(query, shown, names.Count,", folders, StringComparison.Ordinal);
+
+         string quarantine = WithheldRowTests.MemberText(ReadControlPanelFile(Path.Join("Views", "QuarantineView.cs")), "private void ShowSearchState_()");
+         Assert.True(quarantine != null, "QuarantineView.ShowSearchState_ is gone.");
+         int failed = quarantine.IndexOf("if (ReadFailure.IsShown(status_))", StringComparison.Ordinal);
+         int counted = quarantine.IndexOf("count_.Text = ListSearchCount.PillText(review_.Filter, review_.Shown.Count, review_.Messages.Count,", StringComparison.Ordinal);
+         Assert.True(failed >= 0 && counted > failed, "QuarantineView.ShowSearchState_ does not count what its search shows after asking whether the read worked.");
+      }
+
+      public static TheoryData<string, string> CodeListPageRefresh => new()
+      {
+         { "CollectionEditorView.cs", "Actions = refresh" },
+         { "SuppressionListView.cs", "Actions = MakeButton(L(\"_Refresh\")" },
+         { "DomainPolicyListView.cs", "Actions = MakeButton(L(\"_Refresh\")" },
+         { "AuditTrailView.cs", "Actions = MakeButton(L(\"_Refresh\")" },
+         { "MessageTraceView.cs", "Actions = refresh_," },
+         { "PublicFoldersView.cs", "header_.Actions = MakeButton(L(\"_Refresh\")" },
+      };
+
+      /// <summary>
+      /// The code-built list pages have Refresh in their header (the quarantine's,
+      /// after Digest settings, is TheQuarantine_PutsItsFilterAndListVerbInTheToolbar's).
+      /// The message trace had none and F5 alone: its Refresh runs the last search or
+      /// the followed message again, and cannot be pressed before the first.
+      /// </summary>
+      [Theory]
+      [MemberData(nameof(CodeListPageRefresh))]
+      public void ACodeListPage_HasRefreshInItsHeader(string file, string actions)
+      {
+         string code = ReadControlPanelFile(Path.Join("Views", file));
+         Assert.Contains(actions, code, StringComparison.Ordinal);
+      }
+
+      [Fact]
+      public void TheMessageTrace_RefreshesTheLastSearch_OnceThereIsOne()
+      {
+         string code = ReadControlPanelFile(Path.Join("Views", "MessageTraceView.cs"));
+         Assert.Contains("refresh_ = MakeButton(L(\"_Refresh\"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => rerun_?.Invoke());", code, StringComparison.Ordinal);
+         Assert.Contains("refresh_.IsEnabled = rerun_ != null;", code, StringComparison.Ordinal);
+
+         string remember = WithheldRowTests.MemberText(code, "private void Remember_(Action rerun)");
+         Assert.True(remember != null, "MessageTraceView.Remember_ is gone.");
+         Assert.Contains("refresh_.IsEnabled = true;", remember, StringComparison.Ordinal);
+         Assert.Contains("Remember_(() => Search_(address));", code, StringComparison.Ordinal);
+         Assert.Contains("Remember_(() => Follow_(queueId));", code, StringComparison.Ordinal);
+         Assert.DoesNotContain("rerun_ = () =>", code, StringComparison.Ordinal);
       }
 
       /// <summary>No button in a page header or a toolbar carries a glyph: a glyph is a row's button and an empty state's.</summary>

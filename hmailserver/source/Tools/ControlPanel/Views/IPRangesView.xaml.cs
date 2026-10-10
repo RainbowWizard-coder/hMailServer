@@ -199,10 +199,8 @@ namespace hMailServer.ControlPanel.Views
          {
             ReadFailure.Clear(Notice, AddRangeButton, RestoreDefaultsButton);
             RangeGrid.ItemsSource = rows;
-            ListSearch.Apply(RangeGrid, SearchBar.SearchText);
-            StatusText.Show(EmptyStatus, null, rows.Count, null, L("No IP ranges, so this server refuses every SMTP, POP3 and IMAP connection until one exists."));
-            CountPill.Text = Plural(rows.Count, "{0} IP range", "{0} IP ranges");
             CountPill.Visibility = Visibility.Visible;
+            ShowListState_();
 
             // Selected, not scrolled into view: the list keeps its own offset when its
             // rows are replaced, and ScrollIntoView would bring the row into the
@@ -247,8 +245,16 @@ namespace hMailServer.ControlPanel.Views
       private void PermGrid_SizeChanged(object sender, SizeChangedEventArgs e)
          => PermGrid.Columns = e.NewSize.Width >= 4 * PermColumnMinWidth ? 4 : 2;
 
-      private void Search_TextChanged(object sender, EventArgs e)
-         => ListSearch.Apply(RangeGrid, SearchBar.SearchText);
+      private void Search_TextChanged(object sender, EventArgs e) => ShowListState_();
+
+      /// <summary>
+      /// The search over the IP ranges read, the count beside the title and the empty
+      /// state: "Shown: 1 of 4" while a search is typed in, and where it hides every
+      /// row, the sentence that says so in place of the empty list's
+      /// (Services/ListSearchState).
+      /// </summary>
+      private void ShowListState_() => ListSearchState.Show(RangeGrid, SearchBar.SearchText, CountPill,
+         n => Plural(n, "{0} IP range", "{0} IP ranges"), EmptyStatus, L("No IP ranges, so this server refuses every SMTP, POP3 and IMAP connection until one exists."));
 
       /// <summary>
       /// The header's Refresh: the ranges read again as F5 reads them, the selected

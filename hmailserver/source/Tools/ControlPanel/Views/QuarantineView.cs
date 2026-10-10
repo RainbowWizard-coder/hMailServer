@@ -291,10 +291,8 @@ namespace hMailServer.ControlPanel.Views
                emptyText_ = empty_.Text;
                emptyAction_ = empty_.Action;
                total_ = total;
-               ShowSearchState_();
-
-               count_.Text = Plural(total, "{0} message", "{0} messages");
                count_.Visibility = Visibility.Visible;
+               ShowSearchState_();
 
                // A list longer than the page reads is a state with a consequence -
                // the rest are still held - so it keeps its notice.
@@ -1558,16 +1556,22 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// The empty state for the search: a search that matches nothing says so - and,
-      /// where the server listed only the most recent, that it looked at those - and
-      /// a search cleared gives back what the page says with nothing held.
+      /// The count and the empty state for the search: while a search is typed in,
+      /// the pill says how many of the messages read it shows ("Shown: 3 of 200" -
+      /// of those the server listed, which are what the search looks at), and the
+      /// number held otherwise; a search that matches nothing says so - and, where
+      /// the server listed only the most recent, that it looked at those - and a
+      /// search cleared gives back what the page says with nothing held.
       /// </summary>
       private void ShowSearchState_()
       {
          // A read that failed has neither: its notice says what happened, and the
-         // empty state stays hidden (Services/ReadFailure).
+         // empty state and the count stay hidden (Services/ReadFailure).
          if (ReadFailure.IsShown(status_))
             return;
+
+         count_.Text = ListSearchCount.PillText(review_.Filter, review_.Shown.Count, review_.Messages.Count,
+            Plural(total_, "{0} message", "{0} messages"));
 
          if (string.IsNullOrWhiteSpace(review_.Filter) || review_.Messages.Count == 0)
          {
