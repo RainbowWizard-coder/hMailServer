@@ -61,10 +61,12 @@ namespace hMailServer.ControlPanel.Views
          address_ = address;
          forAccount_ = forAccount;
 
+         // Secondary: the panel is the Levels tab of the account and the domain
+         // dialogs, whose Save is the one Primary button (review finding F195).
          save_ = new Wpf.Ui.Controls.Button
          {
             Content = L("Save _levels now"),
-            Appearance = Wpf.Ui.Controls.ControlAppearance.Primary,
+            Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary,
             Margin = new Thickness(0, 12, 0, 0),
             MinWidth = 120
          };

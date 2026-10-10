@@ -2413,11 +2413,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 - **Fixed: the editors on the domain, account and route dialogs' tabs drew blue buttons of their own beside the
   dialog's blue Save.** The list editor's Add on the domain's Names and Allow and block list tabs and on the account's
   External tab, the account's Rules tab's Add rule, Add criterion and Add action, App passwords' Create, Two-factor's
-  Enrol a second factor, the domain's DKIM tab's Switch now and the route's Add address were all Primary buttons, so
-  that a tab could show two blue buttons, each looking like the way out of the dialog; and the Rules tab kept the
-  Rules page's 24-pixel padding inside the tab's own, so that the rules stood 24 pixels further in than every other
-  tab's content. They are Secondary buttons on those tabs, the dialog's Save is its one Primary button, and the Rules
-  tab starts at the dialog's inset as the other tabs do; on the Rules page and the list pages Add stays Primary.
+  Enrol a second factor, Save levels now on the account's and the domain's Levels tabs, the domain's DKIM tab's Switch
+  now and the route's Add address were all Primary buttons, so that a tab could show two blue buttons, each looking
+  like the way out of the dialog; and the Rules tab kept the Rules page's 24-pixel padding inside the tab's own, so
+  that the rules stood 24 pixels further in than every other tab's content. They are Secondary buttons on those tabs,
+  the dialog's Save is its one Primary button, and the Rules tab starts at the dialog's inset as the other tabs do; on
+  the Rules page and the list pages Add stays Primary.
 
 - **Fixed: a page's subtitle was squeezed into the column left of its actions, and the long ones pushed the page's
   list below the window.** The greylisting bypass list's subtitle ran to ten lines in English and fourteen in German,

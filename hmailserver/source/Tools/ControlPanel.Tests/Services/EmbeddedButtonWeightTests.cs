@@ -16,9 +16,9 @@ namespace hMailServer.ControlPanel.Tests.Services
    /// editors the domain, account and route dialogs embed on their tabs drew Primary
    /// buttons of their own beside it: the list editor's Add on the Names and Allow and
    /// block list tabs and the External tab, the Rules tab's Add rule, Add criterion and
-   /// Add action, App passwords' Create, Two-factor's Enrol a second factor, the DKIM
-   /// tab's Switch now and the route's Add address - so that a tab could show two blue
-   /// buttons, each looking like the way out of the dialog.
+   /// Add action, App passwords' Create, Two-factor's Enrol a second factor, the Levels
+   /// tab's Save levels now, the DKIM tab's Switch now and the route's Add address - so
+   /// that a tab could show two blue buttons, each looking like the way out of the dialog.
    /// </summary>
    public class EmbeddedButtonWeightTests
    {
@@ -38,11 +38,17 @@ namespace hMailServer.ControlPanel.Tests.Services
             file + " draws a Primary button besides its Save:\n" + string.Join("\n", primaries.Select(l => l.Trim())));
       }
 
+      /// <summary>
+      /// The panels the account and the domain dialogs put on their tabs draw no Primary
+      /// button: the account's App passwords, Two-factor and Recovery, and the Levels tab
+      /// both dialogs build from SettingLevelsPanel.
+      /// </summary>
       [Theory]
       [InlineData("AppPasswordsPanel.cs")]
       [InlineData("AccountTwoFactorPanel.cs")]
       [InlineData("AccountRecoveryPanel.cs")]
-      public void APanelOnTheAccountDialogsTabs_HasNoPrimaryButton(string file)
+      [InlineData("SettingLevelsPanel.cs")]
+      public void APanelOnTheAccountOrDomainDialogsTabs_HasNoPrimaryButton(string file)
          => Assert.DoesNotContain("ControlAppearance.Primary", ReadView(file), StringComparison.Ordinal);
 
       [Fact]
