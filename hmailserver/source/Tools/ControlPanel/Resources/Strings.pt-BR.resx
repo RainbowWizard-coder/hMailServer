@@ -2185,6 +2185,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Bind to address" xml:space="preserve">
     <value>Vincular ao endereço</value>
   </data>
+  <data name="Bind to address {0}" xml:space="preserve">
+    <value>Vincular ao endereço {0}</value>
+  </data>
   <data name="Block" xml:space="preserve">
     <value>Bloquear</value>
   </data>
@@ -5423,7 +5426,7 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
     <value>Proxy de encaminhamento para as requisições web deste servidor (host:port; vazio = direto)</value>
   </data>
   <data name="Forward to {0}" xml:space="preserve">
-    <value>Avançar para {0}</value>
+    <value>Encaminhar para {0}</value>
   </data>
   <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
     <value>Avançar para {0} (Alt+Seta para a direita)</value>
@@ -6950,6 +6953,9 @@ Cada inscrição Web Push feita com o par atual para de funcionar na hora, e cad
   <data name="Master user (empty = off)" xml:space="preserve">
     <value>Usuário mestre (vazio = desligado)</value>
   </data>
+  <data name="Matc_h" xml:space="preserve">
+    <value>Corres_pondência</value>
+  </data>
   <data name="Match all criteria (AND)" xml:space="preserve">
     <value>Corresponder a todos os critérios (AND)</value>
   </data>
@@ -7392,6 +7398,9 @@ Nada do que já está lá é removido.</value>
   </data>
   <data name="Move to NT SERVICE\hMailServer…" xml:space="preserve">
     <value>Mudar para NT SERVICE\hMailServer…</value>
+  </data>
+  <data name="Move to folder '{0}'" xml:space="preserve">
+    <value>Mover para a pasta '{0}'</value>
   </data>
   <data name="Move to the next or the previous part of the window: the command bar, the navigation, the page and the help" xml:space="preserve">
     <value>Ir para a parte seguinte ou anterior da janela: a barra de comandos, a navegação, a página e a ajuda</value>
@@ -10122,6 +10131,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Reply to colleagues _only" xml:space="preserve">
     <value>Responder s_omente a colegas</value>
   </data>
+  <data name="Reply with the subject '{0}'" xml:space="preserve">
+    <value>Responder com o assunto '{0}'</value>
+  </data>
   <data name="Report _mailbox (empty = none)" xml:space="preserve">
     <value>_Caixa de relatórios (vazia = nenhuma)</value>
   </data>
@@ -10502,6 +10514,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="Run the built-in connectivity and configuration checks." xml:space="preserve">
     <value>Execute as verificações embutidas de conectividade e configuração.</value>
+  </data>
+  <data name="Run the script function {0}" xml:space="preserve">
+    <value>Executar a função de script {0}</value>
   </data>
   <data name="Run the service as LocalSystem" xml:space="preserve">
     <value>Executar o serviço como LocalSystem</value>
@@ -11289,6 +11304,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Send using route" xml:space="preserve">
     <value>Enviar usando a rota</value>
   </data>
+  <data name="Send using route #{0}" xml:space="preserve">
+    <value>Enviar usando a rota nº {0}</value>
+  </data>
   <data name="Send webhook events" xml:space="preserve">
     <value>Enviar eventos de webhook</value>
   </data>
@@ -11544,6 +11562,12 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Set header value" xml:space="preserve">
     <value>Definir o valor do cabeçalho</value>
   </data>
+  <data name="Set header {0} to '{1}'" xml:space="preserve">
+    <value>Definir o cabeçalho {0} como '{1}'</value>
+  </data>
+  <data name="Set header {0} to (empty)" xml:space="preserve">
+    <value>Definir o cabeçalho {0} como (vazio)</value>
+  </data>
   <data name="Set in hMailServer.ini only" xml:space="preserve">
     <value>Definido apenas no hMailServer.ini</value>
   </data>
@@ -11683,7 +11707,7 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
     <value>Mostrar a senha</value>
   </data>
   <data name="Show rules _for" xml:space="preserve">
-    <value>Mostrar regras _de</value>
+    <value>Mostrar re_gras de</value>
   </data>
   <data name="Show senders' brand logos (BIMI)" xml:space="preserve">
     <value>Mostrar os logotipos da marca dos remetentes (BIMI)</value>
@@ -12158,6 +12182,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="Such as {0}" xml:space="preserve">
     <value>Por exemplo, {0}</value>
+  </data>
+  <data name="Summary" xml:space="preserve">
+    <value>Resumo</value>
   </data>
   <data name="Support session opened" xml:space="preserve">
     <value>Sessão de suporte aberta</value>
@@ -17099,14 +17126,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="{0} (inactive)" xml:space="preserve">
     <value>{0} (inativo)</value>
   </data>
-  <data name="{0} (route #{1})" xml:space="preserve">
-    <value>{0} (rota nº {1})</value>
-  </data>
   <data name="{0} (server time)" xml:space="preserve">
     <value>{0} (horário do servidor)</value>
-  </data>
-  <data name="{0} (subject '{1}')" xml:space="preserve">
-    <value>{0} (assunto '{1}')</value>
   </data>
   <data name="{0} ({1})" xml:space="preserve">
     <value>{0} ({1})</value>
@@ -17867,6 +17888,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="{0} with no usable digest, which the server ignores" xml:space="preserve">
     <value>{0} sem digest utilizável, que o servidor ignora</value>
   </data>
+  <data name="{0} {1} '{2}'" xml:space="preserve">
+    <value>{0} {1} '{2}'</value>
+  </data>
   <data name="{0} {1} account had no email address and was skipped." xml:space="preserve">
     <value>{0} {1} conta não tinha endereço de e-mail e foi ignorada.</value>
   </data>
@@ -17902,6 +17926,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="{0} →" xml:space="preserve">
     <value>{0} →</value>
+  </data>
+  <data name="{0} → {1}" xml:space="preserve">
+    <value>{0} → {1}</value>
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB of {2} KB - at its cap, so entries are being evicted." xml:space="preserve">
     <value>{0}% das consultas respondidas a partir da memória, usando {1} KB de {2} KB - no limite, portanto entradas estão sendo descartadas.</value>

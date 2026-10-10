@@ -2185,6 +2185,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Bind to address" xml:space="preserve">
     <value>Bind till adress</value>
   </data>
+  <data name="Bind to address {0}" xml:space="preserve">
+    <value>Bind till adressen {0}</value>
+  </data>
   <data name="Block" xml:space="preserve">
     <value>Blockera</value>
   </data>
@@ -5423,7 +5426,7 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
     <value>Vidarebefordrande proxy för serverns webbförfrågningar (host:port; tom = direkt)</value>
   </data>
   <data name="Forward to {0}" xml:space="preserve">
-    <value>Framåt till {0}</value>
+    <value>Vidarebefordra till {0}</value>
   </data>
   <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
     <value>Framåt till {0} (Alt+Högerpil)</value>
@@ -6950,6 +6953,9 @@ Varje Web Push-prenumeration under det nuvarande paret slutar fungera direkt, oc
   <data name="Master user (empty = off)" xml:space="preserve">
     <value>Huvudanvändare (tomt = av)</value>
   </data>
+  <data name="Matc_h" xml:space="preserve">
+    <value>_Matchning</value>
+  </data>
   <data name="Match all criteria (AND)" xml:space="preserve">
     <value>Matcha alla kriterier (OCH)</value>
   </data>
@@ -7392,6 +7398,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="Move to NT SERVICE\hMailServer…" xml:space="preserve">
     <value>Byt till NT SERVICE\hMailServer…</value>
+  </data>
+  <data name="Move to folder '{0}'" xml:space="preserve">
+    <value>Flytta till mappen '{0}'</value>
   </data>
   <data name="Move to the next or the previous part of the window: the command bar, the navigation, the page and the help" xml:space="preserve">
     <value>Gå till nästa eller föregående del av fönstret: kommandofältet, navigeringen, sidan och hjälpen</value>
@@ -10122,6 +10131,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Reply to colleagues _only" xml:space="preserve">
     <value>Svara bara k_ollegor</value>
   </data>
+  <data name="Reply with the subject '{0}'" xml:space="preserve">
+    <value>Svara med ämnet '{0}'</value>
+  </data>
   <data name="Report _mailbox (empty = none)" xml:space="preserve">
     <value>Rapport_brevlåda (tom = ingen)</value>
   </data>
@@ -10502,6 +10514,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Run the built-in connectivity and configuration checks." xml:space="preserve">
     <value>Kör de inbyggda anslutnings- och konfigurationskontrollerna.</value>
+  </data>
+  <data name="Run the script function {0}" xml:space="preserve">
+    <value>Kör skriptfunktionen {0}</value>
   </data>
   <data name="Run the service as LocalSystem" xml:space="preserve">
     <value>Kör tjänsten som LocalSystem</value>
@@ -11289,6 +11304,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Send using route" xml:space="preserve">
     <value>Skicka via rutt</value>
   </data>
+  <data name="Send using route #{0}" xml:space="preserve">
+    <value>Skicka via rutt nr {0}</value>
+  </data>
   <data name="Send webhook events" xml:space="preserve">
     <value>Skicka webhook-händelser</value>
   </data>
@@ -11543,6 +11561,12 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Set header value" xml:space="preserve">
     <value>Sätt rubrikvärde</value>
+  </data>
+  <data name="Set header {0} to '{1}'" xml:space="preserve">
+    <value>Sätt rubriken {0} till '{1}'</value>
+  </data>
+  <data name="Set header {0} to (empty)" xml:space="preserve">
+    <value>Sätt rubriken {0} till (tom)</value>
   </data>
   <data name="Set in hMailServer.ini only" xml:space="preserve">
     <value>Anges endast i hMailServer.ini</value>
@@ -12158,6 +12182,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Such as {0}" xml:space="preserve">
     <value>Till exempel {0}</value>
+  </data>
+  <data name="Summary" xml:space="preserve">
+    <value>Sammanfattning</value>
   </data>
   <data name="Support session opened" xml:space="preserve">
     <value>Supportsession öppnad</value>
@@ -17099,14 +17126,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} (inactive)" xml:space="preserve">
     <value>{0} (inaktiv)</value>
   </data>
-  <data name="{0} (route #{1})" xml:space="preserve">
-    <value>{0} (rutt nr {1})</value>
-  </data>
   <data name="{0} (server time)" xml:space="preserve">
     <value>{0} (servertid)</value>
-  </data>
-  <data name="{0} (subject '{1}')" xml:space="preserve">
-    <value>{0} (ämne '{1}')</value>
   </data>
   <data name="{0} ({1})" xml:space="preserve">
     <value>{0} ({1})</value>
@@ -17867,6 +17888,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} with no usable digest, which the server ignores" xml:space="preserve">
     <value>{0} utan användbar digest, som servern ignorerar</value>
   </data>
+  <data name="{0} {1} '{2}'" xml:space="preserve">
+    <value>{0} {1} '{2}'</value>
+  </data>
   <data name="{0} {1} account had no email address and was skipped." xml:space="preserve">
     <value>{0} {1} konto saknade e-postadress och hoppades över.</value>
   </data>
@@ -17902,6 +17926,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} →" xml:space="preserve">
     <value>{0} →</value>
+  </data>
+  <data name="{0} → {1}" xml:space="preserve">
+    <value>{0} → {1}</value>
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB of {2} KB - at its cap, so entries are being evicted." xml:space="preserve">
     <value>{0} % av uppslagningarna besvarade från minnet, med {1} KB av {2} KB - vid sitt tak, så poster kastas ut.</value>

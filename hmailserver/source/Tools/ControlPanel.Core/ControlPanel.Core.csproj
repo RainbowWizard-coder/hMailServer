@@ -43,6 +43,10 @@
     <!-- How much time a chart covers, in words: one of a unit is a sentence of its
          own. No WPF, so the tests hold every count's words. -->
     <Compile Include="..\ControlPanel\Services\ChartWindowWords.cs" />
+    <!-- How the Rules page writes a criterion, an action and a rule's summary, one
+         pattern each (review finding F309). No WPF and no COM, so the tests hold
+         every action's words. -->
+    <Compile Include="..\ControlPanel\Services\RulePartText.cs" />
     <!-- The Discovery page's reading of the REST API: the cases, a case's rows of
          the audit trail (so the audit trail's own reader is here with it), and
          where the listener is. No WPF and no network, so the tests can pin the

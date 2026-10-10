@@ -3262,7 +3262,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   value; with no domain the page drew an empty, enabled domain list above a bare sentence and a twelve-pixel link,
   where it now hides the list and shows an empty state, "No domains yet - the per-domain records appear once one is
   added.", with Open Domains (and nothing that claims no domain where the list could not be read); and the one-line MX
-  value has a box one line tall (review finding F306). `DnsRecordsCopyTests` holds it.
+  value has a box one line tall (review finding F306). Rules: an action is its verb and what it acts on - "Forward to
+  someone@example.com", "Move to folder 'Invoices'", "Set header X-Rule to (empty)" - where the list said "Forward
+  e-mail -> someone@example.com", "Move to IMAP folder 'Invoices'" and "Set header value X-Rule=", three ways in one
+  list, and a criterion is one whole text a language can order; the criteria's card is titled IF, level with THEN,
+  with the match mode its first row under the caption Match; and the list of rules has a Summary column, a rule's
+  first criterion and first action, which the search reads, where it said only the number, the name and whether the
+  rule was on (F309). `DnsRecordsCopyTests` and `RulePartTextTests` hold it.
 
 ### Administration
 

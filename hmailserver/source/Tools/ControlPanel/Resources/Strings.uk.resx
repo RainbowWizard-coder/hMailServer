@@ -2206,6 +2206,9 @@
   <data name="Bind to address" xml:space="preserve">
     <value>Прив’язати до адреси</value>
   </data>
+  <data name="Bind to address {0}" xml:space="preserve">
+    <value>Прив’язати до адреси {0}</value>
+  </data>
   <data name="Block" xml:space="preserve">
     <value>Блокувати</value>
   </data>
@@ -5493,7 +5496,7 @@
     <value>Проксі-сервер для вебзапитів цього сервера (host:port; порожньо = пряме з'єднання)</value>
   </data>
   <data name="Forward to {0}" xml:space="preserve">
-    <value>Вперед до сторінки {0}</value>
+    <value>Переслати на {0}</value>
   </data>
   <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
     <value>Вперед до сторінки {0} (Alt+Стрілка вправо)</value>
@@ -7023,6 +7026,9 @@
   <data name="Master user (empty = off)" xml:space="preserve">
     <value>Головний користувач (порожньо = вимкнено)</value>
   </data>
+  <data name="Matc_h" xml:space="preserve">
+    <value>Відповідні_сть</value>
+  </data>
   <data name="Match all criteria (AND)" xml:space="preserve">
     <value>Відповідають усі критерії (AND)</value>
   </data>
@@ -7468,6 +7474,9 @@
   </data>
   <data name="Move to NT SERVICE\hMailServer…" xml:space="preserve">
     <value>Перейти на NT SERVICE\hMailServer…</value>
+  </data>
+  <data name="Move to folder '{0}'" xml:space="preserve">
+    <value>Перемістити до папки «{0}»</value>
   </data>
   <data name="Move to the next or the previous part of the window: the command bar, the navigation, the page and the help" xml:space="preserve">
     <value>Перейти до наступної або попередньої частини вікна: панелі команд, навігації, сторінки й довідки</value>
@@ -10231,6 +10240,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Reply to colleagues _only" xml:space="preserve">
     <value>Відповідати лише к_олегам</value>
   </data>
+  <data name="Reply with the subject '{0}'" xml:space="preserve">
+    <value>Відповісти з темою «{0}»</value>
+  </data>
   <data name="Report _mailbox (empty = none)" xml:space="preserve">
     <value>Поштова скринька для звітів (порожньо = немає) (_M)</value>
   </data>
@@ -10611,6 +10623,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Run the built-in connectivity and configuration checks." xml:space="preserve">
     <value>Виконати вбудовані перевірки підключення та конфігурації.</value>
+  </data>
+  <data name="Run the script function {0}" xml:space="preserve">
+    <value>Виконати функцію скрипту {0}</value>
   </data>
   <data name="Run the service as LocalSystem" xml:space="preserve">
     <value>Запускати службу як LocalSystem</value>
@@ -11425,6 +11440,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Send using route" xml:space="preserve">
     <value>Надсилати через маршрут</value>
   </data>
+  <data name="Send using route #{0}" xml:space="preserve">
+    <value>Надсилати через маршрут №{0}</value>
+  </data>
   <data name="Send webhook events" xml:space="preserve">
     <value>Надсилати події вебхуків</value>
   </data>
@@ -11683,6 +11701,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Set header value" xml:space="preserve">
     <value>Установити значення заголовка</value>
   </data>
+  <data name="Set header {0} to '{1}'" xml:space="preserve">
+    <value>Установити заголовку {0} значення «{1}»</value>
+  </data>
+  <data name="Set header {0} to (empty)" xml:space="preserve">
+    <value>Установити заголовку {0} значення (порожньо)</value>
+  </data>
   <data name="Set in hMailServer.ini only" xml:space="preserve">
     <value>Задається лише в hMailServer.ini</value>
   </data>
@@ -11825,7 +11849,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>Показати пароль</value>
   </data>
   <data name="Show rules _for" xml:space="preserve">
-    <value>Показати правила _для</value>
+    <value>Показа_ти правила для</value>
   </data>
   <data name="Show senders' brand logos (BIMI)" xml:space="preserve">
     <value>Показувати логотипи брендів відправників (BIMI)</value>
@@ -12300,6 +12324,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Such as {0}" xml:space="preserve">
     <value>Наприклад, {0}</value>
+  </data>
+  <data name="Summary" xml:space="preserve">
+    <value>Зведення</value>
   </data>
   <data name="Support session opened" xml:space="preserve">
     <value>Сеанс підтримки відкрито</value>
@@ -17301,14 +17328,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} (inactive)" xml:space="preserve">
     <value>{0} (неактивний)</value>
   </data>
-  <data name="{0} (route #{1})" xml:space="preserve">
-    <value>{0} (маршрут №{1})</value>
-  </data>
   <data name="{0} (server time)" xml:space="preserve">
     <value>{0} (час сервера)</value>
-  </data>
-  <data name="{0} (subject '{1}')" xml:space="preserve">
-    <value>{0} (тема «{1}»)</value>
   </data>
   <data name="{0} ({1})" xml:space="preserve">
     <value>{0} ({1})</value>
@@ -18282,6 +18303,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} with no usable digest, which the server ignores" xml:space="preserve">
     <value>{0} без придатного дайджесту, які сервер ігнорує</value>
   </data>
+  <data name="{0} {1} '{2}'" xml:space="preserve">
+    <value>{0} {1} «{2}»</value>
+  </data>
   <data name="{0} {1} account had no email address and was skipped." xml:space="preserve">
     <value>{0} {1} обліковий запис не мав поштової адреси, і його пропущено.</value>
   </data>
@@ -18332,6 +18356,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} →" xml:space="preserve">
     <value>{0} →</value>
+  </data>
+  <data name="{0} → {1}" xml:space="preserve">
+    <value>{0} → {1}</value>
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB of {2} KB - at its cap, so entries are being evicted." xml:space="preserve">
     <value>{0}% пошуків відповіли з пам’яті, використано {1} КБ з {2} КБ — досягнуто межі, тому записи витісняються.</value>

@@ -2185,6 +2185,9 @@
   <data name="Bind to address" xml:space="preserve">
     <value>绑定到地址</value>
   </data>
+  <data name="Bind to address {0}" xml:space="preserve">
+    <value>绑定到地址 {0}</value>
+  </data>
   <data name="Block" xml:space="preserve">
     <value>拦截</value>
   </data>
@@ -5423,7 +5426,7 @@
     <value>本服务器的 Web 请求所用的正向代理（host:port；留空 = 直连）</value>
   </data>
   <data name="Forward to {0}" xml:space="preserve">
-    <value>前进到 {0}</value>
+    <value>转发到 {0}</value>
   </data>
   <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
     <value>前进到 {0} (Alt+向右键)</value>
@@ -6950,6 +6953,9 @@
   <data name="Master user (empty = off)" xml:space="preserve">
     <value>主用户（留空 = 关闭）</value>
   </data>
+  <data name="Matc_h" xml:space="preserve">
+    <value>匹配方式(_H)</value>
+  </data>
   <data name="Match all criteria (AND)" xml:space="preserve">
     <value>匹配所有条件（AND）</value>
   </data>
@@ -7392,6 +7398,9 @@
   </data>
   <data name="Move to NT SERVICE\hMailServer…" xml:space="preserve">
     <value>切换到 NT SERVICE\hMailServer…</value>
+  </data>
+  <data name="Move to folder '{0}'" xml:space="preserve">
+    <value>移动到文件夹 '{0}'</value>
   </data>
   <data name="Move to the next or the previous part of the window: the command bar, the navigation, the page and the help" xml:space="preserve">
     <value>移到窗口的下一个或上一个部分：命令栏、导航、页面和帮助</value>
@@ -10122,6 +10131,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Reply to colleagues _only" xml:space="preserve">
     <value>只答复同事(_O)</value>
   </data>
+  <data name="Reply with the subject '{0}'" xml:space="preserve">
+    <value>以主题 '{0}' 回复</value>
+  </data>
   <data name="Report _mailbox (empty = none)" xml:space="preserve">
     <value>报告邮箱（留空 = 无）(_M)</value>
   </data>
@@ -10502,6 +10514,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Run the built-in connectivity and configuration checks." xml:space="preserve">
     <value>运行内置的连通性和配置检查。</value>
+  </data>
+  <data name="Run the script function {0}" xml:space="preserve">
+    <value>运行脚本函数 {0}</value>
   </data>
   <data name="Run the service as LocalSystem" xml:space="preserve">
     <value>以 LocalSystem 运行服务</value>
@@ -11289,6 +11304,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Send using route" xml:space="preserve">
     <value>使用路由发送</value>
   </data>
+  <data name="Send using route #{0}" xml:space="preserve">
+    <value>使用路由 #{0} 发送</value>
+  </data>
   <data name="Send webhook events" xml:space="preserve">
     <value>发送 Webhook 事件</value>
   </data>
@@ -11543,6 +11561,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Set header value" xml:space="preserve">
     <value>设置标头值</value>
+  </data>
+  <data name="Set header {0} to '{1}'" xml:space="preserve">
+    <value>将标头 {0} 设置为 '{1}'</value>
+  </data>
+  <data name="Set header {0} to (empty)" xml:space="preserve">
+    <value>将标头 {0} 设置为（空）</value>
   </data>
   <data name="Set in hMailServer.ini only" xml:space="preserve">
     <value>仅在 hMailServer.ini 中设置</value>
@@ -12158,6 +12182,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Such as {0}" xml:space="preserve">
     <value>例如 {0}</value>
+  </data>
+  <data name="Summary" xml:space="preserve">
+    <value>摘要</value>
   </data>
   <data name="Support session opened" xml:space="preserve">
     <value>已打开支持会话</value>
@@ -17099,14 +17126,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} (inactive)" xml:space="preserve">
     <value>{0}（非活动）</value>
   </data>
-  <data name="{0} (route #{1})" xml:space="preserve">
-    <value>{0}（路由 #{1}）</value>
-  </data>
   <data name="{0} (server time)" xml:space="preserve">
     <value>{0}（服务器时间）</value>
-  </data>
-  <data name="{0} (subject '{1}')" xml:space="preserve">
-    <value>{0}（主题 '{1}'）</value>
   </data>
   <data name="{0} ({1})" xml:space="preserve">
     <value>{0}（{1}）</value>
@@ -17867,6 +17888,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} with no usable digest, which the server ignores" xml:space="preserve">
     <value>{0} 没有可用的摘要，服务器会将其忽略</value>
   </data>
+  <data name="{0} {1} '{2}'" xml:space="preserve">
+    <value>{0} {1} '{2}'</value>
+  </data>
   <data name="{0} {1} account had no email address and was skipped." xml:space="preserve">
     <value>{0}有 {1} 个账户没有电子邮件地址，已被跳过。</value>
   </data>
@@ -17902,6 +17926,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} →" xml:space="preserve">
     <value>{0} →</value>
+  </data>
+  <data name="{0} → {1}" xml:space="preserve">
+    <value>{0} → {1}</value>
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB of {2} KB - at its cap, so entries are being evicted." xml:space="preserve">
     <value>{0}% 的查找由内存作答，占用 {1} KB（共 {2} KB），已达上限，因此正在逐出条目。</value>

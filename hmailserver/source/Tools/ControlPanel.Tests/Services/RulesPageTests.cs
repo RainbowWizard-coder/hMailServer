@@ -106,7 +106,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          XElement page = Page();
          List<XElement> columns = Named(page, "RuleGrid").Descendants(Wpf + "DataGridTextColumn").ToList();
-         Assert.Equal(3, columns.Count);
+         // The number, the name, the summary (review finding F309) and whether the rule is on.
+         Assert.Equal(4, columns.Count);
          foreach (XElement column in columns)
             Assert.True(column.Attribute("MinWidth") != null, "The column " + (string)column.Attribute("Header") + " has no MinWidth, so a narrow window squeezes it to nothing.");
 

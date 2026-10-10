@@ -2206,6 +2206,9 @@ Control Panel может читать файлы сообщений только
   <data name="Bind to address" xml:space="preserve">
     <value>Привязать к адресу</value>
   </data>
+  <data name="Bind to address {0}" xml:space="preserve">
+    <value>Привязать к адресу {0}</value>
+  </data>
   <data name="Block" xml:space="preserve">
     <value>Блокировать</value>
   </data>
@@ -5493,7 +5496,7 @@ Control Panel может читать файлы сообщений только
     <value>Прокси-сервер для веб-запросов этого сервера (host:port; пусто = прямое подключение)</value>
   </data>
   <data name="Forward to {0}" xml:space="preserve">
-    <value>Вперёд к странице {0}</value>
+    <value>Переслать на {0}</value>
   </data>
   <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
     <value>Вперёд к странице {0} (Alt+Стрелка вправо)</value>
@@ -7023,6 +7026,9 @@ Control Panel может читать файлы сообщений только
   <data name="Master user (empty = off)" xml:space="preserve">
     <value>Главный пользователь (пусто = выключено)</value>
   </data>
+  <data name="Matc_h" xml:space="preserve">
+    <value>Соотв_етствие</value>
+  </data>
   <data name="Match all criteria (AND)" xml:space="preserve">
     <value>Соответствие всем критериям (И)</value>
   </data>
@@ -7468,6 +7474,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Move to NT SERVICE\hMailServer…" xml:space="preserve">
     <value>Перейти на NT SERVICE\hMailServer…</value>
+  </data>
+  <data name="Move to folder '{0}'" xml:space="preserve">
+    <value>Переместить в папку «{0}»</value>
   </data>
   <data name="Move to the next or the previous part of the window: the command bar, the navigation, the page and the help" xml:space="preserve">
     <value>Перейти к следующей или предыдущей части окна: панели команд, навигации, странице и справке</value>
@@ -10231,6 +10240,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Reply to colleagues _only" xml:space="preserve">
     <value>Отвечать только _коллегам</value>
   </data>
+  <data name="Reply with the subject '{0}'" xml:space="preserve">
+    <value>Ответить с темой «{0}»</value>
+  </data>
   <data name="Report _mailbox (empty = none)" xml:space="preserve">
     <value>Почтовый ящик для отчётов (пусто = нет) (_M)</value>
   </data>
@@ -10611,6 +10623,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Run the built-in connectivity and configuration checks." xml:space="preserve">
     <value>Выполните встроенные проверки связности и конфигурации.</value>
+  </data>
+  <data name="Run the script function {0}" xml:space="preserve">
+    <value>Выполнить функцию сценария {0}</value>
   </data>
   <data name="Run the service as LocalSystem" xml:space="preserve">
     <value>Запускать службу как LocalSystem</value>
@@ -11425,6 +11440,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Send using route" xml:space="preserve">
     <value>Отправлять по маршруту</value>
   </data>
+  <data name="Send using route #{0}" xml:space="preserve">
+    <value>Отправлять по маршруту №{0}</value>
+  </data>
   <data name="Send webhook events" xml:space="preserve">
     <value>Отправлять события веб-хуков</value>
   </data>
@@ -11683,6 +11701,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Set header value" xml:space="preserve">
     <value>Задать значение заголовка</value>
   </data>
+  <data name="Set header {0} to '{1}'" xml:space="preserve">
+    <value>Задать заголовку {0} значение «{1}»</value>
+  </data>
+  <data name="Set header {0} to (empty)" xml:space="preserve">
+    <value>Задать заголовку {0} значение (пусто)</value>
+  </data>
   <data name="Set in hMailServer.ini only" xml:space="preserve">
     <value>Задаётся только в hMailServer.ini</value>
   </data>
@@ -11825,7 +11849,7 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
     <value>Показать пароль</value>
   </data>
   <data name="Show rules _for" xml:space="preserve">
-    <value>Показать правила _для</value>
+    <value>Показа_ть правила для</value>
   </data>
   <data name="Show senders' brand logos (BIMI)" xml:space="preserve">
     <value>Показывать логотипы брендов отправителей (BIMI)</value>
@@ -12300,6 +12324,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Such as {0}" xml:space="preserve">
     <value>Например, {0}</value>
+  </data>
+  <data name="Summary" xml:space="preserve">
+    <value>Сводка</value>
   </data>
   <data name="Support session opened" xml:space="preserve">
     <value>Сеанс поддержки открыт</value>
@@ -17301,14 +17328,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} (inactive)" xml:space="preserve">
     <value>{0} (неактивно)</value>
   </data>
-  <data name="{0} (route #{1})" xml:space="preserve">
-    <value>{0} (маршрут №{1})</value>
-  </data>
   <data name="{0} (server time)" xml:space="preserve">
     <value>{0} (время сервера)</value>
-  </data>
-  <data name="{0} (subject '{1}')" xml:space="preserve">
-    <value>{0} (тема «{1}»)</value>
   </data>
   <data name="{0} ({1})" xml:space="preserve">
     <value>{0} ({1})</value>
@@ -18282,6 +18303,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} with no usable digest, which the server ignores" xml:space="preserve">
     <value>{0} без пригодного дайджеста, которые сервер игнорирует</value>
   </data>
+  <data name="{0} {1} '{2}'" xml:space="preserve">
+    <value>{0} {1} «{2}»</value>
+  </data>
   <data name="{0} {1} account had no email address and was skipped." xml:space="preserve">
     <value>{0} Пропущено учётных записей без адреса электронной почты: {1}.</value>
   </data>
@@ -18332,6 +18356,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} →" xml:space="preserve">
     <value>{0} →</value>
+  </data>
+  <data name="{0} → {1}" xml:space="preserve">
+    <value>{0} → {1}</value>
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB of {2} KB - at its cap, so entries are being evicted." xml:space="preserve">
     <value>{0} % обращений обслужено из памяти, использовано {1} КБ из {2} КБ — достигнут предел, поэтому записи вытесняются.</value>

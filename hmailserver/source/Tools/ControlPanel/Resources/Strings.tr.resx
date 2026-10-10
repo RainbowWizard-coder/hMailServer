@@ -2185,6 +2185,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Bind to address" xml:space="preserve">
     <value>Adrese bağla</value>
   </data>
+  <data name="Bind to address {0}" xml:space="preserve">
+    <value>{0} adresine bağla</value>
+  </data>
   <data name="Block" xml:space="preserve">
     <value>Engelle</value>
   </data>
@@ -5423,7 +5426,7 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
     <value>Bu sunucunun web istekleri için iletme proxy'si (host:port; boş = doğrudan)</value>
   </data>
   <data name="Forward to {0}" xml:space="preserve">
-    <value>{0} sayfasına ilerle</value>
+    <value>{0} adresine ilet</value>
   </data>
   <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
     <value>{0} sayfasına ilerle (Alt+Sağ ok)</value>
@@ -6950,6 +6953,9 @@ Geçerli çiftle yapılan her Web Push aboneliği hemen çalışmayı bırakır 
   <data name="Master user (empty = off)" xml:space="preserve">
     <value>Ana kullanıcı (boş = kapalı)</value>
   </data>
+  <data name="Matc_h" xml:space="preserve">
+    <value>E_şleşme</value>
+  </data>
   <data name="Match all criteria (AND)" xml:space="preserve">
     <value>Tüm ölçütlerle eşleş (AND)</value>
   </data>
@@ -7392,6 +7398,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Move to NT SERVICE\hMailServer…" xml:space="preserve">
     <value>NT SERVICE\hMailServer'a geçir…</value>
+  </data>
+  <data name="Move to folder '{0}'" xml:space="preserve">
+    <value>'{0}' klasörüne taşı</value>
   </data>
   <data name="Move to the next or the previous part of the window: the command bar, the navigation, the page and the help" xml:space="preserve">
     <value>Pencerenin sonraki veya önceki bölümüne geç: komut çubuğu, gezinti, sayfa ve yardım</value>
@@ -10122,6 +10131,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Reply to colleagues _only" xml:space="preserve">
     <value>Yalnızca iş arkadaşlarına yanıt _ver</value>
   </data>
+  <data name="Reply with the subject '{0}'" xml:space="preserve">
+    <value>'{0}' konusuyla yanıtla</value>
+  </data>
   <data name="Report _mailbox (empty = none)" xml:space="preserve">
     <value>_Rapor posta kutusu (boş = yok)</value>
   </data>
@@ -10502,6 +10514,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Run the built-in connectivity and configuration checks." xml:space="preserve">
     <value>Yerleşik bağlanabilirlik ve yapılandırma denetimlerini çalıştırın.</value>
+  </data>
+  <data name="Run the script function {0}" xml:space="preserve">
+    <value>{0} betik işlevini çalıştır</value>
   </data>
   <data name="Run the service as LocalSystem" xml:space="preserve">
     <value>Hizmeti LocalSystem olarak çalıştır</value>
@@ -11289,6 +11304,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Send using route" xml:space="preserve">
     <value>Rota kullanarak gönder</value>
   </data>
+  <data name="Send using route #{0}" xml:space="preserve">
+    <value>#{0} rotasını kullanarak gönder</value>
+  </data>
   <data name="Send webhook events" xml:space="preserve">
     <value>Webhook olayları gönder</value>
   </data>
@@ -11543,6 +11561,12 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Set header value" xml:space="preserve">
     <value>Başlık değerini ayarla</value>
+  </data>
+  <data name="Set header {0} to '{1}'" xml:space="preserve">
+    <value>{0} başlığını '{1}' olarak ayarla</value>
+  </data>
+  <data name="Set header {0} to (empty)" xml:space="preserve">
+    <value>{0} başlığını (boş) olarak ayarla</value>
   </data>
   <data name="Set in hMailServer.ini only" xml:space="preserve">
     <value>Yalnızca hMailServer.ini dosyasında ayarlanır</value>
@@ -12158,6 +12182,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Such as {0}" xml:space="preserve">
     <value>Örneğin {0}</value>
+  </data>
+  <data name="Summary" xml:space="preserve">
+    <value>Özet</value>
   </data>
   <data name="Support session opened" xml:space="preserve">
     <value>Destek oturumu açıldı</value>
@@ -17099,14 +17126,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} (inactive)" xml:space="preserve">
     <value>{0} (etkin değil)</value>
   </data>
-  <data name="{0} (route #{1})" xml:space="preserve">
-    <value>{0} (rota #{1})</value>
-  </data>
   <data name="{0} (server time)" xml:space="preserve">
     <value>{0} (sunucu saati)</value>
-  </data>
-  <data name="{0} (subject '{1}')" xml:space="preserve">
-    <value>{0} (konu '{1}')</value>
   </data>
   <data name="{0} ({1})" xml:space="preserve">
     <value>{0} ({1})</value>
@@ -17867,6 +17888,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} with no usable digest, which the server ignores" xml:space="preserve">
     <value>{0} kullanılabilir özeti olmayan; sunucu bunları yoksayar</value>
   </data>
+  <data name="{0} {1} '{2}'" xml:space="preserve">
+    <value>{0} {1} '{2}'</value>
+  </data>
   <data name="{0} {1} account had no email address and was skipped." xml:space="preserve">
     <value>{0} {1} hesabın e-posta adresi yoktu ve atlandı.</value>
   </data>
@@ -17902,6 +17926,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} →" xml:space="preserve">
     <value>{0} →</value>
+  </data>
+  <data name="{0} → {1}" xml:space="preserve">
+    <value>{0} → {1}</value>
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB of {2} KB - at its cap, so entries are being evicted." xml:space="preserve">
     <value>aramaların %{0} kadarı bellekten yanıtlandı, {2} KB'nin {1} KB'si kullanılıyor; üst sınıra ulaşıldığı için girdiler bellekten atılıyor.</value>

@@ -130,6 +130,11 @@
                             <DataGridTextColumn Header="#" Binding="{Binding Position}" Width="50" MinWidth="40"
                                                 ElementStyle="{StaticResource GridNumberText}" HeaderStyle="{StaticResource GridNumberHeader}" />
                             <DataGridTextColumn Header="{loc:L 'Name'}" Binding="{Binding Name}" Width="*" MinWidth="160" ElementStyle="{StaticResource GridTrimmedText}" />
+                            <!-- The rule in one line, its first criterion and its first action,
+                                 cut with an ellipsis and whole in the row's speech (review
+                                 finding F309: the grid said only the number, the name and
+                                 whether the rule was on). -->
+                            <DataGridTextColumn Header="{loc:L 'Summary'}" Binding="{Binding Summary}" Width="2*" MinWidth="160" ElementStyle="{StaticResource GridTrimmedText}" />
                             <DataGridTextColumn Header="{loc:L 'Enabled'}" Binding="{Binding Enabled}" Width="100" MinWidth="80" />
                         </DataGrid.Columns>
                     </DataGrid>
@@ -182,13 +187,22 @@
                      Columns="2" SizeChanged="RuleParts_SizeChanged">
 
             <!-- Criteria -->
-            <scaffold:Card x:Name="CriteriaCard" Margin="0,0,6,0" AutomationProperties.Name="{loc:L 'IF'}">
+            <!-- Titled IF as the actions' card is titled THEN, so that the two
+                 headings line up, and the match mode is its first row under a
+                 caption of its own, where IF was a label beside the list inside
+                 the card (review finding F309). -->
+            <scaffold:Card x:Name="CriteriaCard" Title="{loc:L 'IF'}" Margin="0,0,6,0">
                 <scaffold:FillPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                        <TextBlock Text="{loc:L 'IF'}" Style="{StaticResource TextBodyStrong}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                    <!-- Wraps, the list under its caption where the two do not fit
+                         side by side in the card's 340 pixels in a language whose
+                         caption is long. -->
+                    <WrapPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <Label x:Name="MatchModeLabel" Content="{loc:L 'Matc_h'}" Target="{Binding ElementName=MatchMode}"
+                               VerticalAlignment="Center" Margin="0,0,8,0" />
                         <ComboBox x:Name="MatchMode" MinWidth="230"
+                                  AutomationProperties.LabeledBy="{Binding ElementName=MatchModeLabel}"
                                   SelectionChanged="MatchMode_SelectionChanged" />
-                    </StackPanel>
+                    </WrapPanel>
                     <!-- The floor: three rows of 34 pixels and a pixel for layout
                          rounding (at 102 the grid held two whole rows at 175 %
                          scaling, rounded a device pixel short). One column, whose text ends

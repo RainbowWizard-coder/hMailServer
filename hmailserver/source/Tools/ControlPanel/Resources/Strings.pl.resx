@@ -2206,6 +2206,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Bind to address" xml:space="preserve">
     <value>Powiąż z adresem</value>
   </data>
+  <data name="Bind to address {0}" xml:space="preserve">
+    <value>Powiąż z adresem {0}</value>
+  </data>
   <data name="Block" xml:space="preserve">
     <value>Blokuj</value>
   </data>
@@ -5493,7 +5496,7 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
     <value>Serwer proxy dla żądań sieciowych tego serwera (host:port; puste = połączenie bezpośrednie)</value>
   </data>
   <data name="Forward to {0}" xml:space="preserve">
-    <value>Dalej do strony {0}</value>
+    <value>Przekaż do {0}</value>
   </data>
   <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
     <value>Dalej do strony {0} (Alt+Strzałka w prawo)</value>
@@ -7023,6 +7026,9 @@ Każda subskrypcja Web Push utworzona z obecną parą natychmiast przestaje dzia
   <data name="Master user (empty = off)" xml:space="preserve">
     <value>Użytkownik nadrzędny (puste = wyłączone)</value>
   </data>
+  <data name="Matc_h" xml:space="preserve">
+    <value>D_opasowanie</value>
+  </data>
   <data name="Match all criteria (AND)" xml:space="preserve">
     <value>Dopasuj wszystkie kryteria (AND)</value>
   </data>
@@ -7468,6 +7474,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   </data>
   <data name="Move to NT SERVICE\hMailServer…" xml:space="preserve">
     <value>Przenieś do NT SERVICE\hMailServer…</value>
+  </data>
+  <data name="Move to folder '{0}'" xml:space="preserve">
+    <value>Przenieś do folderu „{0}”</value>
   </data>
   <data name="Move to the next or the previous part of the window: the command bar, the navigation, the page and the help" xml:space="preserve">
     <value>Przejdź do następnej lub poprzedniej części okna: paska poleceń, nawigacji, strony i pomocy</value>
@@ -10231,6 +10240,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Reply to colleagues _only" xml:space="preserve">
     <value>Odpowiadaj tyl_ko współpracownikom</value>
   </data>
+  <data name="Reply with the subject '{0}'" xml:space="preserve">
+    <value>Odpowiedz z tematem „{0}”</value>
+  </data>
   <data name="Report _mailbox (empty = none)" xml:space="preserve">
     <value>_Skrzynka raportów (pusta = brak)</value>
   </data>
@@ -10611,6 +10623,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="Run the built-in connectivity and configuration checks." xml:space="preserve">
     <value>Uruchom wbudowane kontrole łączności i konfiguracji.</value>
+  </data>
+  <data name="Run the script function {0}" xml:space="preserve">
+    <value>Uruchom funkcję skryptu {0}</value>
   </data>
   <data name="Run the service as LocalSystem" xml:space="preserve">
     <value>Uruchamiaj usługę jako LocalSystem</value>
@@ -11425,6 +11440,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Send using route" xml:space="preserve">
     <value>Wyślij przez trasę</value>
   </data>
+  <data name="Send using route #{0}" xml:space="preserve">
+    <value>Wyślij przez trasę #{0}</value>
+  </data>
   <data name="Send webhook events" xml:space="preserve">
     <value>Wysyłaj zdarzenia webhook</value>
   </data>
@@ -11683,6 +11701,12 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Set header value" xml:space="preserve">
     <value>Ustaw wartość nagłówka</value>
   </data>
+  <data name="Set header {0} to '{1}'" xml:space="preserve">
+    <value>Ustaw nagłówek {0} na „{1}”</value>
+  </data>
+  <data name="Set header {0} to (empty)" xml:space="preserve">
+    <value>Ustaw nagłówek {0} na (pusty)</value>
+  </data>
   <data name="Set in hMailServer.ini only" xml:space="preserve">
     <value>Ustawiane tylko w hMailServer.ini</value>
   </data>
@@ -11825,7 +11849,7 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
     <value>Pokaż hasło</value>
   </data>
   <data name="Show rules _for" xml:space="preserve">
-    <value>Pokaż reguły _dla</value>
+    <value>_Pokaż reguły dla</value>
   </data>
   <data name="Show senders' brand logos (BIMI)" xml:space="preserve">
     <value>Pokazuj logo marki nadawców (BIMI)</value>
@@ -12300,6 +12324,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="Such as {0}" xml:space="preserve">
     <value>Na przykład {0}</value>
+  </data>
+  <data name="Summary" xml:space="preserve">
+    <value>Podsumowanie</value>
   </data>
   <data name="Support session opened" xml:space="preserve">
     <value>Otwarto sesję pomocy</value>
@@ -17301,14 +17328,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} (inactive)" xml:space="preserve">
     <value>{0} (nieaktywne)</value>
   </data>
-  <data name="{0} (route #{1})" xml:space="preserve">
-    <value>{0} (trasa #{1})</value>
-  </data>
   <data name="{0} (server time)" xml:space="preserve">
     <value>{0} (czas serwera)</value>
-  </data>
-  <data name="{0} (subject '{1}')" xml:space="preserve">
-    <value>{0} (temat „{1}”)</value>
   </data>
   <data name="{0} ({1})" xml:space="preserve">
     <value>{0} ({1})</value>
@@ -18282,6 +18303,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} with no usable digest, which the server ignores" xml:space="preserve">
     <value>{0} bez zdatnego do użytku skrótu, które serwer ignoruje</value>
   </data>
+  <data name="{0} {1} '{2}'" xml:space="preserve">
+    <value>{0} {1} „{2}”</value>
+  </data>
   <data name="{0} {1} account had no email address and was skipped." xml:space="preserve">
     <value>{0} {1} konto nie miało adresu e-mail i zostało pominięte.</value>
   </data>
@@ -18332,6 +18356,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} →" xml:space="preserve">
     <value>{0} →</value>
+  </data>
+  <data name="{0} → {1}" xml:space="preserve">
+    <value>{0} → {1}</value>
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB of {2} KB - at its cap, so entries are being evicted." xml:space="preserve">
     <value>{0}% wyszukiwań obsłużono z pamięci, przy zużyciu {1} KB z {2} KB - na granicy limitu, więc wpisy są usuwane.</value>

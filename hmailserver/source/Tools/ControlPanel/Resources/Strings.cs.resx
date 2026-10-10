@@ -2206,6 +2206,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Bind to address" xml:space="preserve">
     <value>Navázat na adresu</value>
   </data>
+  <data name="Bind to address {0}" xml:space="preserve">
+    <value>Navázat na adresu {0}</value>
+  </data>
   <data name="Block" xml:space="preserve">
     <value>Blokovat</value>
   </data>
@@ -5493,7 +5496,7 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
     <value>Předsazený proxy server pro webové požadavky tohoto serveru (host:port; prázdné = přímé připojení)</value>
   </data>
   <data name="Forward to {0}" xml:space="preserve">
-    <value>Vpřed na stránku {0}</value>
+    <value>Přeposlat na {0}</value>
   </data>
   <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
     <value>Vpřed na stránku {0} (Alt+Šipka vpravo)</value>
@@ -7023,6 +7026,9 @@ Každý odběr Web Push vytvořený se současným párem okamžitě přestane f
   <data name="Master user (empty = off)" xml:space="preserve">
     <value>Hlavní uživatel (prázdné = vypnuto)</value>
   </data>
+  <data name="Matc_h" xml:space="preserve">
+    <value>_Shoda</value>
+  </data>
   <data name="Match all criteria (AND)" xml:space="preserve">
     <value>Splnit všechna kritéria (AND)</value>
   </data>
@@ -7468,6 +7474,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Move to NT SERVICE\hMailServer…" xml:space="preserve">
     <value>Přejít na NT SERVICE\hMailServer…</value>
+  </data>
+  <data name="Move to folder '{0}'" xml:space="preserve">
+    <value>Přesunout do složky '{0}'</value>
   </data>
   <data name="Move to the next or the previous part of the window: the command bar, the navigation, the page and the help" xml:space="preserve">
     <value>Přejít na další nebo předchozí část okna: panel příkazů, navigaci, stránku a nápovědu</value>
@@ -10231,6 +10240,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Reply to colleagues _only" xml:space="preserve">
     <value>Odpovídat _pouze kolegům</value>
   </data>
+  <data name="Reply with the subject '{0}'" xml:space="preserve">
+    <value>Odpovědět s předmětem '{0}'</value>
+  </data>
   <data name="Report _mailbox (empty = none)" xml:space="preserve">
     <value>Schránka pro _zprávy (prázdná = žádná)</value>
   </data>
@@ -10611,6 +10623,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Run the built-in connectivity and configuration checks." xml:space="preserve">
     <value>Spusťte vestavěné kontroly připojení a konfigurace.</value>
+  </data>
+  <data name="Run the script function {0}" xml:space="preserve">
+    <value>Spustit funkci skriptu {0}</value>
   </data>
   <data name="Run the service as LocalSystem" xml:space="preserve">
     <value>Spouštět službu jako LocalSystem</value>
@@ -11425,6 +11440,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Send using route" xml:space="preserve">
     <value>Odeslat pomocí trasy</value>
   </data>
+  <data name="Send using route #{0}" xml:space="preserve">
+    <value>Odeslat pomocí trasy č. {0}</value>
+  </data>
   <data name="Send webhook events" xml:space="preserve">
     <value>Odesílat události webhooků</value>
   </data>
@@ -11683,6 +11701,12 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Set header value" xml:space="preserve">
     <value>Nastavit hodnotu hlavičky</value>
   </data>
+  <data name="Set header {0} to '{1}'" xml:space="preserve">
+    <value>Nastavit hlavičku {0} na '{1}'</value>
+  </data>
+  <data name="Set header {0} to (empty)" xml:space="preserve">
+    <value>Nastavit hlavičku {0} na (prázdné)</value>
+  </data>
   <data name="Set in hMailServer.ini only" xml:space="preserve">
     <value>Nastavuje se jen v hMailServer.ini</value>
   </data>
@@ -11825,7 +11849,7 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
     <value>Zobrazit heslo</value>
   </data>
   <data name="Show rules _for" xml:space="preserve">
-    <value>Zobrazit pravidla _pro</value>
+    <value>_Zobrazit pravidla pro</value>
   </data>
   <data name="Show senders' brand logos (BIMI)" xml:space="preserve">
     <value>Zobrazovat loga značek odesílatelů (BIMI)</value>
@@ -12300,6 +12324,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Such as {0}" xml:space="preserve">
     <value>Například {0}</value>
+  </data>
+  <data name="Summary" xml:space="preserve">
+    <value>Souhrn</value>
   </data>
   <data name="Support session opened" xml:space="preserve">
     <value>Relace podpory otevřena</value>
@@ -17301,14 +17328,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} (inactive)" xml:space="preserve">
     <value>{0} (neaktivní)</value>
   </data>
-  <data name="{0} (route #{1})" xml:space="preserve">
-    <value>{0} (trasa č. {1})</value>
-  </data>
   <data name="{0} (server time)" xml:space="preserve">
     <value>{0} (čas serveru)</value>
-  </data>
-  <data name="{0} (subject '{1}')" xml:space="preserve">
-    <value>{0} (předmět '{1}')</value>
   </data>
   <data name="{0} ({1})" xml:space="preserve">
     <value>{0} ({1})</value>
@@ -18282,6 +18303,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} with no usable digest, which the server ignores" xml:space="preserve">
     <value>{0} bez použitelného digestu, které server ignoruje</value>
   </data>
+  <data name="{0} {1} '{2}'" xml:space="preserve">
+    <value>{0} {1} '{2}'</value>
+  </data>
   <data name="{0} {1} account had no email address and was skipped." xml:space="preserve">
     <value>{0} {1} účet neměl e-mailovou adresu a byl přeskočen.</value>
   </data>
@@ -18332,6 +18356,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} →" xml:space="preserve">
     <value>{0} →</value>
+  </data>
+  <data name="{0} → {1}" xml:space="preserve">
+    <value>{0} → {1}</value>
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB of {2} KB - at its cap, so entries are being evicted." xml:space="preserve">
     <value>{0} % vyhledání zodpovězeno z paměti, využito {1} KB z {2} KB – je na svém limitu, takže se položky vyřazují.</value>

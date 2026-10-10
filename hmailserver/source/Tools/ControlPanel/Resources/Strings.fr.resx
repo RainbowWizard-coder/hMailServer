@@ -2185,6 +2185,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Bind to address" xml:space="preserve">
     <value>Lier à l'adresse</value>
   </data>
+  <data name="Bind to address {0}" xml:space="preserve">
+    <value>Lier à l'adresse {0}</value>
+  </data>
   <data name="Block" xml:space="preserve">
     <value>Bloquer</value>
   </data>
@@ -5423,7 +5426,7 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
     <value>Proxy sortant pour les requêtes web de ce serveur (host:port ; vide = connexion directe)</value>
   </data>
   <data name="Forward to {0}" xml:space="preserve">
-    <value>Avancer vers {0}</value>
+    <value>Transférer à {0}</value>
   </data>
   <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
     <value>Avancer vers {0} (Alt+Flèche droite)</value>
@@ -6950,6 +6953,9 @@ Chaque abonnement Web Push fait avec la paire actuelle cesse aussitôt de foncti
   <data name="Master user (empty = off)" xml:space="preserve">
     <value>Utilisateur maître (vide = désactivé)</value>
   </data>
+  <data name="Matc_h" xml:space="preserve">
+    <value>Corres_pondance</value>
+  </data>
   <data name="Match all criteria (AND)" xml:space="preserve">
     <value>Correspondre à tous les critères (ET)</value>
   </data>
@@ -7392,6 +7398,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="Move to NT SERVICE\hMailServer…" xml:space="preserve">
     <value>Passer à NT SERVICE\hMailServer…</value>
+  </data>
+  <data name="Move to folder '{0}'" xml:space="preserve">
+    <value>Déplacer vers le dossier « {0} »</value>
   </data>
   <data name="Move to the next or the previous part of the window: the command bar, the navigation, the page and the help" xml:space="preserve">
     <value>Passer à la partie suivante ou précédente de la fenêtre : la barre de commandes, la navigation, la page et l'aide</value>
@@ -10122,6 +10131,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Reply to colleagues _only" xml:space="preserve">
     <value>Répondre aux c_ollègues seulement</value>
   </data>
+  <data name="Reply with the subject '{0}'" xml:space="preserve">
+    <value>Répondre avec l'objet « {0} »</value>
+  </data>
   <data name="Report _mailbox (empty = none)" xml:space="preserve">
     <value>_Boîte de rapports (vide = aucune)</value>
   </data>
@@ -10502,6 +10514,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="Run the built-in connectivity and configuration checks." xml:space="preserve">
     <value>Exécuter les vérifications intégrées de connectivité et de configuration.</value>
+  </data>
+  <data name="Run the script function {0}" xml:space="preserve">
+    <value>Exécuter la fonction de script {0}</value>
   </data>
   <data name="Run the service as LocalSystem" xml:space="preserve">
     <value>Exécuter le service en tant que LocalSystem</value>
@@ -11289,6 +11304,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Send using route" xml:space="preserve">
     <value>Envoyer via la route</value>
   </data>
+  <data name="Send using route #{0}" xml:space="preserve">
+    <value>Envoyer via la route n° {0}</value>
+  </data>
   <data name="Send webhook events" xml:space="preserve">
     <value>Envoyer les événements webhook</value>
   </data>
@@ -11544,6 +11562,12 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Set header value" xml:space="preserve">
     <value>Définir la valeur d'un en-tête</value>
   </data>
+  <data name="Set header {0} to '{1}'" xml:space="preserve">
+    <value>Définir l'en-tête {0} sur « {1} »</value>
+  </data>
+  <data name="Set header {0} to (empty)" xml:space="preserve">
+    <value>Définir l'en-tête {0} sur (vide)</value>
+  </data>
   <data name="Set in hMailServer.ini only" xml:space="preserve">
     <value>Défini uniquement dans hMailServer.ini</value>
   </data>
@@ -11683,7 +11707,7 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
     <value>Afficher le mot de passe</value>
   </data>
   <data name="Show rules _for" xml:space="preserve">
-    <value>Afficher les règles _de</value>
+    <value>A_fficher les règles de</value>
   </data>
   <data name="Show senders' brand logos (BIMI)" xml:space="preserve">
     <value>Afficher les logos de marque des expéditeurs (BIMI)</value>
@@ -12158,6 +12182,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="Such as {0}" xml:space="preserve">
     <value>Par exemple {0}</value>
+  </data>
+  <data name="Summary" xml:space="preserve">
+    <value>Résumé</value>
   </data>
   <data name="Support session opened" xml:space="preserve">
     <value>Session d'assistance ouverte</value>
@@ -17099,14 +17126,8 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="{0} (inactive)" xml:space="preserve">
     <value>{0} (inactif)</value>
   </data>
-  <data name="{0} (route #{1})" xml:space="preserve">
-    <value>{0} (route n° {1})</value>
-  </data>
   <data name="{0} (server time)" xml:space="preserve">
     <value>{0} (heure du serveur)</value>
-  </data>
-  <data name="{0} (subject '{1}')" xml:space="preserve">
-    <value>{0} (objet « {1} »)</value>
   </data>
   <data name="{0} ({1})" xml:space="preserve">
     <value>{0} ({1})</value>
@@ -17867,6 +17888,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="{0} with no usable digest, which the server ignores" xml:space="preserve">
     <value>{0} sans digest utilisable, que le serveur ignore</value>
   </data>
+  <data name="{0} {1} '{2}'" xml:space="preserve">
+    <value>{0} {1} « {2} »</value>
+  </data>
   <data name="{0} {1} account had no email address and was skipped." xml:space="preserve">
     <value>{0} {1} compte n'avait pas d'adresse e-mail et a été ignoré.</value>
   </data>
@@ -17902,6 +17926,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="{0} →" xml:space="preserve">
     <value>{0} →</value>
+  </data>
+  <data name="{0} → {1}" xml:space="preserve">
+    <value>{0} → {1}</value>
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB of {2} KB - at its cap, so entries are being evicted." xml:space="preserve">
     <value>{0} % des recherches répondues depuis la mémoire, avec {1} Ko utilisés sur {2} Ko - à son plafond, des entrées sont donc évincées.</value>

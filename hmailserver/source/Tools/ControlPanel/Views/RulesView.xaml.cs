@@ -19,6 +19,11 @@ namespace hMailServer.ControlPanel.Views
          public int Id { get; set; }
          public int Position { get; set; }
          public string Name { get; set; }
+
+         // The rule in one line, its first criterion and its first action, so
+         // that the rule that forwards is found without opening each (review
+         // finding F309); the page's search reads it as it reads the name.
+         public string Summary { get; set; }
          public string Enabled { get; set; }
 
          /// <summary>Whether the rule is switched on: a switched-off rule's row takes the secondary text colour.</summary>
@@ -26,7 +31,7 @@ namespace hMailServer.ControlPanel.Views
 
          // What a screen reader says for the row: its cells, not the name of
          // this class, which is what a grid row is announced as otherwise.
-         public override string ToString() => Name + ", " + Enabled;
+         public override string ToString() => string.IsNullOrEmpty(Summary) ? Name + ", " + Enabled : Name + ", " + Summary + ", " + Enabled;
       }
 
       public class DetailRow
@@ -272,6 +277,7 @@ namespace hMailServer.ControlPanel.Views
                      Position = i + 1,
                      Name = (string)rule.Name,
                      IsActive = (bool)rule.Active,
+                     Summary = Summarise_(rule),
                      Enabled = (bool)rule.Active ? L("Yes") : L("No")
                   });
                   ServerSession.Release(rule);
@@ -576,14 +582,7 @@ namespace hMailServer.ControlPanel.Views
             for (int i = 0; i < cc; i++)
             {
                dynamic c = criterias.Item[i];
-               string field = (bool)c.UsePredefined
-                  ? Pick(FieldNames, (int)c.PredefinedField)
-                  : F("header '{0}'", (string)c.HeaderField);
-               criteria.Add(new DetailRow
-               {
-                  Id = (int)c.ID,
-                  Description = field + " " + Pick(MatchNames, (int)c.MatchType) + " '" + (string)c.MatchValue + "'"
-               });
+               criteria.Add(new DetailRow { Id = (int)c.ID, Description = DescribeCriterion(c) });
                ServerSession.Release(c);
             }
             ServerSession.Release(criterias);
@@ -619,28 +618,85 @@ namespace hMailServer.ControlPanel.Views
          suppressMatchMode_ = false;
       }
 
+      /// <summary>A criterion in the page's one pattern (Services/RulePartText): its field, its comparison and the value.</summary>
+      private static string DescribeCriterion(dynamic c)
+      {
+         string field = (bool)c.UsePredefined
+            ? Pick(FieldNames, (int)c.PredefinedField)
+            : F("header '{0}'", (string)c.HeaderField);
+         return RulePartText.Criterion(field, Pick(MatchNames, (int)c.MatchType), (string)c.MatchValue);
+      }
+
+      /// <summary>An action in the page's one pattern (Services/RulePartText): its verb and what it acts on.</summary>
       private static string DescribeAction(dynamic a)
       {
          int type = (int)a.Type;
-         string text = Pick(ActionNames, type);
+         string name = Pick(ActionNames, type);
          try
          {
             switch (type)
             {
-               case 2: text += " -> " + (string)a.To; break;
-               case 3: text = F("{0} (subject '{1}')", text, (string)a.Subject); break;
-               case 4: text += " '" + (string)a.IMAPFolder + "'"; break;
-               case 5: text += " " + (string)a.ScriptFunction; break;
-               case 7: text += " " + (string)a.HeaderName + "=" + (string)a.Value; break;
-               case 8: text = F("{0} (route #{1})", text, (int)a.RouteID); break;
-               case 10: text += " " + (string)a.Value; break;
+               case RulePartText.Forward: return RulePartText.Action(type, name, to: (string)a.To);
+               case RulePartText.Reply: return RulePartText.Action(type, name, subject: (string)a.Subject);
+               case RulePartText.MoveToFolder: return RulePartText.Action(type, name, folder: (string)a.IMAPFolder);
+               case RulePartText.RunFunction: return RulePartText.Action(type, name, function: (string)a.ScriptFunction);
+               case RulePartText.SetHeader: return RulePartText.Action(type, name, header: (string)a.HeaderName, value: (string)a.Value);
+               case RulePartText.SendUsingRoute: return RulePartText.Action(type, name, route: (int)a.RouteID);
+               case RulePartText.BindToAddress: return RulePartText.Action(type, name, value: (string)a.Value);
             }
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {
             // Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding.
          }
-         return text;
+         return name;
+      }
+
+      /// <summary>
+      /// A rule's summary for the list: its first criterion and its first action
+      /// (Services/RulePartText.Summary), read as the list is; empty where the
+      /// server would not say.
+      /// </summary>
+      private static string Summarise_(dynamic rule)
+      {
+         string criterion = null, action = null;
+         try
+         {
+            dynamic criterias = rule.Criterias;
+            try
+            {
+               if ((int)criterias.Count > 0)
+               {
+                  dynamic c = criterias.Item[0];
+                  criterion = DescribeCriterion(c);
+                  ServerSession.Release(c);
+               }
+            }
+            finally
+            {
+               ServerSession.Release(criterias);
+            }
+
+            dynamic actions = rule.Actions;
+            try
+            {
+               if ((int)actions.Count > 0)
+               {
+                  dynamic a = actions.Item[0];
+                  action = DescribeAction(a);
+                  ServerSession.Release(a);
+               }
+            }
+            finally
+            {
+               ServerSession.Release(actions);
+            }
+         }
+         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+         {
+            // The summary is a convenience: a rule whose parts cannot be read is listed by its name, as before.
+         }
+         return RulePartText.Summary(criterion, action);
       }
 
       // ---- Rule-level operations ----

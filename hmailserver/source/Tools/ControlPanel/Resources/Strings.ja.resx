@@ -2195,6 +2195,9 @@
   <data name="Bind to address" xml:space="preserve">
     <value>バインド先アドレス</value>
   </data>
+  <data name="Bind to address {0}" xml:space="preserve">
+    <value>アドレス {0} にバインド</value>
+  </data>
   <data name="Block" xml:space="preserve">
     <value>ブロック</value>
   </data>
@@ -5433,7 +5436,7 @@
     <value>このサーバーの Web 要求に使う転送プロキシ (host:port、空 = 直接接続)</value>
   </data>
   <data name="Forward to {0}" xml:space="preserve">
-    <value>{0} に進む</value>
+    <value>{0} に転送</value>
   </data>
   <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
     <value>{0} に進む (Alt+右方向キー)</value>
@@ -6960,6 +6963,9 @@
   <data name="Master user (empty = off)" xml:space="preserve">
     <value>マスター ユーザー (空 = 無効)</value>
   </data>
+  <data name="Matc_h" xml:space="preserve">
+    <value>一致条件(_H)</value>
+  </data>
   <data name="Match all criteria (AND)" xml:space="preserve">
     <value>すべての条件に一致 (AND)</value>
   </data>
@@ -7402,6 +7408,9 @@
   </data>
   <data name="Move to NT SERVICE\hMailServer…" xml:space="preserve">
     <value>NT SERVICE\hMailServer に切り替え…</value>
+  </data>
+  <data name="Move to folder '{0}'" xml:space="preserve">
+    <value>フォルダー '{0}' に移動</value>
   </data>
   <data name="Move to the next or the previous part of the window: the command bar, the navigation, the page and the help" xml:space="preserve">
     <value>ウィンドウの次または前の部分 (コマンド バー、ナビゲーション、ページ、ヘルプ) に移動する</value>
@@ -10132,6 +10141,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Reply to colleagues _only" xml:space="preserve">
     <value>同僚にのみ返信(_O)</value>
   </data>
+  <data name="Reply with the subject '{0}'" xml:space="preserve">
+    <value>件名 '{0}' で返信</value>
+  </data>
   <data name="Report _mailbox (empty = none)" xml:space="preserve">
     <value>レポート用メールボックス (空欄 = なし)(_M)</value>
   </data>
@@ -10512,6 +10524,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Run the built-in connectivity and configuration checks." xml:space="preserve">
     <value>組み込みの接続と構成のチェックを実行します。</value>
+  </data>
+  <data name="Run the script function {0}" xml:space="preserve">
+    <value>スクリプト関数 {0} を実行</value>
   </data>
   <data name="Run the service as LocalSystem" xml:space="preserve">
     <value>サービスを LocalSystem として実行</value>
@@ -11299,6 +11314,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Send using route" xml:space="preserve">
     <value>ルートを使って送信</value>
   </data>
+  <data name="Send using route #{0}" xml:space="preserve">
+    <value>ルート #{0} を使って送信</value>
+  </data>
   <data name="Send webhook events" xml:space="preserve">
     <value>Webhook イベントを送る</value>
   </data>
@@ -11553,6 +11571,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Set header value" xml:space="preserve">
     <value>ヘッダー値を設定</value>
+  </data>
+  <data name="Set header {0} to '{1}'" xml:space="preserve">
+    <value>ヘッダー {0} を '{1}' に設定</value>
+  </data>
+  <data name="Set header {0} to (empty)" xml:space="preserve">
+    <value>ヘッダー {0} を (空) に設定</value>
   </data>
   <data name="Set in hMailServer.ini only" xml:space="preserve">
     <value>hMailServer.ini でのみ設定</value>
@@ -12168,6 +12192,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Such as {0}" xml:space="preserve">
     <value>{0} など</value>
+  </data>
+  <data name="Summary" xml:space="preserve">
+    <value>概要</value>
   </data>
   <data name="Support session opened" xml:space="preserve">
     <value>サポート セッションを開始</value>
@@ -17109,14 +17136,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} (inactive)" xml:space="preserve">
     <value>{0} (無効)</value>
   </data>
-  <data name="{0} (route #{1})" xml:space="preserve">
-    <value>{0} (ルート #{1})</value>
-  </data>
   <data name="{0} (server time)" xml:space="preserve">
     <value>{0} (サーバー時刻)</value>
-  </data>
-  <data name="{0} (subject '{1}')" xml:space="preserve">
-    <value>{0} (件名 '{1}')</value>
   </data>
   <data name="{0} ({1})" xml:space="preserve">
     <value>{0} ({1})</value>
@@ -17877,6 +17898,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} with no usable digest, which the server ignores" xml:space="preserve">
     <value>{0} 件は使用できるダイジェストがなく、サーバーはそれらを無視します</value>
   </data>
+  <data name="{0} {1} '{2}'" xml:space="preserve">
+    <value>{0} {1} '{2}'</value>
+  </data>
   <data name="{0} {1} account had no email address and was skipped." xml:space="preserve">
     <value>{0}{1} 件のアカウントにはメール アドレスがなく、スキップされました。</value>
   </data>
@@ -17912,6 +17936,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} →" xml:space="preserve">
     <value>{0} →</value>
+  </data>
+  <data name="{0} → {1}" xml:space="preserve">
+    <value>{0} → {1}</value>
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB of {2} KB - at its cap, so entries are being evicted." xml:space="preserve">
     <value>参照の {0}% がメモリから応答されており、{2} KB のうち {1} KB を使用しています。上限に達しているため、エントリが破棄されています。</value>

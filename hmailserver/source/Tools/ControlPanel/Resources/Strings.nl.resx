@@ -2185,6 +2185,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Bind to address" xml:space="preserve">
     <value>Binden aan adres</value>
   </data>
+  <data name="Bind to address {0}" xml:space="preserve">
+    <value>Binden aan adres {0}</value>
+  </data>
   <data name="Block" xml:space="preserve">
     <value>Blokkeren</value>
   </data>
@@ -5423,7 +5426,7 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
     <value>Forward-proxy voor de webaanvragen van deze server (host:port; leeg = rechtstreeks)</value>
   </data>
   <data name="Forward to {0}" xml:space="preserve">
-    <value>Vooruit naar {0}</value>
+    <value>Doorsturen naar {0}</value>
   </data>
   <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
     <value>Vooruit naar {0} (Alt+Pijl-rechts)</value>
@@ -6950,6 +6953,9 @@ Elk Web Push-abonnement onder het huidige paar werkt meteen niet meer, en iedere
   <data name="Master user (empty = off)" xml:space="preserve">
     <value>Hoofdgebruiker (leeg = uit)</value>
   </data>
+  <data name="Matc_h" xml:space="preserve">
+    <value>_Overeenkomst</value>
+  </data>
   <data name="Match all criteria (AND)" xml:space="preserve">
     <value>Aan alle criteria voldoen (AND)</value>
   </data>
@@ -7392,6 +7398,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Move to NT SERVICE\hMailServer…" xml:space="preserve">
     <value>Naar NT SERVICE\hMailServer…</value>
+  </data>
+  <data name="Move to folder '{0}'" xml:space="preserve">
+    <value>Verplaatsen naar de map '{0}'</value>
   </data>
   <data name="Move to the next or the previous part of the window: the command bar, the navigation, the page and the help" xml:space="preserve">
     <value>Naar het volgende of vorige deel van het venster gaan: de opdrachtbalk, de navigatie, de pagina en de help</value>
@@ -10122,6 +10131,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Reply to colleagues _only" xml:space="preserve">
     <value>Alleen _collega's beantwoorden</value>
   </data>
+  <data name="Reply with the subject '{0}'" xml:space="preserve">
+    <value>Antwoorden met het onderwerp '{0}'</value>
+  </data>
   <data name="Report _mailbox (empty = none)" xml:space="preserve">
     <value>_Rapportpostvak (leeg = geen)</value>
   </data>
@@ -10502,6 +10514,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Run the built-in connectivity and configuration checks." xml:space="preserve">
     <value>Voer de ingebouwde controles op connectiviteit en configuratie uit.</value>
+  </data>
+  <data name="Run the script function {0}" xml:space="preserve">
+    <value>Scriptfunctie {0} uitvoeren</value>
   </data>
   <data name="Run the service as LocalSystem" xml:space="preserve">
     <value>De service als LocalSystem uitvoeren</value>
@@ -11289,6 +11304,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Send using route" xml:space="preserve">
     <value>Verzenden via route</value>
   </data>
+  <data name="Send using route #{0}" xml:space="preserve">
+    <value>Verzenden via route #{0}</value>
+  </data>
   <data name="Send webhook events" xml:space="preserve">
     <value>Webhook-gebeurtenissen versturen</value>
   </data>
@@ -11544,6 +11562,12 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Set header value" xml:space="preserve">
     <value>Headerwaarde instellen</value>
   </data>
+  <data name="Set header {0} to '{1}'" xml:space="preserve">
+    <value>Header {0} instellen op '{1}'</value>
+  </data>
+  <data name="Set header {0} to (empty)" xml:space="preserve">
+    <value>Header {0} instellen op (leeg)</value>
+  </data>
   <data name="Set in hMailServer.ini only" xml:space="preserve">
     <value>Alleen ingesteld in hMailServer.ini</value>
   </data>
@@ -11683,7 +11707,7 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
     <value>Wachtwoord weergeven</value>
   </data>
   <data name="Show rules _for" xml:space="preserve">
-    <value>Regels tonen _voor</value>
+    <value>Re_gels tonen voor</value>
   </data>
   <data name="Show senders' brand logos (BIMI)" xml:space="preserve">
     <value>Merklogo's van afzenders tonen (BIMI)</value>
@@ -12158,6 +12182,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Such as {0}" xml:space="preserve">
     <value>Bijvoorbeeld {0}</value>
+  </data>
+  <data name="Summary" xml:space="preserve">
+    <value>Samenvatting</value>
   </data>
   <data name="Support session opened" xml:space="preserve">
     <value>Ondersteuningssessie geopend</value>
@@ -17099,14 +17126,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} (inactive)" xml:space="preserve">
     <value>{0} (inactief)</value>
   </data>
-  <data name="{0} (route #{1})" xml:space="preserve">
-    <value>{0} (route #{1})</value>
-  </data>
   <data name="{0} (server time)" xml:space="preserve">
     <value>{0} (servertijd)</value>
-  </data>
-  <data name="{0} (subject '{1}')" xml:space="preserve">
-    <value>{0} (onderwerp '{1}')</value>
   </data>
   <data name="{0} ({1})" xml:space="preserve">
     <value>{0} ({1})</value>
@@ -17867,6 +17888,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} with no usable digest, which the server ignores" xml:space="preserve">
     <value>{0} zonder bruikbare digest, die de server negeert</value>
   </data>
+  <data name="{0} {1} '{2}'" xml:space="preserve">
+    <value>{0} {1} '{2}'</value>
+  </data>
   <data name="{0} {1} account had no email address and was skipped." xml:space="preserve">
     <value>{0} {1} account had geen e-mailadres en is overgeslagen.</value>
   </data>
@@ -17902,6 +17926,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} →" xml:space="preserve">
     <value>{0} →</value>
+  </data>
+  <data name="{0} → {1}" xml:space="preserve">
+    <value>{0} → {1}</value>
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB of {2} KB - at its cap, so entries are being evicted." xml:space="preserve">
     <value>{0}% van de opzoekingen uit het geheugen beantwoord, met {1} KB van {2} KB in gebruik - op het maximum, dus vermeldingen worden verwijderd.</value>
