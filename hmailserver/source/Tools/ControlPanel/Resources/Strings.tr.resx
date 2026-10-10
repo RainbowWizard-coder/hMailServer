@@ -921,7 +921,7 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Account cache TTL (seconds)" xml:space="preserve">
     <value>Hesap önbelleği TTL süresi (saniye)</value>
   </data>
-  <data name="Account cache max size (KB, resets at service restart)" xml:space="preserve">
+  <data name="Account cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>Hesap önbelleği en büyük boyutu (KB, hizmet yeniden başlatıldığında sıfırlanır)</value>
   </data>
   <data name="Account recovery" xml:space="preserve">
@@ -1242,9 +1242,6 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Address or domain" xml:space="preserve">
     <value>Adres veya etki alanı</value>
   </data>
-  <data name="Address the release links point at, such as https://mail.example.com (empty sends no digest)" xml:space="preserve">
-    <value>Serbest bırakma bağlantılarının gösterdiği adres, örneğin https://mail.example.com (boş = özet yok)</value>
-  </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>Eklenecek a_dres</value>
   </data>
@@ -1383,7 +1380,7 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Alias cache TTL (seconds)" xml:space="preserve">
     <value>Diğer ad önbelleği TTL süresi (saniye)</value>
   </data>
-  <data name="Alias cache max size (KB, resets at service restart)" xml:space="preserve">
+  <data name="Alias cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>Diğer ad önbelleği en büyük boyutu (KB, hizmet yeniden başlatıldığında sıfırlanır)</value>
   </data>
   <data name="Alias domain" xml:space="preserve">
@@ -4312,7 +4309,7 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Distribution-list cache TTL (seconds)" xml:space="preserve">
     <value>Dağıtım listesi önbelleği TTL süresi (saniye)</value>
   </data>
-  <data name="Distribution-list cache max size (KB, resets at service restart)" xml:space="preserve">
+  <data name="Distribution-list cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>Dağıtım listesi önbelleği en büyük boyutu (KB, hizmet yeniden başlatıldığında sıfırlanır)</value>
   </data>
   <data name="Do _not forward messages flagged as spam" xml:space="preserve">
@@ -4357,7 +4354,7 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Domain cache TTL (seconds)" xml:space="preserve">
     <value>Etki alanı önbelleği TTL süresi (saniye)</value>
   </data>
-  <data name="Domain cache max size (KB, resets at service restart)" xml:space="preserve">
+  <data name="Domain cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>Etki alanı önbelleği en büyük boyutu (KB, hizmet yeniden başlatıldığında sıfırlanır)</value>
   </data>
   <data name="Domain contains" xml:space="preserve">
@@ -6177,8 +6174,8 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Interface" xml:space="preserve">
     <value>Arayüz</value>
   </data>
-  <data name="Into this folder (empt_y: the one it was in)" xml:space="preserve">
-    <value>Bu klasöre (_boş: bulunduğu klasöre)</value>
+  <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
+    <value>Bu klasöre (_boş = bulunduğu klasöre)</value>
   </data>
   <data name="Invalid command limit" xml:space="preserve">
     <value>Geçersiz komut sınırı</value>
@@ -9898,6 +9895,9 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   <data name="Release" xml:space="preserve">
     <value>Serbest bırak</value>
   </data>
+  <data name="Release link address" xml:space="preserve">
+    <value>Serbest bırakma bağlantılarının adresi</value>
+  </data>
   <data name="Release the checked message to its recipients? It is delivered at once." xml:space="preserve">
     <value>İşaretli ileti alıcılarına serbest bırakılsın mı? Hemen teslim edilir.</value>
   </data>
@@ -11226,8 +11226,8 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Select an event first." xml:space="preserve">
     <value>Önce bir olay seçin.</value>
   </data>
-  <data name="Selector for the new key (leave it empty for one named after today's date)" xml:space="preserve">
-    <value>Yeni anahtarın seçicisi (bugünün tarihiyle adlandırılmış bir seçici için boş bırakın)</value>
+  <data name="Selector for the new key (empty = today's date)" xml:space="preserve">
+    <value>Yeni anahtarın seçicisi (boş = bugünün tarihi)</value>
   </data>
   <data name="Selector name for the new DKIM key" xml:space="preserve">
     <value>Yeni DKIM anahtarı için seçici adı</value>
@@ -12140,6 +12140,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Örneğin güncel tuttuğunuz GeoLite2-Country.mmdb. Boş, varsayılan, ilkeler ne derse desin hiçbir şeyi ülkeye göre değerlendirmez.</value>
+  </data>
+  <data name="Such as https://mail.example.com. Leave empty to send no digest." xml:space="preserve">
+    <value>Örneğin https://mail.example.com. Özet göndermemek için boş bırakın.</value>
   </data>
   <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
     <value>Örneğin multi.surbl.org veya dbl.spamhaus.org</value>
@@ -15142,8 +15145,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="Widen an auto-ban to the neighbouring addresses whose reverse names share its domain" xml:space="preserve">
     <value>Otomatik bir yasağı, ters adları onun etki alanını paylaşan komşu adreslere genişlet</value>
   </data>
-  <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
-    <value>Yardım bölmesindeki "Wikide aç" bağlantısının gösterdiği wiki (boş bırakılırsa bağlantı gizlenir)</value>
+  <data name="Wiki the &quot;Open on the wiki&quot; link points at (empty = no link)" xml:space="preserve">
+    <value>"Wikide aç" bağlantısının gösterdiği wiki (boş = bağlantı yok)</value>
   </data>
   <data name="Will not start" xml:space="preserve">
     <value>Başlamayacak</value>

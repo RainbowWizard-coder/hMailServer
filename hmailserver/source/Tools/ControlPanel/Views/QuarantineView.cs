@@ -1405,7 +1405,7 @@ namespace hMailServer.ControlPanel.Views
                EditTitle = N("Edit the digest settings"),
                Fields =
                {
-                  new CollectionEditorView.FieldSpec { Prop = "QuarantineDigestBaseUrl", Label = L("Address the release links point at, such as https://mail.example.com (empty sends no digest)") },
+                  new CollectionEditorView.FieldSpec { Prop = "QuarantineDigestBaseUrl", Label = L("Release link address"), Hint = L("Such as https://mail.example.com. Leave empty to send no digest.") },
                   new CollectionEditorView.FieldSpec { Prop = "QuarantineDigestLinkHours", Label = L("Hours a release link stays usable (1 to 720)"), Kind = CollectionEditorView.FieldKind.Number }
                }
             };

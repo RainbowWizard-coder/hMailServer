@@ -921,7 +921,7 @@
   <data name="Account cache TTL (seconds)" xml:space="preserve">
     <value>アカウント キャッシュの TTL (秒)</value>
   </data>
-  <data name="Account cache max size (KB, resets at service restart)" xml:space="preserve">
+  <data name="Account cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>アカウント キャッシュの最大サイズ (KB、サービスの再起動でリセット)</value>
   </data>
   <data name="Account recovery" xml:space="preserve">
@@ -1242,9 +1242,6 @@
   <data name="Address or domain" xml:space="preserve">
     <value>アドレスまたはドメイン</value>
   </data>
-  <data name="Address the release links point at, such as https://mail.example.com (empty sends no digest)" xml:space="preserve">
-    <value>解放リンクが指すアドレス (例: https://mail.example.com、空欄ならダイジェストは送られません)</value>
-  </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>追加するアドレス(_D)</value>
   </data>
@@ -1383,7 +1380,7 @@
   <data name="Alias cache TTL (seconds)" xml:space="preserve">
     <value>エイリアス キャッシュの TTL (秒)</value>
   </data>
-  <data name="Alias cache max size (KB, resets at service restart)" xml:space="preserve">
+  <data name="Alias cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>エイリアス キャッシュの最大サイズ (KB、サービスの再起動でリセット)</value>
   </data>
   <data name="Alias domain" xml:space="preserve">
@@ -4312,7 +4309,7 @@
   <data name="Distribution-list cache TTL (seconds)" xml:space="preserve">
     <value>配布リスト キャッシュの TTL (秒)</value>
   </data>
-  <data name="Distribution-list cache max size (KB, resets at service restart)" xml:space="preserve">
+  <data name="Distribution-list cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>配布リスト キャッシュの最大サイズ (KB、サービスの再起動でリセット)</value>
   </data>
   <data name="Do _not forward messages flagged as spam" xml:space="preserve">
@@ -4357,7 +4354,7 @@
   <data name="Domain cache TTL (seconds)" xml:space="preserve">
     <value>ドメイン キャッシュの TTL (秒)</value>
   </data>
-  <data name="Domain cache max size (KB, resets at service restart)" xml:space="preserve">
+  <data name="Domain cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>ドメイン キャッシュの最大サイズ (KB、サービスの再起動でリセット)</value>
   </data>
   <data name="Domain contains" xml:space="preserve">
@@ -6177,8 +6174,8 @@
   <data name="Interface" xml:space="preserve">
     <value>インターフェース</value>
   </data>
-  <data name="Into this folder (empt_y: the one it was in)" xml:space="preserve">
-    <value>このフォルダーへ (空欄: 元のフォルダー)(_Y)</value>
+  <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
+    <value>このフォルダーへ (空 = 元のフォルダー)(_Y)</value>
   </data>
   <data name="Invalid command limit" xml:space="preserve">
     <value>無効なコマンドの上限</value>
@@ -9898,6 +9895,9 @@
   <data name="Release" xml:space="preserve">
     <value>解放</value>
   </data>
+  <data name="Release link address" xml:space="preserve">
+    <value>解放リンクのアドレス</value>
+  </data>
   <data name="Release the checked message to its recipients? It is delivered at once." xml:space="preserve">
     <value>チェックしたメッセージを受信者に解放しますか? 直ちに配信されます。</value>
   </data>
@@ -11226,8 +11226,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Select an event first." xml:space="preserve">
     <value>先にイベントを選択してください。</value>
   </data>
-  <data name="Selector for the new key (leave it empty for one named after today's date)" xml:space="preserve">
-    <value>新しい鍵のセレクター (空欄にすると今日の日付にちなんだ名前になります)</value>
+  <data name="Selector for the new key (empty = today's date)" xml:space="preserve">
+    <value>新しい鍵のセレクター (空 = 今日の日付)</value>
   </data>
   <data name="Selector name for the new DKIM key" xml:space="preserve">
     <value>新しい DKIM 鍵のセレクター名</value>
@@ -12140,6 +12140,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>たとえば、最新の状態に保っている GeoLite2-Country.mmdb。既定の空では、ポリシーの内容にかかわらず、国による判定は行われません。</value>
+  </data>
+  <data name="Such as https://mail.example.com. Leave empty to send no digest." xml:space="preserve">
+    <value>例: https://mail.example.com。空欄にするとダイジェストは送られません。</value>
   </data>
   <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
     <value>multi.surbl.org や dbl.spamhaus.org など</value>
@@ -15142,8 +15145,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Widen an auto-ban to the neighbouring addresses whose reverse names share its domain" xml:space="preserve">
     <value>自動 BAN を、逆引き名が同じドメインに属する近隣のアドレスに広げる</value>
   </data>
-  <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
-    <value>ヘルプ ペインの「Wiki で開く」リンク先の Wiki (空欄でリンクを非表示)</value>
+  <data name="Wiki the &quot;Open on the wiki&quot; link points at (empty = no link)" xml:space="preserve">
+    <value>「Wiki で開く」リンク先の Wiki (空 = リンクなし)</value>
   </data>
   <data name="Will not start" xml:space="preserve">
     <value>起動しません</value>

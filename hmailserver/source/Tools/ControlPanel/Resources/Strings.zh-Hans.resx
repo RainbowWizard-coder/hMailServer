@@ -921,7 +921,7 @@
   <data name="Account cache TTL (seconds)" xml:space="preserve">
     <value>账户缓存 TTL（秒）</value>
   </data>
-  <data name="Account cache max size (KB, resets at service restart)" xml:space="preserve">
+  <data name="Account cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>账户缓存最大大小（KB，重启服务后重置）</value>
   </data>
   <data name="Account recovery" xml:space="preserve">
@@ -1242,9 +1242,6 @@
   <data name="Address or domain" xml:space="preserve">
     <value>地址或域</value>
   </data>
-  <data name="Address the release links point at, such as https://mail.example.com (empty sends no digest)" xml:space="preserve">
-    <value>释放链接指向的地址，例如 https://mail.example.com（留空则不发送摘要）</value>
-  </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>要添加的地址(_D)</value>
   </data>
@@ -1383,7 +1380,7 @@
   <data name="Alias cache TTL (seconds)" xml:space="preserve">
     <value>别名缓存 TTL（秒）</value>
   </data>
-  <data name="Alias cache max size (KB, resets at service restart)" xml:space="preserve">
+  <data name="Alias cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>别名缓存最大大小（KB，重启服务后重置）</value>
   </data>
   <data name="Alias domain" xml:space="preserve">
@@ -4312,7 +4309,7 @@
   <data name="Distribution-list cache TTL (seconds)" xml:space="preserve">
     <value>分发列表缓存 TTL（秒）</value>
   </data>
-  <data name="Distribution-list cache max size (KB, resets at service restart)" xml:space="preserve">
+  <data name="Distribution-list cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>分发列表缓存最大大小（KB，重启服务后重置）</value>
   </data>
   <data name="Do _not forward messages flagged as spam" xml:space="preserve">
@@ -4357,7 +4354,7 @@
   <data name="Domain cache TTL (seconds)" xml:space="preserve">
     <value>域缓存 TTL（秒）</value>
   </data>
-  <data name="Domain cache max size (KB, resets at service restart)" xml:space="preserve">
+  <data name="Domain cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>域缓存最大大小（KB，重启服务后重置）</value>
   </data>
   <data name="Domain contains" xml:space="preserve">
@@ -6177,8 +6174,8 @@
   <data name="Interface" xml:space="preserve">
     <value>接口</value>
   </data>
-  <data name="Into this folder (empt_y: the one it was in)" xml:space="preserve">
-    <value>恢复到此文件夹 (留空: 原来所在的文件夹)(_Y)</value>
+  <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
+    <value>恢复到此文件夹 (留空 = 原来所在的文件夹)(_Y)</value>
   </data>
   <data name="Invalid command limit" xml:space="preserve">
     <value>无效命令限制</value>
@@ -9898,6 +9895,9 @@
   <data name="Release" xml:space="preserve">
     <value>放行</value>
   </data>
+  <data name="Release link address" xml:space="preserve">
+    <value>释放链接地址</value>
+  </data>
   <data name="Release the checked message to its recipients? It is delivered at once." xml:space="preserve">
     <value>是否将已勾选的邮件放行给其收件人？它将立即投递。</value>
   </data>
@@ -11226,8 +11226,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Select an event first." xml:space="preserve">
     <value>请先选择一个事件。</value>
   </data>
-  <data name="Selector for the new key (leave it empty for one named after today's date)" xml:space="preserve">
-    <value>新密钥的选择器（留空则使用以今天日期命名的选择器）</value>
+  <data name="Selector for the new key (empty = today's date)" xml:space="preserve">
+    <value>新密钥的选择器（留空 = 今天的日期）</value>
   </data>
   <data name="Selector name for the new DKIM key" xml:space="preserve">
     <value>新 DKIM 密钥的选择器名称</value>
@@ -12140,6 +12140,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>例如由你保持更新的 GeoLite2-Country.mmdb。默认为空，无论策略如何都不按国家判断。</value>
+  </data>
+  <data name="Such as https://mail.example.com. Leave empty to send no digest." xml:space="preserve">
+    <value>例如 https://mail.example.com。留空则不发送摘要。</value>
   </data>
   <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
     <value>例如 multi.surbl.org 或 dbl.spamhaus.org</value>
@@ -15142,8 +15145,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Widen an auto-ban to the neighbouring addresses whose reverse names share its domain" xml:space="preserve">
     <value>将自动封禁扩展到反向名称与其共享域的相邻地址</value>
   </data>
-  <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
-    <value>帮助窗格中“在 Wiki 中打开”链接指向的 Wiki（留空则隐藏链接）</value>
+  <data name="Wiki the &quot;Open on the wiki&quot; link points at (empty = no link)" xml:space="preserve">
+    <value>“在 Wiki 中打开”链接指向的 Wiki（留空 = 无链接）</value>
   </data>
   <data name="Will not start" xml:space="preserve">
     <value>不会启动</value>

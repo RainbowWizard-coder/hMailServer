@@ -927,7 +927,7 @@ Control Panel может читать файлы сообщений только
   <data name="Account cache TTL (seconds)" xml:space="preserve">
     <value>TTL кэша учётных записей (секунды)</value>
   </data>
-  <data name="Account cache max size (KB, resets at service restart)" xml:space="preserve">
+  <data name="Account cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>Максимальный размер кэша учётных записей (КБ, сбрасывается при перезапуске службы)</value>
   </data>
   <data name="Account recovery" xml:space="preserve">
@@ -1248,9 +1248,6 @@ Control Panel может читать файлы сообщений только
   <data name="Address or domain" xml:space="preserve">
     <value>Адрес или домен</value>
   </data>
-  <data name="Address the release links point at, such as https://mail.example.com (empty sends no digest)" xml:space="preserve">
-    <value>Адрес, на который ведут ссылки освобождения, например https://mail.example.com (пусто — сводка не отправляется)</value>
-  </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>_Адрес для добавления</value>
   </data>
@@ -1389,7 +1386,7 @@ Control Panel может читать файлы сообщений только
   <data name="Alias cache TTL (seconds)" xml:space="preserve">
     <value>TTL кэша псевдонимов (секунды)</value>
   </data>
-  <data name="Alias cache max size (KB, resets at service restart)" xml:space="preserve">
+  <data name="Alias cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>Максимальный размер кэша псевдонимов (КБ, сбрасывается при перезапуске службы)</value>
   </data>
   <data name="Alias domain" xml:space="preserve">
@@ -4364,7 +4361,7 @@ Control Panel может читать файлы сообщений только
   <data name="Distribution-list cache TTL (seconds)" xml:space="preserve">
     <value>TTL кэша списков рассылки (секунды)</value>
   </data>
-  <data name="Distribution-list cache max size (KB, resets at service restart)" xml:space="preserve">
+  <data name="Distribution-list cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>Максимальный размер кэша списков рассылки (КБ, сбрасывается при перезапуске службы)</value>
   </data>
   <data name="Do _not forward messages flagged as spam" xml:space="preserve">
@@ -4409,7 +4406,7 @@ Control Panel может читать файлы сообщений только
   <data name="Domain cache TTL (seconds)" xml:space="preserve">
     <value>TTL кэша доменов (секунды)</value>
   </data>
-  <data name="Domain cache max size (KB, resets at service restart)" xml:space="preserve">
+  <data name="Domain cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>Максимальный размер кэша доменов (КБ, сбрасывается при перезапуске службы)</value>
   </data>
   <data name="Domain contains" xml:space="preserve">
@@ -6247,8 +6244,8 @@ Control Panel может читать файлы сообщений только
   <data name="Interface" xml:space="preserve">
     <value>Интерфейс</value>
   </data>
-  <data name="Into this folder (empt_y: the one it was in)" xml:space="preserve">
-    <value>В эту папку (_пусто: в ту, где оно было)</value>
+  <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
+    <value>В эту папку (_пусто = в ту, где оно было)</value>
   </data>
   <data name="Invalid command limit" xml:space="preserve">
     <value>Предел недопустимых команд</value>
@@ -9995,6 +9992,9 @@ Control Panel может читать файлы сообщений только
   <data name="Release" xml:space="preserve">
     <value>Выпустить</value>
   </data>
+  <data name="Release link address" xml:space="preserve">
+    <value>Адрес ссылок освобождения</value>
+  </data>
   <data name="Release the checked message to its recipients? It is delivered at once." xml:space="preserve">
     <value>Выпустить отмеченное сообщение его получателям? Оно будет доставлено сразу.</value>
   </data>
@@ -11362,8 +11362,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Select an event first." xml:space="preserve">
     <value>Сначала выберите событие.</value>
   </data>
-  <data name="Selector for the new key (leave it empty for one named after today's date)" xml:space="preserve">
-    <value>Селектор нового ключа (оставьте пустым, чтобы получить селектор с сегодняшней датой)</value>
+  <data name="Selector for the new key (empty = today's date)" xml:space="preserve">
+    <value>Селектор нового ключа (пусто = сегодняшняя дата)</value>
   </data>
   <data name="Selector name for the new DKIM key" xml:space="preserve">
     <value>Имя селектора для нового ключа DKIM</value>
@@ -12282,6 +12282,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Например GeoLite2-Country.mmdb, которую вы поддерживаете в актуальном состоянии. Пусто, по умолчанию, ничего не оценивает по стране, что бы ни говорили политики.</value>
+  </data>
+  <data name="Such as https://mail.example.com. Leave empty to send no digest." xml:space="preserve">
+    <value>Например, https://mail.example.com. Оставьте пустым, чтобы сводка не отправлялась.</value>
   </data>
   <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
     <value>Например, multi.surbl.org или dbl.spamhaus.org</value>
@@ -15326,8 +15329,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Widen an auto-ban to the neighbouring addresses whose reverse names share its domain" xml:space="preserve">
     <value>Расширять автоматический бан на соседние адреса, обратные имена которых в том же домене</value>
   </data>
-  <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
-    <value>Вики, на которую ведёт ссылка «Открыть в вики» панели справки (пусто — ссылка скрыта)</value>
+  <data name="Wiki the &quot;Open on the wiki&quot; link points at (empty = no link)" xml:space="preserve">
+    <value>Вики, на которую ведёт ссылка «Открыть в вики» (пусто = без ссылки)</value>
   </data>
   <data name="Will not start" xml:space="preserve">
     <value>Не запустится</value>

@@ -921,7 +921,7 @@ namespace hMailServer.ControlPanel.Views
       private void StartRotation()
       {
          string selector = DialogFields.PromptText(this, L("Rotate now"),
-            L("Selector for the new key (leave it empty for one named after today's date)"));
+            L("Selector for the new key (empty = today's date)"));
          if (selector == null)
             return;
 

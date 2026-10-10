@@ -921,8 +921,8 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="Account cache TTL (seconds)" xml:space="preserve">
     <value>TTL du cache des comptes (secondes)</value>
   </data>
-  <data name="Account cache max size (KB, resets at service restart)" xml:space="preserve">
-    <value>Taille max. du cache des comptes (Ko, remis à zéro au redémarrage du service)</value>
+  <data name="Account cache maximum size (KB, resets at service restart)" xml:space="preserve">
+    <value>Taille maximale du cache des comptes (Ko, remis à zéro au redémarrage du service)</value>
   </data>
   <data name="Account recovery" xml:space="preserve">
     <value>Récupération de compte</value>
@@ -1242,9 +1242,6 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="Address or domain" xml:space="preserve">
     <value>Adresse ou domaine</value>
   </data>
-  <data name="Address the release links point at, such as https://mail.example.com (empty sends no digest)" xml:space="preserve">
-    <value>Adresse vers laquelle pointent les liens de libération, par exemple https://mail.example.com (vide = pas de récapitulatif)</value>
-  </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>A_dresse à ajouter</value>
   </data>
@@ -1383,8 +1380,8 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="Alias cache TTL (seconds)" xml:space="preserve">
     <value>TTL du cache des alias (secondes)</value>
   </data>
-  <data name="Alias cache max size (KB, resets at service restart)" xml:space="preserve">
-    <value>Taille max. du cache des alias (Ko, remis à zéro au redémarrage du service)</value>
+  <data name="Alias cache maximum size (KB, resets at service restart)" xml:space="preserve">
+    <value>Taille maximale du cache des alias (Ko, remis à zéro au redémarrage du service)</value>
   </data>
   <data name="Alias domain" xml:space="preserve">
     <value>Domaine alias</value>
@@ -4312,8 +4309,8 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Distribution-list cache TTL (seconds)" xml:space="preserve">
     <value>TTL du cache des listes de diffusion (secondes)</value>
   </data>
-  <data name="Distribution-list cache max size (KB, resets at service restart)" xml:space="preserve">
-    <value>Taille max du cache des listes de diffusion (Ko, remise à zéro au redémarrage du service)</value>
+  <data name="Distribution-list cache maximum size (KB, resets at service restart)" xml:space="preserve">
+    <value>Taille maximale du cache des listes de diffusion (Ko, remise à zéro au redémarrage du service)</value>
   </data>
   <data name="Do _not forward messages flagged as spam" xml:space="preserve">
     <value>_Ne pas transférer les messages marqués comme spam</value>
@@ -4357,8 +4354,8 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Domain cache TTL (seconds)" xml:space="preserve">
     <value>TTL du cache des domaines (secondes)</value>
   </data>
-  <data name="Domain cache max size (KB, resets at service restart)" xml:space="preserve">
-    <value>Taille max du cache des domaines (Ko, remise à zéro au redémarrage du service)</value>
+  <data name="Domain cache maximum size (KB, resets at service restart)" xml:space="preserve">
+    <value>Taille maximale du cache des domaines (Ko, remise à zéro au redémarrage du service)</value>
   </data>
   <data name="Domain contains" xml:space="preserve">
     <value>Le domaine contient</value>
@@ -6177,8 +6174,8 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Interface" xml:space="preserve">
     <value>Interface</value>
   </data>
-  <data name="Into this folder (empt_y: the one it was in)" xml:space="preserve">
-    <value>Dans ce dossier (_vide : celui où il se trouvait)</value>
+  <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
+    <value>Dans ce dossier (_vide = celui où il se trouvait)</value>
   </data>
   <data name="Invalid command limit" xml:space="preserve">
     <value>Limite de commandes invalides</value>
@@ -9898,6 +9895,9 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
   <data name="Release" xml:space="preserve">
     <value>Libérer</value>
   </data>
+  <data name="Release link address" xml:space="preserve">
+    <value>Adresse des liens de libération</value>
+  </data>
   <data name="Release the checked message to its recipients? It is delivered at once." xml:space="preserve">
     <value>Libérer le message coché vers ses destinataires ? Il est distribué aussitôt.</value>
   </data>
@@ -11226,8 +11226,8 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Select an event first." xml:space="preserve">
     <value>Sélectionnez d'abord un événement.</value>
   </data>
-  <data name="Selector for the new key (leave it empty for one named after today's date)" xml:space="preserve">
-    <value>Sélecteur de la nouvelle clé (laissez vide pour un sélecteur nommé d'après la date du jour)</value>
+  <data name="Selector for the new key (empty = today's date)" xml:space="preserve">
+    <value>Sélecteur de la nouvelle clé (vide = la date du jour)</value>
   </data>
   <data name="Selector name for the new DKIM key" xml:space="preserve">
     <value>Nom du sélecteur de la nouvelle clé DKIM</value>
@@ -12140,6 +12140,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Par exemple GeoLite2-Country.mmdb, que vous tenez à jour. Vide, la valeur par défaut, n'évalue rien par pays, quoi que disent les politiques.</value>
+  </data>
+  <data name="Such as https://mail.example.com. Leave empty to send no digest." xml:space="preserve">
+    <value>Par exemple https://mail.example.com. Laissez vide pour n'envoyer aucun récapitulatif.</value>
   </data>
   <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
     <value>Par exemple multi.surbl.org ou dbl.spamhaus.org</value>
@@ -15142,8 +15145,8 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="Widen an auto-ban to the neighbouring addresses whose reverse names share its domain" xml:space="preserve">
     <value>Étendre un bannissement automatique aux adresses voisines dont les noms inverses partagent son domaine</value>
   </data>
-  <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
-    <value>Wiki vers lequel pointe « Ouvrir sur le wiki » du volet d'aide (vide masque le lien)</value>
+  <data name="Wiki the &quot;Open on the wiki&quot; link points at (empty = no link)" xml:space="preserve">
+    <value>Wiki vers lequel pointe « Ouvrir sur le wiki » (vide = pas de lien)</value>
   </data>
   <data name="Will not start" xml:space="preserve">
     <value>Ne démarrera pas</value>

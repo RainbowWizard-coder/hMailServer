@@ -921,8 +921,8 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Account cache TTL (seconds)" xml:space="preserve">
     <value>TTL för kontocache (sekunder)</value>
   </data>
-  <data name="Account cache max size (KB, resets at service restart)" xml:space="preserve">
-    <value>Maxstorlek för kontocache (KB, nollställs vid omstart av tjänsten)</value>
+  <data name="Account cache maximum size (KB, resets at service restart)" xml:space="preserve">
+    <value>Maximal storlek för kontocache (KB, nollställs vid omstart av tjänsten)</value>
   </data>
   <data name="Account recovery" xml:space="preserve">
     <value>Kontoåterställning</value>
@@ -1242,9 +1242,6 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Address or domain" xml:space="preserve">
     <value>Adress eller domän</value>
   </data>
-  <data name="Address the release links point at, such as https://mail.example.com (empty sends no digest)" xml:space="preserve">
-    <value>Adressen som frisläppningslänkarna pekar på, till exempel https://mail.example.com (tom = ingen sammanfattning)</value>
-  </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>A_dress att lägga till</value>
   </data>
@@ -1383,8 +1380,8 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Alias cache TTL (seconds)" xml:space="preserve">
     <value>TTL för aliascache (sekunder)</value>
   </data>
-  <data name="Alias cache max size (KB, resets at service restart)" xml:space="preserve">
-    <value>Maxstorlek för aliascache (KB, nollställs vid omstart av tjänsten)</value>
+  <data name="Alias cache maximum size (KB, resets at service restart)" xml:space="preserve">
+    <value>Maximal storlek för aliascache (KB, nollställs vid omstart av tjänsten)</value>
   </data>
   <data name="Alias domain" xml:space="preserve">
     <value>Aliasdomän</value>
@@ -4312,8 +4309,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Distribution-list cache TTL (seconds)" xml:space="preserve">
     <value>TTL för distributionslistecache (sekunder)</value>
   </data>
-  <data name="Distribution-list cache max size (KB, resets at service restart)" xml:space="preserve">
-    <value>Maxstorlek för distributionslistecache (KB, nollställs vid omstart av tjänsten)</value>
+  <data name="Distribution-list cache maximum size (KB, resets at service restart)" xml:space="preserve">
+    <value>Maximal storlek för distributionslistecache (KB, nollställs vid omstart av tjänsten)</value>
   </data>
   <data name="Do _not forward messages flagged as spam" xml:space="preserve">
     <value>Vidarebefordra i_nte meddelanden flaggade som skräppost</value>
@@ -4357,8 +4354,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Domain cache TTL (seconds)" xml:space="preserve">
     <value>TTL för domäncache (sekunder)</value>
   </data>
-  <data name="Domain cache max size (KB, resets at service restart)" xml:space="preserve">
-    <value>Maxstorlek för domäncache (KB, nollställs vid omstart av tjänsten)</value>
+  <data name="Domain cache maximum size (KB, resets at service restart)" xml:space="preserve">
+    <value>Maximal storlek för domäncache (KB, nollställs vid omstart av tjänsten)</value>
   </data>
   <data name="Domain contains" xml:space="preserve">
     <value>Domänen innehåller</value>
@@ -6177,8 +6174,8 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Interface" xml:space="preserve">
     <value>Gränssnitt</value>
   </data>
-  <data name="Into this folder (empt_y: the one it was in)" xml:space="preserve">
-    <value>Till den här mappen (_tom: den där det låg)</value>
+  <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
+    <value>Till den här mappen (_tom = den där det låg)</value>
   </data>
   <data name="Invalid command limit" xml:space="preserve">
     <value>Gräns för ogiltiga kommandon</value>
@@ -9898,6 +9895,9 @@ Kör detta om klienter rapporterar meddelanden som dyker upp under fel UID, elle
   <data name="Release" xml:space="preserve">
     <value>Släpp</value>
   </data>
+  <data name="Release link address" xml:space="preserve">
+    <value>Adress för frisläppningslänkar</value>
+  </data>
   <data name="Release the checked message to its recipients? It is delivered at once." xml:space="preserve">
     <value>Släppa det markerade meddelandet till mottagarna? Det levereras genast.</value>
   </data>
@@ -11226,8 +11226,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Select an event first." xml:space="preserve">
     <value>Välj en händelse först.</value>
   </data>
-  <data name="Selector for the new key (leave it empty for one named after today's date)" xml:space="preserve">
-    <value>Selektor för den nya nyckeln (lämna tomt för en som namnges efter dagens datum)</value>
+  <data name="Selector for the new key (empty = today's date)" xml:space="preserve">
+    <value>Selektor för den nya nyckeln (tomt = dagens datum)</value>
   </data>
   <data name="Selector name for the new DKIM key" xml:space="preserve">
     <value>Selektornamn för den nya DKIM-nyckeln</value>
@@ -12140,6 +12140,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Till exempel GeoLite2-Country.mmdb, som du håller uppdaterad. Tomt, standard, bedömer ingenting per land vad policyerna än säger.</value>
+  </data>
+  <data name="Such as https://mail.example.com. Leave empty to send no digest." xml:space="preserve">
+    <value>Till exempel https://mail.example.com. Lämna tomt för att inte skicka någon sammanfattning.</value>
   </data>
   <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
     <value>Till exempel multi.surbl.org eller dbl.spamhaus.org</value>
@@ -15142,8 +15145,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Widen an auto-ban to the neighbouring addresses whose reverse names share its domain" xml:space="preserve">
     <value>Vidga en automatisk spärr till de närliggande adresser vars omvända namn delar dess domän</value>
   </data>
-  <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
-    <value>Wiki som hjälppanelens "Öppna på wikin" pekar på (tomt döljer länken)</value>
+  <data name="Wiki the &quot;Open on the wiki&quot; link points at (empty = no link)" xml:space="preserve">
+    <value>Wiki som "Öppna på wikin" pekar på (tomt = ingen länk)</value>
   </data>
   <data name="Will not start" xml:space="preserve">
     <value>Startar inte</value>

@@ -921,8 +921,8 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Account cache TTL (seconds)" xml:space="preserve">
     <value>TTL for kontohurtigbuffer (sekunder)</value>
   </data>
-  <data name="Account cache max size (KB, resets at service restart)" xml:space="preserve">
-    <value>Maks størrelse på kontohurtigbuffer (KB, nullstilles ved omstart av tjenesten)</value>
+  <data name="Account cache maximum size (KB, resets at service restart)" xml:space="preserve">
+    <value>Maksimal størrelse på kontohurtigbuffer (KB, nullstilles ved omstart av tjenesten)</value>
   </data>
   <data name="Account recovery" xml:space="preserve">
     <value>Kontogjenoppretting</value>
@@ -1242,9 +1242,6 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Address or domain" xml:space="preserve">
     <value>Adresse eller domene</value>
   </data>
-  <data name="Address the release links point at, such as https://mail.example.com (empty sends no digest)" xml:space="preserve">
-    <value>Adressen frigivelseslenkene peker til, for eksempel https://mail.example.com (tom = ingen sammendrag)</value>
-  </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>A_dresse som skal legges til</value>
   </data>
@@ -1383,8 +1380,8 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Alias cache TTL (seconds)" xml:space="preserve">
     <value>TTL for aliashurtigbuffer (sekunder)</value>
   </data>
-  <data name="Alias cache max size (KB, resets at service restart)" xml:space="preserve">
-    <value>Maks størrelse på aliashurtigbuffer (KB, nullstilles ved omstart av tjenesten)</value>
+  <data name="Alias cache maximum size (KB, resets at service restart)" xml:space="preserve">
+    <value>Maksimal størrelse på aliashurtigbuffer (KB, nullstilles ved omstart av tjenesten)</value>
   </data>
   <data name="Alias domain" xml:space="preserve">
     <value>Aliasdomene</value>
@@ -4312,8 +4309,8 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Distribution-list cache TTL (seconds)" xml:space="preserve">
     <value>TTL for hurtigbufferen for distribusjonslister (sekunder)</value>
   </data>
-  <data name="Distribution-list cache max size (KB, resets at service restart)" xml:space="preserve">
-    <value>Maks. størrelse på hurtigbufferen for distribusjonslister (KB, nullstilles ved omstart av tjenesten)</value>
+  <data name="Distribution-list cache maximum size (KB, resets at service restart)" xml:space="preserve">
+    <value>Maksimal størrelse på hurtigbufferen for distribusjonslister (KB, nullstilles ved omstart av tjenesten)</value>
   </data>
   <data name="Do _not forward messages flagged as spam" xml:space="preserve">
     <value>_Ikke videresend meldinger flagget som spam</value>
@@ -4357,8 +4354,8 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Domain cache TTL (seconds)" xml:space="preserve">
     <value>TTL for domenehurtigbufferen (sekunder)</value>
   </data>
-  <data name="Domain cache max size (KB, resets at service restart)" xml:space="preserve">
-    <value>Maks. størrelse på domenehurtigbufferen (KB, nullstilles ved omstart av tjenesten)</value>
+  <data name="Domain cache maximum size (KB, resets at service restart)" xml:space="preserve">
+    <value>Maksimal størrelse på domenehurtigbufferen (KB, nullstilles ved omstart av tjenesten)</value>
   </data>
   <data name="Domain contains" xml:space="preserve">
     <value>Domenet inneholder</value>
@@ -6177,8 +6174,8 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Interface" xml:space="preserve">
     <value>Grensesnitt</value>
   </data>
-  <data name="Into this folder (empt_y: the one it was in)" xml:space="preserve">
-    <value>Inn i denne mappen (_tom: den meldingen lå i)</value>
+  <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
+    <value>Inn i denne mappen (_tom = den meldingen lå i)</value>
   </data>
   <data name="Invalid command limit" xml:space="preserve">
     <value>Grense for ugyldige kommandoer</value>
@@ -9898,6 +9895,9 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   <data name="Release" xml:space="preserve">
     <value>Frigi</value>
   </data>
+  <data name="Release link address" xml:space="preserve">
+    <value>Adresse for frigivelseslenker</value>
+  </data>
   <data name="Release the checked message to its recipients? It is delivered at once." xml:space="preserve">
     <value>Frigi den merkede meldingen til mottakerne? Den leveres med en gang.</value>
   </data>
@@ -11226,8 +11226,8 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Select an event first." xml:space="preserve">
     <value>Velg en hendelse først.</value>
   </data>
-  <data name="Selector for the new key (leave it empty for one named after today's date)" xml:space="preserve">
-    <value>Selektor for den nye nøkkelen (la feltet stå tomt for en som er oppkalt etter dagens dato)</value>
+  <data name="Selector for the new key (empty = today's date)" xml:space="preserve">
+    <value>Selektor for den nye nøkkelen (tomt = dagens dato)</value>
   </data>
   <data name="Selector name for the new DKIM key" xml:space="preserve">
     <value>Selektornavn for den nye DKIM-nøkkelen</value>
@@ -12140,6 +12140,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   </data>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>For eksempel GeoLite2-Country.mmdb, som du holder oppdatert. Tomt, standard, vurderer ingenting etter land, uansett hva policyene sier.</value>
+  </data>
+  <data name="Such as https://mail.example.com. Leave empty to send no digest." xml:space="preserve">
+    <value>For eksempel https://mail.example.com. La stå tomt for ikke å sende noe sammendrag.</value>
   </data>
   <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
     <value>For eksempel multi.surbl.org eller dbl.spamhaus.org</value>
@@ -15142,8 +15145,8 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="Widen an auto-ban to the neighbouring addresses whose reverse names share its domain" xml:space="preserve">
     <value>Utvid en automatisk utestenging til naboadressene der de omvendte navnene deler domenet</value>
   </data>
-  <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
-    <value>Wiki som hjelpepanelets «Åpne på wikien» peker til (tomt skjuler lenken)</value>
+  <data name="Wiki the &quot;Open on the wiki&quot; link points at (empty = no link)" xml:space="preserve">
+    <value>Wiki som «Åpne på wikien» peker til (tomt = ingen lenke)</value>
   </data>
   <data name="Will not start" xml:space="preserve">
     <value>Starter ikke</value>

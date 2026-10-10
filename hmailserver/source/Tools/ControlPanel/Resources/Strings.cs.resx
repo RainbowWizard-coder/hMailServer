@@ -927,7 +927,7 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Account cache TTL (seconds)" xml:space="preserve">
     <value>TTL cache účtů (sekundy)</value>
   </data>
-  <data name="Account cache max size (KB, resets at service restart)" xml:space="preserve">
+  <data name="Account cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>Maximální velikost cache účtů (KB, nuluje se při restartu služby)</value>
   </data>
   <data name="Account recovery" xml:space="preserve">
@@ -1248,9 +1248,6 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Address or domain" xml:space="preserve">
     <value>Adresa nebo doména</value>
   </data>
-  <data name="Address the release links point at, such as https://mail.example.com (empty sends no digest)" xml:space="preserve">
-    <value>Adresa, na kterou vedou odkazy k uvolnění, například https://mail.example.com (prázdná = žádný souhrn)</value>
-  </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>_Adresa k přidání</value>
   </data>
@@ -1389,7 +1386,7 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Alias cache TTL (seconds)" xml:space="preserve">
     <value>TTL cache aliasů (sekundy)</value>
   </data>
-  <data name="Alias cache max size (KB, resets at service restart)" xml:space="preserve">
+  <data name="Alias cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>Maximální velikost cache aliasů (KB, nuluje se při restartu služby)</value>
   </data>
   <data name="Alias domain" xml:space="preserve">
@@ -4364,8 +4361,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Distribution-list cache TTL (seconds)" xml:space="preserve">
     <value>TTL cache distribučních seznamů (sekundy)</value>
   </data>
-  <data name="Distribution-list cache max size (KB, resets at service restart)" xml:space="preserve">
-    <value>Max. velikost cache distribučních seznamů (KB, vynuluje se při restartu služby)</value>
+  <data name="Distribution-list cache maximum size (KB, resets at service restart)" xml:space="preserve">
+    <value>Maximální velikost cache distribučních seznamů (KB, vynuluje se při restartu služby)</value>
   </data>
   <data name="Do _not forward messages flagged as spam" xml:space="preserve">
     <value>_Nepřeposílat zprávy označené jako spam</value>
@@ -4409,8 +4406,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Domain cache TTL (seconds)" xml:space="preserve">
     <value>TTL cache domén (sekundy)</value>
   </data>
-  <data name="Domain cache max size (KB, resets at service restart)" xml:space="preserve">
-    <value>Max. velikost cache domén (KB, vynuluje se při restartu služby)</value>
+  <data name="Domain cache maximum size (KB, resets at service restart)" xml:space="preserve">
+    <value>Maximální velikost cache domén (KB, vynuluje se při restartu služby)</value>
   </data>
   <data name="Domain contains" xml:space="preserve">
     <value>Doména obsahuje</value>
@@ -6247,8 +6244,8 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Interface" xml:space="preserve">
     <value>Rozhraní</value>
   </data>
-  <data name="Into this folder (empt_y: the one it was in)" xml:space="preserve">
-    <value>Do této složky (_prázdné: do té, ve které byla)</value>
+  <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
+    <value>Do této složky (_prázdné = do té, ve které byla)</value>
   </data>
   <data name="Invalid command limit" xml:space="preserve">
     <value>Limit neplatných příkazů</value>
@@ -9995,6 +9992,9 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   <data name="Release" xml:space="preserve">
     <value>Uvolnit</value>
   </data>
+  <data name="Release link address" xml:space="preserve">
+    <value>Adresa odkazů k uvolnění</value>
+  </data>
   <data name="Release the checked message to its recipients? It is delivered at once." xml:space="preserve">
     <value>Uvolnit zaškrtnutou zprávu jejím příjemcům? Doručí se okamžitě.</value>
   </data>
@@ -11362,8 +11362,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Select an event first." xml:space="preserve">
     <value>Nejprve vyberte událost.</value>
   </data>
-  <data name="Selector for the new key (leave it empty for one named after today's date)" xml:space="preserve">
-    <value>Selektor pro nový klíč (ponechte prázdné pro selektor pojmenovaný podle dnešního data)</value>
+  <data name="Selector for the new key (empty = today's date)" xml:space="preserve">
+    <value>Selektor pro nový klíč (prázdné = dnešní datum)</value>
   </data>
   <data name="Selector name for the new DKIM key" xml:space="preserve">
     <value>Název selektoru pro nový klíč DKIM</value>
@@ -12282,6 +12282,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Například GeoLite2-Country.mmdb, kterou udržujete aktuální. Prázdné, výchozí, nic nehodnotí podle země, ať zásady říkají cokoli.</value>
+  </data>
+  <data name="Such as https://mail.example.com. Leave empty to send no digest." xml:space="preserve">
+    <value>Například https://mail.example.com. Ponechte prázdné, aby se žádný souhrn neodesílal.</value>
   </data>
   <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
     <value>Například multi.surbl.org nebo dbl.spamhaus.org</value>
@@ -15326,8 +15329,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Widen an auto-ban to the neighbouring addresses whose reverse names share its domain" xml:space="preserve">
     <value>Rozšířit automatický zákaz na sousední adresy, jejichž reverzní názvy sdílejí jeho doménu</value>
   </data>
-  <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
-    <value>Wiki, na kterou odkazuje „Otevřít na wiki“ v panelu nápovědy (prázdné odkaz skryje)</value>
+  <data name="Wiki the &quot;Open on the wiki&quot; link points at (empty = no link)" xml:space="preserve">
+    <value>Wiki, na kterou odkazuje „Otevřít na wiki“ (prázdné = bez odkazu)</value>
   </data>
   <data name="Will not start" xml:space="preserve">
     <value>Nespustí se</value>

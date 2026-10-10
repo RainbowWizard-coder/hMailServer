@@ -3166,15 +3166,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   it means every host.** The Anti-spam and Anti-virus pages alone had "(KB, 0 = unlimited)", "(0 never refuses)",
   "Record expiration interval, minutes", "(0-100)" and "Minutes the sending address is banned (0 = no ban; up to
   525600)", with "Max" and "Maximum" in one card; the settings pages added "(s)", "in seconds", "N days", "0 =
-  disabled", "0 = no bound", "0 = keep" and numbers without their thousands separated. Every caption now says them one
-  way: "<what> (<unit>, <range>; 0 = <meaning>)" - "Ban the sending address for (minutes, up to 525,600; 0 = no ban)",
-  "Largest message to spam-scan (KB; 0 = no limit)", "SMTP server minimum timeout (seconds)" - with "no limit", "off",
-  "for ever" and "no time limit" for what 0 means, and an explanation that sat in a caption's brackets is now the
-  setting's hint. The four timeouts of Server limits & expert settings that did not say what 0 means, and its reserved
-  threads, now do. "Extra delivery attempts per additional MX host (0 = default)" is "MX hosts tried per attempt,
-  times the attempt number (0 = all)": the setting bounds how many of a domain's MX hosts each attempt tries, and its
-  hint had said it multiplied the retry count. About 140 captions and hints, in every language. `CaptionFormTests`
-  holds every caption of the Control Panel to the form.
+  disabled", "0 = no bound", "0 = keep", "Domain cache max size", "(empty asks the domain's MX hosts)", "(leave it
+  empty for one named after today's date)" and numbers without their thousands separated. Every caption now says them
+  one way: "<what> (<unit>, <range>; 0 = <meaning>)" - "Ban the sending address for (minutes, up to 525,600; 0 = no
+  ban)", "Largest message to spam-scan (KB; 0 = no limit)", "SMTP server minimum timeout (seconds)", "Domain cache
+  maximum size (KB, resets at service restart)" - with "no limit", "off", "for ever" and "no time limit" for what 0
+  means and "empty = ..." for what an empty box does, "Selector for the new key (empty = today's date)", and the
+  explanations these captions carried in their brackets are now their settings' hints. The quarantine digest's address
+  is "Release link address", with "Such as https://mail.example.com. Leave empty to send no digest." under it. The
+  four timeouts of Server limits & expert settings that did not say what 0 means, and its reserved threads, now do.
+  "Extra delivery attempts per additional MX host (0 = default)" is "MX hosts tried per attempt, times the attempt
+  number (0 = all)": the setting bounds how many of a domain's MX hosts each attempt tries, and its hint had said it
+  multiplied the retry count. About 150 captions and hints, in every language. `CaptionFormTests` holds every caption
+  of the Control Panel to the form - "max" in either case, but MTA-STS's own max age, and what an empty box means in
+  prose, in a caption or an input prompt's.
 
 - **Fixed: about sixty texts wrote a word in capitals to stress it, and a few said "honestly" or "perfectly".** "This
   server only CHECKS SPF on incoming mail", "the PTR is NOT published in your domain's zone", "applied to THIS

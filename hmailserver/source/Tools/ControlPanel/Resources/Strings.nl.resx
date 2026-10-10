@@ -921,7 +921,7 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Account cache TTL (seconds)" xml:space="preserve">
     <value>TTL van accountcache (seconden)</value>
   </data>
-  <data name="Account cache max size (KB, resets at service restart)" xml:space="preserve">
+  <data name="Account cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>Maximale grootte accountcache (KB, reset bij herstart van de service)</value>
   </data>
   <data name="Account recovery" xml:space="preserve">
@@ -1242,9 +1242,6 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Address or domain" xml:space="preserve">
     <value>Adres of domein</value>
   </data>
-  <data name="Address the release links point at, such as https://mail.example.com (empty sends no digest)" xml:space="preserve">
-    <value>Adres waar de vrijgavekoppelingen naar wijzen, bijvoorbeeld https://mail.example.com (leeg = geen overzicht)</value>
-  </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>Toe te voegen a_dres</value>
   </data>
@@ -1383,7 +1380,7 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Alias cache TTL (seconds)" xml:space="preserve">
     <value>TTL van aliascache (seconden)</value>
   </data>
-  <data name="Alias cache max size (KB, resets at service restart)" xml:space="preserve">
+  <data name="Alias cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>Maximale grootte aliascache (KB, reset bij herstart van de service)</value>
   </data>
   <data name="Alias domain" xml:space="preserve">
@@ -4312,7 +4309,7 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Distribution-list cache TTL (seconds)" xml:space="preserve">
     <value>TTL van distributielijstcache (seconden)</value>
   </data>
-  <data name="Distribution-list cache max size (KB, resets at service restart)" xml:space="preserve">
+  <data name="Distribution-list cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>Maximale grootte distributielijstcache (KB, reset bij herstart van de service)</value>
   </data>
   <data name="Do _not forward messages flagged as spam" xml:space="preserve">
@@ -4357,7 +4354,7 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Domain cache TTL (seconds)" xml:space="preserve">
     <value>TTL van domeincache (seconden)</value>
   </data>
-  <data name="Domain cache max size (KB, resets at service restart)" xml:space="preserve">
+  <data name="Domain cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>Maximale grootte domeincache (KB, reset bij herstart van de service)</value>
   </data>
   <data name="Domain contains" xml:space="preserve">
@@ -6177,8 +6174,8 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Interface" xml:space="preserve">
     <value>Interface</value>
   </data>
-  <data name="Into this folder (empt_y: the one it was in)" xml:space="preserve">
-    <value>In deze map (leeg: de map waarin het _stond)</value>
+  <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
+    <value>In deze map (leeg = de map waarin het _stond)</value>
   </data>
   <data name="Invalid command limit" xml:space="preserve">
     <value>Limiet voor ongeldige commando's</value>
@@ -9898,6 +9895,9 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Release" xml:space="preserve">
     <value>Vrijgeven</value>
   </data>
+  <data name="Release link address" xml:space="preserve">
+    <value>Adres van de vrijgavekoppelingen</value>
+  </data>
   <data name="Release the checked message to its recipients? It is delivered at once." xml:space="preserve">
     <value>Het aangevinkte bericht vrijgeven aan de ontvangers? Het wordt meteen bezorgd.</value>
   </data>
@@ -11226,8 +11226,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Select an event first." xml:space="preserve">
     <value>Selecteer eerst een gebeurtenis.</value>
   </data>
-  <data name="Selector for the new key (leave it empty for one named after today's date)" xml:space="preserve">
-    <value>Selector voor de nieuwe sleutel (laat leeg voor een selector die naar de datum van vandaag is genoemd)</value>
+  <data name="Selector for the new key (empty = today's date)" xml:space="preserve">
+    <value>Selector voor de nieuwe sleutel (leeg = de datum van vandaag)</value>
   </data>
   <data name="Selector name for the new DKIM key" xml:space="preserve">
     <value>Selectornaam voor de nieuwe DKIM-sleutel</value>
@@ -12140,6 +12140,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Zoals GeoLite2-Country.mmdb, door u actueel gehouden. Leeg, de standaard, beoordeelt niets per land, wat de beleidsregels ook zeggen.</value>
+  </data>
+  <data name="Such as https://mail.example.com. Leave empty to send no digest." xml:space="preserve">
+    <value>Bijvoorbeeld https://mail.example.com. Laat leeg om geen overzicht te versturen.</value>
   </data>
   <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
     <value>Bijvoorbeeld multi.surbl.org of dbl.spamhaus.org</value>
@@ -15142,8 +15145,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Widen an auto-ban to the neighbouring addresses whose reverse names share its domain" xml:space="preserve">
     <value>Een automatische ban uitbreiden naar de naburige adressen waarvan de reverse-namen het domein delen</value>
   </data>
-  <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
-    <value>Wiki waarnaar "Openen op de wiki" in het helpvenster verwijst (leeg verbergt de koppeling)</value>
+  <data name="Wiki the &quot;Open on the wiki&quot; link points at (empty = no link)" xml:space="preserve">
+    <value>Wiki waarnaar "Openen op de wiki" verwijst (leeg = geen koppeling)</value>
   </data>
   <data name="Will not start" xml:space="preserve">
     <value>Start niet</value>

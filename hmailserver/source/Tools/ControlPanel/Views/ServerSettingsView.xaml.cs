@@ -4244,10 +4244,10 @@ namespace hMailServer.ControlPanel.Views
          // noted as session-only because the label is what the Ctrl+K palette
          // shows, and an administrator must be told before they type, not after
          // the next restart quietly discards it.
-         cache.Settings.Add(new ComText { Path = "Cache.DomainCacheMaxSizeKb", Label = L("Domain cache max size (KB, resets at service restart)"), Numeric = true, Blurb = L(SettingClaims.NoteFor("Cache.DomainCacheMaxSizeKb")) });
-         cache.Settings.Add(new ComText { Path = "Cache.AccountCacheMaxSizeKb", Label = L("Account cache max size (KB, resets at service restart)"), Numeric = true, Blurb = L(SettingClaims.NoteFor("Cache.AccountCacheMaxSizeKb")) });
-         cache.Settings.Add(new ComText { Path = "Cache.AliasCacheMaxSizeKb", Label = L("Alias cache max size (KB, resets at service restart)"), Numeric = true, Blurb = L(SettingClaims.NoteFor("Cache.AliasCacheMaxSizeKb")) });
-         cache.Settings.Add(new ComText { Path = "Cache.DistributionListCacheMaxSizeKb", Label = L("Distribution-list cache max size (KB, resets at service restart)"), Numeric = true, Blurb = L(SettingClaims.NoteFor("Cache.DistributionListCacheMaxSizeKb")) });
+         cache.Settings.Add(new ComText { Path = "Cache.DomainCacheMaxSizeKb", Label = L("Domain cache maximum size (KB, resets at service restart)"), Numeric = true, Blurb = L(SettingClaims.NoteFor("Cache.DomainCacheMaxSizeKb")) });
+         cache.Settings.Add(new ComText { Path = "Cache.AccountCacheMaxSizeKb", Label = L("Account cache maximum size (KB, resets at service restart)"), Numeric = true, Blurb = L(SettingClaims.NoteFor("Cache.AccountCacheMaxSizeKb")) });
+         cache.Settings.Add(new ComText { Path = "Cache.AliasCacheMaxSizeKb", Label = L("Alias cache maximum size (KB, resets at service restart)"), Numeric = true, Blurb = L(SettingClaims.NoteFor("Cache.AliasCacheMaxSizeKb")) });
+         cache.Settings.Add(new ComText { Path = "Cache.DistributionListCacheMaxSizeKb", Label = L("Distribution-list cache maximum size (KB, resets at service restart)"), Numeric = true, Blurb = L(SettingClaims.NoteFor("Cache.DistributionListCacheMaxSizeKb")) });
          Tab(L("Cache")).Cards.Add(cache);
 
          // Four TTLs and four size caps, and until now no way to see what any of
@@ -4588,7 +4588,7 @@ namespace hMailServer.ControlPanel.Views
          general.Settings.Add(new ComText
          {
             Path = "HelpWikiBaseUrl",
-            Label = L("Wiki the help pane's \"Open on the wiki\" link points at (empty hides the link)"),
+            Label = L("Wiki the \"Open on the wiki\" link points at (empty = no link)"),
             Blurb = L("The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki.")
          });
 

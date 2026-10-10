@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using Xunit;
 
 namespace hMailServer.ControlPanel.Tests.Services
@@ -22,11 +23,12 @@ namespace hMailServer.ControlPanel.Tests.Services
    /// thousands separated.
    ///
    /// The form, past CaptionWordingTests' rule for what a bracket may hold: "no limit", never
-   /// "unlimited"; "Maximum", never "Max"; "off", never "disabled", for what a value means; the
-   /// unit in the brackets, never "in seconds", ", minutes" or "(s)" around them; no "N" for the
-   /// number; a range "a to b", never "a-b"; a number of four digits or more with its thousands
-   /// grouped (a port's or an RFC's number is a name, not a quantity); "0 = ...", never "0 never
-   /// refuses"; the unit and the range before what values mean, after "; "; and "comma
+   /// "unlimited"; "Maximum", never "Max" or "max"; "off", never "disabled", for what a value
+   /// means; the unit in the brackets, never "in seconds", ", minutes" or "(s)" around them; no "N"
+   /// for the number; a range "a to b", never "a-b"; a number of four digits or more with its
+   /// thousands grouped (a port's or an RFC's number is a name, not a quantity); "0 = ...", never
+   /// "0 never refuses", and "empty = ...", never "empty asks the domain's MX hosts" or "leave it
+   /// empty for ..."; the unit and the range before what values mean, after "; "; and "comma
    /// separated".
    /// </summary>
    public class CaptionFormTests
@@ -40,7 +42,10 @@ namespace hMailServer.ControlPanel.Tests.Services
       private static readonly (string Name, Func<string, string, string, bool> Breaks)[] Checks =
       {
          ("unlimited", (caption, before, inner) => Regex.IsMatch(caption, @"\bunlimited\b", RegexOptions.IgnoreCase)),
-         ("Max", (caption, before, inner) => Regex.IsMatch(caption, @"\bMax\b")),
+         // In either case: the Performance page's "Domain cache max size" passed a rule that read
+         // "Max" alone. MTA-STS's policy field is named by its own name, max_age (RFC 8461).
+         ("Max", (caption, before, inner) => Regex.IsMatch(caption.Replace("Policy max age", "", StringComparison.Ordinal), @"\bmax\b", RegexOptions.IgnoreCase)),
+         ("empty not written empty =", (caption, before, inner) => inner != null && inner.Split("; ").Any(EmptyInProse)),
          ("disabled", (caption, before, inner) => Regex.IsMatch(caption, @"= disabled\b")),
          ("unit outside the brackets", (caption, before, inner) =>
             Regex.IsMatch(before, @"(?:,|\bin) (?:seconds|minutes|hours|days|milliseconds|KB|MB|bytes)\b(?! to\b)") || caption.Contains("(s)", StringComparison.Ordinal)),
@@ -78,6 +83,17 @@ namespace hMailServer.ControlPanel.Tests.Services
          return found;
       }
 
+      /// <summary>
+      /// A part of a bracket that says what an empty box means in prose - "empty asks the domain's
+      /// MX hosts", "leave it empty for one named after today's date", "empty: the one it was in" -
+      /// where the form is "empty = the domain's MX hosts"; the password boxes' shared "leave empty
+      /// to keep current" says what to do, and is one text everywhere.
+      /// </summary>
+      internal static bool EmptyInProse(string part) =>
+         Regex.IsMatch(part.Replace("_", ""), @"^(?:leave (?:it )?|left )?empty\b")
+         && !part.Replace("_", "").StartsWith("empty = ", StringComparison.Ordinal)
+         && part != "leave empty to keep current";
+
       private static bool MeaningComesFirst(string inner)
       {
          bool meaning = false;
@@ -109,6 +125,10 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("UDP port (1 to 65535)")]
       [InlineData("Server-side session cache size (0 = OpenSSL's default of 20,480, -1 = no cache)")]
       [InlineData("Maximum characters per log line (at least 100)")]
+      [InlineData("Policy max age (seconds, 86,400 to 31,557,600)")]
+      [InlineData("Domain cache maximum size (KB, resets at service restart)")]
+      [InlineData("New _password (leave empty to keep current)")]
+      [InlineData("Into this folder (empt_y = the one it was in)")]
       public void ACaption_InTheOneForm_KeepsIt(string caption)
       {
          Assert.Empty(Problems(caption));
@@ -128,6 +148,11 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("Delete logs older than N days (0 = keep everything)", "N for the number")]
       [InlineData("Port (0 = disabled)", "disabled")]
       [InlineData("Only archive mail for these domains (comma-separated; empty = every message)", "comma-separated")]
+      [InlineData("Domain cache max size (KB, resets at service restart)", "Max")]
+      [InlineData("The server to ask (empty asks the domain's MX hosts)", "empty not written empty =")]
+      [InlineData("Wiki the \"Open on the wiki\" link points at (empty hides the link)", "empty not written empty =")]
+      [InlineData("Selector for the new key (leave it empty for one named after today's date)", "empty not written empty =")]
+      [InlineData("Into this folder (empt_y: the one it was in)", "empty not written empty =")]
       public void ACaption_OutOfTheForm_BreaksIt(string caption, string check)
       {
          Assert.Contains(check, Problems(caption));
@@ -162,6 +187,28 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          Assert.True(read > 600, "Only " + read + " captions were read; the patterns no longer find them.");
          Assert.True(offenders.Count == 0, "These captions say a unit, a range or what a value means out of the one form:\n" + string.Join("\n", offenders));
+      }
+
+      /// <summary>
+      /// What an empty box means is "empty = ..." in every text that ends with a bracket, an input
+      /// prompt's caption as well as a field's: the DKIM rotation's "Selector for the new key (leave
+      /// it empty for one named after today's date)" is a prompt's, which the caption positions
+      /// above do not read.
+      /// </summary>
+      [Fact]
+      public void EveryText_SaysWhatAnEmptyBoxMeansInTheOneForm()
+      {
+         string path = ConfirmationPatternTests.ControlPanelFile(Path.Join("Resources", "Strings.resx"));
+         var offenders = new List<string>();
+         foreach (string text in XDocument.Load(path).Root.Elements("data").Select(d => (string)d.Attribute("name")))
+         {
+            Match last = Regex.Match(text, @"\(([^()]*)\)\s*$");
+            // "(empty)" alone is a value shown, not a caption
+            if (last.Success && last.Index > 0 && last.Groups[1].Value.Split("; ").Any(EmptyInProse))
+               offenders.Add(text);
+         }
+
+         Assert.True(offenders.Count == 0, "Say what an empty box means as \"empty = ...\":\n" + string.Join("\n", offenders));
       }
 
       private static void Judge(string relative, string caption, List<string> offenders)

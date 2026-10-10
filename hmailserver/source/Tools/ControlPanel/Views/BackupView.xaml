@@ -248,7 +248,7 @@
                         <scaffold:EmptyState x:Name="ArchivedMessagesEmpty" Icon="Mail24" Visibility="Collapsed" Padding="12" Margin="0,33,0,0" />
                     </Grid>
                     <TextBlock x:Name="ArchivedMessagesNote" Style="{StaticResource TextCaption}" Visibility="Collapsed" Margin="0,0,0,8" />
-                    <scaffold:FieldRow Label="{loc:L 'Into this folder (empt_y: the one it was in)'}" Margin="0,4,0,0">
+                    <scaffold:FieldRow Label="{loc:L 'Into this folder (empt_y = the one it was in)'}" Margin="0,4,0,0">
                         <ui:TextBox x:Name="ArchivedMessageFolderBox" />
                     </scaffold:FieldRow>
                 </StackPanel>

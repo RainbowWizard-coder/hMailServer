@@ -921,8 +921,8 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Account cache TTL (seconds)" xml:space="preserve">
     <value>Account cache TTL (seconds)</value>
   </data>
-  <data name="Account cache max size (KB, resets at service restart)" xml:space="preserve">
-    <value>Account cache max size (KB, resets at service restart)</value>
+  <data name="Account cache maximum size (KB, resets at service restart)" xml:space="preserve">
+    <value>Account cache maximum size (KB, resets at service restart)</value>
   </data>
   <data name="Account recovery" xml:space="preserve">
     <value>Account recovery</value>
@@ -1242,9 +1242,6 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Address or domain" xml:space="preserve">
     <value>Address or domain</value>
   </data>
-  <data name="Address the release links point at, such as https://mail.example.com (empty sends no digest)" xml:space="preserve">
-    <value>Address the release links point at, such as https://mail.example.com (empty sends no digest)</value>
-  </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>Address to a_dd</value>
   </data>
@@ -1383,8 +1380,8 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Alias cache TTL (seconds)" xml:space="preserve">
     <value>Alias cache TTL (seconds)</value>
   </data>
-  <data name="Alias cache max size (KB, resets at service restart)" xml:space="preserve">
-    <value>Alias cache max size (KB, resets at service restart)</value>
+  <data name="Alias cache maximum size (KB, resets at service restart)" xml:space="preserve">
+    <value>Alias cache maximum size (KB, resets at service restart)</value>
   </data>
   <data name="Alias domain" xml:space="preserve">
     <value>Alias domain</value>
@@ -4312,8 +4309,8 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Distribution-list cache TTL (seconds)" xml:space="preserve">
     <value>Distribution-list cache TTL (seconds)</value>
   </data>
-  <data name="Distribution-list cache max size (KB, resets at service restart)" xml:space="preserve">
-    <value>Distribution-list cache max size (KB, resets at service restart)</value>
+  <data name="Distribution-list cache maximum size (KB, resets at service restart)" xml:space="preserve">
+    <value>Distribution-list cache maximum size (KB, resets at service restart)</value>
   </data>
   <data name="Do _not forward messages flagged as spam" xml:space="preserve">
     <value>Do _not forward messages flagged as spam</value>
@@ -4357,8 +4354,8 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Domain cache TTL (seconds)" xml:space="preserve">
     <value>Domain cache TTL (seconds)</value>
   </data>
-  <data name="Domain cache max size (KB, resets at service restart)" xml:space="preserve">
-    <value>Domain cache max size (KB, resets at service restart)</value>
+  <data name="Domain cache maximum size (KB, resets at service restart)" xml:space="preserve">
+    <value>Domain cache maximum size (KB, resets at service restart)</value>
   </data>
   <data name="Domain contains" xml:space="preserve">
     <value>Domain contains</value>
@@ -6177,8 +6174,8 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Interface" xml:space="preserve">
     <value>Interface</value>
   </data>
-  <data name="Into this folder (empt_y: the one it was in)" xml:space="preserve">
-    <value>Into this folder (empt_y: the one it was in)</value>
+  <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
+    <value>Into this folder (empt_y = the one it was in)</value>
   </data>
   <data name="Invalid command limit" xml:space="preserve">
     <value>Invalid command limit</value>
@@ -9898,6 +9895,9 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   <data name="Release" xml:space="preserve">
     <value>Release</value>
   </data>
+  <data name="Release link address" xml:space="preserve">
+    <value>Release link address</value>
+  </data>
   <data name="Release the checked message to its recipients? It is delivered at once." xml:space="preserve">
     <value>Release the checked message to its recipients? It is delivered at once.</value>
   </data>
@@ -11226,8 +11226,8 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Select an event first." xml:space="preserve">
     <value>Select an event first.</value>
   </data>
-  <data name="Selector for the new key (leave it empty for one named after today's date)" xml:space="preserve">
-    <value>Selector for the new key (leave it empty for one named after today's date)</value>
+  <data name="Selector for the new key (empty = today's date)" xml:space="preserve">
+    <value>Selector for the new key (empty = today's date)</value>
   </data>
   <data name="Selector name for the new DKIM key" xml:space="preserve">
     <value>Selector name for the new DKIM key</value>
@@ -12140,6 +12140,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say.</value>
+  </data>
+  <data name="Such as https://mail.example.com. Leave empty to send no digest." xml:space="preserve">
+    <value>Such as https://mail.example.com. Leave empty to send no digest.</value>
   </data>
   <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
     <value>Such as multi.surbl.org or dbl.spamhaus.org</value>
@@ -15142,8 +15145,8 @@ It will keep trying as you use the application.</value>
   <data name="Widen an auto-ban to the neighbouring addresses whose reverse names share its domain" xml:space="preserve">
     <value>Widen an auto-ban to the neighbouring addresses whose reverse names share its domain</value>
   </data>
-  <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
-    <value>Wiki the help pane's "Open on the wiki" link points at (empty hides the link)</value>
+  <data name="Wiki the &quot;Open on the wiki&quot; link points at (empty = no link)" xml:space="preserve">
+    <value>Wiki the "Open on the wiki" link points at (empty = no link)</value>
   </data>
   <data name="Will not start" xml:space="preserve">
     <value>Will not start</value>
