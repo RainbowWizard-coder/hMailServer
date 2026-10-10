@@ -83,7 +83,7 @@
                     <StackPanel x:Name="BusyPanel" Orientation="Horizontal" Visibility="Collapsed"
                                 HorizontalAlignment="Center" VerticalAlignment="Center">
                         <ui:ProgressRing IsIndeterminate="True" Width="20" Height="20" AutomationProperties.Name="{loc:L 'Signing in'}" />
-                        <TextBlock x:Name="BusyText" Text="{loc:L 'Signing in…'}" FontSize="13" Margin="10,0,0,0"
+                        <TextBlock x:Name="BusyText" Text="{loc:L 'Signing in…'}" FontSize="{DynamicResource AppFontSizeGrid}" Margin="10,0,0,0"
                                    VerticalAlignment="Center"
                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                    AutomationProperties.LiveSetting="Polite" />
@@ -109,9 +109,9 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="{loc:L '_Language'}" local:Mnemonic.Target="{Binding ElementName=LanguageBox}"
-                               FontSize="12" VerticalAlignment="Center" Margin="0,0,10,0"
+                               FontSize="{DynamicResource AppFontSizeCaption}" VerticalAlignment="Center" Margin="0,0,10,0"
                                Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-                    <ComboBox x:Name="LanguageBox" Grid.Column="1" FontSize="12" HorizontalAlignment="Left" MinWidth="180"
+                    <ComboBox x:Name="LanguageBox" Grid.Column="1" FontSize="{DynamicResource AppFontSizeCaption}" HorizontalAlignment="Left" MinWidth="180"
                               AutomationProperties.Name="{loc:L 'Language'}"
                               SelectionChanged="Language_SelectionChanged" DropDownClosed="Language_DropDownClosed" />
                 </Grid>

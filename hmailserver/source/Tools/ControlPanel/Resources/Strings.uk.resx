@@ -12649,6 +12649,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Text" xml:space="preserve">
     <value>Текст</value>
   </data>
+  <data name="Text size" xml:space="preserve">
+    <value>Розмір тексту</value>
+  </data>
   <data name="That address is already on this domain's list." xml:space="preserve">
     <value>Ця адреса вже є у списку цього домену.</value>
   </data>
@@ -15499,6 +15502,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Windows service account - a least-privilege account needs granting outside hMailServer" xml:space="preserve">
     <value>Обліковий запис служби Windows - обліковому запису з мінімальними правами потрібно надати права поза hMailServer</value>
+  </data>
+  <data name="Windows text size is now {0} %. Pages already open keep the rest of their text at the old size until the Control Panel is restarted." xml:space="preserve">
+    <value>Розмір тексту Windows тепер {0} %. На вже відкритих сторінках решта тексту лишається попереднього розміру до перезапуску Панелі керування.</value>
   </data>
   <data name="Windows' permission" xml:space="preserve">
     <value>Дозвіл Windows</value>

@@ -55,8 +55,8 @@ namespace hMailServer.ControlPanel.Views
       private readonly Wpf.Ui.Controls.TextBox code_ = new()
       {
          MaxLength = 6,
-         Width = 200,
-         FontSize = 28,
+         MinWidth = 200,
+         FontSize = Typography.Title,
          FontFamily = Mono,
          PlaceholderText = "000000",
          HorizontalAlignment = HorizontalAlignment.Left,

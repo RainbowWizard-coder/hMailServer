@@ -49,10 +49,10 @@ namespace hMailServer.ControlPanel.Views
       private readonly Wpf.Ui.Controls.TextBox code_ = new()
       {
          MaxLength = 6,
-         Width = 200,
+         MinWidth = 200,
          // 28 is the ramp's Title rung, and what the login prompt
          // (TotpPromptDialog) uses for the same six digits.
-         FontSize = 28,
+         FontSize = Typography.Title,
          FontFamily = Mono,
          PlaceholderText = "000000",
          HorizontalAlignment = HorizontalAlignment.Left,

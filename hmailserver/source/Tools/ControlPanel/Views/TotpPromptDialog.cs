@@ -36,10 +36,10 @@ namespace hMailServer.ControlPanel.Views
       {
          // 28 is the ramp's Title rung: six digits read from a phone are typed
          // one at a time and checked by eye, and the setup dialog shows the same.
-         FontSize = 28,
+         FontSize = Typography.Title,
          FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily),
          MaxLength = 6,
-         Width = 200,
+         MinWidth = 200,
          PlaceholderText = "000000",
          HorizontalAlignment = HorizontalAlignment.Left,
          HorizontalContentAlignment = HorizontalAlignment.Center

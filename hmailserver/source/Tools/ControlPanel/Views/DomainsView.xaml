@@ -190,7 +190,7 @@
                                                 </Border>
                                                 <scaffold:StatusPill DockPanel.Dock="Right" Level="Normal" Text="{loc:L 'Inactive'}" Margin="8,0,0,0"
                                                                      Style="{StaticResource RowInactivePill}" />
-                                                <TextBlock Text="{Binding Name}" Style="{StaticResource RowName}" Margin="10,0,0,0" FontSize="14"
+                                                <TextBlock Text="{Binding Name}" Style="{StaticResource RowName}" Margin="10,0,0,0" FontSize="{DynamicResource AppFontSizeBody}"
                                                            VerticalAlignment="Center" />
                                             </DockPanel>
                                             <!-- Edit, as the account rows and Groups say for the same act,
@@ -199,7 +199,7 @@
                                                  finding F102): read through the rows, a screen reader heard
                                                  "Properties" and "Delete domain" on every one. The name starts
                                                  with the visible caption, which voice control says. -->
-                                            <ui:Button Grid.Column="1" Content="{loc:L 'Edit'}" FontSize="12" Padding="8,3" Margin="6,0,6,0"
+                                            <ui:Button Grid.Column="1" Content="{loc:L 'Edit'}" FontSize="{DynamicResource AppFontSizeCaption}" Padding="8,3" Margin="6,0,6,0"
                                                        AutomationProperties.Name="{Binding EditName}"
                                                        Tag="{Binding Name}" Click="EditDomain_Click" />
                                             <!-- Every row delete on the page is a DangerTextButton: the
@@ -318,13 +318,13 @@
                                                 </Border>
                                                 <scaffold:StatusPill DockPanel.Dock="Right" Level="Normal" Text="{loc:L 'Inactive'}" Margin="8,0,0,0"
                                                                      Style="{StaticResource RowInactivePill}" />
-                                                <TextBlock Text="{Binding Address}" Style="{StaticResource RowName}" Margin="10,0,0,0" FontSize="14"
+                                                <TextBlock Text="{Binding Address}" Style="{StaticResource RowName}" Margin="10,0,0,0" FontSize="{DynamicResource AppFontSizeBody}"
                                                            VerticalAlignment="Center" />
                                             </DockPanel>
-                                            <ui:Button Grid.Column="1" Content="{loc:L 'Edit'}" FontSize="12" Padding="8,3" Margin="6,0,6,0"
+                                            <ui:Button Grid.Column="1" Content="{loc:L 'Edit'}" FontSize="{DynamicResource AppFontSizeCaption}" Padding="8,3" Margin="6,0,6,0"
                                                        AutomationProperties.Name="{Binding EditName}"
                                                        Tag="{Binding Address}" Click="EditAccount_Click" />
-                                            <ui:Button Grid.Column="2" Content="{loc:L 'Delete'}" Style="{StaticResource DangerTextButton}" FontSize="12"
+                                            <ui:Button Grid.Column="2" Content="{loc:L 'Delete'}" Style="{StaticResource DangerTextButton}" FontSize="{DynamicResource AppFontSizeCaption}"
                                                        AutomationProperties.Name="{Binding DeleteName}"
                                                        Padding="8,3" Tag="{Binding Address}" Click="DeleteAccount_Click" />
                                         </Grid>
@@ -367,17 +367,17 @@
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
                             <scaffold:FieldRow x:Name="NewAliasNameRow" Grid.ColumnSpan="2" Label="{loc:L 'Alias addr_ess'}" Margin="0,0,0,8">
-                                <ui:TextBox x:Name="NewAliasName" FontSize="12" />
+                                <ui:TextBox x:Name="NewAliasName" FontSize="{DynamicResource AppFontSizeCaption}" />
                             </scaffold:FieldRow>
                             <scaffold:FieldRow x:Name="NewAliasValueRow" Grid.Row="1" Label="{loc:L 'Deli_vers to'}" Margin="0,0,6,0" LabelGroup="AliasLine">
-                                <ui:TextBox x:Name="NewAliasValue" PlaceholderText="person@example.net" FontSize="12" />
+                                <ui:TextBox x:Name="NewAliasValue" PlaceholderText="person@example.net" FontSize="{DynamicResource AppFontSizeCaption}" />
                             </scaffold:FieldRow>
                             <Grid Grid.Row="1" Grid.Column="1">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" SharedSizeGroup="AliasLine" />
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
-                                <ui:Button x:Name="AddAliasButton" Grid.Row="1" Content="{loc:L 'Add a_lias'}" FontSize="12" Click="AddAlias_Click"
+                                <ui:Button x:Name="AddAliasButton" Grid.Row="1" Content="{loc:L 'Add a_lias'}" FontSize="{DynamicResource AppFontSizeCaption}" Click="AddAlias_Click"
                                            VerticalAlignment="Top" Margin="0" />
                             </Grid>
                         </Grid>
@@ -403,9 +403,9 @@
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
                                                 <StackPanel VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding Name}" Style="{StaticResource GridTrimmedText}" FontSize="12"
+                                                    <TextBlock Text="{Binding Name}" Style="{StaticResource GridTrimmedText}" FontSize="{DynamicResource AppFontSizeCaption}"
                                                                Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                                                    <TextBlock Text="{Binding Target}" Style="{StaticResource GridTrimmedText}" FontSize="12"
+                                                    <TextBlock Text="{Binding Target}" Style="{StaticResource GridTrimmedText}" FontSize="{DynamicResource AppFontSizeCaption}"
                                                                Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                                 </StackPanel>
                                                 <!-- A 24-pixel box at least, as the domain and account rows' buttons are. -->
@@ -433,14 +433,14 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <scaffold:FieldRow x:Name="NewDistAddressRow" Label="{loc:L 'L_ist address'}" Margin="0,0,6,0" LabelGroup="ListLine">
-                                <ui:TextBox x:Name="NewDistAddress" FontSize="12" />
+                                <ui:TextBox x:Name="NewDistAddress" FontSize="{DynamicResource AppFontSizeCaption}" />
                             </scaffold:FieldRow>
                             <Grid Grid.Column="1">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" SharedSizeGroup="ListLine" />
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
-                                <ui:Button x:Name="AddListButton" Grid.Row="1" Content="{loc:L 'Add li_st'}" FontSize="12" Click="AddDistList_Click"
+                                <ui:Button x:Name="AddListButton" Grid.Row="1" Content="{loc:L 'Add li_st'}" FontSize="{DynamicResource AppFontSizeCaption}" Click="AddDistList_Click"
                                            VerticalAlignment="Top" Margin="0"
                                            AutomationProperties.HelpText="{loc:L 'Add distribution list'}" ToolTip="{loc:L 'Add distribution list'}" />
                             </Grid>
@@ -469,7 +469,7 @@
                                                     <ColumnDefinition Width="Auto" />
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding Address}" Style="{StaticResource GridTrimmedText}" FontSize="12" VerticalAlignment="Center"
+                                                <TextBlock Text="{Binding Address}" Style="{StaticResource GridTrimmedText}" FontSize="{DynamicResource AppFontSizeCaption}" VerticalAlignment="Center"
                                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                                                 <ui:Button Grid.Column="1" Icon="{ui:SymbolIcon Edit24}" Padding="4" MinWidth="24" MinHeight="24" Margin="6,0,4,0"
                                                            ToolTip="{Binding EditName}" AutomationProperties.Name="{Binding EditName}"

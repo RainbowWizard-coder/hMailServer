@@ -12489,6 +12489,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Text" xml:space="preserve">
     <value>Tekst</value>
   </data>
+  <data name="Text size" xml:space="preserve">
+    <value>Tekstgrootte</value>
+  </data>
   <data name="That address is already on this domain's list." xml:space="preserve">
     <value>Dat adres staat al op de lijst van dit domein.</value>
   </data>
@@ -15306,6 +15309,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="Windows service account - a least-privilege account needs granting outside hMailServer" xml:space="preserve">
     <value>Windows-serviceaccount - een account met minimale rechten moet buiten hMailServer worden gemachtigd</value>
+  </data>
+  <data name="Windows text size is now {0} %. Pages already open keep the rest of their text at the old size until the Control Panel is restarted." xml:space="preserve">
+    <value>De tekstgrootte van Windows is nu {0} %. Pagina's die al open zijn, houden de rest van hun tekst op de oude grootte tot het Control Panel opnieuw wordt gestart.</value>
   </data>
   <data name="Windows' permission" xml:space="preserve">
     <value>De toestemming van Windows</value>

@@ -64,7 +64,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheTabStrip_SizesTheHeaderAlone()
       {
          XElement presenter = HeaderPresenter(TabItemTemplate());
-         Assert.Equal("14", (string)presenter.Attribute("TextElement.FontSize"));
+         Assert.Equal("{DynamicResource AppFontSizeBody}", (string)presenter.Attribute("TextElement.FontSize"));
       }
 
       // ---- check box and radio button captions ---------------------------------------

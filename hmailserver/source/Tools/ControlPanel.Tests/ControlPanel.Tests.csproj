@@ -150,6 +150,8 @@
     <!-- The setup checklist's judgement of the host name the server announces. -->
     <Compile Include="..\ControlPanel\Services\HostNameVerdict.cs" />
     <Compile Include="..\ControlPanel\Services\Typography.cs" />
+    <!-- The Windows text size the ramp above is drawn at (review finding F317). -->
+    <Compile Include="..\ControlPanel\Services\TextScaleFactor.cs" />
     <Compile Include="..\ControlPanel\Services\SpamPipeline.cs" />
     <!-- The spam overview's "Which list do I need?" and "Check a sender": the eight
          lists' words, and each list's matching as the server matches it. -->

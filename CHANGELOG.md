@@ -3767,6 +3767,22 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   time; the API keys say "Expires 07/01/2027 10:00 (server time)." `ServerTimeTextTests` holds every form, the
   pages' use of the helper and that none of them writes a date in a form of its own again.
 
+- **Fixed: the Windows Text size setting had no effect on the Control Panel.** Nothing read it, so raising Text size
+  to 125 or 150 per cent changed nothing and only display scaling made the text larger. The Control Panel now reads
+  it (the registry's `TextScaleFactor`) when it starts, before the first window, and draws its text at it: every
+  font-size resource - the type ramp's tokens and WPF-UI's own, the size of every box, button, list and grid - is set
+  at the factor, the shared styles, the shell and the sign-in, Domains, Dashboard and Live logs pages take their text
+  sizes from those tokens where they wrote numbers, and the sizes pages set in code (`Typography`) are at it too; an
+  icon keeps its size. Grid floors are measured in the scaled font, a dialog widens with its text within the work
+  area, the one-time code boxes grow with their digits, and the certificates grid's Name, Certificate and Private key
+  columns - fixed at 170 and 210 pixels, which larger text cut short - share the width over a floor or keep floors
+  that rise with the text size, and the rules grid's Enabled column fits its pill. Three WPF-UI styles that held the
+  size their dictionary had when it was read - a caption with an Alt key, a list box's rows, a rich text box - take
+  the scaled size. When Windows says the setting changed, the resources follow at once and a toast
+  says that pages already open keep the rest of their text at the old size until the Control Panel is restarted.
+  docs/ControlPanelDesign.md says the rule. `TextScaleTests` holds the factor, the ramp, the start-up, the tokens on
+  every converted file, the grid floors, the dialogs and the columns.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

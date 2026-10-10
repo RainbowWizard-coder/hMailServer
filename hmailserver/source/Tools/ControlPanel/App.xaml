@@ -135,7 +135,7 @@
                  that a page in the flyout reads as the same row it is in the tree. -->
             <Style x:Key="NavFlyoutItem" TargetType="ListBoxItem">
                 <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
-                <Setter Property="FontSize" Value="14" />
+                <Setter Property="FontSize" Value="{DynamicResource AppFontSizeBody}" />
                 <Setter Property="Padding" Value="6,0" />
                 <Setter Property="Margin" Value="0,1" />
                 <Setter Property="Cursor" Value="Hand" />
@@ -195,7 +195,7 @@
                  page's title is its PageHeader's (review finding F295). -->
 
             <Style x:Key="KpiValue" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="28" />
+                <Setter Property="FontSize" Value="{DynamicResource AppFontSizeTitle}" />
                 <Setter Property="FontWeight" Value="SemiBold" />
                 <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
                 <Setter Property="VerticalAlignment" Value="Top" />
@@ -206,7 +206,7 @@
                  its card is narrower than it, as "Verarbeitete Nachrichten" and
                  処理したメッセージ are in a 760-pixel window, where they were cut. -->
             <Style x:Key="KpiLabel" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="{StaticResource AppFontSizeCaption}" />
+                <Setter Property="FontSize" Value="{DynamicResource AppFontSizeCaption}" />
                 <Setter Property="TextWrapping" Value="Wrap" />
                 <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
                 <Setter Property="VerticalAlignment" Value="Bottom" />
@@ -246,7 +246,7 @@
                                 <Grid>
                                     <ContentPresenter x:Name="Content" ContentSource="Header"
                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                      TextElement.FontSize="14"
+                                                      TextElement.FontSize="{DynamicResource AppFontSizeBody}"
                                                       TextElement.Foreground="{TemplateBinding Foreground}" />
                                     <Border x:Name="Underline" Height="2.5" CornerRadius="2" Margin="2,0,2,-1"
                                             VerticalAlignment="Bottom" Background="{DynamicResource AppBrandBrush}"
@@ -316,6 +316,25 @@
                         <AccessText Text="{Binding}" TextWrapping="Wrap" />
                     </DataTemplate>
                 </Style.Resources>
+            </Style>
+
+            <!-- Every AccessText - a caption with an Alt key, on a button, a check
+                 box, a radio button - at the controls' text size by DynamicResource,
+                 which TextScale sets at the Windows text size (review finding F317).
+                 WPF-UI's AccessText style holds the size it had when its dictionary
+                 was read, 14, so at 150 per cent "Add domain" stayed at 14 inside a
+                 button whose font was 21. At 100 per cent it is the 14 it was. -->
+            <Style TargetType="AccessText" BasedOn="{StaticResource DefaultAccessTextStyle}">
+                <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
+            </Style>
+            <!-- The same for the two other WPF-UI styles that hold a 14 of their own:
+                 a list box's rows, the members dialog's addresses among them, and a
+                 rich text box. Every other control takes the scaled size. -->
+            <Style TargetType="ListBox" BasedOn="{StaticResource DefaultListBoxStyle}">
+                <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
+            </Style>
+            <Style TargetType="RichTextBox" BasedOn="{StaticResource DefaultRichTextBoxStyle}">
+                <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
             </Style>
 
             <!-- The chevrons that scroll an overflowing tab strip. Sized and
@@ -433,7 +452,7 @@
             <Style TargetType="DataGridColumnHeader">
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
-                <Setter Property="FontSize" Value="12" />
+                <Setter Property="FontSize" Value="{DynamicResource AppFontSizeCaption}" />
                 <Setter Property="FontWeight" Value="SemiBold" />
                 <Setter Property="Padding" Value="10,8" />
                 <Setter Property="BorderThickness" Value="0,0,0,1" />
@@ -730,7 +749,7 @@
             <Style TargetType="DataGridCell">
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
-                <Setter Property="FontSize" Value="13" />
+                <Setter Property="FontSize" Value="{DynamicResource AppFontSizeGrid}" />
                 <Setter Property="BorderThickness" Value="0" />
                 <Setter Property="Template">
                     <Setter.Value>

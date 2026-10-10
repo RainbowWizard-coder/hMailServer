@@ -289,7 +289,7 @@
                                 </Grid.ColumnDefinitions>
                                 <Path x:Name="PART_Mark" Width="11" Height="11" Stretch="Fill"
                                       Margin="0,4,8,0" VerticalAlignment="Top" />
-                                <TextBlock x:Name="PART_Word" Grid.Column="1" FontSize="{StaticResource AppFontSizeBody}"
+                                <TextBlock x:Name="PART_Word" Grid.Column="1" FontSize="{DynamicResource AppFontSizeBody}"
                                            FontWeight="SemiBold" Margin="0,0,8,0" VerticalAlignment="Top" />
                                 <TextBlock Grid.Column="2" Text="{TemplateBinding Text}" Style="{StaticResource TextBody}"
                                            VerticalAlignment="Top" />
@@ -327,7 +327,7 @@
                             <Path x:Name="PART_Mark" Width="8" Height="8" Stretch="Fill"
                                   Margin="0,0,6,0" VerticalAlignment="Center" />
                             <TextBlock x:Name="PART_Text" Grid.Column="1" Text="{TemplateBinding Text}"
-                                       FontSize="{StaticResource AppFontSizeCaption}" FontWeight="SemiBold"
+                                       FontSize="{DynamicResource AppFontSizeCaption}" FontWeight="SemiBold"
                                        TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                         </Grid>
                     </Border>
@@ -370,7 +370,7 @@
                             <Path x:Name="PART_ErrorMark" Width="9" Height="9" Stretch="Fill"
                                   Margin="1,3,7,0" VerticalAlignment="Top" />
                             <TextBlock x:Name="PART_Error" Grid.Column="1" Text="{TemplateBinding Error}"
-                                       FontSize="{StaticResource AppFontSizeCaption}" TextWrapping="Wrap"
+                                       FontSize="{DynamicResource AppFontSizeCaption}" TextWrapping="Wrap"
                                        Foreground="{DynamicResource AppDangerFillTextBrush}"
                                        AutomationProperties.LiveSetting="Assertive" />
                         </Grid>

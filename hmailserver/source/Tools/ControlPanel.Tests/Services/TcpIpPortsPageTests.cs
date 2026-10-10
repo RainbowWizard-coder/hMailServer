@@ -92,7 +92,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          int template = xaml.IndexOf("<ControlTemplate TargetType=\"DataGridCell\">", cell, StringComparison.Ordinal);
          Assert.True(template >= 0, "The DataGridCell style has no template of its own.");
          Assert.Contains("Padding=\"10,0\"", xaml.Substring(template, 400), StringComparison.Ordinal);
-         Assert.Contains("<Setter Property=\"FontSize\" Value=\"13\" />", xaml.Substring(cell, template - cell), StringComparison.Ordinal);
+         // 13 pixels at 100 per cent, the token TextScale sets at the Windows text size (TextScaleTests).
+         Assert.Contains("<Setter Property=\"FontSize\" Value=\"{DynamicResource AppFontSizeGrid}\" />", xaml.Substring(cell, template - cell), StringComparison.Ordinal);
       }
 
       /// <summary>

@@ -12489,6 +12489,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Text" xml:space="preserve">
     <value>Texto</value>
   </data>
+  <data name="Text size" xml:space="preserve">
+    <value>Tamanho do texto</value>
+  </data>
   <data name="That address is already on this domain's list." xml:space="preserve">
     <value>Esse endereço já está na lista deste domínio.</value>
   </data>
@@ -15306,6 +15309,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="Windows service account - a least-privilege account needs granting outside hMailServer" xml:space="preserve">
     <value>Conta de serviço do Windows - uma conta de privilégio mínimo precisa de concessões fora do hMailServer</value>
+  </data>
+  <data name="Windows text size is now {0} %. Pages already open keep the rest of their text at the old size until the Control Panel is restarted." xml:space="preserve">
+    <value>O tamanho do texto do Windows agora é {0} %. As páginas já abertas mantêm o restante do texto no tamanho antigo até que o Control Panel seja reiniciado.</value>
   </data>
   <data name="Windows' permission" xml:space="preserve">
     <value>A permissão do Windows</value>

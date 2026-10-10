@@ -12489,6 +12489,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Text" xml:space="preserve">
     <value>Teksti</value>
   </data>
+  <data name="Text size" xml:space="preserve">
+    <value>Tekstin koko</value>
+  </data>
   <data name="That address is already on this domain's list." xml:space="preserve">
     <value>Tämä osoite on jo tämän verkkotunnuksen listalla.</value>
   </data>
@@ -15306,6 +15309,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="Windows service account - a least-privilege account needs granting outside hMailServer" xml:space="preserve">
     <value>Windows-palvelutili - vähimmän oikeuden tilille on myönnettävä oikeudet hMailServerin ulkopuolella</value>
+  </data>
+  <data name="Windows text size is now {0} %. Pages already open keep the rest of their text at the old size until the Control Panel is restarted." xml:space="preserve">
+    <value>Windowsin tekstin koko on nyt {0} %. Jo avoinna olevien sivujen muu teksti pysyy vanhan kokoisena, kunnes Control Panel käynnistetään uudelleen.</value>
   </data>
   <data name="Windows' permission" xml:space="preserve">
     <value>Windowsin lupa</value>

@@ -12489,6 +12489,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Text" xml:space="preserve">
     <value>Texte</value>
   </data>
+  <data name="Text size" xml:space="preserve">
+    <value>Taille du texte</value>
+  </data>
   <data name="That address is already on this domain's list." xml:space="preserve">
     <value>Cette adresse figure déjà sur la liste de ce domaine.</value>
   </data>
@@ -15306,6 +15309,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="Windows service account - a least-privilege account needs granting outside hMailServer" xml:space="preserve">
     <value>Compte de service Windows - un compte à moindre privilège doit recevoir ses droits en dehors de hMailServer</value>
+  </data>
+  <data name="Windows text size is now {0} %. Pages already open keep the rest of their text at the old size until the Control Panel is restarted." xml:space="preserve">
+    <value>La taille du texte de Windows est maintenant de {0} %. Les pages déjà ouvertes gardent le reste de leur texte à l'ancienne taille jusqu'au redémarrage du Control Panel.</value>
   </data>
   <data name="Windows' permission" xml:space="preserve">
     <value>L'autorisation de Windows</value>

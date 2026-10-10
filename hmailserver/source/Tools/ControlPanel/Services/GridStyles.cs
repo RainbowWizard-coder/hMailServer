@@ -169,19 +169,29 @@ namespace hMailServer.ControlPanel.Services
       /// </summary>
       private static readonly Thickness CellTextMargin = new(2, 0, 2, 0);
 
-      /// <summary>A style's own value of a property, or the nearest base style's, or the fallback.</summary>
+      /// <summary>
+      /// A style's own value of a property, or the nearest base style's, or the fallback.
+      /// A value the style takes by DynamicResource - the header's and the cell's font
+      /// sizes, which TextScale sets at the Windows text size (review finding F317) - is
+      /// the resource's value, so that a floor is measured in the font the grid draws;
+      /// the fallback is a size at that text size too.
+      /// </summary>
       private static T Setting<T>(Style style, DependencyProperty property, T fallback)
       {
          for (Style s = style; s != null; s = s.BasedOn)
          {
             foreach (SetterBase setter in s.Setters)
             {
-               if (setter is Setter set && set.Property == property && set.Value is T value)
+               if (setter is not Setter set || set.Property != property)
+                  continue;
+               if (set.Value is T value)
                   return value;
+               if (set.Value is DynamicResourceExtension reference && Application.Current?.TryFindResource(reference.ResourceKey) is T resolved)
+                  return resolved;
             }
          }
 
-         return fallback;
+         return fallback is double size ? (T)(object)TextScaleFactor.Scaled(size) : fallback;
       }
 
       /// <summary>Right-aligns a number column's cells and its header.</summary>

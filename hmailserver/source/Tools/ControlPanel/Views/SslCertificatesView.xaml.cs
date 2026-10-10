@@ -113,6 +113,13 @@ namespace hMailServer.ControlPanel.Views
          InitializeComponent();
          hMailServer.ControlPanel.Services.SelectionGate.Bind(CertGrid, EditButton, DeleteButton);
 
+         // The columns' floors are their words' widths at 100 per cent: the badges'
+         // "Valid until 2026-12-09 (59 days left)" on one line. At a larger Windows
+         // text size the words are wider and so are the floors (review finding F317),
+         // where fixed widths of 170 and 210 pixels cut them short or wrapped them.
+         foreach (DataGridColumn column in CertGrid.Columns)
+            column.MinWidth = TextScaleFactor.Scaled(column.MinWidth);
+
          // Enter, F2 and a double-click edit the selected certificate, Delete deletes
          // it after asking and Insert goes to the add form; Enter in the form adds the
          // certificate, and Enter in the passphrase box saves the passphrase

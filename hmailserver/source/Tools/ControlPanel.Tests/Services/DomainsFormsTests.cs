@@ -106,6 +106,10 @@ namespace hMailServer.ControlPanel.Tests.Services
             string size = (string)e.Attribute("FontSize");
             if (size == null)
                continue;
+            // A size is the type ramp's token since the text follows the Windows text
+            // size (TextScaleTests); read at 100 per cent, as Tokens.xaml holds them.
+            if (size.StartsWith("{DynamicResource ", StringComparison.Ordinal))
+               size = TextScaleTests.TokenSize(size["{DynamicResource ".Length..^1]);
             Assert.True(double.Parse(size, CultureInfo.InvariantCulture) >= 12, e.Name.LocalName + " is set at " + size + " pixels, below the 12-pixel caption floor.");
          }
       }

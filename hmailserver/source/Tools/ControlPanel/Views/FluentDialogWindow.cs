@@ -102,9 +102,15 @@ namespace hMailServer.ControlPanel.Views
          // pixels at least, which drew a message box of one line 320 tall, its notice
          // stretched down it (review finding F041).
          MinHeight = 0;
+
+         // A dialog's width is set for its text at 100 per cent: at a larger Windows
+         // text size it widens with its text (review finding F317), up to the token's
+         // widest and never past the work area, where a 520-pixel editor would have
+         // wrapped every caption twice as often and cut what does not wrap.
+         double widest = Math.Min(DesignTokens.Dialog.MaxWidth * TextScaleFactor.Factor, Math.Max(DesignTokens.Dialog.MaxWidth, SystemParameters.WorkArea.Width - 48));
          MinWidth = DesignTokens.Dialog.MinWidth;
-         MaxWidth = DesignTokens.Dialog.MaxWidth;
-         Width = Math.Max(DesignTokens.Dialog.MinWidth, Math.Min(DesignTokens.Dialog.MaxWidth, width));
+         MaxWidth = widest;
+         Width = Math.Max(DesignTokens.Dialog.MinWidth, Math.Min(widest, width * TextScaleFactor.Factor));
          SizeToContent = SizeToContent.Height;
          MaxHeight = Math.Max(240, SystemParameters.WorkArea.Height * DesignTokens.Dialog.MaxHeightFraction);
          ResizeMode = ResizeMode.NoResize;

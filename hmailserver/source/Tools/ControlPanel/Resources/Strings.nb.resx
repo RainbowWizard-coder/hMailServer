@@ -12489,6 +12489,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Text" xml:space="preserve">
     <value>Tekst</value>
   </data>
+  <data name="Text size" xml:space="preserve">
+    <value>Tekststørrelse</value>
+  </data>
   <data name="That address is already on this domain's list." xml:space="preserve">
     <value>Adressen står allerede på dette domenets liste.</value>
   </data>
@@ -15306,6 +15309,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="Windows service account - a least-privilege account needs granting outside hMailServer" xml:space="preserve">
     <value>Windows-tjenestekonto - en konto med minste privilegium må tildeles rettigheter utenfor hMailServer</value>
+  </data>
+  <data name="Windows text size is now {0} %. Pages already open keep the rest of their text at the old size until the Control Panel is restarted." xml:space="preserve">
+    <value>Tekststørrelsen i Windows er nå {0} %. Sider som allerede er åpne, beholder resten av teksten i den gamle størrelsen til Control Panel startes på nytt.</value>
   </data>
   <data name="Windows' permission" xml:space="preserve">
     <value>Tillatelsen fra Windows</value>

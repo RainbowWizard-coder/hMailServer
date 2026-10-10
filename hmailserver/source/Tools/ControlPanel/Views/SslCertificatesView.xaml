@@ -143,7 +143,9 @@
                              bar needs, when it has more rows than it shows, from its star columns
                              in proportion without passing on what a column at its floor cannot
                              give - with shares that left a column just above its floor, the
-                             columns overran the grid by 3 or 4 pixels and it scrolled sideways. -->
+                             columns overran the grid by 3 or 4 pixels and it scrolled sideways.
+                             The floors are those at 100 per cent, which the view raises with the
+                             Windows text size (review finding F317). -->
                         <DataGridTextColumn Header="{loc:L 'Name'}" Binding="{Binding Name}" Width="1.5*" MinWidth="160" ElementStyle="{StaticResource GridTrimmedText}" />
                         <DataGridTemplateColumn Header="{loc:L 'Certificate file'}" Width="0.8*" MinWidth="128" SortMemberPath="CertificateFile">
                             <DataGridTemplateColumn.CellTemplate>

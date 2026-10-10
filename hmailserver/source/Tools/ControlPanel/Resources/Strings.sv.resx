@@ -12489,6 +12489,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Text" xml:space="preserve">
     <value>Text</value>
   </data>
+  <data name="Text size" xml:space="preserve">
+    <value>Textstorlek</value>
+  </data>
   <data name="That address is already on this domain's list." xml:space="preserve">
     <value>Adressen finns redan på den här domänens lista.</value>
   </data>
@@ -15306,6 +15309,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="Windows service account - a least-privilege account needs granting outside hMailServer" xml:space="preserve">
     <value>Windows-tjänstekonto - ett konto med minsta privilegium måste tilldelas utanför hMailServer</value>
+  </data>
+  <data name="Windows text size is now {0} %. Pages already open keep the rest of their text at the old size until the Control Panel is restarted." xml:space="preserve">
+    <value>Textstorleken i Windows är nu {0} %. Sidor som redan är öppna behåller resten av sin text i den gamla storleken tills Kontrollpanelen startas om.</value>
   </data>
   <data name="Windows' permission" xml:space="preserve">
     <value>Windows tillåtelse</value>

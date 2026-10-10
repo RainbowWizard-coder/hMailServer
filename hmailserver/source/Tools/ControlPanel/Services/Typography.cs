@@ -15,34 +15,43 @@ namespace hMailServer.ControlPanel.Services
    ///
    /// Page-level roles (page title/subtitle, KPI values, status labels) live as
    /// named styles in App.xaml and were re-based in the same change.
+   ///
+   /// Each size is the ramp's rung at the Windows text size in force
+   /// (TextScaleFactor, put in force by TextScale at start-up): the rungs were
+   /// constants, so raising Text size to 150 per cent changed none of the text a
+   /// page sets in code (review finding F317). At 100 per cent they are the
+   /// numbers below.
    /// </summary>
    public static class Typography
    {
       /// <summary>Small caption / hint text (e.g. card blurbs, status lines). Fluent Caption.</summary>
-      public const double Caption = 12;
+      public static double Caption => TextScaleFactor.Scaled(12);
 
       /// <summary>Secondary text and field labels. Same size as Caption on the
       /// Fluent ramp - the old 12.5 sat between the two rungs and landed on
       /// neither.</summary>
-      public const double Label = 12;
+      public static double Label => TextScaleFactor.Scaled(12);
 
       /// <summary>Default body text and input-control text. Fluent Body.</summary>
-      public const double Body = 14;
+      public static double Body => TextScaleFactor.Scaled(14);
 
       /// <summary>Checkboxes and slightly emphasised body text. Fluent Body -
       /// emphasis on the ramp is carried by weight (SemiBold), not by a
       /// half-pixel size bump.</summary>
-      public const double Control = 14;
+      public static double Control => TextScaleFactor.Scaled(14);
 
       /// <summary>List/item titles. Fluent Body; pair with SemiBold.</summary>
-      public const double ItemTitle = 14;
+      public static double ItemTitle => TextScaleFactor.Scaled(14);
 
       /// <summary>Card / section headings inside a page. Fluent Body Strong is
       /// this size with SemiBold, which is how every consumer already uses it.</summary>
-      public const double SectionHeading = 14;
+      public static double SectionHeading => TextScaleFactor.Scaled(14);
 
       /// <summary>Modal dialog header. Fluent Subtitle.</summary>
-      public const double DialogTitle = 20;
+      public static double DialogTitle => TextScaleFactor.Scaled(20);
+
+      /// <summary>Page titles, and the one-time code a person types from a phone. Fluent Title.</summary>
+      public static double Title => TextScaleFactor.Scaled(28);
 
       /// <summary>The UI face. Segoe UI Variable is the Windows 11 face and the
       /// single cheapest "looks native" property in the application; classic

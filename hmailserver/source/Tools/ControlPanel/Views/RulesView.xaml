@@ -140,7 +140,7 @@
                                  that the state survives greyscale, where it was "No" in the last
                                  column (review finding F323); the row of a rule switched off is
                                  in the secondary text (the grid's CellStyle). -->
-                            <DataGridTemplateColumn Header="{loc:L 'Enabled'}" Width="100" MinWidth="80" SortMemberPath="Enabled">
+                            <DataGridTemplateColumn Header="{loc:L 'Enabled'}" Width="Auto" MinWidth="80" SortMemberPath="Enabled">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <scaffold:StatusPill Level="{Binding EnabledLevel}" Text="{Binding Enabled}"

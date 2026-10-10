@@ -12489,6 +12489,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Text" xml:space="preserve">
     <value>Tekst</value>
   </data>
+  <data name="Text size" xml:space="preserve">
+    <value>Tekststørrelse</value>
+  </data>
   <data name="That address is already on this domain's list." xml:space="preserve">
     <value>Adressen står allerede på dette domænes liste.</value>
   </data>
@@ -15306,6 +15309,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="Windows service account - a least-privilege account needs granting outside hMailServer" xml:space="preserve">
     <value>Windows-tjenestekonto - en konto med færrest rettigheder skal tildeles dem uden for hMailServer</value>
+  </data>
+  <data name="Windows text size is now {0} %. Pages already open keep the rest of their text at the old size until the Control Panel is restarted." xml:space="preserve">
+    <value>Tekststørrelsen i Windows er nu {0} %. Sider, der allerede er åbne, beholder resten af deres tekst i den gamle størrelse, indtil Control Panel genstartes.</value>
   </data>
   <data name="Windows' permission" xml:space="preserve">
     <value>Windows' tilladelse</value>

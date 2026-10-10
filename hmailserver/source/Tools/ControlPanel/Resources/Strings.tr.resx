@@ -12489,6 +12489,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Text" xml:space="preserve">
     <value>Metin</value>
   </data>
+  <data name="Text size" xml:space="preserve">
+    <value>Metin boyutu</value>
+  </data>
   <data name="That address is already on this domain's list." xml:space="preserve">
     <value>Bu adres zaten bu etki alanının listesinde.</value>
   </data>
@@ -15306,6 +15309,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="Windows service account - a least-privilege account needs granting outside hMailServer" xml:space="preserve">
     <value>Windows hizmet hesabı - en az ayrıcalıklı bir hesaba hMailServer dışında hak verilmesi gerekir</value>
+  </data>
+  <data name="Windows text size is now {0} %. Pages already open keep the rest of their text at the old size until the Control Panel is restarted." xml:space="preserve">
+    <value>Windows metin boyutu artık %{0}. Zaten açık olan sayfalar, Denetim Masası yeniden başlatılana kadar metinlerinin geri kalanını eski boyutta tutar.</value>
   </data>
   <data name="Windows' permission" xml:space="preserve">
     <value>Windows izni</value>

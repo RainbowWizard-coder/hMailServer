@@ -109,7 +109,7 @@
         <scaffold:Card scaffold:FillPanel.Fill="True" MinHeight="165" Padding="{StaticResource AppListCardPadding}">
             <Grid>
                 <ListBox x:Name="LogList" Background="Transparent" BorderThickness="0" SelectionMode="Extended"
-                         FontFamily="Cascadia Mono, Consolas" FontSize="{StaticResource AppFontSizeMono}"
+                         FontFamily="Cascadia Mono, Consolas" FontSize="{DynamicResource AppFontSizeMono}"
                          Grid.IsSharedSizeScope="True"
                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
                          VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"

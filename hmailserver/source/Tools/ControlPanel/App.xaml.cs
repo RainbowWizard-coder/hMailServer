@@ -36,6 +36,11 @@ namespace hMailServer.ControlPanel
          // every page resolves on-brand, theme-aware state colours.
          Services.ThemeTokens.Initialize();
 
+         // The Windows text size, before any window takes a style: every font-size
+         // resource and the type ramp's code-set sizes at it, and a change of it
+         // followed (review finding F317: nothing read it).
+         Services.TextScale.Install();
+
          // Every page's text and values can be selected and copied (issue #48),
          // every plain list's selected rows, and the captions of check boxes,
          // buttons, drop-downs, tabs and tree items; class handlers, so registered

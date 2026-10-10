@@ -70,51 +70,57 @@
     <sys:Double x:Key="AppFontSizeTitle">28</sys:Double>
     <!-- Text in the monospaced face (Typography.MonoFontFamily, Typography.Mono). -->
     <sys:Double x:Key="AppFontSizeMono">13</sys:Double>
+    <!-- A size off the ramp that App.xaml's styles wrote as a number: a grid
+         cell's text. -->
+    <sys:Double x:Key="AppFontSizeGrid">13</sys:Double>
+    <!-- Every size above is set at the Windows text size when the Control Panel
+         starts (Services/TextScale, review finding F317), so text takes them by
+         DynamicResource, never as a number of its own. -->
 
     <!-- The ramp as keyed TextBlock styles. Keyed, never implicit: an implicit
          TextBlock style reaches into every control template and overrides the
          on-accent text (see the note in App.xaml). -->
     <Style x:Key="TextTitle" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="{StaticResource AppFontSizeTitle}" />
+        <Setter Property="FontSize" Value="{DynamicResource AppFontSizeTitle}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
         <Setter Property="TextTrimming" Value="CharacterEllipsis" />
     </Style>
 
     <Style x:Key="TextSubtitle" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="{StaticResource AppFontSizeSubtitle}" />
+        <Setter Property="FontSize" Value="{DynamicResource AppFontSizeSubtitle}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
     <Style x:Key="TextBodyStrong" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="{StaticResource AppFontSizeBody}" />
+        <Setter Property="FontSize" Value="{DynamicResource AppFontSizeBody}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
     <Style x:Key="TextBody" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="{StaticResource AppFontSizeBody}" />
+        <Setter Property="FontSize" Value="{DynamicResource AppFontSizeBody}" />
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
     <Style x:Key="TextSecondary" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="{StaticResource AppFontSizeBody}" />
+        <Setter Property="FontSize" Value="{DynamicResource AppFontSizeBody}" />
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
     <Style x:Key="TextCaption" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="{StaticResource AppFontSizeCaption}" />
+        <Setter Property="FontSize" Value="{DynamicResource AppFontSizeCaption}" />
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
     <Style x:Key="TextCaptionTertiary" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="{StaticResource AppFontSizeCaption}" />
+        <Setter Property="FontSize" Value="{DynamicResource AppFontSizeCaption}" />
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
