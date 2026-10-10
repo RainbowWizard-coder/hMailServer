@@ -49,6 +49,41 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.False(source.Contains("MailWarning24", StringComparison.Ordinal), "The empty state still draws the warning glyph.");
       }
 
+      /// <summary>
+      /// Review finding F260: each row's allow and block were one list glyph, told
+      /// apart by colour and fill alone; the header's four icons were full colour and
+      /// pressable with nothing checked, a click answering "Check the messages first";
+      /// and a group's row showed neither the pointer nor the keyboard inside it, its
+      /// box and icons 8 to 10 pixels left of the rows'.
+      /// </summary>
+      [Fact]
+      public void TheActions_HaveShapesOfTheirOwn_AndTheCheckedMessagesABarInWords()
+      {
+         string source = ReadView("QuarantineView.cs");
+
+         // Allow and block a person each, both outlined.
+         Assert.Contains("IconButton_(\"allow\", SymbolRegular.PersonAvailable24, KeepColourKey, false,", source, StringComparison.Ordinal);
+         Assert.Contains("IconButton_(\"block\", SymbolRegular.PersonProhibited24, RemoveColourKey, false,", source, StringComparison.Ordinal);
+         Assert.DoesNotContain("TextBulletListSquare24", source, StringComparison.Ordinal);
+
+         // The bar: how many are checked, the four acts in words, pressable only while one is.
+         string bar = WithheldRowTests.MemberText(source, "private WrapPanel BuildBulkBar_()");
+         Assert.True(bar != null, "QuarantineView.BuildBulkBar_ is gone.");
+         foreach (string caption in new[] { "Re_lease", "_Allow sender…", "_Block sender…", "_Delete permanently" })
+            Assert.Contains("MakeButton(L(\"" + caption + "\"), ControlAppearance.Secondary", bar, StringComparison.Ordinal);
+         Assert.Contains("WrapPanel bulkBar = BuildBulkBar_();", source, StringComparison.Ordinal);
+         string update = WithheldRowTests.MemberText(source, "private void UpdateBulkBar_()");
+         Assert.True(update != null, "QuarantineView.UpdateBulkBar_ is gone.");
+         Assert.Contains("button.IsEnabled = count > 0;", update, StringComparison.Ordinal);
+         Assert.Contains("Announce.Request(checkedCount_);", update, StringComparison.Ordinal);
+         Assert.Contains("TemplateColumn_(L(\"Actions\"), FourActions_(),", source, StringComparison.Ordinal);
+
+         // A group's row under the pointer and with the keyboard inside it, lined up with the rows.
+         Assert.Contains("var pointed = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };", source, StringComparison.Ordinal);
+         Assert.Contains("var focusedWithin = new Trigger { Property = UIElement.IsKeyboardFocusWithinProperty, Value = true };", source, StringComparison.Ordinal);
+         Assert.Contains("line.AppendChild(CheckBox_(BoxWidth, new Thickness(10, 0, CheckWidth - BoxWidth, 0)));", source, StringComparison.Ordinal);
+      }
+
       private static string ReadView(string file)
       {
          var directory = new DirectoryInfo(AppContext.BaseDirectory);

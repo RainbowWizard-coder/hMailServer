@@ -957,6 +957,9 @@
   <data name="Action needed: {0}. Opens {1}." xml:space="preserve">
     <value>Потрібна дія: {0}. Відкриває {1}.</value>
   </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Дії</value>
+  </data>
   <data name="Active" xml:space="preserve">
     <value>Активний</value>
   </data>
@@ -1424,9 +1427,6 @@
   </data>
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>Дозволити автентифікацію відкритим текстом (AUTH PLAIN/LOGIN)</value>
-  </data>
-  <data name="Allow the checked messages' senders, then release" xml:space="preserve">
-    <value>Дозволити відправників позначених повідомлень, потім випустити їх</value>
   </data>
   <data name="Allow the sender of this message, then release it" xml:space="preserve">
     <value>Дозволити відправника цього повідомлення, потім випустити його</value>
@@ -2152,9 +2152,6 @@
   <data name="Block rather than allow" xml:space="preserve">
     <value>Блокувати, а не дозволяти</value>
   </data>
-  <data name="Block the checked messages' senders, then delete" xml:space="preserve">
-    <value>Заблокувати відправників позначених повідомлень, потім видалити їх</value>
-  </data>
   <data name="Block the sender of this message, then delete it" xml:space="preserve">
     <value>Заблокувати відправника цього повідомлення, потім видалити його</value>
   </data>
@@ -2527,8 +2524,8 @@
   <data name="Check that the internet-wide range does not allow deliveries to external accounts." xml:space="preserve">
     <value>Перевірте, що діапазон, який охоплює весь інтернет, не дозволяє доставку на зовнішні облікові записи.</value>
   </data>
-  <data name="Check the messages first: the header's icons act on every checked message." xml:space="preserve">
-    <value>Спочатку позначте повідомлення: піктограми в заголовку діють на кожне позначене повідомлення.</value>
+  <data name="Check the messages first: the buttons over the list act on every checked message." xml:space="preserve">
+    <value>Спочатку позначте повідомлення: кнопки над списком діють на кожне позначене повідомлення.</value>
   </data>
   <data name="Check the queue for the failure the remote server reported." xml:space="preserve">
     <value>Перегляньте чергу, щоб побачити помилку, про яку повідомив віддалений сервер.</value>
@@ -3863,9 +3860,6 @@
   </data>
   <data name="Delete the certificate {0}? These TCP/IP ports present it, and do not start again until another certificate is chosen for them: {1}." xml:space="preserve">
     <value>Видалити сертифікат {0}? Його надають ці порти TCP/IP, і вони не запустяться знову, доки для них не буде вибрано інший сертифікат: {1}.</value>
-  </data>
-  <data name="Delete the checked messages" xml:space="preserve">
-    <value>Видалити позначені повідомлення</value>
   </data>
   <data name="Delete the distribution list {0}? Mail to it is no longer delivered; the members' mailboxes are not affected." xml:space="preserve">
     <value>Видалити список розсилки {0}? Пошта на нього більше не доставляється; поштових скриньок учасників це не стосується.</value>
@@ -7004,8 +6998,8 @@
   <data name="Messages the server finished processing, per minute, sampled every 2 seconds." xml:space="preserve">
     <value>Повідомлення, обробку яких сервер завершив, за хвилину, вибірка кожні 2 секунди.</value>
   </data>
-  <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message, on a group, or - in the header - on every checked message." xml:space="preserve">
-    <value>Повідомлення, які сервер інакше відхилив би, затримані, щоб хтось міг на них подивитися. Відправнику кожного з них сказали, що його прийнято, тому ніщо не надійде знову само собою: випуск одного доставляє його, а видалення остаточне. Піктограми діють на одне повідомлення, на групу або - у заголовку - на кожне позначене повідомлення.</value>
+  <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message or a group, and the buttons over the list on every checked message." xml:space="preserve">
+    <value>Повідомлення, які сервер інакше відхилив би, затримані, щоб хтось міг на них подивитися. Відправнику кожного з них сказали, що його прийнято, тому ніщо не надійде знову само собою: випуск одного доставляє його, а видалення остаточне. Піктограми діють на одне повідомлення або групу, а кнопки над списком - на кожне позначене повідомлення.</value>
   </data>
   <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
     <value>Повідомлення до {0} сканує один сканер; будь-що більше доставляється взагалі без сканування.</value>
@@ -7627,6 +7621,9 @@
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>У {0} немає відповідних облікових записів.</value>
+  </data>
+  <data name="No message checked" xml:space="preserve">
+    <value>Повідомлення не позначено</value>
   </data>
   <data name="No message is deleted and no account is removed." xml:space="preserve">
     <value>Жодне повідомлення не видаляється і жоден обліковий запис не вилучається.</value>
@@ -9292,6 +9289,9 @@
   <data name="Re-read these settings from hMailServer.INI" xml:space="preserve">
     <value>Перечитати ці параметри з hMailServer.INI</value>
   </data>
+  <data name="Re_lease" xml:space="preserve">
+    <value>Ви_пустити</value>
+  </data>
   <data name="Re_move" xml:space="preserve">
     <value>_Вилучити</value>
   </data>
@@ -9661,9 +9661,6 @@
   </data>
   <data name="Release the checked message to its recipients? It is delivered at once." xml:space="preserve">
     <value>Випустити позначене повідомлення його одержувачам? Його буде доставлено одразу.</value>
-  </data>
-  <data name="Release the checked messages" xml:space="preserve">
-    <value>Випустити позначені повідомлення</value>
   </data>
   <data name="Release the message from {0} to its recipients? It is delivered at once." xml:space="preserve">
     <value>Випустити повідомлення від {0} його одержувачам? Його буде доставлено одразу.</value>
@@ -14996,6 +14993,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_All documentation" xml:space="preserve">
     <value>_Уся документація</value>
   </data>
+  <data name="_Allow sender…" xml:space="preserve">
+    <value>_Дозволити відправника…</value>
+  </data>
   <data name="_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)" xml:space="preserve">
     <value>_Дозволити надсилання пароля через незахищене підключення (AllowUnprotectedPassword)</value>
   </data>
@@ -15031,6 +15031,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Block and delete" xml:space="preserve">
     <value>_Заблокувати й видалити</value>
+  </data>
+  <data name="_Block sender…" xml:space="preserve">
+    <value>Забло_кувати відправника…</value>
   </data>
   <data name="_Bounce address (empty = bounces go to the poster)" xml:space="preserve">
     <value>Адреса _для повернень (порожньо = повернення надходять тому, хто надіслав до списку)</value>
@@ -15127,6 +15130,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep for ever)" xml:space="preserve">
     <value>_Видаляти повідомлення, старші за (днів; 0 = політика домену, -1 = зберігати завжди)</value>
+  </data>
+  <data name="_Delete permanently" xml:space="preserve">
+    <value>Видалити назав_жди</value>
   </data>
   <data name="_Delete port" xml:space="preserve">
     <value>_Видалити порт</value>
@@ -15562,9 +15568,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Вузол ретрансляції (порожньо = використовувати загальносерверний ретранслятор)</value>
-  </data>
-  <data name="_Release" xml:space="preserve">
-    <value>_Випустити</value>
   </data>
   <data name="_Reload" xml:space="preserve">
     <value>П_ерезавантажити</value>
@@ -17292,6 +17295,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} message cannot be listed and will be left where it is. The first reason: {1}" xml:space="preserve">
     <value>Для {0} повідомлення не можна створити запис; вони залишаться там, де є. Перша причина: {1}</value>
   </data>
+  <data name="{0} message checked" xml:space="preserve">
+    <value>{0} повідомлення позначено</value>
+  </data>
   <data name="{0} message past the retention window was removed." xml:space="preserve">
     <value>Вилучено {0} повідомлення поза вікном зберігання.</value>
   </data>
@@ -17309,6 +17315,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}|few" xml:space="preserve">
     <value>Для {0} повідомлень не можна створити запис; вони залишаться там, де є. Перша причина: {1}</value>
+  </data>
+  <data name="{0} messages checked" xml:space="preserve">
+    <value>{0} повідомлень позначено</value>
+  </data>
+  <data name="{0} messages checked|few" xml:space="preserve">
+    <value>{0} повідомлення позначено</value>
   </data>
   <data name="{0} messages past the retention window were removed." xml:space="preserve">
     <value>Вилучено {0} повідомлень поза вікном зберігання.</value>

@@ -951,6 +951,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Action needed: {0}. Opens {1}." xml:space="preserve">
     <value>Handling kreves: {0}. Åpner {1}.</value>
   </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Handlinger</value>
+  </data>
   <data name="Active" xml:space="preserve">
     <value>Aktiv</value>
   </data>
@@ -1415,9 +1418,6 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   </data>
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>Tillat autentisering i klartekst (AUTH PLAIN/LOGIN)</value>
-  </data>
-  <data name="Allow the checked messages' senders, then release" xml:space="preserve">
-    <value>Tillat avsenderne av de merkede meldingene, og frigi deretter</value>
   </data>
   <data name="Allow the sender of this message, then release it" xml:space="preserve">
     <value>Tillat avsenderen av denne meldingen, og frigi den deretter</value>
@@ -2131,9 +2131,6 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Block rather than allow" xml:space="preserve">
     <value>Blokker i stedet for å tillate</value>
   </data>
-  <data name="Block the checked messages' senders, then delete" xml:space="preserve">
-    <value>Blokker avsenderne av de merkede meldingene, og slett deretter</value>
-  </data>
   <data name="Block the sender of this message, then delete it" xml:space="preserve">
     <value>Blokker avsenderen av denne meldingen, og slett den deretter</value>
   </data>
@@ -2503,8 +2500,8 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Check that the internet-wide range does not allow deliveries to external accounts." xml:space="preserve">
     <value>Sjekk at det internettomfattende området ikke tillater leveringer til eksterne kontoer.</value>
   </data>
-  <data name="Check the messages first: the header's icons act on every checked message." xml:space="preserve">
-    <value>Merk meldingene først: ikonene i headeren gjelder alle merkede meldinger.</value>
+  <data name="Check the messages first: the buttons over the list act on every checked message." xml:space="preserve">
+    <value>Merk meldingene først: knappene over listen gjelder alle merkede meldinger.</value>
   </data>
   <data name="Check the queue for the failure the remote server reported." xml:space="preserve">
     <value>Sjekk køen for feilen den eksterne serveren rapporterte.</value>
@@ -3833,9 +3830,6 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   </data>
   <data name="Delete the certificate {0}? These TCP/IP ports present it, and do not start again until another certificate is chosen for them: {1}." xml:space="preserve">
     <value>Slette sertifikatet {0}? Disse TCP/IP-portene presenterer det, og starter ikke igjen før et annet sertifikat er valgt for dem: {1}.</value>
-  </data>
-  <data name="Delete the checked messages" xml:space="preserve">
-    <value>Slett de merkede meldingene</value>
   </data>
   <data name="Delete the distribution list {0}? Mail to it is no longer delivered; the members' mailboxes are not affected." xml:space="preserve">
     <value>Slette distribusjonslisten {0}? E-post til den leveres ikke lenger; medlemmenes postbokser berøres ikke.</value>
@@ -6925,8 +6919,8 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Messages the server finished processing, per minute, sampled every 2 seconds." xml:space="preserve">
     <value>Meldinger serveren ble ferdig med å behandle, per minutt, målt hvert 2. sekund.</value>
   </data>
-  <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message, on a group, or - in the header - on every checked message." xml:space="preserve">
-    <value>Meldinger som serveren ellers ville ha avvist, holdt tilbake, slik at noen kan se på dem. Avsenderen av hver av dem fikk beskjed om at den var akseptert, så ingenting kommer på nytt av seg selv: å frigi én leverer den, og å slette én er endelig. Ikonene virker på én melding, på en gruppe eller - i headeren - på alle merkede meldinger.</value>
+  <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message or a group, and the buttons over the list on every checked message." xml:space="preserve">
+    <value>Meldinger som serveren ellers ville ha avvist, holdt tilbake, slik at noen kan se på dem. Avsenderen av hver av dem fikk beskjed om at den var akseptert, så ingenting kommer på nytt av seg selv: å frigi én leverer den, og å slette én er endelig. Ikonene virker på én melding eller en gruppe, og knappene over listen på alle merkede meldinger.</value>
   </data>
   <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
     <value>Meldinger opptil {0} skannes av én skanner; alt større leveres uten å bli skannet i det hele tatt.</value>
@@ -7545,6 +7539,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>Ingen samsvarende kontoer i {0}.</value>
+  </data>
+  <data name="No message checked" xml:space="preserve">
+    <value>Ingen melding merket</value>
   </data>
   <data name="No message is deleted and no account is removed." xml:space="preserve">
     <value>Ingen melding slettes, og ingen konto fjernes.</value>
@@ -9192,6 +9189,9 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   <data name="Re-read these settings from hMailServer.INI" xml:space="preserve">
     <value>Les disse innstillingene på nytt fra hMailServer.INI</value>
   </data>
+  <data name="Re_lease" xml:space="preserve">
+    <value>_Frigi</value>
+  </data>
   <data name="Re_move" xml:space="preserve">
     <value>_Fjern</value>
   </data>
@@ -9558,9 +9558,6 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   </data>
   <data name="Release the checked message to its recipients? It is delivered at once." xml:space="preserve">
     <value>Frigi den merkede meldingen til mottakerne? Den leveres med en gang.</value>
-  </data>
-  <data name="Release the checked messages" xml:space="preserve">
-    <value>Frigi de merkede meldingene</value>
   </data>
   <data name="Release the message from {0} to its recipients? It is delivered at once." xml:space="preserve">
     <value>Frigi meldingen fra {0} til mottakerne? Den leveres med en gang.</value>
@@ -14809,6 +14806,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="_All documentation" xml:space="preserve">
     <value>_All dokumentasjon</value>
   </data>
+  <data name="_Allow sender…" xml:space="preserve">
+    <value>_Tillat avsender…</value>
+  </data>
   <data name="_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)" xml:space="preserve">
     <value>Tillat at passordet sendes over en _ubeskyttet forbindelse (AllowUnprotectedPassword)</value>
   </data>
@@ -14844,6 +14844,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="_Block and delete" xml:space="preserve">
     <value>_Blokker og slett</value>
+  </data>
+  <data name="_Block sender…" xml:space="preserve">
+    <value>_Blokker avsender…</value>
   </data>
   <data name="_Bounce address (empty = bounces go to the poster)" xml:space="preserve">
     <value>_Returadresse (tom = returer går til avsenderen)</value>
@@ -14940,6 +14943,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep for ever)" xml:space="preserve">
     <value>_Slett meldinger eldre enn (dager; 0 = domenets policy, -1 = behold for alltid)</value>
+  </data>
+  <data name="_Delete permanently" xml:space="preserve">
+    <value>_Slett permanent</value>
   </data>
   <data name="_Delete port" xml:space="preserve">
     <value>_Slett port</value>
@@ -15375,9 +15381,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Relay-vert (tom = bruk den serveromfattende videresenderen)</value>
-  </data>
-  <data name="_Release" xml:space="preserve">
-    <value>_Frigi</value>
   </data>
   <data name="_Reload" xml:space="preserve">
     <value>_Last på nytt</value>
@@ -16991,6 +16994,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="{0} message cannot be listed and will be left where it is. The first reason: {1}" xml:space="preserve">
     <value>{0} melding kan ikke vises i listen og blir liggende der den er. Den første grunnen: {1}</value>
   </data>
+  <data name="{0} message checked" xml:space="preserve">
+    <value>{0} melding merket</value>
+  </data>
   <data name="{0} message past the retention window was removed." xml:space="preserve">
     <value>{0} melding forbi oppbevaringsvinduet ble fjernet.</value>
   </data>
@@ -17005,6 +17011,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>{0} meldinger kan ikke vises i listen og blir liggende der de er. Den første grunnen: {1}</value>
+  </data>
+  <data name="{0} messages checked" xml:space="preserve">
+    <value>{0} meldinger merket</value>
   </data>
   <data name="{0} messages past the retention window were removed." xml:space="preserve">
     <value>{0} meldinger forbi oppbevaringsvinduet ble fjernet.</value>

@@ -951,6 +951,9 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Action needed: {0}. Opens {1}." xml:space="preserve">
     <value>Action needed: {0}. Opens {1}.</value>
   </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
   <data name="Active" xml:space="preserve">
     <value>Active</value>
   </data>
@@ -1415,9 +1418,6 @@ The Control Panel can only read message files when it runs on the same machine a
   </data>
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>Allow plain-text authentication (AUTH PLAIN/LOGIN)</value>
-  </data>
-  <data name="Allow the checked messages' senders, then release" xml:space="preserve">
-    <value>Allow the checked messages' senders, then release</value>
   </data>
   <data name="Allow the sender of this message, then release it" xml:space="preserve">
     <value>Allow the sender of this message, then release it</value>
@@ -2131,9 +2131,6 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Block rather than allow" xml:space="preserve">
     <value>Block rather than allow</value>
   </data>
-  <data name="Block the checked messages' senders, then delete" xml:space="preserve">
-    <value>Block the checked messages' senders, then delete</value>
-  </data>
   <data name="Block the sender of this message, then delete it" xml:space="preserve">
     <value>Block the sender of this message, then delete it</value>
   </data>
@@ -2503,8 +2500,8 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Check that the internet-wide range does not allow deliveries to external accounts." xml:space="preserve">
     <value>Check that the internet-wide range does not allow deliveries to external accounts.</value>
   </data>
-  <data name="Check the messages first: the header's icons act on every checked message." xml:space="preserve">
-    <value>Check the messages first: the header's icons act on every checked message.</value>
+  <data name="Check the messages first: the buttons over the list act on every checked message." xml:space="preserve">
+    <value>Check the messages first: the buttons over the list act on every checked message.</value>
   </data>
   <data name="Check the queue for the failure the remote server reported." xml:space="preserve">
     <value>Check the queue for the failure the remote server reported.</value>
@@ -3833,9 +3830,6 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Delete the certificate {0}? These TCP/IP ports present it, and do not start again until another certificate is chosen for them: {1}." xml:space="preserve">
     <value>Delete the certificate {0}? These TCP/IP ports present it, and do not start again until another certificate is chosen for them: {1}.</value>
-  </data>
-  <data name="Delete the checked messages" xml:space="preserve">
-    <value>Delete the checked messages</value>
   </data>
   <data name="Delete the distribution list {0}? Mail to it is no longer delivered; the members' mailboxes are not affected." xml:space="preserve">
     <value>Delete the distribution list {0}? Mail to it is no longer delivered; the members' mailboxes are not affected.</value>
@@ -6925,8 +6919,8 @@ Nothing already there is removed.</value>
   <data name="Messages the server finished processing, per minute, sampled every 2 seconds." xml:space="preserve">
     <value>Messages the server finished processing, per minute, sampled every 2 seconds.</value>
   </data>
-  <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message, on a group, or - in the header - on every checked message." xml:space="preserve">
-    <value>Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message, on a group, or - in the header - on every checked message.</value>
+  <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message or a group, and the buttons over the list on every checked message." xml:space="preserve">
+    <value>Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message or a group, and the buttons over the list on every checked message.</value>
   </data>
   <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
     <value>Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all.</value>
@@ -7545,6 +7539,9 @@ Nothing already there is removed.</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>No matching accounts in {0}.</value>
+  </data>
+  <data name="No message checked" xml:space="preserve">
+    <value>No message checked</value>
   </data>
   <data name="No message is deleted and no account is removed." xml:space="preserve">
     <value>No message is deleted and no account is removed.</value>
@@ -9192,6 +9189,9 @@ No new connections will be accepted and no mail will be delivered until it is re
   <data name="Re-read these settings from hMailServer.INI" xml:space="preserve">
     <value>Re-read these settings from hMailServer.INI</value>
   </data>
+  <data name="Re_lease" xml:space="preserve">
+    <value>Re_lease</value>
+  </data>
   <data name="Re_move" xml:space="preserve">
     <value>Re_move</value>
   </data>
@@ -9558,9 +9558,6 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   </data>
   <data name="Release the checked message to its recipients? It is delivered at once." xml:space="preserve">
     <value>Release the checked message to its recipients? It is delivered at once.</value>
-  </data>
-  <data name="Release the checked messages" xml:space="preserve">
-    <value>Release the checked messages</value>
   </data>
   <data name="Release the message from {0} to its recipients? It is delivered at once." xml:space="preserve">
     <value>Release the message from {0} to its recipients? It is delivered at once.</value>
@@ -14809,6 +14806,9 @@ It will keep trying as you use the application.</value>
   <data name="_All documentation" xml:space="preserve">
     <value>_All documentation</value>
   </data>
+  <data name="_Allow sender…" xml:space="preserve">
+    <value>_Allow sender…</value>
+  </data>
   <data name="_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)" xml:space="preserve">
     <value>_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)</value>
   </data>
@@ -14844,6 +14844,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="_Block and delete" xml:space="preserve">
     <value>_Block and delete</value>
+  </data>
+  <data name="_Block sender…" xml:space="preserve">
+    <value>_Block sender…</value>
   </data>
   <data name="_Bounce address (empty = bounces go to the poster)" xml:space="preserve">
     <value>_Bounce address (empty = bounces go to the poster)</value>
@@ -14940,6 +14943,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep for ever)" xml:space="preserve">
     <value>_Delete messages older than (days; 0 = the domain's policy, -1 = keep for ever)</value>
+  </data>
+  <data name="_Delete permanently" xml:space="preserve">
+    <value>_Delete permanently</value>
   </data>
   <data name="_Delete port" xml:space="preserve">
     <value>_Delete port</value>
@@ -15375,9 +15381,6 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Relay host (empty = use the server-wide relayer)</value>
-  </data>
-  <data name="_Release" xml:space="preserve">
-    <value>_Release</value>
   </data>
   <data name="_Reload" xml:space="preserve">
     <value>_Reload</value>
@@ -16991,6 +16994,9 @@ It will keep trying as you use the application.</value>
   <data name="{0} message cannot be listed and will be left where it is. The first reason: {1}" xml:space="preserve">
     <value>{0} message cannot be listed and will be left where it is. The first reason: {1}</value>
   </data>
+  <data name="{0} message checked" xml:space="preserve">
+    <value>{0} message checked</value>
+  </data>
   <data name="{0} message past the retention window was removed." xml:space="preserve">
     <value>{0} message past the retention window was removed.</value>
   </data>
@@ -17005,6 +17011,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>{0} messages cannot be listed and will be left where they are. The first reason: {1}</value>
+  </data>
+  <data name="{0} messages checked" xml:space="preserve">
+    <value>{0} messages checked</value>
   </data>
   <data name="{0} messages past the retention window were removed." xml:space="preserve">
     <value>{0} messages past the retention window were removed.</value>

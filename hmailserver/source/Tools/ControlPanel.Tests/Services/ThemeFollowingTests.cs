@@ -68,8 +68,10 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// The quarantine page's action glyphs - on each row, on each group and in
-      /// the column's header - take the success and danger colours by key.
+      /// The quarantine page's action glyphs - on each row and on each group - take
+      /// the success and danger colours by key. The column's header carried four
+      /// more until the bar over the list took their acts, in words (review finding
+      /// F260).
       /// </summary>
       [Fact]
       public void TheQuarantineGlyphsTakeTheirColoursByKey()
@@ -83,9 +85,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("icon.SetResourceReference(IconElement.ForegroundProperty, colourKey)", iconButton, StringComparison.Ordinal);
          Assert.DoesNotContain("ForegroundProperty, colour)", iconButton, StringComparison.Ordinal);
 
-         string headerButton = WithheldRowTests.MemberText(source, "private static Button HeaderButton_(SymbolRegular symbol, string colourKey, bool filled, string tip, Action onClick)");
-         Assert.True(headerButton != null, "QuarantineView.HeaderButton_ no longer takes its colour as a resource key.");
-         Assert.Contains("icon.SetResourceReference(IconElement.ForegroundProperty, colourKey)", headerButton, StringComparison.Ordinal);
+         // No glyph is built outside a row's template any more.
+         Assert.DoesNotContain("HeaderButton_(", source, StringComparison.Ordinal);
 
          Assert.Contains("private const string KeepColourKey = \"AppSuccessBrush\";", source, StringComparison.Ordinal);
          Assert.Contains("private const string RemoveColourKey = \"AppDangerBrush\";", source, StringComparison.Ordinal);

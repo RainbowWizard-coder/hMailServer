@@ -951,6 +951,9 @@
   <data name="Action needed: {0}. Opens {1}." xml:space="preserve">
     <value>対応が必要です: {0}。{1} を開きます。</value>
   </data>
+  <data name="Actions" xml:space="preserve">
+    <value>操作</value>
+  </data>
   <data name="Active" xml:space="preserve">
     <value>有効</value>
   </data>
@@ -1415,9 +1418,6 @@
   </data>
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>平文認証 (AUTH PLAIN/LOGIN) を許可する</value>
-  </data>
-  <data name="Allow the checked messages' senders, then release" xml:space="preserve">
-    <value>チェックしたメッセージの送信者を許可してから解放</value>
   </data>
   <data name="Allow the sender of this message, then release it" xml:space="preserve">
     <value>このメッセージの送信者を許可してから、このメッセージを解放</value>
@@ -2131,9 +2131,6 @@
   <data name="Block rather than allow" xml:space="preserve">
     <value>許可ではなくブロック</value>
   </data>
-  <data name="Block the checked messages' senders, then delete" xml:space="preserve">
-    <value>チェックしたメッセージの送信者をブロックしてから削除</value>
-  </data>
   <data name="Block the sender of this message, then delete it" xml:space="preserve">
     <value>このメッセージの送信者をブロックしてから、このメッセージを削除</value>
   </data>
@@ -2503,8 +2500,8 @@
   <data name="Check that the internet-wide range does not allow deliveries to external accounts." xml:space="preserve">
     <value>インターネット全体の範囲が外部アカウントへの配信を許可していないことを確認してください。</value>
   </data>
-  <data name="Check the messages first: the header's icons act on every checked message." xml:space="preserve">
-    <value>先にメッセージをチェックしてください。ヘッダーのアイコンは、チェックしたすべてのメッセージに作用します。</value>
+  <data name="Check the messages first: the buttons over the list act on every checked message." xml:space="preserve">
+    <value>先にメッセージをチェックしてください。一覧の上のボタンは、チェックしたすべてのメッセージに作用します。</value>
   </data>
   <data name="Check the queue for the failure the remote server reported." xml:space="preserve">
     <value>リモート サーバーが報告した失敗をキューで確認してください。</value>
@@ -3833,9 +3830,6 @@
   </data>
   <data name="Delete the certificate {0}? These TCP/IP ports present it, and do not start again until another certificate is chosen for them: {1}." xml:space="preserve">
     <value>証明書 {0} を削除しますか? 次の TCP/IP ポートがこれを提示しており、別の証明書が選ばれるまで再び起動しません: {1}。</value>
-  </data>
-  <data name="Delete the checked messages" xml:space="preserve">
-    <value>チェックしたメッセージを削除</value>
   </data>
   <data name="Delete the distribution list {0}? Mail to it is no longer delivered; the members' mailboxes are not affected." xml:space="preserve">
     <value>配布リスト {0} を削除しますか? このリスト宛てのメールは配信されなくなります。メンバーのメールボックスには影響しません。</value>
@@ -6925,8 +6919,8 @@
   <data name="Messages the server finished processing, per minute, sampled every 2 seconds." xml:space="preserve">
     <value>サーバーが処理を終えたメッセージ数 (毎分)。2 秒ごとにサンプリングされます。</value>
   </data>
-  <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message, on a group, or - in the header - on every checked message." xml:space="preserve">
-    <value>本来ならサーバーが拒否していたはずのメッセージを、誰かが確認できるよう保留しています。送信者にはそれぞれ受理されたと伝えてあるため、放っておいても再び届くことはありません。解放すれば配信され、削除すれば元に戻せません。アイコンは 1 件のメッセージ、1 つのグループ、またはヘッダーではチェックしたすべてのメッセージに作用します。</value>
+  <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message or a group, and the buttons over the list on every checked message." xml:space="preserve">
+    <value>本来ならサーバーが拒否していたはずのメッセージを、誰かが確認できるよう保留しています。送信者にはそれぞれ受理されたと伝えてあるため、放っておいても再び届くことはありません。解放すれば配信され、削除すれば元に戻せません。アイコンは 1 件のメッセージまたは 1 つのグループに、一覧の上のボタンはチェックしたすべてのメッセージに作用します。</value>
   </data>
   <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
     <value>{0} までのメッセージは 1 件のスキャナーによってスキャンされます。それより大きいものはまったくスキャンされずに配信されます。</value>
@@ -7545,6 +7539,9 @@
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>{0} に一致するアカウントはありません。</value>
+  </data>
+  <data name="No message checked" xml:space="preserve">
+    <value>チェックしたメッセージはありません</value>
   </data>
   <data name="No message is deleted and no account is removed." xml:space="preserve">
     <value>メッセージが削除されることも、アカウントが削除されることもありません。</value>
@@ -9192,6 +9189,9 @@
   <data name="Re-read these settings from hMailServer.INI" xml:space="preserve">
     <value>これらの設定を hMailServer.INI から再読み込みする</value>
   </data>
+  <data name="Re_lease" xml:space="preserve">
+    <value>解放(_L)</value>
+  </data>
   <data name="Re_move" xml:space="preserve">
     <value>削除(_M)</value>
   </data>
@@ -9558,9 +9558,6 @@
   </data>
   <data name="Release the checked message to its recipients? It is delivered at once." xml:space="preserve">
     <value>チェックしたメッセージを受信者に解放しますか? 直ちに配信されます。</value>
-  </data>
-  <data name="Release the checked messages" xml:space="preserve">
-    <value>チェックしたメッセージを解放</value>
   </data>
   <data name="Release the message from {0} to its recipients? It is delivered at once." xml:space="preserve">
     <value>{0} からのメッセージを受信者に解放しますか? 直ちに配信されます。</value>
@@ -14809,6 +14806,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_All documentation" xml:space="preserve">
     <value>すべてのドキュメント(_A)</value>
   </data>
+  <data name="_Allow sender…" xml:space="preserve">
+    <value>送信者を許可(_A)…</value>
+  </data>
   <data name="_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)" xml:space="preserve">
     <value>保護されていない接続でのパスワード送信を許可する (AllowUnprotectedPassword)(_A)</value>
   </data>
@@ -14844,6 +14844,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Block and delete" xml:space="preserve">
     <value>ブロックして削除(_B)</value>
+  </data>
+  <data name="_Block sender…" xml:space="preserve">
+    <value>送信者をブロック(_B)…</value>
   </data>
   <data name="_Bounce address (empty = bounces go to the poster)" xml:space="preserve">
     <value>バウンス アドレス (空 = バウンスは投稿者に届きます)(_B)</value>
@@ -14940,6 +14943,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep for ever)" xml:space="preserve">
     <value>次の日数より古いメッセージを削除する (日、0 = ドメインのポリシー、-1 = 無期限に保持)(_D)</value>
+  </data>
+  <data name="_Delete permanently" xml:space="preserve">
+    <value>完全に削除(_D)</value>
   </data>
   <data name="_Delete port" xml:space="preserve">
     <value>ポートを削除(_D)</value>
@@ -15375,9 +15381,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>リレー ホスト (空 = サーバー全体のリレーを使用)(_R)</value>
-  </data>
-  <data name="_Release" xml:space="preserve">
-    <value>解放(_R)</value>
   </data>
   <data name="_Reload" xml:space="preserve">
     <value>再読み込み(_R)</value>
@@ -16991,6 +16994,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} message cannot be listed and will be left where it is. The first reason: {1}" xml:space="preserve">
     <value>{0} 件のメッセージは一覧に登録できないため、そのままにします。最初の理由: {1}</value>
   </data>
+  <data name="{0} message checked" xml:space="preserve">
+    <value>{0} 件のメッセージをチェック済み</value>
+  </data>
   <data name="{0} message past the retention window was removed." xml:space="preserve">
     <value>保持期間を過ぎた {0} 件のメッセージを削除しました。</value>
   </data>
@@ -17005,6 +17011,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>{0} 件のメッセージは一覧に登録できないため、そのままにします。最初の理由: {1}</value>
+  </data>
+  <data name="{0} messages checked" xml:space="preserve">
+    <value>{0} 件のメッセージをチェック済み</value>
   </data>
   <data name="{0} messages past the retention window were removed." xml:space="preserve">
     <value>保持期間を過ぎた {0} 件のメッセージを削除しました。</value>

@@ -951,6 +951,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Action needed: {0}. Opens {1}." xml:space="preserve">
     <value>Åtgärd krävs: {0}. Öppnar {1}.</value>
   </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Åtgärder</value>
+  </data>
   <data name="Active" xml:space="preserve">
     <value>Aktiv</value>
   </data>
@@ -1415,9 +1418,6 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   </data>
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>Tillåt autentisering i klartext (AUTH PLAIN/LOGIN)</value>
-  </data>
-  <data name="Allow the checked messages' senders, then release" xml:space="preserve">
-    <value>Tillåt avsändarna till de markerade meddelandena och släpp sedan</value>
   </data>
   <data name="Allow the sender of this message, then release it" xml:space="preserve">
     <value>Tillåt avsändaren till det här meddelandet och släpp sedan det</value>
@@ -2131,9 +2131,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Block rather than allow" xml:space="preserve">
     <value>Blockera i stället för att tillåta</value>
   </data>
-  <data name="Block the checked messages' senders, then delete" xml:space="preserve">
-    <value>Blockera avsändarna till de markerade meddelandena och ta sedan bort</value>
-  </data>
   <data name="Block the sender of this message, then delete it" xml:space="preserve">
     <value>Blockera avsändaren till det här meddelandet och ta sedan bort det</value>
   </data>
@@ -2503,8 +2500,8 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Check that the internet-wide range does not allow deliveries to external accounts." xml:space="preserve">
     <value>Kontrollera att det internetomfattande intervallet inte tillåter leveranser till externa konton.</value>
   </data>
-  <data name="Check the messages first: the header's icons act on every checked message." xml:space="preserve">
-    <value>Markera meddelandena först: ikonerna i rubrikraden gäller alla markerade meddelanden.</value>
+  <data name="Check the messages first: the buttons over the list act on every checked message." xml:space="preserve">
+    <value>Markera meddelandena först: knapparna ovanför listan gäller alla markerade meddelanden.</value>
   </data>
   <data name="Check the queue for the failure the remote server reported." xml:space="preserve">
     <value>Leta i kön efter felet fjärrservern rapporterade.</value>
@@ -3833,9 +3830,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Delete the certificate {0}? These TCP/IP ports present it, and do not start again until another certificate is chosen for them: {1}." xml:space="preserve">
     <value>Ta bort certifikatet {0}? De här TCP/IP-portarna presenterar det och startar inte igen förrän ett annat certifikat har valts för dem: {1}.</value>
-  </data>
-  <data name="Delete the checked messages" xml:space="preserve">
-    <value>Ta bort de markerade meddelandena</value>
   </data>
   <data name="Delete the distribution list {0}? Mail to it is no longer delivered; the members' mailboxes are not affected." xml:space="preserve">
     <value>Ta bort distributionslistan {0}? E-post till den levereras inte längre; medlemmarnas brevlådor påverkas inte.</value>
@@ -6925,8 +6919,8 @@ Inget som redan finns där tas bort.</value>
   <data name="Messages the server finished processing, per minute, sampled every 2 seconds." xml:space="preserve">
     <value>Meddelanden servern behandlat klart, per minut, mätt varannan sekund.</value>
   </data>
-  <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message, on a group, or - in the header - on every checked message." xml:space="preserve">
-    <value>Meddelanden som servern annars skulle ha avvisat, kvarhållna så att någon kan titta på dem. Avsändaren till vart och ett av dem fick beskedet att det hade accepterats, så inget kommer att komma igen av sig självt: att släppa ett levererar det, och att ta bort ett är slutgiltigt. Ikonerna gäller ett meddelande, en grupp eller - i rubrikraden - alla markerade meddelanden.</value>
+  <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message or a group, and the buttons over the list on every checked message." xml:space="preserve">
+    <value>Meddelanden som servern annars skulle ha avvisat, kvarhållna så att någon kan titta på dem. Avsändaren till vart och ett av dem fick beskedet att det hade accepterats, så inget kommer att komma igen av sig självt: att släppa ett levererar det, och att ta bort ett är slutgiltigt. Ikonerna gäller ett meddelande eller en grupp, och knapparna ovanför listan alla markerade meddelanden.</value>
   </data>
   <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
     <value>Meddelanden upp till {0} skannas av en skanner; allt större levereras utan att skannas alls.</value>
@@ -7545,6 +7539,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>Inga matchande konton i {0}.</value>
+  </data>
+  <data name="No message checked" xml:space="preserve">
+    <value>Inget meddelande markerat</value>
   </data>
   <data name="No message is deleted and no account is removed." xml:space="preserve">
     <value>Inget meddelande tas bort och inget konto avlägsnas.</value>
@@ -9192,6 +9189,9 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Re-read these settings from hMailServer.INI" xml:space="preserve">
     <value>Läs om de här inställningarna från hMailServer.INI</value>
   </data>
+  <data name="Re_lease" xml:space="preserve">
+    <value>_Släpp</value>
+  </data>
   <data name="Re_move" xml:space="preserve">
     <value>Ta _bort</value>
   </data>
@@ -9558,9 +9558,6 @@ Kör detta om klienter rapporterar meddelanden som dyker upp under fel UID, elle
   </data>
   <data name="Release the checked message to its recipients? It is delivered at once." xml:space="preserve">
     <value>Släppa det markerade meddelandet till mottagarna? Det levereras genast.</value>
-  </data>
-  <data name="Release the checked messages" xml:space="preserve">
-    <value>Släpp de markerade meddelandena</value>
   </data>
   <data name="Release the message from {0} to its recipients? It is delivered at once." xml:space="preserve">
     <value>Släppa meddelandet från {0} till mottagarna? Det levereras genast.</value>
@@ -14809,6 +14806,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_All documentation" xml:space="preserve">
     <value>_All dokumentation</value>
   </data>
+  <data name="_Allow sender…" xml:space="preserve">
+    <value>_Tillåt avsändare…</value>
+  </data>
   <data name="_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)" xml:space="preserve">
     <value>Tillåt att lösenordet skickas över en osk_yddad anslutning (AllowUnprotectedPassword)</value>
   </data>
@@ -14844,6 +14844,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="_Block and delete" xml:space="preserve">
     <value>_Blockera och ta bort</value>
+  </data>
+  <data name="_Block sender…" xml:space="preserve">
+    <value>_Blockera avsändare…</value>
   </data>
   <data name="_Bounce address (empty = bounces go to the poster)" xml:space="preserve">
     <value>Stu_dsadress (tomt = studsar går till avsändaren)</value>
@@ -14940,6 +14943,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep for ever)" xml:space="preserve">
     <value>_Ta bort meddelanden äldre än (dagar; 0 = domänens policy, -1 = behåll för alltid)</value>
+  </data>
+  <data name="_Delete permanently" xml:space="preserve">
+    <value>Ta bort _permanent</value>
   </data>
   <data name="_Delete port" xml:space="preserve">
     <value>_Ta bort porten</value>
@@ -15375,9 +15381,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Relävärd (tomt = använd det serverövergripande relät)</value>
-  </data>
-  <data name="_Release" xml:space="preserve">
-    <value>_Släpp</value>
   </data>
   <data name="_Reload" xml:space="preserve">
     <value>Ladda _om</value>
@@ -16991,6 +16994,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} message cannot be listed and will be left where it is. The first reason: {1}" xml:space="preserve">
     <value>{0} meddelande kan inte listas och lämnas kvar där det är. Den första anledningen: {1}</value>
   </data>
+  <data name="{0} message checked" xml:space="preserve">
+    <value>{0} meddelande markerat</value>
+  </data>
   <data name="{0} message past the retention window was removed." xml:space="preserve">
     <value>{0} meddelande bortom lagringsfönstret togs bort.</value>
   </data>
@@ -17005,6 +17011,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>{0} meddelanden kan inte listas och lämnas kvar där de är. Den första anledningen: {1}</value>
+  </data>
+  <data name="{0} messages checked" xml:space="preserve">
+    <value>{0} meddelanden markerade</value>
   </data>
   <data name="{0} messages past the retention window were removed." xml:space="preserve">
     <value>{0} meddelanden bortom lagringsfönstret togs bort.</value>

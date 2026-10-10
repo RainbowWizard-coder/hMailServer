@@ -951,6 +951,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Action needed: {0}. Opens {1}." xml:space="preserve">
     <value>Actie vereist: {0}. Opent {1}.</value>
   </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Acties</value>
+  </data>
   <data name="Active" xml:space="preserve">
     <value>Actief</value>
   </data>
@@ -1415,9 +1418,6 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   </data>
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>Authenticatie in klare tekst toestaan (AUTH PLAIN/LOGIN)</value>
-  </data>
-  <data name="Allow the checked messages' senders, then release" xml:space="preserve">
-    <value>De afzenders van de aangevinkte berichten toestaan en dan vrijgeven</value>
   </data>
   <data name="Allow the sender of this message, then release it" xml:space="preserve">
     <value>De afzender van dit bericht toestaan en het dan vrijgeven</value>
@@ -2131,9 +2131,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Block rather than allow" xml:space="preserve">
     <value>Blokkeren in plaats van toestaan</value>
   </data>
-  <data name="Block the checked messages' senders, then delete" xml:space="preserve">
-    <value>De afzenders van de aangevinkte berichten blokkeren en dan verwijderen</value>
-  </data>
   <data name="Block the sender of this message, then delete it" xml:space="preserve">
     <value>De afzender van dit bericht blokkeren en het dan verwijderen</value>
   </data>
@@ -2503,8 +2500,8 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Check that the internet-wide range does not allow deliveries to external accounts." xml:space="preserve">
     <value>Controleer of het internetbrede bereik geen bezorgingen naar externe accounts toestaat.</value>
   </data>
-  <data name="Check the messages first: the header's icons act on every checked message." xml:space="preserve">
-    <value>Vink eerst de berichten aan: de pictogrammen in de header werken op elk aangevinkt bericht.</value>
+  <data name="Check the messages first: the buttons over the list act on every checked message." xml:space="preserve">
+    <value>Vink eerst de berichten aan: de knoppen boven de lijst werken op elk aangevinkt bericht.</value>
   </data>
   <data name="Check the queue for the failure the remote server reported." xml:space="preserve">
     <value>Kijk in de wachtrij naar de fout die de externe server meldde.</value>
@@ -3833,9 +3830,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Delete the certificate {0}? These TCP/IP ports present it, and do not start again until another certificate is chosen for them: {1}." xml:space="preserve">
     <value>Het certificaat {0} verwijderen? Deze TCP/IP-poorten presenteren het, en starten pas weer als er een ander certificaat voor is gekozen: {1}.</value>
-  </data>
-  <data name="Delete the checked messages" xml:space="preserve">
-    <value>De aangevinkte berichten verwijderen</value>
   </data>
   <data name="Delete the distribution list {0}? Mail to it is no longer delivered; the members' mailboxes are not affected." xml:space="preserve">
     <value>De distributielijst {0} verwijderen? Mail aan deze lijst wordt niet meer bezorgd; de postvakken van de leden blijven onaangetast.</value>
@@ -6925,8 +6919,8 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Messages the server finished processing, per minute, sampled every 2 seconds." xml:space="preserve">
     <value>Berichten die de server klaar heeft verwerkt, per minuut, elke 2 seconden bemonsterd.</value>
   </data>
-  <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message, on a group, or - in the header - on every checked message." xml:space="preserve">
-    <value>Berichten die de server anders zou hebben geweigerd, vastgehouden zodat iemand ernaar kan kijken. Elke afzender is verteld dat zijn bericht was geaccepteerd, dus geen ervan komt vanzelf opnieuw binnen: één vrijgeven bezorgt het, en één verwijderen is definitief. De pictogrammen werken op één bericht, op een groep, of - in de header - op elk aangevinkt bericht.</value>
+  <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message or a group, and the buttons over the list on every checked message." xml:space="preserve">
+    <value>Berichten die de server anders zou hebben geweigerd, vastgehouden zodat iemand ernaar kan kijken. Elke afzender is verteld dat zijn bericht was geaccepteerd, dus geen ervan komt vanzelf opnieuw binnen: één vrijgeven bezorgt het, en één verwijderen is definitief. De pictogrammen werken op één bericht of een groep, en de knoppen boven de lijst op elk aangevinkt bericht.</value>
   </data>
   <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
     <value>Berichten tot {0} worden gescand door één scanner; alles wat groter is, wordt bezorgd zonder ook maar te zijn gescand.</value>
@@ -7545,6 +7539,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>Geen overeenkomende accounts in {0}.</value>
+  </data>
+  <data name="No message checked" xml:space="preserve">
+    <value>Geen bericht aangevinkt</value>
   </data>
   <data name="No message is deleted and no account is removed." xml:space="preserve">
     <value>Er wordt geen bericht verwijderd en er wordt geen account verwijderd.</value>
@@ -9192,6 +9189,9 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Re-read these settings from hMailServer.INI" xml:space="preserve">
     <value>Deze instellingen opnieuw uit hMailServer.INI lezen</value>
   </data>
+  <data name="Re_lease" xml:space="preserve">
+    <value>_Vrijgeven</value>
+  </data>
   <data name="Re_move" xml:space="preserve">
     <value>V_erwijderen</value>
   </data>
@@ -9558,9 +9558,6 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   </data>
   <data name="Release the checked message to its recipients? It is delivered at once." xml:space="preserve">
     <value>Het aangevinkte bericht vrijgeven aan de ontvangers? Het wordt meteen bezorgd.</value>
-  </data>
-  <data name="Release the checked messages" xml:space="preserve">
-    <value>De aangevinkte berichten vrijgeven</value>
   </data>
   <data name="Release the message from {0} to its recipients? It is delivered at once." xml:space="preserve">
     <value>Het bericht van {0} vrijgeven aan de ontvangers? Het wordt meteen bezorgd.</value>
@@ -14809,6 +14806,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_All documentation" xml:space="preserve">
     <value>_Alle documentatie</value>
   </data>
+  <data name="_Allow sender…" xml:space="preserve">
+    <value>_Afzender toestaan…</value>
+  </data>
   <data name="_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)" xml:space="preserve">
     <value>Verzenden van het wachtwoord over _een onbeveiligde verbinding toestaan (AllowUnprotectedPassword)</value>
   </data>
@@ -14844,6 +14844,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Block and delete" xml:space="preserve">
     <value>Blokkeren en _verwijderen</value>
+  </data>
+  <data name="_Block sender…" xml:space="preserve">
+    <value>Afzender _blokkeren…</value>
   </data>
   <data name="_Bounce address (empty = bounces go to the poster)" xml:space="preserve">
     <value>_Bounceadres (leeg = bounces gaan naar de inzender)</value>
@@ -14940,6 +14943,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep for ever)" xml:space="preserve">
     <value>_Berichten verwijderen ouder dan (dagen; 0 = het beleid van het domein, -1 = altijd bewaren)</value>
+  </data>
+  <data name="_Delete permanently" xml:space="preserve">
+    <value>_Definitief verwijderen</value>
   </data>
   <data name="_Delete port" xml:space="preserve">
     <value>Poort _verwijderen</value>
@@ -15375,9 +15381,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Relayhost (leeg = de serverbrede relayer gebruiken)</value>
-  </data>
-  <data name="_Release" xml:space="preserve">
-    <value>_Vrijgeven</value>
   </data>
   <data name="_Reload" xml:space="preserve">
     <value>_Opnieuw laden</value>
@@ -16991,6 +16994,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} message cannot be listed and will be left where it is. The first reason: {1}" xml:space="preserve">
     <value>{0} bericht kan niet worden vermeld en blijft waar het is. De eerste reden: {1}</value>
   </data>
+  <data name="{0} message checked" xml:space="preserve">
+    <value>{0} bericht aangevinkt</value>
+  </data>
   <data name="{0} message past the retention window was removed." xml:space="preserve">
     <value>{0} bericht voorbij het bewaarvenster is verwijderd.</value>
   </data>
@@ -17005,6 +17011,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>{0} berichten kunnen niet worden vermeld en blijven waar ze zijn. De eerste reden: {1}</value>
+  </data>
+  <data name="{0} messages checked" xml:space="preserve">
+    <value>{0} berichten aangevinkt</value>
   </data>
   <data name="{0} messages past the retention window were removed." xml:space="preserve">
     <value>{0} berichten voorbij het bewaarvenster zijn verwijderd.</value>

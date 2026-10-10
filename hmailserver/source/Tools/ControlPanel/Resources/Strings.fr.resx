@@ -951,6 +951,9 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="Action needed: {0}. Opens {1}." xml:space="preserve">
     <value>Action requise : {0}. Ouvre {1}.</value>
   </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
   <data name="Active" xml:space="preserve">
     <value>Actif</value>
   </data>
@@ -1415,9 +1418,6 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   </data>
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>Autoriser l'authentification en clair (AUTH PLAIN/LOGIN)</value>
-  </data>
-  <data name="Allow the checked messages' senders, then release" xml:space="preserve">
-    <value>Autoriser les expéditeurs des messages cochés, puis libérer</value>
   </data>
   <data name="Allow the sender of this message, then release it" xml:space="preserve">
     <value>Autoriser l'expéditeur de ce message, puis le libérer</value>
@@ -2131,9 +2131,6 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Block rather than allow" xml:space="preserve">
     <value>Bloquer au lieu d'autoriser</value>
   </data>
-  <data name="Block the checked messages' senders, then delete" xml:space="preserve">
-    <value>Bloquer les expéditeurs des messages cochés, puis supprimer</value>
-  </data>
   <data name="Block the sender of this message, then delete it" xml:space="preserve">
     <value>Bloquer l'expéditeur de ce message, puis le supprimer</value>
   </data>
@@ -2503,8 +2500,8 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Check that the internet-wide range does not allow deliveries to external accounts." xml:space="preserve">
     <value>Vérifiez que la plage couvrant tout Internet n'autorise pas les livraisons vers des comptes externes.</value>
   </data>
-  <data name="Check the messages first: the header's icons act on every checked message." xml:space="preserve">
-    <value>Cochez d'abord les messages : les icônes de l'en-tête agissent sur chaque message coché.</value>
+  <data name="Check the messages first: the buttons over the list act on every checked message." xml:space="preserve">
+    <value>Cochez d'abord les messages : les boutons au-dessus de la liste agissent sur chaque message coché.</value>
   </data>
   <data name="Check the queue for the failure the remote server reported." xml:space="preserve">
     <value>Consultez la file pour l'échec que le serveur distant a signalé.</value>
@@ -3833,9 +3830,6 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   </data>
   <data name="Delete the certificate {0}? These TCP/IP ports present it, and do not start again until another certificate is chosen for them: {1}." xml:space="preserve">
     <value>Supprimer le certificat {0} ? Ces ports TCP/IP le présentent, et ne redémarrent pas tant qu'un autre certificat n'a pas été choisi pour eux : {1}.</value>
-  </data>
-  <data name="Delete the checked messages" xml:space="preserve">
-    <value>Supprimer les messages cochés</value>
   </data>
   <data name="Delete the distribution list {0}? Mail to it is no longer delivered; the members' mailboxes are not affected." xml:space="preserve">
     <value>Supprimer la liste de diffusion {0} ? Le courrier qui lui est adressé n'est plus distribué ; les boîtes des membres ne sont pas touchées.</value>
@@ -6925,8 +6919,8 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Messages the server finished processing, per minute, sampled every 2 seconds." xml:space="preserve">
     <value>Messages dont le serveur a terminé le traitement, par minute, échantillonnés toutes les 2 secondes.</value>
   </data>
-  <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message, on a group, or - in the header - on every checked message." xml:space="preserve">
-    <value>Messages que le serveur aurait sinon refusés, retenus pour que quelqu'un puisse les regarder. L'expéditeur de chacun a été informé qu'il était accepté, donc aucun ne reviendra de lui-même : libérer l'un le distribue, et en supprimer un est définitif. Les icônes agissent sur un message, sur un groupe, ou - dans l'en-tête - sur chaque message coché.</value>
+  <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message or a group, and the buttons over the list on every checked message." xml:space="preserve">
+    <value>Messages que le serveur aurait sinon refusés, retenus pour que quelqu'un puisse les regarder. L'expéditeur de chacun a été informé qu'il était accepté, donc aucun ne reviendra de lui-même : libérer l'un le distribue, et en supprimer un est définitif. Les icônes agissent sur un message ou un groupe, et les boutons au-dessus de la liste sur chaque message coché.</value>
   </data>
   <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
     <value>Les messages jusqu'à {0} sont analysés par un analyseur ; tout ce qui est plus grand est livré sans être analysé du tout.</value>
@@ -7545,6 +7539,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>Aucun compte correspondant dans {0}.</value>
+  </data>
+  <data name="No message checked" xml:space="preserve">
+    <value>Aucun message coché</value>
   </data>
   <data name="No message is deleted and no account is removed." xml:space="preserve">
     <value>Aucun message n'est supprimé et aucun compte n'est retiré.</value>
@@ -9192,6 +9189,9 @@ Aucune nouvelle connexion ne sera acceptée et aucun courrier ne sera livré jus
   <data name="Re-read these settings from hMailServer.INI" xml:space="preserve">
     <value>Relire ces réglages depuis hMailServer.INI</value>
   </data>
+  <data name="Re_lease" xml:space="preserve">
+    <value>_Libérer</value>
+  </data>
   <data name="Re_move" xml:space="preserve">
     <value>Re_tirer</value>
   </data>
@@ -9558,9 +9558,6 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
   </data>
   <data name="Release the checked message to its recipients? It is delivered at once." xml:space="preserve">
     <value>Libérer le message coché vers ses destinataires ? Il est distribué aussitôt.</value>
-  </data>
-  <data name="Release the checked messages" xml:space="preserve">
-    <value>Libérer les messages cochés</value>
   </data>
   <data name="Release the message from {0} to its recipients? It is delivered at once." xml:space="preserve">
     <value>Libérer le message de {0} vers ses destinataires ? Il est distribué aussitôt.</value>
@@ -14809,6 +14806,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="_All documentation" xml:space="preserve">
     <value>_Toute la documentation</value>
   </data>
+  <data name="_Allow sender…" xml:space="preserve">
+    <value>_Autoriser l'expéditeur…</value>
+  </data>
   <data name="_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)" xml:space="preserve">
     <value>Autoriser l'envoi du mot de passe _sur une connexion non protégée (AllowUnprotectedPassword)</value>
   </data>
@@ -14844,6 +14844,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="_Block and delete" xml:space="preserve">
     <value>Bloquer e_t supprimer</value>
+  </data>
+  <data name="_Block sender…" xml:space="preserve">
+    <value>_Bloquer l'expéditeur…</value>
   </data>
   <data name="_Bounce address (empty = bounces go to the poster)" xml:space="preserve">
     <value>Adresse de re_bond (vide = les rebonds vont à l'auteur du message)</value>
@@ -14940,6 +14943,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep for ever)" xml:space="preserve">
     <value>_Supprimer les messages plus vieux que (jours ; 0 = la politique du domaine, -1 = conserver indéfiniment)</value>
+  </data>
+  <data name="_Delete permanently" xml:space="preserve">
+    <value>_Supprimer définitivement</value>
   </data>
   <data name="_Delete port" xml:space="preserve">
     <value>_Supprimer le port</value>
@@ -15375,9 +15381,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>Hôte de _relais (vide = utiliser le relayeur global du serveur)</value>
-  </data>
-  <data name="_Release" xml:space="preserve">
-    <value>_Libérer</value>
   </data>
   <data name="_Reload" xml:space="preserve">
     <value>_Recharger</value>
@@ -16991,6 +16994,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="{0} message cannot be listed and will be left where it is. The first reason: {1}" xml:space="preserve">
     <value>{0} message ne peut pas être inscrit sur la liste et restera où il est. La première raison : {1}</value>
   </data>
+  <data name="{0} message checked" xml:space="preserve">
+    <value>{0} message coché</value>
+  </data>
   <data name="{0} message past the retention window was removed." xml:space="preserve">
     <value>{0} message au-delà de la fenêtre de rétention a été supprimé.</value>
   </data>
@@ -17005,6 +17011,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>{0} messages ne peuvent pas être inscrits sur la liste et resteront où ils sont. La première raison : {1}</value>
+  </data>
+  <data name="{0} messages checked" xml:space="preserve">
+    <value>{0} messages cochés</value>
   </data>
   <data name="{0} messages past the retention window were removed." xml:space="preserve">
     <value>{0} messages au-delà de la fenêtre de rétention ont été supprimés.</value>

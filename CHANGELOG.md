@@ -2936,6 +2936,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   thousand rows a call, and each word typed in after is looked for in it. `AuditTrailPageTests` holds the words, the
   search and the page's wiring.
 
+- **Fixed: the quarantine's allow and block icons differed only by colour, its header's four icons acted with nothing
+  checked, and a group's row showed neither the pointer nor the keyboard inside it.** Each row, group and the header
+  carried a check, a cross and the same list glyph twice, told apart by colour and fill alone - 28 coloured glyphs on
+  screen; the header's were full colour and pressable with nothing checked and on an empty page, answering "Check the
+  messages first"; and a group's row had no hover or focus-within state, its box and icons 8 to 10 pixels left of the
+  rows' (review finding F260). Allow and block are now a person each - PersonAvailable and PersonProhibited - outlined
+  as the other two are. The header's four icons are gone: a bar under the toolbar says how many messages are checked
+  ("2 messages checked", a polite live region) and carries Release, Allow sender..., Block sender... and Delete
+  permanently in words, each pressable only while a message is checked, and the column of each row's icons is headed
+  Actions. A group's row takes the grid's hover grey under the pointer, keeping its selection fill when selected, and
+  its focus ring while the keyboard is on its box or one of its icons, and its box and icons line up with the rows'.
+  Release's question answers with Re_lease, Alt+L, as the bar's Release does, where Refresh has R on the page.
+  `QuarantinePageTests` holds the shapes, the bar and the group's states.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

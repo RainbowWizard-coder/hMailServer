@@ -38,12 +38,12 @@ namespace hMailServer.ControlPanel.Views
    /// a timer. Release delivers; Delete is final.
    ///
    /// One ESP or one HELO name that dumps forty messages makes forty rows, so the rows
-   /// are grouped - by the organization's domain of the sender, of the HELO name, or
-   /// not at all - and every row, every group and the header carry the same four
-   /// actions: release, delete, whitelist the sender and release, blacklist the
-   /// sender and delete. The header's act on every checked message. Whitelist and
-   /// blacklist ask which list: the sender's address on the server's allow and block
-   /// list, or the domain on the domain white and black list - never a third one.
+   /// are grouped - by the organisation's domain of the sender, of the HELO name, or
+   /// not at all - and every row and every group carries the same four actions:
+   /// release, delete, allow the sender and release, block the sender and delete;
+   /// the bar over the list carries them, in words, for every checked message. Allow
+   /// and block ask which list: the sender's address on the server's allow and block
+   /// list, or the domain on the list of allowed and blocked domains - never a third.
    /// The logic is QuarantineReview's (Services), where the tests hold it; this is
    /// the drawing.
    ///
@@ -100,6 +100,14 @@ namespace hMailServer.ControlPanel.Views
       // Remove expired, which deletes everything held longer than the retention
       // window and so can be pressed only while there is one: 0 keeps everything.
       private Button removeExpired_;
+
+      // The checked messages' bar over the list: how many are checked, and the four
+      // acts in words, pressable only while one is (UpdateBulkBar_). The four were
+      // full-colour icons in the column's header, pressable with nothing checked and
+      // on an empty page, where a click answered "Check the messages first" (review
+      // finding F260).
+      private readonly TextBlock checkedCount_ = new() { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 4, 0) };
+      private readonly List<Button> bulk_ = new();
 
       // Why the selected message was held, under the list (review finding F261):
       // the row's tool tip was the one place it was said, which no keyboard
@@ -314,6 +322,7 @@ namespace hMailServer.ControlPanel.Views
             // again (Services/ReadFailure).
             review_.Load(new List<HeldMessage>());
             selectAll_.IsChecked = false;
+            UpdateBulkBar_();
             ReadFailure.Show(status_, empty_, list_, L("Could not read the quarantine: "), ex, Reload);
             count_.Visibility = Visibility.Collapsed;
          }
@@ -336,6 +345,7 @@ namespace hMailServer.ControlPanel.Views
          MeasureTextColumns_();
          list_.ItemsSource = review_.Rows;
          selectAll_.IsChecked = review_.AllChecked;
+         UpdateBulkBar_();
 
          foreach (DataGridColumn column in list_.Columns)
          {
@@ -394,8 +404,10 @@ namespace hMailServer.ControlPanel.Views
 
          panel.AppendChild(IconButton_("release", SymbolRegular.CheckmarkCircle24, KeepColourKey, false, nameof(QuarantineRow.ReleaseTip), nameof(QuarantineRow.ReleaseKeyTip), QuarantineRow.ReleaseKey));
          panel.AppendChild(IconButton_("delete", SymbolRegular.DismissCircle24, RemoveColourKey, false, nameof(QuarantineRow.DeleteTip), nameof(QuarantineRow.DeleteKeyTip), L(QuarantineRow.DeleteKey)));
-         panel.AppendChild(IconButton_("allow", SymbolRegular.TextBulletListSquare24, KeepColourKey, false, nameof(QuarantineRow.AllowTip)));
-         panel.AppendChild(IconButton_("block", SymbolRegular.TextBulletListSquare24, RemoveColourKey, true, nameof(QuarantineRow.BlockTip)));
+         // Allow and block a person each, outlined as the other two are, where both
+         // were one list glyph told apart by colour and fill alone (review finding F260).
+         panel.AppendChild(IconButton_("allow", SymbolRegular.PersonAvailable24, KeepColourKey, false, nameof(QuarantineRow.AllowTip)));
+         panel.AppendChild(IconButton_("block", SymbolRegular.PersonProhibited24, RemoveColourKey, false, nameof(QuarantineRow.BlockTip)));
          return panel;
       }
 
@@ -490,7 +502,10 @@ namespace hMailServer.ControlPanel.Views
          var line = new FrameworkElementFactory(typeof(StackPanel));
          line.SetValue(StackPanel.OrientationProperty, Orientation.Horizontal);
 
-         line.AppendChild(CheckBox_(BoxWidth, new Thickness(8, 0, CheckWidth - BoxWidth - 8, 0)));
+         // Where a message row's are: its box ten pixels in, as a cell's padding puts
+         // it, and its icons where the next column's padding starts them, where the
+         // group's sat 8 to 10 pixels left of the rows' (review finding F260).
+         line.AppendChild(CheckBox_(BoxWidth, new Thickness(10, 0, CheckWidth - BoxWidth, 0)));
          line.AppendChild(FourActions_());
 
          var fold = new FrameworkElementFactory(typeof(Wpf.Ui.Controls.Button));
@@ -525,6 +540,15 @@ namespace hMailServer.ControlPanel.Views
          border.AppendChild(line);
          root.AppendChild(border);
 
+         // Under the pointer, the grid's hover grey over the band, as a message row
+         // takes it; the selected group keeps its selection fill (the trigger order
+         // below).
+         var hover = new FrameworkElementFactory(typeof(System.Windows.Shapes.Rectangle)) { Name = "Hover" }; // no-loc: a template part's name
+         hover.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, "SubtleFillColorSecondaryBrush");
+         hover.SetValue(UIElement.OpacityProperty, 0.0);
+         hover.SetValue(UIElement.IsHitTestVisibleProperty, false);
+         root.AppendChild(hover);
+
          var pill = new FrameworkElementFactory(typeof(System.Windows.Shapes.Rectangle)) { Name = "Pill" }; // no-loc: a template part's name
          pill.SetValue(FrameworkElement.WidthProperty, 3.0);
          pill.SetValue(FrameworkElement.HeightProperty, 16.0);
@@ -554,15 +578,28 @@ namespace hMailServer.ControlPanel.Views
 
          var template = new ControlTemplate(typeof(DataGridRow)) { VisualTree = root };
 
+         // Before the selected trigger, which takes the hover away again: the
+         // selected group keeps its fill under the pointer, as a message row does.
+         var pointed = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
+         pointed.Setters.Add(new Setter(UIElement.OpacityProperty, 1.0, "Hover")); // no-loc: a template part's name
+         template.Triggers.Add(pointed);
+
          var selected = new Trigger { Property = DataGridRow.IsSelectedProperty, Value = true };
          selected.Setters.Add(new Setter(UIElement.OpacityProperty, 1.0, "Pill")); // no-loc: a template part's name
          selected.Setters.Add(new Setter(UIElement.VisibilityProperty, Visibility.Visible, "Outline")); // no-loc: a template part's name
          selected.Setters.Add(new Setter(Border.BackgroundProperty, new DynamicResourceExtension("AppSelectionFillBrush"), "Bd")); // no-loc: a template part's name
+         selected.Setters.Add(new Setter(UIElement.OpacityProperty, 0.0, "Hover")); // no-loc: a template part's name
          template.Triggers.Add(selected);
 
          var focused = new Trigger { Property = UIElement.IsKeyboardFocusedProperty, Value = true };
          focused.Setters.Add(new Setter(UIElement.VisibilityProperty, Visibility.Visible, "Ring")); // no-loc: a template part's name
          template.Triggers.Add(focused);
+
+         // And while the keyboard is on the group's box or one of its icons, which a
+         // click leaves it on.
+         var focusedWithin = new Trigger { Property = UIElement.IsKeyboardFocusWithinProperty, Value = true };
+         focusedWithin.Setters.Add(new Setter(UIElement.VisibilityProperty, Visibility.Visible, "Ring")); // no-loc: a template part's name
+         template.Triggers.Add(focusedWithin);
 
          return template;
       }
@@ -593,19 +630,15 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private void BuildColumns()
       {
-         selectAll_.Click += (_, _) => { review_.ToggleAll(); selectAll_.IsChecked = review_.AllChecked; };
+         selectAll_.Click += (_, _) => { review_.ToggleAll(); selectAll_.IsChecked = review_.AllChecked; UpdateBulkBar_(); };
          selectAll_.ToolTip = L("Check every message");
          AutomationProperties.SetName(selectAll_, L("Check every message"));
 
          list_.Columns.Add(TemplateColumn_(selectAll_, CheckBox_(BoxWidth, new Thickness(0)), new DataGridLength(CheckWidth), null));
 
-         var headerActions = new StackPanel { Orientation = Orientation.Horizontal };
-         headerActions.Children.Add(HeaderButton_(SymbolRegular.CheckmarkCircle24, KeepColourKey, false, L("Release the checked messages"), () => Act_(review_.CheckedIds, "release", checkedSet: true)));
-         headerActions.Children.Add(HeaderButton_(SymbolRegular.DismissCircle24, RemoveColourKey, false, L("Delete the checked messages"), () => Act_(review_.CheckedIds, "delete")));
-         headerActions.Children.Add(HeaderButton_(SymbolRegular.TextBulletListSquare24, KeepColourKey, false, L("Allow the checked messages' senders, then release"), () => Act_(review_.CheckedIds, "allow")));
-         headerActions.Children.Add(HeaderButton_(SymbolRegular.TextBulletListSquare24, RemoveColourKey, true, L("Block the checked messages' senders, then delete"), () => Act_(review_.CheckedIds, "block")));
-
-         list_.Columns.Add(TemplateColumn_(headerActions, FourActions_(), new DataGridLength(ActionsWidth), null));
+         // The column of each row's four icons, named for them: the four acts on the
+         // checked messages are the bar over the list (BuildBulkBar_), in words.
+         list_.Columns.Add(TemplateColumn_(L("Actions"), FourActions_(), new DataGridLength(ActionsWidth), null));
 
          var held = new DataGridTextColumn
          {
@@ -704,17 +737,17 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// The rows are one tab stop, after the header's box and its four actions
-      /// on the checked messages, Up and Down move between them, groups
+      /// The rows are one tab stop, after the header's box and the bar's acts on
+      /// the checked messages, Up and Down move between them, groups
       /// included, and the selected row answers the keyboard: Space checks it, R
       /// releases it, Delete deletes it after asking, P or Enter previews its text
       /// and H shows its headers - Enter folds or unfolds a group, whose R and
       /// Delete act on every message in it. Each row carried
       /// about seven tab stops - its box, four actions and two icons - and no key
       /// did what they do (review finding F211). The row's box and icons are the
-      /// mouse's now, and their tool tips name the keys; a row's whitelist and
-      /// blacklist are its box and the header's two actions on the checked
-      /// messages (GridKeys.RowsAreOneTabStop).
+      /// mouse's now, and their tool tips name the keys; a row's allow and block
+      /// are its box and the bar's Allow sender… and Block sender… over the list
+      /// (GridKeys.RowsAreOneTabStop).
       /// </summary>
       private void WireRowKeys_()
       {
@@ -752,6 +785,7 @@ namespace hMailServer.ControlPanel.Views
                case Key.Space:
                   review_.Toggle(row);
                   selectAll_.IsChecked = review_.AllChecked;
+                  UpdateBulkBar_();
                   break;
 
                case Key.R:
@@ -794,26 +828,57 @@ namespace hMailServer.ControlPanel.Views
       private void FocusRowAfter_()
          => Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, new Action(() => GridKeys.FocusSelectedRow(list_)));
 
-      private static Button HeaderButton_(SymbolRegular symbol, string colourKey, bool filled, string tip, Action onClick)
+      /// <summary>
+      /// The bar over the list that acts on the checked messages, under the toolbar:
+      /// how many are checked, then Release, Allow sender…, Block sender… and Delete
+      /// permanently, in words, as every toolbar button is, each pressable only while
+      /// a message is checked. A row of its own, so that the four keep together and
+      /// wrap as one row in a narrow window, where beside the search and the grouping
+      /// they broke across three.
+      /// </summary>
+      private WrapPanel BuildBulkBar_()
       {
-         // The glyph's colour by its key, as the rows' (IconButton_): a held brush
-         // keeps the theme it was taken in.
-         var icon = new SymbolIcon { Symbol = symbol, Filled = filled, FontSize = 16 };
-         icon.SetResourceReference(IconElement.ForegroundProperty, colourKey);
+         var bar = new WrapPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Left };
+         AutomationProperties.SetAutomationId(bar, "quarantine-checked-bar");
 
-         var button = new Wpf.Ui.Controls.Button
+         checkedCount_.SetResourceReference(StyleProperty, "TextSecondary");
+         AutomationProperties.SetLiveSetting(checkedCount_, AutomationLiveSetting.Polite);
+         AutomationProperties.SetAutomationId(checkedCount_, "quarantine-checked");
+         bar.Children.Add(checkedCount_);
+
+         void Bulk(Button button, string automationId)
          {
-            Appearance = ControlAppearance.Transparent,
-            Padding = new Thickness(4),
-            Margin = new Thickness(1, 0, 1, 0),
-            BorderThickness = new Thickness(0),
-            ToolTip = tip,
-            Content = icon
-         };
+            AutomationProperties.SetAutomationId(button, automationId);
+            bulk_.Add(button);
+            bar.Children.Add(button);
+         }
 
-         AutomationProperties.SetName(button, tip);
-         button.Click += (_, e) => { e.Handled = true; onClick(); };
-         return button;
+         Bulk(MakeButton(L("Re_lease"), ControlAppearance.Secondary, (_, _) => Act_(review_.CheckedIds, "release", checkedSet: true)), "quarantine-checked-release");
+         Bulk(MakeButton(L("_Allow sender…"), ControlAppearance.Secondary, (_, _) => Act_(review_.CheckedIds, "allow")), "quarantine-checked-allow");
+         Bulk(MakeButton(L("_Block sender…"), ControlAppearance.Secondary, (_, _) => Act_(review_.CheckedIds, "block")), "quarantine-checked-block");
+         Button delete = MakeButton(L("_Delete permanently"), ControlAppearance.Secondary, (_, _) => Act_(review_.CheckedIds, "delete"));
+         ButtonStyles.DangerText(delete);
+         Bulk(delete, "quarantine-checked-delete");
+
+         foreach (FrameworkElement part in bar.Children)
+            part.Margin = new Thickness(part.Margin.Left, 3, part.Margin.Right, 3);
+         checkedCount_.Margin = new Thickness(0, 3, 4, 3);
+         return bar;
+      }
+
+      /// <summary>How many messages are checked, and the bar's four acts pressable only while one is.</summary>
+      private void UpdateBulkBar_()
+      {
+         int count = review_.CheckedIds.Count;
+         string said = count == 0 ? L("No message checked") : Plural(count, "{0} message checked", "{0} messages checked");
+         if (checkedCount_.Text != said)
+         {
+            checkedCount_.Text = said;
+            Announce.Request(checkedCount_);
+         }
+
+         foreach (Button button in bulk_)
+            button.IsEnabled = count > 0;
       }
 
       /// <summary>Every icon and box on a row, and a group's fold, arrive here by their Tag.</summary>
@@ -829,6 +894,7 @@ namespace hMailServer.ControlPanel.Views
             case "check":
                review_.Toggle(row);
                selectAll_.IsChecked = review_.AllChecked;
+               UpdateBulkBar_();
                break;
 
             case "fold":
@@ -925,7 +991,7 @@ namespace hMailServer.ControlPanel.Views
       {
          if (ids == null || ids.Count == 0)
          {
-            Status_(StatusLevel.Information, L("Check the messages first: the header's icons act on every checked message."));
+            Status_(StatusLevel.Information, L("Check the messages first: the buttons over the list act on every checked message."));
             return;
          }
 
@@ -1030,7 +1096,7 @@ namespace hMailServer.ControlPanel.Views
       }
 
       private static bool ConfirmRelease_(int count, string groupTitle)
-         => MessageBox.Confirm(Confirmations.ReleaseQuarantined(count, groupTitle), L("Control Panel"), L("_Release"), cancelByDefault: true);
+         => MessageBox.Confirm(Confirmations.ReleaseQuarantined(count, groupTitle), L("Control Panel"), L("Re_lease"), cancelByDefault: true);
 
       /// <summary>What happened, in one line, with the first reason a message was left where it was.</summary>
       private void Report_(string action, BulkAnswer answer)
@@ -1378,7 +1444,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Status = count_,
             PageKey = "quarantine",
-            Subtitle = L("Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message, on a group, or - in the header - on every checked message."),
+            Subtitle = L("Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message or a group, and the buttons over the list on every checked message."),
             Actions = actions
          });
 
@@ -1403,6 +1469,11 @@ namespace hMailServer.ControlPanel.Views
          };
          search_.SetResourceReference(MarginProperty, "AppCardGap");
          parts.Children.Add(search_);
+
+         // The checked messages' bar, under the search and over the list.
+         WrapPanel bulkBar = BuildBulkBar_();
+         bulkBar.Margin = new Thickness(0, -4, 0, 8);
+         parts.Children.Add(bulkBar);
 
          BuildColumns();
          BuildFlyout();

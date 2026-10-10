@@ -272,13 +272,20 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("Icon", make, StringComparison.Ordinal);
       }
 
-      /// <summary>The quarantine's grouping is a filter beside its search, and Remove expired acts on the list from the toolbar.</summary>
+      /// <summary>
+      /// The quarantine's grouping is a filter beside its search, and Remove expired
+      /// acts on the list from the toolbar; the checked messages' four acts are the
+      /// bar under it (review finding F260).
+      /// </summary>
       [Fact]
       public void TheQuarantine_PutsItsFilterAndListVerbInTheToolbar()
       {
          string code = ReadControlPanelFile(Path.Join("Views", "QuarantineView.cs"));
          Assert.Contains("search_.Filters = filters;", code, StringComparison.Ordinal);
          Assert.Contains("search_.Actions = removeExpired_;", code, StringComparison.Ordinal);
+         // The checked messages' four acts are a bar of their own, under the toolbar.
+         Assert.True(code.IndexOf("parts.Children.Add(bulkBar);", StringComparison.Ordinal) > code.IndexOf("parts.Children.Add(search_);", StringComparison.Ordinal),
+            "The checked messages' bar is not under the toolbar.");
          Assert.Matches(new Regex(@"L\(""Di_gest settings""\)[\s\S]{0,200}?L\(""_Refresh""\)"), code);
       }
 
