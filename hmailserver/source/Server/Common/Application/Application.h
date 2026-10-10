@@ -119,9 +119,12 @@ namespace HM
       // server, which is then reinitialised - and then the servers started, all
       // with servers_mutex_ held. The service reports itself running, and
       // accepts a stop, before this begins, so that a stop arriving meanwhile -
-      // the installer's, straight after the start it makes for the database
-      // step - waits for it (ShutDown), where until 10 October 2026 it closed
-      // the database under InitInstance or the new installation's defaults.
+      // the service controller's, a Windows shutdown, sc start followed by sc
+      // stop, or the installer's after a database step that could not reach
+      // the service (its ordinary stops come after a COM call, which waits for
+      // ServiceMain's ResumeObjects, after this) - waits for it (ShutDown),
+      // where until 10 October 2026 it closed the database under InitInstance
+      // or the new installation's defaults.
       // False when InitInstance failed, the start was refused or failed, or
       // that stop came first, why in sErrorMessage when there is a reason.
       bool InitInstanceAndStart(String &sErrorMessage, const std::function<bool()> &finish);

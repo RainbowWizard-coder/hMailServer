@@ -2248,10 +2248,13 @@ void InitializeApplication()
    // starts again, listeners and all, when it changed the server. All of it
    // holds the servers' lock (Application::InitInstanceAndStart): the service
    // has told the service controller that it runs and takes a stop - the
-   // installer's, straight after the start it makes for the database step -
-   // which until 10 October 2026 closed the database under InitInstance, or
-   // under the new installation's defaults, the stored-secrets key and the
-   // ini they write, and now waits for them.
+   // service controller's, a Windows shutdown, sc start followed by sc stop,
+   // or the installer's after a database step that could not reach the
+   // service; its ordinary stops come after a COM call, which waits for
+   // ServiceMain's ResumeObjects, after this - which until 10 October 2026
+   // closed the database under InitInstance, or under the new installation's
+   // defaults, the stored-secrets key and the ini they write, and now waits
+   // for them.
    const bool finish = g_finishNewInstallationAtStart;
    g_finishNewInstallationAtStart = false;
 

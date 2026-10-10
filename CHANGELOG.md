@@ -540,8 +540,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   stopped the servers the reinitialise had started again. The Windows service's own start holds the lock too, from
   opening the database through a new installation's defaults, its stored-secrets key and the ini it writes, to the
   start of the servers: the service reports itself running, and so takes a stop, before it opens the database, and
-  a stop then - the installer's, straight after the start it makes for the database step - closed the database
-  under them (in every version); it now waits for them. And the callback through
+  a stop that arrived before the start had opened the database - the service controller's, a Windows shutdown, a stop
+  sent straight after the start, or the installer's after a database step that could not reach the service - closed
+  the database under them (in every version); it now waits for them. And the callback through
   which a stop tells the Windows service controller that it is progressing is read under a lock of its own, where a
   reinitialise's stop held a reference to it while the service's stop set it and reset it. On Linux, with the
   indexer held in a statement by another session's lock, a SIGTERM three seconds after a REST reinitialise ended the
