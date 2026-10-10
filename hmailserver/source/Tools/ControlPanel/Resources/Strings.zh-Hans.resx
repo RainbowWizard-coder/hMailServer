@@ -17369,6 +17369,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} did not work: {1}" xml:space="preserve">
     <value>{0}未成功：{1}</value>
   </data>
+  <data name="{0} document contains &quot;{1}&quot;." xml:space="preserve">
+    <value>有 {0} 个文档包含“{1}”。</value>
+  </data>
+  <data name="{0} documents contain &quot;{1}&quot;." xml:space="preserve">
+    <value>有 {0} 个文档包含“{1}”。</value>
+  </data>
   <data name="{0} domain has trap addresses." xml:space="preserve">
     <value>有 {0} 个域设置了陷阱地址。</value>
   </data>

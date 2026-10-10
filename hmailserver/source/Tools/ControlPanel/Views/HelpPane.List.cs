@@ -4,12 +4,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Automation;
+using System.Windows.Controls;
 using System.Windows.Documents;
 using Wpf.Ui.Controls;
 using hMailServer.ControlPanel.Services;
 using Button = Wpf.Ui.Controls.Button;
+using TextBlock = System.Windows.Controls.TextBlock;
 using Typography = hMailServer.ControlPanel.Services.Typography;
 using static hMailServer.ControlPanel.Services.Loc;
 
@@ -25,8 +28,10 @@ namespace hMailServer.ControlPanel.Views
    /// Reference and Building and packaging, each heading's documents by title
    /// (<see cref="HelpDocumentList"/>); while it shows, the box is "Search all
    /// documentation" and narrows it to the documents whose title or text holds
-   /// the words, Enter opening the first; and Back, at the head of the pane while
-   /// a link in it has shown something else, returns to what was shown before.
+   /// the words, saying under the box how many do, Enter opening the first; and
+   /// Back, at the head of the pane while a link in it has shown something else,
+   /// returns to what was shown before, and leaves the keyboard in the pane when
+   /// it goes with nowhere left to go back to.
    /// </summary>
    public partial class HelpPane
    {
@@ -36,6 +41,14 @@ namespace hMailServer.ControlPanel.Views
       // which the shell asks for, starts it again.
       private readonly Stack<(string Doc, string NoGuide)> back_ = new();
       private Button backButton_;
+
+      // What the list's search found, under its box: "3 documents contain "DNSSEC"."
+      // or "No document contains "qqzz".", where the list narrowed as each key was
+      // typed and nothing told a screen reader how far, as the other lists'
+      // searches do (review finding F315). A polite live region named by its text,
+      // shown only while the list shows and its search holds two characters or
+      // more; four pixels under the box, which keeps eight under it.
+      private readonly TextBlock listStatus_ = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, -DesignTokens.Space.Xs, 0, DesignTokens.Space.Sm), Visibility = Visibility.Collapsed };
 
       // Each document's title and text, read once: the list's search reads every
       // one of them as each character is typed.
@@ -56,6 +69,18 @@ namespace hMailServer.ControlPanel.Views
          AutomationProperties.SetAutomationId(backButton_, "help-back");
          backButton_.Click += (s, e) => Back_();
          return backButton_;
+      }
+
+      /// <summary>The search box with the list's search result under it, the pane's second row.</summary>
+      private FrameworkElement SearchWithListStatus_()
+      {
+         listStatus_.SetResourceReference(StyleProperty, "TextCaption");
+         AutomationProperties.SetAutomationId(listStatus_, "help-list-result");
+         AutomationProperties.SetLiveSetting(listStatus_, AutomationLiveSetting.Polite);
+         var block = new StackPanel();
+         block.Children.Add(search_);
+         block.Children.Add(listStatus_);
+         return block;
       }
 
       /// <summary>What the pane shows, as Back keeps it.</summary>
@@ -80,6 +105,11 @@ namespace hMailServer.ControlPanel.Views
          if (back_.Count == 0)
             return;
 
+         // Back collapses when it empties the history, and a collapsed button that
+         // had the keyboard leaves it on the window, outside the pane: the next Tab
+         // started at the top of the window. The keyboard goes to the search box,
+         // at the top of what Back returned to.
+         bool hadKeyboard = backButton_ != null && backButton_.IsKeyboardFocusWithin;
          (string doc, string noGuide) = back_.Pop();
          if (doc != null)
             ShowDocument(doc, null);
@@ -88,6 +118,8 @@ namespace hMailServer.ControlPanel.Views
          else
             ShowAll();
          UpdateBack_();
+         if (hadKeyboard && backButton_.Visibility != Visibility.Visible)
+            search_.Focus();
       }
 
       /// <summary>The shell's page starts the pane's history again: Back is for the links in the pane.</summary>
@@ -135,12 +167,20 @@ namespace hMailServer.ControlPanel.Views
       private void SearchChanged_()
       {
          if (shown_ != null)
+         {
+            ShowListStatus_(null);
             Find_(false);
+         }
          else
             FilterList_();
       }
 
-      /// <summary>Enter in the search: the next match in the document, or the first document the list holds.</summary>
+      /// <summary>
+      /// Enter in the search: the next match in the document, or the first document
+      /// the list holds while its search narrows it - nothing with fewer than two
+      /// characters, which narrow nothing, where Enter in the empty box opened the
+      /// first document of the whole list.
+      /// </summary>
       private void SearchEnter_()
       {
          if (shown_ != null)
@@ -149,7 +189,11 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         foreach (HelpDocumentSection section in Sections_(search_.Text.Trim()))
+         string term = search_.Text.Trim();
+         if (term.Length < HelpDocumentList.ShortestTerm)
+            return;
+
+         foreach (HelpDocumentSection section in Sections_(term))
          {
             if (section.Names.Count > 0)
             {
@@ -160,11 +204,37 @@ namespace hMailServer.ControlPanel.Views
          }
       }
 
-      /// <summary>The list again, narrowed to what the search holds, under the page's own words when it has no guide.</summary>
+      /// <summary>
+      /// The list again, narrowed to what the search holds, under the page's own
+      /// words when it has no guide, and the line under the box saying how many
+      /// documents hold the words.
+      /// </summary>
       private void FilterList_()
       {
          List<Block> intro = noGuideFor_ != null ? NoGuideIntro_(NavigationMap.Find(noGuideFor_)) : null;
          ShowFromTheTop_(DocumentList_(intro));
+         ShowListStatus_(ListResult_(search_.Text.Trim()));
+      }
+
+      /// <summary>What the list's search found, or null while it holds too little to narrow the list.</summary>
+      private static string ListResult_(string term)
+      {
+         if (term.Length < HelpDocumentList.ShortestTerm)
+            return null;
+
+         int found = Sections_(term).Sum(s => s.Names.Count);
+         return found == 0
+            ? F("No document contains \"{0}\".", term)
+            : PluralF(found, "{0} document contains \"{1}\".", "{0} documents contain \"{1}\".", found, term);
+      }
+
+      /// <summary>The line under the search box: the list's result, said to a screen reader as it changes, or nothing.</summary>
+      private void ShowListStatus_(string text)
+      {
+         listStatus_.Text = text ?? "";
+         listStatus_.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
+         if (!string.IsNullOrEmpty(text))
+            Announce.Request(listStatus_);
       }
 
       /// <summary>What the pane says above the list for a page with no guide: its purpose, and that no guide covers it.</summary>
@@ -183,19 +253,13 @@ namespace hMailServer.ControlPanel.Views
       /// The list's headings and documents into <paramref name="document"/>: each
       /// heading, then its documents by title and file name, each title a link that
       /// opens it here - only the documents the search holds while it holds two
-      /// characters or more, and a sentence saying so where none does.
+      /// characters or more. Where none does, the line under the box says so, as it
+      /// says how many do (ShowListStatus_), and the list is empty.
       /// </summary>
       private void AddDocumentSections_(FlowDocument document)
       {
          string term = search_.Text.Trim();
          IReadOnlyList<HelpDocumentSection> sections = Sections_(term);
-         if (sections.Count == 0)
-         {
-            var nothing = new Paragraph(new Run(F("No document contains \"{0}\".", term)));
-            nothing.SetResourceReference(TextElement.ForegroundProperty, "TextFillColorSecondaryBrush");
-            document.Blocks.Add(nothing);
-            return;
-         }
 
          bool first = true;
          foreach (HelpDocumentSection section in sections)

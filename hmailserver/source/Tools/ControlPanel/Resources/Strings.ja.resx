@@ -17379,6 +17379,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} did not work: {1}" xml:space="preserve">
     <value>{0} は失敗しました: {1}</value>
   </data>
+  <data name="{0} document contains &quot;{1}&quot;." xml:space="preserve">
+    <value>「{1}」を含むドキュメントは {0} 件です。</value>
+  </data>
+  <data name="{0} documents contain &quot;{1}&quot;." xml:space="preserve">
+    <value>「{1}」を含むドキュメントは {0} 件です。</value>
+  </data>
   <data name="{0} domain has trap addresses." xml:space="preserve">
     <value>{0} 個のドメインにトラップ アドレスがあります。</value>
   </data>

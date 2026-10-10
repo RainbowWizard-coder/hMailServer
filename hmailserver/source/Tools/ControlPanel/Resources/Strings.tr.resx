@@ -17369,6 +17369,12 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} did not work: {1}" xml:space="preserve">
     <value>{0} çalışmadı: {1}</value>
   </data>
+  <data name="{0} document contains &quot;{1}&quot;." xml:space="preserve">
+    <value>{0} belge "{1}" içeriyor.</value>
+  </data>
+  <data name="{0} documents contain &quot;{1}&quot;." xml:space="preserve">
+    <value>{0} belge "{1}" içeriyor.</value>
+  </data>
   <data name="{0} domain has trap addresses." xml:space="preserve">
     <value>{0} alan adının tuzak adresleri var.</value>
   </data>

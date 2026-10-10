@@ -17369,6 +17369,12 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="{0} did not work: {1}" xml:space="preserve">
     <value>{0} virket ikke: {1}</value>
   </data>
+  <data name="{0} document contains &quot;{1}&quot;." xml:space="preserve">
+    <value>{0} dokument inneholder «{1}».</value>
+  </data>
+  <data name="{0} documents contain &quot;{1}&quot;." xml:space="preserve">
+    <value>{0} dokumenter inneholder «{1}».</value>
+  </data>
   <data name="{0} domain has trap addresses." xml:space="preserve">
     <value>{0} domene har felleadresser.</value>
   </data>

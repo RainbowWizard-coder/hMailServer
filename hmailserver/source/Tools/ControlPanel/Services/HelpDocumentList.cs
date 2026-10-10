@@ -61,6 +61,9 @@ namespace hMailServer.ControlPanel.Services
          "TestLab", "ThirdPartyBinaries", "WindowsOnArm", // no-loc
       };
 
+      /// <summary>The fewest characters a search narrows the list by; fewer list every document.</summary>
+      public const int ShortestTerm = 2;
+
       /// <summary>
       /// The sections for the documents <paramref name="names"/> (without the
       /// extension), each document under one heading only - the first group whose
@@ -99,7 +102,7 @@ namespace hMailServer.ControlPanel.Services
 
          string wanted = (term ?? "").Trim();
          bool Matches(string name)
-            => wanted.Length < 2
+            => wanted.Length < ShortestTerm
                || (titleOf?.Invoke(name) ?? name).Contains(wanted, StringComparison.CurrentCultureIgnoreCase)
                || name.Contains(wanted, StringComparison.OrdinalIgnoreCase)
                || (textOf?.Invoke(name) ?? "").Contains(wanted, StringComparison.CurrentCultureIgnoreCase);

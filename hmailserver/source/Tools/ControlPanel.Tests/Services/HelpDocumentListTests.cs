@@ -104,6 +104,85 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("F(\"Back to {0}\", where)", list, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// Back collapses when it empties the history; with the keyboard on it, WPF put
+      /// the keyboard on the window, outside the pane, and the next Tab started at
+      /// the top of the window. The keyboard goes to the search box instead.
+      /// </summary>
+      [Fact]
+      public void Back_LeavesTheKeyboardInThePane_WhenItGoes()
+      {
+         string back = Member("HelpPane.List.cs", "private void Back_()");
+         int noted = back.IndexOf("bool hadKeyboard = backButton_ != null && backButton_.IsKeyboardFocusWithin;", StringComparison.Ordinal);
+         int popped = back.IndexOf("back_.Pop()", StringComparison.Ordinal);
+         int updated = back.IndexOf("UpdateBack_();", StringComparison.Ordinal);
+         int handed = back.IndexOf("if (hadKeyboard && backButton_.Visibility != Visibility.Visible)", StringComparison.Ordinal);
+         int focused = back.IndexOf("search_.Focus();", StringComparison.Ordinal);
+         Assert.True(noted >= 0 && noted < popped, "Back_ does not note the keyboard before it goes back.");
+         Assert.True(updated > popped && handed > updated && focused > handed, "Back_ does not hand the keyboard on once Back is collapsed.");
+      }
+
+      /// <summary>
+      /// Enter in the list's search opens the first document only while the search
+      /// narrows the list: in an empty box, or one of one character, it opened the
+      /// first document of the whole list, Profiles under Set up this server.
+      /// </summary>
+      [Fact]
+      public void EnterInTheListsSearch_OpensNothing_BelowTheListsThreshold()
+      {
+         string enter = Member("HelpPane.List.cs", "private void SearchEnter_()");
+         int guard = enter.IndexOf("if (term.Length < HelpDocumentList.ShortestTerm)", StringComparison.Ordinal);
+         int open = enter.IndexOf("GoTo_(() => ShowDocument(first, null));", StringComparison.Ordinal);
+         Assert.True(guard >= 0 && guard < open, "Enter opens a document with fewer characters than narrow the list.");
+         Assert.Contains("foreach (HelpDocumentSection section in Sections_(term))", enter, StringComparison.Ordinal);
+
+         // The threshold is the list's own: below it nothing is narrowed.
+         Assert.Equal(2, HelpDocumentList.ShortestTerm);
+         Assert.Equal(HelpPages.Names.Count, HelpDocumentList.Sections(HelpPages.Names, HelpPages.TitleOf, HelpPages.Read, new string('D', HelpDocumentList.ShortestTerm - 1)).Sum(s => s.Names.Count));
+         Assert.True(HelpDocumentList.Sections(HelpPages.Names, HelpPages.TitleOf, HelpPages.Read, "DNSSEC").Sum(s => s.Names.Count) < HelpPages.Names.Count);
+      }
+
+      /// <summary>
+      /// What the list's search found is said under the box and to a screen reader:
+      /// the list was rebuilt on every key, "No document contains ..." a paragraph in
+      /// the viewer, and the number of documents found said nowhere, where the other
+      /// lists' searches say their result through Announce.
+      /// </summary>
+      [Fact]
+      public void TheListsSearch_SaysWhatItFound_ToAScreenReaderToo()
+      {
+         string list = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "HelpPane.List.cs"));
+         string pane = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "HelpPane.cs"));
+
+         Assert.Contains("ShowListStatus_(ListResult_(search_.Text.Trim()));", Member("HelpPane.List.cs", "private void FilterList_()"), StringComparison.Ordinal);
+         string result = Member("HelpPane.List.cs", "private static string ListResult_(string term)");
+         Assert.Contains("if (term.Length < HelpDocumentList.ShortestTerm)", result, StringComparison.Ordinal);
+         Assert.Contains("F(\"No document contains \\\"{0}\\\".\", term)", result, StringComparison.Ordinal);
+         Assert.Contains("PluralF(found, \"{0} document contains \\\"{1}\\\".\", \"{0} documents contain \\\"{1}\\\".\", found, term)", result, StringComparison.Ordinal);
+
+         string show = Member("HelpPane.List.cs", "private void ShowListStatus_(string text)");
+         Assert.Contains("Announce.Request(listStatus_);", show, StringComparison.Ordinal);
+         Assert.Contains("AutomationProperties.SetLiveSetting(listStatus_, AutomationLiveSetting.Polite);", list, StringComparison.Ordinal);
+         Assert.Contains("FrameworkElement searchRow = SearchWithListStatus_();", pane, StringComparison.Ordinal);
+
+         // Said once, under the box, and gone with the list.
+         Assert.DoesNotContain("No document contains", Member("HelpPane.List.cs", "private void AddDocumentSections_(FlowDocument document)"), StringComparison.Ordinal);
+         Assert.Contains("ShowListStatus_(null);", Member("HelpPane.List.cs", "private void SearchChanged_()"), StringComparison.Ordinal);
+
+         // Both forms are in every catalogue, and the few form where a language has one.
+         var english = XDocument.Load(ConfirmationPatternTests.ControlPanelFile(Path.Join("Resources", "Strings.resx"))).Root
+            .Elements("data").Select(d => (string)d.Attribute("name")).ToHashSet(StringComparer.Ordinal);
+         Assert.Contains("{0} document contains \"{1}\".", english);
+         Assert.Contains("{0} documents contain \"{1}\".", english);
+      }
+
+      private static string Member(string file, string signature)
+      {
+         string member = WithheldRowTests.MemberText(ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", file)), signature);
+         Assert.True(member != null, file + ": " + signature + " is gone.");
+         return member;
+      }
+
       [Fact]
       public void TheDeadAccountRulesSpec_IsGone()
       {

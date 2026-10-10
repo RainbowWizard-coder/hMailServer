@@ -17369,6 +17369,12 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="{0} did not work: {1}" xml:space="preserve">
     <value>{0} n'a pas fonctionné : {1}</value>
   </data>
+  <data name="{0} document contains &quot;{1}&quot;." xml:space="preserve">
+    <value>{0} document contient « {1} ».</value>
+  </data>
+  <data name="{0} documents contain &quot;{1}&quot;." xml:space="preserve">
+    <value>{0} documents contiennent « {1} ».</value>
+  </data>
   <data name="{0} domain has trap addresses." xml:space="preserve">
     <value>{0} domaine a des adresses pièges.</value>
   </data>

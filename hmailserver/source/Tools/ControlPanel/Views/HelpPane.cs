@@ -119,8 +119,8 @@ namespace hMailServer.ControlPanel.Views
 
          // The search over the open document: typing finds the first match,
          // Enter the next, round again from the top. While the list of every
-         // document shows it searches all of them, Enter opening the first it
-         // lists (HelpPane.List.cs).
+         // document shows it searches all of them, the line under it saying how
+         // many it lists and Enter opening the first (HelpPane.List.cs).
          SearchLabel_();
          AutomationProperties.SetAutomationId(search_, "help-search");
          search_.TextChanged += (s, e) => SearchChanged_();
@@ -132,8 +132,9 @@ namespace hMailServer.ControlPanel.Views
                e.Handled = true;
             }
          };
-         Grid.SetRow(search_, 1);
-         root.Children.Add(search_);
+         FrameworkElement searchRow = SearchWithListStatus_();
+         Grid.SetRow(searchRow, 1);
+         root.Children.Add(searchRow);
 
          // The document's other headings, each a link that scrolls to it.
          headingsScroll_.Content = headings_;

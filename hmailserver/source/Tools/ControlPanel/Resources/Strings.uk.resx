@@ -17631,6 +17631,15 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} did not work: {1}" xml:space="preserve">
     <value>{0} - не вдалося: {1}</value>
   </data>
+  <data name="{0} document contains &quot;{1}&quot;." xml:space="preserve">
+    <value>{0} документ містить «{1}».</value>
+  </data>
+  <data name="{0} documents contain &quot;{1}&quot;." xml:space="preserve">
+    <value>{0} документів містять «{1}».</value>
+  </data>
+  <data name="{0} documents contain &quot;{1}&quot;.|few" xml:space="preserve">
+    <value>{0} документи містять «{1}».</value>
+  </data>
   <data name="{0} domain has trap addresses." xml:space="preserve">
     <value>{0} домен має адреси-пастки.</value>
   </data>
