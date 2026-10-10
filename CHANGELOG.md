@@ -4642,6 +4642,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the service's start must wait for that stop's lock before it opens the database; without the lock it returned at
   once. `business-object-tests` now writes each result out as it comes, so that a test after a failure that never
   returns leaves the failure in the output.
+- **The Windows gate starts clamd only when nothing listens on 3310, read as the pre-flight reads it.**
+  `build/ci/windows-gate.ps1` asked `Get-NetTCPConnection` alone, and on server1 from 9 October 2026 the CIM provider
+  behind it answered nothing while every listener was there: the gate ran clamd's task on a clamd already listening,
+  and waited 25 seconds for nothing. It now reads the ports with `build/ci/tcp-listeners.ps1`, the readers the
+  pre-flight was given that day moved out of `build/preflight-tests.ps1` so that the two share them -
+  `Get-NetTCPConnection`, then .NET's `IPGlobalProperties` when that lists no TCP endpoint at all, then
+  `netstat -ano` - says which it read, and after starting the task waits for 3310 a minute at most, in five-second
+  looks, where it slept 25 seconds whatever happened. The file is under `build/ci` because the job runs the commit's
+  `build/ci` alone (ContinuousIntegration.md, "The Windows gate").
 
 ### Documentation
 

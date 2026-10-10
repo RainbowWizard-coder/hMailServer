@@ -263,9 +263,27 @@ $testDll = Get-Item 'hmailserver\test\RegressionTests\bin\x64\Debug\RegressionTe
 if ($testDll.LastWriteTime -lt (Get-Date).AddMinutes(-30)) { Stop-Gate 7 "STALE TEST ASSEMBLY - no gate" -StartService }
 
 "--- clamd"
-if (-not (Get-NetTCPConnection -LocalPort 3310 -State Listen -ErrorAction SilentlyContinue)) {
+# The listening ports as the pre-flight reads them (tcp-listeners.ps1, beside this
+# script): Get-NetTCPConnection, or .NET or netstat -ano where its CIM provider
+# answers nothing, as on server1 since 9 October 2026 - there the gate ran clamd's
+# task and waited for a clamd that was listening all along. Started when nothing
+# listens on 3310, and waited for, a minute at most; the pre-flight says whether it
+# came up.
+. (Join-Path $here 'tcp-listeners.ps1')
+$listeners = Get-TcpListeners
+"  listening TCP ports read from $($listeners.Source)$(if ($listeners.Why) { ': ' + $listeners.Why })"
+if ($listeners.Ports.Contains(3310)) {
+   "  clamd is listening on 3310"
+} else {
+   "  nothing listens on 3310: starting the clamd task"
    schtasks /run /tn clamd | Out-Null
-   Start-Sleep 25
+   $waited = 0
+   do {
+      Start-Sleep 5
+      $waited += 5
+      $listening = (Get-TcpListeners).Ports.Contains(3310)
+   } until ($listening -or $waited -ge 60)
+   if ($listening) { "  clamd is listening on 3310 after $waited s" } else { "  clamd is not listening on 3310 after $waited s" }
 }
 
 "--- pre-flight"

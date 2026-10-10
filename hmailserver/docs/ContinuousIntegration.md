@@ -1659,8 +1659,13 @@ runner clones nothing, and the job does the following itself:
    4. It removes the old test assembly and builds the tests (`build-tests.ps1`,
       exit 6). A test assembly more than 30 minutes old is refused as stale
       (exit 7).
-   5. It starts clamd if it is down, and runs `preflight-tests.ps1 -Clean`
-      (exit 2).
+   5. It starts clamd if nothing listens on 3310, and waits a minute at most
+      for it, then runs `preflight-tests.ps1 -Clean` (exit 2). Both read the
+      listening ports with `build/ci/tcp-listeners.ps1`: from
+      `Get-NetTCPConnection`, or, when that returns no TCP endpoint at all, from
+      .NET's `IPGlobalProperties` or `netstat -ano`, and say which. On server1,
+      from 9 October 2026, the CIM provider behind `Get-NetTCPConnection`
+      answered nothing while every listener was there.
    6. It restarts the service and watches the idle server for two minutes of
       error logs (exit 9).
    7. It runs `run-tests.ps1`: the whole suite in one run, or the subset that
