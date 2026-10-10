@@ -12274,6 +12274,9 @@ Należy zaznaczyć klucz powyżej i skopiować go ręcznie - nie zostanie pokaza
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>Baza danych: należy poszukać błędów wspominających o puli połączeń. Gdy upłynie termin oczekiwania na pulę, wyszukanie odbiorcy odpowiada 451 4.3.2, a nie 550, więc baza danych zablokowana przez kopię zapasową odracza pocztę, zamiast odsyłać powiadomienie o niedoręczeniu.</value>
   </data>
+  <data name="The default filter: {0}" xml:space="preserve">
+    <value>Filtr domyślny: {0}</value>
+  </data>
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>Nadpisanie progu usuwania nigdy nie usuwa na podstawie domysłu: kopia jest usuwana tylko wtedy, gdy zapisana punktacja faktycznie osiągnęła tę wartość, a przy włączonej kwarantannie trafia zamiast tego do kwarantanny.</value>
   </data>

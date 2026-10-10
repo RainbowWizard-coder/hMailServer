@@ -12120,6 +12120,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>データベース: 接続プールに言及するエラーを確認してください。プールの期限が切れると、受信者の検索は 550 ではなく 451 4.3.2 を返すため、バックアップでロックされたデータベースはメールをバウンスさせるのではなく延期します。</value>
   </data>
+  <data name="The default filter: {0}" xml:space="preserve">
+    <value>既定のフィルター: {0}</value>
+  </data>
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>削除の上書きが推測で削除することはありません。記録されたスコアが実際にその値に達した場合にのみコピーが削除され、検疫ストアが有効な場合は代わりにそちらに送られます。</value>
   </data>

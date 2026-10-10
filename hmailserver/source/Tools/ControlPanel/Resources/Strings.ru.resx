@@ -12274,6 +12274,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>База данных: ищите ошибки с упоминанием пула соединений. Когда истекает срок ожидания пула, поиск получателя отвечает 451 4.3.2, а не 550, поэтому база, заблокированная резервным копированием, откладывает почту, а не возвращает её.</value>
   </data>
+  <data name="The default filter: {0}" xml:space="preserve">
+    <value>Фильтр по умолчанию: {0}</value>
+  </data>
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>Переопределение удаления никогда не удаляет наугад: копия удаляется, только когда записанная оценка действительно достигла значения, а при включённом хранилище карантина отправляется туда.</value>
   </data>

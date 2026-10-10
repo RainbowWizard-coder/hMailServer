@@ -12120,6 +12120,9 @@ Selecteer de sleutel hierboven en kopieer die met de hand - hij wordt niet opnie
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>De database: kijk naar fouten die de verbindingspool noemen. Wanneer de wachttijd van de pool verstrijkt, antwoordt een ontvangeropzoeking met 451 4.3.2 in plaats van 550, zodat een database die door een back-up vergrendeld is mail uitstelt in plaats van hem te laten bouncen.</value>
   </data>
+  <data name="The default filter: {0}" xml:space="preserve">
+    <value>Het standaardfilter: {0}</value>
+  </data>
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>De verwijderoverschrijving verwijdert nooit op een vermoeden: de kopie wordt alleen verwijderd wanneer de vastgelegde score de waarde daadwerkelijk heeft bereikt, en gaat in plaats daarvan naar de quarantaineopslag wanneer die is ingeschakeld.</value>
   </data>

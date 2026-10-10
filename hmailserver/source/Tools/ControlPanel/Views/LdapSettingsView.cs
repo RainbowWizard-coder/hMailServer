@@ -472,6 +472,9 @@ namespace hMailServer.ControlPanel.Views
          content.Children.Add(LabelledBox_(L("User search _filter (UserSearchFilter)"), userSearchFilter_, "ldap-user-search-filter",
             L("Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design."),
             placeholder: DefaultUserSearchFilter));
+         // Wide, wrapping and monospaced, with the default in the hint, as
+         // Directory synchronisation's filter is (F131).
+         LdapFilterField.ShowWhole(userSearchFilter_, DefaultUserSearchFilter);
 
          content.Children.Add(LabelledBox_(L("User _DN template (UserDnTemplate)"), userDnTemplate_, "ldap-user-dn-template",
             L("The other way to reach a DN: set this and the server skips the search - and with it the need for a SearchBase and a service account. A UPN works against Active Directory. Same %u, %d, %m placeholders, escaped for a distinguished name."),

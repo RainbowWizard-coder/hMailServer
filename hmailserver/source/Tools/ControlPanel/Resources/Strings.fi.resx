@@ -12120,6 +12120,9 @@ Valitse yllä oleva avain ja kopioi se käsin - sitä ei näytetä uudelleen.</v
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>Tietokanta: etsi virheitä, joissa mainitaan yhteysvaranto. Kun varannon määräaika umpeutuu, vastaanottajahaku vastaa 451 4.3.2 eikä 550, joten varmuuskopioinnin lukitsema tietokanta lykkää postia sen sijaan että palauttaisi sen.</value>
   </data>
+  <data name="The default filter: {0}" xml:space="preserve">
+    <value>Oletussuodatin: {0}</value>
+  </data>
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>Poiston ohitus ei koskaan poista arvauksen perusteella: kopio poistetaan vain, kun tallennettu pistemäärä todella saavutti arvon, ja se menee sen sijaan karanteenivarastoon, kun se on käytössä.</value>
   </data>

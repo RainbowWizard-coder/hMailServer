@@ -2541,6 +2541,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   do are shown while the policy is one of them; the title and the heading name the port as it was read, "SMTP port
   587". `TcpIpPortDialogTests` holds the rows, the hint and the name.
 
+- **Fixed: Directory synchronisation's search filter hid the clause that keeps disabled accounts out, and its cards
+  were wider than the form.** The filter was a single line capped at 620 pixels, with about 200 pixels of its card
+  unused, and its placeholder - the only place the product stated the default filter - was cut at
+  "...(!(userAccountControl:1.2.840.113556.1.4.80", the start of the clause the caption is about; a placeholder cannot
+  be scrolled and is gone once the box has text. The cards were 860 pixels wide against the form width of 760 the
+  Directory authentication (LDAP) page and the settings pages keep. The filter box is now the width of its card, wraps
+  over two lines at least - its placeholder with it - and is in the monospaced face, and its hint ends with the
+  default, "The default filter:
+  (&(objectClass=user)(objectCategory=person)(mail=*)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))", in view
+  whatever the box holds; Directory authentication's user search filter is shown the same way; and the cards are at
+  the form width. `LdapFilterFieldTests` holds the boxes, the cards and each default to the server's own constant in
+  LdapSettings.cpp, character for character.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

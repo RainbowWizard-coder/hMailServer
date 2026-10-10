@@ -12120,6 +12120,9 @@ Yukarıdaki anahtarı seçip elle kopyalayın - bir daha gösterilmeyecek.</valu
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>Veritabanı: bağlantı havuzundan söz eden hataları arayın. Havuz süresi dolduğunda bir alıcı araması 550 yerine 451 4.3.2 yanıtı verir; bu yüzden bir yedekleme tarafından kilitlenmiş bir veritabanı postayı geri çevirmek yerine erteler.</value>
   </data>
+  <data name="The default filter: {0}" xml:space="preserve">
+    <value>Varsayılan filtre: {0}</value>
+  </data>
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>Silme geçersiz kılması hiçbir zaman tahminle silmez: kopya yalnızca kaydedilen puan değere gerçekten ulaştığında kaldırılır ve karantina deposu etkinse bunun yerine oraya gider.</value>
   </data>

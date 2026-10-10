@@ -12274,6 +12274,9 @@ Označte klíč výše a zkopírujte ho ručně - znovu už se nezobrazí.</valu
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>Databáze: hledejte chyby zmiňující pool spojení. Když vyprší lhůta poolu, vyhledání příjemce odpoví 451 4.3.2 místo 550, takže databáze zamčená zálohou poštu odloží místo toho, aby ji vrátila.</value>
   </data>
+  <data name="The default filter: {0}" xml:space="preserve">
+    <value>Výchozí filtr: {0}</value>
+  </data>
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>Přepsání mazání nikdy nemaže naslepo: kopie se odstraní jen tehdy, když zaznamenané skóre hodnoty skutečně dosáhlo, a při zapnutém úložišti karantény jde místo toho tam.</value>
   </data>

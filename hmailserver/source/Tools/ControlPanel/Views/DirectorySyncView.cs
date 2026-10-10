@@ -176,7 +176,11 @@ namespace hMailServer.ControlPanel.Views
             Actions = BuildActions_()
          });
 
-         var cards = new StackPanel { MaxWidth = 860, HorizontalAlignment = HorizontalAlignment.Left };
+         // The form width every settings page has (AppFormWidth, 760), as
+         // Directory authentication's cards have it; at 860 these were a hundred
+         // pixels wider than the cards beside them in the group (F131).
+         var cards = new StackPanel { HorizontalAlignment = HorizontalAlignment.Left };
+         cards.SetResourceReference(MaxWidthProperty, "AppFormWidth");
          System.Windows.Automation.AutomationProperties.SetAutomationId(statusNotice_, "dirsync-status");
          cards.Children.Add(statusNotice_);
          pathText_.TextWrapping = TextWrapping.Wrap;
@@ -224,6 +228,13 @@ namespace hMailServer.ControlPanel.Views
       public void OnLeave()
       {
       }
+
+      /// <summary>
+      /// The server's kDefaultSyncFilter (LdapSettings.cpp), character for
+      /// character: enabled person objects that carry a mail address.
+      /// </summary>
+      private const string DefaultSyncFilter =
+         "(&(objectClass=user)(objectCategory=person)(mail=*)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))"; // no-loc: an LDAP filter
 
       /// <summary>What the six saved editors held when they were last read from the INI or saved to it.</summary>
       private readonly EditorBaseline baseline_ = new();
@@ -337,8 +348,12 @@ namespace hMailServer.ControlPanel.Views
             // version without the exclusion produces a filter that provisions a live,
             // mail-accepting mailbox for every disabled leaver the directory still
             // holds, and LdapSettings honours it because it is not empty.
-            placeholder: "(&(objectClass=user)(objectCategory=person)(mail=*)"
-                         + "(!(userAccountControl:1.2.840.113556.1.4.803:=2)))"));
+            placeholder: DefaultSyncFilter));
+         // The box as wide as the card and wrapping, in a monospaced face, with
+         // the default in the hint, where it stays in view once the box holds a
+         // filter: as a placeholder alone it was cut at the start of the
+         // userAccountControl clause (F131).
+         LdapFilterField.ShowWhole(filter_, DefaultSyncFilter);
 
          content.Children.Add(LabelledBox_(L("Address attri_bute"), mailAttribute_, "dirsync-mail-attribute",
             L("Which attribute holds the mailbox address. proxyAddresses is understood: its scheme prefix is removed and the primary SMTP: value is preferred over the lower-case aliases."),

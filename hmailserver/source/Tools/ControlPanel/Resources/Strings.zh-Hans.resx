@@ -12120,6 +12120,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>数据库: 查找提到连接池的错误。当连接池等待超时时，收件人查询会应答 451 4.3.2 而不是 550，因此被备份锁住的数据库会推迟邮件而不是退回邮件。</value>
   </data>
+  <data name="The default filter: {0}" xml:space="preserve">
+    <value>默认筛选器：{0}</value>
+  </data>
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>删除覆盖永远不会凭猜测删除: 只有在记录的分数确实达到该值时才会移除副本，而在启用了隔离存储时会改为转入隔离存储。</value>
   </data>
