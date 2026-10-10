@@ -621,11 +621,15 @@ namespace hMailServer.ControlPanel.Views
          pill.SetBinding(StatusPill.TextProperty, new System.Windows.Data.Binding(nameof(TraceRow.StatusText)));
          pill.SetBinding(VisibilityProperty, new System.Windows.Data.Binding(nameof(TraceRow.StatusShown)));
          pill.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Left);
+         // Copied as its words, "Deferred 451": a template column copies nothing of its
+         // own, and Ctrl+C on the results copied an empty status where the text column
+         // it replaced copied the code.
          list_.Columns.Add(new DataGridTemplateColumn
          {
             Header = L("Status"),
             CellTemplate = new DataTemplate { VisualTree = pill },
             SortMemberPath = nameof(TraceRow.StatusCode),
+            ClipboardContentBinding = new System.Windows.Data.Binding(nameof(TraceRow.StatusText)),
             Width = DataGridLength.Auto
          });
 

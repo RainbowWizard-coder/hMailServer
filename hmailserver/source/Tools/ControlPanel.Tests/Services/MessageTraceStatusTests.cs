@@ -84,6 +84,10 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("pill.SetBinding(StatusPill.LevelProperty, new System.Windows.Data.Binding(nameof(TraceRow.StatusLevel)));", code, StringComparison.Ordinal);
          Assert.Contains("SortMemberPath = nameof(TraceRow.StatusCode),", code, StringComparison.Ordinal);
          Assert.DoesNotContain("Binding = new System.Windows.Data.Binding(nameof(TraceRow.StatusCode))", code, StringComparison.Ordinal);
+
+         // Ctrl+C copies the status's words: a template column copies nothing of its own,
+         // and the copy had an empty status where the text column it replaced had the code.
+         Assert.Contains("ClipboardContentBinding = new System.Windows.Data.Binding(nameof(TraceRow.StatusText)),", code, StringComparison.Ordinal);
       }
 
       private static string ReadControlPanelFile(string relative)

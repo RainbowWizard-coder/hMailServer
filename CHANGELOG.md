@@ -2917,8 +2917,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   list's place says to enter an address and press Search. A message followed from the results offers Back to results
   for the address, which puts the results back as they were with the event it was followed from selected; Enter, F2
   and a double-click on an event follow its message, as its button does. A status is a pill of its word and level -
-  "OK 250", "Deferred 451", "Refused 550" - sorted by the code. `MessageTraceStatusTests` holds the words and the
-  page's wiring.
+  "OK 250", "Deferred 451", "Refused 550" - sorted by the code, and Ctrl+C on an event copies its status in those
+  words. `MessageTraceStatusTests` holds the words and the page's wiring.
 
 - **Fixed: the audit trail offered Put back on rows it could not put back, its pager never disabled, its columns
   showed the server's tokens, and its search matched the administrator alone.** Put back was the page's Primary and
