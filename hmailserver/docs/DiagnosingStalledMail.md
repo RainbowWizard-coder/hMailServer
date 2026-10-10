@@ -237,6 +237,12 @@ current rather than the place they are set — editing one there is named in
 `hMailServer_ERROR.log` and put back at the next start. Defaults are chosen to be
 well inside a typical sending server's timeout.
 
+In the Control Panel, seven of them are the *Timeouts and queue bounds* card of the
+*Server limits & expert settings* page; `SAMaxTimeout` and `ClamMaxTimeout` are on
+the *Anti-spam settings* and *Anti-virus settings* pages. The same Server limits
+page's *Windows service account* card - which account the service logs on as, and
+the folders it is granted - is [ServiceAccount.md](ServiceAccount.md).
+
 | Setting | Default | Bounds | `0` means |
 |---|---|---|---|
 | `FinalizationTimeout` | 240 | The whole accept pipeline, after which the sender gets a `451` | no bound |

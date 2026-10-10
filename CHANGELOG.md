@@ -2160,7 +2160,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   document shown before and reached the heading only on a document already showing; and two documents whose prose
   wraps to put "0." at the start of a line - Service account and Source packages - no longer stop the pane, which read
   the line as a list numbered from 0 and could not draw it. build/check-help-map.py holds every tab entry to a tab its
-  page builds, and fails a document listed as reference-only whose title or name is a tab's or a card's heading.
+  page builds, and fails a document listed as reference-only whose title or name meets a tab's or a card's heading -
+  the significant words of one among the other's - unless the document that page opens links it or the checker says
+  why it is about something else, so that the documents of Server limits' Windows service account card and of the
+  Feedback tab's Reports your domains receive card are linked from the stalled-mail document and the complaints
+  document those pages open.
 
 ### Administration
 

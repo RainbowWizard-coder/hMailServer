@@ -30,7 +30,12 @@ Checked:
   reach     every document is named by some surface or listed as reference-
             only, and nothing listed as reference-only is named - a document
             in neither is one the help cannot reach, a document in both is
-            not reference-only.
+            not reference-only; and a reference-only document whose title or
+            name meets a Control Panel tab's or card's heading - the
+            significant words of one among the other's - is that page's
+            help: mapped to the tab, linked from the page's document
+            (REACHED_FROM), or another subject by a stated reason
+            (NOT_THE_PAGES).
 
 What it reads the pages from, and so what it would not notice: a Control
 Panel page is a Page("key" call in NavigationMap.cs (HelpMapTests holds the
@@ -43,8 +48,11 @@ as they are, or teach this file the new spelling in the same change.
 
 Usage:  python build/check-help-map.py [--self-test]
   --self-test runs the same check over a copy of the maps with an entry
-  naming a heading that is not there and one naming a document that is not,
-  and fails unless both are refused: the negative control.
+  naming a heading that is not there, one naming a document that is not, a
+  tab its page does not build, a reference-only document named as a tab is,
+  and the service account's document (whose title is not the card's word for
+  word) without the link that reaches it, and fails unless each is refused:
+  the negative controls.
 """
 import importlib.util
 import io
@@ -81,21 +89,40 @@ TAB_HEADER = re.compile(r'\bTab\(L\("((?:[^"\\]|\\.)*)"\)\)')
 CARD_TITLE = re.compile(r'\bCard\(L\("((?:[^"\\]|\\.)*)"')
 FEATURE_CARD_TITLE = re.compile(r'\bTitle = L\("((?:[^"\\]|\\.)*)"\)')
 
-# A reference-only document whose title or name matches a heading of a page, but
-# whose subject is another: the reason it stays reference-only, said where the rule
-# is. Mirroring.md is the project's own repository mirror, not the server's
-# mailboxes; nothing here is the server's.
+# A reference-only document whose title or name meets a heading of a page, but whose
+# subject is another: the reason it stays reference-only, said where the rule is.
 NOT_THE_PAGES = {
     "Mirroring.md": "the project's push mirror and weekly export of its repository, not the server's mail",
+    "DatabaseTls.md": "the encryption of the server's own connection to its database, which is set in hMailServer.ini's "
+                      "[Database] section and which no page edits (the document's 'No editor in the Control Panel or the "
+                      "Deck'); the Performance page's Database tab and its Database connections card tune the pool and "
+                      "the retries",
+    "MigratingDatabaseBackend.md": "moving the server to another database engine by backup, repointing and restore, "
+                                   "which Backup.md and Upgrading.md link; the Performance page's Database tab tunes the "
+                                   "connections of the engine in use",
+    "RestrictedDelivery.md": "the domains a domain's accounts may exchange mail with, on the Restricted delivery tab of "
+                             "the domain's own dialog, which the Domains page's DomainsAndAccounts.md links; the "
+                             "Delivery of e-mail page's Delivery tab is the retries and the bounces",
 }
 
-# A reference-only document that is about one card of a tab whose own document
-# links it, so that the pane reaches it from the tab in one step: the document
-# that links it, which the checker holds to being mapped and to carrying the link.
-# Account recovery is the fourth card of the webmail page's Sign-in tab, whose
-# document is the passkeys and single sign-on one.
+# A reference-only document that is about one card of a page whose own document - the
+# one the pane opens for the page, or for the card's tab - links it, so that the pane
+# reaches it from the page in one step: the document that links it, which the checker
+# holds to being mapped and to carrying the link.
 REACHED_FROM = {
+    # The fourth card of the webmail page's Sign-in tab, whose document is the
+    # passkeys and single sign-on one.
     "AccountRecovery.md": "PasskeysAndSingleSignOn.md",
+    # The Reports your domains receive card of the Delivery of e-mail page's
+    # Feedback tab, which opens the complaints document.
+    "DmarcReports.md": "Complaints.md",
+    # The Windows service account card of Server limits & expert settings, which
+    # opens the stalled-mail document on the settings that bound each stage.
+    "ServiceAccount.md": "DiagnosingStalledMail.md",
+    # The Object storage and Mailboxes encrypted at rest cards of the Performance
+    # page's Message store tab, which opens the message store's document.
+    "ObjectStorage.md": "MessageStore.md",
+    "EncryptionAtRest.md": "MessageStore.md",
 }
 DECK_TABLE = re.compile(r"const HELP_MAP=\{(.*?)\};", re.S)
 DECK_ENTRY = re.compile(r'([A-Za-z0-9_-]+):\["([^"]+)"(?:,"([^"]*)")?\]')
@@ -183,7 +210,28 @@ def file_words(doc):
     return words(re.sub(r"(?<=[a-z0-9])(?=[A-Z])", " ", doc[:-3]))
 
 
-def check(maps, pages, reference, generator, cp):
+# The words a title and a heading may differ by and still be the same subject: the
+# articles and the possessives ("The service account", "Windows service account";
+# "The reports our own domains receive, read", "Reports your domains receive").
+NOT_SIGNIFICANT = frozenset(["a", "an", "the", "our", "your", "its", "their", "own", "s"])
+
+
+def significant(text):
+    """The words of a title or a heading that say what it is about, as a set."""
+    return frozenset(w for w in words(text).split() if w not in NOT_SIGNIFICANT)
+
+
+def meets(one, other):
+    """Whether a title and a heading are about the same thing: the significant words of one are among the
+    other's. Exact matching let through the documents it was written for - the service account's title is "The
+    service account", its card "Windows service account"."""
+    a, b = significant(one), significant(other)
+    return bool(a) and bool(b) and (a <= b or b <= a)
+
+
+def check(maps, pages, reference, generator, cp, reached_from=None, not_the_pages=None):
+    reached_from = REACHED_FROM if reached_from is None else reached_from
+    not_the_pages = NOT_THE_PAGES if not_the_pages is None else not_the_pages
     problems = []
     docs = set(name + ".md" for name in generator.page_names())
     headings_of = {}
@@ -236,33 +284,34 @@ def check(maps, pages, reference, generator, cp):
         if doc not in docs:
             problems.append("reach: the reference-only list names %s, which is not a document" % doc)
 
-    # A reference-only document that is about a tab or a card of a page - its title, or its name, is the
+    # A reference-only document that is about a tab or a card of a page - its title, or its name, meets the
     # tab's or the card's heading - is that page's help, which the pane cannot reach from it.
-    by_words = {}
-    for heading in cp["headings"]:
-        by_words.setdefault(words(heading), heading)
-    for doc, via in sorted(REACHED_FROM.items()):
+    for doc, via in sorted(reached_from.items()):
         if via not in named:
             problems.append("reach: %s is reached through %s, which no page maps" % (doc, via))
         elif via in docs and "](" + doc not in generator.read_page(via[:-3]):
             problems.append("reach: %s is reached through %s, which no longer links it" % (doc, via))
+    headings = sorted(cp["headings"])
     for doc in reference:
-        if doc not in docs or doc in NOT_THE_PAGES or doc in REACHED_FROM:
+        if doc not in docs or doc in not_the_pages or doc in reached_from:
             continue
         found = generator.headings(generator.read_page(doc[:-3]))
         title = found[0][0] if found and found[0][1] == 1 else ""
-        for candidate in (words(title), file_words(doc)):
-            if candidate and candidate in by_words:
-                problems.append("reach: %s is listed as reference-only, but %r is the heading of a tab or a card of a "
-                                "Control Panel page: map that tab to it in HelpMap.Tabs" % (doc, by_words[candidate]))
-                break
+        met = next((h for candidate in (title, file_words(doc)) for h in headings if meets(candidate, h)), None)
+        if met is not None:
+            problems.append("reach: %s is listed as reference-only, but its title or name meets %r, the heading of a "
+                            "tab or a card of a Control Panel page: map that tab to it in HelpMap.Tabs, link it from "
+                            "the page's document and list it in REACHED_FROM, or say in NOT_THE_PAGES why it is about "
+                            "something else" % (doc, met))
     return problems
 
 
 def self_test(maps, pages, reference, generator, cp):
     """The negative control: a map with a heading that is not there, one with a document that is not, a tab
-    entry naming a tab its page does not build, and a reference-only document whose name is a tab's
-    heading - each refused by name."""
+    entry naming a tab its page does not build, a reference-only document whose name is a tab's heading, the
+    service account's document - whose title meets its card's heading but is not it word for word - with
+    nothing that reaches it, and the same said to be reached through a document that does not link it - each
+    refused by name."""
     failures = []
     surface = "Deck"
     key = sorted(maps[surface])[0]
@@ -290,6 +339,22 @@ def self_test(maps, pages, reference, generator, cp):
              if "Snmp.md is listed as reference-only, but" in p]
     if not found:
         failures.append("a reference-only document named as a tab is named was accepted")
+
+    # ServiceAccount.md without its way in: "The service account" is not the card's "Windows service account"
+    # word for word, which the exact rule let through.
+    without = {k: v for k, v in REACHED_FROM.items() if k != "ServiceAccount.md"}
+    found = [p for p in check(maps, pages, reference, generator, cp, reached_from=without)
+             if "ServiceAccount.md is listed as reference-only, but" in p and "Windows service account" in p]
+    if not found:
+        failures.append("the service account's document, whose card is 'Windows service account', was accepted with "
+                        "nothing that reaches it")
+
+    # ... and reached through a mapped document that does not link it.
+    elsewhere = dict(REACHED_FROM, **{"ServiceAccount.md": "Snmp.md"})
+    found = [p for p in check(maps, pages, reference, generator, cp, reached_from=elsewhere)
+             if "ServiceAccount.md is reached through Snmp.md, which no longer links it" in p]
+    if not found:
+        failures.append("a document said to be reached through one that does not link it was accepted")
     return failures
 
 

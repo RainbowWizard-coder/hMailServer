@@ -64,7 +64,9 @@ namespace hMailServer.ControlPanel.Services
    /// surface maps to are listed in <see cref="ReferenceOnly"/>, which the checker
    /// reads: a document that is in neither is a document the help cannot reach,
    /// and that fails the check - and so does one listed there whose title or
-   /// name is a tab's or a card's heading, which belongs to that tab.
+   /// name meets a tab's or a card's heading, the significant words of one among
+   /// the other's, unless the document that page opens links it or the checker
+   /// says why it is about something else.
    /// </summary>
    public static class HelpMap
    {
@@ -215,10 +217,16 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>
       /// The documents no page of any surface maps to: reached from every pane's
-      /// "All documentation" list and nowhere else. Each is about the project or
-      /// a procedure rather than a page - a runbook, a build, a census - which
-      /// is why no page owns it. build/check-help-map.py fails when a document
-      /// is in neither this list nor any map, and when one is in both.
+      /// "All documentation" list, and from the documents that link them. Most
+      /// are about the project or a procedure rather than a page - a runbook, a
+      /// build, a census - which is why no page owns them; a few are about one
+      /// card of a page and are linked from the document that page opens (the
+      /// checker's REACHED_FROM: the service account's from the stalled-mail
+      /// document Server limits opens, the received reports' from the Feedback
+      /// tab's complaints document). build/check-help-map.py fails when a
+      /// document is in neither this list nor any map, when one is in both, and
+      /// when one listed here meets a tab's or a card's heading with neither such
+      /// a link nor a stated reason.
       /// </summary>
       public static readonly IReadOnlyList<string> ReferenceOnly = new[]
       {

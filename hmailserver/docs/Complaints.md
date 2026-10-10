@@ -342,3 +342,7 @@ Related
 * [AlertsAndAuditTrail.md](AlertsAndAuditTrail.md) - the alert rules and what
   each raises.
 * [Roles.md](Roles.md) - which permission reads and changes what.
+* [DmarcReports.md](DmarcReports.md) - the DMARC aggregate and TLS reports other
+  servers send about this server's own domains, read and charted; the *Reports your
+  domains receive* card beside the complaints on the Feedback tab sets how long
+  they are kept.
