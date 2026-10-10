@@ -9694,8 +9694,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>受限：仅限指定的域</value>
   </data>
-  <data name="Resume the server" xml:space="preserve">
-    <value>恢复服务器</value>
+  <data name="Resume the mail server" xml:space="preserve">
+    <value>恢复邮件服务器</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>缓存会话和票据的恢复有效期，秒（0 = OpenSSL 的默认值 300）</value>

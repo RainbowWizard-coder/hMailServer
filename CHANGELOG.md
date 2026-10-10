@@ -2640,11 +2640,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   pause that was forgotten was a server that took no mail with no sign of it. Server status's buttons are now Pause
   the mail server and Resume the mail server, and its State reads Paused, where it read Stopped; Live logs' are Pause
   view and Resume view, with a glyph of their own. While the server reports Stopped, the window shows a Warning bar at
-  its foot under every page, "The mail server is paused - nothing is accepted or delivered.", with Resume the server,
-  and the pill says Paused at the Warning level, "Connected to mail.example.com as Administrator - the mail server is
-  paused" in its tool tip; the state is asked as each page is entered and on the Dashboard's two-second refresh, and
-  Server status hands it the state it reads, so that its Pause and Resume show at once. F6 reaches the bar with the
-  pending bar. `ServerPausedTests` holds the words, the bar, the pill and where the state is asked.
+  its foot under every page, "The mail server is paused - nothing is accepted or delivered.", with Resume the mail
+  server, the words of Server status's own button without its Alt key, and the pill says Paused at the Warning level,
+  "Connected to mail.example.com as Administrator - the mail server is paused" in its tool tip; the state is asked as
+  each page is entered and on the Dashboard's two-second refresh, and Server status hands it the state it reads, so
+  that its Pause and Resume show at once. F6 reaches the bar with the pending bar. `ServerPausedTests` holds the
+  words, the bar, the pill and where the state is asked.
 
 - **Fixed: the sign-in card's two-factor link set up the weaker option, and the two code prompts looked the same.**
   "Set up two-factor authentication…" on the sign-in card opened the Control-Panel-only setup, which Administrative

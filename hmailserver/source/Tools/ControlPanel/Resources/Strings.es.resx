@@ -9694,8 +9694,8 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Restringida: solo dominios indicados</value>
   </data>
-  <data name="Resume the server" xml:space="preserve">
-    <value>Reanudar el servidor</value>
+  <data name="Resume the mail server" xml:space="preserve">
+    <value>Reanudar el servidor de correo</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Duración de la reanudación para las sesiones y los tickets en caché, en segundos (0 = el valor por defecto de OpenSSL, 300)</value>

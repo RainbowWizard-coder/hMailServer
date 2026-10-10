@@ -9694,8 +9694,8 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Restricted: named domains only</value>
   </data>
-  <data name="Resume the server" xml:space="preserve">
-    <value>Resume the server</value>
+  <data name="Resume the mail server" xml:space="preserve">
+    <value>Resume the mail server</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)</value>

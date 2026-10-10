@@ -19,7 +19,7 @@ namespace hMailServer.ControlPanel
    /// status read the server's state, so a pause that was forgotten was a server
    /// that took no mail with no sign of it anywhere. While the server reports
    /// Stopped the window shows a Warning bar at its foot, "The mail server is paused
-   /// - nothing is accepted or delivered.", with Resume the server, and the pill
+   /// - nothing is accepted or delivered.", with Resume the mail server, and the pill
    /// says Paused at the Warning level. The state is asked as each page is entered
    /// (EnterPage), on the Dashboard's two-second refresh, and by Server status
    /// whenever it reads it; a state that cannot be read shows no bar, which claims
@@ -78,7 +78,7 @@ namespace hMailServer.ControlPanel
       }
 
       /// <summary>
-      /// Resume the server, from the bar: Application.Start(), as Server
+      /// Resume the mail server, from the bar: Application.Start(), as Server
       /// status's Resume, which asks nothing first - starting the engine closes
       /// nothing. Then the state is asked again and the page entered again, unless
       /// it holds unsaved changes, so that Server status says Running.

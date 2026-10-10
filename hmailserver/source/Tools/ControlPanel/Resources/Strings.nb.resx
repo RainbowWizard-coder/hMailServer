@@ -9694,8 +9694,8 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Begrenset: bare navngitte domener</value>
   </data>
-  <data name="Resume the server" xml:space="preserve">
-    <value>Gjenoppta serveren</value>
+  <data name="Resume the mail server" xml:space="preserve">
+    <value>Gjenoppta e-postserveren</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Levetid for gjenopptakelse av bufrede økter og billetter, sekunder (0 = OpenSSLs standard på 300)</value>

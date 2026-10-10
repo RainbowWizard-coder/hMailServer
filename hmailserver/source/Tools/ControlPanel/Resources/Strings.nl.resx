@@ -9694,8 +9694,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Beperkt: alleen genoemde domeinen</value>
   </data>
-  <data name="Resume the server" xml:space="preserve">
-    <value>Server hervatten</value>
+  <data name="Resume the mail server" xml:space="preserve">
+    <value>Mailserver hervatten</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Levensduur voor het hervatten van sessies en tickets in de cache, seconden (0 = de standaard van OpenSSL, 300)</value>

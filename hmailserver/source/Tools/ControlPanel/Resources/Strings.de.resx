@@ -9694,8 +9694,8 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Eingeschränkt: nur benannte Domains</value>
   </data>
-  <data name="Resume the server" xml:space="preserve">
-    <value>Server fortsetzen</value>
+  <data name="Resume the mail server" xml:space="preserve">
+    <value>Mailserver fortsetzen</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Lebensdauer für die Wiederaufnahme zwischengespeicherter Sitzungen und Tickets, Sekunden (0 = die OpenSSL-Vorgabe von 300)</value>

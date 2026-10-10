@@ -108,8 +108,9 @@ EXEMPT = {"Cancel", "OK", "Close", "…", "...",
           # The paused server's bar (MainWindow.xaml, review finding F019), on screen
           # with every page while the server is paused - Server status among them,
           # whose own R_esume the mail server takes E - and in the window's one
-          # access-key scope (WINDOW_BARS), so its one button carries no key either.
-          "Resume the server"}
+          # access-key scope (WINDOW_BARS), so its one button carries no key either:
+          # it is Server status's caption, which does the same, without its key.
+          "Resume the mail server"}
 
 # Shared helpers, each with the call that places its captions on a page: every
 # caption of the helper joins the scope of every page whose code makes the call.

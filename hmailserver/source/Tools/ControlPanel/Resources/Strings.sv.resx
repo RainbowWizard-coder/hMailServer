@@ -9694,8 +9694,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Begränsad: endast namngivna domäner</value>
   </data>
-  <data name="Resume the server" xml:space="preserve">
-    <value>Återuppta servern</value>
+  <data name="Resume the mail server" xml:space="preserve">
+    <value>Återuppta e-postservern</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Återupptagningens livstid för cachade sessioner och biljetter, sekunder (0 = OpenSSL:s standard på 300)</value>

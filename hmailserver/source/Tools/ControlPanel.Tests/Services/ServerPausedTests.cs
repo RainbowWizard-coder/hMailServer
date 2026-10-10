@@ -107,14 +107,21 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// <summary>
       /// The bar is on screen with every page, Server status's own R_esume the mail
       /// server among them, in the window's one access-key scope, so its button
-      /// carries no key in any language, as the pending bar's do not.
+      /// carries no key in any language, as the pending bar's do not. It does what
+      /// that Resume does, and says it in the same words, less the key: on one
+      /// screen the two read "Resume the mail server" and "Resume the server", in
+      /// German "Mailserver fortsetzen" and "Server fortsetzen". A key written after
+      /// the words, "(_E)" in Japanese and Chinese, goes with its brackets.
       /// </summary>
       [Fact]
       public void TheBarsButton_CarriesNoAltKey_InAnyLanguage()
       {
-         const string Caption = "Resume the server";
+         const string Caption = "Resume the mail server";
+         const string Header = "R_esume the mail server";
          Assert.Contains("Content=\"{loc:L '" + Caption + "'}\"", Read("MainWindow.xaml"), StringComparison.Ordinal);
          Assert.True(MnemonicText.Parse(Caption).KeyIndex < 0);
+         Assert.Equal(Caption, MnemonicText.Strip(Header));
+         Assert.Contains("L(\"" + Header + "\")", Read("Views", "StatusView.xaml.cs"), StringComparison.Ordinal);
 
          string[] catalogues = Directory.GetFiles(Path.Join(SaveStateModelTests.ControlPanelDirectory(), "Resources"), "Strings*.resx");
          Assert.True(catalogues.Length >= 18, "The catalogues were not found.");
@@ -125,6 +132,12 @@ namespace hMailServer.ControlPanel.Tests.Services
             string value = (string)data.Element("value") ?? "";
             Assert.True(value.Length > 0 && MnemonicText.Parse(value).KeyIndex < 0,
                Path.GetFileName(catalogue) + " gives the bar's button an Alt key, or no text: \"" + value + "\".");
+
+            XElement header = XDocument.Load(catalogue).Root.Elements("data").FirstOrDefault(d => (string)d.Attribute("name") == Header);
+            Assert.True(header != null, Path.GetFileName(catalogue) + " has no entry for Server status's Resume.");
+            string words = MnemonicText.Strip(System.Text.RegularExpressions.Regex.Replace((string)header.Element("value") ?? "", @"\s*\(_.\)$", ""));
+            Assert.True(value == words,
+               Path.GetFileName(catalogue) + " says the bar's Resume as \"" + value + "\" and Server status's as \"" + words + "\".");
          }
       }
 

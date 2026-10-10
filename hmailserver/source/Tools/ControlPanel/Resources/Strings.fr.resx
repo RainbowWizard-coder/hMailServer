@@ -9694,8 +9694,8 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Restreint : domaines nommés uniquement</value>
   </data>
-  <data name="Resume the server" xml:space="preserve">
-    <value>Reprendre le serveur</value>
+  <data name="Resume the mail server" xml:space="preserve">
+    <value>Reprendre le serveur de messagerie</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Durée de vie de la reprise pour les sessions et les tickets en cache, secondes (0 = la valeur par défaut d'OpenSSL, 300)</value>

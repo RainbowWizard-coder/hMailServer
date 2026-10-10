@@ -9794,8 +9794,8 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Ograniczone: tylko wskazane domeny</value>
   </data>
-  <data name="Resume the server" xml:space="preserve">
-    <value>Wznów serwer</value>
+  <data name="Resume the mail server" xml:space="preserve">
+    <value>Wznów serwer poczty</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Czas życia wznawiania dla sesji i biletów w pamięci podręcznej, w sekundach (0 = domyślne 300 z OpenSSL)</value>

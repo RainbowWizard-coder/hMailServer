@@ -9694,8 +9694,8 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Kısıtlı: yalnızca belirtilen etki alanları</value>
   </data>
-  <data name="Resume the server" xml:space="preserve">
-    <value>Sunucuyu sürdür</value>
+  <data name="Resume the mail server" xml:space="preserve">
+    <value>Posta sunucusunu sürdür</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Önbelleğe alınan oturumlar ve biletler için sürdürme ömrü, saniye (0 = OpenSSL'in varsayılanı olan 300)</value>

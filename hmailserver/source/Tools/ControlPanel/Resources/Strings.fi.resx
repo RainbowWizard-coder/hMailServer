@@ -9694,8 +9694,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Rajoitettu: vain nimetyt verkkotunnukset</value>
   </data>
-  <data name="Resume the server" xml:space="preserve">
-    <value>Jatka palvelimen toimintaa</value>
+  <data name="Resume the mail server" xml:space="preserve">
+    <value>Jatka postipalvelimen toimintaa</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Välimuistiin tallennettujen istuntojen ja lippujen jatkamisen elinikä sekunteina (0 = OpenSSL:n oletus 300)</value>

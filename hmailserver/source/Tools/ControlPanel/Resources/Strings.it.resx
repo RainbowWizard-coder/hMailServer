@@ -9694,8 +9694,8 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Limitato: solo domini indicati</value>
   </data>
-  <data name="Resume the server" xml:space="preserve">
-    <value>Riprendi il server</value>
+  <data name="Resume the mail server" xml:space="preserve">
+    <value>Riprendi il server di posta</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Durata della ripresa per sessioni e ticket in cache, secondi (0 = il valore predefinito di OpenSSL, 300)</value>

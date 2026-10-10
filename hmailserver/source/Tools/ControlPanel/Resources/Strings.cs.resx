@@ -9794,8 +9794,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Omezeno: pouze vyjmenované domény</value>
   </data>
-  <data name="Resume the server" xml:space="preserve">
-    <value>Obnovit provoz serveru</value>
+  <data name="Resume the mail server" xml:space="preserve">
+    <value>Pokračovat v provozu poštovního serveru</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Životnost obnovení relace pro relace a tickety v cache, sekundy (0 = výchozí hodnota OpenSSL 300)</value>

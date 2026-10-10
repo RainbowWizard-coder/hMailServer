@@ -9794,8 +9794,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Ограничено: только указанные домены</value>
   </data>
-  <data name="Resume the server" xml:space="preserve">
-    <value>Возобновить сервер</value>
+  <data name="Resume the mail server" xml:space="preserve">
+    <value>Возобновить почтовый сервер</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Время жизни возобновления для кэшированных сеансов и билетов, секунды (0 — значение OpenSSL по умолчанию, 300)</value>

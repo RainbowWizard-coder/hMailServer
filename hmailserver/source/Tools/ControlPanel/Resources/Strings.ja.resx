@@ -9694,8 +9694,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>制限: 指定ドメインのみ</value>
   </data>
-  <data name="Resume the server" xml:space="preserve">
-    <value>サーバーを再開</value>
+  <data name="Resume the mail server" xml:space="preserve">
+    <value>メール サーバーを再開</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>キャッシュされたセッションとチケットの再開有効期間 (秒、0 = OpenSSL の既定値 300)</value>

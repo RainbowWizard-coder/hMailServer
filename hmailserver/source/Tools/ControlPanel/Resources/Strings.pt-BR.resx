@@ -9694,8 +9694,8 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Restrito: somente domínios indicados</value>
   </data>
-  <data name="Resume the server" xml:space="preserve">
-    <value>Retomar o servidor</value>
+  <data name="Resume the mail server" xml:space="preserve">
+    <value>Retomar o servidor de e-mail</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Tempo de vida da retomada para sessões e tíquetes em cache, segundos (0 = o padrão de 300 do OpenSSL)</value>
