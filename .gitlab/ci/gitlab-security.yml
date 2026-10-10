@@ -235,7 +235,8 @@ semgrep-sast:
 
 secret_detection:
   # GitLab's analyzer as the project's registry holds it (the header says why), on one
-  # line: build/scan-secrets.py reads its gitleaks from this line.
+  # line: build/scan-secrets.py reads its gitleaks from this line of the tree it runs
+  # from - master's, for a landing - never from the range it scans.
   image: registry.gitlab.com/hmailserver/hmailserver/mirror/secrets:7.40.0-1f54871d97a7@sha256:1f54871d97a7d1ab311495408eb12e5217ef0633db115a27ca51f381f2fbe641
   needs: []
   # The whole history took under a minute on linix (2,214 commits, 720 MB of diffs);

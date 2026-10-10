@@ -4691,19 +4691,21 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `build/ci/secret-detection-rules.sh`, which takes nothing from the tree, so that no committed file can widen what
   the scans leave out: the job puts the rules where the analyzer reads them, since a custom ruleset is GitLab
   Ultimate's and gitleaks' `[extend]` takes no allowlist away, and `scan-secrets.py` runs its own tree's copy of the
-  script before gitleaks, never the scanned range's. The script refuses when GitLab's table does not hash to the one
-  it was written for, so that new rules that change what GitLab leaves out are read first, and when either entry it
-  changes is not on exactly one line of the table; it is one of the gates' own files (`build/land-via-mr.py`'s
-  `GATE_FILES`), which a batch changes only with `--gates-read`. Over every branch and
-  tag on GitLab (2,873 commits) and `master`'s tree the widened rules found everything GitLab's had and five more, none
-  a secret - the OpenPGP fixtures' two test keys and three lines that test a text for a key's armour header - which
-  `.gitleaksignore` names, with four of its directory-scan lines that later edits had moved. The landing's scan prints
-  the lines a range changes in the script. `build/check-release-chain.py` fails when the job does not make and use the
-  rules, when the tree carries a `.gitlab/secret-detection-ruleset.toml`, and when the landing's `GATE_FILES` leave the
-  script out; `scan-secrets.py`'s self-test runs the script over fixtures, refusals and all, and reads what it makes as
-  gitleaks does, and scans a range of a repository it makes for the purpose, whose tip carries a rules script of its
-  own, so that it holds the container to the scan's own copy whatever the depth of the checkout it runs in - `checkers`
-  fetches one commit (ContinuousIntegration.md, "What the secret scans read").
+  script before gitleaks, in the analyzer image its own tree's `secret_detection` names - never the scanned range's
+  script or image, which are written for each other. So the landing, run from a checkout of `master`, scans a batch
+  that moves either with `master`'s, and prints the lines the batch changes in the script and the image it names. The
+  script refuses when GitLab's table does not hash to the one it was written for, so that new rules that change what
+  GitLab leaves out are read first, and when either entry it changes is not on exactly one line of the table; it is
+  one of the gates' own files (`build/land-via-mr.py`'s `GATE_FILES`), which a batch changes only with
+  `--gates-read`. Over every branch and tag on GitLab (2,873 commits) and `master`'s tree the widened rules found
+  everything GitLab's had and five more, none a secret - the OpenPGP fixtures' two test keys and three lines that
+  test a text for a key's armour header - which `.gitleaksignore` names, with four of its directory-scan lines that
+  later edits had moved. `build/check-release-chain.py` fails when the job does not make and use the rules, when the
+  tree carries a `.gitlab/secret-detection-ruleset.toml`, and when the landing's `GATE_FILES` leave the script out;
+  `scan-secrets.py`'s self-test runs the script over fixtures, refusals and all, and reads what it makes as gitleaks
+  does, and scans ranges of a repository it makes for the purpose, whose tips name an image and carry a rules script
+  of their own, so that it holds the scan to its own tree's image and script whatever the depth of the checkout it
+  runs in - `checkers` fetches one commit (ContinuousIntegration.md, "What the secret scans read").
 - **A directory-form line of `.gitleaksignore` that an edit has moved fails the change that moved it, not a later
   pipeline.** A pipeline that brings no range of commits, one started through the API, scans the checkout as files,
   and `.gitleaksignore` names what that scan finds as `<path>:<rule>:<line>`, tied to its finding by the line number

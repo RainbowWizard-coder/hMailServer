@@ -778,8 +778,9 @@ into a commit. Three things stand in the way, as GitLab's push protection is not
   ```
 
   `build/hooks/pre-commit` scans the lines a commit adds, and `build/hooks/pre-push` the commits a push brings,
-  with `build/scan-secrets.py`. It runs gitleaks from the image the `secret_detection` job pins, with GitLab's
-  rules and the repository's `.gitleaksignore`, in Docker when Docker runs on your machine; without Docker, a
+  with `build/scan-secrets.py`. It runs gitleaks from the image the `secret_detection` job of your working tree
+  pins, with GitLab's rules and the repository's `.gitleaksignore`, in Docker when Docker runs on your machine;
+  without Docker, a
   gitleaks 8 on `PATH` (or named by `HM_GITLEAKS`), with gitleaks' own rules, which are close to GitLab's but not
   the same; or `HM_SECRET_SCAN_SSH` pointing at a machine with Docker that sees your
   repository's git directory (`user@host:/path/to/.git`, with `HM_SECRET_SCAN_SSH_KEY` for the key). With none
@@ -866,8 +867,8 @@ rewrites. To sign off without remembering the flag, `git config alias.cs "commit
    linear: `python3 build/land-via-mr.py batchN`, run from a checkout of `master`, checks that the batch is on top
    of `master`, adds no merge commit, is signed off throughout and holds no possible secret (`build/scan-secrets.py`
    over every commit it adds, which must run: see [Secrets](#secrets); the checkout's own copy of it and of its
-   rules script, so that none of the batch's code judges the batch), pushes it, opens the merge request, waits for
-   the branch's pipeline, and
+   rules script, in the analyzer image the checkout's `secret_detection` names, so that the batch chooses neither
+   what scans it nor how), pushes it, opens the merge request, waits for the branch's pipeline, and
    merges only when it passed, with each of its gate jobs - *semgrep-sast*, *semgrep-sast-gate*,
    *mr-dependency-check* and *checkers*, and *static-analysis* and *semgrep* unless the batch changes only Markdown
    at the root or under a dot-directory - succeeding itself, in a pipeline of this project whose gates each say in

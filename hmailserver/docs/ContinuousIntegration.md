@@ -824,7 +824,8 @@ without it. The analyzer is MIT-licensed, GitLab's rules in it MIT Expat and
 gitleaks MIT; the copy is the image unmodified, for this project's CI (the
 script's header says more). Renovate does not look up the project's own
 registry, so a new digest is taken by hand, as `semgrep-sast`'s is. The job
-names it on one `image:` line, the line `scan-secrets.py` reads.
+names it on one `image:` line, the line `scan-secrets.py` reads in the tree it
+runs from.
 
 **Re-pinning `secret_detection`'s analyzer.** A new analyzer can bring a new
 gitleaks, and `scan-secrets.py` reads gitleaks' own words: a scan whose `git log`
@@ -838,7 +839,14 @@ New rules (`SECRET_DETECTION_RULES_VERSION`) may change GitLab's global
 allowlist: then `build/ci/secret-detection-rules.sh` refuses, and both scans
 with it, until the script is brought up to date with GitLab's new table - the
 two entries it changes, and `GITLAB_TABLE`, the new table's hash ([What the
-secret scans read](#what-the-secret-scans-read)).
+secret scans read](#what-the-secret-scans-read)). The landing scans the batch
+that moves the pin with `master`'s image and `master`'s rules script, not the
+batch's, and says which image the batch names: the new image first runs in
+`master`'s `secret_detection` once the batch has landed, and the comparison of
+the two over the history is what tries it before. `scan-secrets.py` run from the
+batch's own worktree runs the new image with the new script over a range - a
+check by hand, in which the batch judges itself, as the scan then says, and no
+gate.
 
 **Re-pinning `semgrep-sast`'s analyzer.** A new analyzer is a new Semgrep, and
 `semgrep-sast-gate` reads Semgrep's own words in `semgrep.sarif`: the kind of
@@ -988,9 +996,10 @@ in to gitlab.com as a Maintainer. In order, and stopping at the first refusal:
    (`build/scan-secrets.py`, [Before a push](#before-a-push-the-secret-scan))
    must run and find nothing: a possible secret, or no scanner to run it,
    refuses (exit 8). The scan is the checkout's own `scan-secrets.py`, with
-   the checkout's rules script, so the landing runs from a checkout of
-   `master`, where none of the batch's code judges the batch ([What the
-   secret scans read](#what-the-secret-scans-read)). A `batch*` branch's pipeline does not run
+   the checkout's rules script, in the analyzer image the checkout's
+   `secret_detection` names, so the landing runs from a checkout of
+   `master`, where the batch chooses neither the scanner nor its rules ([What
+   the secret scans read](#what-the-secret-scans-read)). A `batch*` branch's pipeline does not run
    `secret_detection`, and its merge request runs no pipeline, so this is the
    scan that reads a batch before it is on GitLab. A batch that changes the
    gates' own files - `GATE_FILES`: the five gate scripts; `.gitlab-ci.yml`,
@@ -4041,9 +4050,10 @@ GitLab Ultimate. What the Free tier allows is built instead, before the push:
   purpose.
 
 `build/scan-secrets.py` runs gitleaks from the image `secret_detection` pins,
-the project's copy of GitLab's analyzer - it reads the digest from
-`.gitlab/ci/gitlab-security.yml`, so the two cannot differ - with the rules the
-job makes (below) and the repository's `.gitleaksignore`: in Docker on the machine, or in Docker
+the project's copy of GitLab's analyzer - it reads the digest from the
+`.gitlab/ci/gitlab-security.yml` of the tree it runs from, so in a tree the two
+cannot differ - with the rules the job makes (below) and the repository's
+`.gitleaksignore`: in Docker on the machine, or in Docker
 on another machine that sees the repository's git
 directory (`HM_SECRET_SCAN_SSH=user@host:/path/.git`, as linix sees the
 maintainer's clone at `/mnt/hmailserver`), or, without Docker, a `gitleaks` on
@@ -4096,18 +4106,41 @@ the gates' own files (`build/land-via-mr.py`'s `GATE_FILES`): a batch that
 changes it lands only with `--gates-read`, a person's word that the change was
 read, and the landing's scan prints the lines a range changes in it.
 
-Whose copy of the script runs differs. `secret_detection` runs the pipeline's own
-commit's, as it runs every file of its CI, so in a merge request's pipeline the
-change's own copy makes the rules that scan it - which is why the script is a
-gate file. `scan-secrets.py` hands its container its own tree's copy, never the
-scanned range's, and `build/land-via-mr.py` runs `scan-secrets.py` from its own
-tree: so a landing run from a checkout of `master`, as a landing is, scans a
-batch with `master`'s scan and `master`'s rules, and no code of the batch runs in
-it, while one run from the batch's own worktree would have the batch's copies of
-both scripts judge the batch. On server2 on 10 October 2026 a commit that put a
-made-up token under `build/` and made the rules script leave every path out
-passed the job of its own pipeline, as it must, and failed the landing's scan run
-from the tree before it.
+What each scan trusts:
+
+- **`secret_detection`** trusts the commit its pipeline runs for, as every job
+  trusts its CI files: the analyzer image `gitlab-security.yml` names, the job's
+  lines, the rules script and `.gitleaksignore` are all that commit's. In a merge
+  request's pipeline they are the change's own, which is why
+  `gitlab-security.yml` and the rules script are gate files, and why
+  `.gitleaksignore` is the owner's in `.gitlab/CODEOWNERS`.
+- **`scan-secrets.py`** trusts the tree it runs from, and reads it from that
+  tree's files, not from a commit: its own code, the rules script, and the
+  analyzer image that tree's `gitlab-security.yml` names for `secret_detection` -
+  the image and the script written for each other (the script refuses an image
+  whose allowlist is not the one it names), so both from one tree. From the
+  range it scans it takes the commits, and the `.gitleaksignore` of the range's
+  tip (the working tree's, for a staged scan), as a pipeline would read it. It
+  prints every line the range adds to `.gitleaksignore`, every line it changes
+  in the rules script, and the image the range's tip names when that is not the
+  one the scan ran: the range chooses neither the scanner nor its rules, and
+  what it can waive, a finding it names in `.gitleaksignore`, is shown.
+- **The landing** runs `scan-secrets.py` from its own checkout, the tree
+  `build/land-via-mr.py` is in. From a checkout of `master`, as a landing is, a
+  batch is scanned with `master`'s scan, `master`'s rules script and `master`'s
+  analyzer, and nothing of the batch runs in it. Run from the batch's own
+  worktree, the batch's copies of all three would judge the batch: the scan then
+  says that the range "was judged by its own copies", and that is no gate.
+- **The hooks** run the clone's own `scan-secrets.py`, from its working tree,
+  over what the clone commits or pushes.
+
+So a batch that moves `secret_detection`'s image or changes the rules script is
+scanned at its landing by `master`'s, and what it brings first runs in
+`master`'s `secret_detection` once it has landed ("Re-pinning
+`secret_detection`'s analyzer", under [Change checks](#change-checks)). On server2
+on 10 October 2026 a commit that put a made-up token under `build/` and made the
+rules script leave every path out passed the job of its own pipeline, as it
+must, and failed the landing's scan run from the tree before it.
 
 Read over every branch and tag of the project on GitLab on 10 October 2026
 (2,873 commits, `master` at 74aed9ab8) and over `master`'s tree, in the image

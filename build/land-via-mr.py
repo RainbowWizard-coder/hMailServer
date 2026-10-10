@@ -18,10 +18,13 @@ refusal:
      of their allowlist that leave out build/ and the like, as
      build/ci/secret-detection-rules.sh derives them, and the tip's
      .gitleaksignore, in Docker here or where HM_SECRET_SCAN_SSH points) finds
-     nothing and could run. The scan and its rules script are this checkout's
-     own, not the batch's: run from a checkout of master, as a landing is, no
-     code of the batch runs in it, where from the batch's own worktree the
-     batch's copies would judge the batch. A batch branch's pipeline does not run the
+     nothing and could run. The scan, its rules script and the analyzer image
+     it runs, the one this checkout's secret_detection names, are this
+     checkout's own, not the batch's: run from a checkout of master, as a
+     landing is, the batch has no say in what scans it or how, but for the
+     .gitleaksignore lines it adds, which the scan prints; from the batch's own
+     worktree the batch's copies would judge the batch, which the scan says.
+     A batch branch's pipeline does not run the
      secret_detection job and its merge request runs none, so this scan is the
      one that reads a batch before it is on GitLab. And a batch that changes the
      gates' own files (GATE_FILES: the gate scripts; the CI files that say whether

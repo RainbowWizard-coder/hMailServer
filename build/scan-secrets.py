@@ -15,20 +15,24 @@ every commit a batch brings to master and pushes nothing when it finds something
 
 It runs gitleaks - by preference the one in GitLab's secrets analyzer image, as the
 project's registry holds it (build/ci/mirror-secrets.sh) and the secret_detection job
-names it, by digest (read from .gitlab/ci/gitlab-security.yml, so the two never differ),
-with GitLab's rules (/gitleaks.toml in the image) and the repository's .gitleaksignore:
-the same scan the pipeline runs. The rules are GitLab's but for the two entries of
-their global allowlist that left out every path under a directory named build, bin,
-obj, target or packages, this tree's build/ among them: build/ci/secret-detection-rules.sh
-derives them in the image from GitLab's own file, as the job does, and refuses when
-GitLab's allowlist is not the one it was written for. Nothing the scanned commits carry
-widens what the rules leave out. The ignore file is the range's tip's, as the pipeline
-would read it, or the working tree's for --staged; the rules script is this script's
-own tree's, never the range's. So no code of the commits scanned runs in the container,
-and none in the scan at all when this script runs from a tree outside the range, as the
-landing's does when build/land-via-mr.py runs from a checkout of master; run from a
-batch's own worktree, the batch's copies of this script and the rules script judge the
-batch. Where it runs:
+names it, by digest - with GitLab's rules (/gitleaks.toml in the image) and the
+repository's .gitleaksignore: the same scan the pipeline runs. The rules are GitLab's
+but for the two entries of their global allowlist that left out every path under a
+directory named build, bin, obj, target or packages, this tree's build/ among them:
+build/ci/secret-detection-rules.sh derives them in the image from GitLab's own file, as
+the job does, and refuses when GitLab's allowlist is not the one it was written for.
+
+What it trusts (OWN) is the tree it runs from, read from its files, never the range it
+scans: this script, the rules script, and the image the tree's
+.gitlab/ci/gitlab-security.yml names for secret_detection - an image and a script
+written for each other, so both from one tree. From the range it takes the commits it
+scans and its tip's .gitleaksignore, as the pipeline would read it (the working tree's
+for --staged), and prints every line the range adds to that file, every line it
+changes in the rules script, and the image its tip names when that is another: the
+range chooses neither the scanner nor its rules, and what it waives is shown. That
+holds when this script runs from a tree outside the range, as the landing's does when
+build/land-via-mr.py runs from a checkout of master; run from a batch's own worktree,
+the batch's copies judge the batch, and the scan says so. Where it runs:
 
   docker    Docker on this machine: the image, with the repository's git directory
             mounted read-only.
@@ -137,6 +141,13 @@ def image_of(text):
     return match.group(1)
 
 
+def image_or_none(text):
+    try:
+        return image_of(text)
+    except ScanError:
+        return None
+
+
 # ---------------------------------------------------------------- what is scanned
 
 def staged_stream(diff):
@@ -204,6 +215,30 @@ def rules_script():
     if not text.strip():
         raise ScanError("there is no %s, which makes the scan's rules" % RULES_SCRIPT)
     return text.replace("\r\n", "\n")
+
+
+# What this scan takes from the tree it runs from, and nothing from the range: this
+# script, the rules script, and the CI file whose secret_detection image it runs.
+OWN = ("build/scan-secrets.py", RULES_SCRIPT, SECURITY_YML)
+
+
+def judged_by_its_own(repo, log_opts):
+    """The files of OWN that the range changes and that this tree has as the range's tip
+    has them: a scan run from the range's own tree, such as a batch's worktree, whose
+    copies judge the range. The CI file counts by its secret_detection image alone."""
+    first = log_opts.split()[0]
+    if ".." not in first:
+        return []
+    base, tip = first.split("..", 1)
+    found = []
+    for path in OWN:
+        base_copy, tip_copy, own_copy = [text.replace("\r\n", "\n") for text in
+                                         (text_of(repo, base, path), text_of(repo, tip, path), text_of(ROOT, None, path))]
+        if path == SECURITY_YML:
+            base_copy, tip_copy, own_copy = image_or_none(base_copy), image_or_none(tip_copy), image_or_none(own_copy)
+        if own_copy == tip_copy != base_copy:
+            found.append(path)
+    return found
 
 
 def added_ignore_lines(repo, log_opts):
@@ -451,15 +486,18 @@ def scan(repo, what, engine, say=print):
         if listed.returncode != 0:
             raise ScanError("git cannot list %s here: %s" % (log_opts, listed.stderr.decode("utf-8", "replace").strip()))
         rev = tip
-    security = text_of(repo, rev, SECURITY_YML) or text_of(repo, None, SECURITY_YML) or text_of(ROOT, None, SECURITY_YML)
     ignore_text = text_of(repo, rev, IGNORE)
     chosen = choose(engine)
     if chosen is None:
         say("scan-secrets: no scanner - neither Docker, nor HM_SECRET_SCAN_SSH, nor gitleaks on PATH. The scan cannot "
             "run, so nothing is let through (CONTRIBUTING.md, 'Secrets', says how to get one).")
         return 3
+    image = None
     if chosen in ("docker", "ssh"):
-        image = image_of(security)
+        # The scanner's image and the rules script both this tree's own, never the range's:
+        # the two are written for each other (the script refuses an image whose allowlist
+        # is not the one it names), and the range chooses neither what scans it nor how.
+        image = image_of(text_of(ROOT, None, SECURITY_YML))
         rules = rules_script()
         git_dir = git(repo, "rev-parse", "--path-format=absolute", "--git-common-dir").stdout.decode("utf-8").strip()
         if chosen == "docker":
@@ -494,6 +532,20 @@ def scan(repo, what, engine, say=print):
                 "pipeline on (this scan ran this tree's copy) - read them:" % (len(changed), RULES_SCRIPT))
             for line in changed:
                 say("    " + line)
+        if image:
+            theirs = image_or_none(text_of(repo, tip, SECURITY_YML))
+            if theirs != image:
+                say("scan-secrets: the range's tip names %s for secret_detection, where this tree names %s, which this "
+                    "scan ran: this scan did not run the range's, which for a batch master's secret_detection runs "
+                    "first, once the batch has landed - compare the two over the history before "
+                    "(ContinuousIntegration.md, \"Re-pinning secret_detection's analyzer\")"
+                    % (theirs or "no image pinned by digest", image))
+        own = judged_by_its_own(repo, log_opts)
+        if own:
+            say("scan-secrets: this scan ran from a tree whose %s %s the range's own, which the range changes: the range "
+                "was judged by its own copies. A landing runs from a checkout of master (ContinuousIntegration.md, "
+                "\"What the secret scans read\")" % (own[0] if len(own) == 1 else ", ".join(own[:-1]) + " and " + own[-1],
+                                                       "is" if len(own) == 1 else "are"))
     if not findings:
         say("scan-secrets: %s scanned by %s - nothing found" % (subject, how))
         return 0
@@ -678,19 +730,23 @@ RANGE_IGNORED = "%s:build/x.txt:gitlab_personal_access_token:1" % ("5" * 40)
 
 
 def throwaway_range(work):
-    """A repository of two commits, made in work for the self-test, whose HEAD~1..HEAD is a
-    range that changes what a scan could be made to take from it: each commit names an
-    image of its own for secret_detection and carries a rules script of its own, and the
-    tip adds a line to .gitleaksignore. The range scans read it, not this tree's history,
-    which the checkers job fetches one commit deep (GIT_DEPTH 1): there this tree has no
-    HEAD~1, and a test of its own range would be left out without a word. Made with git's
-    plumbing, so that no hook runs and nothing is signed. ScanError when git refuses."""
+    """A repository of three commits, made in work for the self-test. HEAD~2..HEAD~1 is a
+    range that changes what a scan could be made to take from it: each of its two commits
+    names an image of its own for secret_detection and carries a rules script of its own,
+    and its tip adds a line to .gitleaksignore. HEAD~1..HEAD brings this tree's own copies
+    of OWN, as a batch that changes them has them when it is scanned from its own worktree.
+    The range scans read it, not this tree's history, which the checkers job fetches one
+    commit deep (GIT_DEPTH 1): there this tree has no HEAD~1, and a test of its own range
+    would be left out without a word. Made with git's plumbing, so that no hook runs and
+    nothing is signed. ScanError when git refuses."""
     git(work, "init", "-q")
     parent = None
-    for image, rules, ignore in ((RANGE_IMAGES[0], RANGE_RULES[0], "# the base's\n"),
-                                 (RANGE_IMAGES[1], RANGE_RULES[1], "# the base's\n%s\n" % RANGE_IGNORED)):
-        files = {SECURITY_YML: "secret_detection:\n  image: %s\n  needs: []\n" % image, RULES_SCRIPT: rules, IGNORE: ignore,
-                 "build/x.txt": "nothing to find\n"}
+    own = dict((path, text_of(ROOT, None, path).replace("\r\n", "\n")) for path in OWN)
+    for files in ({SECURITY_YML: "secret_detection:\n  image: %s\n  needs: []\n" % RANGE_IMAGES[0], RULES_SCRIPT: RANGE_RULES[0],
+                   IGNORE: "# the base's\n", "build/x.txt": "nothing to find\n"},
+                  {SECURITY_YML: "secret_detection:\n  image: %s\n  needs: []\n" % RANGE_IMAGES[1], RULES_SCRIPT: RANGE_RULES[1],
+                   IGNORE: "# the base's\n%s\n" % RANGE_IGNORED},
+                  own):
         for path, text in sorted(files.items()):
             blob = git(work, "hash-object", "-w", "--stdin", input=text.encode("utf-8")).stdout.decode("ascii").strip()
             git(work, "update-index", "--add", "--cacheinfo", "100644,%s,%s" % (blob, path))
@@ -719,22 +775,27 @@ def range_self_test(repo, expect):
             expect(False, "a range whose base is not here is refused before any scanner runs: exit %s, %s" % (code, said))
         except ScanError:
             expect(not asked, "the scanner is not asked about a range git cannot list")
-        # The container is handed this script's own rules script, whatever the range's tip
-        # carries, and the tip's .gitleaksignore; and the reader is shown the lines the range
-        # adds to the one and changes in the other.
+        # The container is handed this script's own rules script and runs in this tree's own
+        # image, whatever the range's tip names, with the tip's .gitleaksignore; and the
+        # reader is shown the line the range adds to the one, the lines it changes in the
+        # other, and the image its tip names that this scan did not run.
         own = rules_script()
+        own_image = image_of(text_of(ROOT, None, SECURITY_YML))
         os.environ["HM_SECRET_SCAN_SSH"] = "u@h:/g/.git"
         for engine in ("docker", "ssh"):
             del asked[:]
             said = []
             try:
-                code = scan(repo, ("range", "HEAD~1..HEAD"), engine, say=said.append)
+                code = scan(repo, ("range", "HEAD~2..HEAD~1"), engine, say=said.append)
             except ScanError as e:
                 expect(False, "a range scan with %s stood in for: %s" % (engine, e))
                 continue
             handed = asked[0] if len(asked) == 1 and asked[0][0] == engine else None
             expect(code == 0 and handed is not None and own.strip() and handed[-1] == own and "the range's own" not in handed[-1],
                    "with %s the container is given this script's own %s, not the range's: %s %s" % (engine, RULES_SCRIPT, code, said))
+            expect(handed is not None and handed[1] == own_image and own_image not in RANGE_IMAGES,
+                   "with %s the scan runs in this tree's secret_detection image, %s, not the range's: %s"
+                   % (engine, own_image, handed and handed[1]))
             expect(handed is not None and RANGE_IGNORED in handed[-3],
                    "with %s the container is given the range's tip's %s: %s" % (engine, IGNORE, handed and handed[-3]))
             shown = "\n".join(said)
@@ -742,13 +803,26 @@ def range_self_test(repo, expect):
                    and "changes 2 line(s) of %s" % RULES_SCRIPT in shown and "+echo the range's own rules" in shown,
                    "with %s the reader is shown the line the range adds to %s and the lines it changes in %s: %s"
                    % (engine, IGNORE, RULES_SCRIPT, shown))
+            expect("the range's tip names %s for secret_detection, where this tree names %s, which this scan ran"
+                   % (RANGE_IMAGES[1], own_image) in shown and "judged by its own" not in shown,
+                   "with %s the reader is shown the image the range's tip names, which this scan did not run: %s"
+                   % (engine, shown))
+        # Run from a tree whose copies of OWN are the range's own - here the range brings
+        # this tree's - the scan says that the range was judged by its own copies.
+        del asked[:]
+        said = []
+        code = scan(repo, ("range", "HEAD~1..HEAD"), "docker", say=said.append)
+        shown = "\n".join(said)
+        expect(code == 0 and "whose %s, %s and %s are the range's own" % OWN in shown and "judged by its own" in shown
+               and "for secret_detection, where this tree names" not in shown,
+               "a scan run from a tree whose copies are the range's own says so: %s %s" % (code, shown))
         # With no scanner the scan refuses, exit 3.
         del asked[:]
         os.environ.pop("HM_SECRET_SCAN_SSH", None)
         os.environ.pop("HM_GITLEAKS", None)
         shutil.which = lambda name: None
         said = []
-        code = scan(repo, ("range", "HEAD~1..HEAD"), "auto", say=said.append)
+        code = scan(repo, ("range", "HEAD~2..HEAD~1"), "auto", say=said.append)
         expect(code == 3 and not asked and any("no scanner" in l for l in said),
                "with no scanner the scan refuses, exit 3: %s %s" % (code, said))
     finally:

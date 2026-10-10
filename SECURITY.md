@@ -789,8 +789,9 @@ machine against the release's commit and the same gate over their reports before
 - On GitHub, secret scanning with push protection refused a push that carried a real secret. On GitLab push
   protection is GitLab Ultimate, so the refusal happens before the push instead, on the pushing machine: the
   repository ships a pre-commit and a pre-push hook (`build/hooks/`; [CONTRIBUTING.md](CONTRIBUTING.md#secrets))
-  that run `build/scan-secrets.py` - gitleaks from the image the `secret_detection` job pins, with GitLab's rules
-  and `.gitleaksignore` - and refuse the commit or the push on a finding, or when no scanner can run. git runs no
+  that run `build/scan-secrets.py` - gitleaks from the image the `secret_detection` job of the clone's own working
+  tree pins, with GitLab's rules and `.gitleaksignore` - and refuse the commit or the push on a finding, or when no
+  scanner can run. git runs no
   hook a clone has not turned on, so each clone turns them on once (`git config core.hooksPath build/hooks`); a
   clone that has not is not refused by them. The maintainer's landing, the way changes reach `master`, runs the
   same scan over every commit a batch brings to `master` and pushes nothing when it finds one or cannot run. `.gitignore` leaves the usual key and credential files
