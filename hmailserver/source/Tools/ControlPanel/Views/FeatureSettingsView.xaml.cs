@@ -3844,7 +3844,11 @@ namespace hMailServer.ControlPanel.Views
          List<Setting> refused = cards_.SelectMany(card => card.Settings).Where(setting => !setting.Validate()).ToList();
          if (refused.Count > 0)
          {
-            saveState_.Refuse(L("Nothing was saved: correct what is marked below, then save again."));
+            // Withdrawn as the reader puts the marked values right, as every refusal a
+            // page makes before it writes is (SaveStateNotice): asked again as the
+            // editors change.
+            saveState_.Refuse(L("Nothing was saved: correct what is marked below, then save again."),
+               () => cards_.SelectMany(card => card.Settings).Any(setting => setting.Refusal != null));
             DialogFields.ShowError(refused[0].Field, refused[0].Field.Error);
             return false;
          }

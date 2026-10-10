@@ -283,7 +283,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// another edit was unsaved.
       /// </summary>
       [Theory]
-      [InlineData("Views/FeatureSettingsView.xaml.cs", 1)]
+      [InlineData("Views/FeatureSettingsView.xaml.cs", 2)]
       [InlineData("Views/LdapSettingsView.cs", 3)]
       [InlineData("Views/DirectorySyncView.cs", 0)]
       public void ARefusalBeforeWriting_IsTheKindThatIsWithdrawn(string file, int refusals)
