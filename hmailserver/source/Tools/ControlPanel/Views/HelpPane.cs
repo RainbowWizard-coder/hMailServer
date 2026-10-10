@@ -248,7 +248,9 @@ namespace hMailServer.ControlPanel.Views
             headings_.Children.Clear();
             headingBlocks_ = new Dictionary<string, Block>();
             title_.Text = name ?? "";
-            ShowFromTheTop_(new FlowDocument(new Paragraph(new Run(L("This document is not in this copy of the program.")))));
+            FlowDocument missing = MarkdownFlow.NewDocument();
+            missing.Blocks.Add(new Paragraph(new Run(L("This document is not in this copy of the program."))));
+            ShowFromTheTop_(missing);
             UpdateWikiLink_();
             return;
          }
@@ -301,10 +303,10 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private FlowDocument DocumentList_(IEnumerable<Block> before)
       {
-         // Ragged right, as a document the pane renders is (MarkdownFlow): a
-         // FlowDocument justifies by default, which spread a long title's words.
-         var document = new FlowDocument { FontFamily = new System.Windows.Media.FontFamily(Typography.UiFontFamily), FontSize = Typography.Body, PagePadding = new Thickness(0), TextAlignment = TextAlignment.Left };
-         document.SetResourceReference(FlowDocument.ForegroundProperty, "TextFillColorPrimaryBrush");
+         // Ragged right and unhyphenated, as a document the pane renders is
+         // (MarkdownFlow.NewDocument): a FlowDocument justifies by default, which
+         // spread a long title's words.
+         FlowDocument document = MarkdownFlow.NewDocument();
          foreach (Block block in before ?? Array.Empty<Block>())
             document.Blocks.Add(block);
          AddDocumentSections_(document);

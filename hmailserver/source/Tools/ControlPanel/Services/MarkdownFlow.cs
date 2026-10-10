@@ -41,6 +41,26 @@ namespace hMailServer.ControlPanel.Services
       public static Built Build(IReadOnlyList<MdBlock> blocks, Action<string, string> openDocument)
       {
          var headings = new Dictionary<string, Block>(StringComparer.Ordinal);
+         FlowDocument document = NewDocument();
+
+         foreach (Block block in Blocks(blocks, openDocument, headings, 0))
+            document.Blocks.Add(block);
+
+         return new Built { Document = document, Headings = headings };
+      }
+
+      /// <summary>
+      /// An empty document in the help pane's face, size and colour, ragged right
+      /// and unhyphenated: every document the pane shows starts here, the ones it
+      /// renders and the ones it writes itself - the list of documents and the
+      /// line that says a document is missing. A FlowDocument justifies by
+      /// default, which spread a wrapped title's words across the pane in All
+      /// documentation ("Account  recovery:  a  recovery  address"), and the
+      /// missing document's line was in the viewer's own face and size (review
+      /// finding F026).
+      /// </summary>
+      public static FlowDocument NewDocument()
+      {
          var document = new FlowDocument
          {
             FontFamily = new FontFamily(Typography.UiFontFamily),
@@ -50,11 +70,7 @@ namespace hMailServer.ControlPanel.Services
             IsHyphenationEnabled = false
          };
          document.SetResourceReference(FlowDocument.ForegroundProperty, "TextFillColorPrimaryBrush");
-
-         foreach (Block block in Blocks(blocks, openDocument, headings, 0))
-            document.Blocks.Add(block);
-
-         return new Built { Document = document, Headings = headings };
+         return document;
       }
 
       private static IEnumerable<Block> Blocks(IReadOnlyList<MdBlock> blocks, Action<string, string> openDocument, Dictionary<string, Block> headings, int depth)

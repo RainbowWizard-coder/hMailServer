@@ -3369,6 +3369,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   old names and their new ones, and the account-rules list editor nothing built, whose subtitle said a rule's criteria
   could not be edited here, is gone with its seven texts (F315). `AboutPageTests` and `HelpDocumentListTests` hold it.
 
+- **Fixed: the help pane's list of documents was justified.** All documentation, and the list a page without a guide
+  shows, spread a wrapped title's words across the pane ("Account  recovery:  a  recovery  address  and  one-time")
+  while the documents beside them were ragged right, and the line that says a document is not in this copy was in the
+  viewer's own face and size. Every document the pane shows - the ones it renders and the ones it writes itself - now
+  starts from one document in the pane's face, size and colour, ragged right and unhyphenated
+  (`MarkdownFlow.NewDocument`). `HelpDocumentTypographyTests` holds it.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
