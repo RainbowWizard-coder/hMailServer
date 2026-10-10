@@ -810,6 +810,9 @@
   <data name="ARC sealing is on, but no active domain has DKIM signing with a selector and key file configured, so forwarded mail is silently not sealed at all." xml:space="preserve">
     <value>Pečetění ARC je zapnuto, ale žádná aktivní doména nemá nastavené podepisování DKIM se selektorem a souborem klíče, takže se přeposlaná pošta potichu vůbec nepečetí.</value>
   </data>
+  <data name="ARC sealing is on, but the domain list could not be read, so whether a domain has a DKIM key to seal with cannot be told: {0}" xml:space="preserve">
+    <value>Pečetění ARC je zapnuto, ale seznam domén nelze načíst, takže nelze určit, zda má některá doména klíč DKIM, kterým by pečetila: {0}</value>
+  </data>
   <data name="ARC sealing of forwarded mail - needs a domain DKIM key" xml:space="preserve">
     <value>Pečetění přeposlané pošty pomocí ARC – vyžaduje DKIM klíč domény</value>
   </data>
@@ -12691,6 +12694,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read." xml:space="preserve">
     <value>Souhrnné zprávy DMARC a zprávy TLS-RPT, které příjemci pošty této domény posílají zpět, se čtou z jedné adresy domény a Control Deck zobrazuje v grafu, kdo odesílá jako tato doména a s jakým výsledkem. Zveřejněte adresu jako rua=mailto: v záznamech TXT _dmarc a _smtp._tls domény. Účet nebo alias na této adrese vytvořte sami; server to neudělá, a bez uvedené adresy se nic nečte.</value>
   </data>
+  <data name="The DMARC failure score could not be read from the server, so whether ARC filtering can change any message's score cannot be told." xml:space="preserve">
+    <value>Skóre za selhání DMARC se ze serveru nepodařilo přečíst, takže nelze určit, zda filtrování ARC může změnit skóre některé zprávy.</value>
+  </data>
   <data name="The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first." xml:space="preserve">
     <value>Skóre za selhání DMARC je nyní {0}. ARC funguje tak, že toto skóre vyvažuje, takže při nule nemůže filtrování ARC udělat nic, ani když jsou uvedeni důvěryhodní pečetitelé. Nejprve nastavte kladné skóre za selhání DMARC na stránce Nastavení antispamu.</value>
   </data>
@@ -13241,6 +13247,12 @@ Označte klíč výše a zkopírujte ho ručně - znovu už se nezobrazí.</valu
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>Seznam domén neobsahuje žádný název domény. Nechte pole prázdné, aby klíč působil na každou doménu - seznam samých oddělovačů by potichu znamenal totéž, což není to, oč jste žádali.</value>
+  </data>
+  <data name="The domain list could not be read, so not every domain's _mta-sts record was looked up: {0}" xml:space="preserve">
+    <value>Seznam domén nelze načíst, takže záznam _mta-sts nebyl vyhledán u všech domén: {0}</value>
+  </data>
+  <data name="The domain list could not be read: {0}" xml:space="preserve">
+    <value>Seznam domén nelze načíst: {0}</value>
   </data>
   <data name="The domains this server hosts, with their accounts, aliases and distribution lists." xml:space="preserve">
     <value>Domény, které tento server hostuje, s jejich účty, aliasy a distribučními seznamy.</value>

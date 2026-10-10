@@ -804,6 +804,9 @@
   <data name="ARC sealing is on, but no active domain has DKIM signing with a selector and key file configured, so forwarded mail is silently not sealed at all." xml:space="preserve">
     <value>ARC 签封已打开，但没有任何活动的域配置了带选择器和密钥文件的 DKIM 签名，因此转发邮件根本不会被签封，而且不会有任何提示。</value>
   </data>
+  <data name="ARC sealing is on, but the domain list could not be read, so whether a domain has a DKIM key to seal with cannot be told: {0}" xml:space="preserve">
+    <value>ARC 签封已开启，但无法读取域列表，因此无法判断是否有域拥有可用于签封的 DKIM 密钥：{0}</value>
+  </data>
   <data name="ARC sealing of forwarded mail - needs a domain DKIM key" xml:space="preserve">
     <value>转发邮件的 ARC 签封 - 需要一个域的 DKIM 密钥</value>
   </data>
@@ -12531,6 +12534,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read." xml:space="preserve">
     <value>此域邮件的接收方回送的 DMARC 汇总报告和 TLS-RPT 报告从该域的一个地址读取，Control Deck 会以图表显示谁在以此域名发送以及结果如何。请将该地址以 rua=mailto: 的形式发布到该域的 _dmarc 和 _smtp._tls TXT 记录中。该地址对应的账户或别名需要您自行创建；服务器不会创建，未指定地址时不读取任何内容。</value>
   </data>
+  <data name="The DMARC failure score could not be read from the server, so whether ARC filtering can change any message's score cannot be told." xml:space="preserve">
+    <value>无法从服务器读取 DMARC 失败分数，因此无法判断 ARC 过滤能否改变任何邮件的分数。</value>
+  </data>
   <data name="The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first." xml:space="preserve">
     <value>DMARC 失败分数当前为 {0}。ARC 通过抵消该分数起作用，因此在为零时，即使列出了受信任的密封者，ARC 过滤也无能为力。请先在“反垃圾邮件设置”页设置一个正的 DMARC 失败分数。</value>
   </data>
@@ -13063,6 +13069,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>域列表中没有任何域名。请将此框留空以让密钥作用于所有域 - 只有分隔符的列表会悄悄地表示同样的意思，而那并不是您想要的。</value>
+  </data>
+  <data name="The domain list could not be read, so not every domain's _mta-sts record was looked up: {0}" xml:space="preserve">
+    <value>无法读取域列表，因此并未查询每个域的 _mta-sts 记录：{0}</value>
+  </data>
+  <data name="The domain list could not be read: {0}" xml:space="preserve">
+    <value>无法读取域列表：{0}</value>
   </data>
   <data name="The domains this server hosts, with their accounts, aliases and distribution lists." xml:space="preserve">
     <value>本服务器托管的域，以及它们的账户、别名和分发列表。</value>

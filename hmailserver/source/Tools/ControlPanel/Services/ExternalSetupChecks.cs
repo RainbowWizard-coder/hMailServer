@@ -224,6 +224,11 @@ namespace hMailServer.ControlPanel.Services
       // shown at one level, Critical, wherever it is shown.
       private bool linkLost_;
 
+      // Why the domain list could not be read, or not in full; null when it was. The
+      // items that judge the domains say so as Cannot tell, where an empty list from a
+      // read that failed had DKIM signing say that no domains are configured.
+      private string domainListError_;
+
       /// <summary>The items of this run, kept so the DNS pass can update them in place.</summary>
       private List<SetupItem> items_ = new();
 
@@ -307,6 +312,7 @@ namespace hMailServer.ControlPanel.Services
             failedReads_++;
             firstError_ ??= ServerSession.DescribeComError(ex);
             linkLost_ |= ServerSession.IsTransportFailure(ex);
+            domainListError_ = ServerSession.DescribeComError(ex);
          }
          finally
          {
@@ -660,6 +666,15 @@ namespace hMailServer.ControlPanel.Services
          {
             failedReads_++;
             firstError_ ??= ServerSession.DescribeComError(ex);
+
+            // A list that could not be read in full is one item that cannot be told,
+            // as a list that could not be read at all is, where the items after the
+            // fault were left out and counted nowhere.
+            items.Clear();
+            SetupItem unread = FirstHourItem("domain");
+            unread.Add(SetupItemState.CannotTell, F("The server's checklist could not be read: {0}", ServerSession.DescribeComError(ex)));
+            unread.AggregateFromFindings();
+            items.Add(unread);
          }
 
          return items;
@@ -997,11 +1012,17 @@ namespace hMailServer.ControlPanel.Services
 
          var signing = domains.Where(d => d.SignEnabled).ToList();
 
-         if (domains.Count == 0)
+         // A list that could not be read says nothing of the domains it did not give:
+         // the item cannot be told, and the domains it gave are judged as before.
+         bool listed = domainListError_ == null;
+         if (!listed)
+            item.Add(SetupItemState.CannotTell, F("The domain list could not be read: {0}", domainListError_));
+
+         if (listed && domains.Count == 0)
          {
             item.Add(SetupItemState.NotNeeded, L("No domains are configured, so there is nothing to sign and no record to publish."));
          }
-         else if (signing.Count == 0)
+         else if (listed && signing.Count == 0)
          {
             item.Add(SetupItemState.NotNeeded, L("No domain has DKIM signing switched on, so no DNS record is required."));
          }
@@ -1195,6 +1216,13 @@ namespace hMailServer.ControlPanel.Services
             item.Add(SetupItemState.ActionNeeded,
                F("The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first.", dmarcFailureScore));
          }
+         else if (failedReads_ != failuresBefore && failuresBefore == arcFailuresBefore && arcEnabled)
+         {
+            // ARC filtering is on and the score it offsets could not be read: whether
+            // it can do anything cannot be told, where the item said Done.
+            item.Add(SetupItemState.CannotTell,
+               L("The DMARC failure score could not be read from the server, so whether ARC filtering can change any message's score cannot be told."));
+         }
 
          item.AggregateFromFindings();
          return item;
@@ -1234,6 +1262,12 @@ namespace hMailServer.ControlPanel.Services
             {
                item.Add(SetupItemState.Done,
                   L("ARC sealing is on and at least one active domain has a DKIM selector and key to seal with. The DNS side is covered by the DKIM item above - the seal verifies against the same TXT record."));
+            }
+            else if (domainListError_ != null)
+            {
+               // None of the domains read can seal; one the list did not give might.
+               item.Add(SetupItemState.CannotTell,
+                  F("ARC sealing is on, but the domain list could not be read, so whether a domain has a DKIM key to seal with cannot be told: {0}", domainListError_));
             }
             else
             {
@@ -1299,6 +1333,10 @@ namespace hMailServer.ControlPanel.Services
          else
          {
             item.Add(SetupItemState.Done, L("The server side is in place: hosting is enabled, the HTTPS port is set, and a certificate source exists."));
+
+            // The records of domains the list did not give were not looked up.
+            if (domainListError_ != null)
+               item.Add(SetupItemState.CannotTell, F("The domain list could not be read, so not every domain's _mta-sts record was looked up: {0}", domainListError_));
 
             foreach (DomainDkim domain in domains.Where(d => d.Active))
             {

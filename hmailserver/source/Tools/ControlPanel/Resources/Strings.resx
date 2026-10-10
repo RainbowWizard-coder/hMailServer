@@ -804,6 +804,9 @@
   <data name="ARC sealing is on, but no active domain has DKIM signing with a selector and key file configured, so forwarded mail is silently not sealed at all." xml:space="preserve">
     <value>ARC sealing is on, but no active domain has DKIM signing with a selector and key file configured, so forwarded mail is silently not sealed at all.</value>
   </data>
+  <data name="ARC sealing is on, but the domain list could not be read, so whether a domain has a DKIM key to seal with cannot be told: {0}" xml:space="preserve">
+    <value>ARC sealing is on, but the domain list could not be read, so whether a domain has a DKIM key to seal with cannot be told: {0}</value>
+  </data>
   <data name="ARC sealing of forwarded mail - needs a domain DKIM key" xml:space="preserve">
     <value>ARC sealing of forwarded mail - needs a domain DKIM key</value>
   </data>
@@ -12531,6 +12534,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read." xml:space="preserve">
     <value>The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read.</value>
   </data>
+  <data name="The DMARC failure score could not be read from the server, so whether ARC filtering can change any message's score cannot be told." xml:space="preserve">
+    <value>The DMARC failure score could not be read from the server, so whether ARC filtering can change any message's score cannot be told.</value>
+  </data>
   <data name="The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first." xml:space="preserve">
     <value>The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first.</value>
   </data>
@@ -13063,6 +13069,12 @@ Select the key above and copy it by hand - it will not be shown again.</value>
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for.</value>
+  </data>
+  <data name="The domain list could not be read, so not every domain's _mta-sts record was looked up: {0}" xml:space="preserve">
+    <value>The domain list could not be read, so not every domain's _mta-sts record was looked up: {0}</value>
+  </data>
+  <data name="The domain list could not be read: {0}" xml:space="preserve">
+    <value>The domain list could not be read: {0}</value>
   </data>
   <data name="The domains this server hosts, with their accounts, aliases and distribution lists." xml:space="preserve">
     <value>The domains this server hosts, with their accounts, aliases and distribution lists.</value>

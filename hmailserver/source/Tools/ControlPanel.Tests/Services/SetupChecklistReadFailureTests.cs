@@ -73,6 +73,73 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("!partial", render, StringComparison.Ordinal);
       }
 
+      [Fact]
+      public void AnUnreadDomainList_CannotBeTold_WhereDkimSaidNoDomainsAreConfigured()
+      {
+         // With the link lost, DKIM signing said "No domains are configured, so there is
+         // nothing to sign" - Not needed, from the empty list a read that failed returns.
+         // The list's failure is kept, and each item that judges the domains says it.
+         string checks = ChecksSource();
+         string read = WithheldRowTests.MemberText(checks, "private List<DomainDkim> ReadDomains()");
+         Assert.True(read != null, "ExternalSetupChecks.ReadDomains is gone.");
+         Assert.Contains("domainListError_ = ServerSession.DescribeComError(ex);", read, StringComparison.Ordinal);
+
+         string dkim = WithheldRowTests.MemberText(checks, "private SetupItem DkimItem(List<DomainDkim> domains, bool local)");
+         Assert.True(dkim != null, "ExternalSetupChecks.DkimItem is gone.");
+         Assert.Contains("bool listed = domainListError_ == null;", dkim, StringComparison.Ordinal);
+         Assert.Contains("item.Add(SetupItemState.CannotTell, F(\"The domain list could not be read: {0}\", domainListError_));", dkim, StringComparison.Ordinal);
+         // Not needed only from a list that was read.
+         Assert.Contains("if (listed && domains.Count == 0)", dkim, StringComparison.Ordinal);
+         Assert.Contains("else if (listed && signing.Count == 0)", dkim, StringComparison.Ordinal);
+
+         string sealing = WithheldRowTests.MemberText(checks, "private SetupItem ArcSealingItem(List<DomainDkim> domains, IniFeatureStore ini, bool iniReadable, string iniExcuse)");
+         Assert.True(sealing != null, "ExternalSetupChecks.ArcSealingItem is gone.");
+         int none = sealing.IndexOf("else if (domainListError_ != null)", StringComparison.Ordinal);
+         int action = sealing.IndexOf("item.Add(SetupItemState.ActionNeeded,", StringComparison.Ordinal);
+         Assert.True(none >= 0 && none < action, "ARC sealing says that no domain can seal before asking whether the domain list was read.");
+
+         string mtaSts = WithheldRowTests.MemberText(checks, "private SetupItem MtaStsItem(List<DomainDkim> domains, IniFeatureStore ini, bool iniReadable, string iniExcuse)");
+         Assert.True(mtaSts != null, "ExternalSetupChecks.MtaStsItem is gone.");
+         Assert.Contains("if (domainListError_ != null)\n               item.Add(SetupItemState.CannotTell, F(\"The domain list could not be read, so not every domain's _mta-sts record was looked up: {0}\", domainListError_));", mtaSts, StringComparison.Ordinal);
+      }
+
+      [Fact]
+      public void AnUnreadDmarcScore_OrChecklist_CannotBeTold()
+      {
+         string checks = ChecksSource();
+
+         // ARC filtering on, with sealers, and a DMARC failure score that could not be
+         // read: the item said Done, though at zero ARC does nothing.
+         string filtering = WithheldRowTests.MemberText(checks, "private SetupItem ArcFilteringItem()");
+         Assert.True(filtering != null, "ExternalSetupChecks.ArcFilteringItem is gone.");
+         Assert.Contains("else if (failedReads_ != failuresBefore && failuresBefore == arcFailuresBefore && arcEnabled)", filtering, StringComparison.Ordinal);
+
+         // A checklist the server gave that could not be parsed in full kept the items
+         // before the fault and left the rest out, counted nowhere: it is one item that
+         // cannot be told, as a checklist that could not be read at all is.
+         string firstHour = WithheldRowTests.MemberText(checks, "private List<SetupItem> FirstHourItems()");
+         Assert.True(firstHour != null, "ExternalSetupChecks.FirstHourItems is gone.");
+         int parse = firstHour.IndexOf("catch (Exception ex) when (ex is JsonException", StringComparison.Ordinal);
+         Assert.True(parse >= 0, "FirstHourItems no longer catches a checklist it cannot parse.");
+         string caught = firstHour.Substring(parse);
+         Assert.Contains("items.Clear();", caught, StringComparison.Ordinal);
+         Assert.Contains("unread.Add(SetupItemState.CannotTell, F(\"The server's checklist could not be read: {0}\", ServerSession.DescribeComError(ex)));", caught, StringComparison.Ordinal);
+         Assert.Contains("items.Add(unread);", caught, StringComparison.Ordinal);
+      }
+
+      private static string ChecksSource()
+      {
+         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory != null; directory = directory.Parent)
+         {
+            string candidate = Path.Join(directory.FullName, "ControlPanel", "Services", "ExternalSetupChecks.cs");
+            if (File.Exists(candidate))
+               return File.ReadAllText(candidate).Replace("\r\n", "\n");
+         }
+
+         Assert.Fail("ControlPanel/Services/ExternalSetupChecks.cs could not be found from the test binaries.");
+         return null;
+      }
+
       private static int CountOf(string text, string part)
       {
          int count = 0;

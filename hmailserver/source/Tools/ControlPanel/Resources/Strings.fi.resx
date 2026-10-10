@@ -804,6 +804,9 @@
   <data name="ARC sealing is on, but no active domain has DKIM signing with a selector and key file configured, so forwarded mail is silently not sealed at all." xml:space="preserve">
     <value>ARC-sinetöinti on käytössä, mutta yhdelläkään aktiivisella verkkotunnuksella ei ole DKIM-allekirjoitusta valitsimineen ja avaintiedostoineen, joten edelleenlähetettyä postia ei hiljaisesti sinetöidä lainkaan.</value>
   </data>
+  <data name="ARC sealing is on, but the domain list could not be read, so whether a domain has a DKIM key to seal with cannot be told: {0}" xml:space="preserve">
+    <value>ARC-sinetöinti on käytössä, mutta verkkotunnusluetteloa ei voitu lukea, joten ei voida sanoa, onko jollakin verkkotunnuksella DKIM-avainta, jolla sinetöidä: {0}</value>
+  </data>
   <data name="ARC sealing of forwarded mail - needs a domain DKIM key" xml:space="preserve">
     <value>Edelleenlähetetyn postin ARC-sinetöinti - vaatii verkkotunnuksen DKIM-avaimen</value>
   </data>
@@ -12531,6 +12534,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read." xml:space="preserve">
     <value>DMARC-koosteraportit ja TLS-RPT-raportit, jotka tämän toimialueen postin vastaanottajat lähettävät takaisin, luetaan yhdestä toimialueen osoitteesta, ja Control Deck piirtää kaavion siitä, kuka lähettää toimialueen nimissä ja millä tuloksella. Julkaise osoite muodossa rua=mailto: toimialueen TXT-tietueissa _dmarc ja _smtp._tls. Luo tili tai alias siihen itse; palvelin ei tee sitä, ja ilman nimettyä osoitetta mitään ei lueta.</value>
   </data>
+  <data name="The DMARC failure score could not be read from the server, so whether ARC filtering can change any message's score cannot be told." xml:space="preserve">
+    <value>DMARC-epäonnistumisen pistemäärää ei voitu lukea palvelimelta, joten ei voida sanoa, voiko ARC-suodatus muuttaa minkään viestin pistemäärää.</value>
+  </data>
   <data name="The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first." xml:space="preserve">
     <value>DMARC-epäonnistumisen pistemäärä on tällä hetkellä {0}. ARC toimii kumoamalla tuota pistemäärää, joten nollassa ARC-suodatus ei voi tehdä mitään, vaikka luotettuja sinetöijiä olisi lueteltu. Aseta ensin positiivinen DMARC-epäonnistumisen pistemäärä Roskapostisuojauksen asetukset -sivulla.</value>
   </data>
@@ -13063,6 +13069,12 @@ Valitse yllä oleva avain ja kopioi se käsin - sitä ei näytetä uudelleen.</v
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>Verkkotunnusluettelossa ei ole yhtään verkkotunnusta. Jätä kenttä tyhjäksi, jotta avain vaikuttaa jokaiseen verkkotunnukseen - pelkistä erottimista koostuva luettelo tarkoittaisi hiljaa samaa, mikä ei ole se, mitä pyysit.</value>
+  </data>
+  <data name="The domain list could not be read, so not every domain's _mta-sts record was looked up: {0}" xml:space="preserve">
+    <value>Verkkotunnusluetteloa ei voitu lukea, joten _mta-sts-tietuetta ei haettu jokaiselle verkkotunnukselle: {0}</value>
+  </data>
+  <data name="The domain list could not be read: {0}" xml:space="preserve">
+    <value>Verkkotunnusluetteloa ei voitu lukea: {0}</value>
   </data>
   <data name="The domains this server hosts, with their accounts, aliases and distribution lists." xml:space="preserve">
     <value>Tämän palvelimen isännöimät verkkotunnukset tileineen, aliaksineen ja jakelulistoineen.</value>

@@ -804,6 +804,9 @@
   <data name="ARC sealing is on, but no active domain has DKIM signing with a selector and key file configured, so forwarded mail is silently not sealed at all." xml:space="preserve">
     <value>Le scellement ARC est activé mais aucun domaine actif n'a de signature DKIM configurée avec un sélecteur et un fichier de clé, le courrier transféré n'est donc silencieusement pas scellé du tout.</value>
   </data>
+  <data name="ARC sealing is on, but the domain list could not be read, so whether a domain has a DKIM key to seal with cannot be told: {0}" xml:space="preserve">
+    <value>Le scellement ARC est activé, mais la liste des domaines n'a pas pu être lue, on ne peut donc pas dire si un domaine a une clé DKIM pour sceller : {0}</value>
+  </data>
   <data name="ARC sealing of forwarded mail - needs a domain DKIM key" xml:space="preserve">
     <value>Scellement ARC du courrier transféré - nécessite une clé DKIM de domaine</value>
   </data>
@@ -12531,6 +12534,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read." xml:space="preserve">
     <value>Les rapports agrégés DMARC et les rapports TLS-RPT que les destinataires du courrier de ce domaine renvoient sont lus depuis une adresse du domaine, et le Control Deck représente qui envoie en tant que le domaine et avec quel résultat. Publiez l'adresse en rua=mailto: dans les enregistrements TXT _dmarc et _smtp._tls du domaine. Créez vous-même le compte ou l'alias à cette adresse ; le serveur ne le fait pas, et sans adresse indiquée rien n'est lu.</value>
   </data>
+  <data name="The DMARC failure score could not be read from the server, so whether ARC filtering can change any message's score cannot be told." xml:space="preserve">
+    <value>Le score d'échec DMARC n'a pas pu être lu depuis le serveur, on ne peut donc pas dire si le filtrage ARC peut modifier le score d'un message.</value>
+  </data>
   <data name="The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first." xml:space="preserve">
     <value>Le score d'échec DMARC est actuellement de {0}. ARC agit en compensant ce score : à zéro, le filtrage ARC ne peut donc rien faire, même avec des scelleurs de confiance listés. Définissez d'abord un score d'échec DMARC positif sur la page Réglages anti-spam.</value>
   </data>
@@ -13063,6 +13069,12 @@ Sélectionnez la clé ci-dessus et copiez-la à la main - elle ne sera plus jama
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>La liste de domaines ne contient aucun nom de domaine. Laissez la case vide pour que la clé agisse sur tous les domaines - une liste de séparateurs signifierait silencieusement la même chose, ce qui n'est pas ce que vous avez demandé.</value>
+  </data>
+  <data name="The domain list could not be read, so not every domain's _mta-sts record was looked up: {0}" xml:space="preserve">
+    <value>La liste des domaines n'a pas pu être lue, l'enregistrement _mta-sts n'a donc pas été recherché pour chaque domaine : {0}</value>
+  </data>
+  <data name="The domain list could not be read: {0}" xml:space="preserve">
+    <value>La liste des domaines n'a pas pu être lue : {0}</value>
   </data>
   <data name="The domains this server hosts, with their accounts, aliases and distribution lists." xml:space="preserve">
     <value>Les domaines hébergés par ce serveur, avec leurs comptes, alias et listes de diffusion.</value>

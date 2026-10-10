@@ -814,6 +814,9 @@
   <data name="ARC sealing is on, but no active domain has DKIM signing with a selector and key file configured, so forwarded mail is silently not sealed at all." xml:space="preserve">
     <value>ARC シールの付与は有効ですが、セレクターとキー ファイルを設定した DKIM 署名を持つ有効なドメインが 1 つもないため、転送メールには何も告げられないままシールがまったく付きません。</value>
   </data>
+  <data name="ARC sealing is on, but the domain list could not be read, so whether a domain has a DKIM key to seal with cannot be told: {0}" xml:space="preserve">
+    <value>ARC シールの付与は有効ですが、ドメイン リストを読み取れなかったため、シールに使える DKIM 鍵を持つドメインがあるかどうか判断できません: {0}</value>
+  </data>
   <data name="ARC sealing of forwarded mail - needs a domain DKIM key" xml:space="preserve">
     <value>転送メールへの ARC シールの付与 - ドメインの DKIM キーが必要です</value>
   </data>
@@ -12541,6 +12544,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read." xml:space="preserve">
     <value>このドメインのメールの受信側が送り返す DMARC 集計レポートと TLS-RPT レポートは、ドメインのアドレス 1 つから読み取られ、Control Deck が誰がこのドメインとして送信し、どのような結果だったかをグラフにします。そのアドレスを、ドメインの _dmarc および _smtp._tls の TXT レコードに rua=mailto: として公開してください。そのアドレスのアカウントまたはエイリアスはご自身で作成してください。サーバーは作成せず、アドレスが指定されていなければ何も読み取りません。</value>
   </data>
+  <data name="The DMARC failure score could not be read from the server, so whether ARC filtering can change any message's score cannot be told." xml:space="preserve">
+    <value>DMARC 失敗スコアをサーバーから読み取れなかったため、ARC フィルタリングでメッセージのスコアが変わりうるかどうか判断できません。</value>
+  </data>
   <data name="The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first." xml:space="preserve">
     <value>DMARC 失敗スコアは現在 {0} です。ARC はそのスコアを相殺することで機能するため、ゼロでは信頼されたシーラーを列挙しても ARC フィルタリングは何もできません。まずスパム対策の設定ページで正の DMARC 失敗スコアを設定してください。</value>
   </data>
@@ -13073,6 +13079,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>ドメイン リストにドメイン名が含まれていません。キーをすべてのドメインに作用させるには、ボックスを空のままにしてください。区切り文字だけのリストは黙って同じ意味になりますが、それはあなたが求めたものではありません。</value>
+  </data>
+  <data name="The domain list could not be read, so not every domain's _mta-sts record was looked up: {0}" xml:space="preserve">
+    <value>ドメイン リストを読み取れなかったため、すべてのドメインの _mta-sts レコードを照会したわけではありません: {0}</value>
+  </data>
+  <data name="The domain list could not be read: {0}" xml:space="preserve">
+    <value>ドメイン リストを読み取れませんでした: {0}</value>
   </data>
   <data name="The domains this server hosts, with their accounts, aliases and distribution lists." xml:space="preserve">
     <value>このサーバーがホストするドメインと、そのアカウント、エイリアス、配布リスト。</value>

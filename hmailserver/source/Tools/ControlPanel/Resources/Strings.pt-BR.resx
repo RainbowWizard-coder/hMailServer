@@ -804,6 +804,9 @@
   <data name="ARC sealing is on, but no active domain has DKIM signing with a selector and key file configured, so forwarded mail is silently not sealed at all." xml:space="preserve">
     <value>A selagem ARC está ligada mas nenhum domínio ativo tem assinatura DKIM com seletor e arquivo de chave configurados, então e-mails encaminhados silenciosamente não são selados.</value>
   </data>
+  <data name="ARC sealing is on, but the domain list could not be read, so whether a domain has a DKIM key to seal with cannot be told: {0}" xml:space="preserve">
+    <value>A selagem ARC está ligada, mas a lista de domínios não pôde ser lida, então não é possível dizer se algum domínio tem uma chave DKIM com que selar: {0}</value>
+  </data>
   <data name="ARC sealing of forwarded mail - needs a domain DKIM key" xml:space="preserve">
     <value>Selagem ARC de e-mails encaminhados - precisa de uma chave DKIM do domínio</value>
   </data>
@@ -12531,6 +12534,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read." xml:space="preserve">
     <value>Os relatórios agregados DMARC e os relatórios TLS-RPT que os receptores do correio deste domínio devolvem são lidos de um endereço do domínio, e o Control Deck mostra em gráfico quem envia como o domínio e com que resultado. Publique o endereço como rua=mailto: nos registros TXT _dmarc e _smtp._tls do domínio. Crie você mesmo a conta ou o alias nesse endereço; o servidor não cria, e sem um endereço indicado nada é lido.</value>
   </data>
+  <data name="The DMARC failure score could not be read from the server, so whether ARC filtering can change any message's score cannot be told." xml:space="preserve">
+    <value>A pontuação de falha do DMARC não pôde ser lida do servidor, então não é possível dizer se a filtragem ARC pode alterar a pontuação de alguma mensagem.</value>
+  </data>
   <data name="The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first." xml:space="preserve">
     <value>A pontuação de falha do DMARC é atualmente {0}. O ARC funciona compensando essa pontuação, então em zero a filtragem ARC não pode fazer nada, mesmo com seladores confiáveis listados. Defina primeiro uma pontuação de falha do DMARC positiva na página Configurações antispam.</value>
   </data>
@@ -13063,6 +13069,12 @@ Selecione a chave acima e copie-a à mão - ela não será mostrada de novo.</va
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>A lista de domínios não contém nenhum nome de domínio. Deixe a caixa vazia para que a chave atue em todos os domínios - uma lista de separadores significaria silenciosamente a mesma coisa, o que não é o que você pediu.</value>
+  </data>
+  <data name="The domain list could not be read, so not every domain's _mta-sts record was looked up: {0}" xml:space="preserve">
+    <value>A lista de domínios não pôde ser lida, então o registro _mta-sts não foi consultado para todos os domínios: {0}</value>
+  </data>
+  <data name="The domain list could not be read: {0}" xml:space="preserve">
+    <value>A lista de domínios não pôde ser lida: {0}</value>
   </data>
   <data name="The domains this server hosts, with their accounts, aliases and distribution lists." xml:space="preserve">
     <value>Os domínios hospedados por este servidor, com suas contas, aliases e listas de distribuição.</value>

@@ -804,6 +804,9 @@
   <data name="ARC sealing is on, but no active domain has DKIM signing with a selector and key file configured, so forwarded mail is silently not sealed at all." xml:space="preserve">
     <value>El sellado ARC está activado pero ningún dominio activo tiene la firma DKIM configurada con selector y archivo de clave, así que el correo reenviado no se sella en absoluto, en silencio.</value>
   </data>
+  <data name="ARC sealing is on, but the domain list could not be read, so whether a domain has a DKIM key to seal with cannot be told: {0}" xml:space="preserve">
+    <value>El sellado ARC está activado, pero no se pudo leer la lista de dominios, así que no se puede saber si algún dominio tiene una clave DKIM con la que sellar: {0}</value>
+  </data>
   <data name="ARC sealing of forwarded mail - needs a domain DKIM key" xml:space="preserve">
     <value>Sellado ARC del correo reenviado - necesita una clave DKIM de dominio</value>
   </data>
@@ -12531,6 +12534,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read." xml:space="preserve">
     <value>Los informes agregados DMARC y los informes TLS-RPT que los receptores del correo de este dominio devuelven se leen desde una dirección del dominio, y el Control Deck muestra en un gráfico quién envía como el dominio y con qué resultado. Publique la dirección como rua=mailto: en los registros TXT _dmarc y _smtp._tls del dominio. Cree usted mismo la cuenta o el alias en ella; el servidor no lo hace, y sin una dirección indicada no se lee nada.</value>
   </data>
+  <data name="The DMARC failure score could not be read from the server, so whether ARC filtering can change any message's score cannot be told." xml:space="preserve">
+    <value>La puntuación por fallo de DMARC no pudo leerse del servidor, así que no se puede saber si el filtrado ARC puede cambiar la puntuación de algún mensaje.</value>
+  </data>
   <data name="The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first." xml:space="preserve">
     <value>La puntuación por fallo de DMARC es ahora mismo {0}. ARC funciona compensando esa puntuación, así que a cero el filtrado ARC no puede hacer nada aunque haya selladores de confianza listados. Ponga primero una puntuación positiva por fallo de DMARC en la página Ajustes antispam.</value>
   </data>
@@ -13063,6 +13069,12 @@ Seleccione la clave de arriba y cópiela a mano - no volverá a mostrarse.</valu
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>La lista de dominios no contiene ningún nombre de dominio. Deje la casilla vacía para que la clave actúe sobre todos los dominios - una lista de separadores significaría lo mismo en silencio, que no es lo que usted pidió.</value>
+  </data>
+  <data name="The domain list could not be read, so not every domain's _mta-sts record was looked up: {0}" xml:space="preserve">
+    <value>No se pudo leer la lista de dominios, así que no se consultó el registro _mta-sts de todos los dominios: {0}</value>
+  </data>
+  <data name="The domain list could not be read: {0}" xml:space="preserve">
+    <value>No se pudo leer la lista de dominios: {0}</value>
   </data>
   <data name="The domains this server hosts, with their accounts, aliases and distribution lists." xml:space="preserve">
     <value>Los dominios que aloja este servidor, con sus cuentas, alias y listas de distribución.</value>

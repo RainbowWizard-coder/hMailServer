@@ -804,6 +804,9 @@
   <data name="ARC sealing is on, but no active domain has DKIM signing with a selector and key file configured, so forwarded mail is silently not sealed at all." xml:space="preserve">
     <value>ARC mühürleme açık ama hiçbir etkin etki alanında seçici ve anahtar dosyası yapılandırılmış DKIM imzalama yok; bu nedenle iletilmiş postalar sessizce hiç mühürlenmiyor.</value>
   </data>
+  <data name="ARC sealing is on, but the domain list could not be read, so whether a domain has a DKIM key to seal with cannot be told: {0}" xml:space="preserve">
+    <value>ARC mühürleme açık, ancak etki alanı listesi okunamadı; bu yüzden mühürlemek için DKIM anahtarı olan bir etki alanı olup olmadığı anlaşılamıyor: {0}</value>
+  </data>
   <data name="ARC sealing of forwarded mail - needs a domain DKIM key" xml:space="preserve">
     <value>İletilen postaların ARC ile mühürlenmesi - bir etki alanı DKIM anahtarı gerektirir</value>
   </data>
@@ -12531,6 +12534,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read." xml:space="preserve">
     <value>Bu etki alanının postasını alan tarafların geri gönderdiği toplu DMARC raporları ve TLS-RPT raporları, etki alanının tek bir adresinden okunur ve Control Deck, kimin bu etki alanı olarak gönderdiğini ve hangi sonuçla gönderdiğini grafikle gösterir. Adresi, etki alanının _dmarc ve _smtp._tls TXT kayıtlarında rua=mailto: olarak yayımlayın. Bu adresteki hesabı veya takma adı kendiniz oluşturun; sunucu oluşturmaz ve adres belirtilmemişse hiçbir şey okunmaz.</value>
   </data>
+  <data name="The DMARC failure score could not be read from the server, so whether ARC filtering can change any message's score cannot be told." xml:space="preserve">
+    <value>DMARC başarısızlık puanı sunucudan okunamadı; bu yüzden ARC filtrelemenin herhangi bir iletinin puanını değiştirip değiştiremeyeceği anlaşılamıyor.</value>
+  </data>
   <data name="The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first." xml:space="preserve">
     <value>DMARC başarısızlık puanı şu anda {0}. ARC bu puanı dengeleyerek çalışır, bu yüzden sıfırda ARC filtreleme, güvenilen mühürleyiciler listelenmiş olsa bile hiçbir şey yapamaz. Önce Spam önleme ayarları sayfasında pozitif bir DMARC başarısızlık puanı ayarlayın.</value>
   </data>
@@ -13063,6 +13069,12 @@ Yukarıdaki anahtarı seçip elle kopyalayın - bir daha gösterilmeyecek.</valu
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>Etki alanı listesinde hiç etki alanı adı yok. Anahtarın her etki alanında etkili olması için kutuyu boş bırakın - yalnızca ayırıcılardan oluşan bir liste sessizce aynı anlama gelirdi, ki istediğiniz bu değil.</value>
+  </data>
+  <data name="The domain list could not be read, so not every domain's _mta-sts record was looked up: {0}" xml:space="preserve">
+    <value>Etki alanı listesi okunamadı; bu yüzden _mta-sts kaydı her etki alanı için sorgulanmadı: {0}</value>
+  </data>
+  <data name="The domain list could not be read: {0}" xml:space="preserve">
+    <value>Etki alanı listesi okunamadı: {0}</value>
   </data>
   <data name="The domains this server hosts, with their accounts, aliases and distribution lists." xml:space="preserve">
     <value>Bu sunucunun barındırdığı etki alanları; hesapları, diğer adları ve dağıtım listeleriyle birlikte.</value>

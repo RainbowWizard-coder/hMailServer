@@ -810,6 +810,9 @@
   <data name="ARC sealing is on, but no active domain has DKIM signing with a selector and key file configured, so forwarded mail is silently not sealed at all." xml:space="preserve">
     <value>Запечатывание ARC включено, но ни у одного активного домена не настроено подписывание DKIM с селектором и файлом ключа, поэтому пересылаемая почта молча не запечатывается вовсе.</value>
   </data>
+  <data name="ARC sealing is on, but the domain list could not be read, so whether a domain has a DKIM key to seal with cannot be told: {0}" xml:space="preserve">
+    <value>Запечатывание ARC включено, но не удалось прочитать список доменов, поэтому нельзя сказать, есть ли у какого-либо домена ключ DKIM для запечатывания: {0}</value>
+  </data>
   <data name="ARC sealing of forwarded mail - needs a domain DKIM key" xml:space="preserve">
     <value>Запечатывание ARC пересылаемой почты — нужен ключ DKIM домена</value>
   </data>
@@ -12691,6 +12694,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read." xml:space="preserve">
     <value>Сводные отчёты DMARC и отчёты TLS-RPT, которые получатели почты этого домена присылают обратно, читаются с одного адреса домена, а Control Deck строит график того, кто отправляет от имени домена и с каким результатом. Опубликуйте адрес как rua=mailto: в записях TXT _dmarc и _smtp._tls домена. Учётную запись или псевдоним по этому адресу создайте сами; сервер этого не делает, а без указанного адреса ничего не читается.</value>
   </data>
+  <data name="The DMARC failure score could not be read from the server, so whether ARC filtering can change any message's score cannot be told." xml:space="preserve">
+    <value>Не удалось прочитать с сервера оценку за провал DMARC, поэтому нельзя сказать, может ли фильтрация ARC изменить оценку какого-либо сообщения.</value>
+  </data>
   <data name="The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first." xml:space="preserve">
     <value>Оценка за провал DMARC сейчас равна {0}. ARC работает, компенсируя эту оценку, поэтому при нуле фильтрация ARC не может сделать ничего, даже если перечислены доверенные подписывающие домены. Сначала задайте положительную оценку за провал DMARC на странице «Параметры антиспама».</value>
   </data>
@@ -13241,6 +13247,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>В списке доменов нет ни одного имени домена. Оставьте поле пустым, чтобы ключ действовал на каждый домен - список из одних разделителей молча означал бы то же самое, а это не то, о чём вы просили.</value>
+  </data>
+  <data name="The domain list could not be read, so not every domain's _mta-sts record was looked up: {0}" xml:space="preserve">
+    <value>Не удалось прочитать список доменов, поэтому запись _mta-sts запрошена не для всех доменов: {0}</value>
+  </data>
+  <data name="The domain list could not be read: {0}" xml:space="preserve">
+    <value>Не удалось прочитать список доменов: {0}</value>
   </data>
   <data name="The domains this server hosts, with their accounts, aliases and distribution lists." xml:space="preserve">
     <value>Домены, размещённые на этом сервере, с их учётными записями, псевдонимами и списками рассылки.</value>

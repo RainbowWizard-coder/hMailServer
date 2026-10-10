@@ -804,6 +804,9 @@
   <data name="ARC sealing is on, but no active domain has DKIM signing with a selector and key file configured, so forwarded mail is silently not sealed at all." xml:space="preserve">
     <value>ARC-forsegling er på, men ingen aktive domener har DKIM-signering med selektor og nøkkelfil satt opp, så videresendt e-post forsegles ikke i det hele tatt, uten at noe sies om det.</value>
   </data>
+  <data name="ARC sealing is on, but the domain list could not be read, so whether a domain has a DKIM key to seal with cannot be told: {0}" xml:space="preserve">
+    <value>ARC-forsegling er på, men domenelisten kunne ikke leses, så det kan ikke avgjøres om et domene har en DKIM-nøkkel å forsegle med: {0}</value>
+  </data>
   <data name="ARC sealing of forwarded mail - needs a domain DKIM key" xml:space="preserve">
     <value>ARC-forsegling av videresendt e-post - krever en DKIM-nøkkel på et domene</value>
   </data>
@@ -12531,6 +12534,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read." xml:space="preserve">
     <value>De samlede DMARC-rapportene og TLS-RPT-rapportene som mottakerne av dette domenets post sender tilbake, leses fra én av domenets adresser, og Control Deck tegner hvem som sender som domenet og med hvilket resultat. Publiser adressen som rua=mailto: i domenets TXT-oppføringer _dmarc og _smtp._tls. Opprett kontoen eller aliaset på den selv; serveren gjør det ikke, og uten en angitt adresse leses ingenting.</value>
   </data>
+  <data name="The DMARC failure score could not be read from the server, so whether ARC filtering can change any message's score cannot be told." xml:space="preserve">
+    <value>DMARC-feilpoengene kunne ikke leses fra serveren, så det kan ikke avgjøres om ARC-filtrering kan endre poengene til noen melding.</value>
+  </data>
   <data name="The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first." xml:space="preserve">
     <value>DMARC-feilpoengene er for øyeblikket {0}. ARC virker ved å oppveie de poengene, så ved null kan ARC-filtrering ikke gjøre noe selv med betrodde forseglere oppført. Sett først positive DMARC-feilpoeng på siden Antispam-innstillinger.</value>
   </data>
@@ -13063,6 +13069,12 @@ Merk nøkkelen ovenfor og kopier den for hånd - den vises ikke igjen.</value>
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>Domenelisten inneholder ingen domenenavn. La feltet stå tomt for å la nøkkelen virke på alle domener - en liste med skilletegn ville stille betydd det samme, som ikke er det du ba om.</value>
+  </data>
+  <data name="The domain list could not be read, so not every domain's _mta-sts record was looked up: {0}" xml:space="preserve">
+    <value>Domenelisten kunne ikke leses, så _mta-sts-oppføringen ble ikke slått opp for alle domener: {0}</value>
+  </data>
+  <data name="The domain list could not be read: {0}" xml:space="preserve">
+    <value>Domenelisten kunne ikke leses: {0}</value>
   </data>
   <data name="The domains this server hosts, with their accounts, aliases and distribution lists." xml:space="preserve">
     <value>Domenene denne serveren huser, med kontoene, aliasene og distribusjonslistene deres.</value>

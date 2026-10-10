@@ -804,6 +804,9 @@
   <data name="ARC sealing is on, but no active domain has DKIM signing with a selector and key file configured, so forwarded mail is silently not sealed at all." xml:space="preserve">
     <value>Die ARC-Siegelung ist ein, aber keine aktive Domain hat eine DKIM-Signierung mit Selektor und Schlüsseldatei konfiguriert, weitergeleitete Mail wird also stillschweigend gar nicht gesiegelt.</value>
   </data>
+  <data name="ARC sealing is on, but the domain list could not be read, so whether a domain has a DKIM key to seal with cannot be told: {0}" xml:space="preserve">
+    <value>Die ARC-Siegelung ist eingeschaltet, aber die Domainliste konnte nicht gelesen werden, daher lässt sich nicht sagen, ob eine Domain einen DKIM-Schlüssel zum Siegeln hat: {0}</value>
+  </data>
   <data name="ARC sealing of forwarded mail - needs a domain DKIM key" xml:space="preserve">
     <value>ARC-Siegelung weitergeleiteter Mail - braucht einen DKIM-Schlüssel der Domain</value>
   </data>
@@ -12531,6 +12534,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read." xml:space="preserve">
     <value>Die DMARC-Sammelberichte und die TLS-RPT-Berichte, die die Empfänger der Post dieser Domain zurückschicken, werden aus einer Adresse der Domain gelesen, und das Control Deck zeigt in einem Diagramm, wer als die Domain sendet und mit welchem Ergebnis. Veröffentlichen Sie die Adresse als rua=mailto: in den TXT-Einträgen _dmarc und _smtp._tls der Domain. Legen Sie das Konto oder den Alias dafür selbst an; der Server tut es nicht, und ohne benannte Adresse wird nichts gelesen.</value>
   </data>
+  <data name="The DMARC failure score could not be read from the server, so whether ARC filtering can change any message's score cannot be told." xml:space="preserve">
+    <value>Die DMARC-Fehlerbewertung konnte nicht vom Server gelesen werden, daher lässt sich nicht sagen, ob die ARC-Filterung die Bewertung einer Nachricht ändern kann.</value>
+  </data>
   <data name="The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first." xml:space="preserve">
     <value>Die DMARC-Fehlerbewertung ist derzeit {0}. ARC wirkt, indem es diese Bewertung ausgleicht, bei null kann die ARC-Filterung also nichts tun, selbst wenn vertrauenswürdige Siegler aufgeführt sind. Setzen Sie zuerst auf der Seite Anti-Spam-Einstellungen eine positive DMARC-Fehlerbewertung.</value>
   </data>
@@ -13063,6 +13069,12 @@ Markieren Sie den Schlüssel oben und kopieren Sie ihn von Hand - er wird nicht 
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>Die Domainliste enthält keine Domainnamen. Lassen Sie das Feld leer, damit der Schlüssel für jede Domain gilt - eine Liste aus Trennzeichen würde stillschweigend dasselbe bedeuten, und darum haben Sie nicht gebeten.</value>
+  </data>
+  <data name="The domain list could not be read, so not every domain's _mta-sts record was looked up: {0}" xml:space="preserve">
+    <value>Die Domainliste konnte nicht gelesen werden, daher wurde der _mta-sts-Eintrag nicht für jede Domain abgefragt: {0}</value>
+  </data>
+  <data name="The domain list could not be read: {0}" xml:space="preserve">
+    <value>Die Domainliste konnte nicht gelesen werden: {0}</value>
   </data>
   <data name="The domains this server hosts, with their accounts, aliases and distribution lists." xml:space="preserve">
     <value>Die Domains, die dieser Server hostet, mit ihren Konten, Aliasen und Verteilerlisten.</value>

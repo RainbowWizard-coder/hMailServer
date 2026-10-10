@@ -810,6 +810,9 @@
   <data name="ARC sealing is on, but no active domain has DKIM signing with a selector and key file configured, so forwarded mail is silently not sealed at all." xml:space="preserve">
     <value>Pieczętowanie ARC jest włączone, ale żadna aktywna domena nie ma skonfigurowanego podpisywania DKIM z selektorem i plikiem klucza, więc przekazywana poczta po cichu nie jest w ogóle pieczętowana.</value>
   </data>
+  <data name="ARC sealing is on, but the domain list could not be read, so whether a domain has a DKIM key to seal with cannot be told: {0}" xml:space="preserve">
+    <value>Pieczętowanie ARC jest włączone, ale nie udało się odczytać listy domen, więc nie można ustalić, czy któraś domena ma klucz DKIM do pieczętowania: {0}</value>
+  </data>
   <data name="ARC sealing of forwarded mail - needs a domain DKIM key" xml:space="preserve">
     <value>Pieczętowanie ARC przekazywanej poczty - wymaga klucza DKIM domeny</value>
   </data>
@@ -12691,6 +12694,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read." xml:space="preserve">
     <value>Zbiorcze raporty DMARC i raporty TLS-RPT, które odbiorcy poczty tej domeny odsyłają, są odczytywane z jednego adresu domeny, a Control Deck rysuje wykres tego, kto wysyła jako domena i z jakim wynikiem. Opublikuj adres jako rua=mailto: w rekordach TXT _dmarc i _smtp._tls domeny. Konto lub alias pod tym adresem utwórz samodzielnie; serwer tego nie robi, a bez wskazanego adresu nic nie jest odczytywane.</value>
   </data>
+  <data name="The DMARC failure score could not be read from the server, so whether ARC filtering can change any message's score cannot be told." xml:space="preserve">
+    <value>Nie udało się odczytać z serwera punktacji za niepowodzenie DMARC, więc nie można ustalić, czy filtrowanie ARC może zmienić punktację jakiejkolwiek wiadomości.</value>
+  </data>
   <data name="The DMARC failure score is currently {0}. ARC works by offsetting that score, so at zero ARC filtering can do nothing even with trusted sealers listed. Set a positive DMARC failure score on the Anti-spam settings page first." xml:space="preserve">
     <value>Punktacja za niepowodzenie DMARC wynosi obecnie {0}. ARC działa, kompensując tę punktację, więc przy zerze filtrowanie ARC nie może zrobić nic, nawet gdy wypisano zaufanych pieczętujących. Najpierw należy ustawić dodatnią punktację za niepowodzenie DMARC na stronie Ustawienia antyspamowe.</value>
   </data>
@@ -13241,6 +13247,12 @@ Należy zaznaczyć klucz powyżej i skopiować go ręcznie - nie zostanie pokaza
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>Lista domen nie zawiera żadnych nazw domen. Aby klucz działał dla każdej domeny, należy pozostawić pole puste - lista samych separatorów po cichu znaczyłaby to samo, a nie o to poproszono.</value>
+  </data>
+  <data name="The domain list could not be read, so not every domain's _mta-sts record was looked up: {0}" xml:space="preserve">
+    <value>Nie udało się odczytać listy domen, więc rekord _mta-sts nie został sprawdzony dla każdej domeny: {0}</value>
+  </data>
+  <data name="The domain list could not be read: {0}" xml:space="preserve">
+    <value>Nie udało się odczytać listy domen: {0}</value>
   </data>
   <data name="The domains this server hosts, with their accounts, aliases and distribution lists." xml:space="preserve">
     <value>Domeny obsługiwane przez ten serwer wraz z ich kontami, aliasami i listami dystrybucyjnymi.</value>
