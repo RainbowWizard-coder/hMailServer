@@ -817,7 +817,7 @@
     <value>アドレス(_D)</value>
   </data>
   <data name="A_ddress or block" xml:space="preserve">
-    <value>アドレスまたはブロック(_D)</value>
+    <value>アドレスまたは CIDR ブロック(_D)</value>
   </data>
   <data name="Abort on messages _marked as spam" xml:space="preserve">
     <value>スパムとしてマークされたメッセージで中止する(_M)</value>
@@ -1210,7 +1210,7 @@
     <value>アドレスに含む文字列</value>
   </data>
   <data name="Address or block" xml:space="preserve">
-    <value>アドレスまたはブロック</value>
+    <value>アドレスまたは CIDR ブロック</value>
   </data>
   <data name="Address or domain" xml:space="preserve">
     <value>アドレスまたはドメイン</value>
@@ -1543,7 +1543,7 @@
     <value>アドレスが免除されるのは、逆引き名のいずれかが対象に含まれ、かつその名前がアドレスに正引きで戻る場合だけです。アドレスを持つ人なら誰でも逆引き名を自分で書けるためです。次の BAN から適用されます。</value>
   </data>
   <data name="An address or a block is required." xml:space="preserve">
-    <value>アドレスまたはブロックは必須です。</value>
+    <value>アドレスまたは CIDR ブロックが必要です。</value>
   </data>
   <data name="An address such as spammer@example.com is that address alone; a domain such as example.com is the domain and its subdomains." xml:space="preserve">
     <value>spammer@example.com のようなアドレスはそのアドレスだけを、example.com のようなドメインはそのドメインとサブドメインを表します。</value>
@@ -5792,7 +5792,7 @@
     <value>無視</value>
   </data>
   <data name="Ignored: not an address or a block" xml:space="preserve">
-    <value>無視: アドレスでもブロックでもありません</value>
+    <value>無視: アドレスでも CIDR ブロックでもありません</value>
   </data>
   <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
     <value>画像 (*.jpg;*.jpeg;*.png;*.gif)</value>
