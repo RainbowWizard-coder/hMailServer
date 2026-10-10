@@ -85,6 +85,47 @@ namespace hMailServer.ControlPanel.Tests.Services
             Assert.Contains(guard, domain, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// The feature settings pages follow the same rule (found re-checking 827bf5403):
+      /// Setting.Validate held every edited row to its range whatever its switch said, so
+      /// that the ACME port edited to 0 with ACME on, and ACME then switched off, refused
+      /// the save with "Nothing was saved: correct what is marked below" under a dimmed
+      /// box the keyboard cannot enter. A row behind a switch that is off is let through,
+      /// and the save writes nothing of a value the server would not take, putting the
+      /// box back to what the file holds; a message left on it goes with the switch.
+      /// </summary>
+      [Fact]
+      public void AValueBehindAFeaturePagesSwitchThatIsOff_IsNotHeldAgainstTheSave_AndIsKeptAsStored()
+      {
+         string feature = View_("FeatureSettingsView.xaml.cs");
+         string validate = WithheldRowTests.MemberText(feature, "public bool Validate()");
+         Assert.True(validate != null, "FeatureSettingsView's Setting.Validate is gone.");
+         Assert.Contains("string error = IsChanged && !SwitchedOff ? Check() : null;", validate, StringComparison.Ordinal);
+         Assert.Contains("public bool SwitchedOff => Master?.Box != null && Master.Box.IsChecked != true;", feature, StringComparison.Ordinal);
+         Assert.Contains("protected bool KeptAsStored => SwitchedOff && IsChanged && Check() != null;", feature, StringComparison.Ordinal);
+
+         // The switch is the row's master once the page has found it, and its going off takes a message away.
+         Assert.Contains("setting.Master = master;", feature, StringComparison.Ordinal);
+         Assert.Contains("master.Box.Unchecked += (s, e) => { if (setting.Field != null) setting.Field.Error = null; };", feature, StringComparison.Ordinal);
+
+         // Every setting that can refuse a value keeps the stored one behind an off switch, before it writes.
+         foreach (string kind in new[] { "NumberSetting", "TextSetting" })
+         {
+            string save = WithheldRowTests.MemberText(Class_(feature, kind), "public override void Save(IniFeatureStore store)");
+            Assert.True(save != null, kind + ".Save is gone.");
+            int kept = save.IndexOf("if (KeptAsStored)", StringComparison.Ordinal);
+            int put = save.IndexOf("box_.Text = Loaded ?? \"\";", StringComparison.Ordinal);
+            int writes = save.IndexOf("WriteIfChanged(store,", StringComparison.Ordinal);
+            Assert.True(kept > 0 && put > kept && writes > put, kind + ".Save no longer keeps a refused value behind an off switch as stored before it writes.");
+         }
+
+         // And the save still asks every row before it writes any.
+         string pageSave = WithheldRowTests.MemberText(feature, "private bool Save_()");
+         int asks = pageSave.IndexOf(".Where(setting => !setting.Validate())", StringComparison.Ordinal);
+         int writesAll = pageSave.IndexOf("setting.Save(store_);", StringComparison.Ordinal);
+         Assert.True(asks > 0 && writesAll > asks, "FeatureSettingsView.Save_ no longer asks every row before it writes.");
+      }
+
       [Fact]
       public void TheRowsFollow_NotTheirEditors_AndEveryTickAndFillIsFollowed()
       {
@@ -164,6 +205,15 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          Assert.Equal("18:30", TimeOfDayText.Format(new DateTime(2026, 10, 8, 18, 30, 0)));
          Assert.Equal("04:13:09", TimeOfDayText.Format(new DateTime(2026, 10, 8, 4, 13, 9)));
+      }
+
+      /// <summary>The text of one of FeatureSettingsView's setting classes, to the next class.</summary>
+      private static string Class_(string source, string name)
+      {
+         int start = source.IndexOf("private class " + name + " : Setting", StringComparison.Ordinal);
+         Assert.True(start >= 0, "FeatureSettingsView." + name + " is gone.");
+         int end = source.IndexOf("private class ", start + 1, StringComparison.Ordinal);
+         return end > start ? source[start..end] : source[start..];
       }
 
       private static string View_(string name)

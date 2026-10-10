@@ -11,7 +11,7 @@ namespace hMailServer.ControlPanel.Services
    /// A time of day typed as the 24-hour clock writes it - 18:30, 7:05, 23:59:59 -
    /// for a box beside a date picker: the IP range dialog's expiry, which was one
    /// free-text box of "YYYY-MM-DD HH:MM:SS" that showed a stored time while
-   /// "This range expires" was off (review finding F197). Held by TimeOfDayTextTests.
+   /// "This range expires" was off (review finding F197). Held by DependentFieldsTests.
    /// </summary>
    public static class TimeOfDayText
    {

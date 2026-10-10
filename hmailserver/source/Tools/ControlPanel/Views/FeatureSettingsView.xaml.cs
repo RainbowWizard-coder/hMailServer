@@ -194,6 +194,16 @@ namespace hMailServer.ControlPanel.Views
          /// <summary>What <see cref="CreateEditor"/> returned, which follows the switch named by <see cref="DependsOn"/>.</summary>
          public FrameworkElement Built;
 
+         /// <summary>The switch named by <see cref="DependsOn"/>, once the page has found it; null otherwise.</summary>
+         public BoolSetting Master;
+
+         /// <summary>
+         /// Whether the switch this setting counts under is off: the row is dimmed and
+         /// out of the tab order, so a message on it could be neither reached nor
+         /// acted on (review finding F197).
+         /// </summary>
+         public bool SwitchedOff => Master?.Box != null && Master.Box.IsChecked != true;
+
          /// <summary>
          /// Why the value in the editor is not one the server takes, or null: a number
          /// outside the range the server reads it in, an address that is not one. Asked
@@ -205,15 +215,27 @@ namespace hMailServer.ControlPanel.Views
          /// <summary>
          /// Puts <see cref="Check"/>'s answer on the row, or takes an old one off it;
          /// true when the value may be saved. A save asks every row before it writes
-         /// any (review finding F220).
+         /// any (review finding F220). A row behind a switch that is off is not held
+         /// against the save, since it cannot be reached to correct it: the save keeps
+         /// what the server has for a value it would not take (<see cref="KeptAsStored"/>),
+         /// as the domain dialog keeps a number behind a switch that is off (F197).
          /// </summary>
          public bool Validate()
          {
-            string error = IsChanged ? Check() : null;
+            string error = IsChanged && !SwitchedOff ? Check() : null;
             if (Field != null)
                Field.Error = error;
             return error == null;
          }
+
+         /// <summary>
+         /// Whether a save writes nothing of this row and puts its editor back to what
+         /// the file holds: an edit the server would not take, behind a switch that is
+         /// off, which <see cref="Validate"/> lets through. Put back, and not left in
+         /// the box, so that the box says what the server has, and a later save with
+         /// the switch on does not write what nobody was asked about.
+         /// </summary>
+         protected bool KeptAsStored => SwitchedOff && IsChanged && Check() != null;
 
          /// <summary>
          /// Whether the row's Key is a [Settings] key - the settings store, which the
@@ -344,7 +366,15 @@ namespace hMailServer.ControlPanel.Views
          protected override string Check() => Rule?.Invoke(box_?.Text?.Trim() ?? "");
 
          public override void Save(IniFeatureStore store)
-            => WriteIfChanged(store, box_.Text.Trim());
+         {
+            if (KeptAsStored)
+            {
+               box_.Text = Loaded ?? "";
+               return;
+            }
+
+            WriteIfChanged(store, box_.Text.Trim());
+         }
 
          public override string LiveValue => box_?.Text;
 
@@ -424,6 +454,12 @@ namespace hMailServer.ControlPanel.Views
 
          public override void Save(IniFeatureStore store)
          {
+            if (KeptAsStored)
+            {
+               box_.Text = Loaded ?? "";
+               return;
+            }
+
             string value = LiveValue;
             if (Section == null)
             {
@@ -3226,11 +3262,16 @@ namespace hMailServer.ControlPanel.Views
          }
 
          // A setting that counts only while a switch is on follows the switch, once
-         // both exist (review finding F197).
+         // both exist (review finding F197). A message a save left on it goes as the
+         // switch goes off, with the row it can no longer be corrected in.
          foreach (Setting setting in cards_.SelectMany(card => card.Settings).Where(setting => setting.DependsOn != null))
          {
             if (FindSetting_(setting.DependsOn) is BoolSetting master && master.Box != null && setting.Built != null)
+            {
+               setting.Master = master;
                DialogFields.EnabledBy(master.Box, setting.Built);
+               master.Box.Unchecked += (s, e) => { if (setting.Field != null) setting.Field.Error = null; };
+            }
          }
 
          // Wire every editor to the warnings AFTER all the editors exist, because
@@ -3445,7 +3486,8 @@ namespace hMailServer.ControlPanel.Views
          // A number outside the range the server reads it in, an address that is not
          // one: said on every field at fault, the keyboard put in the first, and
          // nothing on the page written (review finding F220) - where the save wrote
-         // whatever was typed.
+         // whatever was typed. Not a field behind a switch that is off, which cannot
+         // be reached: its value is kept as the server has it (Setting.KeptAsStored).
          List<Setting> refused = cards_.SelectMany(card => card.Settings).Where(setting => !setting.Validate()).ToList();
          if (refused.Count > 0)
          {
