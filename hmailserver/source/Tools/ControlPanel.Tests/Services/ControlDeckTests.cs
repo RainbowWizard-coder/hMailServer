@@ -169,6 +169,38 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Matches(new Regex(@"Title = L\(""REST administration API and the Control Deck""\),\s*Blurb = L\(""[^""]*the browser-based Control Deck at the listener root[^""]*""\),\s*Settings =\s*\{\s*new DeckLinkSetting\(\),"), feature);
       }
 
+      /// <summary>
+      /// A dialog's note that sends the reader to the Deck has the button under it -
+      /// the account's booking policy, the domain's reports received and webhook
+      /// subscriptions, the list manager's members' delivery - as the setup
+      /// checklist's sandbox finding does, which says where in the Deck to look: each
+      /// named the Deck with no button (found re-checking eeff3c210).
+      /// </summary>
+      [Fact]
+      public void TheButton_IsUnderTheDialogsNotesAndTheChecklistsFinding()
+      {
+         int notes = 0;
+         foreach (string path in Directory.GetFiles(Path.GetDirectoryName(ControlPanelPath(Path.Join("Views", "ControlDeckLink.cs"))), "*Dialog.cs"))
+         {
+            string code = File.ReadAllText(path).Replace("\r\n", "\n");
+            foreach (Match note in Regex.Matches(code, @"(?:Note|WithHint)\(L\(""(?<text>[^""]*\bControl Deck\b[^""]*)""\)\)\);\n(?<next>[^\n]*)"))
+            {
+               notes++;
+               Assert.True(note.Groups["next"].Value.Trim().EndsWith(".Children.Add(ControlDeckLink.DialogRow());", StringComparison.Ordinal),
+                  Path.GetFileName(path) + ": the note \"" + note.Groups["text"].Value + "\" has no Open the Control Deck button under it.");
+            }
+         }
+
+         Assert.Equal(4, notes);
+
+         string checks = ReadControlPanelFile(Path.Join("Services", "ExternalSetupChecks.cs")).Replace("\r\n", "\n");
+         Match finding = Regex.Match(checks, @"item\.Add\(SetupItemState\.\w+,\s*L\(""[^""]*\bControl Deck\b[^""]*""\)\);\n(?<next>[^\n]*)");
+         Assert.True(finding.Success, "No setup finding names the Control Deck.");
+         Assert.Equal("item.Findings[item.Findings.Count - 1].NamesControlDeck = true;", finding.Groups["next"].Value.Trim());
+         string view = ReadControlPanelFile(Path.Join("Views", "ExternalSetupView.cs"));
+         Assert.Matches(new Regex(@"if \(finding\.NamesControlDeck\)\s*\{\s*FrameworkElement deck = ControlDeckLink\.Row\(L\(""Open the Control Deck""\)\);"), view);
+      }
+
       /// <summary>A disabled button says why, and a pressed one starts the browser.</summary>
       [Fact]
       public void TheButton_SaysWhatItOpens_OrWhyNot()

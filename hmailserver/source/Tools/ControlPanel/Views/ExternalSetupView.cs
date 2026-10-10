@@ -325,6 +325,15 @@ namespace hMailServer.ControlPanel.Views
             row.Children.Add(text);
 
             content.Children.Add(row);
+
+            // Where the finding sends the reader to the Control Deck, the button that
+            // opens it, under the finding's text (review finding F281).
+            if (finding.NamesControlDeck)
+            {
+               FrameworkElement deck = ControlDeckLink.Row(L("Open the Control Deck"));
+               deck.Margin = new Thickness(17, 2, 0, 0);
+               content.Children.Add(deck);
+            }
          }
 
          // The action is only worth space when there is (or may be) something to

@@ -2263,36 +2263,36 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   ticked. The second factor's names - Two-factor, 2FA, TOTP, One-time code - and the mailbox password rules' -
   Password policy, Password expiry, Password history, Breached passwords - open Administrative access, whose subtitle
   and description now say that it holds the administrator's password and second factor and the rules every mailbox
-  password is held to, every one of its policy cards': length and characters, common and breached passwords, reuse
-  and expiry; SASL, AUTH PLAIN, AUTH LOGIN, CRAM-MD5 and APOP open Protocols, where the mechanisms this
-  server offers are switched; and Authentication's Related links begin with Protocols, Directory authentication (LDAP)
-  and Administrative access.
+  password is held to, every one of its policy cards': length and characters, common and breached passwords, reuse and
+  expiry; SASL, AUTH PLAIN, AUTH LOGIN, CRAM-MD5 and APOP open Protocols, where the mechanisms this server offers are
+  switched; and Authentication's Related links begin with Protocols, Directory authentication (LDAP) and
+  Administrative access.
 
 - **Fixed: Transport security's subtitle said "Outbound mail authentication and encryption policies." over cards about
   inbound mail, and the page was one scroll of ten cards, six of them mail authentication, with Save scrolling away.**
   The page has four tabs - Encryption (DANE and DNSSEC, MTA-STS), Signing (ARC sealing and inbound filtering, DKIM
   signature timestamps and oversigning, the Authentication-Results header), Forwarding (SRS and BATV) and Reports
-  (TLS-RPT and DMARC) - drawn as the other tabbed settings pages are, the header with Reload and Save changes above the
-  strip and each tab scrolling under it, and a Reload or a return to the page stays on the tab it was on. The subtitle
-  and the page's description read "Encryption to other servers, the signatures this server adds and checks, the
-  results it records, forwarded mail and the reports it sends." - the checks are Signing's on inbound mail, the
+  (TLS-RPT and DMARC) - drawn as the other tabbed settings pages are, the header with Reload and Save changes above
+  the strip and each tab scrolling under it, and a Reload or a return to the page stays on the tab it was on. The
+  subtitle and the page's description read "Encryption to other servers, the signatures this server adds and checks,
+  the results it records, forwarded mail and the reports it sends." - the checks are Signing's on inbound mail, the
   refusal of DKIM signatures whose expiry has passed and the filtering of ARC chains; SRS, Sender Rewriting Scheme,
-  BATV, DKIM oversigning, DKIM expiry, Authentication-Results, Received-SPF and DMARC reports find the page in Ctrl+K. The ARC inbound filtering card,
-  which only said that it is configured on Anti-spam, has a row with Open… that opens Anti-spam settings on its Sender
-  auth tab, where the trusted sealers are, and Server limits & expert settings' row for SRS and BATV opens the
-  Forwarding tab: a signpost row that names a tab opens its page on it (MainWindow.NavigateToTab). So does every
-  other way in that knows where its subject is, where each opened the page on Encryption: the setup checklist's ARC
-  sealing item, and the Dashboard's link to it, open Signing and its TLS reporting item Reports; Ctrl+K's "stop
-  forwarded mail failing spf" and "reject forged bounce messages" open Forwarding; and a Ctrl+K search that finds the
-  page by one of its aliases opens the tab that holds it - SRS and BATV on Forwarding, ARC, DKIM oversigning and
-  Authentication-Results on Signing, DMARC reports and TLS-RPT on Reports - while its title, or a word such as "TLS"
-  that two tabs' aliases begin with, opens it as it is. The checklist's items for the host name, the administrator's
-  second factor, ARC inbound filtering and the attachment sandbox open the tabs their texts name too: Protocols'
-  SMTP, Administrative access' Two-factor, Anti-spam settings' Sender auth and Anti-virus settings' Sandbox. Only the
-  header and the strip are pinned, as on the other tabbed settings pages: the notice and the line that names where
-  the settings are kept are above the first card of the tab on screen and scroll with it, and in a window under 600
-  pixels of page the subtitle is the title's tool tip - at 760 by 520 the pinned lines left the cards some 140
-  pixels, and 40 with the notice of a page read from hMailServer.ini.
+  BATV, DKIM oversigning, DKIM expiry, Authentication-Results, Received-SPF and DMARC reports find the page in Ctrl+K.
+  The ARC inbound filtering card, which only said that it is configured on Anti-spam, has a row with Open… that opens
+  Anti-spam settings on its Sender auth tab, where the trusted sealers are, and Server limits & expert settings' row
+  for SRS and BATV opens the Forwarding tab: a signpost row that names a tab opens its page on it
+  (MainWindow.NavigateToTab). So does every other way in that knows where its subject is, where each opened the page
+  on Encryption: the setup checklist's ARC sealing item, and the Dashboard's link to it, open Signing and its TLS
+  reporting item Reports; Ctrl+K's "stop forwarded mail failing spf" and "reject forged bounce messages" open
+  Forwarding; and a Ctrl+K search that finds the page by one of its aliases opens the tab that holds it - SRS and BATV
+  on Forwarding, ARC, DKIM oversigning and Authentication-Results on Signing, DMARC reports and TLS-RPT on Reports -
+  while its title, or a word such as "TLS" that two tabs' aliases begin with, opens it as it is. The checklist's items
+  for the host name, the administrator's second factor, ARC inbound filtering and the attachment sandbox open the tabs
+  their texts name too: Protocols' SMTP, Administrative access' Two-factor, Anti-spam settings' Sender auth and
+  Anti-virus settings' Sandbox. Only the header and the strip are pinned, as on the other tabbed settings pages: the
+  notice and the line that names where the settings are kept are above the first card of the tab on screen and scroll
+  with it, and in a window under 600 pixels of page the subtitle is the title's tool tip - at 760 by 520 the pinned
+  lines left the cards some 140 pixels, and 40 with the notice of a page read from hMailServer.ini.
 
 - **Fixed: the Welcome page's "Or browse by area" tiles were not the sidebar's areas.** Six tiles were written into the
   page: "Domains & accounts" beside the group Accounts & domains, opening a page the tree calls Domains; "Server
@@ -2313,24 +2313,28 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   where each step's paragraph ran to about 180 characters a line; and that paragraph is body text at the top of the
   step's card, where it was the card's description in 12-pixel caption text above tables and bullets of 14.
 
-- **Fixed: twenty-nine texts sent the reader to the Control Deck with no button and no address, and called it three
+- **Fixed: the texts that send the reader to the Control Deck had no button and no address, and called it three
   names.** A case is opened there, alert rules and webhook subscriptions are set there, trap addresses declared, held
-  messages reviewed and migration jobs started there, and only the REST API's card said what it is. An Open the
-  Control Deck button now stands beside them - in Discovery's header, as the first row of the Spam traps, Compromised
-  accounts, Alerts, Outbound webhooks and Migrations cards, and on the REST API's card - and opens the REST listener's
-  root, where the Deck is served, in the browser; its tool tip and its accessible help text give the address. While
-  the Deck cannot be opened from here the button is disabled and says why, beside it on a card: the REST API is off
-  ("give it a port on the API & monitoring page", and on the REST API's own card, two rows above the port, "give it a
-  port below"), its new port, bind address or certificate is saved and not yet applied by the server - where the
-  button opened an address nothing listened on until a reinitialise or a restart - it listens on the loopback address
-  and this Control Panel is on another machine, or it cannot listen beyond this machine without a certificate.
-  Discovery's sentence for a REST API that is off says that the page and the Deck both read the cases over it and to
-  give it a port on the API & monitoring page, where it said to turn it on under Settings or read the cases in the
-  Control Deck, whose button beside it was disabled for the same reason. The Deck has no address for one of
-  its views, so each button opens the Deck itself (the owner's decision of 9 October 2026: deep links where it has
-  them). It is the Control Deck in every text: the REST API's card is REST administration API and the Control Deck,
-  where it said Web Control Deck, and the sandbox check sends the reader to the Control Deck's delivery queue, where it
-  said the Deck's queue page.
+  messages reviewed, migration jobs started and a room's booking policy set there, and a list's members' delivery is
+  shown there, and only the REST API's card said what it is. An Open the Control Deck button now stands beside them -
+  in Discovery's header; as the first row of the Spam traps, Compromised accounts, Alerts, Outbound webhooks and
+  Migrations cards, and on the REST API's card; under the notes of the account dialog's Identity tab, the domain
+  dialog's Reports received and Webhooks tabs and the distribution list's list manager; and under the setup
+  checklist's attachment sandbox finding - and opens the REST listener's root, where the Deck is served, in the
+  browser; its tool tip and its accessible help text give the address. A text that sends the reader to the Deck on the
+  server itself, which a Control Panel on another machine cannot open, may have none: a settings tab's notice for a
+  REST API that listens on the server alone. While the Deck cannot be opened from here the button is disabled and says
+  why, beside it on a card, in a dialog or on the checklist: the REST API is off ("give it a port on the API &
+  monitoring page", and on the REST API's own card, two rows above the port, "give it a port below"), its new port,
+  bind address or certificate is saved and not yet applied by the server - where the button opened an address nothing
+  listened on until a reinitialise or a restart - it listens on the loopback address and this Control Panel is on
+  another machine, or it cannot listen beyond this machine without a certificate. Discovery's sentence for a REST API
+  that is off says that the page and the Deck both read the cases over it and to give it a port on the API &
+  monitoring page, where it said to turn it on under Settings or read the cases in the Control Deck, whose button
+  beside it was disabled for the same reason. The Deck has no address for one of its views, so each button opens the
+  Deck itself (the owner's decision of 9 October 2026: deep links where it has them). It is the Control Deck in every
+  text: the REST API's card is REST administration API and the Control Deck, where it said Web Control Deck, and the
+  sandbox check sends the reader to the Control Deck's delivery queue, where it said the Deck's queue page.
 
 ### Administration
 

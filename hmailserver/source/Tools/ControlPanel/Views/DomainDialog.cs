@@ -372,6 +372,7 @@ namespace hMailServer.ControlPanel.Views
       {
          var panel = DialogFields.TabPanel();
          panel.Children.Add(DialogFields.Note(L("The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read.")));
+         panel.Children.Add(ControlDeckLink.DialogRow());
          panel.Children.Add(Label(L("Report _mailbox (one address in a domain this server hosts; empty reads nothing)"), reportMailbox_));
          return DialogFields.Scroll(panel);
       }
@@ -418,6 +419,7 @@ namespace hMailServer.ControlPanel.Views
       {
          var panel = DialogFields.TabPanel();
          panel.Children.Add(DialogFields.Note(L("Outbound webhooks post events to the receivers subscribed in the Control Deck or over the REST API. A subscription that names no domain covers every domain, and switching this off takes the domain out of all of them. The server's own switch is on the Logging page.")));
+         panel.Children.Add(ControlDeckLink.DialogRow());
          panel.Children.Add(DialogFields.Check(webhooksOn_));
          panel.Children.Add(DialogFields.Check(webhookSubjects_));
          // "Those events" are the switch's above: a subject travels on none while it is off.

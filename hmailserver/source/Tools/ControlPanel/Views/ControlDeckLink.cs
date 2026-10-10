@@ -16,11 +16,13 @@ namespace hMailServer.ControlPanel.Views
    /// "Open the Control Deck": a button beside the texts that send the reader there -
    /// Discovery's cases, the alert rules and the webhook subscriptions, the spam-trap
    /// addresses, a compromised account's held messages, the migration jobs, the REST
-   /// API's own card - which named the Deck with no button and no address (review
-   /// finding F281; the owner's decision of 9 October 2026). It opens the REST
+   /// API's own card, the dialogs' notes on a room's booking policy, a domain's reports
+   /// received and webhook subscriptions and a list's members' delivery, and the setup
+   /// checklist's sandbox finding - which named the Deck with no button and no address
+   /// (review finding F281; the owner's decision of 9 October 2026). It opens the REST
    /// listener's root in the browser, where the Deck is served; while the Deck cannot
    /// be opened from here it is disabled, and says why in its tool tip and to a screen
-   /// reader, and beside it in a card (Services/ControlDeck).
+   /// reader, and beside it in a card, a dialog or the checklist (Services/ControlDeck).
    /// </summary>
    internal static class ControlDeckLink
    {
@@ -139,6 +141,20 @@ namespace hMailServer.ControlPanel.Views
             row.Children.Add(reason);
          }
 
+         return row;
+      }
+
+      /// <summary>
+      /// The button as a dialog's row, under the note that sends the reader to the
+      /// Deck - an account's booking policy, a domain's reports received and webhook
+      /// subscriptions, a list's members' delivery - which named it with no button
+      /// (found re-checking eeff3c210). Tucked under its note, which keeps a gap below
+      /// it, and keeping that gap before what follows.
+      /// </summary>
+      public static FrameworkElement DialogRow()
+      {
+         FrameworkElement row = Row(L("Open the Control Deck"));
+         row.Margin = new Thickness(0, -DesignTokens.Space.Sm, 0, DesignTokens.Space.Md);
          return row;
       }
 

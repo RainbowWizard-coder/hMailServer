@@ -117,6 +117,7 @@ namespace hMailServer.ControlPanel.Views
          body.Children.Add(DialogFields.Separator());
          body.Children.Add(DialogFields.Field(null, managed_)
             .WithHint(L("With the manager on, the list answers its own addresses - its -subscribe, -unsubscribe, -request, -owner and -bounces addresses - and sends each member a copy of their own, with their own way to leave. Each member's delivery and bounces are shown in the Control Deck.")));
+         body.Children.Add(ControlDeckLink.DialogRow());
 
          subscribe_.Items.Add(DialogFields.Combo(L("Nobody - the members are added here"), 0));
          subscribe_.Items.Add(DialogFields.Combo(L("Anyone who confirms by mail"), 1));

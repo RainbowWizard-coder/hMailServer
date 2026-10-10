@@ -28,6 +28,13 @@ namespace hMailServer.ControlPanel.Services
    {
       public SetupItemState State;
       public string Text;
+
+      /// <summary>
+      /// The text sends the reader to the Control Deck, and the checklist draws the
+      /// Open the Control Deck button under it (Views/ControlDeckLink, review finding
+      /// F281): the attachment sandbox's, which says where in the Deck to look.
+      /// </summary>
+      public bool NamesControlDeck;
    }
 
    /// <summary>
@@ -1912,6 +1919,7 @@ namespace hMailServer.ControlPanel.Services
          {
             item.Add(SetupItemState.CannotTell,
                L("Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox in the Control Deck's delivery queue or for a line saying it was submitted to the sandbox in the application log."));
+            item.Findings[item.Findings.Count - 1].NamesControlDeck = true;
          }
 
          item.AggregateFromFindings();

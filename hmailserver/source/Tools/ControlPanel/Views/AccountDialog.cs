@@ -545,6 +545,7 @@ namespace hMailServer.ControlPanel.Views
          var panel = DialogFields.TabPanel();
          panel.Children.Add(Label(L("_Kind of account"), kind_));
          panel.Children.Add(DialogFields.Note(L("A room or a piece of equipment answers the meeting invitations it is sent by itself, and nobody can sign in as it on any protocol, whatever its password. Its booking policy is set in the Control Deck.")));
+         panel.Children.Add(ControlDeckLink.DialogRow());
 
          panel.Children.Add(Label(L("E_xternal ID (the identity provider's ID for this person; empty = none)"), externalId_));
          panel.Children.Add(DialogFields.Note(L("What SCIM provisioning matches this account by: at most 255 characters on one line, compared exactly.")));
