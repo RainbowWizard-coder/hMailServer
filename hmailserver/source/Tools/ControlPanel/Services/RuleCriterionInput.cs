@@ -130,12 +130,23 @@ namespace hMailServer.ControlPanel.Services
       }
 
       /// <summary>
-      /// The value as it is stored: a number without the spaces around it, since the
-      /// server compares "equals" as text and " 3" is not "3"; any other value as
-      /// typed, where a space can be what is matched.
+      /// The value as it is stored: a number as the number, without the spaces around
+      /// it and without leading zeros, since the server compares "equals" and "does not
+      /// equal" as text, against the size or the attempt it writes with %d and %u
+      /// (RuleApplier) - " 3" is not "3", and neither is "03", so that "Delivery attempts
+      /// equals 03" matched nothing and "does not equal 03" every message; any other
+      /// value as typed, where a space can be what is matched.
       /// </summary>
       public static string StoredValue(int field, int match, string value)
-         => IsNumeric(field) && IsNumberMatch(match) ? (value ?? "").Trim() : value ?? "";
+      {
+         if (!IsNumeric(field) || !IsNumberMatch(match))
+            return value ?? "";
+
+         string trimmed = (value ?? "").Trim();
+         return long.TryParse(trimmed, NumberStyles.None, CultureInfo.InvariantCulture, out long number)
+            ? number.ToString(CultureInfo.InvariantCulture)
+            : trimmed;
+      }
 
       /// <summary>The description under the dialog's heading: the rule the criterion belongs to.</summary>
       public static string Description(string ruleName, bool adding)

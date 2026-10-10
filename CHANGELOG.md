@@ -1942,8 +1942,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   "does not equal", which ask whether the field is empty. Message size and Delivery attempts open on "is greater
   than", offer the four comparisons a number has, are captioned Value (bytes) and Value (attempts) over a line that
   says what the number counts - the whole message, attachments included, and 1 on the first delivery attempt - and
-  take a whole number; a criterion saved with another comparison keeps it. The IF and THEN dialogs name the rule under
-  their heading: "Add a criterion to the rule “Invoices”.", "An action of the rule “Invoices”.".
+  take a whole number, stored as the number, since "equals" compares the text: "03" is stored as 3, which "Delivery
+  attempts equals 03" then matches. A criterion saved with another comparison keeps it. The IF and THEN dialogs name
+  the rule under their heading: "Add a criterion to the rule “Invoices”.", "An action of the rule “Invoices”.".
 
 - **Fixed: with no domain selected, the Domains page's account form kept the last domain's address and the alias and
   list forms stayed live.** On an empty server, or with the selected domain gone, the accounts card was titled "Select

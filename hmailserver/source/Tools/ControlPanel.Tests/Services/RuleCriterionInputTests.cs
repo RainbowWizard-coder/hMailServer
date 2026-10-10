@@ -90,11 +90,22 @@ namespace hMailServer.ControlPanel.Tests.Services
                Assert.Equal(accepted, RuleCriterionInput.ValueError(field, match, value) == null);
       }
 
+      /// <summary>
+      /// The server compares "equals" and "does not equal" as text, against the number it
+      /// writes with %d and %u (RuleApplier), so a number is stored as one: "03" was
+      /// stored as typed, and "Delivery attempts equals 03" matched nothing (found
+      /// re-checking 5420ee6ea).
+      /// </summary>
       [Fact]
       public void ANumber_IsStoredWithoutTheSpacesAroundIt_AndTextAsTyped()
       {
          Assert.Equal("3", RuleCriterionInput.StoredValue(RuleCriterionInput.DeliveryAttempts, RuleCriterionInput.MatchEquals, " 3 "));
+         Assert.Equal("7", RuleCriterionInput.StoredValue(RuleCriterionInput.DeliveryAttempts, RuleCriterionInput.MatchEquals, "007"));
+         Assert.Equal("3", RuleCriterionInput.StoredValue(RuleCriterionInput.DeliveryAttempts, RuleCriterionInput.MatchNotEquals, " 03"));
+         Assert.Equal("1048576", RuleCriterionInput.StoredValue(RuleCriterionInput.MessageSize, RuleCriterionInput.MatchGreaterThan, "01048576"));
+         Assert.Equal("0", RuleCriterionInput.StoredValue(RuleCriterionInput.MessageSize, RuleCriterionInput.MatchEquals, "000"));
          Assert.Equal(" invoice ", RuleCriterionInput.StoredValue(From, RuleCriterionInput.MatchContains, " invoice "));
+         Assert.Equal("007", RuleCriterionInput.StoredValue(From, RuleCriterionInput.MatchEquals, "007"));
       }
 
       [Fact]
