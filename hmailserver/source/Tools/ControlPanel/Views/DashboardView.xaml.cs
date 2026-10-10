@@ -778,7 +778,8 @@ namespace hMailServer.ControlPanel.Views
          };
          AutomationProperties.SetName(link, (index == 0 ? L("Next step") + ". " : "") + F("Action needed: {0}. Opens {1}.", item.Title, pageTitle));
          AutomationProperties.SetAutomationId(link, "dashboard-attention-" + index);
-         link.Click += (s, e) => (Application.Current?.MainWindow as MainWindow)?.NavigateTo(page);
+         // On the item's tab, as the checklist's own button opens it (SetupItem.Tab).
+         link.Click += (s, e) => (Application.Current?.MainWindow as MainWindow)?.NavigateToTab(page, item.Tab);
 
          var linkRow = new WrapPanel { Orientation = Orientation.Horizontal };
          linkRow.Children.Add(link);

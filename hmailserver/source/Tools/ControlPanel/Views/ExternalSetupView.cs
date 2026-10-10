@@ -287,7 +287,7 @@ namespace hMailServer.ControlPanel.Views
             // The button names the page it opens. It said "Settings…" on every
             // item, which left the reader to guess where each one went.
             string pageTitle = L(NavigationMap.TitleOf(item.Page));
-            FrameworkElement link = PageLink(item.Page, F("Open {0}", pageTitle),
+            FrameworkElement link = PageLink(item.Page, item.Tab, F("Open {0}", pageTitle),
                F("Open {0}, which owns the settings for: {1}", pageTitle, L(item.Title)), isNext);
             link.VerticalAlignment = VerticalAlignment.Top;
             Grid.SetColumn(link, 3);
@@ -348,9 +348,13 @@ namespace hMailServer.ControlPanel.Views
       /// A button that opens the page owning an item's settings. The page is
       /// read-only, so these links are the only way out of it - which is also
       /// what keeps it read-only: every state shown here is one click from the
-      /// single place that changes it.
+      /// single place that changes it. It opens the page on the item's tab where
+      /// the item names one (SetupItem.Tab, MainWindow.NavigateToTab): the page's
+      /// first tab is often not where the settings are - Transport security's
+      /// Encryption, for ARC sealing on Signing and TLS reporting on Reports
+      /// (review finding F228).
       /// </summary>
-      private static FrameworkElement PageLink(string page, string caption, string accessibleName, bool primary)
+      private static FrameworkElement PageLink(string page, string tab, string caption, string accessibleName, bool primary)
       {
          var button = new Wpf.Ui.Controls.Button
          {
@@ -364,7 +368,7 @@ namespace hMailServer.ControlPanel.Views
          };
          ControlHelp.NameLink(button, caption, accessibleName);
          System.Windows.Automation.AutomationProperties.SetAutomationId(button, "external-setup-open-" + page);
-         button.Click += (s, e) => (Application.Current?.MainWindow as MainWindow)?.NavigateTo(page);
+         button.Click += (s, e) => (Application.Current?.MainWindow as MainWindow)?.NavigateToTab(page, tab);
          return button;
       }
    }

@@ -2278,7 +2278,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Authentication-Results, Received-SPF and DMARC reports find the page in Ctrl+K. The ARC inbound filtering card,
   which only said that it is configured on Anti-spam, has a row with Open… that opens Anti-spam settings on its Sender
   auth tab, where the trusted sealers are, and Server limits & expert settings' row for SRS and BATV opens the
-  Forwarding tab: a signpost row that names a tab opens its page on it (MainWindow.NavigateToTab).
+  Forwarding tab: a signpost row that names a tab opens its page on it (MainWindow.NavigateToTab). So does every
+  other way in that knows where its subject is, where each opened the page on Encryption: the setup checklist's ARC
+  sealing item, and the Dashboard's link to it, open Signing and its TLS reporting item Reports; Ctrl+K's "stop
+  forwarded mail failing spf" and "reject forged bounce messages" open Forwarding; and a Ctrl+K search that finds the
+  page by one of its aliases opens the tab that holds it - SRS and BATV on Forwarding, ARC, DKIM oversigning and
+  Authentication-Results on Signing, DMARC reports and TLS-RPT on Reports - while its title, or a word such as "TLS"
+  that two tabs' aliases begin with, opens it as it is. The checklist's items for the host name, the administrator's
+  second factor, ARC inbound filtering and the attachment sandbox open the tabs their texts name too: Protocols'
+  SMTP, Administrative access' Two-factor, Anti-spam settings' Sender auth and Anti-virus settings' Sandbox.
 
 - **Fixed: the Welcome page's "Or browse by area" tiles were not the sidebar's areas.** Six tiles were written into the
   page: "Domains & accounts" beside the group Accounts & domains, opening a page the tree calls Domains; "Server

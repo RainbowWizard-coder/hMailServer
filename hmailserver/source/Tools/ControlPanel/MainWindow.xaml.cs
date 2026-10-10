@@ -792,7 +792,7 @@ namespace hMailServer.ControlPanel
 
          if (palette.SelectedPage != null)
          {
-            NavigateTo(palette.SelectedPage, true);
+            NavigateToTab(palette.SelectedPage, palette.SelectedTab, true);
             RevealSetting_(palette.SelectedPage, palette.SelectedSetting, palette.SelectedSettingLabel);
          }
       }

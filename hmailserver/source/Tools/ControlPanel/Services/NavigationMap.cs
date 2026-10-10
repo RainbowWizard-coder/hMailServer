@@ -367,6 +367,45 @@ namespace hMailServer.ControlPanel.Services
          });
 
       /// <summary>
+      /// The tab of a page of tabs that holds what each of its aliases names - by the
+      /// page's key, then by the alias, the tab's English header as the page writes
+      /// it before L() - so that Ctrl+K opens a page it found by an alias on that tab
+      /// (PaletteRow.Tab, MainWindow.NavigateToTab). Transport security has been four
+      /// tabs since review finding F228, and SRS, DKIM oversigning, DMARC reports,
+      /// TLS-RPT and ARC opened it on Encryption, a tab with none of them. A page not
+      /// listed here, and an alias it does not list, open the page as it is.
+      /// TransportSecurityTabsTests holds every alias of Transport security to one of
+      /// its tabs.
+      /// </summary>
+      public static readonly IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> AliasTabs =
+         new ReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>(
+            new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.OrdinalIgnoreCase)
+            {
+               ["security"] = TabsOf_(
+                  (N("Encryption"), "DANE|TLSA|MTA-STS|Downgrade|Opportunistic TLS|Enforce TLS"),
+                  (N("Signing"), "ARC|DKIM oversigning|Oversign|DKIM expiry|DKIM timestamps|Authentication-Results|Received-SPF"),
+                  (N("Forwarding"), "SRS|Sender Rewriting Scheme|BATV|Bounce address tag|Forged bounces"),
+                  (N("Reports"), "TLS-RPT|TLS reporting|DMARC reports|DMARC aggregate reports|rua"))
+            });
+
+      /// <summary>
+      /// The tab of page <paramref name="key"/> that holds what <paramref name="alias"/>
+      /// names (<see cref="AliasTabs"/>), or null.
+      /// </summary>
+      public static string TabOfAlias(string key, string alias)
+         => key != null && alias != null && AliasTabs.TryGetValue(key, out IReadOnlyDictionary<string, string> tabs)
+            && tabs.TryGetValue(alias, out string tab) ? tab : null;
+
+      private static IReadOnlyDictionary<string, string> TabsOf_(params (string Tab, string Aliases)[] tabs)
+      {
+         var byAlias = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+         foreach ((string tab, string aliases) in tabs)
+            foreach (string alias in Split(aliases))
+               byAlias.Add(alias, tab);
+         return new ReadOnlyDictionary<string, string>(byAlias);
+      }
+
+      /// <summary>
       /// A lower-case, hyphen-separated form of a title, for automation ids.
       /// Kept here rather than in MainWindow so that the ids the accessibility
       /// tooling and any UI automation depend on are derived from the same
@@ -671,7 +710,8 @@ namespace hMailServer.ControlPanel.Services
                // Four tabs since review finding F228 - Encryption, Signing, Forwarding
                // and Reports - and a description of all four: it spoke of outbound TLS
                // alone, over ten cards of which six are mail authentication and three
-               // are about inbound mail. Its aliases name what those cards hold.
+               // are about inbound mail. Its aliases name what those cards hold, and
+               // AliasTabs the tab each one is on.
                Page("security", N("Transport security"),
                   N("Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends."),
                   aliases: "DANE|TLSA|MTA-STS|TLS-RPT|TLS reporting|ARC|Downgrade|Opportunistic TLS|Enforce TLS|" +

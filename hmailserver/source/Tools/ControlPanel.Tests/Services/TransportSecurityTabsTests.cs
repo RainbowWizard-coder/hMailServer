@@ -130,9 +130,12 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("destination += \" > \" + L(tab_);", code, StringComparison.Ordinal);
 
          string open = ReadControlPanelFile("MainWindow.OpenAtTab.cs");
-         string navigate = WithheldRowTests.MemberText(open, "public void NavigateToTab(string key, string tab)");
-         Assert.True(navigate != null, "MainWindow.NavigateToTab is gone.");
-         Assert.Contains("NavigateTo(key);", navigate, StringComparison.Ordinal);
+         string shortForm = WithheldRowTests.MemberText(open, "public void NavigateToTab(string key, string tab)");
+         Assert.True(shortForm != null, "MainWindow.NavigateToTab is gone.");
+         Assert.Contains("NavigateToTab(key, tab, false);", shortForm, StringComparison.Ordinal);
+         string navigate = WithheldRowTests.MemberText(open, "private void NavigateToTab(string key, string tab, bool fromSearch)");
+         Assert.True(navigate != null, "MainWindow.NavigateToTab(key, tab, fromSearch) is gone.");
+         Assert.Contains("NavigateTo(key, fromSearch);", navigate, StringComparison.Ordinal);
          Assert.Contains("DispatcherPriority.Loaded", navigate, StringComparison.Ordinal);
          Assert.Contains("string.Equals(currentPage_, key, StringComparison.OrdinalIgnoreCase)", navigate, StringComparison.Ordinal);
          Assert.Contains("TabJump.Show(ContentHost.Content as DependencyObject, L(tab));", navigate, StringComparison.Ordinal);
@@ -153,6 +156,182 @@ namespace hMailServer.ControlPanel.Tests.Services
          int first = PaletteSearch.FirstSelectable(rows);
          Assert.True(first >= 0, "'" + query + "' matched nothing at all.");
          Assert.Equal("security", rows[first].Page);
+      }
+
+      /// <summary>
+      /// The setup checklist's items open Transport security on the tab whose cards
+      /// hold the setting they check - ARC sealing on Signing, TLS reporting on
+      /// Reports - where after the split every one of them opened it on Encryption
+      /// (review finding F228, the shape of F274). Every item that names a tab names
+      /// one its page has: Protocols' SMTP for the host name, Administrative access'
+      /// Two-factor, Anti-spam settings' Sender auth and Anti-virus settings' Sandbox,
+      /// the tabs their texts name.
+      /// </summary>
+      [Fact]
+      public void TheChecklistsItems_OpenThePageOnTheTabOfTheirSettings()
+      {
+         Dictionary<string, string> keyTabs = SecuritySettingTabs_();
+         string checks = ReadControlPanelFile(Path.Join("Services", "ExternalSetupChecks.cs"));
+
+         var named = new Dictionary<string, string>(StringComparer.Ordinal);
+         foreach (Match page in Regex.Matches(checks, @"\bPage = ""security"""))
+         {
+            int start = checks.LastIndexOf("private SetupItem ", page.Index, StringComparison.Ordinal);
+            int end = checks.IndexOf("\n      private ", page.Index, StringComparison.Ordinal);
+            Assert.True(start >= 0 && end > page.Index, "A setup item for Transport security is not in a method of its own.");
+            string method = checks.Substring(start, end - start);
+            string name = Regex.Match(method, @"private SetupItem (\w+)\(").Groups[1].Value;
+
+            Match tab = Regex.Match(method, @"\bTab = N\(""([^""]+)""\),");
+            Assert.True(tab.Success, name + " opens Transport security without naming the tab its setting is on.");
+            Assert.Contains(tab.Groups[1].Value, TabsOf_("security"));
+            foreach (Match read in Regex.Matches(method, @"\bini\.Read(?:Bool|Int)?\(""(\w+)"""))
+            {
+               if (keyTabs.TryGetValue(read.Groups[1].Value, out string holder))
+                  Assert.True(holder == tab.Groups[1].Value, name + " checks " + read.Groups[1].Value + ", which is on the " + holder + " tab, and opens " + tab.Groups[1].Value + ".");
+            }
+
+            named[name] = tab.Groups[1].Value;
+         }
+
+         Assert.Equal("Signing", named["ArcSealingItem"]);
+         Assert.Equal("Reports", named["TlsRptItem"]);
+         Assert.Equal("Encryption", named["DaneItem"]);
+
+         // Every tab an item names is one of its page's.
+         foreach (Match item in Regex.Matches(checks, @"\bTab = N\(""(?<tab>[^""]+)""\),(?:(?!\bPage = "")[\s\S])*\bPage = ""(?<page>\w+)"""))
+            Assert.True(TabsOf_(item.Groups["page"].Value).Contains(item.Groups["tab"].Value),
+               "A setup item opens " + item.Groups["page"].Value + " on " + item.Groups["tab"].Value + ", a tab it does not have.");
+         foreach ((string page, string tab) in new[] { ("protocols", "SMTP"), ("adminaccess", "Two-factor"), ("antispam", "Sender auth"), ("antivirus", "Sandbox") })
+            Assert.Matches(new Regex(@"\bTab = N\(""" + Regex.Escape(tab) + @"""\),(?:(?!\bPage = "")[\s\S])*\bPage = """ + page + @""""), checks);
+
+         // The checklist's button and the Dashboard's link open the item's tab.
+         string view = ReadControlPanelFile(Path.Join("Views", "ExternalSetupView.cs"));
+         Assert.Contains("PageLink(item.Page, item.Tab, ", view, StringComparison.Ordinal);
+         Assert.Contains("?.NavigateToTab(page, tab);", WithheldRowTests.MemberText(view, "private static FrameworkElement PageLink(string page, string tab, string caption, string accessibleName, bool primary)"), StringComparison.Ordinal);
+         Assert.Contains("?.NavigateToTab(page, item.Tab);", ReadControlPanelFile(Path.Join("Views", "DashboardView.xaml.cs")), StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The palette's tasks for SRS and BATV open the Forwarding tab, and every task
+      /// for the page names the tab it is done on; a task's tab is one its page has.
+      /// </summary>
+      [Fact]
+      public void ThePalettesTasks_OpenThePageOnTheirTab()
+      {
+         foreach (IntentEntry intent in IntentIndex.Entries.Where(intent => intent.Page == "security"))
+            Assert.True(intent.Tab != null, "The task '" + intent.Phrase + "' opens Transport security without naming its tab.");
+         foreach (IntentEntry intent in IntentIndex.Entries.Where(intent => intent.Tab != null))
+            Assert.True(TabsOf_(intent.Page).Contains(intent.Tab), "The task '" + intent.Phrase + "' opens " + intent.Page + " on " + intent.Tab + ", a tab it does not have.");
+
+         foreach ((string query, string tab) in new[]
+         {
+            ("stop forwarded mail failing spf", "Forwarding"), ("reject forged bounce messages", "Forwarding"),
+            ("prove to other servers that tls is required", "Encryption")
+         })
+         {
+            IReadOnlyList<PaletteRow> rows = PaletteSearch.Query(query, null, null);
+            PaletteRow row = rows[PaletteSearch.FirstSelectable(rows)];
+            Assert.Equal(PaletteRowKind.Task, row.Kind);
+            Assert.Equal("security", row.Page);
+            Assert.Equal(tab, row.Tab);
+         }
+
+         // The palette hands the tab on, and the window opens the page on it.
+         string palette = ReadControlPanelFile(Path.Join("Views", "NavigationPalette.cs"));
+         Assert.Contains("SelectedTab = row.Kind == PaletteRowKind.Shortcuts || row.Tour != null ? null : row.Tab;", palette, StringComparison.Ordinal);
+         string show = WithheldRowTests.MemberText(ReadControlPanelFile("MainWindow.xaml.cs"), "private void ShowPalette()");
+         Assert.True(show != null, "MainWindow.ShowPalette is gone.");
+         Assert.Contains("NavigateToTab(palette.SelectedPage, palette.SelectedTab, true);", show, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// Each of the page's aliases names one of its tabs, and a search that finds the
+      /// page by an alias opens it on that tab - SRS and BATV on Forwarding, DKIM
+      /// oversigning, Authentication-Results and ARC on Signing, DMARC reports and
+      /// TLS-RPT on Reports - while its title, and a query whose best aliases are on
+      /// two tabs, open it as it is.
+      /// </summary>
+      [Fact]
+      public void ThePagesAliases_OpenItOnTheirTab()
+      {
+         NavNode security = NavigationMap.Find("security");
+         Assert.True(NavigationMap.AliasTabs.TryGetValue("security", out IReadOnlyDictionary<string, string> aliasTabs), "Transport security's aliases name no tabs.");
+         foreach (string alias in security.Aliases)
+            Assert.True(aliasTabs.ContainsKey(alias), "Transport security's alias '" + alias + "' names no tab.");
+         foreach (KeyValuePair<string, string> entry in aliasTabs)
+         {
+            Assert.Contains(entry.Key, security.Aliases);
+            Assert.Contains(entry.Value, TabsOf_("security"));
+         }
+
+         foreach (KeyValuePair<string, IReadOnlyDictionary<string, string>> page in NavigationMap.AliasTabs)
+            foreach (KeyValuePair<string, string> entry in page.Value)
+               Assert.True(TabsOf_(page.Key).Contains(entry.Value), page.Key + "'s alias '" + entry.Key + "' names " + entry.Value + ", a tab it does not have.");
+
+         foreach ((string query, string tab) in new[]
+         {
+            ("SRS", "Forwarding"), ("Sender Rewriting Scheme", "Forwarding"), ("BATV", "Forwarding"),
+            ("DKIM oversigning", "Signing"), ("Authentication-Results", "Signing"), ("ARC", "Signing"),
+            ("DMARC reports", "Reports"), ("TLS-RPT", "Reports"), ("MTA-STS", "Encryption"),
+            ("Transport security", null), ("TLS", null)
+         })
+         {
+            PaletteRow row = PaletteSearch.Query(query, null, null).FirstOrDefault(r => r.Kind == PaletteRowKind.Page && r.Page == "security");
+            Assert.True(row != null, "'" + query + "' does not find Transport security.");
+            Assert.True(tab == row.Tab, "'" + query + "' opens Transport security on " + (row.Tab ?? "the tab it is on") + ", where it should open " + (tab ?? "the tab it is on") + ".");
+         }
+      }
+
+      /// <summary>Each setting key of the Security section, and the tab its card is on.</summary>
+      private static Dictionary<string, string> SecuritySettingTabs_()
+      {
+         var tabs = new Dictionary<string, string>(StringComparer.Ordinal);
+         foreach (string card in SecuritySection_().Split("cards_.Add(new CardDef").Skip(1))
+         {
+            Match tab = Regex.Match(card, @"\bTab = L\(""([^""]+)""\),");
+            Assert.True(tab.Success, "A Transport security card names no tab.");
+            foreach (Match key in Regex.Matches(card, @"\bKey = ""(\w+)"""))
+               tabs[key.Groups[1].Value] = tab.Groups[1].Value;
+         }
+
+         return tabs;
+      }
+
+      /// <summary>
+      /// The English headers of the tabs of the page with navigation key
+      /// <paramref name="page"/>: a ServerSettingsView page's Tab(L(...)) calls, a
+      /// FeatureSettingsView section's cards' Tab = L(...), from the section the
+      /// window's page factory names.
+      /// </summary>
+      private static HashSet<string> TabsOf_(string page)
+      {
+         Match factory = Regex.Match(ReadControlPanelFile("MainWindow.xaml.cs"),
+            @"pageFactories_\[""" + Regex.Escape(page) + @"""\] = \(\) => new (?<view>ServerSettingsView|FeatureSettingsView)\(\k<view>\.Section\.(?<section>\w+)\);");
+         Assert.True(factory.Success, "The page " + page + " is not a page of settings.");
+         string section = factory.Groups["section"].Value;
+
+         var tabs = new HashSet<string>(StringComparer.Ordinal);
+         if (factory.Groups["view"].Value == "ServerSettingsView")
+         {
+            string code = ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.xaml.cs"));
+            Match build = Regex.Match(code, @"case Section\." + section + @": (Build\w+)\(\); break;");
+            Assert.True(build.Success, "ServerSettingsView builds no section " + section + ".");
+            string body = WithheldRowTests.MemberText(code, "private void " + build.Groups[1].Value + "()");
+            foreach (Match tab in Regex.Matches(body ?? "", @"\bTab\(L\(""([^""]+)""\)\)"))
+               tabs.Add(tab.Groups[1].Value);
+         }
+         else
+         {
+            string code = Source_();
+            int start = code.IndexOf("case Section." + section + ":", StringComparison.Ordinal);
+            int end = code.IndexOf("case Section.", start + 1, StringComparison.Ordinal);
+            string body = start < 0 ? "" : code.Substring(start, (end < 0 ? code.Length : end) - start);
+            foreach (Match tab in Regex.Matches(body, @"\bTab = L\(""([^""]+)""\),"))
+               tabs.Add(tab.Groups[1].Value);
+         }
+
+         return tabs;
       }
 
       private static string Source_() => ReadControlPanelFile(Path.Join("Views", "FeatureSettingsView.xaml.cs"));

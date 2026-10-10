@@ -14,7 +14,9 @@ namespace hMailServer.ControlPanel
    /// A link that names a page's tab opens the page on that tab (review findings
    /// F228 and F251): the stalled-mail guide's SpamAssassin and ClamAV tests, the
    /// ARC trusted sealers on Anti-spam settings' Sender auth tab, SRS and BATV on
-   /// Transport security's Forwarding tab.
+   /// Transport security's Forwarding tab - and every other way into a page of tabs
+   /// that knows the tab its subject is on: a setup checklist item (SetupItem.Tab),
+   /// and a Ctrl+K task or page alias (PaletteRow.Tab).
    /// </summary>
    public partial class MainWindow
    {
@@ -26,9 +28,15 @@ namespace hMailServer.ControlPanel
       /// not open: a Stay at the question about unsaved changes keeps the reader on
       /// the page they were on.
       /// </summary>
-      public void NavigateToTab(string key, string tab)
+      public void NavigateToTab(string key, string tab) => NavigateToTab(key, tab, false);
+
+      /// <summary>
+      /// <see cref="NavigateToTab(string, string)"/>, with <paramref name="fromSearch"/>
+      /// marking the arrival as a palette jump, as NavigateTo's does.
+      /// </summary>
+      private void NavigateToTab(string key, string tab, bool fromSearch)
       {
-         NavigateTo(key);
+         NavigateTo(key, fromSearch);
          if (string.IsNullOrEmpty(tab))
             return;
 

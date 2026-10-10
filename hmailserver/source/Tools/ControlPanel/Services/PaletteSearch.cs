@@ -103,6 +103,16 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>False for section captions.</summary>
       public bool IsSelectable => Kind != PaletteRowKind.Header;
+
+      /// <summary>
+      /// The tab of <see cref="Page"/> to open it on - its English header, as the page
+      /// writes it before L() - or null to open the page as it is: a task's tab
+      /// (<see cref="IntentEntry.Tab"/>), and the tab that holds what the alias a page
+      /// row was found by names (<see cref="NavigationMap.AliasTabs"/>). "SRS" and
+      /// "stop forwarded mail failing spf" opened Transport security on Encryption,
+      /// where the SRS card is on Forwarding (review finding F228).
+      /// </summary>
+      public string Tab { get; internal set; }
    }
 
    /// <summary>
@@ -482,7 +492,7 @@ namespace hMailServer.ControlPanel.Services
                continue;
 
             best[intent.Page] = new PaletteRow(PaletteRowKind.Task, TaskSection, L(intent.Phrase),
-               NavigationMap.LocationOf(intent.Page), L(intent.Answer), intent.Page, score);
+               NavigationMap.LocationOf(intent.Page), L(intent.Answer), intent.Page, score) { Tab = intent.Tab };
          }
 
          return best.Values.ToList();
@@ -491,6 +501,7 @@ namespace hMailServer.ControlPanel.Services
       private static List<PaletteRow> MatchPages(SearchQuery query)
       {
          var scores = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+         var aliasScores = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
          foreach (NavNode page in VisiblePages_())
          {
@@ -498,13 +509,17 @@ namespace hMailServer.ControlPanel.Services
             // type initials for a page they know ("dq" for the delivery queue),
             // but a subsequence over a dozen aliases and a sentence of prose
             // matches nearly everything and would make short queries useless.
+            int alias = Add(query.BestScore(page.Aliases), PageAliasBase);
             int score = Min(
                Add(query.ScoreLoose(L(page.Title)), PageTitleBase),
-               Add(query.BestScore(page.Aliases), PageAliasBase),
+               alias,
                Add(query.Score(L(page.Purpose)), PagePurposeBase));
 
             if (score != SearchTerms.NoMatch)
+            {
                scores[page.Key] = score;
+               aliasScores[page.Key] = alias;
+            }
          }
 
          // Where the page used to be. Someone following instructions written
@@ -530,9 +545,53 @@ namespace hMailServer.ControlPanel.Services
                Keep(scores, page.Key, Add(score, GroupBase));
          }
 
+         // A page found by an alias, and by nothing better, opens on the tab that
+         // holds what the alias names (NavigationMap.AliasTabs).
          return scores
-            .Select(entry => PageRow(PageSection, NavigationMap.Find(entry.Key), entry.Value))
+            .Select(entry =>
+            {
+               NavNode page = NavigationMap.Find(entry.Key);
+               PaletteRow row = PageRow(PageSection, page, entry.Value);
+               if (aliasScores.TryGetValue(entry.Key, out int alias) && alias == entry.Value)
+                  row.Tab = AliasTab_(query, page);
+               return row;
+            })
             .ToList();
+      }
+
+      /// <summary>
+      /// The tab that holds what the aliases of <paramref name="page"/> that match
+      /// <paramref name="query"/> best name, or null: where the page lists no tab for
+      /// them, and where they name different tabs between them - "TLS" begins
+      /// Transport security's "TLSA", on Encryption, as well as its "TLS-RPT", on
+      /// Reports - so that a query that names no one tab opens the page as it is.
+      /// </summary>
+      private static string AliasTab_(SearchQuery query, NavNode page)
+      {
+         int best = SearchTerms.NoMatch;
+         string tab = null;
+         bool split = false;
+
+         foreach (string alias in page.Aliases)
+         {
+            int score = query.Score(alias);
+            if (score == SearchTerms.NoMatch || score > best)
+               continue;
+
+            string aliasTab = NavigationMap.TabOfAlias(page.Key, alias);
+            if (score < best)
+            {
+               best = score;
+               tab = aliasTab;
+               split = false;
+            }
+            else if (!string.Equals(tab, aliasTab, StringComparison.Ordinal))
+            {
+               split = true;
+            }
+         }
+
+         return split ? null : tab;
       }
 
       private static List<PaletteRow> MatchSettings(SearchQuery query)

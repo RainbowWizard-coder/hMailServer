@@ -49,6 +49,16 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>Navigation key of the page that owns the settings, or null.</summary>
       public string Page;
 
+      /// <summary>
+      /// The tab of <see cref="Page"/> that holds the settings - its English header,
+      /// as the page writes it before L() - or null for a page without tabs. The
+      /// item's button opens the page on it (MainWindow.NavigateToTab), where it
+      /// opened Transport security on Encryption for ARC sealing, whose switch is on
+      /// Signing, and for TLS reporting, whose sender address is on Reports (review
+      /// finding F228).
+      /// </summary>
+      public string Tab;
+
       public readonly List<SetupFinding> Findings = new();
 
       public void Add(SetupItemState state, string text) => Findings.Add(new SetupFinding { State = state, Text = text });
@@ -529,6 +539,7 @@ namespace hMailServer.ControlPanel.Services
          var item = new SetupItem
          {
             Title = L("The host name - the name this server gives other servers"),
+            Tab = N("SMTP"),
             Purpose = L("Every server this one delivers to is told its host name and compares it with DNS: the name's address, and the PTR record of the address the mail came from. A name that does not match counts against the mail."),
             Action = L("On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for."),
             Page = "protocols"
@@ -727,6 +738,7 @@ namespace hMailServer.ControlPanel.Services
                return new SetupItem
                {
                   Title = L("A second factor for the administrator - a one-time code beside the password"),
+                  Tab = N("Two-factor"),
                   Purpose = L("The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough."),
                   Action = L("On the Administrative access page's Two-factor tab, enrol an authenticator app for the administrator password."),
                   Page = "adminaccess"
@@ -1071,6 +1083,7 @@ namespace hMailServer.ControlPanel.Services
          var item = new SetupItem
          {
             Title = L("ARC inbound filtering - name the forwarders you trust"),
+            Tab = N("Sender auth"),
             Purpose = L("Rescues legitimate forwarded mail from DMARC-failure penalties, but only for forwarders on your trusted-sealer list - with the list empty the feature does nothing at all, even when enabled."),
             Action = L("On the Anti-spam settings page, list the sealing domains you trust (the mailing-list and forwarding services your users rely on) and turn on the ARC offset. Naming who you trust is a judgement only you can make, which is why there is no default."),
             Page = "antispam"
@@ -1183,6 +1196,7 @@ namespace hMailServer.ControlPanel.Services
          var item = new SetupItem
          {
             Title = L("ARC sealing of forwarded mail - needs a domain DKIM key"),
+            Tab = N("Signing"),
             Purpose = L("Seals mail this server forwards so the next hop can still trust the original authentication results; the seal is made with a hosted domain's DKIM key."),
             Action = L("Give at least one active domain a DKIM selector and key file, and publish that domain's DKIM TXT record - the receiving server verifies the seal against the same record DKIM signing uses."),
             Page = "security"
@@ -1308,6 +1322,7 @@ namespace hMailServer.ControlPanel.Services
          var item = new SetupItem
          {
             Title = L("TLS reporting (TLS-RPT) - set a sender address to start sending"),
+            Tab = N("Reports"),
             Purpose = L("Mails daily TLS-failure reports to domains that ask for them, so their operators learn when connections to them are being downgraded."),
             Action = L("Set 'TLS report sender address' on the Transport security page to a mailbox reports should be sent from. Leaving it empty is a valid choice - it just means the collected statistics are discarded and no reports are ever sent."),
             Page = "security"
@@ -1349,6 +1364,7 @@ namespace hMailServer.ControlPanel.Services
          var item = new SetupItem
          {
             Title = L("DANE for inbound mail - publish TLSA records for your MX hosts"),
+            Tab = N("Encryption"),
             Purpose = L("Lets sending servers pin your certificate through DNSSEC, so nobody can strip or spoof TLS on mail coming to you."),
             Action = L("In a DNSSEC-signed zone, publish a TLSA record (usually usage 3, selector 1, matching type 1 - '3 1 1' with the SHA-256 of your certificate's public key) at _25._tcp.<mx-host> for each MX host. Verify with: nslookup -type=TLSA _25._tcp.<mx-host>. hMailServer cannot publish DNS records or sign your zone, and this panel has no TLSA lookup to check them with."),
             Page = "security"
@@ -1827,6 +1843,7 @@ namespace hMailServer.ControlPanel.Services
          var item = new SetupItem
          {
             Title = L("Attachment sandbox - a service that opens files"),
+            Tab = N("Sandbox"),
             Purpose = L("Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious."),
             Action = L("Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus settings page's Sandbox tab, and turn it on."),
             Page = "antivirus"

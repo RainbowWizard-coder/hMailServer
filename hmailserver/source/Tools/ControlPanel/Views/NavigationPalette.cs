@@ -66,6 +66,12 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>The navigation key of the page to open, or null if nothing was chosen.</summary>
       public string SelectedPage { get; private set; }
 
+      /// <summary>
+      /// The tab of <see cref="SelectedPage"/> to open it on (<see cref="PaletteRow.Tab"/>),
+      /// or null to open the page as it is.
+      /// </summary>
+      public string SelectedTab { get; private set; }
+
       /// <summary>The id of the tour to start, or null. Never set together with <see cref="SelectedPage"/>.</summary>
       public string SelectedTour { get; private set; }
 
@@ -441,6 +447,7 @@ namespace hMailServer.ControlPanel.Views
          // apart would be an unpleasant bug to diagnose, and the Tag is free.
          if (resultsList_.SelectedItem is ListBoxItem container && container.Tag is PaletteRow row && row.IsSelectable)
          {
+            SelectedTab = row.Kind == PaletteRowKind.Shortcuts || row.Tour != null ? null : row.Tab;
             ShowShortcuts = row.Kind == PaletteRowKind.Shortcuts;
             SelectedTour = ShowShortcuts ? null : row.Tour;
             SelectedPage = ShowShortcuts || row.Tour != null ? null : row.Page;

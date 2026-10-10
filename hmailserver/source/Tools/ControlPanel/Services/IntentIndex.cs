@@ -11,11 +11,12 @@ namespace hMailServer.ControlPanel.Services
    /// <summary>One thing an administrator came here to achieve, and where it is done.</summary>
    public sealed class IntentEntry
    {
-      public IntentEntry(string phrase, string page, string answer)
+      public IntentEntry(string phrase, string page, string answer, string tab = null)
       {
          Phrase = phrase;
          Page = page;
          Answer = answer;
+         Tab = tab;
       }
 
       /// <summary>What the administrator would type or say. Never a setting name.</summary>
@@ -31,6 +32,15 @@ namespace hMailServer.ControlPanel.Services
       /// user has navigated anywhere.
       /// </summary>
       public string Answer { get; }
+
+      /// <summary>
+      /// The tab of <see cref="Page"/> where it is done - its English header, as the
+      /// page writes it before L() - or null for a page without tabs. The palette
+      /// opens the page on it (MainWindow.NavigateToTab), where "stop forwarded mail
+      /// failing spf" opened Transport security on Encryption and SRS is on
+      /// Forwarding (review finding F228).
+      /// </summary>
+      public string Tab { get; }
    }
 
    /// <summary>
@@ -263,7 +273,7 @@ namespace hMailServer.ControlPanel.Services
          new IntentEntry(N("renew certificates automatically"), "acme",
             N("Point the server at an ACME authority such as Let's Encrypt and it will renew on its own.")),
          new IntentEntry(N("prove to other servers that tls is required"), "security",
-            N("MTA-STS and DANE publish that commitment; TLS-RPT tells you who failed it.")),
+            N("MTA-STS and DANE publish that commitment; TLS-RPT tells you who failed it."), N("Encryption")),
          new IntentEntry(N("set up outlook automatically"), "webservices",
             N("Autodiscover and autoconfig are served by the built-in HTTP listener.")),
          new IntentEntry(N("configure a phone or tablet"), "webservices",
@@ -318,9 +328,9 @@ namespace hMailServer.ControlPanel.Services
          new IntentEntry(N("searching a mailbox does not work"), "protocols",
             N("Raise the IMAP search time and size limits; a search that hits either one is reported to the client as a failure.")),
          new IntentEntry(N("stop forwarded mail failing spf"), "security",
-            N("Turn on SRS so a forwarded message keeps a return path this server can vouch for.")),
+            N("Turn on SRS so a forwarded message keeps a return path this server can vouch for."), N("Forwarding")),
          new IntentEntry(N("reject forged bounce messages"), "security",
-            N("Turn on BATV so a bounce for a message this server never sent can be told apart from a real one.")),
+            N("Turn on BATV so a bounce for a message this server never sent can be told apart from a real one."), N("Forwarding")),
          new IntentEntry(N("limit how long a tls session can be resumed"), "tls",
             N("Set the resumption lifetime and ticket-key rotation, which bound how long a captured resumption secret stays useful.")),
          new IntentEntry(N("disconnect idle clients sooner"), "protocols",
