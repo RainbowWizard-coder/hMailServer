@@ -94,19 +94,27 @@ namespace HM
 
       if (workerThread_.joinable())
       {
+         // On the indexer's own thread, by something it runs - an OnError script
+         // setting MessageIndexing.Enabled: this is the indexer, which is neither
+         // joined - boost throws "trying joining itself", as the timed_join below
+         // did for such a Start until 10 October 2026, which the script met as a
+         // COM error and its setting was not saved - nor started again. A Stop the
+         // same thread made before is taken back, and the indexer goes on.
+         if (boost::this_thread::get_id() == workerThread_.get_id())
+         {
+            if (stop_asked_on_its_thread_)
+               TakeBackStopOnItsThread_();
+
+            return;
+         }
+
          // Running, and not asked to stop: this is the indexer.
          if (!stop_asked_on_its_thread_ && !workerThread_.timed_join(boost::posix_time::milliseconds(0)))
             return;
 
-         // Asked to stop on its own thread and not yet ended: waited for, unless
-         // this is that thread, which goes on to its end.
+         // Asked to stop on its own thread and not yet ended: waited for.
          if (workerThread_.joinable())
-         {
-            if (boost::this_thread::get_id() == workerThread_.get_id())
-               return;
-
             workerThread_.join();
-         }
       }
 
       stop_asked_on_its_thread_ = false;
@@ -116,6 +124,30 @@ namespace HM
       std::function<void ()> func = std::bind( &MessageIndexer::WorkerFunc, this );
       workerThread_ = boost::thread(func);
 
+   }
+
+   void
+   MessageIndexer::TakeBackStopOnItsThread_()
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // On the indexer's thread, after a Stop on it: the interruption the Stop asked
+   // for is pending on this thread, and an interruption point throws it and
+   // forgets it. Unless interruptions are turned off on the thread just now, when
+   // it stays pending and the thread ends at its next interruption point after
+   // all, as the Stop asked.
+   //---------------------------------------------------------------------------()
+   {
+      try
+      {
+         boost::this_thread::interruption_point();
+      }
+      catch (boost::thread_interrupted &)
+      {
+         // The Stop's, taken back.
+      }
+
+      if (!boost::this_thread::interruption_requested())
+         stop_asked_on_its_thread_ = false;
    }
 
    void
@@ -598,9 +630,26 @@ namespace HM
       class StandInPass
       {
       public:
+         // What the pass asks of its indexer on its own thread, once, at the end
+         // of its next stretch, as an OnError script the indexer runs would by
+         // setting MessageIndexing.Enabled.
+         enum Ask
+         {
+            AskNothing = 0,
+            // A Start while it runs, no stop asked.
+            AskStart = 1,
+            // A Stop and then a Start: off and on again.
+            AskStopThenStart = 2
+         };
+
          StandInPass() :
             throws_(false),
+            indexer_(nullptr),
             runs_(0),
+            asks_made_(0),
+            passes_after_ask_(0),
+            ask_(AskNothing),
+            ask_threw_(false),
             stop_returned_(false),
             statement_after_stop_(false)
          {
@@ -608,11 +657,19 @@ namespace HM
 
          explicit StandInPass(bool throws) :
             throws_(throws),
+            indexer_(nullptr),
             runs_(0),
+            asks_made_(0),
+            passes_after_ask_(0),
+            ask_(AskNothing),
+            ask_threw_(false),
             stop_returned_(false),
             statement_after_stop_(false)
          {
          }
+
+         // The indexer whose thread this runs on, for the asks.
+         void SetIndexer(MessageIndexer *indexer) { indexer_ = indexer; }
 
          // What the indexer's thread runs, once a thread: the runs are the
          // indexers begun. Counted here and not by thread id, which the system
@@ -637,7 +694,15 @@ namespace HM
                if (stop_returned_.load())
                   statement_after_stop_.store(true);
 
+               AskIndexer_();
+
                boost::this_thread::interruption_point();
+
+               {
+                  std::lock_guard<std::mutex> guard(lock_);
+                  passes_after_ask_++;
+               }
+               changed_.notify_all();
             }
          }
 
@@ -654,14 +719,70 @@ namespace HM
             return runs_;
          }
 
+         // Asks it of the indexer from the pass's own thread.
+         void Asks(Ask ask) { ask_.store(ask); }
+
+         // Whether so many asks have been made within the time.
+         bool WaitForAsks(int count, std::chrono::seconds within)
+         {
+            std::unique_lock<std::mutex> guard(lock_);
+            return changed_.wait_for(guard, within, [this, count]() { return asks_made_ >= count; });
+         }
+
+         // Whether the pass has gone past so many interruption points since its
+         // last ask, within the time: the indexer went on.
+         bool WaitForPassesAfterAsk(int count, std::chrono::seconds within)
+         {
+            std::unique_lock<std::mutex> guard(lock_);
+            return changed_.wait_for(guard, within, [this, count]() { return passes_after_ask_ >= count; });
+         }
+
+         bool AskThrew() const { return ask_threw_.load(); }
+
          void StopReturned() { stop_returned_.store(true); }
          bool StatementAfterStop() const { return statement_after_stop_.load(); }
 
       private:
+         void AskIndexer_()
+         {
+            const int ask = ask_.exchange(AskNothing);
+            if (ask == AskNothing)
+               return;
+
+            try
+            {
+               if (ask == AskStart)
+               {
+                  indexer_->Start();
+               }
+               else if (ask == AskStopThenStart)
+               {
+                  indexer_->Stop();
+                  indexer_->Start();
+               }
+            }
+            catch (...)
+            {
+               ask_threw_.store(true);
+            }
+
+            {
+               std::lock_guard<std::mutex> guard(lock_);
+               asks_made_++;
+               passes_after_ask_ = 0;
+            }
+            changed_.notify_all();
+         }
+
          const bool throws_;
+         MessageIndexer *indexer_;
          std::mutex lock_;
          std::condition_variable changed_;
          int runs_;
+         int asks_made_;
+         int passes_after_ask_;
+         std::atomic<int> ask_;
+         std::atomic<bool> ask_threw_;
          std::atomic<bool> stop_returned_;
          std::atomic<bool> statement_after_stop_;
       };
@@ -677,6 +798,7 @@ namespace HM
    {
       TestStopWaitsForThePassInFlight_();
       TestAStartAfterAStopIsANewIndexer_();
+      TestAStartOnItsOwnThread_();
    }
 
    void
@@ -716,6 +838,47 @@ namespace HM
 
       if (!pass.WaitForRuns(2, StandInWait))
          throw std::logic_error("MessageIndexerTester: a Start straight after a Stop began no indexer - it took the thread the stop had left ending for the running indexer, and that thread then ended.");
+
+      indexer.Stop();
+   }
+
+   void
+   MessageIndexerTester::TestAStartOnItsOwnThread_()
+   {
+      StandInPass pass;
+      MessageIndexer indexer(boost::bind(&StandInPass::Run, &pass));
+      pass.SetIndexer(&indexer);
+
+      indexer.Start();
+      if (!pass.WaitForRuns(1, StandInWait))
+         throw std::logic_error("MessageIndexerTester: the indexer's thread began no pass within a minute of Start.");
+
+      // An OnError script the indexer runs, turning MessageIndexing on while it
+      // runs: nothing to do.
+      pass.Asks(StandInPass::AskStart);
+      if (!pass.WaitForAsks(1, StandInWait))
+         throw std::logic_error("MessageIndexerTester: the stand-in pass made no Start on its own thread within a minute.");
+
+      if (pass.AskThrew())
+         throw std::logic_error("MessageIndexerTester: a Start on the indexer's own thread, while it ran, threw - the thread asked to join itself (boost: \"trying joining itself\"), which an OnError script turning MessageIndexing on met as a COM error, its setting not saved.");
+
+      if (!pass.WaitForPassesAfterAsk(1, StandInWait) || pass.Runs() != 1)
+         throw std::logic_error("MessageIndexerTester: after a Start on the indexer's own thread the indexer did not go on as it was.");
+
+      // And one turning it off and on again: the Stop is taken back, and the
+      // indexer goes on as the indexer.
+      pass.Asks(StandInPass::AskStopThenStart);
+      if (!pass.WaitForAsks(2, StandInWait))
+         throw std::logic_error("MessageIndexerTester: the stand-in pass made no Stop and Start on its own thread within a minute.");
+
+      if (pass.AskThrew())
+         throw std::logic_error("MessageIndexerTester: a Stop and a Start on the indexer's own thread threw.");
+
+      if (!pass.WaitForPassesAfterAsk(2, StandInWait))
+         throw std::logic_error("MessageIndexerTester: a Stop and then a Start on the indexer's own thread ended the indexer - the Start did not take the Stop back, and with the setting on no indexer ran.");
+
+      if (pass.Runs() != 1)
+         throw std::logic_error("MessageIndexerTester: a Stop and then a Start on the indexer's own thread began a second indexer.");
 
       indexer.Stop();
    }

@@ -49,6 +49,11 @@ namespace HM
       void WorkerFunc();
       void WorkerFuncInternal();
 
+      // A Start on the indexer's own thread after a Stop on it - an OnError
+      // script turning MessageIndexing off and on again - takes the Stop back,
+      // the thread going on as the indexer. Under starterMutex_.
+      void TakeBackStopOnItsThread_();
+
       void IndexMessages_();
 
       // One bounded pass of the full-text term index (hm_messageindexterms):
@@ -72,7 +77,8 @@ namespace HM
       // The thread was asked to stop from the thread itself - Stop called on it
       // by something the indexer ran, an OnError script - which cannot wait for
       // itself; it ends at its next interruption point, and a Start meanwhile
-      // waits for it rather than taking it for the running indexer.
+      // waits for it rather than taking it for the running indexer, or, made on
+      // that thread too, takes the stop back.
       bool stop_asked_on_its_thread_;
 
       int iIndexRunCount;
@@ -97,7 +103,10 @@ namespace HM
    // thread - where until 10 October 2026 Stop interrupted and returned, the
    // pass went on to the database after a Reinitialize had closed it, which
    // ended the Linux server in the Alpine suite, and the Start after it took the
-   // stopping thread for the running indexer and started none. ClassTester runs
+   // stopping thread for the running indexer and started none. And a Start made
+   // on the indexer's own thread, as an OnError script would make it, neither
+   // asks the thread to join itself - boost throws, as it did until 10 October
+   // 2026 - nor ends the indexer when it follows a Stop there. ClassTester runs
    // Test on Windows, business-object-tests on Linux; TestAnExceptionOnItsThread
    // only business-object-tests, since on Windows the exception handler writes a
    // minidump of the server it runs in.
@@ -115,5 +124,6 @@ namespace HM
    private:
       void TestStopWaitsForThePassInFlight_();
       void TestAStartAfterAStopIsANewIndexer_();
+      void TestAStartOnItsOwnThread_();
    };
 }

@@ -456,8 +456,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   and no indexer is started while the servers are stopped, from a reinitialise's stop to its start, the start of
   the servers starting it from its setting - which is now saved before the indexer is started or stopped, where a
   save that came after the start of the servers had read it left the indexer stopped with the setting on, and a
-  save refused for a setting the environment manages had started or stopped the indexer all the same.
-  `MessageIndexerTester` (`TestInternals` on Windows, `business-object-tests` on Linux)
+  save refused for a setting the environment manages had started or stopped the indexer all the same. A start
+  made on the indexer's own thread, by an `OnError` script turning message indexing on while the indexer reported
+  an error, asked the thread to join itself, which Boost refuses with an exception (in every version): the script
+  met an error and the setting was not saved. Such a start now leaves the indexer as it is, and after a stop made
+  on that thread too takes the stop back. `MessageIndexerTester` (`TestInternals` on Windows,
+  `business-object-tests` on Linux)
   runs the indexer's thread over a stand-in pass that holds no interruption point for 300 ms: with the stop and
   the start as they were, the pass made a statement after the stop had returned, and a start straight after a
   stop began no indexer. Found by the batch's Alpine suite: the teardown of

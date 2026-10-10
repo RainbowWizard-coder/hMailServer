@@ -881,6 +881,8 @@ namespace HM
       // stand-in pass with no database (Application/MessageIndexer.h). Until 10
       // October 2026 a Stop interrupted and returned: a pass went on to the
       // database a Reinitialize had closed, and the Start after it started none.
+      // And a Start on the indexer's own thread, as an OnError script makes one,
+      // neither asks the thread to join itself nor ends it after a Stop there.
       OutputDebugString(_T("hMailServer: Testing the message indexer's stop and start\n"));
       MessageIndexerTester messageIndexerTester;
       messageIndexerTester.Test();
