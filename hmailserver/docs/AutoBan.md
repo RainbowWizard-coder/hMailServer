@@ -29,6 +29,23 @@ crosses one. The domain white list
 ([SmtpPolicy.md](SmtpPolicy.md)) is neither: it skips greylisting and the spam
 score's refusals, and stops no ban.
 
+## The bans in force, and lifting one
+
+The Control Panel's Auto-ban page opens on *Banned now*: every range the server
+wrote for itself - an expiring range named `Auto-ban: ...`, the test the
+widening below and the firewall reconciliation make - with the
+banned address, why it was banned (the user name a run of failed logons was
+guessing at, the spam trap, the null sender or the AUTH on a delivery port) and
+when the ban ends: "23 min from now" from a Control Panel on the server itself, the
+server's time from one elsewhere, since the server gives no clock of its own.
+*Lift ban*, on the row or under the list, asks first and deletes the range, as
+deleting it on the IP ranges page does: the address may connect from its next
+connection, a firewall rule `AutoBanFirewall` wrote for it is taken away, and it
+is banned again only when it earns a new ban. The IP ranges page shows the same
+bans among the administrator's ranges, with an *Expires* column and *Show
+auto-bans only*. *Clear logon-failure list* lifts no ban: it forgets the failures
+counted towards the next one.
+
 ## The never-ban list by reverse name (GitLab work item #56)
 
 `AutoBanNeverBan` can spare a provider's nets only if the administrator knows

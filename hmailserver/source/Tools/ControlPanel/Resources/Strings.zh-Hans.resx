@@ -678,6 +678,9 @@
   <data name="A short built-in list - &quot;password&quot;, &quot;123456&quot;, &quot;changeme&quot; and about thirty more - compared without regard to case. It is deliberately not a &quot;top 10000&quot; list, which would need a data file and an update path; it catches the passwords that get typed while setting up a mailbox nobody comes back to." xml:space="preserve">
     <value>一份简短的内置列表 - "password"、"123456"、"changeme" 以及另外三十来个 - 比较时不区分大小写。它有意不是“前 10000 名”那种列表，那需要一个数据文件和一条更新途径；它拦截的是在建立一个此后无人再管的邮箱时随手输入的那些密码。</value>
   </data>
+  <data name="A sign-in attempt on a port that takes no password" xml:space="preserve">
+    <value>在不接受密码的端口上尝试登录</value>
+  </data>
   <data name="A simple bind needs the user's distinguished name. There are two ways to get one - search for it, or compute it from a template - and Negotiate needs neither, because SSPI authenticates by user name and domain, which the account already carries." xml:space="preserve">
     <value>简单绑定需要用户的可分辨名称。获取它有两种方式 - 搜索，或者按模板推算 - 而 Negotiate 两者都不需要，因为 SSPI 是按用户名和域进行身份验证的，而账户本身就带着这些信息。</value>
   </data>
@@ -1280,6 +1283,9 @@
   </data>
   <data name="After reinitialise" xml:space="preserve">
     <value>重新初始化后生效</value>
+  </data>
+  <data name="After sign-in" xml:space="preserve">
+    <value>登录后</value>
   </data>
   <data name="After the body has arrived" xml:space="preserve">
     <value>正文到达之后</value>
@@ -1918,8 +1924,8 @@
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>自动证书（ACME）</value>
   </data>
-  <data name="Automatic lockout of an address that keeps failing to log on. The ban itself is an expiring IP range, so it is listed on the IP ranges page." xml:space="preserve">
-    <value>自动锁定反复登录失败的地址。封禁本身是一个会过期的 IP 范围，因此它会列在“IP 范围”页上。</value>
+  <data name="Automatic lockout of an address that keeps failing to sign in. The bans in force are listed first, each with Lift ban, which lets the address in again at once." xml:space="preserve">
+    <value>自动锁定反复登录失败的地址。当前有效的封禁列在最前面，每项都带有“解除封禁”，可立即让该地址重新进入。</value>
   </data>
   <data name="Automatic replies may go to this domain" xml:space="preserve">
     <value>允许向该域发送自动回复</value>
@@ -3022,6 +3028,9 @@
   <data name="Could not generate the DKIM key: {0}" xml:space="preserve">
     <value>无法生成 DKIM 密钥：{0}</value>
   </data>
+  <data name="Could not lift the ban: {0}" xml:space="preserve">
+    <value>无法解除封禁：{0}</value>
+  </data>
   <data name="Could not list domains: {0}" xml:space="preserve">
     <value>无法列出域：{0}</value>
   </data>
@@ -3092,6 +3101,9 @@
   </data>
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>无法读取备份设置： </value>
+  </data>
+  <data name="Could not read the bans: {0}" xml:space="preserve">
+    <value>无法读取封禁：{0}</value>
   </data>
   <data name="Could not read the certificates: " xml:space="preserve">
     <value>无法读取证书：</value>
@@ -3300,9 +3312,6 @@
   <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
     <value>将邮箱已满计为硬退信</value>
   </data>
-  <data name="Counted logon failures cleared. Addresses already banned stay banned until their &quot;Auto-ban:&quot; range expires - delete it on the IP ranges page to release one now." xml:space="preserve">
-    <value>已清除计数的登录失败。已被封禁的地址在其“Auto-ban:”范围过期之前仍保持封禁 - 要立即解除某一个，请在“IP 范围”页删除它。</value>
-  </data>
   <data name="Counted per account from the last login that was allowed, so a refused attempt does not push the next one further away. It is advertised only while it is set, because announcing a limit that is not enforced is worse than announcing nothing." xml:space="preserve">
     <value>按账户从上一次被允许的登录起计数，因此被拒绝的尝试不会把下一次推得更远。只在设置了该值时才会通告，因为宣布一个并不强制执行的限制比什么都不宣布更糟。</value>
   </data>
@@ -3311,6 +3320,9 @@
   </data>
   <data name="Counted per user name rather than per address, across every protocol that authenticates, so a botnet spreading its guesses over thousands of addresses still locks the mailbox it is guessing at. A locked name is refused with the ordinary invalid-credentials reply and cannot be unlocked by typing the right password - the lock is checked first - so the ceiling is worth setting with the cost in mind. Failures against a name that does not exist lock that name too, deliberately: doing otherwise would let an attacker use the lockout to discover which accounts are real." xml:space="preserve">
     <value>按用户名而不是按地址计数，覆盖所有进行身份验证的协议，因此把猜测分散到数千个地址上的僵尸网络仍然会锁住它所猜测的那个邮箱。被锁定的用户名会以普通的凭据无效应答拒绝，而且无法通过输入正确密码来解锁 - 锁定会先被检查 - 因此设置此上限时值得权衡代价。针对不存在的用户名的失败同样会锁定该用户名，这是有意的：否则攻击者就能利用锁定来发现哪些账户是真实存在的。</value>
+  </data>
+  <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
+    <value>已清除计数的登录失败。已被封禁的地址在其封禁结束之前仍保持封禁 - 在“当前封禁”下使用“解除封禁”可立即让其进入。</value>
   </data>
   <data name="Countries" xml:space="preserve">
     <value>国家</value>
@@ -4447,6 +4459,9 @@
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>端点（空 = 服务自己的端点）</value>
   </data>
+  <data name="Ends" xml:space="preserve">
+    <value>结束</value>
+  </data>
   <data name="Enforce: hold the mail and lock the account" xml:space="preserve">
     <value>强制执行：扣留邮件并锁定账户</value>
   </data>
@@ -4953,6 +4968,9 @@
   </data>
   <data name="Failed logons from a listed address are not counted at all, so it can never be banned. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine. Example: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. An entry that is not an address is reported by name in the error log and ignored." xml:space="preserve">
     <value>来自列表中地址的登录失败根本不计数，因此它永远不会被封禁。在启用防火墙选项之前，请先在此填入您用于管理的地址：到达防火墙的封禁会把该地址挡在本机所有邮件端口之外。示例：192.0.2.10, 203.0.113.0/24, 2001:db8::/32。不是地址的条目会在错误日志中按名称报告并被忽略。</value>
+  </data>
+  <data name="Failed sign-ins as {0}" xml:space="preserve">
+    <value>以 {0} 登录失败</value>
   </data>
   <data name="Fails when the connecting address has no reverse DNS record." xml:space="preserve">
     <value>当连接地址没有反向 DNS 记录时判定失败。</value>
@@ -6135,6 +6153,18 @@
   <data name="Levels" xml:space="preserve">
     <value>级别</value>
   </data>
+  <data name="Lift ban" xml:space="preserve">
+    <value>解除封禁</value>
+  </data>
+  <data name="Lift the ban on {0}" xml:space="preserve">
+    <value>解除 {0} 的封禁</value>
+  </data>
+  <data name="Lift the ban on {0}? It may connect again at once, and is banned again only when it earns a new ban." xml:space="preserve">
+    <value>解除 {0} 的封禁？它可以立即重新连接，只有在再次触发封禁时才会被重新封禁。</value>
+  </data>
+  <data name="Lift the selected ban: the address may connect again at once" xml:space="preserve">
+    <value>解除所选封禁：该地址可以立即重新连接</value>
+  </data>
   <data name="Limit _number of distribution lists" xml:space="preserve">
     <value>限制分发列表数量(_N)</value>
   </data>
@@ -6378,6 +6408,9 @@
   <data name="Mail from an empty sender address is denied. Many servers send bounces from &lt;&gt;, which will be rejected." xml:space="preserve">
     <value>来自空发件人地址的邮件会被拒绝。许多服务器从 &lt;&gt; 发送退信，这些退信将被拒绝。</value>
   </data>
+  <data name="Mail from an empty sender to several recipients" xml:space="preserve">
+    <value>来自空发件人、发给多个收件人的邮件</value>
+  </data>
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>来自组织外部的邮件可以加上标记，让读者一眼就能看出。当会话未登录、邮件不是经由受信任的入站中继到达，并且信封发件人和 From 地址都不属于本服务器托管的域时，发件人即为外部。</value>
   </data>
@@ -6410,6 +6443,9 @@
   </data>
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>在需要关注时发给管理员的邮件，例如磁盘将满、工作队列停滞、证书即将过期或备份失败。监视哪些情况由 Control Deck 中的警报规则设置；在下面两个地址都设置之前不会发送任何邮件。</value>
+  </data>
+  <data name="Mail to the spam trap {0}" xml:space="preserve">
+    <value>发往垃圾邮件陷阱 {0} 的邮件</value>
   </data>
   <data name="Mailbox created" xml:space="preserve">
     <value>已创建邮箱</value>
@@ -7146,6 +7182,9 @@
   </data>
   <data name="No active sessions" xml:space="preserve">
     <value>没有活动会话</value>
+  </data>
+  <data name="No address is banned now." xml:space="preserve">
+    <value>当前没有被封禁的地址。</value>
   </data>
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>此域的抑制列表中没有地址。当发往某地址的邮件被永久退回，或您手动添加时，地址会出现在这里。</value>
@@ -8148,6 +8187,9 @@
   </data>
   <data name="Open or close the help for this page" xml:space="preserve">
     <value>打开或关闭此页面的帮助</value>
+  </data>
+  <data name="Open relay" xml:space="preserve">
+    <value>开放中继</value>
   </data>
   <data name="Open the Control Deck" xml:space="preserve">
     <value>打开 Control Deck</value>
@@ -10987,6 +11029,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>索引可应答的最短搜索字符串 (3-64；更短的字符串回退到扫描)</value>
   </data>
+  <data name="Show auto-_bans only" xml:space="preserve">
+    <value>仅显示自动封禁(_B)</value>
+  </data>
   <data name="Show chart" xml:space="preserve">
     <value>显示图表</value>
   </data>
@@ -11023,8 +11068,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>以 {0} 显示控制面板? 它会重启以更改语言。</value>
   </data>
-  <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
-    <value>在“IP 范围”页显示自动封禁 IP 范围</value>
+  <data name="Show the bans in force under Banned now on the Auto-ban page, where each can be lifted" xml:space="preserve">
+    <value>在“自动封禁”页的“当前封禁”下显示有效的封禁，可在那里逐一解除</value>
   </data>
   <data name="Show the details" xml:space="preserve">
     <value>显示详细信息</value>
@@ -11899,6 +11944,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The addresses and ports each protocol listens on, and the connection security used on each." xml:space="preserve">
     <value>每种协议监听的地址和端口，以及各自使用的连接安全性。</value>
   </data>
+  <data name="The addresses the server has banned, why and when each ban ends; the same bans are expiring ranges on the IP ranges page." xml:space="preserve">
+    <value>服务器已封禁的地址、原因以及每项封禁的结束时间；同样的封禁在“IP 范围”页上显示为会过期的范围。</value>
+  </data>
   <data name="The administrator has a second factor, and the REST API asks for a one-time code with every request made with the password, which this page does not send. Read the cases in the Control Deck." xml:space="preserve">
     <value>管理员启用了第二重验证，REST API 在每个使用密码的请求中都要求一次性代码，而此页面不会发送。请在 Control Deck 中查看案件。</value>
   </data>
@@ -11991,6 +12039,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The backups in the destination folder, newest first. Choose one and the restore cards below use it; Re-check status reads the folder again." xml:space="preserve">
     <value>目标文件夹中的备份，最新的在前。选择一个，下方的恢复卡片就会使用它；“重新检查状态”会重新读取该文件夹。</value>
+  </data>
+  <data name="The ban on {0} is lifted." xml:space="preserve">
+    <value>已解除 {0} 的封禁。</value>
   </data>
   <data name="The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way." xml:space="preserve">
     <value>绑定地址不是回环地址，且未设置凭据，因此 /metrics 对每次抓取都应答 503 (Service Unavailable)。请设置持有者令牌，或同时设置两个 HTTP Basic 字段，或绑定到 127.0.0.1。无论如何，健康探测都会继续应答。</value>
@@ -14378,6 +14429,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the General tab." xml:space="preserve">
     <value>开启后，密码根本不存储在这里 - 而是请 Windows 来检查它。保持关闭，账户就使用“常规”选项卡上的密码。</value>
   </data>
+  <data name="Without sign-in" xml:space="preserve">
+    <value>无需登录</value>
+  </data>
   <data name="Words on the SAML sign-in button" xml:space="preserve">
     <value>SAML 登录按钮上的文字</value>
   </data>
@@ -14846,6 +14900,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Later" xml:space="preserve">
     <value>稍后(_L)</value>
   </data>
+  <data name="_Lift ban" xml:space="preserve">
+    <value>解除封禁(_L)</value>
+  </data>
   <data name="_Limit number of accounts" xml:space="preserve">
     <value>限制账户数量(_L)</value>
   </data>
@@ -15146,8 +15203,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Set up ACME…" xml:space="preserve">
     <value>设置 ACME(_S)…</value>
   </data>
-  <data name="_Show in IP ranges" xml:space="preserve">
-    <value>在 IP 范围中显示(_S)</value>
+  <data name="_Show the bans" xml:space="preserve">
+    <value>显示封禁(_S)</value>
   </data>
   <data name="_Source address or range it may be used from (optional)" xml:space="preserve">
     <value>允许使用它的源地址或范围（可选）(_S)</value>
@@ -15693,6 +15750,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="legitimate mail is being marked as spam" xml:space="preserve">
     <value>正常邮件被标记为垃圾邮件</value>
   </data>
+  <data name="less than a minute" xml:space="preserve">
+    <value>不到一分钟</value>
+  </data>
   <data name="less than a minute ago" xml:space="preserve">
     <value>不到一分钟前</value>
   </data>
@@ -16185,6 +16245,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="will be added" xml:space="preserve">
     <value>将被添加</value>
   </data>
+  <data name="within a minute" xml:space="preserve">
+    <value>一分钟内</value>
+  </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>把日志写入数据库</value>
   </data>
@@ -16493,6 +16556,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} 个文件夹。</value>
+  </data>
+  <data name="{0} from now" xml:space="preserve">
+    <value>{0}后</value>
   </data>
   <data name="{0} from {1}" xml:space="preserve">
     <value>来自 {1} 的 {0}</value>
@@ -16895,6 +16961,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} was made with {1} mailboxes." xml:space="preserve">
     <value>已创建 {0}，包含 {1} 个邮箱。</value>
+  </data>
+  <data name="{0} was no longer banned: the ban had lifted already." xml:space="preserve">
+    <value>{0} 已不再被封禁：其封禁已经解除。</value>
   </data>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} 已不在列表中。</value>

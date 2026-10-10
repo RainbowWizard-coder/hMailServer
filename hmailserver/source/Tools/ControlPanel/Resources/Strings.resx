@@ -678,6 +678,9 @@
   <data name="A short built-in list - &quot;password&quot;, &quot;123456&quot;, &quot;changeme&quot; and about thirty more - compared without regard to case. It is deliberately not a &quot;top 10000&quot; list, which would need a data file and an update path; it catches the passwords that get typed while setting up a mailbox nobody comes back to." xml:space="preserve">
     <value>A short built-in list - "password", "123456", "changeme" and about thirty more - compared without regard to case. It is deliberately not a "top 10000" list, which would need a data file and an update path; it catches the passwords that get typed while setting up a mailbox nobody comes back to.</value>
   </data>
+  <data name="A sign-in attempt on a port that takes no password" xml:space="preserve">
+    <value>A sign-in attempt on a port that takes no password</value>
+  </data>
   <data name="A simple bind needs the user's distinguished name. There are two ways to get one - search for it, or compute it from a template - and Negotiate needs neither, because SSPI authenticates by user name and domain, which the account already carries." xml:space="preserve">
     <value>A simple bind needs the user's distinguished name. There are two ways to get one - search for it, or compute it from a template - and Negotiate needs neither, because SSPI authenticates by user name and domain, which the account already carries.</value>
   </data>
@@ -1280,6 +1283,9 @@ The Control Panel can only read message files when it runs on the same machine a
   </data>
   <data name="After reinitialise" xml:space="preserve">
     <value>After reinitialise</value>
+  </data>
+  <data name="After sign-in" xml:space="preserve">
+    <value>After sign-in</value>
   </data>
   <data name="After the body has arrived" xml:space="preserve">
     <value>After the body has arrived</value>
@@ -1918,8 +1924,8 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>Automatic certificates (ACME)</value>
   </data>
-  <data name="Automatic lockout of an address that keeps failing to log on. The ban itself is an expiring IP range, so it is listed on the IP ranges page." xml:space="preserve">
-    <value>Automatic lockout of an address that keeps failing to log on. The ban itself is an expiring IP range, so it is listed on the IP ranges page.</value>
+  <data name="Automatic lockout of an address that keeps failing to sign in. The bans in force are listed first, each with Lift ban, which lets the address in again at once." xml:space="preserve">
+    <value>Automatic lockout of an address that keeps failing to sign in. The bans in force are listed first, each with Lift ban, which lets the address in again at once.</value>
   </data>
   <data name="Automatic replies may go to this domain" xml:space="preserve">
     <value>Automatic replies may go to this domain</value>
@@ -3022,6 +3028,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Could not generate the DKIM key: {0}" xml:space="preserve">
     <value>Could not generate the DKIM key: {0}</value>
   </data>
+  <data name="Could not lift the ban: {0}" xml:space="preserve">
+    <value>Could not lift the ban: {0}</value>
+  </data>
   <data name="Could not list domains: {0}" xml:space="preserve">
     <value>Could not list domains: {0}</value>
   </data>
@@ -3092,6 +3101,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>Could not read the backup settings: </value>
+  </data>
+  <data name="Could not read the bans: {0}" xml:space="preserve">
+    <value>Could not read the bans: {0}</value>
   </data>
   <data name="Could not read the certificates: " xml:space="preserve">
     <value>Could not read the certificates: </value>
@@ -3300,9 +3312,6 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
     <value>Count a full mailbox as a hard bounce</value>
   </data>
-  <data name="Counted logon failures cleared. Addresses already banned stay banned until their &quot;Auto-ban:&quot; range expires - delete it on the IP ranges page to release one now." xml:space="preserve">
-    <value>Counted logon failures cleared. Addresses already banned stay banned until their "Auto-ban:" range expires - delete it on the IP ranges page to release one now.</value>
-  </data>
   <data name="Counted per account from the last login that was allowed, so a refused attempt does not push the next one further away. It is advertised only while it is set, because announcing a limit that is not enforced is worse than announcing nothing." xml:space="preserve">
     <value>Counted per account from the last login that was allowed, so a refused attempt does not push the next one further away. It is advertised only while it is set, because announcing a limit that is not enforced is worse than announcing nothing.</value>
   </data>
@@ -3311,6 +3320,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Counted per user name rather than per address, across every protocol that authenticates, so a botnet spreading its guesses over thousands of addresses still locks the mailbox it is guessing at. A locked name is refused with the ordinary invalid-credentials reply and cannot be unlocked by typing the right password - the lock is checked first - so the ceiling is worth setting with the cost in mind. Failures against a name that does not exist lock that name too, deliberately: doing otherwise would let an attacker use the lockout to discover which accounts are real." xml:space="preserve">
     <value>Counted per user name rather than per address, across every protocol that authenticates, so a botnet spreading its guesses over thousands of addresses still locks the mailbox it is guessing at. A locked name is refused with the ordinary invalid-credentials reply and cannot be unlocked by typing the right password - the lock is checked first - so the ceiling is worth setting with the cost in mind. Failures against a name that does not exist lock that name too, deliberately: doing otherwise would let an attacker use the lockout to discover which accounts are real.</value>
+  </data>
+  <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
+    <value>Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once.</value>
   </data>
   <data name="Countries" xml:space="preserve">
     <value>Countries</value>
@@ -4447,6 +4459,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Endpoint (empty = the service's own)</value>
   </data>
+  <data name="Ends" xml:space="preserve">
+    <value>Ends</value>
+  </data>
   <data name="Enforce: hold the mail and lock the account" xml:space="preserve">
     <value>Enforce: hold the mail and lock the account</value>
   </data>
@@ -4953,6 +4968,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Failed logons from a listed address are not counted at all, so it can never be banned. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine. Example: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. An entry that is not an address is reported by name in the error log and ignored." xml:space="preserve">
     <value>Failed logons from a listed address are not counted at all, so it can never be banned. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine. Example: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. An entry that is not an address is reported by name in the error log and ignored.</value>
+  </data>
+  <data name="Failed sign-ins as {0}" xml:space="preserve">
+    <value>Failed sign-ins as {0}</value>
   </data>
   <data name="Fails when the connecting address has no reverse DNS record." xml:space="preserve">
     <value>Fails when the connecting address has no reverse DNS record.</value>
@@ -6135,6 +6153,18 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Levels" xml:space="preserve">
     <value>Levels</value>
   </data>
+  <data name="Lift ban" xml:space="preserve">
+    <value>Lift ban</value>
+  </data>
+  <data name="Lift the ban on {0}" xml:space="preserve">
+    <value>Lift the ban on {0}</value>
+  </data>
+  <data name="Lift the ban on {0}? It may connect again at once, and is banned again only when it earns a new ban." xml:space="preserve">
+    <value>Lift the ban on {0}? It may connect again at once, and is banned again only when it earns a new ban.</value>
+  </data>
+  <data name="Lift the selected ban: the address may connect again at once" xml:space="preserve">
+    <value>Lift the selected ban: the address may connect again at once</value>
+  </data>
   <data name="Limit _number of distribution lists" xml:space="preserve">
     <value>Limit _number of distribution lists</value>
   </data>
@@ -6378,6 +6408,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Mail from an empty sender address is denied. Many servers send bounces from &lt;&gt;, which will be rejected." xml:space="preserve">
     <value>Mail from an empty sender address is denied. Many servers send bounces from &lt;&gt;, which will be rejected.</value>
   </data>
+  <data name="Mail from an empty sender to several recipients" xml:space="preserve">
+    <value>Mail from an empty sender to several recipients</value>
+  </data>
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts.</value>
   </data>
@@ -6410,6 +6443,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   </data>
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set.</value>
+  </data>
+  <data name="Mail to the spam trap {0}" xml:space="preserve">
+    <value>Mail to the spam trap {0}</value>
   </data>
   <data name="Mailbox created" xml:space="preserve">
     <value>Mailbox created</value>
@@ -7146,6 +7182,9 @@ Nothing already there is removed.</value>
   </data>
   <data name="No active sessions" xml:space="preserve">
     <value>No active sessions</value>
+  </data>
+  <data name="No address is banned now." xml:space="preserve">
+    <value>No address is banned now.</value>
   </data>
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one.</value>
@@ -8148,6 +8187,9 @@ Nothing already there is removed.</value>
   </data>
   <data name="Open or close the help for this page" xml:space="preserve">
     <value>Open or close the help for this page</value>
+  </data>
+  <data name="Open relay" xml:space="preserve">
+    <value>Open relay</value>
   </data>
   <data name="Open the Control Deck" xml:space="preserve">
     <value>Open the Control Deck</value>
@@ -10987,6 +11029,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Shortest search string the index answers for (3-64; shorter strings fall back to the scan)</value>
   </data>
+  <data name="Show auto-_bans only" xml:space="preserve">
+    <value>Show auto-_bans only</value>
+  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Show chart</value>
   </data>
@@ -11023,8 +11068,8 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Show the Control Panel in {0}? It restarts to change language.</value>
   </data>
-  <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
-    <value>Show the auto-ban IP ranges on the IP ranges page</value>
+  <data name="Show the bans in force under Banned now on the Auto-ban page, where each can be lifted" xml:space="preserve">
+    <value>Show the bans in force under Banned now on the Auto-ban page, where each can be lifted</value>
   </data>
   <data name="Show the details" xml:space="preserve">
     <value>Show the details</value>
@@ -11899,6 +11944,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="The addresses and ports each protocol listens on, and the connection security used on each." xml:space="preserve">
     <value>The addresses and ports each protocol listens on, and the connection security used on each.</value>
   </data>
+  <data name="The addresses the server has banned, why and when each ban ends; the same bans are expiring ranges on the IP ranges page." xml:space="preserve">
+    <value>The addresses the server has banned, why and when each ban ends; the same bans are expiring ranges on the IP ranges page.</value>
+  </data>
   <data name="The administrator has a second factor, and the REST API asks for a one-time code with every request made with the password, which this page does not send. Read the cases in the Control Deck." xml:space="preserve">
     <value>The administrator has a second factor, and the REST API asks for a one-time code with every request made with the password, which this page does not send. Read the cases in the Control Deck.</value>
   </data>
@@ -11991,6 +12039,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="The backups in the destination folder, newest first. Choose one and the restore cards below use it; Re-check status reads the folder again." xml:space="preserve">
     <value>The backups in the destination folder, newest first. Choose one and the restore cards below use it; Re-check status reads the folder again.</value>
+  </data>
+  <data name="The ban on {0} is lifted." xml:space="preserve">
+    <value>The ban on {0} is lifted.</value>
   </data>
   <data name="The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way." xml:space="preserve">
     <value>The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way.</value>
@@ -14378,6 +14429,9 @@ It will keep trying as you use the application.</value>
   <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the General tab." xml:space="preserve">
     <value>With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the General tab.</value>
   </data>
+  <data name="Without sign-in" xml:space="preserve">
+    <value>Without sign-in</value>
+  </data>
   <data name="Words on the SAML sign-in button" xml:space="preserve">
     <value>Words on the SAML sign-in button</value>
   </data>
@@ -14846,6 +14900,9 @@ It will keep trying as you use the application.</value>
   <data name="_Later" xml:space="preserve">
     <value>_Later</value>
   </data>
+  <data name="_Lift ban" xml:space="preserve">
+    <value>_Lift ban</value>
+  </data>
   <data name="_Limit number of accounts" xml:space="preserve">
     <value>_Limit number of accounts</value>
   </data>
@@ -15146,8 +15203,8 @@ It will keep trying as you use the application.</value>
   <data name="_Set up ACME…" xml:space="preserve">
     <value>_Set up ACME…</value>
   </data>
-  <data name="_Show in IP ranges" xml:space="preserve">
-    <value>_Show in IP ranges</value>
+  <data name="_Show the bans" xml:space="preserve">
+    <value>_Show the bans</value>
   </data>
   <data name="_Source address or range it may be used from (optional)" xml:space="preserve">
     <value>_Source address or range it may be used from (optional)</value>
@@ -15693,6 +15750,9 @@ It will keep trying as you use the application.</value>
   <data name="legitimate mail is being marked as spam" xml:space="preserve">
     <value>legitimate mail is being marked as spam</value>
   </data>
+  <data name="less than a minute" xml:space="preserve">
+    <value>less than a minute</value>
+  </data>
   <data name="less than a minute ago" xml:space="preserve">
     <value>less than a minute ago</value>
   </data>
@@ -16185,6 +16245,9 @@ It will keep trying as you use the application.</value>
   <data name="will be added" xml:space="preserve">
     <value>will be added</value>
   </data>
+  <data name="within a minute" xml:space="preserve">
+    <value>within a minute</value>
+  </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>write the log to a database</value>
   </data>
@@ -16493,6 +16556,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} folders.</value>
+  </data>
+  <data name="{0} from now" xml:space="preserve">
+    <value>{0} from now</value>
   </data>
   <data name="{0} from {1}" xml:space="preserve">
     <value>{0} from {1}</value>
@@ -16895,6 +16961,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="{0} was made with {1} mailboxes." xml:space="preserve">
     <value>{0} was made with {1} mailboxes.</value>
+  </data>
+  <data name="{0} was no longer banned: the ban had lifted already." xml:space="preserve">
+    <value>{0} was no longer banned: the ban had lifted already.</value>
   </data>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} was not on the list any more.</value>

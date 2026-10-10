@@ -156,12 +156,15 @@
                          figure reads on one line as the session counts do. -->
                     <StackPanel Orientation="Horizontal">
                         <TextBlock x:Name="AutobanValue" Style="{StaticResource TextSubtitle}" VerticalAlignment="Center" />
-                        <ui:Button x:Name="AutobanLink" Content="{loc:L '_Show in IP ranges'}" Click="OpenIpRanges_Click"
+                        <!-- To the Auto-ban page's Banned now, which lists each ban
+                             with when it ends and Lift ban (review finding F231),
+                             where the IP ranges page draws them among every range. -->
+                        <ui:Button x:Name="AutobanLink" Content="{loc:L '_Show the bans'}" Click="OpenAutoBan_Click"
                                    FontSize="{StaticResource AppFontSizeCaption}" Padding="8,2,8,2"
                                    Margin="12,0,0,0" VerticalAlignment="Center"
-                                   AutomationProperties.AutomationId="status-open-ipranges"
-                                   AutomationProperties.HelpText="{loc:L 'Show the auto-ban IP ranges on the IP ranges page'}"
-                                   ToolTip="{loc:L 'Show the auto-ban IP ranges on the IP ranges page'}" />
+                                   AutomationProperties.AutomationId="status-open-autoban"
+                                   AutomationProperties.HelpText="{loc:L 'Show the bans in force under Banned now on the Auto-ban page, where each can be lifted'}"
+                                   ToolTip="{loc:L 'Show the bans in force under Banned now on the Auto-ban page, where each can be lifted'}" />
                     </StackPanel>
                 </StackPanel>
                 </StackPanel>

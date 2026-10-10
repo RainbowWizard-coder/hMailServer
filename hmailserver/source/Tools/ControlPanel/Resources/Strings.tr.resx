@@ -678,6 +678,9 @@
   <data name="A short built-in list - &quot;password&quot;, &quot;123456&quot;, &quot;changeme&quot; and about thirty more - compared without regard to case. It is deliberately not a &quot;top 10000&quot; list, which would need a data file and an update path; it catches the passwords that get typed while setting up a mailbox nobody comes back to." xml:space="preserve">
     <value>Kısa, yerleşik bir liste - "password", "123456", "changeme" ve otuz kadarı daha - büyük/küçük harf gözetilmeden karşılaştırılır. Bilinçli olarak bir "ilk 10000" listesi değildir; öylesi bir veri dosyası ve güncelleme yolu gerektirirdi. Bu liste, kimsenin bir daha dönmediği bir posta kutusu kurulurken yazılan parolaları yakalar.</value>
   </data>
+  <data name="A sign-in attempt on a port that takes no password" xml:space="preserve">
+    <value>Parola kabul etmeyen bir bağlantı noktasında oturum açma denemesi</value>
+  </data>
   <data name="A simple bind needs the user's distinguished name. There are two ways to get one - search for it, or compute it from a template - and Negotiate needs neither, because SSPI authenticates by user name and domain, which the account already carries." xml:space="preserve">
     <value>Basit bind, kullanıcının ayırt edici adını (DN) gerektirir. Bunu elde etmenin iki yolu vardır - aramak veya bir şablondan hesaplamak - ve Negotiate bunların hiçbirine ihtiyaç duymaz; çünkü SSPI, kimlik doğrulamayı hesabın zaten taşıdığı kullanıcı adı ve etki alanıyla yapar.</value>
   </data>
@@ -1280,6 +1283,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="After reinitialise" xml:space="preserve">
     <value>Yeniden başlatmadan (Reinitialize) sonra</value>
+  </data>
+  <data name="After sign-in" xml:space="preserve">
+    <value>Oturum açtıktan sonra</value>
   </data>
   <data name="After the body has arrived" xml:space="preserve">
     <value>Gövde geldikten sonra</value>
@@ -1918,8 +1924,8 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>Otomatik sertifikalar (ACME)</value>
   </data>
-  <data name="Automatic lockout of an address that keeps failing to log on. The ban itself is an expiring IP range, so it is listed on the IP ranges page." xml:space="preserve">
-    <value>Oturum açmayı sürekli başaramayan bir adresin otomatik olarak kilitlenmesi. Yasağın kendisi süresi dolan bir IP aralığıdır; bu yüzden IP aralıkları sayfasında listelenir.</value>
+  <data name="Automatic lockout of an address that keeps failing to sign in. The bans in force are listed first, each with Lift ban, which lets the address in again at once." xml:space="preserve">
+    <value>Oturum açmayı sürekli başaramayan bir adresin otomatik olarak kilitlenmesi. Geçerli yasaklar ilk sırada listelenir; her birindeki Yasağı kaldır adresi hemen yeniden içeri alır.</value>
   </data>
   <data name="Automatic replies may go to this domain" xml:space="preserve">
     <value>Otomatik yanıtlar bu alan adına gidebilir</value>
@@ -3022,6 +3028,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Could not generate the DKIM key: {0}" xml:space="preserve">
     <value>DKIM anahtarı üretilemedi: {0}</value>
   </data>
+  <data name="Could not lift the ban: {0}" xml:space="preserve">
+    <value>Yasak kaldırılamadı: {0}</value>
+  </data>
   <data name="Could not list domains: {0}" xml:space="preserve">
     <value>Etki alanları listelenemedi: {0}</value>
   </data>
@@ -3092,6 +3101,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>Yedekleme ayarları okunamadı: </value>
+  </data>
+  <data name="Could not read the bans: {0}" xml:space="preserve">
+    <value>Yasaklar okunamadı: {0}</value>
   </data>
   <data name="Could not read the certificates: " xml:space="preserve">
     <value>Sertifikalar okunamadı: </value>
@@ -3300,9 +3312,6 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
     <value>Dolu bir posta kutusunu kalıcı geri dönüş say</value>
   </data>
-  <data name="Counted logon failures cleared. Addresses already banned stay banned until their &quot;Auto-ban:&quot; range expires - delete it on the IP ranges page to release one now." xml:space="preserve">
-    <value>Sayılan oturum açma hataları temizlendi. Zaten yasaklanmış adresler "Auto-ban:" aralıkları dolana kadar yasaklı kalır - birini şimdi serbest bırakmak için IP aralıkları sayfasında onu silin.</value>
-  </data>
   <data name="Counted per account from the last login that was allowed, so a refused attempt does not push the next one further away. It is advertised only while it is set, because announcing a limit that is not enforced is worse than announcing nothing." xml:space="preserve">
     <value>İzin verilen son oturum açmadan itibaren hesap başına sayılır; bu yüzden reddedilen bir deneme bir sonrakini daha ileriye itmez. Yalnızca ayarlıyken duyurulur, çünkü uygulanmayan bir sınırı duyurmak hiçbir şey duyurmamaktan kötüdür.</value>
   </data>
@@ -3311,6 +3320,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Counted per user name rather than per address, across every protocol that authenticates, so a botnet spreading its guesses over thousands of addresses still locks the mailbox it is guessing at. A locked name is refused with the ordinary invalid-credentials reply and cannot be unlocked by typing the right password - the lock is checked first - so the ceiling is worth setting with the cost in mind. Failures against a name that does not exist lock that name too, deliberately: doing otherwise would let an attacker use the lockout to discover which accounts are real." xml:space="preserve">
     <value>Adres başına değil kullanıcı adı başına sayılır, kimlik doğrulayan her protokolde; böylece tahminlerini binlerce adrese yayan bir botnet yine de tahmin ettiği posta kutusunu kilitler. Kilitli bir ad olağan geçersiz kimlik bilgileri yanıtıyla reddedilir ve doğru parola yazılarak kilidi açılamaz - önce kilit denetlenir - bu yüzden üst sınırı maliyeti akılda tutarak ayarlamakta fayda vardır. Var olmayan bir ada karşı yapılan hatalar bilerek o adı da kilitler: aksi hâlde bir saldırgan kilitlemeyi hangi hesapların gerçek olduğunu keşfetmek için kullanabilirdi.</value>
+  </data>
+  <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
+    <value>Sayılan oturum açma hataları temizlendi. Zaten yasaklanmış adresler yasakları bitene kadar yasaklı kalır - Şu anda yasaklı bölümündeki Yasağı kaldır birini hemen içeri alır.</value>
   </data>
   <data name="Countries" xml:space="preserve">
     <value>Ülkeler</value>
@@ -4447,6 +4459,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Uç nokta (boş = hizmetin kendi uç noktası)</value>
   </data>
+  <data name="Ends" xml:space="preserve">
+    <value>Bitiş</value>
+  </data>
   <data name="Enforce: hold the mail and lock the account" xml:space="preserve">
     <value>Zorla: postayı beklet ve hesabı kilitle</value>
   </data>
@@ -4953,6 +4968,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Failed logons from a listed address are not counted at all, so it can never be banned. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine. Example: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. An entry that is not an address is reported by name in the error log and ignored." xml:space="preserve">
     <value>Listedeki bir adresten gelen başarısız oturum açmalar hiç sayılmaz, bu yüzden o adres asla yasaklanamaz. Güvenlik duvarı seçeneğini açmadan önce yönetim yaptığınız adresleri buraya yazın: güvenlik duvarına ulaşan bir yasak, o adresi bu makinedeki tüm posta bağlantı noktalarının dışında bırakır. Örnek: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. Adres olmayan bir girdi hata günlüğüne adıyla bildirilir ve yok sayılır.</value>
+  </data>
+  <data name="Failed sign-ins as {0}" xml:space="preserve">
+    <value>{0} olarak başarısız oturum açmalar</value>
   </data>
   <data name="Fails when the connecting address has no reverse DNS record." xml:space="preserve">
     <value>Bağlanan adresin ters DNS kaydı olmadığında başarısız olur.</value>
@@ -6135,6 +6153,18 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Levels" xml:space="preserve">
     <value>Düzeyler</value>
   </data>
+  <data name="Lift ban" xml:space="preserve">
+    <value>Yasağı kaldır</value>
+  </data>
+  <data name="Lift the ban on {0}" xml:space="preserve">
+    <value>{0} yasağını kaldır</value>
+  </data>
+  <data name="Lift the ban on {0}? It may connect again at once, and is banned again only when it earns a new ban." xml:space="preserve">
+    <value>{0} yasağı kaldırılsın mı? Adres hemen yeniden bağlanabilir ve ancak yeni bir yasağı hak ettiğinde yeniden yasaklanır.</value>
+  </data>
+  <data name="Lift the selected ban: the address may connect again at once" xml:space="preserve">
+    <value>Seçili yasağı kaldır: adres hemen yeniden bağlanabilir</value>
+  </data>
   <data name="Limit _number of distribution lists" xml:space="preserve">
     <value>_Dağıtım listesi sayısını sınırla</value>
   </data>
@@ -6378,6 +6408,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Mail from an empty sender address is denied. Many servers send bounces from &lt;&gt;, which will be rejected." xml:space="preserve">
     <value>Boş gönderen adresinden gelen posta reddediliyor. Birçok sunucu geri dönmeleri &lt;&gt; adresinden gönderir; bunlar reddedilecek.</value>
   </data>
+  <data name="Mail from an empty sender to several recipients" xml:space="preserve">
+    <value>Boş bir gönderenden birkaç alıcıya posta</value>
+  </data>
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>Kuruluş dışından gelen posta, okuyucunun bir bakışta görmesi için işaretlenebilir. Oturum oturum açmadıysa, ileti güvenilen bir gelen aktarıcıdan geçmediyse ve ne zarf göndericisi ne de From adresi bu sunucunun barındırdığı bir etki alanına aitse, gönderen dışarıdandır.</value>
   </data>
@@ -6410,6 +6443,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Bir şey dikkat gerektirdiğinde yöneticiye posta: dolan bir disk, duran bir iş kuyruğu, süresi dolmak üzere olan bir sertifika veya başarısız bir yedekleme gibi. Hangi koşulların izlendiğini Control Deck'teki uyarı kuralları belirler; aşağıdaki iki adres de ayarlanana kadar hiçbir şey gönderilmez.</value>
+  </data>
+  <data name="Mail to the spam trap {0}" xml:space="preserve">
+    <value>{0} spam tuzağına posta</value>
   </data>
   <data name="Mailbox created" xml:space="preserve">
     <value>Posta kutusu oluşturuldu</value>
@@ -7146,6 +7182,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="No active sessions" xml:space="preserve">
     <value>Etkin oturum yok</value>
+  </data>
+  <data name="No address is banned now." xml:space="preserve">
+    <value>Şu anda yasaklı adres yok.</value>
   </data>
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>Bu etki alanının engelleme listesinde hiç adres yok. Bir adres, kendisine giden posta kalıcı olarak geri döndüğünde ya da siz bir adres eklediğinizde buraya gelir.</value>
@@ -8148,6 +8187,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Open or close the help for this page" xml:space="preserve">
     <value>Bu sayfanın yardımını aç veya kapat</value>
+  </data>
+  <data name="Open relay" xml:space="preserve">
+    <value>Açık aktarma</value>
   </data>
   <data name="Open the Control Deck" xml:space="preserve">
     <value>Control Deck'i aç</value>
@@ -10987,6 +11029,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Dizinin yanıt verdiği en kısa arama dizesi (3-64; daha kısa dizeler taramaya geri döner)</value>
   </data>
+  <data name="Show auto-_bans only" xml:space="preserve">
+    <value>Yalnızca oto_matik yasaklar</value>
+  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Grafiği göster</value>
   </data>
@@ -11023,8 +11068,8 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Denetim Masası {0} dilinde gösterilsin mi? Dili değiştirmek için yeniden başlar.</value>
   </data>
-  <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
-    <value>Otomatik yasaklama IP aralıklarını IP aralıkları sayfasında göster</value>
+  <data name="Show the bans in force under Banned now on the Auto-ban page, where each can be lifted" xml:space="preserve">
+    <value>Geçerli yasakları Otomatik yasaklama sayfasının Şu anda yasaklı bölümünde göster; her biri orada kaldırılabilir</value>
   </data>
   <data name="Show the details" xml:space="preserve">
     <value>Ayrıntıları göster</value>
@@ -11899,6 +11944,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="The addresses and ports each protocol listens on, and the connection security used on each." xml:space="preserve">
     <value>Her protokolün dinlediği adresler ve portlar ve her birinde kullanılan bağlantı güvenliği.</value>
   </data>
+  <data name="The addresses the server has banned, why and when each ban ends; the same bans are expiring ranges on the IP ranges page." xml:space="preserve">
+    <value>Sunucunun yasakladığı adresler, nedenleri ve her yasağın ne zaman bittiği; aynı yasaklar IP aralıkları sayfasında süresi dolan aralıklardır.</value>
+  </data>
   <data name="The administrator has a second factor, and the REST API asks for a one-time code with every request made with the password, which this page does not send. Read the cases in the Control Deck." xml:space="preserve">
     <value>Yöneticinin ikinci bir faktörü var ve REST API parolayla yapılan her istekte tek kullanımlık bir kod ister; bu sayfa bunu göndermez. Davaları Control Deck'te okuyun.</value>
   </data>
@@ -11991,6 +12039,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="The backups in the destination folder, newest first. Choose one and the restore cards below use it; Re-check status reads the folder again." xml:space="preserve">
     <value>Hedef klasördeki yedekler, en yenisi önce. Birini seçin, aşağıdaki geri yükleme kartları onu kullanır; Durumu yeniden denetle klasörü yeniden okur.</value>
+  </data>
+  <data name="The ban on {0} is lifted." xml:space="preserve">
+    <value>{0} yasağı kaldırıldı.</value>
   </data>
   <data name="The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way." xml:space="preserve">
     <value>Bağlama adresi bir geri döngü adresi değil ve hiçbir kimlik bilgisi ayarlanmamış, bu yüzden /metrics her toplamaya 503 (Service Unavailable) yanıtı veriyor. Bir taşıyıcı belirteç ya da her iki HTTP Basic alanını ayarlayın ya da 127.0.0.1'e bağlayın. Sağlık yoklamaları her durumda yanıt vermeye devam eder.</value>
@@ -14378,6 +14429,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the General tab." xml:space="preserve">
     <value>Bu açıkken parola burada hiç saklanmaz - denetlemesi Windows'tan istenir. Kapalı bırakın; hesap Genel sekmesindeki parolayı kullanır.</value>
   </data>
+  <data name="Without sign-in" xml:space="preserve">
+    <value>Oturum açmadan</value>
+  </data>
   <data name="Words on the SAML sign-in button" xml:space="preserve">
     <value>SAML oturum açma düğmesindeki metin</value>
   </data>
@@ -14846,6 +14900,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="_Later" xml:space="preserve">
     <value>_Sonra</value>
   </data>
+  <data name="_Lift ban" xml:space="preserve">
+    <value>Yasağı _kaldır</value>
+  </data>
   <data name="_Limit number of accounts" xml:space="preserve">
     <value>Hesap sayısını _sınırla</value>
   </data>
@@ -15146,8 +15203,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="_Set up ACME…" xml:space="preserve">
     <value>ACME'yi aya_rla…</value>
   </data>
-  <data name="_Show in IP ranges" xml:space="preserve">
-    <value>IP aralıklarında _göster</value>
+  <data name="_Show the bans" xml:space="preserve">
+    <value>Yasakları _göster</value>
   </data>
   <data name="_Source address or range it may be used from (optional)" xml:space="preserve">
     <value>_Kullanılabileceği kaynak adres veya aralık (isteğe bağlı)</value>
@@ -15693,6 +15750,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="legitimate mail is being marked as spam" xml:space="preserve">
     <value>meşru posta spam olarak işaretleniyor</value>
   </data>
+  <data name="less than a minute" xml:space="preserve">
+    <value>bir dakikadan az</value>
+  </data>
   <data name="less than a minute ago" xml:space="preserve">
     <value>bir dakikadan az önce</value>
   </data>
@@ -16185,6 +16245,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="will be added" xml:space="preserve">
     <value>eklenecek</value>
   </data>
+  <data name="within a minute" xml:space="preserve">
+    <value>bir dakika içinde</value>
+  </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>günlüğü bir veritabanına yaz</value>
   </data>
@@ -16493,6 +16556,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} klasör.</value>
+  </data>
+  <data name="{0} from now" xml:space="preserve">
+    <value>{0} sonra</value>
   </data>
   <data name="{0} from {1}" xml:space="preserve">
     <value>{1} adresinden {0}</value>
@@ -16895,6 +16961,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} was made with {1} mailboxes." xml:space="preserve">
     <value>{0}, {1} posta kutusuyla oluşturuldu.</value>
+  </data>
+  <data name="{0} was no longer banned: the ban had lifted already." xml:space="preserve">
+    <value>{0} artık yasaklı değildi: yasak zaten kalkmıştı.</value>
   </data>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} artık listede değildi.</value>

@@ -93,6 +93,59 @@ namespace hMailServer.ControlPanel.Services
          search.SearchText = "";
       }
 
+      /// <summary>
+      /// <see cref="Show"/> over rows narrowed further by a filter of the page's own -
+      /// the IP ranges page's Show auto-bans only (review finding F231) - which the
+      /// search then filters within: the pill says how many are shown of the whole
+      /// list's number, as a search's does, and where nothing is left the empty state
+      /// says why - <paramref name="narrowedEmptyText"/> when no search is typed in,
+      /// the search's sentence when one is - without the action that adds a first
+      /// entry, which a list that has entries does not need. A null
+      /// <paramref name="narrow"/> is <see cref="Show"/> itself.
+      /// </summary>
+      public static void ShowNarrowed(ItemsControl list, string query, StatusPill pill, Func<int, string> count,
+         EmptyState empty, string emptyText, Predicate<object> narrow, string narrowedEmptyText)
+      {
+         if (narrow == null)
+         {
+            Show(list, query, pill, count, empty, emptyText);
+            return;
+         }
+
+         if (list == null)
+            return;
+
+         ListSearch.Apply(list, query);
+         ICollectionView view = list.ItemsSource == null ? null : CollectionViewSource.GetDefaultView(list.ItemsSource);
+         if (view != null)
+         {
+            Predicate<object> search = view.Filter;
+            view.Filter = item => narrow(item) && (search == null || search(item));
+         }
+
+         if (pill == null || count == null || pill.Visibility != Visibility.Visible)
+            return;
+
+         int total = Total_(list.ItemsSource);
+         int shown = Shown_(list.ItemsSource, total);
+         pill.Text = ListSearchCount.NarrowedPillText(shown, total, count(total));
+
+         if (empty == null)
+            return;
+
+         HeldAction held = Actions.GetValue(empty, e => new HeldAction { Action = e.Action });
+         if (total > 0 && shown == 0)
+         {
+            empty.Action = null;
+            empty.Text = string.IsNullOrWhiteSpace(query) ? narrowedEmptyText : ListSearchCount.NothingMatchesText(query);
+            empty.Visibility = Visibility.Visible;
+            return;
+         }
+
+         empty.Action = held.Action;
+         StatusText.Show(empty, null, total, null, emptyText);
+      }
+
       // How many rows the page read.
       private static int Total_(IEnumerable source)
       {

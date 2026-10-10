@@ -41,8 +41,8 @@ namespace hMailServer.ControlPanel.Views
 
       private void Refresh_Click(object sender, RoutedEventArgs e) => Reload();
 
-      private void OpenIpRanges_Click(object sender, RoutedEventArgs e)
-         => (Application.Current?.MainWindow as MainWindow)?.NavigateTo("ipranges"); // no-loc: a page key
+      private void OpenAutoBan_Click(object sender, RoutedEventArgs e)
+         => (Application.Current?.MainWindow as MainWindow)?.NavigateTo("autoban"); // no-loc: a page key
 
       /// <summary>
       /// Pause and resume are Application.Stop()/Start() over COM - the engine stops

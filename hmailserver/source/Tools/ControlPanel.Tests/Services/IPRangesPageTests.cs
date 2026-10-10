@@ -106,7 +106,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          XElement grid = Named(Page(), "RangeGrid");
          List<XElement> columns = grid.Descendants(Wpf + "DataGridTextColumn").ToList();
-         Assert.Equal(7, columns.Count);
+         // The seven of the range, and when it ends (review finding F231).
+         Assert.Equal(8, columns.Count);
 
          foreach (XElement column in columns)
          {

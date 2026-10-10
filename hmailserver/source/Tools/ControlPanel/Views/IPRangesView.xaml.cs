@@ -32,6 +32,14 @@ namespace hMailServer.ControlPanel.Views
          public string Imap { get; set; }
          public string Pop3 { get; set; }
 
+         /// <summary>When the range ends, and whether and how it relays (Services/IpRangeCells).</summary>
+         public string Expires { get; set; }
+         public string Relay { get; set; }
+         public bool OpenRelay { get; set; }
+
+         /// <summary>Whether the range is one of the server's bans (Services/AutoBanList), for Show auto-bans only.</summary>
+         public bool IsBan { get; set; }
+
          // What a screen reader says for the row: its cells, not the name of
          // this class, which is what a grid row is announced as otherwise.
          public override string ToString() => Name + ", " + LowerIP + " - " + UpperIP;
@@ -164,6 +172,8 @@ namespace hMailServer.ControlPanel.Views
          var rows = new List<RangeRow>();
          try
          {
+            bool sameClock = ServerSession.IsLocalSession;
+            DateTime now = DateTime.Now;
             dynamic ranges = ServerSession.Current.Application.Settings.SecurityRanges;
             try
             {
@@ -171,16 +181,23 @@ namespace hMailServer.ControlPanel.Views
                for (int i = 0; i < count; i++)
                {
                   dynamic range = ranges.Item[i];
+                  string name = (string)range.Name, lower = (string)range.LowerIP, upper = (string)range.UpperIP;
+                  bool expires = (bool)range.Expires;
+                  (string relay, bool open) = IpRangeCells.Relay((bool)range.AllowDeliveryFromRemoteToRemote, (bool)range.RequireSMTPAuthExternalToExternal, lower, upper);
                   rows.Add(new RangeRow
                   {
                      Id = (int)range.ID,
-                     Name = (string)range.Name,
-                     LowerIP = (string)range.LowerIP,
-                     UpperIP = (string)range.UpperIP,
+                     Name = name,
+                     LowerIP = lower,
+                     UpperIP = upper,
                      Priority = (int)range.Priority,
                      Smtp = (bool)range.AllowSMTPConnections ? L("Yes") : L("No"),
                      Imap = (bool)range.AllowIMAPConnections ? L("Yes") : L("No"),
-                     Pop3 = (bool)range.AllowPOP3Connections ? L("Yes") : L("No")
+                     Pop3 = (bool)range.AllowPOP3Connections ? L("Yes") : L("No"),
+                     Expires = IpRangeCells.Expires(expires, expires ? ExpiresAt_(range) : DateTime.MinValue, now, sameClock),
+                     Relay = relay,
+                     OpenRelay = open,
+                     IsBan = AutoBanList.IsBan(name, expires)
                   });
                   ServerSession.Release(range);
                }
@@ -342,14 +359,43 @@ namespace hMailServer.ControlPanel.Views
 
       private void Search_TextChanged(object sender, EventArgs e) => ShowListState_();
 
+      private void BansOnly_Changed(object sender, RoutedEventArgs e) => ShowListState_();
+
+      // A VT_DATE in the server's local time, cast as the range's dialog casts it; a
+      // value that is not one is taken for a time that has passed, as the server takes it.
+      private static DateTime ExpiresAt_(dynamic range)
+      {
+         try
+         {
+            return (DateTime)range.ExpiresTime;
+         }
+         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+         {
+            return DateTime.MinValue;
+         }
+      }
+
       /// <summary>
       /// The search over the IP ranges read, the count beside the title and the empty
       /// state: "Shown: 1 of 4" while a search is typed in, and where it hides every
       /// row, the sentence that says so in place of the empty list's
-      /// (Services/ListSearchState).
+      /// (Services/ListSearchState). Show auto-bans only narrows the rows to the
+      /// server's bans, which the search then filters within, and the pill counts what
+      /// is shown of the whole list, as a search's does.
       /// </summary>
-      private void ShowListState_() => ListSearchState.Show(RangeGrid, SearchBar.SearchText, CountPill,
-         n => Plural(n, "{0} IP range", "{0} IP ranges"), EmptyStatus, L("No IP ranges, so this server refuses every SMTP, POP3 and IMAP connection until one exists."));
+      private void ShowListState_()
+      {
+         string empty = L("No IP ranges, so this server refuses every SMTP, POP3 and IMAP connection until one exists.");
+         if (BansOnlyBox.IsChecked == true)
+         {
+            ListSearchState.ShowNarrowed(RangeGrid, SearchBar.SearchText, CountPill,
+               n => Plural(n, "{0} IP range", "{0} IP ranges"), EmptyStatus, empty, item => item is RangeRow { IsBan: true }, L("No address is banned now."));
+            return;
+         }
+
+         ListSearchState.Show(RangeGrid, SearchBar.SearchText, CountPill,
+            n => Plural(n, "{0} IP range", "{0} IP ranges"), EmptyStatus, empty);
+      }
 
       /// <summary>
       /// The header's Refresh: the ranges read again as F5 reads them, the selected

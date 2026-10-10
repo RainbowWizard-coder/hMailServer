@@ -684,6 +684,9 @@
   <data name="A short built-in list - &quot;password&quot;, &quot;123456&quot;, &quot;changeme&quot; and about thirty more - compared without regard to case. It is deliberately not a &quot;top 10000&quot; list, which would need a data file and an update path; it catches the passwords that get typed while setting up a mailbox nobody comes back to." xml:space="preserve">
     <value>Krátký vestavěný seznam – „password“, „123456“, „changeme“ a asi třicet dalších – porovnávaný bez ohledu na velikost písmen. Záměrně to není seznam „top 10000“, který by vyžadoval datový soubor a způsob aktualizace; zachytí hesla, která se zadají při zřizování poštovní schránky, ke které se už nikdo nevrátí.</value>
   </data>
+  <data name="A sign-in attempt on a port that takes no password" xml:space="preserve">
+    <value>Pokus o přihlášení na portu, který nepřijímá heslo</value>
+  </data>
   <data name="A simple bind needs the user's distinguished name. There are two ways to get one - search for it, or compute it from a template - and Negotiate needs neither, because SSPI authenticates by user name and domain, which the account already carries." xml:space="preserve">
     <value>Jednoduchý bind vyžaduje rozlišující název (DN) uživatele. Získat jej lze dvěma způsoby – vyhledat jej, nebo jej odvodit ze šablony – a Negotiate nepotřebuje ani jedno, protože SSPI ověřuje podle uživatelského jména a domény, které účet už nese.</value>
   </data>
@@ -1286,6 +1289,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   </data>
   <data name="After reinitialise" xml:space="preserve">
     <value>Po reinicializaci</value>
+  </data>
+  <data name="After sign-in" xml:space="preserve">
+    <value>Po přihlášení</value>
   </data>
   <data name="After the body has arrived" xml:space="preserve">
     <value>Po příchodu těla zprávy</value>
@@ -1939,8 +1945,8 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>Automatické certifikáty (ACME)</value>
   </data>
-  <data name="Automatic lockout of an address that keeps failing to log on. The ban itself is an expiring IP range, so it is listed on the IP ranges page." xml:space="preserve">
-    <value>Automatické uzamčení adresy, které se opakovaně nedaří přihlásit. Samotný ban je IP rozsah s vypršením platnosti, takže je uveden na stránce Rozsahy IP.</value>
+  <data name="Automatic lockout of an address that keeps failing to sign in. The bans in force are listed first, each with Lift ban, which lets the address in again at once." xml:space="preserve">
+    <value>Automatické uzamčení adresy, které se opakovaně nedaří přihlásit. Platné bany jsou uvedeny jako první, každý s tlačítkem Zrušit ban, které adresu hned znovu pustí dovnitř.</value>
   </data>
   <data name="Automatic replies may go to this domain" xml:space="preserve">
     <value>Automatické odpovědi smí jít do této domény</value>
@@ -3046,6 +3052,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Could not generate the DKIM key: {0}" xml:space="preserve">
     <value>Nepodařilo se vygenerovat klíč DKIM: {0}</value>
   </data>
+  <data name="Could not lift the ban: {0}" xml:space="preserve">
+    <value>Ban se nepodařilo zrušit: {0}</value>
+  </data>
   <data name="Could not list domains: {0}" xml:space="preserve">
     <value>Nepodařilo se vypsat domény: {0}</value>
   </data>
@@ -3116,6 +3125,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>Nepodařilo se přečíst nastavení zálohování: </value>
+  </data>
+  <data name="Could not read the bans: {0}" xml:space="preserve">
+    <value>Bany se nepodařilo přečíst: {0}</value>
   </data>
   <data name="Could not read the certificates: " xml:space="preserve">
     <value>Nepodařilo se přečíst certifikáty: </value>
@@ -3324,9 +3336,6 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
     <value>Počítat plnou schránku jako trvalou nedoručenku</value>
   </data>
-  <data name="Counted logon failures cleared. Addresses already banned stay banned until their &quot;Auto-ban:&quot; range expires - delete it on the IP ranges page to release one now." xml:space="preserve">
-    <value>Započítaná neúspěšná přihlášení byla vymazána. Adresy, které už jsou zablokované, zůstanou zablokované, dokud jejich rozsah „Auto-ban:“ nevyprší – chcete-li některou uvolnit hned, smažte jej na stránce Rozsahy IP.</value>
-  </data>
   <data name="Counted per account from the last login that was allowed, so a refused attempt does not push the next one further away. It is advertised only while it is set, because announcing a limit that is not enforced is worse than announcing nothing." xml:space="preserve">
     <value>Počítá se pro každý účet od posledního povoleného přihlášení, takže odmítnutý pokus další přihlášení dál neodsune. Oznamuje se jen tehdy, dokud je nastaveno, protože ohlašovat limit, který se nevynucuje, je horší než neohlašovat nic.</value>
   </data>
@@ -3335,6 +3344,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Counted per user name rather than per address, across every protocol that authenticates, so a botnet spreading its guesses over thousands of addresses still locks the mailbox it is guessing at. A locked name is refused with the ordinary invalid-credentials reply and cannot be unlocked by typing the right password - the lock is checked first - so the ceiling is worth setting with the cost in mind. Failures against a name that does not exist lock that name too, deliberately: doing otherwise would let an attacker use the lockout to discover which accounts are real." xml:space="preserve">
     <value>Počítá se podle uživatelského jména, ne podle adresy, a to napříč všemi protokoly, které se ověřují, takže botnet rozprostírající své pokusy přes tisíce adres přesto uzamkne poštovní schránku, na kterou hádá. Uzamčené jméno je odmítnuto běžnou odpovědí o neplatných přihlašovacích údajích a nelze je odemknout zadáním správného hesla – zámek se kontroluje jako první –, takže tento strop stojí za to nastavit s vědomím této ceny. Neúspěšné pokusy proti jménu, které neexistuje, uzamknou i takové jméno, a to záměrně: jinak by útočník mohl uzamykání využít ke zjištění, které účty jsou skutečné.</value>
+  </data>
+  <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
+    <value>Započítaná neúspěšná přihlášení byla vymazána. Adresy, které už jsou zablokované, zůstanou zablokované, dokud jejich ban neskončí - Zrušit ban v části Zablokováno nyní některou hned pustí dovnitř.</value>
   </data>
   <data name="Countries" xml:space="preserve">
     <value>Země</value>
@@ -4496,6 +4508,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Koncový bod (prázdné = vlastní bod služby)</value>
   </data>
+  <data name="Ends" xml:space="preserve">
+    <value>Konec</value>
+  </data>
   <data name="Enforce: hold the mail and lock the account" xml:space="preserve">
     <value>Vynutit: zadržet poštu a zamknout účet</value>
   </data>
@@ -5020,6 +5035,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Failed logons from a listed address are not counted at all, so it can never be banned. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine. Example: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. An entry that is not an address is reported by name in the error log and ignored." xml:space="preserve">
     <value>Neúspěšná přihlášení z uvedené adresy se vůbec nepočítají, takže nikdy nemůže být zakázána. Než zapnete volbu firewallu, zapište sem adresy, ze kterých spravujete: zákaz, který dosáhne firewallu, odřízne tuto adresu od všech poštovních portů tohoto počítače. Příklad: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. Položka, která není adresou, se v protokolu chyb nahlásí jménem a ignoruje se.</value>
+  </data>
+  <data name="Failed sign-ins as {0}" xml:space="preserve">
+    <value>Neúspěšná přihlášení jako {0}</value>
   </data>
   <data name="Fails when the connecting address has no reverse DNS record." xml:space="preserve">
     <value>Selže, když připojující se adresa nemá reverzní záznam DNS.</value>
@@ -6202,6 +6220,18 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Levels" xml:space="preserve">
     <value>Úrovně</value>
   </data>
+  <data name="Lift ban" xml:space="preserve">
+    <value>Zrušit ban</value>
+  </data>
+  <data name="Lift the ban on {0}" xml:space="preserve">
+    <value>Zrušit ban adresy {0}</value>
+  </data>
+  <data name="Lift the ban on {0}? It may connect again at once, and is banned again only when it earns a new ban." xml:space="preserve">
+    <value>Zrušit ban adresy {0}? Může se hned znovu připojit a znovu zablokována bude, jen když si vyslouží nový ban.</value>
+  </data>
+  <data name="Lift the selected ban: the address may connect again at once" xml:space="preserve">
+    <value>Zrušit vybraný ban: adresa se může hned znovu připojit</value>
+  </data>
   <data name="Limit _number of distribution lists" xml:space="preserve">
     <value>Omezit _počet distribučních seznamů</value>
   </data>
@@ -6448,6 +6478,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Mail from an empty sender address is denied. Many servers send bounces from &lt;&gt;, which will be rejected." xml:space="preserve">
     <value>Pošta z prázdné adresy odesílatele je odmítána. Mnoho serverů odesílá vrácené zprávy z &lt;&gt;, a ty budou odmítnuty.</value>
   </data>
+  <data name="Mail from an empty sender to several recipients" xml:space="preserve">
+    <value>Pošta od prázdného odesílatele více příjemcům</value>
+  </data>
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>Poštu z vnějšku organizace lze označit tak, aby ji čtenář poznal na první pohled. Odesílatel je zvenčí, když se relace nepřihlásila, zpráva nepřišla přes důvěryhodné příchozí relé a ani odesílatel obálky, ani adresa From nepatří doméně, kterou tento server hostuje.</value>
   </data>
@@ -6480,6 +6513,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Pošta správci, když něco potřebuje pozornost, například zaplňující se disk, zaseknutá pracovní fronta, brzy vyprší certifikát nebo selhala záloha. Které podmínky se sledují, určují pravidla upozornění v Control Deck; nic se neodesílá, dokud nejsou obě adresy níže nastavené.</value>
+  </data>
+  <data name="Mail to the spam trap {0}" xml:space="preserve">
+    <value>Pošta do pasti na spam {0}</value>
   </data>
   <data name="Mailbox created" xml:space="preserve">
     <value>Schránka vytvořena</value>
@@ -7222,6 +7258,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="No active sessions" xml:space="preserve">
     <value>Žádné aktivní relace</value>
+  </data>
+  <data name="No address is banned now." xml:space="preserve">
+    <value>Žádná adresa teď není zablokovaná.</value>
   </data>
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>Na seznamu blokovaných této domény není žádná adresa. Adresa se sem dostane, když se pošta na ni trvale vrátí jako nedoručitelná, nebo když nějakou přidáte.</value>
@@ -8239,6 +8278,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Open or close the help for this page" xml:space="preserve">
     <value>Otevřít nebo zavřít nápovědu k této stránce</value>
+  </data>
+  <data name="Open relay" xml:space="preserve">
+    <value>Otevřené relay</value>
   </data>
   <data name="Open the Control Deck" xml:space="preserve">
     <value>Otevřít Control Deck</value>
@@ -11117,6 +11159,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Nejkratší hledaný řetězec, na který index odpovídá (3–64; kratší řetězce se hledají procházením)</value>
   </data>
+  <data name="Show auto-_bans only" xml:space="preserve">
+    <value>_Jen bany</value>
+  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Zobrazit graf</value>
   </data>
@@ -11153,8 +11198,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Zobrazit Control Panel v jazyce {0}? Kvůli změně jazyka se restartuje.</value>
   </data>
-  <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
-    <value>Zobrazit rozsahy IP automatického blokování na stránce Rozsahy IP</value>
+  <data name="Show the bans in force under Banned now on the Auto-ban page, where each can be lifted" xml:space="preserve">
+    <value>Zobrazit platné bany v části Zablokováno nyní na stránce Auto-ban, kde lze každý zrušit</value>
   </data>
   <data name="Show the details" xml:space="preserve">
     <value>Zobrazit podrobnosti</value>
@@ -12032,6 +12077,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="The addresses and ports each protocol listens on, and the connection security used on each." xml:space="preserve">
     <value>Adresy a porty, na kterých každý protokol naslouchá, a zabezpečení připojení použité na každém z nich.</value>
   </data>
+  <data name="The addresses the server has banned, why and when each ban ends; the same bans are expiring ranges on the IP ranges page." xml:space="preserve">
+    <value>Adresy, které server zablokoval, proč a kdy který ban skončí; tytéž bany jsou na stránce Rozsahy IP rozsahy s vypršením platnosti.</value>
+  </data>
   <data name="The administrator has a second factor, and the REST API asks for a one-time code with every request made with the password, which this page does not send. Read the cases in the Control Deck." xml:space="preserve">
     <value>Správce má druhý faktor a REST API žádá jednorázový kód u každého požadavku s heslem, který tato stránka neposílá. Případy si přečtěte v Control Deck.</value>
   </data>
@@ -12124,6 +12172,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="The backups in the destination folder, newest first. Choose one and the restore cards below use it; Re-check status reads the folder again." xml:space="preserve">
     <value>Zálohy v cílové složce, od nejnovější. Vyberte jednu a karty obnovení níže ji použijí; Znovu zkontrolovat stav složku přečte znovu.</value>
+  </data>
+  <data name="The ban on {0} is lifted." xml:space="preserve">
+    <value>Ban adresy {0} je zrušen.</value>
   </data>
   <data name="The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way." xml:space="preserve">
     <value>Adresa pro navázání není adresa smyčky a nejsou nastaveny žádné přihlašovací údaje, takže /metrics odpovídá na každý odběr 503 (Service Unavailable). Nastavte bearer token, nebo obě pole HTTP Basic, nebo naslouchejte na 127.0.0.1. Kontroly stavu odpovídají tak jako tak.</value>
@@ -14550,6 +14601,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the General tab." xml:space="preserve">
     <value>Se zapnutým nastavením se heslo zde vůbec neukládá - o jeho kontrolu je požádán Windows. Nechte ho vypnuté a účet používá heslo z karty Obecné.</value>
   </data>
+  <data name="Without sign-in" xml:space="preserve">
+    <value>Bez přihlášení</value>
+  </data>
   <data name="Words on the SAML sign-in button" xml:space="preserve">
     <value>Text na přihlašovacím tlačítku SAML</value>
   </data>
@@ -15021,6 +15075,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Later" xml:space="preserve">
     <value>Poz_ději</value>
   </data>
+  <data name="_Lift ban" xml:space="preserve">
+    <value>_Zrušit ban</value>
+  </data>
   <data name="_Limit number of accounts" xml:space="preserve">
     <value>_Omezit počet účtů</value>
   </data>
@@ -15321,8 +15378,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Set up ACME…" xml:space="preserve">
     <value>Nas_tavit ACME…</value>
   </data>
-  <data name="_Show in IP ranges" xml:space="preserve">
-    <value>Zobrazit v _rozsazích IP</value>
+  <data name="_Show the bans" xml:space="preserve">
+    <value>Z_obrazit bany</value>
   </data>
   <data name="_Source address or range it may be used from (optional)" xml:space="preserve">
     <value>_Zdrojová adresa nebo rozsah, odkud jej lze použít (volitelné)</value>
@@ -15883,6 +15940,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="legitimate mail is being marked as spam" xml:space="preserve">
     <value>legitimní pošta je označována jako spam</value>
   </data>
+  <data name="less than a minute" xml:space="preserve">
+    <value>méně než minuta</value>
+  </data>
   <data name="less than a minute ago" xml:space="preserve">
     <value>před necelou minutou</value>
   </data>
@@ -16375,6 +16435,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="will be added" xml:space="preserve">
     <value>bude přidáno</value>
   </data>
+  <data name="within a minute" xml:space="preserve">
+    <value>do minuty</value>
+  </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>zapisovat log do databáze</value>
   </data>
@@ -16764,6 +16827,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} folders.|few" xml:space="preserve">
     <value>{0} složky.</value>
+  </data>
+  <data name="{0} from now" xml:space="preserve">
+    <value>za {0}</value>
   </data>
   <data name="{0} from {1}" xml:space="preserve">
     <value>{0} z {1}</value>
@@ -17277,6 +17343,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} was made with {1} mailboxes.|few" xml:space="preserve">
     <value>{0} byla vytvořena s {1} schránkami.</value>
+  </data>
+  <data name="{0} was no longer banned: the ban had lifted already." xml:space="preserve">
+    <value>Adresa {0} už nebyla zablokovaná: její ban už skončil.</value>
   </data>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} už na seznamu nebyla.</value>

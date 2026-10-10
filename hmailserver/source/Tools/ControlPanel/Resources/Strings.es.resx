@@ -678,6 +678,9 @@
   <data name="A short built-in list - &quot;password&quot;, &quot;123456&quot;, &quot;changeme&quot; and about thirty more - compared without regard to case. It is deliberately not a &quot;top 10000&quot; list, which would need a data file and an update path; it catches the passwords that get typed while setting up a mailbox nobody comes back to." xml:space="preserve">
     <value>Una lista integrada corta - "password", "123456", "changeme" y unas treinta más - comparada sin distinguir mayúsculas. Deliberadamente no es una lista "top 10000", que necesitaría un archivo de datos y una vía de actualización; atrapa las contraseñas que se escriben al configurar un buzón al que nadie vuelve.</value>
   </data>
+  <data name="A sign-in attempt on a port that takes no password" xml:space="preserve">
+    <value>Un intento de inicio de sesión en un puerto que no acepta contraseñas</value>
+  </data>
   <data name="A simple bind needs the user's distinguished name. There are two ways to get one - search for it, or compute it from a template - and Negotiate needs neither, because SSPI authenticates by user name and domain, which the account already carries." xml:space="preserve">
     <value>Un bind simple necesita el nombre distinguido del usuario. Hay dos formas de obtenerlo - buscarlo, o calcularlo a partir de una plantilla - y Negotiate no necesita ninguna, porque SSPI autentica por nombre de usuario y dominio, que la cuenta ya lleva.</value>
   </data>
@@ -1280,6 +1283,9 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   </data>
   <data name="After reinitialise" xml:space="preserve">
     <value>Tras reinicializar</value>
+  </data>
+  <data name="After sign-in" xml:space="preserve">
+    <value>Tras iniciar sesión</value>
   </data>
   <data name="After the body has arrived" xml:space="preserve">
     <value>Después de que haya llegado el cuerpo</value>
@@ -1918,8 +1924,8 @@ Los detalles completos se escribieron en:
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>Certificados automáticos (ACME)</value>
   </data>
-  <data name="Automatic lockout of an address that keeps failing to log on. The ban itself is an expiring IP range, so it is listed on the IP ranges page." xml:space="preserve">
-    <value>Bloqueo automático de una dirección que sigue fallando al iniciar sesión. El bloqueo en sí es un rango de IP que caduca, así que aparece en la página Rangos de IP.</value>
+  <data name="Automatic lockout of an address that keeps failing to sign in. The bans in force are listed first, each with Lift ban, which lets the address in again at once." xml:space="preserve">
+    <value>Bloqueo automático de una dirección que sigue fallando al iniciar sesión. Los bloqueos vigentes aparecen primero, cada uno con Levantar bloqueo, que deja entrar de nuevo a la dirección al instante.</value>
   </data>
   <data name="Automatic replies may go to this domain" xml:space="preserve">
     <value>Las respuestas automáticas pueden ir a este dominio</value>
@@ -3022,6 +3028,9 @@ Los detalles completos se escribieron en:
   <data name="Could not generate the DKIM key: {0}" xml:space="preserve">
     <value>No se pudo generar la clave DKIM: {0}</value>
   </data>
+  <data name="Could not lift the ban: {0}" xml:space="preserve">
+    <value>No se pudo levantar el bloqueo: {0}</value>
+  </data>
   <data name="Could not list domains: {0}" xml:space="preserve">
     <value>No se pudieron listar los dominios: {0}</value>
   </data>
@@ -3092,6 +3101,9 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>No se pudieron leer los ajustes de copia: </value>
+  </data>
+  <data name="Could not read the bans: {0}" xml:space="preserve">
+    <value>No se pudieron leer los bloqueos: {0}</value>
   </data>
   <data name="Could not read the certificates: " xml:space="preserve">
     <value>No se pudieron leer los certificados: </value>
@@ -3300,9 +3312,6 @@ Los detalles completos se escribieron en:
   <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
     <value>Contar un buzón lleno como rebote permanente</value>
   </data>
-  <data name="Counted logon failures cleared. Addresses already banned stay banned until their &quot;Auto-ban:&quot; range expires - delete it on the IP ranges page to release one now." xml:space="preserve">
-    <value>Fallos de inicio de sesión contados borrados. Las direcciones ya bloqueadas siguen bloqueadas hasta que caduque su rango "Auto-ban:" - bórrelo en la página Rangos de IP para liberar una ahora.</value>
-  </data>
   <data name="Counted per account from the last login that was allowed, so a refused attempt does not push the next one further away. It is advertised only while it is set, because announcing a limit that is not enforced is worse than announcing nothing." xml:space="preserve">
     <value>Contado por cuenta desde el último inicio de sesión permitido, así que un intento rechazado no aleja más el siguiente. Solo se anuncia mientras está definido, porque anunciar un límite que no se aplica es peor que no anunciar nada.</value>
   </data>
@@ -3311,6 +3320,9 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Counted per user name rather than per address, across every protocol that authenticates, so a botnet spreading its guesses over thousands of addresses still locks the mailbox it is guessing at. A locked name is refused with the ordinary invalid-credentials reply and cannot be unlocked by typing the right password - the lock is checked first - so the ceiling is worth setting with the cost in mind. Failures against a name that does not exist lock that name too, deliberately: doing otherwise would let an attacker use the lockout to discover which accounts are real." xml:space="preserve">
     <value>Contado por nombre de usuario en vez de por dirección, en todos los protocolos que autentican, de modo que una botnet que reparte sus intentos entre miles de direcciones sigue bloqueando el buzón que está adivinando. Un nombre bloqueado se rechaza con la respuesta ordinaria de credenciales no válidas y no puede desbloquearse escribiendo la contraseña correcta - el bloqueo se comprueba primero - así que conviene fijar el tope teniendo en cuenta el coste. Los fallos contra un nombre que no existe también bloquean ese nombre, deliberadamente: hacerlo de otro modo permitiría a un atacante usar el bloqueo para descubrir qué cuentas son reales.</value>
+  </data>
+  <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
+    <value>Fallos de inicio de sesión contados borrados. Las direcciones ya bloqueadas siguen bloqueadas hasta que termine su bloqueo - Levantar bloqueo en Bloqueados ahora deja entrar a una al instante.</value>
   </data>
   <data name="Countries" xml:space="preserve">
     <value>Países</value>
@@ -4447,6 +4459,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Punto de acceso (vacío = el del servicio)</value>
   </data>
+  <data name="Ends" xml:space="preserve">
+    <value>Termina</value>
+  </data>
   <data name="Enforce: hold the mail and lock the account" xml:space="preserve">
     <value>Aplicar: retener el correo y bloquear la cuenta</value>
   </data>
@@ -4953,6 +4968,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="Failed logons from a listed address are not counted at all, so it can never be banned. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine. Example: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. An entry that is not an address is reported by name in the error log and ignored." xml:space="preserve">
     <value>Los inicios de sesión fallidos desde una dirección de la lista no se cuentan en absoluto, así que nunca puede bloquearse. Anote aquí las direcciones desde las que administra antes de activar la opción del cortafuegos: un bloqueo que llega al cortafuegos deja esa dirección fuera de todos los puertos de correo de esta máquina. Ejemplo: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. Una entrada que no sea una dirección se notifica por su nombre en el registro de errores y se ignora.</value>
+  </data>
+  <data name="Failed sign-ins as {0}" xml:space="preserve">
+    <value>Inicios de sesión fallidos como {0}</value>
   </data>
   <data name="Fails when the connecting address has no reverse DNS record." xml:space="preserve">
     <value>Falla cuando la dirección que se conecta no tiene registro DNS inverso.</value>
@@ -6135,6 +6153,18 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   <data name="Levels" xml:space="preserve">
     <value>Niveles</value>
   </data>
+  <data name="Lift ban" xml:space="preserve">
+    <value>Levantar bloqueo</value>
+  </data>
+  <data name="Lift the ban on {0}" xml:space="preserve">
+    <value>Levantar el bloqueo de {0}</value>
+  </data>
+  <data name="Lift the ban on {0}? It may connect again at once, and is banned again only when it earns a new ban." xml:space="preserve">
+    <value>¿Levantar el bloqueo de {0}? Podrá conectarse de nuevo al instante y solo volverá a bloquearse cuando se gane un nuevo bloqueo.</value>
+  </data>
+  <data name="Lift the selected ban: the address may connect again at once" xml:space="preserve">
+    <value>Levantar el bloqueo seleccionado: la dirección podrá conectarse de nuevo al instante</value>
+  </data>
   <data name="Limit _number of distribution lists" xml:space="preserve">
     <value>Limitar el _número de listas de distribución</value>
   </data>
@@ -6378,6 +6408,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   <data name="Mail from an empty sender address is denied. Many servers send bounces from &lt;&gt;, which will be rejected." xml:space="preserve">
     <value>El correo con dirección de remitente vacía se deniega. Muchos servidores envían los rebotes desde &lt;&gt;, que serán rechazados.</value>
   </data>
+  <data name="Mail from an empty sender to several recipients" xml:space="preserve">
+    <value>Correo de un remitente vacío a varios destinatarios</value>
+  </data>
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>El correo de fuera de la organización puede marcarse para que el lector lo vea de un vistazo. Un remitente es de fuera cuando la sesión no inició sesión, el mensaje no llegó por un relé entrante de confianza y ni el remitente del sobre ni la dirección From pertenecen a un dominio que aloja este servidor.</value>
   </data>
@@ -6410,6 +6443,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   </data>
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Correo a un administrador cuando algo necesita atención, como el disco llenándose, una cola de trabajo atascándose, un certificado a punto de caducar o una copia de seguridad fallida. Qué condiciones se vigilan lo fijan las reglas de alerta del Control Deck; no se envía nada hasta que las dos direcciones de abajo estén definidas.</value>
+  </data>
+  <data name="Mail to the spam trap {0}" xml:space="preserve">
+    <value>Correo a la trampa de spam {0}</value>
   </data>
   <data name="Mailbox created" xml:space="preserve">
     <value>Buzón creado</value>
@@ -7146,6 +7182,9 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="No active sessions" xml:space="preserve">
     <value>No hay sesiones activas</value>
+  </data>
+  <data name="No address is banned now." xml:space="preserve">
+    <value>Ahora no hay ninguna dirección bloqueada.</value>
   </data>
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>No hay ninguna dirección en la lista de supresión de este dominio. Una dirección se añade aquí cuando el correo a ella rebota de forma definitiva, o cuando usted añade una.</value>
@@ -8148,6 +8187,9 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="Open or close the help for this page" xml:space="preserve">
     <value>Abrir o cerrar la ayuda de esta página</value>
+  </data>
+  <data name="Open relay" xml:space="preserve">
+    <value>Relé abierto</value>
   </data>
   <data name="Open the Control Deck" xml:space="preserve">
     <value>Abrir el Control Deck</value>
@@ -10987,6 +11029,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Cadena de búsqueda más corta que responde el índice (3-64; las más cortas recurren al recorrido)</value>
   </data>
+  <data name="Show auto-_bans only" xml:space="preserve">
+    <value>Solo bloqueos automáti_cos</value>
+  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Mostrar el gráfico</value>
   </data>
@@ -11023,8 +11068,8 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>¿Mostrar el Control Panel en {0}? Se reinicia para cambiar de idioma.</value>
   </data>
-  <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
-    <value>Mostrar los rangos de IP de bloqueo automático en la página Rangos de IP</value>
+  <data name="Show the bans in force under Banned now on the Auto-ban page, where each can be lifted" xml:space="preserve">
+    <value>Mostrar los bloqueos vigentes en Bloqueados ahora, en la página Bloqueo automático, donde cada uno puede levantarse</value>
   </data>
   <data name="Show the details" xml:space="preserve">
     <value>Mostrar los detalles</value>
@@ -11899,6 +11944,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="The addresses and ports each protocol listens on, and the connection security used on each." xml:space="preserve">
     <value>Las direcciones y puertos en los que escucha cada protocolo, y la seguridad de conexión usada en cada uno.</value>
   </data>
+  <data name="The addresses the server has banned, why and when each ban ends; the same bans are expiring ranges on the IP ranges page." xml:space="preserve">
+    <value>Las direcciones que el servidor ha bloqueado, por qué y cuándo termina cada bloqueo; los mismos bloqueos son rangos que caducan en la página Rangos de IP.</value>
+  </data>
   <data name="The administrator has a second factor, and the REST API asks for a one-time code with every request made with the password, which this page does not send. Read the cases in the Control Deck." xml:space="preserve">
     <value>El administrador tiene un segundo factor, y la API REST pide un código de un solo uso en cada solicitud hecha con la contraseña, que esta página no envía. Lea los casos en el Control Deck.</value>
   </data>
@@ -11991,6 +12039,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="The backups in the destination folder, newest first. Choose one and the restore cards below use it; Re-check status reads the folder again." xml:space="preserve">
     <value>Las copias de la carpeta de destino, la más reciente primero. Elija una y las tarjetas de restauración de abajo la usan; Volver a comprobar el estado vuelve a leer la carpeta.</value>
+  </data>
+  <data name="The ban on {0} is lifted." xml:space="preserve">
+    <value>El bloqueo de {0} se ha levantado.</value>
   </data>
   <data name="The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way." xml:space="preserve">
     <value>La dirección de enlace no es una dirección de bucle local y no hay ninguna credencial definida, así que /metrics responde 503 (Service Unavailable) a todas las recogidas. Defina un token de portador, o los dos campos de HTTP Basic, o enlace a 127.0.0.1. Las sondas de salud siguen respondiendo en cualquier caso.</value>
@@ -14378,6 +14429,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the General tab." xml:space="preserve">
     <value>Con esto activado, la contraseña no se guarda aquí en absoluto - se le pide a Windows que la compruebe. Déjelo desactivado y la cuenta usa la contraseña de la pestaña General.</value>
   </data>
+  <data name="Without sign-in" xml:space="preserve">
+    <value>Sin iniciar sesión</value>
+  </data>
   <data name="Words on the SAML sign-in button" xml:space="preserve">
     <value>Texto del botón de inicio de sesión SAML</value>
   </data>
@@ -14846,6 +14900,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="_Later" xml:space="preserve">
     <value>_Más tarde</value>
   </data>
+  <data name="_Lift ban" xml:space="preserve">
+    <value>_Levantar bloqueo</value>
+  </data>
   <data name="_Limit number of accounts" xml:space="preserve">
     <value>_Limitar el número de cuentas</value>
   </data>
@@ -15146,8 +15203,8 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="_Set up ACME…" xml:space="preserve">
     <value>Confi_gurar ACME…</value>
   </data>
-  <data name="_Show in IP ranges" xml:space="preserve">
-    <value>_Ver en Rangos de IP</value>
+  <data name="_Show the bans" xml:space="preserve">
+    <value>_Ver los bloqueos</value>
   </data>
   <data name="_Source address or range it may be used from (optional)" xml:space="preserve">
     <value>Dirección o rango de _origen desde el que puede usarse (opcional)</value>
@@ -15693,6 +15750,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="legitimate mail is being marked as spam" xml:space="preserve">
     <value>el correo legítimo se está marcando como spam</value>
   </data>
+  <data name="less than a minute" xml:space="preserve">
+    <value>menos de un minuto</value>
+  </data>
   <data name="less than a minute ago" xml:space="preserve">
     <value>hace menos de un minuto</value>
   </data>
@@ -16185,6 +16245,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="will be added" xml:space="preserve">
     <value>se añadirá</value>
   </data>
+  <data name="within a minute" xml:space="preserve">
+    <value>en menos de un minuto</value>
+  </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>escribir el registro en una base de datos</value>
   </data>
@@ -16493,6 +16556,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} carpetas.</value>
+  </data>
+  <data name="{0} from now" xml:space="preserve">
+    <value>dentro de {0}</value>
   </data>
   <data name="{0} from {1}" xml:space="preserve">
     <value>{0} desde {1}</value>
@@ -16895,6 +16961,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0} was made with {1} mailboxes." xml:space="preserve">
     <value>{0} se creó con {1} buzones.</value>
+  </data>
+  <data name="{0} was no longer banned: the ban had lifted already." xml:space="preserve">
+    <value>{0} ya no estaba bloqueada: el bloqueo ya se había levantado.</value>
   </data>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} ya no estaba en la lista.</value>

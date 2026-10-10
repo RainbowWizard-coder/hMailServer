@@ -160,6 +160,15 @@
     <Compile Include="..\ControlPanel\Services\LdapReread.cs" />
   </ItemGroup>
 
+  <!-- T2.13's task flows, part 3: the bans in force on the Auto-ban page and the IP
+       ranges page's Expires and Relay cells (review finding F231), and how long until
+       a time the server keeps, in its own clock's terms. -->
+  <ItemGroup>
+    <Compile Include="..\ControlPanel\Services\TimeUntilText.cs" />
+    <Compile Include="..\ControlPanel\Services\AutoBanList.cs" />
+    <Compile Include="..\ControlPanel\Services\IpRangeCells.cs" />
+  </ItemGroup>
+
   <!-- The operator documentation, embedded straight from the repository as
        Help.<Name>.md, exactly as ControlPanel.csproj embeds it for the program:
        the same glob, the same two exclusions, the same names. The program does

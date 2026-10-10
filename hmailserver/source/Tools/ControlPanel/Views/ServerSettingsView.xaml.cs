@@ -3197,7 +3197,14 @@ namespace hMailServer.ControlPanel.Views
       private void BuildAutoBan()
       {
          Header.PageKey = "autoban";
-         Header.Subtitle = L("Automatic lockout of an address that keeps failing to log on. The ban itself is an expiring IP range, so it is listed on the IP ranges page.");
+         Header.Subtitle = L("Automatic lockout of an address that keeps failing to sign in. The bans in force are listed first, each with Lift ban, which lets the address in again at once.");
+
+         // The bans in force, first (review finding F231): the page listed none, and
+         // lifting one took four steps across this page and IP ranges.
+         var banned = Card(L("Banned now"),
+            L("The addresses the server has banned, why and when each ban ends; the same bans are expiring ranges on the IP ranges page."));
+         banned.Settings.Add(new BannedNowRows());
+         Tab(L("Auto-ban")).Cards.Add(banned);
 
          var ban = Card(L("Auto-ban"),
             L("Counted per connecting IP address across every protocol that authenticates - SMTP AUTH, POP3, IMAP, ManageSieve and the REST API all feed the same counter. On reaching the limit the server clears that address's counted failures and creates an IP range named \"Auto-ban: <user>\" at priority 100 covering that one address, which expires on its own."));
@@ -3274,7 +3281,7 @@ namespace hMailServer.ControlPanel.Views
                   // untouched. Somebody pressing this to release a locked-out user
                   // and getting "cleared" would otherwise reasonably conclude the
                   // lockout was lifted.
-                  return (true, L("Counted logon failures cleared. Addresses already banned stay banned until their \"Auto-ban:\" range expires - delete it on the IP ranges page to release one now."));
+                  return (true, L("Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once."));
                }
                finally { ServerSession.Release((object)s); }
             }

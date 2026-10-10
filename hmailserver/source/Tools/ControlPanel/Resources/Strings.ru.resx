@@ -684,6 +684,9 @@
   <data name="A short built-in list - &quot;password&quot;, &quot;123456&quot;, &quot;changeme&quot; and about thirty more - compared without regard to case. It is deliberately not a &quot;top 10000&quot; list, which would need a data file and an update path; it catches the passwords that get typed while setting up a mailbox nobody comes back to." xml:space="preserve">
     <value>Короткий встроенный список — «password», «123456», «changeme» и ещё около тридцати — сравнение без учёта регистра. Это намеренно не список «топ-10000», для которого понадобились бы файл данных и способ его обновления; список ловит те пароли, которые вводят при настройке почтового ящика, к которому потом никто не возвращается.</value>
   </data>
+  <data name="A sign-in attempt on a port that takes no password" xml:space="preserve">
+    <value>Попытка входа на порту, который не принимает пароли</value>
+  </data>
   <data name="A simple bind needs the user's distinguished name. There are two ways to get one - search for it, or compute it from a template - and Negotiate needs neither, because SSPI authenticates by user name and domain, which the account already carries." xml:space="preserve">
     <value>Простой привязке нужно различающееся имя пользователя. Получить его можно двумя способами — найти поиском или вычислить по шаблону, — а режиму Negotiate не нужно ни то ни другое, поскольку SSPI выполняет аутентификацию по имени пользователя и домену, которые у учётной записи уже есть.</value>
   </data>
@@ -1286,6 +1289,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="After reinitialise" xml:space="preserve">
     <value>После повторной инициализации</value>
+  </data>
+  <data name="After sign-in" xml:space="preserve">
+    <value>После входа</value>
   </data>
   <data name="After the body has arrived" xml:space="preserve">
     <value>После получения тела письма</value>
@@ -1939,8 +1945,8 @@ Control Panel может читать файлы сообщений только
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>Автоматические сертификаты (ACME)</value>
   </data>
-  <data name="Automatic lockout of an address that keeps failing to log on. The ban itself is an expiring IP range, so it is listed on the IP ranges page." xml:space="preserve">
-    <value>Автоматическая блокировка адреса, с которого раз за разом не удаётся войти. Сама блокировка — это диапазон IP с истекающим сроком, поэтому она перечислена на странице «Диапазоны IP».</value>
+  <data name="Automatic lockout of an address that keeps failing to sign in. The bans in force are listed first, each with Lift ban, which lets the address in again at once." xml:space="preserve">
+    <value>Автоматическая блокировка адреса, с которого раз за разом не удаётся войти. Действующие блокировки перечислены первыми, у каждой есть кнопка «Снять блокировку», которая сразу снова впускает адрес.</value>
   </data>
   <data name="Automatic replies may go to this domain" xml:space="preserve">
     <value>Автоответы можно отправлять в этот домен</value>
@@ -3046,6 +3052,9 @@ Control Panel может читать файлы сообщений только
   <data name="Could not generate the DKIM key: {0}" xml:space="preserve">
     <value>Не удалось создать ключ DKIM: {0}</value>
   </data>
+  <data name="Could not lift the ban: {0}" xml:space="preserve">
+    <value>Не удалось снять блокировку: {0}</value>
+  </data>
   <data name="Could not list domains: {0}" xml:space="preserve">
     <value>Не удалось получить список доменов: {0}</value>
   </data>
@@ -3116,6 +3125,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>Не удалось прочитать параметры резервного копирования: </value>
+  </data>
+  <data name="Could not read the bans: {0}" xml:space="preserve">
+    <value>Не удалось прочитать блокировки: {0}</value>
   </data>
   <data name="Could not read the certificates: " xml:space="preserve">
     <value>Не удалось прочитать сертификаты: </value>
@@ -3324,9 +3336,6 @@ Control Panel может читать файлы сообщений только
   <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
     <value>Считать переполненный ящик постоянным отказом</value>
   </data>
-  <data name="Counted logon failures cleared. Addresses already banned stay banned until their &quot;Auto-ban:&quot; range expires - delete it on the IP ranges page to release one now." xml:space="preserve">
-    <value>Подсчитанные неудачные входы очищены. Уже заблокированные адреса остаются заблокированными, пока не истечёт срок их диапазона «Auto-ban:», — чтобы освободить адрес прямо сейчас, удалите этот диапазон на странице «Диапазоны IP».</value>
-  </data>
   <data name="Counted per account from the last login that was allowed, so a refused attempt does not push the next one further away. It is advertised only while it is set, because announcing a limit that is not enforced is worse than announcing nothing." xml:space="preserve">
     <value>Считается по учётной записи от последнего разрешённого входа, поэтому отклонённая попытка не отодвигает следующую ещё дальше. Объявляется только пока значение задано, потому что объявлять ограничение, которое не применяется, хуже, чем не объявлять ничего.</value>
   </data>
@@ -3335,6 +3344,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Counted per user name rather than per address, across every protocol that authenticates, so a botnet spreading its guesses over thousands of addresses still locks the mailbox it is guessing at. A locked name is refused with the ordinary invalid-credentials reply and cannot be unlocked by typing the right password - the lock is checked first - so the ceiling is worth setting with the cost in mind. Failures against a name that does not exist lock that name too, deliberately: doing otherwise would let an attacker use the lockout to discover which accounts are real." xml:space="preserve">
     <value>Считается по имени пользователя, а не по адресу, и для всех протоколов с аутентификацией, — поэтому бот-сеть, размазывающая перебор по тысячам адресов, всё равно заблокирует тот почтовый ящик, который подбирает. Заблокированное имя получает обычный ответ о неверных учётных данных, и разблокировать его вводом правильного пароля нельзя — блокировка проверяется первой, — поэтому предел стоит задавать, помня об этой цене. Неудачные попытки с несуществующим именем блокируют и его тоже, и это сделано намеренно: иначе злоумышленник смог бы по блокировке узнать, какие учётные записи существуют.</value>
+  </data>
+  <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
+    <value>Подсчитанные неудачные входы очищены. Уже заблокированные адреса остаются заблокированными до конца блокировки - кнопка «Снять блокировку» в разделе «Заблокировано сейчас» сразу впускает адрес.</value>
   </data>
   <data name="Countries" xml:space="preserve">
     <value>Страны</value>
@@ -4496,6 +4508,9 @@ Control Panel может читать файлы сообщений только
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Конечная точка (пусто = собственная точка службы)</value>
   </data>
+  <data name="Ends" xml:space="preserve">
+    <value>Окончание</value>
+  </data>
   <data name="Enforce: hold the mail and lock the account" xml:space="preserve">
     <value>Принуждать: задержать почту и заблокировать учётную запись</value>
   </data>
@@ -5020,6 +5035,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Failed logons from a listed address are not counted at all, so it can never be banned. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine. Example: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. An entry that is not an address is reported by name in the error log and ignored." xml:space="preserve">
     <value>Неудачные входы с адреса из списка не считаются вовсе, поэтому его нельзя забанить никогда. Внесите сюда адреса, с которых вы администрируете, прежде чем включать параметр межсетевого экрана: бан, дошедший до межсетевого экрана, закрывает этому адресу все почтовые порты этой машины. Пример: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. Запись, не являющаяся адресом, сообщается по имени в журнале ошибок и пропускается.</value>
+  </data>
+  <data name="Failed sign-ins as {0}" xml:space="preserve">
+    <value>Неудачные входы под именем {0}</value>
   </data>
   <data name="Fails when the connecting address has no reverse DNS record." xml:space="preserve">
     <value>Не проходит, когда у подключающегося адреса нет обратной записи DNS.</value>
@@ -6202,6 +6220,18 @@ Control Panel может читать файлы сообщений только
   <data name="Levels" xml:space="preserve">
     <value>Уровни</value>
   </data>
+  <data name="Lift ban" xml:space="preserve">
+    <value>Снять блокировку</value>
+  </data>
+  <data name="Lift the ban on {0}" xml:space="preserve">
+    <value>Снять блокировку с {0}</value>
+  </data>
+  <data name="Lift the ban on {0}? It may connect again at once, and is banned again only when it earns a new ban." xml:space="preserve">
+    <value>Снять блокировку с {0}? Адрес сможет сразу снова подключаться и будет заблокирован снова, только если заработает новую блокировку.</value>
+  </data>
+  <data name="Lift the selected ban: the address may connect again at once" xml:space="preserve">
+    <value>Снять выбранную блокировку: адрес сможет сразу снова подключаться</value>
+  </data>
   <data name="Limit _number of distribution lists" xml:space="preserve">
     <value>Ограничить _количество списков рассылки</value>
   </data>
@@ -6448,6 +6478,9 @@ Control Panel может читать файлы сообщений только
   <data name="Mail from an empty sender address is denied. Many servers send bounces from &lt;&gt;, which will be rejected." xml:space="preserve">
     <value>Почта с пустым адресом отправителя запрещена. Многие серверы отправляют возвраты от &lt;&gt;, и такие письма будут отклонены.</value>
   </data>
+  <data name="Mail from an empty sender to several recipients" xml:space="preserve">
+    <value>Почта от пустого отправителя нескольким получателям</value>
+  </data>
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>Почту из-за пределов организации можно пометить, чтобы читатель увидел это сразу. Отправитель считается внешним, когда сеанс не вошёл в систему, сообщение пришло не через доверенный входящий ретранслятор, и ни отправитель конверта, ни адрес From не принадлежат домену, который обслуживает этот сервер.</value>
   </data>
@@ -6480,6 +6513,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Почта администратору, когда что-то требует внимания, например заполняется диск, останавливается рабочая очередь, скоро истекает сертификат или не удалось резервное копирование. Какие условия отслеживаются, задают правила оповещений в Control Deck; ничего не отправляется, пока не заданы оба адреса ниже.</value>
+  </data>
+  <data name="Mail to the spam trap {0}" xml:space="preserve">
+    <value>Почта на ловушку для спама {0}</value>
   </data>
   <data name="Mailbox created" xml:space="preserve">
     <value>Ящик создан</value>
@@ -7222,6 +7258,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No active sessions" xml:space="preserve">
     <value>Активных сеансов нет</value>
+  </data>
+  <data name="No address is banned now." xml:space="preserve">
+    <value>Сейчас ни один адрес не заблокирован.</value>
   </data>
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>В списке подавления этого домена нет адресов. Адрес попадает сюда, когда почта на него окончательно возвращается с отказом или когда вы его добавляете.</value>
@@ -8239,6 +8278,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Open or close the help for this page" xml:space="preserve">
     <value>Открыть или закрыть справку по этой странице</value>
+  </data>
+  <data name="Open relay" xml:space="preserve">
+    <value>Открытая ретрансляция</value>
   </data>
   <data name="Open the Control Deck" xml:space="preserve">
     <value>Открыть Control Deck</value>
@@ -11117,6 +11159,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Самая короткая строка поиска, на которую отвечает индекс (3-64; более короткие строки обрабатываются полным просмотром)</value>
   </data>
+  <data name="Show auto-_bans only" xml:space="preserve">
+    <value>_Только автоблокировки</value>
+  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Показать график</value>
   </data>
@@ -11153,8 +11198,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Показывать Control Panel на языке {0}? Для смены языка он перезапустится.</value>
   </data>
-  <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
-    <value>Показать диапазоны IP автоблокировки на странице «Диапазоны IP»</value>
+  <data name="Show the bans in force under Banned now on the Auto-ban page, where each can be lifted" xml:space="preserve">
+    <value>Показать действующие блокировки в разделе «Заблокировано сейчас» на странице «Автоблокировка», где каждую можно снять</value>
   </data>
   <data name="Show the details" xml:space="preserve">
     <value>Показать подробности</value>
@@ -12032,6 +12077,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The addresses and ports each protocol listens on, and the connection security used on each." xml:space="preserve">
     <value>Адреса и порты, которые слушает каждый протокол, и защита подключения, используемая на каждом из них.</value>
   </data>
+  <data name="The addresses the server has banned, why and when each ban ends; the same bans are expiring ranges on the IP ranges page." xml:space="preserve">
+    <value>Адреса, которые заблокировал сервер, причина и время окончания каждой блокировки; те же блокировки — это диапазоны с истекающим сроком на странице «Диапазоны IP».</value>
+  </data>
   <data name="The administrator has a second factor, and the REST API asks for a one-time code with every request made with the password, which this page does not send. Read the cases in the Control Deck." xml:space="preserve">
     <value>У администратора есть второй фактор, и REST API требует одноразовый код при каждом запросе с паролем, а эта страница его не отправляет. Читайте дела в Control Deck.</value>
   </data>
@@ -12124,6 +12172,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The backups in the destination folder, newest first. Choose one and the restore cards below use it; Re-check status reads the folder again." xml:space="preserve">
     <value>Резервные копии в папке назначения, сначала самые новые. Выберите одну, и карточки восстановления ниже будут её использовать; «Проверить состояние заново» перечитывает папку.</value>
+  </data>
+  <data name="The ban on {0} is lifted." xml:space="preserve">
+    <value>Блокировка с {0} снята.</value>
   </data>
   <data name="The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way." xml:space="preserve">
     <value>Адрес привязки не является адресом обратной петли, а учётные данные не заданы, поэтому /metrics отвечает 503 (Service Unavailable) на каждый сбор метрик. Задайте токен-носитель, или оба поля HTTP Basic, или выполните привязку к 127.0.0.1. Проверки работоспособности продолжают отвечать в любом случае.</value>
@@ -14550,6 +14601,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the General tab." xml:space="preserve">
     <value>Если это включено, пароль здесь вообще не хранится - его проверку просят у Windows. Оставьте выключенным, и учётная запись использует пароль со вкладки «Общие».</value>
   </data>
+  <data name="Without sign-in" xml:space="preserve">
+    <value>Без входа</value>
+  </data>
   <data name="Words on the SAML sign-in button" xml:space="preserve">
     <value>Текст на кнопке входа SAML</value>
   </data>
@@ -15021,6 +15075,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Later" xml:space="preserve">
     <value>По_зже</value>
   </data>
+  <data name="_Lift ban" xml:space="preserve">
+    <value>_Снять блокировку</value>
+  </data>
   <data name="_Limit number of accounts" xml:space="preserve">
     <value>_Ограничить число учётных записей</value>
   </data>
@@ -15321,8 +15378,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Set up ACME…" xml:space="preserve">
     <value>_Настроить ACME…</value>
   </data>
-  <data name="_Show in IP ranges" xml:space="preserve">
-    <value>Показать в _диапазонах IP</value>
+  <data name="_Show the bans" xml:space="preserve">
+    <value>Пока_зать блокировки</value>
   </data>
   <data name="_Source address or range it may be used from (optional)" xml:space="preserve">
     <value>_Исходный адрес или диапазон, с которого его можно использовать (необязательно)</value>
@@ -15883,6 +15940,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="legitimate mail is being marked as spam" xml:space="preserve">
     <value>легитимная почта помечается как спам</value>
   </data>
+  <data name="less than a minute" xml:space="preserve">
+    <value>меньше минуты</value>
+  </data>
   <data name="less than a minute ago" xml:space="preserve">
     <value>менее минуты назад</value>
   </data>
@@ -16375,6 +16435,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="will be added" xml:space="preserve">
     <value>будет добавлено</value>
   </data>
+  <data name="within a minute" xml:space="preserve">
+    <value>в течение минуты</value>
+  </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>записывать журнал в базу данных</value>
   </data>
@@ -16764,6 +16827,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} folders.|few" xml:space="preserve">
     <value>Папок: {0}.</value>
+  </data>
+  <data name="{0} from now" xml:space="preserve">
+    <value>через {0}</value>
   </data>
   <data name="{0} from {1}" xml:space="preserve">
     <value>{0} с {1}</value>
@@ -17277,6 +17343,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} was made with {1} mailboxes.|few" xml:space="preserve">
     <value>{0} создан с {1} почтовыми ящиками.</value>
+  </data>
+  <data name="{0} was no longer banned: the ban had lifted already." xml:space="preserve">
+    <value>{0} уже не был заблокирован: блокировка уже закончилась.</value>
   </data>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} уже не было в списке.</value>

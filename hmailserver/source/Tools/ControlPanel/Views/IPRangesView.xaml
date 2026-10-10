@@ -48,6 +48,14 @@
 
         <scaffold:Toolbar x:Name="SearchBar" SearchPlaceholder="{loc:L 'Search IP ranges'}"
                           SearchTextChanged="Search_TextChanged">
+            <!-- The server's bans alone, the ranges it wrote and lifts itself
+                 (Services/AutoBanList), among the permanent ranges the list holds
+                 (review finding F231). -->
+            <scaffold:Toolbar.Filters>
+                <CheckBox x:Name="BansOnlyBox" Content="{loc:L 'Show auto-_bans only'}" VerticalAlignment="Center"
+                          Checked="BansOnly_Changed" Unchecked="BansOnly_Changed"
+                          AutomationProperties.AutomationId="ipranges-bans-only" />
+            </scaffold:Toolbar.Filters>
             <scaffold:Toolbar.Actions>
                 <!-- Wraps, rather than cutting Delete and Restore defaults off the
                      right edge in a narrow window. The gap between wrapped lines
@@ -94,6 +102,29 @@
                         <DataGridTextColumn Header="SMTP" Binding="{Binding Smtp}" Width="70" MinWidth="56" />
                         <DataGridTextColumn Header="IMAP" Binding="{Binding Imap}" Width="70" MinWidth="56" />
                         <DataGridTextColumn Header="POP3" Binding="{Binding Pop3}" Width="70" MinWidth="56" />
+                        <!-- When a range ends - Never, or "23 min from now" for a ban - and
+                             whether it relays, the open relay marked Critical as Server
+                             status's check marks it (Services/IpRangeCells; review
+                             finding F231): the bans looked like permanent ranges, and
+                             relaying was on the card of the one range selected. -->
+                        <DataGridTextColumn Header="{loc:L 'Expires'}" Binding="{Binding Expires}" Width="120" MinWidth="96" ElementStyle="{StaticResource GridTrimmedText}" />
+                        <DataGridTemplateColumn Header="{loc:L 'Relay'}" Width="130" MinWidth="104" SortMemberPath="Relay">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <TextBlock x:Name="RelayText" Text="{Binding Relay}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="2,0,0,0" />
+                                        <scaffold:StatusPill x:Name="RelayPill" Level="Critical" Text="{Binding Relay}" Visibility="Collapsed"
+                                                             HorizontalAlignment="Left" VerticalAlignment="Center" />
+                                    </Grid>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding OpenRelay}" Value="True">
+                                            <Setter TargetName="RelayText" Property="Visibility" Value="Collapsed" />
+                                            <Setter TargetName="RelayPill" Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                     </DataGrid.Columns>
                 </DataGrid>
                 </scaffold:FillPanel>

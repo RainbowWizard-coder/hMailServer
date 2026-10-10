@@ -678,6 +678,9 @@
   <data name="A short built-in list - &quot;password&quot;, &quot;123456&quot;, &quot;changeme&quot; and about thirty more - compared without regard to case. It is deliberately not a &quot;top 10000&quot; list, which would need a data file and an update path; it catches the passwords that get typed while setting up a mailbox nobody comes back to." xml:space="preserve">
     <value>En kort indbygget liste – "password", "123456", "changeme" og omkring tredive mere – sammenlignet uden hensyn til store og små bogstaver. Det er bevidst ikke en "top 10000"-liste, som ville kræve en datafil og en opdateringsvej; den fanger de adgangskoder, der bliver skrevet, mens man sætter en postkasse op, som ingen vender tilbage til.</value>
   </data>
+  <data name="A sign-in attempt on a port that takes no password" xml:space="preserve">
+    <value>Et pålogningsforsøg på en port, der ikke tager imod adgangskoder</value>
+  </data>
   <data name="A simple bind needs the user's distinguished name. There are two ways to get one - search for it, or compute it from a template - and Negotiate needs neither, because SSPI authenticates by user name and domain, which the account already carries." xml:space="preserve">
     <value>En simpel binding kræver brugerens distinguished name. Der er to måder at få et på – at søge efter det eller at udregne det ud fra en skabelon – og Negotiate kræver ingen af delene, fordi SSPI godkender ud fra brugernavn og domæne, som kontoen allerede har.</value>
   </data>
@@ -1280,6 +1283,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   </data>
   <data name="After reinitialise" xml:space="preserve">
     <value>Efter reinitialisering</value>
+  </data>
+  <data name="After sign-in" xml:space="preserve">
+    <value>Efter pålogning</value>
   </data>
   <data name="After the body has arrived" xml:space="preserve">
     <value>Når selve indholdet er ankommet</value>
@@ -1918,8 +1924,8 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>Automatiske certifikater (ACME)</value>
   </data>
-  <data name="Automatic lockout of an address that keeps failing to log on. The ban itself is an expiring IP range, so it is listed on the IP ranges page." xml:space="preserve">
-    <value>Automatisk udelukkelse af en adresse, der bliver ved med at fejle pålogning. Selve blokeringen er et udløbende IP-interval, så den er anført på siden IP-intervaller.</value>
+  <data name="Automatic lockout of an address that keeps failing to sign in. The bans in force are listed first, each with Lift ban, which lets the address in again at once." xml:space="preserve">
+    <value>Automatisk udelukkelse af en adresse, der bliver ved med at fejle pålogning. De gældende blokeringer står først, hver med Ophæv blokering, som straks lukker adressen ind igen.</value>
   </data>
   <data name="Automatic replies may go to this domain" xml:space="preserve">
     <value>Automatiske svar må gå til dette domæne</value>
@@ -3022,6 +3028,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Could not generate the DKIM key: {0}" xml:space="preserve">
     <value>Kunne ikke generere DKIM-nøglen: {0}</value>
   </data>
+  <data name="Could not lift the ban: {0}" xml:space="preserve">
+    <value>Blokeringen kunne ikke ophæves: {0}</value>
+  </data>
   <data name="Could not list domains: {0}" xml:space="preserve">
     <value>Kunne ikke liste domæner: {0}</value>
   </data>
@@ -3092,6 +3101,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   </data>
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>Kunne ikke læse sikkerhedskopiindstillingerne: </value>
+  </data>
+  <data name="Could not read the bans: {0}" xml:space="preserve">
+    <value>Blokeringerne kunne ikke læses: {0}</value>
   </data>
   <data name="Could not read the certificates: " xml:space="preserve">
     <value>Kunne ikke læse certifikaterne: </value>
@@ -3300,9 +3312,6 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
     <value>Tæl en fuld postkasse som en hård returmail</value>
   </data>
-  <data name="Counted logon failures cleared. Addresses already banned stay banned until their &quot;Auto-ban:&quot; range expires - delete it on the IP ranges page to release one now." xml:space="preserve">
-    <value>Talte pålogningsfejl ryddet. Adresser, der allerede er blokeret, forbliver blokeret, indtil deres "Auto-ban:"-interval udløber - slet det på siden IP-intervaller for at frigive en nu.</value>
-  </data>
   <data name="Counted per account from the last login that was allowed, so a refused attempt does not push the next one further away. It is advertised only while it is set, because announcing a limit that is not enforced is worse than announcing nothing." xml:space="preserve">
     <value>Talt pr. konto fra den seneste tilladte pålogning, så et afvist forsøg skubber ikke det næste længere væk. Det annonceres kun, mens det er sat, fordi at annoncere en grænse, der ikke håndhæves, er værre end at annoncere ingenting.</value>
   </data>
@@ -3311,6 +3320,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   </data>
   <data name="Counted per user name rather than per address, across every protocol that authenticates, so a botnet spreading its guesses over thousands of addresses still locks the mailbox it is guessing at. A locked name is refused with the ordinary invalid-credentials reply and cannot be unlocked by typing the right password - the lock is checked first - so the ceiling is worth setting with the cost in mind. Failures against a name that does not exist lock that name too, deliberately: doing otherwise would let an attacker use the lockout to discover which accounts are real." xml:space="preserve">
     <value>Talt pr. brugernavn snarere end pr. adresse, på tværs af hver protokol, der godkender, så et botnet, der spreder sine gæt over tusindvis af adresser, stadig låser den postkasse, det gætter på. Et låst navn afvises med det almindelige svar om ugyldige legitimationsoplysninger og kan ikke låses op ved at skrive den rigtige adgangskode - låsen kontrolleres først - så loftet er værd at sætte med omkostningen for øje. Fejl mod et navn, der ikke findes, låser også det navn, med vilje: at gøre andet ville lade en angriber bruge udelukkelsen til at finde ud af, hvilke konti der er rigtige.</value>
+  </data>
+  <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
+    <value>Talte pålogningsfejl ryddet. Adresser, der allerede er blokeret, forbliver blokeret, indtil deres blokering udløber - Ophæv blokering under Blokeret nu lukker en ind med det samme.</value>
   </data>
   <data name="Countries" xml:space="preserve">
     <value>Lande</value>
@@ -4447,6 +4459,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Slutpunkt (tom = tjenestens eget)</value>
   </data>
+  <data name="Ends" xml:space="preserve">
+    <value>Slutter</value>
+  </data>
   <data name="Enforce: hold the mail and lock the account" xml:space="preserve">
     <value>Håndhæv: tilbagehold posten og lås kontoen</value>
   </data>
@@ -4953,6 +4968,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Failed logons from a listed address are not counted at all, so it can never be banned. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine. Example: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. An entry that is not an address is reported by name in the error log and ignored." xml:space="preserve">
     <value>Mislykkede logon fra en adresse på listen tælles slet ikke, så den kan aldrig udelukkes. Skriv de adresser, du administrerer fra, her, før du slår firewall-indstillingen til: en udelukkelse, der når firewallen, lukker adressen ude fra alle mailporte på denne maskine. Eksempel: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. En post, der ikke er en adresse, rapporteres ved navn i fejlloggen og ignoreres.</value>
+  </data>
+  <data name="Failed sign-ins as {0}" xml:space="preserve">
+    <value>Mislykkede pålogninger som {0}</value>
   </data>
   <data name="Fails when the connecting address has no reverse DNS record." xml:space="preserve">
     <value>Fejler, når den forbindende adresse ikke har nogen omvendt DNS-post.</value>
@@ -6135,6 +6153,18 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Levels" xml:space="preserve">
     <value>Niveauer</value>
   </data>
+  <data name="Lift ban" xml:space="preserve">
+    <value>Ophæv blokering</value>
+  </data>
+  <data name="Lift the ban on {0}" xml:space="preserve">
+    <value>Ophæv blokeringen af {0}</value>
+  </data>
+  <data name="Lift the ban on {0}? It may connect again at once, and is banned again only when it earns a new ban." xml:space="preserve">
+    <value>Ophæv blokeringen af {0}? Den kan straks oprette forbindelse igen og blokeres kun igen, hvis den gør sig fortjent til en ny blokering.</value>
+  </data>
+  <data name="Lift the selected ban: the address may connect again at once" xml:space="preserve">
+    <value>Ophæv den valgte blokering: adressen kan straks oprette forbindelse igen</value>
+  </data>
   <data name="Limit _number of distribution lists" xml:space="preserve">
     <value>Begræns a_ntallet af distributionslister</value>
   </data>
@@ -6378,6 +6408,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Mail from an empty sender address is denied. Many servers send bounces from &lt;&gt;, which will be rejected." xml:space="preserve">
     <value>Post fra en tom afsenderadresse nægtes. Mange servere sender bounces fra &lt;&gt;, som vil blive afvist.</value>
   </data>
+  <data name="Mail from an empty sender to several recipients" xml:space="preserve">
+    <value>Post fra en tom afsender til flere modtagere</value>
+  </data>
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>Post udefra kan mærkes, så en læser ser det med det samme. En afsender er udefra, når sessionen ikke loggede på, meddelelsen ikke kom gennem et betroet indgående relæ, og hverken konvolutafsenderen eller From-adressen hører til et domæne, denne server er vært for.</value>
   </data>
@@ -6410,6 +6443,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Post til en administrator, når noget kræver opmærksomhed, fx en disk, der fyldes, en arbejdskø, der går i stå, et certifikat, der snart udløber, eller en sikkerhedskopi, der mislykkedes. Hvilke forhold der overvåges, bestemmes af advarselsreglerne i Control Deck; intet sendes, før begge adresser nedenfor er angivet.</value>
+  </data>
+  <data name="Mail to the spam trap {0}" xml:space="preserve">
+    <value>Post til spamfælden {0}</value>
   </data>
   <data name="Mailbox created" xml:space="preserve">
     <value>Postkasse oprettet</value>
@@ -7146,6 +7182,9 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="No active sessions" xml:space="preserve">
     <value>Ingen aktive sessioner</value>
+  </data>
+  <data name="No address is banned now." xml:space="preserve">
+    <value>Ingen adresse er blokeret lige nu.</value>
   </data>
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>Der er ingen adresse på dette domænes spærreliste. En adresse kommer her, når post til den kommer retur for altid, eller når du tilføjer en.</value>
@@ -8148,6 +8187,9 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="Open or close the help for this page" xml:space="preserve">
     <value>Åbn eller luk hjælpen til denne side</value>
+  </data>
+  <data name="Open relay" xml:space="preserve">
+    <value>Åben relay</value>
   </data>
   <data name="Open the Control Deck" xml:space="preserve">
     <value>Åbn Control Deck</value>
@@ -10987,6 +11029,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Korteste søgestreng, indekset svarer på (3-64; kortere strenge falder tilbage til scanningen)</value>
   </data>
+  <data name="Show auto-_bans only" xml:space="preserve">
+    <value>Vis kun automatiske _blokeringer</value>
+  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Vis diagram</value>
   </data>
@@ -11023,8 +11068,8 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Vis Control Panel på {0}? Det genstarter for at skifte sprog.</value>
   </data>
-  <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
-    <value>Vis IP-intervallerne fra automatisk blokering på siden IP-intervaller</value>
+  <data name="Show the bans in force under Banned now on the Auto-ban page, where each can be lifted" xml:space="preserve">
+    <value>Vis de gældende blokeringer under Blokeret nu på siden Automatisk blokering, hvor hver enkelt kan ophæves</value>
   </data>
   <data name="Show the details" xml:space="preserve">
     <value>Vis detaljerne</value>
@@ -11899,6 +11944,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="The addresses and ports each protocol listens on, and the connection security used on each." xml:space="preserve">
     <value>De adresser og porte, hver protokol lytter på, og den forbindelsessikkerhed, der bruges på hver enkelt.</value>
   </data>
+  <data name="The addresses the server has banned, why and when each ban ends; the same bans are expiring ranges on the IP ranges page." xml:space="preserve">
+    <value>De adresser, serveren har blokeret, hvorfor og hvornår hver blokering slutter; de samme blokeringer er udløbende intervaller på siden IP-intervaller.</value>
+  </data>
   <data name="The administrator has a second factor, and the REST API asks for a one-time code with every request made with the password, which this page does not send. Read the cases in the Control Deck." xml:space="preserve">
     <value>Administratoren har en anden faktor, og REST-API'et beder om en engangskode ved hver forespørgsel med adgangskoden, hvilket denne side ikke sender. Læs sagerne i Control Deck.</value>
   </data>
@@ -11991,6 +12039,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   </data>
   <data name="The backups in the destination folder, newest first. Choose one and the restore cards below use it; Re-check status reads the folder again." xml:space="preserve">
     <value>Sikkerhedskopierne i destinationsmappen, nyeste først. Vælg én, så bruger gendannelseskortene nedenfor den; Kontrollér status igen læser mappen igen.</value>
+  </data>
+  <data name="The ban on {0} is lifted." xml:space="preserve">
+    <value>Blokeringen af {0} er ophævet.</value>
   </data>
   <data name="The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way." xml:space="preserve">
     <value>Bindingsadressen er ikke en loopback-adresse, og ingen legitimationsoplysninger er sat, så /metrics svarer 503 (Service Unavailable) på hver scrape. Sæt et bearer-token, eller begge HTTP Basic-felter, eller bind til 127.0.0.1. Sundhedsproberne bliver ved med at svare uanset hvad.</value>
@@ -14378,6 +14429,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the General tab." xml:space="preserve">
     <value>Med dette slået til gemmes adgangskoden slet ikke her - Windows bedes om at kontrollere den. Lad det være slået fra, og kontoen bruger adgangskoden på fanen Generelt.</value>
   </data>
+  <data name="Without sign-in" xml:space="preserve">
+    <value>Uden pålogning</value>
+  </data>
   <data name="Words on the SAML sign-in button" xml:space="preserve">
     <value>Tekst på SAML-logonknappen</value>
   </data>
@@ -14846,6 +14900,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="_Later" xml:space="preserve">
     <value>_Senere</value>
   </data>
+  <data name="_Lift ban" xml:space="preserve">
+    <value>_Ophæv blokering</value>
+  </data>
   <data name="_Limit number of accounts" xml:space="preserve">
     <value>_Begræns antallet af konti</value>
   </data>
@@ -15146,8 +15203,8 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="_Set up ACME…" xml:space="preserve">
     <value>_Konfigurer ACME…</value>
   </data>
-  <data name="_Show in IP ranges" xml:space="preserve">
-    <value>_Vis i IP-intervaller</value>
+  <data name="_Show the bans" xml:space="preserve">
+    <value>Vis _blokeringerne</value>
   </data>
   <data name="_Source address or range it may be used from (optional)" xml:space="preserve">
     <value>_Kildeadresse eller -interval, den må bruges fra (valgfrit)</value>
@@ -15693,6 +15750,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="legitimate mail is being marked as spam" xml:space="preserve">
     <value>legitim post markeres som spam</value>
   </data>
+  <data name="less than a minute" xml:space="preserve">
+    <value>under et minut</value>
+  </data>
   <data name="less than a minute ago" xml:space="preserve">
     <value>for mindre end et minut siden</value>
   </data>
@@ -16185,6 +16245,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="will be added" xml:space="preserve">
     <value>tilføjes</value>
   </data>
+  <data name="within a minute" xml:space="preserve">
+    <value>inden for et minut</value>
+  </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>skriv loggen til en database</value>
   </data>
@@ -16493,6 +16556,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} mapper.</value>
+  </data>
+  <data name="{0} from now" xml:space="preserve">
+    <value>om {0}</value>
   </data>
   <data name="{0} from {1}" xml:space="preserve">
     <value>{0} fra {1}</value>
@@ -16895,6 +16961,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="{0} was made with {1} mailboxes." xml:space="preserve">
     <value>{0} blev oprettet med {1} postkasser.</value>
+  </data>
+  <data name="{0} was no longer banned: the ban had lifted already." xml:space="preserve">
+    <value>{0} var ikke længere blokeret: blokeringen var allerede ophørt.</value>
   </data>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} stod ikke længere på listen.</value>

@@ -678,6 +678,9 @@
   <data name="A short built-in list - &quot;password&quot;, &quot;123456&quot;, &quot;changeme&quot; and about thirty more - compared without regard to case. It is deliberately not a &quot;top 10000&quot; list, which would need a data file and an update path; it catches the passwords that get typed while setting up a mailbox nobody comes back to." xml:space="preserve">
     <value>「password」「123456」「changeme」など 30 個ほどからなる、組み込みの短いリストです。大文字と小文字は区別せずに比較します。「上位 10000 件」のようなリストにしていないのは意図的で、それにはデータ ファイルと更新の手段が必要になるためです。このリストは、誰も後から見直さないメールボックスを用意するときに入力されがちなパスワードを捕らえます。</value>
   </data>
+  <data name="A sign-in attempt on a port that takes no password" xml:space="preserve">
+    <value>パスワードを受け付けないポートでのサインインの試み</value>
+  </data>
   <data name="A simple bind needs the user's distinguished name. There are two ways to get one - search for it, or compute it from a template - and Negotiate needs neither, because SSPI authenticates by user name and domain, which the account already carries." xml:space="preserve">
     <value>シンプル バインドにはユーザーの識別名 (DN) が必要です。DN を得る方法は 2 つ、検索するか、テンプレートから組み立てるかです。Negotiate はどちらも必要としません。SSPI はユーザー名とドメインで認証し、それらはアカウントがすでに持っているためです。</value>
   </data>
@@ -1280,6 +1283,9 @@
   </data>
   <data name="After reinitialise" xml:space="preserve">
     <value>再初期化後</value>
+  </data>
+  <data name="After sign-in" xml:space="preserve">
+    <value>サインイン後</value>
   </data>
   <data name="After the body has arrived" xml:space="preserve">
     <value>本文の受信後</value>
@@ -1918,8 +1924,8 @@
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>自動証明書 (ACME)</value>
   </data>
-  <data name="Automatic lockout of an address that keeps failing to log on. The ban itself is an expiring IP range, so it is listed on the IP ranges page." xml:space="preserve">
-    <value>ログオンに失敗し続けるアドレスの自動ロックアウト。ブロック自体は期限付きの IP 範囲なので、IP 範囲ページに一覧表示されます。</value>
+  <data name="Automatic lockout of an address that keeps failing to sign in. The bans in force are listed first, each with Lift ban, which lets the address in again at once." xml:space="preserve">
+    <value>サインインに失敗し続けるアドレスの自動ロックアウト。有効なブロックが最初に一覧表示され、それぞれの「ブロックを解除」でそのアドレスをすぐに再び受け入れます。</value>
   </data>
   <data name="Automatic replies may go to this domain" xml:space="preserve">
     <value>このドメインへ自動応答を送ってよい</value>
@@ -3022,6 +3028,9 @@
   <data name="Could not generate the DKIM key: {0}" xml:space="preserve">
     <value>DKIM 鍵を生成できませんでした: {0}</value>
   </data>
+  <data name="Could not lift the ban: {0}" xml:space="preserve">
+    <value>ブロックを解除できませんでした: {0}</value>
+  </data>
   <data name="Could not list domains: {0}" xml:space="preserve">
     <value>ドメインを一覧表示できませんでした: {0}</value>
   </data>
@@ -3092,6 +3101,9 @@
   </data>
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>バックアップ設定を読み取れませんでした: </value>
+  </data>
+  <data name="Could not read the bans: {0}" xml:space="preserve">
+    <value>ブロックを読み込めませんでした: {0}</value>
   </data>
   <data name="Could not read the certificates: " xml:space="preserve">
     <value>証明書を読み取れませんでした: </value>
@@ -3300,9 +3312,6 @@
   <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
     <value>満杯のメールボックスをハード バウンスとして数える</value>
   </data>
-  <data name="Counted logon failures cleared. Addresses already banned stay banned until their &quot;Auto-ban:&quot; range expires - delete it on the IP ranges page to release one now." xml:space="preserve">
-    <value>数えられていたログオン失敗をクリアしました。すでにブロックされているアドレスは、その "Auto-ban:" 範囲が期限切れになるまでブロックされたままです。今すぐ解除するには、IP 範囲ページでその範囲を削除してください。</value>
-  </data>
   <data name="Counted per account from the last login that was allowed, so a refused attempt does not push the next one further away. It is advertised only while it is set, because announcing a limit that is not enforced is worse than announcing nothing." xml:space="preserve">
     <value>最後に許可されたログインからアカウントごとに数えるため、拒否された試行によって次の試行がさらに遠ざけられることはありません。設定されている間だけアドバタイズされます。強制されない制限を告知するのは、何も告知しないより悪いからです。</value>
   </data>
@@ -3311,6 +3320,9 @@
   </data>
   <data name="Counted per user name rather than per address, across every protocol that authenticates, so a botnet spreading its guesses over thousands of addresses still locks the mailbox it is guessing at. A locked name is refused with the ordinary invalid-credentials reply and cannot be unlocked by typing the right password - the lock is checked first - so the ceiling is worth setting with the cost in mind. Failures against a name that does not exist lock that name too, deliberately: doing otherwise would let an attacker use the lockout to discover which accounts are real." xml:space="preserve">
     <value>アドレスごとではなくユーザー名ごとに、認証を行うすべてのプロトコルにわたって数えます。そのため、推測を何千ものアドレスに分散させるボットネットでも、狙っているメールボックスはロックされます。ロックされた名前は通常の「資格情報が無効」応答で拒否され、正しいパスワードを入力してもロックは解除されません (ロックが先に確認されます)。したがって上限は、そのコストを念頭に置いて設定する価値があります。存在しない名前に対する失敗もその名前をロックします。これは意図的で、そうしなければ攻撃者がロックアウトを使ってどのアカウントが実在するかを発見できてしまいます。</value>
+  </data>
+  <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
+    <value>数えられていたサインインの失敗をクリアしました。すでにブロックされているアドレスは、そのブロックが終わるまでブロックされたままです。「現在のブロック」の「ブロックを解除」で、すぐに受け入れることができます。</value>
   </data>
   <data name="Countries" xml:space="preserve">
     <value>国</value>
@@ -4447,6 +4459,9 @@
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>エンドポイント (空 = サービス自身のエンドポイント)</value>
   </data>
+  <data name="Ends" xml:space="preserve">
+    <value>終了</value>
+  </data>
   <data name="Enforce: hold the mail and lock the account" xml:space="preserve">
     <value>強制: メールを保留してアカウントをロックする</value>
   </data>
@@ -4953,6 +4968,9 @@
   </data>
   <data name="Failed logons from a listed address are not counted at all, so it can never be banned. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine. Example: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. An entry that is not an address is reported by name in the error log and ignored." xml:space="preserve">
     <value>登録されたアドレスからのログオン失敗はまったく数えられないため、そのアドレスが BAN されることはありません。ファイアウォールのオプションを有効にする前に、管理に使うアドレスをここに登録してください。ファイアウォールまで届く BAN は、そのアドレスをこのマシンのすべてのメールポートから締め出します。例: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32。アドレスでない項目はエラーログに名前付きで報告され、無視されます。</value>
+  </data>
+  <data name="Failed sign-ins as {0}" xml:space="preserve">
+    <value>{0} としてのサインイン失敗</value>
   </data>
   <data name="Fails when the connecting address has no reverse DNS record." xml:space="preserve">
     <value>接続元アドレスに逆引き DNS レコードがない場合に失敗します。</value>
@@ -6135,6 +6153,18 @@
   <data name="Levels" xml:space="preserve">
     <value>レベル</value>
   </data>
+  <data name="Lift ban" xml:space="preserve">
+    <value>ブロックを解除</value>
+  </data>
+  <data name="Lift the ban on {0}" xml:space="preserve">
+    <value>{0} のブロックを解除</value>
+  </data>
+  <data name="Lift the ban on {0}? It may connect again at once, and is banned again only when it earns a new ban." xml:space="preserve">
+    <value>{0} のブロックを解除しますか? すぐに再び接続できるようになり、新たにブロックの条件を満たしたときにだけ再びブロックされます。</value>
+  </data>
+  <data name="Lift the selected ban: the address may connect again at once" xml:space="preserve">
+    <value>選択したブロックを解除します: そのアドレスはすぐに再び接続できます</value>
+  </data>
   <data name="Limit _number of distribution lists" xml:space="preserve">
     <value>配布リストの数を制限する(_N)</value>
   </data>
@@ -6378,6 +6408,9 @@
   <data name="Mail from an empty sender address is denied. Many servers send bounces from &lt;&gt;, which will be rejected." xml:space="preserve">
     <value>空の送信者アドレスからのメールは拒否されます。多くのサーバーは &lt;&gt; からバウンスを送信するため、それらは拒否されます。</value>
   </data>
+  <data name="Mail from an empty sender to several recipients" xml:space="preserve">
+    <value>空の差出人から複数の宛先へのメール</value>
+  </data>
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>組織外から届いたメールには印を付けて、読み手が一目で分かるようにできます。送信者が外部だと判断されるのは、セッションがサインインしておらず、メッセージが信頼された受信リレーを経由しておらず、エンベロープ送信者も From アドレスもこのサーバーがホストするドメインに属していない場合です。</value>
   </data>
@@ -6410,6 +6443,9 @@
   </data>
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>ディスクの残量不足、作業キューの停止、期限切れ間近の証明書、失敗したバックアップなど、注意が必要なときに管理者に送るメール。どの状態を監視するかは Control Deck のアラート ルールで設定します。下の 2 つのアドレスを両方設定するまで何も送られません。</value>
+  </data>
+  <data name="Mail to the spam trap {0}" xml:space="preserve">
+    <value>スパム トラップ {0} 宛てのメール</value>
   </data>
   <data name="Mailbox created" xml:space="preserve">
     <value>メールボックスを作成済み</value>
@@ -7146,6 +7182,9 @@
   </data>
   <data name="No active sessions" xml:space="preserve">
     <value>アクティブなセッションはありません</value>
+  </data>
+  <data name="No address is banned now." xml:space="preserve">
+    <value>現在ブロックされているアドレスはありません。</value>
   </data>
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>このドメインの抑止リストにはアドレスがありません。アドレスへのメールが恒久的にバウンスしたとき、またはあなたが追加したときに、ここに登録されます。</value>
@@ -8148,6 +8187,9 @@
   </data>
   <data name="Open or close the help for this page" xml:space="preserve">
     <value>このページのヘルプを開く、または閉じる</value>
+  </data>
+  <data name="Open relay" xml:space="preserve">
+    <value>オープン リレー</value>
   </data>
   <data name="Open the Control Deck" xml:space="preserve">
     <value>Control Deck を開く</value>
@@ -10987,6 +11029,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>インデックスが応答する最短の検索文字列 (3～64。これより短い文字列はスキャンにフォールバック)</value>
   </data>
+  <data name="Show auto-_bans only" xml:space="preserve">
+    <value>自動ブロックのみ表示(_B)</value>
+  </data>
   <data name="Show chart" xml:space="preserve">
     <value>グラフを表示</value>
   </data>
@@ -11023,8 +11068,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>コントロールパネルを {0} で表示しますか? 言語を変更するために再起動します。</value>
   </data>
-  <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
-    <value>自動ブロックの IP 範囲を IP 範囲ページに表示</value>
+  <data name="Show the bans in force under Banned now on the Auto-ban page, where each can be lifted" xml:space="preserve">
+    <value>自動ブロックページの「現在のブロック」に有効なブロックを表示します。それぞれをそこで解除できます</value>
   </data>
   <data name="Show the details" xml:space="preserve">
     <value>詳細を表示</value>
@@ -11899,6 +11944,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The addresses and ports each protocol listens on, and the connection security used on each." xml:space="preserve">
     <value>各プロトコルが待ち受けるアドレスとポート、およびそれぞれで使う接続セキュリティ。</value>
   </data>
+  <data name="The addresses the server has banned, why and when each ban ends; the same bans are expiring ranges on the IP ranges page." xml:space="preserve">
+    <value>サーバーがブロックしたアドレス、その理由と各ブロックが終わる時期。同じブロックは IP 範囲ページで期限付きの範囲として表示されます。</value>
+  </data>
   <data name="The administrator has a second factor, and the REST API asks for a one-time code with every request made with the password, which this page does not send. Read the cases in the Control Deck." xml:space="preserve">
     <value>管理者には第 2 要素が設定されており、REST API はパスワードによるすべての要求でワンタイム コードを求めますが、このページはそれを送信しません。Control Deck でケースを確認してください。</value>
   </data>
@@ -11991,6 +12039,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The backups in the destination folder, newest first. Choose one and the restore cards below use it; Re-check status reads the folder again." xml:space="preserve">
     <value>保存先フォルダー内のバックアップです (新しい順)。いずれかを選ぶと、下の復元カードがそれを使います。[状態を再確認] でフォルダーを読み直します。</value>
+  </data>
+  <data name="The ban on {0} is lifted." xml:space="preserve">
+    <value>{0} のブロックを解除しました。</value>
   </data>
   <data name="The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way." xml:space="preserve">
     <value>バインド アドレスがループバック アドレスではなく、資格情報も設定されていないため、/metrics はすべてのスクレイプに 503 (Service Unavailable) を返します。ベアラー トークンか HTTP Basic の両フィールドを設定するか、127.0.0.1 にバインドしてください。ヘルス プローブはどちらでも応答し続けます。</value>
@@ -14378,6 +14429,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the General tab." xml:space="preserve">
     <value>これをオンにすると、パスワードはここにまったく保存されず、Windows に確認を依頼します。オフのままにすると、アカウントは[全般] タブのパスワードを使います。</value>
   </data>
+  <data name="Without sign-in" xml:space="preserve">
+    <value>サインインなし</value>
+  </data>
   <data name="Words on the SAML sign-in button" xml:space="preserve">
     <value>SAML サインイン ボタンの文字列</value>
   </data>
@@ -14846,6 +14900,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Later" xml:space="preserve">
     <value>後で(_L)</value>
   </data>
+  <data name="_Lift ban" xml:space="preserve">
+    <value>ブロックを解除(_L)</value>
+  </data>
   <data name="_Limit number of accounts" xml:space="preserve">
     <value>アカウント数を制限する(_L)</value>
   </data>
@@ -15146,8 +15203,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Set up ACME…" xml:space="preserve">
     <value>ACME を設定(_S)…</value>
   </data>
-  <data name="_Show in IP ranges" xml:space="preserve">
-    <value>IP 範囲に表示(_S)</value>
+  <data name="_Show the bans" xml:space="preserve">
+    <value>ブロックを表示(_S)</value>
   </data>
   <data name="_Source address or range it may be used from (optional)" xml:space="preserve">
     <value>使用を許可する送信元アドレスまたは範囲 (省略可)(_S)</value>
@@ -15693,6 +15750,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="legitimate mail is being marked as spam" xml:space="preserve">
     <value>正当なメールがスパムとしてマークされる</value>
   </data>
+  <data name="less than a minute" xml:space="preserve">
+    <value>1 分未満</value>
+  </data>
   <data name="less than a minute ago" xml:space="preserve">
     <value>1 分未満前</value>
   </data>
@@ -16185,6 +16245,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="will be added" xml:space="preserve">
     <value>追加されます</value>
   </data>
+  <data name="within a minute" xml:space="preserve">
+    <value>1 分以内</value>
+  </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>ログをデータベースに書き込む</value>
   </data>
@@ -16493,6 +16556,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>フォルダー {0} 件。</value>
+  </data>
+  <data name="{0} from now" xml:space="preserve">
+    <value>{0}後</value>
   </data>
   <data name="{0} from {1}" xml:space="preserve">
     <value>{1} からの {0}</value>
@@ -16895,6 +16961,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} was made with {1} mailboxes." xml:space="preserve">
     <value>{0} を作成しました。メールボックスは {1} 件です。</value>
+  </data>
+  <data name="{0} was no longer banned: the ban had lifted already." xml:space="preserve">
+    <value>{0} はもうブロックされていませんでした。ブロックはすでに解除されていました。</value>
   </data>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} はもうリストにありませんでした。</value>

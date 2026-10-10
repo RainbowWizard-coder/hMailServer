@@ -678,6 +678,9 @@
   <data name="A short built-in list - &quot;password&quot;, &quot;123456&quot;, &quot;changeme&quot; and about thirty more - compared without regard to case. It is deliberately not a &quot;top 10000&quot; list, which would need a data file and an update path; it catches the passwords that get typed while setting up a mailbox nobody comes back to." xml:space="preserve">
     <value>Een korte ingebouwde lijst - "password", "123456", "changeme" en zo'n dertig andere - vergeleken zonder onderscheid tussen hoofd- en kleine letters. Het is bewust geen "top 10000"-lijst, die een gegevensbestand en een updatepad zou vereisen; hij vangt de wachtwoorden op die worden getypt bij het instellen van een postvak waar niemand naar terugkeert.</value>
   </data>
+  <data name="A sign-in attempt on a port that takes no password" xml:space="preserve">
+    <value>Een aanmeldpoging op een poort die geen wachtwoord aanneemt</value>
+  </data>
   <data name="A simple bind needs the user's distinguished name. There are two ways to get one - search for it, or compute it from a template - and Negotiate needs neither, because SSPI authenticates by user name and domain, which the account already carries." xml:space="preserve">
     <value>Een simple bind heeft de distinguished name van de gebruiker nodig. Er zijn twee manieren om die te krijgen - ernaar zoeken, of hem berekenen uit een sjabloon - en Negotiate heeft geen van beide nodig, omdat SSPI authenticeert op gebruikersnaam en domein, die het account al draagt.</value>
   </data>
@@ -1280,6 +1283,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   </data>
   <data name="After reinitialise" xml:space="preserve">
     <value>Na herinitialiseren</value>
+  </data>
+  <data name="After sign-in" xml:space="preserve">
+    <value>Na aanmelding</value>
   </data>
   <data name="After the body has arrived" xml:space="preserve">
     <value>Nadat de body is aangekomen</value>
@@ -1918,8 +1924,8 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>Automatische certificaten (ACME)</value>
   </data>
-  <data name="Automatic lockout of an address that keeps failing to log on. The ban itself is an expiring IP range, so it is listed on the IP ranges page." xml:space="preserve">
-    <value>Automatisch buitensluiten van een adres dat zich telkens tevergeefs probeert aan te melden. Het verbannen zelf is een verlopend IP-bereik, dus het staat op de pagina IP-bereiken.</value>
+  <data name="Automatic lockout of an address that keeps failing to sign in. The bans in force are listed first, each with Lift ban, which lets the address in again at once." xml:space="preserve">
+    <value>Automatisch buitensluiten van een adres dat zich telkens tevergeefs probeert aan te melden. De geldende verbanningen staan bovenaan, elk met Verbanning opheffen, dat het adres meteen weer toelaat.</value>
   </data>
   <data name="Automatic replies may go to this domain" xml:space="preserve">
     <value>Automatische antwoorden mogen naar dit domein</value>
@@ -3022,6 +3028,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Could not generate the DKIM key: {0}" xml:space="preserve">
     <value>Kon de DKIM-sleutel niet genereren: {0}</value>
   </data>
+  <data name="Could not lift the ban: {0}" xml:space="preserve">
+    <value>De verbanning kon niet worden opgeheven: {0}</value>
+  </data>
   <data name="Could not list domains: {0}" xml:space="preserve">
     <value>Kon de domeinen niet opsommen: {0}</value>
   </data>
@@ -3092,6 +3101,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>Kon de back-upinstellingen niet lezen: </value>
+  </data>
+  <data name="Could not read the bans: {0}" xml:space="preserve">
+    <value>De verbanningen konden niet worden gelezen: {0}</value>
   </data>
   <data name="Could not read the certificates: " xml:space="preserve">
     <value>Kon de certificaten niet lezen: </value>
@@ -3300,9 +3312,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
     <value>Een vol postvak als harde bounce tellen</value>
   </data>
-  <data name="Counted logon failures cleared. Addresses already banned stay banned until their &quot;Auto-ban:&quot; range expires - delete it on the IP ranges page to release one now." xml:space="preserve">
-    <value>Getelde mislukte aanmeldingen gewist. Adressen die al verbannen zijn, blijven verbannen totdat hun bereik "Auto-ban:" verloopt - verwijder dat op de pagina IP-bereiken om er nu een vrij te geven.</value>
-  </data>
   <data name="Counted per account from the last login that was allowed, so a refused attempt does not push the next one further away. It is advertised only while it is set, because announcing a limit that is not enforced is worse than announcing nothing." xml:space="preserve">
     <value>Wordt per account geteld vanaf de laatste aanmelding die is toegestaan, zodat een geweigerde poging de volgende niet verder wegduwt. Het wordt alleen aangekondigd zolang het is ingesteld, want een limiet aankondigen die niet wordt afgedwongen is erger dan niets aankondigen.</value>
   </data>
@@ -3311,6 +3320,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Counted per user name rather than per address, across every protocol that authenticates, so a botnet spreading its guesses over thousands of addresses still locks the mailbox it is guessing at. A locked name is refused with the ordinary invalid-credentials reply and cannot be unlocked by typing the right password - the lock is checked first - so the ceiling is worth setting with the cost in mind. Failures against a name that does not exist lock that name too, deliberately: doing otherwise would let an attacker use the lockout to discover which accounts are real." xml:space="preserve">
     <value>Wordt geteld per gebruikersnaam in plaats van per adres, over elk protocol dat authenticeert, zodat een botnet dat zijn gokken over duizenden adressen verspreidt tóch het postvak vergrendelt waarnaar het gokt. Een vergrendelde naam wordt geweigerd met het gewone antwoord voor ongeldige referenties en kan niet worden ontgrendeld door het juiste wachtwoord te typen - de vergrendeling wordt eerst gecontroleerd - dus het loont om het plafond met die prijs in gedachten te kiezen. Mislukkingen tegen een naam die niet bestaat, vergrendelen die naam eveneens, en dat is bewust: anders zou een aanvaller de vergrendeling kunnen gebruiken om te ontdekken welke accounts echt zijn.</value>
+  </data>
+  <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
+    <value>Getelde mislukte aanmeldingen gewist. Adressen die al verbannen zijn, blijven verbannen totdat hun verbanning afloopt - Verbanning opheffen onder Nu verbannen laat er meteen een toe.</value>
   </data>
   <data name="Countries" xml:space="preserve">
     <value>Landen</value>
@@ -4447,6 +4459,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Eindpunt (leeg = dat van de dienst)</value>
   </data>
+  <data name="Ends" xml:space="preserve">
+    <value>Eindigt</value>
+  </data>
   <data name="Enforce: hold the mail and lock the account" xml:space="preserve">
     <value>Afdwingen: de mail vasthouden en het account vergrendelen</value>
   </data>
@@ -4953,6 +4968,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Failed logons from a listed address are not counted at all, so it can never be banned. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine. Example: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. An entry that is not an address is reported by name in the error log and ignored." xml:space="preserve">
     <value>Mislukte aanmeldingen vanaf een vermeld adres worden helemaal niet geteld, dus het kan nooit geband worden. Zet hier de adressen van waaruit u beheert voordat u de firewall-optie inschakelt: een ban die de firewall bereikt sluit dat adres uit van elke mailpoort op deze machine. Voorbeeld: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. Een vermelding die geen adres is wordt bij naam in het foutenlogboek gemeld en genegeerd.</value>
+  </data>
+  <data name="Failed sign-ins as {0}" xml:space="preserve">
+    <value>Mislukte aanmeldingen als {0}</value>
   </data>
   <data name="Fails when the connecting address has no reverse DNS record." xml:space="preserve">
     <value>Mislukt wanneer het verbindende adres geen reverse-DNS-record heeft.</value>
@@ -6135,6 +6153,18 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Levels" xml:space="preserve">
     <value>Niveaus</value>
   </data>
+  <data name="Lift ban" xml:space="preserve">
+    <value>Verbanning opheffen</value>
+  </data>
+  <data name="Lift the ban on {0}" xml:space="preserve">
+    <value>Verbanning van {0} opheffen</value>
+  </data>
+  <data name="Lift the ban on {0}? It may connect again at once, and is banned again only when it earns a new ban." xml:space="preserve">
+    <value>Verbanning van {0} opheffen? Het adres mag meteen weer verbinden en wordt pas weer verbannen als het een nieuwe verbanning verdient.</value>
+  </data>
+  <data name="Lift the selected ban: the address may connect again at once" xml:space="preserve">
+    <value>De geselecteerde verbanning opheffen: het adres mag meteen weer verbinden</value>
+  </data>
   <data name="Limit _number of distribution lists" xml:space="preserve">
     <value>Aa_ntal distributielijsten beperken</value>
   </data>
@@ -6378,6 +6408,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Mail from an empty sender address is denied. Many servers send bounces from &lt;&gt;, which will be rejected." xml:space="preserve">
     <value>Mail van een leeg afzenderadres wordt geweigerd. Veel servers versturen bounces vanaf &lt;&gt;, en die worden dan afgewezen.</value>
   </data>
+  <data name="Mail from an empty sender to several recipients" xml:space="preserve">
+    <value>Mail van een lege afzender aan meerdere ontvangers</value>
+  </data>
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>Post van buiten de organisatie kan gemarkeerd worden zodat een lezer het in één oogopslag ziet. Een afzender is van buiten wanneer de sessie niet is aangemeld, het bericht niet via een vertrouwd inkomend relais is binnengekomen en noch de envelopafzender noch het From-adres bij een domein hoort dat deze server host.</value>
   </data>
@@ -6410,6 +6443,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Mail aan een beheerder wanneer iets aandacht nodig heeft, zoals een schijf die volloopt, een werkwachtrij die vastloopt, een certificaat dat bijna verloopt of een mislukte back-up. Welke omstandigheden worden bewaakt, bepalen de waarschuwingsregels in het Control Deck; er wordt niets verstuurd totdat beide adressen hieronder zijn ingesteld.</value>
+  </data>
+  <data name="Mail to the spam trap {0}" xml:space="preserve">
+    <value>Mail aan de spamval {0}</value>
   </data>
   <data name="Mailbox created" xml:space="preserve">
     <value>Postvak aangemaakt</value>
@@ -7146,6 +7182,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="No active sessions" xml:space="preserve">
     <value>Geen actieve sessies</value>
+  </data>
+  <data name="No address is banned now." xml:space="preserve">
+    <value>Er is nu geen adres verbannen.</value>
   </data>
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>Er staat geen adres op de onderdrukkingslijst van dit domein. Een adres komt hier als mail eraan definitief bouncet, of als u er een toevoegt.</value>
@@ -8148,6 +8187,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Open or close the help for this page" xml:space="preserve">
     <value>De help bij deze pagina openen of sluiten</value>
+  </data>
+  <data name="Open relay" xml:space="preserve">
+    <value>Open relay</value>
   </data>
   <data name="Open the Control Deck" xml:space="preserve">
     <value>Control Deck openen</value>
@@ -10987,6 +11029,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Kortste zoekterm die de index beantwoordt (3-64; kortere termen vallen terug op de scan)</value>
   </data>
+  <data name="Show auto-_bans only" xml:space="preserve">
+    <value>Alleen a_utomatische verbanningen</value>
+  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Grafiek tonen</value>
   </data>
@@ -11023,8 +11068,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Het Control Panel in het {0} tonen? Het herstart om van taal te wisselen.</value>
   </data>
-  <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
-    <value>De IP-bereiken voor automatisch verbannen weergeven op de pagina IP-bereiken</value>
+  <data name="Show the bans in force under Banned now on the Auto-ban page, where each can be lifted" xml:space="preserve">
+    <value>De geldende verbanningen onder Nu verbannen op de pagina Automatisch verbannen weergeven, waar elke kan worden opgeheven</value>
   </data>
   <data name="Show the details" xml:space="preserve">
     <value>Details tonen</value>
@@ -11899,6 +11944,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The addresses and ports each protocol listens on, and the connection security used on each." xml:space="preserve">
     <value>De adressen en poorten waarop elk protocol luistert, en de verbindingsbeveiliging die op elk daarvan wordt gebruikt.</value>
   </data>
+  <data name="The addresses the server has banned, why and when each ban ends; the same bans are expiring ranges on the IP ranges page." xml:space="preserve">
+    <value>De adressen die de server heeft verbannen, waarom en wanneer elke verbanning afloopt; dezelfde verbanningen zijn verlopende bereiken op de pagina IP-bereiken.</value>
+  </data>
   <data name="The administrator has a second factor, and the REST API asks for a one-time code with every request made with the password, which this page does not send. Read the cases in the Control Deck." xml:space="preserve">
     <value>De beheerder heeft een tweede factor, en de REST-API vraagt bij elke aanvraag met het wachtwoord een eenmalige code, die deze pagina niet meestuurt. Lees de zaken in het Control Deck.</value>
   </data>
@@ -11991,6 +12039,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="The backups in the destination folder, newest first. Choose one and the restore cards below use it; Re-check status reads the folder again." xml:space="preserve">
     <value>De back-ups in de doelmap, nieuwste eerst. Kies er een en de herstelkaarten hieronder gebruiken die; Status opnieuw controleren leest de map opnieuw.</value>
+  </data>
+  <data name="The ban on {0} is lifted." xml:space="preserve">
+    <value>De verbanning van {0} is opgeheven.</value>
   </data>
   <data name="The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way." xml:space="preserve">
     <value>Het bindadres is geen loopbackadres en er is geen referentie ingesteld, dus /metrics antwoordt op elke scrape met 503 (Service Unavailable). Stel een bearertoken in, of beide HTTP Basic-velden, of bind aan 127.0.0.1. De gezondheidsprobes blijven hoe dan ook antwoorden.</value>
@@ -14378,6 +14429,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the General tab." xml:space="preserve">
     <value>Hiermee aan wordt het wachtwoord hier helemaal niet opgeslagen - Windows wordt gevraagd het te controleren. Laat het uit en het account gebruikt het wachtwoord op het tabblad Algemeen.</value>
   </data>
+  <data name="Without sign-in" xml:space="preserve">
+    <value>Zonder aanmelding</value>
+  </data>
   <data name="Words on the SAML sign-in button" xml:space="preserve">
     <value>Tekst op de SAML-aanmeldknop</value>
   </data>
@@ -14846,6 +14900,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Later" xml:space="preserve">
     <value>_Later</value>
   </data>
+  <data name="_Lift ban" xml:space="preserve">
+    <value>Verbanning _opheffen</value>
+  </data>
   <data name="_Limit number of accounts" xml:space="preserve">
     <value>_Aantal accounts beperken</value>
   </data>
@@ -15146,8 +15203,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Set up ACME…" xml:space="preserve">
     <value>ACME _instellen…</value>
   </data>
-  <data name="_Show in IP ranges" xml:space="preserve">
-    <value>_Weergeven in IP-bereiken</value>
+  <data name="_Show the bans" xml:space="preserve">
+    <value>_Verbanningen weergeven</value>
   </data>
   <data name="_Source address or range it may be used from (optional)" xml:space="preserve">
     <value>_Bronadres of -bereik waarvandaan hij mag worden gebruikt (optioneel)</value>
@@ -15693,6 +15750,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="legitimate mail is being marked as spam" xml:space="preserve">
     <value>legitieme mail wordt als spam gemarkeerd</value>
   </data>
+  <data name="less than a minute" xml:space="preserve">
+    <value>minder dan een minuut</value>
+  </data>
   <data name="less than a minute ago" xml:space="preserve">
     <value>minder dan een minuut geleden</value>
   </data>
@@ -16185,6 +16245,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="will be added" xml:space="preserve">
     <value>wordt toegevoegd</value>
   </data>
+  <data name="within a minute" xml:space="preserve">
+    <value>binnen een minuut</value>
+  </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>het logboek naar een database schrijven</value>
   </data>
@@ -16493,6 +16556,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} mappen.</value>
+  </data>
+  <data name="{0} from now" xml:space="preserve">
+    <value>over {0}</value>
   </data>
   <data name="{0} from {1}" xml:space="preserve">
     <value>{0} vanaf {1}</value>
@@ -16895,6 +16961,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} was made with {1} mailboxes." xml:space="preserve">
     <value>{0} is gemaakt met {1} postbussen.</value>
+  </data>
+  <data name="{0} was no longer banned: the ban had lifted already." xml:space="preserve">
+    <value>{0} was niet meer verbannen: de verbanning was al afgelopen.</value>
   </data>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} stond niet meer op de lijst.</value>

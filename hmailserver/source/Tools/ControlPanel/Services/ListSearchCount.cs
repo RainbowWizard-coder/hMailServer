@@ -36,6 +36,14 @@ namespace hMailServer.ControlPanel.Services
       public static string PillText(string query, int shown, int total, string whole)
          => Searching(query, total) ? F("Shown: {0} of {1}", shown, total) : whole;
 
+      /// <summary>
+      /// The pill's text while a filter of the page's own narrows the list - the IP
+      /// ranges page's Show auto-bans only: what is shown of the whole list's number,
+      /// as while a search is typed in, and the list's own count where it is empty.
+      /// </summary>
+      public static string NarrowedPillText(int shown, int total, string whole)
+         => total > 0 ? F("Shown: {0} of {1}", shown, total) : whole;
+
       /// <summary>Whether the search hides every entry of a list that has some: the empty state then says so.</summary>
       public static bool NothingMatches(string query, int shown, int total)
          => Searching(query, total) && shown == 0;

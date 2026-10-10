@@ -678,6 +678,9 @@
   <data name="A short built-in list - &quot;password&quot;, &quot;123456&quot;, &quot;changeme&quot; and about thirty more - compared without regard to case. It is deliberately not a &quot;top 10000&quot; list, which would need a data file and an update path; it catches the passwords that get typed while setting up a mailbox nobody comes back to." xml:space="preserve">
     <value>En kort inbyggd lista - "password", "123456", "changeme" och ett trettiotal till - jämförd utan hänsyn till skiftläge. Den är medvetet inte en "topp 10000"-lista, som skulle kräva en datafil och en uppdateringsväg; den fångar de lösenord som skrivs in när en brevlåda ingen kommer tillbaka till sätts upp.</value>
   </data>
+  <data name="A sign-in attempt on a port that takes no password" xml:space="preserve">
+    <value>Ett inloggningsförsök på en port som inte tar emot lösenord</value>
+  </data>
   <data name="A simple bind needs the user's distinguished name. There are two ways to get one - search for it, or compute it from a template - and Negotiate needs neither, because SSPI authenticates by user name and domain, which the account already carries." xml:space="preserve">
     <value>En enkel bindning kräver användarens distinguished name. Det finns två sätt att få ett - söka efter det, eller beräkna det från en mall - och Negotiate behöver inget av dem, eftersom SSPI autentiserar med användarnamn och domän, som kontot redan bär.</value>
   </data>
@@ -1280,6 +1283,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   </data>
   <data name="After reinitialise" xml:space="preserve">
     <value>Efter ominitiering</value>
+  </data>
+  <data name="After sign-in" xml:space="preserve">
+    <value>Efter inloggning</value>
   </data>
   <data name="After the body has arrived" xml:space="preserve">
     <value>När själva innehållet har kommit fram</value>
@@ -1918,8 +1924,8 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>Automatiska certifikat (ACME)</value>
   </data>
-  <data name="Automatic lockout of an address that keeps failing to log on. The ban itself is an expiring IP range, so it is listed on the IP ranges page." xml:space="preserve">
-    <value>Automatisk utestängning av en adress som gång på gång misslyckas med att logga in. Själva spärren är ett IP-intervall som går ut, så den listas på sidan IP-intervall.</value>
+  <data name="Automatic lockout of an address that keeps failing to sign in. The bans in force are listed first, each with Lift ban, which lets the address in again at once." xml:space="preserve">
+    <value>Automatisk utestängning av en adress som gång på gång misslyckas med att logga in. Spärrarna som gäller står först, var och en med Häv spärr, som genast släpper in adressen igen.</value>
   </data>
   <data name="Automatic replies may go to this domain" xml:space="preserve">
     <value>Automatiska svar får gå till den här domänen</value>
@@ -3022,6 +3028,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Could not generate the DKIM key: {0}" xml:space="preserve">
     <value>Kunde inte generera DKIM-nyckeln: {0}</value>
   </data>
+  <data name="Could not lift the ban: {0}" xml:space="preserve">
+    <value>Spärren kunde inte hävas: {0}</value>
+  </data>
   <data name="Could not list domains: {0}" xml:space="preserve">
     <value>Kunde inte lista domäner: {0}</value>
   </data>
@@ -3092,6 +3101,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>Kunde inte läsa inställningarna för säkerhetskopiering: </value>
+  </data>
+  <data name="Could not read the bans: {0}" xml:space="preserve">
+    <value>Spärrarna kunde inte läsas: {0}</value>
   </data>
   <data name="Could not read the certificates: " xml:space="preserve">
     <value>Kunde inte läsa certifikaten: </value>
@@ -3300,9 +3312,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
     <value>Räkna en full brevlåda som en hård studs</value>
   </data>
-  <data name="Counted logon failures cleared. Addresses already banned stay banned until their &quot;Auto-ban:&quot; range expires - delete it on the IP ranges page to release one now." xml:space="preserve">
-    <value>Räknade misslyckade inloggningar rensade. Adresser som redan är spärrade förblir spärrade tills deras "Auto-ban:"-intervall går ut - ta bort det på sidan IP-intervall för att släppa en nu.</value>
-  </data>
   <data name="Counted per account from the last login that was allowed, so a refused attempt does not push the next one further away. It is advertised only while it is set, because announcing a limit that is not enforced is worse than announcing nothing." xml:space="preserve">
     <value>Räknas per konto från den senaste inloggning som tilläts, så ett avvisat försök skjuter inte nästa längre bort. Den annonseras bara medan den är satt, eftersom att annonsera en gräns som inte upprätthålls är värre än att inte annonsera något.</value>
   </data>
@@ -3311,6 +3320,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Counted per user name rather than per address, across every protocol that authenticates, so a botnet spreading its guesses over thousands of addresses still locks the mailbox it is guessing at. A locked name is refused with the ordinary invalid-credentials reply and cannot be unlocked by typing the right password - the lock is checked first - so the ceiling is worth setting with the cost in mind. Failures against a name that does not exist lock that name too, deliberately: doing otherwise would let an attacker use the lockout to discover which accounts are real." xml:space="preserve">
     <value>Räknas per användarnamn snarare än per adress, över varje protokoll som autentiserar, så ett botnät som sprider sina gissningar över tusentals adresser låser ändå den brevlåda det gissar på. Ett låst namn avvisas med det vanliga svaret för ogiltiga uppgifter och kan inte låsas upp genom att skriva rätt lösenord - låset kontrolleras först - så taket är värt att sätta med kostnaden i åtanke. Misslyckanden mot ett namn som inte finns låser det namnet också, med avsikt: annars kunde en angripare använda utestängningen för att ta reda på vilka konton som är riktiga.</value>
+  </data>
+  <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
+    <value>Räknade misslyckade inloggningar rensade. Adresser som redan är spärrade förblir spärrade tills spärren upphör - Häv spärr under Spärrade nu släpper genast in en.</value>
   </data>
   <data name="Countries" xml:space="preserve">
     <value>Länder</value>
@@ -4447,6 +4459,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Slutpunkt (tomt = tjänstens egen)</value>
   </data>
+  <data name="Ends" xml:space="preserve">
+    <value>Upphör</value>
+  </data>
   <data name="Enforce: hold the mail and lock the account" xml:space="preserve">
     <value>Genomdriv: håll kvar posten och lås kontot</value>
   </data>
@@ -4953,6 +4968,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Failed logons from a listed address are not counted at all, so it can never be banned. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine. Example: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. An entry that is not an address is reported by name in the error log and ignored." xml:space="preserve">
     <value>Misslyckade inloggningar från en listad adress räknas inte alls, så den kan aldrig stängas av. Skriv in adresserna du administrerar från här innan du slår på brandväggsvalet: en avstängning som når brandväggen stänger ute adressen från alla e-postportar på den här maskinen. Exempel: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. En post som inte är en adress rapporteras med namn i felloggen och ignoreras.</value>
+  </data>
+  <data name="Failed sign-ins as {0}" xml:space="preserve">
+    <value>Misslyckade inloggningar som {0}</value>
   </data>
   <data name="Fails when the connecting address has no reverse DNS record." xml:space="preserve">
     <value>Underkänns när den anslutande adressen saknar omvänd DNS-post.</value>
@@ -6135,6 +6153,18 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Levels" xml:space="preserve">
     <value>Nivåer</value>
   </data>
+  <data name="Lift ban" xml:space="preserve">
+    <value>Häv spärr</value>
+  </data>
+  <data name="Lift the ban on {0}" xml:space="preserve">
+    <value>Häv spärren för {0}</value>
+  </data>
+  <data name="Lift the ban on {0}? It may connect again at once, and is banned again only when it earns a new ban." xml:space="preserve">
+    <value>Häva spärren för {0}? Adressen får ansluta igen direkt och spärras på nytt bara när den gör sig förtjänt av en ny spärr.</value>
+  </data>
+  <data name="Lift the selected ban: the address may connect again at once" xml:space="preserve">
+    <value>Häv den valda spärren: adressen får ansluta igen direkt</value>
+  </data>
   <data name="Limit _number of distribution lists" xml:space="preserve">
     <value>Begränsa antalet distributio_nslistor</value>
   </data>
@@ -6378,6 +6408,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Mail from an empty sender address is denied. Many servers send bounces from &lt;&gt;, which will be rejected." xml:space="preserve">
     <value>Post från en tom avsändaradress nekas. Många servrar skickar studsmeddelanden från &lt;&gt;, vilka kommer att avvisas.</value>
   </data>
+  <data name="Mail from an empty sender to several recipients" xml:space="preserve">
+    <value>E-post från en tom avsändare till flera mottagare</value>
+  </data>
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>Post utifrån organisationen kan märkas så att en läsare ser det på en gång. En avsändare är utanför när sessionen inte loggade in, meddelandet inte kom genom ett betrott inkommande relä och varken kuvertavsändaren eller From-adressen hör till en domän som den här servern är värd för.</value>
   </data>
@@ -6410,6 +6443,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Post till en administratör när något behöver uppmärksamhet, till exempel en disk som fylls, en arbetskö som fastnar, ett certifikat som snart löper ut eller en säkerhetskopiering som misslyckades. Vilka villkor som bevakas bestäms av larmreglerna i Control Deck; ingenting skickas förrän båda adresserna nedan är angivna.</value>
+  </data>
+  <data name="Mail to the spam trap {0}" xml:space="preserve">
+    <value>E-post till skräppostfällan {0}</value>
   </data>
   <data name="Mailbox created" xml:space="preserve">
     <value>Postlåda skapad</value>
@@ -7146,6 +7182,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="No active sessions" xml:space="preserve">
     <value>Inga aktiva sessioner</value>
+  </data>
+  <data name="No address is banned now." xml:space="preserve">
+    <value>Ingen adress är spärrad just nu.</value>
   </data>
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>Ingen adress finns på den här domänens spärrlista. En adress hamnar här när e-post till den studsar för gott, eller när du lägger till en.</value>
@@ -8148,6 +8187,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="Open or close the help for this page" xml:space="preserve">
     <value>Öppna eller stäng hjälpen för den här sidan</value>
+  </data>
+  <data name="Open relay" xml:space="preserve">
+    <value>Öppet relä</value>
   </data>
   <data name="Open the Control Deck" xml:space="preserve">
     <value>Öppna Control Deck</value>
@@ -10987,6 +11029,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Kortaste söksträng indexet svarar för (3-64; kortare strängar faller tillbaka på skanningen)</value>
   </data>
+  <data name="Show auto-_bans only" xml:space="preserve">
+    <value>Visa bara auto_matiska spärrar</value>
+  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Visa diagram</value>
   </data>
@@ -11023,8 +11068,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Visa Kontrollpanelen på {0}? Den startar om för att byta språk.</value>
   </data>
-  <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
-    <value>Visa de automatiskt spärrade IP-intervallen på sidan IP-intervall</value>
+  <data name="Show the bans in force under Banned now on the Auto-ban page, where each can be lifted" xml:space="preserve">
+    <value>Visa spärrarna som gäller under Spärrade nu på sidan Automatisk spärr, där var och en kan hävas</value>
   </data>
   <data name="Show the details" xml:space="preserve">
     <value>Visa detaljerna</value>
@@ -11899,6 +11944,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="The addresses and ports each protocol listens on, and the connection security used on each." xml:space="preserve">
     <value>Adresserna och portarna varje protokoll lyssnar på, och anslutningssäkerheten som används på var och en.</value>
   </data>
+  <data name="The addresses the server has banned, why and when each ban ends; the same bans are expiring ranges on the IP ranges page." xml:space="preserve">
+    <value>Adresserna som servern har spärrat, varför och när varje spärr upphör; samma spärrar är intervall som går ut på sidan IP-intervall.</value>
+  </data>
   <data name="The administrator has a second factor, and the REST API asks for a one-time code with every request made with the password, which this page does not send. Read the cases in the Control Deck." xml:space="preserve">
     <value>Administratören har en andra faktor, och REST-API:t begär en engångskod med varje begäran som görs med lösenordet, vilket den här sidan inte skickar. Läs ärendena i Control Deck.</value>
   </data>
@@ -11991,6 +12039,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="The backups in the destination folder, newest first. Choose one and the restore cards below use it; Re-check status reads the folder again." xml:space="preserve">
     <value>Säkerhetskopiorna i målmappen, nyaste först. Välj en så använder återställningskorten nedan den; Kontrollera status igen läser mappen på nytt.</value>
+  </data>
+  <data name="The ban on {0} is lifted." xml:space="preserve">
+    <value>Spärren för {0} är hävd.</value>
   </data>
   <data name="The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way." xml:space="preserve">
     <value>Bindningsadressen är inte en loopback-adress och ingen inloggningsuppgift är satt, så /metrics svarar 503 (Service Unavailable) på varje skrapning. Sätt en bearer-token, eller båda HTTP Basic-fälten, eller bind till 127.0.0.1. Hälsokontrollerna fortsätter svara oavsett.</value>
@@ -14378,6 +14429,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the General tab." xml:space="preserve">
     <value>Med detta på lagras lösenordet inte här alls - Windows tillfrågas att kontrollera det. Låt det vara av så använder kontot lösenordet på fliken Allmänt.</value>
   </data>
+  <data name="Without sign-in" xml:space="preserve">
+    <value>Utan inloggning</value>
+  </data>
   <data name="Words on the SAML sign-in button" xml:space="preserve">
     <value>Text på SAML-inloggningsknappen</value>
   </data>
@@ -14846,6 +14900,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_Later" xml:space="preserve">
     <value>_Senare</value>
   </data>
+  <data name="_Lift ban" xml:space="preserve">
+    <value>_Häv spärr</value>
+  </data>
   <data name="_Limit number of accounts" xml:space="preserve">
     <value>_Begränsa antalet konton</value>
   </data>
@@ -15146,8 +15203,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_Set up ACME…" xml:space="preserve">
     <value>_Konfigurera ACME…</value>
   </data>
-  <data name="_Show in IP ranges" xml:space="preserve">
-    <value>_Visa i IP-intervall</value>
+  <data name="_Show the bans" xml:space="preserve">
+    <value>_Visa spärrarna</value>
   </data>
   <data name="_Source address or range it may be used from (optional)" xml:space="preserve">
     <value>_Källadress eller -intervall som den får användas från (valfritt)</value>
@@ -15693,6 +15750,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="legitimate mail is being marked as spam" xml:space="preserve">
     <value>legitim post markeras som skräppost</value>
   </data>
+  <data name="less than a minute" xml:space="preserve">
+    <value>mindre än en minut</value>
+  </data>
   <data name="less than a minute ago" xml:space="preserve">
     <value>för mindre än en minut sedan</value>
   </data>
@@ -16185,6 +16245,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="will be added" xml:space="preserve">
     <value>läggs till</value>
   </data>
+  <data name="within a minute" xml:space="preserve">
+    <value>inom en minut</value>
+  </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>skriv loggen till en databas</value>
   </data>
@@ -16493,6 +16556,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} mappar.</value>
+  </data>
+  <data name="{0} from now" xml:space="preserve">
+    <value>om {0}</value>
   </data>
   <data name="{0} from {1}" xml:space="preserve">
     <value>{0} från {1}</value>
@@ -16895,6 +16961,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} was made with {1} mailboxes." xml:space="preserve">
     <value>{0} skapades med {1} brevlådor.</value>
+  </data>
+  <data name="{0} was no longer banned: the ban had lifted already." xml:space="preserve">
+    <value>{0} var inte längre spärrad: spärren hade redan upphört.</value>
   </data>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} fanns inte längre på listan.</value>

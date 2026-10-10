@@ -684,6 +684,9 @@
   <data name="A short built-in list - &quot;password&quot;, &quot;123456&quot;, &quot;changeme&quot; and about thirty more - compared without regard to case. It is deliberately not a &quot;top 10000&quot; list, which would need a data file and an update path; it catches the passwords that get typed while setting up a mailbox nobody comes back to." xml:space="preserve">
     <value>Короткий вбудований список — «password», «123456», «changeme» і ще близько тридцяти — порівнюється без урахування регістру. Це навмисно не список «топ-10000», для якого знадобився б файл даних і механізм оновлення; він ловить паролі, які вводять під час налаштування поштової скриньки, до якої вже ніхто не повертається.</value>
   </data>
+  <data name="A sign-in attempt on a port that takes no password" xml:space="preserve">
+    <value>Спроба входу на порту, який не приймає паролів</value>
+  </data>
   <data name="A simple bind needs the user's distinguished name. There are two ways to get one - search for it, or compute it from a template - and Negotiate needs neither, because SSPI authenticates by user name and domain, which the account already carries." xml:space="preserve">
     <value>Проста прив’язка потребує розрізняльного імені користувача (DN). Отримати його можна двома способами — знайти пошуком або обчислити за шаблоном, — а методу Negotiate не потрібен жоден із них, бо SSPI автентифікує за іменем користувача та доменом, які обліковий запис уже містить.</value>
   </data>
@@ -1286,6 +1289,9 @@
   </data>
   <data name="After reinitialise" xml:space="preserve">
     <value>Після повторної ініціалізації</value>
+  </data>
+  <data name="After sign-in" xml:space="preserve">
+    <value>Після входу</value>
   </data>
   <data name="After the body has arrived" xml:space="preserve">
     <value>Після надходження тіла листа</value>
@@ -1939,8 +1945,8 @@
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>Автоматичні сертифікати (ACME)</value>
   </data>
-  <data name="Automatic lockout of an address that keeps failing to log on. The ban itself is an expiring IP range, so it is listed on the IP ranges page." xml:space="preserve">
-    <value>Автоматичне блокування адреси, з якої входи раз за разом не вдаються. Саме блокування — це IP-діапазон із терміном дії, тому воно перелічене на сторінці «Діапазони IP».</value>
+  <data name="Automatic lockout of an address that keeps failing to sign in. The bans in force are listed first, each with Lift ban, which lets the address in again at once." xml:space="preserve">
+    <value>Автоматичне блокування адреси, з якої входи раз за разом не вдаються. Чинні блокування перелічено першими, у кожного є кнопка «Зняти блокування», яка одразу знову впускає адресу.</value>
   </data>
   <data name="Automatic replies may go to this domain" xml:space="preserve">
     <value>Автовідповіді можна надсилати в цей домен</value>
@@ -3046,6 +3052,9 @@
   <data name="Could not generate the DKIM key: {0}" xml:space="preserve">
     <value>Не вдалося створити ключ DKIM: {0}</value>
   </data>
+  <data name="Could not lift the ban: {0}" xml:space="preserve">
+    <value>Не вдалося зняти блокування: {0}</value>
+  </data>
   <data name="Could not list domains: {0}" xml:space="preserve">
     <value>Не вдалося отримати список доменів: {0}</value>
   </data>
@@ -3116,6 +3125,9 @@
   </data>
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>Не вдалося прочитати параметри резервного копіювання: </value>
+  </data>
+  <data name="Could not read the bans: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати блокування: {0}</value>
   </data>
   <data name="Could not read the certificates: " xml:space="preserve">
     <value>Не вдалося прочитати сертифікати: </value>
@@ -3324,9 +3336,6 @@
   <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
     <value>Вважати переповнену скриньку постійною відмовою</value>
   </data>
-  <data name="Counted logon failures cleared. Addresses already banned stay banned until their &quot;Auto-ban:&quot; range expires - delete it on the IP ranges page to release one now." xml:space="preserve">
-    <value>Лічильники невдалих входів очищено. Адреси, які вже заблоковано, залишаються заблокованими, доки не спливе термін дії їхнього діапазону «Auto-ban:», — щоб звільнити якусь із них зараз, видаліть цей діапазон на сторінці «Діапазони IP».</value>
-  </data>
   <data name="Counted per account from the last login that was allowed, so a refused attempt does not push the next one further away. It is advertised only while it is set, because announcing a limit that is not enforced is worse than announcing nothing." xml:space="preserve">
     <value>Відлічується для кожного облікового запису від останнього дозволеного входу, тож відхилена спроба не відсуває наступну ще далі. Значення оголошується лише тоді, коли його задано, бо оголосити обмеження, якого не застосовують, гірше, ніж не оголошувати нічого.</value>
   </data>
@@ -3335,6 +3344,9 @@
   </data>
   <data name="Counted per user name rather than per address, across every protocol that authenticates, so a botnet spreading its guesses over thousands of addresses still locks the mailbox it is guessing at. A locked name is refused with the ordinary invalid-credentials reply and cannot be unlocked by typing the right password - the lock is checked first - so the ceiling is worth setting with the cost in mind. Failures against a name that does not exist lock that name too, deliberately: doing otherwise would let an attacker use the lockout to discover which accounts are real." xml:space="preserve">
     <value>Підраховується для кожного імені користувача, а не для кожної адреси, в усіх протоколах, що автентифікують, тож ботнет, який розподіляє свої спроби між тисячами адрес, усе одно заблокує ту поштову скриньку, яку добирає. Заблокованому імені відмовляють звичайною відповіддю про хибні облікові дані, і розблокувати його введенням правильного пароля неможливо — блокування перевіряється першим, — тож межу варто задавати, зважаючи на цю ціну. Невдалі спроби для імені, якого не існує, блокують і його теж, і це зроблено навмисно: інакше зловмисник міг би скористатися блокуванням, щоб дізнатися, які облікові записи справжні.</value>
+  </data>
+  <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
+    <value>Лічильники невдалих входів очищено. Адреси, які вже заблоковано, залишаються заблокованими до кінця блокування - кнопка «Зняти блокування» в розділі «Заблоковано зараз» одразу впускає адресу.</value>
   </data>
   <data name="Countries" xml:space="preserve">
     <value>Країни</value>
@@ -4496,6 +4508,9 @@
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Кінцева точка (порожньо = власна точка служби)</value>
   </data>
+  <data name="Ends" xml:space="preserve">
+    <value>Закінчення</value>
+  </data>
   <data name="Enforce: hold the mail and lock the account" xml:space="preserve">
     <value>Примусово: затримати пошту й заблокувати обліковий запис</value>
   </data>
@@ -5020,6 +5035,9 @@
   </data>
   <data name="Failed logons from a listed address are not counted at all, so it can never be banned. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine. Example: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. An entry that is not an address is reported by name in the error log and ignored." xml:space="preserve">
     <value>Невдалі входи з адреси зі списку не рахуються взагалі, тож її неможливо забанити ніколи. Внесіть сюди адреси, з яких ви адмініструєте, перш ніж вмикати параметр брандмауера: бан, що дістався брандмауера, закриває цій адресі всі поштові порти цієї машини. Приклад: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. Запис, що не є адресою, повідомляється за назвою в журналі помилок і пропускається.</value>
+  </data>
+  <data name="Failed sign-ins as {0}" xml:space="preserve">
+    <value>Невдалі входи під іменем {0}</value>
   </data>
   <data name="Fails when the connecting address has no reverse DNS record." xml:space="preserve">
     <value>Не проходить, коли адреса, що підключається, не має зворотного запису DNS.</value>
@@ -6202,6 +6220,18 @@
   <data name="Levels" xml:space="preserve">
     <value>Рівні</value>
   </data>
+  <data name="Lift ban" xml:space="preserve">
+    <value>Зняти блокування</value>
+  </data>
+  <data name="Lift the ban on {0}" xml:space="preserve">
+    <value>Зняти блокування з {0}</value>
+  </data>
+  <data name="Lift the ban on {0}? It may connect again at once, and is banned again only when it earns a new ban." xml:space="preserve">
+    <value>Зняти блокування з {0}? Адреса зможе одразу знову підключатися й буде заблокована знову, лише коли заслужить нове блокування.</value>
+  </data>
+  <data name="Lift the selected ban: the address may connect again at once" xml:space="preserve">
+    <value>Зняти вибране блокування: адреса зможе одразу знову підключатися</value>
+  </data>
   <data name="Limit _number of distribution lists" xml:space="preserve">
     <value>Обмежити кількість _списків розсилки</value>
   </data>
@@ -6448,6 +6478,9 @@
   <data name="Mail from an empty sender address is denied. Many servers send bounces from &lt;&gt;, which will be rejected." xml:space="preserve">
     <value>Пошта з порожньої адреси відправника відхиляється. Багато серверів надсилають повернення з &lt;&gt;, і їх буде відхилено.</value>
   </data>
+  <data name="Mail from an empty sender to several recipients" xml:space="preserve">
+    <value>Пошта від порожнього відправника кільком одержувачам</value>
+  </data>
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>Пошту з-поза меж організації можна позначити, щоб читач побачив це відразу. Відправник є зовнішнім, коли сеанс не ввійшов у систему, повідомлення надійшло не через довірений вхідний ретранслятор, і ні відправник конверта, ні адреса From не належать домену, який обслуговує цей сервер.</value>
   </data>
@@ -6480,6 +6513,9 @@
   </data>
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Пошта адміністраторові, коли щось потребує уваги, наприклад заповнюється диск, зупиняється робоча черга, скоро спливає сертифікат або не вдалося резервне копіювання. Які умови відстежуються, задають правила оповіщень у Control Deck; нічого не надсилається, доки не задано обидві адреси нижче.</value>
+  </data>
+  <data name="Mail to the spam trap {0}" xml:space="preserve">
+    <value>Пошта на пастку для спаму {0}</value>
   </data>
   <data name="Mailbox created" xml:space="preserve">
     <value>Скриньку створено</value>
@@ -7222,6 +7258,9 @@
   </data>
   <data name="No active sessions" xml:space="preserve">
     <value>Активних сеансів немає</value>
+  </data>
+  <data name="No address is banned now." xml:space="preserve">
+    <value>Зараз жодну адресу не заблоковано.</value>
   </data>
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>У списку придушення цього домену немає адрес. Адреса потрапляє сюди, коли пошта на неї остаточно повертається з відмовою або коли ви її додаєте.</value>
@@ -8239,6 +8278,9 @@
   </data>
   <data name="Open or close the help for this page" xml:space="preserve">
     <value>Відкрити або закрити довідку щодо цієї сторінки</value>
+  </data>
+  <data name="Open relay" xml:space="preserve">
+    <value>Відкрита ретрансляція</value>
   </data>
   <data name="Open the Control Deck" xml:space="preserve">
     <value>Відкрити Control Deck</value>
@@ -11117,6 +11159,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Найкоротший рядок пошуку, на який відповідає індекс (3-64; коротші рядки відкочуються до сканування)</value>
   </data>
+  <data name="Show auto-_bans only" xml:space="preserve">
+    <value>Лише автобло_кування</value>
+  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Показати діаграму</value>
   </data>
@@ -11153,8 +11198,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Показати Панель керування мовою {0}? Для зміни мови вона перезапуститься.</value>
   </data>
-  <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
-    <value>Показати діапазони IP автоблокування на сторінці «Діапазони IP»</value>
+  <data name="Show the bans in force under Banned now on the Auto-ban page, where each can be lifted" xml:space="preserve">
+    <value>Показати чинні блокування в розділі «Заблоковано зараз» на сторінці «Автоблокування», де кожне можна зняти</value>
   </data>
   <data name="Show the details" xml:space="preserve">
     <value>Показати подробиці</value>
@@ -12032,6 +12077,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The addresses and ports each protocol listens on, and the connection security used on each." xml:space="preserve">
     <value>Адреси й порти, які слухає кожен протокол, і безпека з'єднання на кожному.</value>
   </data>
+  <data name="The addresses the server has banned, why and when each ban ends; the same bans are expiring ranges on the IP ranges page." xml:space="preserve">
+    <value>Адреси, які заблокував сервер, причина й час закінчення кожного блокування; ті самі блокування — це діапазони з терміном дії на сторінці «Діапазони IP».</value>
+  </data>
   <data name="The administrator has a second factor, and the REST API asks for a one-time code with every request made with the password, which this page does not send. Read the cases in the Control Deck." xml:space="preserve">
     <value>Адміністратор має другий фактор, і REST API вимагає одноразовий код для кожного запиту з паролем, а ця сторінка його не надсилає. Читайте справи в Control Deck.</value>
   </data>
@@ -12124,6 +12172,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The backups in the destination folder, newest first. Choose one and the restore cards below use it; Re-check status reads the folder again." xml:space="preserve">
     <value>Резервні копії в папці призначення, спочатку найновіші. Виберіть одну, і картки відновлення нижче її використають; «Перевірити стан ще раз» перечитує папку.</value>
+  </data>
+  <data name="The ban on {0} is lifted." xml:space="preserve">
+    <value>Блокування з {0} знято.</value>
   </data>
   <data name="The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way." xml:space="preserve">
     <value>Адреса прив'язки - не loopback-адреса, і облікові дані не задано, тому /metrics відповідає 503 (Service Unavailable) на кожен збір. Задайте bearer-токен, або обидва поля HTTP Basic, або прив'яжіться до 127.0.0.1. Перевірки стану здоров'я відповідають у будь-якому разі.</value>
@@ -14550,6 +14601,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the General tab." xml:space="preserve">
     <value>Якщо це увімкнено, пароль тут узагалі не зберігається - його перевірку просять у Windows. Залиште вимкненим, і обліковий запис використовує пароль із вкладки «Загальне».</value>
   </data>
+  <data name="Without sign-in" xml:space="preserve">
+    <value>Без входу</value>
+  </data>
   <data name="Words on the SAML sign-in button" xml:space="preserve">
     <value>Текст на кнопці входу SAML</value>
   </data>
@@ -15021,6 +15075,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Later" xml:space="preserve">
     <value>Піз_ніше</value>
   </data>
+  <data name="_Lift ban" xml:space="preserve">
+    <value>_Зняти блокування</value>
+  </data>
   <data name="_Limit number of accounts" xml:space="preserve">
     <value>_Обмежити кількість облікових записів</value>
   </data>
@@ -15321,8 +15378,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Set up ACME…" xml:space="preserve">
     <value>На_лаштувати ACME…</value>
   </data>
-  <data name="_Show in IP ranges" xml:space="preserve">
-    <value>Показ_ати в діапазонах IP</value>
+  <data name="_Show the bans" xml:space="preserve">
+    <value>Показ_ати блокування</value>
   </data>
   <data name="_Source address or range it may be used from (optional)" xml:space="preserve">
     <value>_Адреса або діапазон джерела, з якого його можна використовувати (необов’язково)</value>
@@ -15883,6 +15940,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="legitimate mail is being marked as spam" xml:space="preserve">
     <value>легітимна пошта позначається як спам</value>
   </data>
+  <data name="less than a minute" xml:space="preserve">
+    <value>менше хвилини</value>
+  </data>
   <data name="less than a minute ago" xml:space="preserve">
     <value>менше хвилини тому</value>
   </data>
@@ -16375,6 +16435,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="will be added" xml:space="preserve">
     <value>буде додано</value>
   </data>
+  <data name="within a minute" xml:space="preserve">
+    <value>протягом хвилини</value>
+  </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>записувати журнал до бази даних</value>
   </data>
@@ -16764,6 +16827,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} folders.|few" xml:space="preserve">
     <value>{0} теки.</value>
+  </data>
+  <data name="{0} from now" xml:space="preserve">
+    <value>через {0}</value>
   </data>
   <data name="{0} from {1}" xml:space="preserve">
     <value>{0} з {1}</value>
@@ -17277,6 +17343,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} was made with {1} mailboxes.|few" xml:space="preserve">
     <value>{0} створено з {1} скриньками.</value>
+  </data>
+  <data name="{0} was no longer banned: the ban had lifted already." xml:space="preserve">
+    <value>{0} уже не було заблоковано: блокування вже закінчилося.</value>
   </data>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} вже не було у списку.</value>

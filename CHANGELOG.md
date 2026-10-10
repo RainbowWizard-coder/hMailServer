@@ -2763,6 +2763,22 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   of one priority by name; a header clicked orders it by its column - Priority's turns the order round - and that
   order is kept when the list is read again. `IPRangeAddedTests` holds the add, the notice and the order.
 
+- **Fixed: the Auto-ban page listed no ban, and lifting one took four steps across two pages.** "Clear logon-failure
+  list" said outright that it lifted no ban; the IP ranges page drew the server's bans - the expiring ranges named
+  "Auto-ban: ..." - among the permanent ranges with no column to tell them apart and no filter, so lifting one meant
+  opening IP ranges, searching, picking the row by its address and deleting it. The Auto-ban page now opens on
+  Banned now: each ban's address, why it was banned - the user name a run of failed sign-ins was guessing at, the
+  spam trap, the null sender or the sign-in attempt on a delivery port - and when it ends, "23 min from now" from a
+  Control Panel on the server itself and the server's time from one elsewhere, with Lift ban on its row (a 24-pixel
+  button named for the row) and under the list (Delete on the row presses it); Lift ban asks first, Cancel taking
+  Enter, deletes the range by its id as IP ranges does, and says "The ban on 198.51.100.77 is lifted." The IP ranges
+  page has an Expires column - Never, or when an expiring range ends - a Relay column that says No, After sign-in,
+  Without sign-in for one address such as My computer, or Open relay as a Critical pill for a range of more than one
+  address that relays without a sign-in, and Show auto-bans only, which narrows the list to the bans and counts them
+  as a search does ("Shown: 1 of 5"). Server status's ban count opens Banned now. `BannedNowTests` holds the words,
+  the order of the page, the question, the columns and the filter; docs/AutoBan.md says where the bans are and what
+  Lift ban does.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
