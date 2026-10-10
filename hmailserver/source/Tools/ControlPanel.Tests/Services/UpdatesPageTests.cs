@@ -178,7 +178,8 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          string notice = ReadControlPanelFile(Path.Join("Views", "UpdateNotice.cs"));
          Assert.Contains("NoticeActions.OpenPage(\"updates\", automationId)", notice, StringComparison.Ordinal);
-         Assert.Contains("UpdateStatusText.Waiting((int)status.UpdateState, (string)status.AvailableVersion)", notice, StringComparison.Ordinal);
+         Assert.Contains("return UpdateStatusText.WaitingOrFailed(state, (string)status.AvailableVersion, error, ApplyOutcome_(status), SeenOutcome_());", notice, StringComparison.Ordinal);
+         Assert.Contains("Level = level,", notice, StringComparison.Ordinal);
          Assert.Contains("mayUse(updates.Needs)", notice, StringComparison.Ordinal);
       }
 
@@ -195,6 +196,40 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          Assert.Equal(expected, UpdateStatusText.Waiting(state, "6.3.7"));
          Assert.Null(UpdateStatusText.Waiting(state, ""));
+      }
+
+      /// <summary>
+      /// The line also says what Server status's Update status row said before the steps
+      /// moved: an update step that failed, and the last apply's outcome - an unattended
+      /// apply that was rolled back showed only on the Updates page, under Maintenance,
+      /// and the health page said nothing. Each is a sentence of its own, at Warning, an
+      /// apply that went as asked at Information.
+      /// </summary>
+      [Fact]
+      public void TheLineSaysAFailedStepAndTheLastApply()
+      {
+         Assert.Equal((StatusLevel.Warning, "The last update step failed: gitlab.com did not answer."),
+            UpdateStatusText.WaitingOrFailed(5, "6.3.7", "gitlab.com did not answer.", "", null));
+
+         const string rolledBack = "rolled-back 6.3.7: the service did not start, so 6.3.6 was put back";
+         Assert.Equal((StatusLevel.Warning, "Last update: rolled-back 6.3.7: the service did not start, so 6.3.6 was put back. hMailServer 6.3.7 is available."),
+            UpdateStatusText.WaitingOrFailed(2, "6.3.7", "", rolledBack, null));
+         foreach (string word in new[] { "failed", "rollback-failed", "no-rollback", "upgraded-incomplete", "refused" })
+            Assert.Equal(StatusLevel.Warning, UpdateStatusText.WaitingOrFailed(1, "", "", word + " 6.3.7: why", null).Level);
+
+         Assert.Equal((StatusLevel.Information, "Last update: ok 6.3.7: installed by the service."),
+            UpdateStatusText.WaitingOrFailed(1, "", "", "ok 6.3.7: installed by the service", null));
+         Assert.Equal(StatusLevel.Information, UpdateStatusText.WaitingOrFailed(2, "6.3.7", "", "cancelled 6.3.7: by the administrator", null).Level);
+
+         // Once the Updates page has shown the outcome it is not said again; the waiting release still is.
+         Assert.Equal((StatusLevel.Information, "hMailServer 6.3.7 is available."), UpdateStatusText.WaitingOrFailed(2, "6.3.7", "", rolledBack, rolledBack));
+         Assert.Equal((StatusLevel.Normal, null), UpdateStatusText.WaitingOrFailed(1, "", "", rolledBack, rolledBack));
+         Assert.Equal((StatusLevel.Normal, null), UpdateStatusText.WaitingOrFailed(1, "", "", "", null));
+         Assert.Equal((StatusLevel.Information, "hMailServer 6.3.7 is downloaded and verified, ready to install."), UpdateStatusText.WaitingOrFailed(3, "6.3.7", "", null, null));
+
+         // The Updates page marks the outcome its row has shown.
+         string steps = ReadControlPanelFile(Path.Join("Views", "FeatureSettingsView.Updates.cs"));
+         Assert.Contains("UpdateNotice.MarkSeen(applyOutcome);", steps, StringComparison.Ordinal);
       }
 
       /// <summary>The update status points at the policy on its own page, not at API &amp; monitoring.</summary>

@@ -147,6 +147,9 @@ namespace hMailServer.ControlPanel.Views
             SetUpdateValue_(UpdateValue, L("Update status"), UpdateStatusText.For(updateState, availableVersion,
                (string)status.AvailableVersionPublished, (string)status.UpdateLastChecked, (string)status.UpdateLastError, applyOutcome, preparationStep));
             ServerSession.Release(status);
+            // The row says the last apply's outcome, which Server status and the
+            // Dashboard said until it was shown here (Views/UpdateNotice).
+            UpdateNotice.MarkSeen(applyOutcome);
             // Download once a newer release is known (a failed download can be retried);
             // install once one is verified and waiting.
             DownloadUpdateButton.IsEnabled = updateState == 2 || (updateState == 5 && !string.IsNullOrEmpty(availableVersion));

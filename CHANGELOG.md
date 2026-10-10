@@ -2181,23 +2181,25 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   distribution lists." `PageTitlesTests` holds every page MainWindow builds to naming its key, and no page header to a
   title of its own (review findings F215, F025 and F080).
 
-- **New: an Updates page in the Control Panel.** Check for updates, Download update and Install update were on
-  Server status, under a row of its Server card, and the policy that drives them - the daily check, the channel, the
-  download, the unattended window, the signature checks - was a card on API & monitoring; About showed the version
-  but not whether a newer one was waiting, and nothing was called Updates or Upgrade, so Ctrl+K "update" found only
+- **New: an Updates page in the Control Panel.** Check for updates, Download update and Install update were on Server
+  status, under a row of its Server card, and the policy that drives them - the daily check, the channel, the
+  download, the unattended window, the signature checks - was a card on API & monitoring; About showed the version but
+  not whether a newer one was waiting, and nothing was called Updates or Upgrade, so Ctrl+K "update" found only
   setting rows, ranked last. The Updates page, under Maintenance beside Backup & restore, holds the version this
-  server runs, the update check's verdict and the three steps above the policy, which is the same card under the
-  title "How this server updates"; its help is UpdateFeed.md, and the palette finds it by Update, Upgrade, New
-  version, Live update, Patch, Release channel and Automatic updates, and by the tasks "install a new version",
-  "turn on automatic updates" and "is there a new version". A read of the update status that fails says why on the
-  card, with Try again, and holds Check for updates, Download update and Install update until a read works, as
-  Server status held them; with the link to the service lost the page says so once, under its header, and the card's
-  readouts say Not read. The card sits under the page's notice and the line that says where its settings are kept,
-  as on every settings page. Server status, the Dashboard and About say in one line
-  when a release is waiting - "hMailServer 6.3.7 is available." - with Open Updates beside it, shown to a credential
-  that may open the page; the Control Panel that opens again after an administrator's install says how it ended on
-  the Updates page, and "Not checked yet" points at the daily check below it rather than at API & monitoring. API &
-  monitoring names the page under On other pages (review finding F272).
+  server runs, the update check's verdict and the three steps above the policy, which is the same card under the title
+  "How this server updates"; its help is UpdateFeed.md, and the palette finds it by Update, Upgrade, New version, Live
+  update, Patch, Release channel and Automatic updates, and by the tasks "install a new version", "turn on automatic
+  updates" and "is there a new version". A read of the update status that fails says why on the card, with Try again,
+  and holds Check for updates, Download update and Install update until a read works, as Server status held them; with
+  the link to the service lost the page says so once, under its header, and the card's readouts say Not read. The card
+  sits under the page's notice and the line that says where its settings are kept, as on every settings page. Server
+  status, the Dashboard and About say in one line when a release is waiting - "hMailServer 6.3.7 is available." - with
+  Open Updates beside it, shown to a credential that may open the page, and the same line says, as Server status's
+  update row did, an update step that failed and the last apply's outcome - "Last update: rolled-back 6.3.7: ..." at
+  Warning, an apply that went as asked at Information - until the Updates page has shown the outcome to that reader;
+  the Control Panel that opens again after an administrator's install says how it ended on the Updates page, and "Not
+  checked yet" points at the daily check below it rather than at API & monitoring. API & monitoring names the page
+  under On other pages (review finding F272).
 
 - **Fixed: settings filed under pages whose names do not describe them could not be found from those pages' names,
   and two aliases sent the reader to the wrong page.** Logging holds the alerts, outbound webhooks and SNMP; API &

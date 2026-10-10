@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System;
 using static hMailServer.ControlPanel.Services.Loc;
 
 namespace hMailServer.ControlPanel.Services
@@ -60,6 +61,52 @@ namespace hMailServer.ControlPanel.Services
             case 7: return F("hMailServer {0} is downloaded and verified, ready to install.", version);
             default: return null;
          }
+      }
+
+      /// <summary>
+      /// The line Server status, the Dashboard and About say, and its level: the last
+      /// apply's outcome until the Updates page has shown it to this reader
+      /// (<paramref name="seenOutcome"/>), an update step that failed, and a release that
+      /// is waiting - each a sentence of its own, in that order. Before the update
+      /// steps moved to the Updates page, Server status's Update status row said the
+      /// first two, and the line that took its place said only the third: an unattended
+      /// apply that was rolled back, or a check that failed, showed on a page under
+      /// Maintenance the administrator had no reason to open, and the health page said
+      /// nothing. An outcome or a failure is a warning, but an apply that went as asked
+      /// - ok, or an administrator's install cancelled - and a waiting release are
+      /// information. A null text, at Normal, when there is nothing to say.
+      /// </summary>
+      public static (StatusLevel Level, string Text) WaitingOrFailed(int state, string version, string error, string applyOutcome, string seenOutcome)
+      {
+         StatusLevel level = StatusLevel.Information;
+
+         string outcome = null;
+         if (!string.IsNullOrWhiteSpace(applyOutcome) && !string.Equals(applyOutcome.Trim(), seenOutcome?.Trim(), StringComparison.Ordinal))
+         {
+            outcome = F("Last update: {0}.", applyOutcome.Trim());
+            if (!WentAsAsked_(applyOutcome))
+               level = StatusLevel.Warning;
+         }
+
+         string failed = null;
+         if (state == 5)
+         {
+            failed = F("The last update step failed: {0}", error ?? "");
+            level = StatusLevel.Warning;
+         }
+
+         string text = Sentences(outcome, failed, Waiting(state, version));
+         return text.Length == 0 ? (StatusLevel.Normal, null) : (level, text);
+      }
+
+      // The Updater's status word, the outcome's first: ok and cancelled are an apply
+      // that went as it was asked to; every other word it writes is one that did not.
+      private static bool WentAsAsked_(string applyOutcome)
+      {
+         string first = applyOutcome.Trim();
+         int space = first.IndexOf(' ');
+         string status = space < 0 ? first : first.Substring(0, space);
+         return status == "ok" || status == "cancelled"; // no-loc: the Updater's words
       }
 
       /// <summary>The service's preparation step (UpdatePreparation's "step") in words.</summary>
