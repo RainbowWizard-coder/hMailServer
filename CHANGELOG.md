@@ -3126,8 +3126,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   texts that said sign in. Every text now says sign in for the act and sign-in for the noun, for people and mail
   clients alike, and logon only for Windows - Windows logon, LogonUser, an account's logon restrictions, the service's
   Log on as a service right; the Auto-ban captions read "Failed sign-ins before an address is banned (0 = off)",
-  "Sign-in tarpit" and "Delay per failed sign-in (seconds; 0 = off)", and Japanese says サインイン and Brazilian Portuguese
-  login wherever the English says sign in. The glossary the review asked for is a section of
+  "Sign-in tarpit" and "Delay per failed sign-in (seconds; 0 = off)" - the first, in German and Dutch, "bevor eine
+  Adresse gebannt wird" and "voordat een adres wordt verbannen", a ban as each of their other ban texts says it - and
+  Japanese says サインイン and Brazilian Portuguese login wherever the English says sign in. The glossary the review
+  asked for is a section of
   docs/ControlPanelDesign.md, Words, and applied in one pass: the Delivery of e-mail page's Relayer tab and its SMTP
   relayer (smart host) card are Smart host and Server-wide smart host, and the tab's captions and OAuth2 card, the
   page's subtitle and description and the Routes page's empty state say smart host as well - "Smart host name (empty =

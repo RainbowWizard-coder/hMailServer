@@ -128,8 +128,33 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain(German.Values, value => value.Contains("Nie-bannen-Liste", StringComparison.Ordinal)
                                                      || value.Contains("automatische Sperre", StringComparison.OrdinalIgnoreCase)
                                                      || value.Contains("Auto-Ban-", StringComparison.Ordinal));
-         foreach (string key in new[] { "Names that are never auto-banned", "Localhost is currently banned in the IP ranges.", "Ban for (hours, 1 to 8,760)" })
+         foreach (string key in new[] { "Names that are never auto-banned", "Localhost is currently banned in the IP ranges.", "Ban for (hours, 1 to 8,760)", "Failed sign-ins before an address is banned (0 = off)" })
             Assert.Matches("[Bb]ann", German[key]);
+      }
+
+      /// <summary>
+      /// Every German text whose English bans says Bann or bannen, and every Dutch one verbannen or
+      /// ban: the Auto-ban caption said "bevor eine Adresse gesperrt wird" directly under "Auto-Bann",
+      /// and in Dutch "voordat een adres wordt geblokkeerd" - a Sperre, in German, is the block list.
+      /// The IP range's name the server writes, "Auto-ban: &lt;user&gt;", is its own.
+      /// </summary>
+      [Fact]
+      public void ABanIsABannInGermanAndAVerbanningInDutch()
+      {
+         Dictionary<string, string> dutch = ReadResx("Strings.nl.resx");
+         var ban = new Regex(@"\bban(?:s|ned|ning)?\b", RegexOptions.IgnoreCase);
+         var offenders = new List<string>();
+         foreach ((string key, string value) in German)
+         {
+            if (!ban.IsMatch(key.Replace("Auto-ban: <user>", "", StringComparison.Ordinal)))
+               continue;
+            if (!Regex.IsMatch(value, "[Bb]ann"))
+               offenders.Add("de: " + key + " = " + value);
+            if (dutch.TryGetValue(key, out string nl) && !Regex.IsMatch(nl, "[Bb]an"))
+               offenders.Add("nl: " + key + " = " + nl);
+         }
+
+         Assert.True(offenders.Count == 0, "A ban is a Bann in German and verbannen in Dutch:\n" + string.Join("\n", offenders));
       }
 
       private static Dictionary<string, string> ReadResx(string file)

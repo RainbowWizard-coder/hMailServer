@@ -5222,7 +5222,7 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
     <value>Fehlgeschlagene Anmeldungen als {0}</value>
   </data>
   <data name="Failed sign-ins before an address is banned (0 = off)" xml:space="preserve">
-    <value>Fehlgeschlagene Anmeldungen, bevor eine Adresse gesperrt wird (0 = aus)</value>
+    <value>Fehlgeschlagene Anmeldungen, bevor eine Adresse gebannt wird (0 = aus)</value>
   </data>
   <data name="Failed sign-ins from a listed address are not counted at all, so it can never be banned. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine. Example: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. An entry that is not an address is reported by name in the error log and ignored." xml:space="preserve">
     <value>Fehlgeschlagene Anmeldungen von einer aufgeführten Adresse werden gar nicht gezählt, sie kann also nie gebannt werden. Tragen Sie hier die Adressen ein, von denen aus Sie verwalten, bevor Sie die Firewall-Option einschalten: Ein Bann, der die Firewall erreicht, sperrt diese Adresse von jedem Mail-Port dieses Rechners aus. Beispiel: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. Ein Eintrag, der keine Adresse ist, wird im Fehlerprotokoll namentlich gemeldet und ignoriert.</value>
