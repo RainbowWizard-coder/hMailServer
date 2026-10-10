@@ -242,7 +242,7 @@ namespace hMailServer.ControlPanel.Views
             L("Every value fails closed. A section whose Scope is anything but the literal \"full\" is read-only, a key whose expiry is missing or unreadable counts as expired, and a section with no usable digest is ignored entirely. That is what makes the store safe to edit by hand: a typo can only ever narrow a key, never widen one.")));
 
          var links = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 10, 0, 0) };
-         links.Children.Add(PageLink_("api", L("REST listener settings…"),
+         links.Children.Add(PageLink_("api", F("Open {0}", L(NavigationMap.TitleOf("api"))),
             L("Open API & monitoring, which owns the REST listener's port and TLS settings")));
          content.Children.Add(links);
 
@@ -264,11 +264,9 @@ namespace hMailServer.ControlPanel.Views
          {
             Content = caption,
             Appearance = Wpf.Ui.Controls.ControlAppearance.Transparent,
-            FontSize = Typography.Caption,
-            Padding = new Thickness(8, 3, 8, 3),
-            Cursor = System.Windows.Input.Cursors.Hand,
             ToolTip = accessibleName
          };
+         ButtonStyles.CompactPageLink(button);
          ControlHelp.NameLink(button, caption, accessibleName);
          System.Windows.Automation.AutomationProperties.SetAutomationId(button, "apikeys-open-" + page);
          button.Click += (s, e) => (Application.Current?.MainWindow as MainWindow)?.NavigateTo(page);

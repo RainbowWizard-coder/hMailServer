@@ -684,7 +684,7 @@ namespace hMailServer.ControlPanel.Views
          Grid.SetColumn(state, 2);
          grid.Children.Add(state);
 
-         FrameworkElement link = PageLink(scanner.Page, L("Settings…"),
+         FrameworkElement link = PageLink(scanner.Page, F("{0} →", L(NavigationMap.TitleOf(scanner.Page))),
             F("Open {0}, which owns the {1} settings", L(NavigationMap.TitleOf(scanner.Page)), scanner.Name));
          link.Margin = new Thickness(0, 4, 0, 4);
          link.VerticalAlignment = VerticalAlignment.Top;
@@ -727,7 +727,7 @@ namespace hMailServer.ControlPanel.Views
                Typography.Caption));
          }
 
-         content.Children.Add(PageLink("antivirus", L("Size limit and scanners…"),
+         content.Children.Add(PageLink("antivirus", F("{0} →", L(NavigationMap.TitleOf("antivirus"))),
             L("Open Anti-virus settings, which owns the maximum message size to scan")));
 
          return card;
@@ -761,7 +761,7 @@ namespace hMailServer.ControlPanel.Views
          content.Children.Add(Paragraph(L("This runs before virus scanning and independently of it: it applies even with every scanner switched off, and it applies to messages the size limit above would skip. A matched attachment is replaced by a short text file explaining the removal rather than being deleted outright, so the recipient can tell something was taken out."),
             Typography.Caption));
 
-         content.Children.Add(PageLink("blockedattachments", L("Patterns…"),
+         content.Children.Add(PageLink("blockedattachments", F("{0} →", L(NavigationMap.TitleOf("blockedattachments"))),
             L("Open Blocked attachments, which owns the list of file-name patterns")));
 
          return card;
@@ -846,13 +846,11 @@ namespace hMailServer.ControlPanel.Views
          {
             Content = caption,
             Appearance = Wpf.Ui.Controls.ControlAppearance.Transparent,
-            FontSize = Typography.Caption,
-            Padding = new Thickness(8, 3, 8, 3),
             VerticalAlignment = VerticalAlignment.Center,
-            Cursor = System.Windows.Input.Cursors.Hand,
             ToolTip = accessibleName,
             HorizontalAlignment = HorizontalAlignment.Left
          };
+         ButtonStyles.CompactPageLink(button);
          ControlHelp.NameLink(button, caption, accessibleName);
          System.Windows.Automation.AutomationProperties.SetAutomationId(button,
             "virus-overview-open-" + page + (tab == null ? "" : "-" + tab.ToLowerInvariant()));

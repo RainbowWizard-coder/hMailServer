@@ -189,7 +189,7 @@
                 <scaffold:EmptyState x:Name="EmptyStatus" Icon="Certificate24" Visibility="Collapsed"
                                      AutomationProperties.LiveSetting="Polite">
                     <scaffold:EmptyState.Action>
-                        <ui:Button Content="{loc:L '_Set up ACME…'}" Click="SetUpAcme_Click"
+                        <ui:Button Content="{loc:L '_Set up ACME'}" Click="SetUpAcme_Click"
                                    AutomationProperties.AutomationId="certs-set-up-acme" />
                     </scaffold:EmptyState.Action>
                 </scaffold:EmptyState>

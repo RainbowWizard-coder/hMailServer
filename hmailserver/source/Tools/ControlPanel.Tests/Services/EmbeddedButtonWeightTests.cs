@@ -55,7 +55,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheListEditorsAdd_IsPrimaryOnAPageAndSecondaryOnADialogsTab()
       {
          string source = ReadView("CollectionEditorView.cs");
-         Assert.Contains("addButton_ = MakeButton(L(\"_Add\"), onDialogTab_ ? ControlAppearance.Secondary : ControlAppearance.Primary,", source, StringComparison.Ordinal);
+         Assert.Contains("addButton_ = MakeButton(L(\"_Add…\"), onDialogTab_ ? ControlAppearance.Secondary : ControlAppearance.Primary,", source, StringComparison.Ordinal);
       }
 
       /// <summary>

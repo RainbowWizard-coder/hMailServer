@@ -2509,9 +2509,6 @@
   <data name="Certificates held" xml:space="preserve">
     <value>已保存的证书</value>
   </data>
-  <data name="Certificates…" xml:space="preserve">
-    <value>证书…</value>
-  </data>
   <data name="Change failed" xml:space="preserve">
     <value>更改失败</value>
   </data>
@@ -5779,9 +5776,6 @@
   <data name="Host name clients connect to (empty = server host name)" xml:space="preserve">
     <value>客户端连接的主机名（留空 = 服务器主机名）</value>
   </data>
-  <data name="Host name setting…" xml:space="preserve">
-    <value>主机名设置…</value>
-  </data>
   <data name="Host name this server announces (give this to the IP's owner for the PTR):" xml:space="preserve">
     <value>本服务器通告的主机名（把它交给 IP 的所有者用于 PTR）：</value>
   </data>
@@ -5973,9 +5967,6 @@
   </data>
   <data name="IP ranges: which addresses may relay, which must authenticate, and which are exempt from spam checks." xml:space="preserve">
     <value>IP 范围：哪些地址可以中继、哪些必须进行身份验证，以及哪些免除垃圾邮件检查。</value>
-  </data>
-  <data name="IP ranges…" xml:space="preserve">
-    <value>IP 范围…</value>
   </data>
   <data name="IPv4 or IPv6 address" xml:space="preserve">
     <value>IPv4 或 IPv6 地址</value>
@@ -8641,6 +8632,9 @@
   <data name="Open API &amp; monitoring, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>打开“API 与监控”，它拥有 REST 监听器的端口和 TLS 设置</value>
   </data>
+  <data name="Open Anti-spam settings (PTR and HELO checks)" xml:space="preserve">
+    <value>打开“反垃圾邮件设置”（PTR 和 HELO 检查）</value>
+  </data>
   <data name="Open Anti-spam settings, which owns the greylisting settings" xml:space="preserve">
     <value>打开“反垃圾邮件设置”，它拥有灰名单设置</value>
   </data>
@@ -8662,23 +8656,17 @@
   <data name="Open Domains, where the DKIM selector and key file are configured" xml:space="preserve">
     <value>打开“域”，DKIM 选择器和密钥文件在那里配置</value>
   </data>
-  <data name="Open Domains..." xml:space="preserve">
-    <value>打开“域”...</value>
-  </data>
-  <data name="Open Domains…" xml:space="preserve">
-    <value>打开“域”…</value>
-  </data>
   <data name="Open IP ranges, which owns the require-TLS-for-authentication setting" xml:space="preserve">
     <value>打开“IP 范围”，它拥有“身份验证要求 TLS”设置</value>
   </data>
   <data name="Open Live logs, where LDAP infrastructure failures are reported" xml:space="preserve">
     <value>打开“实时日志”，LDAP 基础设施故障在那里报告</value>
   </data>
-  <data name="Open Live logs..." xml:space="preserve">
-    <value>打开“实时日志”...</value>
-  </data>
   <data name="Open Logging settings" xml:space="preserve">
     <value>打开“日志记录”设置</value>
+  </data>
+  <data name="Open Protocols (host name)" xml:space="preserve">
+    <value>打开“协议”（主机名）</value>
   </data>
   <data name="Open Protocols, whose SMTP tab has the Host name" xml:space="preserve">
     <value>打开“协议”，其 SMTP 选项卡上有主机名</value>
@@ -8688,6 +8676,9 @@
   </data>
   <data name="Open SSL/TLS, which owns the protocol versions and cipher lists" xml:space="preserve">
     <value>打开“SSL/TLS”，它拥有协议版本和密码套件列表</value>
+  </data>
+  <data name="Open Setup _checklist" xml:space="preserve">
+    <value>打开“设置清单”(_C)</value>
   </data>
   <data name="Open TCP/IP ports, which owns the per-listener security setting" xml:space="preserve">
     <value>打开“TCP/IP 端口”，它拥有按监听器的安全设置</value>
@@ -8802,9 +8793,6 @@
   </data>
   <data name="Opens {0}, the first page of this area." xml:space="preserve">
     <value>打开 {0}，即此区域的第一个页面。</value>
-  </data>
-  <data name="Open…" xml:space="preserve">
-    <value>打开…</value>
   </data>
   <data name="Operability" xml:space="preserve">
     <value>可运维性</value>
@@ -8956,9 +8944,6 @@
   <data name="POP_3" xml:space="preserve">
     <value>POP3(_3)</value>
   </data>
-  <data name="PTR / HELO checks…" xml:space="preserve">
-    <value>PTR / HELO 检查…</value>
-  </data>
   <data name="PTR check score" xml:space="preserve">
     <value>PTR 检查分数</value>
   </data>
@@ -9072,9 +9057,6 @@
   </data>
   <data name="Path: https://endpoint/bucket/key" xml:space="preserve">
     <value>路径：https://endpoint/bucket/key</value>
-  </data>
-  <data name="Patterns…" xml:space="preserve">
-    <value>模式…</value>
   </data>
   <data name="Pause the mail server?&#10;&#10;No new connections will be accepted and no mail will be delivered until it is resumed. The Windows service keeps running, so this Control Panel stays connected." xml:space="preserve">
     <value>是否暂停邮件服务器？
@@ -9221,9 +9203,6 @@
   </data>
   <data name="Ports changed - the server goes on listening on the old set until it is reinitialised." xml:space="preserve">
     <value>端口已更改 - 在重新初始化之前，服务器会继续监听原来的端口。</value>
-  </data>
-  <data name="Ports…" xml:space="preserve">
-    <value>端口…</value>
   </data>
   <data name="Post" xml:space="preserve">
     <value>发布</value>
@@ -9506,9 +9485,6 @@
   </data>
   <data name="REST administration API, Prometheus metrics and remote script management. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services &amp; autoconfiguration page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>REST 管理 API、Prometheus 指标和远程脚本管理。公共 Web 服务监听器（自动配置、MTA-STS 托管）在“Web 服务和自动配置”页；OAuth2 令牌身份验证在“身份验证”页。</value>
-  </data>
-  <data name="REST listener settings…" xml:space="preserve">
-    <value>REST 监听器设置…</value>
   </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>RSA/EC 公钥文件（PEM，用于 RS*/ES* 令牌）</value>
@@ -11667,12 +11643,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Settings that used to be on this page" xml:space="preserve">
     <value>以前位于此页的设置</value>
   </data>
-  <data name="Settings…" xml:space="preserve">
-    <value>设置…</value>
-  </data>
-  <data name="Setup _checklist…" xml:space="preserve">
-    <value>设置清单(_C)…</value>
-  </data>
   <data name="Setup _key (for manual entry)" xml:space="preserve">
     <value>设置密钥 (用于手动输入)(_K)</value>
   </data>
@@ -11897,9 +11867,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Size (MB)" xml:space="preserve">
     <value>大小 (MB)</value>
-  </data>
-  <data name="Size limit and scanners…" xml:space="preserve">
-    <value>大小限制和扫描器…</value>
   </data>
   <data name="Skip greylisting when the connecting address is an A or MX host of the sender's domain" xml:space="preserve">
     <value>当连接地址是发件人域的 A 或 MX 主机时跳过灰名单</value>
@@ -14680,9 +14647,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Version, build, licence and where to get support." xml:space="preserve">
     <value>版本、构建、许可证以及获取支持的途径。</value>
   </data>
-  <data name="Versions and ciphers…" xml:space="preserve">
-    <value>版本和密码套件…</value>
-  </data>
   <data name="Virtual host: https://bucket.endpoint/key" xml:space="preserve">
     <value>虚拟主机：https://bucket.endpoint/key</value>
   </data>
@@ -16048,8 +16012,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Server" xml:space="preserve">
     <value>服务器(_S)</value>
   </data>
-  <data name="_Set up ACME…" xml:space="preserve">
-    <value>设置 ACME(_S)…</value>
+  <data name="_Set up ACME" xml:space="preserve">
+    <value>设置 ACME(_S)</value>
   </data>
   <data name="_Show the bans" xml:space="preserve">
     <value>显示封禁(_S)</value>

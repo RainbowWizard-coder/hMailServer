@@ -102,9 +102,11 @@
                         <TextBlock x:Name="AttentionSummary" Grid.Column="1" Style="{StaticResource TextBodyStrong}"
                                    VerticalAlignment="Center"
                                    Text="{loc:L 'Checking what this server still needs done outside it…'}" />
-                        <ui:Button x:Name="OpenExternalSetupButton" Grid.Column="2" Content="{loc:L 'Setup _checklist…'}"
-                                   Appearance="Transparent" FontSize="12" Padding="8,3,8,3"
-                                   VerticalAlignment="Top" Cursor="Hand" Click="OpenExternalSetup_Click"
+                        <!-- Names the page it opens and ends in no ellipsis: it asks
+                             nothing (review findings F305, F042). -->
+                        <ui:Button x:Name="OpenExternalSetupButton" Grid.Column="2" Content="{loc:L 'Open Setup _checklist'}"
+                                   Appearance="Transparent" Style="{StaticResource CompactPageLink}"
+                                   VerticalAlignment="Top" Click="OpenExternalSetup_Click"
                                    ToolTip="{loc:L 'Open the setup checklist: every item, what is done and what to do next'}"
                                    AutomationProperties.HelpText="{loc:L 'Open the setup checklist: every item, what is done and what to do next'}"
                                    AutomationProperties.AutomationId="dashboard-open-external-setup" />
@@ -123,7 +125,12 @@
                  each a button to the page its figure is read on: the uptime and
                  the messages processed to Server status, the queue to the
                  Delivery queue, the spam to the spam overview and the viruses to
-                 the virus overview (KpiCardButton, review finding F242).
+                 the virus overview (KpiCardButton, review finding F242). Every
+                 value is at KpiValue's 28 pixels - Uptime was 20 beside four at 28
+                 (review finding F305) - in a Viewbox that only shrinks it, so that
+                 a value wider than its card is drawn smaller and whole, where at
+                 760 pixels "128,431" was cut to "128,43".
+
                  The accessible name of each value is set in code to "label, value"
                  on every refresh. AutomationProperties.LabeledBy looks like the
                  right tool and is not: on a TextBlock it *replaces* the announced
@@ -141,7 +148,9 @@
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <TextBlock x:Name="KpiUptime" Text="—" Style="{StaticResource KpiValue}" FontSize="20" />
+                        <Viewbox StretchDirection="DownOnly" HorizontalAlignment="Left" VerticalAlignment="Top">
+                            <TextBlock x:Name="KpiUptime" Text="—" Style="{StaticResource KpiValue}" />
+                        </Viewbox>
                         <TextBlock Grid.Row="1" Text="{loc:L 'Uptime'}" Style="{StaticResource KpiLabel}" />
                     </Grid>
                 </Button>
@@ -152,7 +161,9 @@
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <TextBlock x:Name="KpiProcessed" Text="—" Style="{StaticResource KpiValue}" />
+                        <Viewbox StretchDirection="DownOnly" HorizontalAlignment="Left" VerticalAlignment="Top">
+                            <TextBlock x:Name="KpiProcessed" Text="—" Style="{StaticResource KpiValue}" />
+                        </Viewbox>
                         <TextBlock Grid.Row="1" Text="{loc:L 'Messages processed'}" Style="{StaticResource KpiLabel}" />
                     </Grid>
                 </Button>
@@ -169,7 +180,9 @@
                              "Backlog", and the value's accessible name says it in
                              words as well. -->
                         <StackPanel>
-                            <TextBlock x:Name="KpiQueue" Text="—" Style="{StaticResource KpiValue}" />
+                            <Viewbox StretchDirection="DownOnly" HorizontalAlignment="Left" VerticalAlignment="Top">
+                                <TextBlock x:Name="KpiQueue" Text="—" Style="{StaticResource KpiValue}" />
+                            </Viewbox>
                             <!-- Hidden, not Collapsed, and for the reason ShowQueue_
                                  documents: a collapsed badge gives its space back,
                                  so the KPI row grows taller the first time the queue
@@ -196,7 +209,9 @@
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <TextBlock x:Name="KpiSpam" Text="—" Style="{StaticResource KpiValue}" />
+                        <Viewbox StretchDirection="DownOnly" HorizontalAlignment="Left" VerticalAlignment="Top">
+                            <TextBlock x:Name="KpiSpam" Text="—" Style="{StaticResource KpiValue}" />
+                        </Viewbox>
                         <TextBlock Grid.Row="1" Text="{loc:L 'Spam detected'}" Style="{StaticResource KpiLabel}" />
                     </Grid>
                 </Button>
@@ -207,7 +222,9 @@
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <TextBlock x:Name="KpiViruses" Text="—" Style="{StaticResource KpiValue}" />
+                        <Viewbox StretchDirection="DownOnly" HorizontalAlignment="Left" VerticalAlignment="Top">
+                            <TextBlock x:Name="KpiViruses" Text="—" Style="{StaticResource KpiValue}" />
+                        </Viewbox>
                         <TextBlock Grid.Row="1" Text="{loc:L 'Viruses removed'}" Style="{StaticResource KpiLabel}" />
                     </Grid>
                 </Button>

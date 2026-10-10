@@ -569,8 +569,8 @@ namespace hMailServer.ControlPanel.Views
             L("Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Windows directory tab tick 'Check this password against Windows (Active Directory, or a local Windows account)' and fill in 'Windows user name' - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory."));
 
          var links = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 8, 0, 0) };
-         links.Children.Add(PageLink_("domains", L("Open Domains..."), L("Open Domains, where an account's Windows directory tab links it to the directory")));
-         links.Children.Add(PageLink_("logs", L("Open Live logs..."), L("Open Live logs, where LDAP infrastructure failures are reported")));
+         links.Children.Add(PageLink_("domains", F("Open {0}", L(NavigationMap.TitleOf("domains"))), L("Open Domains, where an account's Windows directory tab links it to the directory")));
+         links.Children.Add(PageLink_("logs", F("Open {0}", L(NavigationMap.TitleOf("logs"))), L("Open Live logs, where LDAP infrastructure failures are reported")));
          content.Children.Add(links);
 
          return card;
@@ -641,12 +641,10 @@ namespace hMailServer.ControlPanel.Views
          {
             Content = caption,
             Appearance = Wpf.Ui.Controls.ControlAppearance.Transparent,
-            FontSize = Typography.Caption,
-            Padding = new Thickness(8, 3, 8, 3),
             Margin = new Thickness(0, 0, 8, 0),
-            Cursor = System.Windows.Input.Cursors.Hand,
             ToolTip = accessibleName
          };
+         ButtonStyles.CompactPageLink(button);
          ControlHelp.NameLink(button, caption, accessibleName);
          System.Windows.Automation.AutomationProperties.SetAutomationId(button, "ldap-open-" + page);
          button.Click += (s, e) => (Application.Current?.MainWindow as MainWindow)?.NavigateTo(page);

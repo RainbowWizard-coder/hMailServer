@@ -2509,9 +2509,6 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Certificates held" xml:space="preserve">
     <value>Hinterlegte Zertifikate</value>
   </data>
-  <data name="Certificates…" xml:space="preserve">
-    <value>Zertifikate…</value>
-  </data>
   <data name="Change failed" xml:space="preserve">
     <value>Änderung fehlgeschlagen</value>
   </data>
@@ -5779,9 +5776,6 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Host name clients connect to (empty = server host name)" xml:space="preserve">
     <value>Hostname, mit dem sich Clients verbinden (leer = Hostname des Servers)</value>
   </data>
-  <data name="Host name setting…" xml:space="preserve">
-    <value>Hostname-Einstellung…</value>
-  </data>
   <data name="Host name this server announces (give this to the IP's owner for the PTR):" xml:space="preserve">
     <value>Hostname, den dieser Server ankündigt (geben Sie ihn dem Eigentümer der IP für den PTR):</value>
   </data>
@@ -5973,9 +5967,6 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   </data>
   <data name="IP ranges: which addresses may relay, which must authenticate, and which are exempt from spam checks." xml:space="preserve">
     <value>IP-Bereiche: welche Adressen relayen dürfen, welche sich authentifizieren müssen und welche von Spamprüfungen ausgenommen sind.</value>
-  </data>
-  <data name="IP ranges…" xml:space="preserve">
-    <value>IP-Bereiche…</value>
   </data>
   <data name="IPv4 or IPv6 address" xml:space="preserve">
     <value>IPv4- oder IPv6-Adresse</value>
@@ -8641,6 +8632,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="Open API &amp; monitoring, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>API und Überwachung öffnen - dort liegen Port und TLS-Einstellungen des REST-Listeners</value>
   </data>
+  <data name="Open Anti-spam settings (PTR and HELO checks)" xml:space="preserve">
+    <value>Anti-Spam-Einstellungen öffnen (PTR- und HELO-Prüfungen)</value>
+  </data>
   <data name="Open Anti-spam settings, which owns the greylisting settings" xml:space="preserve">
     <value>Anti-Spam-Einstellungen öffnen - dort liegen die Greylisting-Einstellungen</value>
   </data>
@@ -8662,23 +8656,17 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="Open Domains, where the DKIM selector and key file are configured" xml:space="preserve">
     <value>Domains öffnen - dort werden DKIM-Selektor und Schlüsseldatei konfiguriert</value>
   </data>
-  <data name="Open Domains..." xml:space="preserve">
-    <value>Domains öffnen...</value>
-  </data>
-  <data name="Open Domains…" xml:space="preserve">
-    <value>Domains öffnen…</value>
-  </data>
   <data name="Open IP ranges, which owns the require-TLS-for-authentication setting" xml:space="preserve">
     <value>IP-Bereiche öffnen - dort liegt die Einstellung, die TLS für die Authentifizierung verlangt</value>
   </data>
   <data name="Open Live logs, where LDAP infrastructure failures are reported" xml:space="preserve">
     <value>Live-Protokolle öffnen - dort werden Ausfälle der LDAP-Infrastruktur gemeldet</value>
   </data>
-  <data name="Open Live logs..." xml:space="preserve">
-    <value>Live-Protokolle öffnen...</value>
-  </data>
   <data name="Open Logging settings" xml:space="preserve">
     <value>Protokollierungseinstellungen öffnen</value>
+  </data>
+  <data name="Open Protocols (host name)" xml:space="preserve">
+    <value>Protokolle öffnen (Hostname)</value>
   </data>
   <data name="Open Protocols, whose SMTP tab has the Host name" xml:space="preserve">
     <value>Protokolle öffnen - dort liegt der Hostname im Reiter SMTP</value>
@@ -8688,6 +8676,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   </data>
   <data name="Open SSL/TLS, which owns the protocol versions and cipher lists" xml:space="preserve">
     <value>SSL/TLS öffnen - dort liegen die Protokollversionen und die Cipher-Listen</value>
+  </data>
+  <data name="Open Setup _checklist" xml:space="preserve">
+    <value>Einrichtungs-_Checkliste öffnen</value>
   </data>
   <data name="Open TCP/IP ports, which owns the per-listener security setting" xml:space="preserve">
     <value>TCP/IP-Ports öffnen - dort liegt die Sicherheitseinstellung je Listener</value>
@@ -8802,9 +8793,6 @@ Nichts, was schon dort ist, wird entfernt.</value>
   </data>
   <data name="Opens {0}, the first page of this area." xml:space="preserve">
     <value>Öffnet {0}, die erste Seite dieses Bereichs.</value>
-  </data>
-  <data name="Open…" xml:space="preserve">
-    <value>Öffnen…</value>
   </data>
   <data name="Operability" xml:space="preserve">
     <value>Betreibbarkeit</value>
@@ -8956,9 +8944,6 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="POP_3" xml:space="preserve">
     <value>POP_3</value>
   </data>
-  <data name="PTR / HELO checks…" xml:space="preserve">
-    <value>PTR-/HELO-Prüfungen…</value>
-  </data>
   <data name="PTR check score" xml:space="preserve">
     <value>Bewertung der PTR-Prüfung</value>
   </data>
@@ -9072,9 +9057,6 @@ Nichts, was schon dort ist, wird entfernt.</value>
   </data>
   <data name="Path: https://endpoint/bucket/key" xml:space="preserve">
     <value>Pfad: https://endpoint/bucket/key</value>
-  </data>
-  <data name="Patterns…" xml:space="preserve">
-    <value>Muster…</value>
   </data>
   <data name="Pause the mail server?&#10;&#10;No new connections will be accepted and no mail will be delivered until it is resumed. The Windows service keeps running, so this Control Panel stays connected." xml:space="preserve">
     <value>Den Mailserver anhalten?
@@ -9221,9 +9203,6 @@ Es werden keine neuen Verbindungen angenommen und keine Mail zugestellt, bis er 
   </data>
   <data name="Ports changed - the server goes on listening on the old set until it is reinitialised." xml:space="preserve">
     <value>Ports geändert - der Server lauscht weiter auf den bisherigen, bis er reinitialisiert wird.</value>
-  </data>
-  <data name="Ports…" xml:space="preserve">
-    <value>Ports…</value>
   </data>
   <data name="Post" xml:space="preserve">
     <value>Einstellen</value>
@@ -9506,9 +9485,6 @@ Es werden keine neuen Verbindungen angenommen und keine Mail zugestellt, bis er 
   </data>
   <data name="REST administration API, Prometheus metrics and remote script management. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services &amp; autoconfiguration page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>REST-Administrations-API, Prometheus-Metriken und entfernte Skriptverwaltung. Der öffentliche Listener für Webdienste (Autokonfiguration, MTA-STS-Hosting) liegt auf der Seite Webdienste und Autokonfiguration; die OAuth2-Token-Authentifizierung liegt auf der Seite Authentifizierung.</value>
-  </data>
-  <data name="REST listener settings…" xml:space="preserve">
-    <value>Einstellungen des REST-Listeners…</value>
   </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>Öffentliche RSA-/EC-Schlüsseldatei (PEM, für RS*-/ES*-Tokens)</value>
@@ -11667,12 +11643,6 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Settings that used to be on this page" xml:space="preserve">
     <value>Einstellungen, die früher auf dieser Seite waren</value>
   </data>
-  <data name="Settings…" xml:space="preserve">
-    <value>Einstellungen…</value>
-  </data>
-  <data name="Setup _checklist…" xml:space="preserve">
-    <value>Einrichtungs-_Checkliste…</value>
-  </data>
   <data name="Setup _key (for manual entry)" xml:space="preserve">
     <value>E_inrichtungsschlüssel (für die manuelle Eingabe)</value>
   </data>
@@ -11897,9 +11867,6 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   </data>
   <data name="Size (MB)" xml:space="preserve">
     <value>Größe (MB)</value>
-  </data>
-  <data name="Size limit and scanners…" xml:space="preserve">
-    <value>Größengrenze und Scanner…</value>
   </data>
   <data name="Skip greylisting when the connecting address is an A or MX host of the sender's domain" xml:space="preserve">
     <value>Greylisting überspringen, wenn die verbindende Adresse ein A- oder MX-Host der Domain des Absenders ist</value>
@@ -14680,9 +14647,6 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="Version, build, licence and where to get support." xml:space="preserve">
     <value>Version, Build, Lizenz und wo es Unterstützung gibt.</value>
   </data>
-  <data name="Versions and ciphers…" xml:space="preserve">
-    <value>Versionen und Ciphers…</value>
-  </data>
   <data name="Virtual host: https://bucket.endpoint/key" xml:space="preserve">
     <value>Virtueller Host: https://bucket.endpoint/key</value>
   </data>
@@ -16048,8 +16012,8 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="_Server" xml:space="preserve">
     <value>S_erver</value>
   </data>
-  <data name="_Set up ACME…" xml:space="preserve">
-    <value>_ACME einrichten…</value>
+  <data name="_Set up ACME" xml:space="preserve">
+    <value>_ACME einrichten</value>
   </data>
   <data name="_Show the bans" xml:space="preserve">
     <value>_Banns anzeigen</value>

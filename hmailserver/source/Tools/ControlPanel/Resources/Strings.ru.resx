@@ -2539,9 +2539,6 @@ Control Panel может читать файлы сообщений только
   <data name="Certificates held" xml:space="preserve">
     <value>Хранящиеся сертификаты</value>
   </data>
-  <data name="Certificates…" xml:space="preserve">
-    <value>Сертификаты…</value>
-  </data>
   <data name="Change failed" xml:space="preserve">
     <value>Изменение не выполнено</value>
   </data>
@@ -5855,9 +5852,6 @@ Control Panel может читать файлы сообщений только
   <data name="Host name clients connect to (empty = server host name)" xml:space="preserve">
     <value>Имя узла, к которому подключаются клиенты (пусто — имя узла сервера)</value>
   </data>
-  <data name="Host name setting…" xml:space="preserve">
-    <value>Параметр имени узла…</value>
-  </data>
   <data name="Host name this server announces (give this to the IP's owner for the PTR):" xml:space="preserve">
     <value>Имя узла, которое объявляет этот сервер (передайте его владельцу IP-адреса для записи PTR):</value>
   </data>
@@ -6049,9 +6043,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="IP ranges: which addresses may relay, which must authenticate, and which are exempt from spam checks." xml:space="preserve">
     <value>Диапазоны IP: какие адреса могут ретранслировать почту, каким нужна аутентификация и какие освобождены от проверок на спам.</value>
-  </data>
-  <data name="IP ranges…" xml:space="preserve">
-    <value>Диапазоны IP…</value>
   </data>
   <data name="IPv4 or IPv6 address" xml:space="preserve">
     <value>Адрес IPv4 или IPv6</value>
@@ -8741,6 +8732,9 @@ Control Panel может читать файлы сообщений только
   <data name="Open API &amp; monitoring, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>Открыть «API и мониторинг», где находятся параметры порта и TLS прослушивателя REST</value>
   </data>
+  <data name="Open Anti-spam settings (PTR and HELO checks)" xml:space="preserve">
+    <value>Открыть «Параметры антиспама» (проверки PTR и HELO)</value>
+  </data>
   <data name="Open Anti-spam settings, which owns the greylisting settings" xml:space="preserve">
     <value>Открыть «Параметры антиспама», где находятся параметры серых списков</value>
   </data>
@@ -8762,23 +8756,17 @@ Control Panel может читать файлы сообщений только
   <data name="Open Domains, where the DKIM selector and key file are configured" xml:space="preserve">
     <value>Открыть «Домены», где настраиваются селектор DKIM и файл ключа</value>
   </data>
-  <data name="Open Domains..." xml:space="preserve">
-    <value>Открыть «Домены»...</value>
-  </data>
-  <data name="Open Domains…" xml:space="preserve">
-    <value>Открыть «Домены»…</value>
-  </data>
   <data name="Open IP ranges, which owns the require-TLS-for-authentication setting" xml:space="preserve">
     <value>Открыть «Диапазоны IP», где находится параметр «Требовать TLS при аутентификации»</value>
   </data>
   <data name="Open Live logs, where LDAP infrastructure failures are reported" xml:space="preserve">
     <value>Открыть «Живые журналы», где сообщается об инфраструктурных сбоях LDAP</value>
   </data>
-  <data name="Open Live logs..." xml:space="preserve">
-    <value>Открыть «Живые журналы»...</value>
-  </data>
   <data name="Open Logging settings" xml:space="preserve">
     <value>Открыть «Параметры журналирования»</value>
+  </data>
+  <data name="Open Protocols (host name)" xml:space="preserve">
+    <value>Открыть «Протоколы» (имя узла)</value>
   </data>
   <data name="Open Protocols, whose SMTP tab has the Host name" xml:space="preserve">
     <value>Открыть «Протоколы», где на вкладке SMTP находится поле «Имя узла»</value>
@@ -8788,6 +8776,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Open SSL/TLS, which owns the protocol versions and cipher lists" xml:space="preserve">
     <value>Открыть «SSL/TLS», где находятся версии протоколов и списки шифров</value>
+  </data>
+  <data name="Open Setup _checklist" xml:space="preserve">
+    <value>Открыть _Контрольный список настройки</value>
   </data>
   <data name="Open TCP/IP ports, which owns the per-listener security setting" xml:space="preserve">
     <value>Открыть «Порты TCP/IP», где находится параметр безопасности отдельного прослушивателя</value>
@@ -8902,9 +8893,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Opens {0}, the first page of this area." xml:space="preserve">
     <value>Открывает страницу «{0}», первую в этом разделе.</value>
-  </data>
-  <data name="Open…" xml:space="preserve">
-    <value>Открыть…</value>
   </data>
   <data name="Operability" xml:space="preserve">
     <value>Эксплуатация</value>
@@ -9056,9 +9044,6 @@ Control Panel может читать файлы сообщений только
   <data name="POP_3" xml:space="preserve">
     <value>POP_3</value>
   </data>
-  <data name="PTR / HELO checks…" xml:space="preserve">
-    <value>Проверки PTR / HELO…</value>
-  </data>
   <data name="PTR check score" xml:space="preserve">
     <value>Оценка за проверку PTR</value>
   </data>
@@ -9172,9 +9157,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Path: https://endpoint/bucket/key" xml:space="preserve">
     <value>Путь: https://endpoint/bucket/key</value>
-  </data>
-  <data name="Patterns…" xml:space="preserve">
-    <value>Образцы…</value>
   </data>
   <data name="Pause the mail server?&#10;&#10;No new connections will be accepted and no mail will be delivered until it is resumed. The Windows service keeps running, so this Control Panel stays connected." xml:space="preserve">
     <value>Приостановить почтовый сервер?
@@ -9321,9 +9303,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Ports changed - the server goes on listening on the old set until it is reinitialised." xml:space="preserve">
     <value>Порты изменены - сервер продолжает прослушивать прежние, пока не будет повторно инициализирован.</value>
-  </data>
-  <data name="Ports…" xml:space="preserve">
-    <value>Порты…</value>
   </data>
   <data name="Post" xml:space="preserve">
     <value>Отправка</value>
@@ -9606,9 +9585,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="REST administration API, Prometheus metrics and remote script management. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services &amp; autoconfiguration page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>REST API администрирования, метрики Prometheus и удалённое управление сценариями. Общедоступный прослушиватель веб-служб (автонастройка, размещение MTA-STS) находится на странице «Веб-службы и автоконфигурация»; аутентификация по токенам OAuth2 — на странице «Аутентификация».</value>
-  </data>
-  <data name="REST listener settings…" xml:space="preserve">
-    <value>Параметры прослушивателя REST…</value>
   </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>Файл открытого ключа RSA/EC (PEM, для токенов RS*/ES*)</value>
@@ -11815,12 +11791,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Settings that used to be on this page" xml:space="preserve">
     <value>Параметры, которые раньше были на этой странице</value>
   </data>
-  <data name="Settings…" xml:space="preserve">
-    <value>Параметры…</value>
-  </data>
-  <data name="Setup _checklist…" xml:space="preserve">
-    <value>_Контрольный список настройки…</value>
-  </data>
   <data name="Setup _key (for manual entry)" xml:space="preserve">
     <value>Ключ _настройки (для ручного ввода)</value>
   </data>
@@ -12045,9 +12015,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Size (MB)" xml:space="preserve">
     <value>Размер (МБ)</value>
-  </data>
-  <data name="Size limit and scanners…" xml:space="preserve">
-    <value>Ограничение размера и сканеры…</value>
   </data>
   <data name="Skip greylisting when the connecting address is an A or MX host of the sender's domain" xml:space="preserve">
     <value>Пропускать серые списки, когда подключающийся адрес - узел A или MX домена отправителя</value>
@@ -14864,9 +14831,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Version, build, licence and where to get support." xml:space="preserve">
     <value>Версия, сборка, лицензия и где получить поддержку.</value>
   </data>
-  <data name="Versions and ciphers…" xml:space="preserve">
-    <value>Версии и шифры…</value>
-  </data>
   <data name="Virtual host: https://bucket.endpoint/key" xml:space="preserve">
     <value>Виртуальный узел: https://bucket.endpoint/key</value>
   </data>
@@ -16235,8 +16199,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Server" xml:space="preserve">
     <value>_Сервер</value>
   </data>
-  <data name="_Set up ACME…" xml:space="preserve">
-    <value>_Настроить ACME…</value>
+  <data name="_Set up ACME" xml:space="preserve">
+    <value>_Настроить ACME</value>
   </data>
   <data name="_Show the bans" xml:space="preserve">
     <value>Пока_зать блокировки</value>

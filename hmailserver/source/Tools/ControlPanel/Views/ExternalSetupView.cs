@@ -503,12 +503,10 @@ namespace hMailServer.ControlPanel.Views
          {
             Content = caption,
             Appearance = primary ? Wpf.Ui.Controls.ControlAppearance.Primary : Wpf.Ui.Controls.ControlAppearance.Secondary,
-            FontSize = Typography.Caption,
-            Padding = new Thickness(8, 3, 8, 3),
             VerticalAlignment = VerticalAlignment.Center,
-            Cursor = System.Windows.Input.Cursors.Hand,
             ToolTip = accessibleName
          };
+         ButtonStyles.CompactPageLink(button);
          ControlHelp.NameLink(button, caption, accessibleName);
          System.Windows.Automation.AutomationProperties.SetAutomationId(button, "external-setup-open-" + page);
          button.Click += (s, e) => (Application.Current?.MainWindow as MainWindow)?.NavigateToTab(page, tab);

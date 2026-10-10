@@ -2539,9 +2539,6 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Certificates held" xml:space="preserve">
     <value>Uložené certifikáty</value>
   </data>
-  <data name="Certificates…" xml:space="preserve">
-    <value>Certifikáty…</value>
-  </data>
   <data name="Change failed" xml:space="preserve">
     <value>Změna selhala</value>
   </data>
@@ -5855,9 +5852,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Host name clients connect to (empty = server host name)" xml:space="preserve">
     <value>Název hostitele, ke kterému se klienti připojují (prázdné = název hostitele serveru)</value>
   </data>
-  <data name="Host name setting…" xml:space="preserve">
-    <value>Nastavení názvu hostitele…</value>
-  </data>
   <data name="Host name this server announces (give this to the IP's owner for the PTR):" xml:space="preserve">
     <value>Název hostitele, který tento server oznamuje (dejte ho vlastníkovi IP pro PTR):</value>
   </data>
@@ -6049,9 +6043,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="IP ranges: which addresses may relay, which must authenticate, and which are exempt from spam checks." xml:space="preserve">
     <value>Rozsahy IP: které adresy smějí přeposílat, které se musí ověřit a které jsou vyjmuty z kontrol spamu.</value>
-  </data>
-  <data name="IP ranges…" xml:space="preserve">
-    <value>Rozsahy IP…</value>
   </data>
   <data name="IPv4 or IPv6 address" xml:space="preserve">
     <value>Adresa IPv4 nebo IPv6</value>
@@ -8741,6 +8732,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Open API &amp; monitoring, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>Otevřít API a monitorování, kde se spravuje port a nastavení TLS REST listeneru</value>
   </data>
+  <data name="Open Anti-spam settings (PTR and HELO checks)" xml:space="preserve">
+    <value>Otevřít Nastavení antispamu (kontroly PTR a HELO)</value>
+  </data>
   <data name="Open Anti-spam settings, which owns the greylisting settings" xml:space="preserve">
     <value>Otevřít Nastavení antispamu, kde se spravuje nastavení greylistingu</value>
   </data>
@@ -8762,23 +8756,17 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Open Domains, where the DKIM selector and key file are configured" xml:space="preserve">
     <value>Otevřít Domény, kde se nastavuje DKIM selektor a soubor klíče</value>
   </data>
-  <data name="Open Domains..." xml:space="preserve">
-    <value>Otevřít Domény...</value>
-  </data>
-  <data name="Open Domains…" xml:space="preserve">
-    <value>Otevřít Domény…</value>
-  </data>
   <data name="Open IP ranges, which owns the require-TLS-for-authentication setting" xml:space="preserve">
     <value>Otevřít Rozsahy IP, kde se spravuje nastavení vyžadování TLS pro ověřování</value>
   </data>
   <data name="Open Live logs, where LDAP infrastructure failures are reported" xml:space="preserve">
     <value>Otevřít Živé logy, kde se hlásí selhání infrastruktury LDAP</value>
   </data>
-  <data name="Open Live logs..." xml:space="preserve">
-    <value>Otevřít Živé logy...</value>
-  </data>
   <data name="Open Logging settings" xml:space="preserve">
     <value>Otevřít nastavení logování</value>
+  </data>
+  <data name="Open Protocols (host name)" xml:space="preserve">
+    <value>Otevřít Protokoly (název hostitele)</value>
   </data>
   <data name="Open Protocols, whose SMTP tab has the Host name" xml:space="preserve">
     <value>Otevřít Protokoly, kde je na kartě SMTP Název hostitele</value>
@@ -8788,6 +8776,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Open SSL/TLS, which owns the protocol versions and cipher lists" xml:space="preserve">
     <value>Otevřít SSL/TLS, kde se spravují verze protokolů a seznamy šifer</value>
+  </data>
+  <data name="Open Setup _checklist" xml:space="preserve">
+    <value>Otevřít _Kontrolní seznam nastavení</value>
   </data>
   <data name="Open TCP/IP ports, which owns the per-listener security setting" xml:space="preserve">
     <value>Otevřít Porty TCP/IP, kde se spravuje nastavení zabezpečení jednotlivých listenerů</value>
@@ -8902,9 +8893,6 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Opens {0}, the first page of this area." xml:space="preserve">
     <value>Otevře stránku {0}, první stránku této oblasti.</value>
-  </data>
-  <data name="Open…" xml:space="preserve">
-    <value>Otevřít…</value>
   </data>
   <data name="Operability" xml:space="preserve">
     <value>Provozuschopnost</value>
@@ -9056,9 +9044,6 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="POP_3" xml:space="preserve">
     <value>POP_3</value>
   </data>
-  <data name="PTR / HELO checks…" xml:space="preserve">
-    <value>Kontroly PTR / HELO…</value>
-  </data>
   <data name="PTR check score" xml:space="preserve">
     <value>Skóre kontroly PTR</value>
   </data>
@@ -9172,9 +9157,6 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Path: https://endpoint/bucket/key" xml:space="preserve">
     <value>Cesta: https://endpoint/bucket/key</value>
-  </data>
-  <data name="Patterns…" xml:space="preserve">
-    <value>Vzory…</value>
   </data>
   <data name="Pause the mail server?&#10;&#10;No new connections will be accepted and no mail will be delivered until it is resumed. The Windows service keeps running, so this Control Panel stays connected." xml:space="preserve">
     <value>Pozastavit poštovní server?
@@ -9321,9 +9303,6 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   </data>
   <data name="Ports changed - the server goes on listening on the old set until it is reinitialised." xml:space="preserve">
     <value>Porty se změnily - server dál naslouchá na původních, dokud nebude reinicializován.</value>
-  </data>
-  <data name="Ports…" xml:space="preserve">
-    <value>Porty…</value>
   </data>
   <data name="Post" xml:space="preserve">
     <value>Vkládat</value>
@@ -9606,9 +9585,6 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   </data>
   <data name="REST administration API, Prometheus metrics and remote script management. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services &amp; autoconfiguration page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>REST API pro správu, metriky Prometheus a vzdálená správa skriptů. Veřejný listener webových služeb (autokonfigurace, hostování MTA-STS) je na stránce Webové služby a autokonfigurace; ověřování tokenem OAuth2 je na stránce Ověřování.</value>
-  </data>
-  <data name="REST listener settings…" xml:space="preserve">
-    <value>Nastavení REST listeneru…</value>
   </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>Soubor veřejného klíče RSA/EC (PEM, pro tokeny RS*/ES*)</value>
@@ -11815,12 +11791,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Settings that used to be on this page" xml:space="preserve">
     <value>Nastavení, která dříve byla na této stránce</value>
   </data>
-  <data name="Settings…" xml:space="preserve">
-    <value>Nastavení…</value>
-  </data>
-  <data name="Setup _checklist…" xml:space="preserve">
-    <value>_Kontrolní seznam nastavení…</value>
-  </data>
   <data name="Setup _key (for manual entry)" xml:space="preserve">
     <value>Klíč _pro nastavení (pro ruční zadání)</value>
   </data>
@@ -12045,9 +12015,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Size (MB)" xml:space="preserve">
     <value>Velikost (MB)</value>
-  </data>
-  <data name="Size limit and scanners…" xml:space="preserve">
-    <value>Limit velikosti a skenery…</value>
   </data>
   <data name="Skip greylisting when the connecting address is an A or MX host of the sender's domain" xml:space="preserve">
     <value>Přeskočit greylisting, když je připojující se adresa hostitelem A nebo MX domény odesílatele</value>
@@ -14864,9 +14831,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Version, build, licence and where to get support." xml:space="preserve">
     <value>Verze, sestavení, licence a kde získat podporu.</value>
   </data>
-  <data name="Versions and ciphers…" xml:space="preserve">
-    <value>Verze a šifry…</value>
-  </data>
   <data name="Virtual host: https://bucket.endpoint/key" xml:space="preserve">
     <value>Virtuální hostitel: https://bucket.endpoint/key</value>
   </data>
@@ -15573,7 +15537,7 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
     <value>_Adresa</value>
   </data>
   <data name="_Add…" xml:space="preserve">
-    <value>_Přidat…</value>
+    <value>P_řidat…</value>
   </data>
   <data name="_All documentation" xml:space="preserve">
     <value>Veškerá _dokumentace</value>
@@ -16235,8 +16199,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Server" xml:space="preserve">
     <value>_Server</value>
   </data>
-  <data name="_Set up ACME…" xml:space="preserve">
-    <value>Nas_tavit ACME…</value>
+  <data name="_Set up ACME" xml:space="preserve">
+    <value>Nas_tavit ACME</value>
   </data>
   <data name="_Show the bans" xml:space="preserve">
     <value>Z_obrazit bany</value>

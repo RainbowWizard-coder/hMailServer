@@ -336,10 +336,12 @@ namespace hMailServer.ControlPanel.Views
          // Add, the Primary, at the right edge, in words alone as every other
          // header and toolbar button is - the glyphs were this editor's own.
          // Refresh is the page's verb and goes in the header; in a dialog's tab,
-         // which has no header, it stands before Add.
+         // which has no header, it stands before Add. Edit and Add open the
+         // entry's dialog, and say so with an ellipsis, as Windows writes a
+         // command that asks for more before it acts (review finding F305).
          var actions = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
          actions_ = actions;
-         var edit = MakeButton(L("_Edit"), ControlAppearance.Secondary, (_, _) => EditSelected());
+         var edit = MakeButton(L("_Edit…"), ControlAppearance.Secondary, (_, _) => EditSelected());
          actions.Children.Add(edit);
          Wpf.Ui.Controls.Button del = null;
          if (spec_.CanDelete)
@@ -365,7 +367,7 @@ namespace hMailServer.ControlPanel.Views
             // is a Secondary one: the dialog's Save is the Primary there, and a blue
             // Add beside it made two buttons that each looked like the way out of
             // the dialog (review finding F195).
-            addButton_ = MakeButton(L("_Add"), onDialogTab_ ? ControlAppearance.Secondary : ControlAppearance.Primary, (_, _) => OpenDialog(null));
+            addButton_ = MakeButton(L("_Add…"), onDialogTab_ ? ControlAppearance.Secondary : ControlAppearance.Primary, (_, _) => OpenDialog(null));
             actions.Children.Add(addButton_);
          }
          // Edit and Delete act on the selected row, so they are enabled only

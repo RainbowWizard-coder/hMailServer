@@ -1094,18 +1094,19 @@ namespace hMailServer.ControlPanel.Views
             text.SetResourceReference(StyleProperty, "TextBody");
             row.Children.Add(text);
 
+            // The button names the page it opens, with no ellipsis: it opens a page
+            // and asks nothing (review finding F305); it said "Open…" on every row.
+            string pageTitle = L(NavigationMap.TitleOf(page_));
             var button = new Wpf.Ui.Controls.Button   // per setting: no access key, the rows are reached with the arrow keys
             {
-               Content = L("Open…"),
+               Content = F("Open {0}", pageTitle),
                Appearance = Wpf.Ui.Controls.ControlAppearance.Transparent,
-               Padding = new Thickness(DesignTokens.Space.Sm, DesignTokens.Space.Xs, DesignTokens.Space.Sm, DesignTokens.Space.Xs),
                Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0),
                VerticalAlignment = VerticalAlignment.Center,
-               Cursor = Cursors.Hand,
                ToolTip = F("Open {0}", destination)
             };
-            button.SetResourceReference(FontSizeProperty, "AppFontSizeCaption");
-            AutomationProperties.SetName(button, F("Open {0}, which now has {1}", destination, Label));
+            ButtonStyles.CompactPageLink(button);
+            AutomationProperties.SetName(button, F("Open {0}, which now has {1}", pageTitle, Label));
             SetAid(button, "elsewhere-" + page_);
             button.Click += (s, e) => (Application.Current?.MainWindow as MainWindow)?.NavigateToTab(page_, tab_);
             row.Children.Add(button);

@@ -2539,9 +2539,6 @@
   <data name="Certificates held" xml:space="preserve">
     <value>Збережені сертифікати</value>
   </data>
-  <data name="Certificates…" xml:space="preserve">
-    <value>Сертифікати…</value>
-  </data>
   <data name="Change failed" xml:space="preserve">
     <value>Зміну не виконано</value>
   </data>
@@ -5855,9 +5852,6 @@
   <data name="Host name clients connect to (empty = server host name)" xml:space="preserve">
     <value>Ім'я вузла, до якого підключаються клієнти (порожньо = ім'я вузла сервера)</value>
   </data>
-  <data name="Host name setting…" xml:space="preserve">
-    <value>Параметр імені вузла…</value>
-  </data>
   <data name="Host name this server announces (give this to the IP's owner for the PTR):" xml:space="preserve">
     <value>Ім'я вузла, яке оголошує цей сервер (передайте його власнику IP для PTR):</value>
   </data>
@@ -6049,9 +6043,6 @@
   </data>
   <data name="IP ranges: which addresses may relay, which must authenticate, and which are exempt from spam checks." xml:space="preserve">
     <value>Діапазони IP: які адреси можуть ретранслювати, які мають автентифікуватися, а які звільнені від перевірок на спам.</value>
-  </data>
-  <data name="IP ranges…" xml:space="preserve">
-    <value>Діапазони IP…</value>
   </data>
   <data name="IPv4 or IPv6 address" xml:space="preserve">
     <value>Адреса IPv4 або IPv6</value>
@@ -8741,6 +8732,9 @@
   <data name="Open API &amp; monitoring, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>Відкрити «API та моніторинг», де задаються порт і параметри TLS слухача REST</value>
   </data>
+  <data name="Open Anti-spam settings (PTR and HELO checks)" xml:space="preserve">
+    <value>Відкрити «Параметри захисту від спаму» (перевірки PTR і HELO)</value>
+  </data>
   <data name="Open Anti-spam settings, which owns the greylisting settings" xml:space="preserve">
     <value>Відкрити «Параметри захисту від спаму», де задаються параметри сірого списку</value>
   </data>
@@ -8762,23 +8756,17 @@
   <data name="Open Domains, where the DKIM selector and key file are configured" xml:space="preserve">
     <value>Відкрити «Домени», де налаштовуються селектор DKIM і файл ключа</value>
   </data>
-  <data name="Open Domains..." xml:space="preserve">
-    <value>Відкрити «Домени»...</value>
-  </data>
-  <data name="Open Domains…" xml:space="preserve">
-    <value>Відкрити «Домени»…</value>
-  </data>
   <data name="Open IP ranges, which owns the require-TLS-for-authentication setting" xml:space="preserve">
     <value>Відкрити «Діапазони IP», де задається параметр «вимагати TLS для автентифікації»</value>
   </data>
   <data name="Open Live logs, where LDAP infrastructure failures are reported" xml:space="preserve">
     <value>Відкрити «Живі журнали», де повідомляється про збої інфраструктури LDAP</value>
   </data>
-  <data name="Open Live logs..." xml:space="preserve">
-    <value>Відкрити «Живі журнали»...</value>
-  </data>
   <data name="Open Logging settings" xml:space="preserve">
     <value>Відкрити параметри журналювання</value>
+  </data>
+  <data name="Open Protocols (host name)" xml:space="preserve">
+    <value>Відкрити «Протоколи» (ім'я вузла)</value>
   </data>
   <data name="Open Protocols, whose SMTP tab has the Host name" xml:space="preserve">
     <value>Відкрити «Протоколи», де на вкладці SMTP є поле «Ім'я вузла»</value>
@@ -8788,6 +8776,9 @@
   </data>
   <data name="Open SSL/TLS, which owns the protocol versions and cipher lists" xml:space="preserve">
     <value>Відкрити «SSL/TLS», де задаються версії протоколів і списки шифрів</value>
+  </data>
+  <data name="Open Setup _checklist" xml:space="preserve">
+    <value>Відкрити _Контрольний список налаштування</value>
   </data>
   <data name="Open TCP/IP ports, which owns the per-listener security setting" xml:space="preserve">
     <value>Відкрити «Порти TCP/IP», де задається параметр безпеки для кожного слухача</value>
@@ -8902,9 +8893,6 @@
   </data>
   <data name="Opens {0}, the first page of this area." xml:space="preserve">
     <value>Відкриває сторінку «{0}», першу в цьому розділі.</value>
-  </data>
-  <data name="Open…" xml:space="preserve">
-    <value>Відкрити…</value>
   </data>
   <data name="Operability" xml:space="preserve">
     <value>Працездатність</value>
@@ -9056,9 +9044,6 @@
   <data name="POP_3" xml:space="preserve">
     <value>POP_3</value>
   </data>
-  <data name="PTR / HELO checks…" xml:space="preserve">
-    <value>Перевірки PTR / HELO…</value>
-  </data>
   <data name="PTR check score" xml:space="preserve">
     <value>Оцінка перевірки PTR</value>
   </data>
@@ -9172,9 +9157,6 @@
   </data>
   <data name="Path: https://endpoint/bucket/key" xml:space="preserve">
     <value>Шлях: https://endpoint/bucket/key</value>
-  </data>
-  <data name="Patterns…" xml:space="preserve">
-    <value>Шаблони…</value>
   </data>
   <data name="Pause the mail server?&#10;&#10;No new connections will be accepted and no mail will be delivered until it is resumed. The Windows service keeps running, so this Control Panel stays connected." xml:space="preserve">
     <value>Призупинити поштовий сервер?
@@ -9321,9 +9303,6 @@
   </data>
   <data name="Ports changed - the server goes on listening on the old set until it is reinitialised." xml:space="preserve">
     <value>Порти змінено - сервер і далі слухає попередні, доки його не буде повторно ініціалізовано.</value>
-  </data>
-  <data name="Ports…" xml:space="preserve">
-    <value>Порти…</value>
   </data>
   <data name="Post" xml:space="preserve">
     <value>Надсилати</value>
@@ -9606,9 +9585,6 @@
   </data>
   <data name="REST administration API, Prometheus metrics and remote script management. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services &amp; autoconfiguration page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>REST API адміністрування, метрики Prometheus і віддалене керування скриптами. Публічний слухач вебслужб (автоконфігурація, надання MTA-STS) — на сторінці «Вебслужби та автоконфігурація»; автентифікація токенами OAuth2 — на сторінці «Автентифікація».</value>
-  </data>
-  <data name="REST listener settings…" xml:space="preserve">
-    <value>Параметри слухача REST…</value>
   </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>Файл відкритого ключа RSA/EC (PEM, для токенів RS*/ES*)</value>
@@ -11815,12 +11791,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Settings that used to be on this page" xml:space="preserve">
     <value>Параметри, які раніше були на цій сторінці</value>
   </data>
-  <data name="Settings…" xml:space="preserve">
-    <value>Параметри…</value>
-  </data>
-  <data name="Setup _checklist…" xml:space="preserve">
-    <value>_Контрольний список налаштування…</value>
-  </data>
   <data name="Setup _key (for manual entry)" xml:space="preserve">
     <value>Ключ _налаштування (для ручного введення)</value>
   </data>
@@ -12045,9 +12015,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Size (MB)" xml:space="preserve">
     <value>Розмір (МБ)</value>
-  </data>
-  <data name="Size limit and scanners…" xml:space="preserve">
-    <value>Обмеження розміру та сканери…</value>
   </data>
   <data name="Skip greylisting when the connecting address is an A or MX host of the sender's domain" xml:space="preserve">
     <value>Пропускати сірий список, коли адреса, що підключається, - вузол A або MX домену відправника</value>
@@ -14864,9 +14831,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Version, build, licence and where to get support." xml:space="preserve">
     <value>Версія, збірка, ліцензія та де отримати підтримку.</value>
   </data>
-  <data name="Versions and ciphers…" xml:space="preserve">
-    <value>Версії та шифри…</value>
-  </data>
   <data name="Virtual host: https://bucket.endpoint/key" xml:space="preserve">
     <value>Віртуальний вузол: https://bucket.endpoint/key</value>
   </data>
@@ -16235,8 +16199,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Server" xml:space="preserve">
     <value>_Сервер</value>
   </data>
-  <data name="_Set up ACME…" xml:space="preserve">
-    <value>На_лаштувати ACME…</value>
+  <data name="_Set up ACME" xml:space="preserve">
+    <value>На_лаштувати ACME</value>
   </data>
   <data name="_Show the bans" xml:space="preserve">
     <value>Показ_ати блокування</value>

@@ -2509,9 +2509,6 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Certificates held" xml:space="preserve">
     <value>Lagrede sertifikater</value>
   </data>
-  <data name="Certificates…" xml:space="preserve">
-    <value>Sertifikater…</value>
-  </data>
   <data name="Change failed" xml:space="preserve">
     <value>Endring mislyktes</value>
   </data>
@@ -5779,9 +5776,6 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Host name clients connect to (empty = server host name)" xml:space="preserve">
     <value>Vertsnavn klienter kobler til (tom = serverens vertsnavn)</value>
   </data>
-  <data name="Host name setting…" xml:space="preserve">
-    <value>Vertsnavninnstilling…</value>
-  </data>
   <data name="Host name this server announces (give this to the IP's owner for the PTR):" xml:space="preserve">
     <value>Vertsnavn denne serveren annonserer (gi dette til IP-ens eier for PTR-en):</value>
   </data>
@@ -5973,9 +5967,6 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="IP ranges: which addresses may relay, which must authenticate, and which are exempt from spam checks." xml:space="preserve">
     <value>IP-områder: hvilke adresser som kan relaye, hvilke som må autentisere, og hvilke som er unntatt fra spamkontroller.</value>
-  </data>
-  <data name="IP ranges…" xml:space="preserve">
-    <value>IP-områder…</value>
   </data>
   <data name="IPv4 or IPv6 address" xml:space="preserve">
     <value>IPv4- eller IPv6-adresse</value>
@@ -8641,6 +8632,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Open API &amp; monitoring, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>Åpne API og overvåking, som eier REST-lytterens port og TLS-innstillinger</value>
   </data>
+  <data name="Open Anti-spam settings (PTR and HELO checks)" xml:space="preserve">
+    <value>Åpne Antispam-innstillinger (PTR- og HELO-kontroller)</value>
+  </data>
   <data name="Open Anti-spam settings, which owns the greylisting settings" xml:space="preserve">
     <value>Åpne Antispam-innstillinger, som eier grålistingsinnstillingene</value>
   </data>
@@ -8662,23 +8656,17 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Open Domains, where the DKIM selector and key file are configured" xml:space="preserve">
     <value>Åpne Domener, der DKIM-selektoren og nøkkelfilen konfigureres</value>
   </data>
-  <data name="Open Domains..." xml:space="preserve">
-    <value>Åpne Domener...</value>
-  </data>
-  <data name="Open Domains…" xml:space="preserve">
-    <value>Åpne Domener…</value>
-  </data>
   <data name="Open IP ranges, which owns the require-TLS-for-authentication setting" xml:space="preserve">
     <value>Åpne IP-områder, som eier innstillingen krev-TLS-for-autentisering</value>
   </data>
   <data name="Open Live logs, where LDAP infrastructure failures are reported" xml:space="preserve">
     <value>Åpne Direktelogger, der LDAP-infrastrukturfeil rapporteres</value>
   </data>
-  <data name="Open Live logs..." xml:space="preserve">
-    <value>Åpne Direktelogger...</value>
-  </data>
   <data name="Open Logging settings" xml:space="preserve">
     <value>Åpne Logging-innstillingene</value>
+  </data>
+  <data name="Open Protocols (host name)" xml:space="preserve">
+    <value>Åpne Protokoller (vertsnavn)</value>
   </data>
   <data name="Open Protocols, whose SMTP tab has the Host name" xml:space="preserve">
     <value>Åpne Protokoller, der Vertsnavn står på SMTP-fanen</value>
@@ -8688,6 +8676,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="Open SSL/TLS, which owns the protocol versions and cipher lists" xml:space="preserve">
     <value>Åpne SSL/TLS, som eier protokollversjonene og chifferlistene</value>
+  </data>
+  <data name="Open Setup _checklist" xml:space="preserve">
+    <value>Åpne _Sjekkliste for oppsett</value>
   </data>
   <data name="Open TCP/IP ports, which owns the per-listener security setting" xml:space="preserve">
     <value>Åpne TCP/IP-porter, som eier sikkerhetsinnstillingen per lytter</value>
@@ -8802,9 +8793,6 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="Opens {0}, the first page of this area." xml:space="preserve">
     <value>Åpner {0}, den første siden i dette området.</value>
-  </data>
-  <data name="Open…" xml:space="preserve">
-    <value>Åpne…</value>
   </data>
   <data name="Operability" xml:space="preserve">
     <value>Drift</value>
@@ -8956,9 +8944,6 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="POP_3" xml:space="preserve">
     <value>POP_3</value>
   </data>
-  <data name="PTR / HELO checks…" xml:space="preserve">
-    <value>PTR-/HELO-kontroller…</value>
-  </data>
   <data name="PTR check score" xml:space="preserve">
     <value>Poengsum for PTR-kontroll</value>
   </data>
@@ -9072,9 +9057,6 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="Path: https://endpoint/bucket/key" xml:space="preserve">
     <value>Bane: https://endpoint/bucket/key</value>
-  </data>
-  <data name="Patterns…" xml:space="preserve">
-    <value>Mønstre…</value>
   </data>
   <data name="Pause the mail server?&#10;&#10;No new connections will be accepted and no mail will be delivered until it is resumed. The Windows service keeps running, so this Control Panel stays connected." xml:space="preserve">
     <value>Sette e-postserveren på pause?
@@ -9221,9 +9203,6 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   </data>
   <data name="Ports changed - the server goes on listening on the old set until it is reinitialised." xml:space="preserve">
     <value>Portene er endret - serveren lytter fortsatt på de gamle til den reinitialiseres.</value>
-  </data>
-  <data name="Ports…" xml:space="preserve">
-    <value>Porter…</value>
   </data>
   <data name="Post" xml:space="preserve">
     <value>Poste</value>
@@ -9506,9 +9485,6 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   </data>
   <data name="REST administration API, Prometheus metrics and remote script management. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services &amp; autoconfiguration page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>REST-administrasjons-API, Prometheus-metrikker og ekstern skriptadministrasjon. Den offentlige webtjenestelytteren (autokonfigurasjon, MTA-STS-vertskap) er på siden Webtjenester og autokonfigurasjon; OAuth2-tokenautentisering er på siden Autentisering.</value>
-  </data>
-  <data name="REST listener settings…" xml:space="preserve">
-    <value>Innstillinger for REST-lytteren…</value>
   </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>RSA/EC offentlig nøkkelfil (PEM, for RS*/ES*-tokener)</value>
@@ -11667,12 +11643,6 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Settings that used to be on this page" xml:space="preserve">
     <value>Innstillinger som pleide å være på denne siden</value>
   </data>
-  <data name="Settings…" xml:space="preserve">
-    <value>Innstillinger…</value>
-  </data>
-  <data name="Setup _checklist…" xml:space="preserve">
-    <value>_Sjekkliste for oppsett…</value>
-  </data>
   <data name="Setup _key (for manual entry)" xml:space="preserve">
     <value>O_ppsettsnøkkel (for manuell inntasting)</value>
   </data>
@@ -11897,9 +11867,6 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   </data>
   <data name="Size (MB)" xml:space="preserve">
     <value>Størrelse (MB)</value>
-  </data>
-  <data name="Size limit and scanners…" xml:space="preserve">
-    <value>Størrelsesgrense og skannere…</value>
   </data>
   <data name="Skip greylisting when the connecting address is an A or MX host of the sender's domain" xml:space="preserve">
     <value>Hopp over grålisting når den tilkoblende adressen er en A- eller MX-vert for avsenderens domene</value>
@@ -14680,9 +14647,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="Version, build, licence and where to get support." xml:space="preserve">
     <value>Versjon, bygg, lisens og hvor du får støtte.</value>
   </data>
-  <data name="Versions and ciphers…" xml:space="preserve">
-    <value>Versjoner og chiffer…</value>
-  </data>
   <data name="Virtual host: https://bucket.endpoint/key" xml:space="preserve">
     <value>Virtuell vert: https://bucket.endpoint/key</value>
   </data>
@@ -16048,8 +16012,8 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="_Server" xml:space="preserve">
     <value>Ser_ver</value>
   </data>
-  <data name="_Set up ACME…" xml:space="preserve">
-    <value>_Konfigurer ACME…</value>
+  <data name="_Set up ACME" xml:space="preserve">
+    <value>_Konfigurer ACME</value>
   </data>
   <data name="_Show the bans" xml:space="preserve">
     <value>Vis _blokkeringene</value>

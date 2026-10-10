@@ -1021,12 +1021,10 @@ namespace hMailServer.ControlPanel.Views
          {
             Content = caption,
             Appearance = Wpf.Ui.Controls.ControlAppearance.Transparent,
-            FontSize = Typography.Caption,
-            Padding = new Thickness(8, 3, 8, 3),
             VerticalAlignment = VerticalAlignment.Center,
-            Cursor = System.Windows.Input.Cursors.Hand,
             ToolTip = accessibleName
          };
+         ButtonStyles.CompactPageLink(button);
          ControlHelp.NameLink(button, caption, accessibleName);
          System.Windows.Automation.AutomationProperties.SetAutomationId(button, "spam-overview-open-" + page);
          button.Click += (s, e) => (Application.Current?.MainWindow as MainWindow)?.NavigateTo(page);

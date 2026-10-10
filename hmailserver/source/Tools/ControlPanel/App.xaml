@@ -224,8 +224,10 @@
                 <Setter Property="VerticalAlignment" Value="Center" />
             </Style>
 
+            <!-- A KPI's label at the ramp's Caption size, where it was 11, below
+                 the ramp (review finding F305). -->
             <Style x:Key="KpiLabel" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="11" />
+                <Setter Property="FontSize" Value="{StaticResource AppFontSizeCaption}" />
                 <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
                 <Setter Property="VerticalAlignment" Value="Bottom" />
                 <Setter Property="Margin" Value="0,10,0,0" />
@@ -556,6 +558,22 @@
             <Style x:Key="DangerTextButton" TargetType="{x:Type ui:Button}" BasedOn="{StaticResource {x:Type ui:Button}}">
                 <Setter Property="Appearance" Value="Secondary" />
                 <Setter Property="Foreground" Value="{DynamicResource AppDangerFillTextBrush}" />
+            </Style>
+
+            <!-- A button inside a card that opens another page - the setup
+                 checklist's Open Domains, the Dashboard's Open Setup checklist,
+                 DNS records', the overviews' and the directory pages' links: the
+                 Caption size, as a card's links are, but 28 pixels tall at the
+                 least, where 12-pixel words in a 24-pixel button stood beside the
+                 32-pixel buttons of the same card (review finding F042). Its
+                 caption names the page and ends in no ellipsis, which Windows
+                 keeps for a command that asks for more before it acts (F305).
+                 ButtonStyles.CompactPageLink gives it to a button built in code. -->
+            <Style x:Key="CompactPageLink" TargetType="{x:Type ui:Button}" BasedOn="{StaticResource {x:Type ui:Button}}">
+                <Setter Property="FontSize" Value="{StaticResource AppFontSizeCaption}" />
+                <Setter Property="Padding" Value="8,4,8,4" />
+                <Setter Property="MinHeight" Value="28" />
+                <Setter Property="Cursor" Value="Hand" />
             </Style>
 
             <!-- A number column's header, right-aligned over its right-aligned

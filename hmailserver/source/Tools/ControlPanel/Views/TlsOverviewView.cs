@@ -511,7 +511,7 @@ namespace hMailServer.ControlPanel.Views
             content.Children.Add(grid);
          }
 
-         content.Children.Add(PageLink("ports", L("Ports…"), L("Open TCP/IP ports, which owns the per-listener security setting")));
+         content.Children.Add(PageLink("ports", F("{0} →", L(NavigationMap.TitleOf("ports"))), L("Open TCP/IP ports, which owns the per-listener security setting")));
 
          return card;
       }
@@ -603,7 +603,7 @@ namespace hMailServer.ControlPanel.Views
                Typography.Caption));
          }
 
-         content.Children.Add(PageLink("certs", L("Certificates…"), L("Open SSL certificates, which owns the certificate and key file paths")));
+         content.Children.Add(PageLink("certs", F("{0} →", L(NavigationMap.TitleOf("certs"))), L("Open SSL certificates, which owns the certificate and key file paths")));
 
          return card;
       }
@@ -686,7 +686,7 @@ namespace hMailServer.ControlPanel.Views
                   : F("Cipher list for TLS 1.2 and below: {0}. TLS 1.3 suites are configured separately and are not restricted by this.", config.CipherList),
             Typography.Caption));
 
-         content.Children.Add(PageLink("tls", L("Versions and ciphers…"), L("Open SSL/TLS, which owns the protocol versions and cipher lists")));
+         content.Children.Add(PageLink("tls", F("{0} →", L(NavigationMap.TitleOf("tls"))), L("Open SSL/TLS, which owns the protocol versions and cipher lists")));
 
          return card;
       }
@@ -713,7 +713,7 @@ namespace hMailServer.ControlPanel.Views
          content.Children.Add(Paragraph(L("This setting lives on each IP range rather than with the rest of TLS, which is the main reason it goes unnoticed. It is the only control that refuses a plaintext password regardless of what the port allows, so it is what makes an optional-STARTTLS port safe for clients."),
             Typography.Caption));
 
-         content.Children.Add(PageLink("ipranges", L("IP ranges…"), L("Open IP ranges, which owns the require-TLS-for-authentication setting")));
+         content.Children.Add(PageLink("ipranges", F("{0} →", L(NavigationMap.TitleOf("ipranges"))), L("Open IP ranges, which owns the require-TLS-for-authentication setting")));
 
          return card;
       }
@@ -744,13 +744,11 @@ namespace hMailServer.ControlPanel.Views
          {
             Content = caption,
             Appearance = Wpf.Ui.Controls.ControlAppearance.Transparent,
-            FontSize = Typography.Caption,
-            Padding = new Thickness(8, 3, 8, 3),
             VerticalAlignment = VerticalAlignment.Center,
             HorizontalAlignment = HorizontalAlignment.Left,
-            Cursor = System.Windows.Input.Cursors.Hand,
             ToolTip = accessibleName
          };
+         ButtonStyles.CompactPageLink(button);
          ControlHelp.NameLink(button, caption, accessibleName);
          System.Windows.Automation.AutomationProperties.SetAutomationId(button, "tls-overview-open-" + page);
          button.Click += (s, e) => (Application.Current?.MainWindow as MainWindow)?.NavigateTo(page);

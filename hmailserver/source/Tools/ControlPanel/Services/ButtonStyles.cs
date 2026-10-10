@@ -32,5 +32,22 @@ namespace hMailServer.ControlPanel.Services
          if (Application.Current.TryFindResource("DangerTextButton") is Style style)
             fluent.Style = style;
       }
+
+      /// <summary>
+      /// A button in a card that opens another page (CompactPageLink in App.xaml):
+      /// the Caption size, 28 pixels tall at the least, its padding 8 by 4. Its
+      /// appearance - Transparent for a link, Secondary or Primary on the setup
+      /// checklist - is the caller's. The seven pages that built such a link each
+      /// set 12 pixels and a 3-pixel padding of their own, a 24-pixel button beside
+      /// the 32-pixel buttons of the same card (review finding F042).
+      /// </summary>
+      public static void CompactPageLink(System.Windows.Controls.Button button)
+      {
+         if (button is not Wpf.Ui.Controls.Button fluent || Application.Current == null)
+            return;
+
+         if (Application.Current.TryFindResource("CompactPageLink") is Style style)
+            fluent.Style = style;
+      }
    }
 }

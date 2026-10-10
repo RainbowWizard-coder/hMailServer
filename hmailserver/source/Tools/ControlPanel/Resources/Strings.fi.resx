@@ -2509,9 +2509,6 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Certificates held" xml:space="preserve">
     <value>Tallennetut varmenteet</value>
   </data>
-  <data name="Certificates…" xml:space="preserve">
-    <value>Varmenteet…</value>
-  </data>
   <data name="Change failed" xml:space="preserve">
     <value>Muutos epäonnistui</value>
   </data>
@@ -5779,9 +5776,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Host name clients connect to (empty = server host name)" xml:space="preserve">
     <value>Konenimi, johon asiakkaat yhdistävät (tyhjä = palvelimen konenimi)</value>
   </data>
-  <data name="Host name setting…" xml:space="preserve">
-    <value>Konenimen asetus…</value>
-  </data>
   <data name="Host name this server announces (give this to the IP's owner for the PTR):" xml:space="preserve">
     <value>Konenimi, jonka tämä palvelin ilmoittaa (anna tämä IP:n omistajalle PTR-tietuetta varten):</value>
   </data>
@@ -5973,9 +5967,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="IP ranges: which addresses may relay, which must authenticate, and which are exempt from spam checks." xml:space="preserve">
     <value>IP-alueet: mitkä osoitteet saavat välittää, minkä on todennuttava ja mitkä on vapautettu roskapostitarkistuksista.</value>
-  </data>
-  <data name="IP ranges…" xml:space="preserve">
-    <value>IP-alueet…</value>
   </data>
   <data name="IPv4 or IPv6 address" xml:space="preserve">
     <value>IPv4- tai IPv6-osoite</value>
@@ -8641,6 +8632,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Open API &amp; monitoring, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>Avaa API ja valvonta, joka omistaa REST-kuuntelijan portin ja TLS-asetukset</value>
   </data>
+  <data name="Open Anti-spam settings (PTR and HELO checks)" xml:space="preserve">
+    <value>Avaa Roskapostisuojauksen asetukset (PTR- ja HELO-tarkistukset)</value>
+  </data>
   <data name="Open Anti-spam settings, which owns the greylisting settings" xml:space="preserve">
     <value>Avaa Roskapostisuojauksen asetukset, joka omistaa harmaalistauksen asetukset</value>
   </data>
@@ -8662,23 +8656,17 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Open Domains, where the DKIM selector and key file are configured" xml:space="preserve">
     <value>Avaa Verkkotunnukset, jossa DKIM-valitsin ja avaintiedosto määritetään</value>
   </data>
-  <data name="Open Domains..." xml:space="preserve">
-    <value>Avaa Verkkotunnukset...</value>
-  </data>
-  <data name="Open Domains…" xml:space="preserve">
-    <value>Avaa Verkkotunnukset…</value>
-  </data>
   <data name="Open IP ranges, which owns the require-TLS-for-authentication setting" xml:space="preserve">
     <value>Avaa IP-alueet, joka omistaa vaadi TLS todennukseen -asetuksen</value>
   </data>
   <data name="Open Live logs, where LDAP infrastructure failures are reported" xml:space="preserve">
     <value>Avaa Reaaliaikaiset lokit, jonne LDAP-infrastruktuurin viat raportoidaan</value>
   </data>
-  <data name="Open Live logs..." xml:space="preserve">
-    <value>Avaa Reaaliaikaiset lokit...</value>
-  </data>
   <data name="Open Logging settings" xml:space="preserve">
     <value>Avaa Lokitus-asetukset</value>
+  </data>
+  <data name="Open Protocols (host name)" xml:space="preserve">
+    <value>Avaa Protokollat (konenimi)</value>
   </data>
   <data name="Open Protocols, whose SMTP tab has the Host name" xml:space="preserve">
     <value>Avaa Protokollat, jonka SMTP-välilehdellä on Konenimi</value>
@@ -8688,6 +8676,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Open SSL/TLS, which owns the protocol versions and cipher lists" xml:space="preserve">
     <value>Avaa SSL/TLS, joka omistaa protokollaversiot ja salausluettelot</value>
+  </data>
+  <data name="Open Setup _checklist" xml:space="preserve">
+    <value>Avaa Käyttöönoton _tarkistuslista</value>
   </data>
   <data name="Open TCP/IP ports, which owns the per-listener security setting" xml:space="preserve">
     <value>Avaa TCP/IP-portit, joka omistaa kuuntelijakohtaisen suojausasetuksen</value>
@@ -8802,9 +8793,6 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Opens {0}, the first page of this area." xml:space="preserve">
     <value>Avaa sivun {0}, tämän alueen ensimmäisen sivun.</value>
-  </data>
-  <data name="Open…" xml:space="preserve">
-    <value>Avaa…</value>
   </data>
   <data name="Operability" xml:space="preserve">
     <value>Käytettävyys</value>
@@ -8956,9 +8944,6 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="POP_3" xml:space="preserve">
     <value>POP_3</value>
   </data>
-  <data name="PTR / HELO checks…" xml:space="preserve">
-    <value>PTR-/HELO-tarkistukset…</value>
-  </data>
   <data name="PTR check score" xml:space="preserve">
     <value>PTR-tarkistuksen pistemäärä</value>
   </data>
@@ -9072,9 +9057,6 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Path: https://endpoint/bucket/key" xml:space="preserve">
     <value>Polku: https://endpoint/bucket/key</value>
-  </data>
-  <data name="Patterns…" xml:space="preserve">
-    <value>Kuviot…</value>
   </data>
   <data name="Pause the mail server?&#10;&#10;No new connections will be accepted and no mail will be delivered until it is resumed. The Windows service keeps running, so this Control Panel stays connected." xml:space="preserve">
     <value>Keskeytetäänkö postipalvelin?
@@ -9221,9 +9203,6 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   </data>
   <data name="Ports changed - the server goes on listening on the old set until it is reinitialised." xml:space="preserve">
     <value>Portteja muutettu - palvelin kuuntelee edelleen vanhoja portteja, kunnes se alustetaan uudelleen.</value>
-  </data>
-  <data name="Ports…" xml:space="preserve">
-    <value>Portit…</value>
   </data>
   <data name="Post" xml:space="preserve">
     <value>Lähetä</value>
@@ -9506,9 +9485,6 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   </data>
   <data name="REST administration API, Prometheus metrics and remote script management. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services &amp; autoconfiguration page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>REST-hallintarajapinta, Prometheus-mittarit ja komentosarjojen etähallinta. Julkinen verkkopalvelukuuntelija (automaattinen määritys, MTA-STS-isännöinti) on Verkkopalvelut ja automaattinen määritys -sivulla; OAuth2-token-todennus on Todennus-sivulla.</value>
-  </data>
-  <data name="REST listener settings…" xml:space="preserve">
-    <value>REST-kuuntelijan asetukset…</value>
   </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>RSA-/EC-julkisen avaimen tiedosto (PEM, RS*-/ES*-tokeneille)</value>
@@ -11667,12 +11643,6 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Settings that used to be on this page" xml:space="preserve">
     <value>Asetukset, jotka olivat ennen tällä sivulla</value>
   </data>
-  <data name="Settings…" xml:space="preserve">
-    <value>Asetukset…</value>
-  </data>
-  <data name="Setup _checklist…" xml:space="preserve">
-    <value>Käyttöönoton _tarkistuslista…</value>
-  </data>
   <data name="Setup _key (for manual entry)" xml:space="preserve">
     <value>_Asetusavain (manuaalista syöttöä varten)</value>
   </data>
@@ -11897,9 +11867,6 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Size (MB)" xml:space="preserve">
     <value>Koko (Mt)</value>
-  </data>
-  <data name="Size limit and scanners…" xml:space="preserve">
-    <value>Kokoraja ja tarkistimet…</value>
   </data>
   <data name="Skip greylisting when the connecting address is an A or MX host of the sender's domain" xml:space="preserve">
     <value>Ohita harmaalistaus, kun yhdistävä osoite on lähettäjän verkkotunnuksen A- tai MX-isäntä</value>
@@ -14680,9 +14647,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="Version, build, licence and where to get support." xml:space="preserve">
     <value>Versio, koontiversio, lisenssi ja mistä saa tukea.</value>
   </data>
-  <data name="Versions and ciphers…" xml:space="preserve">
-    <value>Versiot ja salaukset…</value>
-  </data>
   <data name="Virtual host: https://bucket.endpoint/key" xml:space="preserve">
     <value>Virtuaalinen isäntä: https://bucket.endpoint/key</value>
   </data>
@@ -16048,8 +16012,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="_Server" xml:space="preserve">
     <value>_Palvelin</value>
   </data>
-  <data name="_Set up ACME…" xml:space="preserve">
-    <value>Määritä A_CME…</value>
+  <data name="_Set up ACME" xml:space="preserve">
+    <value>Määritä A_CME</value>
   </data>
   <data name="_Show the bans" xml:space="preserve">
     <value>Näytä _estot</value>

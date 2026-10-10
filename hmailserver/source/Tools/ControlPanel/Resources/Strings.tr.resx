@@ -2509,9 +2509,6 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Certificates held" xml:space="preserve">
     <value>Kayıtlı sertifikalar</value>
   </data>
-  <data name="Certificates…" xml:space="preserve">
-    <value>Sertifikalar…</value>
-  </data>
   <data name="Change failed" xml:space="preserve">
     <value>Değişiklik başarısız</value>
   </data>
@@ -5779,9 +5776,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Host name clients connect to (empty = server host name)" xml:space="preserve">
     <value>İstemcilerin bağlandığı ana bilgisayar adı (boş = sunucu ana bilgisayar adı)</value>
   </data>
-  <data name="Host name setting…" xml:space="preserve">
-    <value>Ana bilgisayar adı ayarı…</value>
-  </data>
   <data name="Host name this server announces (give this to the IP's owner for the PTR):" xml:space="preserve">
     <value>Bu sunucunun duyurduğu ana bilgisayar adı (PTR için IP'nin sahibine bunu verin):</value>
   </data>
@@ -5973,9 +5967,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="IP ranges: which addresses may relay, which must authenticate, and which are exempt from spam checks." xml:space="preserve">
     <value>IP aralıkları: hangi adreslerin aktarma yapabileceği, hangilerinin kimlik doğrulaması yapması gerektiği ve hangilerinin spam denetimlerinden muaf olduğu.</value>
-  </data>
-  <data name="IP ranges…" xml:space="preserve">
-    <value>IP aralıkları…</value>
   </data>
   <data name="IPv4 or IPv6 address" xml:space="preserve">
     <value>IPv4 veya IPv6 adresi</value>
@@ -8641,6 +8632,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Open API &amp; monitoring, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>REST dinleyicisinin portunun ve TLS ayarlarının sahibi olan API ve izleme sayfasını aç</value>
   </data>
+  <data name="Open Anti-spam settings (PTR and HELO checks)" xml:space="preserve">
+    <value>Spam önleme ayarları sayfasını aç (PTR ve HELO denetimleri)</value>
+  </data>
   <data name="Open Anti-spam settings, which owns the greylisting settings" xml:space="preserve">
     <value>Greylisting ayarlarının sahibi olan Spam önleme ayarları sayfasını aç</value>
   </data>
@@ -8662,23 +8656,17 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Open Domains, where the DKIM selector and key file are configured" xml:space="preserve">
     <value>DKIM seçicisinin ve anahtar dosyasının yapılandırıldığı Etki alanları sayfasını aç</value>
   </data>
-  <data name="Open Domains..." xml:space="preserve">
-    <value>Etki alanlarını aç...</value>
-  </data>
-  <data name="Open Domains…" xml:space="preserve">
-    <value>Etki alanlarını aç…</value>
-  </data>
   <data name="Open IP ranges, which owns the require-TLS-for-authentication setting" xml:space="preserve">
     <value>Kimlik doğrulaması için TLS gerektir ayarının sahibi olan IP aralıkları sayfasını aç</value>
   </data>
   <data name="Open Live logs, where LDAP infrastructure failures are reported" xml:space="preserve">
     <value>LDAP altyapı hatalarının bildirildiği Canlı günlükler sayfasını aç</value>
   </data>
-  <data name="Open Live logs..." xml:space="preserve">
-    <value>Canlı günlükleri aç...</value>
-  </data>
   <data name="Open Logging settings" xml:space="preserve">
     <value>Günlükleme ayarlarını aç</value>
+  </data>
+  <data name="Open Protocols (host name)" xml:space="preserve">
+    <value>Protokoller sayfasını aç (ana bilgisayar adı)</value>
   </data>
   <data name="Open Protocols, whose SMTP tab has the Host name" xml:space="preserve">
     <value>SMTP sekmesinde Ana bilgisayar adının bulunduğu Protokoller sayfasını aç</value>
@@ -8688,6 +8676,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Open SSL/TLS, which owns the protocol versions and cipher lists" xml:space="preserve">
     <value>Protokol sürümlerinin ve şifre listelerinin sahibi olan SSL/TLS sayfasını aç</value>
+  </data>
+  <data name="Open Setup _checklist" xml:space="preserve">
+    <value>Kurulum _kontrol listesini aç</value>
   </data>
   <data name="Open TCP/IP ports, which owns the per-listener security setting" xml:space="preserve">
     <value>Dinleyici başına güvenlik ayarının sahibi olan TCP/IP portları sayfasını aç</value>
@@ -8802,9 +8793,6 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Opens {0}, the first page of this area." xml:space="preserve">
     <value>Bu alanın ilk sayfası olan {0} sayfasını açar.</value>
-  </data>
-  <data name="Open…" xml:space="preserve">
-    <value>Aç…</value>
   </data>
   <data name="Operability" xml:space="preserve">
     <value>İşletilebilirlik</value>
@@ -8956,9 +8944,6 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="POP_3" xml:space="preserve">
     <value>POP_3</value>
   </data>
-  <data name="PTR / HELO checks…" xml:space="preserve">
-    <value>PTR / HELO denetimleri…</value>
-  </data>
   <data name="PTR check score" xml:space="preserve">
     <value>PTR denetimi puanı</value>
   </data>
@@ -9072,9 +9057,6 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Path: https://endpoint/bucket/key" xml:space="preserve">
     <value>Yol: https://endpoint/bucket/key</value>
-  </data>
-  <data name="Patterns…" xml:space="preserve">
-    <value>Desenler…</value>
   </data>
   <data name="Pause the mail server?&#10;&#10;No new connections will be accepted and no mail will be delivered until it is resumed. The Windows service keeps running, so this Control Panel stays connected." xml:space="preserve">
     <value>Posta sunucusu duraklatılsın mı?
@@ -9221,9 +9203,6 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   </data>
   <data name="Ports changed - the server goes on listening on the old set until it is reinitialised." xml:space="preserve">
     <value>Portlar değişti - sunucu yeniden başlatılana (Reinitialize) kadar eski portları dinlemeyi sürdürür.</value>
-  </data>
-  <data name="Ports…" xml:space="preserve">
-    <value>Portlar…</value>
   </data>
   <data name="Post" xml:space="preserve">
     <value>Gönderme</value>
@@ -9506,9 +9485,6 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   </data>
   <data name="REST administration API, Prometheus metrics and remote script management. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services &amp; autoconfiguration page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>REST yönetim API'si, Prometheus ölçümleri ve uzaktan betik yönetimi. Genel web hizmetleri dinleyicisi (otomatik yapılandırma, MTA-STS barındırma) Web hizmetleri ve otomatik yapılandırma sayfasındadır; OAuth2 belirteç kimlik doğrulaması Kimlik doğrulama sayfasındadır.</value>
-  </data>
-  <data name="REST listener settings…" xml:space="preserve">
-    <value>REST dinleyicisi ayarları…</value>
   </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>RSA/EC ortak anahtar dosyası (PEM, RS*/ES* belirteçleri için)</value>
@@ -11667,12 +11643,6 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Settings that used to be on this page" xml:space="preserve">
     <value>Eskiden bu sayfada olan ayarlar</value>
   </data>
-  <data name="Settings…" xml:space="preserve">
-    <value>Ayarlar…</value>
-  </data>
-  <data name="Setup _checklist…" xml:space="preserve">
-    <value>Kurulum _kontrol listesi…</value>
-  </data>
   <data name="Setup _key (for manual entry)" xml:space="preserve">
     <value>Kurulum _anahtarı (elle giriş için)</value>
   </data>
@@ -11897,9 +11867,6 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Size (MB)" xml:space="preserve">
     <value>Boyut (MB)</value>
-  </data>
-  <data name="Size limit and scanners…" xml:space="preserve">
-    <value>Boyut sınırı ve tarayıcılar…</value>
   </data>
   <data name="Skip greylisting when the connecting address is an A or MX host of the sender's domain" xml:space="preserve">
     <value>Bağlanan adres gönderenin alan adının A veya MX ana bilgisayarıysa gri listelemeyi atla</value>
@@ -14680,9 +14647,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="Version, build, licence and where to get support." xml:space="preserve">
     <value>Sürüm, derleme, lisans ve nereden destek alınacağı.</value>
   </data>
-  <data name="Versions and ciphers…" xml:space="preserve">
-    <value>Sürümler ve şifreler…</value>
-  </data>
   <data name="Virtual host: https://bucket.endpoint/key" xml:space="preserve">
     <value>Sanal ana bilgisayar: https://bucket.endpoint/key</value>
   </data>
@@ -16048,8 +16012,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="_Server" xml:space="preserve">
     <value>_Sunucu</value>
   </data>
-  <data name="_Set up ACME…" xml:space="preserve">
-    <value>ACME'yi aya_rla…</value>
+  <data name="_Set up ACME" xml:space="preserve">
+    <value>ACME'yi aya_rla</value>
   </data>
   <data name="_Show the bans" xml:space="preserve">
     <value>Yasakları _göster</value>

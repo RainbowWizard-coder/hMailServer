@@ -258,10 +258,10 @@ namespace hMailServer.ControlPanel.Tests.Services
          string build = WithheldRowTests.MemberText(code, "private void Build()");
          Assert.True(build != null, "CollectionEditorView.Build is gone.");
 
-         int edit = build.IndexOf("L(\"_Edit\")", StringComparison.Ordinal);
+         int edit = build.IndexOf("L(\"_Edit…\")", StringComparison.Ordinal);
          int delete = build.IndexOf("L(\"_Delete\")", StringComparison.Ordinal);
          int refresh = build.IndexOf("L(\"_Refresh\")", StringComparison.Ordinal);
-         int add = build.IndexOf("L(\"_Add\")", StringComparison.Ordinal);
+         int add = build.IndexOf("L(\"_Add…\")", StringComparison.Ordinal);
          Assert.True(edit >= 0 && delete > edit && refresh > delete && add > refresh, "Edit, Delete, Refresh and Add are not built in that order.");
          Assert.Matches(new Regex(@"if \(embedded_\)\s*actions\.Children\.Add\(refresh\);"), build);
          Assert.Contains("Actions = refresh", build, StringComparison.Ordinal);

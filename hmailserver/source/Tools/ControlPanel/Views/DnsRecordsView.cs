@@ -649,7 +649,7 @@ namespace hMailServer.ControlPanel.Views
                   ? L("DKIM is half-configured: the selector is missing, so there is no record to derive. Complete the pair on the domain's DKIM tab.")
                   : L("DKIM is half-configured: the private key file is missing, so there is no record to derive. Complete the pair on the domain's DKIM tab."),
                   Typography.Body));
-               content.Children.Add(PageLink("domains", L("Open Domains…"),
+               content.Children.Add(PageLink("domains", F("Open {0}", L(NavigationMap.TitleOf("domains"))),
                   L("Open Domains, where the DKIM selector and key file are configured")));
                return card;
             }
@@ -1559,8 +1559,8 @@ namespace hMailServer.ControlPanel.Views
             Typography.Caption));
 
          var links = new StackPanel { Orientation = Orientation.Horizontal };
-         links.Children.Add(PageLink("protocols", L("Host name setting…"), L("Open Protocols, whose SMTP tab has the Host name")));
-         links.Children.Add(PageLink("antispam", L("PTR / HELO checks…"), L("Open Anti-spam settings, which owns the inbound PTR and HELO checks")));
+         links.Children.Add(PageLink("protocols", L("Open Protocols (host name)"), L("Open Protocols, whose SMTP tab has the Host name")));
+         links.Children.Add(PageLink("antispam", L("Open Anti-spam settings (PTR and HELO checks)"), L("Open Anti-spam settings, which owns the inbound PTR and HELO checks")));
          content.Children.Add(links);
 
          return card;
@@ -2057,13 +2057,11 @@ namespace hMailServer.ControlPanel.Views
          {
             Content = caption,
             Appearance = Wpf.Ui.Controls.ControlAppearance.Transparent,
-            FontSize = Typography.Caption,
-            Padding = new Thickness(8, 3, 8, 3),
             Margin = new Thickness(0, 2, 8, 0),
             HorizontalAlignment = HorizontalAlignment.Left,
-            Cursor = System.Windows.Input.Cursors.Hand,
             ToolTip = accessibleName
          };
+         ButtonStyles.CompactPageLink(button);
          ControlHelp.NameLink(button, caption, accessibleName);
          System.Windows.Automation.AutomationProperties.SetAutomationId(button, "dns-records-open-" + page);
          button.Click += (s, e) => (Application.Current?.MainWindow as MainWindow)?.NavigateTo(page);
