@@ -2273,9 +2273,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   signature timestamps and oversigning, the Authentication-Results header), Forwarding (SRS and BATV) and Reports
   (TLS-RPT and DMARC) - drawn as the other tabbed settings pages are, the header with Reload and Save changes above the
   strip and each tab scrolling under it, and a Reload or a return to the page stays on the tab it was on. The subtitle
-  and the page's description read "Encryption to other servers, the signatures and results this server adds to mail,
-  forwarded mail and the reports it sends."; SRS, Sender Rewriting Scheme, BATV, DKIM oversigning, DKIM expiry,
-  Authentication-Results, Received-SPF and DMARC reports find the page in Ctrl+K. The ARC inbound filtering card,
+  and the page's description read "Encryption to other servers, the signatures this server adds and checks, the
+  results it records, forwarded mail and the reports it sends." - the checks are Signing's on inbound mail, the
+  refusal of DKIM signatures whose expiry has passed and the filtering of ARC chains; SRS, Sender Rewriting Scheme,
+  BATV, DKIM oversigning, DKIM expiry, Authentication-Results, Received-SPF and DMARC reports find the page in Ctrl+K. The ARC inbound filtering card,
   which only said that it is configured on Anti-spam, has a row with Open… that opens Anti-spam settings on its Sender
   auth tab, where the trusted sealers are, and Server limits & expert settings' row for SRS and BATV opens the
   Forwarding tab: a signpost row that names a tab opens its page on it (MainWindow.NavigateToTab). So does every

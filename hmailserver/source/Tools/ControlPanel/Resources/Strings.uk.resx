@@ -4418,8 +4418,8 @@
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Парольна фраза _шифрування</value>
   </data>
-  <data name="Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends." xml:space="preserve">
-    <value>Шифрування під час зв'язку з іншими серверами, підписи й результати, які цей сервер додає до пошти, переслана пошта і звіти, які він надсилає.</value>
+  <data name="Encryption to other servers, the signatures this server adds and checks, the results it records, forwarded mail and the reports it sends." xml:space="preserve">
+    <value>Шифрування під час зв'язку з іншими серверами, підписи, які цей сервер додає й перевіряє, результати, які він записує, переслана пошта і звіти, які він надсилає.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Кінцева точка (порожньо = власна точка служби)</value>

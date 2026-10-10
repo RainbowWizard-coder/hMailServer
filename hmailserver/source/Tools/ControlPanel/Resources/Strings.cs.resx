@@ -4418,8 +4418,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Šifrovací hes_lo</value>
   </data>
-  <data name="Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends." xml:space="preserve">
-    <value>Šifrování vůči ostatním serverům, podpisy a výsledky, které tento server přidává do pošty, přeposílaná pošta a hlášení, která odesílá.</value>
+  <data name="Encryption to other servers, the signatures this server adds and checks, the results it records, forwarded mail and the reports it sends." xml:space="preserve">
+    <value>Šifrování vůči ostatním serverům, podpisy, které tento server přidává a ověřuje, výsledky, které zaznamenává, přeposílaná pošta a hlášení, která odesílá.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Koncový bod (prázdné = vlastní bod služby)</value>

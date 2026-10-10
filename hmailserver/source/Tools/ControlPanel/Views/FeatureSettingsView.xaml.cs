@@ -2040,7 +2040,7 @@ namespace hMailServer.ControlPanel.Views
          {
             case Section.Security:
                Header.PageKey = "security";
-               Header.Subtitle = L("Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends.");
+               Header.Subtitle = L("Encryption to other servers, the signatures this server adds and checks, the results it records, forwarded mail and the reports it sends.");
                cards_.Add(new CardDef
                {
                   Title = L("DANE & DNSSEC"),

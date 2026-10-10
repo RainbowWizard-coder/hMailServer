@@ -4372,8 +4372,8 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Fra_se de contraseña de cifrado</value>
   </data>
-  <data name="Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends." xml:space="preserve">
-    <value>El cifrado hacia otros servidores, las firmas y los resultados que este servidor añade al correo, el correo reenviado y los informes que envía.</value>
+  <data name="Encryption to other servers, the signatures this server adds and checks, the results it records, forwarded mail and the reports it sends." xml:space="preserve">
+    <value>El cifrado hacia otros servidores, las firmas que este servidor añade y comprueba, los resultados que registra, el correo reenviado y los informes que envía.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Punto de acceso (vacío = el del servicio)</value>

@@ -4418,8 +4418,8 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Hasło szyfrowa_nia</value>
   </data>
-  <data name="Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends." xml:space="preserve">
-    <value>Szyfrowanie do innych serwerów, podpisy i wyniki, które ten serwer dodaje do poczty, poczta przekazywana dalej oraz raporty, które wysyła.</value>
+  <data name="Encryption to other servers, the signatures this server adds and checks, the results it records, forwarded mail and the reports it sends." xml:space="preserve">
+    <value>Szyfrowanie do innych serwerów, podpisy, które ten serwer dodaje i sprawdza, wyniki, które zapisuje, poczta przekazywana dalej oraz raporty, które wysyła.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Punkt końcowy (puste = własny usługi)</value>

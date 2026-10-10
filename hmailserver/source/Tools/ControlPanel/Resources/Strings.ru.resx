@@ -4418,8 +4418,8 @@ Control Panel может читать файлы сообщений только
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Парольная фраза _шифрования</value>
   </data>
-  <data name="Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends." xml:space="preserve">
-    <value>Шифрование при связи с другими серверами, подписи и результаты, которые этот сервер добавляет к почте, пересылаемая почта и отчёты, которые он отправляет.</value>
+  <data name="Encryption to other servers, the signatures this server adds and checks, the results it records, forwarded mail and the reports it sends." xml:space="preserve">
+    <value>Шифрование при связи с другими серверами, подписи, которые этот сервер добавляет и проверяет, результаты, которые он записывает, пересылаемая почта и отчёты, которые он отправляет.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Конечная точка (пусто = собственная точка службы)</value>

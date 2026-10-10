@@ -4372,8 +4372,8 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>_Şifreleme parola tümcesi</value>
   </data>
-  <data name="Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends." xml:space="preserve">
-    <value>Diğer sunuculara şifreleme, bu sunucunun postaya eklediği imzalar ve sonuçlar, iletilen posta ve gönderdiği raporlar.</value>
+  <data name="Encryption to other servers, the signatures this server adds and checks, the results it records, forwarded mail and the reports it sends." xml:space="preserve">
+    <value>Diğer sunuculara şifreleme, bu sunucunun eklediği ve denetlediği imzalar, kaydettiği sonuçlar, iletilen posta ve gönderdiği raporlar.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Uç nokta (boş = hizmetin kendi uç noktası)</value>

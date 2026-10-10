@@ -4372,8 +4372,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Lösenfras för kr_yptering</value>
   </data>
-  <data name="Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends." xml:space="preserve">
-    <value>Kryptering till andra servrar, signaturerna och resultaten som den här servern lägger till i post, vidarebefordrad post och rapporterna den skickar.</value>
+  <data name="Encryption to other servers, the signatures this server adds and checks, the results it records, forwarded mail and the reports it sends." xml:space="preserve">
+    <value>Kryptering till andra servrar, signaturerna som den här servern lägger till och kontrollerar, resultaten den registrerar, vidarebefordrad post och rapporterna den skickar.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Slutpunkt (tomt = tjänstens egen)</value>

@@ -4372,8 +4372,8 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Phrase secrète de chiffreme_nt</value>
   </data>
-  <data name="Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends." xml:space="preserve">
-    <value>Le chiffrement vers les autres serveurs, les signatures et résultats que ce serveur ajoute au courrier, le courrier transféré et les rapports qu'il envoie.</value>
+  <data name="Encryption to other servers, the signatures this server adds and checks, the results it records, forwarded mail and the reports it sends." xml:space="preserve">
+    <value>Le chiffrement vers les autres serveurs, les signatures que ce serveur ajoute et vérifie, les résultats qu'il consigne, le courrier transféré et les rapports qu'il envoie.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Point d'accès (vide = celui du service)</value>

@@ -4372,8 +4372,8 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Salauksen salasanalaus_e</value>
   </data>
-  <data name="Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends." xml:space="preserve">
-    <value>Salaus muihin palvelimiin, allekirjoitukset ja tulokset, jotka tämä palvelin lisää postiin, edelleenlähetetty posti ja sen lähettämät raportit.</value>
+  <data name="Encryption to other servers, the signatures this server adds and checks, the results it records, forwarded mail and the reports it sends." xml:space="preserve">
+    <value>Salaus muihin palvelimiin, allekirjoitukset, jotka tämä palvelin lisää ja tarkistaa, sen kirjaamat tulokset, edelleenlähetetty posti ja sen lähettämät raportit.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Päätepiste (tyhjä = palvelun oma)</value>

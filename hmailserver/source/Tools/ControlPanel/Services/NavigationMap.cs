@@ -710,10 +710,12 @@ namespace hMailServer.ControlPanel.Services
                // Four tabs since review finding F228 - Encryption, Signing, Forwarding
                // and Reports - and a description of all four: it spoke of outbound TLS
                // alone, over ten cards of which six are mail authentication and three
-               // are about inbound mail. Its aliases name what those cards hold, and
-               // AliasTabs the tab each one is on.
+               // are about inbound mail, and it names the checks on inbound mail - the
+               // expired DKIM signatures refused, ARC chains from trusted sealers - as
+               // well as the signatures added. Its aliases name what those cards hold,
+               // and AliasTabs the tab each one is on.
                Page("security", N("Transport security"),
-                  N("Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends."),
+                  N("Encryption to other servers, the signatures this server adds and checks, the results it records, forwarded mail and the reports it sends."),
                   aliases: "DANE|TLSA|MTA-STS|TLS-RPT|TLS reporting|ARC|Downgrade|Opportunistic TLS|Enforce TLS|" +
                            "SRS|Sender Rewriting Scheme|BATV|Bounce address tag|Forged bounces|DKIM oversigning|Oversign|DKIM expiry|DKIM timestamps|" +
                            "Authentication-Results|Received-SPF|DMARC reports|DMARC aggregate reports|rua",

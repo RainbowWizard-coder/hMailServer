@@ -4372,8 +4372,8 @@
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>暗号化のパスフレーズ(_P)</value>
   </data>
-  <data name="Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends." xml:space="preserve">
-    <value>他のサーバーへの暗号化、このサーバーがメールに付ける署名と結果、転送されるメール、送信するレポート。</value>
+  <data name="Encryption to other servers, the signatures this server adds and checks, the results it records, forwarded mail and the reports it sends." xml:space="preserve">
+    <value>他のサーバーへの暗号化、このサーバーが付けて検証する署名、記録する結果、転送されるメール、送信するレポート。</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>エンドポイント (空 = サービス自身のエンドポイント)</value>

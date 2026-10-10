@@ -4372,8 +4372,8 @@
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>加密口令(_P)</value>
   </data>
-  <data name="Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends." xml:space="preserve">
-    <value>到其他服务器的加密、本服务器添加到邮件中的签名和结果、转发的邮件，以及它发送的报告。</value>
+  <data name="Encryption to other servers, the signatures this server adds and checks, the results it records, forwarded mail and the reports it sends." xml:space="preserve">
+    <value>到其他服务器的加密、本服务器添加和验证的签名、它记录的结果、转发的邮件，以及它发送的报告。</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>端点（空 = 服务自己的端点）</value>

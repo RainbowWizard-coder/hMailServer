@@ -4372,8 +4372,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>_Frase secreta de criptografia</value>
   </data>
-  <data name="Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends." xml:space="preserve">
-    <value>A criptografia para outros servidores, as assinaturas e os resultados que este servidor adiciona ao e-mail, o e-mail encaminhado e os relatórios que ele envia.</value>
+  <data name="Encryption to other servers, the signatures this server adds and checks, the results it records, forwarded mail and the reports it sends." xml:space="preserve">
+    <value>A criptografia para outros servidores, as assinaturas que este servidor adiciona e verifica, os resultados que ele registra, o e-mail encaminhado e os relatórios que ele envia.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Endpoint (vazio = o do próprio serviço)</value>

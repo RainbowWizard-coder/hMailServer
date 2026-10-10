@@ -4372,8 +4372,8 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Passordfrase for kr_yptering</value>
   </data>
-  <data name="Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends." xml:space="preserve">
-    <value>Kryptering til andre servere, signaturene og resultatene denne serveren legger til e-post, videresendt e-post og rapportene den sender.</value>
+  <data name="Encryption to other servers, the signatures this server adds and checks, the results it records, forwarded mail and the reports it sends." xml:space="preserve">
+    <value>Kryptering til andre servere, signaturene denne serveren legger til og kontrollerer, resultatene den registrerer, videresendt e-post og rapportene den sender.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Endepunkt (tomt = tjenestens eget)</value>

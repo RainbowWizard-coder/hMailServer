@@ -4372,8 +4372,8 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Passphrase zur Verschlüsselun_g</value>
   </data>
-  <data name="Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends." xml:space="preserve">
-    <value>Verschlüsselung zu anderen Servern, die Signaturen und Ergebnisse, die dieser Server der Mail hinzufügt, weitergeleitete Mail und die Berichte, die er sendet.</value>
+  <data name="Encryption to other servers, the signatures this server adds and checks, the results it records, forwarded mail and the reports it sends." xml:space="preserve">
+    <value>Verschlüsselung zu anderen Servern, die Signaturen, die dieser Server hinzufügt und prüft, die Ergebnisse, die er festhält, weitergeleitete Mail und die Berichte, die er sendet.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Endpunkt (leer = der des Dienstes)</value>

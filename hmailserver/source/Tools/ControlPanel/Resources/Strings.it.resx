@@ -4372,8 +4372,8 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Passphrase di cifratu_ra</value>
   </data>
-  <data name="Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends." xml:space="preserve">
-    <value>La cifratura verso gli altri server, le firme e i risultati che questo server aggiunge alla posta, la posta inoltrata e i rapporti che invia.</value>
+  <data name="Encryption to other servers, the signatures this server adds and checks, the results it records, forwarded mail and the reports it sends." xml:space="preserve">
+    <value>La cifratura verso gli altri server, le firme che questo server aggiunge e verifica, i risultati che registra, la posta inoltrata e i rapporti che invia.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Endpoint (vuoto = quello del servizio)</value>

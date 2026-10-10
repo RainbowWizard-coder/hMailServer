@@ -4372,8 +4372,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Wachtwoordzin voor versleutelin_g</value>
   </data>
-  <data name="Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends." xml:space="preserve">
-    <value>Versleuteling naar andere servers, de handtekeningen en resultaten die deze server aan mail toevoegt, doorgestuurde mail en de rapporten die hij verstuurt.</value>
+  <data name="Encryption to other servers, the signatures this server adds and checks, the results it records, forwarded mail and the reports it sends." xml:space="preserve">
+    <value>Versleuteling naar andere servers, de handtekeningen die deze server toevoegt en controleert, de resultaten die hij vastlegt, doorgestuurde mail en de rapporten die hij verstuurt.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Eindpunt (leeg = dat van de dienst)</value>

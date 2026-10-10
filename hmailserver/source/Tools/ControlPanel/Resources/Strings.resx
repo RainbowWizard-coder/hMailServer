@@ -4372,8 +4372,8 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Encryption _passphrase</value>
   </data>
-  <data name="Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends." xml:space="preserve">
-    <value>Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends.</value>
+  <data name="Encryption to other servers, the signatures this server adds and checks, the results it records, forwarded mail and the reports it sends." xml:space="preserve">
+    <value>Encryption to other servers, the signatures this server adds and checks, the results it records, forwarded mail and the reports it sends.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Endpoint (empty = the service's own)</value>

@@ -140,7 +140,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("Outbound", purpose, StringComparison.Ordinal);
          // A subject for each tab, in the tabs' order.
          int at = -1;
-         foreach (string subject in new[] { "Encryption", "signatures and results", "forwarded mail", "reports" })
+         foreach (string subject in new[] { "Encryption", "signatures", "adds and checks", "results it records", "forwarded mail", "reports" })
          {
             int next = purpose.IndexOf(subject, StringComparison.Ordinal);
             Assert.True(next > at, "The description does not name '" + subject + "' after what comes before it: " + purpose);
