@@ -297,6 +297,9 @@
   <data name="43200 is twelve hours. At most 2592000, thirty days." xml:space="preserve">
     <value>43200 — це дванадцять годин. Щонайбільше 2592000, тобто тридцять днів.</value>
   </data>
+  <data name="443 is the port clients expect." xml:space="preserve">
+    <value>Клієнти очікують порт 443.</value>
+  </data>
   <data name="45 by default. A stale database is still used; the application log says it is stale." xml:space="preserve">
     <value>Типово 45. Застаріла база все одно використовується; журнал застосунку повідомляє, що вона застаріла.</value>
   </data>
@@ -351,6 +354,9 @@
   <data name="80 by default." xml:space="preserve">
     <value>Типово 80.</value>
   </data>
+  <data name="80 is the port clients expect." xml:space="preserve">
+    <value>Клієнти очікують порт 80.</value>
+  </data>
   <data name="86400 by default; 0 delivers at once or not at all." xml:space="preserve">
     <value>Типово 86400; 0 — доставити одразу або ніяк.</value>
   </data>
@@ -404,6 +410,9 @@
   </data>
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>Код із програми автентифікації, потрібний разом із паролем цього облікового запису. Він діє там, де код справді можна ввести, — у Панелі керування та в API. Поштові клієнти не вміють його надавати, тому після ввімкнення вони мають натомість використовувати пароль програми.</value>
+  </data>
+  <data name="A command-line virus scanner is one." xml:space="preserve">
+    <value>Наприклад, антивірусний сканер з командного рядка.</value>
   </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
     <value>Копія пошти домену або одного облікового запису, надіслана на адресу: як звіт про конверт із вкладеним повідомленням або як саме повідомлення.</value>
@@ -615,8 +624,8 @@
   <data name="A read-only SNMP agent for a monitoring system: SNMPv3 with authentication and encryption, and SNMPv2c only if you switch it on. It answers nobody until the managers are listed, and the port has to be open to them in any firewall between." xml:space="preserve">
     <value>Агент SNMP лише для читання для системи моніторингу: SNMPv3 з автентифікацією та шифруванням, а SNMPv2c — лише якщо ви його ввімкнете. Він не відповідає нікому, доки не перелічено станції керування, а порт має бути для них відкритий у кожному брандмауері на шляху.</value>
   </data>
-  <data name="A recipient domain with several MX hosts is worth more attempts than one with a single host, because a retry can land on a different server. This multiplies the retry count above by the number of MX hosts actually tried." xml:space="preserve">
-    <value>Домен отримувача з кількома MX-вузлами вартий більшої кількості спроб, ніж домен з одним вузлом, бо повторна спроба може потрапити на інший сервер. Це множить кількість повторних спроб вище на кількість MX-вузлів, до яких справді було звернення.</value>
+  <data name="A regular expression." xml:space="preserve">
+    <value>Регулярний вираз.</value>
   </data>
   <data name="A remote server that answers extremely slowly. The idle timeout is re-armed on every byte, so a host that sends one byte occasionally used to hold a delivery thread indefinitely; 'Absolute lifetime of one client session' (30 minutes by default) is the absolute ceiling, armed once and never re-armed." xml:space="preserve">
     <value>Віддалений сервер, який відповідає вкрай повільно. Час очікування простою перезапускається з кожним байтом, тож вузол, який зрідка надсилає один байт, раніше міг утримувати потік доставки нескінченно; «Абсолютний час життя одного клієнтського сеансу» (типово 30 хвилин) є абсолютною межею: він запускається один раз і ніколи не перезапускається.</value>
@@ -699,8 +708,8 @@
   <data name="A simple bind needs the user's distinguished name. There are two ways to get one - search for it, or compute it from a template - and Negotiate needs neither, because SSPI authenticates by user name and domain, which the account already carries." xml:space="preserve">
     <value>Проста прив’язка потребує розрізняльного імені користувача (DN). Отримати його можна двома способами — знайти пошуком або обчислити за шаблоном, — а методу Negotiate не потрібен жоден із них, бо SSPI автентифікує за іменем користувача та доменом, які обліковий запис уже містить.</value>
   </data>
-  <data name="A single DNS query. 0 = no bound." xml:space="preserve">
-    <value>Один DNS-запит. 0 = без обмеження.</value>
+  <data name="A single DNS query. 0 = no time limit." xml:space="preserve">
+    <value>Один DNS-запит. 0 = без обмеження часу.</value>
   </data>
   <data name="A spam trap is an address in one of your domains that nobody uses, so whoever writes to it is sending spam. These settings say what happens to a server that does. The trap addresses are declared per domain in the Control Deck; until a domain has one, nothing here does anything." xml:space="preserve">
     <value>Пастка для спаму — це адреса в одному з ваших доменів, якою ніхто не користується, тож той, хто пише на неї, розсилає спам. Ці параметри визначають, що стається із сервером, який так робить. Адреси пасток оголошують для кожного домену в Control Deck; доки домен не має жодної, ніщо тут не діє.</value>
@@ -840,8 +849,8 @@
   <data name="Absolute lifetime of one client session (1800)" xml:space="preserve">
     <value>Абсолютний час життя одного клієнтського сеансу (1800)</value>
   </data>
-  <data name="Absolute lifetime of one client session (seconds)" xml:space="preserve">
-    <value>Абсолютний час життя одного клієнтського сеансу (секунд)</value>
+  <data name="Absolute lifetime of one client session (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>Абсолютний час життя одного клієнтського сеансу (секунди; 0 = без обмеження часу)</value>
   </data>
   <data name="Accept DKIM signatures that use rsa-sha1" xml:space="preserve">
     <value>Приймати підписи DKIM, які використовують rsa-sha1</value>
@@ -915,8 +924,8 @@
   <data name="Account recovery" xml:space="preserve">
     <value>Відновлення облікового запису</value>
   </data>
-  <data name="Account-number pattern (a regular expression; empty = none)" xml:space="preserve">
-    <value>Шаблон номера рахунку (регулярний вираз; порожньо = немає)</value>
+  <data name="Account-number pattern (empty = none)" xml:space="preserve">
+    <value>Шаблон номера рахунку (порожньо = немає)</value>
   </data>
   <data name="Accounts" xml:space="preserve">
     <value>Облікові записи</value>
@@ -1260,14 +1269,20 @@
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>Адреси й цілі домени, які облікові записи {0} хочуть або не хочуть отримувати. Діє після власного списку облікового запису та перед списком сервера.</value>
   </data>
-  <data name="Addresses at other providers a person may send as (0 = none; up to 20)" xml:space="preserve">
-    <value>Адреси в інших провайдерів, від імені яких можна надсилати (0 = немає; до 20)</value>
+  <data name="Addresses at other providers a person may send as (up to 20; 0 = none)" xml:space="preserve">
+    <value>Адреси в інших провайдерів, від імені яких можна надсилати (до 20; 0 = немає)</value>
+  </data>
+  <data name="Addresses or CIDR blocks." xml:space="preserve">
+    <value>Адреси або блоки CIDR.</value>
   </data>
   <data name="Addresses that sign in to the Control Deck as the administrator through OpenID Connect (comma separated)" xml:space="preserve">
     <value>Адреси, що входять до Control Deck як адміністратор через OpenID Connect (через кому)</value>
   </data>
   <data name="Addresses that sign in to the Control Deck as the administrator through SAML (comma separated)" xml:space="preserve">
     <value>Адреси, що входять до Control Deck як адміністратор через SAML (через кому)</value>
+  </data>
+  <data name="Addresses; the loopback address is always trusted." xml:space="preserve">
+    <value>Адреси; адреса loopback завжди вважається довіреною.</value>
   </data>
   <data name="Adds" xml:space="preserve">
     <value>Додає</value>
@@ -1317,6 +1332,9 @@
   <data name="Advanced" xml:space="preserve">
     <value>Додатково</value>
   </data>
+  <data name="Advanced: it is sent as it is, in place of a token the server fetches." xml:space="preserve">
+    <value>Для досвідчених: надсилається як є замість токена, який отримує сервер.</value>
+  </data>
   <data name="After a restart" xml:space="preserve">
     <value>Після перезапуску</value>
   </data>
@@ -1335,8 +1353,8 @@
   <data name="Against {0} over {1}. Set the service account user name (and its password), or switch to a user DN template or the Negotiate bind method, neither of which searches at all." xml:space="preserve">
     <value>До {0} через {1}. Задайте ім'я користувача облікового запису служби (і його пароль) або перейдіть на шаблон DN користувача чи метод прив’язки Negotiate — жоден із них не виконує пошуку взагалі.</value>
   </data>
-  <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
-    <value>Схема зведених звітів, які надсилає цей сервер: 1 = RFC 7489, додаток C, 2 = RFC 9990</value>
+  <data name="Aggregate-report schema this server sends (1 = RFC 7489 Appendix C, 2 = RFC 9990)" xml:space="preserve">
+    <value>Схема зведених звітів, які надсилає цей сервер (1 = RFC 7489 додаток C, 2 = RFC 9990)</value>
   </data>
   <data name="Alert rule" xml:space="preserve">
     <value>Правило оповіщення</value>
@@ -1605,8 +1623,8 @@
   <data name="An auto-ban is enforced by the server's own listeners: the address is accepted by the operating system, handed to the server and dropped. These settings push the ban down into the operating system's firewall, hand it to a program of yours, and name the addresses that must never be banned at all." xml:space="preserve">
     <value>Автоматичний бан застосовують слухачі самого сервера: операційна система приймає адресу, передає її серверові, а сервер розриває з'єднання. Ці параметри опускають бан у брандмауер операційної системи, передають його вашій програмі та називають адреси, які не можна банити ніколи.</value>
   </data>
-  <data name="An entire outbound delivery session. 0 = no bound." xml:space="preserve">
-    <value>Увесь сеанс вихідної доставки. 0 = без обмеження.</value>
+  <data name="An entire outbound delivery session. 0 = no time limit." xml:space="preserve">
+    <value>Увесь сеанс вихідної доставки. 0 = без обмеження часу.</value>
   </data>
   <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
     <value>Запис змінюється на місці через REST API, який перед відповіддю запитує одноразовий код адміністратора, а код не було введено. Натисніть «Змінити…», щоб вас запитали знову, або видаліть запис і додайте його знову.</value>
@@ -1623,8 +1641,8 @@
   <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
     <value>Скрипт подій виконується всередині сервера з правами облікового запису служби, тому те, які об'єкти йому дозволено створювати, — це рішення щодо безпеки, а не питання зручності. У постаченому вигляді тут стоїть *, що дозволяє будь-який об'єкт, щоб оновлення ніколи не зламало скрипт, який інсталяція вже виконує, — це параметр, який слід звужувати, а не безпечний стан. Називайте лише те, що справді потрібне якомусь із ваших скриптів, — об'єкт файлової системи для скриптів, HTTP-клієнт, — а все інше відхиляється із записом імені об'єкта в журнал помилок; порожньо відхиляє все, крім власних об'єктів hMailServer.</value>
   </data>
-  <data name="An external scanner process. 0 = no bound." xml:space="preserve">
-    <value>Процес зовнішнього сканера. 0 = без обмеження.</value>
+  <data name="An external scanner process. 0 = no time limit." xml:space="preserve">
+    <value>Процес зовнішнього сканера. 0 = без обмеження часу.</value>
   </data>
   <data name="An older, weaker option: a one-time code asked for after the password when signing in to THIS Control Panel, checked by the tool itself after the server has already accepted the password. The secret is stored per machine under HKLM, so enabling or disabling it needs local administrator rights, and it does nothing for the REST API or for scripts using the COM API. Prefer the server-enforced factor above; this one remains for existing setups." xml:space="preserve">
     <value>Старіший, слабший варіант: одноразовий код, який запитується після пароля під час входу САМЕ в цю Панель керування й перевіряється самим засобом уже після того, як сервер прийняв пароль. Секрет зберігається для кожного комп’ютера окремо в HKLM, тому для ввімкнення чи вимкнення потрібні права локального адміністратора, і для REST API або сценаріїв на COM API це не дає нічого. Надавайте перевагу описаному вище фактору, який застосовує сервер; цей залишено для наявних конфігурацій.</value>
@@ -1822,14 +1840,14 @@
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id (вимогливий до пам’яті, рекомендовано)</value>
   </data>
-  <data name="Argon2id memory for new hashes, in KiB (0 = the built-in 19,456; 4,096 to 1,048,576)" xml:space="preserve">
-    <value>Пам’ять Argon2id для нових хешів, у КіБ (0 = вбудовані 19 456; від 4 096 до 1 048 576)</value>
+  <data name="Argon2id memory for new hashes (KiB, 4,096 to 1,048,576; 0 = the built-in 19,456)" xml:space="preserve">
+    <value>Пам’ять Argon2id для нових хешів (КіБ, від 4 096 до 1 048 576; 0 = вбудовані 19 456)</value>
   </data>
   <data name="Argon2id or scrypt only" xml:space="preserve">
     <value>Лише Argon2id або scrypt</value>
   </data>
-  <data name="Argon2id passes for new hashes (0 = the built-in 2; 1 to 20)" xml:space="preserve">
-    <value>Кількість проходів Argon2id для нових хешів (0 = вбудовані 2; від 1 до 20)</value>
+  <data name="Argon2id passes for new hashes (1 to 20; 0 = the built-in 2)" xml:space="preserve">
+    <value>Кількість проходів Argon2id для нових хешів (від 1 до 20; 0 = вбудовані 2)</value>
   </data>
   <data name="Arriving" xml:space="preserve">
     <value>Вхідна</value>
@@ -2089,14 +2107,14 @@
   <data name="Backup archives (HMBackup*.7z)|HMBackup*.7z|All files (*.*)|*.*" xml:space="preserve">
     <value>Архіви резервних копій (HMBackup*.7z)|HMBackup*.7z|Усі файли (*.*)|*.*</value>
   </data>
-  <data name="Backup interva_l in minutes (0 = off)" xml:space="preserve">
-    <value>_Інтервал резервного копіювання у хвилинах (0 = вимкнено)</value>
+  <data name="Backup interva_l (minutes; 0 = off)" xml:space="preserve">
+    <value>_Інтервал резервного копіювання (хвилини; 0 = вимкнено)</value>
+  </data>
+  <data name="Backup interval (minutes; 0 = off)" xml:space="preserve">
+    <value>Інтервал резервного копіювання (хвилини; 0 = вимкнено)</value>
   </data>
   <data name="Backup interval in minutes" xml:space="preserve">
     <value>Інтервал резервного копіювання у хвилинах</value>
-  </data>
-  <data name="Backup interval in minutes (0 = off)" xml:space="preserve">
-    <value>Інтервал резервного копіювання у хвилинах (0 = вимкнено)</value>
   </data>
   <data name="Backup schedule saved - the service reads these settings when it starts, so they apply after a service restart." xml:space="preserve">
     <value>Розклад резервного копіювання збережено — служба читає ці параметри під час запуску, тому вони застосовуються після перезапуску служби.</value>
@@ -2119,8 +2137,11 @@
   <data name="Ban duration (minutes)" xml:space="preserve">
     <value>Тривалість блокування (хвилин)</value>
   </data>
-  <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
-    <value>Блокувати на (годин, від 1 до 8760)</value>
+  <data name="Ban for (hours, 1 to 8,760)" xml:space="preserve">
+    <value>Блокувати на (годин, від 1 до 8 760)</value>
+  </data>
+  <data name="Ban the sending address for (minutes, up to 525,600; 0 = no ban)" xml:space="preserve">
+    <value>Блокувати адресу відправника на (хвилини, до 525 600; 0 = без блокування)</value>
   </data>
   <data name="Banned now" xml:space="preserve">
     <value>Заблоковано зараз</value>
@@ -2196,6 +2217,9 @@
   </data>
   <data name="Block rather than allow" xml:space="preserve">
     <value>Блокувати, а не дозволяти</value>
+  </data>
+  <data name="Block the envelope sender for (days, up to 3,650; 0 = no block)" xml:space="preserve">
+    <value>Блокувати відправника конверта на (дні, до 3 650; 0 = без блокування)</value>
   </data>
   <data name="Block the sender of this message, then delete it" xml:space="preserve">
     <value>Заблокувати відправника цього повідомлення, потім видалити його</value>
@@ -2338,8 +2362,8 @@
   <data name="CC" xml:space="preserve">
     <value>Копія</value>
   </data>
-  <data name="COM objects a script may create (* = any, as shipped; empty = none beyond hMailServer's own; ProgIDs or CLSIDs, comma separated)" xml:space="preserve">
-    <value>Об'єкти COM, які може створювати скрипт (* = будь-які, як постачається; порожньо = жодних, крім власних об'єктів hMailServer; ProgIDs або CLSIDs, через кому)</value>
+  <data name="COM objects a script may create (comma separated; * = any, empty = only hMailServer's own)" xml:space="preserve">
+    <value>Об'єкти COM, які може створювати скрипт (через кому; * = будь-які, порожньо = лише власні об'єкти hMailServer)</value>
   </data>
   <data name="COMPRESS=DEFLATE (RFC 4978)" xml:space="preserve">
     <value>COMPRESS=DEFLATE (RFC 4978)</value>
@@ -2797,8 +2821,8 @@
   <data name="Client secret for introspection" xml:space="preserve">
     <value>Секрет клієнта для інтроспекції</value>
   </data>
-  <data name="Clock-drift tolerance in seconds when checking an expiry" xml:space="preserve">
-    <value>Допуск на розбіжність годинника в секундах під час перевірки терміну дії</value>
+  <data name="Clock-drift tolerance when checking an expiry (seconds)" xml:space="preserve">
+    <value>Допуск на розбіжність годинника під час перевірки терміну дії (секунди)</value>
   </data>
   <data name="Close" xml:space="preserve">
     <value>Закрити</value>
@@ -2839,8 +2863,8 @@
   <data name="Complaint mailbox (comma separated for several)" xml:space="preserve">
     <value>Скринька для скарг (кілька — через кому)</value>
   </data>
-  <data name="Complaints before an address is suppressed (0 = never; up to 100)" xml:space="preserve">
-    <value>Скарги, після яких адреса придушується (0 = ніколи; до 100)</value>
+  <data name="Complaints before an address is suppressed (up to 100; 0 = never)" xml:space="preserve">
+    <value>Скарги, після яких адреса придушується (до 100; 0 = ніколи)</value>
   </data>
   <data name="Complaints from mailbox providers (feedback loops)" xml:space="preserve">
     <value>Скарги від поштових провайдерів (петлі зворотного зв'язку)</value>
@@ -3636,7 +3660,7 @@
   <data name="DMARC failure score" xml:space="preserve">
     <value>Оцінка за невдалу перевірку DMARC</value>
   </data>
-  <data name="DMARC report sender address (empty = disabled)" xml:space="preserve">
+  <data name="DMARC report sender address (empty = off)" xml:space="preserve">
     <value>Адреса відправника звітів DMARC (порожньо = вимкнено)</value>
   </data>
   <data name="DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it." xml:space="preserve">
@@ -3660,8 +3684,8 @@
   <data name="DNS query timeout (10)" xml:space="preserve">
     <value>Час очікування DNS-запиту (10)</value>
   </data>
-  <data name="DNS query timeout (seconds; 0 = no bound)" xml:space="preserve">
-    <value>Час очікування DNS-запиту (секунд; 0 = без обмеження)</value>
+  <data name="DNS query timeout (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>Час очікування DNS-запиту (секунди; 0 = без обмеження часу)</value>
   </data>
   <data name="DNS records" xml:space="preserve">
     <value>DNS-записи</value>
@@ -3675,11 +3699,11 @@
   <data name="D_omain" xml:space="preserve">
     <value>_Домен</value>
   </data>
-  <data name="Daily backup t_ime (24-hour HH:MM, empty = off)" xml:space="preserve">
-    <value>_Час щоденного резервного копіювання (24-годинний формат HH:MM, порожньо = вимкнено)</value>
+  <data name="Daily backup t_ime (24-hour HH:MM; empty = off)" xml:space="preserve">
+    <value>_Час щоденного резервного копіювання (24-годинний формат HH:MM; порожньо = вимкнено)</value>
   </data>
-  <data name="Daily backup time (24-hour HH:MM, empty = off)" xml:space="preserve">
-    <value>Час щоденного резервного копіювання (24-годинний формат HH:MM, порожньо = вимкнено)</value>
+  <data name="Daily backup time (24-hour HH:MM; empty = off)" xml:space="preserve">
+    <value>Час щоденного резервного копіювання (24-годинний формат HH:MM; порожньо = вимкнено)</value>
   </data>
   <data name="Dashboard" xml:space="preserve">
     <value>Інформаційна панель</value>
@@ -3717,8 +3741,8 @@
   <data name="Date this key stops working" xml:space="preserve">
     <value>Дата, коли цей ключ перестане працювати</value>
   </data>
-  <data name="Days a complaint is kept (0 = for ever; up to 3650)" xml:space="preserve">
-    <value>Днів зберігання скарги (0 = завжди; до 3650)</value>
+  <data name="Days a complaint is kept (up to 3,650; 0 = for ever)" xml:space="preserve">
+    <value>Днів зберігання скарги (до 3 650; 0 = назавжди)</value>
   </data>
   <data name="Days a held message waits for review (1 to 90)" xml:space="preserve">
     <value>Днів, які затримане повідомлення чекає на перевірку (від 1 до 90)</value>
@@ -3726,8 +3750,8 @@
   <data name="Days a password-protected message is kept for its reader (1 to 365)" xml:space="preserve">
     <value>Днів зберігання захищеного паролем повідомлення для його читача (від 1 до 365)</value>
   </data>
-  <data name="Days a received report is kept (0 = for ever; up to 3650)" xml:space="preserve">
-    <value>Днів зберігання отриманого звіту (0 = завжди; до 3650)</value>
+  <data name="Days a received report is kept (up to 3,650; 0 = for ever)" xml:space="preserve">
+    <value>Днів зберігання отриманого звіту (до 3 650; 0 = назавжди)</value>
   </data>
   <data name="Days after sending that a delivery report is still matched (1 to 30)" xml:space="preserve">
     <value>Днів після надсилання, протягом яких звіт про доставку ще зіставляється (від 1 до 30)</value>
@@ -3741,35 +3765,29 @@
   <data name="Days before the database is reported as stale (0 = never)" xml:space="preserve">
     <value>Днів до того, як базу буде оголошено застарілою (0 = ніколи)</value>
   </data>
-  <data name="Days bet_ween rotations (1 to 3650)" xml:space="preserve">
-    <value>_Днів між ротаціями (від 1 до 3650)</value>
+  <data name="Days bet_ween rotations (1 to 3,650)" xml:space="preserve">
+    <value>_Днів між ротаціями (від 1 до 3 650)</value>
   </data>
   <data name="Days between rotations" xml:space="preserve">
     <value>Днів між ротаціями</value>
   </data>
-  <data name="Days bounce counts are kept (0 = keep)" xml:space="preserve">
-    <value>Днів зберігання лічильників відмов (0 = зберігати)</value>
+  <data name="Days bounce counts are kept (0 = for ever)" xml:space="preserve">
+    <value>Днів зберігання лічильників відмов (0 = назавжди)</value>
   </data>
-  <data name="Days deleted messages are kept for the person to put back (0 = none; up to 365)" xml:space="preserve">
-    <value>Днів зберігання видалених повідомлень, щоб людина могла їх повернути (0 = немає; до 365)</value>
+  <data name="Days deleted messages are kept for the person to put back (up to 365; 0 = none)" xml:space="preserve">
+    <value>Днів зберігання видалених повідомлень, щоб людина могла їх повернути (до 365; 0 = немає)</value>
   </data>
-  <data name="Days delivered and dead-lettered deliveries are kept (0 = everything; up to 3650)" xml:space="preserve">
-    <value>Днів зберігання доставлених і недоставлених доставок (0 = усе; до 3650)</value>
+  <data name="Days delivered and dead-lettered deliveries are kept (up to 3,650; 0 = for ever)" xml:space="preserve">
+    <value>Днів зберігання доставлених і недоставлених доставок (до 3 650; 0 = назавжди)</value>
   </data>
-  <data name="Days of audit trail to keep (0 = everything)" xml:space="preserve">
-    <value>Днів журналу аудиту для зберігання (0 = усе)</value>
+  <data name="Days of audit trail to keep (0 = for ever)" xml:space="preserve">
+    <value>Днів журналу аудиту для зберігання (0 = назавжди)</value>
   </data>
-  <data name="Days of mail a person may keep in the browser to read offline (0 = none; up to 365)" xml:space="preserve">
-    <value>Днів пошти, які людина може зберігати в браузері для читання без підключення (0 = немає; до 365)</value>
+  <data name="Days of mail a person may keep in the browser to read offline (up to 365; 0 = none)" xml:space="preserve">
+    <value>Днів пошти, які людина може зберігати в браузері для читання без підключення (до 365; 0 = немає)</value>
   </data>
   <data name="Days of submissions that make an account's baseline (7 to 365)" xml:space="preserve">
     <value>Днів надсилань, що утворюють базовий профіль облікового запису (від 7 до 365)</value>
-  </data>
-  <data name="Days the envelope sender stays blocked (0 = no block; up to 3650)" xml:space="preserve">
-    <value>Днів, протягом яких відправник конверта лишається заблокованим (0 = без блокування; до 3650)</value>
-  </data>
-  <data name="Days the record of trap hits is kept (1 to 3650)" xml:space="preserve">
-    <value>Днів зберігання запису про спрацювання пасток (від 1 до 3650)</value>
   </data>
   <data name="Days the soft bounces are counted within (1 to 365)" xml:space="preserve">
     <value>Днів, у межах яких рахуються тимчасові відмови (від 1 до 365)</value>
@@ -3810,8 +3828,8 @@
   <data name="Del" xml:space="preserve">
     <value>Del</value>
   </data>
-  <data name="Delay for each further recipient (seconds, at most 30; 0 = off)" xml:space="preserve">
-    <value>Затримка для кожного наступного отримувача (секунд, щонайбільше 30; 0 = вимкнено)</value>
+  <data name="Delay for each further recipient (seconds, up to 30; 0 = off)" xml:space="preserve">
+    <value>Затримка для кожного наступного отримувача (секунди, до 30; 0 = вимкнено)</value>
   </data>
   <data name="Delay per failed sign-in (seconds; 0 = off)" xml:space="preserve">
     <value>Затримка на кожен невдалий вхід (секунди; 0 = вимкнено)</value>
@@ -3840,14 +3858,14 @@
   <data name="Delete archived messages after (days; 0 = keep for ever)" xml:space="preserve">
     <value>Видаляти архівовані повідомлення через (днів; 0 = зберігати назавжди)</value>
   </data>
-  <data name="Delete archives older tha_n this many days (0 = keep all)" xml:space="preserve">
-    <value>_Видаляти архіви, старші за стільки днів (0 = зберігати всі)</value>
+  <data name="Delete archives older tha_n (days; 0 = keep for ever)" xml:space="preserve">
+    <value>_Видаляти архіви, старші за (дні; 0 = зберігати назавжди)</value>
+  </data>
+  <data name="Delete archives older than (days; 0 = keep for ever)" xml:space="preserve">
+    <value>Видаляти архіви, старші за (дні; 0 = зберігати назавжди)</value>
   </data>
   <data name="Delete archives older than this many days" xml:space="preserve">
     <value>Видаляти архіви, старші за стільки днів</value>
-  </data>
-  <data name="Delete archives older than this many days (0 = keep all)" xml:space="preserve">
-    <value>Видаляти архіви, старші за стільки днів (0 = зберігати всі)</value>
   </data>
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>Видаляти підтверджені записи через (днів)</value>
@@ -3891,8 +3909,8 @@
   <data name="Delete folder" xml:space="preserve">
     <value>Видалити папку</value>
   </data>
-  <data name="Delete logs older than N days (0 = keep everything)" xml:space="preserve">
-    <value>Видаляти журнали, старші за N днів (0 = зберігати все)</value>
+  <data name="Delete logs older than (days; 0 = keep for ever)" xml:space="preserve">
+    <value>Видаляти журнали, старші за (дні; 0 = зберігати назавжди)</value>
   </data>
   <data name="Delete messages" xml:space="preserve">
     <value>Видалити повідомлення</value>
@@ -4212,8 +4230,8 @@
   <data name="Different" xml:space="preserve">
     <value>Відрізняється</value>
   </data>
-  <data name="Digest _hour (0-23)" xml:space="preserve">
-    <value>_Година дайджесту (0-23)</value>
+  <data name="Digest _hour (0 to 23)" xml:space="preserve">
+    <value>_Година дайджесту (від 0 до 23)</value>
   </data>
   <data name="Digest hour" xml:space="preserve">
     <value>Година зведення</value>
@@ -4307,8 +4325,8 @@
   <data name="Disk space" xml:space="preserve">
     <value>Місце на диску</value>
   </data>
-  <data name="Distinct terms per message before it is always scanned instead (64-1000000)" xml:space="preserve">
-    <value>Різних термінів у повідомленні, після чого воно завжди скануватиметься (64-1000000)</value>
+  <data name="Distinct terms per message before it is always scanned instead (64 to 1,000,000)" xml:space="preserve">
+    <value>Різних термінів у повідомленні, після чого воно завжди скануватиметься (від 64 до 1 000 000)</value>
   </data>
   <data name="Distribution list" xml:space="preserve">
     <value>Список розсилки</value>
@@ -4382,8 +4400,8 @@
   <data name="Domain contains" xml:space="preserve">
     <value>Домен містить</value>
   </data>
-  <data name="Domain for the mailer-daemon sender address (empty = host name, else the message's local domain, else the machine name)" xml:space="preserve">
-    <value>Домен для адреси відправника mailer-daemon (порожньо = ім'я вузла, інакше локальний домен повідомлення, інакше ім'я комп'ютера)</value>
+  <data name="Domain for the mailer-daemon sender address (empty = the host name)" xml:space="preserve">
+    <value>Домен для адреси відправника mailer-daemon (порожньо = ім'я вузла)</value>
   </data>
   <data name="Domain or account" xml:space="preserve">
     <value>Домен або обліковий запис</value>
@@ -4427,11 +4445,11 @@
   <data name="Draining" xml:space="preserve">
     <value>Дренаж</value>
   </data>
+  <data name="Drop inbound messages larger than this mid-transfer (KB; 0 = off)" xml:space="preserve">
+    <value>Обривати посеред передавання вхідні повідомлення, більші за це (КБ; 0 = вимкнено)</value>
+  </data>
   <data name="Drop it without a report" xml:space="preserve">
     <value>Пропустити без звіту</value>
-  </data>
-  <data name="Drop oversized inbound messages above N KB mid-transfer (0 = off)" xml:space="preserve">
-    <value>Обривати завеликі вхідні повідомлення понад N КБ посеред передавання (0 = вимкнено)</value>
   </data>
   <data name="Due for delivery" xml:space="preserve">
     <value>Очікує доставки</value>
@@ -4961,8 +4979,8 @@
   <data name="Event script execution timeout (60)" xml:space="preserve">
     <value>Час очікування виконання скрипту подій (60)</value>
   </data>
-  <data name="Event script execution timeout (seconds)" xml:space="preserve">
-    <value>Час очікування виконання скрипту подій (секунд)</value>
+  <data name="Event script execution timeout (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>Час очікування виконання скрипту подій (секунди; 0 = без обмеження часу)</value>
   </data>
   <data name="Event scripts" xml:space="preserve">
     <value>Скрипти подій</value>
@@ -4973,8 +4991,8 @@
   <data name="Events - a message received, delivered, bounced or quarantined, an account locked - posted to the receivers subscribed in the Control Deck or over the REST API. Nothing is sent until a subscription exists." xml:space="preserve">
     <value>Події — повідомлення отримано, доставлено, повернуто чи поміщено в карантин, обліковий запис заблоковано — надсилаються отримувачам, підписаним у Control Deck або через REST API. Нічого не надсилається, доки немає підписки.</value>
   </data>
-  <data name="Events a minute for a subscription with no limit of its own (1 to 100000)" xml:space="preserve">
-    <value>Подій за хвилину для підписки без власного обмеження (від 1 до 100000)</value>
+  <data name="Events a minute for a subscription with no limit of its own (1 to 100,000)" xml:space="preserve">
+    <value>Подій за хвилину для підписки без власного обмеження (від 1 до 100 000)</value>
   </data>
   <data name="Events are kept with no time limit." xml:space="preserve">
     <value>Події зберігаються без обмеження строку.</value>
@@ -5210,8 +5228,8 @@
   <data name="Expunge" xml:space="preserve">
     <value>Стерти</value>
   </data>
-  <data name="Expunge records to keep (0 = keep everything, which also skips the prune at start-up)" xml:space="preserve">
-    <value>Записів стирання для зберігання (0 = зберігати все, що також пропускає очищення при запуску)</value>
+  <data name="Expunge records to keep (0 = keep everything)" xml:space="preserve">
+    <value>Записів стирання для зберігання (0 = зберігати все)</value>
   </data>
   <data name="External" xml:space="preserve">
     <value>Зовнішній</value>
@@ -5237,8 +5255,8 @@
   <data name="External process timeout (300)" xml:space="preserve">
     <value>Час очікування зовнішнього процесу (300)</value>
   </data>
-  <data name="External process timeout, e.g. a command-line virus scanner (seconds)" xml:space="preserve">
-    <value>Час очікування зовнішнього процесу, наприклад антивірусного сканера з командного рядка (секунд)</value>
+  <data name="External process timeout (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>Час очікування зовнішнього процесу (секунди; 0 = без обмеження часу)</value>
   </data>
   <data name="External recipients" xml:space="preserve">
     <value>Зовнішні одержувачі</value>
@@ -5249,14 +5267,8 @@
   <data name="External to external (rela_y)" xml:space="preserve">
     <value>Зовнішні до зовнішніх (_ретрансляція)</value>
   </data>
-  <data name="External-account hosts to FETCH from with OAuth2 (comma separated; blank this to use none)" xml:space="preserve">
-    <value>Вузли зовнішніх облікових записів, з яких ЗАБИРАТИ з OAuth2 (через кому; порожньо = жоден)</value>
-  </data>
-  <data name="Extra delivery attempts per additional MX host" xml:space="preserve">
-    <value>Додаткові спроби доставки на кожен додатковий вузол MX</value>
-  </data>
-  <data name="Extra delivery attempts per additional MX host (0 = default)" xml:space="preserve">
-    <value>Додаткові спроби доставки на кожен додатковий вузол MX (0 = типово)</value>
+  <data name="External-account hosts to fetch from with OAuth2 (comma separated; empty = none)" xml:space="preserve">
+    <value>Вузли зовнішніх облікових записів, з яких забирати пошту з OAuth2 (через кому; порожньо = жоден)</value>
   </data>
   <data name="F6, Shift+F6" xml:space="preserve">
     <value>F6, Shift+F6</value>
@@ -5309,11 +5321,11 @@
   <data name="Fetching {0}…" xml:space="preserve">
     <value>Отримання {0}…</value>
   </data>
-  <data name="Fewest messages in an hour that can be a volume signal (1 to 100000)" xml:space="preserve">
-    <value>Найменша кількість повідомлень за годину, що може бути сигналом обсягу (від 1 до 100000)</value>
+  <data name="Fewest messages in an hour that can be a volume signal (1 to 100,000)" xml:space="preserve">
+    <value>Найменша кількість повідомлень за годину, що може бути сигналом обсягу (від 1 до 100 000)</value>
   </data>
-  <data name="Fewest recipients in an hour that can be a recipients signal (1 to 100000)" xml:space="preserve">
-    <value>Найменша кількість отримувачів за годину, що може бути сигналом отримувачів (від 1 до 100000)</value>
+  <data name="Fewest recipients in an hour that can be a recipients signal (1 to 100,000)" xml:space="preserve">
+    <value>Найменша кількість отримувачів за годину, що може бути сигналом отримувачів (від 1 до 100 000)</value>
   </data>
   <data name="Figures from {0}, the last time the server could be read." xml:space="preserve">
     <value>Дані на {0}, коли сервер востаннє вдалося прочитати.</value>
@@ -5366,8 +5378,8 @@
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>Спершу: яка половина зависла?</value>
   </data>
-  <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
-    <value>Фіксований токен (додатково; використовується як є замість отримання)</value>
+  <data name="Fixed token" xml:space="preserve">
+    <value>Фіксований токен</value>
   </data>
   <data name="Flag: add a header the reader sees as a warning" xml:space="preserve">
     <value>Позначити: додати заголовок, який читач бачить як попередження</value>
@@ -5429,6 +5441,9 @@
   <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the SSL certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
     <value>Для кожного сертифіката, чий файл ключа є зашифрованим PEM, задайте пароль закритого ключа сертифіката на сторінці «Сертифікати SSL» (парольну фразу задав той, хто створив ключ, тому надати її можете лише ви) - або замініть файл незашифрованим ключем.</value>
   </data>
+  <data name="For example 03:00, Sun 03:00 or Sat,Sun 02:00-05:00." xml:space="preserve">
+    <value>Наприклад, 03:00, Sun 03:00 або Sat,Sun 02:00-05:00.</value>
+  </data>
   <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
     <value>Наприклад, 10.0.0.5 або 10.0.0.0/24</value>
   </data>
@@ -5456,8 +5471,8 @@
   <data name="Forward e-mail" xml:space="preserve">
     <value>Пересилати листи</value>
   </data>
-  <data name="Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)" xml:space="preserve">
-    <value>Проксі-сервер для кожного вебзапиту цього сервера — стрічки, її завантажень, JWKS, інтроспекції токенів (host:port; порожньо — пряме з'єднання; без облікових даних проксі)</value>
+  <data name="Forward proxy for this server's web requests (host:port; empty = direct)" xml:space="preserve">
+    <value>Проксі-сервер для вебзапитів цього сервера (host:port; порожньо = пряме з'єднання)</value>
   </data>
   <data name="Forward to {0}" xml:space="preserve">
     <value>Вперед до сторінки {0}</value>
@@ -5494,9 +5509,6 @@
   </data>
   <data name="From (a_ddress)" xml:space="preserve">
     <value>_Від (адреса)</value>
-  </data>
-  <data name="From 1 hour to 168, a week." xml:space="preserve">
-    <value>Від 1 години до 168, тобто тижня.</value>
   </data>
   <data name="From 5 to 3600. Only used when the metrics endpoint above is set." xml:space="preserve">
     <value>Від 5 до 3600. Використовується лише тоді, коли задано кінцеву точку метрик вище.</value>
@@ -5675,11 +5687,11 @@
   <data name="HTTP Basic user name for /metrics (empty = Basic off)" xml:space="preserve">
     <value>Ім'я користувача HTTP Basic для /metrics (порожньо = Basic вимкнено)</value>
   </data>
-  <data name="HTTP port (80 to enable, 0 = disabled)" xml:space="preserve">
-    <value>Порт HTTP (80, щоб увімкнути; 0 = вимкнено)</value>
+  <data name="HTTP port (0 = off)" xml:space="preserve">
+    <value>Порт HTTP (0 = вимкнено)</value>
   </data>
-  <data name="HTTPS port (443 to enable, 0 = disabled)" xml:space="preserve">
-    <value>Порт HTTPS (443, щоб увімкнути; 0 = вимкнено)</value>
+  <data name="HTTPS port (0 = off)" xml:space="preserve">
+    <value>Порт HTTPS (0 = вимкнено)</value>
   </data>
   <data name="Handing {0} to the update helper…" xml:space="preserve">
     <value>Передавання {0} помічнику оновлення…</value>
@@ -5711,8 +5723,8 @@
   <data name="Hard-link each recipient's copy instead of copying it" xml:space="preserve">
     <value>Створювати жорстке посилання для копії кожного отримувача замість копіювання</value>
   </data>
-  <data name="Header fields to oversign in outbound DKIM signatures (comma separated, empty = off)" xml:space="preserve">
-    <value>Поля заголовків для надлишкового підписування у вихідних підписах DKIM (через кому, порожньо = вимкнено)</value>
+  <data name="Header fields to oversign in outbound DKIM signatures (comma separated; empty = off)" xml:space="preserve">
+    <value>Поля заголовків для надлишкового підписування у вихідних підписах DKIM (через кому; порожньо = вимкнено)</value>
   </data>
   <data name="Header read chunk size (bytes)" xml:space="preserve">
     <value>Розмір блоку читання заголовків (байтів)</value>
@@ -5762,8 +5774,8 @@
   <data name="Hold" xml:space="preserve">
     <value>Утримання</value>
   </data>
-  <data name="Hold a refused connection open before dropping it (seconds, 0 = drop immediately)" xml:space="preserve">
-    <value>Тримати відхилене з'єднання відкритим перед розривом (секунд, 0 = розривати негайно)</value>
+  <data name="Hold a refused connection open before dropping it (seconds; 0 = drop immediately)" xml:space="preserve">
+    <value>Тримати відхилене з'єднання відкритим перед розривом (секунди; 0 = розривати негайно)</value>
   </data>
   <data name="Hold attachments for the sandbox's verdict" xml:space="preserve">
     <value>Затримувати вкладення до вердикту пісочниці</value>
@@ -5867,8 +5879,8 @@
   <data name="How long a signed-in session of the webmail, the self-service portal or the Control Deck lasts. A domain or an account can hold its own value, on the Levels tab of its dialog." xml:space="preserve">
     <value>Як довго триває сеанс входу до вебпошти, порталу самообслуговування чи Control Deck. Домен або обліковий запис може мати власне значення на вкладці «Рівні» свого діалогу.</value>
   </data>
-  <data name="How long an answer is remembered, in minutes" xml:space="preserve">
-    <value>Скільки пам'ятати відповідь, у хвилинах</value>
+  <data name="How long an answer is remembered (minutes)" xml:space="preserve">
+    <value>Скільки пам'ятати відповідь (хвилини)</value>
   </data>
   <data name="How long every worker may be busy before the saturation report. 0 = reporting off." xml:space="preserve">
     <value>Як довго кожен робочий потік може бути зайнятий до звіту про насичення. 0 = звіти вимкнено.</value>
@@ -5882,8 +5894,8 @@
   <data name="How long the server will go on finalizing an accepted message before answering 451 and asking the sender to retry, rather than holding the connection open indefinitely." xml:space="preserve">
     <value>Як довго сервер продовжуватиме фіналізацію прийнятого повідомлення, перш ніж відповість 451 і попросить відправника повторити спробу, замість того щоб тримати з'єднання відкритим нескінченно.</value>
   </data>
-  <data name="How long to wait, in seconds" xml:space="preserve">
-    <value>Скільки чекати, у секундах</value>
+  <data name="How long to wait (seconds)" xml:space="preserve">
+    <value>Скільки чекати (секунди)</value>
   </data>
   <data name="How mail gets in, where it goes next, and what happens to it on the way." xml:space="preserve">
     <value>Як пошта потрапляє всередину, куди йде далі і що з нею відбувається дорогою.</value>
@@ -6268,6 +6280,9 @@
   <data name="It is safe to enable signing." xml:space="preserve">
     <value>Підписування можна безпечно вмикати.</value>
   </data>
+  <data name="It is sent as spamd's User: header." xml:space="preserve">
+    <value>Надсилається як заголовок User: для spamd.</value>
+  </data>
   <data name="It may use %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED% and %MACRO_PERCENT%." xml:space="preserve">
     <value>Може містити %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED% і %MACRO_PERCENT%.</value>
   </data>
@@ -6277,8 +6292,8 @@
   <data name="JSON API under /api/v1 plus the browser-based Control Deck at the listener root. Authenticated with the administrator password, or with a scoped API key - a key can be read-only, limited to named domains and source addresses, given an expiry and revoked on its own, none of which the administrator password can. Keys are managed on the REST API keys page. TLS is required unless the listener is bound to 127.0.0.1." xml:space="preserve">
     <value>JSON API за адресою /api/v1 плюс браузерний Control Deck у корені слухача. Автентифікація — паролем адміністратора або ключем API з обмеженою областю дії: ключ може бути лише для читання, обмежений названими доменами й адресами джерела, мати термін дії та відкликатися окремо, чого пароль адміністратора не вміє. Ключами керують на сторінці «Ключі REST API». TLS обов’язковий, якщо слухач не прив’язано до 127.0.0.1.</value>
   </data>
-  <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
-    <value>URL-адреса JWK Set (опубліковані ключі підписування провайдера; порожньо = лише файл ключа)</value>
+  <data name="JWK Set URL (empty = the key file only)" xml:space="preserve">
+    <value>URL-адреса JWK Set (порожньо = лише файл ключа)</value>
   </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Журналювання та подвійна доставка</value>
@@ -6295,7 +6310,7 @@
   <data name="Keep archived messages for (_days; 0 = for ever)" xml:space="preserve">
     <value>Зберігати архівовані повідомлення (днів; 0 = _назавжди)</value>
   </data>
-  <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
+  <data name="Keep greylisting active during the record expiration window" xml:space="preserve">
     <value>Не вимикати сірий список протягом вікна закінчення терміну дії записів</value>
   </data>
   <data name="Keep log files open (performance)" xml:space="preserve">
@@ -6319,11 +6334,17 @@
   <data name="Keep the record of the retiring selector &quot;{0}&quot; published until {1}, for mail signed with it that is still on its way." xml:space="preserve">
     <value>Залиште запис селектора «{0}», що виводиться, опублікованим до {1} для пошти, підписаної ним, яка ще в дорозі.</value>
   </data>
+  <data name="Keep the record of trap hits for (days, 1 to 3,650)" xml:space="preserve">
+    <value>Зберігати запис про спрацювання пасток (дні, від 1 до 3 650)</value>
+  </data>
   <data name="Keep the settings this version ships with, and apply no profile? The checklist stops asking; any profile can still be applied later." xml:space="preserve">
     <value>Залишити параметри, з якими постачається ця версія, і не застосовувати профіль? Контрольний список перестане питати; будь-який профіль можна застосувати й пізніше.</value>
   </data>
   <data name="Keep the shipped settings" xml:space="preserve">
     <value>Залишити постачені параметри</value>
+  </data>
+  <data name="Keeping everything also skips the prune at start-up." xml:space="preserve">
+    <value>Якщо зберігати все, очищення під час запуску також пропускається.</value>
   </data>
   <data name="Keeping several generations of messages needs compression: without 'Compress destination files (zip)' every backup writes its message files into the same DataBackup folder, overwriting the previous run's, so retention can only keep generations of the small settings-and-domains archives." xml:space="preserve">
     <value>Щоб зберігати кілька поколінь повідомлень, потрібне стискання: без «Стискати файли призначення (zip)» кожне резервне копіювання записує файли повідомлень у ту саму папку DataBackup, перезаписуючи файли попереднього запуску, тож зберігання може утримувати покоління лише невеликих архівів параметрів і доменів.</value>
@@ -6397,11 +6418,17 @@
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Найбільше вкладення, що надсилається (КБ)</value>
   </data>
-  <data name="Largest key accepted, in bytes (1024 to 1048576)" xml:space="preserve">
-    <value>Найбільший прийнятний ключ у байтах (від 1024 до 1048576)</value>
+  <data name="Largest key accepted (bytes, 1,024 to 1,048,576)" xml:space="preserve">
+    <value>Найбільший прийнятний ключ (байти, від 1 024 до 1 048 576)</value>
   </data>
-  <data name="Largest message in KB (0 is no limit)" xml:space="preserve">
-    <value>Найбільше повідомлення в KB (0 — без обмеження)</value>
+  <data name="Largest message (KB; 0 = no limit)" xml:space="preserve">
+    <value>Найбільше повідомлення (КБ; 0 = без обмеження)</value>
+  </data>
+  <data name="Largest message to spam-scan (KB; 0 = no limit)" xml:space="preserve">
+    <value>Найбільше повідомлення для перевірки на спам (КБ; 0 = без обмеження)</value>
+  </data>
+  <data name="Largest message to virus-scan (KB; 0 = no limit)" xml:space="preserve">
+    <value>Найбільше повідомлення для перевірки на віруси (КБ; 0 = без обмеження)</value>
   </data>
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Остання резервна копія: {0} ({1}).</value>
@@ -6628,8 +6655,8 @@
   <data name="Log categories" xml:space="preserve">
     <value>Категорії журналу</value>
   </data>
-  <data name="Log database queries slower than N ms (0 = off)" xml:space="preserve">
-    <value>Записувати до журналу запити до бази даних, повільніші за N мс (0 = вимкнено)</value>
+  <data name="Log database queries slower than (milliseconds; 0 = off)" xml:space="preserve">
+    <value>Записувати до журналу запити до бази даних, повільніші за (мілісекунди; 0 = вимкнено)</value>
   </data>
   <data name="Log destination" xml:space="preserve">
     <value>Призначення журналу</value>
@@ -6643,8 +6670,8 @@
   <data name="Log folder" xml:space="preserve">
     <value>Папка журналів</value>
   </data>
-  <data name="Log level (3 or above = full detail; 2 or lower = quieter)" xml:space="preserve">
-    <value>Рівень журналу (3 і вище = повна деталізація; 2 і нижче = тихіше)</value>
+  <data name="Log level" xml:space="preserve">
+    <value>Рівень журналу</value>
   </data>
   <data name="Log line format" xml:space="preserve">
     <value>Формат рядка журналу</value>
@@ -6664,8 +6691,8 @@
   <data name="Logon failures" xml:space="preserve">
     <value>Невдалі входи</value>
   </data>
-  <data name="Longest such window, in minutes" xml:space="preserve">
-    <value>Найдовше таке вікно, у хвилинах</value>
+  <data name="Longest such window (minutes)" xml:space="preserve">
+    <value>Найдовше таке вікно (хвилини)</value>
   </data>
   <data name="Look for &quot;Task SMTP-accept session=42 ip=... waited 8 seconds for a thread in work queue Asynchronous task queue&quot; and, when it is severe, &quot;All 15 threads in work queue Asynchronous task queue have been busy for at least 120 seconds, so no further task on this queue can start&quot;. That means every worker is occupied and messages are queuing behind them: one slow dependency does this to the whole server, which is why a single wedged scanner used to look like the server had stopped responding. The task names say which sessions are stuck; the stage timings say what they are stuck on." xml:space="preserve">
     <value>Шукайте «Task SMTP-accept session=42 ip=... waited 8 seconds for a thread in work queue Asynchronous task queue», а коли все серйозно — «All 15 threads in work queue Asynchronous task queue have been busy for at least 120 seconds, so no further task on this queue can start». Це означає, що кожен робочий потік зайнятий, а повідомлення стають у чергу за ними: одна повільна залежність робить це з усім сервером, ось чому один завислий сканер раніше виглядав так, ніби сервер перестав відповідати. Назви завдань кажуть, які сеанси застрягли; таймінги етапів — на чому саме.</value>
@@ -6750,6 +6777,12 @@
   </data>
   <data name="MX check score" xml:space="preserve">
     <value>Оцінка перевірки MX</value>
+  </data>
+  <data name="MX hosts tried per attempt, times the attempt number" xml:space="preserve">
+    <value>Вузли MX, які пробуються за спробу, помножені на номер спроби</value>
+  </data>
+  <data name="MX hosts tried per attempt, times the attempt number (0 = all)" xml:space="preserve">
+    <value>Вузли MX, які пробуються за спробу, помножені на номер спроби (0 = усі)</value>
   </data>
   <data name="MX query" xml:space="preserve">
     <value>Запит MX</value>
@@ -6942,7 +6975,7 @@
   <data name="ManageSieve bind address" xml:space="preserve">
     <value>Адреса прив’язки ManageSieve</value>
   </data>
-  <data name="ManageSieve port (0 = disabled)" xml:space="preserve">
+  <data name="ManageSieve port (0 = off)" xml:space="preserve">
     <value>Порт ManageSieve (0 = вимкнено)</value>
   </data>
   <data name="Managed mailing lists" xml:space="preserve">
@@ -6954,10 +6987,10 @@
   <data name="Marked inactive" xml:space="preserve">
     <value>Позначено неактивним</value>
   </data>
-  <data name="Masked addresses a person may make (0 = none; up to 200)" xml:space="preserve">
-    <value>Масковані адреси, які може створити людина (0 = немає; до 200)</value>
+  <data name="Masked addresses a person may make (up to 200; 0 = none)" xml:space="preserve">
+    <value>Масковані адреси, які може створити людина (до 200; 0 = немає)</value>
   </data>
-  <data name="Master user (empty = disabled)" xml:space="preserve">
+  <data name="Master user (empty = off)" xml:space="preserve">
     <value>Головний користувач (порожньо = вимкнено)</value>
   </data>
   <data name="Match ALL criteria (AND)" xml:space="preserve">
@@ -6996,51 +7029,6 @@
   <data name="Matching the authorization endpoint." xml:space="preserve">
     <value>Відповідна кінцевій точці авторизації.</value>
   </data>
-  <data name="Max MX hosts to try (0 = all)" xml:space="preserve">
-    <value>Макс. кількість вузлів MX для спроб (0 = усі)</value>
-  </data>
-  <data name="Max asynchronous task threads" xml:space="preserve">
-    <value>Макс. кількість потоків асинхронних завдань</value>
-  </data>
-  <data name="Max authenticated submissions per client IP per minute (0 = unlimited)" xml:space="preserve">
-    <value>Макс. кількість автентифікованих надсилань з однієї IP-адреси клієнта за хвилину (0 = без обмеження)</value>
-  </data>
-  <data name="Max deliveries in flight for one sending domain (0 = unlimited)" xml:space="preserve">
-    <value>Макс. поточних доставок для одного домену-відправника (0 = без обмежень)</value>
-  </data>
-  <data name="Max delivery threads" xml:space="preserve">
-    <value>Макс. кількість потоків доставки</value>
-  </data>
-  <data name="Max message size (KB, 0 = unlimited)" xml:space="preserve">
-    <value>Макс. розмір повідомлення (КБ, 0 = без обмеження)</value>
-  </data>
-  <data name="Max message size to spam-scan (KB, 0 = unlimited)" xml:space="preserve">
-    <value>Макс. розмір повідомлення для перевірки на спам (КБ, 0 = без обмеження)</value>
-  </data>
-  <data name="Max message size to virus-scan (KB, 0 = unlimited)" xml:space="preserve">
-    <value>Макс. розмір повідомлення для перевірки на віруси (КБ, 0 = без обмеження)</value>
-  </data>
-  <data name="Max messages per account per period (0 = no limit)" xml:space="preserve">
-    <value>Макс. кількість повідомлень на обліковий запис за період (0 = без обмеження)</value>
-  </data>
-  <data name="Max outbound messages per destination domain per minute (0 = unlimited)" xml:space="preserve">
-    <value>Макс. кількість вихідних повідомлень на домен призначення за хвилину (0 = без обмеження)</value>
-  </data>
-  <data name="Max parallel external POP3 fetch threads" xml:space="preserve">
-    <value>Макс. кількість паралельних потоків збирання із зовнішніх POP3</value>
-  </data>
-  <data name="Max recipients per account per period (0 = no limit)" xml:space="preserve">
-    <value>Макс. кількість отримувачів на обліковий запис за період (0 = без обмеження)</value>
-  </data>
-  <data name="Max recipients per message" xml:space="preserve">
-    <value>Макс. кількість отримувачів на повідомлення</value>
-  </data>
-  <data name="Max simultaneous connections (0 = unlimited)" xml:space="preserve">
-    <value>Макс. кількість одночасних підключень (0 = без обмеження)</value>
-  </data>
-  <data name="Max simultaneous connections to one destination without a remote domain policy (0 = unlimited)" xml:space="preserve">
-    <value>Макс. одночасних з'єднань з одним адресатом без політики віддаленого домену (0 = без обмежень)</value>
-  </data>
   <data name="MaxMind country database (.mmdb)" xml:space="preserve">
     <value>База країн MaxMind (.mmdb)</value>
   </data>
@@ -7049,6 +7037,9 @@
   </data>
   <data name="Maximise" xml:space="preserve">
     <value>Розгорнути</value>
+  </data>
+  <data name="Maximum MX hosts to try (0 = all)" xml:space="preserve">
+    <value>Максимальна кількість вузлів MX для спроб (0 = усі)</value>
   </data>
   <data name="Maximum _domain size (MB; 0 = no limit)" xml:space="preserve">
     <value>_Максимальний розмір домену (МБ; 0 = без обмеження)</value>
@@ -7059,8 +7050,20 @@
   <data name="Maximum account size (MB)" xml:space="preserve">
     <value>Максимальний розмір облікового запису (МБ)</value>
   </data>
-  <data name="Maximum characters per log line (minimum 100; only applied at log level 2 or lower)" xml:space="preserve">
-    <value>Максимальна кількість символів у рядку журналу (мінімум 100; застосовується лише на рівні журналу 2 або нижче)</value>
+  <data name="Maximum asynchronous task threads" xml:space="preserve">
+    <value>Максимальна кількість потоків асинхронних завдань</value>
+  </data>
+  <data name="Maximum authenticated submissions per client IP per minute (0 = no limit)" xml:space="preserve">
+    <value>Максимальна кількість автентифікованих надсилань з однієї IP-адреси клієнта за хвилину (0 = без обмеження)</value>
+  </data>
+  <data name="Maximum characters per log line (at least 100)" xml:space="preserve">
+    <value>Максимальна кількість символів у рядку журналу (щонайменше 100)</value>
+  </data>
+  <data name="Maximum deliveries in flight for one sending domain (0 = no limit)" xml:space="preserve">
+    <value>Максимальна кількість поточних доставок для одного домену-відправника (0 = без обмеження)</value>
+  </data>
+  <data name="Maximum delivery threads" xml:space="preserve">
+    <value>Максимальна кількість потоків доставки</value>
   </data>
   <data name="Maximum domain size (MB)" xml:space="preserve">
     <value>Максимальний розмір домену (МБ)</value>
@@ -7071,6 +7074,12 @@
   <data name="Maximum message size (KB)" xml:space="preserve">
     <value>Максимальний розмір повідомлення (КБ)</value>
   </data>
+  <data name="Maximum message size (KB; 0 = no limit)" xml:space="preserve">
+    <value>Максимальний розмір повідомлення (КБ; 0 = без обмеження)</value>
+  </data>
+  <data name="Maximum messages per account per period (0 = no limit)" xml:space="preserve">
+    <value>Максимальна кількість повідомлень на обліковий запис за період (0 = без обмеження)</value>
+  </data>
   <data name="Maximum number of accounts" xml:space="preserve">
     <value>Максимальна кількість облікових записів</value>
   </data>
@@ -7079,6 +7088,24 @@
   </data>
   <data name="Maximum number of distribution lists" xml:space="preserve">
     <value>Максимальна кількість списків розсилки</value>
+  </data>
+  <data name="Maximum outbound messages per destination domain per minute (0 = no limit)" xml:space="preserve">
+    <value>Максимальна кількість вихідних повідомлень на домен призначення за хвилину (0 = без обмеження)</value>
+  </data>
+  <data name="Maximum parallel external POP3 fetch threads" xml:space="preserve">
+    <value>Максимальна кількість паралельних потоків збирання із зовнішніх POP3</value>
+  </data>
+  <data name="Maximum recipients per account per period (0 = no limit)" xml:space="preserve">
+    <value>Максимальна кількість отримувачів на обліковий запис за період (0 = без обмеження)</value>
+  </data>
+  <data name="Maximum recipients per message" xml:space="preserve">
+    <value>Максимальна кількість отримувачів на повідомлення</value>
+  </data>
+  <data name="Maximum simultaneous connections (0 = no limit)" xml:space="preserve">
+    <value>Максимальна кількість одночасних підключень (0 = без обмеження)</value>
+  </data>
+  <data name="Maximum simultaneous connections to one destination without a remote domain policy (0 = no limit)" xml:space="preserve">
+    <value>Максимальна кількість одночасних з'єднань з одним адресатом без політики віддаленого домену (0 = без обмеження)</value>
   </data>
   <data name="Maximum size (MB)" xml:space="preserve">
     <value>Максимальний розмір (МБ)</value>
@@ -7136,8 +7163,8 @@
   <data name="Message finalization deadline (240)" xml:space="preserve">
     <value>Граничний час завершення обробки повідомлення (240)</value>
   </data>
-  <data name="Message finalization deadline (seconds; 0 = no deadline)" xml:space="preserve">
-    <value>Граничний час завершення обробки повідомлення (секунд; 0 = без обмеження)</value>
+  <data name="Message finalization deadline (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>Граничний час завершення обробки повідомлення (секунди; 0 = без обмеження часу)</value>
   </data>
   <data name="Message for colleag_ues (empty = same as above)" xml:space="preserve">
     <value>Повідомлення для колег (порожнє — _як вище)</value>
@@ -7196,8 +7223,8 @@
   <data name="Message-store consistency" xml:space="preserve">
     <value>Цілісність сховища повідомлень</value>
   </data>
-  <data name="Messages a minute (0 is unlimited)" xml:space="preserve">
-    <value>Повідомлень за хвилину (0 — без обмеження)</value>
+  <data name="Messages a minute (0 = no limit)" xml:space="preserve">
+    <value>Повідомлень за хвилину (0 = без обмеження)</value>
   </data>
   <data name="Messages held for review instead of being refused, and the two things you can do with each: release it to the recipient, or delete it." xml:space="preserve">
     <value>Повідомлення, утримані для перегляду замість відхилення, і дві дії, доступні для кожного: випустити його отримувачеві або видалити.</value>
@@ -7217,8 +7244,8 @@
   <data name="Messages larger than {0} are not scanned. They are delivered, not refused, and nothing is written to the log when it happens — so this limit is invisible in normal operation. 0 means &quot;no limit&quot; and is the setting that closes the gap." xml:space="preserve">
     <value>Повідомлення, більші за {0}, не скануються. Вони доставляються, а не відхиляються, і в журнал при цьому нічого не записується — тож за звичайної роботи цього обмеження не видно. 0 означає «без обмеження» і є тим значенням, яке закриває прогалину.</value>
   </data>
-  <data name="Messages one backfill pass reads before pausing (1-100000)" xml:space="preserve">
-    <value>Кількість повідомлень, які один прохід заповнення читає перед паузою (1–100000)</value>
+  <data name="Messages one backfill pass reads before pausing (1 to 100,000)" xml:space="preserve">
+    <value>Кількість повідомлень, які один прохід заповнення читає перед паузою (від 1 до 100 000)</value>
   </data>
   <data name="Messages per full-index pass" xml:space="preserve">
     <value>Повідомлень за один прохід повного індексування</value>
@@ -7262,7 +7289,7 @@
   <data name="Metrics bind address" xml:space="preserve">
     <value>Адреса прив’язки метрик</value>
   </data>
-  <data name="Metrics port (0 = disabled)" xml:space="preserve">
+  <data name="Metrics port (0 = off)" xml:space="preserve">
     <value>Порт метрик (0 = вимкнено)</value>
   </data>
   <data name="Microsoft 365 turns Basic authentication for SMTP AUTH off at the end of December 2026. When the relay host below is listed here, hMailServer authenticates with an OAuth2 bearer token (XOAUTH2) instead of the password - fetched from your tenant's token endpoint with the client credentials of an app registration that has the SMTP.SendAsApp permission. The user name above stays: it is the mailbox being relayed as." xml:space="preserve">
@@ -7304,14 +7331,14 @@
   <data name="Minimum timeout (seconds)" xml:space="preserve">
     <value>Мінімальний час очікування (секунд)</value>
   </data>
-  <data name="Minutes a mailbox key stays open after its last use (1 to 1440)" xml:space="preserve">
-    <value>Хвилин, протягом яких ключ скриньки лишається відкритим після останнього використання (від 1 до 1440)</value>
+  <data name="Minutes a mailbox key stays open after its last use (1 to 1,440)" xml:space="preserve">
+    <value>Хвилин, протягом яких ключ скриньки лишається відкритим після останнього використання (від 1 до 1 440)</value>
   </data>
   <data name="Minutes a message waits for a verdict" xml:space="preserve">
     <value>Хвилини, протягом яких повідомлення чекає на вердикт</value>
   </data>
-  <data name="Minutes a password-reset link works (5 to 1440)" xml:space="preserve">
-    <value>Хвилин дії посилання для скидання пароля (від 5 до 1440)</value>
+  <data name="Minutes a password-reset link works (5 to 1,440)" xml:space="preserve">
+    <value>Хвилин дії посилання для скидання пароля (від 5 до 1 440)</value>
   </data>
   <data name="Minutes between downloads" xml:space="preserve">
     <value>Хвилин між завантаженнями</value>
@@ -7325,13 +7352,10 @@
   <data name="Minutes between scan attempts while held" xml:space="preserve">
     <value>Хвилин між спробами сканування під час утримання</value>
   </data>
-  <data name="Minutes the sending address is banned (0 = no ban; up to 525600)" xml:space="preserve">
-    <value>Хвилин блокування адреси відправника (0 = без блокування; до 525600)</value>
-  </data>
   <data name="Minutes to hold a destination that asked this server to slow down (0 = off)" xml:space="preserve">
     <value>Хвилини утримання адресата, який попросив цей сервер сповільнитися (0 = вимк.)</value>
   </data>
-  <data name="Mirror address (empty = disabled)" xml:space="preserve">
+  <data name="Mirror address (empty = off)" xml:space="preserve">
     <value>Адреса дзеркала (порожньо = вимкнено)</value>
   </data>
   <data name="Mirror every folder (IMAP only: a migration, verbatim, with flags and dates)" xml:space="preserve">
@@ -7489,6 +7513,9 @@
   </data>
   <data name="Never auto-ban these addresses" xml:space="preserve">
     <value>Ніколи не банити автоматично ці адреси</value>
+  </data>
+  <data name="Never auto-ban these addresses (comma separated)" xml:space="preserve">
+    <value>Ніколи не банити автоматично ці адреси (через кому)</value>
   </data>
   <data name="Never greylisted." xml:space="preserve">
     <value>Ніколи не потрапляє до сірого списку.</value>
@@ -8489,9 +8516,6 @@
   <data name="On other pages" xml:space="preserve">
     <value>На інших сторінках</value>
   </data>
-  <data name="On stop, wait up to N seconds for active sessions to finish (0 = stop immediately)" xml:space="preserve">
-    <value>Під час зупинки чекати до N секунд на завершення активних сеансів (0 = зупинятися негайно)</value>
-  </data>
   <data name="On the Administrative access page's Two-factor tab, enrol an authenticator app for the administrator password." xml:space="preserve">
     <value>На вкладці Двофакторна сторінки Адміністративний доступ зареєструйте застосунок-автентифікатор для пароля адміністратора.</value>
   </data>
@@ -8567,8 +8591,8 @@
   <data name="One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
     <value>Один налаштований порт не прослуховується: {0}. Якщо ви щойно його додали або змінили, виконайте повторну ініціалізацію сервера: він читає список портів під час запуску. Інакше порт утримує інша програма, такої адреси немає на цьому комп’ютері або не вдалося завантажити сертифікат порту TLS — яка з причин, сказано в журналі помилок.</value>
   </data>
-  <data name="One event script invocation. 0 = no bound." xml:space="preserve">
-    <value>Один виклик скрипту подій. 0 = без обмеження.</value>
+  <data name="One event script invocation. 0 = no time limit." xml:space="preserve">
+    <value>Один виклик скрипту подій. 0 = без обмеження часу.</value>
   </data>
   <data name="One external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>В одного зовнішнього облікового запису збирання POP3 антивірус вимкнено, тому зібрана ним пошта доставляється без сканування, хай що тут задано. Перемикач на обліковому записі збирання, а не на цій сторінці.</value>
@@ -8603,7 +8627,10 @@
   <data name="Only after SMTP authentication" xml:space="preserve">
     <value>Лише після автентифікації SMTP</value>
   </data>
-  <data name="Only archive mail for these domains (comma-separated; empty = every message)" xml:space="preserve">
+  <data name="Only applied at log level 2 or lower." xml:space="preserve">
+    <value>Застосовується лише на рівні журналу 2 або нижче.</value>
+  </data>
+  <data name="Only archive mail for these domains (comma separated; empty = every message)" xml:space="preserve">
     <value>Архівувати пошту лише для цих доменів (через кому; порожньо = кожне повідомлення)</value>
   </data>
   <data name="Only destinations named here get a bearer token; every other relay keeps password authentication. This is deliberate - a token presented to the wrong relay is a leaked token." xml:space="preserve">
@@ -8771,13 +8798,13 @@
   <data name="OpenPGP key" xml:space="preserve">
     <value>Ключ OpenPGP</value>
   </data>
-  <data name="OpenTelemetry OTLP endpoint for logs (empty = disabled)" xml:space="preserve">
+  <data name="OpenTelemetry OTLP endpoint for logs (empty = off)" xml:space="preserve">
     <value>Кінцева точка OpenTelemetry OTLP для журналів (порожньо = вимкнено)</value>
   </data>
-  <data name="OpenTelemetry OTLP endpoint for metrics (empty = disabled)" xml:space="preserve">
+  <data name="OpenTelemetry OTLP endpoint for metrics (empty = off)" xml:space="preserve">
     <value>Кінцева точка OpenTelemetry OTLP для метрик (порожньо = вимкнено)</value>
   </data>
-  <data name="OpenTelemetry OTLP endpoint for traces (empty = disabled)" xml:space="preserve">
+  <data name="OpenTelemetry OTLP endpoint for traces (empty = off)" xml:space="preserve">
     <value>Кінцева точка OpenTelemetry OTLP для трасувань (порожньо = вимкнено)</value>
   </data>
   <data name="OpenTelemetry service name" xml:space="preserve">
@@ -8837,8 +8864,8 @@
   <data name="Other" xml:space="preserve">
     <value>Інше</value>
   </data>
-  <data name="Other POP3 or IMAP accounts a person may collect from (0 = none; up to 20)" xml:space="preserve">
-    <value>Інші облікові записи POP3 чи IMAP, з яких людина може забирати пошту (0 = немає; до 20)</value>
+  <data name="Other POP3 or IMAP accounts a person may collect from (up to 20; 0 = none)" xml:space="preserve">
+    <value>Інші облікові записи POP3 чи IMAP, з яких людина може забирати пошту (до 20; 0 = немає)</value>
   </data>
   <data name="Other addresses to check (commas or spaces)" xml:space="preserve">
     <value>Інші адреси для перевірки (через кому або пробіл)</value>
@@ -8888,8 +8915,8 @@
   <data name="PBKDF2 (default)" xml:space="preserve">
     <value>PBKDF2 (типово)</value>
   </data>
-  <data name="PBKDF2 iterations for new hashes (0 = the built-in 210,000; 10,000 to 10,000,000)" xml:space="preserve">
-    <value>Кількість ітерацій PBKDF2 для нових хешів (0 = вбудовані 210 000; від 10 000 до 10 000 000)</value>
+  <data name="PBKDF2 iterations for new hashes (10,000 to 10,000,000; 0 = the built-in 210,000)" xml:space="preserve">
+    <value>Кількість ітерацій PBKDF2 для нових хешів (від 10 000 до 10 000 000; 0 = вбудовані 210 000)</value>
   </data>
   <data name="PBKDF2 or stronger" xml:space="preserve">
     <value>PBKDF2 або сильніший</value>
@@ -8915,11 +8942,11 @@
   <data name="POP3 - download, then delete from the server as Days to keep says" xml:space="preserve">
     <value>POP3 — завантажити, потім видалити з сервера так, як задано в «Днів зберігати»</value>
   </data>
-  <data name="POP3 client maximum timeout (s)" xml:space="preserve">
-    <value>Максимальний час очікування клієнта POP3 (с)</value>
+  <data name="POP3 client maximum timeout (seconds)" xml:space="preserve">
+    <value>Максимальний час очікування клієнта POP3 (секунди)</value>
   </data>
-  <data name="POP3 client minimum timeout (s)" xml:space="preserve">
-    <value>Мінімальний час очікування клієнта POP3 (с)</value>
+  <data name="POP3 client minimum timeout (seconds)" xml:space="preserve">
+    <value>Мінімальний час очікування клієнта POP3 (секунди)</value>
   </data>
   <data name="POP3 connections" xml:space="preserve">
     <value>Підключення POP3</value>
@@ -8939,11 +8966,11 @@
   <data name="POP3 server" xml:space="preserve">
     <value>Сервер POP3</value>
   </data>
-  <data name="POP3 server maximum timeout (s)" xml:space="preserve">
-    <value>Максимальний час очікування сервера POP3 (с)</value>
+  <data name="POP3 server maximum timeout (seconds)" xml:space="preserve">
+    <value>Максимальний час очікування сервера POP3 (секунди)</value>
   </data>
-  <data name="POP3 server minimum timeout (s)" xml:space="preserve">
-    <value>Мінімальний час очікування сервера POP3 (с)</value>
+  <data name="POP3 server minimum timeout (seconds)" xml:space="preserve">
+    <value>Мінімальний час очікування сервера POP3 (секунди)</value>
   </data>
   <data name="POP3 sessions" xml:space="preserve">
     <value>Сеанси POP3</value>
@@ -9121,11 +9148,11 @@
   <data name="Performance" xml:space="preserve">
     <value>Продуктивність</value>
   </data>
-  <data name="Period length in hours (default 24)" xml:space="preserve">
-    <value>Тривалість періоду в годинах (типово 24)</value>
+  <data name="Period length (hours, 1 to 168)" xml:space="preserve">
+    <value>Тривалість періоду (години, від 1 до 168)</value>
   </data>
-  <data name="Periodically cross-check message rows against files on disk (read-only; writes a report on divergence)" xml:space="preserve">
-    <value>Періодично звіряти рядки повідомлень із файлами на диску (лише читання; за розбіжності записується звіт)</value>
+  <data name="Periodically cross-check message rows against files on disk" xml:space="preserve">
+    <value>Періодично звіряти рядки повідомлень із файлами на диску</value>
   </data>
   <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters. Empty, the default, is an account-number detector that never fires. A pattern the server cannot compile is refused." xml:space="preserve">
     <value>Синтаксис Perl, пошук у тексті повідомлення та його текстових вкладеннях, до 2000 символів. Порожньо, типово, — детектор номерів рахунків, який ніколи не спрацьовує. Шаблон, який сервер не може скомпілювати, відхиляється.</value>
@@ -9166,8 +9193,8 @@
   <data name="Policy for mailbox passwords" xml:space="preserve">
     <value>Політика для паролів поштових скриньок</value>
   </data>
-  <data name="Policy max age (seconds; default 604800 = 7 days)" xml:space="preserve">
-    <value>Максимальний вік політики (секунд; типово 604800 = 7 днів)</value>
+  <data name="Policy max age (seconds, 86,400 to 31,557,600)" xml:space="preserve">
+    <value>Максимальний вік політики (секунди, від 86 400 до 31 557 600)</value>
   </data>
   <data name="Policy refusal" xml:space="preserve">
     <value>Відмова за політикою</value>
@@ -9178,7 +9205,7 @@
   <data name="Port" xml:space="preserve">
     <value>Порт</value>
   </data>
-  <data name="Port (0 = disabled)" xml:space="preserve">
+  <data name="Port (0 = off)" xml:space="preserve">
     <value>Порт (0 = вимкнено)</value>
   </data>
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
@@ -9307,8 +9334,11 @@
   <data name="Produce or obtain a CA (for example with OpenSSL or your PKI), save the CA certificate, with any intermediate ones, as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates." xml:space="preserve">
     <value>Створіть або отримайте ЦС (наприклад, за допомогою OpenSSL або вашої PKI), збережіть сертифікат ЦС разом із проміжними, якщо вони є, як пакет PEM на сервері, укажіть його у файлі ЦС порту та видайте від цього ЦС клієнтський сертифікат кожному клієнту, який має підключатися. hMailServer перевіряє за пакетом, але не може створити ані ЦС, ані клієнтські сертифікати.</value>
   </data>
-  <data name="Profile to scan as (spamd User: header; empty = spamd's global configuration)" xml:space="preserve">
-    <value>Профіль, від імені якого сканувати (заголовок User: для spamd; порожньо = глобальна конфігурація spamd)</value>
+  <data name="Profile to scan as (empty = spamd's global configuration)" xml:space="preserve">
+    <value>Профіль, від імені якого сканувати (порожньо = глобальна конфігурація spamd)</value>
+  </data>
+  <data name="ProgIDs or CLSIDs." xml:space="preserve">
+    <value>ProgIDs або CLSIDs.</value>
   </data>
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>Програма, що запускається, коли адресу забанено або розбанено (порожньо = немає)</value>
@@ -9361,8 +9391,8 @@
   <data name="Protocols" xml:space="preserve">
     <value>Протоколи</value>
   </data>
-  <data name="Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)" xml:space="preserve">
-    <value>Проксі, яким дозволено надсилати заголовок PROXY (адреси або діапазони CIDR через кому)</value>
+  <data name="Proxies allowed to send a PROXY header (comma separated)" xml:space="preserve">
+    <value>Проксі, яким дозволено надсилати заголовок PROXY (через кому)</value>
   </data>
   <data name="Public" xml:space="preserve">
     <value>Публічний</value>
@@ -9529,8 +9559,8 @@
   <data name="Raise the threshold here and clear the counted failures. An address already locked out stays out until its &quot;Auto-ban:&quot; range expires, or you delete that range on the IP ranges page." xml:space="preserve">
     <value>Підвищте тут поріг і очистьте підраховані невдачі. Уже заблокована адреса залишається заблокованою, доки не спливе її діапазон «Auto-ban:» або доки ви не видалите цей діапазон на сторінці «Діапазони IP».</value>
   </data>
-  <data name="Random jitter added to retry times (minutes, 0 = off)" xml:space="preserve">
-    <value>Випадковий розкид, що додається до часу повторних спроб (хвилин, 0 = вимкнено)</value>
+  <data name="Random jitter added to retry times (minutes; 0 = off)" xml:space="preserve">
+    <value>Випадковий розкид, що додається до часу повторних спроб (хвилини; 0 = вимкнено)</value>
   </data>
   <data name="Range endpoint (https, or http to this machine)" xml:space="preserve">
     <value>Кінцева точка діапазонів (https або http до цього комп'ютера)</value>
@@ -9610,8 +9640,8 @@
   <data name="Read at delivery, for every recipient: an allowed sender's mail is delivered unmarked, and the accounts' own spam thresholds do not run. A message the server-wide spam score holds during the SMTP conversation is still held; the domain list is the one that stops that." xml:space="preserve">
     <value>Зчитується під час доставлення, для кожного одержувача: пошта дозволеного відправника доставляється без позначення, а власні пороги спаму облікових записів не застосовуються. Повідомлення, яке загальносерверний бал спаму затримує під час сеансу SMTP, залишається затриманим; це зупиняє саме список доменів.</value>
   </data>
-  <data name="Read cache in MB (0 = none; up to 4096)" xml:space="preserve">
-    <value>Кеш читання в МБ (0 = немає; до 4096)</value>
+  <data name="Read cache (MB, up to 4,096; 0 = none)" xml:space="preserve">
+    <value>Кеш читання (МБ, до 4 096; 0 = немає)</value>
   </data>
   <data name="Read complaints sent to the complaint mailbox" xml:space="preserve">
     <value>Читати скарги, надіслані до скриньки для скарг</value>
@@ -9639,6 +9669,9 @@
   </data>
   <data name="Read-only" xml:space="preserve">
     <value>Лише читання</value>
+  </data>
+  <data name="Read-only: it writes a report when the two diverge." xml:space="preserve">
+    <value>Лише читання: за розбіжності записує звіт.</value>
   </data>
   <data name="Readable text" xml:space="preserve">
     <value>Читабельний текст</value>
@@ -9731,8 +9764,8 @@
   <data name="Record administrative changes in the audit trail" xml:space="preserve">
     <value>Записувати адміністративні зміни до журналу аудиту</value>
   </data>
-  <data name="Record expiration interval, minutes" xml:space="preserve">
-    <value>Інтервал закінчення терміну дії записів, хвилин</value>
+  <data name="Record expiration interval (minutes)" xml:space="preserve">
+    <value>Інтервал закінчення терміну дії записів (хвилини)</value>
   </data>
   <data name="Record type: MX. Host/Name - {0}:" xml:space="preserve">
     <value>Тип запису: MX. Вузол/Ім’я - {0}:</value>
@@ -9830,8 +9863,8 @@
   <data name="Refuse when it has appeared at least this many times" xml:space="preserve">
     <value>Відхиляти, якщо він трапився щонайменше стільки разів</value>
   </data>
-  <data name="Refuse with 550 after this many retries before the window opens (0 never refuses)" xml:space="preserve">
-    <value>Відмовляти кодом 550 після стількох спроб до відкриття вікна (0 ніколи не відмовляє)</value>
+  <data name="Refuse with 550 after this many retries before the window opens (0 = never)" xml:space="preserve">
+    <value>Відмовляти кодом 550 після стількох спроб до відкриття вікна (0 = ніколи)</value>
   </data>
   <data name="Refuse, or allow only, connections from the countries you name, by the country a MaxMind database places the address in. This server ships no database and downloads none: until you supply the file, nothing is judged by country. A policy is empty (off), allow:GB,IE or block:CN,RU." xml:space="preserve">
     <value>Відхиляти або дозволяти лише підключення з указаних вами країн — за країною, до якої база MaxMind відносить адресу. Цей сервер не постачає базу й не завантажує її: доки ви не надасте файл, нічого не оцінюється за країною. Політика порожня (вимкнено), allow:GB,IE або block:CN,RU.</value>
@@ -9926,11 +9959,11 @@
   <data name="Relay" xml:space="preserve">
     <value>Ретрансляція</value>
   </data>
-  <data name="Relay host name (empty = direct delivery; use host1|host2 for failover)" xml:space="preserve">
-    <value>Ім’я вузла ретранслятора (порожньо = пряма доставка; host1|host2 для резервування)</value>
+  <data name="Relay host name (empty = direct delivery)" xml:space="preserve">
+    <value>Ім’я вузла ретранслятора (порожньо = пряма доставка)</value>
   </data>
-  <data name="Relay hosts that use OAuth2 (comma separated; blank this to use none)" xml:space="preserve">
-    <value>Вузли ретрансляції, які використовують OAuth2 (через кому; очистьте, щоб не використовувати жодного)</value>
+  <data name="Relay hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
+    <value>Вузли ретрансляції, які використовують OAuth2 (через кому; порожньо = жоден)</value>
   </data>
   <data name="Relay port" xml:space="preserve">
     <value>Порт ретранслятора</value>
@@ -9983,8 +10016,8 @@
   <data name="Released {0} messages to their recipients.|few" xml:space="preserve">
     <value>Випущено {0} повідомлення одержувачам.</value>
   </data>
-  <data name="Relying party (empty = the host the page is on)" xml:space="preserve">
-    <value>Перевірна сторона (порожньо = вузол, на якому розміщено сторінку)</value>
+  <data name="Relying party (empty = the page's own host)" xml:space="preserve">
+    <value>Перевірна сторона (порожньо = власний вузол сторінки)</value>
   </data>
   <data name="Rem_ove criterion" xml:space="preserve">
     <value>Ви_лучити критерій</value>
@@ -10183,8 +10216,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Report the async work queue as stalled after (120)" xml:space="preserve">
     <value>Повідомляти про зависання асинхронної робочої черги через (120)</value>
   </data>
-  <data name="Report the async work queue as stalled after (seconds)" xml:space="preserve">
-    <value>Повідомляти про зависання асинхронної робочої черги через (секунд)</value>
+  <data name="Report the async work queue as stalled after (seconds; 0 = never)" xml:space="preserve">
+    <value>Повідомляти про зависання асинхронної робочої черги через (секунди; 0 = ніколи)</value>
   </data>
   <data name="Reports" xml:space="preserve">
     <value>Звіти</value>
@@ -10360,14 +10393,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Resume the mail server" xml:space="preserve">
     <value>Продовжити роботу поштового сервера</value>
   </data>
-  <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
-    <value>Час життя відновлення для кешованих сеансів і квитків, секунд (0 = типові 300 в OpenSSL)</value>
+  <data name="Resumption lifetime for cached sessions and tickets (seconds; 0 = OpenSSL's default of 300)" xml:space="preserve">
+    <value>Час життя відновлення для кешованих сеансів і квитків (секунди; 0 = типові 300 в OpenSSL)</value>
   </data>
   <data name="Retention" xml:space="preserve">
     <value>Зберігання</value>
   </data>
-  <data name="Retention period in _days (1 to 365)" xml:space="preserve">
-    <value>Період з_берігання в днях (від 1 до 365)</value>
+  <data name="Retention period (_days, 1 to 365)" xml:space="preserve">
+    <value>Період з_берігання (дні, від 1 до 365)</value>
   </data>
   <data name="Retention period in days" xml:space="preserve">
     <value>Період зберігання в днях</value>
@@ -10462,8 +10495,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Rotate the _key on a schedule" xml:space="preserve">
     <value>Викон_увати ротацію ключа за розкладом</value>
   </data>
-  <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
-    <value>Змінювати ключ квитків сеансу кожні N секунд (0 = єдиний незмінний ключ OpenSSL)</value>
+  <data name="Rotate the session-ticket key every (seconds; 0 = OpenSSL's single key)" xml:space="preserve">
+    <value>Змінювати ключ квитків сеансу кожні (секунди; 0 = єдиний ключ OpenSSL)</value>
   </data>
   <data name="Route" xml:space="preserve">
     <value>Маршрут</value>
@@ -10609,11 +10642,11 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="SMTP authentication" xml:space="preserve">
     <value>Автентифікація SMTP</value>
   </data>
-  <data name="SMTP client maximum timeout (s)" xml:space="preserve">
-    <value>Максимальний час очікування клієнта SMTP (с)</value>
+  <data name="SMTP client maximum timeout (seconds)" xml:space="preserve">
+    <value>Максимальний час очікування клієнта SMTP (секунди)</value>
   </data>
-  <data name="SMTP client minimum timeout (s)" xml:space="preserve">
-    <value>Мінімальний час очікування клієнта SMTP (с)</value>
+  <data name="SMTP client minimum timeout (seconds)" xml:space="preserve">
+    <value>Мінімальний час очікування клієнта SMTP (секунди)</value>
   </data>
   <data name="SMTP connections" xml:space="preserve">
     <value>Підключення SMTP</value>
@@ -10627,11 +10660,11 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="SMTP server" xml:space="preserve">
     <value>Сервер SMTP</value>
   </data>
-  <data name="SMTP server maximum timeout (s)" xml:space="preserve">
-    <value>Максимальний час очікування сервера SMTP (с)</value>
+  <data name="SMTP server maximum timeout (seconds)" xml:space="preserve">
+    <value>Максимальний час очікування сервера SMTP (секунди)</value>
   </data>
-  <data name="SMTP server minimum timeout (s)" xml:space="preserve">
-    <value>Мінімальний час очікування сервера SMTP (с)</value>
+  <data name="SMTP server minimum timeout (seconds)" xml:space="preserve">
+    <value>Мінімальний час очікування сервера SMTP (секунди)</value>
   </data>
   <data name="SMTP sessions" xml:space="preserve">
     <value>Сеанси SMTP</value>
@@ -10786,8 +10819,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Save the changes on this page" xml:space="preserve">
     <value>Зберегти зміни на цій сторінці</value>
   </data>
-  <data name="Save the counters to disk every N seconds (default 10)" xml:space="preserve">
-    <value>Зберігати лічильники на диск кожні N секунд (типово 10)</value>
+  <data name="Save the counters to disk every (seconds, 1 to 3,600)" xml:space="preserve">
+    <value>Зберігати лічильники на диск кожні (секунди, від 1 до 3 600)</value>
   </data>
   <data name="Save the export as" xml:space="preserve">
     <value>Зберегти експорт як</value>
@@ -10999,8 +11032,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Score applied when the engine says &quot;reject&quot;" xml:space="preserve">
     <value>Оцінка, що застосовується, коли рушій каже «reject»</value>
   </data>
-  <data name="Score at which suspicious counts as malicious (0-100)" xml:space="preserve">
-    <value>Оцінка, починаючи з якої підозріле вважається шкідливим (0-100)</value>
+  <data name="Score at which suspicious counts as malicious (0 to 100)" xml:space="preserve">
+    <value>Оцінка, починаючи з якої підозріле вважається шкідливим (від 0 до 100)</value>
   </data>
   <data name="Score of a message whose links name more than 200 domains (0 = none)" xml:space="preserve">
     <value>Оцінка повідомлення, посилання якого називають понад 200 доменів (0 — немає)</value>
@@ -11197,14 +11230,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Seconds a key lookup may take (2 to 30)" xml:space="preserve">
     <value>Секунд, які може тривати пошук ключа (від 2 до 30)</value>
   </data>
-  <data name="Seconds a push service holds a notification for a device that is offline (0 to 2419200)" xml:space="preserve">
-    <value>Секунд, протягом яких push-служба тримає сповіщення для пристрою без підключення (від 0 до 2419200)</value>
+  <data name="Seconds a push service holds a notification for a device that is offline (0 to 2,419,200)" xml:space="preserve">
+    <value>Секунд, протягом яких push-служба тримає сповіщення для пристрою без підключення (від 0 до 2 419 200)</value>
   </data>
-  <data name="Seconds a session may go unused (0 = the server's own 1800)" xml:space="preserve">
-    <value>Секунд, які сеанс може простоювати (0 = власні 1800 сервера)</value>
+  <data name="Seconds a session may go unused (0 = the server's own 1,800)" xml:space="preserve">
+    <value>Секунд, які сеанс може простоювати (0 = власні 1 800 сервера)</value>
   </data>
-  <data name="Seconds a session may last at all (0 = the server's own 43200)" xml:space="preserve">
-    <value>Секунд, які сеанс може тривати взагалі (0 = власні 43200 сервера)</value>
+  <data name="Seconds a session may last at all (0 = the server's own 43,200)" xml:space="preserve">
+    <value>Секунд, які сеанс може тривати взагалі (0 = власні 43 200 сервера)</value>
   </data>
   <data name="Seconds a single SQL statement may run (0 = no limit)" xml:space="preserve">
     <value>Секунд, протягом яких може виконуватися один оператор SQL (0 = без обмеження)</value>
@@ -11533,8 +11566,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Server-generated mail" xml:space="preserve">
     <value>Пошта, створена сервером</value>
   </data>
-  <data name="Server-side session cache size (0 = OpenSSL's default cap of 20480; negative = no cache)" xml:space="preserve">
-    <value>Розмір серверного кешу сесій (0 = типова межа OpenSSL 20480; від'ємне = без кешу)</value>
+  <data name="Server-side session cache size (0 = OpenSSL's default of 20,480, -1 = no cache)" xml:space="preserve">
+    <value>Розмір серверного кешу сесій (0 = типове значення OpenSSL 20 480, -1 = без кешу)</value>
   </data>
   <data name="Server-wide ceilings that keep one slow operation from holding a resource forever. The defaults are deliberate; each one is here because there is a diagnosable situation in which it is the right thing to change. Note that 0 does not mean the same thing for all of them - each label says." xml:space="preserve">
     <value>Загальносерверні межі, які не дають одній повільній операції утримувати ресурс вічно. Типові значення навмисні; кожне тут тому, що є діагностована ситуація, у якій його правильно змінити. Зауважте, що 0 означає не одне й те саме для всіх - кожен підпис каже своє.</value>
@@ -11625,6 +11658,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Set in hMailServer.ini only" xml:space="preserve">
     <value>Задається лише в hMailServer.ini</value>
+  </data>
+  <data name="Set it to use a mirror." xml:space="preserve">
+    <value>Задайте його, щоб використовувати дзеркало.</value>
   </data>
   <data name="Set the HTTP or HTTPS port on the Web services &amp; autoconfiguration page so the URLs answer, then publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; DNS records for each mail domain, pointing at this server. These are address records, and this page checks TXT records only, so they cannot be confirmed from here." xml:space="preserve">
     <value>Задайте порт HTTP або HTTPS на сторінці «Вебслужби та автоконфігурація», щоб URL-адреси відповідали, потім опублікуйте записи DNS autoconfig.&lt;domain&gt; і autodiscover.&lt;domain&gt; для кожного поштового домену, що вказують на цей сервер. Це адресні записи, а ця сторінка перевіряє лише записи TXT, тому підтвердити їх звідси неможливо.</value>
@@ -11731,8 +11767,11 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Shortens how long data is kept" xml:space="preserve">
     <value>Скорочує строк зберігання даних</value>
   </data>
-  <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
-    <value>Найкоротший рядок пошуку, на який відповідає індекс (3-64; коротші рядки відкочуються до сканування)</value>
+  <data name="Shorter strings fall back to the scan." xml:space="preserve">
+    <value>Коротші рядки відкочуються до сканування.</value>
+  </data>
+  <data name="Shortest search string the index answers for (3 to 64)" xml:space="preserve">
+    <value>Найкоротший рядок пошуку, на який відповідає індекс (від 3 до 64)</value>
   </data>
   <data name="Show auto-_bans only" xml:space="preserve">
     <value>Лише автобло_кування</value>
@@ -11902,8 +11941,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Simple is the default. Negotiate runs an SSPI exchange (Kerberos, falling back to NTLM) that never transmits the password and signs the connection - it is the only method a default-configured modern domain controller accepts when it has no certificate installed, it needs no search, no search base and no service account, and it works from a host that is not domain-joined." xml:space="preserve">
     <value>Simple - типовий метод. Negotiate виконує обмін SSPI (Kerberos, з відкатом до NTLM), який ніколи не передає пароль і підписує з'єднання - це єдиний метод, який приймає сучасний контролер домену з типовою конфігурацією без установленого сертифіката; йому не потрібні ані пошук, ані база пошуку, ані обліковий запис служби, і він працює з вузла, не приєднаного до домену.</value>
   </data>
-  <data name="Simultaneous connections (0 is unlimited)" xml:space="preserve">
-    <value>Одночасних з'єднань (0 — без обмеження)</value>
+  <data name="Simultaneous connections (0 = no limit)" xml:space="preserve">
+    <value>Одночасних з'єднань (0 = без обмеження)</value>
   </data>
   <data name="Since" xml:space="preserve">
     <value>З</value>
@@ -11947,8 +11986,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once." xml:space="preserve">
     <value>Сповільнює сесію, яка називає більше отримувачів, ніж потрібно легітимному повідомленню. Понад цю кількість кожен наступний RCPT TO у неавтентифікованій сесії чекає затримку перед відповіддю - атака за словником або спам-розсилання називають сотні адрес і платять за кожну, тоді як MTA-відправник називає жменьку і ніколи не досягає цієї кількості. Автентифіковані сесії та діапазони IP з вимкненим захистом від спаму звільнені. Очікування - це таймер на з'єднанні, а не приспаний потік. Набирає чинності негайно.</value>
   </data>
-  <data name="Smallest part held once (KB; 0 holds nothing once)" xml:space="preserve">
-    <value>Найменша частина, що зберігається один раз (КБ; 0 — нічого не зберігати один раз)</value>
+  <data name="Smallest part held once (KB; 0 = none)" xml:space="preserve">
+    <value>Найменша частина, що зберігається один раз (КБ; 0 = немає)</value>
   </data>
   <data name="Smart host" xml:space="preserve">
     <value>Смарт-хост</value>
@@ -12208,8 +12247,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Submission rate limits" xml:space="preserve">
     <value>Межі швидкості надсилання</value>
   </data>
-  <data name="Submissions before an account's baseline counts (1 to 10000)" xml:space="preserve">
-    <value>Надсилання, після яких базовий профіль облікового запису починає враховуватися (від 1 до 10000)</value>
+  <data name="Submissions before an account's baseline counts (1 to 10,000)" xml:space="preserve">
+    <value>Надсилання, після яких базовий профіль облікового запису починає враховуватися (від 1 до 10 000)</value>
   </data>
   <data name="Submit address (POST)" xml:space="preserve">
     <value>Адреса надсилання (POST)</value>
@@ -12349,7 +12388,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="TLS private keys - a passphrase-protected key needs its passphrase configured" xml:space="preserve">
     <value>Закриті ключі TLS - ключ, захищений парольною фразою, потребує налаштованої парольної фрази</value>
   </data>
-  <data name="TLS report sender address (empty = disabled)" xml:space="preserve">
+  <data name="TLS report sender address (empty = off)" xml:space="preserve">
     <value>Адреса відправника звітів TLS (порожньо = вимкнено)</value>
   </data>
   <data name="TLS reporting (TLS-RPT)" xml:space="preserve">
@@ -13041,6 +13080,15 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>База даних: шукайте помилки зі згадкою пулу з'єднань. Коли спливає термін очікування пулу, пошук отримувача відповідає 451 4.3.2, а не 550, тому база, заблокована резервним копіюванням, відкладає пошту замість того, щоб повертати її.</value>
   </data>
+  <data name="The default is 10." xml:space="preserve">
+    <value>Типово 10.</value>
+  </data>
+  <data name="The default is 24, and 168 is a week." xml:space="preserve">
+    <value>Типово 24, а 168 — це тиждень.</value>
+  </data>
+  <data name="The default, 604,800, is a week." xml:space="preserve">
+    <value>Типове значення, 604 800, — це тиждень.</value>
+  </data>
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>Перевизначення видалення ніколи не видаляє навмання: копія видаляється лише тоді, коли записана оцінка справді досягла значення, а з увімкненим сховищем карантину вона натомість потрапляє туди.</value>
   </data>
@@ -13195,6 +13243,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The first address of the gateway's range." xml:space="preserve">
     <value>Перша адреса діапазону шлюзу.</value>
+  </data>
+  <data name="The first attempt tries at most this many of a domain's MX hosts, the second at most twice as many, and so on, so that a domain whose hosts are down holds up the queue for less time." xml:space="preserve">
+    <value>Перша спроба пробує не більше цієї кількості вузлів MX домену, друга — не більше вдвічі більшої і так далі, щоб домен, вузли якого не працюють, менше затримував чергу.</value>
   </data>
   <data name="The first scanner to find something ends the scan, so the order is also the cost: a slow scanner in front of a fast one is paid for on every clean message." xml:space="preserve">
     <value>Перший сканер, який щось знаходить, завершує сканування, тому порядок - це ще й вартість: за повільний сканер перед швидким платять на кожному чистому повідомленні.</value>
@@ -13560,6 +13611,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The protocol versions could not be read." xml:space="preserve">
     <value>Версії протоколу не вдалося прочитати.</value>
+  </data>
+  <data name="The provider's RFC 7662 endpoint, which says whether a token is still valid." xml:space="preserve">
+    <value>Кінцева точка провайдера за RFC 7662, яка повідомляє, чи токен ще дійсний.</value>
   </data>
   <data name="The public address other servers see, when it is not an address of this machine." xml:space="preserve">
     <value>Публічна адреса, яку бачать інші сервери, коли це не адреса цього комп'ютера.</value>
@@ -13973,6 +14027,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The two passwords do not match." xml:space="preserve">
     <value>Паролі не збігаються.</value>
   </data>
+  <data name="The update feed and its downloads, JWKS and token introspection all go through it. Proxy credentials are not supported." xml:space="preserve">
+    <value>Через нього йдуть стрічка оновлень та її завантаження, JWKS та інтроспекція токенів. Облікові дані проксі не підтримуються.</value>
+  </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Помічник оновлення запущено. Ця Панель керування зараз закриється, щоб інсталятор міг замінити її файли; відкрийте її знову за хвилину, щоб побачити результат.</value>
   </data>
@@ -14018,8 +14075,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The web services settings could not be read: {0}" xml:space="preserve">
     <value>Не вдалося прочитати параметри вебслужб: {0}</value>
   </data>
-  <data name="The whole accept pipeline; then the sender gets a 451. 0 = no bound." xml:space="preserve">
-    <value>Увесь конвеєр приймання; потім відправник отримує 451. 0 = без обмеження.</value>
+  <data name="The whole accept pipeline; then the sender gets a 451. 0 = no time limit." xml:space="preserve">
+    <value>Увесь конвеєр приймання; потім відправник отримує 451. 0 = без обмеження часу.</value>
   </data>
   <data name="The wiki could not be opened in a browser." xml:space="preserve">
     <value>Не вдалося відкрити вікі у браузері.</value>
@@ -14258,8 +14315,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="This server's VAPID public key" xml:space="preserve">
     <value>Відкритий ключ VAPID цього сервера</value>
   </data>
-  <data name="This server's entity ID (empty = the base address followed by /saml)" xml:space="preserve">
-    <value>Ідентифікатор сутності цього сервера (порожньо = базова адреса, за якою йде /saml)</value>
+  <data name="This server's entity ID (empty = the base address and /saml)" xml:space="preserve">
+    <value>Ідентифікатор сутності цього сервера (порожньо = базова адреса і /saml)</value>
   </data>
   <data name="This session holds no password the REST API can sign in with. Sign in again with the administrator's user name and password." xml:space="preserve">
     <value>У цьому сеансі немає пароля, з яким REST API міг би увійти. Увійдіть знову з іменем користувача та паролем адміністратора.</value>
@@ -14303,8 +14360,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Threads and the stall threshold" xml:space="preserve">
     <value>Потоки та поріг зависання</value>
   </data>
-  <data name="Threads reserved so the async queue cannot be starved" xml:space="preserve">
-    <value>Потоки, зарезервовані, щоб асинхронна черга не залишилася без ресурсів</value>
+  <data name="Threads reserved so the async queue cannot be starved (0 = none)" xml:space="preserve">
+    <value>Потоки, зарезервовані, щоб асинхронна черга не залишилася без ресурсів (0 = немає)</value>
   </data>
   <data name="Thresholds &amp; actions" xml:space="preserve">
     <value>Пороги та дії</value>
@@ -14333,8 +14390,11 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Time" xml:space="preserve">
     <value>Час</value>
   </data>
-  <data name="Time_out in seconds" xml:space="preserve">
-    <value>Час оч_ікування в секундах</value>
+  <data name="Time active sessions get to finish when the service stops (seconds, up to 86,400; 0 = none)" xml:space="preserve">
+    <value>Час, який активні сеанси отримують на завершення під час зупинки служби (секунди, до 86 400; 0 = немає)</value>
+  </data>
+  <data name="Time_out (seconds, 1 to 90)" xml:space="preserve">
+    <value>Час оч_ікування (секунди, від 1 до 90)</value>
   </data>
   <data name="Timed out looking up {0}. Check the name, and that this machine can reach a DNS server." xml:space="preserve">
     <value>Сплив час очікування під час пошуку {0}. Перевірте ім'я і те, що цей комп'ютер може дістатися до DNS-сервера.</value>
@@ -14366,8 +14426,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Token endpoint (https)" xml:space="preserve">
     <value>Кінцева точка токена (https)</value>
   </data>
-  <data name="Token introspection endpoint (RFC 7662; empty = no revocation check)" xml:space="preserve">
-    <value>Кінцева точка інтроспекції токена (RFC 7662; порожньо = без перевірки відкликання)</value>
+  <data name="Token introspection endpoint (empty = no revocation check)" xml:space="preserve">
+    <value>Кінцева точка інтроспекції токена (порожньо = без перевірки відкликання)</value>
   </data>
   <data name="Tokens are accepted, but {0}: the server applies each of those only when you have set it, and blank is the default. That is wider than it looks. Any token your identity provider signs with this key is accepted - including one it issued to a different application entirely, which is enough to sign in as whichever mailbox that token names. Set both to the exact values your provider puts in its tokens." xml:space="preserve">
     <value>Токени приймаються, але {0}: сервер застосовує кожне з них лише тоді, коли ви його задали, а типово воно порожнє. Це ширше, ніж здається. Приймається будь-який токен, який ваш постачальник ідентичності підписав цим ключем - зокрема виданий зовсім іншому застосунку, а цього достатньо, щоб увійти в будь-яку поштову скриньку, яку цей токен називає. Задайте обидва точно тими значеннями, які ваш постачальник кладе у свої токени.</value>
@@ -14423,8 +14483,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Trusted ARC sealer domains" xml:space="preserve">
     <value>Довірені домени запечатувачів ARC</value>
   </data>
-  <data name="Trusted proxies whose X-Forwarded-Proto: https is believed (addresses, comma-separated; loopback always is)" xml:space="preserve">
-    <value>Довірені проксі, чий X-Forwarded-Proto: https приймається (адреси через кому; loopback завжди)</value>
+  <data name="Trusted proxies whose X-Forwarded-Proto: https is believed (comma separated)" xml:space="preserve">
+    <value>Довірені проксі, чий X-Forwarded-Proto: https приймається (через кому)</value>
   </data>
   <data name="Trusts an address range" xml:space="preserve">
     <value>Довіряє діапазону адрес</value>
@@ -14552,8 +14612,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Unattended synchronisation" xml:space="preserve">
     <value>Автоматична синхронізація</value>
   </data>
-  <data name="Unattended window (empty = never apply on its own; e.g. 03:00, Sun 03:00, Sat,Sun 02:00-05:00)" xml:space="preserve">
-    <value>Вікно застосування без нагляду (порожньо = ніколи не застосовувати самостійно; наприклад, 03:00, Sun 03:00, Sat,Sun 02:00-05:00)</value>
+  <data name="Unattended window (empty = never apply on its own)" xml:space="preserve">
+    <value>Вікно застосування без нагляду (порожньо = ніколи не застосовувати самостійно)</value>
   </data>
   <data name="Unavailable" xml:space="preserve">
     <value>Недоступно</value>
@@ -14597,8 +14657,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Up to 64 visible ASCII characters." xml:space="preserve">
     <value>До 64 видимих символів ASCII.</value>
   </data>
-  <data name="Update feed URL (empty = the built-in feed; set for a mirror)" xml:space="preserve">
-    <value>URL стрічки оновлень (порожньо = вбудована стрічка; задайте для дзеркала)</value>
+  <data name="Update feed URL (empty = the built-in feed)" xml:space="preserve">
+    <value>URL стрічки оновлень (порожньо = вбудована стрічка)</value>
   </data>
   <data name="Update status" xml:space="preserve">
     <value>Стан оновлення</value>
@@ -14618,8 +14678,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks." xml:space="preserve">
     <value>Вищі шлюзи, чия IP-адреса не повинна вважатися клієнтом, що підключається, у перевірках на спам.</value>
   </data>
-  <data name="Upstreams allowed to use XCLIENT (comma-separated addresses or CIDR ranges)" xml:space="preserve">
-    <value>Вищі вузли, яким дозволено XCLIENT (адреси або діапазони CIDR через кому)</value>
+  <data name="Upstreams allowed to use XCLIENT (comma separated)" xml:space="preserve">
+    <value>Вищі вузли, яким дозволено XCLIENT (через кому)</value>
   </data>
   <data name="Uptime" xml:space="preserve">
     <value>Час роботи</value>
@@ -14696,8 +14756,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Validates recipient TLSA records with in-process DNSSEC and blocks delivery over forged chains (RFC 7672)." xml:space="preserve">
     <value>Перевіряє записи TLSA отримувача вбудованим DNSSEC і блокує доставку через підроблені ланцюжки (RFC 7672).</value>
   </data>
-  <data name="Validity window in seconds for signatures we produce (0 = no expiry)" xml:space="preserve">
-    <value>Вікно дійсності в секундах для підписів, які ми створюємо (0 = без закінчення терміну)</value>
+  <data name="Validity window for the signatures this server makes (seconds; 0 = no expiry)" xml:space="preserve">
+    <value>Вікно дійсності підписів, які створює цей сервер (секунди; 0 = без закінчення терміну)</value>
   </data>
   <data name="Value:      {0}" xml:space="preserve">
     <value>Значення:      {0}</value>
@@ -14759,11 +14819,11 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Wait for a free database connection (60)" xml:space="preserve">
     <value>Очікування вільного з'єднання з базою даних (60)</value>
   </data>
-  <data name="Wait for a free database connection (seconds)" xml:space="preserve">
-    <value>Очікування вільного з'єднання з базою даних (секунди)</value>
+  <data name="Wait for a free database connection (seconds; 0 = wait for ever)" xml:space="preserve">
+    <value>Очікування вільного з'єднання з базою даних (секунди; 0 = чекати безкінечно)</value>
   </data>
-  <data name="Waiting for a pooled database connection. 0 = no bound." xml:space="preserve">
-    <value>Очікування з'єднання з базою даних із пулу. 0 = без обмеження.</value>
+  <data name="Waiting for a pooled database connection. 0 = no time limit." xml:space="preserve">
+    <value>Очікування з'єднання з базою даних із пулу. 0 = без обмеження часу.</value>
   </data>
   <data name="Waiting for a reinitialise:" xml:space="preserve">
     <value>Чекають на повторну ініціалізацію:</value>
@@ -15065,6 +15125,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Where the issued certificate would be written could not be determined, because neither the output folder above nor the server's data folder ([Directories] DataFolder in hMailServer.ini) could be read." xml:space="preserve">
     <value>Не вдалося визначити, куди було б записано виданий сертифікат, бо не вдалося прочитати ані папку виводу вище, ані папку даних сервера ([Directories] DataFolder у hMailServer.ini).</value>
   </data>
+  <data name="Where the provider publishes its signing keys." xml:space="preserve">
+    <value>Адреса, за якою провайдер публікує свої ключі підписування.</value>
+  </data>
   <data name="Where the search starts, e.g. DC=example,DC=local. Required in search mode - that is, when the bind method is Simple and no DN template is set." xml:space="preserve">
     <value>Звідки починається пошук, наприклад DC=example,DC=local. Обов'язковий у режимі пошуку - тобто коли метод прив'язки Simple і шаблон DN не задано.</value>
   </data>
@@ -15298,6 +15361,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the General tab." xml:space="preserve">
     <value>Якщо це увімкнено, пароль тут узагалі не зберігається - його перевірку просять у Windows. Залиште вимкненим, і обліковий запис використовує пароль із вкладки «Загальне».</value>
+  </data>
+  <data name="Without a host name, the message's local domain is used, and without that, the machine name." xml:space="preserve">
+    <value>Без імені вузла використовується локальний домен повідомлення, а без нього — ім'я комп'ютера.</value>
   </data>
   <data name="Without sign-in" xml:space="preserve">
     <value>Без входу</value>
@@ -15947,8 +16013,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Private key file" xml:space="preserve">
     <value>_Файл закритого ключа</value>
   </data>
-  <data name="_Propagation period in hours (1 to 720)" xml:space="preserve">
-    <value>Період поширення в _годинах (від 1 до 720)</value>
+  <data name="_Propagation period (hours, 1 to 720)" xml:space="preserve">
+    <value>Період поширення (_години, від 1 до 720)</value>
   </data>
   <data name="_Properties" xml:space="preserve">
     <value>_Властивості</value>

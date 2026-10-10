@@ -683,15 +683,15 @@ namespace hMailServer.ControlPanel.Views
 
          var section = new StackPanel();
          section.Children.Add(DialogFields.Check(rotOn_));
-         rotIntervalRow_ = Label(L("Days bet_ween rotations (1 to 3650)"), rotInterval_);
+         rotIntervalRow_ = Label(L("Days bet_ween rotations (1 to 3,650)"), rotInterval_);
          section.Children.Add(rotIntervalRow_);
          // The interval is the schedule's. The propagation period, the retention and
          // the key size are a rotation's, and Rotate now uses them with the schedule
          // off (DkimRotation's policy), so they stay live.
          DialogFields.EnabledBy(rotOn_, rotIntervalRow_);
-         rotPropagationRow_ = Label(L("_Propagation period in hours (1 to 720)"), rotPropagation_);
+         rotPropagationRow_ = Label(L("_Propagation period (hours, 1 to 720)"), rotPropagation_);
          section.Children.Add(rotPropagationRow_);
-         rotRetentionRow_ = Label(L("Retention period in _days (1 to 365)"), rotRetention_);
+         rotRetentionRow_ = Label(L("Retention period (_days, 1 to 365)"), rotRetention_);
          section.Children.Add(rotRetentionRow_);
          section.Children.Add(Label(L("Key si_ze"), rotKeyBits_));
          section.Children.Add(DialogFields.Note(L("The schedule is saved with the domain. The buttons below act at once. While the rotation manages the domain, the selector and key file above are the rotation's to change.")));

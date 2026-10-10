@@ -2152,7 +2152,7 @@ namespace hMailServer.ControlPanel.Views
                         Key = "DKIMSignatureValiditySeconds", Minimum = 0,
                         Default = "0",
                         Placeholder = "604800",
-                        Label = L("Validity window in seconds for signatures we produce (0 = no expiry)"),
+                        Label = L("Validity window for the signatures this server makes (seconds; 0 = no expiry)"),
                         Blurb = L("0 emits no expiry at all, which is the safe default: an expiry is a promise about mail already in flight, and a window shorter than the delay a retry, a greylist or a mailing list adds costs the message its DKIM pass and its DMARC alignment at the far end. 604800 is a week, the usual choice for a sender who wants one. A signing timestamp is always sent regardless of this value.")
                      },
                      new BoolSetting
@@ -2167,7 +2167,7 @@ namespace hMailServer.ControlPanel.Views
                         Key = "DKIMExpiryClockSkewSeconds", Minimum = 0,
                         Default = "300",
                         Placeholder = "300",
-                        Label = L("Clock-drift tolerance in seconds when checking an expiry"),
+                        Label = L("Clock-drift tolerance when checking an expiry (seconds)"),
                         Blurb = L("Allows for this server's clock differing from the signer's. Without it, a clock running a few minutes fast turns other people's valid mail into DKIM failures.")
                      }
                   }
@@ -2185,7 +2185,7 @@ namespace hMailServer.ControlPanel.Views
                      new TextSetting
                      {
                         Key = "DkimOversignHeaders",
-                        Label = L("Header fields to oversign in outbound DKIM signatures (comma separated, empty = off)"),
+                        Label = L("Header fields to oversign in outbound DKIM signatures (comma separated; empty = off)"),
                         Placeholder = "From, Subject, Reply-To", // no-loc
                         Blurb = L("From is included automatically whenever this list is non-empty - a prepended second From: is the attack oversigning exists for. Names must be printable ASCII without a colon; an invalid name is dropped with an error log entry, and a value longer than 256 characters is ignored entirely, also with an error entry, because h= has to fit on one unfolded line.")
                      }
@@ -2296,7 +2296,7 @@ namespace hMailServer.ControlPanel.Views
                      // reporting joined this page: two identically-labelled fields
                      // on one page are ambiguous to anyone who cannot see which
                      // card they are in, and AccessibleNamesTests fails on it.
-                     new TextSetting { Key = "TlsRptFromAddress", Label = L("TLS report sender address (empty = disabled)"), Placeholder = "tlsrpt@yourdomain.com" },
+                     new TextSetting { Key = "TlsRptFromAddress", Label = L("TLS report sender address (empty = off)"), Placeholder = "tlsrpt@yourdomain.com" },
                      new TextSetting { Key = "TlsRptOrganizationName", Default = "hMailServer", Label = L("Organization name in TLS reports") }
                   }
                });
@@ -2312,7 +2312,7 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Sends the daily aggregate reports that domains ask for with a rua= tag in their DMARC record (RFC 7489) - who sent mail claiming to be them, and whether it passed. Reports only go to an address outside the policy domain when that address's own DNS says it wants them, so a domain cannot use its DMARC record to aim this server's reports at somebody else."),
                   Settings =
                   {
-                     new TextSetting { Key = "DmarcRptFromAddress", Label = L("DMARC report sender address (empty = disabled)"), Placeholder = "dmarc@yourdomain.com" },
+                     new TextSetting { Key = "DmarcRptFromAddress", Label = L("DMARC report sender address (empty = off)"), Placeholder = "dmarc@yourdomain.com" },
                      new TextSetting { Key = "DmarcRptOrganizationName", Default = "hMailServer", Label = L("Organization name in DMARC reports") }
                   }
                });
@@ -2363,7 +2363,7 @@ namespace hMailServer.ControlPanel.Views
                   {
                      new DeckLinkSetting(),
                      new ElsewhereSetting("apikeys", L("Creating and revoking API keys")),
-                     new NumberSetting { Key = "RestApiPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("Port (0 = disabled)"), Placeholder = "8045" },
+                     new NumberSetting { Key = "RestApiPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("Port (0 = off)"), Placeholder = "8045" },
                      new TextSetting { Key = "RestApiBindAddress", Address = true, Default = "127.0.0.1", Label = L("Bind address") },
                      new PathSetting { Key = "RestApiCertificateFile", FileFilter = L("PEM/certificate files (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|All files (*.*)|*.*"), Label = L("TLS certificate file (PEM, optional)"), Placeholder = L("Falls back to the ACME certificate") },
                      new PathSetting { Key = "RestApiPrivateKeyFile", FileFilter = L("PEM/key files (*.pem;*.key)|*.pem;*.key|All files (*.*)|*.*"), Label = L("TLS private key file (PEM, optional)") }
@@ -2384,7 +2384,7 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Prometheus metrics (/metrics), OpenTelemetry export of traces, metrics and logs (one endpoint per signal, each off until set), a slow-query log, and JSON-structured log output for log aggregators (on the Logging page)."),
                   Settings =
                   {
-                     new NumberSetting { Key = "MetricsServerPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("Metrics port (0 = disabled)"), Placeholder = "9090" },
+                     new NumberSetting { Key = "MetricsServerPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("Metrics port (0 = off)"), Placeholder = "9090" },
                      new NumberSetting
                      {
                         Key = "MetricsHistoryDays", Minimum = 0, Maximum = 36500,
@@ -2444,21 +2444,21 @@ namespace hMailServer.ControlPanel.Views
                      new TextSetting
                      {
                         Key = "OtelEndpoint",
-                        Label = L("OpenTelemetry OTLP endpoint for traces (empty = disabled)"),
+                        Label = L("OpenTelemetry OTLP endpoint for traces (empty = off)"),
                         Placeholder = "http://localhost:4318",
                         Blurb = L(SettingClaims.NoteFor("OtelEndpoint"))
                      },
                      new TextSetting
                      {
                         Key = "OtelMetricsEndpoint",
-                        Label = L("OpenTelemetry OTLP endpoint for metrics (empty = disabled)"),
+                        Label = L("OpenTelemetry OTLP endpoint for metrics (empty = off)"),
                         Placeholder = "http://localhost:4318",
                         Blurb = L(SettingClaims.NoteFor("OtelMetricsEndpoint"))
                      },
                      new TextSetting
                      {
                         Key = "OtelLogsEndpoint",
-                        Label = L("OpenTelemetry OTLP endpoint for logs (empty = disabled)"),
+                        Label = L("OpenTelemetry OTLP endpoint for logs (empty = off)"),
                         Placeholder = "http://localhost:4318",
                         Blurb = L(SettingClaims.NoteFor("OtelLogsEndpoint"))
                      },
@@ -2471,7 +2471,7 @@ namespace hMailServer.ControlPanel.Views
                         Blurb = L("From 5 to 3600. Only used when the metrics endpoint above is set.")
                      },
                      new TextSetting { Key = "OtelServiceName", Default = "hmailserver", Label = L("OpenTelemetry service name") },
-                     new NumberSetting { Key = "SlowQueryLogMilliseconds", Minimum = 0, Default = "0", Label = L("Log database queries slower than N ms (0 = off)"), Placeholder = "250" }
+                     new NumberSetting { Key = "SlowQueryLogMilliseconds", Minimum = 0, Default = "0", Label = L("Log database queries slower than (milliseconds; 0 = off)"), Placeholder = "250" }
                   },
                   Warnings =
                   {
@@ -2627,7 +2627,7 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Lets mail clients upload and manage per-account Sieve filter scripts over TCP. Authentication is SASL PLAIN against the account database, so the mailbox password crosses this connection. STARTTLS is offered only when a TLS-capable mailbox port has a certificate to borrow - the status below says whether it will be."),
                   Settings =
                   {
-                     new NumberSetting { Key = "ManageSieveServerPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("ManageSieve port (0 = disabled)"), Placeholder = "4190" },
+                     new NumberSetting { Key = "ManageSieveServerPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("ManageSieve port (0 = off)"), Placeholder = "4190" },
                      new TextSetting { Key = "ManageSieveServerBindAddress", Address = true, Default = "127.0.0.1", Label = L("ManageSieve bind address") }
                   },
                   Warnings =
@@ -2652,7 +2652,7 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Graceful shutdown behaviour for unattended / clustered operation. (Log retention is on the Logging page.)"),
                   Settings =
                   {
-                     new NumberSetting { Key = "ShutdownDrainSeconds", Minimum = 0, Maximum = 86400, Default = "0", Label = L("On stop, wait up to N seconds for active sessions to finish (0 = stop immediately)"), Placeholder = "30" }
+                     new NumberSetting { Key = "ShutdownDrainSeconds", Minimum = 0, Maximum = 86400, Default = "0", Label = L("Time active sessions get to finish when the service stops (seconds, up to 86,400; 0 = none)"), Placeholder = "30" }
                   }
                });
                // Monitoring and integration that the server keeps in its database
@@ -2695,15 +2695,15 @@ namespace hMailServer.ControlPanel.Views
                      new BoolSetting { Key = "UpdateCheckEnabled", Default = false, Label = L("Check for a new release once a day") },
                      new NumberSetting { Key = "UpdateCheckHours", Minimum = 1, Maximum = 168, Default = "24", Label = L("Hours between checks (1 to 168)"), Placeholder = "24" },
                      new TextSetting { Key = "UpdateChannel", Default = "stable", Label = L("Channel: stable, or prerelease to run ahead on a test machine"), Placeholder = "stable" },
-                     new TextSetting { Key = "UpdateFeedUrl", Label = L("Update feed URL (empty = the built-in feed; set for a mirror)"), Placeholder = "https://updates.progressiverobot.com/releases.json" },
-                     new TextSetting { Key = "HttpProxy", Label = L("Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)"), Placeholder = "proxy.example.net:3128" },
+                     new TextSetting { Key = "UpdateFeedUrl", Label = L("Update feed URL (empty = the built-in feed)"), Blurb = L("Set it to use a mirror."), Placeholder = "https://updates.progressiverobot.com/releases.json" },
+                     new TextSetting { Key = "HttpProxy", Label = L("Forward proxy for this server's web requests (host:port; empty = direct)"), Blurb = L("The update feed and its downloads, JWKS and token introspection all go through it. Proxy credentials are not supported."), Placeholder = "proxy.example.net:3128" },
                      new BoolSetting { Key = "UpdateAutoDownload", Default = false, Label = L("Download and verify the installer as soon as a release is found") },
                      new TextSetting
                      {
                         Key = "UpdateWindow",
-                        Label = L("Unattended window (empty = never apply on its own; e.g. 03:00, Sun 03:00, Sat,Sun 02:00-05:00)"),
+                        Label = L("Unattended window (empty = never apply on its own)"),
                         Placeholder = "Sun 03:00", // no-loc
-                        Blurb = L("Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database.")
+                        Blurb = Sentences(L("For example 03:00, Sun 03:00 or Sat,Sun 02:00-05:00."), L("Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database."))
                      },
                      new BoolSetting { Key = "UpdateBackupBeforeApply", Default = true, Label = L("Back up to the configured destination before an unattended apply (no destination or a failed backup means no apply)") },
                      new BoolSetting
@@ -2769,16 +2769,16 @@ namespace hMailServer.ControlPanel.Views
                      {
                         Key = "FinalizationTimeout", Minimum = 0,
                         Default = "240",
-                        Label = L("Message finalization deadline (seconds; 0 = no deadline)"),
+                        Label = L("Message finalization deadline (seconds; 0 = no time limit)"),
                         Blurb = L("How long the server will go on finalizing an accepted message before answering 451 and asking the sender to retry, rather than holding the connection open indefinitely.")
                      },
-                     new NumberSetting { Key = "DNSQueryTimeout", Minimum = 0, Maximum = 86400, Default = "10", Label = L("DNS query timeout (seconds; 0 = no bound)") },
-                     new NumberSetting { Key = "ClientSessionCeiling", Minimum = 0, Default = "1800", Label = L("Absolute lifetime of one client session (seconds)") },
-                     new NumberSetting { Key = "DBConnectionAcquireTimeout", Minimum = 0, Default = "60", Label = L("Wait for a free database connection (seconds)") },
-                     new NumberSetting { Key = "ScriptTimeout", Minimum = 0, Default = "60", Label = L("Event script execution timeout (seconds)") },
-                     new NumberSetting { Key = "ExternalProcessTimeout", Minimum = 0, Default = "300", Label = L("External process timeout, e.g. a command-line virus scanner (seconds)") },
-                     new NumberSetting { Key = "AsyncQueueStallThreshold", Minimum = 0, Default = "120", Label = L("Report the async work queue as stalled after (seconds)") },
-                     new NumberSetting { Key = "AsyncQueueReservedThreads", Minimum = 0, Default = "2", Label = L("Threads reserved so the async queue cannot be starved") }
+                     new NumberSetting { Key = "DNSQueryTimeout", Minimum = 0, Maximum = 86400, Default = "10", Label = L("DNS query timeout (seconds; 0 = no time limit)") },
+                     new NumberSetting { Key = "ClientSessionCeiling", Minimum = 0, Default = "1800", Label = L("Absolute lifetime of one client session (seconds; 0 = no time limit)") },
+                     new NumberSetting { Key = "DBConnectionAcquireTimeout", Minimum = 0, Default = "60", Label = L("Wait for a free database connection (seconds; 0 = wait for ever)") },
+                     new NumberSetting { Key = "ScriptTimeout", Minimum = 0, Default = "60", Label = L("Event script execution timeout (seconds; 0 = no time limit)") },
+                     new NumberSetting { Key = "ExternalProcessTimeout", Minimum = 0, Default = "300", Label = L("External process timeout (seconds; 0 = no time limit)"), Blurb = L("A command-line virus scanner is one.") },
+                     new NumberSetting { Key = "AsyncQueueStallThreshold", Minimum = 0, Default = "120", Label = L("Report the async work queue as stalled after (seconds; 0 = never)") },
+                     new NumberSetting { Key = "AsyncQueueReservedThreads", Minimum = 0, Default = "2", Label = L("Threads reserved so the async queue cannot be starved (0 = none)") }
                   }
                });
                // Scanner timeouts moved to the scanner they configure: SpamAssassin
@@ -2801,17 +2801,17 @@ namespace hMailServer.ControlPanel.Views
                      new TextSetting
                      {
                         Key = "SMTPProxyProtocolTrustedIPs",
-                        Label = L("Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)"),
+                        Label = L("Proxies allowed to send a PROXY header (comma separated)"),
                         Placeholder = "10.0.0.5, 192.168.10.0/24",
-                        Blurb = L("Empty means nobody, which is the safe default. Matched against the real TCP peer. An entry that does not parse matches nothing rather than everything, and is reported in the error log once per run.")
+                        Blurb = Sentences(L("Addresses or CIDR blocks."), L("Empty means nobody, which is the safe default. Matched against the real TCP peer. An entry that does not parse matches nothing rather than everything, and is reported in the error log once per run."))
                      },
                      new BoolSetting { Key = "SMTPXClientEnabled", Default = false, Label = L("Accept the XCLIENT command (Postfix)") },
                      new TextSetting
                      {
                         Key = "SMTPXClientTrustedIPs",
-                        Label = L("Upstreams allowed to use XCLIENT (comma-separated addresses or CIDR ranges)"),
+                        Label = L("Upstreams allowed to use XCLIENT (comma separated)"),
                         Placeholder = "10.0.0.6",
-                        Blurb = L("Empty means nobody. XCLIENT is not even advertised in EHLO to an upstream that is not listed here, so an attacker learns nothing about the deployment by asking.")
+                        Blurb = Sentences(L("Addresses or CIDR blocks."), L("Empty means nobody. XCLIENT is not even advertised in EHLO to an upstream that is not listed here, so an attacker learns nothing about the deployment by asking."))
                      }
                   }
                });
@@ -2842,7 +2842,7 @@ namespace hMailServer.ControlPanel.Views
                      {
                         Key = "BlockedIPHoldSeconds", Minimum = 0,
                         Default = "0",
-                        Label = L("Hold a refused connection open before dropping it (seconds, 0 = drop immediately)"),
+                        Label = L("Hold a refused connection open before dropping it (seconds; 0 = drop immediately)"),
                         Blurb = L("Anti-pounding: a host that reconnects the instant it is dropped can do so thousands of times a minute, and holding the socket open slows it to one connection per interval without costing this server a thread. The connection is held by a timer, so it consumes nothing while it waits.")
                      }
                   }
@@ -2854,7 +2854,7 @@ namespace hMailServer.ControlPanel.Views
                   Settings =
                   {
                      new BoolSetting { Key = "MessageStoreFsync", Default = false, Label = L("Flush each received message to disk before it is acknowledged (durable, slower)") },
-                     new BoolSetting { Key = "MessageStoreConsistencyCheck", Default = false, Label = L("Periodically cross-check message rows against files on disk (read-only; writes a report on divergence)") }
+                     new BoolSetting { Key = "MessageStoreConsistencyCheck", Default = false, Label = L("Periodically cross-check message rows against files on disk"), Blurb = L("Read-only: it writes a report when the two diverge.") }
                   }
                });
                cards_.Add(new CardDef
@@ -2873,7 +2873,7 @@ namespace hMailServer.ControlPanel.Views
                         Key = "MaxMessagesPerAccountPerPeriod", Minimum = 0,
                         Section = "SendingLimits",
                         Default = "0",
-                        Label = L("Max messages per account per period (0 = no limit)"),
+                        Label = L("Maximum messages per account per period (0 = no limit)"),
                         Placeholder = "500"
                      },
                      new NumberSetting
@@ -2881,7 +2881,7 @@ namespace hMailServer.ControlPanel.Views
                         Key = "MaxRecipientsPerAccountPerPeriod", Minimum = 0,
                         Section = "SendingLimits",
                         Default = "0",
-                        Label = L("Max recipients per account per period (0 = no limit)"),
+                        Label = L("Maximum recipients per account per period (0 = no limit)"),
                         Placeholder = "2000",
                         Blurb = L("Recipients are the stricter measure: one message to two thousand addresses is two thousand recipients.")
                      },
@@ -2890,16 +2890,16 @@ namespace hMailServer.ControlPanel.Views
                         Key = "PeriodHours", Minimum = 1, Maximum = 168,
                         Section = "SendingLimits",
                         Default = "24",
-                        Label = L("Period length in hours (default 24)"),
-                        Blurb = L("From 1 hour to 168, a week.")
+                        Label = L("Period length (hours, 1 to 168)"),
+                        Blurb = L("The default is 24, and 168 is a week.")
                      },
                      new NumberSetting
                      {
                         Key = "StateSaveIntervalSeconds", Minimum = 1, Maximum = 3600,
                         Section = "SendingLimits",
                         Default = "10",
-                        Label = L("Save the counters to disk every N seconds (default 10)"),
-                        Blurb = L("How much sending history a crash can forget, from 1 second to 3600.")
+                        Label = L("Save the counters to disk every (seconds, 1 to 3,600)"),
+                        Blurb = Sentences(L("How much sending history a crash can forget, from 1 second to 3600."), L("The default is 10."))
                      },
                      new SectionLinesSetting
                      {
@@ -2917,7 +2917,7 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Throttle abusive senders submitting to this server. Limits are per minute; 0 disables the limit. (Throttling your own outbound rate to a destination is on the Delivery of e-mail page.)"),
                   Settings =
                   {
-                     new NumberSetting { Key = "MaxSubmissionsPerIPPerMinute", Minimum = 0, Default = "0", Label = L("Max authenticated submissions per client IP per minute (0 = unlimited)"), Placeholder = "60" }
+                     new NumberSetting { Key = "MaxSubmissionsPerIPPerMinute", Minimum = 0, Default = "0", Label = L("Maximum authenticated submissions per client IP per minute (0 = no limit)"), Placeholder = "60" }
                   }
                });
                // Logging detail moved to the Logging page, indexer cadence to
@@ -2933,7 +2933,7 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Bounces and virus notifications are sent from mailer-daemon@<domain>. This overrides the <domain> part. Left empty, the server uses its own host name, then the local domain the message involves, then this computer's name. It is not a delivery setting and does not change where mail is routed."),
                   Settings =
                   {
-                     new TextSetting { Key = "DaemonAddressDomain", Label = L("Domain for the mailer-daemon sender address (empty = host name, else the message's local domain, else the machine name)"), Placeholder = "yourdomain.com" }
+                     new TextSetting { Key = "DaemonAddressDomain", Label = L("Domain for the mailer-daemon sender address (empty = the host name)"), Blurb = L("Without a host name, the message's local domain is used, and without that, the machine name."), Placeholder = "yourdomain.com" }
                   }
                });
                cards_.Add(new CardDef
@@ -2942,7 +2942,7 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Specialist knobs — leave at the defaults unless you have a specific reason."),
                   Settings =
                   {
-                     new NumberSetting { Key = "SMTPDMaxSizeDrop", Minimum = 0, Default = "0", Label = L("Drop oversized inbound messages above N KB mid-transfer (0 = off)") },
+                     new NumberSetting { Key = "SMTPDMaxSizeDrop", Minimum = 0, Default = "0", Label = L("Drop inbound messages larger than this mid-transfer (KB; 0 = off)") },
                      // SAMoveVsCopy went to Anti-spam > SpamAssassin: it configures
                      // how a message reaches that scanner, and belongs with the host,
                      // port and timeouts that configure the rest of the same handoff.
@@ -3078,8 +3078,8 @@ namespace hMailServer.ControlPanel.Views
                      new ElsewhereSetting("antispam", L("Greylisting record expiration, and SpamAssassin move-vs-copy")),
                      new ElsewhereSetting("protocols", L("IMAP search time and size limits, and the eight per-protocol idle timeouts")),
                      new ElsewhereSetting("tls", L("TLS session tickets, session cache size, resumption lifetime and ticket-key rotation")),
-                     new ElsewhereSetting("delivery", L("Extra delivery attempts per additional MX host")),
-                     new ElsewhereSetting("performance", L("Max parallel external POP3 fetch threads")),
+                     new ElsewhereSetting("delivery", L("MX hosts tried per attempt, times the attempt number")),
+                     new ElsewhereSetting("performance", L("Maximum parallel external POP3 fetch threads")),
                      new ElsewhereSetting("security", L("SRS, BATV and the plain envelope-sender rewrite for forwarded mail"), N("Forwarding"))
                   }
                });
@@ -3110,9 +3110,9 @@ namespace hMailServer.ControlPanel.Views
                      // The two round trips to the provider, both off unless set: its
                      // published keys instead of a hand-copied PEM file, and a live
                      // revocation check after a token verifies.
-                     new TextSetting { Key = "OAuth2JwksUrl", DependsOn = OAuth2Switch, Label = L("JWK Set URL (the provider's published signing keys; empty = the key file only)"), Placeholder = ExamplePlaceholder.Of("https://login.microsoftonline.com/<tenant>/discovery/v2.0/keys") }, // no-loc: an example URL, the same in every language
+                     new TextSetting { Key = "OAuth2JwksUrl", DependsOn = OAuth2Switch, Label = L("JWK Set URL (empty = the key file only)"), Blurb = L("Where the provider publishes its signing keys."), Placeholder = ExamplePlaceholder.Of("https://login.microsoftonline.com/<tenant>/discovery/v2.0/keys") }, // no-loc: an example URL, the same in every language
                      new NumberSetting { Key = "OAuth2JwksCacheSeconds", DependsOn = OAuth2Switch, Minimum = 10, Default = "3600", Label = L("Seconds to keep the JWK Set before re-fetching (a token naming an unknown key ID re-fetches at once)") },
-                     new TextSetting { Key = "OAuth2IntrospectionUrl", DependsOn = OAuth2Switch, Label = L("Token introspection endpoint (RFC 7662; empty = no revocation check)"), Placeholder = ExamplePlaceholder.Of("https://idp.example.com/oauth2/introspect") }, // no-loc: an example URL, the same in every language
+                     new TextSetting { Key = "OAuth2IntrospectionUrl", DependsOn = OAuth2Switch, Label = L("Token introspection endpoint (empty = no revocation check)"), Blurb = L("The provider's RFC 7662 endpoint, which says whether a token is still valid."), Placeholder = ExamplePlaceholder.Of("https://idp.example.com/oauth2/introspect") }, // no-loc: an example URL, the same in every language
                      new TextSetting { Key = "OAuth2IntrospectionClientId", DependsOn = OAuth2Switch, Label = L("Client ID this server introspects as") },
                      new SecretSetting { Key = "OAuth2IntrospectionClientSecret", DependsOn = OAuth2Switch, Label = L("Client secret for introspection"), Hint = L("Issued by the provider together with the client ID") },
                      new NumberSetting { Key = "OAuth2IntrospectionCacheSeconds", DependsOn = OAuth2Switch, Minimum = 0, Default = "300", Label = L("Seconds an introspection verdict is reused (never past the token's own expiry)") },
@@ -3171,9 +3171,9 @@ namespace hMailServer.ControlPanel.Views
                      // change does, and a question at Save (PepperChange): the caption
                      // that shouted about it was the only safeguard (review finding F169).
                      new SecretSetting { Key = "PasswordPepper", Label = L("Password pepper"), Hint = L("Server-wide secret mixed into password hashes"), Warning = PepperChange.Warning },
-                     new NumberSetting { Key = "PasswordHashIterations", Minimum = 10000, Maximum = 10000000, ZeroIsBuiltIn = true, Default = "0", Placeholder = "0 = 210,000", Label = L("PBKDF2 iterations for new hashes (0 = the built-in 210,000; 10,000 to 10,000,000)") },
-                     new NumberSetting { Key = "PasswordHashMemoryKB", Minimum = 4096, Maximum = 1048576, ZeroIsBuiltIn = true, Default = "0", Placeholder = "0 = 19,456", Label = L("Argon2id memory for new hashes, in KiB (0 = the built-in 19,456; 4,096 to 1,048,576)") },
-                     new NumberSetting { Key = "PasswordHashTimeCost", Minimum = 1, Maximum = 20, ZeroIsBuiltIn = true, Default = "0", Placeholder = "0 = 2", Label = L("Argon2id passes for new hashes (0 = the built-in 2; 1 to 20)") }
+                     new NumberSetting { Key = "PasswordHashIterations", Minimum = 10000, Maximum = 10000000, ZeroIsBuiltIn = true, Default = "0", Placeholder = "0 = 210,000", Label = L("PBKDF2 iterations for new hashes (10,000 to 10,000,000; 0 = the built-in 210,000)") },
+                     new NumberSetting { Key = "PasswordHashMemoryKB", Minimum = 4096, Maximum = 1048576, ZeroIsBuiltIn = true, Default = "0", Placeholder = "0 = 19,456", Label = L("Argon2id memory for new hashes (KiB, 4,096 to 1,048,576; 0 = the built-in 19,456)") },
+                     new NumberSetting { Key = "PasswordHashTimeCost", Minimum = 1, Maximum = 20, ZeroIsBuiltIn = true, Default = "0", Placeholder = "0 = 2", Label = L("Argon2id passes for new hashes (1 to 20; 0 = the built-in 2)") }
                   }
                });
                cards_.Add(new CardDef
@@ -3245,10 +3245,10 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Nothing below is served until a port is set here. The server answers on either port, but an MTA-STS policy is only valid over HTTPS and Outlook only accepts autodiscover over HTTPS — so in practice set the HTTPS port and a certificate covering the host names clients use."),
                   Settings =
                   {
-                     new NumberSetting { Key = "WebServicesHttpPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("HTTP port (80 to enable, 0 = disabled)") },
-                     new NumberSetting { Key = "WebServicesHttpsPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("HTTPS port (443 to enable, 0 = disabled)") },
+                     new NumberSetting { Key = "WebServicesHttpPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("HTTP port (0 = off)"), Blurb = L("80 is the port clients expect.") },
+                     new NumberSetting { Key = "WebServicesHttpsPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("HTTPS port (0 = off)"), Blurb = L("443 is the port clients expect.") },
                      new TextSetting { Key = "WebServicesBindAddress", Address = true, Default = "0.0.0.0", Label = L("Bind address") },
-                     new TextSetting { Key = "WebServicesTrustedProxies", Label = L("Trusted proxies whose X-Forwarded-Proto: https is believed (addresses, comma-separated; loopback always is)") },
+                     new TextSetting { Key = "WebServicesTrustedProxies", Label = L("Trusted proxies whose X-Forwarded-Proto: https is believed (comma separated)"), Blurb = L("Addresses; the loopback address is always trusted.") },
                      new PathSetting { Key = "WebServicesCertificateFile", FileFilter = L("PEM/certificate files (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|All files (*.*)|*.*"), Label = L("TLS certificate file (PEM, optional)"), Placeholder = L("Falls back to the ACME certificate") },
                      new PathSetting { Key = "WebServicesPrivateKeyFile", FileFilter = L("PEM/key files (*.pem;*.key)|*.pem;*.key|All files (*.*)|*.*"), Label = L("TLS private key file (PEM, optional)") }
                   }
@@ -3282,7 +3282,7 @@ namespace hMailServer.ControlPanel.Views
                            ("none", L("none - no policy: senders that cached one stop applying it"))
                         }
                      },
-                     new NumberSetting { Key = "MtaStsPolicyMaxAge", Minimum = 86400, Maximum = 31557600, Default = "604800", Label = L("Policy max age (seconds; default 604800 = 7 days)"), Blurb = L("From 86400, a day, to 31557600, a year - the longest RFC 8461 allows.") },
+                     new NumberSetting { Key = "MtaStsPolicyMaxAge", Minimum = 86400, Maximum = 31557600, Default = "604800", Label = L("Policy max age (seconds, 86,400 to 31,557,600)"), Blurb = Sentences(L("From 86400, a day, to 31557600, a year - the longest RFC 8461 allows."), L("The default, 604,800, is a week.")) },
                      new TextSetting { Key = "MtaStsPolicyMx", Label = L("Policy MX host patterns (empty = derive from each domain's MX)"), Placeholder = "mail.yourdomain.com, *.yourdomain.com" } // no-loc
                   }
                });

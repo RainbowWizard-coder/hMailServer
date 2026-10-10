@@ -297,6 +297,9 @@
   <data name="43200 is twelve hours. At most 2592000, thirty days." xml:space="preserve">
     <value>43200 são doze horas. No máximo 2592000, trinta dias.</value>
   </data>
+  <data name="443 is the port clients expect." xml:space="preserve">
+    <value>443 é a porta que os clientes esperam.</value>
+  </data>
   <data name="45 by default. A stale database is still used; the application log says it is stale." xml:space="preserve">
     <value>45 por padrão. Um banco desatualizado continua sendo usado; o log do aplicativo avisa que ele está desatualizado.</value>
   </data>
@@ -351,6 +354,9 @@
   <data name="80 by default." xml:space="preserve">
     <value>80 por padrão.</value>
   </data>
+  <data name="80 is the port clients expect." xml:space="preserve">
+    <value>80 é a porta que os clientes esperam.</value>
+  </data>
   <data name="86400 by default; 0 delivers at once or not at all." xml:space="preserve">
     <value>86400 por padrão; 0 entrega na hora ou não entrega.</value>
   </data>
@@ -401,6 +407,9 @@
   </data>
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>Um código de um aplicativo autenticador, exigido junto com a senha desta conta. Vale onde um código pode de fato ser digitado - o Control Panel e a API. Clientes de e-mail não podem apresentar um, então uma vez ativado eles precisam usar uma senha de aplicativo.</value>
+  </data>
+  <data name="A command-line virus scanner is one." xml:space="preserve">
+    <value>Um antivírus de linha de comando é um deles.</value>
   </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
     <value>Uma cópia do correio de um domínio, ou de uma conta, enviada para um endereço: como um relatório de envelope com a mensagem anexada, ou como a própria mensagem.</value>
@@ -612,8 +621,8 @@
   <data name="A read-only SNMP agent for a monitoring system: SNMPv3 with authentication and encryption, and SNMPv2c only if you switch it on. It answers nobody until the managers are listed, and the port has to be open to them in any firewall between." xml:space="preserve">
     <value>Um agente SNMP somente leitura para um sistema de monitoramento: SNMPv3 com autenticação e criptografia, e SNMPv2c só se você ligar. Ele não responde a ninguém até que os gerentes sejam listados, e a porta precisa estar aberta para eles em qualquer firewall no caminho.</value>
   </data>
-  <data name="A recipient domain with several MX hosts is worth more attempts than one with a single host, because a retry can land on a different server. This multiplies the retry count above by the number of MX hosts actually tried." xml:space="preserve">
-    <value>Um domínio destinatário com vários hosts MX vale mais tentativas do que um com um único host, porque uma nova tentativa pode cair em outro servidor. Isto multiplica o número de tentativas acima pelo número de hosts MX realmente tentados.</value>
+  <data name="A regular expression." xml:space="preserve">
+    <value>Uma expressão regular.</value>
   </data>
   <data name="A remote server that answers extremely slowly. The idle timeout is re-armed on every byte, so a host that sends one byte occasionally used to hold a delivery thread indefinitely; 'Absolute lifetime of one client session' (30 minutes by default) is the absolute ceiling, armed once and never re-armed." xml:space="preserve">
     <value>Um servidor remoto que responde com extrema lentidão. O tempo limite de inatividade é rearmado a cada byte, então um host que envia um byte de vez em quando podia prender uma thread de entrega indefinidamente; 'Duração absoluta de uma sessão de cliente' (30 minutos por padrão) é o teto absoluto, armado uma vez e nunca rearmado.</value>
@@ -693,8 +702,8 @@
   <data name="A simple bind needs the user's distinguished name. There are two ways to get one - search for it, or compute it from a template - and Negotiate needs neither, because SSPI authenticates by user name and domain, which the account already carries." xml:space="preserve">
     <value>Um bind simples precisa do nome distinto do usuário. Há duas formas de obtê-lo - procurá-lo, ou calculá-lo a partir de um modelo - e o Negotiate não precisa de nenhuma, porque o SSPI autentica por nome de usuário e domínio, que a conta já carrega.</value>
   </data>
-  <data name="A single DNS query. 0 = no bound." xml:space="preserve">
-    <value>Uma única consulta DNS. 0 = sem limite.</value>
+  <data name="A single DNS query. 0 = no time limit." xml:space="preserve">
+    <value>Uma única consulta DNS. 0 = sem limite de tempo.</value>
   </data>
   <data name="A spam trap is an address in one of your domains that nobody uses, so whoever writes to it is sending spam. These settings say what happens to a server that does. The trap addresses are declared per domain in the Control Deck; until a domain has one, nothing here does anything." xml:space="preserve">
     <value>Uma armadilha de spam é um endereço em um dos seus domínios que ninguém usa, então quem escreve para ele está enviando spam. Estas configurações dizem o que acontece com um servidor que faz isso. Os endereços armadilha são declarados por domínio no Control Deck; enquanto um domínio não tiver um, nada aqui tem efeito.</value>
@@ -834,8 +843,8 @@
   <data name="Absolute lifetime of one client session (1800)" xml:space="preserve">
     <value>Duração absoluta de uma sessão de cliente (1800)</value>
   </data>
-  <data name="Absolute lifetime of one client session (seconds)" xml:space="preserve">
-    <value>Duração absoluta de uma sessão de cliente (segundos)</value>
+  <data name="Absolute lifetime of one client session (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>Duração absoluta de uma sessão de cliente (segundos; 0 = sem limite de tempo)</value>
   </data>
   <data name="Accept DKIM signatures that use rsa-sha1" xml:space="preserve">
     <value>Aceitar assinaturas DKIM que usam rsa-sha1</value>
@@ -909,8 +918,8 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="Account recovery" xml:space="preserve">
     <value>Recuperação de conta</value>
   </data>
-  <data name="Account-number pattern (a regular expression; empty = none)" xml:space="preserve">
-    <value>Padrão de número de conta (uma expressão regular; vazio = nenhum)</value>
+  <data name="Account-number pattern (empty = none)" xml:space="preserve">
+    <value>Padrão de número de conta (vazio = nenhum)</value>
   </data>
   <data name="Accounts" xml:space="preserve">
     <value>Contas</value>
@@ -1254,14 +1263,20 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>Endereços e domínios inteiros que as contas de {0} querem, ou não. Consultada depois da lista própria de uma conta e antes da do servidor.</value>
   </data>
-  <data name="Addresses at other providers a person may send as (0 = none; up to 20)" xml:space="preserve">
-    <value>Endereços em outros provedores com os quais uma pessoa pode enviar (0 = nenhum; até 20)</value>
+  <data name="Addresses at other providers a person may send as (up to 20; 0 = none)" xml:space="preserve">
+    <value>Endereços em outros provedores com os quais uma pessoa pode enviar (até 20; 0 = nenhum)</value>
+  </data>
+  <data name="Addresses or CIDR blocks." xml:space="preserve">
+    <value>Endereços ou blocos CIDR.</value>
   </data>
   <data name="Addresses that sign in to the Control Deck as the administrator through OpenID Connect (comma separated)" xml:space="preserve">
     <value>Endereços que fazem login no Control Deck como administrador por meio de OpenID Connect (separados por vírgulas)</value>
   </data>
   <data name="Addresses that sign in to the Control Deck as the administrator through SAML (comma separated)" xml:space="preserve">
     <value>Endereços que fazem login no Control Deck como administrador por meio de SAML (separados por vírgulas)</value>
+  </data>
+  <data name="Addresses; the loopback address is always trusted." xml:space="preserve">
+    <value>Endereços; o endereço de loopback é sempre confiável.</value>
   </data>
   <data name="Adds" xml:space="preserve">
     <value>Soma</value>
@@ -1311,6 +1326,9 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="Advanced" xml:space="preserve">
     <value>Avançado</value>
   </data>
+  <data name="Advanced: it is sent as it is, in place of a token the server fetches." xml:space="preserve">
+    <value>Avançado: é enviado como está, no lugar de um token que o servidor obtém.</value>
+  </data>
   <data name="After a restart" xml:space="preserve">
     <value>Após reiniciar o serviço</value>
   </data>
@@ -1329,8 +1347,8 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="Against {0} over {1}. Set the service account user name (and its password), or switch to a user DN template or the Negotiate bind method, neither of which searches at all." xml:space="preserve">
     <value>Contra {0} por {1}. Defina o nome de usuário da conta de serviço (e sua senha), ou mude para um modelo de DN de usuário ou para o método de bind Negotiate, nenhum dos quais faz busca.</value>
   </data>
-  <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
-    <value>Esquema de relatório agregado que este servidor envia: 1 = RFC 7489 apêndice C, 2 = RFC 9990</value>
+  <data name="Aggregate-report schema this server sends (1 = RFC 7489 Appendix C, 2 = RFC 9990)" xml:space="preserve">
+    <value>Esquema de relatório agregado que este servidor envia (1 = RFC 7489 apêndice C, 2 = RFC 9990)</value>
   </data>
   <data name="Alert rule" xml:space="preserve">
     <value>Regra de alerta</value>
@@ -1593,8 +1611,8 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="An auto-ban is enforced by the server's own listeners: the address is accepted by the operating system, handed to the server and dropped. These settings push the ban down into the operating system's firewall, hand it to a program of yours, and name the addresses that must never be banned at all." xml:space="preserve">
     <value>Um banimento automático é aplicado pelos próprios listeners do servidor: o sistema operacional aceita o endereço, entrega-o ao servidor e o servidor o descarta. Estas configurações levam o banimento ao firewall do sistema operacional, entregam-no a um programa seu e nomeiam os endereços que nunca devem ser banidos.</value>
   </data>
-  <data name="An entire outbound delivery session. 0 = no bound." xml:space="preserve">
-    <value>Uma sessão inteira de entrega de saída. 0 = sem limite.</value>
+  <data name="An entire outbound delivery session. 0 = no time limit." xml:space="preserve">
+    <value>Uma sessão inteira de entrega de saída. 0 = sem limite de tempo.</value>
   </data>
   <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
     <value>Uma entrada é alterada no lugar pela API REST, que pede o código de uso único do administrador antes de responder, e nenhum foi informado. Pressione Editar… para que ele seja pedido de novo, ou exclua a entrada e adicione-a de novo.</value>
@@ -1611,8 +1629,8 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
     <value>Um script de evento roda dentro do servidor com os direitos da conta de serviço, então o que ele pode instanciar é uma decisão de segurança, e não uma conveniência. Como distribuído, isto é *, que permite qualquer objeto, para que uma atualização nunca quebre um script que uma instalação já executa - é a configuração a restringir, não o estado seguro. Nomeie apenas o que algum script seu realmente precisa - um objeto de sistema de arquivos de script, um cliente HTTP - e todo o resto é recusado, com o nome do objeto no log de erros; vazio recusa tudo além dos objetos do próprio hMailServer.</value>
   </data>
-  <data name="An external scanner process. 0 = no bound." xml:space="preserve">
-    <value>Um processo de verificação externo. 0 = sem limite.</value>
+  <data name="An external scanner process. 0 = no time limit." xml:space="preserve">
+    <value>Um processo de verificação externo. 0 = sem limite de tempo.</value>
   </data>
   <data name="An older, weaker option: a one-time code asked for after the password when signing in to THIS Control Panel, checked by the tool itself after the server has already accepted the password. The secret is stored per machine under HKLM, so enabling or disabling it needs local administrator rights, and it does nothing for the REST API or for scripts using the COM API. Prefer the server-enforced factor above; this one remains for existing setups." xml:space="preserve">
     <value>Uma opção mais antiga e mais fraca: um código de uso único pedido após a senha ao entrar NESTE Control Panel, verificado pela própria ferramenta depois que o servidor já aceitou a senha. O segredo é armazenado por máquina em HKLM, então ativar ou desativar exige direitos de administrador local, e não faz nada pela API REST ou por scripts que usam a API COM. Prefira o fator imposto pelo servidor acima; este permanece para instalações existentes.</value>
@@ -1807,14 +1825,14 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id (exigente em memória, recomendado)</value>
   </data>
-  <data name="Argon2id memory for new hashes, in KiB (0 = the built-in 19,456; 4,096 to 1,048,576)" xml:space="preserve">
-    <value>Memória Argon2id para novos hashes, em KiB (0 = os 19.456 embutidos; 4.096 a 1.048.576)</value>
+  <data name="Argon2id memory for new hashes (KiB, 4,096 to 1,048,576; 0 = the built-in 19,456)" xml:space="preserve">
+    <value>Memória Argon2id para novos hashes (KiB, 4.096 a 1.048.576; 0 = os 19.456 embutidos)</value>
   </data>
   <data name="Argon2id or scrypt only" xml:space="preserve">
     <value>Somente Argon2id ou scrypt</value>
   </data>
-  <data name="Argon2id passes for new hashes (0 = the built-in 2; 1 to 20)" xml:space="preserve">
-    <value>Passagens Argon2id para novos hashes (0 = as 2 embutidas; 1 a 20)</value>
+  <data name="Argon2id passes for new hashes (1 to 20; 0 = the built-in 2)" xml:space="preserve">
+    <value>Passagens Argon2id para novos hashes (1 a 20; 0 = as 2 embutidas)</value>
   </data>
   <data name="Arriving" xml:space="preserve">
     <value>Recebidas</value>
@@ -2068,14 +2086,14 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Backup archives (HMBackup*.7z)|HMBackup*.7z|All files (*.*)|*.*" xml:space="preserve">
     <value>Arquivos de backup (HMBackup*.7z)|HMBackup*.7z|Todos os arquivos (*.*)|*.*</value>
   </data>
-  <data name="Backup interva_l in minutes (0 = off)" xml:space="preserve">
-    <value>Interva_lo de backup em minutos (0 = desligado)</value>
+  <data name="Backup interva_l (minutes; 0 = off)" xml:space="preserve">
+    <value>Interva_lo de backup (minutos; 0 = desligado)</value>
+  </data>
+  <data name="Backup interval (minutes; 0 = off)" xml:space="preserve">
+    <value>Intervalo de backup (minutos; 0 = desligado)</value>
   </data>
   <data name="Backup interval in minutes" xml:space="preserve">
     <value>Intervalo de backup em minutos</value>
-  </data>
-  <data name="Backup interval in minutes (0 = off)" xml:space="preserve">
-    <value>Intervalo de backup em minutos (0 = desligado)</value>
   </data>
   <data name="Backup schedule saved - the service reads these settings when it starts, so they apply after a service restart." xml:space="preserve">
     <value>Agendamento de backup salvo - o serviço lê estas configurações quando inicia, então elas valem após reiniciar o serviço.</value>
@@ -2098,8 +2116,11 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Ban duration (minutes)" xml:space="preserve">
     <value>Duração do banimento (minutos)</value>
   </data>
-  <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
-    <value>Banir por (horas, de 1 a 8760)</value>
+  <data name="Ban for (hours, 1 to 8,760)" xml:space="preserve">
+    <value>Banir por (horas, de 1 a 8.760)</value>
+  </data>
+  <data name="Ban the sending address for (minutes, up to 525,600; 0 = no ban)" xml:space="preserve">
+    <value>Banir o endereço remetente por (minutos, até 525.600; 0 = sem banimento)</value>
   </data>
   <data name="Banned now" xml:space="preserve">
     <value>Banidos agora</value>
@@ -2175,6 +2196,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   </data>
   <data name="Block rather than allow" xml:space="preserve">
     <value>Bloquear em vez de permitir</value>
+  </data>
+  <data name="Block the envelope sender for (days, up to 3,650; 0 = no block)" xml:space="preserve">
+    <value>Bloquear o remetente do envelope por (dias, até 3.650; 0 = sem bloqueio)</value>
   </data>
   <data name="Block the sender of this message, then delete it" xml:space="preserve">
     <value>Bloquear o remetente desta mensagem e depois excluí-la</value>
@@ -2314,8 +2338,8 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="CC" xml:space="preserve">
     <value>CC</value>
   </data>
-  <data name="COM objects a script may create (* = any, as shipped; empty = none beyond hMailServer's own; ProgIDs or CLSIDs, comma separated)" xml:space="preserve">
-    <value>Objetos COM que um script pode criar (* = qualquer um, como distribuído; vazio = nenhum além dos do próprio hMailServer; ProgIDs ou CLSIDs, separados por vírgula)</value>
+  <data name="COM objects a script may create (comma separated; * = any, empty = only hMailServer's own)" xml:space="preserve">
+    <value>Objetos COM que um script pode criar (separados por vírgula; * = qualquer um, vazio = só os do próprio hMailServer)</value>
   </data>
   <data name="COMPRESS=DEFLATE (RFC 4978)" xml:space="preserve">
     <value>COMPRESS=DEFLATE (RFC 4978)</value>
@@ -2773,8 +2797,8 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Client secret for introspection" xml:space="preserve">
     <value>Segredo do cliente para a introspecção</value>
   </data>
-  <data name="Clock-drift tolerance in seconds when checking an expiry" xml:space="preserve">
-    <value>Tolerância de desvio de relógio em segundos ao verificar uma validade</value>
+  <data name="Clock-drift tolerance when checking an expiry (seconds)" xml:space="preserve">
+    <value>Tolerância de desvio de relógio ao verificar uma validade (segundos)</value>
   </data>
   <data name="Close" xml:space="preserve">
     <value>Fechar</value>
@@ -2815,8 +2839,8 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Complaint mailbox (comma separated for several)" xml:space="preserve">
     <value>Caixa de reclamações (separadas por vírgulas se houver várias)</value>
   </data>
-  <data name="Complaints before an address is suppressed (0 = never; up to 100)" xml:space="preserve">
-    <value>Reclamações antes de um endereço ser suprimido (0 = nunca; até 100)</value>
+  <data name="Complaints before an address is suppressed (up to 100; 0 = never)" xml:space="preserve">
+    <value>Reclamações antes de um endereço ser suprimido (até 100; 0 = nunca)</value>
   </data>
   <data name="Complaints from mailbox providers (feedback loops)" xml:space="preserve">
     <value>Reclamações dos provedores de e-mail (feedback loops)</value>
@@ -3612,8 +3636,8 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="DMARC failure score" xml:space="preserve">
     <value>Pontuação de falha do DMARC</value>
   </data>
-  <data name="DMARC report sender address (empty = disabled)" xml:space="preserve">
-    <value>Endereço do remetente dos relatórios DMARC (vazio = desativado)</value>
+  <data name="DMARC report sender address (empty = off)" xml:space="preserve">
+    <value>Endereço do remetente dos relatórios DMARC (vazio = desligado)</value>
   </data>
   <data name="DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it." xml:space="preserve">
     <value>O DMARC diz aos destinatários o que fazer com o e-mail que falha no SPF e no DKIM, e para onde relatar.</value>
@@ -3636,8 +3660,8 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="DNS query timeout (10)" xml:space="preserve">
     <value>Tempo limite de consulta DNS (10)</value>
   </data>
-  <data name="DNS query timeout (seconds; 0 = no bound)" xml:space="preserve">
-    <value>Tempo limite de consulta DNS (segundos; 0 = sem limite)</value>
+  <data name="DNS query timeout (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>Tempo limite de consulta DNS (segundos; 0 = sem limite de tempo)</value>
   </data>
   <data name="DNS records" xml:space="preserve">
     <value>Registros DNS</value>
@@ -3651,11 +3675,11 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="D_omain" xml:space="preserve">
     <value>D_omínio</value>
   </data>
-  <data name="Daily backup t_ime (24-hour HH:MM, empty = off)" xml:space="preserve">
-    <value>_Horário do backup diário (HH:MM de 24 horas, vazio = desligado)</value>
+  <data name="Daily backup t_ime (24-hour HH:MM; empty = off)" xml:space="preserve">
+    <value>_Horário do backup diário (HH:MM de 24 horas; vazio = desligado)</value>
   </data>
-  <data name="Daily backup time (24-hour HH:MM, empty = off)" xml:space="preserve">
-    <value>Horário do backup diário (HH:MM de 24 horas, vazio = desligado)</value>
+  <data name="Daily backup time (24-hour HH:MM; empty = off)" xml:space="preserve">
+    <value>Horário do backup diário (HH:MM de 24 horas; vazio = desligado)</value>
   </data>
   <data name="Dashboard" xml:space="preserve">
     <value>Painel</value>
@@ -3693,8 +3717,8 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Date this key stops working" xml:space="preserve">
     <value>Data em que esta chave para de funcionar</value>
   </data>
-  <data name="Days a complaint is kept (0 = for ever; up to 3650)" xml:space="preserve">
-    <value>Dias que uma reclamação é mantida (0 = para sempre; até 3650)</value>
+  <data name="Days a complaint is kept (up to 3,650; 0 = for ever)" xml:space="preserve">
+    <value>Dias que uma reclamação é mantida (até 3.650; 0 = para sempre)</value>
   </data>
   <data name="Days a held message waits for review (1 to 90)" xml:space="preserve">
     <value>Dias que uma mensagem retida espera revisão (1 a 90)</value>
@@ -3702,8 +3726,8 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Days a password-protected message is kept for its reader (1 to 365)" xml:space="preserve">
     <value>Dias que uma mensagem protegida por senha é mantida para o leitor (1 a 365)</value>
   </data>
-  <data name="Days a received report is kept (0 = for ever; up to 3650)" xml:space="preserve">
-    <value>Dias que um relatório recebido é mantido (0 = para sempre; até 3650)</value>
+  <data name="Days a received report is kept (up to 3,650; 0 = for ever)" xml:space="preserve">
+    <value>Dias que um relatório recebido é mantido (até 3.650; 0 = para sempre)</value>
   </data>
   <data name="Days after sending that a delivery report is still matched (1 to 30)" xml:space="preserve">
     <value>Dias após o envio em que um relatório de entrega ainda é associado (1 a 30)</value>
@@ -3717,35 +3741,29 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Days before the database is reported as stale (0 = never)" xml:space="preserve">
     <value>Dias até o banco ser dado como desatualizado (0 = nunca)</value>
   </data>
-  <data name="Days bet_ween rotations (1 to 3650)" xml:space="preserve">
-    <value>Dias _entre rotações (de 1 a 3650)</value>
+  <data name="Days bet_ween rotations (1 to 3,650)" xml:space="preserve">
+    <value>Dias _entre rotações (de 1 a 3.650)</value>
   </data>
   <data name="Days between rotations" xml:space="preserve">
     <value>Dias entre rotações</value>
   </data>
-  <data name="Days bounce counts are kept (0 = keep)" xml:space="preserve">
-    <value>Dias em que as contagens de retornos são mantidas (0 = manter)</value>
+  <data name="Days bounce counts are kept (0 = for ever)" xml:space="preserve">
+    <value>Dias em que as contagens de retornos são mantidas (0 = para sempre)</value>
   </data>
-  <data name="Days deleted messages are kept for the person to put back (0 = none; up to 365)" xml:space="preserve">
-    <value>Dias que as mensagens excluídas são mantidas para a pessoa recuperá-las (0 = nenhum; até 365)</value>
+  <data name="Days deleted messages are kept for the person to put back (up to 365; 0 = none)" xml:space="preserve">
+    <value>Dias que as mensagens excluídas são mantidas para a pessoa recuperá-las (até 365; 0 = nenhum)</value>
   </data>
-  <data name="Days delivered and dead-lettered deliveries are kept (0 = everything; up to 3650)" xml:space="preserve">
-    <value>Dias que as entregas feitas e as enviadas para mensagens mortas são mantidas (0 = tudo; até 3650)</value>
+  <data name="Days delivered and dead-lettered deliveries are kept (up to 3,650; 0 = for ever)" xml:space="preserve">
+    <value>Dias que as entregas feitas e as enviadas para mensagens mortas são mantidas (até 3.650; 0 = para sempre)</value>
   </data>
-  <data name="Days of audit trail to keep (0 = everything)" xml:space="preserve">
-    <value>Dias de trilha de auditoria a manter (0 = tudo)</value>
+  <data name="Days of audit trail to keep (0 = for ever)" xml:space="preserve">
+    <value>Dias de trilha de auditoria a manter (0 = para sempre)</value>
   </data>
-  <data name="Days of mail a person may keep in the browser to read offline (0 = none; up to 365)" xml:space="preserve">
-    <value>Dias de e-mail que uma pessoa pode guardar no navegador para ler offline (0 = nenhum; até 365)</value>
+  <data name="Days of mail a person may keep in the browser to read offline (up to 365; 0 = none)" xml:space="preserve">
+    <value>Dias de e-mail que uma pessoa pode guardar no navegador para ler offline (até 365; 0 = nenhum)</value>
   </data>
   <data name="Days of submissions that make an account's baseline (7 to 365)" xml:space="preserve">
     <value>Dias de envios que formam a referência de uma conta (7 a 365)</value>
-  </data>
-  <data name="Days the envelope sender stays blocked (0 = no block; up to 3650)" xml:space="preserve">
-    <value>Dias que o remetente do envelope fica bloqueado (0 = sem bloqueio; até 3650)</value>
-  </data>
-  <data name="Days the record of trap hits is kept (1 to 3650)" xml:space="preserve">
-    <value>Dias que o registro dos acertos em armadilhas é mantido (1 a 3650)</value>
   </data>
   <data name="Days the soft bounces are counted within (1 to 365)" xml:space="preserve">
     <value>Dias dentro dos quais os retornos temporários são contados (1 a 365)</value>
@@ -3786,8 +3804,8 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Del" xml:space="preserve">
     <value>Del</value>
   </data>
-  <data name="Delay for each further recipient (seconds, at most 30; 0 = off)" xml:space="preserve">
-    <value>Atraso para cada destinatário adicional (segundos, no máximo 30; 0 = desligado)</value>
+  <data name="Delay for each further recipient (seconds, up to 30; 0 = off)" xml:space="preserve">
+    <value>Atraso para cada destinatário adicional (segundos, até 30; 0 = desligado)</value>
   </data>
   <data name="Delay per failed sign-in (seconds; 0 = off)" xml:space="preserve">
     <value>Atraso por login com falha (segundos; 0 = desligado)</value>
@@ -3816,14 +3834,14 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Delete archived messages after (days; 0 = keep for ever)" xml:space="preserve">
     <value>Excluir mensagens arquivadas após (dias; 0 = manter para sempre)</value>
   </data>
-  <data name="Delete archives older tha_n this many days (0 = keep all)" xml:space="preserve">
-    <value>Excluir arquivos mais antigos que este número de _dias (0 = manter todos)</value>
+  <data name="Delete archives older tha_n (days; 0 = keep for ever)" xml:space="preserve">
+    <value>Excluir arquivos mais antigos _do que (dias; 0 = manter para sempre)</value>
+  </data>
+  <data name="Delete archives older than (days; 0 = keep for ever)" xml:space="preserve">
+    <value>Excluir arquivos mais antigos do que (dias; 0 = manter para sempre)</value>
   </data>
   <data name="Delete archives older than this many days" xml:space="preserve">
     <value>Excluir arquivos mais antigos que este número de dias</value>
-  </data>
-  <data name="Delete archives older than this many days (0 = keep all)" xml:space="preserve">
-    <value>Excluir arquivos mais antigos que este número de dias (0 = manter todos)</value>
   </data>
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>Excluir confirmados após (dias)</value>
@@ -3861,8 +3879,8 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Delete folder" xml:space="preserve">
     <value>Excluir pasta</value>
   </data>
-  <data name="Delete logs older than N days (0 = keep everything)" xml:space="preserve">
-    <value>Excluir logs com mais de N dias (0 = manter tudo)</value>
+  <data name="Delete logs older than (days; 0 = keep for ever)" xml:space="preserve">
+    <value>Excluir logs com mais de (dias; 0 = manter para sempre)</value>
   </data>
   <data name="Delete messages" xml:space="preserve">
     <value>Excluir mensagens</value>
@@ -4160,8 +4178,8 @@ O remetente foi informado de que ela foi aceita, então nada tentará de novo e 
   <data name="Different" xml:space="preserve">
     <value>Diferente</value>
   </data>
-  <data name="Digest _hour (0-23)" xml:space="preserve">
-    <value>_Hora do resumo (0-23)</value>
+  <data name="Digest _hour (0 to 23)" xml:space="preserve">
+    <value>_Hora do resumo (0 a 23)</value>
   </data>
   <data name="Digest hour" xml:space="preserve">
     <value>Hora do resumo</value>
@@ -4255,8 +4273,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Disk space" xml:space="preserve">
     <value>Espaço em disco</value>
   </data>
-  <data name="Distinct terms per message before it is always scanned instead (64-1000000)" xml:space="preserve">
-    <value>Termos distintos por mensagem a partir dos quais ela passa a ser sempre examinada diretamente (64-1000000)</value>
+  <data name="Distinct terms per message before it is always scanned instead (64 to 1,000,000)" xml:space="preserve">
+    <value>Termos distintos por mensagem a partir dos quais ela passa a ser sempre examinada diretamente (64 a 1.000.000)</value>
   </data>
   <data name="Distribution list" xml:space="preserve">
     <value>Lista de distribuição</value>
@@ -4330,8 +4348,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Domain contains" xml:space="preserve">
     <value>O domínio contém</value>
   </data>
-  <data name="Domain for the mailer-daemon sender address (empty = host name, else the message's local domain, else the machine name)" xml:space="preserve">
-    <value>Domínio do endereço de remetente mailer-daemon (vazio = nome do host, senão o domínio local da mensagem, senão o nome da máquina)</value>
+  <data name="Domain for the mailer-daemon sender address (empty = the host name)" xml:space="preserve">
+    <value>Domínio do endereço de remetente mailer-daemon (vazio = o nome do host)</value>
   </data>
   <data name="Domain or account" xml:space="preserve">
     <value>Domínio ou conta</value>
@@ -4375,11 +4393,11 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Draining" xml:space="preserve">
     <value>Drenando</value>
   </data>
+  <data name="Drop inbound messages larger than this mid-transfer (KB; 0 = off)" xml:space="preserve">
+    <value>Descartar durante a transferência mensagens de entrada maiores que isto (KB; 0 = desligado)</value>
+  </data>
   <data name="Drop it without a report" xml:space="preserve">
     <value>Descartar sem relatório</value>
-  </data>
-  <data name="Drop oversized inbound messages above N KB mid-transfer (0 = off)" xml:space="preserve">
-    <value>Descartar mensagens de entrada acima de N KB durante a transferência (0 = desligado)</value>
   </data>
   <data name="Due for delivery" xml:space="preserve">
     <value>Aguardando entrega</value>
@@ -4906,8 +4924,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Event script execution timeout (60)" xml:space="preserve">
     <value>Tempo limite de execução de script de evento (60)</value>
   </data>
-  <data name="Event script execution timeout (seconds)" xml:space="preserve">
-    <value>Tempo limite de execução de script de evento (segundos)</value>
+  <data name="Event script execution timeout (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>Tempo limite de execução de script de evento (segundos; 0 = sem limite de tempo)</value>
   </data>
   <data name="Event scripts" xml:space="preserve">
     <value>Scripts de eventos</value>
@@ -4918,8 +4936,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Events - a message received, delivered, bounced or quarantined, an account locked - posted to the receivers subscribed in the Control Deck or over the REST API. Nothing is sent until a subscription exists." xml:space="preserve">
     <value>Eventos - uma mensagem recebida, entregue, devolvida ou posta em quarentena, uma conta bloqueada - enviados aos receptores inscritos no Control Deck ou pela API REST. Nada é enviado até existir uma inscrição.</value>
   </data>
-  <data name="Events a minute for a subscription with no limit of its own (1 to 100000)" xml:space="preserve">
-    <value>Eventos por minuto para uma inscrição sem limite próprio (1 a 100000)</value>
+  <data name="Events a minute for a subscription with no limit of its own (1 to 100,000)" xml:space="preserve">
+    <value>Eventos por minuto para uma inscrição sem limite próprio (1 a 100.000)</value>
   </data>
   <data name="Events are kept with no time limit." xml:space="preserve">
     <value>Os eventos são mantidos sem limite de tempo.</value>
@@ -5140,8 +5158,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Expunge" xml:space="preserve">
     <value>Expunge</value>
   </data>
-  <data name="Expunge records to keep (0 = keep everything, which also skips the prune at start-up)" xml:space="preserve">
-    <value>Registros de expunge a manter (0 = manter tudo, o que também pula a poda na inicialização)</value>
+  <data name="Expunge records to keep (0 = keep everything)" xml:space="preserve">
+    <value>Registros de expunge a manter (0 = manter tudo)</value>
   </data>
   <data name="External" xml:space="preserve">
     <value>Externo</value>
@@ -5167,8 +5185,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="External process timeout (300)" xml:space="preserve">
     <value>Tempo limite de processo externo (300)</value>
   </data>
-  <data name="External process timeout, e.g. a command-line virus scanner (seconds)" xml:space="preserve">
-    <value>Tempo limite de processo externo, por exemplo um antivírus de linha de comando (segundos)</value>
+  <data name="External process timeout (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>Tempo limite de processo externo (segundos; 0 = sem limite de tempo)</value>
   </data>
   <data name="External recipients" xml:space="preserve">
     <value>Destinatários externos</value>
@@ -5179,14 +5197,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="External to external (rela_y)" xml:space="preserve">
     <value>Externo para externo (rela_y)</value>
   </data>
-  <data name="External-account hosts to FETCH from with OAuth2 (comma separated; blank this to use none)" xml:space="preserve">
-    <value>Hosts de contas externas dos quais COLETAR com OAuth2 (separados por vírgula; deixe vazio para não usar nenhum)</value>
-  </data>
-  <data name="Extra delivery attempts per additional MX host" xml:space="preserve">
-    <value>Tentativas de entrega extras por host MX adicional</value>
-  </data>
-  <data name="Extra delivery attempts per additional MX host (0 = default)" xml:space="preserve">
-    <value>Tentativas de entrega extras por host MX adicional (0 = padrão)</value>
+  <data name="External-account hosts to fetch from with OAuth2 (comma separated; empty = none)" xml:space="preserve">
+    <value>Hosts de contas externas dos quais coletar com OAuth2 (separados por vírgula; vazio = nenhum)</value>
   </data>
   <data name="F6, Shift+F6" xml:space="preserve">
     <value>F6, Shift+F6</value>
@@ -5239,11 +5251,11 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Fetching {0}…" xml:space="preserve">
     <value>Baixando {0}…</value>
   </data>
-  <data name="Fewest messages in an hour that can be a volume signal (1 to 100000)" xml:space="preserve">
-    <value>Menor número de mensagens em uma hora que pode ser um sinal de volume (1 a 100000)</value>
+  <data name="Fewest messages in an hour that can be a volume signal (1 to 100,000)" xml:space="preserve">
+    <value>Menor número de mensagens em uma hora que pode ser um sinal de volume (1 a 100.000)</value>
   </data>
-  <data name="Fewest recipients in an hour that can be a recipients signal (1 to 100000)" xml:space="preserve">
-    <value>Menor número de destinatários em uma hora que pode ser um sinal de destinatários (1 a 100000)</value>
+  <data name="Fewest recipients in an hour that can be a recipients signal (1 to 100,000)" xml:space="preserve">
+    <value>Menor número de destinatários em uma hora que pode ser um sinal de destinatários (1 a 100.000)</value>
   </data>
   <data name="Figures from {0}, the last time the server could be read." xml:space="preserve">
     <value>Números das {0}, a última vez em que foi possível ler o servidor.</value>
@@ -5296,8 +5308,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>Primeiro: qual das duas metades está travada?</value>
   </data>
-  <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
-    <value>Token fixo (avançado; usado literalmente em vez de ser obtido)</value>
+  <data name="Fixed token" xml:space="preserve">
+    <value>Token fixo</value>
   </data>
   <data name="Flag: add a header the reader sees as a warning" xml:space="preserve">
     <value>Marcar: adicionar um cabeçalho que o leitor vê como aviso</value>
@@ -5359,6 +5371,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the SSL certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
     <value>Para cada certificado cujo arquivo de chave seja um PEM criptografado, defina a senha da chave privada do certificado na página Certificados SSL (a frase secreta foi definida por quem criou a chave, então só você pode fornecê-la) - ou substitua o arquivo por uma chave não criptografada.</value>
   </data>
+  <data name="For example 03:00, Sun 03:00 or Sat,Sun 02:00-05:00." xml:space="preserve">
+    <value>Por exemplo, 03:00, Sun 03:00 ou Sat,Sun 02:00-05:00.</value>
+  </data>
   <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
     <value>Por exemplo, 10.0.0.5 ou 10.0.0.0/24</value>
   </data>
@@ -5386,8 +5401,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Forward e-mail" xml:space="preserve">
     <value>Encaminhar e-mail</value>
   </data>
-  <data name="Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)" xml:space="preserve">
-    <value>Proxy de encaminhamento para cada requisição web deste servidor - o feed, seus downloads, JWKS, a introspecção de tokens (host:port; vazio = direto; sem credenciais de proxy)</value>
+  <data name="Forward proxy for this server's web requests (host:port; empty = direct)" xml:space="preserve">
+    <value>Proxy de encaminhamento para as requisições web deste servidor (host:port; vazio = direto)</value>
   </data>
   <data name="Forward to {0}" xml:space="preserve">
     <value>Avançar para {0}</value>
@@ -5424,9 +5439,6 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   </data>
   <data name="From (a_ddress)" xml:space="preserve">
     <value>De (en_dereço)</value>
-  </data>
-  <data name="From 1 hour to 168, a week." xml:space="preserve">
-    <value>De 1 hora a 168, uma semana.</value>
   </data>
   <data name="From 5 to 3600. Only used when the metrics endpoint above is set." xml:space="preserve">
     <value>De 5 a 3600. Só é usado quando o endpoint de métricas acima está definido.</value>
@@ -5605,11 +5617,11 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="HTTP Basic user name for /metrics (empty = Basic off)" xml:space="preserve">
     <value>Nome de usuário HTTP Basic para /metrics (vazio = Basic desligado)</value>
   </data>
-  <data name="HTTP port (80 to enable, 0 = disabled)" xml:space="preserve">
-    <value>Porta HTTP (80 para ativar, 0 = desativada)</value>
+  <data name="HTTP port (0 = off)" xml:space="preserve">
+    <value>Porta HTTP (0 = desligado)</value>
   </data>
-  <data name="HTTPS port (443 to enable, 0 = disabled)" xml:space="preserve">
-    <value>Porta HTTPS (443 para ativar, 0 = desativada)</value>
+  <data name="HTTPS port (0 = off)" xml:space="preserve">
+    <value>Porta HTTPS (0 = desligado)</value>
   </data>
   <data name="Handing {0} to the update helper…" xml:space="preserve">
     <value>Entregando {0} ao auxiliar de atualização…</value>
@@ -5641,8 +5653,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Hard-link each recipient's copy instead of copying it" xml:space="preserve">
     <value>Criar um hard link para a cópia de cada destinatário em vez de copiá-la</value>
   </data>
-  <data name="Header fields to oversign in outbound DKIM signatures (comma separated, empty = off)" xml:space="preserve">
-    <value>Campos de cabeçalho a receber oversigning nas assinaturas DKIM de saída (separados por vírgula, vazio = desligado)</value>
+  <data name="Header fields to oversign in outbound DKIM signatures (comma separated; empty = off)" xml:space="preserve">
+    <value>Campos de cabeçalho a receber oversigning nas assinaturas DKIM de saída (separados por vírgula; vazio = desligado)</value>
   </data>
   <data name="Header read chunk size (bytes)" xml:space="preserve">
     <value>Tamanho do bloco de leitura de cabeçalho (bytes)</value>
@@ -5692,8 +5704,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Hold" xml:space="preserve">
     <value>Retenção</value>
   </data>
-  <data name="Hold a refused connection open before dropping it (seconds, 0 = drop immediately)" xml:space="preserve">
-    <value>Manter aberta uma conexão recusada antes de derrubá-la (segundos, 0 = derrubar imediatamente)</value>
+  <data name="Hold a refused connection open before dropping it (seconds; 0 = drop immediately)" xml:space="preserve">
+    <value>Manter aberta uma conexão recusada antes de derrubá-la (segundos; 0 = derrubar imediatamente)</value>
   </data>
   <data name="Hold attachments for the sandbox's verdict" xml:space="preserve">
     <value>Reter anexos até o veredito do sandbox</value>
@@ -5797,8 +5809,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="How long a signed-in session of the webmail, the self-service portal or the Control Deck lasts. A domain or an account can hold its own value, on the Levels tab of its dialog." xml:space="preserve">
     <value>Quanto dura uma sessão com login do webmail, do portal de autoatendimento ou do Control Deck. Um domínio ou uma conta pode ter o próprio valor, na aba Níveis da sua janela.</value>
   </data>
-  <data name="How long an answer is remembered, in minutes" xml:space="preserve">
-    <value>Por quanto tempo uma resposta é lembrada, em minutos</value>
+  <data name="How long an answer is remembered (minutes)" xml:space="preserve">
+    <value>Por quanto tempo uma resposta é lembrada (minutos)</value>
   </data>
   <data name="How long every worker may be busy before the saturation report. 0 = reporting off." xml:space="preserve">
     <value>Por quanto tempo todas as threads de trabalho podem ficar ocupadas antes do relatório de saturação. 0 = relatório desligado.</value>
@@ -5812,8 +5824,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="How long the server will go on finalizing an accepted message before answering 451 and asking the sender to retry, rather than holding the connection open indefinitely." xml:space="preserve">
     <value>Por quanto tempo o servidor continuará finalizando uma mensagem aceita antes de responder 451 e pedir ao remetente que tente de novo, em vez de manter a conexão aberta indefinidamente.</value>
   </data>
-  <data name="How long to wait, in seconds" xml:space="preserve">
-    <value>Quanto tempo esperar, em segundos</value>
+  <data name="How long to wait (seconds)" xml:space="preserve">
+    <value>Quanto tempo esperar (segundos)</value>
   </data>
   <data name="How mail gets in, where it goes next, and what happens to it on the way." xml:space="preserve">
     <value>Como os e-mails entram, para onde vão em seguida, e o que acontece com eles no caminho.</value>
@@ -6198,6 +6210,9 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="It is safe to enable signing." xml:space="preserve">
     <value>É seguro ativar a assinatura.</value>
   </data>
+  <data name="It is sent as spamd's User: header." xml:space="preserve">
+    <value>É enviado como o cabeçalho User: do spamd.</value>
+  </data>
   <data name="It may use %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED% and %MACRO_PERCENT%." xml:space="preserve">
     <value>Pode usar %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED% e %MACRO_PERCENT%.</value>
   </data>
@@ -6207,8 +6222,8 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="JSON API under /api/v1 plus the browser-based Control Deck at the listener root. Authenticated with the administrator password, or with a scoped API key - a key can be read-only, limited to named domains and source addresses, given an expiry and revoked on its own, none of which the administrator password can. Keys are managed on the REST API keys page. TLS is required unless the listener is bound to 127.0.0.1." xml:space="preserve">
     <value>API JSON em /api/v1 mais o Control Deck no navegador, na raiz do ouvinte. Autenticada com a senha de administrador, ou com uma chave de API com escopo - uma chave pode ser somente leitura, limitada a domínios e endereços de origem indicados, receber uma validade e ser revogada isoladamente, nada do que a senha de administrador permite. As chaves são gerenciadas na página Chaves da API REST. TLS é obrigatório, a menos que o ouvinte esteja vinculado a 127.0.0.1.</value>
   </data>
-  <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
-    <value>URL do JWK Set (as chaves de assinatura publicadas pelo provedor; vazio = somente o arquivo de chave)</value>
+  <data name="JWK Set URL (empty = the key file only)" xml:space="preserve">
+    <value>URL do JWK Set (vazio = somente o arquivo de chave)</value>
   </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Registro de correio e entrega dupla</value>
@@ -6225,7 +6240,7 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="Keep archived messages for (_days; 0 = for ever)" xml:space="preserve">
     <value>Ma_nter as mensagens arquivadas por (dias; 0 = para sempre)</value>
   </data>
-  <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
+  <data name="Keep greylisting active during the record expiration window" xml:space="preserve">
     <value>Manter o greylisting ativo durante a janela de expiração do registro</value>
   </data>
   <data name="Keep log files open (performance)" xml:space="preserve">
@@ -6249,11 +6264,17 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="Keep the record of the retiring selector &quot;{0}&quot; published until {1}, for mail signed with it that is still on its way." xml:space="preserve">
     <value>Mantenha publicado até {1} o registro do seletor em aposentadoria "{0}", para o e-mail assinado com ele que ainda está a caminho.</value>
   </data>
+  <data name="Keep the record of trap hits for (days, 1 to 3,650)" xml:space="preserve">
+    <value>Manter o registro dos acertos em armadilhas por (dias, 1 a 3.650)</value>
+  </data>
   <data name="Keep the settings this version ships with, and apply no profile? The checklist stops asking; any profile can still be applied later." xml:space="preserve">
     <value>Manter as configurações com que esta versão é distribuída e não aplicar nenhum perfil? A lista de verificação deixa de perguntar; qualquer perfil ainda pode ser aplicado depois.</value>
   </data>
   <data name="Keep the shipped settings" xml:space="preserve">
     <value>Manter as configurações de fábrica</value>
+  </data>
+  <data name="Keeping everything also skips the prune at start-up." xml:space="preserve">
+    <value>Manter tudo também pula a limpeza na inicialização.</value>
   </data>
   <data name="Keeping several generations of messages needs compression: without 'Compress destination files (zip)' every backup writes its message files into the same DataBackup folder, overwriting the previous run's, so retention can only keep generations of the small settings-and-domains archives." xml:space="preserve">
     <value>Manter várias gerações de mensagens exige compressão: sem 'Compactar arquivos de destino (zip)', cada backup grava seus arquivos de mensagem na mesma pasta DataBackup, sobrescrevendo os da execução anterior, então a retenção só consegue manter gerações dos pequenos arquivos de configurações e domínios.</value>
@@ -6327,11 +6348,17 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Maior anexo enviado (KB)</value>
   </data>
-  <data name="Largest key accepted, in bytes (1024 to 1048576)" xml:space="preserve">
-    <value>Maior chave aceita, em bytes (1024 a 1048576)</value>
+  <data name="Largest key accepted (bytes, 1,024 to 1,048,576)" xml:space="preserve">
+    <value>Maior chave aceita (bytes, 1.024 a 1.048.576)</value>
   </data>
-  <data name="Largest message in KB (0 is no limit)" xml:space="preserve">
-    <value>Maior mensagem em KB (0 é sem limite)</value>
+  <data name="Largest message (KB; 0 = no limit)" xml:space="preserve">
+    <value>Maior mensagem (KB; 0 = sem limite)</value>
+  </data>
+  <data name="Largest message to spam-scan (KB; 0 = no limit)" xml:space="preserve">
+    <value>Maior mensagem para verificação de spam (KB; 0 = sem limite)</value>
+  </data>
+  <data name="Largest message to virus-scan (KB; 0 = no limit)" xml:space="preserve">
+    <value>Maior mensagem para verificação de vírus (KB; 0 = sem limite)</value>
   </data>
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Último backup: {0} ({1}).</value>
@@ -6558,8 +6585,8 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="Log categories" xml:space="preserve">
     <value>Categorias de log</value>
   </data>
-  <data name="Log database queries slower than N ms (0 = off)" xml:space="preserve">
-    <value>Registrar consultas ao banco de dados mais lentas que N ms (0 = desligado)</value>
+  <data name="Log database queries slower than (milliseconds; 0 = off)" xml:space="preserve">
+    <value>Registrar consultas ao banco de dados mais lentas que (milissegundos; 0 = desligado)</value>
   </data>
   <data name="Log destination" xml:space="preserve">
     <value>Destino do log</value>
@@ -6573,8 +6600,8 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="Log folder" xml:space="preserve">
     <value>Pasta de logs</value>
   </data>
-  <data name="Log level (3 or above = full detail; 2 or lower = quieter)" xml:space="preserve">
-    <value>Nível de log (3 ou acima = detalhe completo; 2 ou menos = mais silencioso)</value>
+  <data name="Log level" xml:space="preserve">
+    <value>Nível de log</value>
   </data>
   <data name="Log line format" xml:space="preserve">
     <value>Formato da linha de log</value>
@@ -6594,8 +6621,8 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="Logon failures" xml:space="preserve">
     <value>Falhas de login</value>
   </data>
-  <data name="Longest such window, in minutes" xml:space="preserve">
-    <value>Janela mais longa desse tipo, em minutos</value>
+  <data name="Longest such window (minutes)" xml:space="preserve">
+    <value>Janela mais longa desse tipo (minutos)</value>
   </data>
   <data name="Look for &quot;Task SMTP-accept session=42 ip=... waited 8 seconds for a thread in work queue Asynchronous task queue&quot; and, when it is severe, &quot;All 15 threads in work queue Asynchronous task queue have been busy for at least 120 seconds, so no further task on this queue can start&quot;. That means every worker is occupied and messages are queuing behind them: one slow dependency does this to the whole server, which is why a single wedged scanner used to look like the server had stopped responding. The task names say which sessions are stuck; the stage timings say what they are stuck on." xml:space="preserve">
     <value>Procure por "Task SMTP-accept session=42 ip=... waited 8 seconds for a thread in work queue Asynchronous task queue" e, quando for grave, "All 15 threads in work queue Asynchronous task queue have been busy for at least 120 seconds, so no further task on this queue can start". Isso significa que todos os trabalhadores estão ocupados e as mensagens estão se enfileirando atrás deles: uma única dependência lenta faz isso com o servidor inteiro, e é por isso que um só verificador travado costumava parecer que o servidor tinha parado de responder. Os nomes das tarefas dizem quais sessões estão presas; os tempos de cada estágio dizem em que elas estão presas.</value>
@@ -6680,6 +6707,12 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   </data>
   <data name="MX check score" xml:space="preserve">
     <value>Pontuação da verificação de MX</value>
+  </data>
+  <data name="MX hosts tried per attempt, times the attempt number" xml:space="preserve">
+    <value>Hosts MX tentados por tentativa, vezes o número da tentativa</value>
+  </data>
+  <data name="MX hosts tried per attempt, times the attempt number (0 = all)" xml:space="preserve">
+    <value>Hosts MX tentados por tentativa, vezes o número da tentativa (0 = todos)</value>
   </data>
   <data name="MX query" xml:space="preserve">
     <value>Consulta MX</value>
@@ -6869,8 +6902,8 @@ Cada inscrição Web Push feita com o par atual para de funcionar na hora, e cad
   <data name="ManageSieve bind address" xml:space="preserve">
     <value>Endereço de vínculo do ManageSieve</value>
   </data>
-  <data name="ManageSieve port (0 = disabled)" xml:space="preserve">
-    <value>Porta do ManageSieve (0 = desativado)</value>
+  <data name="ManageSieve port (0 = off)" xml:space="preserve">
+    <value>Porta do ManageSieve (0 = desligado)</value>
   </data>
   <data name="Managed mailing lists" xml:space="preserve">
     <value>Listas de e-mail gerenciadas</value>
@@ -6881,11 +6914,11 @@ Cada inscrição Web Push feita com o par atual para de funcionar na hora, e cad
   <data name="Marked inactive" xml:space="preserve">
     <value>Marcada como inativa</value>
   </data>
-  <data name="Masked addresses a person may make (0 = none; up to 200)" xml:space="preserve">
-    <value>Endereços mascarados que uma pessoa pode criar (0 = nenhum; até 200)</value>
+  <data name="Masked addresses a person may make (up to 200; 0 = none)" xml:space="preserve">
+    <value>Endereços mascarados que uma pessoa pode criar (até 200; 0 = nenhum)</value>
   </data>
-  <data name="Master user (empty = disabled)" xml:space="preserve">
-    <value>Usuário mestre (vazio = desativado)</value>
+  <data name="Master user (empty = off)" xml:space="preserve">
+    <value>Usuário mestre (vazio = desligado)</value>
   </data>
   <data name="Match ALL criteria (AND)" xml:space="preserve">
     <value>Corresponder a TODOS os critérios (AND)</value>
@@ -6920,51 +6953,6 @@ Cada inscrição Web Push feita com o par atual para de funcionar na hora, e cad
   <data name="Matching the authorization endpoint." xml:space="preserve">
     <value>Combinando com o endpoint de autorização.</value>
   </data>
-  <data name="Max MX hosts to try (0 = all)" xml:space="preserve">
-    <value>Máx. de hosts MX a tentar (0 = todos)</value>
-  </data>
-  <data name="Max asynchronous task threads" xml:space="preserve">
-    <value>Máx. de threads de tarefas assíncronas</value>
-  </data>
-  <data name="Max authenticated submissions per client IP per minute (0 = unlimited)" xml:space="preserve">
-    <value>Máx. de envios autenticados por IP de cliente por minuto (0 = ilimitado)</value>
-  </data>
-  <data name="Max deliveries in flight for one sending domain (0 = unlimited)" xml:space="preserve">
-    <value>Máx. de entregas em andamento para um domínio remetente (0 = ilimitado)</value>
-  </data>
-  <data name="Max delivery threads" xml:space="preserve">
-    <value>Máx. de threads de entrega</value>
-  </data>
-  <data name="Max message size (KB, 0 = unlimited)" xml:space="preserve">
-    <value>Tamanho máx. da mensagem (KB, 0 = ilimitado)</value>
-  </data>
-  <data name="Max message size to spam-scan (KB, 0 = unlimited)" xml:space="preserve">
-    <value>Tamanho máx. da mensagem para verificação de spam (KB, 0 = ilimitado)</value>
-  </data>
-  <data name="Max message size to virus-scan (KB, 0 = unlimited)" xml:space="preserve">
-    <value>Tamanho máx. da mensagem para verificação de vírus (KB, 0 = ilimitado)</value>
-  </data>
-  <data name="Max messages per account per period (0 = no limit)" xml:space="preserve">
-    <value>Máx. de mensagens por conta por período (0 = sem limite)</value>
-  </data>
-  <data name="Max outbound messages per destination domain per minute (0 = unlimited)" xml:space="preserve">
-    <value>Máx. de mensagens de saída por domínio de destino por minuto (0 = ilimitado)</value>
-  </data>
-  <data name="Max parallel external POP3 fetch threads" xml:space="preserve">
-    <value>Máx. de threads paralelas de coleta POP3 externa</value>
-  </data>
-  <data name="Max recipients per account per period (0 = no limit)" xml:space="preserve">
-    <value>Máx. de destinatários por conta por período (0 = sem limite)</value>
-  </data>
-  <data name="Max recipients per message" xml:space="preserve">
-    <value>Máx. de destinatários por mensagem</value>
-  </data>
-  <data name="Max simultaneous connections (0 = unlimited)" xml:space="preserve">
-    <value>Máx. de conexões simultâneas (0 = ilimitado)</value>
-  </data>
-  <data name="Max simultaneous connections to one destination without a remote domain policy (0 = unlimited)" xml:space="preserve">
-    <value>Máx. de conexões simultâneas a um destino sem política de domínio remoto (0 = ilimitado)</value>
-  </data>
   <data name="MaxMind country database (.mmdb)" xml:space="preserve">
     <value>Banco de países MaxMind (.mmdb)</value>
   </data>
@@ -6973,6 +6961,9 @@ Cada inscrição Web Push feita com o par atual para de funcionar na hora, e cad
   </data>
   <data name="Maximise" xml:space="preserve">
     <value>Maximizar</value>
+  </data>
+  <data name="Maximum MX hosts to try (0 = all)" xml:space="preserve">
+    <value>Máximo de hosts MX a tentar (0 = todos)</value>
   </data>
   <data name="Maximum _domain size (MB; 0 = no limit)" xml:space="preserve">
     <value>Tamanho máximo do _domínio (MB; 0 = sem limite)</value>
@@ -6983,8 +6974,20 @@ Cada inscrição Web Push feita com o par atual para de funcionar na hora, e cad
   <data name="Maximum account size (MB)" xml:space="preserve">
     <value>Tamanho máximo da conta (MB)</value>
   </data>
-  <data name="Maximum characters per log line (minimum 100; only applied at log level 2 or lower)" xml:space="preserve">
-    <value>Máximo de caracteres por linha de log (mínimo 100; aplicado apenas no nível de log 2 ou menor)</value>
+  <data name="Maximum asynchronous task threads" xml:space="preserve">
+    <value>Máximo de threads de tarefas assíncronas</value>
+  </data>
+  <data name="Maximum authenticated submissions per client IP per minute (0 = no limit)" xml:space="preserve">
+    <value>Máximo de envios autenticados por IP de cliente por minuto (0 = sem limite)</value>
+  </data>
+  <data name="Maximum characters per log line (at least 100)" xml:space="preserve">
+    <value>Máximo de caracteres por linha de log (pelo menos 100)</value>
+  </data>
+  <data name="Maximum deliveries in flight for one sending domain (0 = no limit)" xml:space="preserve">
+    <value>Máximo de entregas em andamento para um domínio remetente (0 = sem limite)</value>
+  </data>
+  <data name="Maximum delivery threads" xml:space="preserve">
+    <value>Máximo de threads de entrega</value>
   </data>
   <data name="Maximum domain size (MB)" xml:space="preserve">
     <value>Tamanho máximo do domínio (MB)</value>
@@ -6995,6 +6998,12 @@ Cada inscrição Web Push feita com o par atual para de funcionar na hora, e cad
   <data name="Maximum message size (KB)" xml:space="preserve">
     <value>Tamanho máximo da mensagem (KB)</value>
   </data>
+  <data name="Maximum message size (KB; 0 = no limit)" xml:space="preserve">
+    <value>Tamanho máximo da mensagem (KB; 0 = sem limite)</value>
+  </data>
+  <data name="Maximum messages per account per period (0 = no limit)" xml:space="preserve">
+    <value>Máximo de mensagens por conta por período (0 = sem limite)</value>
+  </data>
   <data name="Maximum number of accounts" xml:space="preserve">
     <value>Número máximo de contas</value>
   </data>
@@ -7003,6 +7012,24 @@ Cada inscrição Web Push feita com o par atual para de funcionar na hora, e cad
   </data>
   <data name="Maximum number of distribution lists" xml:space="preserve">
     <value>Número máximo de listas de distribuição</value>
+  </data>
+  <data name="Maximum outbound messages per destination domain per minute (0 = no limit)" xml:space="preserve">
+    <value>Máximo de mensagens de saída por domínio de destino por minuto (0 = sem limite)</value>
+  </data>
+  <data name="Maximum parallel external POP3 fetch threads" xml:space="preserve">
+    <value>Máximo de threads paralelas de coleta POP3 externa</value>
+  </data>
+  <data name="Maximum recipients per account per period (0 = no limit)" xml:space="preserve">
+    <value>Máximo de destinatários por conta por período (0 = sem limite)</value>
+  </data>
+  <data name="Maximum recipients per message" xml:space="preserve">
+    <value>Máximo de destinatários por mensagem</value>
+  </data>
+  <data name="Maximum simultaneous connections (0 = no limit)" xml:space="preserve">
+    <value>Máximo de conexões simultâneas (0 = sem limite)</value>
+  </data>
+  <data name="Maximum simultaneous connections to one destination without a remote domain policy (0 = no limit)" xml:space="preserve">
+    <value>Máximo de conexões simultâneas a um destino sem política de domínio remoto (0 = sem limite)</value>
   </data>
   <data name="Maximum size (MB)" xml:space="preserve">
     <value>Tamanho máximo (MB)</value>
@@ -7060,8 +7087,8 @@ Nada do que já está lá é removido.</value>
   <data name="Message finalization deadline (240)" xml:space="preserve">
     <value>Prazo de finalização da mensagem (240)</value>
   </data>
-  <data name="Message finalization deadline (seconds; 0 = no deadline)" xml:space="preserve">
-    <value>Prazo de finalização da mensagem (segundos; 0 = sem prazo)</value>
+  <data name="Message finalization deadline (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>Prazo de finalização da mensagem (segundos; 0 = sem limite de tempo)</value>
   </data>
   <data name="Message for colleag_ues (empty = same as above)" xml:space="preserve">
     <value>Mensagem para colegas (va_zio = igual ao acima)</value>
@@ -7120,8 +7147,8 @@ Nada do que já está lá é removido.</value>
   <data name="Message-store consistency" xml:space="preserve">
     <value>Consistência do armazenamento de mensagens</value>
   </data>
-  <data name="Messages a minute (0 is unlimited)" xml:space="preserve">
-    <value>Mensagens por minuto (0 é ilimitado)</value>
+  <data name="Messages a minute (0 = no limit)" xml:space="preserve">
+    <value>Mensagens por minuto (0 = sem limite)</value>
   </data>
   <data name="Messages held for review instead of being refused, and the two things you can do with each: release it to the recipient, or delete it." xml:space="preserve">
     <value>Mensagens retidas para revisão em vez de recusadas, e as duas coisas que você pode fazer com cada uma: liberá-la ao destinatário, ou excluí-la.</value>
@@ -7141,8 +7168,8 @@ Nada do que já está lá é removido.</value>
   <data name="Messages larger than {0} are not scanned. They are delivered, not refused, and nothing is written to the log when it happens — so this limit is invisible in normal operation. 0 means &quot;no limit&quot; and is the setting that closes the gap." xml:space="preserve">
     <value>Mensagens maiores que {0} não são verificadas. Elas são entregues, não recusadas, e nada é gravado no log quando isso acontece — então este limite é invisível na operação normal. 0 significa "sem limite" e é a configuração que fecha essa brecha.</value>
   </data>
-  <data name="Messages one backfill pass reads before pausing (1-100000)" xml:space="preserve">
-    <value>Mensagens que uma passagem de preenchimento retroativo lê antes de pausar (1-100000)</value>
+  <data name="Messages one backfill pass reads before pausing (1 to 100,000)" xml:space="preserve">
+    <value>Mensagens que uma passagem de preenchimento retroativo lê antes de pausar (1 a 100.000)</value>
   </data>
   <data name="Messages per full-index pass" xml:space="preserve">
     <value>Mensagens por passagem de indexação completa</value>
@@ -7186,8 +7213,8 @@ Nada do que já está lá é removido.</value>
   <data name="Metrics bind address" xml:space="preserve">
     <value>Endereço de vínculo das métricas</value>
   </data>
-  <data name="Metrics port (0 = disabled)" xml:space="preserve">
-    <value>Porta das métricas (0 = desativado)</value>
+  <data name="Metrics port (0 = off)" xml:space="preserve">
+    <value>Porta das métricas (0 = desligado)</value>
   </data>
   <data name="Microsoft 365 turns Basic authentication for SMTP AUTH off at the end of December 2026. When the relay host below is listed here, hMailServer authenticates with an OAuth2 bearer token (XOAUTH2) instead of the password - fetched from your tenant's token endpoint with the client credentials of an app registration that has the SMTP.SendAsApp permission. The user name above stays: it is the mailbox being relayed as." xml:space="preserve">
     <value>A Microsoft 365 desliga a autenticação Básica para SMTP AUTH no fim de dezembro de 2026. Quando o host de relay abaixo estiver listado aqui, o hMailServer autentica com um token portador OAuth2 (XOAUTH2) em vez da senha - obtido do endpoint de token do seu locatário com as credenciais de cliente de um registro de aplicativo que tenha a permissão SMTP.SendAsApp. O nome de usuário acima permanece: é a caixa em nome da qual o relay é feito.</value>
@@ -7228,14 +7255,14 @@ Nada do que já está lá é removido.</value>
   <data name="Minimum timeout (seconds)" xml:space="preserve">
     <value>Tempo limite mínimo (segundos)</value>
   </data>
-  <data name="Minutes a mailbox key stays open after its last use (1 to 1440)" xml:space="preserve">
-    <value>Minutos que a chave de uma caixa fica aberta após o último uso (1 a 1440)</value>
+  <data name="Minutes a mailbox key stays open after its last use (1 to 1,440)" xml:space="preserve">
+    <value>Minutos que a chave de uma caixa fica aberta após o último uso (1 a 1.440)</value>
   </data>
   <data name="Minutes a message waits for a verdict" xml:space="preserve">
     <value>Minutos que uma mensagem espera por um veredito</value>
   </data>
-  <data name="Minutes a password-reset link works (5 to 1440)" xml:space="preserve">
-    <value>Minutos em que um link de redefinição de senha funciona (5 a 1440)</value>
+  <data name="Minutes a password-reset link works (5 to 1,440)" xml:space="preserve">
+    <value>Minutos em que um link de redefinição de senha funciona (5 a 1.440)</value>
   </data>
   <data name="Minutes between downloads" xml:space="preserve">
     <value>Minutos entre downloads</value>
@@ -7249,14 +7276,11 @@ Nada do que já está lá é removido.</value>
   <data name="Minutes between scan attempts while held" xml:space="preserve">
     <value>Minutos entre tentativas de verificação enquanto retida</value>
   </data>
-  <data name="Minutes the sending address is banned (0 = no ban; up to 525600)" xml:space="preserve">
-    <value>Minutos em que o endereço remetente fica banido (0 = sem banimento; até 525600)</value>
-  </data>
   <data name="Minutes to hold a destination that asked this server to slow down (0 = off)" xml:space="preserve">
     <value>Minutos para reter um destino que pediu a este servidor para reduzir o ritmo (0 = desligado)</value>
   </data>
-  <data name="Mirror address (empty = disabled)" xml:space="preserve">
-    <value>Endereço do espelho (vazio = desativado)</value>
+  <data name="Mirror address (empty = off)" xml:space="preserve">
+    <value>Endereço do espelho (vazio = desligado)</value>
   </data>
   <data name="Mirror every folder (IMAP only: a migration, verbatim, with flags and dates)" xml:space="preserve">
     <value>Espelhar todas as pastas (somente IMAP: uma migração literal, com sinalizadores e datas)</value>
@@ -7413,6 +7437,9 @@ Nada do que já está lá é removido.</value>
   </data>
   <data name="Never auto-ban these addresses" xml:space="preserve">
     <value>Nunca banir automaticamente estes endereços</value>
+  </data>
+  <data name="Never auto-ban these addresses (comma separated)" xml:space="preserve">
+    <value>Nunca banir automaticamente estes endereços (separados por vírgula)</value>
   </data>
   <data name="Never greylisted." xml:space="preserve">
     <value>Nunca passa por greylisting.</value>
@@ -8395,9 +8422,6 @@ Nada do que já está lá é removido.</value>
   <data name="On other pages" xml:space="preserve">
     <value>Em outras páginas</value>
   </data>
-  <data name="On stop, wait up to N seconds for active sessions to finish (0 = stop immediately)" xml:space="preserve">
-    <value>Ao parar, aguardar até N segundos para que as sessões ativas terminem (0 = parar imediatamente)</value>
-  </data>
   <data name="On the Administrative access page's Two-factor tab, enrol an authenticator app for the administrator password." xml:space="preserve">
     <value>Na aba Dois fatores da página Acesso administrativo, registre um aplicativo autenticador para a senha do administrador.</value>
   </data>
@@ -8473,8 +8497,8 @@ Nada do que já está lá é removido.</value>
   <data name="One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
     <value>Uma porta configurada não está sendo escutada: {0}. Se você acabou de adicioná-la ou alterá-la, reinicialize o servidor: ele lê sua lista de portas na inicialização. Caso contrário, outro programa ocupa a porta, o endereço não existe nesta máquina, ou o certificado de uma porta TLS não pôde ser carregado - o log de erros diz qual.</value>
   </data>
-  <data name="One event script invocation. 0 = no bound." xml:space="preserve">
-    <value>Uma invocação de script de evento. 0 = sem limite.</value>
+  <data name="One event script invocation. 0 = no time limit." xml:space="preserve">
+    <value>Uma invocação de script de evento. 0 = sem limite de tempo.</value>
   </data>
   <data name="One external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>Uma conta de coleta POP3 externa está com o antivírus desligado, então os e-mails coletados por ela são entregues sem verificação, seja o que for definido aqui. A opção está na conta de coleta, não nesta página.</value>
@@ -8509,7 +8533,10 @@ Nada do que já está lá é removido.</value>
   <data name="Only after SMTP authentication" xml:space="preserve">
     <value>Somente após autenticação SMTP</value>
   </data>
-  <data name="Only archive mail for these domains (comma-separated; empty = every message)" xml:space="preserve">
+  <data name="Only applied at log level 2 or lower." xml:space="preserve">
+    <value>Aplicado apenas no nível de log 2 ou menor.</value>
+  </data>
+  <data name="Only archive mail for these domains (comma separated; empty = every message)" xml:space="preserve">
     <value>Arquivar e-mails apenas destes domínios (separados por vírgula; vazio = todas as mensagens)</value>
   </data>
   <data name="Only destinations named here get a bearer token; every other relay keeps password authentication. This is deliberate - a token presented to the wrong relay is a leaked token." xml:space="preserve">
@@ -8677,14 +8704,14 @@ Nada do que já está lá é removido.</value>
   <data name="OpenPGP key" xml:space="preserve">
     <value>Chave OpenPGP</value>
   </data>
-  <data name="OpenTelemetry OTLP endpoint for logs (empty = disabled)" xml:space="preserve">
-    <value>Endpoint OTLP do OpenTelemetry para logs (vazio = desativado)</value>
+  <data name="OpenTelemetry OTLP endpoint for logs (empty = off)" xml:space="preserve">
+    <value>Endpoint OTLP do OpenTelemetry para logs (vazio = desligado)</value>
   </data>
-  <data name="OpenTelemetry OTLP endpoint for metrics (empty = disabled)" xml:space="preserve">
-    <value>Endpoint OTLP do OpenTelemetry para métricas (vazio = desativado)</value>
+  <data name="OpenTelemetry OTLP endpoint for metrics (empty = off)" xml:space="preserve">
+    <value>Endpoint OTLP do OpenTelemetry para métricas (vazio = desligado)</value>
   </data>
-  <data name="OpenTelemetry OTLP endpoint for traces (empty = disabled)" xml:space="preserve">
-    <value>Endpoint OTLP do OpenTelemetry para rastreamentos (vazio = desativado)</value>
+  <data name="OpenTelemetry OTLP endpoint for traces (empty = off)" xml:space="preserve">
+    <value>Endpoint OTLP do OpenTelemetry para rastreamentos (vazio = desligado)</value>
   </data>
   <data name="OpenTelemetry service name" xml:space="preserve">
     <value>Nome do serviço no OpenTelemetry</value>
@@ -8743,8 +8770,8 @@ Nada do que já está lá é removido.</value>
   <data name="Other" xml:space="preserve">
     <value>Outros</value>
   </data>
-  <data name="Other POP3 or IMAP accounts a person may collect from (0 = none; up to 20)" xml:space="preserve">
-    <value>Outras contas POP3 ou IMAP de onde uma pessoa pode buscar e-mail (0 = nenhuma; até 20)</value>
+  <data name="Other POP3 or IMAP accounts a person may collect from (up to 20; 0 = none)" xml:space="preserve">
+    <value>Outras contas POP3 ou IMAP de onde uma pessoa pode buscar e-mail (até 20; 0 = nenhuma)</value>
   </data>
   <data name="Other addresses to check (commas or spaces)" xml:space="preserve">
     <value>Outros endereços a verificar (vírgulas ou espaços)</value>
@@ -8794,8 +8821,8 @@ Nada do que já está lá é removido.</value>
   <data name="PBKDF2 (default)" xml:space="preserve">
     <value>PBKDF2 (padrão)</value>
   </data>
-  <data name="PBKDF2 iterations for new hashes (0 = the built-in 210,000; 10,000 to 10,000,000)" xml:space="preserve">
-    <value>Iterações do PBKDF2 para novos hashes (0 = os 210.000 embutidos; de 10.000 a 10.000.000)</value>
+  <data name="PBKDF2 iterations for new hashes (10,000 to 10,000,000; 0 = the built-in 210,000)" xml:space="preserve">
+    <value>Iterações do PBKDF2 para novos hashes (10.000 a 10.000.000; 0 = os 210.000 embutidos)</value>
   </data>
   <data name="PBKDF2 or stronger" xml:space="preserve">
     <value>PBKDF2 ou mais forte</value>
@@ -8821,11 +8848,11 @@ Nada do que já está lá é removido.</value>
   <data name="POP3 - download, then delete from the server as Days to keep says" xml:space="preserve">
     <value>POP3 - baixar e depois excluir do servidor como Dias a manter indicar</value>
   </data>
-  <data name="POP3 client maximum timeout (s)" xml:space="preserve">
-    <value>Tempo limite máximo do cliente POP3 (s)</value>
+  <data name="POP3 client maximum timeout (seconds)" xml:space="preserve">
+    <value>Tempo limite máximo do cliente POP3 (segundos)</value>
   </data>
-  <data name="POP3 client minimum timeout (s)" xml:space="preserve">
-    <value>Tempo limite mínimo do cliente POP3 (s)</value>
+  <data name="POP3 client minimum timeout (seconds)" xml:space="preserve">
+    <value>Tempo limite mínimo do cliente POP3 (segundos)</value>
   </data>
   <data name="POP3 connections" xml:space="preserve">
     <value>Conexões POP3</value>
@@ -8845,11 +8872,11 @@ Nada do que já está lá é removido.</value>
   <data name="POP3 server" xml:space="preserve">
     <value>Servidor POP3</value>
   </data>
-  <data name="POP3 server maximum timeout (s)" xml:space="preserve">
-    <value>Tempo limite máximo do servidor POP3 (s)</value>
+  <data name="POP3 server maximum timeout (seconds)" xml:space="preserve">
+    <value>Tempo limite máximo do servidor POP3 (segundos)</value>
   </data>
-  <data name="POP3 server minimum timeout (s)" xml:space="preserve">
-    <value>Tempo limite mínimo do servidor POP3 (s)</value>
+  <data name="POP3 server minimum timeout (seconds)" xml:space="preserve">
+    <value>Tempo limite mínimo do servidor POP3 (segundos)</value>
   </data>
   <data name="POP3 sessions" xml:space="preserve">
     <value>Sessões POP3</value>
@@ -9027,11 +9054,11 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="Performance" xml:space="preserve">
     <value>Desempenho</value>
   </data>
-  <data name="Period length in hours (default 24)" xml:space="preserve">
-    <value>Duração do período em horas (padrão 24)</value>
+  <data name="Period length (hours, 1 to 168)" xml:space="preserve">
+    <value>Duração do período (horas, 1 a 168)</value>
   </data>
-  <data name="Periodically cross-check message rows against files on disk (read-only; writes a report on divergence)" xml:space="preserve">
-    <value>Conferir periodicamente as linhas de mensagens contra os arquivos em disco (somente leitura; grava um relatório em caso de divergência)</value>
+  <data name="Periodically cross-check message rows against files on disk" xml:space="preserve">
+    <value>Conferir periodicamente as linhas de mensagens contra os arquivos em disco</value>
   </data>
   <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters. Empty, the default, is an account-number detector that never fires. A pattern the server cannot compile is refused." xml:space="preserve">
     <value>Sintaxe Perl, procurada no texto de uma mensagem e nos anexos de texto dela, até 2000 caracteres. Vazio, o padrão, é um detector de número de conta que nunca dispara. Um padrão que o servidor não consegue compilar é recusado.</value>
@@ -9072,8 +9099,8 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="Policy for mailbox passwords" xml:space="preserve">
     <value>Política para senhas de caixa</value>
   </data>
-  <data name="Policy max age (seconds; default 604800 = 7 days)" xml:space="preserve">
-    <value>Idade máxima da política (segundos; padrão 604800 = 7 dias)</value>
+  <data name="Policy max age (seconds, 86,400 to 31,557,600)" xml:space="preserve">
+    <value>Idade máxima da política (segundos, 86.400 a 31.557.600)</value>
   </data>
   <data name="Policy refusal" xml:space="preserve">
     <value>Recusa por política</value>
@@ -9084,8 +9111,8 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="Port" xml:space="preserve">
     <value>Porta</value>
   </data>
-  <data name="Port (0 = disabled)" xml:space="preserve">
-    <value>Porta (0 = desativado)</value>
+  <data name="Port (0 = off)" xml:space="preserve">
+    <value>Porta (0 = desligado)</value>
   </data>
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
     <value>A porta 25 é julgada de forma diferente das demais, e deliberadamente: o par ali normalmente é outro servidor de e-mail, e exigir criptografia nela recusa e-mails de remetentes que não conseguem oferecer nenhuma. Em todas as outras portas o par é um cliente com uma senha.</value>
@@ -9213,8 +9240,11 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="Produce or obtain a CA (for example with OpenSSL or your PKI), save the CA certificate, with any intermediate ones, as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates." xml:space="preserve">
     <value>Produza ou obtenha uma CA (por exemplo com o OpenSSL ou com a sua PKI), salve o certificado da CA, com os intermediários que houver, como um pacote PEM no servidor, aponte o arquivo de CA da porta para ele e emita um certificado de cliente dessa CA para cada cliente que precise se conectar. O hMailServer verifica contra o pacote, mas não pode criar a CA nem os certificados de cliente.</value>
   </data>
-  <data name="Profile to scan as (spamd User: header; empty = spamd's global configuration)" xml:space="preserve">
-    <value>Perfil com o qual verificar (cabeçalho User: do spamd; vazio = configuração global do spamd)</value>
+  <data name="Profile to scan as (empty = spamd's global configuration)" xml:space="preserve">
+    <value>Perfil com o qual verificar (vazio = configuração global do spamd)</value>
+  </data>
+  <data name="ProgIDs or CLSIDs." xml:space="preserve">
+    <value>ProgIDs ou CLSIDs.</value>
   </data>
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>Programa a executar quando um endereço é banido ou desbanido (vazio = nenhum)</value>
@@ -9267,8 +9297,8 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="Protocols" xml:space="preserve">
     <value>Protocolos</value>
   </data>
-  <data name="Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)" xml:space="preserve">
-    <value>Proxies autorizados a enviar um cabeçalho PROXY (endereços ou faixas CIDR separados por vírgula)</value>
+  <data name="Proxies allowed to send a PROXY header (comma separated)" xml:space="preserve">
+    <value>Proxies autorizados a enviar um cabeçalho PROXY (separados por vírgula)</value>
   </data>
   <data name="Public" xml:space="preserve">
     <value>Público</value>
@@ -9435,8 +9465,8 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="Raise the threshold here and clear the counted failures. An address already locked out stays out until its &quot;Auto-ban:&quot; range expires, or you delete that range on the IP ranges page." xml:space="preserve">
     <value>Aumente o limiar aqui e zere as falhas contadas. Um endereço já bloqueado continua bloqueado até que a faixa "Auto-ban:" dele expire, ou até que você exclua essa faixa na página Faixas de IP.</value>
   </data>
-  <data name="Random jitter added to retry times (minutes, 0 = off)" xml:space="preserve">
-    <value>Variação aleatória adicionada aos horários de nova tentativa (minutos, 0 = desligado)</value>
+  <data name="Random jitter added to retry times (minutes; 0 = off)" xml:space="preserve">
+    <value>Variação aleatória adicionada aos horários de nova tentativa (minutos; 0 = desligado)</value>
   </data>
   <data name="Range endpoint (https, or http to this machine)" xml:space="preserve">
     <value>Endpoint de faixas (https, ou http para esta máquina)</value>
@@ -9516,8 +9546,8 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="Read at delivery, for every recipient: an allowed sender's mail is delivered unmarked, and the accounts' own spam thresholds do not run. A message the server-wide spam score holds during the SMTP conversation is still held; the domain list is the one that stops that." xml:space="preserve">
     <value>Lida na entrega, para todo destinatário: o e-mail de um remetente permitido é entregue sem marcação, e os limites de spam próprios das contas não rodam. Uma mensagem que a pontuação de spam de todo o servidor retém durante a conversa SMTP continua retida; é a lista de domínios que impede isso.</value>
   </data>
-  <data name="Read cache in MB (0 = none; up to 4096)" xml:space="preserve">
-    <value>Cache de leitura em MB (0 = nenhum; até 4096)</value>
+  <data name="Read cache (MB, up to 4,096; 0 = none)" xml:space="preserve">
+    <value>Cache de leitura (MB, até 4.096; 0 = nenhum)</value>
   </data>
   <data name="Read complaints sent to the complaint mailbox" xml:space="preserve">
     <value>Ler as reclamações enviadas à caixa de reclamações</value>
@@ -9545,6 +9575,9 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   </data>
   <data name="Read-only" xml:space="preserve">
     <value>Somente leitura</value>
+  </data>
+  <data name="Read-only: it writes a report when the two diverge." xml:space="preserve">
+    <value>Somente leitura: grava um relatório quando os dois divergem.</value>
   </data>
   <data name="Readable text" xml:space="preserve">
     <value>Texto legível</value>
@@ -9637,8 +9670,8 @@ Execute isto se os clientes relatarem mensagens aparecendo com o UID errado, ou 
   <data name="Record administrative changes in the audit trail" xml:space="preserve">
     <value>Registrar as alterações administrativas na trilha de auditoria</value>
   </data>
-  <data name="Record expiration interval, minutes" xml:space="preserve">
-    <value>Intervalo de expiração dos registros, minutos</value>
+  <data name="Record expiration interval (minutes)" xml:space="preserve">
+    <value>Intervalo de expiração dos registros (minutos)</value>
   </data>
   <data name="Record type: MX. Host/Name - {0}:" xml:space="preserve">
     <value>Tipo do registro: MX. Host/Nome - {0}:</value>
@@ -9736,8 +9769,8 @@ Execute isto se os clientes relatarem mensagens aparecendo com o UID errado, ou 
   <data name="Refuse when it has appeared at least this many times" xml:space="preserve">
     <value>Recusar quando tiver aparecido pelo menos este número de vezes</value>
   </data>
-  <data name="Refuse with 550 after this many retries before the window opens (0 never refuses)" xml:space="preserve">
-    <value>Recusar com 550 após este número de retentativas antes de a janela abrir (0 nunca recusa)</value>
+  <data name="Refuse with 550 after this many retries before the window opens (0 = never)" xml:space="preserve">
+    <value>Recusar com 550 após este número de retentativas antes de a janela abrir (0 = nunca)</value>
   </data>
   <data name="Refuse, or allow only, connections from the countries you name, by the country a MaxMind database places the address in. This server ships no database and downloads none: until you supply the file, nothing is judged by country. A policy is empty (off), allow:GB,IE or block:CN,RU." xml:space="preserve">
     <value>Recusar, ou permitir somente, conexões dos países que você indicar, pelo país em que um banco MaxMind coloca o endereço. Este servidor não traz nenhum banco nem baixa nenhum: até você fornecer o arquivo, nada é avaliado por país. Uma política é vazia (desligada), allow:GB,IE ou block:CN,RU.</value>
@@ -9829,11 +9862,11 @@ Execute isto se os clientes relatarem mensagens aparecendo com o UID errado, ou 
   <data name="Relay" xml:space="preserve">
     <value>Relay</value>
   </data>
-  <data name="Relay host name (empty = direct delivery; use host1|host2 for failover)" xml:space="preserve">
-    <value>Nome do host de relay (vazio = entrega direta; use host1|host2 para failover)</value>
+  <data name="Relay host name (empty = direct delivery)" xml:space="preserve">
+    <value>Nome do host de relay (vazio = entrega direta)</value>
   </data>
-  <data name="Relay hosts that use OAuth2 (comma separated; blank this to use none)" xml:space="preserve">
-    <value>Hosts de relay que usam OAuth2 (separados por vírgula; deixe em branco para não usar nenhum)</value>
+  <data name="Relay hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
+    <value>Hosts de relay que usam OAuth2 (separados por vírgula; vazio = nenhum)</value>
   </data>
   <data name="Relay port" xml:space="preserve">
     <value>Porta do relay</value>
@@ -9877,8 +9910,8 @@ Execute isto se os clientes relatarem mensagens aparecendo com o UID errado, ou 
   <data name="Released {0} messages to their recipients." xml:space="preserve">
     <value>{0} mensagens liberadas aos destinatários.</value>
   </data>
-  <data name="Relying party (empty = the host the page is on)" xml:space="preserve">
-    <value>Parte confiável (vazio = o host em que a página está)</value>
+  <data name="Relying party (empty = the page's own host)" xml:space="preserve">
+    <value>Parte confiável (vazio = o próprio host da página)</value>
   </data>
   <data name="Rem_ove criterion" xml:space="preserve">
     <value>Re_mover critério</value>
@@ -10074,8 +10107,8 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Report the async work queue as stalled after (120)" xml:space="preserve">
     <value>Relatar a fila de trabalho assíncrona como travada após (120)</value>
   </data>
-  <data name="Report the async work queue as stalled after (seconds)" xml:space="preserve">
-    <value>Relatar a fila de trabalho assíncrona como travada após (segundos)</value>
+  <data name="Report the async work queue as stalled after (seconds; 0 = never)" xml:space="preserve">
+    <value>Relatar a fila de trabalho assíncrona como travada após (segundos; 0 = nunca)</value>
   </data>
   <data name="Reports" xml:space="preserve">
     <value>Relatórios</value>
@@ -10251,14 +10284,14 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Resume the mail server" xml:space="preserve">
     <value>Retomar o servidor de e-mail</value>
   </data>
-  <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
-    <value>Tempo de vida da retomada para sessões e tíquetes em cache, segundos (0 = o padrão de 300 do OpenSSL)</value>
+  <data name="Resumption lifetime for cached sessions and tickets (seconds; 0 = OpenSSL's default of 300)" xml:space="preserve">
+    <value>Tempo de vida da retomada para sessões e tíquetes em cache (segundos; 0 = o padrão de 300 do OpenSSL)</value>
   </data>
   <data name="Retention" xml:space="preserve">
     <value>Retenção</value>
   </data>
-  <data name="Retention period in _days (1 to 365)" xml:space="preserve">
-    <value>Per_íodo de retenção em dias (de 1 a 365)</value>
+  <data name="Retention period (_days, 1 to 365)" xml:space="preserve">
+    <value>Per_íodo de retenção (dias, 1 a 365)</value>
   </data>
   <data name="Retention period in days" xml:space="preserve">
     <value>Período de retenção em dias</value>
@@ -10353,8 +10386,8 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Rotate the _key on a schedule" xml:space="preserve">
     <value>Fazer a rotação da chave conforme _um agendamento</value>
   </data>
-  <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
-    <value>Rotacionar a chave de tíquete de sessão a cada N segundos (0 = a chave única e não rotativa do OpenSSL)</value>
+  <data name="Rotate the session-ticket key every (seconds; 0 = OpenSSL's single key)" xml:space="preserve">
+    <value>Rotacionar a chave de tíquete de sessão a cada (segundos; 0 = a chave única do OpenSSL)</value>
   </data>
   <data name="Route" xml:space="preserve">
     <value>Rota</value>
@@ -10500,11 +10533,11 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="SMTP authentication" xml:space="preserve">
     <value>Autenticação SMTP</value>
   </data>
-  <data name="SMTP client maximum timeout (s)" xml:space="preserve">
-    <value>Tempo limite máximo do cliente SMTP (s)</value>
+  <data name="SMTP client maximum timeout (seconds)" xml:space="preserve">
+    <value>Tempo limite máximo do cliente SMTP (segundos)</value>
   </data>
-  <data name="SMTP client minimum timeout (s)" xml:space="preserve">
-    <value>Tempo limite mínimo do cliente SMTP (s)</value>
+  <data name="SMTP client minimum timeout (seconds)" xml:space="preserve">
+    <value>Tempo limite mínimo do cliente SMTP (segundos)</value>
   </data>
   <data name="SMTP connections" xml:space="preserve">
     <value>Conexões SMTP</value>
@@ -10518,11 +10551,11 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="SMTP server" xml:space="preserve">
     <value>Servidor SMTP</value>
   </data>
-  <data name="SMTP server maximum timeout (s)" xml:space="preserve">
-    <value>Tempo limite máximo do servidor SMTP (s)</value>
+  <data name="SMTP server maximum timeout (seconds)" xml:space="preserve">
+    <value>Tempo limite máximo do servidor SMTP (segundos)</value>
   </data>
-  <data name="SMTP server minimum timeout (s)" xml:space="preserve">
-    <value>Tempo limite mínimo do servidor SMTP (s)</value>
+  <data name="SMTP server minimum timeout (seconds)" xml:space="preserve">
+    <value>Tempo limite mínimo do servidor SMTP (segundos)</value>
   </data>
   <data name="SMTP sessions" xml:space="preserve">
     <value>Sessões SMTP</value>
@@ -10677,8 +10710,8 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Save the changes on this page" xml:space="preserve">
     <value>Salvar as alterações desta página</value>
   </data>
-  <data name="Save the counters to disk every N seconds (default 10)" xml:space="preserve">
-    <value>Gravar os contadores em disco a cada N segundos (padrão 10)</value>
+  <data name="Save the counters to disk every (seconds, 1 to 3,600)" xml:space="preserve">
+    <value>Gravar os contadores em disco a cada (segundos, 1 a 3.600)</value>
   </data>
   <data name="Save the export as" xml:space="preserve">
     <value>Salvar a exportação como</value>
@@ -10863,8 +10896,8 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Score applied when the engine says &quot;reject&quot;" xml:space="preserve">
     <value>Pontuação aplicada quando o mecanismo diz "rejeitar"</value>
   </data>
-  <data name="Score at which suspicious counts as malicious (0-100)" xml:space="preserve">
-    <value>Pontuação a partir da qual suspeito conta como malicioso (0-100)</value>
+  <data name="Score at which suspicious counts as malicious (0 to 100)" xml:space="preserve">
+    <value>Pontuação a partir da qual suspeito conta como malicioso (0 a 100)</value>
   </data>
   <data name="Score of a message whose links name more than 200 domains (0 = none)" xml:space="preserve">
     <value>Pontuação de uma mensagem cujos links citam mais de 200 domínios (0 = nenhuma)</value>
@@ -11061,14 +11094,14 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Seconds a key lookup may take (2 to 30)" xml:space="preserve">
     <value>Segundos que uma busca de chave pode levar (2 a 30)</value>
   </data>
-  <data name="Seconds a push service holds a notification for a device that is offline (0 to 2419200)" xml:space="preserve">
-    <value>Segundos em que um serviço de push guarda uma notificação para um dispositivo offline (0 a 2419200)</value>
+  <data name="Seconds a push service holds a notification for a device that is offline (0 to 2,419,200)" xml:space="preserve">
+    <value>Segundos em que um serviço de push guarda uma notificação para um dispositivo offline (0 a 2.419.200)</value>
   </data>
-  <data name="Seconds a session may go unused (0 = the server's own 1800)" xml:space="preserve">
-    <value>Segundos em que uma sessão pode ficar sem uso (0 = os 1800 do próprio servidor)</value>
+  <data name="Seconds a session may go unused (0 = the server's own 1,800)" xml:space="preserve">
+    <value>Segundos em que uma sessão pode ficar sem uso (0 = os 1.800 do próprio servidor)</value>
   </data>
-  <data name="Seconds a session may last at all (0 = the server's own 43200)" xml:space="preserve">
-    <value>Segundos que uma sessão pode durar ao todo (0 = os 43200 do próprio servidor)</value>
+  <data name="Seconds a session may last at all (0 = the server's own 43,200)" xml:space="preserve">
+    <value>Segundos que uma sessão pode durar ao todo (0 = os 43.200 do próprio servidor)</value>
   </data>
   <data name="Seconds a single SQL statement may run (0 = no limit)" xml:space="preserve">
     <value>Segundos que uma única instrução SQL pode rodar (0 = sem limite)</value>
@@ -11394,8 +11427,8 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Server-generated mail" xml:space="preserve">
     <value>E-mails gerados pelo servidor</value>
   </data>
-  <data name="Server-side session cache size (0 = OpenSSL's default cap of 20480; negative = no cache)" xml:space="preserve">
-    <value>Tamanho do cache de sessões no lado do servidor (0 = o teto padrão do OpenSSL, de 20480; negativo = sem cache)</value>
+  <data name="Server-side session cache size (0 = OpenSSL's default of 20,480, -1 = no cache)" xml:space="preserve">
+    <value>Tamanho do cache de sessões no lado do servidor (0 = o padrão do OpenSSL, de 20.480, -1 = sem cache)</value>
   </data>
   <data name="Server-wide ceilings that keep one slow operation from holding a resource forever. The defaults are deliberate; each one is here because there is a diagnosable situation in which it is the right thing to change. Note that 0 does not mean the same thing for all of them - each label says." xml:space="preserve">
     <value>Tetos de todo o servidor que impedem que uma operação lenta prenda um recurso para sempre. Os padrões são deliberados; cada um está aqui porque existe uma situação diagnosticável em que alterá-lo é a coisa certa a fazer. Note que 0 não significa a mesma coisa para todos eles - cada rótulo diz o que significa.</value>
@@ -11486,6 +11519,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="Set in hMailServer.ini only" xml:space="preserve">
     <value>Definido apenas no hMailServer.ini</value>
+  </data>
+  <data name="Set it to use a mirror." xml:space="preserve">
+    <value>Defina-o para usar um espelho.</value>
   </data>
   <data name="Set the HTTP or HTTPS port on the Web services &amp; autoconfiguration page so the URLs answer, then publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; DNS records for each mail domain, pointing at this server. These are address records, and this page checks TXT records only, so they cannot be confirmed from here." xml:space="preserve">
     <value>Defina a porta HTTP ou HTTPS na página Serviços web e autoconfiguração para que as URLs respondam, depois publique registros DNS autoconfig.&lt;domain&gt; e autodiscover.&lt;domain&gt; para cada domínio de e-mail, apontando para este servidor. São registros de endereço, e esta página verifica apenas registros TXT, então eles não podem ser confirmados daqui.</value>
@@ -11589,8 +11625,11 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Shortens how long data is kept" xml:space="preserve">
     <value>Encurta por quanto tempo os dados são guardados</value>
   </data>
-  <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
-    <value>Menor cadeia de busca que o índice responde (3-64; cadeias mais curtas recorrem à varredura)</value>
+  <data name="Shorter strings fall back to the scan." xml:space="preserve">
+    <value>Cadeias mais curtas recorrem à varredura.</value>
+  </data>
+  <data name="Shortest search string the index answers for (3 to 64)" xml:space="preserve">
+    <value>Menor cadeia de busca que o índice responde (3 a 64)</value>
   </data>
   <data name="Show auto-_bans only" xml:space="preserve">
     <value>Só banimentos automáti_cos</value>
@@ -11760,8 +11799,8 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Simple is the default. Negotiate runs an SSPI exchange (Kerberos, falling back to NTLM) that never transmits the password and signs the connection - it is the only method a default-configured modern domain controller accepts when it has no certificate installed, it needs no search, no search base and no service account, and it works from a host that is not domain-joined." xml:space="preserve">
     <value>Simples é o padrão. O Negotiate executa uma troca SSPI (Kerberos, recorrendo a NTLM) que nunca transmite a senha e assina a conexão - é o único método que um controlador de domínio moderno com a configuração padrão aceita quando não tem certificado instalado, não precisa de busca alguma, nem de base de busca, nem de conta de serviço, e funciona a partir de um host não ingressado no domínio.</value>
   </data>
-  <data name="Simultaneous connections (0 is unlimited)" xml:space="preserve">
-    <value>Conexões simultâneas (0 é ilimitado)</value>
+  <data name="Simultaneous connections (0 = no limit)" xml:space="preserve">
+    <value>Conexões simultâneas (0 = sem limite)</value>
   </data>
   <data name="Since" xml:space="preserve">
     <value>Desde</value>
@@ -11805,8 +11844,8 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once." xml:space="preserve">
     <value>Retarda uma sessão que nomeia mais destinatários do que uma mensagem legítima precisa. Passada a contagem, cada RCPT TO seguinte em uma sessão não autenticada espera o atraso antes de ser respondido - um ataque de dicionário ou uma rajada de spam nomeia centenas de endereços e paga por cada um, enquanto um MTA remetente nomeia um punhado e nunca chega à contagem. Sessões autenticadas e faixas de IP com a proteção contra spam desligada estão isentas. A espera é um temporizador na conexão, não uma thread dormindo. Vale imediatamente.</value>
   </data>
-  <data name="Smallest part held once (KB; 0 holds nothing once)" xml:space="preserve">
-    <value>Menor parte guardada uma vez (KB; 0 não guarda nada uma só vez)</value>
+  <data name="Smallest part held once (KB; 0 = none)" xml:space="preserve">
+    <value>Menor parte guardada uma vez (KB; 0 = nenhuma)</value>
   </data>
   <data name="Smart host" xml:space="preserve">
     <value>Smart host</value>
@@ -12066,8 +12105,8 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Submission rate limits" xml:space="preserve">
     <value>Limites de taxa de envio</value>
   </data>
-  <data name="Submissions before an account's baseline counts (1 to 10000)" xml:space="preserve">
-    <value>Envios até a referência de uma conta contar (1 a 10000)</value>
+  <data name="Submissions before an account's baseline counts (1 to 10,000)" xml:space="preserve">
+    <value>Envios até a referência de uma conta contar (1 a 10.000)</value>
   </data>
   <data name="Submit address (POST)" xml:space="preserve">
     <value>Endereço de envio (POST)</value>
@@ -12204,8 +12243,8 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="TLS private keys - a passphrase-protected key needs its passphrase configured" xml:space="preserve">
     <value>Chaves privadas TLS - uma chave protegida por frase secreta precisa ter a frase secreta configurada</value>
   </data>
-  <data name="TLS report sender address (empty = disabled)" xml:space="preserve">
-    <value>Endereço remetente dos relatórios TLS (vazio = desativado)</value>
+  <data name="TLS report sender address (empty = off)" xml:space="preserve">
+    <value>Endereço remetente dos relatórios TLS (vazio = desligado)</value>
   </data>
   <data name="TLS reporting (TLS-RPT)" xml:space="preserve">
     <value>Relatórios TLS (TLS-RPT)</value>
@@ -12872,6 +12911,15 @@ Selecione a chave acima e copie-a à mão - ela não será mostrada de novo.</va
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>O banco de dados: procure erros que mencionem o pool de conexões. Quando o prazo do pool expira, uma consulta de destinatário responde 451 4.3.2 em vez de 550, então um banco de dados travado por um backup adia o e-mail em vez de devolvê-lo.</value>
   </data>
+  <data name="The default is 10." xml:space="preserve">
+    <value>O padrão é 10.</value>
+  </data>
+  <data name="The default is 24, and 168 is a week." xml:space="preserve">
+    <value>O padrão é 24, e 168 é uma semana.</value>
+  </data>
+  <data name="The default, 604,800, is a week." xml:space="preserve">
+    <value>O padrão, 604.800, é uma semana.</value>
+  </data>
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>A exceção de exclusão nunca exclui por suposição: a cópia só é removida quando a pontuação registrada de fato atingiu o valor, e ela vai para a quarentena quando esta está ativada.</value>
   </data>
@@ -13023,6 +13071,9 @@ não pôde ser carregado. A mensagem provavelmente já foi entregue e não está
   </data>
   <data name="The first address of the gateway's range." xml:space="preserve">
     <value>O primeiro endereço da faixa do gateway.</value>
+  </data>
+  <data name="The first attempt tries at most this many of a domain's MX hosts, the second at most twice as many, and so on, so that a domain whose hosts are down holds up the queue for less time." xml:space="preserve">
+    <value>A primeira tentativa tenta no máximo este número de hosts MX de um domínio, a segunda no máximo o dobro, e assim por diante, para que um domínio com os hosts fora do ar segure a fila por menos tempo.</value>
   </data>
   <data name="The first scanner to find something ends the scan, so the order is also the cost: a slow scanner in front of a fast one is paid for on every clean message." xml:space="preserve">
     <value>O primeiro verificador que encontrar algo encerra a verificação, então a ordem também é o custo: um verificador lento à frente de um rápido é pago em toda mensagem limpa.</value>
@@ -13382,6 +13433,9 @@ Adicionar mesmo assim?</value>
   </data>
   <data name="The protocol versions could not be read." xml:space="preserve">
     <value>As versões do protocolo não puderam ser lidas.</value>
+  </data>
+  <data name="The provider's RFC 7662 endpoint, which says whether a token is still valid." xml:space="preserve">
+    <value>O endpoint RFC 7662 do provedor, que informa se um token ainda é válido.</value>
   </data>
   <data name="The public address other servers see, when it is not an address of this machine." xml:space="preserve">
     <value>O endereço público que os outros servidores veem, quando não é um endereço desta máquina.</value>
@@ -13795,6 +13849,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="The two passwords do not match." xml:space="preserve">
     <value>As duas senhas não coincidem.</value>
   </data>
+  <data name="The update feed and its downloads, JWKS and token introspection all go through it. Proxy credentials are not supported." xml:space="preserve">
+    <value>O feed de atualizações e seus downloads, o JWKS e a introspecção de tokens passam todos por ele. Credenciais de proxy não são suportadas.</value>
+  </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>O auxiliar de atualização foi iniciado. Este Control Panel fecha agora para que o instalador possa substituir os seus arquivos; abra-o de novo em um minuto para ver o resultado.</value>
   </data>
@@ -13840,8 +13897,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="The web services settings could not be read: {0}" xml:space="preserve">
     <value>As configurações dos serviços web não puderam ser lidas: {0}</value>
   </data>
-  <data name="The whole accept pipeline; then the sender gets a 451. 0 = no bound." xml:space="preserve">
-    <value>Todo o pipeline de aceitação; depois disso o remetente recebe um 451. 0 = sem limite.</value>
+  <data name="The whole accept pipeline; then the sender gets a 451. 0 = no time limit." xml:space="preserve">
+    <value>Todo o pipeline de aceitação; depois disso o remetente recebe um 451. 0 = sem limite de tempo.</value>
   </data>
   <data name="The wiki could not be opened in a browser." xml:space="preserve">
     <value>Não foi possível abrir a wiki em um navegador.</value>
@@ -14077,8 +14134,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="This server's VAPID public key" xml:space="preserve">
     <value>Chave pública VAPID deste servidor</value>
   </data>
-  <data name="This server's entity ID (empty = the base address followed by /saml)" xml:space="preserve">
-    <value>ID da entidade deste servidor (vazio = o endereço base seguido de /saml)</value>
+  <data name="This server's entity ID (empty = the base address and /saml)" xml:space="preserve">
+    <value>ID da entidade deste servidor (vazio = o endereço base e /saml)</value>
   </data>
   <data name="This session holds no password the REST API can sign in with. Sign in again with the administrator's user name and password." xml:space="preserve">
     <value>Esta sessão não tem uma senha com a qual a API REST possa entrar. Entre novamente com o nome de usuário e a senha do administrador.</value>
@@ -14122,8 +14179,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="Threads and the stall threshold" xml:space="preserve">
     <value>Threads e o limiar de estagnação</value>
   </data>
-  <data name="Threads reserved so the async queue cannot be starved" xml:space="preserve">
-    <value>Threads reservadas para que a fila assíncrona não fique sem recursos</value>
+  <data name="Threads reserved so the async queue cannot be starved (0 = none)" xml:space="preserve">
+    <value>Threads reservadas para que a fila assíncrona não fique sem recursos (0 = nenhuma)</value>
   </data>
   <data name="Thresholds &amp; actions" xml:space="preserve">
     <value>Limiares e ações</value>
@@ -14152,8 +14209,11 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="Time" xml:space="preserve">
     <value>Hora</value>
   </data>
-  <data name="Time_out in seconds" xml:space="preserve">
-    <value>Tempo _limite em segundos</value>
+  <data name="Time active sessions get to finish when the service stops (seconds, up to 86,400; 0 = none)" xml:space="preserve">
+    <value>Tempo que as sessões ativas têm para terminar quando o serviço para (segundos, até 86.400; 0 = nenhum)</value>
+  </data>
+  <data name="Time_out (seconds, 1 to 90)" xml:space="preserve">
+    <value>Tempo _limite (segundos, 1 a 90)</value>
   </data>
   <data name="Timed out looking up {0}. Check the name, and that this machine can reach a DNS server." xml:space="preserve">
     <value>Tempo esgotado ao consultar {0}. Verifique o nome, e se esta máquina consegue alcançar um servidor DNS.</value>
@@ -14185,8 +14245,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="Token endpoint (https)" xml:space="preserve">
     <value>Endpoint de token (https)</value>
   </data>
-  <data name="Token introspection endpoint (RFC 7662; empty = no revocation check)" xml:space="preserve">
-    <value>Endpoint de introspecção de token (RFC 7662; vazio = sem verificação de revogação)</value>
+  <data name="Token introspection endpoint (empty = no revocation check)" xml:space="preserve">
+    <value>Endpoint de introspecção de token (vazio = sem verificação de revogação)</value>
   </data>
   <data name="Tokens are accepted, but {0}: the server applies each of those only when you have set it, and blank is the default. That is wider than it looks. Any token your identity provider signs with this key is accepted - including one it issued to a different application entirely, which is enough to sign in as whichever mailbox that token names. Set both to the exact values your provider puts in its tokens." xml:space="preserve">
     <value>Os tokens são aceitos, mas {0}: o servidor aplica cada um deles apenas quando você o define, e o padrão é em branco. Isso é mais amplo do que parece. Qualquer token que o seu provedor de identidade assine com esta chave é aceito - inclusive um que ele tenha emitido para um aplicativo completamente diferente, o que basta para entrar como qualquer caixa que esse token nomeie. Defina os dois exatamente com os valores que o seu provedor coloca nos tokens dele.</value>
@@ -14242,8 +14302,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="Trusted ARC sealer domains" xml:space="preserve">
     <value>Domínios de seladores ARC confiáveis</value>
   </data>
-  <data name="Trusted proxies whose X-Forwarded-Proto: https is believed (addresses, comma-separated; loopback always is)" xml:space="preserve">
-    <value>Proxies confiáveis cujo X-Forwarded-Proto: https é aceito (endereços separados por vírgulas; loopback sempre)</value>
+  <data name="Trusted proxies whose X-Forwarded-Proto: https is believed (comma separated)" xml:space="preserve">
+    <value>Proxies confiáveis cujo X-Forwarded-Proto: https é aceito (separados por vírgula)</value>
   </data>
   <data name="Trusts an address range" xml:space="preserve">
     <value>Confia em uma faixa de endereços</value>
@@ -14371,8 +14431,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="Unattended synchronisation" xml:space="preserve">
     <value>Sincronização não assistida</value>
   </data>
-  <data name="Unattended window (empty = never apply on its own; e.g. 03:00, Sun 03:00, Sat,Sun 02:00-05:00)" xml:space="preserve">
-    <value>Janela desassistida (vazio = nunca aplicar por conta própria; ex.: 03:00, Sun 03:00, Sat,Sun 02:00-05:00)</value>
+  <data name="Unattended window (empty = never apply on its own)" xml:space="preserve">
+    <value>Janela desassistida (vazio = nunca aplicar por conta própria)</value>
   </data>
   <data name="Unavailable" xml:space="preserve">
     <value>Indisponível</value>
@@ -14416,8 +14476,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="Up to 64 visible ASCII characters." xml:space="preserve">
     <value>Até 64 caracteres ASCII visíveis.</value>
   </data>
-  <data name="Update feed URL (empty = the built-in feed; set for a mirror)" xml:space="preserve">
-    <value>URL do feed de atualizações (vazio = o feed embutido; defina para um espelho)</value>
+  <data name="Update feed URL (empty = the built-in feed)" xml:space="preserve">
+    <value>URL do feed de atualizações (vazio = o feed embutido)</value>
   </data>
   <data name="Update status" xml:space="preserve">
     <value>Status da atualização</value>
@@ -14437,8 +14497,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks." xml:space="preserve">
     <value>Gateways à frente cujo endereço IP não deve ser tratado como o cliente que conecta nas verificações de spam.</value>
   </data>
-  <data name="Upstreams allowed to use XCLIENT (comma-separated addresses or CIDR ranges)" xml:space="preserve">
-    <value>Gateways à frente autorizados a usar XCLIENT (endereços ou faixas CIDR separados por vírgula)</value>
+  <data name="Upstreams allowed to use XCLIENT (comma separated)" xml:space="preserve">
+    <value>Gateways à frente autorizados a usar XCLIENT (separados por vírgula)</value>
   </data>
   <data name="Uptime" xml:space="preserve">
     <value>Tempo de atividade</value>
@@ -14512,8 +14572,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="Validates recipient TLSA records with in-process DNSSEC and blocks delivery over forged chains (RFC 7672)." xml:space="preserve">
     <value>Valida os registros TLSA do destinatário com DNSSEC dentro do processo e bloqueia a entrega por cadeias forjadas (RFC 7672).</value>
   </data>
-  <data name="Validity window in seconds for signatures we produce (0 = no expiry)" xml:space="preserve">
-    <value>Janela de validade em segundos para as assinaturas que produzimos (0 = sem validade)</value>
+  <data name="Validity window for the signatures this server makes (seconds; 0 = no expiry)" xml:space="preserve">
+    <value>Janela de validade das assinaturas que este servidor produz (segundos; 0 = sem expiração)</value>
   </data>
   <data name="Value:      {0}" xml:space="preserve">
     <value>Valor:      {0}</value>
@@ -14575,11 +14635,11 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="Wait for a free database connection (60)" xml:space="preserve">
     <value>Espera por uma conexão livre de banco de dados (60)</value>
   </data>
-  <data name="Wait for a free database connection (seconds)" xml:space="preserve">
-    <value>Espera por uma conexão livre de banco de dados (segundos)</value>
+  <data name="Wait for a free database connection (seconds; 0 = wait for ever)" xml:space="preserve">
+    <value>Espera por uma conexão livre de banco de dados (segundos; 0 = esperar para sempre)</value>
   </data>
-  <data name="Waiting for a pooled database connection. 0 = no bound." xml:space="preserve">
-    <value>Espera por uma conexão de banco de dados do pool. 0 = sem limite.</value>
+  <data name="Waiting for a pooled database connection. 0 = no time limit." xml:space="preserve">
+    <value>Espera por uma conexão de banco de dados do pool. 0 = sem limite de tempo.</value>
   </data>
   <data name="Waiting for a reinitialise:" xml:space="preserve">
     <value>Aguardando uma reinicialização:</value>
@@ -14881,6 +14941,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="Where the issued certificate would be written could not be determined, because neither the output folder above nor the server's data folder ([Directories] DataFolder in hMailServer.ini) could be read." xml:space="preserve">
     <value>Não foi possível determinar onde o certificado emitido seria gravado, porque nem a pasta de saída acima nem a pasta de dados do servidor ([Directories] DataFolder no hMailServer.ini) puderam ser lidas.</value>
   </data>
+  <data name="Where the provider publishes its signing keys." xml:space="preserve">
+    <value>Onde o provedor publica suas chaves de assinatura.</value>
+  </data>
   <data name="Where the search starts, e.g. DC=example,DC=local. Required in search mode - that is, when the bind method is Simple and no DN template is set." xml:space="preserve">
     <value>Onde a busca começa, ex.: DC=example,DC=local. Obrigatório no modo de busca - isto é, quando o método de vínculo é Simple e nenhum modelo de DN está definido.</value>
   </data>
@@ -15114,6 +15177,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the General tab." xml:space="preserve">
     <value>Com isto ligado, a senha não é armazenada aqui de forma alguma - pede-se ao Windows que a verifique. Deixe desligado e a conta usa a senha da aba Geral.</value>
+  </data>
+  <data name="Without a host name, the message's local domain is used, and without that, the machine name." xml:space="preserve">
+    <value>Sem um nome de host, usa-se o domínio local da mensagem e, sem ele, o nome da máquina.</value>
   </data>
   <data name="Without sign-in" xml:space="preserve">
     <value>Sem login</value>
@@ -15760,8 +15826,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="_Private key file" xml:space="preserve">
     <value>A_rquivo de chave privada</value>
   </data>
-  <data name="_Propagation period in hours (1 to 720)" xml:space="preserve">
-    <value>Período de propagação em _horas (de 1 a 720)</value>
+  <data name="_Propagation period (hours, 1 to 720)" xml:space="preserve">
+    <value>Período de propagação (_horas, 1 a 720)</value>
   </data>
   <data name="_Properties" xml:space="preserve">
     <value>_Propriedades</value>

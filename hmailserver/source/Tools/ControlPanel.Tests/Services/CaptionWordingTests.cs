@@ -29,19 +29,20 @@ namespace hMailServer.ControlPanel.Tests.Services
    public class CaptionWordingTests
    {
       private const string Unit =
-         @"(?:KB|MB|GB|KiB|PEM|%|% of (?:the|its|a) [\w' ]+|% of it|days?|hours?|minutes?|seconds?|milliseconds?|ms|" +
-         @"characters?|messages?|recipients?|entries|addresses|optional|comma[- ]separated|24-hour HH:MM)";
+         @"(?:KB|MB|GB|KiB|PEM|bytes|%|% of (?:the|its|a) [\w' ]+|% of it|days?|hours?|minutes?|seconds?|milliseconds?|ms|" +
+         @"characters?|messages?|recipients?|entries|addresses|optional|comma[- ]separated|24-hour HH:MM|host:port)";
       private const string Number = @"-?[\d,.]+";
-      private static readonly string Range = $@"(?:up to {Number}|at most {Number}|{Number} to {Number})";
-      private static readonly Regex UnitPart = new Regex($@"^(?:{Unit}(?:, {Range})?|{Range}(?: {Unit})?)$");
+      private static readonly string Range = $@"(?:up to {Number}|at most {Number}|at least {Number}|{Number} to {Number})";
+      internal static readonly Regex UnitPart = new Regex($@"^(?:{Unit}(?:, {Range})?|{Range}(?: {Unit})?)$");
       private const string Value = @"(?:-?[\d,.]+(?: or -?[\d,.]+)?|empty|\*|-)";
-      private const string Meaning = @"[^=;,()]+";
-      private static readonly Regex ValuePart = new Regex($@"^{Value} = {Meaning}(?:, {Value} = {Meaning})*$");
+      // A meaning may hold a number whose thousands are grouped: "0 = the built-in 210,000".
+      private const string Meaning = @"(?:[^=;,()]|,(?=\d{3}))+";
+      internal static readonly Regex ValuePart = new Regex($@"^{Value} = {Meaning}(?:, {Value} = {Meaning})*$");
       private static readonly Regex Meanings = new Regex($@"{Value} = ({Meaning})");
 
       // The caption positions: a FieldRow's Label, the dialogs' Field, Label and ReadOnlyField
       // helpers, the hMailServer.ini pages' Labelled*_ and a list editor's FieldSpec.
-      private static readonly Regex CaptionInCode = new Regex(
+      internal static readonly Regex CaptionInCode = new Regex(
          @"\b(?:Label\s*=\s*|(?:DialogFields\.)?(?:Field|ReadOnlyField|FormField_|Captioned|Label|LabelledBox_|LabelledCombo_)\(\s*|LabelledCheck_\(\s*\w+\s*,\s*)L\(\s*""((?:[^""\\]|\\.)*)""");
 
       /// <summary>Why a caption breaks the rule, or null when it keeps it.</summary>

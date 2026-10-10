@@ -438,16 +438,16 @@ namespace hMailServer.ControlPanel.Views
             // their tool tips: "Require TLS on mail from this domain" read
             // "Require TLS o" over 90 pixels.
             new FieldSpec { Prop = "RequireInboundTls", Label = L("Require TLS on mail from this domain"), GridLabel = L("Inbound TLS"), GridTrue = L("Required"), GridFalse = "—", Kind = FieldKind.Bool, GridWidth = 125, Default = false },
-            new FieldSpec { Prop = "MaxMessageSizeKB", Label = L("Largest message in KB (0 is no limit)"), GridLabel = L("Largest (KB)"), Kind = FieldKind.Number, GridWidth = 110, Default = 0 },
-            new FieldSpec { Prop = "MaxConnections", Label = L("Simultaneous connections (0 is unlimited)"), GridLabel = L("Connections"), Kind = FieldKind.Number, GridWidth = 110, Default = 0 },
-            new FieldSpec { Prop = "MaxMessagesPerMinute", Label = L("Messages a minute (0 is unlimited)"), Kind = FieldKind.Number, ShowInGrid = false, Default = 0 },
+            new FieldSpec { Prop = "MaxMessageSizeKB", Label = L("Largest message (KB; 0 = no limit)"), GridLabel = L("Largest (KB)"), Kind = FieldKind.Number, GridWidth = 110, Default = 0 },
+            new FieldSpec { Prop = "MaxConnections", Label = L("Simultaneous connections (0 = no limit)"), GridLabel = L("Connections"), Kind = FieldKind.Number, GridWidth = 110, Default = 0 },
+            new FieldSpec { Prop = "MaxMessagesPerMinute", Label = L("Messages a minute (0 = no limit)"), Kind = FieldKind.Number, ShowInGrid = false, Default = 0 },
             new FieldSpec { Prop = "AllowAutomaticReplies", Label = L("Automatic replies may go to this domain"), Kind = FieldKind.Bool, ShowInGrid = false, Default = true },
             new FieldSpec { Prop = "AllowForwarding", Label = L("Mail may be forwarded to this domain"), Kind = FieldKind.Bool, ShowInGrid = false, Default = true },
             new FieldSpec { Prop = "CalloutEnabled", Label = L("Verify a recipient with the domain's own server"), GridLabel = L("Recipient check"), Kind = FieldKind.Bool, GridWidth = 125, Default = false },
             new FieldSpec { Prop = "CalloutHost", Label = L("The server to ask (empty asks the domain's MX hosts)"), ShowInGrid = false, Default = "" },
             new FieldSpec { Prop = "CalloutPort", Label = L("The port to ask on"), Kind = FieldKind.Number, ShowInGrid = false, Default = 25 },
-            new FieldSpec { Prop = "CalloutTimeoutSeconds", Label = L("How long to wait, in seconds"), Kind = FieldKind.Number, ShowInGrid = false, Default = 10 },
-            new FieldSpec { Prop = "CalloutCacheMinutes", Label = L("How long an answer is remembered, in minutes"), Kind = FieldKind.Number, ShowInGrid = false, Default = 60 },
+            new FieldSpec { Prop = "CalloutTimeoutSeconds", Label = L("How long to wait (seconds)"), Kind = FieldKind.Number, ShowInGrid = false, Default = 10 },
+            new FieldSpec { Prop = "CalloutCacheMinutes", Label = L("How long an answer is remembered (minutes)"), Kind = FieldKind.Number, ShowInGrid = false, Default = 60 },
             new FieldSpec { Prop = "CalloutMaxPerMinute", Label = L("How often one domain is asked, per minute"), Kind = FieldKind.Number, ShowInGrid = false, Default = 10 },
             // Gateway encryption. The key is written and never read back - the
             // server answers it empty - so the box opens empty and a key is sent

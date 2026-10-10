@@ -92,16 +92,16 @@
                     <scaffold:InlineNotice x:Name="ScheduleNotice" />
                     <scaffold:InlineNotice x:Name="LastBackupNotice" Margin="0,0,0,16" />
 
-                    <scaffold:FieldRow x:Name="ScheduleTimeRow" Label="{loc:L 'Daily backup t_ime (24-hour HH:MM, empty = off)'}"
+                    <scaffold:FieldRow x:Name="ScheduleTimeRow" Label="{loc:L 'Daily backup t_ime (24-hour HH:MM; empty = off)'}"
                                        Hint="{loc:L 'At most one backup per calendar day, taken at the first check at or after this time (the server\'s local time). If an interval is also set below, the daily time wins.'}">
                         <ui:TextBox x:Name="ScheduleTimeBox" MaxWidth="200" HorizontalAlignment="Left"
-                                    AutomationProperties.Name="{loc:L 'Daily backup time (24-hour HH:MM, empty = off)'}" />
+                                    AutomationProperties.Name="{loc:L 'Daily backup time (24-hour HH:MM; empty = off)'}" />
                     </scaffold:FieldRow>
 
-                    <scaffold:FieldRow x:Name="IntervalRow" Label="{loc:L 'Backup interva_l in minutes (0 = off)'}"
+                    <scaffold:FieldRow x:Name="IntervalRow" Label="{loc:L 'Backup interva_l (minutes; 0 = off)'}"
                                        Hint="{loc:L 'Used when no daily time is set. The interval is measured against the newest archive in the destination, so it survives service restarts; if the destination holds no backup at all, the first one is taken about a minute after the service starts.'}">
                         <ui:TextBox x:Name="IntervalBox" MaxWidth="200" HorizontalAlignment="Left"
-                                    AutomationProperties.Name="{loc:L 'Backup interval in minutes (0 = off)'}" />
+                                    AutomationProperties.Name="{loc:L 'Backup interval (minutes; 0 = off)'}" />
                     </scaffold:FieldRow>
 
                     <scaffold:SettingsSection Heading="{loc:L 'Retention'}" Margin="0,4,0,0">
@@ -110,10 +110,10 @@
                                 <ui:TextBox x:Name="KeepCountBox" MaxWidth="200" HorizontalAlignment="Left"
                                             AutomationProperties.Name="{loc:L 'Archives to keep (0 = keep all)'}" />
                             </scaffold:FieldRow>
-                            <scaffold:FieldRow x:Name="MaxAgeRow" Label="{loc:L 'Delete archives older tha_n this many days (0 = keep all)'}"
+                            <scaffold:FieldRow x:Name="MaxAgeRow" Label="{loc:L 'Delete archives older tha_n (days; 0 = keep for ever)'}"
                                                Hint="{loc:L '0 means archives are never deleted. Retention runs on the server after every backup into this folder - scheduled or started by hand with Start backup now - and only once the new archive has been written and verified readable, so a failed backup never deletes anything. The newest archive is never deleted, the age limit always leaves the two newest alone, and only this server\'s own HMBackup archives are counted - other files in the folder are never touched.'}">
                                 <ui:TextBox x:Name="MaxAgeBox" MaxWidth="200" HorizontalAlignment="Left"
-                                            AutomationProperties.Name="{loc:L 'Delete archives older than this many days (0 = keep all)'}" />
+                                            AutomationProperties.Name="{loc:L 'Delete archives older than (days; 0 = keep for ever)'}" />
                             </scaffold:FieldRow>
                             <TextBlock Style="{StaticResource TextCaption}" Margin="0,0,0,8"
                                        Text="{loc:L 'Keeping several generations of messages needs compression: without \'Compress destination files (zip)\' every backup writes its message files into the same DataBackup folder, overwriting the previous run\'s, so retention can only keep generations of the small settings-and-domains archives.'}" />

@@ -215,7 +215,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheDropSize_IsCaptionedInTheUnitTheServerReads()
       {
          // SMTPConnection compares it with the message's size in KB.
-         Assert.Contains("above N KB mid-transfer", Definition_("SMTPDMaxSizeDrop"), StringComparison.Ordinal);
+         Assert.Contains("larger than this mid-transfer (KB; 0 = off)", Definition_("SMTPDMaxSizeDrop"), StringComparison.Ordinal);
       }
 
       [Fact]

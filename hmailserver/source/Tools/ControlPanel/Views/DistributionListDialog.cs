@@ -132,7 +132,7 @@ namespace hMailServer.ControlPanel.Views
          body.Children.Add(archiveDaysRow_);
 
          body.Children.Add(DialogFields.Field(null, digest_));
-         digestHourRow_ = Label(L("Digest _hour (0-23)"), digestHour_);
+         digestHourRow_ = Label(L("Digest _hour (0 to 23)"), digestHour_);
          body.Children.Add(digestHourRow_);
          body.Children.Add(DialogFields.Field(null, replyToList_));
          body.Children.Add(Label(L("Subject _prefix"), prefix_));

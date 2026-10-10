@@ -297,6 +297,9 @@
   <data name="43200 is twelve hours. At most 2592000, thirty days." xml:space="preserve">
     <value>43200 — это двенадцать часов. Не более 2592000, то есть тридцати дней.</value>
   </data>
+  <data name="443 is the port clients expect." xml:space="preserve">
+    <value>Клиенты ожидают порт 443.</value>
+  </data>
   <data name="45 by default. A stale database is still used; the application log says it is stale." xml:space="preserve">
     <value>По умолчанию 45. Устаревшая база всё равно используется; журнал приложения сообщает, что она устарела.</value>
   </data>
@@ -351,6 +354,9 @@
   <data name="80 by default." xml:space="preserve">
     <value>По умолчанию 80.</value>
   </data>
+  <data name="80 is the port clients expect." xml:space="preserve">
+    <value>Клиенты ожидают порт 80.</value>
+  </data>
   <data name="86400 by default; 0 delivers at once or not at all." xml:space="preserve">
     <value>По умолчанию 86400; 0 — доставить сразу или никак.</value>
   </data>
@@ -404,6 +410,9 @@
   </data>
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>Код из приложения-аутентификатора, требуемый вместе с паролем этой учётной записи. Он применяется там, где код действительно можно ввести, — в Control Panel и в API. Почтовые клиенты предъявить его не могут, поэтому после включения им придётся использовать пароль приложения.</value>
+  </data>
+  <data name="A command-line virus scanner is one." xml:space="preserve">
+    <value>Например, антивирусный сканер командной строки.</value>
   </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
     <value>Копия почты домена или одной учётной записи, отправленная на адрес: как отчёт о конверте с вложенным сообщением или как само сообщение.</value>
@@ -615,8 +624,8 @@
   <data name="A read-only SNMP agent for a monitoring system: SNMPv3 with authentication and encryption, and SNMPv2c only if you switch it on. It answers nobody until the managers are listed, and the port has to be open to them in any firewall between." xml:space="preserve">
     <value>Агент SNMP только для чтения для системы мониторинга: SNMPv3 с аутентификацией и шифрованием, а SNMPv2c — только если вы его включите. Он не отвечает никому, пока не перечислены станции управления, а порт должен быть открыт для них в каждом межсетевом экране на пути.</value>
   </data>
-  <data name="A recipient domain with several MX hosts is worth more attempts than one with a single host, because a retry can land on a different server. This multiplies the retry count above by the number of MX hosts actually tried." xml:space="preserve">
-    <value>Домен получателя с несколькими узлами MX заслуживает большего числа попыток, чем домен с одним узлом, поскольку повторная попытка может попасть на другой сервер. Этот параметр умножает указанное выше число повторов на число фактически опробованных узлов MX.</value>
+  <data name="A regular expression." xml:space="preserve">
+    <value>Регулярное выражение.</value>
   </data>
   <data name="A remote server that answers extremely slowly. The idle timeout is re-armed on every byte, so a host that sends one byte occasionally used to hold a delivery thread indefinitely; 'Absolute lifetime of one client session' (30 minutes by default) is the absolute ceiling, armed once and never re-armed." xml:space="preserve">
     <value>Удалённый сервер, отвечающий крайне медленно. Тайм-аут простоя перезапускается на каждом байте, поэтому узел, изредка отправляющий по одному байту, раньше мог удерживать поток доставки бесконечно; «Абсолютное время жизни одного клиентского сеанса» (по умолчанию 30 минут) — это абсолютная верхняя граница, взводимая один раз и никогда не перезапускаемая.</value>
@@ -699,8 +708,8 @@
   <data name="A simple bind needs the user's distinguished name. There are two ways to get one - search for it, or compute it from a template - and Negotiate needs neither, because SSPI authenticates by user name and domain, which the account already carries." xml:space="preserve">
     <value>Простой привязке нужно различающееся имя пользователя. Получить его можно двумя способами — найти поиском или вычислить по шаблону, — а режиму Negotiate не нужно ни то ни другое, поскольку SSPI выполняет аутентификацию по имени пользователя и домену, которые у учётной записи уже есть.</value>
   </data>
-  <data name="A single DNS query. 0 = no bound." xml:space="preserve">
-    <value>Один запрос DNS. 0 — без ограничения.</value>
+  <data name="A single DNS query. 0 = no time limit." xml:space="preserve">
+    <value>Один запрос DNS. 0 = без ограничения времени.</value>
   </data>
   <data name="A spam trap is an address in one of your domains that nobody uses, so whoever writes to it is sending spam. These settings say what happens to a server that does. The trap addresses are declared per domain in the Control Deck; until a domain has one, nothing here does anything." xml:space="preserve">
     <value>Ловушка для спама — это адрес в одном из ваших доменов, которым никто не пользуется, поэтому тот, кто пишет на него, рассылает спам. Эти параметры определяют, что происходит с сервером, который так поступает. Адреса ловушек объявляются для каждого домена в Control Deck; пока у домена их нет, ничто здесь не действует.</value>
@@ -840,8 +849,8 @@
   <data name="Absolute lifetime of one client session (1800)" xml:space="preserve">
     <value>Абсолютное время жизни одного клиентского сеанса (1800)</value>
   </data>
-  <data name="Absolute lifetime of one client session (seconds)" xml:space="preserve">
-    <value>Абсолютное время жизни одного клиентского сеанса (секунды)</value>
+  <data name="Absolute lifetime of one client session (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>Абсолютное время жизни одного клиентского сеанса (секунды; 0 = без ограничения времени)</value>
   </data>
   <data name="Accept DKIM signatures that use rsa-sha1" xml:space="preserve">
     <value>Принимать подписи DKIM, использующие rsa-sha1</value>
@@ -915,8 +924,8 @@ Control Panel может читать файлы сообщений только
   <data name="Account recovery" xml:space="preserve">
     <value>Восстановление учётной записи</value>
   </data>
-  <data name="Account-number pattern (a regular expression; empty = none)" xml:space="preserve">
-    <value>Шаблон номера счёта (регулярное выражение; пусто = нет)</value>
+  <data name="Account-number pattern (empty = none)" xml:space="preserve">
+    <value>Шаблон номера счёта (пусто = нет)</value>
   </data>
   <data name="Accounts" xml:space="preserve">
     <value>Учётные записи</value>
@@ -1260,14 +1269,20 @@ Control Panel может читать файлы сообщений только
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>Адреса и целые домены, которые учётные записи {0} хотят или не хотят получать. Действует после собственного списка учётной записи и перед списком сервера.</value>
   </data>
-  <data name="Addresses at other providers a person may send as (0 = none; up to 20)" xml:space="preserve">
-    <value>Адреса у других провайдеров, от имени которых можно отправлять (0 = нет; до 20)</value>
+  <data name="Addresses at other providers a person may send as (up to 20; 0 = none)" xml:space="preserve">
+    <value>Адреса у других провайдеров, от имени которых можно отправлять (до 20; 0 = нет)</value>
+  </data>
+  <data name="Addresses or CIDR blocks." xml:space="preserve">
+    <value>Адреса или блоки CIDR.</value>
   </data>
   <data name="Addresses that sign in to the Control Deck as the administrator through OpenID Connect (comma separated)" xml:space="preserve">
     <value>Адреса, входящие в Control Deck как администратор через OpenID Connect (через запятую)</value>
   </data>
   <data name="Addresses that sign in to the Control Deck as the administrator through SAML (comma separated)" xml:space="preserve">
     <value>Адреса, входящие в Control Deck как администратор через SAML (через запятую)</value>
+  </data>
+  <data name="Addresses; the loopback address is always trusted." xml:space="preserve">
+    <value>Адреса; адрес loopback считается доверенным всегда.</value>
   </data>
   <data name="Adds" xml:space="preserve">
     <value>Добавляет</value>
@@ -1317,6 +1332,9 @@ Control Panel может читать файлы сообщений только
   <data name="Advanced" xml:space="preserve">
     <value>Дополнительно</value>
   </data>
+  <data name="Advanced: it is sent as it is, in place of a token the server fetches." xml:space="preserve">
+    <value>Для опытных: отправляется как есть вместо токена, который получает сервер.</value>
+  </data>
   <data name="After a restart" xml:space="preserve">
     <value>После перезапуска</value>
   </data>
@@ -1335,8 +1353,8 @@ Control Panel может читать файлы сообщений только
   <data name="Against {0} over {1}. Set the service account user name (and its password), or switch to a user DN template or the Negotiate bind method, neither of which searches at all." xml:space="preserve">
     <value>К серверу {0} по {1}. Задайте имя пользователя учётной записи службы (и его пароль) либо переключитесь на шаблон DN пользователя или на метод привязки Negotiate — ни тот ни другой поиском не пользуются вовсе.</value>
   </data>
-  <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
-    <value>Схема сводных отчётов, которую отправляет этот сервер: 1 — RFC 7489, приложение C; 2 — RFC 9990</value>
+  <data name="Aggregate-report schema this server sends (1 = RFC 7489 Appendix C, 2 = RFC 9990)" xml:space="preserve">
+    <value>Схема сводных отчётов, которую отправляет этот сервер (1 = RFC 7489 приложение C, 2 = RFC 9990)</value>
   </data>
   <data name="Alert rule" xml:space="preserve">
     <value>Правило оповещения</value>
@@ -1605,8 +1623,8 @@ Control Panel может читать файлы сообщений только
   <data name="An auto-ban is enforced by the server's own listeners: the address is accepted by the operating system, handed to the server and dropped. These settings push the ban down into the operating system's firewall, hand it to a program of yours, and name the addresses that must never be banned at all." xml:space="preserve">
     <value>Автоматический бан применяют слушатели самого сервера: операционная система принимает адрес, передаёт его серверу, а сервер разрывает соединение. Эти параметры опускают бан в межсетевой экран операционной системы, передают его вашей программе и задают адреса, которые нельзя банить никогда.</value>
   </data>
-  <data name="An entire outbound delivery session. 0 = no bound." xml:space="preserve">
-    <value>Весь сеанс исходящей доставки целиком. 0 — без ограничения.</value>
+  <data name="An entire outbound delivery session. 0 = no time limit." xml:space="preserve">
+    <value>Весь сеанс исходящей доставки целиком. 0 = без ограничения времени.</value>
   </data>
   <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
     <value>Запись изменяется на месте через REST API, который перед ответом запрашивает одноразовый код администратора, а код не был введён. Нажмите «Изменить…», чтобы вас спросили снова, или удалите запись и добавьте её снова.</value>
@@ -1623,8 +1641,8 @@ Control Panel может читать файлы сообщений только
   <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
     <value>Сценарий события выполняется внутри сервера с правами учётной записи службы, поэтому то, экземпляры чего ему позволено создавать, — это решение по безопасности, а не вопрос удобства. В поставляемом виде здесь стоит *, что разрешает любой объект, чтобы обновление никогда не ломало сценарий, который установка уже запускает, — это настройка, которую следует сужать, а не безопасное состояние. Указывайте только то, что вашему сценарию действительно нужно, — объект файловой системы для сценариев, клиент HTTP, — а всё остальное отклоняется с записью имени объекта в журнал ошибок; пустое значение отклоняет всё, кроме собственных объектов hMailServer.</value>
   </data>
-  <data name="An external scanner process. 0 = no bound." xml:space="preserve">
-    <value>Процесс внешнего сканера. 0 — без ограничения.</value>
+  <data name="An external scanner process. 0 = no time limit." xml:space="preserve">
+    <value>Процесс внешнего сканера. 0 = без ограничения времени.</value>
   </data>
   <data name="An older, weaker option: a one-time code asked for after the password when signing in to THIS Control Panel, checked by the tool itself after the server has already accepted the password. The secret is stored per machine under HKLM, so enabling or disabling it needs local administrator rights, and it does nothing for the REST API or for scripts using the COM API. Prefer the server-enforced factor above; this one remains for existing setups." xml:space="preserve">
     <value>Более старый и более слабый вариант: одноразовый код, запрашиваемый после пароля при входе именно в ЭТОТ Control Panel и проверяемый самим приложением уже после того, как сервер принял пароль. Секрет хранится отдельно на каждом компьютере в HKLM, поэтому его включение и отключение требуют прав локального администратора, а для REST API и для сценариев на COM API он не даёт ничего. Предпочитайте фактор, обеспечиваемый сервером, выше; этот остаётся ради существующих установок.</value>
@@ -1822,14 +1840,14 @@ Control Panel может читать файлы сообщений только
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id (требователен к памяти, рекомендуется)</value>
   </data>
-  <data name="Argon2id memory for new hashes, in KiB (0 = the built-in 19,456; 4,096 to 1,048,576)" xml:space="preserve">
-    <value>Память Argon2id для новых хешей, в КиБ (0 — встроенное значение 19 456; от 4 096 до 1 048 576)</value>
+  <data name="Argon2id memory for new hashes (KiB, 4,096 to 1,048,576; 0 = the built-in 19,456)" xml:space="preserve">
+    <value>Память Argon2id для новых хешей (КиБ, от 4 096 до 1 048 576; 0 = встроенное значение 19 456)</value>
   </data>
   <data name="Argon2id or scrypt only" xml:space="preserve">
     <value>Только Argon2id или scrypt</value>
   </data>
-  <data name="Argon2id passes for new hashes (0 = the built-in 2; 1 to 20)" xml:space="preserve">
-    <value>Число проходов Argon2id для новых хешей (0 — встроенное значение 2; от 1 до 20)</value>
+  <data name="Argon2id passes for new hashes (1 to 20; 0 = the built-in 2)" xml:space="preserve">
+    <value>Число проходов Argon2id для новых хешей (от 1 до 20; 0 = встроенное значение 2)</value>
   </data>
   <data name="Arriving" xml:space="preserve">
     <value>Входящая</value>
@@ -2089,14 +2107,14 @@ Control Panel может читать файлы сообщений только
   <data name="Backup archives (HMBackup*.7z)|HMBackup*.7z|All files (*.*)|*.*" xml:space="preserve">
     <value>Архивы резервных копий (HMBackup*.7z)|HMBackup*.7z|Все файлы (*.*)|*.*</value>
   </data>
-  <data name="Backup interva_l in minutes (0 = off)" xml:space="preserve">
-    <value>_Интервал резервного копирования в минутах (0 — выключено)</value>
+  <data name="Backup interva_l (minutes; 0 = off)" xml:space="preserve">
+    <value>_Интервал резервного копирования (минуты; 0 = выключено)</value>
+  </data>
+  <data name="Backup interval (minutes; 0 = off)" xml:space="preserve">
+    <value>Интервал резервного копирования (минуты; 0 = выключено)</value>
   </data>
   <data name="Backup interval in minutes" xml:space="preserve">
     <value>Интервал резервного копирования в минутах</value>
-  </data>
-  <data name="Backup interval in minutes (0 = off)" xml:space="preserve">
-    <value>Интервал резервного копирования в минутах (0 — выключено)</value>
   </data>
   <data name="Backup schedule saved - the service reads these settings when it starts, so they apply after a service restart." xml:space="preserve">
     <value>Расписание резервного копирования сохранено — служба читает эти параметры при запуске, поэтому они вступят в силу после перезапуска службы.</value>
@@ -2119,8 +2137,11 @@ Control Panel может читать файлы сообщений только
   <data name="Ban duration (minutes)" xml:space="preserve">
     <value>Длительность блокировки (минуты)</value>
   </data>
-  <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
-    <value>Блокировать на (часов, от 1 до 8760)</value>
+  <data name="Ban for (hours, 1 to 8,760)" xml:space="preserve">
+    <value>Блокировать на (часов, от 1 до 8 760)</value>
+  </data>
+  <data name="Ban the sending address for (minutes, up to 525,600; 0 = no ban)" xml:space="preserve">
+    <value>Блокировать отправляющий адрес на (минуты, до 525 600; 0 = без блокировки)</value>
   </data>
   <data name="Banned now" xml:space="preserve">
     <value>Заблокировано сейчас</value>
@@ -2196,6 +2217,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Block rather than allow" xml:space="preserve">
     <value>Блокировать, а не разрешать</value>
+  </data>
+  <data name="Block the envelope sender for (days, up to 3,650; 0 = no block)" xml:space="preserve">
+    <value>Блокировать отправителя конверта на (дни, до 3 650; 0 = без блокировки)</value>
   </data>
   <data name="Block the sender of this message, then delete it" xml:space="preserve">
     <value>Заблокировать отправителя этого сообщения, затем удалить его</value>
@@ -2338,8 +2362,8 @@ Control Panel может читать файлы сообщений только
   <data name="CC" xml:space="preserve">
     <value>Копия</value>
   </data>
-  <data name="COM objects a script may create (* = any, as shipped; empty = none beyond hMailServer's own; ProgIDs or CLSIDs, comma separated)" xml:space="preserve">
-    <value>COM-объекты, которые может создавать сценарий (* — любые, как поставляется; пусто — никакие, кроме собственных объектов hMailServer; ProgIDs или CLSIDs, через запятую)</value>
+  <data name="COM objects a script may create (comma separated; * = any, empty = only hMailServer's own)" xml:space="preserve">
+    <value>COM-объекты, которые может создавать сценарий (через запятую; * = любые, пусто = только собственные объекты hMailServer)</value>
   </data>
   <data name="COMPRESS=DEFLATE (RFC 4978)" xml:space="preserve">
     <value>COMPRESS=DEFLATE (RFC 4978)</value>
@@ -2797,8 +2821,8 @@ Control Panel может читать файлы сообщений только
   <data name="Client secret for introspection" xml:space="preserve">
     <value>Секрет клиента для интроспекции</value>
   </data>
-  <data name="Clock-drift tolerance in seconds when checking an expiry" xml:space="preserve">
-    <value>Допуск на расхождение часов при проверке срока действия, в секундах</value>
+  <data name="Clock-drift tolerance when checking an expiry (seconds)" xml:space="preserve">
+    <value>Допуск на расхождение часов при проверке срока действия (секунды)</value>
   </data>
   <data name="Close" xml:space="preserve">
     <value>Закрыть</value>
@@ -2839,8 +2863,8 @@ Control Panel может читать файлы сообщений только
   <data name="Complaint mailbox (comma separated for several)" xml:space="preserve">
     <value>Ящик для жалоб (несколько — через запятую)</value>
   </data>
-  <data name="Complaints before an address is suppressed (0 = never; up to 100)" xml:space="preserve">
-    <value>Жалобы, после которых адрес подавляется (0 = никогда; до 100)</value>
+  <data name="Complaints before an address is suppressed (up to 100; 0 = never)" xml:space="preserve">
+    <value>Жалобы, после которых адрес подавляется (до 100; 0 = никогда)</value>
   </data>
   <data name="Complaints from mailbox providers (feedback loops)" xml:space="preserve">
     <value>Жалобы от почтовых провайдеров (петли обратной связи)</value>
@@ -3636,8 +3660,8 @@ Control Panel может читать файлы сообщений только
   <data name="DMARC failure score" xml:space="preserve">
     <value>Оценка за непрохождение DMARC</value>
   </data>
-  <data name="DMARC report sender address (empty = disabled)" xml:space="preserve">
-    <value>Адрес отправителя отчётов DMARC (пусто — выключено)</value>
+  <data name="DMARC report sender address (empty = off)" xml:space="preserve">
+    <value>Адрес отправителя отчётов DMARC (пусто = выключено)</value>
   </data>
   <data name="DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it." xml:space="preserve">
     <value>DMARC сообщает получателям, что делать с почтой, не прошедшей SPF и DKIM, и куда об этом сообщать.</value>
@@ -3660,8 +3684,8 @@ Control Panel может читать файлы сообщений только
   <data name="DNS query timeout (10)" xml:space="preserve">
     <value>Тайм-аут запроса DNS (10)</value>
   </data>
-  <data name="DNS query timeout (seconds; 0 = no bound)" xml:space="preserve">
-    <value>Тайм-аут запроса DNS (секунды; 0 — без ограничения)</value>
+  <data name="DNS query timeout (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>Тайм-аут запроса DNS (секунды; 0 = без ограничения времени)</value>
   </data>
   <data name="DNS records" xml:space="preserve">
     <value>Записи DNS</value>
@@ -3675,11 +3699,11 @@ Control Panel может читать файлы сообщений только
   <data name="D_omain" xml:space="preserve">
     <value>_Домен</value>
   </data>
-  <data name="Daily backup t_ime (24-hour HH:MM, empty = off)" xml:space="preserve">
-    <value>_Время ежедневного резервного копирования (24-часовой формат ЧЧ:ММ, пусто — выключено)</value>
+  <data name="Daily backup t_ime (24-hour HH:MM; empty = off)" xml:space="preserve">
+    <value>_Время ежедневного резервного копирования (24-часовой формат ЧЧ:ММ; пусто = выключено)</value>
   </data>
-  <data name="Daily backup time (24-hour HH:MM, empty = off)" xml:space="preserve">
-    <value>Время ежедневного резервного копирования (24-часовой формат ЧЧ:ММ, пусто — выключено)</value>
+  <data name="Daily backup time (24-hour HH:MM; empty = off)" xml:space="preserve">
+    <value>Время ежедневного резервного копирования (24-часовой формат ЧЧ:ММ; пусто = выключено)</value>
   </data>
   <data name="Dashboard" xml:space="preserve">
     <value>Сводка</value>
@@ -3717,8 +3741,8 @@ Control Panel может читать файлы сообщений только
   <data name="Date this key stops working" xml:space="preserve">
     <value>Дата, когда этот ключ перестанет работать</value>
   </data>
-  <data name="Days a complaint is kept (0 = for ever; up to 3650)" xml:space="preserve">
-    <value>Дней хранения жалобы (0 = всегда; до 3650)</value>
+  <data name="Days a complaint is kept (up to 3,650; 0 = for ever)" xml:space="preserve">
+    <value>Дней хранения жалобы (до 3 650; 0 = вечно)</value>
   </data>
   <data name="Days a held message waits for review (1 to 90)" xml:space="preserve">
     <value>Дней ожидания проверки задержанным сообщением (от 1 до 90)</value>
@@ -3726,8 +3750,8 @@ Control Panel может читать файлы сообщений только
   <data name="Days a password-protected message is kept for its reader (1 to 365)" xml:space="preserve">
     <value>Дней хранения защищённого паролем сообщения для его читателя (от 1 до 365)</value>
   </data>
-  <data name="Days a received report is kept (0 = for ever; up to 3650)" xml:space="preserve">
-    <value>Дней хранения полученного отчёта (0 = всегда; до 3650)</value>
+  <data name="Days a received report is kept (up to 3,650; 0 = for ever)" xml:space="preserve">
+    <value>Дней хранения полученного отчёта (до 3 650; 0 = вечно)</value>
   </data>
   <data name="Days after sending that a delivery report is still matched (1 to 30)" xml:space="preserve">
     <value>Дней после отправки, в течение которых отчёт о доставке ещё сопоставляется (от 1 до 30)</value>
@@ -3741,35 +3765,29 @@ Control Panel может читать файлы сообщений только
   <data name="Days before the database is reported as stale (0 = never)" xml:space="preserve">
     <value>Дней до того, как база будет объявлена устаревшей (0 = никогда)</value>
   </data>
-  <data name="Days bet_ween rotations (1 to 3650)" xml:space="preserve">
-    <value>_Дней между ротациями (от 1 до 3650)</value>
+  <data name="Days bet_ween rotations (1 to 3,650)" xml:space="preserve">
+    <value>_Дней между ротациями (от 1 до 3 650)</value>
   </data>
   <data name="Days between rotations" xml:space="preserve">
     <value>Дней между ротациями</value>
   </data>
-  <data name="Days bounce counts are kept (0 = keep)" xml:space="preserve">
-    <value>Дней хранения счётчиков отказов (0 = хранить)</value>
+  <data name="Days bounce counts are kept (0 = for ever)" xml:space="preserve">
+    <value>Дней хранения счётчиков отказов (0 = вечно)</value>
   </data>
-  <data name="Days deleted messages are kept for the person to put back (0 = none; up to 365)" xml:space="preserve">
-    <value>Дней хранения удалённых сообщений, чтобы человек мог их вернуть (0 = нет; до 365)</value>
+  <data name="Days deleted messages are kept for the person to put back (up to 365; 0 = none)" xml:space="preserve">
+    <value>Дней хранения удалённых сообщений, чтобы человек мог их вернуть (до 365; 0 = нет)</value>
   </data>
-  <data name="Days delivered and dead-lettered deliveries are kept (0 = everything; up to 3650)" xml:space="preserve">
-    <value>Дней хранения доставленных и недоставленных доставок (0 = всё; до 3650)</value>
+  <data name="Days delivered and dead-lettered deliveries are kept (up to 3,650; 0 = for ever)" xml:space="preserve">
+    <value>Дней хранения доставленных и недоставленных доставок (до 3 650; 0 = вечно)</value>
   </data>
-  <data name="Days of audit trail to keep (0 = everything)" xml:space="preserve">
-    <value>Дней журнала аудита для хранения (0 = всё)</value>
+  <data name="Days of audit trail to keep (0 = for ever)" xml:space="preserve">
+    <value>Дней журнала аудита для хранения (0 = вечно)</value>
   </data>
-  <data name="Days of mail a person may keep in the browser to read offline (0 = none; up to 365)" xml:space="preserve">
-    <value>Дней почты, которые человек может хранить в браузере для чтения без подключения (0 = нет; до 365)</value>
+  <data name="Days of mail a person may keep in the browser to read offline (up to 365; 0 = none)" xml:space="preserve">
+    <value>Дней почты, которые человек может хранить в браузере для чтения без подключения (до 365; 0 = нет)</value>
   </data>
   <data name="Days of submissions that make an account's baseline (7 to 365)" xml:space="preserve">
     <value>Дней отправок, образующих базовый профиль учётной записи (от 7 до 365)</value>
-  </data>
-  <data name="Days the envelope sender stays blocked (0 = no block; up to 3650)" xml:space="preserve">
-    <value>Дней, в течение которых отправитель конверта остаётся заблокированным (0 = без блокировки; до 3650)</value>
-  </data>
-  <data name="Days the record of trap hits is kept (1 to 3650)" xml:space="preserve">
-    <value>Дней хранения записи о срабатываниях ловушек (от 1 до 3650)</value>
   </data>
   <data name="Days the soft bounces are counted within (1 to 365)" xml:space="preserve">
     <value>Дней, в пределах которых учитываются временные отказы (от 1 до 365)</value>
@@ -3810,8 +3828,8 @@ Control Panel может читать файлы сообщений только
   <data name="Del" xml:space="preserve">
     <value>Del</value>
   </data>
-  <data name="Delay for each further recipient (seconds, at most 30; 0 = off)" xml:space="preserve">
-    <value>Задержка на каждого следующего получателя (секунды, не более 30; 0 — выключено)</value>
+  <data name="Delay for each further recipient (seconds, up to 30; 0 = off)" xml:space="preserve">
+    <value>Задержка на каждого следующего получателя (секунды, до 30; 0 = выключено)</value>
   </data>
   <data name="Delay per failed sign-in (seconds; 0 = off)" xml:space="preserve">
     <value>Задержка на каждый неудачный вход (секунды; 0 = выключено)</value>
@@ -3840,14 +3858,14 @@ Control Panel может читать файлы сообщений только
   <data name="Delete archived messages after (days; 0 = keep for ever)" xml:space="preserve">
     <value>Удалять архивированные сообщения через (дней; 0 — хранить вечно)</value>
   </data>
-  <data name="Delete archives older tha_n this many days (0 = keep all)" xml:space="preserve">
-    <value>Удалять архивы старше указанного числа _дней (0 — хранить все)</value>
+  <data name="Delete archives older tha_n (days; 0 = keep for ever)" xml:space="preserve">
+    <value>У_далять архивы старше (дни; 0 = хранить вечно)</value>
+  </data>
+  <data name="Delete archives older than (days; 0 = keep for ever)" xml:space="preserve">
+    <value>Удалять архивы старше (дни; 0 = хранить вечно)</value>
   </data>
   <data name="Delete archives older than this many days" xml:space="preserve">
     <value>Удалять архивы старше указанного числа дней</value>
-  </data>
-  <data name="Delete archives older than this many days (0 = keep all)" xml:space="preserve">
-    <value>Удалять архивы старше указанного числа дней (0 — хранить все)</value>
   </data>
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>Удалять подтверждённые записи через (дней)</value>
@@ -3891,8 +3909,8 @@ Control Panel может читать файлы сообщений только
   <data name="Delete folder" xml:space="preserve">
     <value>Удалить папку</value>
   </data>
-  <data name="Delete logs older than N days (0 = keep everything)" xml:space="preserve">
-    <value>Удалять журналы старше N дней (0 — хранить всё)</value>
+  <data name="Delete logs older than (days; 0 = keep for ever)" xml:space="preserve">
+    <value>Удалять журналы старше (дни; 0 = хранить вечно)</value>
   </data>
   <data name="Delete messages" xml:space="preserve">
     <value>Удалить сообщения</value>
@@ -4212,8 +4230,8 @@ Control Panel может читать файлы сообщений только
   <data name="Different" xml:space="preserve">
     <value>Отличается</value>
   </data>
-  <data name="Digest _hour (0-23)" xml:space="preserve">
-    <value>_Час дайджеста (0-23)</value>
+  <data name="Digest _hour (0 to 23)" xml:space="preserve">
+    <value>_Час дайджеста (от 0 до 23)</value>
   </data>
   <data name="Digest hour" xml:space="preserve">
     <value>Час сводки</value>
@@ -4307,8 +4325,8 @@ Control Panel может читать файлы сообщений только
   <data name="Disk space" xml:space="preserve">
     <value>Дисковое пространство</value>
   </data>
-  <data name="Distinct terms per message before it is always scanned instead (64-1000000)" xml:space="preserve">
-    <value>Число различных терминов в сообщении, при превышении которого оно всегда сканируется вместо индексирования (64-1000000)</value>
+  <data name="Distinct terms per message before it is always scanned instead (64 to 1,000,000)" xml:space="preserve">
+    <value>Число различных терминов в сообщении, при превышении которого оно всегда сканируется вместо индексирования (от 64 до 1 000 000)</value>
   </data>
   <data name="Distribution list" xml:space="preserve">
     <value>Список рассылки</value>
@@ -4382,8 +4400,8 @@ Control Panel может читать файлы сообщений только
   <data name="Domain contains" xml:space="preserve">
     <value>Домен содержит</value>
   </data>
-  <data name="Domain for the mailer-daemon sender address (empty = host name, else the message's local domain, else the machine name)" xml:space="preserve">
-    <value>Домен для адреса отправителя mailer-daemon (пусто — имя узла, иначе локальный домен сообщения, иначе имя компьютера)</value>
+  <data name="Domain for the mailer-daemon sender address (empty = the host name)" xml:space="preserve">
+    <value>Домен для адреса отправителя mailer-daemon (пусто = имя узла)</value>
   </data>
   <data name="Domain or account" xml:space="preserve">
     <value>Домен или учётная запись</value>
@@ -4427,11 +4445,11 @@ Control Panel может читать файлы сообщений только
   <data name="Draining" xml:space="preserve">
     <value>Дренаж</value>
   </data>
+  <data name="Drop inbound messages larger than this mid-transfer (KB; 0 = off)" xml:space="preserve">
+    <value>Обрывать во время передачи входящие сообщения больше этого размера (КБ; 0 = выключено)</value>
+  </data>
   <data name="Drop it without a report" xml:space="preserve">
     <value>Пропустить без отчёта</value>
-  </data>
-  <data name="Drop oversized inbound messages above N KB mid-transfer (0 = off)" xml:space="preserve">
-    <value>Обрывать приём входящих сообщений, превысивших N КБ, прямо во время передачи (0 — выключено)</value>
   </data>
   <data name="Due for delivery" xml:space="preserve">
     <value>Ожидает доставки</value>
@@ -4961,8 +4979,8 @@ Control Panel может читать файлы сообщений только
   <data name="Event script execution timeout (60)" xml:space="preserve">
     <value>Тайм-аут выполнения сценария события (60)</value>
   </data>
-  <data name="Event script execution timeout (seconds)" xml:space="preserve">
-    <value>Тайм-аут выполнения сценария события (секунды)</value>
+  <data name="Event script execution timeout (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>Тайм-аут выполнения сценария события (секунды; 0 = без ограничения времени)</value>
   </data>
   <data name="Event scripts" xml:space="preserve">
     <value>Сценарии событий</value>
@@ -4973,8 +4991,8 @@ Control Panel может читать файлы сообщений только
   <data name="Events - a message received, delivered, bounced or quarantined, an account locked - posted to the receivers subscribed in the Control Deck or over the REST API. Nothing is sent until a subscription exists." xml:space="preserve">
     <value>События — сообщение получено, доставлено, возвращено или помещено в карантин, учётная запись заблокирована — отправляются получателям, подписанным в Control Deck или через REST API. Ничего не отправляется, пока нет подписки.</value>
   </data>
-  <data name="Events a minute for a subscription with no limit of its own (1 to 100000)" xml:space="preserve">
-    <value>Событий в минуту для подписки без собственного ограничения (от 1 до 100000)</value>
+  <data name="Events a minute for a subscription with no limit of its own (1 to 100,000)" xml:space="preserve">
+    <value>Событий в минуту для подписки без собственного ограничения (от 1 до 100 000)</value>
   </data>
   <data name="Events are kept with no time limit." xml:space="preserve">
     <value>События хранятся без ограничения срока.</value>
@@ -5210,8 +5228,8 @@ Control Panel может читать файлы сообщений только
   <data name="Expunge" xml:space="preserve">
     <value>Expunge</value>
   </data>
-  <data name="Expunge records to keep (0 = keep everything, which also skips the prune at start-up)" xml:space="preserve">
-    <value>Сколько записей EXPUNGE хранить (0 — хранить все, при этом очистка при запуске тоже пропускается)</value>
+  <data name="Expunge records to keep (0 = keep everything)" xml:space="preserve">
+    <value>Сколько записей EXPUNGE хранить (0 = хранить все)</value>
   </data>
   <data name="External" xml:space="preserve">
     <value>Внешний</value>
@@ -5237,8 +5255,8 @@ Control Panel может читать файлы сообщений только
   <data name="External process timeout (300)" xml:space="preserve">
     <value>Тайм-аут внешнего процесса (300)</value>
   </data>
-  <data name="External process timeout, e.g. a command-line virus scanner (seconds)" xml:space="preserve">
-    <value>Тайм-аут внешнего процесса, например антивирусного сканера командной строки (секунды)</value>
+  <data name="External process timeout (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>Тайм-аут внешнего процесса (секунды; 0 = без ограничения времени)</value>
   </data>
   <data name="External recipients" xml:space="preserve">
     <value>Внешние получатели</value>
@@ -5249,14 +5267,8 @@ Control Panel может читать файлы сообщений только
   <data name="External to external (rela_y)" xml:space="preserve">
     <value>Внешний → внешний (ретрансл_яция)</value>
   </data>
-  <data name="External-account hosts to FETCH from with OAuth2 (comma separated; blank this to use none)" xml:space="preserve">
-    <value>Узлы внешних учётных записей, с которых собирать почту по OAuth2 (через запятую; оставьте пустым, чтобы не использовать ни одного)</value>
-  </data>
-  <data name="Extra delivery attempts per additional MX host" xml:space="preserve">
-    <value>Дополнительные попытки доставки на каждый дополнительный узел MX</value>
-  </data>
-  <data name="Extra delivery attempts per additional MX host (0 = default)" xml:space="preserve">
-    <value>Дополнительные попытки доставки на каждый дополнительный узел MX (0 — по умолчанию)</value>
+  <data name="External-account hosts to fetch from with OAuth2 (comma separated; empty = none)" xml:space="preserve">
+    <value>Узлы внешних учётных записей, с которых собирать почту по OAuth2 (через запятую; пусто = ни одного)</value>
   </data>
   <data name="F6, Shift+F6" xml:space="preserve">
     <value>F6, Shift+F6</value>
@@ -5309,11 +5321,11 @@ Control Panel может читать файлы сообщений только
   <data name="Fetching {0}…" xml:space="preserve">
     <value>Загрузка {0}…</value>
   </data>
-  <data name="Fewest messages in an hour that can be a volume signal (1 to 100000)" xml:space="preserve">
-    <value>Наименьшее число сообщений за час, которое может быть сигналом объёма (от 1 до 100000)</value>
+  <data name="Fewest messages in an hour that can be a volume signal (1 to 100,000)" xml:space="preserve">
+    <value>Наименьшее число сообщений за час, которое может быть сигналом объёма (от 1 до 100 000)</value>
   </data>
-  <data name="Fewest recipients in an hour that can be a recipients signal (1 to 100000)" xml:space="preserve">
-    <value>Наименьшее число получателей за час, которое может быть сигналом получателей (от 1 до 100000)</value>
+  <data name="Fewest recipients in an hour that can be a recipients signal (1 to 100,000)" xml:space="preserve">
+    <value>Наименьшее число получателей за час, которое может быть сигналом получателей (от 1 до 100 000)</value>
   </data>
   <data name="Figures from {0}, the last time the server could be read." xml:space="preserve">
     <value>Данные на {0}, когда сервер в последний раз удалось прочитать.</value>
@@ -5366,8 +5378,8 @@ Control Panel может читать файлы сообщений только
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>Сначала: какая из двух половин застряла?</value>
   </data>
-  <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
-    <value>Фиксированный токен (для опытных; используется дословно вместо получения)</value>
+  <data name="Fixed token" xml:space="preserve">
+    <value>Фиксированный токен</value>
   </data>
   <data name="Flag: add a header the reader sees as a warning" xml:space="preserve">
     <value>Пометить: добавить заголовок, который читатель видит как предупреждение</value>
@@ -5429,6 +5441,9 @@ Control Panel может читать файлы сообщений только
   <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the SSL certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
     <value>Для каждого сертификата, файл ключа которого является зашифрованным PEM, задайте пароль закрытого ключа сертификата на странице «Сертификаты SSL» (парольную фразу задал тот, кто создавал ключ, поэтому предоставить её можете только вы) — либо замените файл незашифрованным ключом.</value>
   </data>
+  <data name="For example 03:00, Sun 03:00 or Sat,Sun 02:00-05:00." xml:space="preserve">
+    <value>Например, 03:00, Sun 03:00 или Sat,Sun 02:00-05:00.</value>
+  </data>
   <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
     <value>Например, 10.0.0.5 или 10.0.0.0/24</value>
   </data>
@@ -5456,8 +5471,8 @@ Control Panel может читать файлы сообщений только
   <data name="Forward e-mail" xml:space="preserve">
     <value>Переслать письмо</value>
   </data>
-  <data name="Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)" xml:space="preserve">
-    <value>Прокси-сервер для каждого веб-запроса этого сервера — ленты, её загрузок, JWKS, интроспекции токенов (host:port; пусто — прямое подключение; без учётных данных прокси)</value>
+  <data name="Forward proxy for this server's web requests (host:port; empty = direct)" xml:space="preserve">
+    <value>Прокси-сервер для веб-запросов этого сервера (host:port; пусто = прямое подключение)</value>
   </data>
   <data name="Forward to {0}" xml:space="preserve">
     <value>Вперёд к странице {0}</value>
@@ -5494,9 +5509,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="From (a_ddress)" xml:space="preserve">
     <value>_От (адрес)</value>
-  </data>
-  <data name="From 1 hour to 168, a week." xml:space="preserve">
-    <value>От 1 часа до 168, то есть недели.</value>
   </data>
   <data name="From 5 to 3600. Only used when the metrics endpoint above is set." xml:space="preserve">
     <value>От 5 до 3600. Используется, только когда задана конечная точка метрик выше.</value>
@@ -5675,11 +5687,11 @@ Control Panel может читать файлы сообщений только
   <data name="HTTP Basic user name for /metrics (empty = Basic off)" xml:space="preserve">
     <value>Имя пользователя HTTP Basic для /metrics (пусто — Basic выключен)</value>
   </data>
-  <data name="HTTP port (80 to enable, 0 = disabled)" xml:space="preserve">
-    <value>Порт HTTP (80 — включить, 0 — отключено)</value>
+  <data name="HTTP port (0 = off)" xml:space="preserve">
+    <value>Порт HTTP (0 = выключено)</value>
   </data>
-  <data name="HTTPS port (443 to enable, 0 = disabled)" xml:space="preserve">
-    <value>Порт HTTPS (443 — включить, 0 — отключено)</value>
+  <data name="HTTPS port (0 = off)" xml:space="preserve">
+    <value>Порт HTTPS (0 = выключено)</value>
   </data>
   <data name="Handing {0} to the update helper…" xml:space="preserve">
     <value>Передача {0} вспомогательной программе обновления…</value>
@@ -5711,8 +5723,8 @@ Control Panel может читать файлы сообщений только
   <data name="Hard-link each recipient's copy instead of copying it" xml:space="preserve">
     <value>Создавать для копии каждого получателя жёсткую ссылку вместо копирования</value>
   </data>
-  <data name="Header fields to oversign in outbound DKIM signatures (comma separated, empty = off)" xml:space="preserve">
-    <value>Поля заголовков для избыточного подписывания в исходящих подписях DKIM (через запятую, пусто — выключено)</value>
+  <data name="Header fields to oversign in outbound DKIM signatures (comma separated; empty = off)" xml:space="preserve">
+    <value>Поля заголовков для избыточного подписывания в исходящих подписях DKIM (через запятую; пусто = выключено)</value>
   </data>
   <data name="Header read chunk size (bytes)" xml:space="preserve">
     <value>Размер блока чтения заголовков (байты)</value>
@@ -5762,8 +5774,8 @@ Control Panel может читать файлы сообщений только
   <data name="Hold" xml:space="preserve">
     <value>Удержание</value>
   </data>
-  <data name="Hold a refused connection open before dropping it (seconds, 0 = drop immediately)" xml:space="preserve">
-    <value>Удерживать отклонённое соединение открытым перед разрывом (секунды, 0 — разрывать сразу)</value>
+  <data name="Hold a refused connection open before dropping it (seconds; 0 = drop immediately)" xml:space="preserve">
+    <value>Удерживать отклонённое соединение открытым перед разрывом (секунды; 0 = разрывать сразу)</value>
   </data>
   <data name="Hold attachments for the sandbox's verdict" xml:space="preserve">
     <value>Задерживать вложения до вердикта песочницы</value>
@@ -5867,8 +5879,8 @@ Control Panel может читать файлы сообщений только
   <data name="How long a signed-in session of the webmail, the self-service portal or the Control Deck lasts. A domain or an account can hold its own value, on the Levels tab of its dialog." xml:space="preserve">
     <value>Как долго длится сеанс входа в веб-почту, портал самообслуживания или Control Deck. Домен или учётная запись может иметь собственное значение на вкладке «Уровни» своего диалога.</value>
   </data>
-  <data name="How long an answer is remembered, in minutes" xml:space="preserve">
-    <value>Сколько помнить ответ, в минутах</value>
+  <data name="How long an answer is remembered (minutes)" xml:space="preserve">
+    <value>Сколько помнить ответ (минуты)</value>
   </data>
   <data name="How long every worker may be busy before the saturation report. 0 = reporting off." xml:space="preserve">
     <value>Сколько времени все рабочие потоки могут быть заняты до появления сообщения о насыщении. 0 — сообщения отключены.</value>
@@ -5882,8 +5894,8 @@ Control Panel может читать файлы сообщений только
   <data name="How long the server will go on finalizing an accepted message before answering 451 and asking the sender to retry, rather than holding the connection open indefinitely." xml:space="preserve">
     <value>Сколько сервер будет завершать обработку принятого сообщения, прежде чем ответит 451 и попросит отправителя повторить попытку, вместо того чтобы удерживать соединение открытым бесконечно.</value>
   </data>
-  <data name="How long to wait, in seconds" xml:space="preserve">
-    <value>Сколько ждать, в секундах</value>
+  <data name="How long to wait (seconds)" xml:space="preserve">
+    <value>Сколько ждать (секунды)</value>
   </data>
   <data name="How mail gets in, where it goes next, and what happens to it on the way." xml:space="preserve">
     <value>Как почта попадает внутрь, куда она отправляется дальше и что происходит с ней по дороге.</value>
@@ -6268,6 +6280,9 @@ Control Panel может читать файлы сообщений только
   <data name="It is safe to enable signing." xml:space="preserve">
     <value>Подписывание можно безопасно включить.</value>
   </data>
+  <data name="It is sent as spamd's User: header." xml:space="preserve">
+    <value>Отправляется как заголовок User: для spamd.</value>
+  </data>
   <data name="It may use %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED% and %MACRO_PERCENT%." xml:space="preserve">
     <value>Может содержать %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED% и %MACRO_PERCENT%.</value>
   </data>
@@ -6277,8 +6292,8 @@ Control Panel может читать файлы сообщений только
   <data name="JSON API under /api/v1 plus the browser-based Control Deck at the listener root. Authenticated with the administrator password, or with a scoped API key - a key can be read-only, limited to named domains and source addresses, given an expiry and revoked on its own, none of which the administrator password can. Keys are managed on the REST API keys page. TLS is required unless the listener is bound to 127.0.0.1." xml:space="preserve">
     <value>JSON API по пути /api/v1 плюс браузерный Control Deck в корне прослушивателя. Аутентификация — паролем администратора либо ключом API с ограниченной областью действия: такой ключ можно сделать доступным только для чтения, ограничить перечисленными доменами и адресами источника, снабдить сроком действия и отозвать отдельно от остальных, — ничего этого пароль администратора не умеет. Ключами управляют на странице «Ключи REST API». TLS обязателен, если прослушиватель не привязан к 127.0.0.1.</value>
   </data>
-  <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
-    <value>URL набора JWK (опубликованные поставщиком ключи подписи; пусто — только файл ключа)</value>
+  <data name="JWK Set URL (empty = the key file only)" xml:space="preserve">
+    <value>URL набора JWK (пусто = только файл ключа)</value>
   </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Журналирование и двойная доставка</value>
@@ -6295,7 +6310,7 @@ Control Panel может читать файлы сообщений только
   <data name="Keep archived messages for (_days; 0 = for ever)" xml:space="preserve">
     <value>Хра_нить архивированные сообщения (дней; 0 = вечно)</value>
   </data>
-  <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
+  <data name="Keep greylisting active during the record expiration window" xml:space="preserve">
     <value>Оставлять серые списки активными в окне истечения записей</value>
   </data>
   <data name="Keep log files open (performance)" xml:space="preserve">
@@ -6319,11 +6334,17 @@ Control Panel может читать файлы сообщений только
   <data name="Keep the record of the retiring selector &quot;{0}&quot; published until {1}, for mail signed with it that is still on its way." xml:space="preserve">
     <value>Оставьте запись выводимого селектора «{0}» опубликованной до {1} для почты, подписанной им и ещё находящейся в пути.</value>
   </data>
+  <data name="Keep the record of trap hits for (days, 1 to 3,650)" xml:space="preserve">
+    <value>Хранить запись о срабатываниях ловушек (дни, от 1 до 3 650)</value>
+  </data>
   <data name="Keep the settings this version ships with, and apply no profile? The checklist stops asking; any profile can still be applied later." xml:space="preserve">
     <value>Оставить параметры, с которыми поставляется эта версия, и не применять профиль? Контрольный список перестанет спрашивать; любой профиль можно применить и позже.</value>
   </data>
   <data name="Keep the shipped settings" xml:space="preserve">
     <value>Оставить поставляемые параметры</value>
+  </data>
+  <data name="Keeping everything also skips the prune at start-up." xml:space="preserve">
+    <value>Если хранить всё, очистка при запуске тоже пропускается.</value>
   </data>
   <data name="Keeping several generations of messages needs compression: without 'Compress destination files (zip)' every backup writes its message files into the same DataBackup folder, overwriting the previous run's, so retention can only keep generations of the small settings-and-domains archives." xml:space="preserve">
     <value>Чтобы хранить несколько поколений сообщений, нужно сжатие: без параметра «Сжимать файлы в папке назначения (zip)» каждое резервное копирование пишет файлы сообщений в одну и ту же папку DataBackup, затирая файлы предыдущего запуска, поэтому срок хранения может сохранять поколения только у небольших архивов с параметрами и доменами.</value>
@@ -6397,11 +6418,17 @@ Control Panel может читать файлы сообщений только
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Наибольшее отправляемое вложение (КБ)</value>
   </data>
-  <data name="Largest key accepted, in bytes (1024 to 1048576)" xml:space="preserve">
-    <value>Наибольший принимаемый ключ в байтах (от 1024 до 1048576)</value>
+  <data name="Largest key accepted (bytes, 1,024 to 1,048,576)" xml:space="preserve">
+    <value>Наибольший принимаемый ключ (байты, от 1 024 до 1 048 576)</value>
   </data>
-  <data name="Largest message in KB (0 is no limit)" xml:space="preserve">
-    <value>Наибольшее сообщение в KB (0 — без ограничения)</value>
+  <data name="Largest message (KB; 0 = no limit)" xml:space="preserve">
+    <value>Наибольшее сообщение (КБ; 0 = без ограничения)</value>
+  </data>
+  <data name="Largest message to spam-scan (KB; 0 = no limit)" xml:space="preserve">
+    <value>Наибольшее сообщение для проверки на спам (КБ; 0 = без ограничения)</value>
+  </data>
+  <data name="Largest message to virus-scan (KB; 0 = no limit)" xml:space="preserve">
+    <value>Наибольшее сообщение для проверки на вирусы (КБ; 0 = без ограничения)</value>
   </data>
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Последняя резервная копия: {0} ({1}).</value>
@@ -6628,8 +6655,8 @@ Control Panel может читать файлы сообщений только
   <data name="Log categories" xml:space="preserve">
     <value>Категории журнала</value>
   </data>
-  <data name="Log database queries slower than N ms (0 = off)" xml:space="preserve">
-    <value>Записывать в журнал запросы к базе данных медленнее N мс (0 — выключено)</value>
+  <data name="Log database queries slower than (milliseconds; 0 = off)" xml:space="preserve">
+    <value>Записывать в журнал запросы к базе данных медленнее (миллисекунды; 0 = выключено)</value>
   </data>
   <data name="Log destination" xml:space="preserve">
     <value>Назначение журнала</value>
@@ -6643,8 +6670,8 @@ Control Panel может читать файлы сообщений только
   <data name="Log folder" xml:space="preserve">
     <value>Папка журналов</value>
   </data>
-  <data name="Log level (3 or above = full detail; 2 or lower = quieter)" xml:space="preserve">
-    <value>Уровень журнала (3 и выше — полная подробность; 2 и ниже — тише)</value>
+  <data name="Log level" xml:space="preserve">
+    <value>Уровень журнала</value>
   </data>
   <data name="Log line format" xml:space="preserve">
     <value>Формат строки журнала</value>
@@ -6664,8 +6691,8 @@ Control Panel может читать файлы сообщений только
   <data name="Logon failures" xml:space="preserve">
     <value>Неудачные входы</value>
   </data>
-  <data name="Longest such window, in minutes" xml:space="preserve">
-    <value>Самое длинное такое окно, в минутах</value>
+  <data name="Longest such window (minutes)" xml:space="preserve">
+    <value>Самое длинное такое окно (минуты)</value>
   </data>
   <data name="Look for &quot;Task SMTP-accept session=42 ip=... waited 8 seconds for a thread in work queue Asynchronous task queue&quot; and, when it is severe, &quot;All 15 threads in work queue Asynchronous task queue have been busy for at least 120 seconds, so no further task on this queue can start&quot;. That means every worker is occupied and messages are queuing behind them: one slow dependency does this to the whole server, which is why a single wedged scanner used to look like the server had stopped responding. The task names say which sessions are stuck; the stage timings say what they are stuck on." xml:space="preserve">
     <value>Ищите «Task SMTP-accept session=42 ip=... waited 8 seconds for a thread in work queue Asynchronous task queue», а в тяжёлых случаях — «All 15 threads in work queue Asynchronous task queue have been busy for at least 120 seconds, so no further task on this queue can start». Это значит, что все рабочие потоки заняты и сообщения выстраиваются в очередь за ними: одна медленная зависимость делает такое со всем сервером — именно поэтому один застрявший сканер раньше выглядел так, будто сервер перестал отвечать. Имена задач говорят, какие сеансы застряли; тайминги этапов — на чём именно.</value>
@@ -6750,6 +6777,12 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="MX check score" xml:space="preserve">
     <value>Оценка проверки MX</value>
+  </data>
+  <data name="MX hosts tried per attempt, times the attempt number" xml:space="preserve">
+    <value>Узлы MX, пробуемые за попытку, умноженные на номер попытки</value>
+  </data>
+  <data name="MX hosts tried per attempt, times the attempt number (0 = all)" xml:space="preserve">
+    <value>Узлы MX, пробуемые за попытку, умноженные на номер попытки (0 = все)</value>
   </data>
   <data name="MX query" xml:space="preserve">
     <value>Запрос MX</value>
@@ -6942,8 +6975,8 @@ Control Panel может читать файлы сообщений только
   <data name="ManageSieve bind address" xml:space="preserve">
     <value>Адрес привязки ManageSieve</value>
   </data>
-  <data name="ManageSieve port (0 = disabled)" xml:space="preserve">
-    <value>Порт ManageSieve (0 — отключено)</value>
+  <data name="ManageSieve port (0 = off)" xml:space="preserve">
+    <value>Порт ManageSieve (0 = выключено)</value>
   </data>
   <data name="Managed mailing lists" xml:space="preserve">
     <value>Управляемые списки рассылки</value>
@@ -6954,11 +6987,11 @@ Control Panel может читать файлы сообщений только
   <data name="Marked inactive" xml:space="preserve">
     <value>Помечен неактивным</value>
   </data>
-  <data name="Masked addresses a person may make (0 = none; up to 200)" xml:space="preserve">
-    <value>Маскированные адреса, которые может создать человек (0 = нет; до 200)</value>
+  <data name="Masked addresses a person may make (up to 200; 0 = none)" xml:space="preserve">
+    <value>Маскированные адреса, которые может создать человек (до 200; 0 = нет)</value>
   </data>
-  <data name="Master user (empty = disabled)" xml:space="preserve">
-    <value>Главный пользователь (пусто — отключено)</value>
+  <data name="Master user (empty = off)" xml:space="preserve">
+    <value>Главный пользователь (пусто = выключено)</value>
   </data>
   <data name="Match ALL criteria (AND)" xml:space="preserve">
     <value>Соответствие ВСЕМ критериям (И)</value>
@@ -6996,51 +7029,6 @@ Control Panel может читать файлы сообщений только
   <data name="Matching the authorization endpoint." xml:space="preserve">
     <value>Соответствующая конечной точке авторизации.</value>
   </data>
-  <data name="Max MX hosts to try (0 = all)" xml:space="preserve">
-    <value>Максимум узлов MX для попыток (0 — все)</value>
-  </data>
-  <data name="Max asynchronous task threads" xml:space="preserve">
-    <value>Максимум потоков асинхронных задач</value>
-  </data>
-  <data name="Max authenticated submissions per client IP per minute (0 = unlimited)" xml:space="preserve">
-    <value>Максимум аутентифицированных отправок с одного IP клиента в минуту (0 — без ограничения)</value>
-  </data>
-  <data name="Max deliveries in flight for one sending domain (0 = unlimited)" xml:space="preserve">
-    <value>Макс. текущих доставок для одного отправляющего домена (0 = без ограничений)</value>
-  </data>
-  <data name="Max delivery threads" xml:space="preserve">
-    <value>Максимум потоков доставки</value>
-  </data>
-  <data name="Max message size (KB, 0 = unlimited)" xml:space="preserve">
-    <value>Максимальный размер сообщения (КБ, 0 — без ограничения)</value>
-  </data>
-  <data name="Max message size to spam-scan (KB, 0 = unlimited)" xml:space="preserve">
-    <value>Максимальный размер сообщения для проверки на спам (КБ, 0 — без ограничения)</value>
-  </data>
-  <data name="Max message size to virus-scan (KB, 0 = unlimited)" xml:space="preserve">
-    <value>Максимальный размер сообщения для проверки на вирусы (КБ, 0 — без ограничения)</value>
-  </data>
-  <data name="Max messages per account per period (0 = no limit)" xml:space="preserve">
-    <value>Максимум сообщений на учётную запись за период (0 — без ограничения)</value>
-  </data>
-  <data name="Max outbound messages per destination domain per minute (0 = unlimited)" xml:space="preserve">
-    <value>Максимум исходящих сообщений на домен назначения в минуту (0 — без ограничения)</value>
-  </data>
-  <data name="Max parallel external POP3 fetch threads" xml:space="preserve">
-    <value>Максимум параллельных потоков сбора внешней почты POP3</value>
-  </data>
-  <data name="Max recipients per account per period (0 = no limit)" xml:space="preserve">
-    <value>Максимум получателей на учётную запись за период (0 — без ограничения)</value>
-  </data>
-  <data name="Max recipients per message" xml:space="preserve">
-    <value>Максимум получателей на сообщение</value>
-  </data>
-  <data name="Max simultaneous connections (0 = unlimited)" xml:space="preserve">
-    <value>Максимум одновременных подключений (0 — без ограничения)</value>
-  </data>
-  <data name="Max simultaneous connections to one destination without a remote domain policy (0 = unlimited)" xml:space="preserve">
-    <value>Макс. одновременных соединений с одним адресатом без политики удалённого домена (0 = без ограничений)</value>
-  </data>
   <data name="MaxMind country database (.mmdb)" xml:space="preserve">
     <value>База стран MaxMind (.mmdb)</value>
   </data>
@@ -7049,6 +7037,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Maximise" xml:space="preserve">
     <value>Развернуть</value>
+  </data>
+  <data name="Maximum MX hosts to try (0 = all)" xml:space="preserve">
+    <value>Максимум узлов MX для попыток (0 = все)</value>
   </data>
   <data name="Maximum _domain size (MB; 0 = no limit)" xml:space="preserve">
     <value>Максимальный размер _домена (МБ; 0 — без ограничения)</value>
@@ -7059,8 +7050,20 @@ Control Panel может читать файлы сообщений только
   <data name="Maximum account size (MB)" xml:space="preserve">
     <value>Максимальный размер учётной записи (МБ)</value>
   </data>
-  <data name="Maximum characters per log line (minimum 100; only applied at log level 2 or lower)" xml:space="preserve">
-    <value>Максимум символов в строке журнала (минимум 100; применяется только при уровне журнала 2 и ниже)</value>
+  <data name="Maximum asynchronous task threads" xml:space="preserve">
+    <value>Максимум потоков асинхронных задач</value>
+  </data>
+  <data name="Maximum authenticated submissions per client IP per minute (0 = no limit)" xml:space="preserve">
+    <value>Максимум аутентифицированных отправок с одного IP клиента в минуту (0 = без ограничения)</value>
+  </data>
+  <data name="Maximum characters per log line (at least 100)" xml:space="preserve">
+    <value>Максимум символов в строке журнала (не меньше 100)</value>
+  </data>
+  <data name="Maximum deliveries in flight for one sending domain (0 = no limit)" xml:space="preserve">
+    <value>Максимум текущих доставок для одного отправляющего домена (0 = без ограничения)</value>
+  </data>
+  <data name="Maximum delivery threads" xml:space="preserve">
+    <value>Максимум потоков доставки</value>
   </data>
   <data name="Maximum domain size (MB)" xml:space="preserve">
     <value>Максимальный размер домена (МБ)</value>
@@ -7071,6 +7074,12 @@ Control Panel может читать файлы сообщений только
   <data name="Maximum message size (KB)" xml:space="preserve">
     <value>Максимальный размер сообщения (КБ)</value>
   </data>
+  <data name="Maximum message size (KB; 0 = no limit)" xml:space="preserve">
+    <value>Максимальный размер сообщения (КБ; 0 = без ограничения)</value>
+  </data>
+  <data name="Maximum messages per account per period (0 = no limit)" xml:space="preserve">
+    <value>Максимум сообщений на учётную запись за период (0 = без ограничения)</value>
+  </data>
   <data name="Maximum number of accounts" xml:space="preserve">
     <value>Максимальное количество учётных записей</value>
   </data>
@@ -7079,6 +7088,24 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Maximum number of distribution lists" xml:space="preserve">
     <value>Максимальное количество списков рассылки</value>
+  </data>
+  <data name="Maximum outbound messages per destination domain per minute (0 = no limit)" xml:space="preserve">
+    <value>Максимум исходящих сообщений на домен назначения в минуту (0 = без ограничения)</value>
+  </data>
+  <data name="Maximum parallel external POP3 fetch threads" xml:space="preserve">
+    <value>Максимум параллельных потоков сбора внешней почты POP3</value>
+  </data>
+  <data name="Maximum recipients per account per period (0 = no limit)" xml:space="preserve">
+    <value>Максимум получателей на учётную запись за период (0 = без ограничения)</value>
+  </data>
+  <data name="Maximum recipients per message" xml:space="preserve">
+    <value>Максимум получателей на сообщение</value>
+  </data>
+  <data name="Maximum simultaneous connections (0 = no limit)" xml:space="preserve">
+    <value>Максимум одновременных подключений (0 = без ограничения)</value>
+  </data>
+  <data name="Maximum simultaneous connections to one destination without a remote domain policy (0 = no limit)" xml:space="preserve">
+    <value>Максимум одновременных соединений с одним адресатом без политики удалённого домена (0 = без ограничения)</value>
   </data>
   <data name="Maximum size (MB)" xml:space="preserve">
     <value>Максимальный размер (МБ)</value>
@@ -7136,8 +7163,8 @@ Control Panel может читать файлы сообщений только
   <data name="Message finalization deadline (240)" xml:space="preserve">
     <value>Предельный срок завершения обработки сообщения (240)</value>
   </data>
-  <data name="Message finalization deadline (seconds; 0 = no deadline)" xml:space="preserve">
-    <value>Предельный срок завершения обработки сообщения (секунд; 0 — без предела)</value>
+  <data name="Message finalization deadline (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>Предельный срок завершения обработки сообщения (секунды; 0 = без ограничения времени)</value>
   </data>
   <data name="Message for colleag_ues (empty = same as above)" xml:space="preserve">
     <value>Сообщение для коллег (п_усто — как выше)</value>
@@ -7196,8 +7223,8 @@ Control Panel может читать файлы сообщений только
   <data name="Message-store consistency" xml:space="preserve">
     <value>Целостность хранилища сообщений</value>
   </data>
-  <data name="Messages a minute (0 is unlimited)" xml:space="preserve">
-    <value>Сообщений в минуту (0 — без ограничения)</value>
+  <data name="Messages a minute (0 = no limit)" xml:space="preserve">
+    <value>Сообщений в минуту (0 = без ограничения)</value>
   </data>
   <data name="Messages held for review instead of being refused, and the two things you can do with each: release it to the recipient, or delete it." xml:space="preserve">
     <value>Сообщения, задержанные для просмотра вместо отклонения, и два действия, возможные с каждым: выпустить его получателю или удалить.</value>
@@ -7217,8 +7244,8 @@ Control Panel может читать файлы сообщений только
   <data name="Messages larger than {0} are not scanned. They are delivered, not refused, and nothing is written to the log when it happens — so this limit is invisible in normal operation. 0 means &quot;no limit&quot; and is the setting that closes the gap." xml:space="preserve">
     <value>Сообщения крупнее {0} не проверяются. Они доставляются, а не отклоняются, и в журнал при этом ничего не пишется, поэтому в обычной работе этот предел незаметен. 0 означает «без ограничения» и именно это значение закрывает брешь.</value>
   </data>
-  <data name="Messages one backfill pass reads before pausing (1-100000)" xml:space="preserve">
-    <value>Сколько сообщений читает один проход дозаполнения перед паузой (1–100000)</value>
+  <data name="Messages one backfill pass reads before pausing (1 to 100,000)" xml:space="preserve">
+    <value>Сколько сообщений читает один проход дозаполнения перед паузой (от 1 до 100 000)</value>
   </data>
   <data name="Messages per full-index pass" xml:space="preserve">
     <value>Сообщений за проход полного индексирования</value>
@@ -7262,8 +7289,8 @@ Control Panel может читать файлы сообщений только
   <data name="Metrics bind address" xml:space="preserve">
     <value>Адрес привязки метрик</value>
   </data>
-  <data name="Metrics port (0 = disabled)" xml:space="preserve">
-    <value>Порт метрик (0 — отключено)</value>
+  <data name="Metrics port (0 = off)" xml:space="preserve">
+    <value>Порт метрик (0 = выключено)</value>
   </data>
   <data name="Microsoft 365 turns Basic authentication for SMTP AUTH off at the end of December 2026. When the relay host below is listed here, hMailServer authenticates with an OAuth2 bearer token (XOAUTH2) instead of the password - fetched from your tenant's token endpoint with the client credentials of an app registration that has the SMTP.SendAsApp permission. The user name above stays: it is the mailbox being relayed as." xml:space="preserve">
     <value>Microsoft 365 отключает базовую аутентификацию для SMTP AUTH в конце декабря 2026 года. Когда указанный ниже узел ретрансляции перечислен здесь, hMailServer аутентифицируется токеном OAuth2 bearer (XOAUTH2) вместо пароля: токен запрашивается у конечной точки токенов вашего клиента (tenant) по учётным данным приложения, зарегистрированного с разрешением SMTP.SendAsApp. Имя пользователя выше остаётся: это тот почтовый ящик, от имени которого выполняется ретрансляция.</value>
@@ -7304,14 +7331,14 @@ Control Panel может читать файлы сообщений только
   <data name="Minimum timeout (seconds)" xml:space="preserve">
     <value>Минимальный тайм-аут (секунд)</value>
   </data>
-  <data name="Minutes a mailbox key stays open after its last use (1 to 1440)" xml:space="preserve">
-    <value>Минут, в течение которых ключ ящика остаётся открытым после последнего использования (от 1 до 1440)</value>
+  <data name="Minutes a mailbox key stays open after its last use (1 to 1,440)" xml:space="preserve">
+    <value>Минут, в течение которых ключ ящика остаётся открытым после последнего использования (от 1 до 1 440)</value>
   </data>
   <data name="Minutes a message waits for a verdict" xml:space="preserve">
     <value>Минуты ожидания вердикта сообщением</value>
   </data>
-  <data name="Minutes a password-reset link works (5 to 1440)" xml:space="preserve">
-    <value>Минут действия ссылки для сброса пароля (от 5 до 1440)</value>
+  <data name="Minutes a password-reset link works (5 to 1,440)" xml:space="preserve">
+    <value>Минут действия ссылки для сброса пароля (от 5 до 1 440)</value>
   </data>
   <data name="Minutes between downloads" xml:space="preserve">
     <value>Минут между загрузками</value>
@@ -7325,14 +7352,11 @@ Control Panel может читать файлы сообщений только
   <data name="Minutes between scan attempts while held" xml:space="preserve">
     <value>Минут между попытками проверки, пока сообщение задержано</value>
   </data>
-  <data name="Minutes the sending address is banned (0 = no ban; up to 525600)" xml:space="preserve">
-    <value>Минут блокировки отправляющего адреса (0 = без блокировки; до 525600)</value>
-  </data>
   <data name="Minutes to hold a destination that asked this server to slow down (0 = off)" xml:space="preserve">
     <value>Минуты удержания адресата, попросившего этот сервер замедлиться (0 = выкл.)</value>
   </data>
-  <data name="Mirror address (empty = disabled)" xml:space="preserve">
-    <value>Адрес зеркалирования (пусто — отключено)</value>
+  <data name="Mirror address (empty = off)" xml:space="preserve">
+    <value>Адрес зеркалирования (пусто = выключено)</value>
   </data>
   <data name="Mirror every folder (IMAP only: a migration, verbatim, with flags and dates)" xml:space="preserve">
     <value>Зеркалировать каждую папку (только IMAP: перенос дословно, с флагами и датами)</value>
@@ -7489,6 +7513,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Never auto-ban these addresses" xml:space="preserve">
     <value>Никогда не банить автоматически эти адреса</value>
+  </data>
+  <data name="Never auto-ban these addresses (comma separated)" xml:space="preserve">
+    <value>Никогда не банить автоматически эти адреса (через запятую)</value>
   </data>
   <data name="Never greylisted." xml:space="preserve">
     <value>Никогда не попадает в серый список.</value>
@@ -8489,9 +8516,6 @@ Control Panel может читать файлы сообщений только
   <data name="On other pages" xml:space="preserve">
     <value>На других страницах</value>
   </data>
-  <data name="On stop, wait up to N seconds for active sessions to finish (0 = stop immediately)" xml:space="preserve">
-    <value>При остановке ждать до N секунд завершения активных сеансов (0 — останавливать немедленно)</value>
-  </data>
   <data name="On the Administrative access page's Two-factor tab, enrol an authenticator app for the administrator password." xml:space="preserve">
     <value>На вкладке Двухфакторная страницы Административный доступ зарегистрируйте приложение-аутентификатор для пароля администратора.</value>
   </data>
@@ -8567,8 +8591,8 @@ Control Panel может читать файлы сообщений только
   <data name="One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
     <value>Один из настроенных портов не прослушивается: {0}. Если вы только что добавили или изменили его, выполните повторную инициализацию сервера: он читает список портов при запуске. Иначе порт занят другой программой, адреса нет на этом компьютере или не удалось загрузить сертификат порта TLS — какая из причин, сказано в журнале ошибок.</value>
   </data>
-  <data name="One event script invocation. 0 = no bound." xml:space="preserve">
-    <value>Один вызов сценария события. 0 — без предела.</value>
+  <data name="One event script invocation. 0 = no time limit." xml:space="preserve">
+    <value>Один вызов сценария события. 0 = без ограничения времени.</value>
   </data>
   <data name="One external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>У одной внешней учётной записи сбора POP3 антивирус выключен, поэтому собираемая ею почта доставляется без проверки, что бы здесь ни было задано. Переключатель находится на учётной записи сбора почты, а не на этой странице.</value>
@@ -8603,8 +8627,11 @@ Control Panel может читать файлы сообщений только
   <data name="Only after SMTP authentication" xml:space="preserve">
     <value>Только после аутентификации SMTP</value>
   </data>
-  <data name="Only archive mail for these domains (comma-separated; empty = every message)" xml:space="preserve">
-    <value>Архивировать почту только для этих доменов (через запятую; пусто — каждое сообщение)</value>
+  <data name="Only applied at log level 2 or lower." xml:space="preserve">
+    <value>Применяется только при уровне журнала 2 и ниже.</value>
+  </data>
+  <data name="Only archive mail for these domains (comma separated; empty = every message)" xml:space="preserve">
+    <value>Архивировать почту только для этих доменов (через запятую; пусто = каждое сообщение)</value>
   </data>
   <data name="Only destinations named here get a bearer token; every other relay keeps password authentication. This is deliberate - a token presented to the wrong relay is a leaked token." xml:space="preserve">
     <value>Токен-носитель получают только перечисленные здесь адресаты; все остальные ретрансляторы продолжают использовать аутентификацию по паролю. Так сделано намеренно: токен, предъявленный не тому ретранслятору, — это утёкший токен.</value>
@@ -8771,14 +8798,14 @@ Control Panel может читать файлы сообщений только
   <data name="OpenPGP key" xml:space="preserve">
     <value>Ключ OpenPGP</value>
   </data>
-  <data name="OpenTelemetry OTLP endpoint for logs (empty = disabled)" xml:space="preserve">
-    <value>Конечная точка OpenTelemetry OTLP для журналов (пусто — выключено)</value>
+  <data name="OpenTelemetry OTLP endpoint for logs (empty = off)" xml:space="preserve">
+    <value>Конечная точка OpenTelemetry OTLP для журналов (пусто = выключено)</value>
   </data>
-  <data name="OpenTelemetry OTLP endpoint for metrics (empty = disabled)" xml:space="preserve">
-    <value>Конечная точка OpenTelemetry OTLP для метрик (пусто — выключено)</value>
+  <data name="OpenTelemetry OTLP endpoint for metrics (empty = off)" xml:space="preserve">
+    <value>Конечная точка OpenTelemetry OTLP для метрик (пусто = выключено)</value>
   </data>
-  <data name="OpenTelemetry OTLP endpoint for traces (empty = disabled)" xml:space="preserve">
-    <value>Конечная точка OpenTelemetry OTLP для трассировок (пусто — выключено)</value>
+  <data name="OpenTelemetry OTLP endpoint for traces (empty = off)" xml:space="preserve">
+    <value>Конечная точка OpenTelemetry OTLP для трассировок (пусто = выключено)</value>
   </data>
   <data name="OpenTelemetry service name" xml:space="preserve">
     <value>Имя службы OpenTelemetry</value>
@@ -8837,8 +8864,8 @@ Control Panel может читать файлы сообщений только
   <data name="Other" xml:space="preserve">
     <value>Прочее</value>
   </data>
-  <data name="Other POP3 or IMAP accounts a person may collect from (0 = none; up to 20)" xml:space="preserve">
-    <value>Другие учётные записи POP3 или IMAP, из которых человек может забирать почту (0 = нет; до 20)</value>
+  <data name="Other POP3 or IMAP accounts a person may collect from (up to 20; 0 = none)" xml:space="preserve">
+    <value>Другие учётные записи POP3 или IMAP, из которых человек может забирать почту (до 20; 0 = нет)</value>
   </data>
   <data name="Other addresses to check (commas or spaces)" xml:space="preserve">
     <value>Другие адреса для проверки (через запятую или пробел)</value>
@@ -8888,8 +8915,8 @@ Control Panel может читать файлы сообщений только
   <data name="PBKDF2 (default)" xml:space="preserve">
     <value>PBKDF2 (по умолчанию)</value>
   </data>
-  <data name="PBKDF2 iterations for new hashes (0 = the built-in 210,000; 10,000 to 10,000,000)" xml:space="preserve">
-    <value>Число итераций PBKDF2 для новых хешей (0 — встроенное значение 210 000; от 10 000 до 10 000 000)</value>
+  <data name="PBKDF2 iterations for new hashes (10,000 to 10,000,000; 0 = the built-in 210,000)" xml:space="preserve">
+    <value>Число итераций PBKDF2 для новых хешей (от 10 000 до 10 000 000; 0 = встроенное значение 210 000)</value>
   </data>
   <data name="PBKDF2 or stronger" xml:space="preserve">
     <value>PBKDF2 или сильнее</value>
@@ -8915,11 +8942,11 @@ Control Panel может читать файлы сообщений только
   <data name="POP3 - download, then delete from the server as Days to keep says" xml:space="preserve">
     <value>POP3 — скачивание, затем удаление с сервера так, как задано в «Дней хранения»</value>
   </data>
-  <data name="POP3 client maximum timeout (s)" xml:space="preserve">
-    <value>Максимальный тайм-аут клиента POP3 (с)</value>
+  <data name="POP3 client maximum timeout (seconds)" xml:space="preserve">
+    <value>Максимальный тайм-аут клиента POP3 (секунды)</value>
   </data>
-  <data name="POP3 client minimum timeout (s)" xml:space="preserve">
-    <value>Минимальный тайм-аут клиента POP3 (с)</value>
+  <data name="POP3 client minimum timeout (seconds)" xml:space="preserve">
+    <value>Минимальный тайм-аут клиента POP3 (секунды)</value>
   </data>
   <data name="POP3 connections" xml:space="preserve">
     <value>Подключения POP3</value>
@@ -8939,11 +8966,11 @@ Control Panel может читать файлы сообщений только
   <data name="POP3 server" xml:space="preserve">
     <value>Сервер POP3</value>
   </data>
-  <data name="POP3 server maximum timeout (s)" xml:space="preserve">
-    <value>Максимальный тайм-аут сервера POP3 (с)</value>
+  <data name="POP3 server maximum timeout (seconds)" xml:space="preserve">
+    <value>Максимальный тайм-аут сервера POP3 (секунды)</value>
   </data>
-  <data name="POP3 server minimum timeout (s)" xml:space="preserve">
-    <value>Минимальный тайм-аут сервера POP3 (с)</value>
+  <data name="POP3 server minimum timeout (seconds)" xml:space="preserve">
+    <value>Минимальный тайм-аут сервера POP3 (секунды)</value>
   </data>
   <data name="POP3 sessions" xml:space="preserve">
     <value>Сеансы POP3</value>
@@ -9121,11 +9148,11 @@ Control Panel может читать файлы сообщений только
   <data name="Performance" xml:space="preserve">
     <value>Производительность</value>
   </data>
-  <data name="Period length in hours (default 24)" xml:space="preserve">
-    <value>Длительность периода в часах (по умолчанию 24)</value>
+  <data name="Period length (hours, 1 to 168)" xml:space="preserve">
+    <value>Длительность периода (часы, от 1 до 168)</value>
   </data>
-  <data name="Periodically cross-check message rows against files on disk (read-only; writes a report on divergence)" xml:space="preserve">
-    <value>Периодически сверять записи сообщений с файлами на диске (только чтение; при расхождении записывает отчёт)</value>
+  <data name="Periodically cross-check message rows against files on disk" xml:space="preserve">
+    <value>Периодически сверять записи сообщений с файлами на диске</value>
   </data>
   <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters. Empty, the default, is an account-number detector that never fires. A pattern the server cannot compile is refused." xml:space="preserve">
     <value>Синтаксис Perl, поиск по тексту сообщения и его текстовым вложениям, до 2000 символов. Пусто, по умолчанию, — детектор номеров счетов, который никогда не срабатывает. Шаблон, который сервер не может скомпилировать, отклоняется.</value>
@@ -9166,8 +9193,8 @@ Control Panel может читать файлы сообщений только
   <data name="Policy for mailbox passwords" xml:space="preserve">
     <value>Политика для паролей почтовых ящиков</value>
   </data>
-  <data name="Policy max age (seconds; default 604800 = 7 days)" xml:space="preserve">
-    <value>Максимальный срок действия политики (секунды; по умолчанию 604800 — 7 дней)</value>
+  <data name="Policy max age (seconds, 86,400 to 31,557,600)" xml:space="preserve">
+    <value>Максимальный срок действия политики (секунды, от 86 400 до 31 557 600)</value>
   </data>
   <data name="Policy refusal" xml:space="preserve">
     <value>Отказ по политике</value>
@@ -9178,8 +9205,8 @@ Control Panel может читать файлы сообщений только
   <data name="Port" xml:space="preserve">
     <value>Порт</value>
   </data>
-  <data name="Port (0 = disabled)" xml:space="preserve">
-    <value>Порт (0 — выключено)</value>
+  <data name="Port (0 = off)" xml:space="preserve">
+    <value>Порт (0 = выключено)</value>
   </data>
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
     <value>Порт 25 оценивается иначе, чем остальные, и это сделано намеренно: собеседником на нём обычно является другой почтовый сервер, и требование шифрования на этом порту приводит к отказу в приёме почты от отправителей, которые шифрование предложить не могут. На любом другом порту собеседником является клиент с паролем.</value>
@@ -9307,8 +9334,11 @@ Control Panel может читать файлы сообщений только
   <data name="Produce or obtain a CA (for example with OpenSSL or your PKI), save the CA certificate, with any intermediate ones, as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates." xml:space="preserve">
     <value>Создайте или получите ЦС (например, средствами OpenSSL или своей инфраструктуры PKI), сохраните сертификат ЦС вместе с промежуточными, если они есть, на сервере в виде набора PEM, укажите на этот файл в параметре файла ЦС для порта и выпустите этим ЦС клиентский сертификат для каждого клиента, который должен подключаться. hMailServer выполняет проверку по этому набору, но не может ни создать ЦС, ни выпустить клиентские сертификаты.</value>
   </data>
-  <data name="Profile to scan as (spamd User: header; empty = spamd's global configuration)" xml:space="preserve">
-    <value>Профиль, от имени которого выполняется проверка (заголовок User: для spamd; пусто — глобальная конфигурация spamd)</value>
+  <data name="Profile to scan as (empty = spamd's global configuration)" xml:space="preserve">
+    <value>Профиль, от имени которого выполняется проверка (пусто = глобальная конфигурация spamd)</value>
+  </data>
+  <data name="ProgIDs or CLSIDs." xml:space="preserve">
+    <value>ProgIDs или CLSIDs.</value>
   </data>
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>Программа, запускаемая при бане или разбане адреса (пусто = нет)</value>
@@ -9361,8 +9391,8 @@ Control Panel может читать файлы сообщений только
   <data name="Protocols" xml:space="preserve">
     <value>Протоколы</value>
   </data>
-  <data name="Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)" xml:space="preserve">
-    <value>Прокси, которым разрешено отправлять заголовок PROXY (адреса или диапазоны CIDR через запятую)</value>
+  <data name="Proxies allowed to send a PROXY header (comma separated)" xml:space="preserve">
+    <value>Прокси, которым разрешено отправлять заголовок PROXY (через запятую)</value>
   </data>
   <data name="Public" xml:space="preserve">
     <value>Публичный</value>
@@ -9529,8 +9559,8 @@ Control Panel может читать файлы сообщений только
   <data name="Raise the threshold here and clear the counted failures. An address already locked out stays out until its &quot;Auto-ban:&quot; range expires, or you delete that range on the IP ranges page." xml:space="preserve">
     <value>Повысьте здесь порог и сбросьте подсчитанные неудачные попытки. Уже заблокированный адрес остаётся заблокированным, пока не истечёт срок его диапазона «Auto-ban:» или пока вы не удалите этот диапазон на странице «Диапазоны IP».</value>
   </data>
-  <data name="Random jitter added to retry times (minutes, 0 = off)" xml:space="preserve">
-    <value>Случайный разброс, добавляемый ко времени повторных попыток (минуты, 0 — выключено)</value>
+  <data name="Random jitter added to retry times (minutes; 0 = off)" xml:space="preserve">
+    <value>Случайный разброс, добавляемый ко времени повторных попыток (минуты; 0 = выключено)</value>
   </data>
   <data name="Range endpoint (https, or http to this machine)" xml:space="preserve">
     <value>Конечная точка диапазонов (https или http к этому компьютеру)</value>
@@ -9610,8 +9640,8 @@ Control Panel может читать файлы сообщений только
   <data name="Read at delivery, for every recipient: an allowed sender's mail is delivered unmarked, and the accounts' own spam thresholds do not run. A message the server-wide spam score holds during the SMTP conversation is still held; the domain list is the one that stops that." xml:space="preserve">
     <value>Считывается при доставке, для каждого получателя: почта разрешённого отправителя доставляется без пометки, а собственные пороги спама учётных записей не применяются. Сообщение, которое общесерверный балл спама задерживает во время SMTP-сеанса, всё равно остаётся задержанным; это останавливает именно список доменов.</value>
   </data>
-  <data name="Read cache in MB (0 = none; up to 4096)" xml:space="preserve">
-    <value>Кэш чтения в МБ (0 = нет; до 4096)</value>
+  <data name="Read cache (MB, up to 4,096; 0 = none)" xml:space="preserve">
+    <value>Кэш чтения (МБ, до 4 096; 0 = нет)</value>
   </data>
   <data name="Read complaints sent to the complaint mailbox" xml:space="preserve">
     <value>Читать жалобы, отправленные в ящик для жалоб</value>
@@ -9639,6 +9669,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Read-only" xml:space="preserve">
     <value>Только чтение</value>
+  </data>
+  <data name="Read-only: it writes a report when the two diverge." xml:space="preserve">
+    <value>Только чтение: при расхождении записывает отчёт.</value>
   </data>
   <data name="Readable text" xml:space="preserve">
     <value>Читаемый текст</value>
@@ -9731,8 +9764,8 @@ Control Panel может читать файлы сообщений только
   <data name="Record administrative changes in the audit trail" xml:space="preserve">
     <value>Записывать административные изменения в журнал аудита</value>
   </data>
-  <data name="Record expiration interval, minutes" xml:space="preserve">
-    <value>Интервал истечения срока записей, минуты</value>
+  <data name="Record expiration interval (minutes)" xml:space="preserve">
+    <value>Интервал истечения срока записей (минуты)</value>
   </data>
   <data name="Record type: MX. Host/Name - {0}:" xml:space="preserve">
     <value>Тип записи: MX. Узел/имя - {0}:</value>
@@ -9830,8 +9863,8 @@ Control Panel может читать файлы сообщений только
   <data name="Refuse when it has appeared at least this many times" xml:space="preserve">
     <value>Отклонять, если он встретился не меньше стольких раз</value>
   </data>
-  <data name="Refuse with 550 after this many retries before the window opens (0 never refuses)" xml:space="preserve">
-    <value>Отказывать кодом 550 после стольких попыток до открытия окна (0 никогда не отказывает)</value>
+  <data name="Refuse with 550 after this many retries before the window opens (0 = never)" xml:space="preserve">
+    <value>Отказывать кодом 550 после стольких попыток до открытия окна (0 = никогда)</value>
   </data>
   <data name="Refuse, or allow only, connections from the countries you name, by the country a MaxMind database places the address in. This server ships no database and downloads none: until you supply the file, nothing is judged by country. A policy is empty (off), allow:GB,IE or block:CN,RU." xml:space="preserve">
     <value>Отклонять или разрешать только подключения из указанных вами стран — по стране, в которую база MaxMind помещает адрес. Этот сервер не поставляет базу и не загружает её: пока вы не предоставите файл, ничего не оценивается по стране. Политика пуста (выключена), allow:GB,IE или block:CN,RU.</value>
@@ -9926,11 +9959,11 @@ Control Panel может читать файлы сообщений только
   <data name="Relay" xml:space="preserve">
     <value>Ретрансляция</value>
   </data>
-  <data name="Relay host name (empty = direct delivery; use host1|host2 for failover)" xml:space="preserve">
-    <value>Имя узла ретранслятора (пусто — прямая доставка; для отказоустойчивости укажите host1|host2)</value>
+  <data name="Relay host name (empty = direct delivery)" xml:space="preserve">
+    <value>Имя узла ретранслятора (пусто = прямая доставка)</value>
   </data>
-  <data name="Relay hosts that use OAuth2 (comma separated; blank this to use none)" xml:space="preserve">
-    <value>Ретрансляторы, использующие OAuth2 (через запятую; очистите поле, чтобы не использовать ни одного)</value>
+  <data name="Relay hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
+    <value>Ретрансляторы, использующие OAuth2 (через запятую; пусто = ни одного)</value>
   </data>
   <data name="Relay port" xml:space="preserve">
     <value>Порт ретранслятора</value>
@@ -9983,8 +10016,8 @@ Control Panel может читать файлы сообщений только
   <data name="Released {0} messages to their recipients.|few" xml:space="preserve">
     <value>Выпущено {0} сообщения получателям.</value>
   </data>
-  <data name="Relying party (empty = the host the page is on)" xml:space="preserve">
-    <value>Проверяющая сторона (пусто = узел, на котором находится страница)</value>
+  <data name="Relying party (empty = the page's own host)" xml:space="preserve">
+    <value>Проверяющая сторона (пусто = собственный узел страницы)</value>
   </data>
   <data name="Rem_ove criterion" xml:space="preserve">
     <value>Уб_рать критерий</value>
@@ -10183,8 +10216,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Report the async work queue as stalled after (120)" xml:space="preserve">
     <value>Сообщать о зависании асинхронной рабочей очереди через (120)</value>
   </data>
-  <data name="Report the async work queue as stalled after (seconds)" xml:space="preserve">
-    <value>Сообщать о зависании асинхронной рабочей очереди через (секунды)</value>
+  <data name="Report the async work queue as stalled after (seconds; 0 = never)" xml:space="preserve">
+    <value>Сообщать о зависании асинхронной рабочей очереди через (секунды; 0 = никогда)</value>
   </data>
   <data name="Reports" xml:space="preserve">
     <value>Отчёты</value>
@@ -10360,14 +10393,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Resume the mail server" xml:space="preserve">
     <value>Возобновить почтовый сервер</value>
   </data>
-  <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
-    <value>Время жизни возобновления для кэшированных сеансов и билетов, секунды (0 — значение OpenSSL по умолчанию, 300)</value>
+  <data name="Resumption lifetime for cached sessions and tickets (seconds; 0 = OpenSSL's default of 300)" xml:space="preserve">
+    <value>Время жизни возобновления для кэшированных сеансов и билетов (секунды; 0 = 300 по умолчанию в OpenSSL)</value>
   </data>
   <data name="Retention" xml:space="preserve">
     <value>Срок хранения</value>
   </data>
-  <data name="Retention period in _days (1 to 365)" xml:space="preserve">
-    <value>Период _хранения в днях (от 1 до 365)</value>
+  <data name="Retention period (_days, 1 to 365)" xml:space="preserve">
+    <value>Период _хранения (дни, от 1 до 365)</value>
   </data>
   <data name="Retention period in days" xml:space="preserve">
     <value>Период хранения в днях</value>
@@ -10462,8 +10495,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Rotate the _key on a schedule" xml:space="preserve">
     <value>Выполн_ять ротацию ключа по расписанию</value>
   </data>
-  <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
-    <value>Менять ключ сеансовых билетов каждые N секунд (0 — единственный несменяемый ключ OpenSSL)</value>
+  <data name="Rotate the session-ticket key every (seconds; 0 = OpenSSL's single key)" xml:space="preserve">
+    <value>Менять ключ сеансовых билетов каждые (секунды; 0 = единственный ключ OpenSSL)</value>
   </data>
   <data name="Route" xml:space="preserve">
     <value>Маршрут</value>
@@ -10609,11 +10642,11 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="SMTP authentication" xml:space="preserve">
     <value>Аутентификация SMTP</value>
   </data>
-  <data name="SMTP client maximum timeout (s)" xml:space="preserve">
-    <value>Максимальный тайм-аут клиента SMTP (с)</value>
+  <data name="SMTP client maximum timeout (seconds)" xml:space="preserve">
+    <value>Максимальный тайм-аут клиента SMTP (секунды)</value>
   </data>
-  <data name="SMTP client minimum timeout (s)" xml:space="preserve">
-    <value>Минимальный тайм-аут клиента SMTP (с)</value>
+  <data name="SMTP client minimum timeout (seconds)" xml:space="preserve">
+    <value>Минимальный тайм-аут клиента SMTP (секунды)</value>
   </data>
   <data name="SMTP connections" xml:space="preserve">
     <value>Подключения SMTP</value>
@@ -10627,11 +10660,11 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="SMTP server" xml:space="preserve">
     <value>Сервер SMTP</value>
   </data>
-  <data name="SMTP server maximum timeout (s)" xml:space="preserve">
-    <value>Максимальный тайм-аут сервера SMTP (с)</value>
+  <data name="SMTP server maximum timeout (seconds)" xml:space="preserve">
+    <value>Максимальный тайм-аут сервера SMTP (секунды)</value>
   </data>
-  <data name="SMTP server minimum timeout (s)" xml:space="preserve">
-    <value>Минимальный тайм-аут сервера SMTP (с)</value>
+  <data name="SMTP server minimum timeout (seconds)" xml:space="preserve">
+    <value>Минимальный тайм-аут сервера SMTP (секунды)</value>
   </data>
   <data name="SMTP sessions" xml:space="preserve">
     <value>Сеансы SMTP</value>
@@ -10786,8 +10819,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Save the changes on this page" xml:space="preserve">
     <value>Сохранить изменения на этой странице</value>
   </data>
-  <data name="Save the counters to disk every N seconds (default 10)" xml:space="preserve">
-    <value>Сохранять счётчики на диск каждые N секунд (по умолчанию 10)</value>
+  <data name="Save the counters to disk every (seconds, 1 to 3,600)" xml:space="preserve">
+    <value>Сохранять счётчики на диск каждые (секунды, от 1 до 3 600)</value>
   </data>
   <data name="Save the export as" xml:space="preserve">
     <value>Сохранить экспорт как</value>
@@ -10999,8 +11032,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Score applied when the engine says &quot;reject&quot;" xml:space="preserve">
     <value>Оценка, применяемая, когда движок отвечает «reject»</value>
   </data>
-  <data name="Score at which suspicious counts as malicious (0-100)" xml:space="preserve">
-    <value>Оценка, начиная с которой подозрительное считается вредоносным (0-100)</value>
+  <data name="Score at which suspicious counts as malicious (0 to 100)" xml:space="preserve">
+    <value>Оценка, начиная с которой подозрительное считается вредоносным (от 0 до 100)</value>
   </data>
   <data name="Score of a message whose links name more than 200 domains (0 = none)" xml:space="preserve">
     <value>Оценка сообщения, ссылки которого называют более 200 доменов (0 — нет)</value>
@@ -11197,14 +11230,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Seconds a key lookup may take (2 to 30)" xml:space="preserve">
     <value>Секунд, которые может занять поиск ключа (от 2 до 30)</value>
   </data>
-  <data name="Seconds a push service holds a notification for a device that is offline (0 to 2419200)" xml:space="preserve">
-    <value>Секунд, в течение которых push-служба хранит уведомление для устройства без подключения (от 0 до 2419200)</value>
+  <data name="Seconds a push service holds a notification for a device that is offline (0 to 2,419,200)" xml:space="preserve">
+    <value>Секунд, в течение которых push-служба хранит уведомление для устройства без подключения (от 0 до 2 419 200)</value>
   </data>
-  <data name="Seconds a session may go unused (0 = the server's own 1800)" xml:space="preserve">
-    <value>Секунд, которые сеанс может простаивать (0 = собственные 1800 сервера)</value>
+  <data name="Seconds a session may go unused (0 = the server's own 1,800)" xml:space="preserve">
+    <value>Секунд, которые сеанс может простаивать (0 = собственные 1 800 сервера)</value>
   </data>
-  <data name="Seconds a session may last at all (0 = the server's own 43200)" xml:space="preserve">
-    <value>Секунд, которые сеанс может длиться вообще (0 = собственные 43200 сервера)</value>
+  <data name="Seconds a session may last at all (0 = the server's own 43,200)" xml:space="preserve">
+    <value>Секунд, которые сеанс может длиться вообще (0 = собственные 43 200 сервера)</value>
   </data>
   <data name="Seconds a single SQL statement may run (0 = no limit)" xml:space="preserve">
     <value>Сколько секунд может выполняться один оператор SQL (0 — без ограничения)</value>
@@ -11533,8 +11566,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Server-generated mail" xml:space="preserve">
     <value>Почта, создаваемая сервером</value>
   </data>
-  <data name="Server-side session cache size (0 = OpenSSL's default cap of 20480; negative = no cache)" xml:space="preserve">
-    <value>Размер серверного кэша сеансов (0 — предел OpenSSL по умолчанию, 20480; отрицательное значение — без кэша)</value>
+  <data name="Server-side session cache size (0 = OpenSSL's default of 20,480, -1 = no cache)" xml:space="preserve">
+    <value>Размер серверного кэша сеансов (0 = значение OpenSSL по умолчанию, 20 480, -1 = без кэша)</value>
   </data>
   <data name="Server-wide ceilings that keep one slow operation from holding a resource forever. The defaults are deliberate; each one is here because there is a diagnosable situation in which it is the right thing to change. Note that 0 does not mean the same thing for all of them - each label says." xml:space="preserve">
     <value>Общесерверные верхние границы, не дающие одной медленной операции удерживать ресурс вечно. Значения по умолчанию выбраны намеренно; каждое из них присутствует здесь потому, что есть распознаваемая ситуация, в которой изменить его правильно. Учтите, что 0 означает не одно и то же для всех из них, — об этом говорит подпись к каждому.</value>
@@ -11625,6 +11658,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Set in hMailServer.ini only" xml:space="preserve">
     <value>Задаётся только в hMailServer.ini</value>
+  </data>
+  <data name="Set it to use a mirror." xml:space="preserve">
+    <value>Укажите его, чтобы использовать зеркало.</value>
   </data>
   <data name="Set the HTTP or HTTPS port on the Web services &amp; autoconfiguration page so the URLs answer, then publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; DNS records for each mail domain, pointing at this server. These are address records, and this page checks TXT records only, so they cannot be confirmed from here." xml:space="preserve">
     <value>Задайте порт HTTP или HTTPS на странице «Веб-службы и автоконфигурация» WebServicesHttpPort и (или) WebServicesHttpsPort, чтобы URL отвечали, а затем для каждого почтового домена опубликуйте записи DNS autoconfig.&lt;domain&gt; и autodiscover.&lt;domain&gt;, указывающие на этот сервер. Это адресные записи, а данная страница проверяет только записи TXT, поэтому подтвердить их отсюда невозможно.</value>
@@ -11731,8 +11767,11 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Shortens how long data is kept" xml:space="preserve">
     <value>Сокращает срок хранения данных</value>
   </data>
-  <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
-    <value>Самая короткая строка поиска, на которую отвечает индекс (3-64; более короткие строки обрабатываются полным просмотром)</value>
+  <data name="Shorter strings fall back to the scan." xml:space="preserve">
+    <value>Более короткие строки обрабатываются полным просмотром.</value>
+  </data>
+  <data name="Shortest search string the index answers for (3 to 64)" xml:space="preserve">
+    <value>Самая короткая строка поиска, на которую отвечает индекс (от 3 до 64)</value>
   </data>
   <data name="Show auto-_bans only" xml:space="preserve">
     <value>_Только автоблокировки</value>
@@ -11902,8 +11941,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Simple is the default. Negotiate runs an SSPI exchange (Kerberos, falling back to NTLM) that never transmits the password and signs the connection - it is the only method a default-configured modern domain controller accepts when it has no certificate installed, it needs no search, no search base and no service account, and it works from a host that is not domain-joined." xml:space="preserve">
     <value>По умолчанию используется простая привязка. Negotiate выполняет обмен SSPI (Kerberos с откатом на NTLM), при котором пароль не передаётся никогда, а соединение подписывается, — это единственный метод, который принимает современный контроллер домена с настройками по умолчанию, когда на нём не установлен сертификат; ему не нужны ни поиск, ни база поиска, ни учётная запись службы, и он работает с узла, не присоединённого к домену.</value>
   </data>
-  <data name="Simultaneous connections (0 is unlimited)" xml:space="preserve">
-    <value>Одновременных соединений (0 — без ограничения)</value>
+  <data name="Simultaneous connections (0 = no limit)" xml:space="preserve">
+    <value>Одновременных соединений (0 = без ограничения)</value>
   </data>
   <data name="Since" xml:space="preserve">
     <value>С</value>
@@ -11947,8 +11986,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once." xml:space="preserve">
     <value>Замедляет сеанс, называющий больше получателей, чем нужно нормальному сообщению. За пределом этого счётчика каждая следующая команда RCPT TO в сеансе без аутентификации ждёт указанную задержку, прежде чем получит ответ: перебор по словарю или спам-рассылка называют сотни адресов и платят за каждый из них, тогда как отправляющий MTA называет несколько штук и до счётчика не доходит никогда. Сеансы, прошедшие аутентификацию, и диапазоны IP с отключённой защитой от спама освобождены от этого. Ожидание — это таймер на соединении, а не спящий поток. Вступает в силу немедленно.</value>
   </data>
-  <data name="Smallest part held once (KB; 0 holds nothing once)" xml:space="preserve">
-    <value>Наименьшая часть, хранимая один раз (КБ; 0 — ничего не хранить один раз)</value>
+  <data name="Smallest part held once (KB; 0 = none)" xml:space="preserve">
+    <value>Наименьшая часть, хранимая один раз (КБ; 0 = нет)</value>
   </data>
   <data name="Smart host" xml:space="preserve">
     <value>Смарт-хост</value>
@@ -12208,8 +12247,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Submission rate limits" xml:space="preserve">
     <value>Ограничения частоты отправки</value>
   </data>
-  <data name="Submissions before an account's baseline counts (1 to 10000)" xml:space="preserve">
-    <value>Отправки, после которых базовый профиль учётной записи начинает учитываться (от 1 до 10000)</value>
+  <data name="Submissions before an account's baseline counts (1 to 10,000)" xml:space="preserve">
+    <value>Отправки, после которых базовый профиль учётной записи начинает учитываться (от 1 до 10 000)</value>
   </data>
   <data name="Submit address (POST)" xml:space="preserve">
     <value>Адрес отправки (POST)</value>
@@ -12349,8 +12388,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="TLS private keys - a passphrase-protected key needs its passphrase configured" xml:space="preserve">
     <value>Закрытые ключи TLS — для ключа, защищённого парольной фразой, эту фразу нужно настроить</value>
   </data>
-  <data name="TLS report sender address (empty = disabled)" xml:space="preserve">
-    <value>Адрес отправителя отчётов TLS (пусто — отключено)</value>
+  <data name="TLS report sender address (empty = off)" xml:space="preserve">
+    <value>Адрес отправителя отчётов TLS (пусто = выключено)</value>
   </data>
   <data name="TLS reporting (TLS-RPT)" xml:space="preserve">
     <value>Отчётность TLS (TLS-RPT)</value>
@@ -13041,6 +13080,15 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>База данных: ищите ошибки с упоминанием пула соединений. Когда истекает срок ожидания пула, поиск получателя отвечает 451 4.3.2, а не 550, поэтому база, заблокированная резервным копированием, откладывает почту, а не возвращает её.</value>
   </data>
+  <data name="The default is 10." xml:space="preserve">
+    <value>По умолчанию 10.</value>
+  </data>
+  <data name="The default is 24, and 168 is a week." xml:space="preserve">
+    <value>По умолчанию 24, а 168 — это неделя.</value>
+  </data>
+  <data name="The default, 604,800, is a week." xml:space="preserve">
+    <value>Значение по умолчанию, 604 800, — это неделя.</value>
+  </data>
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>Переопределение удаления никогда не удаляет наугад: копия удаляется, только когда записанная оценка действительно достигла значения, а при включённом хранилище карантина отправляется туда.</value>
   </data>
@@ -13195,6 +13243,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The first address of the gateway's range." xml:space="preserve">
     <value>Первый адрес диапазона шлюза.</value>
+  </data>
+  <data name="The first attempt tries at most this many of a domain's MX hosts, the second at most twice as many, and so on, so that a domain whose hosts are down holds up the queue for less time." xml:space="preserve">
+    <value>Первая попытка пробует не больше этого числа узлов MX домена, вторая — не больше вдвое большего и так далее, чтобы домен, узлы которого не работают, меньше задерживал очередь.</value>
   </data>
   <data name="The first scanner to find something ends the scan, so the order is also the cost: a slow scanner in front of a fast one is paid for on every clean message." xml:space="preserve">
     <value>Первый сканер, который что-то находит, завершает сканирование, поэтому порядок - это ещё и стоимость: за медленный сканер перед быстрым платят на каждом чистом сообщении.</value>
@@ -13560,6 +13611,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The protocol versions could not be read." xml:space="preserve">
     <value>Версии протокола не удалось прочитать.</value>
+  </data>
+  <data name="The provider's RFC 7662 endpoint, which says whether a token is still valid." xml:space="preserve">
+    <value>Конечная точка поставщика по RFC 7662, которая сообщает, действителен ли ещё токен.</value>
   </data>
   <data name="The public address other servers see, when it is not an address of this machine." xml:space="preserve">
     <value>Публичный адрес, который видят другие серверы, когда это не адрес этого компьютера.</value>
@@ -13973,6 +14027,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The two passwords do not match." xml:space="preserve">
     <value>Пароли не совпадают.</value>
   </data>
+  <data name="The update feed and its downloads, JWKS and token introspection all go through it. Proxy credentials are not supported." xml:space="preserve">
+    <value>Через него идут лента обновлений и её загрузки, JWKS и интроспекция токенов. Учётные данные прокси не поддерживаются.</value>
+  </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Вспомогательная программа обновления запущена. Этот Control Panel сейчас закроется, чтобы установщик мог заменить его файлы; откройте его снова через минуту, чтобы увидеть итог.</value>
   </data>
@@ -14018,8 +14075,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The web services settings could not be read: {0}" xml:space="preserve">
     <value>Не удалось прочитать параметры веб-служб: {0}</value>
   </data>
-  <data name="The whole accept pipeline; then the sender gets a 451. 0 = no bound." xml:space="preserve">
-    <value>Весь конвейер приёма; затем отправитель получает 451. 0 = без ограничения.</value>
+  <data name="The whole accept pipeline; then the sender gets a 451. 0 = no time limit." xml:space="preserve">
+    <value>Весь конвейер приёма; затем отправитель получает 451. 0 = без ограничения времени.</value>
   </data>
   <data name="The wiki could not be opened in a browser." xml:space="preserve">
     <value>Не удалось открыть вики в браузере.</value>
@@ -14258,8 +14315,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="This server's VAPID public key" xml:space="preserve">
     <value>Открытый ключ VAPID этого сервера</value>
   </data>
-  <data name="This server's entity ID (empty = the base address followed by /saml)" xml:space="preserve">
-    <value>Идентификатор сущности этого сервера (пусто = базовый адрес, за которым следует /saml)</value>
+  <data name="This server's entity ID (empty = the base address and /saml)" xml:space="preserve">
+    <value>Идентификатор сущности этого сервера (пусто = базовый адрес и /saml)</value>
   </data>
   <data name="This session holds no password the REST API can sign in with. Sign in again with the administrator's user name and password." xml:space="preserve">
     <value>В этом сеансе нет пароля, с которым REST API мог бы выполнить вход. Войдите снова с именем пользователя и паролем администратора.</value>
@@ -14303,8 +14360,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Threads and the stall threshold" xml:space="preserve">
     <value>Потоки и порог зависания</value>
   </data>
-  <data name="Threads reserved so the async queue cannot be starved" xml:space="preserve">
-    <value>Потоки, зарезервированные, чтобы асинхронная очередь не осталась без ресурсов</value>
+  <data name="Threads reserved so the async queue cannot be starved (0 = none)" xml:space="preserve">
+    <value>Потоки, зарезервированные, чтобы асинхронная очередь не осталась без ресурсов (0 = нет)</value>
   </data>
   <data name="Thresholds &amp; actions" xml:space="preserve">
     <value>Пороги и действия</value>
@@ -14333,8 +14390,11 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Time" xml:space="preserve">
     <value>Время</value>
   </data>
-  <data name="Time_out in seconds" xml:space="preserve">
-    <value>_Тайм-аут в секундах</value>
+  <data name="Time active sessions get to finish when the service stops (seconds, up to 86,400; 0 = none)" xml:space="preserve">
+    <value>Время, которое активные сеансы получают на завершение при остановке службы (секунды, до 86 400; 0 = нет)</value>
+  </data>
+  <data name="Time_out (seconds, 1 to 90)" xml:space="preserve">
+    <value>_Тайм-аут (секунды, от 1 до 90)</value>
   </data>
   <data name="Timed out looking up {0}. Check the name, and that this machine can reach a DNS server." xml:space="preserve">
     <value>Истекло время ожидания при поиске {0}. Проверьте имя и что эта машина может достучаться до DNS-сервера.</value>
@@ -14366,8 +14426,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Token endpoint (https)" xml:space="preserve">
     <value>Конечная точка токена (https)</value>
   </data>
-  <data name="Token introspection endpoint (RFC 7662; empty = no revocation check)" xml:space="preserve">
-    <value>Конечная точка интроспекции токена (RFC 7662; пусто = без проверки отзыва)</value>
+  <data name="Token introspection endpoint (empty = no revocation check)" xml:space="preserve">
+    <value>Конечная точка интроспекции токена (пусто = без проверки отзыва)</value>
   </data>
   <data name="Tokens are accepted, but {0}: the server applies each of those only when you have set it, and blank is the default. That is wider than it looks. Any token your identity provider signs with this key is accepted - including one it issued to a different application entirely, which is enough to sign in as whichever mailbox that token names. Set both to the exact values your provider puts in its tokens." xml:space="preserve">
     <value>Токены принимаются, но {0}: сервер применяет каждое из них, только когда вы его задали, а по умолчанию оно пустое. Это шире, чем кажется. Принимается любой токен, который ваш поставщик удостоверений подписал этим ключом - включая выданный совершенно другому приложению, и этого достаточно, чтобы войти в любой почтовый ящик, который этот токен называет. Задайте оба в точности теми значениями, которые ваш поставщик кладёт в свои токены.</value>
@@ -14423,8 +14483,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Trusted ARC sealer domains" xml:space="preserve">
     <value>Доверенные домены запечатывающих ARC</value>
   </data>
-  <data name="Trusted proxies whose X-Forwarded-Proto: https is believed (addresses, comma-separated; loopback always is)" xml:space="preserve">
-    <value>Доверенные прокси, чей X-Forwarded-Proto: https принимается (адреса через запятую; loopback всегда)</value>
+  <data name="Trusted proxies whose X-Forwarded-Proto: https is believed (comma separated)" xml:space="preserve">
+    <value>Доверенные прокси, чей X-Forwarded-Proto: https принимается (через запятую)</value>
   </data>
   <data name="Trusts an address range" xml:space="preserve">
     <value>Доверяет диапазону адресов</value>
@@ -14552,8 +14612,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Unattended synchronisation" xml:space="preserve">
     <value>Автоматическая синхронизация</value>
   </data>
-  <data name="Unattended window (empty = never apply on its own; e.g. 03:00, Sun 03:00, Sat,Sun 02:00-05:00)" xml:space="preserve">
-    <value>Окно автоматической установки (пусто — никогда не устанавливать самостоятельно; например, 03:00, Sun 03:00, Sat,Sun 02:00-05:00)</value>
+  <data name="Unattended window (empty = never apply on its own)" xml:space="preserve">
+    <value>Окно автоматической установки (пусто = никогда не устанавливать самостоятельно)</value>
   </data>
   <data name="Unavailable" xml:space="preserve">
     <value>Недоступно</value>
@@ -14597,8 +14657,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Up to 64 visible ASCII characters." xml:space="preserve">
     <value>До 64 видимых символов ASCII.</value>
   </data>
-  <data name="Update feed URL (empty = the built-in feed; set for a mirror)" xml:space="preserve">
-    <value>URL ленты обновлений (пусто — встроенная лента; укажите для зеркала)</value>
+  <data name="Update feed URL (empty = the built-in feed)" xml:space="preserve">
+    <value>URL ленты обновлений (пусто = встроенная лента)</value>
   </data>
   <data name="Update status" xml:space="preserve">
     <value>Состояние обновления</value>
@@ -14618,8 +14678,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks." xml:space="preserve">
     <value>Вышестоящие шлюзы, чей IP-адрес не должен считаться подключающимся клиентом в проверках на спам.</value>
   </data>
-  <data name="Upstreams allowed to use XCLIENT (comma-separated addresses or CIDR ranges)" xml:space="preserve">
-    <value>Вышестоящие узлы, которым разрешён XCLIENT (адреса или диапазоны CIDR через запятую)</value>
+  <data name="Upstreams allowed to use XCLIENT (comma separated)" xml:space="preserve">
+    <value>Вышестоящие узлы, которым разрешён XCLIENT (через запятую)</value>
   </data>
   <data name="Uptime" xml:space="preserve">
     <value>Время работы</value>
@@ -14696,8 +14756,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Validates recipient TLSA records with in-process DNSSEC and blocks delivery over forged chains (RFC 7672)." xml:space="preserve">
     <value>Проверяет записи TLSA получателя встроенным DNSSEC и блокирует доставку по поддельным цепочкам (RFC 7672).</value>
   </data>
-  <data name="Validity window in seconds for signatures we produce (0 = no expiry)" xml:space="preserve">
-    <value>Окно действительности в секундах для подписей, которые мы создаём (0 = без истечения)</value>
+  <data name="Validity window for the signatures this server makes (seconds; 0 = no expiry)" xml:space="preserve">
+    <value>Окно действительности подписей, которые создаёт этот сервер (секунды; 0 = без истечения)</value>
   </data>
   <data name="Value:      {0}" xml:space="preserve">
     <value>Значение:      {0}</value>
@@ -14759,11 +14819,11 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Wait for a free database connection (60)" xml:space="preserve">
     <value>Ожидание свободного соединения с базой данных (60)</value>
   </data>
-  <data name="Wait for a free database connection (seconds)" xml:space="preserve">
-    <value>Ожидание свободного соединения с базой данных (секунды)</value>
+  <data name="Wait for a free database connection (seconds; 0 = wait for ever)" xml:space="preserve">
+    <value>Ожидание свободного соединения с базой данных (секунды; 0 = ждать бесконечно)</value>
   </data>
-  <data name="Waiting for a pooled database connection. 0 = no bound." xml:space="preserve">
-    <value>Ожидание соединения с базой данных из пула. 0 = без ограничения.</value>
+  <data name="Waiting for a pooled database connection. 0 = no time limit." xml:space="preserve">
+    <value>Ожидание соединения с базой данных из пула. 0 = без ограничения времени.</value>
   </data>
   <data name="Waiting for a reinitialise:" xml:space="preserve">
     <value>Ждут повторной инициализации:</value>
@@ -15065,6 +15125,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Where the issued certificate would be written could not be determined, because neither the output folder above nor the server's data folder ([Directories] DataFolder in hMailServer.ini) could be read." xml:space="preserve">
     <value>Не удалось определить, куда был бы записан выданный сертификат, потому что не удалось прочитать ни папку вывода выше, ни папку данных сервера ([Directories] DataFolder в hMailServer.ini).</value>
   </data>
+  <data name="Where the provider publishes its signing keys." xml:space="preserve">
+    <value>Адрес, по которому поставщик публикует свои ключи подписи.</value>
+  </data>
   <data name="Where the search starts, e.g. DC=example,DC=local. Required in search mode - that is, when the bind method is Simple and no DN template is set." xml:space="preserve">
     <value>Откуда начинается поиск, например DC=example,DC=local. Обязателен в режиме поиска - то есть когда метод привязки Simple и шаблон DN не задан.</value>
   </data>
@@ -15298,6 +15361,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the General tab." xml:space="preserve">
     <value>Если это включено, пароль здесь вообще не хранится - его проверку просят у Windows. Оставьте выключенным, и учётная запись использует пароль со вкладки «Общие».</value>
+  </data>
+  <data name="Without a host name, the message's local domain is used, and without that, the machine name." xml:space="preserve">
+    <value>Без имени узла используется локальный домен сообщения, а без него — имя компьютера.</value>
   </data>
   <data name="Without sign-in" xml:space="preserve">
     <value>Без входа</value>
@@ -15947,8 +16013,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Private key file" xml:space="preserve">
     <value>_Файл закрытого ключа</value>
   </data>
-  <data name="_Propagation period in hours (1 to 720)" xml:space="preserve">
-    <value>Период распространения в _часах (от 1 до 720)</value>
+  <data name="_Propagation period (hours, 1 to 720)" xml:space="preserve">
+    <value>Период распространения (_часы, от 1 до 720)</value>
   </data>
   <data name="_Properties" xml:space="preserve">
     <value>_Свойства</value>

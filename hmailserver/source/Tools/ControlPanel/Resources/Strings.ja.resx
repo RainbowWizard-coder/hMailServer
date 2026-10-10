@@ -297,6 +297,9 @@
   <data name="43200 is twelve hours. At most 2592000, thirty days." xml:space="preserve">
     <value>43200 は 12 時間です。最大は 2592000、つまり 30 日です。</value>
   </data>
+  <data name="443 is the port clients expect." xml:space="preserve">
+    <value>クライアントが想定するポートは 443 です。</value>
+  </data>
   <data name="45 by default. A stale database is still used; the application log says it is stale." xml:space="preserve">
     <value>既定は 45 です。古いデータベースもそのまま使われ、アプリケーション ログに古いことが記録されます。</value>
   </data>
@@ -351,6 +354,9 @@
   <data name="80 by default." xml:space="preserve">
     <value>既定は 80 です。</value>
   </data>
+  <data name="80 is the port clients expect." xml:space="preserve">
+    <value>クライアントが想定するポートは 80 です。</value>
+  </data>
   <data name="86400 by default; 0 delivers at once or not at all." xml:space="preserve">
     <value>既定は 86400 です。0 はすぐに配信するか、まったく配信しないかです。</value>
   </data>
@@ -401,6 +407,9 @@
   </data>
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>認証アプリが生成するコードで、このアカウントのパスワードと併せて必要になります。適用されるのは、実際にコードを入力できる場所、つまりコントロールパネルと API です。メール クライアントはコードを提示できないため、これを有効にした後は、代わりにアプリ パスワードを使用する必要があります。</value>
+  </data>
+  <data name="A command-line virus scanner is one." xml:space="preserve">
+    <value>コマンド ライン ウイルス スキャナーはその一例です。</value>
   </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
     <value>ドメインのメール、または 1 つのアカウントのメールの写しを、あるアドレスへ送ります。メールを添付したエンベロープ報告として送るか、メールそのものとして送ります。</value>
@@ -612,8 +621,8 @@
   <data name="A read-only SNMP agent for a monitoring system: SNMPv3 with authentication and encryption, and SNMPv2c only if you switch it on. It answers nobody until the managers are listed, and the port has to be open to them in any firewall between." xml:space="preserve">
     <value>監視システム向けの読み取り専用 SNMP エージェント: 認証と暗号化付きの SNMPv3 と、オンにした場合のみ SNMPv2c。管理ステーションを列挙するまで誰にも応答せず、経路上のすべてのファイアウォールでそれらにポートを開く必要があります。</value>
   </data>
-  <data name="A recipient domain with several MX hosts is worth more attempts than one with a single host, because a retry can land on a different server. This multiplies the retry count above by the number of MX hosts actually tried." xml:space="preserve">
-    <value>MX ホストが複数ある受信者ドメインは、再試行が別のサーバーに届く可能性があるため、単一ホストのドメインより多くの試行に値します。この設定は、上の再試行回数に、実際に試された MX ホストの数を掛け合わせます。</value>
+  <data name="A regular expression." xml:space="preserve">
+    <value>正規表現です。</value>
   </data>
   <data name="A remote server that answers extremely slowly. The idle timeout is re-armed on every byte, so a host that sends one byte occasionally used to hold a delivery thread indefinitely; 'Absolute lifetime of one client session' (30 minutes by default) is the absolute ceiling, armed once and never re-armed." xml:space="preserve">
     <value>リモート サーバーの応答が極端に遅い場合です。アイドル タイムアウトは 1 バイト受信するたびに再設定されるため、以前は、ときどき 1 バイトだけ送るホストが配信スレッドを無期限に占有できました。「1 つのクライアント セッションの絶対的な有効時間」 (既定では 30 分) は絶対的な上限で、一度だけ設定され、再設定されることはありません。</value>
@@ -693,8 +702,8 @@
   <data name="A simple bind needs the user's distinguished name. There are two ways to get one - search for it, or compute it from a template - and Negotiate needs neither, because SSPI authenticates by user name and domain, which the account already carries." xml:space="preserve">
     <value>シンプル バインドにはユーザーの識別名 (DN) が必要です。DN を得る方法は 2 つ、検索するか、テンプレートから組み立てるかです。Negotiate はどちらも必要としません。SSPI はユーザー名とドメインで認証し、それらはアカウントがすでに持っているためです。</value>
   </data>
-  <data name="A single DNS query. 0 = no bound." xml:space="preserve">
-    <value>1 回の DNS クエリに対する制限です。0 = 制限なし。</value>
+  <data name="A single DNS query. 0 = no time limit." xml:space="preserve">
+    <value>1 回の DNS クエリに対する制限です。0 = 時間制限なし。</value>
   </data>
   <data name="A spam trap is an address in one of your domains that nobody uses, so whoever writes to it is sending spam. These settings say what happens to a server that does. The trap addresses are declared per domain in the Control Deck; until a domain has one, nothing here does anything." xml:space="preserve">
     <value>スパム トラップとは、自分のドメインにある誰も使っていないアドレスで、そこに送ってくる相手はスパムを送っています。これらの設定は、そうしたサーバーに何が起こるかを決めます。トラップ アドレスは Control Deck でドメインごとに宣言します。ドメインに 1 つもない間は、ここの設定は何も働きません。</value>
@@ -834,8 +843,8 @@
   <data name="Absolute lifetime of one client session (1800)" xml:space="preserve">
     <value>1 つのクライアント セッションの絶対的な有効時間 (1800)</value>
   </data>
-  <data name="Absolute lifetime of one client session (seconds)" xml:space="preserve">
-    <value>1 つのクライアント セッションの絶対的な有効時間 (秒)</value>
+  <data name="Absolute lifetime of one client session (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>1 つのクライアント セッションの絶対的な有効時間 (秒、0 = 時間制限なし)</value>
   </data>
   <data name="Accept DKIM signatures that use rsa-sha1" xml:space="preserve">
     <value>rsa-sha1 を使用する DKIM 署名を受け入れる</value>
@@ -909,8 +918,8 @@
   <data name="Account recovery" xml:space="preserve">
     <value>アカウントの回復</value>
   </data>
-  <data name="Account-number pattern (a regular expression; empty = none)" xml:space="preserve">
-    <value>口座番号のパターン (正規表現。空 = なし)</value>
+  <data name="Account-number pattern (empty = none)" xml:space="preserve">
+    <value>口座番号のパターン (空 = なし)</value>
   </data>
   <data name="Accounts" xml:space="preserve">
     <value>アカウント</value>
@@ -1254,14 +1263,20 @@
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>{0} のアカウントが望む、または望まないアドレスとドメイン全体。アカウント自身の一覧の後、サーバーの一覧の前に参照されます。</value>
   </data>
-  <data name="Addresses at other providers a person may send as (0 = none; up to 20)" xml:space="preserve">
-    <value>利用者が送信者として使える他のプロバイダーのアドレス (0 = なし。最大 20)</value>
+  <data name="Addresses at other providers a person may send as (up to 20; 0 = none)" xml:space="preserve">
+    <value>利用者が送信者として使える他のプロバイダーのアドレス (最大 20、0 = なし)</value>
+  </data>
+  <data name="Addresses or CIDR blocks." xml:space="preserve">
+    <value>アドレスまたは CIDR ブロックです。</value>
   </data>
   <data name="Addresses that sign in to the Control Deck as the administrator through OpenID Connect (comma separated)" xml:space="preserve">
     <value>OpenID Connect で Control Deck に管理者としてサインインするアドレス (コンマ区切り)</value>
   </data>
   <data name="Addresses that sign in to the Control Deck as the administrator through SAML (comma separated)" xml:space="preserve">
     <value>SAML で Control Deck に管理者としてサインインするアドレス (コンマ区切り)</value>
+  </data>
+  <data name="Addresses; the loopback address is always trusted." xml:space="preserve">
+    <value>アドレスです。ループバック アドレスは常に信頼されます。</value>
   </data>
   <data name="Adds" xml:space="preserve">
     <value>加算</value>
@@ -1311,6 +1326,9 @@
   <data name="Advanced" xml:space="preserve">
     <value>詳細設定</value>
   </data>
+  <data name="Advanced: it is sent as it is, in place of a token the server fetches." xml:space="preserve">
+    <value>上級者向け: サーバーが取得するトークンの代わりに、そのまま送信されます。</value>
+  </data>
   <data name="After a restart" xml:space="preserve">
     <value>再起動後</value>
   </data>
@@ -1329,8 +1347,8 @@
   <data name="Against {0} over {1}. Set the service account user name (and its password), or switch to a user DN template or the Negotiate bind method, neither of which searches at all." xml:space="preserve">
     <value>{1} 経由で {0} に対して実行します。サービス アカウントのユーザー名 (とそのパスワード) を設定するか、ユーザー DN テンプレートまたは Negotiate のバインド方式に切り替えてください。どちらも検索を一切行いません。</value>
   </data>
-  <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
-    <value>このサーバーが送信する集約レポートのスキーマ: 1 = RFC 7489 付録 C、2 = RFC 9990</value>
+  <data name="Aggregate-report schema this server sends (1 = RFC 7489 Appendix C, 2 = RFC 9990)" xml:space="preserve">
+    <value>このサーバーが送信する集約レポートのスキーマ (1 = RFC 7489 付録 C、2 = RFC 9990)</value>
   </data>
   <data name="Alert rule" xml:space="preserve">
     <value>アラート ルール</value>
@@ -1593,8 +1611,8 @@
   <data name="An auto-ban is enforced by the server's own listeners: the address is accepted by the operating system, handed to the server and dropped. These settings push the ban down into the operating system's firewall, hand it to a program of yours, and name the addresses that must never be banned at all." xml:space="preserve">
     <value>自動 BAN はサーバー自身のリスナーが適用します。OS はアドレスからの接続を受け付けてサーバーに渡し、サーバーがそれを切断します。これらの設定は BAN を OS のファイアウォールまで下ろし、任意のプログラムに引き渡し、決して BAN してはならないアドレスを指定します。</value>
   </data>
-  <data name="An entire outbound delivery session. 0 = no bound." xml:space="preserve">
-    <value>送信配信のセッション全体に対する制限です。0 = 制限なし。</value>
+  <data name="An entire outbound delivery session. 0 = no time limit." xml:space="preserve">
+    <value>送信配信のセッション全体に対する制限です。0 = 時間制限なし。</value>
   </data>
   <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
     <value>エントリはその場で REST API を通じて変更されますが、REST API は応答する前に管理者のワンタイム コードを求め、コードは入力されませんでした。もう一度求められるように「編集…」を押すか、エントリを削除して追加し直してください。</value>
@@ -1611,8 +1629,8 @@
   <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
     <value>イベント スクリプトはサーバーの内部で、サービス アカウントの権限で実行されます。そのため、スクリプトが何をインスタンス化してよいかは、利便性の問題ではなくセキュリティ上の決定です。出荷時の設定は * で、あらゆるオブジェクトを許可します。これは、インストール済みの環境がすでに実行しているスクリプトをアップグレードが壊すことのないようにするためであり、狭めるべき設定であって、安全な状態ではありません。自分のスクリプトが実際に必要とするものだけ (スクリプト用のファイル システム オブジェクト、HTTP クライアントなど) を指定してください。それ以外はすべて拒否され、オブジェクトの名前がエラー ログに記録されます。空にすると、hMailServer 自身のオブジェクト以外はすべて拒否されます。</value>
   </data>
-  <data name="An external scanner process. 0 = no bound." xml:space="preserve">
-    <value>外部スキャナーのプロセスに対する制限です。0 = 制限なし。</value>
+  <data name="An external scanner process. 0 = no time limit." xml:space="preserve">
+    <value>外部スキャナーのプロセスに対する制限です。0 = 時間制限なし。</value>
   </data>
   <data name="An older, weaker option: a one-time code asked for after the password when signing in to THIS Control Panel, checked by the tool itself after the server has already accepted the password. The secret is stored per machine under HKLM, so enabling or disabling it needs local administrator rights, and it does nothing for the REST API or for scripts using the COM API. Prefer the server-enforced factor above; this one remains for existing setups." xml:space="preserve">
     <value>古く、より弱い選択肢です。このコントロールパネルにサインインする際、パスワードの後にワンタイム コードを求めるもので、サーバーがすでにパスワードを受け入れた後にツール自身が検証します。シークレットはコンピューター単位で HKLM の下に保存されるため、有効化と無効化にはローカル管理者の権限が必要です。また、REST API や COM API を使うスクリプトには何の効果もありません。上のサーバー側で強制される要素を使ってください。こちらは既存の構成のために残されています。</value>
@@ -1807,14 +1825,14 @@
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id (メモリ ハード、推奨)</value>
   </data>
-  <data name="Argon2id memory for new hashes, in KiB (0 = the built-in 19,456; 4,096 to 1,048,576)" xml:space="preserve">
-    <value>新しいハッシュに使う Argon2id のメモリ量 (KiB 単位、0 = 組み込みの 19,456、指定できるのは 4,096 から 1,048,576)</value>
+  <data name="Argon2id memory for new hashes (KiB, 4,096 to 1,048,576; 0 = the built-in 19,456)" xml:space="preserve">
+    <value>新しいハッシュに使う Argon2id のメモリ量 (KiB、4,096 から 1,048,576、0 = 組み込みの 19,456)</value>
   </data>
   <data name="Argon2id or scrypt only" xml:space="preserve">
     <value>Argon2id または scrypt のみ</value>
   </data>
-  <data name="Argon2id passes for new hashes (0 = the built-in 2; 1 to 20)" xml:space="preserve">
-    <value>新しいハッシュに使う Argon2id の反復回数 (0 = 組み込みの 2、指定できるのは 1 から 20)</value>
+  <data name="Argon2id passes for new hashes (1 to 20; 0 = the built-in 2)" xml:space="preserve">
+    <value>新しいハッシュに使う Argon2id の反復回数 (1 から 20、0 = 組み込みの 2)</value>
   </data>
   <data name="Arriving" xml:space="preserve">
     <value>受信</value>
@@ -2068,14 +2086,14 @@
   <data name="Backup archives (HMBackup*.7z)|HMBackup*.7z|All files (*.*)|*.*" xml:space="preserve">
     <value>バックアップ アーカイブ (HMBackup*.7z)|HMBackup*.7z|すべてのファイル (*.*)|*.*</value>
   </data>
-  <data name="Backup interva_l in minutes (0 = off)" xml:space="preserve">
+  <data name="Backup interva_l (minutes; 0 = off)" xml:space="preserve">
     <value>バックアップ間隔 (分、0 = 無効)(_L)</value>
+  </data>
+  <data name="Backup interval (minutes; 0 = off)" xml:space="preserve">
+    <value>バックアップ間隔 (分、0 = 無効)</value>
   </data>
   <data name="Backup interval in minutes" xml:space="preserve">
     <value>バックアップ間隔 (分)</value>
-  </data>
-  <data name="Backup interval in minutes (0 = off)" xml:space="preserve">
-    <value>バックアップ間隔 (分、0 = 無効)</value>
   </data>
   <data name="Backup schedule saved - the service reads these settings when it starts, so they apply after a service restart." xml:space="preserve">
     <value>バックアップ スケジュールを保存しました。サービスはこれらの設定を起動時に読み取るため、サービスの再起動後に適用されます。</value>
@@ -2098,8 +2116,11 @@
   <data name="Ban duration (minutes)" xml:space="preserve">
     <value>ブロック期間 (分)</value>
   </data>
-  <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
-    <value>遮断時間 (時間、1～8760)</value>
+  <data name="Ban for (hours, 1 to 8,760)" xml:space="preserve">
+    <value>遮断時間 (時間、1 から 8,760)</value>
+  </data>
+  <data name="Ban the sending address for (minutes, up to 525,600; 0 = no ban)" xml:space="preserve">
+    <value>送信元アドレスをブロックする期間 (分、最大 525,600、0 = ブロックしない)</value>
   </data>
   <data name="Banned now" xml:space="preserve">
     <value>現在のブロック</value>
@@ -2175,6 +2196,9 @@
   </data>
   <data name="Block rather than allow" xml:space="preserve">
     <value>許可ではなくブロック</value>
+  </data>
+  <data name="Block the envelope sender for (days, up to 3,650; 0 = no block)" xml:space="preserve">
+    <value>エンベロープ送信者をブロックする期間 (日、最大 3,650、0 = ブロックしない)</value>
   </data>
   <data name="Block the sender of this message, then delete it" xml:space="preserve">
     <value>このメッセージの送信者をブロックしてから、このメッセージを削除</value>
@@ -2314,8 +2338,8 @@
   <data name="CC" xml:space="preserve">
     <value>CC</value>
   </data>
-  <data name="COM objects a script may create (* = any, as shipped; empty = none beyond hMailServer's own; ProgIDs or CLSIDs, comma separated)" xml:space="preserve">
-    <value>スクリプトが作成できる COM オブジェクト (* = すべて、出荷時の設定、空 = hMailServer 自身のもの以外は不可、ProgIDs または CLSIDs をコンマ区切りで)</value>
+  <data name="COM objects a script may create (comma separated; * = any, empty = only hMailServer's own)" xml:space="preserve">
+    <value>スクリプトが作成できる COM オブジェクト (コンマ区切り、* = すべて、空 = hMailServer 自身のもののみ)</value>
   </data>
   <data name="COMPRESS=DEFLATE (RFC 4978)" xml:space="preserve">
     <value>COMPRESS=DEFLATE (RFC 4978)</value>
@@ -2773,7 +2797,7 @@
   <data name="Client secret for introspection" xml:space="preserve">
     <value>イントロスペクション用のクライアント シークレット</value>
   </data>
-  <data name="Clock-drift tolerance in seconds when checking an expiry" xml:space="preserve">
+  <data name="Clock-drift tolerance when checking an expiry (seconds)" xml:space="preserve">
     <value>有効期限の確認時に許容する時計のずれ (秒)</value>
   </data>
   <data name="Close" xml:space="preserve">
@@ -2815,8 +2839,8 @@
   <data name="Complaint mailbox (comma separated for several)" xml:space="preserve">
     <value>苦情メールボックス (複数の場合はコンマ区切り)</value>
   </data>
-  <data name="Complaints before an address is suppressed (0 = never; up to 100)" xml:space="preserve">
-    <value>アドレスを抑止するまでの苦情数 (0 = しない。最大 100)</value>
+  <data name="Complaints before an address is suppressed (up to 100; 0 = never)" xml:space="preserve">
+    <value>アドレスを抑止するまでの苦情数 (最大 100、0 = しない)</value>
   </data>
   <data name="Complaints from mailbox providers (feedback loops)" xml:space="preserve">
     <value>メール プロバイダーからの苦情 (フィードバック ループ)</value>
@@ -3612,7 +3636,7 @@
   <data name="DMARC failure score" xml:space="preserve">
     <value>DMARC 失敗スコア</value>
   </data>
-  <data name="DMARC report sender address (empty = disabled)" xml:space="preserve">
+  <data name="DMARC report sender address (empty = off)" xml:space="preserve">
     <value>DMARC レポートの送信者アドレス (空 = 無効)</value>
   </data>
   <data name="DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it." xml:space="preserve">
@@ -3636,8 +3660,8 @@
   <data name="DNS query timeout (10)" xml:space="preserve">
     <value>DNS クエリのタイムアウト (10)</value>
   </data>
-  <data name="DNS query timeout (seconds; 0 = no bound)" xml:space="preserve">
-    <value>DNS クエリのタイムアウト (秒、0 = 上限なし)</value>
+  <data name="DNS query timeout (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>DNS クエリのタイムアウト (秒、0 = 時間制限なし)</value>
   </data>
   <data name="DNS records" xml:space="preserve">
     <value>DNS レコード</value>
@@ -3651,10 +3675,10 @@
   <data name="D_omain" xml:space="preserve">
     <value>ドメイン(_O)</value>
   </data>
-  <data name="Daily backup t_ime (24-hour HH:MM, empty = off)" xml:space="preserve">
+  <data name="Daily backup t_ime (24-hour HH:MM; empty = off)" xml:space="preserve">
     <value>毎日のバックアップ時刻 (24 時間制 HH:MM、空 = 無効)(_I)</value>
   </data>
-  <data name="Daily backup time (24-hour HH:MM, empty = off)" xml:space="preserve">
+  <data name="Daily backup time (24-hour HH:MM; empty = off)" xml:space="preserve">
     <value>毎日のバックアップ時刻 (24 時間制 HH:MM、空 = 無効)</value>
   </data>
   <data name="Dashboard" xml:space="preserve">
@@ -3693,8 +3717,8 @@
   <data name="Date this key stops working" xml:space="preserve">
     <value>この鍵が動作しなくなる日付</value>
   </data>
-  <data name="Days a complaint is kept (0 = for ever; up to 3650)" xml:space="preserve">
-    <value>苦情を保持する日数 (0 = 無期限。最大 3650)</value>
+  <data name="Days a complaint is kept (up to 3,650; 0 = for ever)" xml:space="preserve">
+    <value>苦情を保持する日数 (最大 3,650、0 = 無期限)</value>
   </data>
   <data name="Days a held message waits for review (1 to 90)" xml:space="preserve">
     <value>保留されたメッセージが確認を待つ日数 (1 から 90)</value>
@@ -3702,8 +3726,8 @@
   <data name="Days a password-protected message is kept for its reader (1 to 365)" xml:space="preserve">
     <value>パスワードで保護されたメッセージを読み手のために保持する日数 (1 から 365)</value>
   </data>
-  <data name="Days a received report is kept (0 = for ever; up to 3650)" xml:space="preserve">
-    <value>受信したレポートを保持する日数 (0 = 無期限。最大 3650)</value>
+  <data name="Days a received report is kept (up to 3,650; 0 = for ever)" xml:space="preserve">
+    <value>受信したレポートを保持する日数 (最大 3,650、0 = 無期限)</value>
   </data>
   <data name="Days after sending that a delivery report is still matched (1 to 30)" xml:space="preserve">
     <value>送信後、配信レポートを照合する日数 (1 ～ 30)</value>
@@ -3717,35 +3741,29 @@
   <data name="Days before the database is reported as stale (0 = never)" xml:space="preserve">
     <value>データベースを古いと見なすまでの日数 (0 = しない)</value>
   </data>
-  <data name="Days bet_ween rotations (1 to 3650)" xml:space="preserve">
-    <value>ローテーションの間隔 (日数、1 ～ 3650)(_W)</value>
+  <data name="Days bet_ween rotations (1 to 3,650)" xml:space="preserve">
+    <value>ローテーションの間隔 (日数、1 から 3,650)(_W)</value>
   </data>
   <data name="Days between rotations" xml:space="preserve">
     <value>ローテーションの間隔 (日数)</value>
   </data>
-  <data name="Days bounce counts are kept (0 = keep)" xml:space="preserve">
-    <value>バウンスの件数を保持する日数 (0 = 保持)</value>
+  <data name="Days bounce counts are kept (0 = for ever)" xml:space="preserve">
+    <value>バウンスの件数を保持する日数 (0 = 無期限)</value>
   </data>
-  <data name="Days deleted messages are kept for the person to put back (0 = none; up to 365)" xml:space="preserve">
-    <value>削除されたメッセージを本人が戻せるように保持する日数 (0 = なし。最大 365)</value>
+  <data name="Days deleted messages are kept for the person to put back (up to 365; 0 = none)" xml:space="preserve">
+    <value>削除されたメッセージを本人が戻せるように保持する日数 (最大 365、0 = なし)</value>
   </data>
-  <data name="Days delivered and dead-lettered deliveries are kept (0 = everything; up to 3650)" xml:space="preserve">
-    <value>配信済みと配信不能の配信を保持する日数 (0 = すべて。最大 3650)</value>
+  <data name="Days delivered and dead-lettered deliveries are kept (up to 3,650; 0 = for ever)" xml:space="preserve">
+    <value>配信済みと配信不能の配信を保持する日数 (最大 3,650、0 = 無期限)</value>
   </data>
-  <data name="Days of audit trail to keep (0 = everything)" xml:space="preserve">
-    <value>保持する監査ログの日数 (0 = すべて)</value>
+  <data name="Days of audit trail to keep (0 = for ever)" xml:space="preserve">
+    <value>保持する監査ログの日数 (0 = 無期限)</value>
   </data>
-  <data name="Days of mail a person may keep in the browser to read offline (0 = none; up to 365)" xml:space="preserve">
-    <value>オフラインで読むためにブラウザーに保存できるメールの日数 (0 = なし。最大 365)</value>
+  <data name="Days of mail a person may keep in the browser to read offline (up to 365; 0 = none)" xml:space="preserve">
+    <value>オフラインで読むためにブラウザーに保存できるメールの日数 (最大 365、0 = なし)</value>
   </data>
   <data name="Days of submissions that make an account's baseline (7 to 365)" xml:space="preserve">
     <value>アカウントの基準を作る送信の日数 (7 から 365)</value>
-  </data>
-  <data name="Days the envelope sender stays blocked (0 = no block; up to 3650)" xml:space="preserve">
-    <value>エンベロープ送信者をブロックしておく日数 (0 = ブロックしない。最大 3650)</value>
-  </data>
-  <data name="Days the record of trap hits is kept (1 to 3650)" xml:space="preserve">
-    <value>トラップのヒット記録を保持する日数 (1 から 3650)</value>
   </data>
   <data name="Days the soft bounces are counted within (1 to 365)" xml:space="preserve">
     <value>一時的なバウンスを数える日数 (1 から 365)</value>
@@ -3786,7 +3804,7 @@
   <data name="Del" xml:space="preserve">
     <value>Del</value>
   </data>
-  <data name="Delay for each further recipient (seconds, at most 30; 0 = off)" xml:space="preserve">
+  <data name="Delay for each further recipient (seconds, up to 30; 0 = off)" xml:space="preserve">
     <value>受信者が増えるごとの遅延 (秒、最大 30、0 = 無効)</value>
   </data>
   <data name="Delay per failed sign-in (seconds; 0 = off)" xml:space="preserve">
@@ -3816,14 +3834,14 @@
   <data name="Delete archived messages after (days; 0 = keep for ever)" xml:space="preserve">
     <value>アーカイブしたメッセージを削除するまでの日数 (0 = 永久に保持)</value>
   </data>
-  <data name="Delete archives older tha_n this many days (0 = keep all)" xml:space="preserve">
-    <value>この日数より古いアーカイブを削除する (0 = すべて保持)(_N)</value>
+  <data name="Delete archives older tha_n (days; 0 = keep for ever)" xml:space="preserve">
+    <value>次の日数より古いアーカイブを削除する (日、0 = 無期限に保持)(_N)</value>
+  </data>
+  <data name="Delete archives older than (days; 0 = keep for ever)" xml:space="preserve">
+    <value>次の日数より古いアーカイブを削除する (日、0 = 無期限に保持)</value>
   </data>
   <data name="Delete archives older than this many days" xml:space="preserve">
     <value>この日数より古いアーカイブを削除する</value>
-  </data>
-  <data name="Delete archives older than this many days (0 = keep all)" xml:space="preserve">
-    <value>この日数より古いアーカイブを削除する (0 = すべて保持)</value>
   </data>
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>確認後に削除するまでの日数</value>
@@ -3861,8 +3879,8 @@
   <data name="Delete folder" xml:space="preserve">
     <value>フォルダーを削除</value>
   </data>
-  <data name="Delete logs older than N days (0 = keep everything)" xml:space="preserve">
-    <value>N 日より古いログを削除 (0 = すべて保持)</value>
+  <data name="Delete logs older than (days; 0 = keep for ever)" xml:space="preserve">
+    <value>次の日数より古いログを削除する (日、0 = 無期限に保持)</value>
   </data>
   <data name="Delete messages" xml:space="preserve">
     <value>メッセージを削除</value>
@@ -4160,8 +4178,8 @@
   <data name="Different" xml:space="preserve">
     <value>不一致</value>
   </data>
-  <data name="Digest _hour (0-23)" xml:space="preserve">
-    <value>ダイジェストの時刻 (0-23)(_H)</value>
+  <data name="Digest _hour (0 to 23)" xml:space="preserve">
+    <value>ダイジェストの時刻 (0 から 23)(_H)</value>
   </data>
   <data name="Digest hour" xml:space="preserve">
     <value>ダイジェストの時刻</value>
@@ -4255,8 +4273,8 @@
   <data name="Disk space" xml:space="preserve">
     <value>ディスク領域</value>
   </data>
-  <data name="Distinct terms per message before it is always scanned instead (64-1000000)" xml:space="preserve">
-    <value>メッセージあたりの異なる語の数。これを超えると常に代わりにスキャンされます (64～1000000)</value>
+  <data name="Distinct terms per message before it is always scanned instead (64 to 1,000,000)" xml:space="preserve">
+    <value>メッセージあたりの異なる語の数。これを超えると常に代わりにスキャンされます (64 から 1,000,000)</value>
   </data>
   <data name="Distribution list" xml:space="preserve">
     <value>配布リスト</value>
@@ -4330,8 +4348,8 @@
   <data name="Domain contains" xml:space="preserve">
     <value>ドメインに含まれる文字</value>
   </data>
-  <data name="Domain for the mailer-daemon sender address (empty = host name, else the message's local domain, else the machine name)" xml:space="preserve">
-    <value>mailer-daemon 送信者アドレスのドメイン (空 = ホスト名、なければメッセージのローカル ドメイン、なければコンピューター名)</value>
+  <data name="Domain for the mailer-daemon sender address (empty = the host name)" xml:space="preserve">
+    <value>mailer-daemon 送信者アドレスのドメイン (空 = ホスト名)</value>
   </data>
   <data name="Domain or account" xml:space="preserve">
     <value>ドメインかアカウントか</value>
@@ -4375,11 +4393,11 @@
   <data name="Draining" xml:space="preserve">
     <value>ドレイン中</value>
   </data>
+  <data name="Drop inbound messages larger than this mid-transfer (KB; 0 = off)" xml:space="preserve">
+    <value>これより大きい受信メッセージを転送の途中で破棄する (KB、0 = 無効)</value>
+  </data>
   <data name="Drop it without a report" xml:space="preserve">
     <value>レポートなしで削除する</value>
-  </data>
-  <data name="Drop oversized inbound messages above N KB mid-transfer (0 = off)" xml:space="preserve">
-    <value>N KB を超える大きすぎる受信メッセージを転送の途中で破棄する (0 = 無効)</value>
   </data>
   <data name="Due for delivery" xml:space="preserve">
     <value>配信待ち</value>
@@ -4906,8 +4924,8 @@
   <data name="Event script execution timeout (60)" xml:space="preserve">
     <value>イベント スクリプトの実行タイムアウト (60)</value>
   </data>
-  <data name="Event script execution timeout (seconds)" xml:space="preserve">
-    <value>イベント スクリプトの実行タイムアウト (秒)</value>
+  <data name="Event script execution timeout (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>イベント スクリプトの実行タイムアウト (秒、0 = 時間制限なし)</value>
   </data>
   <data name="Event scripts" xml:space="preserve">
     <value>イベント スクリプト</value>
@@ -4918,8 +4936,8 @@
   <data name="Events - a message received, delivered, bounced or quarantined, an account locked - posted to the receivers subscribed in the Control Deck or over the REST API. Nothing is sent until a subscription exists." xml:space="preserve">
     <value>イベント (メッセージの受信、配信、バウンス、検疫、アカウントのロック) は、Control Deck または REST API で購読した受信先に送られます。購読がない間は何も送られません。</value>
   </data>
-  <data name="Events a minute for a subscription with no limit of its own (1 to 100000)" xml:space="preserve">
-    <value>独自の上限を持たない購読の 1 分あたりのイベント数 (1 から 100000)</value>
+  <data name="Events a minute for a subscription with no limit of its own (1 to 100,000)" xml:space="preserve">
+    <value>独自の上限を持たない購読の 1 分あたりのイベント数 (1 から 100,000)</value>
   </data>
   <data name="Events are kept with no time limit." xml:space="preserve">
     <value>イベントは期限なしで保持されます。</value>
@@ -5140,8 +5158,8 @@
   <data name="Expunge" xml:space="preserve">
     <value>抹消 (Expunge)</value>
   </data>
-  <data name="Expunge records to keep (0 = keep everything, which also skips the prune at start-up)" xml:space="preserve">
-    <value>保持する抹消レコード数 (0 = すべて保持。起動時の整理もスキップされます)</value>
+  <data name="Expunge records to keep (0 = keep everything)" xml:space="preserve">
+    <value>保持する抹消レコード数 (0 = すべて保持)</value>
   </data>
   <data name="External" xml:space="preserve">
     <value>外部</value>
@@ -5167,8 +5185,8 @@
   <data name="External process timeout (300)" xml:space="preserve">
     <value>外部プロセスのタイムアウト (300)</value>
   </data>
-  <data name="External process timeout, e.g. a command-line virus scanner (seconds)" xml:space="preserve">
-    <value>外部プロセスのタイムアウト。コマンド ライン ウイルス スキャナーなど (秒)</value>
+  <data name="External process timeout (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>外部プロセスのタイムアウト (秒、0 = 時間制限なし)</value>
   </data>
   <data name="External recipients" xml:space="preserve">
     <value>外部の受信者</value>
@@ -5179,14 +5197,8 @@
   <data name="External to external (rela_y)" xml:space="preserve">
     <value>外部から外部へ (リレー)(_Y)</value>
   </data>
-  <data name="External-account hosts to FETCH from with OAuth2 (comma separated; blank this to use none)" xml:space="preserve">
-    <value>OAuth2 で FETCH する外部アカウントのホスト (コンマ区切り。使わない場合は空にする)</value>
-  </data>
-  <data name="Extra delivery attempts per additional MX host" xml:space="preserve">
-    <value>追加の MX ホストごとの追加配信試行回数</value>
-  </data>
-  <data name="Extra delivery attempts per additional MX host (0 = default)" xml:space="preserve">
-    <value>追加の MX ホストごとの追加配信試行回数 (0 = 既定)</value>
+  <data name="External-account hosts to fetch from with OAuth2 (comma separated; empty = none)" xml:space="preserve">
+    <value>OAuth2 で取り込む外部アカウントのホスト (コンマ区切り、空 = なし)</value>
   </data>
   <data name="F6, Shift+F6" xml:space="preserve">
     <value>F6、Shift+F6</value>
@@ -5239,11 +5251,11 @@
   <data name="Fetching {0}…" xml:space="preserve">
     <value>{0} を取得しています…</value>
   </data>
-  <data name="Fewest messages in an hour that can be a volume signal (1 to 100000)" xml:space="preserve">
-    <value>量の信号になりうる 1 時間あたりの最小メッセージ数 (1 から 100000)</value>
+  <data name="Fewest messages in an hour that can be a volume signal (1 to 100,000)" xml:space="preserve">
+    <value>量の信号になりうる 1 時間あたりの最小メッセージ数 (1 から 100,000)</value>
   </data>
-  <data name="Fewest recipients in an hour that can be a recipients signal (1 to 100000)" xml:space="preserve">
-    <value>受信者の信号になりうる 1 時間あたりの最小受信者数 (1 から 100000)</value>
+  <data name="Fewest recipients in an hour that can be a recipients signal (1 to 100,000)" xml:space="preserve">
+    <value>受信者の信号になりうる 1 時間あたりの最小受信者数 (1 から 100,000)</value>
   </data>
   <data name="Figures from {0}, the last time the server could be read." xml:space="preserve">
     <value>{0} の値です。これが最後にサーバーを読み取れた時点です。</value>
@@ -5296,8 +5308,8 @@
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>まず: どちらの半分が詰まっているか?</value>
   </data>
-  <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
-    <value>固定トークン (上級者向け。取得せずにそのまま使われます)</value>
+  <data name="Fixed token" xml:space="preserve">
+    <value>固定トークン</value>
   </data>
   <data name="Flag: add a header the reader sees as a warning" xml:space="preserve">
     <value>フラグ: 読者が警告として見るヘッダーを追加する</value>
@@ -5359,6 +5371,9 @@
   <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the SSL certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
     <value>鍵ファイルが暗号化された PEM である各証明書について、SSL 証明書ページで証明書の秘密鍵パスワードを設定してください (パスフレーズは鍵を作成した人が決めたものなので、あなただけが提供できます)。または、ファイルを暗号化されていない鍵に置き換えてください。</value>
   </data>
+  <data name="For example 03:00, Sun 03:00 or Sat,Sun 02:00-05:00." xml:space="preserve">
+    <value>例: 03:00、Sun 03:00、Sat,Sun 02:00-05:00。</value>
+  </data>
   <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
     <value>例: 10.0.0.5 または 10.0.0.0/24</value>
   </data>
@@ -5386,8 +5401,8 @@
   <data name="Forward e-mail" xml:space="preserve">
     <value>メールを転送</value>
   </data>
-  <data name="Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)" xml:space="preserve">
-    <value>このサーバーが行うすべての Web 要求 (フィード、そのダウンロード、JWKS、トークンのイントロスペクション) の転送プロキシ (host:port。空 = 直接接続。プロキシの資格情報は使いません)</value>
+  <data name="Forward proxy for this server's web requests (host:port; empty = direct)" xml:space="preserve">
+    <value>このサーバーの Web 要求に使う転送プロキシ (host:port、空 = 直接接続)</value>
   </data>
   <data name="Forward to {0}" xml:space="preserve">
     <value>{0} に進む</value>
@@ -5424,9 +5439,6 @@
   </data>
   <data name="From (a_ddress)" xml:space="preserve">
     <value>差出人 (アドレス)(_D)</value>
-  </data>
-  <data name="From 1 hour to 168, a week." xml:space="preserve">
-    <value>1 時間から 168 時間 (1 週間) まで。</value>
   </data>
   <data name="From 5 to 3600. Only used when the metrics endpoint above is set." xml:space="preserve">
     <value>5 から 3600 まで。上のメトリクス エンドポイントが設定されている場合にのみ使われます。</value>
@@ -5605,11 +5617,11 @@
   <data name="HTTP Basic user name for /metrics (empty = Basic off)" xml:space="preserve">
     <value>/metrics 用の HTTP Basic ユーザー名 (空 = Basic 無効)</value>
   </data>
-  <data name="HTTP port (80 to enable, 0 = disabled)" xml:space="preserve">
-    <value>HTTP ポート (有効にするには 80、0 = 無効)</value>
+  <data name="HTTP port (0 = off)" xml:space="preserve">
+    <value>HTTP ポート (0 = 無効)</value>
   </data>
-  <data name="HTTPS port (443 to enable, 0 = disabled)" xml:space="preserve">
-    <value>HTTPS ポート (有効にするには 443、0 = 無効)</value>
+  <data name="HTTPS port (0 = off)" xml:space="preserve">
+    <value>HTTPS ポート (0 = 無効)</value>
   </data>
   <data name="Handing {0} to the update helper…" xml:space="preserve">
     <value>{0} を更新ヘルパーに渡しています…</value>
@@ -5641,7 +5653,7 @@
   <data name="Hard-link each recipient's copy instead of copying it" xml:space="preserve">
     <value>各受信者のコピーをコピーする代わりにハード リンクする</value>
   </data>
-  <data name="Header fields to oversign in outbound DKIM signatures (comma separated, empty = off)" xml:space="preserve">
+  <data name="Header fields to oversign in outbound DKIM signatures (comma separated; empty = off)" xml:space="preserve">
     <value>送信 DKIM 署名でオーバーサイニングするヘッダー フィールド (コンマ区切り、空 = 無効)</value>
   </data>
   <data name="Header read chunk size (bytes)" xml:space="preserve">
@@ -5692,7 +5704,7 @@
   <data name="Hold" xml:space="preserve">
     <value>保留</value>
   </data>
-  <data name="Hold a refused connection open before dropping it (seconds, 0 = drop immediately)" xml:space="preserve">
+  <data name="Hold a refused connection open before dropping it (seconds; 0 = drop immediately)" xml:space="preserve">
     <value>拒否した接続を切断するまで開いたまま保持する (秒、0 = 直ちに切断)</value>
   </data>
   <data name="Hold attachments for the sandbox's verdict" xml:space="preserve">
@@ -5797,8 +5809,8 @@
   <data name="How long a signed-in session of the webmail, the self-service portal or the Control Deck lasts. A domain or an account can hold its own value, on the Levels tab of its dialog." xml:space="preserve">
     <value>ウェブメール、セルフサービス ポータル、Control Deck にサインインしたセッションの持続時間。ドメインやアカウントは、そのダイアログの「レベル」タブで独自の値を持てます。</value>
   </data>
-  <data name="How long an answer is remembered, in minutes" xml:space="preserve">
-    <value>回答を記憶する分数</value>
+  <data name="How long an answer is remembered (minutes)" xml:space="preserve">
+    <value>回答を記憶する時間 (分)</value>
   </data>
   <data name="How long every worker may be busy before the saturation report. 0 = reporting off." xml:space="preserve">
     <value>飽和レポートを出すまでに、すべてのワーカーがビジーであってよい時間。0 = レポート無効。</value>
@@ -5812,8 +5824,8 @@
   <data name="How long the server will go on finalizing an accepted message before answering 451 and asking the sender to retry, rather than holding the connection open indefinitely." xml:space="preserve">
     <value>接続を無期限に開いたままにするのではなく、451 で応答して送信者に再試行を求めるまでに、受け入れたメッセージの最終処理をサーバーが続ける時間。</value>
   </data>
-  <data name="How long to wait, in seconds" xml:space="preserve">
-    <value>待機する秒数</value>
+  <data name="How long to wait (seconds)" xml:space="preserve">
+    <value>待機する時間 (秒)</value>
   </data>
   <data name="How mail gets in, where it goes next, and what happens to it on the way." xml:space="preserve">
     <value>メールがどのように入ってきて、次にどこへ向かい、その途中で何が起きるか。</value>
@@ -6198,6 +6210,9 @@
   <data name="It is safe to enable signing." xml:space="preserve">
     <value>署名を有効にしても安全です。</value>
   </data>
+  <data name="It is sent as spamd's User: header." xml:space="preserve">
+    <value>spamd の User: ヘッダーとして送信されます。</value>
+  </data>
   <data name="It may use %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED% and %MACRO_PERCENT%." xml:space="preserve">
     <value>%MACRO_MAILBOX%、%MACRO_QUOTA%、%MACRO_USED%、%MACRO_PERCENT% を使えます。</value>
   </data>
@@ -6207,8 +6222,8 @@
   <data name="JSON API under /api/v1 plus the browser-based Control Deck at the listener root. Authenticated with the administrator password, or with a scoped API key - a key can be read-only, limited to named domains and source addresses, given an expiry and revoked on its own, none of which the administrator password can. Keys are managed on the REST API keys page. TLS is required unless the listener is bound to 127.0.0.1." xml:space="preserve">
     <value>/api/v1 配下の JSON API と、リスナーのルートにあるブラウザーベースの Control Deck。管理者パスワード、またはスコープ付きの API キーで認証します。キーは読み取り専用にでき、指定したドメインと送信元アドレスに限定でき、有効期限を持ち、個別に失効させられます。管理者パスワードにはこのいずれもできません。キーは REST API キー ページで管理します。リスナーが 127.0.0.1 にバインドされていない限り、TLS が必須です。</value>
   </data>
-  <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
-    <value>JWK Set URL (プロバイダーが公開している署名鍵。空 = 鍵ファイルのみ)</value>
+  <data name="JWK Set URL (empty = the key file only)" xml:space="preserve">
+    <value>JWK Set URL (空 = 鍵ファイルのみ)</value>
   </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>ジャーナリングと二重配信</value>
@@ -6225,7 +6240,7 @@
   <data name="Keep archived messages for (_days; 0 = for ever)" xml:space="preserve">
     <value>アーカイブしたメッセージの保持期間 (日数、0 = 無期限)(_D)</value>
   </data>
-  <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
+  <data name="Keep greylisting active during the record expiration window" xml:space="preserve">
     <value>レコードの有効期限ウィンドウの間もグレイリスティングを有効のままにする</value>
   </data>
   <data name="Keep log files open (performance)" xml:space="preserve">
@@ -6249,11 +6264,17 @@
   <data name="Keep the record of the retiring selector &quot;{0}&quot; published until {1}, for mail signed with it that is still on its way." xml:space="preserve">
     <value>廃止中のセレクター「{0}」のレコードは、そのセレクターで署名されてまだ配送途中のメールのために、{1} まで公開したままにしてください。</value>
   </data>
+  <data name="Keep the record of trap hits for (days, 1 to 3,650)" xml:space="preserve">
+    <value>トラップのヒット記録を保持する期間 (日、1 から 3,650)</value>
+  </data>
   <data name="Keep the settings this version ships with, and apply no profile? The checklist stops asking; any profile can still be applied later." xml:space="preserve">
     <value>このバージョンの出荷時の設定を保持し、プロファイルを適用しませんか? チェックリストは尋ねなくなります。どのプロファイルも後から適用できます。</value>
   </data>
   <data name="Keep the shipped settings" xml:space="preserve">
     <value>出荷時の設定を保持</value>
+  </data>
+  <data name="Keeping everything also skips the prune at start-up." xml:space="preserve">
+    <value>すべて保持する場合は、起動時の整理も行いません。</value>
   </data>
   <data name="Keeping several generations of messages needs compression: without 'Compress destination files (zip)' every backup writes its message files into the same DataBackup folder, overwriting the previous run's, so retention can only keep generations of the small settings-and-domains archives." xml:space="preserve">
     <value>メッセージを複数世代保持するには圧縮が必要です。「宛先ファイルを圧縮する (zip)」がないと、すべてのバックアップがメッセージ ファイルを同じ DataBackup フォルダーに書き込み、前回の実行分を上書きするため、保持機能は小さな設定とドメインのアーカイブの世代しか保持できません。</value>
@@ -6327,11 +6348,17 @@
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>送信する添付ファイルの最大サイズ (KB)</value>
   </data>
-  <data name="Largest key accepted, in bytes (1024 to 1048576)" xml:space="preserve">
-    <value>受け入れる最大のキー サイズ (バイト、1024 から 1048576)</value>
+  <data name="Largest key accepted (bytes, 1,024 to 1,048,576)" xml:space="preserve">
+    <value>受け入れる最大のキー サイズ (バイト、1,024 から 1,048,576)</value>
   </data>
-  <data name="Largest message in KB (0 is no limit)" xml:space="preserve">
-    <value>最大メッセージサイズ KB（0 は無制限）</value>
+  <data name="Largest message (KB; 0 = no limit)" xml:space="preserve">
+    <value>最大メッセージ サイズ (KB、0 = 無制限)</value>
+  </data>
+  <data name="Largest message to spam-scan (KB; 0 = no limit)" xml:space="preserve">
+    <value>スパム スキャンするメッセージの最大サイズ (KB、0 = 無制限)</value>
+  </data>
+  <data name="Largest message to virus-scan (KB; 0 = no limit)" xml:space="preserve">
+    <value>ウイルス スキャンするメッセージの最大サイズ (KB、0 = 無制限)</value>
   </data>
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>前回のバックアップ: {0} ({1})。</value>
@@ -6558,8 +6585,8 @@
   <data name="Log categories" xml:space="preserve">
     <value>ログ カテゴリ</value>
   </data>
-  <data name="Log database queries slower than N ms (0 = off)" xml:space="preserve">
-    <value>N ミリ秒より遅いデータベース クエリをログに記録する (0 = 無効)</value>
+  <data name="Log database queries slower than (milliseconds; 0 = off)" xml:space="preserve">
+    <value>次の時間より遅いデータベース クエリをログに記録する (ミリ秒、0 = 無効)</value>
   </data>
   <data name="Log destination" xml:space="preserve">
     <value>ログの出力先</value>
@@ -6573,8 +6600,8 @@
   <data name="Log folder" xml:space="preserve">
     <value>ログ フォルダー</value>
   </data>
-  <data name="Log level (3 or above = full detail; 2 or lower = quieter)" xml:space="preserve">
-    <value>ログ レベル (3 以上 = 完全な詳細、2 以下 = 控えめ)</value>
+  <data name="Log level" xml:space="preserve">
+    <value>ログ レベル</value>
   </data>
   <data name="Log line format" xml:space="preserve">
     <value>ログ行の形式</value>
@@ -6594,7 +6621,7 @@
   <data name="Logon failures" xml:space="preserve">
     <value>ログオンの失敗</value>
   </data>
-  <data name="Longest such window, in minutes" xml:space="preserve">
+  <data name="Longest such window (minutes)" xml:space="preserve">
     <value>このウィンドウの最長時間 (分)</value>
   </data>
   <data name="Look for &quot;Task SMTP-accept session=42 ip=... waited 8 seconds for a thread in work queue Asynchronous task queue&quot; and, when it is severe, &quot;All 15 threads in work queue Asynchronous task queue have been busy for at least 120 seconds, so no further task on this queue can start&quot;. That means every worker is occupied and messages are queuing behind them: one slow dependency does this to the whole server, which is why a single wedged scanner used to look like the server had stopped responding. The task names say which sessions are stuck; the stage timings say what they are stuck on." xml:space="preserve">
@@ -6680,6 +6707,12 @@
   </data>
   <data name="MX check score" xml:space="preserve">
     <value>MX チェック スコア</value>
+  </data>
+  <data name="MX hosts tried per attempt, times the attempt number" xml:space="preserve">
+    <value>試行ごとに試す MX ホスト数 × 試行回数</value>
+  </data>
+  <data name="MX hosts tried per attempt, times the attempt number (0 = all)" xml:space="preserve">
+    <value>試行ごとに試す MX ホスト数 × 試行回数 (0 = すべて)</value>
   </data>
   <data name="MX query" xml:space="preserve">
     <value>MX クエリ</value>
@@ -6869,7 +6902,7 @@
   <data name="ManageSieve bind address" xml:space="preserve">
     <value>ManageSieve のバインド アドレス</value>
   </data>
-  <data name="ManageSieve port (0 = disabled)" xml:space="preserve">
+  <data name="ManageSieve port (0 = off)" xml:space="preserve">
     <value>ManageSieve ポート (0 = 無効)</value>
   </data>
   <data name="Managed mailing lists" xml:space="preserve">
@@ -6881,10 +6914,10 @@
   <data name="Marked inactive" xml:space="preserve">
     <value>無効としてマーク済み</value>
   </data>
-  <data name="Masked addresses a person may make (0 = none; up to 200)" xml:space="preserve">
-    <value>利用者が作成できるマスク アドレスの数 (0 = なし。最大 200)</value>
+  <data name="Masked addresses a person may make (up to 200; 0 = none)" xml:space="preserve">
+    <value>利用者が作成できるマスク アドレスの数 (最大 200、0 = なし)</value>
   </data>
-  <data name="Master user (empty = disabled)" xml:space="preserve">
+  <data name="Master user (empty = off)" xml:space="preserve">
     <value>マスター ユーザー (空 = 無効)</value>
   </data>
   <data name="Match ALL criteria (AND)" xml:space="preserve">
@@ -6920,51 +6953,6 @@
   <data name="Matching the authorization endpoint." xml:space="preserve">
     <value>承認エンドポイントに対応するもの。</value>
   </data>
-  <data name="Max MX hosts to try (0 = all)" xml:space="preserve">
-    <value>試行する MX ホストの最大数 (0 = すべて)</value>
-  </data>
-  <data name="Max asynchronous task threads" xml:space="preserve">
-    <value>非同期タスク スレッドの最大数</value>
-  </data>
-  <data name="Max authenticated submissions per client IP per minute (0 = unlimited)" xml:space="preserve">
-    <value>クライアント IP ごとの 1 分あたりの認証済みサブミッションの最大数 (0 = 無制限)</value>
-  </data>
-  <data name="Max deliveries in flight for one sending domain (0 = unlimited)" xml:space="preserve">
-    <value>送信ドメイン 1 つあたりの最大同時配信数 (0 = 無制限)</value>
-  </data>
-  <data name="Max delivery threads" xml:space="preserve">
-    <value>配信スレッドの最大数</value>
-  </data>
-  <data name="Max message size (KB, 0 = unlimited)" xml:space="preserve">
-    <value>メッセージの最大サイズ (KB、0 = 無制限)</value>
-  </data>
-  <data name="Max message size to spam-scan (KB, 0 = unlimited)" xml:space="preserve">
-    <value>スパム スキャンするメッセージの最大サイズ (KB、0 = 無制限)</value>
-  </data>
-  <data name="Max message size to virus-scan (KB, 0 = unlimited)" xml:space="preserve">
-    <value>ウイルス スキャンするメッセージの最大サイズ (KB、0 = 無制限)</value>
-  </data>
-  <data name="Max messages per account per period (0 = no limit)" xml:space="preserve">
-    <value>アカウントごとの期間あたりの最大メッセージ数 (0 = 無制限)</value>
-  </data>
-  <data name="Max outbound messages per destination domain per minute (0 = unlimited)" xml:space="preserve">
-    <value>宛先ドメインごとの 1 分あたりの最大送信メッセージ数 (0 = 無制限)</value>
-  </data>
-  <data name="Max parallel external POP3 fetch threads" xml:space="preserve">
-    <value>外部 POP3 取り込みの最大並列スレッド数</value>
-  </data>
-  <data name="Max recipients per account per period (0 = no limit)" xml:space="preserve">
-    <value>アカウントごとの期間あたりの最大受信者数 (0 = 無制限)</value>
-  </data>
-  <data name="Max recipients per message" xml:space="preserve">
-    <value>メッセージあたりの最大受信者数</value>
-  </data>
-  <data name="Max simultaneous connections (0 = unlimited)" xml:space="preserve">
-    <value>最大同時接続数 (0 = 無制限)</value>
-  </data>
-  <data name="Max simultaneous connections to one destination without a remote domain policy (0 = unlimited)" xml:space="preserve">
-    <value>リモートドメインポリシーのない宛先 1 つへの最大同時接続数 (0 = 無制限)</value>
-  </data>
   <data name="MaxMind country database (.mmdb)" xml:space="preserve">
     <value>MaxMind の国データベース (.mmdb)</value>
   </data>
@@ -6973,6 +6961,9 @@
   </data>
   <data name="Maximise" xml:space="preserve">
     <value>最大化</value>
+  </data>
+  <data name="Maximum MX hosts to try (0 = all)" xml:space="preserve">
+    <value>試行する MX ホストの最大数 (0 = すべて)</value>
   </data>
   <data name="Maximum _domain size (MB; 0 = no limit)" xml:space="preserve">
     <value>ドメインの最大サイズ (MB、0 = 無制限)(_D)</value>
@@ -6983,8 +6974,20 @@
   <data name="Maximum account size (MB)" xml:space="preserve">
     <value>アカウントの最大サイズ (MB)</value>
   </data>
-  <data name="Maximum characters per log line (minimum 100; only applied at log level 2 or lower)" xml:space="preserve">
-    <value>ログ行あたりの最大文字数 (最小 100。ログ レベル 2 以下でのみ適用)</value>
+  <data name="Maximum asynchronous task threads" xml:space="preserve">
+    <value>非同期タスク スレッドの最大数</value>
+  </data>
+  <data name="Maximum authenticated submissions per client IP per minute (0 = no limit)" xml:space="preserve">
+    <value>クライアント IP ごとの 1 分あたりの認証済みサブミッションの最大数 (0 = 無制限)</value>
+  </data>
+  <data name="Maximum characters per log line (at least 100)" xml:space="preserve">
+    <value>ログ行あたりの最大文字数 (100 以上)</value>
+  </data>
+  <data name="Maximum deliveries in flight for one sending domain (0 = no limit)" xml:space="preserve">
+    <value>送信ドメイン 1 つあたりの最大同時配信数 (0 = 無制限)</value>
+  </data>
+  <data name="Maximum delivery threads" xml:space="preserve">
+    <value>配信スレッドの最大数</value>
   </data>
   <data name="Maximum domain size (MB)" xml:space="preserve">
     <value>ドメインの最大サイズ (MB)</value>
@@ -6995,6 +6998,12 @@
   <data name="Maximum message size (KB)" xml:space="preserve">
     <value>メッセージの最大サイズ (KB)</value>
   </data>
+  <data name="Maximum message size (KB; 0 = no limit)" xml:space="preserve">
+    <value>メッセージの最大サイズ (KB、0 = 無制限)</value>
+  </data>
+  <data name="Maximum messages per account per period (0 = no limit)" xml:space="preserve">
+    <value>アカウントごとの期間あたりの最大メッセージ数 (0 = 無制限)</value>
+  </data>
   <data name="Maximum number of accounts" xml:space="preserve">
     <value>アカウントの最大数</value>
   </data>
@@ -7003,6 +7012,24 @@
   </data>
   <data name="Maximum number of distribution lists" xml:space="preserve">
     <value>配布リストの最大数</value>
+  </data>
+  <data name="Maximum outbound messages per destination domain per minute (0 = no limit)" xml:space="preserve">
+    <value>宛先ドメインごとの 1 分あたりの最大送信メッセージ数 (0 = 無制限)</value>
+  </data>
+  <data name="Maximum parallel external POP3 fetch threads" xml:space="preserve">
+    <value>外部 POP3 取り込みの最大並列スレッド数</value>
+  </data>
+  <data name="Maximum recipients per account per period (0 = no limit)" xml:space="preserve">
+    <value>アカウントごとの期間あたりの最大受信者数 (0 = 無制限)</value>
+  </data>
+  <data name="Maximum recipients per message" xml:space="preserve">
+    <value>メッセージあたりの最大受信者数</value>
+  </data>
+  <data name="Maximum simultaneous connections (0 = no limit)" xml:space="preserve">
+    <value>最大同時接続数 (0 = 無制限)</value>
+  </data>
+  <data name="Maximum simultaneous connections to one destination without a remote domain policy (0 = no limit)" xml:space="preserve">
+    <value>リモートドメインポリシーのない宛先 1 つへの最大同時接続数 (0 = 無制限)</value>
   </data>
   <data name="Maximum size (MB)" xml:space="preserve">
     <value>最大サイズ (MB)</value>
@@ -7060,8 +7087,8 @@
   <data name="Message finalization deadline (240)" xml:space="preserve">
     <value>メッセージ最終処理の期限 (240)</value>
   </data>
-  <data name="Message finalization deadline (seconds; 0 = no deadline)" xml:space="preserve">
-    <value>メッセージ最終処理の期限 (秒、0 = 期限なし)</value>
+  <data name="Message finalization deadline (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>メッセージ最終処理の期限 (秒、0 = 時間制限なし)</value>
   </data>
   <data name="Message for colleag_ues (empty = same as above)" xml:space="preserve">
     <value>同僚向けの本文 (空 = 上と同じ)(_U)</value>
@@ -7120,8 +7147,8 @@
   <data name="Message-store consistency" xml:space="preserve">
     <value>メッセージ ストアの整合性</value>
   </data>
-  <data name="Messages a minute (0 is unlimited)" xml:space="preserve">
-    <value>1 分あたりのメッセージ数（0 は無制限）</value>
+  <data name="Messages a minute (0 = no limit)" xml:space="preserve">
+    <value>1 分あたりのメッセージ数 (0 = 無制限)</value>
   </data>
   <data name="Messages held for review instead of being refused, and the two things you can do with each: release it to the recipient, or delete it." xml:space="preserve">
     <value>拒否される代わりに確認のために保留されたメッセージと、それぞれに対してできる 2 つのこと: 受信者に解放するか、削除するか。</value>
@@ -7141,8 +7168,8 @@
   <data name="Messages larger than {0} are not scanned. They are delivered, not refused, and nothing is written to the log when it happens — so this limit is invisible in normal operation. 0 means &quot;no limit&quot; and is the setting that closes the gap." xml:space="preserve">
     <value>{0} より大きいメッセージはスキャンされません。拒否されるのではなく配信され、その際ログには何も書かれません — そのため、この制限は通常の運用では見えません。0 は「無制限」を意味し、この隙間を閉じる設定です。</value>
   </data>
-  <data name="Messages one backfill pass reads before pausing (1-100000)" xml:space="preserve">
-    <value>1 回のバックフィル パスで一時停止するまでに読み取るメッセージ数 (1～100000)</value>
+  <data name="Messages one backfill pass reads before pausing (1 to 100,000)" xml:space="preserve">
+    <value>1 回のバックフィル パスで一時停止するまでに読み取るメッセージ数 (1 から 100,000)</value>
   </data>
   <data name="Messages per full-index pass" xml:space="preserve">
     <value>完全インデックス パスあたりのメッセージ数</value>
@@ -7186,7 +7213,7 @@
   <data name="Metrics bind address" xml:space="preserve">
     <value>メトリクスのバインド アドレス</value>
   </data>
-  <data name="Metrics port (0 = disabled)" xml:space="preserve">
+  <data name="Metrics port (0 = off)" xml:space="preserve">
     <value>メトリクス ポート (0 = 無効)</value>
   </data>
   <data name="Microsoft 365 turns Basic authentication for SMTP AUTH off at the end of December 2026. When the relay host below is listed here, hMailServer authenticates with an OAuth2 bearer token (XOAUTH2) instead of the password - fetched from your tenant's token endpoint with the client credentials of an app registration that has the SMTP.SendAsApp permission. The user name above stays: it is the mailbox being relayed as." xml:space="preserve">
@@ -7228,14 +7255,14 @@
   <data name="Minimum timeout (seconds)" xml:space="preserve">
     <value>最小タイムアウト (秒)</value>
   </data>
-  <data name="Minutes a mailbox key stays open after its last use (1 to 1440)" xml:space="preserve">
-    <value>最後に使われてからメールボックス キーを開いたままにする分数 (1 から 1440)</value>
+  <data name="Minutes a mailbox key stays open after its last use (1 to 1,440)" xml:space="preserve">
+    <value>最後に使われてからメールボックス キーを開いたままにする分数 (1 から 1,440)</value>
   </data>
   <data name="Minutes a message waits for a verdict" xml:space="preserve">
     <value>メッセージが判定を待つ時間 (分)</value>
   </data>
-  <data name="Minutes a password-reset link works (5 to 1440)" xml:space="preserve">
-    <value>パスワード リセットのリンクが有効な分数 (5 から 1440)</value>
+  <data name="Minutes a password-reset link works (5 to 1,440)" xml:space="preserve">
+    <value>パスワード リセットのリンクが有効な分数 (5 から 1,440)</value>
   </data>
   <data name="Minutes between downloads" xml:space="preserve">
     <value>ダウンロードの間隔 (分)</value>
@@ -7249,13 +7276,10 @@
   <data name="Minutes between scan attempts while held" xml:space="preserve">
     <value>保留中のスキャン試行の間隔 (分)</value>
   </data>
-  <data name="Minutes the sending address is banned (0 = no ban; up to 525600)" xml:space="preserve">
-    <value>送信元アドレスをブロックする分数 (0 = ブロックしない。最大 525600)</value>
-  </data>
   <data name="Minutes to hold a destination that asked this server to slow down (0 = off)" xml:space="preserve">
     <value>このサーバーに減速を求めた宛先を保留する分数 (0 = 無効)</value>
   </data>
-  <data name="Mirror address (empty = disabled)" xml:space="preserve">
+  <data name="Mirror address (empty = off)" xml:space="preserve">
     <value>ミラー アドレス (空 = 無効)</value>
   </data>
   <data name="Mirror every folder (IMAP only: a migration, verbatim, with flags and dates)" xml:space="preserve">
@@ -7413,6 +7437,9 @@
   </data>
   <data name="Never auto-ban these addresses" xml:space="preserve">
     <value>これらのアドレスは決して自動 BAN しない</value>
+  </data>
+  <data name="Never auto-ban these addresses (comma separated)" xml:space="preserve">
+    <value>これらのアドレスは決して自動 BAN しない (コンマ区切り)</value>
   </data>
   <data name="Never greylisted." xml:space="preserve">
     <value>グレイリスティングの対象になりません。</value>
@@ -8395,9 +8422,6 @@
   <data name="On other pages" xml:space="preserve">
     <value>他のページ</value>
   </data>
-  <data name="On stop, wait up to N seconds for active sessions to finish (0 = stop immediately)" xml:space="preserve">
-    <value>停止時、アクティブなセッションの完了を最大 N 秒待つ (0 = 直ちに停止)</value>
-  </data>
   <data name="On the Administrative access page's Two-factor tab, enrol an authenticator app for the administrator password." xml:space="preserve">
     <value>管理者アクセス ページの 2 要素 タブで、管理者パスワード用の認証アプリを登録します。</value>
   </data>
@@ -8473,8 +8497,8 @@
   <data name="One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
     <value>設定済みのポートのうち 1 つが待ち受けされていません: {0}。このポートを追加または変更したばかりの場合は、サーバーを再初期化してください。サーバーはポートの一覧を起動時に読み込みます。そうでない場合は、別のプログラムがそのポートを使用している、このコンピューターにそのアドレスが存在しない、または TLS ポートの証明書を読み込めなかった、のいずれかです。どれに当たるかはエラー ログに記録されています。</value>
   </data>
-  <data name="One event script invocation. 0 = no bound." xml:space="preserve">
-    <value>1 回のイベント スクリプト呼び出し。0 = 上限なし。</value>
+  <data name="One event script invocation. 0 = no time limit." xml:space="preserve">
+    <value>1 回のイベント スクリプト呼び出し。0 = 時間制限なし。</value>
   </data>
   <data name="One external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>1 件の外部 POP3 取り込みアカウントでウイルス対策が無効になっているため、そのアカウントが収集したメールは、ここでの設定にかかわらずスキャンされずに配信されます。このスイッチはこのページではなく、取り込みアカウント側にあります。</value>
@@ -8509,7 +8533,10 @@
   <data name="Only after SMTP authentication" xml:space="preserve">
     <value>SMTP 認証後のみ</value>
   </data>
-  <data name="Only archive mail for these domains (comma-separated; empty = every message)" xml:space="preserve">
+  <data name="Only applied at log level 2 or lower." xml:space="preserve">
+    <value>ログ レベル 2 以下でのみ適用されます。</value>
+  </data>
+  <data name="Only archive mail for these domains (comma separated; empty = every message)" xml:space="preserve">
     <value>これらのドメインのメールのみアーカイブする (カンマ区切り、空 = すべてのメッセージ)</value>
   </data>
   <data name="Only destinations named here get a bearer token; every other relay keeps password authentication. This is deliberate - a token presented to the wrong relay is a leaked token." xml:space="preserve">
@@ -8677,13 +8704,13 @@
   <data name="OpenPGP key" xml:space="preserve">
     <value>OpenPGP キー</value>
   </data>
-  <data name="OpenTelemetry OTLP endpoint for logs (empty = disabled)" xml:space="preserve">
+  <data name="OpenTelemetry OTLP endpoint for logs (empty = off)" xml:space="preserve">
     <value>ログ用の OpenTelemetry OTLP エンドポイント (空 = 無効)</value>
   </data>
-  <data name="OpenTelemetry OTLP endpoint for metrics (empty = disabled)" xml:space="preserve">
+  <data name="OpenTelemetry OTLP endpoint for metrics (empty = off)" xml:space="preserve">
     <value>メトリクス用の OpenTelemetry OTLP エンドポイント (空 = 無効)</value>
   </data>
-  <data name="OpenTelemetry OTLP endpoint for traces (empty = disabled)" xml:space="preserve">
+  <data name="OpenTelemetry OTLP endpoint for traces (empty = off)" xml:space="preserve">
     <value>トレース用の OpenTelemetry OTLP エンドポイント (空 = 無効)</value>
   </data>
   <data name="OpenTelemetry service name" xml:space="preserve">
@@ -8743,8 +8770,8 @@
   <data name="Other" xml:space="preserve">
     <value>その他</value>
   </data>
-  <data name="Other POP3 or IMAP accounts a person may collect from (0 = none; up to 20)" xml:space="preserve">
-    <value>利用者がメールを収集できる他の POP3 または IMAP アカウントの数 (0 = なし。最大 20)</value>
+  <data name="Other POP3 or IMAP accounts a person may collect from (up to 20; 0 = none)" xml:space="preserve">
+    <value>利用者がメールを収集できる他の POP3 または IMAP アカウントの数 (最大 20、0 = なし)</value>
   </data>
   <data name="Other addresses to check (commas or spaces)" xml:space="preserve">
     <value>確認するほかのアドレス (コンマまたはスペース区切り)</value>
@@ -8794,8 +8821,8 @@
   <data name="PBKDF2 (default)" xml:space="preserve">
     <value>PBKDF2 (既定)</value>
   </data>
-  <data name="PBKDF2 iterations for new hashes (0 = the built-in 210,000; 10,000 to 10,000,000)" xml:space="preserve">
-    <value>新しいハッシュに使う PBKDF2 の反復回数 (0 = 組み込みの 210,000、指定できるのは 10,000 から 10,000,000)</value>
+  <data name="PBKDF2 iterations for new hashes (10,000 to 10,000,000; 0 = the built-in 210,000)" xml:space="preserve">
+    <value>新しいハッシュに使う PBKDF2 の反復回数 (10,000 から 10,000,000、0 = 組み込みの 210,000)</value>
   </data>
   <data name="PBKDF2 or stronger" xml:space="preserve">
     <value>PBKDF2 以上</value>
@@ -8821,10 +8848,10 @@
   <data name="POP3 - download, then delete from the server as Days to keep says" xml:space="preserve">
     <value>POP3 - ダウンロードし、「サーバーに残す日数」の設定どおりにサーバーから削除します</value>
   </data>
-  <data name="POP3 client maximum timeout (s)" xml:space="preserve">
+  <data name="POP3 client maximum timeout (seconds)" xml:space="preserve">
     <value>POP3 クライアントの最大タイムアウト (秒)</value>
   </data>
-  <data name="POP3 client minimum timeout (s)" xml:space="preserve">
+  <data name="POP3 client minimum timeout (seconds)" xml:space="preserve">
     <value>POP3 クライアントの最小タイムアウト (秒)</value>
   </data>
   <data name="POP3 connections" xml:space="preserve">
@@ -8845,10 +8872,10 @@
   <data name="POP3 server" xml:space="preserve">
     <value>POP3 サーバー</value>
   </data>
-  <data name="POP3 server maximum timeout (s)" xml:space="preserve">
+  <data name="POP3 server maximum timeout (seconds)" xml:space="preserve">
     <value>POP3 サーバーの最大タイムアウト (秒)</value>
   </data>
-  <data name="POP3 server minimum timeout (s)" xml:space="preserve">
+  <data name="POP3 server minimum timeout (seconds)" xml:space="preserve">
     <value>POP3 サーバーの最小タイムアウト (秒)</value>
   </data>
   <data name="POP3 sessions" xml:space="preserve">
@@ -9027,11 +9054,11 @@
   <data name="Performance" xml:space="preserve">
     <value>パフォーマンス</value>
   </data>
-  <data name="Period length in hours (default 24)" xml:space="preserve">
-    <value>期間の長さ (時間、既定 24)</value>
+  <data name="Period length (hours, 1 to 168)" xml:space="preserve">
+    <value>期間の長さ (時間、1 から 168)</value>
   </data>
-  <data name="Periodically cross-check message rows against files on disk (read-only; writes a report on divergence)" xml:space="preserve">
-    <value>メッセージの行とディスク上のファイルを定期的に突き合わせる (読み取り専用。相違があればレポートを書き出します)</value>
+  <data name="Periodically cross-check message rows against files on disk" xml:space="preserve">
+    <value>メッセージの行とディスク上のファイルを定期的に突き合わせる</value>
   </data>
   <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters. Empty, the default, is an account-number detector that never fires. A pattern the server cannot compile is refused." xml:space="preserve">
     <value>Perl の構文で、メッセージの本文とテキストの添付ファイルを検索します。最大 2000 文字。既定の空は、一致することのない口座番号の検出です。サーバーがコンパイルできないパターンは拒否されます。</value>
@@ -9072,8 +9099,8 @@
   <data name="Policy for mailbox passwords" xml:space="preserve">
     <value>メールボックスのパスワードに関するポリシー</value>
   </data>
-  <data name="Policy max age (seconds; default 604800 = 7 days)" xml:space="preserve">
-    <value>ポリシーの最大有効期間 (秒、既定 604800 = 7 日)</value>
+  <data name="Policy max age (seconds, 86,400 to 31,557,600)" xml:space="preserve">
+    <value>ポリシーの最大有効期間 (秒、86,400 から 31,557,600)</value>
   </data>
   <data name="Policy refusal" xml:space="preserve">
     <value>ポリシーによる拒否</value>
@@ -9084,7 +9111,7 @@
   <data name="Port" xml:space="preserve">
     <value>ポート</value>
   </data>
-  <data name="Port (0 = disabled)" xml:space="preserve">
+  <data name="Port (0 = off)" xml:space="preserve">
     <value>ポート (0 = 無効)</value>
   </data>
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
@@ -9213,8 +9240,11 @@
   <data name="Produce or obtain a CA (for example with OpenSSL or your PKI), save the CA certificate, with any intermediate ones, as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates." xml:space="preserve">
     <value>CA を作成するか入手し (たとえば OpenSSL や自社の PKI で)、CA 証明書を (中間証明書があればそれも含めて) PEM バンドルとしてサーバーに保存し、ポートの CA ファイルをそれに向け、接続が必要なすべてのクライアントにその CA からクライアント証明書を発行してください。hMailServer はバンドルに対して検証を行いますが、CA やクライアント証明書を作成することはできません。</value>
   </data>
-  <data name="Profile to scan as (spamd User: header; empty = spamd's global configuration)" xml:space="preserve">
-    <value>スキャン時に使用するプロファイル (spamd の User: ヘッダー。空 = spamd のグローバル設定)</value>
+  <data name="Profile to scan as (empty = spamd's global configuration)" xml:space="preserve">
+    <value>スキャン時に使用するプロファイル (空 = spamd のグローバル設定)</value>
+  </data>
+  <data name="ProgIDs or CLSIDs." xml:space="preserve">
+    <value>ProgIDs または CLSIDs です。</value>
   </data>
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>アドレスの BAN と解除の際に実行するプログラム (空 = なし)</value>
@@ -9267,8 +9297,8 @@
   <data name="Protocols" xml:space="preserve">
     <value>プロトコル</value>
   </data>
-  <data name="Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)" xml:space="preserve">
-    <value>PROXY ヘッダーの送信を許可するプロキシ (カンマ区切りのアドレスまたは CIDR 範囲)</value>
+  <data name="Proxies allowed to send a PROXY header (comma separated)" xml:space="preserve">
+    <value>PROXY ヘッダーの送信を許可するプロキシ (コンマ区切り)</value>
   </data>
   <data name="Public" xml:space="preserve">
     <value>公開</value>
@@ -9435,7 +9465,7 @@
   <data name="Raise the threshold here and clear the counted failures. An address already locked out stays out until its &quot;Auto-ban:&quot; range expires, or you delete that range on the IP ranges page." xml:space="preserve">
     <value>ここでしきい値を引き上げ、カウントされた失敗をクリアします。すでにロックアウトされているアドレスは、その "Auto-ban:" の範囲が期限切れになるか、「IP 範囲」ページでその範囲を削除するまで、締め出されたままです。</value>
   </data>
-  <data name="Random jitter added to retry times (minutes, 0 = off)" xml:space="preserve">
+  <data name="Random jitter added to retry times (minutes; 0 = off)" xml:space="preserve">
     <value>再試行時刻に加えるランダムなジッター (分、0 = 無効)</value>
   </data>
   <data name="Range endpoint (https, or http to this machine)" xml:space="preserve">
@@ -9516,8 +9546,8 @@
   <data name="Read at delivery, for every recipient: an allowed sender's mail is delivered unmarked, and the accounts' own spam thresholds do not run. A message the server-wide spam score holds during the SMTP conversation is still held; the domain list is the one that stops that." xml:space="preserve">
     <value>配送時に、すべての受信者について読み取られます: 許可された送信者からのメールはマークなしで配信され、各アカウント自身のスパムしきい値は働きません。SMTP のやり取り中にサーバー全体のスパムスコアが保留するメッセージは、それでも保留されます。それを止めるのはドメインの一覧です。</value>
   </data>
-  <data name="Read cache in MB (0 = none; up to 4096)" xml:space="preserve">
-    <value>読み取りキャッシュ (MB。0 = なし。最大 4096)</value>
+  <data name="Read cache (MB, up to 4,096; 0 = none)" xml:space="preserve">
+    <value>読み取りキャッシュ (MB、最大 4,096、0 = なし)</value>
   </data>
   <data name="Read complaints sent to the complaint mailbox" xml:space="preserve">
     <value>苦情メールボックスに送られた苦情を読む</value>
@@ -9545,6 +9575,9 @@
   </data>
   <data name="Read-only" xml:space="preserve">
     <value>読み取り専用</value>
+  </data>
+  <data name="Read-only: it writes a report when the two diverge." xml:space="preserve">
+    <value>読み取り専用です。両者に相違があればレポートを書き出します。</value>
   </data>
   <data name="Readable text" xml:space="preserve">
     <value>読み取り可能なテキスト</value>
@@ -9637,7 +9670,7 @@
   <data name="Record administrative changes in the audit trail" xml:space="preserve">
     <value>管理変更を監査ログに記録する</value>
   </data>
-  <data name="Record expiration interval, minutes" xml:space="preserve">
+  <data name="Record expiration interval (minutes)" xml:space="preserve">
     <value>レコードの有効期限の間隔 (分)</value>
   </data>
   <data name="Record type: MX. Host/Name - {0}:" xml:space="preserve">
@@ -9736,8 +9769,8 @@
   <data name="Refuse when it has appeared at least this many times" xml:space="preserve">
     <value>この回数以上現れたパスワードを拒否する</value>
   </data>
-  <data name="Refuse with 550 after this many retries before the window opens (0 never refuses)" xml:space="preserve">
-    <value>ウィンドウが開く前の再試行がこの回数に達したら 550 で拒否する (0 は拒否しない)</value>
+  <data name="Refuse with 550 after this many retries before the window opens (0 = never)" xml:space="preserve">
+    <value>ウィンドウが開く前の再試行がこの回数に達したら 550 で拒否する (0 = 拒否しない)</value>
   </data>
   <data name="Refuse, or allow only, connections from the countries you name, by the country a MaxMind database places the address in. This server ships no database and downloads none: until you supply the file, nothing is judged by country. A policy is empty (off), allow:GB,IE or block:CN,RU." xml:space="preserve">
     <value>MaxMind データベースがアドレスを割り当てた国によって、接続を拒否したり、指定した国からの接続だけを許可したりします。このサーバーはデータベースを同梱もダウンロードもしません。ファイルを指定するまで、国による判定は行われません。ポリシーは空 (オフ)、allow:GB,IE、または block:CN,RU です。</value>
@@ -9829,11 +9862,11 @@
   <data name="Relay" xml:space="preserve">
     <value>リレー</value>
   </data>
-  <data name="Relay host name (empty = direct delivery; use host1|host2 for failover)" xml:space="preserve">
-    <value>リレー ホスト名 (空 = 直接配信。フェールオーバーには host1|host2 の形式を使用)</value>
+  <data name="Relay host name (empty = direct delivery)" xml:space="preserve">
+    <value>リレー ホスト名 (空 = 直接配信)</value>
   </data>
-  <data name="Relay hosts that use OAuth2 (comma separated; blank this to use none)" xml:space="preserve">
-    <value>OAuth2 を使うリレー ホスト (カンマ区切り。使用しない場合は空にします)</value>
+  <data name="Relay hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
+    <value>OAuth2 を使うリレー ホスト (カンマ区切り、空 = なし)</value>
   </data>
   <data name="Relay port" xml:space="preserve">
     <value>リレー ポート</value>
@@ -9877,8 +9910,8 @@
   <data name="Released {0} messages to their recipients." xml:space="preserve">
     <value>{0} 件のメッセージを受信者に解放しました。</value>
   </data>
-  <data name="Relying party (empty = the host the page is on)" xml:space="preserve">
-    <value>証明書利用者 (空 = ページを提供しているホスト)</value>
+  <data name="Relying party (empty = the page's own host)" xml:space="preserve">
+    <value>証明書利用者 (空 = ページ自身のホスト)</value>
   </data>
   <data name="Rem_ove criterion" xml:space="preserve">
     <value>条件を削除(_O)</value>
@@ -10074,8 +10107,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Report the async work queue as stalled after (120)" xml:space="preserve">
     <value>非同期ワーク キューを停滞と報告するまでの時間 (120)</value>
   </data>
-  <data name="Report the async work queue as stalled after (seconds)" xml:space="preserve">
-    <value>非同期ワーク キューを停滞と報告するまでの時間 (秒)</value>
+  <data name="Report the async work queue as stalled after (seconds; 0 = never)" xml:space="preserve">
+    <value>非同期ワーク キューを停滞と報告するまでの時間 (秒、0 = 報告しない)</value>
   </data>
   <data name="Reports" xml:space="preserve">
     <value>レポート</value>
@@ -10251,14 +10284,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Resume the mail server" xml:space="preserve">
     <value>メール サーバーを再開</value>
   </data>
-  <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
+  <data name="Resumption lifetime for cached sessions and tickets (seconds; 0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>キャッシュされたセッションとチケットの再開有効期間 (秒、0 = OpenSSL の既定値 300)</value>
   </data>
   <data name="Retention" xml:space="preserve">
     <value>保持</value>
   </data>
-  <data name="Retention period in _days (1 to 365)" xml:space="preserve">
-    <value>保持期間 (日数、1 ～ 365)(_D)</value>
+  <data name="Retention period (_days, 1 to 365)" xml:space="preserve">
+    <value>保持期間 (日、1 から 365)(_D)</value>
   </data>
   <data name="Retention period in days" xml:space="preserve">
     <value>保持期間 (日数)</value>
@@ -10353,8 +10386,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Rotate the _key on a schedule" xml:space="preserve">
     <value>スケジュールに従って鍵をローテーション(_K)</value>
   </data>
-  <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
-    <value>セッション チケットの鍵を N 秒ごとにローテーションする (0 = OpenSSL のローテーションしない単一の鍵)</value>
+  <data name="Rotate the session-ticket key every (seconds; 0 = OpenSSL's single key)" xml:space="preserve">
+    <value>セッション チケットの鍵をローテーションする間隔 (秒、0 = OpenSSL の単一の鍵)</value>
   </data>
   <data name="Route" xml:space="preserve">
     <value>ルート</value>
@@ -10500,10 +10533,10 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="SMTP authentication" xml:space="preserve">
     <value>SMTP 認証</value>
   </data>
-  <data name="SMTP client maximum timeout (s)" xml:space="preserve">
+  <data name="SMTP client maximum timeout (seconds)" xml:space="preserve">
     <value>SMTP クライアントの最大タイムアウト (秒)</value>
   </data>
-  <data name="SMTP client minimum timeout (s)" xml:space="preserve">
+  <data name="SMTP client minimum timeout (seconds)" xml:space="preserve">
     <value>SMTP クライアントの最小タイムアウト (秒)</value>
   </data>
   <data name="SMTP connections" xml:space="preserve">
@@ -10518,10 +10551,10 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="SMTP server" xml:space="preserve">
     <value>SMTP サーバー</value>
   </data>
-  <data name="SMTP server maximum timeout (s)" xml:space="preserve">
+  <data name="SMTP server maximum timeout (seconds)" xml:space="preserve">
     <value>SMTP サーバーの最大タイムアウト (秒)</value>
   </data>
-  <data name="SMTP server minimum timeout (s)" xml:space="preserve">
+  <data name="SMTP server minimum timeout (seconds)" xml:space="preserve">
     <value>SMTP サーバーの最小タイムアウト (秒)</value>
   </data>
   <data name="SMTP sessions" xml:space="preserve">
@@ -10677,8 +10710,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Save the changes on this page" xml:space="preserve">
     <value>このページの変更を保存する</value>
   </data>
-  <data name="Save the counters to disk every N seconds (default 10)" xml:space="preserve">
-    <value>カウンターを N 秒ごとにディスクに保存 (既定 10)</value>
+  <data name="Save the counters to disk every (seconds, 1 to 3,600)" xml:space="preserve">
+    <value>カウンターをディスクに保存する間隔 (秒、1 から 3,600)</value>
   </data>
   <data name="Save the export as" xml:space="preserve">
     <value>エクスポートの保存先</value>
@@ -10863,8 +10896,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Score applied when the engine says &quot;reject&quot;" xml:space="preserve">
     <value>エンジンが "reject" と言ったときに適用するスコア</value>
   </data>
-  <data name="Score at which suspicious counts as malicious (0-100)" xml:space="preserve">
-    <value>疑わしいを悪意ありとみなすスコア (0-100)</value>
+  <data name="Score at which suspicious counts as malicious (0 to 100)" xml:space="preserve">
+    <value>疑わしいを悪意ありとみなすスコア (0 から 100)</value>
   </data>
   <data name="Score of a message whose links name more than 200 domains (0 = none)" xml:space="preserve">
     <value>リンクが 200 を超えるドメインを挙げるメッセージのスコア (0 = なし)</value>
@@ -11061,14 +11094,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Seconds a key lookup may take (2 to 30)" xml:space="preserve">
     <value>キーの検索にかけられる秒数 (2 から 30)</value>
   </data>
-  <data name="Seconds a push service holds a notification for a device that is offline (0 to 2419200)" xml:space="preserve">
-    <value>プッシュ サービスがオフラインのデバイス向けに通知を保持する秒数 (0 から 2419200)</value>
+  <data name="Seconds a push service holds a notification for a device that is offline (0 to 2,419,200)" xml:space="preserve">
+    <value>プッシュ サービスがオフラインのデバイス向けに通知を保持する秒数 (0 から 2,419,200)</value>
   </data>
-  <data name="Seconds a session may go unused (0 = the server's own 1800)" xml:space="preserve">
-    <value>セッションがアイドル状態でいられる秒数 (0 = サーバー自身の 1800)</value>
+  <data name="Seconds a session may go unused (0 = the server's own 1,800)" xml:space="preserve">
+    <value>セッションがアイドル状態でいられる秒数 (0 = サーバー自身の 1,800)</value>
   </data>
-  <data name="Seconds a session may last at all (0 = the server's own 43200)" xml:space="preserve">
-    <value>セッションが全体で続く秒数 (0 = サーバー自身の 43200)</value>
+  <data name="Seconds a session may last at all (0 = the server's own 43,200)" xml:space="preserve">
+    <value>セッションが全体で続く秒数 (0 = サーバー自身の 43,200)</value>
   </data>
   <data name="Seconds a single SQL statement may run (0 = no limit)" xml:space="preserve">
     <value>1 つの SQL ステートメントが実行できる秒数 (0 = 上限なし)</value>
@@ -11394,8 +11427,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Server-generated mail" xml:space="preserve">
     <value>サーバー生成メール</value>
   </data>
-  <data name="Server-side session cache size (0 = OpenSSL's default cap of 20480; negative = no cache)" xml:space="preserve">
-    <value>サーバー側セッション キャッシュのサイズ (0 = OpenSSL の既定上限 20480、負の値 = キャッシュなし)</value>
+  <data name="Server-side session cache size (0 = OpenSSL's default of 20,480, -1 = no cache)" xml:space="preserve">
+    <value>サーバー側セッション キャッシュのサイズ (0 = OpenSSL の既定値 20,480、-1 = キャッシュなし)</value>
   </data>
   <data name="Server-wide ceilings that keep one slow operation from holding a resource forever. The defaults are deliberate; each one is here because there is a diagnosable situation in which it is the right thing to change. Note that 0 does not mean the same thing for all of them - each label says." xml:space="preserve">
     <value>1 つの遅い操作がリソースを永遠に占有しないようにするサーバー全体の上限。既定値は意図的なものです。それぞれがここにあるのは、変更が正しい選択となる診断可能な状況があるからです。0 の意味はすべてで同じではありません。各ラベルに説明があります。</value>
@@ -11486,6 +11519,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Set in hMailServer.ini only" xml:space="preserve">
     <value>hMailServer.ini でのみ設定</value>
+  </data>
+  <data name="Set it to use a mirror." xml:space="preserve">
+    <value>ミラーを使う場合に指定します。</value>
   </data>
   <data name="Set the HTTP or HTTPS port on the Web services &amp; autoconfiguration page so the URLs answer, then publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; DNS records for each mail domain, pointing at this server. These are address records, and this page checks TXT records only, so they cannot be confirmed from here." xml:space="preserve">
     <value>URL が応答するように、Web サービスと自動設定ページで HTTP または HTTPS ポートを設定し、次に各メール ドメインについて、このサーバーを指す autoconfig.&lt;domain&gt; と autodiscover.&lt;domain&gt; の DNS レコードを公開してください。これらはアドレス レコードであり、このページは TXT レコードのみを確認するため、ここからは確認できません。</value>
@@ -11589,8 +11625,11 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Shortens how long data is kept" xml:space="preserve">
     <value>データの保持期間を短くする</value>
   </data>
-  <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
-    <value>インデックスが応答する最短の検索文字列 (3～64。これより短い文字列はスキャンにフォールバック)</value>
+  <data name="Shorter strings fall back to the scan." xml:space="preserve">
+    <value>これより短い文字列はスキャンにフォールバックします。</value>
+  </data>
+  <data name="Shortest search string the index answers for (3 to 64)" xml:space="preserve">
+    <value>インデックスが応答する最短の検索文字列 (3 から 64)</value>
   </data>
   <data name="Show auto-_bans only" xml:space="preserve">
     <value>自動ブロックのみ表示(_B)</value>
@@ -11760,8 +11799,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Simple is the default. Negotiate runs an SSPI exchange (Kerberos, falling back to NTLM) that never transmits the password and signs the connection - it is the only method a default-configured modern domain controller accepts when it has no certificate installed, it needs no search, no search base and no service account, and it works from a host that is not domain-joined." xml:space="preserve">
     <value>既定は Simple です。Negotiate は SSPI 交換 (Kerberos、フォールバックで NTLM) を実行し、パスワードを送信せず接続に署名します。証明書がインストールされていない既定構成の最新のドメイン コントローラーが受け入れる唯一の方式であり、検索も検索ベースもサービス アカウントも不要で、ドメインに参加していないホストからでも動作します。</value>
   </data>
-  <data name="Simultaneous connections (0 is unlimited)" xml:space="preserve">
-    <value>同時接続数（0 は無制限）</value>
+  <data name="Simultaneous connections (0 = no limit)" xml:space="preserve">
+    <value>同時接続数 (0 = 無制限)</value>
   </data>
   <data name="Since" xml:space="preserve">
     <value>登録日時</value>
@@ -11805,8 +11844,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once." xml:space="preserve">
     <value>正当なメッセージに必要な数を超える受信者を指定するセッションを遅くします。この数を超えると、未認証セッションでのそれ以降の RCPT TO はすべて、応答の前に遅延を待ちます。辞書攻撃やスパム送信は数百のアドレスを指定してそれぞれの代償を払いますが、送信側 MTA は数個しか指定せず、この数に達しません。認証済みセッションと、スパム対策がオフの IP 範囲は対象外です。待機は接続上のタイマーであり、スレッドをスリープさせるものではありません。直ちに有効になります。</value>
   </data>
-  <data name="Smallest part held once (KB; 0 holds nothing once)" xml:space="preserve">
-    <value>一度だけ保存する最小の部分 (KB、0 で一度だけの保存を行いません)</value>
+  <data name="Smallest part held once (KB; 0 = none)" xml:space="preserve">
+    <value>一度だけ保存する最小の部分 (KB、0 = なし)</value>
   </data>
   <data name="Smart host" xml:space="preserve">
     <value>スマート ホスト</value>
@@ -12066,8 +12105,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Submission rate limits" xml:space="preserve">
     <value>送信レート制限</value>
   </data>
-  <data name="Submissions before an account's baseline counts (1 to 10000)" xml:space="preserve">
-    <value>アカウントの基準が使われ始めるまでの送信数 (1 から 10000)</value>
+  <data name="Submissions before an account's baseline counts (1 to 10,000)" xml:space="preserve">
+    <value>アカウントの基準が使われ始めるまでの送信数 (1 から 10,000)</value>
   </data>
   <data name="Submit address (POST)" xml:space="preserve">
     <value>送信アドレス (POST)</value>
@@ -12204,7 +12243,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="TLS private keys - a passphrase-protected key needs its passphrase configured" xml:space="preserve">
     <value>TLS 秘密鍵 - パスフレーズで保護された鍵にはパスフレーズの設定が必要です</value>
   </data>
-  <data name="TLS report sender address (empty = disabled)" xml:space="preserve">
+  <data name="TLS report sender address (empty = off)" xml:space="preserve">
     <value>TLS レポートの送信者アドレス (空 = 無効)</value>
   </data>
   <data name="TLS reporting (TLS-RPT)" xml:space="preserve">
@@ -12872,6 +12911,15 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>データベース: 接続プールに言及するエラーを確認してください。プールの期限が切れると、受信者の検索は 550 ではなく 451 4.3.2 を返すため、バックアップでロックされたデータベースはメールをバウンスさせるのではなく延期します。</value>
   </data>
+  <data name="The default is 10." xml:space="preserve">
+    <value>既定値は 10 です。</value>
+  </data>
+  <data name="The default is 24, and 168 is a week." xml:space="preserve">
+    <value>既定値は 24 で、168 は 1 週間です。</value>
+  </data>
+  <data name="The default, 604,800, is a week." xml:space="preserve">
+    <value>既定値の 604,800 は 1 週間です。</value>
+  </data>
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>削除の上書きが推測で削除することはありません。記録されたスコアが実際にその値に達した場合にのみコピーが削除され、検疫ストアが有効な場合は代わりにそちらに送られます。</value>
   </data>
@@ -13023,6 +13071,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The first address of the gateway's range." xml:space="preserve">
     <value>ゲートウェイの範囲の最初のアドレス。</value>
+  </data>
+  <data name="The first attempt tries at most this many of a domain's MX hosts, the second at most twice as many, and so on, so that a domain whose hosts are down holds up the queue for less time." xml:space="preserve">
+    <value>1 回目の試行ではドメインの MX ホストを最大この数だけ、2 回目は最大その 2 倍というように試します。これにより、ホストが停止しているドメインがキューを占有する時間が短くなります。</value>
   </data>
   <data name="The first scanner to find something ends the scan, so the order is also the cost: a slow scanner in front of a fast one is paid for on every clean message." xml:space="preserve">
     <value>何かを見つけた最初のスキャナーでスキャンは終了するため、順序はコストでもあります。速いスキャナーの前に遅いスキャナーがあると、正常なメッセージすべてでそのコストを払うことになります。</value>
@@ -13382,6 +13433,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The protocol versions could not be read." xml:space="preserve">
     <value>プロトコル バージョンを読み取れませんでした。</value>
+  </data>
+  <data name="The provider's RFC 7662 endpoint, which says whether a token is still valid." xml:space="preserve">
+    <value>トークンがまだ有効かどうかを返す、プロバイダーの RFC 7662 エンドポイントです。</value>
   </data>
   <data name="The public address other servers see, when it is not an address of this machine." xml:space="preserve">
     <value>このコンピューターのアドレスでない場合に、ほかのサーバーから見える公開アドレス。</value>
@@ -13795,6 +13849,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The two passwords do not match." xml:space="preserve">
     <value>パスワードが一致しません。</value>
   </data>
+  <data name="The update feed and its downloads, JWKS and token introspection all go through it. Proxy credentials are not supported." xml:space="preserve">
+    <value>更新フィードとそのダウンロード、JWKS、トークンのイントロスペクションはすべてこれを経由します。プロキシの資格情報には対応していません。</value>
+  </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>更新ヘルパーが起動しました。インストーラーがファイルを置き換えられるように、このコントロールパネルは今すぐ閉じます。結果を確認するには、1 分ほど後にもう一度開いてください。</value>
   </data>
@@ -13840,8 +13897,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The web services settings could not be read: {0}" xml:space="preserve">
     <value>Web サービスの設定を読み取れませんでした: {0}</value>
   </data>
-  <data name="The whole accept pipeline; then the sender gets a 451. 0 = no bound." xml:space="preserve">
-    <value>受け入れパイプライン全体。その後、送信者は 451 を受け取ります。0 = 上限なし。</value>
+  <data name="The whole accept pipeline; then the sender gets a 451. 0 = no time limit." xml:space="preserve">
+    <value>受け入れパイプライン全体。その後、送信者は 451 を受け取ります。0 = 時間制限なし。</value>
   </data>
   <data name="The wiki could not be opened in a browser." xml:space="preserve">
     <value>Wiki をブラウザーで開けませんでした。</value>
@@ -14077,8 +14134,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="This server's VAPID public key" xml:space="preserve">
     <value>このサーバーの VAPID 公開キー</value>
   </data>
-  <data name="This server's entity ID (empty = the base address followed by /saml)" xml:space="preserve">
-    <value>このサーバーのエンティティ ID (空 = ベース アドレスに /saml を付けたもの)</value>
+  <data name="This server's entity ID (empty = the base address and /saml)" xml:space="preserve">
+    <value>このサーバーのエンティティ ID (空 = ベース アドレスと /saml)</value>
   </data>
   <data name="This session holds no password the REST API can sign in with. Sign in again with the administrator's user name and password." xml:space="preserve">
     <value>このセッションには、REST API へのサインインに使えるパスワードがありません。管理者のユーザー名とパスワードでもう一度サインインしてください。</value>
@@ -14122,8 +14179,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Threads and the stall threshold" xml:space="preserve">
     <value>スレッドと停滞のしきい値</value>
   </data>
-  <data name="Threads reserved so the async queue cannot be starved" xml:space="preserve">
-    <value>非同期キューが枯渇しないように予約されるスレッド</value>
+  <data name="Threads reserved so the async queue cannot be starved (0 = none)" xml:space="preserve">
+    <value>非同期キューが枯渇しないように予約されるスレッド (0 = なし)</value>
   </data>
   <data name="Thresholds &amp; actions" xml:space="preserve">
     <value>しきい値とアクション</value>
@@ -14152,8 +14209,11 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Time" xml:space="preserve">
     <value>時刻</value>
   </data>
-  <data name="Time_out in seconds" xml:space="preserve">
-    <value>タイムアウト (秒)(_O)</value>
+  <data name="Time active sessions get to finish when the service stops (seconds, up to 86,400; 0 = none)" xml:space="preserve">
+    <value>サービス停止時にアクティブなセッションが完了するまで待つ時間 (秒、最大 86,400、0 = 待たない)</value>
+  </data>
+  <data name="Time_out (seconds, 1 to 90)" xml:space="preserve">
+    <value>タイムアウト (秒、1 から 90)(_O)</value>
   </data>
   <data name="Timed out looking up {0}. Check the name, and that this machine can reach a DNS server." xml:space="preserve">
     <value>{0} の検索がタイムアウトしました。名前と、このコンピューターが DNS サーバーに到達できることを確認してください。</value>
@@ -14185,8 +14245,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Token endpoint (https)" xml:space="preserve">
     <value>トークン エンドポイント (https)</value>
   </data>
-  <data name="Token introspection endpoint (RFC 7662; empty = no revocation check)" xml:space="preserve">
-    <value>トークン イントロスペクション エンドポイント (RFC 7662。空 = 失効チェックなし)</value>
+  <data name="Token introspection endpoint (empty = no revocation check)" xml:space="preserve">
+    <value>トークン イントロスペクション エンドポイント (空 = 失効チェックなし)</value>
   </data>
   <data name="Tokens are accepted, but {0}: the server applies each of those only when you have set it, and blank is the default. That is wider than it looks. Any token your identity provider signs with this key is accepted - including one it issued to a different application entirely, which is enough to sign in as whichever mailbox that token names. Set both to the exact values your provider puts in its tokens." xml:space="preserve">
     <value>トークンは受け入れられますが、{0}: サーバーはこれらを設定した場合にのみ適用し、既定は空です。これは見た目より広い範囲に影響します。ID プロバイダーがこの鍵で署名したあらゆるトークンが受け入れられます。まったく別のアプリケーションに発行されたトークンも含まれ、それはそのトークンが指定するメールボックスとしてサインインするのに十分です。プロバイダーがトークンに入れる正確な値を両方に設定してください。</value>
@@ -14242,8 +14302,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Trusted ARC sealer domains" xml:space="preserve">
     <value>信頼された ARC シーラー ドメイン</value>
   </data>
-  <data name="Trusted proxies whose X-Forwarded-Proto: https is believed (addresses, comma-separated; loopback always is)" xml:space="preserve">
-    <value>X-Forwarded-Proto: https を信頼するプロキシ（アドレスをコンマ区切りで指定。loopback は常に信頼）</value>
+  <data name="Trusted proxies whose X-Forwarded-Proto: https is believed (comma separated)" xml:space="preserve">
+    <value>X-Forwarded-Proto: https を信頼するプロキシ (コンマ区切り)</value>
   </data>
   <data name="Trusts an address range" xml:space="preserve">
     <value>アドレス範囲を信頼する</value>
@@ -14371,8 +14431,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Unattended synchronisation" xml:space="preserve">
     <value>無人同期</value>
   </data>
-  <data name="Unattended window (empty = never apply on its own; e.g. 03:00, Sun 03:00, Sat,Sun 02:00-05:00)" xml:space="preserve">
-    <value>無人適用の時間帯 (空 = 自動では適用しない。例: 03:00、Sun 03:00、Sat,Sun 02:00-05:00)</value>
+  <data name="Unattended window (empty = never apply on its own)" xml:space="preserve">
+    <value>無人適用の時間帯 (空 = 自動では適用しない)</value>
   </data>
   <data name="Unavailable" xml:space="preserve">
     <value>利用できません</value>
@@ -14416,8 +14476,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Up to 64 visible ASCII characters." xml:space="preserve">
     <value>表示可能な ASCII 文字で最大 64 文字。</value>
   </data>
-  <data name="Update feed URL (empty = the built-in feed; set for a mirror)" xml:space="preserve">
-    <value>更新フィードの URL (空 = 組み込みのフィード。ミラーを使う場合は指定します)</value>
+  <data name="Update feed URL (empty = the built-in feed)" xml:space="preserve">
+    <value>更新フィードの URL (空 = 組み込みのフィード)</value>
   </data>
   <data name="Update status" xml:space="preserve">
     <value>更新の状態</value>
@@ -14437,8 +14497,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks." xml:space="preserve">
     <value>スパム チェックで IP アドレスを接続元クライアントとして扱ってはならない上流ゲートウェイ。</value>
   </data>
-  <data name="Upstreams allowed to use XCLIENT (comma-separated addresses or CIDR ranges)" xml:space="preserve">
-    <value>XCLIENT の使用を許可する上流 (コンマ区切りのアドレスまたは CIDR 範囲)</value>
+  <data name="Upstreams allowed to use XCLIENT (comma separated)" xml:space="preserve">
+    <value>XCLIENT の使用を許可する上流 (コンマ区切り)</value>
   </data>
   <data name="Uptime" xml:space="preserve">
     <value>稼働時間</value>
@@ -14512,8 +14572,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Validates recipient TLSA records with in-process DNSSEC and blocks delivery over forged chains (RFC 7672)." xml:space="preserve">
     <value>受信者の TLSA レコードをプロセス内 DNSSEC で検証し、偽造されたチェーンでの配信をブロックします (RFC 7672)。</value>
   </data>
-  <data name="Validity window in seconds for signatures we produce (0 = no expiry)" xml:space="preserve">
-    <value>生成する署名の有効期間 (秒) (0 = 期限なし)</value>
+  <data name="Validity window for the signatures this server makes (seconds; 0 = no expiry)" xml:space="preserve">
+    <value>このサーバーが生成する署名の有効期間 (秒、0 = 期限なし)</value>
   </data>
   <data name="Value:      {0}" xml:space="preserve">
     <value>値:      {0}</value>
@@ -14575,11 +14635,11 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Wait for a free database connection (60)" xml:space="preserve">
     <value>空きデータベース接続の待機 (60)</value>
   </data>
-  <data name="Wait for a free database connection (seconds)" xml:space="preserve">
-    <value>空きデータベース接続の待機 (秒)</value>
+  <data name="Wait for a free database connection (seconds; 0 = wait for ever)" xml:space="preserve">
+    <value>空きデータベース接続の待機 (秒、0 = 無期限に待機)</value>
   </data>
-  <data name="Waiting for a pooled database connection. 0 = no bound." xml:space="preserve">
-    <value>プールからのデータベース接続を待機中。0 = 上限なし。</value>
+  <data name="Waiting for a pooled database connection. 0 = no time limit." xml:space="preserve">
+    <value>プールからのデータベース接続を待機中。0 = 時間制限なし。</value>
   </data>
   <data name="Waiting for a reinitialise:" xml:space="preserve">
     <value>再初期化待ち:</value>
@@ -14881,6 +14941,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Where the issued certificate would be written could not be determined, because neither the output folder above nor the server's data folder ([Directories] DataFolder in hMailServer.ini) could be read." xml:space="preserve">
     <value>上の出力フォルダーもサーバーのデータ フォルダー (hMailServer.ini の [Directories] DataFolder) も読み取れなかったため、発行された証明書の書き込み先を判断できませんでした。</value>
   </data>
+  <data name="Where the provider publishes its signing keys." xml:space="preserve">
+    <value>プロバイダーが署名鍵を公開している場所です。</value>
+  </data>
   <data name="Where the search starts, e.g. DC=example,DC=local. Required in search mode - that is, when the bind method is Simple and no DN template is set." xml:space="preserve">
     <value>検索の開始点 (例: DC=example,DC=local)。検索モード、つまりバインド方式が Simple で DN テンプレートが設定されていない場合に必須です。</value>
   </data>
@@ -15114,6 +15177,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the General tab." xml:space="preserve">
     <value>これをオンにすると、パスワードはここにまったく保存されず、Windows に確認を依頼します。オフのままにすると、アカウントは[全般] タブのパスワードを使います。</value>
+  </data>
+  <data name="Without a host name, the message's local domain is used, and without that, the machine name." xml:space="preserve">
+    <value>ホスト名がない場合はメッセージのローカル ドメインが、それもない場合はコンピューター名が使われます。</value>
   </data>
   <data name="Without sign-in" xml:space="preserve">
     <value>サインインなし</value>
@@ -15760,8 +15826,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Private key file" xml:space="preserve">
     <value>秘密鍵ファイル(_P)</value>
   </data>
-  <data name="_Propagation period in hours (1 to 720)" xml:space="preserve">
-    <value>伝播期間 (時間、1 ～ 720)(_P)</value>
+  <data name="_Propagation period (hours, 1 to 720)" xml:space="preserve">
+    <value>伝播期間 (時間、1 から 720)(_P)</value>
   </data>
   <data name="_Properties" xml:space="preserve">
     <value>プロパティ(_P)</value>

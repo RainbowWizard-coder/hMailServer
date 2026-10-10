@@ -297,6 +297,9 @@
   <data name="43200 is twelve hours. At most 2592000, thirty days." xml:space="preserve">
     <value>43200 是十二小时。最多 2592000，即三十天。</value>
   </data>
+  <data name="443 is the port clients expect." xml:space="preserve">
+    <value>客户端预期的端口是 443。</value>
+  </data>
   <data name="45 by default. A stale database is still used; the application log says it is stale." xml:space="preserve">
     <value>默认 45。过时的数据库仍会被使用；应用程序日志会说明它已过时。</value>
   </data>
@@ -351,6 +354,9 @@
   <data name="80 by default." xml:space="preserve">
     <value>默认 80。</value>
   </data>
+  <data name="80 is the port clients expect." xml:space="preserve">
+    <value>客户端预期的端口是 80。</value>
+  </data>
   <data name="86400 by default; 0 delivers at once or not at all." xml:space="preserve">
     <value>默认 86400；0 表示立即投递，否则不投递。</value>
   </data>
@@ -401,6 +407,9 @@
   </data>
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>来自身份验证器应用的验证码，需与此账户的密码一并使用。它适用于确实能够输入验证码的场合 - 控制面板和 API。邮件客户端无法出示验证码，因此一旦启用此项，它们就必须改用应用密码。</value>
+  </data>
+  <data name="A command-line virus scanner is one." xml:space="preserve">
+    <value>命令行病毒扫描器就是其中之一。</value>
   </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
     <value>把某个域或某个账户的邮件副本发往一个地址：作为附有该邮件的信封报告，或者作为邮件本身。</value>
@@ -612,8 +621,8 @@
   <data name="A read-only SNMP agent for a monitoring system: SNMPv3 with authentication and encryption, and SNMPv2c only if you switch it on. It answers nobody until the managers are listed, and the port has to be open to them in any firewall between." xml:space="preserve">
     <value>供监控系统使用的只读 SNMP 代理：带认证和加密的 SNMPv3，只有在你打开时才支持 SNMPv2c。在列出管理站之前它不会应答任何人，并且路径上的每个防火墙都必须为它们打开该端口。</value>
   </data>
-  <data name="A recipient domain with several MX hosts is worth more attempts than one with a single host, because a retry can land on a different server. This multiplies the retry count above by the number of MX hosts actually tried." xml:space="preserve">
-    <value>拥有多台 MX 主机的收件人域值得多尝试几次，因为重试可能落到另一台服务器上。此项会把上面的重试次数乘以实际尝试过的 MX 主机数。</value>
+  <data name="A regular expression." xml:space="preserve">
+    <value>一个正则表达式。</value>
   </data>
   <data name="A remote server that answers extremely slowly. The idle timeout is re-armed on every byte, so a host that sends one byte occasionally used to hold a delivery thread indefinitely; 'Absolute lifetime of one client session' (30 minutes by default) is the absolute ceiling, armed once and never re-armed." xml:space="preserve">
     <value>应答极其缓慢的远程服务器。空闲超时会在每个字节到达时重新计时，因此偶尔发送一个字节的主机过去可以无限期占用一个投递线程；“一个客户端会话的绝对生存期”（默认 30 分钟）是绝对上限，只计时一次，绝不重新计时。</value>
@@ -693,8 +702,8 @@
   <data name="A simple bind needs the user's distinguished name. There are two ways to get one - search for it, or compute it from a template - and Negotiate needs neither, because SSPI authenticates by user name and domain, which the account already carries." xml:space="preserve">
     <value>简单绑定需要用户的可分辨名称。获取它有两种方式 - 搜索，或者按模板推算 - 而 Negotiate 两者都不需要，因为 SSPI 是按用户名和域进行身份验证的，而账户本身就带着这些信息。</value>
   </data>
-  <data name="A single DNS query. 0 = no bound." xml:space="preserve">
-    <value>单次 DNS 查询。0 = 不限制。</value>
+  <data name="A single DNS query. 0 = no time limit." xml:space="preserve">
+    <value>单次 DNS 查询。0 = 无时间限制。</value>
   </data>
   <data name="A spam trap is an address in one of your domains that nobody uses, so whoever writes to it is sending spam. These settings say what happens to a server that does. The trap addresses are declared per domain in the Control Deck; until a domain has one, nothing here does anything." xml:space="preserve">
     <value>垃圾邮件陷阱是你某个域中无人使用的地址，因此向它写信的人就是在发送垃圾邮件。这些设置决定这样做的服务器会遭遇什么。陷阱地址在 Control Deck 中按域声明；在域还没有任何陷阱地址时，这里的设置都不起作用。</value>
@@ -834,8 +843,8 @@
   <data name="Absolute lifetime of one client session (1800)" xml:space="preserve">
     <value>一个客户端会话的绝对生存期（1800）</value>
   </data>
-  <data name="Absolute lifetime of one client session (seconds)" xml:space="preserve">
-    <value>一个客户端会话的绝对生存期（秒）</value>
+  <data name="Absolute lifetime of one client session (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>一个客户端会话的绝对生存期（秒；0 = 无时间限制）</value>
   </data>
   <data name="Accept DKIM signatures that use rsa-sha1" xml:space="preserve">
     <value>接受使用 rsa-sha1 的 DKIM 签名</value>
@@ -909,8 +918,8 @@
   <data name="Account recovery" xml:space="preserve">
     <value>账户恢复</value>
   </data>
-  <data name="Account-number pattern (a regular expression; empty = none)" xml:space="preserve">
-    <value>账号模式（正则表达式；空 = 无）</value>
+  <data name="Account-number pattern (empty = none)" xml:space="preserve">
+    <value>账号模式（空 = 无）</value>
   </data>
   <data name="Accounts" xml:space="preserve">
     <value>账户</value>
@@ -1254,14 +1263,20 @@
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>{0} 的账户想要或不想要的地址和整个域名。在账户自己的名单之后、服务器的名单之前参考。</value>
   </data>
-  <data name="Addresses at other providers a person may send as (0 = none; up to 20)" xml:space="preserve">
-    <value>用户可用作发件地址的其他提供商的地址（0 = 无；最多 20）</value>
+  <data name="Addresses at other providers a person may send as (up to 20; 0 = none)" xml:space="preserve">
+    <value>用户可用作发件地址的其他提供商的地址（最多 20；0 = 无）</value>
+  </data>
+  <data name="Addresses or CIDR blocks." xml:space="preserve">
+    <value>地址或 CIDR 地址块。</value>
   </data>
   <data name="Addresses that sign in to the Control Deck as the administrator through OpenID Connect (comma separated)" xml:space="preserve">
     <value>通过 OpenID Connect 以管理员身份登录 Control Deck 的地址（逗号分隔）</value>
   </data>
   <data name="Addresses that sign in to the Control Deck as the administrator through SAML (comma separated)" xml:space="preserve">
     <value>通过 SAML 以管理员身份登录 Control Deck 的地址（逗号分隔）</value>
+  </data>
+  <data name="Addresses; the loopback address is always trusted." xml:space="preserve">
+    <value>地址；环回地址始终受信任。</value>
   </data>
   <data name="Adds" xml:space="preserve">
     <value>增加</value>
@@ -1311,6 +1326,9 @@
   <data name="Advanced" xml:space="preserve">
     <value>高级</value>
   </data>
+  <data name="Advanced: it is sent as it is, in place of a token the server fetches." xml:space="preserve">
+    <value>高级：按原样发送，取代服务器获取的令牌。</value>
+  </data>
   <data name="After a restart" xml:space="preserve">
     <value>重启后生效</value>
   </data>
@@ -1329,8 +1347,8 @@
   <data name="Against {0} over {1}. Set the service account user name (and its password), or switch to a user DN template or the Negotiate bind method, neither of which searches at all." xml:space="preserve">
     <value>在 {1} 上针对 {0} 进行。请设置服务账户用户名（及其密码），或者改用用户 DN 模板或 Negotiate 绑定方式，这两者都完全不进行搜索。</value>
   </data>
-  <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
-    <value>本服务器发送的汇总报告架构：1 = RFC 7489 附录 C，2 = RFC 9990</value>
+  <data name="Aggregate-report schema this server sends (1 = RFC 7489 Appendix C, 2 = RFC 9990)" xml:space="preserve">
+    <value>本服务器发送的汇总报告架构（1 = RFC 7489 附录 C，2 = RFC 9990）</value>
   </data>
   <data name="Alert rule" xml:space="preserve">
     <value>警报规则</value>
@@ -1593,8 +1611,8 @@
   <data name="An auto-ban is enforced by the server's own listeners: the address is accepted by the operating system, handed to the server and dropped. These settings push the ban down into the operating system's firewall, hand it to a program of yours, and name the addresses that must never be banned at all." xml:space="preserve">
     <value>自动封禁由服务器自身的监听器执行：操作系统接受该地址的连接，交给服务器，再由服务器断开。这些设置把封禁下推到操作系统的防火墙，交给您指定的程序，并指定绝不能被封禁的地址。</value>
   </data>
-  <data name="An entire outbound delivery session. 0 = no bound." xml:space="preserve">
-    <value>整个出站投递会话。0 = 不限制。</value>
+  <data name="An entire outbound delivery session. 0 = no time limit." xml:space="preserve">
+    <value>整个出站投递会话。0 = 无时间限制。</value>
   </data>
   <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
     <value>条目通过 REST API 就地更改，而 REST API 在应答前要求输入管理员的一次性代码，但未输入任何代码。请按“编辑…”再次输入，或者删除该条目后重新添加。</value>
@@ -1611,8 +1629,8 @@
   <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
     <value>事件脚本在服务器内部以服务账户的权限运行，因此它可以实例化什么是一项安全决定，而不是一件图方便的事。出厂设置为 *，即允许任何对象，这样升级永远不会弄坏某个安装环境已经在运行的脚本 - 这是一个应当收窄的设置，而不是安全状态。只写下您的脚本确实需要的东西 - 一个脚本文件系统对象、一个 HTTP 客户端 - 其余一切都会被拒绝，并把对象的名称记入错误日志；留空则拒绝 hMailServer 自己的对象以外的一切。</value>
   </data>
-  <data name="An external scanner process. 0 = no bound." xml:space="preserve">
-    <value>一个外部扫描器进程。0 = 不限制。</value>
+  <data name="An external scanner process. 0 = no time limit." xml:space="preserve">
+    <value>一个外部扫描器进程。0 = 无时间限制。</value>
   </data>
   <data name="An older, weaker option: a one-time code asked for after the password when signing in to THIS Control Panel, checked by the tool itself after the server has already accepted the password. The secret is stored per machine under HKLM, so enabling or disabling it needs local administrator rights, and it does nothing for the REST API or for scripts using the COM API. Prefer the server-enforced factor above; this one remains for existing setups." xml:space="preserve">
     <value>一个较旧、较弱的选项：在登录本控制面板时于密码之后询问的一次性验证码，由该工具自身在服务器已经接受密码之后进行校验。该机密按计算机存储在 HKLM 下，因此启用或禁用它需要本地管理员权限，而且它对 REST API 和使用 COM API 的脚本毫无作用。请优先使用上面由服务器强制执行的第二重验证；此项仅为现有配置保留。</value>
@@ -1807,14 +1825,14 @@
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id（内存硬，推荐）</value>
   </data>
-  <data name="Argon2id memory for new hashes, in KiB (0 = the built-in 19,456; 4,096 to 1,048,576)" xml:space="preserve">
-    <value>新哈希使用的 Argon2id 内存，单位 KiB（0 = 内置的 19,456；4,096 至 1,048,576）</value>
+  <data name="Argon2id memory for new hashes (KiB, 4,096 to 1,048,576; 0 = the built-in 19,456)" xml:space="preserve">
+    <value>新哈希使用的 Argon2id 内存（KiB，4,096 至 1,048,576；0 = 内置的 19,456）</value>
   </data>
   <data name="Argon2id or scrypt only" xml:space="preserve">
     <value>仅 Argon2id 或 scrypt</value>
   </data>
-  <data name="Argon2id passes for new hashes (0 = the built-in 2; 1 to 20)" xml:space="preserve">
-    <value>新哈希使用的 Argon2id 迭代次数（0 = 内置的 2；1 至 20）</value>
+  <data name="Argon2id passes for new hashes (1 to 20; 0 = the built-in 2)" xml:space="preserve">
+    <value>新哈希使用的 Argon2id 迭代次数（1 至 20；0 = 内置的 2）</value>
   </data>
   <data name="Arriving" xml:space="preserve">
     <value>收到的</value>
@@ -2068,14 +2086,14 @@
   <data name="Backup archives (HMBackup*.7z)|HMBackup*.7z|All files (*.*)|*.*" xml:space="preserve">
     <value>备份存档 (HMBackup*.7z)|HMBackup*.7z|所有文件 (*.*)|*.*</value>
   </data>
-  <data name="Backup interva_l in minutes (0 = off)" xml:space="preserve">
-    <value>备份间隔（分钟）(_L)（0 = 关闭）</value>
+  <data name="Backup interva_l (minutes; 0 = off)" xml:space="preserve">
+    <value>备份间隔(_L)（分钟；0 = 关闭）</value>
+  </data>
+  <data name="Backup interval (minutes; 0 = off)" xml:space="preserve">
+    <value>备份间隔（分钟；0 = 关闭）</value>
   </data>
   <data name="Backup interval in minutes" xml:space="preserve">
     <value>备份间隔（分钟）</value>
-  </data>
-  <data name="Backup interval in minutes (0 = off)" xml:space="preserve">
-    <value>备份间隔（分钟）（0 = 关闭）</value>
   </data>
   <data name="Backup schedule saved - the service reads these settings when it starts, so they apply after a service restart." xml:space="preserve">
     <value>备份计划已保存 - 服务在启动时读取这些设置，因此它们在重启服务后生效。</value>
@@ -2098,8 +2116,11 @@
   <data name="Ban duration (minutes)" xml:space="preserve">
     <value>封禁时长（分钟）</value>
   </data>
-  <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
-    <value>封禁时长（小时，1 到 8760）</value>
+  <data name="Ban for (hours, 1 to 8,760)" xml:space="preserve">
+    <value>封禁时长（小时，1 到 8,760）</value>
+  </data>
+  <data name="Ban the sending address for (minutes, up to 525,600; 0 = no ban)" xml:space="preserve">
+    <value>封禁发送地址的时长（分钟，最多 525,600；0 = 不封禁）</value>
   </data>
   <data name="Banned now" xml:space="preserve">
     <value>当前封禁</value>
@@ -2175,6 +2196,9 @@
   </data>
   <data name="Block rather than allow" xml:space="preserve">
     <value>拦截而不是允许</value>
+  </data>
+  <data name="Block the envelope sender for (days, up to 3,650; 0 = no block)" xml:space="preserve">
+    <value>阻止信封发件人的时长（天，最多 3,650；0 = 不阻止）</value>
   </data>
   <data name="Block the sender of this message, then delete it" xml:space="preserve">
     <value>拦截此邮件的发件人，然后删除此邮件</value>
@@ -2314,8 +2338,8 @@
   <data name="CC" xml:space="preserve">
     <value>抄送</value>
   </data>
-  <data name="COM objects a script may create (* = any, as shipped; empty = none beyond hMailServer's own; ProgIDs or CLSIDs, comma separated)" xml:space="preserve">
-    <value>脚本可以创建的 COM 对象（* = 任意，即出厂设置；留空 = 除 hMailServer 自己的以外一概不允许；ProgIDs 或 CLSIDs，以逗号分隔）</value>
+  <data name="COM objects a script may create (comma separated; * = any, empty = only hMailServer's own)" xml:space="preserve">
+    <value>脚本可以创建的 COM 对象（以逗号分隔；* = 任意，留空 = 仅 hMailServer 自己的）</value>
   </data>
   <data name="COMPRESS=DEFLATE (RFC 4978)" xml:space="preserve">
     <value>COMPRESS=DEFLATE (RFC 4978)</value>
@@ -2773,7 +2797,7 @@
   <data name="Client secret for introspection" xml:space="preserve">
     <value>用于内省的客户端机密</value>
   </data>
-  <data name="Clock-drift tolerance in seconds when checking an expiry" xml:space="preserve">
+  <data name="Clock-drift tolerance when checking an expiry (seconds)" xml:space="preserve">
     <value>检查到期时的时钟偏差容差（秒）</value>
   </data>
   <data name="Close" xml:space="preserve">
@@ -2815,8 +2839,8 @@
   <data name="Complaint mailbox (comma separated for several)" xml:space="preserve">
     <value>投诉邮箱（多个时用逗号分隔）</value>
   </data>
-  <data name="Complaints before an address is suppressed (0 = never; up to 100)" xml:space="preserve">
-    <value>地址被抑制前的投诉数（0 = 从不；最多 100）</value>
+  <data name="Complaints before an address is suppressed (up to 100; 0 = never)" xml:space="preserve">
+    <value>地址被抑制前的投诉数（最多 100；0 = 从不）</value>
   </data>
   <data name="Complaints from mailbox providers (feedback loops)" xml:space="preserve">
     <value>来自邮件提供商的投诉（反馈环路）</value>
@@ -3612,8 +3636,8 @@
   <data name="DMARC failure score" xml:space="preserve">
     <value>DMARC 失败分数</value>
   </data>
-  <data name="DMARC report sender address (empty = disabled)" xml:space="preserve">
-    <value>DMARC 报告发件人地址（留空 = 禁用）</value>
+  <data name="DMARC report sender address (empty = off)" xml:space="preserve">
+    <value>DMARC 报告发件人地址（留空 = 关闭）</value>
   </data>
   <data name="DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it." xml:space="preserve">
     <value>DMARC 告诉收件方如何处理未通过 SPF 和 DKIM 的邮件，以及向哪里报告。</value>
@@ -3636,8 +3660,8 @@
   <data name="DNS query timeout (10)" xml:space="preserve">
     <value>DNS 查询超时（10）</value>
   </data>
-  <data name="DNS query timeout (seconds; 0 = no bound)" xml:space="preserve">
-    <value>DNS 查询超时（秒；0 = 不限制）</value>
+  <data name="DNS query timeout (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>DNS 查询超时（秒；0 = 无时间限制）</value>
   </data>
   <data name="DNS records" xml:space="preserve">
     <value>DNS 记录</value>
@@ -3651,11 +3675,11 @@
   <data name="D_omain" xml:space="preserve">
     <value>域(_O)</value>
   </data>
-  <data name="Daily backup t_ime (24-hour HH:MM, empty = off)" xml:space="preserve">
-    <value>每日备份时间(_I)（24 小时制 HH:MM，留空 = 关闭）</value>
+  <data name="Daily backup t_ime (24-hour HH:MM; empty = off)" xml:space="preserve">
+    <value>每日备份时间(_I)（24 小时制 HH:MM；留空 = 关闭）</value>
   </data>
-  <data name="Daily backup time (24-hour HH:MM, empty = off)" xml:space="preserve">
-    <value>每日备份时间（24 小时制 HH:MM，留空 = 关闭）</value>
+  <data name="Daily backup time (24-hour HH:MM; empty = off)" xml:space="preserve">
+    <value>每日备份时间（24 小时制 HH:MM；留空 = 关闭）</value>
   </data>
   <data name="Dashboard" xml:space="preserve">
     <value>仪表板</value>
@@ -3693,8 +3717,8 @@
   <data name="Date this key stops working" xml:space="preserve">
     <value>此密钥停止工作的日期</value>
   </data>
-  <data name="Days a complaint is kept (0 = for ever; up to 3650)" xml:space="preserve">
-    <value>投诉保留的天数（0 = 永久；最多 3650）</value>
+  <data name="Days a complaint is kept (up to 3,650; 0 = for ever)" xml:space="preserve">
+    <value>投诉保留的天数（最多 3,650；0 = 永久）</value>
   </data>
   <data name="Days a held message waits for review (1 to 90)" xml:space="preserve">
     <value>被扣留的邮件等待审核的天数（1 到 90）</value>
@@ -3702,8 +3726,8 @@
   <data name="Days a password-protected message is kept for its reader (1 to 365)" xml:space="preserve">
     <value>受密码保护的邮件为其读者保留的天数（1 到 365）</value>
   </data>
-  <data name="Days a received report is kept (0 = for ever; up to 3650)" xml:space="preserve">
-    <value>收到的报告保留的天数（0 = 永久；最多 3650）</value>
+  <data name="Days a received report is kept (up to 3,650; 0 = for ever)" xml:space="preserve">
+    <value>收到的报告保留的天数（最多 3,650；0 = 永久）</value>
   </data>
   <data name="Days after sending that a delivery report is still matched (1 to 30)" xml:space="preserve">
     <value>发送后仍会匹配投递报告的天数（1 到 30）</value>
@@ -3717,35 +3741,29 @@
   <data name="Days before the database is reported as stale (0 = never)" xml:space="preserve">
     <value>数据库被视为过时前的天数（0 = 从不）</value>
   </data>
-  <data name="Days bet_ween rotations (1 to 3650)" xml:space="preserve">
-    <value>两次轮换之间的天数（1 到 3650）(_W)</value>
+  <data name="Days bet_ween rotations (1 to 3,650)" xml:space="preserve">
+    <value>两次轮换之间的天数（1 到 3,650）(_W)</value>
   </data>
   <data name="Days between rotations" xml:space="preserve">
     <value>两次轮换之间的天数</value>
   </data>
-  <data name="Days bounce counts are kept (0 = keep)" xml:space="preserve">
-    <value>退信计数保留的天数（0 = 保留）</value>
+  <data name="Days bounce counts are kept (0 = for ever)" xml:space="preserve">
+    <value>退信计数保留的天数（0 = 永久）</value>
   </data>
-  <data name="Days deleted messages are kept for the person to put back (0 = none; up to 365)" xml:space="preserve">
-    <value>已删除的邮件为便于用户找回而保留的天数（0 = 无；最多 365）</value>
+  <data name="Days deleted messages are kept for the person to put back (up to 365; 0 = none)" xml:space="preserve">
+    <value>已删除的邮件为便于用户找回而保留的天数（最多 365；0 = 无）</value>
   </data>
-  <data name="Days delivered and dead-lettered deliveries are kept (0 = everything; up to 3650)" xml:space="preserve">
-    <value>已投递和无法投递的投递记录保留的天数（0 = 全部；最多 3650）</value>
+  <data name="Days delivered and dead-lettered deliveries are kept (up to 3,650; 0 = for ever)" xml:space="preserve">
+    <value>已投递和无法投递的投递记录保留的天数（最多 3,650；0 = 永久）</value>
   </data>
-  <data name="Days of audit trail to keep (0 = everything)" xml:space="preserve">
-    <value>审计记录保留的天数（0 = 全部）</value>
+  <data name="Days of audit trail to keep (0 = for ever)" xml:space="preserve">
+    <value>审计记录保留的天数（0 = 永久）</value>
   </data>
-  <data name="Days of mail a person may keep in the browser to read offline (0 = none; up to 365)" xml:space="preserve">
-    <value>用户可在浏览器中保留以供离线阅读的邮件天数（0 = 无；最多 365）</value>
+  <data name="Days of mail a person may keep in the browser to read offline (up to 365; 0 = none)" xml:space="preserve">
+    <value>用户可在浏览器中保留以供离线阅读的邮件天数（最多 365；0 = 无）</value>
   </data>
   <data name="Days of submissions that make an account's baseline (7 to 365)" xml:space="preserve">
     <value>构成账户基线的发送天数（7 到 365）</value>
-  </data>
-  <data name="Days the envelope sender stays blocked (0 = no block; up to 3650)" xml:space="preserve">
-    <value>信封发件人保持被阻止的天数（0 = 不阻止；最多 3650）</value>
-  </data>
-  <data name="Days the record of trap hits is kept (1 to 3650)" xml:space="preserve">
-    <value>陷阱命中记录保留的天数（1 到 3650）</value>
   </data>
   <data name="Days the soft bounces are counted within (1 to 365)" xml:space="preserve">
     <value>统计软退信的天数（1 到 365）</value>
@@ -3786,7 +3804,7 @@
   <data name="Del" xml:space="preserve">
     <value>Del</value>
   </data>
-  <data name="Delay for each further recipient (seconds, at most 30; 0 = off)" xml:space="preserve">
+  <data name="Delay for each further recipient (seconds, up to 30; 0 = off)" xml:space="preserve">
     <value>每增加一个收件人的延迟（秒，最多 30；0 = 关闭）</value>
   </data>
   <data name="Delay per failed sign-in (seconds; 0 = off)" xml:space="preserve">
@@ -3816,14 +3834,14 @@
   <data name="Delete archived messages after (days; 0 = keep for ever)" xml:space="preserve">
     <value>在多少天后删除已存档的邮件（天；0 = 永久保留）</value>
   </data>
-  <data name="Delete archives older tha_n this many days (0 = keep all)" xml:space="preserve">
-    <value>删除早于此天数的存档(_N)（0 = 全部保留）</value>
+  <data name="Delete archives older tha_n (days; 0 = keep for ever)" xml:space="preserve">
+    <value>删除早于以下天数的存档(_N)（天；0 = 永久保留）</value>
+  </data>
+  <data name="Delete archives older than (days; 0 = keep for ever)" xml:space="preserve">
+    <value>删除早于以下天数的存档（天；0 = 永久保留）</value>
   </data>
   <data name="Delete archives older than this many days" xml:space="preserve">
     <value>删除早于此天数的存档</value>
-  </data>
-  <data name="Delete archives older than this many days (0 = keep all)" xml:space="preserve">
-    <value>删除早于此天数的存档（0 = 全部保留）</value>
   </data>
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>在多少天后删除已确认的邮件（天）</value>
@@ -3861,8 +3879,8 @@
   <data name="Delete folder" xml:space="preserve">
     <value>删除文件夹</value>
   </data>
-  <data name="Delete logs older than N days (0 = keep everything)" xml:space="preserve">
-    <value>删除早于 N 天的日志（0 = 全部保留）</value>
+  <data name="Delete logs older than (days; 0 = keep for ever)" xml:space="preserve">
+    <value>删除早于以下天数的日志（天；0 = 永久保留）</value>
   </data>
   <data name="Delete messages" xml:space="preserve">
     <value>删除邮件</value>
@@ -4160,8 +4178,8 @@
   <data name="Different" xml:space="preserve">
     <value>不一致</value>
   </data>
-  <data name="Digest _hour (0-23)" xml:space="preserve">
-    <value>摘要时间(_H)(0-23)</value>
+  <data name="Digest _hour (0 to 23)" xml:space="preserve">
+    <value>摘要时间(_H)（0 到 23）</value>
   </data>
   <data name="Digest hour" xml:space="preserve">
     <value>摘要时刻</value>
@@ -4255,8 +4273,8 @@
   <data name="Disk space" xml:space="preserve">
     <value>磁盘空间</value>
   </data>
-  <data name="Distinct terms per message before it is always scanned instead (64-1000000)" xml:space="preserve">
-    <value>每封邮件的不同词条数，超过后改为始终扫描（64-1000000）</value>
+  <data name="Distinct terms per message before it is always scanned instead (64 to 1,000,000)" xml:space="preserve">
+    <value>每封邮件的不同词条数，超过后改为始终扫描（64 到 1,000,000）</value>
   </data>
   <data name="Distribution list" xml:space="preserve">
     <value>分发列表</value>
@@ -4330,8 +4348,8 @@
   <data name="Domain contains" xml:space="preserve">
     <value>域包含</value>
   </data>
-  <data name="Domain for the mailer-daemon sender address (empty = host name, else the message's local domain, else the machine name)" xml:space="preserve">
-    <value>mailer-daemon 发件人地址使用的域（留空 = 主机名，否则为邮件的本地域，再否则为机器名）</value>
+  <data name="Domain for the mailer-daemon sender address (empty = the host name)" xml:space="preserve">
+    <value>mailer-daemon 发件人地址使用的域（留空 = 主机名）</value>
   </data>
   <data name="Domain or account" xml:space="preserve">
     <value>域或账户</value>
@@ -4375,11 +4393,11 @@
   <data name="Draining" xml:space="preserve">
     <value>正在排空</value>
   </data>
+  <data name="Drop inbound messages larger than this mid-transfer (KB; 0 = off)" xml:space="preserve">
+    <value>在传输中途丢弃大于此值的入站邮件（KB；0 = 关闭）</value>
+  </data>
   <data name="Drop it without a report" xml:space="preserve">
     <value>丢弃，不发报告</value>
-  </data>
-  <data name="Drop oversized inbound messages above N KB mid-transfer (0 = off)" xml:space="preserve">
-    <value>在传输中途丢弃超过 N KB 的过大入站邮件（0 = 关闭）</value>
   </data>
   <data name="Due for delivery" xml:space="preserve">
     <value>等待投递</value>
@@ -4906,8 +4924,8 @@
   <data name="Event script execution timeout (60)" xml:space="preserve">
     <value>事件脚本执行超时（60）</value>
   </data>
-  <data name="Event script execution timeout (seconds)" xml:space="preserve">
-    <value>事件脚本执行超时（秒）</value>
+  <data name="Event script execution timeout (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>事件脚本执行超时（秒；0 = 无时间限制）</value>
   </data>
   <data name="Event scripts" xml:space="preserve">
     <value>事件脚本</value>
@@ -4918,8 +4936,8 @@
   <data name="Events - a message received, delivered, bounced or quarantined, an account locked - posted to the receivers subscribed in the Control Deck or over the REST API. Nothing is sent until a subscription exists." xml:space="preserve">
     <value>事件（邮件被接收、投递、退回或隔离，账户被锁定）会发送给在 Control Deck 中或通过 REST API 订阅的接收方。没有订阅时不发送任何内容。</value>
   </data>
-  <data name="Events a minute for a subscription with no limit of its own (1 to 100000)" xml:space="preserve">
-    <value>没有自己限制的订阅每分钟的事件数（1 到 100000）</value>
+  <data name="Events a minute for a subscription with no limit of its own (1 to 100,000)" xml:space="preserve">
+    <value>没有自己限制的订阅每分钟的事件数（1 到 100,000）</value>
   </data>
   <data name="Events are kept with no time limit." xml:space="preserve">
     <value>事件没有保留期限。</value>
@@ -5140,8 +5158,8 @@
   <data name="Expunge" xml:space="preserve">
     <value>清除</value>
   </data>
-  <data name="Expunge records to keep (0 = keep everything, which also skips the prune at start-up)" xml:space="preserve">
-    <value>要保留的清除记录数（0 = 全部保留，这也会跳过启动时的修剪）</value>
+  <data name="Expunge records to keep (0 = keep everything)" xml:space="preserve">
+    <value>要保留的清除记录数（0 = 全部保留）</value>
   </data>
   <data name="External" xml:space="preserve">
     <value>外部</value>
@@ -5167,8 +5185,8 @@
   <data name="External process timeout (300)" xml:space="preserve">
     <value>外部进程超时（300）</value>
   </data>
-  <data name="External process timeout, e.g. a command-line virus scanner (seconds)" xml:space="preserve">
-    <value>外部进程超时，例如命令行病毒扫描器（秒）</value>
+  <data name="External process timeout (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>外部进程超时（秒；0 = 无时间限制）</value>
   </data>
   <data name="External recipients" xml:space="preserve">
     <value>外部收件人</value>
@@ -5179,14 +5197,8 @@
   <data name="External to external (rela_y)" xml:space="preserve">
     <value>外部到外部（中继）(_Y)</value>
   </data>
-  <data name="External-account hosts to FETCH from with OAuth2 (comma separated; blank this to use none)" xml:space="preserve">
-    <value>使用 OAuth2 进行 FETCH 的外部账户主机（以逗号分隔；留空则不使用）</value>
-  </data>
-  <data name="Extra delivery attempts per additional MX host" xml:space="preserve">
-    <value>每增加一个 MX 主机的额外投递尝试次数</value>
-  </data>
-  <data name="Extra delivery attempts per additional MX host (0 = default)" xml:space="preserve">
-    <value>每增加一个 MX 主机的额外投递尝试次数（0 = 默认）</value>
+  <data name="External-account hosts to fetch from with OAuth2 (comma separated; empty = none)" xml:space="preserve">
+    <value>使用 OAuth2 收取的外部账户主机（以逗号分隔；留空 = 无）</value>
   </data>
   <data name="F6, Shift+F6" xml:space="preserve">
     <value>F6、Shift+F6</value>
@@ -5239,11 +5251,11 @@
   <data name="Fetching {0}…" xml:space="preserve">
     <value>正在获取 {0}…</value>
   </data>
-  <data name="Fewest messages in an hour that can be a volume signal (1 to 100000)" xml:space="preserve">
-    <value>可以构成数量信号的每小时最少邮件数（1 到 100000）</value>
+  <data name="Fewest messages in an hour that can be a volume signal (1 to 100,000)" xml:space="preserve">
+    <value>可以构成数量信号的每小时最少邮件数（1 到 100,000）</value>
   </data>
-  <data name="Fewest recipients in an hour that can be a recipients signal (1 to 100000)" xml:space="preserve">
-    <value>可以构成收件人信号的每小时最少收件人数（1 到 100000）</value>
+  <data name="Fewest recipients in an hour that can be a recipients signal (1 to 100,000)" xml:space="preserve">
+    <value>可以构成收件人信号的每小时最少收件人数（1 到 100,000）</value>
   </data>
   <data name="Figures from {0}, the last time the server could be read." xml:space="preserve">
     <value>{0} 的数据，即最后一次能读取服务器的时间。</value>
@@ -5296,8 +5308,8 @@
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>首先：卡住的是哪一半？</value>
   </data>
-  <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
-    <value>固定令牌（高级；按原样使用而不是获取）</value>
+  <data name="Fixed token" xml:space="preserve">
+    <value>固定令牌</value>
   </data>
   <data name="Flag: add a header the reader sees as a warning" xml:space="preserve">
     <value>标记：添加一个读者会看到的警告邮件头</value>
@@ -5359,6 +5371,9 @@
   <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the SSL certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
     <value>对于密钥文件是加密 PEM 的每个证书，请在“SSL 证书”页设置该证书的私钥密码（密码短语由创建密钥的人设置，因此只有您能提供）- 或者把该文件替换为未加密的密钥。</value>
   </data>
+  <data name="For example 03:00, Sun 03:00 or Sat,Sun 02:00-05:00." xml:space="preserve">
+    <value>例如 03:00、Sun 03:00 或 Sat,Sun 02:00-05:00。</value>
+  </data>
   <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
     <value>例如 10.0.0.5 或 10.0.0.0/24</value>
   </data>
@@ -5386,8 +5401,8 @@
   <data name="Forward e-mail" xml:space="preserve">
     <value>转发电子邮件</value>
   </data>
-  <data name="Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)" xml:space="preserve">
-    <value>本服务器发出的所有 Web 请求（源、其下载、JWKS、令牌内省）所用的正向代理（host:port；留空 = 直连；不使用代理凭据）</value>
+  <data name="Forward proxy for this server's web requests (host:port; empty = direct)" xml:space="preserve">
+    <value>本服务器的 Web 请求所用的正向代理（host:port；留空 = 直连）</value>
   </data>
   <data name="Forward to {0}" xml:space="preserve">
     <value>前进到 {0}</value>
@@ -5424,9 +5439,6 @@
   </data>
   <data name="From (a_ddress)" xml:space="preserve">
     <value>发件人（地址）(_D)</value>
-  </data>
-  <data name="From 1 hour to 168, a week." xml:space="preserve">
-    <value>从 1 小时到 168 小时（一周）。</value>
   </data>
   <data name="From 5 to 3600. Only used when the metrics endpoint above is set." xml:space="preserve">
     <value>5 到 3600 之间。只在设置了上面的指标端点时使用。</value>
@@ -5605,11 +5617,11 @@
   <data name="HTTP Basic user name for /metrics (empty = Basic off)" xml:space="preserve">
     <value>/metrics 的 HTTP Basic 用户名（留空 = 关闭 Basic）</value>
   </data>
-  <data name="HTTP port (80 to enable, 0 = disabled)" xml:space="preserve">
-    <value>HTTP 端口（80 为启用，0 = 禁用）</value>
+  <data name="HTTP port (0 = off)" xml:space="preserve">
+    <value>HTTP 端口（0 = 关闭）</value>
   </data>
-  <data name="HTTPS port (443 to enable, 0 = disabled)" xml:space="preserve">
-    <value>HTTPS 端口（443 为启用，0 = 禁用）</value>
+  <data name="HTTPS port (0 = off)" xml:space="preserve">
+    <value>HTTPS 端口（0 = 关闭）</value>
   </data>
   <data name="Handing {0} to the update helper…" xml:space="preserve">
     <value>正在将 {0} 交给更新助手…</value>
@@ -5641,8 +5653,8 @@
   <data name="Hard-link each recipient's copy instead of copying it" xml:space="preserve">
     <value>为每个收件人的副本创建硬链接，而不是复制</value>
   </data>
-  <data name="Header fields to oversign in outbound DKIM signatures (comma separated, empty = off)" xml:space="preserve">
-    <value>出站 DKIM 签名中要过度签名的标头字段（以逗号分隔，留空 = 关闭）</value>
+  <data name="Header fields to oversign in outbound DKIM signatures (comma separated; empty = off)" xml:space="preserve">
+    <value>出站 DKIM 签名中要过度签名的标头字段（以逗号分隔；留空 = 关闭）</value>
   </data>
   <data name="Header read chunk size (bytes)" xml:space="preserve">
     <value>标头读取块大小（字节）</value>
@@ -5692,8 +5704,8 @@
   <data name="Hold" xml:space="preserve">
     <value>保留</value>
   </data>
-  <data name="Hold a refused connection open before dropping it (seconds, 0 = drop immediately)" xml:space="preserve">
-    <value>在丢弃被拒绝的连接之前保持其打开（秒，0 = 立即丢弃）</value>
+  <data name="Hold a refused connection open before dropping it (seconds; 0 = drop immediately)" xml:space="preserve">
+    <value>在丢弃被拒绝的连接之前保持其打开（秒；0 = 立即丢弃）</value>
   </data>
   <data name="Hold attachments for the sandbox's verdict" xml:space="preserve">
     <value>保留附件直到沙箱给出判定</value>
@@ -5797,8 +5809,8 @@
   <data name="How long a signed-in session of the webmail, the self-service portal or the Control Deck lasts. A domain or an account can hold its own value, on the Levels tab of its dialog." xml:space="preserve">
     <value>网页邮箱、自助服务门户或 Control Deck 的登录会话持续多久。域或账户可以在其对话框的“级别”选项卡上设置自己的值。</value>
   </data>
-  <data name="How long an answer is remembered, in minutes" xml:space="preserve">
-    <value>回答记住的时长，单位分钟</value>
+  <data name="How long an answer is remembered (minutes)" xml:space="preserve">
+    <value>回答记住的时长（分钟）</value>
   </data>
   <data name="How long every worker may be busy before the saturation report. 0 = reporting off." xml:space="preserve">
     <value>在发出饱和报告之前，所有工作线程可以一直忙碌多久。0 = 关闭报告。</value>
@@ -5812,8 +5824,8 @@
   <data name="How long the server will go on finalizing an accepted message before answering 451 and asking the sender to retry, rather than holding the connection open indefinitely." xml:space="preserve">
     <value>服务器对已接受的邮件持续进行最终处理多久之后才应答 451 并要求发件方重试，而不是无限期保持连接打开。</value>
   </data>
-  <data name="How long to wait, in seconds" xml:space="preserve">
-    <value>等待时长，单位秒</value>
+  <data name="How long to wait (seconds)" xml:space="preserve">
+    <value>等待时长（秒）</value>
   </data>
   <data name="How mail gets in, where it goes next, and what happens to it on the way." xml:space="preserve">
     <value>邮件如何进入、接下来去哪里，以及途中会发生什么。</value>
@@ -6198,6 +6210,9 @@
   <data name="It is safe to enable signing." xml:space="preserve">
     <value>可以放心启用签名。</value>
   </data>
+  <data name="It is sent as spamd's User: header." xml:space="preserve">
+    <value>它作为 spamd 的 User: 标头发送。</value>
+  </data>
   <data name="It may use %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED% and %MACRO_PERCENT%." xml:space="preserve">
     <value>可以使用 %MACRO_MAILBOX%、%MACRO_QUOTA%、%MACRO_USED% 和 %MACRO_PERCENT%。</value>
   </data>
@@ -6207,8 +6222,8 @@
   <data name="JSON API under /api/v1 plus the browser-based Control Deck at the listener root. Authenticated with the administrator password, or with a scoped API key - a key can be read-only, limited to named domains and source addresses, given an expiry and revoked on its own, none of which the administrator password can. Keys are managed on the REST API keys page. TLS is required unless the listener is bound to 127.0.0.1." xml:space="preserve">
     <value>位于 /api/v1 下的 JSON API，加上监听器根路径上基于浏览器的 Control Deck。使用管理员密码或有作用域的 API 密钥进行身份验证 - 密钥可以是只读的、限制到指定的域和源地址、设有到期时间并可单独吊销，这些管理员密码都做不到。密钥在“REST API 密钥”页管理。除非监听器绑定到 127.0.0.1，否则必须使用 TLS。</value>
   </data>
-  <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
-    <value>JWK 集 URL（提供方发布的签名密钥；留空 = 仅使用密钥文件）</value>
+  <data name="JWK Set URL (empty = the key file only)" xml:space="preserve">
+    <value>JWK 集 URL（留空 = 仅使用密钥文件）</value>
   </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>日志归档与双重投递</value>
@@ -6225,7 +6240,7 @@
   <data name="Keep archived messages for (_days; 0 = for ever)" xml:space="preserve">
     <value>保留已存档邮件的天数(_D)（0 = 永久）</value>
   </data>
-  <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
+  <data name="Keep greylisting active during the record expiration window" xml:space="preserve">
     <value>在记录到期窗口期间保持灰名单活动</value>
   </data>
   <data name="Keep log files open (performance)" xml:space="preserve">
@@ -6249,11 +6264,17 @@
   <data name="Keep the record of the retiring selector &quot;{0}&quot; published until {1}, for mail signed with it that is still on its way." xml:space="preserve">
     <value>请将正在停用的选择器“{0}”的记录保持发布到 {1}，供使用它签名、仍在途中的邮件使用。</value>
   </data>
+  <data name="Keep the record of trap hits for (days, 1 to 3,650)" xml:space="preserve">
+    <value>陷阱命中记录的保留时长（天，1 到 3,650）</value>
+  </data>
   <data name="Keep the settings this version ships with, and apply no profile? The checklist stops asking; any profile can still be applied later." xml:space="preserve">
     <value>保留此版本附带的设置，不应用任何配置方案？检查清单将不再询问；以后仍可应用任何配置方案。</value>
   </data>
   <data name="Keep the shipped settings" xml:space="preserve">
     <value>保留出厂设置</value>
+  </data>
+  <data name="Keeping everything also skips the prune at start-up." xml:space="preserve">
+    <value>全部保留时也会跳过启动时的清理。</value>
   </data>
   <data name="Keeping several generations of messages needs compression: without 'Compress destination files (zip)' every backup writes its message files into the same DataBackup folder, overwriting the previous run's, so retention can only keep generations of the small settings-and-domains archives." xml:space="preserve">
     <value>保留多代邮件需要压缩：如果没有“压缩目标文件（zip）”，每次备份都会把邮件文件写入同一个 DataBackup 文件夹，覆盖上一次运行的文件，因此保留策略只能保留较小的设置和域存档的多个版本。</value>
@@ -6327,11 +6348,17 @@
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>提交的最大附件（KB）</value>
   </data>
-  <data name="Largest key accepted, in bytes (1024 to 1048576)" xml:space="preserve">
-    <value>接受的最大密钥，以字节计（1024 到 1048576）</value>
+  <data name="Largest key accepted (bytes, 1,024 to 1,048,576)" xml:space="preserve">
+    <value>接受的最大密钥（字节，1,024 到 1,048,576）</value>
   </data>
-  <data name="Largest message in KB (0 is no limit)" xml:space="preserve">
-    <value>最大邮件大小 KB（0 表示不限）</value>
+  <data name="Largest message (KB; 0 = no limit)" xml:space="preserve">
+    <value>最大邮件（KB；0 = 不限制）</value>
+  </data>
+  <data name="Largest message to spam-scan (KB; 0 = no limit)" xml:space="preserve">
+    <value>进行垃圾邮件扫描的最大邮件（KB；0 = 不限制）</value>
+  </data>
+  <data name="Largest message to virus-scan (KB; 0 = no limit)" xml:space="preserve">
+    <value>进行病毒扫描的最大邮件（KB；0 = 不限制）</value>
   </data>
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>上次备份：{0}（{1}）。</value>
@@ -6558,8 +6585,8 @@
   <data name="Log categories" xml:space="preserve">
     <value>日志类别</value>
   </data>
-  <data name="Log database queries slower than N ms (0 = off)" xml:space="preserve">
-    <value>记录慢于 N 毫秒的数据库查询（0 = 关闭）</value>
+  <data name="Log database queries slower than (milliseconds; 0 = off)" xml:space="preserve">
+    <value>记录慢于以下时长的数据库查询（毫秒；0 = 关闭）</value>
   </data>
   <data name="Log destination" xml:space="preserve">
     <value>日志目标</value>
@@ -6573,8 +6600,8 @@
   <data name="Log folder" xml:space="preserve">
     <value>日志文件夹</value>
   </data>
-  <data name="Log level (3 or above = full detail; 2 or lower = quieter)" xml:space="preserve">
-    <value>日志级别（3 或以上 = 完整详细信息；2 或以下 = 更安静）</value>
+  <data name="Log level" xml:space="preserve">
+    <value>日志级别</value>
   </data>
   <data name="Log line format" xml:space="preserve">
     <value>日志行格式</value>
@@ -6594,8 +6621,8 @@
   <data name="Logon failures" xml:space="preserve">
     <value>登录失败</value>
   </data>
-  <data name="Longest such window, in minutes" xml:space="preserve">
-    <value>此类窗口的最长时间 (分钟)</value>
+  <data name="Longest such window (minutes)" xml:space="preserve">
+    <value>此类窗口的最长时间（分钟）</value>
   </data>
   <data name="Look for &quot;Task SMTP-accept session=42 ip=... waited 8 seconds for a thread in work queue Asynchronous task queue&quot; and, when it is severe, &quot;All 15 threads in work queue Asynchronous task queue have been busy for at least 120 seconds, so no further task on this queue can start&quot;. That means every worker is occupied and messages are queuing behind them: one slow dependency does this to the whole server, which is why a single wedged scanner used to look like the server had stopped responding. The task names say which sessions are stuck; the stage timings say what they are stuck on." xml:space="preserve">
     <value>查找 "Task SMTP-accept session=42 ip=... waited 8 seconds for a thread in work queue Asynchronous task queue"，情况严重时则查找 "All 15 threads in work queue Asynchronous task queue have been busy for at least 120 seconds, so no further task on this queue can start"。这表示所有工作线程都被占用，邮件在它们后面排队：一个缓慢的依赖项就会让整个服务器如此，这就是为什么过去一个卡住的扫描器看起来像是服务器停止响应了。任务名称说明哪些会话卡住了；阶段耗时说明它们卡在什么上面。</value>
@@ -6680,6 +6707,12 @@
   </data>
   <data name="MX check score" xml:space="preserve">
     <value>MX 检查分数</value>
+  </data>
+  <data name="MX hosts tried per attempt, times the attempt number" xml:space="preserve">
+    <value>每次尝试的 MX 主机数，乘以尝试次序</value>
+  </data>
+  <data name="MX hosts tried per attempt, times the attempt number (0 = all)" xml:space="preserve">
+    <value>每次尝试的 MX 主机数，乘以尝试次序（0 = 全部）</value>
   </data>
   <data name="MX query" xml:space="preserve">
     <value>MX 查询</value>
@@ -6869,8 +6902,8 @@
   <data name="ManageSieve bind address" xml:space="preserve">
     <value>ManageSieve 绑定地址</value>
   </data>
-  <data name="ManageSieve port (0 = disabled)" xml:space="preserve">
-    <value>ManageSieve 端口（0 = 禁用）</value>
+  <data name="ManageSieve port (0 = off)" xml:space="preserve">
+    <value>ManageSieve 端口（0 = 关闭）</value>
   </data>
   <data name="Managed mailing lists" xml:space="preserve">
     <value>托管的邮件列表</value>
@@ -6881,11 +6914,11 @@
   <data name="Marked inactive" xml:space="preserve">
     <value>已标记为非活动</value>
   </data>
-  <data name="Masked addresses a person may make (0 = none; up to 200)" xml:space="preserve">
-    <value>用户可以创建的掩码地址数（0 = 无；最多 200）</value>
+  <data name="Masked addresses a person may make (up to 200; 0 = none)" xml:space="preserve">
+    <value>用户可以创建的掩码地址数（最多 200；0 = 无）</value>
   </data>
-  <data name="Master user (empty = disabled)" xml:space="preserve">
-    <value>主用户（留空 = 禁用）</value>
+  <data name="Master user (empty = off)" xml:space="preserve">
+    <value>主用户（留空 = 关闭）</value>
   </data>
   <data name="Match ALL criteria (AND)" xml:space="preserve">
     <value>匹配所有条件（AND）</value>
@@ -6920,51 +6953,6 @@
   <data name="Matching the authorization endpoint." xml:space="preserve">
     <value>与授权端点相匹配的端点。</value>
   </data>
-  <data name="Max MX hosts to try (0 = all)" xml:space="preserve">
-    <value>最多尝试的 MX 主机数（0 = 全部）</value>
-  </data>
-  <data name="Max asynchronous task threads" xml:space="preserve">
-    <value>最大异步任务线程数</value>
-  </data>
-  <data name="Max authenticated submissions per client IP per minute (0 = unlimited)" xml:space="preserve">
-    <value>每个客户端 IP 每分钟最大已验证提交数（0 = 不限制）</value>
-  </data>
-  <data name="Max deliveries in flight for one sending domain (0 = unlimited)" xml:space="preserve">
-    <value>单个发件域名同时进行的最大投递数 (0 = 不限)</value>
-  </data>
-  <data name="Max delivery threads" xml:space="preserve">
-    <value>最大投递线程数</value>
-  </data>
-  <data name="Max message size (KB, 0 = unlimited)" xml:space="preserve">
-    <value>最大邮件大小（KB，0 = 不限制）</value>
-  </data>
-  <data name="Max message size to spam-scan (KB, 0 = unlimited)" xml:space="preserve">
-    <value>进行垃圾邮件扫描的最大邮件大小（KB，0 = 不限制）</value>
-  </data>
-  <data name="Max message size to virus-scan (KB, 0 = unlimited)" xml:space="preserve">
-    <value>进行病毒扫描的最大邮件大小（KB，0 = 不限制）</value>
-  </data>
-  <data name="Max messages per account per period (0 = no limit)" xml:space="preserve">
-    <value>每个账户每周期最大邮件数（0 = 不限制）</value>
-  </data>
-  <data name="Max outbound messages per destination domain per minute (0 = unlimited)" xml:space="preserve">
-    <value>每个目标域每分钟最大出站邮件数（0 = 不限制）</value>
-  </data>
-  <data name="Max parallel external POP3 fetch threads" xml:space="preserve">
-    <value>最大并行外部 POP3 收取线程数</value>
-  </data>
-  <data name="Max recipients per account per period (0 = no limit)" xml:space="preserve">
-    <value>每个账户每周期最大收件人数（0 = 不限制）</value>
-  </data>
-  <data name="Max recipients per message" xml:space="preserve">
-    <value>每封邮件最大收件人数</value>
-  </data>
-  <data name="Max simultaneous connections (0 = unlimited)" xml:space="preserve">
-    <value>最大同时连接数（0 = 不限制）</value>
-  </data>
-  <data name="Max simultaneous connections to one destination without a remote domain policy (0 = unlimited)" xml:space="preserve">
-    <value>对没有远程域策略的单个目标的最大并发连接数 (0 = 不限)</value>
-  </data>
   <data name="MaxMind country database (.mmdb)" xml:space="preserve">
     <value>MaxMind 国家数据库（.mmdb）</value>
   </data>
@@ -6973,6 +6961,9 @@
   </data>
   <data name="Maximise" xml:space="preserve">
     <value>最大化</value>
+  </data>
+  <data name="Maximum MX hosts to try (0 = all)" xml:space="preserve">
+    <value>最多尝试的 MX 主机数（0 = 全部）</value>
   </data>
   <data name="Maximum _domain size (MB; 0 = no limit)" xml:space="preserve">
     <value>最大域大小(_D)（MB；0 = 不限制）</value>
@@ -6983,8 +6974,20 @@
   <data name="Maximum account size (MB)" xml:space="preserve">
     <value>最大账户大小（MB）</value>
   </data>
-  <data name="Maximum characters per log line (minimum 100; only applied at log level 2 or lower)" xml:space="preserve">
-    <value>每行日志的最大字符数（最小 100；仅在日志级别 2 或以下时应用）</value>
+  <data name="Maximum asynchronous task threads" xml:space="preserve">
+    <value>最大异步任务线程数</value>
+  </data>
+  <data name="Maximum authenticated submissions per client IP per minute (0 = no limit)" xml:space="preserve">
+    <value>每个客户端 IP 每分钟最大已验证提交数（0 = 不限制）</value>
+  </data>
+  <data name="Maximum characters per log line (at least 100)" xml:space="preserve">
+    <value>每行日志的最大字符数（至少 100）</value>
+  </data>
+  <data name="Maximum deliveries in flight for one sending domain (0 = no limit)" xml:space="preserve">
+    <value>单个发件域名同时进行的最大投递数（0 = 不限制）</value>
+  </data>
+  <data name="Maximum delivery threads" xml:space="preserve">
+    <value>最大投递线程数</value>
   </data>
   <data name="Maximum domain size (MB)" xml:space="preserve">
     <value>最大域大小（MB）</value>
@@ -6995,6 +6998,12 @@
   <data name="Maximum message size (KB)" xml:space="preserve">
     <value>最大邮件大小（KB）</value>
   </data>
+  <data name="Maximum message size (KB; 0 = no limit)" xml:space="preserve">
+    <value>最大邮件大小（KB；0 = 不限制）</value>
+  </data>
+  <data name="Maximum messages per account per period (0 = no limit)" xml:space="preserve">
+    <value>每个账户每周期最大邮件数（0 = 不限制）</value>
+  </data>
   <data name="Maximum number of accounts" xml:space="preserve">
     <value>最大账户数</value>
   </data>
@@ -7003,6 +7012,24 @@
   </data>
   <data name="Maximum number of distribution lists" xml:space="preserve">
     <value>最大分发列表数</value>
+  </data>
+  <data name="Maximum outbound messages per destination domain per minute (0 = no limit)" xml:space="preserve">
+    <value>每个目标域每分钟最大出站邮件数（0 = 不限制）</value>
+  </data>
+  <data name="Maximum parallel external POP3 fetch threads" xml:space="preserve">
+    <value>最大并行外部 POP3 收取线程数</value>
+  </data>
+  <data name="Maximum recipients per account per period (0 = no limit)" xml:space="preserve">
+    <value>每个账户每周期最大收件人数（0 = 不限制）</value>
+  </data>
+  <data name="Maximum recipients per message" xml:space="preserve">
+    <value>每封邮件最大收件人数</value>
+  </data>
+  <data name="Maximum simultaneous connections (0 = no limit)" xml:space="preserve">
+    <value>最大同时连接数（0 = 不限制）</value>
+  </data>
+  <data name="Maximum simultaneous connections to one destination without a remote domain policy (0 = no limit)" xml:space="preserve">
+    <value>对没有远程域策略的单个目标的最大并发连接数（0 = 不限制）</value>
   </data>
   <data name="Maximum size (MB)" xml:space="preserve">
     <value>最大大小（MB）</value>
@@ -7060,8 +7087,8 @@
   <data name="Message finalization deadline (240)" xml:space="preserve">
     <value>邮件最终处理期限（240）</value>
   </data>
-  <data name="Message finalization deadline (seconds; 0 = no deadline)" xml:space="preserve">
-    <value>邮件最终处理期限（秒；0 = 无期限）</value>
+  <data name="Message finalization deadline (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>邮件最终处理期限（秒；0 = 无时间限制）</value>
   </data>
   <data name="Message for colleag_ues (empty = same as above)" xml:space="preserve">
     <value>发给同事的正文 (为空 = 与上面相同)(_U)</value>
@@ -7120,8 +7147,8 @@
   <data name="Message-store consistency" xml:space="preserve">
     <value>邮件存储一致性</value>
   </data>
-  <data name="Messages a minute (0 is unlimited)" xml:space="preserve">
-    <value>每分钟邮件数（0 表示不限）</value>
+  <data name="Messages a minute (0 = no limit)" xml:space="preserve">
+    <value>每分钟邮件数（0 = 不限制）</value>
   </data>
   <data name="Messages held for review instead of being refused, and the two things you can do with each: release it to the recipient, or delete it." xml:space="preserve">
     <value>被暂挂等待审核而不是被拒绝的邮件，以及您对每一封可以做的两件事：把它放行给收件人，或者删除它。</value>
@@ -7141,8 +7168,8 @@
   <data name="Messages larger than {0} are not scanned. They are delivered, not refused, and nothing is written to the log when it happens — so this limit is invisible in normal operation. 0 means &quot;no limit&quot; and is the setting that closes the gap." xml:space="preserve">
     <value>大于 {0} 的邮件不会被扫描。它们会被投递，不会被拒绝，发生时也不会向日志写入任何内容 — 因此这个限制在正常运行中是看不见的。0 表示“不限制”，是弥补这一漏洞的设置。</value>
   </data>
-  <data name="Messages one backfill pass reads before pausing (1-100000)" xml:space="preserve">
-    <value>一次回填遍历在暂停之前读取的邮件数（1-100000）</value>
+  <data name="Messages one backfill pass reads before pausing (1 to 100,000)" xml:space="preserve">
+    <value>一次回填遍历在暂停之前读取的邮件数（1 到 100,000）</value>
   </data>
   <data name="Messages per full-index pass" xml:space="preserve">
     <value>每次完整索引遍历的邮件数</value>
@@ -7186,8 +7213,8 @@
   <data name="Metrics bind address" xml:space="preserve">
     <value>指标绑定地址</value>
   </data>
-  <data name="Metrics port (0 = disabled)" xml:space="preserve">
-    <value>指标端口（0 = 禁用）</value>
+  <data name="Metrics port (0 = off)" xml:space="preserve">
+    <value>指标端口（0 = 关闭）</value>
   </data>
   <data name="Microsoft 365 turns Basic authentication for SMTP AUTH off at the end of December 2026. When the relay host below is listed here, hMailServer authenticates with an OAuth2 bearer token (XOAUTH2) instead of the password - fetched from your tenant's token endpoint with the client credentials of an app registration that has the SMTP.SendAsApp permission. The user name above stays: it is the mailbox being relayed as." xml:space="preserve">
     <value>Microsoft 365 将于 2026 年 12 月底关闭 SMTP AUTH 的 Basic 身份验证。当下面的中继主机列在此处时，hMailServer 会用 OAuth2 持有者令牌（XOAUTH2）而不是密码进行身份验证 - 令牌通过具有 SMTP.SendAsApp 权限的应用注册的客户端凭据从您租户的令牌端点获取。上面的用户名保持不变：它是被中继的邮箱身份。</value>
@@ -7228,14 +7255,14 @@
   <data name="Minimum timeout (seconds)" xml:space="preserve">
     <value>最小超时（秒）</value>
   </data>
-  <data name="Minutes a mailbox key stays open after its last use (1 to 1440)" xml:space="preserve">
-    <value>邮箱密钥在最后一次使用后保持打开的分钟数（1 到 1440）</value>
+  <data name="Minutes a mailbox key stays open after its last use (1 to 1,440)" xml:space="preserve">
+    <value>邮箱密钥在最后一次使用后保持打开的分钟数（1 到 1,440）</value>
   </data>
   <data name="Minutes a message waits for a verdict" xml:space="preserve">
     <value>邮件等待判定的分钟数</value>
   </data>
-  <data name="Minutes a password-reset link works (5 to 1440)" xml:space="preserve">
-    <value>密码重置链接有效的分钟数（5 到 1440）</value>
+  <data name="Minutes a password-reset link works (5 to 1,440)" xml:space="preserve">
+    <value>密码重置链接有效的分钟数（5 到 1,440）</value>
   </data>
   <data name="Minutes between downloads" xml:space="preserve">
     <value>两次下载之间的分钟数</value>
@@ -7249,14 +7276,11 @@
   <data name="Minutes between scan attempts while held" xml:space="preserve">
     <value>暂挂期间两次扫描尝试之间的分钟数</value>
   </data>
-  <data name="Minutes the sending address is banned (0 = no ban; up to 525600)" xml:space="preserve">
-    <value>发送地址被封禁的分钟数（0 = 不封禁；最多 525600）</value>
-  </data>
   <data name="Minutes to hold a destination that asked this server to slow down (0 = off)" xml:space="preserve">
     <value>要求本服务器放慢速度的目标的保留分钟数 (0 = 关闭)</value>
   </data>
-  <data name="Mirror address (empty = disabled)" xml:space="preserve">
-    <value>镜像地址（留空 = 禁用）</value>
+  <data name="Mirror address (empty = off)" xml:space="preserve">
+    <value>镜像地址（留空 = 关闭）</value>
   </data>
   <data name="Mirror every folder (IMAP only: a migration, verbatim, with flags and dates)" xml:space="preserve">
     <value>镜像每个文件夹（仅 IMAP：逐字迁移，包括标记和日期）</value>
@@ -7413,6 +7437,9 @@
   </data>
   <data name="Never auto-ban these addresses" xml:space="preserve">
     <value>永不自动封禁这些地址</value>
+  </data>
+  <data name="Never auto-ban these addresses (comma separated)" xml:space="preserve">
+    <value>永不自动封禁这些地址（逗号分隔）</value>
   </data>
   <data name="Never greylisted." xml:space="preserve">
     <value>从不进行灰名单处理。</value>
@@ -8395,9 +8422,6 @@
   <data name="On other pages" xml:space="preserve">
     <value>在其他页面上</value>
   </data>
-  <data name="On stop, wait up to N seconds for active sessions to finish (0 = stop immediately)" xml:space="preserve">
-    <value>停止时，最多等待 N 秒让活动会话完成（0 = 立即停止）</value>
-  </data>
   <data name="On the Administrative access page's Two-factor tab, enrol an authenticator app for the administrator password." xml:space="preserve">
     <value>在管理访问权限页面的双因素选项卡中，为管理员密码注册身份验证器应用。</value>
   </data>
@@ -8473,8 +8497,8 @@
   <data name="One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
     <value>有一个已配置的端口未被监听：{0}。如果你刚刚添加或更改了它，请重新初始化服务器：服务器在启动时读取端口列表。否则就是另一个程序占用了该端口、该地址在本机上不存在，或者无法加载某个 TLS 端口的证书 - 错误日志会说明是哪一种。</value>
   </data>
-  <data name="One event script invocation. 0 = no bound." xml:space="preserve">
-    <value>单次事件脚本调用。0 = 不限制。</value>
+  <data name="One event script invocation. 0 = no time limit." xml:space="preserve">
+    <value>单次事件脚本调用。0 = 无时间限制。</value>
   </data>
   <data name="One external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>有 1 个外部 POP3 收取账户关闭了反病毒，因此由它收取的邮件会以未扫描的状态投递，无论此处如何设置。该开关在收取账户上，而不在本页上。</value>
@@ -8509,7 +8533,10 @@
   <data name="Only after SMTP authentication" xml:space="preserve">
     <value>仅在 SMTP 身份验证后</value>
   </data>
-  <data name="Only archive mail for these domains (comma-separated; empty = every message)" xml:space="preserve">
+  <data name="Only applied at log level 2 or lower." xml:space="preserve">
+    <value>仅在日志级别 2 或以下时应用。</value>
+  </data>
+  <data name="Only archive mail for these domains (comma separated; empty = every message)" xml:space="preserve">
     <value>只存档这些域的邮件（以逗号分隔；留空 = 每封邮件）</value>
   </data>
   <data name="Only destinations named here get a bearer token; every other relay keeps password authentication. This is deliberate - a token presented to the wrong relay is a leaked token." xml:space="preserve">
@@ -8677,14 +8704,14 @@
   <data name="OpenPGP key" xml:space="preserve">
     <value>OpenPGP 密钥</value>
   </data>
-  <data name="OpenTelemetry OTLP endpoint for logs (empty = disabled)" xml:space="preserve">
-    <value>用于日志的 OpenTelemetry OTLP 端点（留空 = 禁用）</value>
+  <data name="OpenTelemetry OTLP endpoint for logs (empty = off)" xml:space="preserve">
+    <value>用于日志的 OpenTelemetry OTLP 端点（留空 = 关闭）</value>
   </data>
-  <data name="OpenTelemetry OTLP endpoint for metrics (empty = disabled)" xml:space="preserve">
-    <value>用于指标的 OpenTelemetry OTLP 端点（留空 = 禁用）</value>
+  <data name="OpenTelemetry OTLP endpoint for metrics (empty = off)" xml:space="preserve">
+    <value>用于指标的 OpenTelemetry OTLP 端点（留空 = 关闭）</value>
   </data>
-  <data name="OpenTelemetry OTLP endpoint for traces (empty = disabled)" xml:space="preserve">
-    <value>用于跟踪的 OpenTelemetry OTLP 端点（留空 = 禁用）</value>
+  <data name="OpenTelemetry OTLP endpoint for traces (empty = off)" xml:space="preserve">
+    <value>用于跟踪的 OpenTelemetry OTLP 端点（留空 = 关闭）</value>
   </data>
   <data name="OpenTelemetry service name" xml:space="preserve">
     <value>OpenTelemetry 服务名称</value>
@@ -8743,8 +8770,8 @@
   <data name="Other" xml:space="preserve">
     <value>其他</value>
   </data>
-  <data name="Other POP3 or IMAP accounts a person may collect from (0 = none; up to 20)" xml:space="preserve">
-    <value>用户可以从中收取邮件的其他 POP3 或 IMAP 账户数（0 = 无；最多 20）</value>
+  <data name="Other POP3 or IMAP accounts a person may collect from (up to 20; 0 = none)" xml:space="preserve">
+    <value>用户可以从中收取邮件的其他 POP3 或 IMAP 账户数（最多 20；0 = 无）</value>
   </data>
   <data name="Other addresses to check (commas or spaces)" xml:space="preserve">
     <value>要检查的其他地址（逗号或空格）</value>
@@ -8794,8 +8821,8 @@
   <data name="PBKDF2 (default)" xml:space="preserve">
     <value>PBKDF2（默认）</value>
   </data>
-  <data name="PBKDF2 iterations for new hashes (0 = the built-in 210,000; 10,000 to 10,000,000)" xml:space="preserve">
-    <value>新哈希的 PBKDF2 迭代次数（0 = 内置的 210,000；10,000 至 10,000,000）</value>
+  <data name="PBKDF2 iterations for new hashes (10,000 to 10,000,000; 0 = the built-in 210,000)" xml:space="preserve">
+    <value>新哈希的 PBKDF2 迭代次数（10,000 至 10,000,000；0 = 内置的 210,000）</value>
   </data>
   <data name="PBKDF2 or stronger" xml:space="preserve">
     <value>PBKDF2 或更强</value>
@@ -8821,10 +8848,10 @@
   <data name="POP3 - download, then delete from the server as Days to keep says" xml:space="preserve">
     <value>POP3 - 下载，然后按“保留天数”的设置从服务器删除</value>
   </data>
-  <data name="POP3 client maximum timeout (s)" xml:space="preserve">
+  <data name="POP3 client maximum timeout (seconds)" xml:space="preserve">
     <value>POP3 客户端最大超时（秒）</value>
   </data>
-  <data name="POP3 client minimum timeout (s)" xml:space="preserve">
+  <data name="POP3 client minimum timeout (seconds)" xml:space="preserve">
     <value>POP3 客户端最小超时（秒）</value>
   </data>
   <data name="POP3 connections" xml:space="preserve">
@@ -8845,10 +8872,10 @@
   <data name="POP3 server" xml:space="preserve">
     <value>POP3 服务器</value>
   </data>
-  <data name="POP3 server maximum timeout (s)" xml:space="preserve">
+  <data name="POP3 server maximum timeout (seconds)" xml:space="preserve">
     <value>POP3 服务器最大超时（秒）</value>
   </data>
-  <data name="POP3 server minimum timeout (s)" xml:space="preserve">
+  <data name="POP3 server minimum timeout (seconds)" xml:space="preserve">
     <value>POP3 服务器最小超时（秒）</value>
   </data>
   <data name="POP3 sessions" xml:space="preserve">
@@ -9027,11 +9054,11 @@
   <data name="Performance" xml:space="preserve">
     <value>性能</value>
   </data>
-  <data name="Period length in hours (default 24)" xml:space="preserve">
-    <value>周期长度（小时）（默认 24）</value>
+  <data name="Period length (hours, 1 to 168)" xml:space="preserve">
+    <value>周期长度（小时，1 到 168）</value>
   </data>
-  <data name="Periodically cross-check message rows against files on disk (read-only; writes a report on divergence)" xml:space="preserve">
-    <value>定期把邮件行与磁盘上的文件交叉核对（只读；发现差异时写入报告）</value>
+  <data name="Periodically cross-check message rows against files on disk" xml:space="preserve">
+    <value>定期把邮件行与磁盘上的文件交叉核对</value>
   </data>
   <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters. Empty, the default, is an account-number detector that never fires. A pattern the server cannot compile is refused." xml:space="preserve">
     <value>Perl 语法，在邮件正文及其文本附件中搜索，最多 2000 个字符。默认为空，即一个永远不会匹配的账号检测器。服务器无法编译的模式会被拒绝。</value>
@@ -9072,8 +9099,8 @@
   <data name="Policy for mailbox passwords" xml:space="preserve">
     <value>邮箱密码策略</value>
   </data>
-  <data name="Policy max age (seconds; default 604800 = 7 days)" xml:space="preserve">
-    <value>策略最长有效期（秒；默认 604800 = 7 天）</value>
+  <data name="Policy max age (seconds, 86,400 to 31,557,600)" xml:space="preserve">
+    <value>策略最长有效期（秒，86,400 到 31,557,600）</value>
   </data>
   <data name="Policy refusal" xml:space="preserve">
     <value>策略拒绝</value>
@@ -9084,8 +9111,8 @@
   <data name="Port" xml:space="preserve">
     <value>端口</value>
   </data>
-  <data name="Port (0 = disabled)" xml:space="preserve">
-    <value>端口（0 = 禁用）</value>
+  <data name="Port (0 = off)" xml:space="preserve">
+    <value>端口（0 = 关闭）</value>
   </data>
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
     <value>端口 25 的判定标准与其他端口不同，而且是有意如此：那里的对端通常是另一台邮件服务器，在它上面要求加密会拒绝来自无法提供任何加密的发件方的邮件。在其他所有端口上，对端都是带密码的客户端。</value>
@@ -9213,8 +9240,11 @@
   <data name="Produce or obtain a CA (for example with OpenSSL or your PKI), save the CA certificate, with any intermediate ones, as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates." xml:space="preserve">
     <value>生成或获取一个 CA（例如用 OpenSSL 或您的 PKI），把 CA 证书（连同可能有的中间证书）保存为服务器上的 PEM 证书包，把端口的 CA 文件指向它，然后用该 CA 向每个必须连接的客户端颁发客户端证书。hMailServer 会根据该证书包进行验证，但无法创建 CA 或客户端证书。</value>
   </data>
-  <data name="Profile to scan as (spamd User: header; empty = spamd's global configuration)" xml:space="preserve">
-    <value>扫描时所用的配置文件（spamd 的 User: 标头；留空 = spamd 的全局配置）</value>
+  <data name="Profile to scan as (empty = spamd's global configuration)" xml:space="preserve">
+    <value>扫描时所用的配置文件（留空 = spamd 的全局配置）</value>
+  </data>
+  <data name="ProgIDs or CLSIDs." xml:space="preserve">
+    <value>ProgIDs 或 CLSIDs。</value>
   </data>
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>封禁或解封地址时运行的程序（留空 = 无）</value>
@@ -9267,8 +9297,8 @@
   <data name="Protocols" xml:space="preserve">
     <value>协议</value>
   </data>
-  <data name="Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)" xml:space="preserve">
-    <value>允许发送 PROXY 标头的代理（以逗号分隔的地址或 CIDR 范围）</value>
+  <data name="Proxies allowed to send a PROXY header (comma separated)" xml:space="preserve">
+    <value>允许发送 PROXY 标头的代理（以逗号分隔）</value>
   </data>
   <data name="Public" xml:space="preserve">
     <value>公开</value>
@@ -9435,8 +9465,8 @@
   <data name="Raise the threshold here and clear the counted failures. An address already locked out stays out until its &quot;Auto-ban:&quot; range expires, or you delete that range on the IP ranges page." xml:space="preserve">
     <value>在此提高阈值并清除已计数的失败。已经被锁定的地址会一直保持锁定，直到它的“Auto-ban:”范围过期，或者您在“IP 范围”页删除该范围。</value>
   </data>
-  <data name="Random jitter added to retry times (minutes, 0 = off)" xml:space="preserve">
-    <value>为重试时间添加的随机抖动（分钟，0 = 关闭）</value>
+  <data name="Random jitter added to retry times (minutes; 0 = off)" xml:space="preserve">
+    <value>为重试时间添加的随机抖动（分钟；0 = 关闭）</value>
   </data>
   <data name="Range endpoint (https, or http to this machine)" xml:space="preserve">
     <value>范围端点（https，或到本机的 http）</value>
@@ -9516,8 +9546,8 @@
   <data name="Read at delivery, for every recipient: an allowed sender's mail is delivered unmarked, and the accounts' own spam thresholds do not run. A message the server-wide spam score holds during the SMTP conversation is still held; the domain list is the one that stops that." xml:space="preserve">
     <value>在投递时针对每个收件人读取：被允许发件人的邮件会不加标记地投递，且各账户自己的垃圾邮件阈值不会运行。服务器整体垃圾邮件分数在 SMTP 会话期间暂挂的邮件，仍然会被暂挂；能阻止这一点的是域名单。</value>
   </data>
-  <data name="Read cache in MB (0 = none; up to 4096)" xml:space="preserve">
-    <value>读取缓存，以 MB 计（0 = 无；最多 4096）</value>
+  <data name="Read cache (MB, up to 4,096; 0 = none)" xml:space="preserve">
+    <value>读取缓存（MB，最多 4,096；0 = 无）</value>
   </data>
   <data name="Read complaints sent to the complaint mailbox" xml:space="preserve">
     <value>读取发送到投诉邮箱的投诉</value>
@@ -9545,6 +9575,9 @@
   </data>
   <data name="Read-only" xml:space="preserve">
     <value>只读</value>
+  </data>
+  <data name="Read-only: it writes a report when the two diverge." xml:space="preserve">
+    <value>只读：两者不一致时写入报告。</value>
   </data>
   <data name="Readable text" xml:space="preserve">
     <value>可读文本</value>
@@ -9637,8 +9670,8 @@
   <data name="Record administrative changes in the audit trail" xml:space="preserve">
     <value>将管理更改记录到审计记录中</value>
   </data>
-  <data name="Record expiration interval, minutes" xml:space="preserve">
-    <value>记录过期间隔，分钟</value>
+  <data name="Record expiration interval (minutes)" xml:space="preserve">
+    <value>记录过期间隔（分钟）</value>
   </data>
   <data name="Record type: MX. Host/Name - {0}:" xml:space="preserve">
     <value>记录类型：MX。主机/名称 - {0}：</value>
@@ -9736,8 +9769,8 @@
   <data name="Refuse when it has appeared at least this many times" xml:space="preserve">
     <value>出现次数达到此值时拒绝</value>
   </data>
-  <data name="Refuse with 550 after this many retries before the window opens (0 never refuses)" xml:space="preserve">
-    <value>窗口打开前重试达到此次数后以 550 拒绝（0 表示从不拒绝）</value>
+  <data name="Refuse with 550 after this many retries before the window opens (0 = never)" xml:space="preserve">
+    <value>窗口打开前重试达到此次数后以 550 拒绝（0 = 从不）</value>
   </data>
   <data name="Refuse, or allow only, connections from the countries you name, by the country a MaxMind database places the address in. This server ships no database and downloads none: until you supply the file, nothing is judged by country. A policy is empty (off), allow:GB,IE or block:CN,RU." xml:space="preserve">
     <value>按 MaxMind 数据库将地址归属的国家，拒绝连接，或只允许来自你指定国家的连接。本服务器不附带也不下载该数据库：在你提供文件之前，不会按国家进行任何判断。策略为空（关闭）、allow:GB,IE 或 block:CN,RU。</value>
@@ -9829,11 +9862,11 @@
   <data name="Relay" xml:space="preserve">
     <value>中继</value>
   </data>
-  <data name="Relay host name (empty = direct delivery; use host1|host2 for failover)" xml:space="preserve">
-    <value>中继主机名（留空 = 直接投递；使用 host1|host2 实现故障转移）</value>
+  <data name="Relay host name (empty = direct delivery)" xml:space="preserve">
+    <value>中继主机名（留空 = 直接投递）</value>
   </data>
-  <data name="Relay hosts that use OAuth2 (comma separated; blank this to use none)" xml:space="preserve">
-    <value>使用 OAuth2 的中继主机（以逗号分隔；留空表示一个都不使用）</value>
+  <data name="Relay hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
+    <value>使用 OAuth2 的中继主机（以逗号分隔；留空 = 无）</value>
   </data>
   <data name="Relay port" xml:space="preserve">
     <value>中继端口</value>
@@ -9877,8 +9910,8 @@
   <data name="Released {0} messages to their recipients." xml:space="preserve">
     <value>已将 {0} 封邮件放行给其收件人。</value>
   </data>
-  <data name="Relying party (empty = the host the page is on)" xml:space="preserve">
-    <value>依赖方（空 = 提供页面的主机）</value>
+  <data name="Relying party (empty = the page's own host)" xml:space="preserve">
+    <value>依赖方（空 = 页面自身的主机）</value>
   </data>
   <data name="Rem_ove criterion" xml:space="preserve">
     <value>移除条件(_O)</value>
@@ -10074,8 +10107,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Report the async work queue as stalled after (120)" xml:space="preserve">
     <value>在多长时间后把异步工作队列报告为已停滞（120）</value>
   </data>
-  <data name="Report the async work queue as stalled after (seconds)" xml:space="preserve">
-    <value>在多长时间后把异步工作队列报告为已停滞（秒）</value>
+  <data name="Report the async work queue as stalled after (seconds; 0 = never)" xml:space="preserve">
+    <value>在多长时间后把异步工作队列报告为已停滞（秒；0 = 从不）</value>
   </data>
   <data name="Reports" xml:space="preserve">
     <value>报告</value>
@@ -10251,13 +10284,13 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Resume the mail server" xml:space="preserve">
     <value>恢复邮件服务器</value>
   </data>
-  <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
-    <value>缓存会话和票据的恢复有效期，秒（0 = OpenSSL 的默认值 300）</value>
+  <data name="Resumption lifetime for cached sessions and tickets (seconds; 0 = OpenSSL's default of 300)" xml:space="preserve">
+    <value>缓存会话和票据的恢复有效期（秒；0 = OpenSSL 的默认值 300）</value>
   </data>
   <data name="Retention" xml:space="preserve">
     <value>保留</value>
   </data>
-  <data name="Retention period in _days (1 to 365)" xml:space="preserve">
+  <data name="Retention period (_days, 1 to 365)" xml:space="preserve">
     <value>保留期（天，1 到 365）(_D)</value>
   </data>
   <data name="Retention period in days" xml:space="preserve">
@@ -10353,8 +10386,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Rotate the _key on a schedule" xml:space="preserve">
     <value>按计划轮换密钥(_K)</value>
   </data>
-  <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
-    <value>每 N 秒轮换一次会话票据密钥（0 = OpenSSL 那把不轮换的单一密钥）</value>
+  <data name="Rotate the session-ticket key every (seconds; 0 = OpenSSL's single key)" xml:space="preserve">
+    <value>会话票据密钥的轮换间隔（秒；0 = OpenSSL 的单一密钥）</value>
   </data>
   <data name="Route" xml:space="preserve">
     <value>路由</value>
@@ -10500,10 +10533,10 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="SMTP authentication" xml:space="preserve">
     <value>SMTP 身份验证</value>
   </data>
-  <data name="SMTP client maximum timeout (s)" xml:space="preserve">
+  <data name="SMTP client maximum timeout (seconds)" xml:space="preserve">
     <value>SMTP 客户端最大超时（秒）</value>
   </data>
-  <data name="SMTP client minimum timeout (s)" xml:space="preserve">
+  <data name="SMTP client minimum timeout (seconds)" xml:space="preserve">
     <value>SMTP 客户端最小超时（秒）</value>
   </data>
   <data name="SMTP connections" xml:space="preserve">
@@ -10518,10 +10551,10 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="SMTP server" xml:space="preserve">
     <value>SMTP 服务器</value>
   </data>
-  <data name="SMTP server maximum timeout (s)" xml:space="preserve">
+  <data name="SMTP server maximum timeout (seconds)" xml:space="preserve">
     <value>SMTP 服务器最大超时（秒）</value>
   </data>
-  <data name="SMTP server minimum timeout (s)" xml:space="preserve">
+  <data name="SMTP server minimum timeout (seconds)" xml:space="preserve">
     <value>SMTP 服务器最小超时（秒）</value>
   </data>
   <data name="SMTP sessions" xml:space="preserve">
@@ -10677,8 +10710,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Save the changes on this page" xml:space="preserve">
     <value>保存此页面上的更改</value>
   </data>
-  <data name="Save the counters to disk every N seconds (default 10)" xml:space="preserve">
-    <value>每 N 秒将计数器保存到磁盘 (默认 10)</value>
+  <data name="Save the counters to disk every (seconds, 1 to 3,600)" xml:space="preserve">
+    <value>将计数器保存到磁盘的间隔（秒，1 到 3,600）</value>
   </data>
   <data name="Save the export as" xml:space="preserve">
     <value>导出另存为</value>
@@ -10863,8 +10896,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Score applied when the engine says &quot;reject&quot;" xml:space="preserve">
     <value>引擎判定为 "reject" 时应用的分数</value>
   </data>
-  <data name="Score at which suspicious counts as malicious (0-100)" xml:space="preserve">
-    <value>可疑视为恶意的分数（0-100）</value>
+  <data name="Score at which suspicious counts as malicious (0 to 100)" xml:space="preserve">
+    <value>可疑视为恶意的分数（0 到 100）</value>
   </data>
   <data name="Score of a message whose links name more than 200 domains (0 = none)" xml:space="preserve">
     <value>链接含有超过 200 个域名的邮件的分数 (0 = 无)</value>
@@ -11061,14 +11094,14 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Seconds a key lookup may take (2 to 30)" xml:space="preserve">
     <value>密钥查找可以花费的秒数（2 到 30）</value>
   </data>
-  <data name="Seconds a push service holds a notification for a device that is offline (0 to 2419200)" xml:space="preserve">
-    <value>推送服务为离线设备保留通知的秒数（0 到 2419200）</value>
+  <data name="Seconds a push service holds a notification for a device that is offline (0 to 2,419,200)" xml:space="preserve">
+    <value>推送服务为离线设备保留通知的秒数（0 到 2,419,200）</value>
   </data>
-  <data name="Seconds a session may go unused (0 = the server's own 1800)" xml:space="preserve">
-    <value>会话可以空闲的秒数（0 = 服务器自己的 1800）</value>
+  <data name="Seconds a session may go unused (0 = the server's own 1,800)" xml:space="preserve">
+    <value>会话可以空闲的秒数（0 = 服务器自己的 1,800）</value>
   </data>
-  <data name="Seconds a session may last at all (0 = the server's own 43200)" xml:space="preserve">
-    <value>会话总共可以持续的秒数（0 = 服务器自己的 43200）</value>
+  <data name="Seconds a session may last at all (0 = the server's own 43,200)" xml:space="preserve">
+    <value>会话总共可以持续的秒数（0 = 服务器自己的 43,200）</value>
   </data>
   <data name="Seconds a single SQL statement may run (0 = no limit)" xml:space="preserve">
     <value>单条 SQL 语句可运行的秒数 (0 = 无限制)</value>
@@ -11394,8 +11427,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Server-generated mail" xml:space="preserve">
     <value>服务器生成的邮件</value>
   </data>
-  <data name="Server-side session cache size (0 = OpenSSL's default cap of 20480; negative = no cache)" xml:space="preserve">
-    <value>服务器端会话缓存大小 (0 = OpenSSL 的默认上限 20480；负数 = 不缓存)</value>
+  <data name="Server-side session cache size (0 = OpenSSL's default of 20,480, -1 = no cache)" xml:space="preserve">
+    <value>服务器端会话缓存大小（0 = OpenSSL 的默认值 20,480，-1 = 不缓存）</value>
   </data>
   <data name="Server-wide ceilings that keep one slow operation from holding a resource forever. The defaults are deliberate; each one is here because there is a diagnosable situation in which it is the right thing to change. Note that 0 does not mean the same thing for all of them - each label says." xml:space="preserve">
     <value>服务器范围的上限，防止一个缓慢的操作永远占用某项资源。默认值是经过考虑的；每一项之所以在这里，是因为存在某种可诊断的情形，改动它是正确的做法。请注意，0 对它们并非都表示同样的含义 - 每个标签都有说明。</value>
@@ -11486,6 +11519,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Set in hMailServer.ini only" xml:space="preserve">
     <value>仅在 hMailServer.ini 中设置</value>
+  </data>
+  <data name="Set it to use a mirror." xml:space="preserve">
+    <value>使用镜像时请填写。</value>
   </data>
   <data name="Set the HTTP or HTTPS port on the Web services &amp; autoconfiguration page so the URLs answer, then publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; DNS records for each mail domain, pointing at this server. These are address records, and this page checks TXT records only, so they cannot be confirmed from here." xml:space="preserve">
     <value>在“Web 服务和自动配置”页面设置 HTTP 或 HTTPS 端口以使 URL 能够响应，然后为每个邮件域发布指向此服务器的 autoconfig.&lt;domain&gt; 和 autodiscover.&lt;domain&gt; DNS 记录。这些是地址记录，而此页面只检查 TXT 记录，因此无法从此处确认。</value>
@@ -11589,8 +11625,11 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Shortens how long data is kept" xml:space="preserve">
     <value>缩短数据的保留时间</value>
   </data>
-  <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
-    <value>索引可应答的最短搜索字符串 (3-64；更短的字符串回退到扫描)</value>
+  <data name="Shorter strings fall back to the scan." xml:space="preserve">
+    <value>更短的字符串回退到扫描。</value>
+  </data>
+  <data name="Shortest search string the index answers for (3 to 64)" xml:space="preserve">
+    <value>索引可应答的最短搜索字符串（3 到 64）</value>
   </data>
   <data name="Show auto-_bans only" xml:space="preserve">
     <value>仅显示自动封禁(_B)</value>
@@ -11760,8 +11799,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Simple is the default. Negotiate runs an SSPI exchange (Kerberos, falling back to NTLM) that never transmits the password and signs the connection - it is the only method a default-configured modern domain controller accepts when it has no certificate installed, it needs no search, no search base and no service account, and it works from a host that is not domain-joined." xml:space="preserve">
     <value>默认为 Simple。Negotiate 执行一次 SSPI 交换 (Kerberos，回退到 NTLM)，从不传输密码并对连接签名 - 它是未安装证书的默认配置现代域控制器唯一接受的方法，不需要搜索、搜索基准或服务账户，并且可以从未加入域的主机使用。</value>
   </data>
-  <data name="Simultaneous connections (0 is unlimited)" xml:space="preserve">
-    <value>同时连接数（0 表示不限）</value>
+  <data name="Simultaneous connections (0 = no limit)" xml:space="preserve">
+    <value>同时连接数（0 = 不限制）</value>
   </data>
   <data name="Since" xml:space="preserve">
     <value>列入时间</value>
@@ -11805,8 +11844,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once." xml:space="preserve">
     <value>减慢指定收件人数量超出正常邮件所需的会话。超过该数量后，未验证会话中的每个后续 RCPT TO 都要等待延迟后才被应答 - 字典攻击或垃圾邮件群发会指定数百个地址并为每一个付出代价，而正常的发送 MTA 只指定寥寥几个，永远达不到该数量。已验证会话和关闭了垃圾邮件防护的 IP 范围不受影响。等待是连接上的计时器，不是休眠的线程。立即生效。</value>
   </data>
-  <data name="Smallest part held once (KB; 0 holds nothing once)" xml:space="preserve">
-    <value>只存一次的最小部分（KB；0 表示不只存一次任何部分）</value>
+  <data name="Smallest part held once (KB; 0 = none)" xml:space="preserve">
+    <value>只存一次的最小部分（KB；0 = 无）</value>
   </data>
   <data name="Smart host" xml:space="preserve">
     <value>智能主机</value>
@@ -12066,8 +12105,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Submission rate limits" xml:space="preserve">
     <value>提交速率限制</value>
   </data>
-  <data name="Submissions before an account's baseline counts (1 to 10000)" xml:space="preserve">
-    <value>账户基线开始生效前的发送次数（1 到 10000）</value>
+  <data name="Submissions before an account's baseline counts (1 to 10,000)" xml:space="preserve">
+    <value>账户基线开始生效前的发送次数（1 到 10,000）</value>
   </data>
   <data name="Submit address (POST)" xml:space="preserve">
     <value>提交地址（POST）</value>
@@ -12204,8 +12243,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="TLS private keys - a passphrase-protected key needs its passphrase configured" xml:space="preserve">
     <value>TLS 私钥 - 受密码短语保护的密钥需要配置其密码短语</value>
   </data>
-  <data name="TLS report sender address (empty = disabled)" xml:space="preserve">
-    <value>TLS 报告发件人地址 (为空 = 禁用)</value>
+  <data name="TLS report sender address (empty = off)" xml:space="preserve">
+    <value>TLS 报告发件人地址 (为空 = 关闭)</value>
   </data>
   <data name="TLS reporting (TLS-RPT)" xml:space="preserve">
     <value>TLS 报告 (TLS-RPT)</value>
@@ -12872,6 +12911,15 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>数据库: 查找提到连接池的错误。当连接池等待超时时，收件人查询会应答 451 4.3.2 而不是 550，因此被备份锁住的数据库会推迟邮件而不是退回邮件。</value>
   </data>
+  <data name="The default is 10." xml:space="preserve">
+    <value>默认值为 10。</value>
+  </data>
+  <data name="The default is 24, and 168 is a week." xml:space="preserve">
+    <value>默认值为 24，168 即一周。</value>
+  </data>
+  <data name="The default, 604,800, is a week." xml:space="preserve">
+    <value>默认值 604,800 即一周。</value>
+  </data>
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>删除覆盖永远不会凭猜测删除: 只有在记录的分数确实达到该值时才会移除副本，而在启用了隔离存储时会改为转入隔离存储。</value>
   </data>
@@ -13023,6 +13071,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The first address of the gateway's range." xml:space="preserve">
     <value>网关范围的第一个地址。</value>
+  </data>
+  <data name="The first attempt tries at most this many of a domain's MX hosts, the second at most twice as many, and so on, so that a domain whose hosts are down holds up the queue for less time." xml:space="preserve">
+    <value>第一次尝试最多尝试域的这么多个 MX 主机，第二次最多两倍，依此类推，这样主机宕机的域占用队列的时间更短。</value>
   </data>
   <data name="The first scanner to find something ends the scan, so the order is also the cost: a slow scanner in front of a fast one is paid for on every clean message." xml:space="preserve">
     <value>第一个发现问题的扫描器会结束扫描，所以顺序也就是代价: 排在快速扫描器前面的慢速扫描器，会在每封干净的邮件上付出代价。</value>
@@ -13382,6 +13433,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The protocol versions could not be read." xml:space="preserve">
     <value>协议版本无法读取。</value>
+  </data>
+  <data name="The provider's RFC 7662 endpoint, which says whether a token is still valid." xml:space="preserve">
+    <value>提供方的 RFC 7662 端点，用于判断令牌是否仍然有效。</value>
   </data>
   <data name="The public address other servers see, when it is not an address of this machine." xml:space="preserve">
     <value>当不是本计算机的地址时，其他服务器看到的公共地址。</value>
@@ -13795,6 +13849,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The two passwords do not match." xml:space="preserve">
     <value>两次输入的密码不一致。</value>
   </data>
+  <data name="The update feed and its downloads, JWKS and token introspection all go through it. Proxy credentials are not supported." xml:space="preserve">
+    <value>更新源及其下载、JWKS 和令牌内省都经由它。不支持代理凭据。</value>
+  </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>更新助手已启动。为了让安装程序能够替换其文件，此控制面板现在将关闭；一分钟后请重新打开以查看结果。</value>
   </data>
@@ -13840,8 +13897,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The web services settings could not be read: {0}" xml:space="preserve">
     <value>无法读取 Web 服务设置: {0}</value>
   </data>
-  <data name="The whole accept pipeline; then the sender gets a 451. 0 = no bound." xml:space="preserve">
-    <value>整个接收流水线；之后发件人收到 451。0 = 无上限。</value>
+  <data name="The whole accept pipeline; then the sender gets a 451. 0 = no time limit." xml:space="preserve">
+    <value>整个接收流水线；之后发件人收到 451。0 = 无时间限制。</value>
   </data>
   <data name="The wiki could not be opened in a browser." xml:space="preserve">
     <value>无法在浏览器中打开 Wiki。</value>
@@ -14077,8 +14134,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="This server's VAPID public key" xml:space="preserve">
     <value>本服务器的 VAPID 公钥</value>
   </data>
-  <data name="This server's entity ID (empty = the base address followed by /saml)" xml:space="preserve">
-    <value>本服务器的实体 ID（空 = 基础地址加上 /saml）</value>
+  <data name="This server's entity ID (empty = the base address and /saml)" xml:space="preserve">
+    <value>本服务器的实体 ID（空 = 基础地址加 /saml）</value>
   </data>
   <data name="This session holds no password the REST API can sign in with. Sign in again with the administrator's user name and password." xml:space="preserve">
     <value>此会话没有可供 REST API 登录的密码。请使用管理员的用户名和密码重新登录。</value>
@@ -14122,8 +14179,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Threads and the stall threshold" xml:space="preserve">
     <value>线程和停滞阈值</value>
   </data>
-  <data name="Threads reserved so the async queue cannot be starved" xml:space="preserve">
-    <value>预留的线程，使异步队列不会被饿死</value>
+  <data name="Threads reserved so the async queue cannot be starved (0 = none)" xml:space="preserve">
+    <value>预留的线程，使异步队列不会被饿死（0 = 无）</value>
   </data>
   <data name="Thresholds &amp; actions" xml:space="preserve">
     <value>阈值和操作</value>
@@ -14152,8 +14209,11 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Time" xml:space="preserve">
     <value>时间</value>
   </data>
-  <data name="Time_out in seconds" xml:space="preserve">
-    <value>超时秒数(_O)</value>
+  <data name="Time active sessions get to finish when the service stops (seconds, up to 86,400; 0 = none)" xml:space="preserve">
+    <value>服务停止时给活动会话完成的时间（秒，最多 86,400；0 = 不等待）</value>
+  </data>
+  <data name="Time_out (seconds, 1 to 90)" xml:space="preserve">
+    <value>超时(_O)（秒，1 到 90）</value>
   </data>
   <data name="Timed out looking up {0}. Check the name, and that this machine can reach a DNS server." xml:space="preserve">
     <value>查找 {0} 超时。请检查名称，以及本机能否访问 DNS 服务器。</value>
@@ -14185,8 +14245,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Token endpoint (https)" xml:space="preserve">
     <value>令牌端点 (https)</value>
   </data>
-  <data name="Token introspection endpoint (RFC 7662; empty = no revocation check)" xml:space="preserve">
-    <value>令牌自省端点 (RFC 7662；为空 = 不做吊销检查)</value>
+  <data name="Token introspection endpoint (empty = no revocation check)" xml:space="preserve">
+    <value>令牌自省端点（留空 = 不做吊销检查）</value>
   </data>
   <data name="Tokens are accepted, but {0}: the server applies each of those only when you have set it, and blank is the default. That is wider than it looks. Any token your identity provider signs with this key is accepted - including one it issued to a different application entirely, which is enough to sign in as whichever mailbox that token names. Set both to the exact values your provider puts in its tokens." xml:space="preserve">
     <value>令牌会被接受，但 {0}: 服务器只在您设置了它们时才逐一应用，而默认为空。这比看起来的范围要宽。您的身份提供者用此密钥签名的任何令牌都会被接受 - 包括它签发给完全不同的应用程序的令牌，而这足以登录该令牌所指定的任何邮箱。请把两者都设为您的提供者放入令牌中的确切值。</value>
@@ -14242,8 +14302,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Trusted ARC sealer domains" xml:space="preserve">
     <value>受信任的 ARC 密封者域</value>
   </data>
-  <data name="Trusted proxies whose X-Forwarded-Proto: https is believed (addresses, comma-separated; loopback always is)" xml:space="preserve">
-    <value>信任其 X-Forwarded-Proto: https 的代理（地址，逗号分隔；loopback 始终信任）</value>
+  <data name="Trusted proxies whose X-Forwarded-Proto: https is believed (comma separated)" xml:space="preserve">
+    <value>信任其 X-Forwarded-Proto: https 的代理（以逗号分隔）</value>
   </data>
   <data name="Trusts an address range" xml:space="preserve">
     <value>信任某个地址范围</value>
@@ -14371,8 +14431,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Unattended synchronisation" xml:space="preserve">
     <value>无人值守同步</value>
   </data>
-  <data name="Unattended window (empty = never apply on its own; e.g. 03:00, Sun 03:00, Sat,Sun 02:00-05:00)" xml:space="preserve">
-    <value>无人值守窗口（留空 = 绝不自行安装；例如 03:00、Sun 03:00、Sat,Sun 02:00-05:00）</value>
+  <data name="Unattended window (empty = never apply on its own)" xml:space="preserve">
+    <value>无人值守窗口（留空 = 绝不自行安装）</value>
   </data>
   <data name="Unavailable" xml:space="preserve">
     <value>不可用</value>
@@ -14416,8 +14476,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Up to 64 visible ASCII characters." xml:space="preserve">
     <value>最多 64 个可见 ASCII 字符。</value>
   </data>
-  <data name="Update feed URL (empty = the built-in feed; set for a mirror)" xml:space="preserve">
-    <value>更新源 URL（留空 = 内置的源；使用镜像时请填写）</value>
+  <data name="Update feed URL (empty = the built-in feed)" xml:space="preserve">
+    <value>更新源 URL（留空 = 内置的源）</value>
   </data>
   <data name="Update status" xml:space="preserve">
     <value>更新状态</value>
@@ -14437,8 +14497,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks." xml:space="preserve">
     <value>上游网关，其 IP 地址在垃圾邮件检查中不得被当作连接客户端。</value>
   </data>
-  <data name="Upstreams allowed to use XCLIENT (comma-separated addresses or CIDR ranges)" xml:space="preserve">
-    <value>允许使用 XCLIENT 的上游 (逗号分隔的地址或 CIDR 范围)</value>
+  <data name="Upstreams allowed to use XCLIENT (comma separated)" xml:space="preserve">
+    <value>允许使用 XCLIENT 的上游（以逗号分隔）</value>
   </data>
   <data name="Uptime" xml:space="preserve">
     <value>运行时间</value>
@@ -14512,8 +14572,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Validates recipient TLSA records with in-process DNSSEC and blocks delivery over forged chains (RFC 7672)." xml:space="preserve">
     <value>用进程内 DNSSEC 验证收件方的 TLSA 记录，并阻止通过伪造链的投递 (RFC 7672)。</value>
   </data>
-  <data name="Validity window in seconds for signatures we produce (0 = no expiry)" xml:space="preserve">
-    <value>我们生成的签名的有效窗口 (秒) (0 = 不过期)</value>
+  <data name="Validity window for the signatures this server makes (seconds; 0 = no expiry)" xml:space="preserve">
+    <value>本服务器生成的签名的有效窗口（秒；0 = 不过期）</value>
   </data>
   <data name="Value:      {0}" xml:space="preserve">
     <value>值:      {0}</value>
@@ -14575,11 +14635,11 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Wait for a free database connection (60)" xml:space="preserve">
     <value>等待空闲数据库连接（60）</value>
   </data>
-  <data name="Wait for a free database connection (seconds)" xml:space="preserve">
-    <value>等待空闲数据库连接 (秒)</value>
+  <data name="Wait for a free database connection (seconds; 0 = wait for ever)" xml:space="preserve">
+    <value>等待空闲数据库连接（秒；0 = 无限等待）</value>
   </data>
-  <data name="Waiting for a pooled database connection. 0 = no bound." xml:space="preserve">
-    <value>正在等待连接池中的数据库连接。0 = 无上限。</value>
+  <data name="Waiting for a pooled database connection. 0 = no time limit." xml:space="preserve">
+    <value>正在等待连接池中的数据库连接。0 = 无时间限制。</value>
   </data>
   <data name="Waiting for a reinitialise:" xml:space="preserve">
     <value>等待重新初始化：</value>
@@ -14881,6 +14941,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Where the issued certificate would be written could not be determined, because neither the output folder above nor the server's data folder ([Directories] DataFolder in hMailServer.ini) could be read." xml:space="preserve">
     <value>无法确定已签发的证书会写到哪里，因为上面的输出文件夹和服务器的数据文件夹（hMailServer.ini 中的 [Directories] DataFolder）都无法读取。</value>
   </data>
+  <data name="Where the provider publishes its signing keys." xml:space="preserve">
+    <value>提供方发布其签名密钥的位置。</value>
+  </data>
   <data name="Where the search starts, e.g. DC=example,DC=local. Required in search mode - that is, when the bind method is Simple and no DN template is set." xml:space="preserve">
     <value>搜索从哪里开始，例如 DC=example,DC=local。搜索模式下必填 - 也就是绑定方法为 Simple 且未设置 DN 模板时。</value>
   </data>
@@ -15114,6 +15177,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the General tab." xml:space="preserve">
     <value>开启后，密码根本不存储在这里 - 而是请 Windows 来检查它。保持关闭，账户就使用“常规”选项卡上的密码。</value>
+  </data>
+  <data name="Without a host name, the message's local domain is used, and without that, the machine name." xml:space="preserve">
+    <value>没有主机名时使用邮件的本地域，再没有则使用机器名。</value>
   </data>
   <data name="Without sign-in" xml:space="preserve">
     <value>无需登录</value>
@@ -15760,7 +15826,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Private key file" xml:space="preserve">
     <value>私钥文件(_P)</value>
   </data>
-  <data name="_Propagation period in hours (1 to 720)" xml:space="preserve">
+  <data name="_Propagation period (hours, 1 to 720)" xml:space="preserve">
     <value>传播期（小时，1 到 720）(_P)</value>
   </data>
   <data name="_Properties" xml:space="preserve">

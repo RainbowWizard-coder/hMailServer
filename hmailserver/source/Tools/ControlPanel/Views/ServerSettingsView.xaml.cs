@@ -2125,9 +2125,9 @@ namespace hMailServer.ControlPanel.Views
 
          var smtp = Card(L("SMTP"));
          smtp.Settings.Add(new ComText { Path = "HostName", Label = L("Host name (HELO/EHLO greeting)") });
-         smtp.Settings.Add(new ComText { Path = "MaxSMTPConnections", Label = L("Max simultaneous connections (0 = unlimited)"), Numeric = true });
-         smtp.Settings.Add(new ComText { Path = "MaxMessageSize", Label = L("Max message size (KB, 0 = unlimited)"), Numeric = true });
-         smtp.Settings.Add(new ComText { Path = "MaxSMTPRecipientsInBatch", Label = L("Max recipients per message"), Numeric = true });
+         smtp.Settings.Add(new ComText { Path = "MaxSMTPConnections", Label = L("Maximum simultaneous connections (0 = no limit)"), Numeric = true });
+         smtp.Settings.Add(new ComText { Path = "MaxMessageSize", Label = L("Maximum message size (KB; 0 = no limit)"), Numeric = true });
+         smtp.Settings.Add(new ComText { Path = "MaxSMTPRecipientsInBatch", Label = L("Maximum recipients per message"), Numeric = true });
          smtp.Settings.Add(new ComText { Path = "WelcomeSMTP", Label = L("Welcome banner (empty = default)") });
          smtp.Settings.Add(new ComBool { Path = "AllowSMTPAuthPlain", Label = L("Allow plain-text authentication (AUTH PLAIN/LOGIN)") });
          smtp.Settings.Add(new ComBool { Path = "DenyMailFromNull", Label = L("Reject empty sender addresses (MAIL FROM:<>)") });
@@ -2190,7 +2190,7 @@ namespace hMailServer.ControlPanel.Views
          Tab(L("SMTP")).Cards.Add(smtp);
 
          var imap = Card(L("IMAP"));
-         imap.Settings.Add(new ComText { Path = "MaxIMAPConnections", Label = L("Max simultaneous connections (0 = unlimited)"), Numeric = true });
+         imap.Settings.Add(new ComText { Path = "MaxIMAPConnections", Label = L("Maximum simultaneous connections (0 = no limit)"), Numeric = true });
          imap.Settings.Add(new ComText { Path = "WelcomeIMAP", Label = L("Welcome banner (empty = default)") });
          imap.Settings.Add(new ComBool { Path = "IMAPIdleEnabled", Label = L("IDLE (push mail)") });
          imap.Settings.Add(new ComBool { Path = "IMAPQuotaEnabled", Label = L("QUOTA") });
@@ -2208,7 +2208,7 @@ namespace hMailServer.ControlPanel.Views
          imap.Settings.Add(new ComBool { Path = "IMAPSASLPlainEnabled", Label = L("Allow SASL PLAIN authentication") });
          imap.Settings.Add(new ComBool { Path = "IMAPSASLInitialResponseEnabled", Label = L("Allow SASL initial client response") });
          imap.Settings.Add(new ComText { Path = "IMAPPublicFolderName", Label = L("Public folder name") });
-         imap.Settings.Add(new ComText { Path = "IMAPMasterUser", Label = L("Master user (empty = disabled)") });
+         imap.Settings.Add(new ComText { Path = "IMAPMasterUser", Label = L("Master user (empty = off)") });
          imap.Settings.Add(new ComText { Path = "IMAPHierarchyDelimiter", Label = L("Folder hierarchy delimiter") });
          Tab(L("IMAP")).Cards.Add(imap);
 
@@ -2245,7 +2245,7 @@ namespace hMailServer.ControlPanel.Views
          history.Settings.Add(new IniNumber
          {
             Path = "IMAPExpungeRetentionRecords",
-            Label = L("Expunge records to keep (0 = keep everything, which also skips the prune at start-up)"),
+            Label = L("Expunge records to keep (0 = keep everything)"), Blurb = L("Keeping everything also skips the prune at start-up."),
             Default = 5000,
             MinimumValue = 0,
             IniStore = iniStore_
@@ -2253,7 +2253,7 @@ namespace hMailServer.ControlPanel.Views
          Tab(L("IMAP")).Cards.Add(history);
 
          var pop3 = Card(L("POP3"));
-         pop3.Settings.Add(new ComText { Path = "MaxPOP3Connections", Label = L("Max simultaneous connections (0 = unlimited)"), Numeric = true });
+         pop3.Settings.Add(new ComText { Path = "MaxPOP3Connections", Label = L("Maximum simultaneous connections (0 = no limit)"), Numeric = true });
          pop3.Settings.Add(new ComText { Path = "WelcomePOP3", Label = L("Welcome banner (empty = default)") });
          Tab(L("POP3")).Cards.Add(pop3);
 
@@ -2280,14 +2280,14 @@ namespace hMailServer.ControlPanel.Views
          // eight are in one place.
          var idle = Card(L("Idle timeouts"),
             L("How long a connection may sit idle before it is closed, per protocol, in seconds. \"Server\" is hMailServer accepting a connection from a mail client or another mail server; \"client\" is hMailServer connecting out to deliver mail or to fetch it from an external POP3 account. The effective timeout moves between the minimum and the maximum with server load, so a busy server drops idle connections sooner."));
-         idle.Settings.Add(new IniNumber { Path = "SMTPDMinTimeout", Label = L("SMTP server minimum timeout (s)"), Default = 10, IniStore = iniStore_ });
-         idle.Settings.Add(new IniNumber { Path = "SMTPDMaxTimeout", Label = L("SMTP server maximum timeout (s)"), Default = 1800, IniStore = iniStore_ });
-         idle.Settings.Add(new IniNumber { Path = "SMTPCMinTimeout", Label = L("SMTP client minimum timeout (s)"), Default = 30, IniStore = iniStore_ });
-         idle.Settings.Add(new IniNumber { Path = "SMTPCMaxTimeout", Label = L("SMTP client maximum timeout (s)"), Default = 600, IniStore = iniStore_ });
-         idle.Settings.Add(new IniNumber { Path = "POP3DMinTimeout", Label = L("POP3 server minimum timeout (s)"), Default = 10, IniStore = iniStore_ });
-         idle.Settings.Add(new IniNumber { Path = "POP3DMaxTimeout", Label = L("POP3 server maximum timeout (s)"), Default = 600, IniStore = iniStore_ });
-         idle.Settings.Add(new IniNumber { Path = "POP3CMinTimeout", Label = L("POP3 client minimum timeout (s)"), Default = 30, IniStore = iniStore_ });
-         idle.Settings.Add(new IniNumber { Path = "POP3CMaxTimeout", Label = L("POP3 client maximum timeout (s)"), Default = 900, IniStore = iniStore_ });
+         idle.Settings.Add(new IniNumber { Path = "SMTPDMinTimeout", Label = L("SMTP server minimum timeout (seconds)"), Default = 10, IniStore = iniStore_ });
+         idle.Settings.Add(new IniNumber { Path = "SMTPDMaxTimeout", Label = L("SMTP server maximum timeout (seconds)"), Default = 1800, IniStore = iniStore_ });
+         idle.Settings.Add(new IniNumber { Path = "SMTPCMinTimeout", Label = L("SMTP client minimum timeout (seconds)"), Default = 30, IniStore = iniStore_ });
+         idle.Settings.Add(new IniNumber { Path = "SMTPCMaxTimeout", Label = L("SMTP client maximum timeout (seconds)"), Default = 600, IniStore = iniStore_ });
+         idle.Settings.Add(new IniNumber { Path = "POP3DMinTimeout", Label = L("POP3 server minimum timeout (seconds)"), Default = 10, IniStore = iniStore_ });
+         idle.Settings.Add(new IniNumber { Path = "POP3DMaxTimeout", Label = L("POP3 server maximum timeout (seconds)"), Default = 600, IniStore = iniStore_ });
+         idle.Settings.Add(new IniNumber { Path = "POP3CMinTimeout", Label = L("POP3 client minimum timeout (seconds)"), Default = 30, IniStore = iniStore_ });
+         idle.Settings.Add(new IniNumber { Path = "POP3CMaxTimeout", Label = L("POP3 client maximum timeout (seconds)"), Default = 900, IniStore = iniStore_ });
          Tab(L("Timeouts")).Cards.Add(idle);
 
          // On the IMAP tab because that is what it repairs, and because somebody
@@ -2314,7 +2314,7 @@ namespace hMailServer.ControlPanel.Views
             L("Outbound delivery, retries and throttling. Keeping forwarded mail SPF-aligned (SRS) and bounce tagging (BATV) are on the Transport security page."));
          del.Settings.Add(new ComText { Path = "SMTPNoOfTries", Label = L("Number of delivery retries"), Numeric = true });
          del.Settings.Add(new ComText { Path = "SMTPMinutesBetweenTry", Label = L("Minutes between retries"), Numeric = true });
-         del.Settings.Add(new ComText { Path = "MaxNumberOfMXHosts", Label = L("Max MX hosts to try (0 = all)"), Numeric = true });
+         del.Settings.Add(new ComText { Path = "MaxNumberOfMXHosts", Label = L("Maximum MX hosts to try (0 = all)"), Numeric = true });
          del.Settings.Add(new IniBool
          {
             Path = "OutboundPipelining",
@@ -2339,15 +2339,15 @@ namespace hMailServer.ControlPanel.Views
             Blurb = L("A message to ten local mailboxes is written once and linked ten times rather than copied ten times, which is the difference between one disk write and ten for a large message to a distribution list. Needs the data directory on NTFS; where a link cannot be made the server copies the file and says so in the SMTP log."),
             IniStore = iniStore_
          });
-         // Directly modifies the retry count three rows up, and only makes sense
-         // read together with the MX host limit immediately above it, so it moved
-         // here from the catch-all INI page.
+         // Limits how many MX hosts each attempt tries, and only makes sense read
+         // together with the MX host limit immediately above it, so it moved here
+         // from the catch-all INI page.
          del.Settings.Add(new IniNumber
          {
             Path = "MXTriesFactor",
-            Label = L("Extra delivery attempts per additional MX host (0 = default)"),
+            Label = L("MX hosts tried per attempt, times the attempt number (0 = all)"),
             Default = 0,
-            Blurb = L("A recipient domain with several MX hosts is worth more attempts than one with a single host, because a retry can land on a different server. This multiplies the retry count above by the number of MX hosts actually tried."),
+            Blurb = L("The first attempt tries at most this many of a domain's MX hosts, the second at most twice as many, and so on, so that a domain whose hosts are down holds up the queue for less time."),
             IniStore = iniStore_
          });
          del.Settings.Add(new ComText { Path = "SMTPDeliveryBindToIP", Label = L("Bind outbound connections to IP (empty = any)") });
@@ -2357,11 +2357,11 @@ namespace hMailServer.ControlPanel.Views
          // attempts, so the two have to be visible together to make sense.
          del.Settings.Add(new IniNumber { Path = "QuickRetries", Label = L("Quick early retries before the normal schedule (0 = off)"), Default = 0, IniStore = iniStore_ });
          del.Settings.Add(new IniNumber { Path = "QuickRetriesMinutes", Label = L("Minutes between quick retries"), Default = 6, IniStore = iniStore_ });
-         del.Settings.Add(new IniNumber { Path = "QueueRandomnessMinutes", Label = L("Random jitter added to retry times (minutes, 0 = off)"), Default = 0, IniStore = iniStore_ });
+         del.Settings.Add(new IniNumber { Path = "QueueRandomnessMinutes", Label = L("Random jitter added to retry times (minutes; 0 = off)"), Default = 0, IniStore = iniStore_ });
          del.Settings.Add(new IniNumber
          {
             Path = "MaxOutboundPerDestinationPerMinute",
-            Label = L("Max outbound messages per destination domain per minute (0 = unlimited)"),
+            Label = L("Maximum outbound messages per destination domain per minute (0 = no limit)"),
             Default = 0,
             Blurb = L("Throttling your own outbound rate to a domain that rate-limits you. A deferred message is retried a minute later without spending the retry budget above."),
             IniStore = iniStore_
@@ -2379,19 +2379,19 @@ namespace hMailServer.ControlPanel.Views
          del.Settings.Add(new ComText
          {
             Path = "OutboundBackoffMaxMinutes",
-            Label = L("Longest such window, in minutes"),
+            Label = L("Longest such window (minutes)"),
             Numeric = true
          });
          del.Settings.Add(new ComText
          {
             Path = "MaxOutboundConnectionsPerDestination",
-            Label = L("Max simultaneous connections to one destination without a remote domain policy (0 = unlimited)"),
+            Label = L("Maximum simultaneous connections to one destination without a remote domain policy (0 = no limit)"),
             Numeric = true
          });
          del.Settings.Add(new ComText
          {
             Path = "MaxOutboundConnectionsPerTenant",
-            Label = L("Max deliveries in flight for one sending domain (0 = unlimited)"),
+            Label = L("Maximum deliveries in flight for one sending domain (0 = no limit)"),
             Numeric = true,
             Blurb = L("A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one.")
          });
@@ -2444,7 +2444,7 @@ namespace hMailServer.ControlPanel.Views
          bounces.Settings.Add(new ComText
          {
             Path = "BounceCountRetentionDays",
-            Label = L("Days bounce counts are kept (0 = keep)"),
+            Label = L("Days bounce counts are kept (0 = for ever)"),
             Numeric = true
          });
          bounces.Settings.Add(new ComText
@@ -2457,7 +2457,7 @@ namespace hMailServer.ControlPanel.Views
 
          var relay = Card(L("Server-wide smart host"),
             L("Route all outbound mail through another SMTP server instead of delivering directly. For failover, separate several hosts with a vertical bar: the next host is tried when one cannot be reached (all hosts share the port, security and credentials below)."));
-         relay.Settings.Add(new ComText { Path = "SMTPRelayer", Label = L("Relay host name (empty = direct delivery; use host1|host2 for failover)") });
+         relay.Settings.Add(new ComText { Path = "SMTPRelayer", Label = L("Relay host name (empty = direct delivery)") });
          relay.Settings.Add(new ComText { Path = "SMTPRelayerPort", Label = L("Port"), Numeric = true });
          relay.Settings.Add(new ComCombo { Path = "SMTPRelayerConnectionSecurity", Label = L("Connection security"), Options = ConnSecurity });
          relay.Settings.Add(new ComBool { Path = "SMTPRelayerRequiresAuthentication", Label = L("Relay requires authentication") });
@@ -2470,7 +2470,7 @@ namespace hMailServer.ControlPanel.Views
          oauth.Settings.Add(new IniText
          {
             Path = "OutboundOAuth2Hosts",
-            Label = L("Relay hosts that use OAuth2 (comma separated; blank this to use none)"),
+            Label = L("Relay hosts that use OAuth2 (comma separated; empty = none)"),
             Default = "smtp.office365.com",
             Placeholder = "smtp.office365.com",
             Blurb = L("Only destinations named here get a bearer token; every other relay keeps password authentication. This is deliberate - a token presented to the wrong relay is a leaked token."),
@@ -2506,8 +2506,8 @@ namespace hMailServer.ControlPanel.Views
          oauth.Settings.Add(new IniText
          {
             Path = "OutboundOAuth2FixedToken",
-            Label = L("Fixed token (advanced; used verbatim instead of fetching)"),
-            Blurb = L("For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them."),
+            Label = L("Fixed token"),
+            Blurb = Sentences(L("Advanced: it is sent as it is, in place of a token the server fetches."), L("For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them.")),
             IniStore = iniStore_
          });
          // The collecting half of the same Microsoft 365 story, and it was the one
@@ -2518,7 +2518,7 @@ namespace hMailServer.ControlPanel.Views
          oauth.Settings.Add(new IniText
          {
             Path = "FetchOAuth2Hosts",
-            Label = L("External-account hosts to FETCH from with OAuth2 (comma separated; blank this to use none)"),
+            Label = L("External-account hosts to fetch from with OAuth2 (comma separated; empty = none)"),
             Default = "outlook.office365.com",
             Placeholder = "outlook.office365.com",
             Blurb = L("External accounts whose server is named here sign in with a bearer token from the same token endpoint above; every other external account keeps USER/PASS. Collecting from Microsoft 365 with a password has not been possible since 2022."),
@@ -2546,10 +2546,10 @@ namespace hMailServer.ControlPanel.Views
          sensitive.Settings.Add(new RestText
          {
             Path = "DlpAccountNumberPattern",
-            Label = L("Account-number pattern (a regular expression; empty = none)"),
+            Label = L("Account-number pattern (empty = none)"),
             Key = "dlp_account_number_pattern",
             Placeholder = "ACC-\\d{8}", // no-loc
-            Blurb = L("Perl syntax, searched in a message's text and its text attachments, up to 2000 characters. Empty, the default, is an account-number detector that never fires. A pattern the server cannot compile is refused.")
+            Blurb = Sentences(L("A regular expression."), L("Perl syntax, searched in a message's text and its text attachments, up to 2000 characters. Empty, the default, is an account-number detector that never fires. A pattern the server cannot compile is refused."))
          });
          Tab(L("Rules")).Cards.Add(sensitive);
 
@@ -2573,7 +2573,7 @@ namespace hMailServer.ControlPanel.Views
          complaints.Settings.Add(new ComText
          {
             Path = "ComplaintSuppressionThreshold",
-            Label = L("Complaints before an address is suppressed (0 = never; up to 100)"),
+            Label = L("Complaints before an address is suppressed (up to 100; 0 = never)"),
             Numeric = true,
             Maximum = 100,
             Blurb = L("0 by default: every report is recorded and counted and nobody is listed. Read some real entries first; 1 is then the usual value.")
@@ -2581,7 +2581,7 @@ namespace hMailServer.ControlPanel.Views
          complaints.Settings.Add(new ComText
          {
             Path = "ComplaintRetentionDays",
-            Label = L("Days a complaint is kept (0 = for ever; up to 3650)"),
+            Label = L("Days a complaint is kept (up to 3,650; 0 = for ever)"),
             Numeric = true,
             Maximum = 3650,
             Blurb = L("180 by default. A suppression list entry a complaint made keeps its own expiry, set with the bounces.")
@@ -2593,7 +2593,7 @@ namespace hMailServer.ControlPanel.Views
          domainReports.Settings.Add(new RestNumber
          {
             Path = "DomainReportRetentionDays",
-            Label = L("Days a received report is kept (0 = for ever; up to 3650)"),
+            Label = L("Days a received report is kept (up to 3,650; 0 = for ever)"),
             Key = "domain_report_retention_days",
             Maximum = 3650,
             Blurb = L("365 by default.")
@@ -2696,7 +2696,7 @@ namespace hMailServer.ControlPanel.Views
          general.Settings.Add(new ComBool { Path = "AntiSpam.AddHeaderReason", Label = L("Add X-hMailServer-Reason header") });
          general.Settings.Add(new ComBool { Path = "AntiSpam.PrependSubject", Label = L("Prepend text to subject") });
          general.Settings.Add(new ComText { Path = "AntiSpam.PrependSubjectText", Label = L("Subject prefix") });
-         general.Settings.Add(new ComText { Path = "AntiSpam.MaximumMessageSize", Label = L("Max message size to spam-scan (KB, 0 = unlimited)"), Numeric = true });
+         general.Settings.Add(new ComText { Path = "AntiSpam.MaximumMessageSize", Label = L("Largest message to spam-scan (KB; 0 = no limit)"), Numeric = true });
          Tab(L("General")).Cards.Add(general);
 
          // Directly under the refuse threshold, because this setting changes what that
@@ -2741,7 +2741,7 @@ namespace hMailServer.ControlPanel.Views
          var tarpit = Card(L("Recipient tarpit"),
             L("Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once."));
          tarpit.Settings.Add(new ComText { Path = "AntiSpam.TarpitCount", Label = L("Recipients a message may name before the delay starts (0 = off)"), Numeric = true });
-         tarpit.Settings.Add(new ComText { Path = "AntiSpam.TarpitDelay", Label = L("Delay for each further recipient (seconds, at most 30; 0 = off)"), Numeric = true });
+         tarpit.Settings.Add(new ComText { Path = "AntiSpam.TarpitDelay", Label = L("Delay for each further recipient (seconds, up to 30; 0 = off)"), Numeric = true });
          Tab(L("General")).Cards.Add(tarpit);
 
 
@@ -2806,7 +2806,7 @@ namespace hMailServer.ControlPanel.Views
          auth.Settings.Add(new IniNumber
          {
             Path = "DmarcRptSchemaVersion",
-            Label = L("Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990"),
+            Label = L("Aggregate-report schema this server sends (1 = RFC 7489 Appendix C, 2 = RFC 9990)"),
             Default = 1,
             MinimumValue = 1,
             Blurb = L("1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1."),
@@ -2852,7 +2852,7 @@ namespace hMailServer.ControlPanel.Views
             Label = L("Also ban the connecting address for a while"),
             Blurb = L("The address is banned as a run of failed sign-ins bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off.")
          });
-         nullSender.Settings.Add(new ComText { Path = "AntiSpam.BanMultiRcptNullSenderHours", Label = L("Ban for (hours, 1 to 8760)"), Numeric = true });
+         nullSender.Settings.Add(new ComText { Path = "AntiSpam.BanMultiRcptNullSenderHours", Label = L("Ban for (hours, 1 to 8,760)"), Numeric = true });
          Tab(L("Host checks")).Cards.Add(nullSender);
 
          // GitLab issue 51. A refusal like the null sender's, not a score: a
@@ -2896,7 +2896,7 @@ namespace hMailServer.ControlPanel.Views
          grey.Settings.Add(new ComText
          {
             Path = "AntiSpam.GreyListingAbuseThreshold",
-            Label = L("Refuse with 550 after this many retries before the window opens (0 never refuses)"),
+            Label = L("Refuse with 550 after this many retries before the window opens (0 = never)"),
             Numeric = true,
             Blurb = L("A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt.")
          });
@@ -2915,7 +2915,7 @@ namespace hMailServer.ControlPanel.Views
          grey.Settings.Add(new IniBool
          {
             Path = "GreylistingEnabledDuringRecordExpiration",
-            Label = L("Keep greylisting active during the record-expiration window"),
+            Label = L("Keep greylisting active during the record expiration window"),
             Default = true,
             Blurb = L("A triplet that has been seen before but has not yet been confirmed sits in a window before its record expires. Turning this off lets mail through during that window instead of greylisting it again, which is gentler on senders that retry slowly and weaker against a sender that retries once."),
             IniStore = iniStore_
@@ -2923,7 +2923,7 @@ namespace hMailServer.ControlPanel.Views
          grey.Settings.Add(new IniNumber
          {
             Path = "GreylistingRecordExpirationInterval",
-            Label = L("Record expiration interval, minutes"),
+            Label = L("Record expiration interval (minutes)"),
             Default = 240,
             Blurb = L("How long that window lasts. Four hours by default."),
             IniStore = iniStore_
@@ -2994,8 +2994,8 @@ namespace hMailServer.ControlPanel.Views
          sa.Settings.Add(new IniText
          {
             Path = "SpamAssassinUser",
-            Label = L("Profile to scan as (spamd User: header; empty = spamd's global configuration)"),
-            Blurb = L("The name spamd looks up its per-user preferences for - a user_prefs file or a row in its SQL preference store. Leave empty unless spamd has been set up for it: a spamd told to change to a user it cannot find may refuse the scan, and an unscanned message is delivered as if SpamAssassin were unreachable."),
+            Label = L("Profile to scan as (empty = spamd's global configuration)"),
+            Blurb = Sentences(L("It is sent as spamd's User: header."), L("The name spamd looks up its per-user preferences for - a user_prefs file or a row in its SQL preference store. Leave empty unless spamd has been set up for it: a spamd told to change to a user it cannot find may refuse the scan, and an unscanned message is delivered as if SpamAssassin were unreachable.")),
             IniStore = iniStore_
          });
          sa.Settings.Add(new IniBool
@@ -3071,7 +3071,7 @@ namespace hMailServer.ControlPanel.Views
          traps.Settings.Add(new ComText
          {
             Path = "SpamTrapBanMinutes",
-            Label = L("Minutes the sending address is banned (0 = no ban; up to 525600)"),
+            Label = L("Ban the sending address for (minutes, up to 525,600; 0 = no ban)"),
             Numeric = true,
             Maximum = 525600,
             Blurb = L("1440 by default; the ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address in 'Never auto-ban these addresses' on the Auto-ban page are never banned.")
@@ -3079,7 +3079,7 @@ namespace hMailServer.ControlPanel.Views
          traps.Settings.Add(new ComText
          {
             Path = "SpamTrapBlockDays",
-            Label = L("Days the envelope sender stays blocked (0 = no block; up to 3650)"),
+            Label = L("Block the envelope sender for (days, up to 3,650; 0 = no block)"),
             Numeric = true,
             Maximum = 3650,
             Blurb = L("30 by default: an ordinary block at server scope, which a nearer allow entry still overrules. The null sender, a sender in a domain this server hosts and a sender on the allow list are never blocked.")
@@ -3087,7 +3087,7 @@ namespace hMailServer.ControlPanel.Views
          traps.Settings.Add(new ComText
          {
             Path = "SpamTrapHitRetentionDays",
-            Label = L("Days the record of trap hits is kept (1 to 3650)"),
+            Label = L("Keep the record of trap hits for (days, 1 to 3,650)"),
             Numeric = true,
             Minimum = 1,
             Maximum = 3650,
@@ -3121,7 +3121,7 @@ namespace hMailServer.ControlPanel.Views
          general.Settings.Add(notifySender);
          general.Settings.Add(notifyReceiver);
          afterBuildUi_ = () => WireAntivirusNoticeDependency(action, notifySender, notifyReceiver);
-         general.Settings.Add(new ComText { Path = "AntiVirus.MaximumMessageSize", Label = L("Max message size to virus-scan (KB, 0 = unlimited)"), Numeric = true });
+         general.Settings.Add(new ComText { Path = "AntiVirus.MaximumMessageSize", Label = L("Largest message to virus-scan (KB; 0 = no limit)"), Numeric = true });
          general.Settings.Add(new ComBool { Path = "AntiVirus.EnableAttachmentBlocking", Label = L("Enable attachment blocking (manage list on the Blocked attachments page)") });
          Tab(L("General")).Cards.Add(general);
 
@@ -3267,7 +3267,7 @@ namespace hMailServer.ControlPanel.Views
          sandbox.Settings.Add(new ComText { Path = "SandboxTimeoutMinutes", Label = L("Minutes a message waits for a verdict"), Numeric = true });
          sandbox.Settings.Add(new ComCombo { Path = "SandboxTimeoutAction", Label = L("When the wait ends or the sandbox answers error"), Options = SandboxTimeoutAction });
          sandbox.Settings.Add(new ComText { Path = "SandboxPollSeconds", Label = L("Seconds between verdict checks"), Numeric = true });
-         sandbox.Settings.Add(new ComText { Path = "SandboxScoreThreshold", Label = L("Score at which suspicious counts as malicious (0-100)"), Numeric = true });
+         sandbox.Settings.Add(new ComText { Path = "SandboxScoreThreshold", Label = L("Score at which suspicious counts as malicious (0 to 100)"), Numeric = true });
          sandbox.Settings.Add(new ComText { Path = "SandboxCacheHours", Label = L("Hours a verdict is remembered (0 = never)"), Numeric = true });
          sandbox.Settings.Add(new ComBool { Path = "SandboxInternalMail", Label = L("Also hold what this server's own signed-in users send, and upload its files") });
          Tab(L("Sandbox")).Cards.Add(sandbox);
@@ -3346,7 +3346,7 @@ namespace hMailServer.ControlPanel.Views
          resume.Settings.Add(new IniNumber
          {
             Path = "TlsSessionCacheSize",
-            Label = L("Server-side session cache size (0 = OpenSSL's default cap of 20480; negative = no cache)"),
+            Label = L("Server-side session cache size (0 = OpenSSL's default of 20,480, -1 = no cache)"),
             Default = 0,
             // The one numeric INI setting on any page where a negative value is
             // meaningful rather than a mistake, which is why IniNumber grew a
@@ -3358,7 +3358,7 @@ namespace hMailServer.ControlPanel.Views
          resume.Settings.Add(new IniNumber
          {
             Path = "TlsSessionTimeoutSeconds",
-            Label = L("Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)"),
+            Label = L("Resumption lifetime for cached sessions and tickets (seconds; 0 = OpenSSL's default of 300)"),
             Default = 0,
             Blurb = L("How long a session stays resumable, for cached sessions and tickets alike. It bounds how long a leaked resumption secret stays useful: a ticket recorded off the wire, or a session read out of a memory dump, stops working once it expires."),
             IniStore = iniStore_
@@ -3366,7 +3366,7 @@ namespace hMailServer.ControlPanel.Views
          resume.Settings.Add(new IniNumber
          {
             Path = "TlsTicketKeyRotationSeconds",
-            Label = L("Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)"),
+            Label = L("Rotate the session-ticket key every (seconds; 0 = OpenSSL's single key)"),
             Default = 0,
             Blurb = L("What rotation defends: OpenSSL's default ticket key is generated once, when the listener starts, and is never rotated, so every ticket that listener issues for the life of the process is sealed under the same key - and that key, recovered later, decrypts every ticket ever recorded. With an interval set, a captured ticket is useless after at most two intervals. 86400 is a day. Only meaningful while session tickets are enabled above."),
             IniStore = iniStore_
@@ -3665,7 +3665,7 @@ namespace hMailServer.ControlPanel.Views
          compromise.Settings.Add(new RestNumber
          {
             Path = "CompromiseMinimumHistory",
-            Label = L("Submissions before an account's baseline counts (1 to 10000)"),
+            Label = L("Submissions before an account's baseline counts (1 to 10,000)"),
             Key = "compromise_minimum_history",
             Minimum = 1,
             Maximum = 10000,
@@ -3683,7 +3683,7 @@ namespace hMailServer.ControlPanel.Views
          compromise.Settings.Add(new RestNumber
          {
             Path = "CompromiseVolumeFloor",
-            Label = L("Fewest messages in an hour that can be a volume signal (1 to 100000)"),
+            Label = L("Fewest messages in an hour that can be a volume signal (1 to 100,000)"),
             Key = "compromise_volume_floor",
             Minimum = 1,
             Maximum = 100000,
@@ -3692,7 +3692,7 @@ namespace hMailServer.ControlPanel.Views
          compromise.Settings.Add(new RestNumber
          {
             Path = "CompromiseRecipientFloor",
-            Label = L("Fewest recipients in an hour that can be a recipients signal (1 to 100000)"),
+            Label = L("Fewest recipients in an hour that can be a recipients signal (1 to 100,000)"),
             Key = "compromise_recipient_floor",
             Minimum = 1,
             Maximum = 100000,
@@ -3863,7 +3863,7 @@ namespace hMailServer.ControlPanel.Views
          detail.Settings.Add(new IniNumber
          {
             Path = "LogLevel",
-            Label = L("Log level (3 or above = full detail; 2 or lower = quieter)"),
+            Label = L("Log level"),
             Default = 9,
             Blurb = L("There is only one step, at 2. From 3 upwards (the default is 9) every enabled category is logged in full. At 2 or lower the server drops IMAP FETCH and STATUS responses from the log and shortens lines longer than the limit below to their first and last characters. Turning on Debug messages above restores full detail whatever the level."),
             IniStore = iniStore_
@@ -3871,7 +3871,7 @@ namespace hMailServer.ControlPanel.Views
          detail.Settings.Add(new IniNumber
          {
             Path = "MaxLogLineLen",
-            Label = L("Maximum characters per log line (minimum 100; only applied at log level 2 or lower)"),
+            Label = L("Maximum characters per log line (at least 100)"), Blurb = L("Only applied at log level 2 or lower."),
             Default = 500,
             IniStore = iniStore_
          });
@@ -3889,7 +3889,7 @@ namespace hMailServer.ControlPanel.Views
          retention.Settings.Add(new IniNumber
          {
             Path = "LogDeleteDays",
-            Label = L("Delete logs older than N days (0 = keep everything)"),
+            Label = L("Delete logs older than (days; 0 = keep for ever)"),
             Default = 0,
             Blurb = L("Checked shortly after the service starts and every six hours after that. Only hMailServer's own dated log files (hmailserver_*.log and ERROR_hmailserver_*.log) are removed; nothing else in the log folder is touched."),
             IniStore = iniStore_
@@ -3960,7 +3960,7 @@ namespace hMailServer.ControlPanel.Views
          audit.Settings.Add(new RestNumber
          {
             Path = "AuditRetentionDays",
-            Label = L("Days of audit trail to keep (0 = everything)"),
+            Label = L("Days of audit trail to keep (0 = for ever)"),
             Key = "audit_retention_days",
             Blurb = L("0, keep everything, by default. Removing the oldest rows starts the chain again at the oldest row kept.")
          });
@@ -4052,7 +4052,7 @@ namespace hMailServer.ControlPanel.Views
          webhooks.Settings.Add(new ComText
          {
             Path = "WebhookMaxPerMinute",
-            Label = L("Events a minute for a subscription with no limit of its own (1 to 100000)"),
+            Label = L("Events a minute for a subscription with no limit of its own (1 to 100,000)"),
             Numeric = true,
             Minimum = 1,
             Maximum = 100000,
@@ -4061,7 +4061,7 @@ namespace hMailServer.ControlPanel.Views
          webhooks.Settings.Add(new ComText
          {
             Path = "WebhookRetentionDays",
-            Label = L("Days delivered and dead-lettered deliveries are kept (0 = everything; up to 3650)"),
+            Label = L("Days delivered and dead-lettered deliveries are kept (up to 3,650; 0 = for ever)"),
             Numeric = true,
             Maximum = 3650,
             Blurb = L("7 by default.")
@@ -4201,8 +4201,8 @@ namespace hMailServer.ControlPanel.Views
          Header.Subtitle = L("Thread pools, in-memory caches and message indexing.");
 
          var threads = Card(L("Threads"), L("Thread pool sizing. Defaults suit most installations; raise for very busy servers."));
-         threads.Settings.Add(new ComText { Path = "MaxDeliveryThreads", Label = L("Max delivery threads"), Numeric = true });
-         threads.Settings.Add(new ComText { Path = "MaxAsynchronousThreads", Label = L("Max asynchronous task threads"), Numeric = true });
+         threads.Settings.Add(new ComText { Path = "MaxDeliveryThreads", Label = L("Maximum delivery threads"), Numeric = true });
+         threads.Settings.Add(new ComText { Path = "MaxAsynchronousThreads", Label = L("Maximum asynchronous task threads"), Numeric = true });
          threads.Settings.Add(new ComText { Path = "TCPIPThreads", Label = L("TCP/IP threads"), Numeric = true });
          // The fourth thread pool, and the only one that was not on this card:
          // it is an INI value rather than a COM one, which is not a reason for an
@@ -4210,7 +4210,7 @@ namespace hMailServer.ControlPanel.Views
          threads.Settings.Add(new IniNumber
          {
             Path = "MaxNumberOfExternalFetchThreads",
-            Label = L("Max parallel external POP3 fetch threads"),
+            Label = L("Maximum parallel external POP3 fetch threads"),
             Default = 15,
             Blurb = L("How many external accounts, configured under a domain's accounts as external POP3 downloads, are collected at the same time. Each one holds a connection to somebody else's server for as long as the download takes."),
             IniStore = iniStore_
@@ -4290,7 +4290,7 @@ namespace hMailServer.ControlPanel.Views
          index.Settings.Add(new IniNumber
          {
             Path = "IndexerFullTextBatchSize",
-            Label = L("Messages one backfill pass reads before pausing (1-100000)"),
+            Label = L("Messages one backfill pass reads before pausing (1 to 100,000)"),
             Default = 250,
             MinimumValue = 1,
             IniStore = iniStore_
@@ -4298,7 +4298,7 @@ namespace hMailServer.ControlPanel.Views
          index.Settings.Add(new IniNumber
          {
             Path = "IndexerFullTextMinTokenLength",
-            Label = L("Shortest search string the index answers for (3-64; shorter strings fall back to the scan)"),
+            Label = L("Shortest search string the index answers for (3 to 64)"), Blurb = L("Shorter strings fall back to the scan."),
             Default = 3,
             MinimumValue = 3,
             IniStore = iniStore_
@@ -4306,7 +4306,7 @@ namespace hMailServer.ControlPanel.Views
          index.Settings.Add(new IniNumber
          {
             Path = "IndexerFullTextMaxTokensPerMessage",
-            Label = L("Distinct terms per message before it is always scanned instead (64-1000000)"),
+            Label = L("Distinct terms per message before it is always scanned instead (64 to 1,000,000)"),
             Default = 2048,
             MinimumValue = 64,
             IniStore = iniStore_
@@ -4341,7 +4341,7 @@ namespace hMailServer.ControlPanel.Views
          var store = Card(L("Message store"),
             L("Whether new mail is stored compressed, with the large attachments it shares with other messages kept once. Clients see every message exactly as it arrived. Turning it off stores new mail as it comes and leaves the stored messages readable; hmailserver --compress-store rewrites the messages already there, and --decompress puts them back."));
          store.Settings.Add(new ComBool { Path = "MessageStoreCompression", Label = L("Store new mail compressed, with large parts held once") });
-         store.Settings.Add(new ComText { Path = "MessageStoreDedupMinKB", Label = L("Smallest part held once (KB; 0 holds nothing once)"), Numeric = true });
+         store.Settings.Add(new ComText { Path = "MessageStoreDedupMinKB", Label = L("Smallest part held once (KB; 0 = none)"), Numeric = true });
          store.Settings.Add(new ComStat
          {
             Path = "MessageStoreStatus",
@@ -4457,7 +4457,7 @@ namespace hMailServer.ControlPanel.Views
          objects.Settings.Add(new RestNumber
          {
             Path = "MessageStoreObjectCacheMB",
-            Label = L("Read cache in MB (0 = none; up to 4096)"),
+            Label = L("Read cache (MB, up to 4,096; 0 = none)"),
             Key = "message_store_object_cache_mb",
             Maximum = 4096,
             Blurb = L("32 by default. What was read a moment ago is kept for half a minute, so that one IMAP FETCH is one request and not five.")
@@ -4471,7 +4471,7 @@ namespace hMailServer.ControlPanel.Views
          atRest.Settings.Add(new RestNumber
          {
             Path = "MailboxKeyIdleMinutes",
-            Label = L("Minutes a mailbox key stays open after its last use (1 to 1440)"),
+            Label = L("Minutes a mailbox key stays open after its last use (1 to 1,440)"),
             Key = "mailbox_key_idle_minutes",
             Minimum = 1,
             Maximum = 1440,
@@ -4613,7 +4613,7 @@ namespace hMailServer.ControlPanel.Views
          TabDef copies = Tab(L("Copies of mail"));
 
          var mirror = Card(L("Mirroring"), L("Sends a copy of every message passing through the server to one address (compliance archiving)."));
-         mirror.Settings.Add(new ComText { Path = "MirrorEMailAddress", Label = L("Mirror address (empty = disabled)") });
+         mirror.Settings.Add(new ComText { Path = "MirrorEMailAddress", Label = L("Mirror address (empty = off)") });
          copies.Cards.Add(mirror);
 
          var archive = Card(L("Message archiving"),
@@ -4629,7 +4629,7 @@ namespace hMailServer.ControlPanel.Views
          archive.Settings.Add(new IniText
          {
             Path = "ArchiveDomains",
-            Label = L("Only archive mail for these domains (comma-separated; empty = every message)"),
+            Label = L("Only archive mail for these domains (comma separated; empty = every message)"),
             Placeholder = "example.com, example.org", // no-loc
             Blurb = L("An archive is usually kept for a legal or contractual reason, and that reason usually applies to particular domains rather than to every domain this server hosts. With a list here a message is archived only when its local sender or one of its recipients belongs to a listed domain, and only the copies for listed domains are made - a listed recipient still gets their copy when the sender's domain is not listed. Matched without regard to case."),
             IniStore = iniStore_
@@ -4674,8 +4674,8 @@ namespace hMailServer.ControlPanel.Views
          script.Settings.Add(new IniText
          {
             Path = "ScriptAllowedObjects",
-            Label = L("COM objects a script may create (* = any, as shipped; empty = none beyond hMailServer's own; ProgIDs or CLSIDs, comma separated)"),
-            Blurb = L("An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects."),
+            Label = L("COM objects a script may create (comma separated; * = any, empty = only hMailServer's own)"),
+            Blurb = Sentences(L("ProgIDs or CLSIDs."), L("An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects.")),
             // Absent means "*", so that a key appearing in an upgrade cannot break
             // scripts an installation already runs; the editor shows that, because
             // a blank here saved back would mean "none" and break them itself.
@@ -4739,7 +4739,7 @@ namespace hMailServer.ControlPanel.Views
          passkeys.Settings.Add(new RestText
          {
             Path = "PasskeyRelyingParty",
-            Label = L("Relying party (empty = the host the page is on)"),
+            Label = L("Relying party (empty = the page's own host)"),
             Key = "passkey_relying_party",
             Placeholder = "example.com", // no-loc
             Blurb = L("A host name, not an address. Set a parent domain when the webmail and the Control Deck are reached at several names, so that one passkey works at all of them.")
@@ -4842,7 +4842,7 @@ namespace hMailServer.ControlPanel.Views
          saml.Settings.Add(new RestText
          {
             Path = "SamlSpEntityId",
-            Label = L("This server's entity ID (empty = the base address followed by /saml)"),
+            Label = L("This server's entity ID (empty = the base address and /saml)"),
             Key = "saml_sp_entity_id",
             Blurb = L("What the provider knows this server as: Entra ID's Identifier, Okta's Audience URI.")
          });
@@ -4895,7 +4895,7 @@ namespace hMailServer.ControlPanel.Views
          recovery.Settings.Add(new RestNumber
          {
             Path = "RecoveryResetLinkMinutes",
-            Label = L("Minutes a password-reset link works (5 to 1440)"),
+            Label = L("Minutes a password-reset link works (5 to 1,440)"),
             Key = "recovery_reset_link_minutes",
             Minimum = 5,
             Maximum = 1440,
@@ -4919,7 +4919,7 @@ namespace hMailServer.ControlPanel.Views
          sessions.Settings.Add(new ComText
          {
             Path = "SessionIdleSeconds",
-            Label = L("Seconds a session may go unused (0 = the server's own 1800)"),
+            Label = L("Seconds a session may go unused (0 = the server's own 1,800)"),
             Numeric = true,
             Maximum = 2592000,
             Blurb = L("At most 2592000, thirty days.")
@@ -4927,7 +4927,7 @@ namespace hMailServer.ControlPanel.Views
          sessions.Settings.Add(new ComText
          {
             Path = "SessionLifetimeSeconds",
-            Label = L("Seconds a session may last at all (0 = the server's own 43200)"),
+            Label = L("Seconds a session may last at all (0 = the server's own 43,200)"),
             Numeric = true,
             Maximum = 2592000,
             Blurb = L("43200 is twelve hours. At most 2592000, thirty days.")
@@ -4953,7 +4953,7 @@ namespace hMailServer.ControlPanel.Views
          reader.Settings.Add(new RestNumber
          {
             Path = "ReaderFetchAccountsMax",
-            Label = L("Other POP3 or IMAP accounts a person may collect from (0 = none; up to 20)"),
+            Label = L("Other POP3 or IMAP accounts a person may collect from (up to 20; 0 = none)"),
             Key = "reader_fetch_accounts_max",
             Maximum = 20,
             Blurb = L("3 by default. The external accounts an administrator adds are not counted.")
@@ -4968,7 +4968,7 @@ namespace hMailServer.ControlPanel.Views
          reader.Settings.Add(new RestNumber
          {
             Path = "ReaderMaskedAddressesMax",
-            Label = L("Masked addresses a person may make (0 = none; up to 200)"),
+            Label = L("Masked addresses a person may make (up to 200; 0 = none)"),
             Key = "reader_masked_addresses_max",
             Maximum = 200,
             Blurb = L("20 by default.")
@@ -4976,7 +4976,7 @@ namespace hMailServer.ControlPanel.Views
          reader.Settings.Add(new RestNumber
          {
             Path = "ReaderSenderAddressesMax",
-            Label = L("Addresses at other providers a person may send as (0 = none; up to 20)"),
+            Label = L("Addresses at other providers a person may send as (up to 20; 0 = none)"),
             Key = "reader_sender_addresses_max",
             Maximum = 20,
             Blurb = L("5 by default. Each is proved with a code first; mail sent as one may be refused where its domain's DMARC policy is strict.")
@@ -4984,7 +4984,7 @@ namespace hMailServer.ControlPanel.Views
          reader.Settings.Add(new RestNumber
          {
             Path = "ReaderOfflineDaysMax",
-            Label = L("Days of mail a person may keep in the browser to read offline (0 = none; up to 365)"),
+            Label = L("Days of mail a person may keep in the browser to read offline (up to 365; 0 = none)"),
             Key = "reader_offline_days_max",
             Maximum = 365,
             Blurb = L("30 by default.")
@@ -5001,7 +5001,7 @@ namespace hMailServer.ControlPanel.Views
          reader.Settings.Add(new RestNumber
          {
             Path = "RecoverDeletedDays",
-            Label = L("Days deleted messages are kept for the person to put back (0 = none; up to 365)"),
+            Label = L("Days deleted messages are kept for the person to put back (up to 365; 0 = none)"),
             Key = "recover_deleted_days",
             Maximum = 365,
             Blurb = L("0 by default. The copies count against no quota.")
@@ -5065,7 +5065,7 @@ namespace hMailServer.ControlPanel.Views
          pgp.Settings.Add(new ComText
          {
             Path = "OpenPGPKeyMaximumBytes",
-            Label = L("Largest key accepted, in bytes (1024 to 1048576)"),
+            Label = L("Largest key accepted (bytes, 1,024 to 1,048,576)"),
             Numeric = true,
             Minimum = 1024,
             Maximum = 1048576,
@@ -5169,7 +5169,7 @@ namespace hMailServer.ControlPanel.Views
          push.Settings.Add(new RestNumber
          {
             Path = "WebPushTimeToLiveSeconds",
-            Label = L("Seconds a push service holds a notification for a device that is offline (0 to 2419200)"),
+            Label = L("Seconds a push service holds a notification for a device that is offline (0 to 2,419,200)"),
             Key = "time_to_live_seconds",
             Group = RestSettings.PushGroup,
             Maximum = 2419200,

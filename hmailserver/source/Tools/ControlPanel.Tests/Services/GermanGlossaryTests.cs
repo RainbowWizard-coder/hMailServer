@@ -128,7 +128,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain(German.Values, value => value.Contains("Nie-bannen-Liste", StringComparison.Ordinal)
                                                      || value.Contains("automatische Sperre", StringComparison.OrdinalIgnoreCase)
                                                      || value.Contains("Auto-Ban-", StringComparison.Ordinal));
-         foreach (string key in new[] { "Names that are never auto-banned", "Localhost is currently banned in the IP ranges.", "Ban for (hours, 1 to 8760)" })
+         foreach (string key in new[] { "Names that are never auto-banned", "Localhost is currently banned in the IP ranges.", "Ban for (hours, 1 to 8,760)" })
             Assert.Matches("[Bb]ann", German[key]);
       }
 

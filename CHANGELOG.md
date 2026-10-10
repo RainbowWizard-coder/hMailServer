@@ -3149,6 +3149,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   dialogs, in every language. `CaptionWordingTests` holds every caption of the dialogs to the rule - a part of a
   bracket with a ";" or an "=" in it is a unit, a range or what values mean, each meaning five words at most.
 
+- **Fixed: field captions said a unit, a range and what 0 means in a dozen ways, and one said 0 meant "default" where
+  it means every host.** The Anti-spam and Anti-virus pages alone had "(KB, 0 = unlimited)", "(0 never refuses)",
+  "Record expiration interval, minutes", "(0-100)" and "Minutes the sending address is banned (0 = no ban; up to
+  525600)", with "Max" and "Maximum" in one card; the settings pages added "(s)", "in seconds", "N days", "0 =
+  disabled", "0 = no bound", "0 = keep" and numbers without their thousands separated. Every caption now says them one
+  way: "<what> (<unit>, <range>; 0 = <meaning>)" - "Ban the sending address for (minutes, up to 525,600; 0 = no ban)",
+  "Largest message to spam-scan (KB; 0 = no limit)", "SMTP server minimum timeout (seconds)" - with "no limit", "off",
+  "for ever" and "no time limit" for what 0 means, and an explanation that sat in a caption's brackets is now the
+  setting's hint. The four timeouts of Server limits & expert settings that did not say what 0 means, and its reserved
+  threads, now do. "Extra delivery attempts per additional MX host (0 = default)" is "MX hosts tried per attempt,
+  times the attempt number (0 = all)": the setting bounds how many of a domain's MX hosts each attempt tries, and its
+  hint had said it multiplied the retry count. About 140 captions and hints, in every language. `CaptionFormTests`
+  holds every caption of the Control Panel to the form.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

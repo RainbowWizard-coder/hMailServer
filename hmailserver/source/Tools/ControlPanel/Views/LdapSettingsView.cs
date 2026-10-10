@@ -445,7 +445,7 @@ namespace hMailServer.ControlPanel.Views
             "ldap-verify-certificate",
             StoredAs_(L("On by default, and only an explicit 0 in the INI turns it off. Turned off, the encrypted connection no longer proves it reaches YOUR directory: anyone who can intercept it can present any certificate and collect every password sent over it. The server notes the disabling in its application log once per service start. Only meaningful for LDAPS and StartTLS."), "VerifyCertificate")));
 
-         content.Children.Add(timeoutRow_ = LabelledBox_(L("Time_out in seconds"), timeout_, "ldap-timeout",
+         content.Children.Add(timeoutRow_ = LabelledBox_(L("Time_out (seconds, 1 to 90)"), timeout_, "ldap-timeout",
             StoredAs_(L("Default 10, allowed range 1 to 90. The server reads values below 1 as 10 and clamps values above 90, because \"wait forever\" for an unreachable directory is how connection threads get exhausted."), "TimeoutSeconds"),
             placeholder: "10"));
 

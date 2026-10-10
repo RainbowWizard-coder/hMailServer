@@ -88,16 +88,16 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void SameLabelInThreeCards_IsQualifiedInAllThree()
       {
          IReadOnlyList<string> names = Resolve(
-            ("Max simultaneous connections (0 = unlimited)", "SMTP"),
-            ("Max simultaneous connections (0 = unlimited)", "IMAP"),
-            ("Max simultaneous connections (0 = unlimited)", "POP3"));
+            ("Maximum simultaneous connections (0 = no limit)", "SMTP"),
+            ("Maximum simultaneous connections (0 = no limit)", "IMAP"),
+            ("Maximum simultaneous connections (0 = no limit)", "POP3"));
 
          Assert.Equal(
             new[]
             {
-               "SMTP: Max simultaneous connections (0 = unlimited)",
-               "IMAP: Max simultaneous connections (0 = unlimited)",
-               "POP3: Max simultaneous connections (0 = unlimited)"
+               "SMTP: Maximum simultaneous connections (0 = no limit)",
+               "IMAP: Maximum simultaneous connections (0 = no limit)",
+               "POP3: Maximum simultaneous connections (0 = no limit)"
             },
             names);
       }
@@ -214,7 +214,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(
             new[]
             {
-               "protocols: Max simultaneous connections (0 = unlimited) (x3)",
+               "protocols: Maximum simultaneous connections (0 = no limit) (x3)",
                "protocols: Welcome banner (empty = default) (x3)"
             },
             duplicated);

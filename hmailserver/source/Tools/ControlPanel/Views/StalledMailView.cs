@@ -201,15 +201,15 @@ namespace hMailServer.ControlPanel.Views
 
          content.Children.Add(Table(new[]
          {
-            (L("Message finalization deadline (240)"), L("The whole accept pipeline; then the sender gets a 451. 0 = no bound.")),
+            (L("Message finalization deadline (240)"), L("The whole accept pipeline; then the sender gets a 451. 0 = no time limit.")),
             (L("SpamAssassin maximum timeout (90)"), L("SpamAssassin: idle timeout, and a session ceiling of this plus 30 s. 0 is NOT no bound.")),
             (L("ClamAV maximum timeout (90)"), L("ClamAV: idle timeout per socket operation. 0 is NOT no bound.")),
-            (L("DNS query timeout (10)"), L("A single DNS query. 0 = no bound.")),
-            (L("Event script execution timeout (60)"), L("One event script invocation. 0 = no bound.")),
-            (L("External process timeout (300)"), L("An external scanner process. 0 = no bound.")),
-            (L("Absolute lifetime of one client session (1800)"), L("An entire outbound delivery session. 0 = no bound.")),
+            (L("DNS query timeout (10)"), L("A single DNS query. 0 = no time limit.")),
+            (L("Event script execution timeout (60)"), L("One event script invocation. 0 = no time limit.")),
+            (L("External process timeout (300)"), L("An external scanner process. 0 = no time limit.")),
+            (L("Absolute lifetime of one client session (1800)"), L("An entire outbound delivery session. 0 = no time limit.")),
             (L("Report the async work queue as stalled after (120)"), L("How long every worker may be busy before the saturation report. 0 = reporting off.")),
-            (L("Wait for a free database connection (60)"), L("Waiting for a pooled database connection. 0 = no bound.")),
+            (L("Wait for a free database connection (60)"), L("Waiting for a pooled database connection. 0 = no time limit.")),
          }));
 
          var links = new WrapPanel { Margin = new Thickness(0, 10, 0, 0) };

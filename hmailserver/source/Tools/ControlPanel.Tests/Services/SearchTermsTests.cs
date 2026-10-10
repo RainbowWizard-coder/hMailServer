@@ -213,7 +213,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          var query = new SearchQuery("spam");
 
          Assert.True(query.Score("Anti-spam settings") <
-            query.Score("Max message size to spam-scan (KB, 0 = unlimited)"));
+            query.Score("Largest message to spam-scan (KB; 0 = no limit)"));
       }
 
       /// <summary>
