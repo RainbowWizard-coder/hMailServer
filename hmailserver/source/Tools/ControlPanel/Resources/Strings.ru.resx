@@ -621,9 +621,6 @@
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>Ответ для всего домена — закрытый офис, расформированный отдел. Он отвечает только за те учётные записи, у которых НЕТ собственного сообщения об отсутствии: собственное сообщение учётной записи всегда важнее, и на любое письмо отправляется не более одного ответа.</value>
   </data>
-  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
-    <value>Роль — это именованный набор прав, а назначение даёт её учётной записи в указанных доменах. Учётная запись без роли здесь имеет то, что ей всегда давал её уровень администратора.</value>
-  </data>
   <data name="A room" xml:space="preserve">
     <value>Помещение</value>
   </data>
@@ -902,9 +899,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Account _enabled" xml:space="preserve">
     <value>_Учётная запись включена</value>
-  </data>
-  <data name="Account address" xml:space="preserve">
-    <value>Адрес учётной записи</value>
   </data>
   <data name="Account address (_whose mailbox)" xml:space="preserve">
     <value>Адрес учётной записи (_чей ящик)</value>
@@ -1565,6 +1559,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
     <value>Учётная запись — это почтовый ящик в домене: адрес, на который пишут, и то, под чем входит клиент.</value>
+  </data>
+  <data name="An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>Учётная запись без роли здесь имеет то, что ей всегда давал её уровень администратора.</value>
   </data>
   <data name="An action of the rule “{0}”." xml:space="preserve">
     <value>Действие правила «{0}».</value>
@@ -4385,9 +4382,6 @@ Control Panel может читать файлы сообщений только
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>Домены, учётные записи, псевдонимы и списки рассылки, а также пароли, пересылка и папки каждой учётной записи.</value>
   </data>
-  <data name="Domains, comma separated" xml:space="preserve">
-    <value>Домены через запятую</value>
-  </data>
   <data name="Done" xml:space="preserve">
     <value>Готово</value>
   </data>
@@ -4597,6 +4591,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Empty, the default: single sign-on reaches the webmail only, and the Control Deck still asks for the administrator password." xml:space="preserve">
     <value>Пусто, по умолчанию: единый вход действует только для веб-почты, а Control Deck по-прежнему запрашивает пароль администратора.</value>
+  </data>
+  <data name="Empty: the account's own domain, or every domain for serveradmin and auditor. * is every domain for any role." xml:space="preserve">
+    <value>Пусто: собственный домен учётной записи, а для serveradmin и auditor - все домены. * - все домены для любой роли.</value>
   </data>
   <data name="Ena_ble" xml:space="preserve">
     <value>Вклю_чить</value>
@@ -5035,6 +5032,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Every message, whatever its size. The size limit is 0, which here means &quot;no limit&quot;." xml:space="preserve">
     <value>Каждое сообщение, какого бы размера оно ни было. Ограничение размера равно 0, что здесь означает «без ограничения».</value>
+  </data>
+  <data name="Every permission, in every domain." xml:space="preserve">
+    <value>Все права во всех доменах.</value>
   </data>
   <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
     <value>Каждый порт, который может использовать диапазон IP {0}, запускает TLS прежде, чем принять пароль.</value>
@@ -7982,8 +7982,8 @@ Control Panel может читать файлы сообщений только
   <data name="Nobody - the members are added here" xml:space="preserve">
     <value>Никто - участники добавляются здесь</value>
   </data>
-  <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
-    <value>Роль пока никому не назначена. Учётная запись без роли имеет права, которые даёт её уровень администратора, ровно как и до появления ролей.</value>
+  <data name="Nobody has been given a role yet." xml:space="preserve">
+    <value>Роль пока никому не назначена.</value>
   </data>
   <data name="None" xml:space="preserve">
     <value>Нет</value>
@@ -9604,6 +9604,9 @@ Control Panel может читать файлы сообщений только
   <data name="Reading the recovery report..." xml:space="preserve">
     <value>Чтение отчёта о восстановлении...</value>
   </data>
+  <data name="Reads everything and changes nothing, the audit trail included." xml:space="preserve">
+    <value>Читает всё и ничего не меняет, включая журнал аудита.</value>
+  </data>
   <data name="Reads the abuse reports (RFC 5965) that providers send when a reader presses the spam button, counts them per address, and can put an address that complains on its sending domain's suppression list. Nothing arrives until the complaint mailbox is registered with each provider's feedback loop - that is done at the provider, not here." xml:space="preserve">
     <value>Читает отчёты о злоупотреблениях (RFC 5965), которые провайдеры присылают, когда читатель нажимает кнопку «спам», подсчитывает их по адресам и может внести жалующийся адрес в список подавления его домена-отправителя. Ничего не приходит, пока ящик для жалоб не зарегистрирован в петле обратной связи каждого провайдера — это делается у провайдера, а не здесь.</value>
   </data>
@@ -10221,6 +10224,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Rescues legitimate forwarded mail from DMARC-failure penalties, but only for forwarders on your trusted-sealer list - with the list empty the feature does nothing at all, even when enabled." xml:space="preserve">
     <value>Спасает законную пересылаемую почту от штрафов за непрохождение DMARC, но только для пересылающих серверов из вашего списка доверенных запечатывающих доменов — при пустом списке функция не делает вообще ничего, даже будучи включённой.</value>
+  </data>
+  <data name="Resets a password, unlocks an account and reads a message trace." xml:space="preserve">
+    <value>Сбрасывает пароль, разблокирует учётную запись и читает трассировку сообщений.</value>
   </data>
   <data name="Resolved by the server itself, so an 'Override DNS server' set on the DNS resolver page is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Разрешается самим сервером, поэтому значение «Переопределить DNS-сервер» на странице «Резолвер DNS» учитывается — именно туда почта действительно уходит, а nslookup с этой рабочей станции такого гарантировать не может.</value>
@@ -12610,6 +12616,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The accounts chosen are members of this group already." xml:space="preserve">
     <value>Выбранные учётные записи уже входят в эту группу.</value>
   </data>
+  <data name="The accounts, mailboxes and quarantine of named domains." xml:space="preserve">
+    <value>Учётные записи, почтовые ящики и карантин указанных доменов.</value>
+  </data>
   <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>Адрес блокируется так же, как после серии неудачных входов, истекающим диапазоном IP, но никогда не адрес из «Никогда не банить автоматически эти адреса» на странице «Автоблокировка» и не входящий ретранслятор. По умолчанию выключено и ничего не делает, пока отказ выше выключен.</value>
   </data>
@@ -13141,6 +13150,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The folders and messages of one account put back from an archive in the backup destination, without touching the settings, rules, contacts or calendars of the account, or any other account. The archive is named as the destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>Папки и сообщения одной учётной записи, возвращённые из архива в месте назначения резервных копий, без изменения настроек, правил, контактов и календарей учётной записи и без затрагивания других учётных записей. Архив указывается так, как его перечисляет место назначения (HMBackup YYYY-MM-DD HHMMSS.7z), или по пути внутри него.</value>
+  </data>
+  <data name="The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority." xml:space="preserve">
+    <value>Четыре встроенные роли изменить нельзя: их права находятся в коде сервера, чтобы изменение в базе данных не могло никому дать полномочий.</value>
   </data>
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>Тексты приветствия, возвратов и ошибок, которые сервер отправляет клиентам.</value>
@@ -15115,6 +15127,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>Кто чем управляет: именованные роли этого сервера и учётные записи, которые их имеют.</value>
+  </data>
+  <data name="Who may administer what: the roles this server has, and the accounts that hold them." xml:space="preserve">
+    <value>Кто что может администрировать: роли этого сервера и учётные записи, которым они назначены.</value>
   </data>
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>Кто может подключаться, кто может аутентифицироваться и что происходит, когда кто-то не оставляет попыток.</value>

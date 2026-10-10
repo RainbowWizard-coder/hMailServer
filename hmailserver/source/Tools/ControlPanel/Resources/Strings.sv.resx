@@ -618,9 +618,6 @@
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>Ett svar för hela domänen - ett stängt kontor, en avvecklad avdelning. Det svarar bara för konton som INTE har något eget frånvaromeddelande: ett kontos eget meddelande vinner alltid, och högst ett svar besvarar ett meddelande.</value>
   </data>
-  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
-    <value>En roll är en namngiven uppsättning behörigheter, och en tilldelning ger den till ett konto i namngivna domäner. Ett konto utan roll här har det som dess administratörsnivå alltid har gett det.</value>
-  </data>
   <data name="A room" xml:space="preserve">
     <value>Ett rum</value>
   </data>
@@ -896,9 +893,6 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   </data>
   <data name="Account _enabled" xml:space="preserve">
     <value>Kontot akti_verat</value>
-  </data>
-  <data name="Account address" xml:space="preserve">
-    <value>Kontoadress</value>
   </data>
   <data name="Account address (_whose mailbox)" xml:space="preserve">
     <value>Kontoadress (_vems brevlåda)</value>
@@ -1553,6 +1547,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   </data>
   <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
     <value>Ett konto är en brevlåda i en domän: adressen folk skriver till, och det en klient loggar in som.</value>
+  </data>
+  <data name="An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>Ett konto utan roll här har det som dess administratörsnivå alltid har gett det.</value>
   </data>
   <data name="An action of the rule “{0}”." xml:space="preserve">
     <value>En åtgärd i regeln ”{0}”.</value>
@@ -4333,9 +4330,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>Domäner, konton, alias och distributionslistor, och varje kontos lösenord, vidarebefordran och mappar.</value>
   </data>
-  <data name="Domains, comma separated" xml:space="preserve">
-    <value>Domäner, kommaseparerade</value>
-  </data>
   <data name="Done" xml:space="preserve">
     <value>Klart</value>
   </data>
@@ -4545,6 +4539,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Empty, the default: single sign-on reaches the webmail only, and the Control Deck still asks for the administrator password." xml:space="preserve">
     <value>Tomt, standard: enkel inloggning når bara webbmejlen, och Control Deck frågar fortfarande efter administratörslösenordet.</value>
+  </data>
+  <data name="Empty: the account's own domain, or every domain for serveradmin and auditor. * is every domain for any role." xml:space="preserve">
+    <value>Tomt: kontots egen domän, eller varje domän för serveradmin och auditor. * är varje domän för vilken roll som helst.</value>
   </data>
   <data name="Ena_ble" xml:space="preserve">
     <value>_Aktivera</value>
@@ -4974,6 +4971,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Every message, whatever its size. The size limit is 0, which here means &quot;no limit&quot;." xml:space="preserve">
     <value>Varje meddelande, oavsett storlek. Storleksgränsen är 0, vilket här betyder "ingen gräns".</value>
+  </data>
+  <data name="Every permission, in every domain." xml:space="preserve">
+    <value>Alla behörigheter, i alla domäner.</value>
   </data>
   <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
     <value>Varje port som IP-intervallet {0} får använda startar TLS innan den tar emot ett lösenord.</value>
@@ -7900,8 +7900,8 @@ Inget som redan finns där tas bort.</value>
   <data name="Nobody - the members are added here" xml:space="preserve">
     <value>Ingen - medlemmarna läggs till här</value>
   </data>
-  <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
-    <value>Ingen har fått en roll ännu. Ett konto utan roll har de rättigheter som dess administratörsnivå ger, precis som innan rollerna fanns.</value>
+  <data name="Nobody has been given a role yet." xml:space="preserve">
+    <value>Ingen har fått en roll ännu.</value>
   </data>
   <data name="None" xml:space="preserve">
     <value>Ingen</value>
@@ -9510,6 +9510,9 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Reading the recovery report..." xml:space="preserve">
     <value>Läser återställningsrapporten...</value>
   </data>
+  <data name="Reads everything and changes nothing, the audit trail included." xml:space="preserve">
+    <value>Läser allt och ändrar ingenting, granskningsloggen medräknad.</value>
+  </data>
   <data name="Reads the abuse reports (RFC 5965) that providers send when a reader presses the spam button, counts them per address, and can put an address that complains on its sending domain's suppression list. Nothing arrives until the complaint mailbox is registered with each provider's feedback loop - that is done at the provider, not here." xml:space="preserve">
     <value>Läser de missbruksrapporter (RFC 5965) som leverantörer skickar när en läsare trycker på skräppostknappen, räknar dem per adress och kan sätta en adress som klagar på spärrlistan för dess avsändande domän. Ingenting kommer fram förrän klagomålsbrevlådan är registrerad i varje leverantörs återkopplingsslinga - det görs hos leverantören, inte här.</value>
   </data>
@@ -10112,6 +10115,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Rescues legitimate forwarded mail from DMARC-failure penalties, but only for forwarders on your trusted-sealer list - with the list empty the feature does nothing at all, even when enabled." xml:space="preserve">
     <value>Räddar legitim vidarebefordrad post från straff för DMARC-underkännande, men bara för vidarebefordrare på din lista över betrodda förseglare - med listan tom gör funktionen ingenting alls, även när den är aktiverad.</value>
+  </data>
+  <data name="Resets a password, unlocks an account and reads a message trace." xml:space="preserve">
+    <value>Återställer ett lösenord, låser upp ett konto och läser en meddelandespårning.</value>
   </data>
   <data name="Resolved by the server itself, so an 'Override DNS server' set on the DNS resolver page is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Uppslaget av servern själv, så en 'Åsidosättande DNS-server' satt på sidan DNS-uppslagning respekteras - det är dit posten faktiskt går, vilket en nslookup från den här arbetsstationen inte kan lova.</value>
@@ -12465,6 +12471,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="The accounts chosen are members of this group already." xml:space="preserve">
     <value>De valda kontona är redan medlemmar i den här gruppen.</value>
   </data>
+  <data name="The accounts, mailboxes and quarantine of named domains." xml:space="preserve">
+    <value>Konton, postlådor och karantän i namngivna domäner.</value>
+  </data>
   <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>Adressen spärras på samma sätt som en rad misslyckade inloggningar spärrar en, med ett IP-intervall som löper ut, men aldrig en adress i 'Stäng aldrig av dessa adresser automatiskt' på sidan Automatisk spärr eller ett inkommande relä. Av som standard, och gör inget så länge avvisningen ovan är av.</value>
   </data>
@@ -12969,6 +12978,9 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   </data>
   <data name="The folders and messages of one account put back from an archive in the backup destination, without touching the settings, rules, contacts or calendars of the account, or any other account. The archive is named as the destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>Ett kontos mappar och meddelanden tillbakalagda från ett arkiv i säkerhetskopians mål, utan att röra kontots inställningar, regler, kontakter eller kalendrar, eller något annat konto. Arkivet namnges så som målet listar det (HMBackup YYYY-MM-DD HHMMSS.7z), eller med dess sökväg inne i målet.</value>
+  </data>
+  <data name="The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority." xml:space="preserve">
+    <value>De fyra inbyggda rollerna går inte att redigera: deras behörigheter finns i serverns kod, så att en ändring i databasen inte kan ge någon befogenhet.</value>
   </data>
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>Hälsnings-, studs- och feltexterna som servern skickar tillbaka till klienter.</value>
@@ -14931,6 +14943,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>Vem som får administrera vad: de namngivna rollerna på den här servern och kontona som har dem.</value>
+  </data>
+  <data name="Who may administer what: the roles this server has, and the accounts that hold them." xml:space="preserve">
+    <value>Vem som får administrera vad: rollerna på den här servern och kontona som har dem.</value>
   </data>
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>Vem som får ansluta, vem som får autentisera, och vad som händer när någon fortsätter försöka.</value>

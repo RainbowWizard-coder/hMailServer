@@ -618,9 +618,6 @@
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message.</value>
   </data>
-  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
-    <value>A role is a named set of permissions, and an assignment gives one to an account in named domains. An account with no role here holds whatever its admin level has always given it.</value>
-  </data>
   <data name="A room" xml:space="preserve">
     <value>A room</value>
   </data>
@@ -896,9 +893,6 @@ The Control Panel can only read message files when it runs on the same machine a
   </data>
   <data name="Account _enabled" xml:space="preserve">
     <value>Account _enabled</value>
-  </data>
-  <data name="Account address" xml:space="preserve">
-    <value>Account address</value>
   </data>
   <data name="Account address (_whose mailbox)" xml:space="preserve">
     <value>Account address (_whose mailbox)</value>
@@ -1553,6 +1547,9 @@ The Control Panel can only read message files when it runs on the same machine a
   </data>
   <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
     <value>An account is a mailbox in a domain: the address people write to, and what a client signs in as.</value>
+  </data>
+  <data name="An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>An account with no role here holds whatever its admin level has always given it.</value>
   </data>
   <data name="An action of the rule “{0}”." xml:space="preserve">
     <value>An action of the rule “{0}”.</value>
@@ -4333,9 +4330,6 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders.</value>
   </data>
-  <data name="Domains, comma separated" xml:space="preserve">
-    <value>Domains, comma separated</value>
-  </data>
   <data name="Done" xml:space="preserve">
     <value>Done</value>
   </data>
@@ -4545,6 +4539,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Empty, the default: single sign-on reaches the webmail only, and the Control Deck still asks for the administrator password." xml:space="preserve">
     <value>Empty, the default: single sign-on reaches the webmail only, and the Control Deck still asks for the administrator password.</value>
+  </data>
+  <data name="Empty: the account's own domain, or every domain for serveradmin and auditor. * is every domain for any role." xml:space="preserve">
+    <value>Empty: the account's own domain, or every domain for serveradmin and auditor. * is every domain for any role.</value>
   </data>
   <data name="Ena_ble" xml:space="preserve">
     <value>Ena_ble</value>
@@ -4974,6 +4971,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Every message, whatever its size. The size limit is 0, which here means &quot;no limit&quot;." xml:space="preserve">
     <value>Every message, whatever its size. The size limit is 0, which here means "no limit".</value>
+  </data>
+  <data name="Every permission, in every domain." xml:space="preserve">
+    <value>Every permission, in every domain.</value>
   </data>
   <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
     <value>Every port the IP range {0} may use starts TLS before it takes a password.</value>
@@ -7900,8 +7900,8 @@ Nothing already there is removed.</value>
   <data name="Nobody - the members are added here" xml:space="preserve">
     <value>Nobody - the members are added here</value>
   </data>
-  <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
-    <value>Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed.</value>
+  <data name="Nobody has been given a role yet." xml:space="preserve">
+    <value>Nobody has been given a role yet.</value>
   </data>
   <data name="None" xml:space="preserve">
     <value>None</value>
@@ -9510,6 +9510,9 @@ No new connections will be accepted and no mail will be delivered until it is re
   <data name="Reading the recovery report..." xml:space="preserve">
     <value>Reading the recovery report...</value>
   </data>
+  <data name="Reads everything and changes nothing, the audit trail included." xml:space="preserve">
+    <value>Reads everything and changes nothing, the audit trail included.</value>
+  </data>
   <data name="Reads the abuse reports (RFC 5965) that providers send when a reader presses the spam button, counts them per address, and can put an address that complains on its sending domain's suppression list. Nothing arrives until the complaint mailbox is registered with each provider's feedback loop - that is done at the provider, not here." xml:space="preserve">
     <value>Reads the abuse reports (RFC 5965) that providers send when a reader presses the spam button, counts them per address, and can put an address that complains on its sending domain's suppression list. Nothing arrives until the complaint mailbox is registered with each provider's feedback loop - that is done at the provider, not here.</value>
   </data>
@@ -10112,6 +10115,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="Rescues legitimate forwarded mail from DMARC-failure penalties, but only for forwarders on your trusted-sealer list - with the list empty the feature does nothing at all, even when enabled." xml:space="preserve">
     <value>Rescues legitimate forwarded mail from DMARC-failure penalties, but only for forwarders on your trusted-sealer list - with the list empty the feature does nothing at all, even when enabled.</value>
+  </data>
+  <data name="Resets a password, unlocks an account and reads a message trace." xml:space="preserve">
+    <value>Resets a password, unlocks an account and reads a message trace.</value>
   </data>
   <data name="Resolved by the server itself, so an 'Override DNS server' set on the DNS resolver page is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Resolved by the server itself, so an 'Override DNS server' set on the DNS resolver page is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise.</value>
@@ -12465,6 +12471,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="The accounts chosen are members of this group already." xml:space="preserve">
     <value>The accounts chosen are members of this group already.</value>
   </data>
+  <data name="The accounts, mailboxes and quarantine of named domains." xml:space="preserve">
+    <value>The accounts, mailboxes and quarantine of named domains.</value>
+  </data>
   <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off.</value>
   </data>
@@ -12969,6 +12978,9 @@ could not be loaded. The message has probably been delivered and is no longer in
   </data>
   <data name="The folders and messages of one account put back from an archive in the backup destination, without touching the settings, rules, contacts or calendars of the account, or any other account. The archive is named as the destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>The folders and messages of one account put back from an archive in the backup destination, without touching the settings, rules, contacts or calendars of the account, or any other account. The archive is named as the destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination.</value>
+  </data>
+  <data name="The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority." xml:space="preserve">
+    <value>The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority.</value>
   </data>
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>The greeting, bounce and error texts the server sends back to clients.</value>
@@ -14931,6 +14943,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>Who may administer what: the named roles this server has, and the accounts that hold them.</value>
+  </data>
+  <data name="Who may administer what: the roles this server has, and the accounts that hold them." xml:space="preserve">
+    <value>Who may administer what: the roles this server has, and the accounts that hold them.</value>
   </data>
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>Who may connect, who may authenticate, and what happens when someone keeps trying.</value>

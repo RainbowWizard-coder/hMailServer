@@ -618,9 +618,6 @@
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>Et svar for hele domenet - et stengt kontor, en nedlagt avdeling. Det svarer bare for kontoer som IKKE har en egen fraværsmelding: kontoens egen melding vinner alltid, og høyst ett svar besvarer en melding.</value>
   </data>
-  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
-    <value>En rolle er et navngitt sett med tillatelser, og en tildeling gir den til en konto i navngitte domener. En konto uten rolle her har det administratornivået alltid har gitt den.</value>
-  </data>
   <data name="A room" xml:space="preserve">
     <value>Et rom</value>
   </data>
@@ -896,9 +893,6 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   </data>
   <data name="Account _enabled" xml:space="preserve">
     <value>Konto _aktivert</value>
-  </data>
-  <data name="Account address" xml:space="preserve">
-    <value>Kontoadresse</value>
   </data>
   <data name="Account address (_whose mailbox)" xml:space="preserve">
     <value>_Kontoadresse (hvem sin postkasse)</value>
@@ -1553,6 +1547,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   </data>
   <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
     <value>En konto er en postkasse i et domene: adressen folk skriver til, og det en klient logger inn som.</value>
+  </data>
+  <data name="An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>En konto uten rolle her har det administratornivået alltid har gitt den.</value>
   </data>
   <data name="An action of the rule “{0}”." xml:space="preserve">
     <value>En handling i regelen «{0}».</value>
@@ -4333,9 +4330,6 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>Domener, kontoer, aliaser og distribusjonslister, og hver kontos passord, videresending og mapper.</value>
   </data>
-  <data name="Domains, comma separated" xml:space="preserve">
-    <value>Domener, atskilt med komma</value>
-  </data>
   <data name="Done" xml:space="preserve">
     <value>Ferdig</value>
   </data>
@@ -4545,6 +4539,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Empty, the default: single sign-on reaches the webmail only, and the Control Deck still asks for the administrator password." xml:space="preserve">
     <value>Tomt, standard: enkel pålogging når bare webmailen, og Control Deck ber fortsatt om administratorpassordet.</value>
+  </data>
+  <data name="Empty: the account's own domain, or every domain for serveradmin and auditor. * is every domain for any role." xml:space="preserve">
+    <value>Tomt: kontoens eget domene, eller hvert domene for serveradmin og auditor. * er hvert domene for enhver rolle.</value>
   </data>
   <data name="Ena_ble" xml:space="preserve">
     <value>Aktiv_er</value>
@@ -4974,6 +4971,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Every message, whatever its size. The size limit is 0, which here means &quot;no limit&quot;." xml:space="preserve">
     <value>Hver melding, uansett størrelse. Størrelsesgrensen er 0, som her betyr "ingen grense".</value>
+  </data>
+  <data name="Every permission, in every domain." xml:space="preserve">
+    <value>Alle tillatelser, i alle domener.</value>
   </data>
   <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
     <value>Hver port IP-området {0} kan bruke, starter TLS før den tar imot et passord.</value>
@@ -7900,8 +7900,8 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Nobody - the members are added here" xml:space="preserve">
     <value>Ingen - medlemmene legges til her</value>
   </data>
-  <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
-    <value>Ingen har fått en rolle ennå. En konto uten rolle har rettighetene administratornivået gir den, akkurat som før rollene fantes.</value>
+  <data name="Nobody has been given a role yet." xml:space="preserve">
+    <value>Ingen har fått en rolle ennå.</value>
   </data>
   <data name="None" xml:space="preserve">
     <value>Ingen</value>
@@ -9510,6 +9510,9 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   <data name="Reading the recovery report..." xml:space="preserve">
     <value>Leser gjenopprettingsrapporten...</value>
   </data>
+  <data name="Reads everything and changes nothing, the audit trail included." xml:space="preserve">
+    <value>Leser alt og endrer ingenting, revisjonsloggen medregnet.</value>
+  </data>
   <data name="Reads the abuse reports (RFC 5965) that providers send when a reader presses the spam button, counts them per address, and can put an address that complains on its sending domain's suppression list. Nothing arrives until the complaint mailbox is registered with each provider's feedback loop - that is done at the provider, not here." xml:space="preserve">
     <value>Leser misbruksrapportene (RFC 5965) som leverandører sender når en leser trykker på søppelpostknappen, teller dem per adresse og kan sette en adresse som klager, på sperrelisten til det sendende domenet. Ingenting kommer frem før klagepostkassen er registrert i hver leverandørs tilbakemeldingssløyfe - det gjøres hos leverandøren, ikke her.</value>
   </data>
@@ -10112,6 +10115,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   </data>
   <data name="Rescues legitimate forwarded mail from DMARC-failure penalties, but only for forwarders on your trusted-sealer list - with the list empty the feature does nothing at all, even when enabled." xml:space="preserve">
     <value>Redder legitim videresendt post fra straffen for DMARC-feil, men bare for videresendere på listen din over betrodde forseglere - med listen tom gjør funksjonen ingenting i det hele tatt, selv når den er aktivert.</value>
+  </data>
+  <data name="Resets a password, unlocks an account and reads a message trace." xml:space="preserve">
+    <value>Tilbakestiller et passord, låser opp en konto og leser en meldingssporing.</value>
   </data>
   <data name="Resolved by the server itself, so an 'Override DNS server' set on the DNS resolver page is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Slått opp av serveren selv, så en «Overstyr DNS-server» satt på siden DNS-resolver respekteres - dette er dit posten faktisk går, noe en nslookup fra denne arbeidsstasjonen ikke kan love.</value>
@@ -12465,6 +12471,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="The accounts chosen are members of this group already." xml:space="preserve">
     <value>De valgte kontoene er allerede medlemmer av denne gruppen.</value>
   </data>
+  <data name="The accounts, mailboxes and quarantine of named domains." xml:space="preserve">
+    <value>Kontoene, postboksene og karantenen i navngitte domener.</value>
+  </data>
   <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>Adressen utestenges slik en rekke mislykkede pålogginger utestenger en, med et utløpende IP-område, men aldri en adresse i «Utesteng aldri disse adressene automatisk» på siden Automatisk blokkering eller et innkommende relé. Av som standard, og gjør ingenting så lenge avvisningen ovenfor er av.</value>
   </data>
@@ -12969,6 +12978,9 @@ kunne ikke lastes. Meldingen er sannsynligvis levert og ikke lenger i køen.</va
   </data>
   <data name="The folders and messages of one account put back from an archive in the backup destination, without touching the settings, rules, contacts or calendars of the account, or any other account. The archive is named as the destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>Mappene og meldingene til én konto lagt tilbake fra et arkiv i sikkerhetskopimålet, uten å røre kontoens innstillinger, regler, kontakter eller kalendere, eller noen annen konto. Arkivet navngis slik målet lister det (HMBackup YYYY-MM-DD HHMMSS.7z), eller med stien inne i målet.</value>
+  </data>
+  <data name="The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority." xml:space="preserve">
+    <value>De fire innebygde rollene kan ikke redigeres: tillatelsene deres ligger i serverens kode, slik at en endring i databasen ikke kan gi noen myndighet.</value>
   </data>
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>Hilsen-, avvisnings- og feiltekstene serveren sender tilbake til klienter.</value>
@@ -14931,6 +14943,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>Hvem som får administrere hva: de navngitte rollene denne serveren har, og kontoene som har dem.</value>
+  </data>
+  <data name="Who may administer what: the roles this server has, and the accounts that hold them." xml:space="preserve">
+    <value>Hvem som kan administrere hva: rollene denne serveren har, og kontoene som har dem.</value>
   </data>
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>Hvem som kan koble til, hvem som kan autentisere, og hva som skjer når noen fortsetter å prøve.</value>

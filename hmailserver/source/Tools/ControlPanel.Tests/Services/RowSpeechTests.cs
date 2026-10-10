@@ -46,7 +46,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          string page = Read(Path.Join("Views", "RolesView.cs"));
 
-         Assert.Contains("new Card { Title = L(\"Roles\"), Content = roleGrid_ }", page, StringComparison.Ordinal);
+         // The roles card says what a built-in role and an account without a role are (review finding F085).
+         Assert.Matches(new Regex(@"new Card\s*\{\s*Title = L\(""Roles""\),[\s\S]{0,600}?Content = roleGrid_\s*\}"), page);
          Assert.Contains("new Card { Title = L(\"Who holds a role\"), Content = held", page, StringComparison.Ordinal);
          Assert.Contains("AutomationProperties.SetName(roleGrid_, L(\"Roles\"));", page, StringComparison.Ordinal);
          Assert.Contains("AutomationProperties.SetName(assignmentGrid_, L(\"Who holds a role\"));", page, StringComparison.Ordinal);

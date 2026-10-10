@@ -32,7 +32,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string page = Read();
          Assert.Contains("roleGrid_.Columns.Add(TextColumn_(L(\"Role\"), nameof(RoleRow.Name), FixedWidth_(L(\"Role\"), 140)));", page, StringComparison.Ordinal);
          Assert.Contains("roleGrid_.Columns.Add(TextColumn_(L(\"What it is for\"), nameof(RoleRow.Purpose), StarWidth_(2), wrap: true));", page, StringComparison.Ordinal);
-         Assert.Contains("roleGrid_.Columns.Add(TextColumn_(L(\"Built in\"), nameof(RoleRow.BuiltIn), FixedWidth_(L(\"Built in\"), 80, L(\"Yes\"))));", page, StringComparison.Ordinal);
+         Assert.Contains("roleGrid_.Columns.Add(TextColumn_(L(\"Built in\"), nameof(RoleRow.BuiltIn), FixedWidth_(L(\"Built in\"), 80, L(\"Yes\"), L(\"No\"))));", page, StringComparison.Ordinal);
          Assert.Contains("roleGrid_.Columns.Add(TextColumn_(L(\"Permissions\"), nameof(RoleRow.Permissions), StarWidth_(3), wrap: true));", page, StringComparison.Ordinal);
       }
 

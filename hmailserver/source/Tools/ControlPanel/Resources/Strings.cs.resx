@@ -621,9 +621,6 @@
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>Odpověď za celou doménu – zavřená kancelář, zrušené oddělení. Odpovídá pouze za účty, které NEMAJÍ vlastní zprávu o nepřítomnosti: vlastní zpráva účtu vždy vyhrává a na jednu zprávu odpoví nejvýše jedna odpověď.</value>
   </data>
-  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
-    <value>Role je pojmenovaná sada oprávnění a přidělení dává roli účtu v pojmenovaných doménách. Účet, který zde roli nemá, má to, co mu vždy dávala jeho úroveň správce.</value>
-  </data>
   <data name="A room" xml:space="preserve">
     <value>Místnost</value>
   </data>
@@ -902,9 +899,6 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   </data>
   <data name="Account _enabled" xml:space="preserve">
     <value>Účet je povol_en</value>
-  </data>
-  <data name="Account address" xml:space="preserve">
-    <value>Adresa účtu</value>
   </data>
   <data name="Account address (_whose mailbox)" xml:space="preserve">
     <value>Adresa účtu (_čí schránka)</value>
@@ -1565,6 +1559,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   </data>
   <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
     <value>Účet je schránka v doméně: adresa, na kterou se píše, a to, jako co se klient přihlašuje.</value>
+  </data>
+  <data name="An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>Účet, který zde roli nemá, má to, co mu vždy dávala jeho úroveň správce.</value>
   </data>
   <data name="An action of the rule “{0}”." xml:space="preserve">
     <value>Akce pravidla „{0}“.</value>
@@ -4385,9 +4382,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>Domény, účty, aliasy a distribuční seznamy a hesla, přeposílání a složky každého účtu.</value>
   </data>
-  <data name="Domains, comma separated" xml:space="preserve">
-    <value>Domény oddělené čárkou</value>
-  </data>
   <data name="Done" xml:space="preserve">
     <value>Hotovo</value>
   </data>
@@ -4597,6 +4591,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Empty, the default: single sign-on reaches the webmail only, and the Control Deck still asks for the administrator password." xml:space="preserve">
     <value>Prázdné, výchozí: jednotné přihlašování dosáhne jen do webové pošty a Control Deck se dál ptá na heslo správce.</value>
+  </data>
+  <data name="Empty: the account's own domain, or every domain for serveradmin and auditor. * is every domain for any role." xml:space="preserve">
+    <value>Prázdné: vlastní doména účtu, nebo každá doména pro serveradmin a auditor. * je každá doména pro jakoukoli roli.</value>
   </data>
   <data name="Ena_ble" xml:space="preserve">
     <value>Povoli_t</value>
@@ -5035,6 +5032,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Every message, whatever its size. The size limit is 0, which here means &quot;no limit&quot;." xml:space="preserve">
     <value>Každá zpráva, bez ohledu na velikost. Limit velikosti je 0, což zde znamená „bez limitu“.</value>
+  </data>
+  <data name="Every permission, in every domain." xml:space="preserve">
+    <value>Všechna oprávnění ve všech doménách.</value>
   </data>
   <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
     <value>Každý port, který smí rozsah IP {0} používat, spouští TLS dřív, než přijme heslo.</value>
@@ -7982,8 +7982,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Nobody - the members are added here" xml:space="preserve">
     <value>Nikdo - členové se přidávají zde</value>
   </data>
-  <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
-    <value>Zatím nikdo nemá přidělenou roli. Účet bez role má oprávnění dané svou úrovní správce, přesně jako před zavedením rolí.</value>
+  <data name="Nobody has been given a role yet." xml:space="preserve">
+    <value>Zatím nikdo nemá přidělenou roli.</value>
   </data>
   <data name="None" xml:space="preserve">
     <value>Žádné</value>
@@ -9604,6 +9604,9 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Reading the recovery report..." xml:space="preserve">
     <value>Čte se hlášení o obnově...</value>
   </data>
+  <data name="Reads everything and changes nothing, the audit trail included." xml:space="preserve">
+    <value>Čte vše a nic nemění, včetně auditního záznamu.</value>
+  </data>
   <data name="Reads the abuse reports (RFC 5965) that providers send when a reader presses the spam button, counts them per address, and can put an address that complains on its sending domain's suppression list. Nothing arrives until the complaint mailbox is registered with each provider's feedback loop - that is done at the provider, not here." xml:space="preserve">
     <value>Čte hlášení o zneužití (RFC 5965), která poskytovatelé posílají, když čtenář stiskne tlačítko spamu, počítá je podle adresy a může adresu, která si stěžuje, zařadit na seznam blokovaných její odesílající domény. Nic nepřijde, dokud není schránka pro stížnosti zaregistrovaná ve smyčce zpětné vazby každého poskytovatele - to se dělá u poskytovatele, ne tady.</value>
   </data>
@@ -10221,6 +10224,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Rescues legitimate forwarded mail from DMARC-failure penalties, but only for forwarders on your trusted-sealer list - with the list empty the feature does nothing at all, even when enabled." xml:space="preserve">
     <value>Zachraňuje legitimní přeposlanou poštu před postihy za selhání DMARC, ale jen u přeposílajících serverů na vašem seznamu důvěryhodných pečetitelů – s prázdným seznamem funkce nedělá vůbec nic, i když je zapnutá.</value>
+  </data>
+  <data name="Resets a password, unlocks an account and reads a message trace." xml:space="preserve">
+    <value>Obnoví heslo, odemkne účet a čte trasování zpráv.</value>
   </data>
   <data name="Resolved by the server itself, so an 'Override DNS server' set on the DNS resolver page is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Překládá jej server sám, takže se respektuje „Přepsat DNS server“ nastavený na stránce DNS resolver – právě tam pošta skutečně jde, což nslookup z této pracovní stanice slíbit nemůže.</value>
@@ -12610,6 +12616,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="The accounts chosen are members of this group already." xml:space="preserve">
     <value>Vybrané účty už jsou členy této skupiny.</value>
   </data>
+  <data name="The accounts, mailboxes and quarantine of named domains." xml:space="preserve">
+    <value>Účty, poštovní schránky a karanténa pojmenovaných domén.</value>
+  </data>
   <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>Adresa se zakáže stejně jako po řadě neúspěšných přihlášení, rozsahem IP s vypršením, ale nikdy adresa v „Tyto adresy nikdy automaticky nezakazovat“ na stránce Auto-ban ani příchozí relay. Ve výchozím stavu vypnuto a nedělá nic, dokud je odmítání výše vypnuto.</value>
   </data>
@@ -13141,6 +13150,9 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   </data>
   <data name="The folders and messages of one account put back from an archive in the backup destination, without touching the settings, rules, contacts or calendars of the account, or any other account. The archive is named as the destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>Složky a zprávy jednoho účtu vrácené z archivu v cíli zálohy, aniž by se sáhlo na nastavení, pravidla, kontakty nebo kalendáře účtu, nebo na jiný účet. Archiv se pojmenuje tak, jak ho uvádí cíl (HMBackup YYYY-MM-DD HHMMSS.7z), nebo cestou uvnitř cíle.</value>
+  </data>
+  <data name="The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority." xml:space="preserve">
+    <value>Čtyři vestavěné role nelze upravit: jejich oprávnění jsou v kódu serveru, aby změna v databázi nikomu nemohla přidat pravomoc.</value>
   </data>
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>Texty pozdravu, nedoručenek a chyb, které server posílá zpět klientům.</value>
@@ -15115,6 +15127,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>Kdo co spravuje: pojmenované role tohoto serveru a účty, které je mají.</value>
+  </data>
+  <data name="Who may administer what: the roles this server has, and the accounts that hold them." xml:space="preserve">
+    <value>Kdo smí co spravovat: role, které tento server má, a účty, které je mají.</value>
   </data>
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>Kdo se smí připojit, kdo se smí ověřit a co se stane, když to někdo zkouší pořád dál.</value>

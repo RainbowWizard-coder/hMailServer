@@ -621,9 +621,6 @@
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>Odpowiedź dla całej domeny - zamknięte biuro, zlikwidowany dział. Odpowiada wyłącznie za konta, które NIE mają własnej wiadomości o nieobecności: własna wiadomość konta zawsze wygrywa, a na dowolną wiadomość odpowiada co najwyżej jedna odpowiedź.</value>
   </data>
-  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
-    <value>Rola to nazwany zestaw uprawnień, a przypisanie nadaje ją kontu we wskazanych domenach. Konto bez roli ma tutaj to, co zawsze dawał mu jego poziom administratora.</value>
-  </data>
   <data name="A room" xml:space="preserve">
     <value>Sala</value>
   </data>
@@ -902,9 +899,6 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   </data>
   <data name="Account _enabled" xml:space="preserve">
     <value>Konto _włączone</value>
-  </data>
-  <data name="Account address" xml:space="preserve">
-    <value>Adres konta</value>
   </data>
   <data name="Account address (_whose mailbox)" xml:space="preserve">
     <value>Adres konta (_czyja skrzynka)</value>
@@ -1565,6 +1559,9 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   </data>
   <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
     <value>Konto to skrzynka w domenie: adres, na który się pisze, i tożsamość, jaką loguje się klient.</value>
+  </data>
+  <data name="An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>Konto bez roli ma tutaj to, co zawsze dawał mu jego poziom administratora.</value>
   </data>
   <data name="An action of the rule “{0}”." xml:space="preserve">
     <value>Akcja reguły „{0}”.</value>
@@ -4385,9 +4382,6 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>Domeny, konta, aliasy i listy dystrybucyjne oraz hasła, przekazywanie i foldery każdego konta.</value>
   </data>
-  <data name="Domains, comma separated" xml:space="preserve">
-    <value>Domeny oddzielone przecinkami</value>
-  </data>
   <data name="Done" xml:space="preserve">
     <value>Gotowe</value>
   </data>
@@ -4597,6 +4591,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Empty, the default: single sign-on reaches the webmail only, and the Control Deck still asks for the administrator password." xml:space="preserve">
     <value>Puste, domyślne: logowanie jednokrotne obejmuje tylko pocztę w przeglądarce, a Control Deck nadal pyta o hasło administratora.</value>
+  </data>
+  <data name="Empty: the account's own domain, or every domain for serveradmin and auditor. * is every domain for any role." xml:space="preserve">
+    <value>Puste: własna domena konta albo każda domena dla serveradmin i auditor. * to każda domena dla dowolnej roli.</value>
   </data>
   <data name="Ena_ble" xml:space="preserve">
     <value>Włą_cz</value>
@@ -5035,6 +5032,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Every message, whatever its size. The size limit is 0, which here means &quot;no limit&quot;." xml:space="preserve">
     <value>Każda wiadomość, niezależnie od rozmiaru. Limit rozmiaru wynosi 0, co oznacza tu „bez ograniczenia”.</value>
+  </data>
+  <data name="Every permission, in every domain." xml:space="preserve">
+    <value>Wszystkie uprawnienia we wszystkich domenach.</value>
   </data>
   <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
     <value>Każdy port, którego może używać zakres IP {0}, uruchamia TLS, zanim przyjmie hasło.</value>
@@ -7982,8 +7982,8 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Nobody - the members are added here" xml:space="preserve">
     <value>Nikt - członkowie są dodawani tutaj</value>
   </data>
-  <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
-    <value>Nikt nie ma jeszcze roli. Konto bez roli ma uprawnienia wynikające z jego poziomu administratora, dokładnie jak przed wprowadzeniem ról.</value>
+  <data name="Nobody has been given a role yet." xml:space="preserve">
+    <value>Nikt nie ma jeszcze roli.</value>
   </data>
   <data name="None" xml:space="preserve">
     <value>Brak</value>
@@ -9604,6 +9604,9 @@ Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poc
   <data name="Reading the recovery report..." xml:space="preserve">
     <value>Odczytywanie raportu odzyskiwania...</value>
   </data>
+  <data name="Reads everything and changes nothing, the audit trail included." xml:space="preserve">
+    <value>Czyta wszystko i niczego nie zmienia, łącznie z dziennikiem audytu.</value>
+  </data>
   <data name="Reads the abuse reports (RFC 5965) that providers send when a reader presses the spam button, counts them per address, and can put an address that complains on its sending domain's suppression list. Nothing arrives until the complaint mailbox is registered with each provider's feedback loop - that is done at the provider, not here." xml:space="preserve">
     <value>Czyta raporty nadużyć (RFC 5965), które dostawcy wysyłają, gdy czytelnik naciśnie przycisk spamu, liczy je na adres i może umieścić skarżący się adres na liście blokowanych jego domeny nadawczej. Nic nie dociera, dopóki skrzynka na skargi nie jest zarejestrowana w pętli zwrotnej każdego dostawcy - robi się to u dostawcy, nie tutaj.</value>
   </data>
@@ -10221,6 +10224,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="Rescues legitimate forwarded mail from DMARC-failure penalties, but only for forwarders on your trusted-sealer list - with the list empty the feature does nothing at all, even when enabled." xml:space="preserve">
     <value>Ratuje uprawnioną przekazywaną pocztę przed karami za niepowodzenie DMARC, ale tylko dla serwerów przekazujących z listy zaufanych pieczętujących - przy pustej liście funkcja nie robi zupełnie nic, nawet gdy jest włączona.</value>
+  </data>
+  <data name="Resets a password, unlocks an account and reads a message trace." xml:space="preserve">
+    <value>Resetuje hasło, odblokowuje konto i czyta śledzenie wiadomości.</value>
   </data>
   <data name="Resolved by the server itself, so an 'Override DNS server' set on the DNS resolver page is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Rozwiązywane przez sam serwer, więc ustawienie „Zastąp serwer DNS” na stronie Resolwer DNS jest honorowane - to pokazuje, dokąd poczta naprawdę trafia, czego nslookup z tej stacji roboczej zagwarantować nie może.</value>
@@ -12610,6 +12616,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="The accounts chosen are members of this group already." xml:space="preserve">
     <value>Wybrane konta są już członkami tej grupy.</value>
   </data>
+  <data name="The accounts, mailboxes and quarantine of named domains." xml:space="preserve">
+    <value>Konta, skrzynki pocztowe i kwarantanna wskazanych domen.</value>
+  </data>
   <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>Adres jest blokowany tak, jak blokuje go seria nieudanych logowań, wygasającym zakresem IP, ale nigdy adres z „Nigdy nie blokuj automatycznie tych adresów” na stronie Automatyczna blokada ani przekaźnik przychodzący. Domyślnie wyłączone i nie robi nic, dopóki powyższe odrzucanie jest wyłączone.</value>
   </data>
@@ -13141,6 +13150,9 @@ Wiadomość została prawdopodobnie dostarczona i nie ma jej już w kolejce.</va
   </data>
   <data name="The folders and messages of one account put back from an archive in the backup destination, without touching the settings, rules, contacts or calendars of the account, or any other account. The archive is named as the destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>Foldery i wiadomości jednego konta przywrócone z archiwum w miejscu docelowym kopii zapasowej, bez zmiany ustawień, reguł, kontaktów ani kalendarzy konta oraz bez dotykania innych kont. Archiwum nazywa się tak, jak wyświetla je miejsce docelowe (HMBackup YYYY-MM-DD HHMMSS.7z), lub podaje jego ścieżkę w tym miejscu.</value>
+  </data>
+  <data name="The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority." xml:space="preserve">
+    <value>Czterech wbudowanych ról nie da się edytować: ich uprawnienia są w kodzie serwera, aby zmiana w bazie danych nie mogła nikomu nadać władzy.</value>
   </data>
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>Teksty powitań, powiadomień o niedoręczeniu i błędów, które serwer odsyła klientom.</value>
@@ -15115,6 +15127,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>Kto czym administruje: nazwane role tego serwera i konta, które je mają.</value>
+  </data>
+  <data name="Who may administer what: the roles this server has, and the accounts that hold them." xml:space="preserve">
+    <value>Kto może administrować czym: role tego serwera i konta, które je mają.</value>
   </data>
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>Kto może się łączyć, kto może się uwierzytelniać i co dzieje się, gdy ktoś wciąż próbuje.</value>

@@ -3061,6 +3061,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   list's menu and on the Groups page. `DomainsVerbWordsTests` holds the rows, their names and Members…' keys in every
   catalogue, and the dialog's words; `DomainsFormsTests` and `DomainsRowVerbsTests` hold the new names and menus.
 
+- **Fixed: the Administrator roles page left the built-in roles' purposes in English, said its subtitle twice, and gave
+  its form no examples.** "What it is for" showed the description hm_roles holds, which the database scripts write in
+  English, so German and Japanese read "Every permission, in every domain." among translated captions; it is now each
+  built-in role's purpose from the catalogue, by the role's name (`Services/RoleWords`), and a custom role's as typed.
+  The subtitle is one sentence - "Who may administer what: the roles this server has, and the accounts that hold them."
+  - and the built-in roles and what an account without a role holds are said on the Roles card, where the empty state
+  said the second again; it is now "Nobody has been given a role yet.". Built in reads Yes or No, where a custom role's
+  cell was empty, and an assignment's domains "example.com, example.net", where they were run together. The form's
+  placeholders are examples, helpdesk@example.com and example.com, example.net, where they said the captions again; the
+  Domains box says what empty gives - the account's own domain, or every domain for serveradmin and auditor, and *
+  every domain for any role - and what is typed there is sent trimmed. Give the role and Take the role away stand on
+  the boxes' line whatever a box's hint adds under it. `RoleWordsTests` holds the purposes to the scripts' own words
+  and to every catalogue, the domains as shown and as sent, and the page's words and form.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -618,9 +618,6 @@
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>Vastaus koko verkkotunnukselle – suljettu toimisto, lakkautettu osasto. Se vastaa vain niiden tilien puolesta, joilla EI ole omaa poissaoloviestiä: tilin oma viesti voittaa aina, ja yhteen viestiin vastaa enintään yksi vastaus.</value>
   </data>
-  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
-    <value>Rooli on nimetty joukko oikeuksia, ja määritys antaa sen tilille nimetyissä verkkotunnuksissa. Tili, jolla ei ole täällä roolia, saa sen, minkä sen ylläpitotaso on aina antanut.</value>
-  </data>
   <data name="A room" xml:space="preserve">
     <value>Huone</value>
   </data>
@@ -896,9 +893,6 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   </data>
   <data name="Account _enabled" xml:space="preserve">
     <value>Tili _käytössä</value>
-  </data>
-  <data name="Account address" xml:space="preserve">
-    <value>Tilin osoite</value>
   </data>
   <data name="Account address (_whose mailbox)" xml:space="preserve">
     <value>Tilin osoite (_kenen postilaatikko)</value>
@@ -1553,6 +1547,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   </data>
   <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
     <value>Tili on postilaatikko verkkotunnuksessa: osoite, johon kirjoitetaan, ja se, minä asiakasohjelma kirjautuu.</value>
+  </data>
+  <data name="An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>Tili, jolla ei ole täällä roolia, saa sen, minkä sen ylläpitotaso on aina antanut.</value>
   </data>
   <data name="An action of the rule “{0}”." xml:space="preserve">
     <value>Säännön ”{0}” toiminto.</value>
@@ -4333,9 +4330,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>Verkkotunnukset, tilit, aliakset ja jakelulistat sekä jokaisen tilin salasanat, edelleenlähetys ja kansiot.</value>
   </data>
-  <data name="Domains, comma separated" xml:space="preserve">
-    <value>Verkkotunnukset pilkuin eroteltuina</value>
-  </data>
   <data name="Done" xml:space="preserve">
     <value>Valmis</value>
   </data>
@@ -4545,6 +4539,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Empty, the default: single sign-on reaches the webmail only, and the Control Deck still asks for the administrator password." xml:space="preserve">
     <value>Tyhjä, oletus: kertakirjautuminen ulottuu vain verkkopostiin, ja Control Deck kysyy yhä ylläpitäjän salasanaa.</value>
+  </data>
+  <data name="Empty: the account's own domain, or every domain for serveradmin and auditor. * is every domain for any role." xml:space="preserve">
+    <value>Tyhjä: tilin oma verkkotunnus, tai jokainen verkkotunnus rooleilla serveradmin ja auditor. * on jokainen verkkotunnus millä tahansa roolilla.</value>
   </data>
   <data name="Ena_ble" xml:space="preserve">
     <value>_Ota käyttöön</value>
@@ -4974,6 +4971,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Every message, whatever its size. The size limit is 0, which here means &quot;no limit&quot;." xml:space="preserve">
     <value>Jokainen viesti koosta riippumatta. Kokoraja on 0, mikä tarkoittaa tässä "ei rajaa".</value>
+  </data>
+  <data name="Every permission, in every domain." xml:space="preserve">
+    <value>Kaikki oikeudet kaikissa verkkotunnuksissa.</value>
   </data>
   <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
     <value>Jokainen portti, jota IP-alue {0} saa käyttää, aloittaa TLS:n ennen kuin se ottaa vastaan salasanan.</value>
@@ -7900,8 +7900,8 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Nobody - the members are added here" xml:space="preserve">
     <value>Ei ketään - jäsenet lisätään tässä</value>
   </data>
-  <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
-    <value>Kenellekään ei ole vielä annettu roolia. Tili ilman roolia saa oikeutensa ylläpitotasostaan, aivan kuten ennen roolien olemassaoloa.</value>
+  <data name="Nobody has been given a role yet." xml:space="preserve">
+    <value>Kenellekään ei ole vielä annettu roolia.</value>
   </data>
   <data name="None" xml:space="preserve">
     <value>Ei mitään</value>
@@ -9510,6 +9510,9 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Reading the recovery report..." xml:space="preserve">
     <value>Luetaan palautusraporttia...</value>
   </data>
+  <data name="Reads everything and changes nothing, the audit trail included." xml:space="preserve">
+    <value>Lukee kaiken eikä muuta mitään, tarkastusloki mukaan lukien.</value>
+  </data>
   <data name="Reads the abuse reports (RFC 5965) that providers send when a reader presses the spam button, counts them per address, and can put an address that complains on its sending domain's suppression list. Nothing arrives until the complaint mailbox is registered with each provider's feedback loop - that is done at the provider, not here." xml:space="preserve">
     <value>Lukee väärinkäyttöraportit (RFC 5965), joita palveluntarjoajat lähettävät, kun lukija painaa roskapostipainiketta, laskee ne osoitteittain ja voi lisätä valittavan osoitteen sen lähettävän verkkotunnuksen estolistalle. Mitään ei saavu, ennen kuin valituspostilaatikko on rekisteröity kunkin palveluntarjoajan palautesilmukkaan - se tehdään palveluntarjoajalla, ei täällä.</value>
   </data>
@@ -10112,6 +10115,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Rescues legitimate forwarded mail from DMARC-failure penalties, but only for forwarders on your trusted-sealer list - with the list empty the feature does nothing at all, even when enabled." xml:space="preserve">
     <value>Pelastaa aidon edelleenlähetetyn postin DMARC-epäonnistumisen rangaistuksilta, mutta vain luotettujen sinetöijien listallasi oleville edelleenlähettäjille - listan ollessa tyhjä ominaisuus ei tee yhtään mitään, vaikka olisi käytössä.</value>
+  </data>
+  <data name="Resets a password, unlocks an account and reads a message trace." xml:space="preserve">
+    <value>Nollaa salasanan, avaa tilin lukituksen ja lukee viestin jäljityksen.</value>
   </data>
   <data name="Resolved by the server itself, so an 'Override DNS server' set on the DNS resolver page is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Palvelin itse selvittää, joten sivulla DNS-nimiselvitin asetettua kohtaa 'Ohita DNS-palvelin' noudatetaan - tänne posti todella menee, mitä tältä työasemalta ajettu nslookup ei voi luvata.</value>
@@ -12465,6 +12471,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="The accounts chosen are members of this group already." xml:space="preserve">
     <value>Valitut tilit ovat jo tämän ryhmän jäseniä.</value>
   </data>
+  <data name="The accounts, mailboxes and quarantine of named domains." xml:space="preserve">
+    <value>Nimettyjen verkkotunnusten tilit, postilaatikot ja karanteeni.</value>
+  </data>
   <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>Osoite estetään samoin kuin sarja epäonnistuneita kirjautumisia estää, vanhenevalla IP-alueella, mutta ei koskaan osoitetta, joka on kohdassa 'Älä koskaan estä automaattisesti näitä osoitteita' sivulla Automaattinen esto, eikä saapuvaa välittäjää. Oletuksena pois, eikä se tee mitään, kun yllä oleva hylkäys on pois päältä.</value>
   </data>
@@ -12969,6 +12978,9 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   </data>
   <data name="The folders and messages of one account put back from an archive in the backup destination, without touching the settings, rules, contacts or calendars of the account, or any other account. The archive is named as the destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>Yhden tilin kansiot ja viestit palautettuina varmuuskopiokohteen arkistosta koskematta tilin asetuksiin, sääntöihin, yhteystietoihin tai kalentereihin tai mihinkään muuhun tiliin. Arkisto nimetään niin kuin kohde sen luettelee (HMBackup YYYY-MM-DD HHMMSS.7z), tai sen polulla kohteen sisällä.</value>
+  </data>
+  <data name="The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority." xml:space="preserve">
+    <value>Neljää sisäänrakennettua roolia ei voi muokata: niiden oikeudet ovat palvelimen koodissa, jottei tietokannan muutos voi antaa kenellekään valtuuksia.</value>
   </data>
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>Tervehdys-, palautus- ja virhetekstit, jotka palvelin lähettää asiakkaille.</value>
@@ -14931,6 +14943,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>Kuka saa hallita mitäkin: tämän palvelimen nimetyt roolit ja tilit, joilla ne ovat.</value>
+  </data>
+  <data name="Who may administer what: the roles this server has, and the accounts that hold them." xml:space="preserve">
+    <value>Kuka saa hallinnoida mitä: tämän palvelimen roolit ja tilit, joilla ne ovat.</value>
   </data>
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>Kuka saa yhdistää, kuka saa todentua ja mitä tapahtuu, kun joku yrittää yhä uudelleen.</value>

@@ -618,9 +618,6 @@
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>Etki alanının tamamı için bir yanıt - kapanan bir ofis, kaldırılan bir departman. Yalnızca kendine ait bir tatil iletisi OLMAYAN hesaplar için yanıt verir: hesabın kendi iletisi her zaman üstün gelir ve herhangi bir iletiye en fazla bir yanıt gönderilir.</value>
   </data>
-  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
-    <value>Rol, adlandırılmış bir izin kümesidir ve atama onu belirtilen alan adlarında bir hesaba verir. Burada rolü olmayan bir hesap, yönetici düzeyinin ona her zaman verdiğine sahiptir.</value>
-  </data>
   <data name="A room" xml:space="preserve">
     <value>Bir oda</value>
   </data>
@@ -896,9 +893,6 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="Account _enabled" xml:space="preserve">
     <value>Hesap _etkin</value>
-  </data>
-  <data name="Account address" xml:space="preserve">
-    <value>Hesap adresi</value>
   </data>
   <data name="Account address (_whose mailbox)" xml:space="preserve">
     <value>Hesap adresi (_kimin posta kutusu)</value>
@@ -1553,6 +1547,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
     <value>Hesap, bir alan adındaki posta kutusudur: insanların yazdığı adres ve bir istemcinin oturum açtığı kimlik.</value>
+  </data>
+  <data name="An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>Burada rolü olmayan bir hesap, yönetici düzeyinin ona her zaman verdiğine sahiptir.</value>
   </data>
   <data name="An action of the rule “{0}”." xml:space="preserve">
     <value>“{0}” kuralının bir eylemi.</value>
@@ -4333,9 +4330,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>Etki alanları, hesaplar, diğer adlar ve dağıtım listeleri ile her hesabın parolaları, iletmesi ve klasörleri.</value>
   </data>
-  <data name="Domains, comma separated" xml:space="preserve">
-    <value>Virgülle ayrılmış alan adları</value>
-  </data>
   <data name="Done" xml:space="preserve">
     <value>Bitti</value>
   </data>
@@ -4545,6 +4539,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Empty, the default: single sign-on reaches the webmail only, and the Control Deck still asks for the administrator password." xml:space="preserve">
     <value>Boş, varsayılan: çoklu oturum açma yalnızca web postası içindir ve Control Deck yönetici parolasını istemeyi sürdürür.</value>
+  </data>
+  <data name="Empty: the account's own domain, or every domain for serveradmin and auditor. * is every domain for any role." xml:space="preserve">
+    <value>Boş: hesabın kendi etki alanı; serveradmin ve auditor için her etki alanı. * her rol için her etki alanıdır.</value>
   </data>
   <data name="Ena_ble" xml:space="preserve">
     <value>_Etkinleştir</value>
@@ -4974,6 +4971,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Every message, whatever its size. The size limit is 0, which here means &quot;no limit&quot;." xml:space="preserve">
     <value>Boyutu ne olursa olsun her ileti. Boyut sınırı 0; burada bu "sınır yok" demektir.</value>
+  </data>
+  <data name="Every permission, in every domain." xml:space="preserve">
+    <value>Her etki alanında, her izin.</value>
   </data>
   <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
     <value>{0} IP aralığının kullanabileceği her bağlantı noktası, parola kabul etmeden önce TLS'yi başlatır.</value>
@@ -7900,8 +7900,8 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Nobody - the members are added here" xml:space="preserve">
     <value>Hiç kimse - üyeler buraya eklenir</value>
   </data>
-  <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
-    <value>Henüz kimseye rol verilmedi. Rolü olmayan bir hesap, roller yokken olduğu gibi, yönetici düzeyinin verdiği yetkilere sahiptir.</value>
+  <data name="Nobody has been given a role yet." xml:space="preserve">
+    <value>Henüz kimseye rol verilmedi.</value>
   </data>
   <data name="None" xml:space="preserve">
     <value>Yok</value>
@@ -9510,6 +9510,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="Reading the recovery report..." xml:space="preserve">
     <value>Kurtarma raporu okunuyor...</value>
   </data>
+  <data name="Reads everything and changes nothing, the audit trail included." xml:space="preserve">
+    <value>Denetim izi de dahil her şeyi okur ve hiçbir şeyi değiştirmez.</value>
+  </data>
   <data name="Reads the abuse reports (RFC 5965) that providers send when a reader presses the spam button, counts them per address, and can put an address that complains on its sending domain's suppression list. Nothing arrives until the complaint mailbox is registered with each provider's feedback loop - that is done at the provider, not here." xml:space="preserve">
     <value>Sağlayıcıların, bir okuyucu spam düğmesine bastığında gönderdiği kötüye kullanım raporlarını (RFC 5965) okur, bunları adrese göre sayar ve şikâyet eden bir adresi gönderen etki alanının engelleme listesine alabilir. Şikâyet posta kutusu her sağlayıcının geri bildirim döngüsüne kaydedilene kadar hiçbir şey gelmez; bu, burada değil sağlayıcıda yapılır.</value>
   </data>
@@ -10112,6 +10115,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Rescues legitimate forwarded mail from DMARC-failure penalties, but only for forwarders on your trusted-sealer list - with the list empty the feature does nothing at all, even when enabled." xml:space="preserve">
     <value>Meşru iletilen postayı DMARC başarısızlığı cezalarından kurtarır, ama yalnızca güvenilen mühürleyen listenizdeki ileticiler için - liste boşken özellik etkin olsa bile hiçbir şey yapmaz.</value>
+  </data>
+  <data name="Resets a password, unlocks an account and reads a message trace." xml:space="preserve">
+    <value>Bir parolayı sıfırlar, bir hesabın kilidini açar ve bir ileti izlemesini okur.</value>
   </data>
   <data name="Resolved by the server itself, so an 'Override DNS server' set on the DNS resolver page is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Sunucunun kendisi tarafından çözümlendi; bu yüzden DNS çözümleyicisi sayfasında ayarlanan 'DNS sunucusunu geçersiz kıl' değerine uyulur - postanın gerçekten gittiği yer budur; bu iş istasyonundan yapılan bir nslookup bunu vaat edemez.</value>
@@ -12465,6 +12471,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="The accounts chosen are members of this group already." xml:space="preserve">
     <value>Seçilen hesaplar zaten bu grubun üyesi.</value>
   </data>
+  <data name="The accounts, mailboxes and quarantine of named domains." xml:space="preserve">
+    <value>Belirtilen etki alanlarının hesapları, posta kutuları ve karantinası.</value>
+  </data>
   <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>Adres, bir dizi başarısız oturum açmanın yasakladığı gibi süresi dolan bir IP aralığıyla yasaklanır; ancak Otomatik yasaklama sayfasındaki 'Bu adresleri hiçbir zaman otomatik yasaklama' alanında bulunan bir adres veya gelen bir aktarıcı asla yasaklanmaz. Varsayılan olarak kapalıdır ve yukarıdaki ret kapalıyken hiçbir şey yapmaz.</value>
   </data>
@@ -12969,6 +12978,9 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   </data>
   <data name="The folders and messages of one account put back from an archive in the backup destination, without touching the settings, rules, contacts or calendars of the account, or any other account. The archive is named as the destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>Bir hesabın klasörleri ve iletileri, hesabın ayarlarına, kurallarına, kişilerine veya takvimlerine ya da başka bir hesaba dokunulmadan yedekleme hedefindeki bir arşivden geri konur. Arşiv, hedefin listelediği adla (HMBackup YYYY-MM-DD HHMMSS.7z) ya da hedef içindeki yoluyla belirtilir.</value>
+  </data>
+  <data name="The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority." xml:space="preserve">
+    <value>Dört yerleşik rol düzenlenemez: izinleri sunucunun kodundadır, böylece veritabanındaki bir değişiklik kimseye yetki veremez.</value>
   </data>
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>Sunucunun istemcilere geri gönderdiği karşılama, geri dönme ve hata metinleri.</value>
@@ -14931,6 +14943,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>Kimin neyi yönettiği: bu sunucunun adlandırılmış rolleri ve bunlara sahip hesaplar.</value>
+  </data>
+  <data name="Who may administer what: the roles this server has, and the accounts that hold them." xml:space="preserve">
+    <value>Kim neyi yönetebilir: bu sunucunun rolleri ve bu rollere sahip hesaplar.</value>
   </data>
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>Kimin bağlanabileceği, kimin kimlik doğrulaması yapabileceği ve biri denemeye devam ettiğinde ne olacağı.</value>

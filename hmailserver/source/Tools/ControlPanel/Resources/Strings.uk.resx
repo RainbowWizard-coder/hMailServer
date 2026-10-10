@@ -621,9 +621,6 @@
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>Відповідь для цілого домену — закритий офіс, розформований відділ. Вона надсилається лише для облікових записів, які НЕ мають власного повідомлення про відпустку: власне повідомлення облікового запису завжди має перевагу, і на будь-яке повідомлення надходить щонайбільше одна відповідь.</value>
   </data>
-  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
-    <value>Роль — це іменований набір прав, а призначення надає її обліковому запису в зазначених доменах. Обліковий запис без ролі тут має те, що йому завжди давав його рівень адміністратора.</value>
-  </data>
   <data name="A room" xml:space="preserve">
     <value>Приміщення</value>
   </data>
@@ -902,9 +899,6 @@
   </data>
   <data name="Account _enabled" xml:space="preserve">
     <value>_Обліковий запис увімкнено</value>
-  </data>
-  <data name="Account address" xml:space="preserve">
-    <value>Адреса облікового запису</value>
   </data>
   <data name="Account address (_whose mailbox)" xml:space="preserve">
     <value>Адреса облікового запису (_чия скринька)</value>
@@ -1565,6 +1559,9 @@
   </data>
   <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
     <value>Обліковий запис — це поштова скринька в домені: адреса, на яку пишуть, і те, під чим входить клієнт.</value>
+  </data>
+  <data name="An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>Обліковий запис без ролі тут має те, що йому завжди давав його рівень адміністратора.</value>
   </data>
   <data name="An action of the rule “{0}”." xml:space="preserve">
     <value>Дія правила «{0}».</value>
@@ -4385,9 +4382,6 @@
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>Домени, облікові записи, псевдоніми та списки розсилки, а також паролі, пересилання та папки кожного облікового запису.</value>
   </data>
-  <data name="Domains, comma separated" xml:space="preserve">
-    <value>Домени через кому</value>
-  </data>
   <data name="Done" xml:space="preserve">
     <value>Готово</value>
   </data>
@@ -4597,6 +4591,9 @@
   </data>
   <data name="Empty, the default: single sign-on reaches the webmail only, and the Control Deck still asks for the administrator password." xml:space="preserve">
     <value>Порожньо, типово: єдиний вхід діє лише для вебпошти, а Control Deck і далі запитує пароль адміністратора.</value>
+  </data>
+  <data name="Empty: the account's own domain, or every domain for serveradmin and auditor. * is every domain for any role." xml:space="preserve">
+    <value>Порожньо: власний домен облікового запису, а для serveradmin і auditor - усі домени. * - усі домени для будь-якої ролі.</value>
   </data>
   <data name="Ena_ble" xml:space="preserve">
     <value>Уві_мкнути</value>
@@ -5035,6 +5032,9 @@
   </data>
   <data name="Every message, whatever its size. The size limit is 0, which here means &quot;no limit&quot;." xml:space="preserve">
     <value>Кожне повідомлення, незалежно від розміру. Обмеження розміру дорівнює 0, що тут означає «без обмеження».</value>
+  </data>
+  <data name="Every permission, in every domain." xml:space="preserve">
+    <value>Усі права в усіх доменах.</value>
   </data>
   <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
     <value>Кожен порт, який може використовувати діапазон IP {0}, запускає TLS, перш ніж прийняти пароль.</value>
@@ -7982,8 +7982,8 @@
   <data name="Nobody - the members are added here" xml:space="preserve">
     <value>Ніхто - учасники додаються тут</value>
   </data>
-  <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
-    <value>Роль ще нікому не призначено. Обліковий запис без ролі має права, які дає його рівень адміністратора, так само як і до появи ролей.</value>
+  <data name="Nobody has been given a role yet." xml:space="preserve">
+    <value>Роль ще нікому не призначено.</value>
   </data>
   <data name="None" xml:space="preserve">
     <value>Немає</value>
@@ -9604,6 +9604,9 @@
   <data name="Reading the recovery report..." xml:space="preserve">
     <value>Читання звіту про відновлення...</value>
   </data>
+  <data name="Reads everything and changes nothing, the audit trail included." xml:space="preserve">
+    <value>Читає все й нічого не змінює, зокрема журнал аудиту.</value>
+  </data>
   <data name="Reads the abuse reports (RFC 5965) that providers send when a reader presses the spam button, counts them per address, and can put an address that complains on its sending domain's suppression list. Nothing arrives until the complaint mailbox is registered with each provider's feedback loop - that is done at the provider, not here." xml:space="preserve">
     <value>Читає звіти про зловживання (RFC 5965), які провайдери надсилають, коли читач натискає кнопку «спам», рахує їх за адресами й може внести адресу, що скаржиться, до списку придушення її домену-відправника. Нічого не надходить, доки скриньку для скарг не зареєстровано в петлі зворотного зв'язку кожного провайдера — це роблять у провайдера, а не тут.</value>
   </data>
@@ -10221,6 +10224,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Rescues legitimate forwarded mail from DMARC-failure penalties, but only for forwarders on your trusted-sealer list - with the list empty the feature does nothing at all, even when enabled." xml:space="preserve">
     <value>Рятує законну переслану пошту від штрафів за невдалу перевірку DMARC, але лише для пересилачів у вашому списку довірених запечатувачів — із порожнім списком функція не робить узагалі нічого, навіть коли ввімкнена.</value>
+  </data>
+  <data name="Resets a password, unlocks an account and reads a message trace." xml:space="preserve">
+    <value>Скидає пароль, розблоковує обліковий запис і читає трасування повідомлень.</value>
   </data>
   <data name="Resolved by the server itself, so an 'Override DNS server' set on the DNS resolver page is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Розв’язується самим сервером, тому значення «Замінити DNS-сервер» на сторінці «DNS-розв’язувач» враховується — саме сюди пошта йде насправді, чого nslookup із цієї робочої станції обіцяти не може.</value>
@@ -12610,6 +12616,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The accounts chosen are members of this group already." xml:space="preserve">
     <value>Вибрані облікові записи вже є учасниками цієї групи.</value>
   </data>
+  <data name="The accounts, mailboxes and quarantine of named domains." xml:space="preserve">
+    <value>Облікові записи, поштові скриньки й карантин зазначених доменів.</value>
+  </data>
   <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>Адресу блокують так само, як після серії невдалих входів, діапазоном IP зі строком дії, але ніколи не адресу з «Ніколи не банити автоматично ці адреси» на сторінці «Автоблокування» і не вхідний ретранслятор. Типово вимкнено, і нічого не робить, доки відмову вище вимкнено.</value>
   </data>
@@ -13141,6 +13150,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The folders and messages of one account put back from an archive in the backup destination, without touching the settings, rules, contacts or calendars of the account, or any other account. The archive is named as the destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>Теки та повідомлення одного облікового запису, повернуті з архіву в місці призначення резервних копій, без зміни налаштувань, правил, контактів чи календарів облікового запису та без втручання в інші облікові записи. Архів вказується так, як його перелічує місце призначення (HMBackup YYYY-MM-DD HHMMSS.7z), або за шляхом усередині нього.</value>
+  </data>
+  <data name="The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority." xml:space="preserve">
+    <value>Чотири вбудовані ролі не можна змінити: їхні права містяться в коді сервера, щоб зміна в базі даних не могла нікому надати повноважень.</value>
   </data>
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>Тексти привітання, повернень і помилок, які сервер надсилає клієнтам.</value>
@@ -15115,6 +15127,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>Хто чим керує: іменовані ролі цього сервера та облікові записи, які їх мають.</value>
+  </data>
+  <data name="Who may administer what: the roles this server has, and the accounts that hold them." xml:space="preserve">
+    <value>Хто що може адмініструвати: ролі цього сервера та облікові записи, яким їх призначено.</value>
   </data>
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>Хто може підключатися, хто може автентифікуватися і що відбувається, коли хтось не припиняє спроб.</value>

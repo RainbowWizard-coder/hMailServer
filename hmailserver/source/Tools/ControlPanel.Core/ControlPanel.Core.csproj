@@ -115,6 +115,9 @@
     <Compile Include="..\ControlPanel\Services\PepperChange.cs" />
     <!-- Which roles hand out the whole server, asked about before one is given. -->
     <Compile Include="..\ControlPanel\Services\RoleGrant.cs" />
+    <!-- The Administrator roles page's words for a role and an assignment: the
+         built-in roles' purposes from the catalogue, the domains as listed and sent. -->
+    <Compile Include="..\ControlPanel\Services\RoleWords.cs" />
     <!-- The questions asked before something is deleted, removed, replaced,
          released or sent, and which answer Enter gives. -->
     <Compile Include="..\ControlPanel\Services\Confirmations.cs" />

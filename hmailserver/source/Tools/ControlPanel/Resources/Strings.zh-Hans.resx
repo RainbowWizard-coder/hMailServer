@@ -618,9 +618,6 @@
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>面向整个域的回复 - 例如关闭的办公室、撤销的部门。它只为没有自己的休假回复的账户作答：账户自己的回复始终优先，而且对任何一封邮件最多只有一条回复。</value>
   </data>
-  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
-    <value>角色是一组有名字的权限，分配把它授予指定域中的某个账户。在这里没有角色的账户，拥有其管理员级别一直赋予它的权限。</value>
-  </data>
   <data name="A room" xml:space="preserve">
     <value>会议室</value>
   </data>
@@ -896,9 +893,6 @@
   </data>
   <data name="Account _enabled" xml:space="preserve">
     <value>启用账户(_E)</value>
-  </data>
-  <data name="Account address" xml:space="preserve">
-    <value>账户地址</value>
   </data>
   <data name="Account address (_whose mailbox)" xml:space="preserve">
     <value>账户地址 (谁的邮箱)(_W)</value>
@@ -1553,6 +1547,9 @@
   </data>
   <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
     <value>账户是域中的邮箱：人们写信的地址，也是客户端登录时使用的身份。</value>
+  </data>
+  <data name="An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>在这里没有角色的账户，拥有其管理员级别一直赋予它的权限。</value>
   </data>
   <data name="An action of the rule “{0}”." xml:space="preserve">
     <value>规则“{0}”的操作。</value>
@@ -4333,9 +4330,6 @@
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>域、账户、别名和分发列表，以及每个账户的密码、转发和文件夹。</value>
   </data>
-  <data name="Domains, comma separated" xml:space="preserve">
-    <value>域名，以逗号分隔</value>
-  </data>
   <data name="Done" xml:space="preserve">
     <value>完成</value>
   </data>
@@ -4545,6 +4539,9 @@
   </data>
   <data name="Empty, the default: single sign-on reaches the webmail only, and the Control Deck still asks for the administrator password." xml:space="preserve">
     <value>默认为空：单点登录仅用于网页邮箱，Control Deck 仍然要求输入管理员密码。</value>
+  </data>
+  <data name="Empty: the account's own domain, or every domain for serveradmin and auditor. * is every domain for any role." xml:space="preserve">
+    <value>留空：该账户自己的域；对 serveradmin 和 auditor 则为每个域。* 表示任何角色的每个域。</value>
   </data>
   <data name="Ena_ble" xml:space="preserve">
     <value>启用(_B)</value>
@@ -4974,6 +4971,9 @@
   </data>
   <data name="Every message, whatever its size. The size limit is 0, which here means &quot;no limit&quot;." xml:space="preserve">
     <value>每封邮件，无论大小。大小限制为 0，在这里表示“不限制”。</value>
+  </data>
+  <data name="Every permission, in every domain." xml:space="preserve">
+    <value>所有域中的所有权限。</value>
   </data>
   <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
     <value>IP 范围 {0} 可以使用的每个端口都会在接受密码之前启动 TLS。</value>
@@ -7900,8 +7900,8 @@
   <data name="Nobody - the members are added here" xml:space="preserve">
     <value>无人 - 成员在此处添加</value>
   </data>
-  <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
-    <value>尚未向任何人授予角色。没有角色的账户拥有其管理员级别所赋予的权限，与角色出现之前完全一样。</value>
+  <data name="Nobody has been given a role yet." xml:space="preserve">
+    <value>尚未向任何人授予角色。</value>
   </data>
   <data name="None" xml:space="preserve">
     <value>无</value>
@@ -9510,6 +9510,9 @@
   <data name="Reading the recovery report..." xml:space="preserve">
     <value>正在读取恢复报告...</value>
   </data>
+  <data name="Reads everything and changes nothing, the audit trail included." xml:space="preserve">
+    <value>读取一切且不做任何更改，包括审计记录。</value>
+  </data>
   <data name="Reads the abuse reports (RFC 5965) that providers send when a reader presses the spam button, counts them per address, and can put an address that complains on its sending domain's suppression list. Nothing arrives until the complaint mailbox is registered with each provider's feedback loop - that is done at the provider, not here." xml:space="preserve">
     <value>读取读者按下“垃圾邮件”按钮时提供商发送的滥用报告（RFC 5965），按地址计数，并可将投诉的地址列入发件域的抑制列表。在投诉邮箱注册到每个提供商的反馈环路之前不会收到任何内容；注册在提供商处完成，而不是在这里。</value>
   </data>
@@ -10112,6 +10115,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Rescues legitimate forwarded mail from DMARC-failure penalties, but only for forwarders on your trusted-sealer list - with the list empty the feature does nothing at all, even when enabled." xml:space="preserve">
     <value>把正常的转发邮件从 DMARC 失败的惩罚中解救出来，但仅限于您受信任加封方列表中的转发方 - 列表为空时，即使启用了此功能，它也完全不起作用。</value>
+  </data>
+  <data name="Resets a password, unlocks an account and reads a message trace." xml:space="preserve">
+    <value>重置密码、解锁账户并查看邮件跟踪。</value>
   </data>
   <data name="Resolved by the server itself, so an 'Override DNS server' set on the DNS resolver page is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>由服务器自己解析，因此在“DNS 解析器”页上设置的“覆盖 DNS 服务器”会被采用 - 这才是邮件真正的去向，而从这台工作站执行 nslookup 无法保证这一点。</value>
@@ -12465,6 +12471,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The accounts chosen are members of this group already." xml:space="preserve">
     <value>所选账户已是此组的成员。</value>
   </data>
+  <data name="The accounts, mailboxes and quarantine of named domains." xml:space="preserve">
+    <value>指定域的账户、邮箱和隔离。</value>
+  </data>
   <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>该地址会像连续登录失败那样被一个会过期的 IP 范围封禁，但“自动封禁”页上“永不自动封禁这些地址”中的地址和入站中继永远不会被封禁。默认关闭，上面的拒绝关闭时不起任何作用。</value>
   </data>
@@ -12969,6 +12978,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The folders and messages of one account put back from an archive in the backup destination, without touching the settings, rules, contacts or calendars of the account, or any other account. The archive is named as the destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>从备份目标中的存档放回一个账户的文件夹和邮件, 不触及该账户的设置、规则、联系人或日历, 也不触及其他账户。存档按备份目标中列出的名称 (HMBackup YYYY-MM-DD HHMMSS.7z) 或其在备份目标内的路径指定。</value>
+  </data>
+  <data name="The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority." xml:space="preserve">
+    <value>四个内置角色无法编辑：它们的权限写在服务器代码中，这样改动数据库也无法给谁增加权限。</value>
   </data>
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>服务器返回给客户端的问候、退信和错误文本。</value>
@@ -14931,6 +14943,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>谁可以管理什么：本服务器的命名角色，以及持有这些角色的账户。</value>
+  </data>
+  <data name="Who may administer what: the roles this server has, and the accounts that hold them." xml:space="preserve">
+    <value>谁可以管理什么：此服务器的角色，以及拥有这些角色的账户。</value>
   </data>
   <data name="Who may connect, who may authenticate, and what happens when someone keeps trying." xml:space="preserve">
     <value>谁可以连接、谁可以进行身份验证，以及有人不断尝试时会发生什么。</value>

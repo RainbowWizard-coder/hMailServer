@@ -75,7 +75,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("Envelope senders refused outright, or scored.")]
       [InlineData("The pages people sign in to in a browser")]
       [InlineData("The ports each protocol listens on")]
-      [InlineData("A role is a named set of permissions")]
+      [InlineData("Who may administer what")]
       public void TheSubtitlesTheReviewFoundLong_AreTwoSentencesAtMost(string start)
       {
          string root = Path.GetDirectoryName(ControlPanelFile("App.xaml.cs"));
