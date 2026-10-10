@@ -839,7 +839,11 @@ New rules (`SECRET_DETECTION_RULES_VERSION`) may change GitLab's global
 allowlist: then `build/ci/secret-detection-rules.sh` refuses, and both scans
 with it, until the script is brought up to date with GitLab's new table - the
 two entries it changes, and `GITLAB_TABLE`, the new table's hash ([What the
-secret scans read](#what-the-secret-scans-read)). The landing scans the batch
+secret scans read](#what-the-secret-scans-read)). Any new version fails
+`build/check-gitleaksignore.py` in `checkers` until the patterns of the rules
+`.gitleaksignore`'s directory-form lines name are read again from the new
+image's `/gitleaks.toml` and its `RULES_FROM` is set to the new version: the
+lines are tied to their findings by those patterns. The landing scans the batch
 that moves the pin with `master`'s image and `master`'s rules script, not the
 batch's, and says which image the batch names: the new image first runs in
 `master`'s `secret_detection` once the batch has landed, and the comparison of
@@ -3876,7 +3880,10 @@ over each file they name, and fails a tree in which a line names no finding of
 its rule, or a finding of a named file and rule has no line, saying where the
 finding is now, so that the change that moves a finding moves its line. Over
 `master`'s tree at 74aed9ab8 it named those four, each with its finding's new
-line.
+line. Its patterns are a copy, read from the analyzer 7.40.0's `/gitleaks.toml`
+(its `RULES_FROM`), and it fails while `secret_detection` runs another version,
+whose rules may write a pattern otherwise, until they are read again from that
+version's file.
 
 **The whole history, once.** A scan of every commit rather than the pushed
 ones is the pipeline of a schedule on `master` described `security`: there

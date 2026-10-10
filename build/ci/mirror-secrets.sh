@@ -54,6 +54,10 @@
 # new gitleaks logs; and scan the whole history with both images (the analyzer with
 # SECRET_DETECTION_HISTORIC_SCAN=true) and compare the two reports, as on 9 October
 # 2026 (docs/ContinuousIntegration.md, "Re-pinning secret_detection's analyzer").
+# New rules may change GitLab's allowlist, which build/ci/secret-detection-rules.sh
+# refuses, and both scans with it, until its GITLAB_TABLE and the entries it changes are
+# brought up to date; and any new version fails build/check-gitleaksignore.py until its
+# patterns are read again from the new /gitleaks.toml and its RULES_FROM is set.
 #
 # What is copied, and that it may be: the analyzer (gitlab-org/security-products/
 # analyzers/secrets) is MIT-licensed by GitLab Inc.; GitLab's rules in it

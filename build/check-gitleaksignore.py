@@ -28,11 +28,18 @@ entries name (RULES), as secret_detection's analyzer has them; a new rule in an 
 needs its pattern here, from the analyzer's /gitleaks.toml. A line marked gitleaks:allow
 is no finding. The commit-form entries are not read.
 
+The patterns are a copy, read from one analyzer's rules (RULES_FROM, its version): it
+fails, too, when .gitlab/ci/gitlab-security.yml has secret_detection run another version,
+whose rules may write a pattern otherwise - the entries would then be judged by a pattern
+the scan no longer has - until the patterns are read again from that image's
+/gitleaks.toml and RULES_FROM set to its version.
+
   python build/check-gitleaksignore.py              the tree's .gitleaksignore
   python build/check-gitleaksignore.py --self-test  against fixtures
 
-Exit codes: 0 every directory-form entry names its finding; 1 one does not, or a finding
-of a named file and rule has no entry; 2 the file could not be read.
+Exit codes: 0 every directory-form entry names its finding; 1 one does not, a finding of
+a named file and rule has no entry, or secret_detection runs another analyzer than the
+one RULES were read from; 2 the file could not be read.
 """
 
 import os
@@ -50,6 +57,7 @@ import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 IGNORE = ".gitleaksignore"
+SECURITY_YML = ".gitlab/ci/gitlab-security.yml"
 # Where the secret_detection job's checkout is: CI_PROJECT_DIR at the group's path.
 CHECKOUT = "/builds/hmailserver/hmailserver/"
 # The patterns of the rules the directory-form entries name, as GitLab's rules
@@ -70,6 +78,16 @@ RULES = {
     "SSH private key": r"-----BEGIN OPENSSH " r"PRIVATE KEY-----",
     "SSH (EC) private key": r"-----BEGIN EC " r"PRIVATE KEY-----",
 }
+# The analyzer whose /gitleaks.toml RULES were read from: GitLab's secrets analyzer 7.40.0
+# (rules 0.25.1), as the project's registry holds it for secret_detection. A job that
+# runs another version fails this check until RULES are read again from that version's
+# file (ContinuousIntegration.md, "Re-pinning secret_detection's analyzer").
+RULES_FROM = "7.40.0"
+# The secret_detection job's image line, the analyzer's version in its tag: the project's
+# copy (mirror/secrets:<version>-<the digest's first twelve hex digits>), or GitLab's own
+# (security-products/secrets:<version>), by digest.
+ANALYZER = re.compile(r"^  image: \S*/secrets:([0-9]+(?:\.[0-9]+)*)(?:-[0-9a-f]{12})?@sha256:[0-9a-f]{64}[ \t]*\r?$",
+                      re.MULTILINE)
 COMMIT_FORM = re.compile(r"^[0-9a-f]{40}:")
 ENTRY = re.compile(r"^(.+):([^:]+):([0-9]+)$")
 
@@ -145,6 +163,28 @@ def problems_of(root, text):
     return problems, sum(len(v) for v in named.values()), len(named)
 
 
+def analyzer_problems(root):
+    """What keeps RULES from being the patterns secret_detection's analyzer has: a job that
+    runs another version than RULES_FROM, or that names no version, or two."""
+    try:
+        with open(os.path.join(root, *SECURITY_YML.split("/")), "rb") as f:
+            text = f.read().decode("utf-8")
+    except (OSError, UnicodeDecodeError) as e:
+        return ["%s cannot be read, so the analyzer secret_detection runs, whose rules the patterns here must be, is not "
+                "known: %s" % (SECURITY_YML, e)]
+    versions = sorted(set(ANALYZER.findall(text)))
+    if len(versions) != 1:
+        return ["%s names %d secret_detection analyzer version(s) on an image line pinned by digest (%s), not one: the "
+                "patterns here (RULES) are those of the analyzer %s" % (SECURITY_YML, len(versions), ", ".join(versions),
+                                                                        RULES_FROM)]
+    version = versions[0]
+    if version != RULES_FROM:
+        return ["secret_detection runs the analyzer %s (%s), and the patterns here (RULES) were read from %s's "
+                "/gitleaks.toml: read the patterns of the rules the entries name again from %s's, and set RULES_FROM to "
+                "%s" % (version, SECURITY_YML, RULES_FROM, version, version)]
+    return []
+
+
 def check(root=ROOT, say=print):
     try:
         with open(os.path.join(root, IGNORE), "rb") as f:
@@ -153,13 +193,15 @@ def check(root=ROOT, say=print):
         say("check-gitleaksignore: cannot read %s: %s" % (IGNORE, e))
         return 2
     problems, count, groups = problems_of(root, text)
+    problems = analyzer_problems(root) + problems
     for problem in problems:
         say("FAIL: " + problem)
     if problems:
         say("check-gitleaksignore: %d problem(s) in %s's directory-form entries" % (len(problems), IGNORE))
         return 1
     say("check-gitleaksignore: %d directory-form entr%s of %s, over %d file and rule pair(s), each name a finding, and "
-        "every finding of those files and rules is named" % (count, "y" if count == 1 else "ies", IGNORE, groups))
+        "every finding of those files and rules is named, by the patterns of the analyzer %s, secret_detection's"
+        % (count, "y" if count == 1 else "ies", IGNORE, groups, RULES_FROM))
     return 0
 
 
@@ -172,7 +214,14 @@ def self_test():
 
     work = tempfile.mkdtemp(prefix="check-gitleaksignore-")
     try:
-        def tree(files, ignore):
+        def job(version):
+            return ("semgrep-sast:\n  image:\n    name: registry.example/semgrep@sha256:%s\n\nsecret_detection:\n"
+                    "  # the comment before the line\n  image: registry.gitlab.com/hmailserver/hmailserver/mirror/secrets:"
+                    "%s-%s@sha256:%s\n  needs: []\n" % ("1" * 64, version, "2" * 12, "2" * 64))
+
+        def tree(files, ignore, security=None):
+            files = dict(files)
+            files[SECURITY_YML] = job(RULES_FROM) if security is None else security
             for name, text in files.items():
                 full = os.path.join(work, *name.split("/"))
                 os.makedirs(os.path.dirname(full), exist_ok=True)
@@ -229,6 +278,30 @@ def self_test():
         expect(code == 0, "an AWS key id, at its line: %s" % text)
         code, text = tree({"src/a.cpp": "\n" + aws}, "%ssrc/a.cpp:AWS:1\n" % CHECKOUT)
         expect(code == 1, "an AWS key id moved a line down: %s" % text)
+        # secret_detection's analyzer: the one RULES were read from passes, in the project's
+        # copy or GitLab's own, CRLF or LF; another version, none, or two fail, saying what
+        # to read again.
+        code, text = tree({"src/k.cpp": source}, good)
+        expect(code == 0 and "the analyzer %s, secret_detection's" % RULES_FROM in text,
+               "the analyzer the patterns were read from passes, and is named: %s" % text)
+        code, text = tree({"src/k.cpp": source}, good, job(RULES_FROM).replace("\n", "\r\n"))
+        expect(code == 0, "a CI file checked out CRLF is read the same: %s" % text)
+        gitlabs = "secret_detection:\n  image: registry.gitlab.com/security-products/secrets:%s@sha256:%s\n" % (RULES_FROM, "3" * 64)
+        code, text = tree({"src/k.cpp": source}, good, gitlabs)
+        expect(code == 0, "GitLab's own image of that version passes: %s" % text)
+        moved = ".".join(RULES_FROM.split(".")[:-1] + [str(int(RULES_FROM.split(".")[-1]) + 1)])
+        code, text = tree({"src/k.cpp": source}, good, job(moved))
+        expect(code == 1 and "secret_detection runs the analyzer %s" % moved in text and "set RULES_FROM to %s" % moved in text,
+               "another analyzer version fails, saying to read the patterns again: %s" % text)
+        code, text = tree({"src/k.cpp": source}, good, job(RULES_FROM).replace("@sha256:" + "2" * 64, ""))
+        expect(code == 1 and "names 0 secret_detection analyzer version(s)" in text,
+               "an image line not pinned by digest names no analyzer: %s" % text)
+        code, text = tree({"src/k.cpp": source}, good, job(RULES_FROM) + job(moved).split("\n\n", 1)[1])
+        expect(code == 1 and "names 2 secret_detection analyzer version(s)" in text, "two analyzers fail: %s" % text)
+        os.remove(os.path.join(work, *SECURITY_YML.split("/")))
+        said = []
+        code = check(work, said.append)
+        expect(code == 1 and "cannot be read" in "\n".join(said), "no CI file fails: %s %s" % (code, said))
     finally:
         shutil.rmtree(work, ignore_errors=True)
 

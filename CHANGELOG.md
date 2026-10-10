@@ -4714,8 +4714,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   pipeline's `secret_detection`. The new `build/check-gitleaksignore.py`, which `checkers` runs, with its self-test,
   matches the patterns of the rules those lines name, GitLab's, over each file they name, and fails when a line names
   no finding of its rule or a finding of a named file and rule has no line, saying where the finding is now; over
-  `master` at 74aed9ab8 it names the four this batch moved, each with its new line (ContinuousIntegration.md,
-  "Security scanning").
+  `master` at 74aed9ab8 it names the four this batch moved, each with its new line. Its patterns are a copy of the
+  analyzer 7.40.0's, and it fails while `secret_detection` runs another version, until they are read again from that
+  version's rules (ContinuousIntegration.md, "Security scanning").
 
 ### Documentation
 
