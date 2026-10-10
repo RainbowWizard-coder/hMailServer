@@ -252,6 +252,39 @@ namespace hMailServer.ControlPanel.Services
          => F("{0} is required.", WithoutAltKey(label ?? ""));
 
       /// <summary>
+      /// The text a box opens on for the value the server holds: a date in the server's
+      /// own form, yyyy-MM-dd HH:mm:ss, which the allow and block list's caption names and
+      /// the server reads back, and nothing for its "no date", before 1970; any other value
+      /// as it was. The box opened on the reader's general form - "12/31/2026 12:00:00 AM",
+      /// "31.12.2026 00:00:00" - or "12/30/1899 12:00:00 AM" for an entry that never
+      /// expires, which the server refused on Save, so that an entry could not be edited
+      /// without typing its date again.
+      /// </summary>
+      public static string BoxText(object current)
+      {
+         if (current is DateTime when)
+            return when.Year < 1970 ? "" : when.ToString(ServerTimeText.ServerFormat, System.Globalization.CultureInfo.InvariantCulture);
+
+         return Convert.ToString(current, System.Globalization.CultureInfo.CurrentCulture) ?? "";
+      }
+
+      /// <summary>
+      /// Takes out of the values to send each value that applies only while a switch is on
+      /// - the allow and block list's expiry date while "Stops mattering at a date" is
+      /// ticked (FieldSpec.GridOnlyWhen) - where the dialog has the switch off, so that the
+      /// server keeps what it holds. The empty date was sent, which the server refuses, and
+      /// no entry that never expires could be added or saved.
+      /// </summary>
+      public static void DropWhereSwitchedOff(IDictionary<string, object> values, IEnumerable<(string Prop, string Switch)> gated)
+      {
+         foreach ((string prop, string onlyWhen) in gated)
+         {
+            if (values.TryGetValue(onlyWhen, out object on) && on is false)
+               values.Remove(prop);
+         }
+      }
+
+      /// <summary>
       /// The caption without its Alt-key mark: the first single underscore goes,
       /// and a doubled one is the underscore it stands for (MnemonicText's rule,
       /// which is not compiled into ControlPanel.Core).

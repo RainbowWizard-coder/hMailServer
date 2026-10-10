@@ -3807,6 +3807,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   floors, the dialogs and the columns, and that no column of words in a page's XAML or built in code is a fixed number
   of pixels.
 
+- **Fixed: the allow and block lists' Add and Edit refused an entry that never expires, and an expiring one unless its
+  date was typed again.** The dialog sent its expiry date whether or not "Stops mattering at a date" was ticked, and
+  the server, which reads a date given as text only as yyyy-mm-dd hh:mm:ss, refused the empty box with "ExpiresTime
+  must be a date and time written as yyyy-mm-dd hh:mm:ss."; and Edit opened the box on the reader's general form of
+  the date the server holds - "12/31/2026 12:00:00 AM", "31.12.2026 00:00:00", or "12/30/1899 12:00:00 AM" for an
+  entry that never expires - which the server refused as well, or, in Japanese, read by position and saved with the
+  minutes and seconds of a time before ten o'clock wrong: "2026/12/31 9:30:45" as 09:00:05. The box now opens on the
+  server's own form, the one its caption names, and empty for an entry that never expires, and the date is sent only
+  while the switch is on, an empty one then refused on its field as before. The server's list and each domain's, on
+  the domain's dialog, are the same editor. `ListExpiryDialogTests` holds the box's text in four languages, what is
+  sent with the switch off and on, and the dialog's use of both.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

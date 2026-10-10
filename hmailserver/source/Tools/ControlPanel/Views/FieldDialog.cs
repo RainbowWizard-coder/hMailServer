@@ -138,6 +138,10 @@ namespace hMailServer.ControlPanel.Views
                return;
             }
 
+            // A value that applies only while its switch is on is not sent while the
+            // switch is off: the server refused the allow and block list's empty date.
+            FieldDialogRules.DropWhereSwitchedOff(Result, fields.Where(f => f.GridOnlyWhen != null).Select(f => (f.Prop, f.GridOnlyWhen)));
+
             // The write, with the dialog open: a refusal stays here, on its field.
             Refusal refusal = save_?.Invoke(Result);
             if (refusal != null)
@@ -296,7 +300,8 @@ namespace hMailServer.ControlPanel.Views
                }
             default:
                {
-                  var box = new TextBox { Text = Convert.ToString(current) ?? "" };
+                  // A date in the server's form, which the caption names and Save sends back.
+                  var box = new TextBox { Text = FieldDialogRules.BoxText(current) };
                   Describe(box, prop, accessibleName);
                   FieldRow row = DialogFields.Field(caption, box, f.Hint);
                   committers_.Add(() =>
