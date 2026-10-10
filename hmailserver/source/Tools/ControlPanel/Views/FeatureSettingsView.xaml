@@ -33,11 +33,14 @@
             </scaffold:PageHeader>
 
             <StackPanel MaxWidth="760" HorizontalAlignment="Left">
-                <!-- The Updates page's own card, above its policy: the version this
-                     server runs, whether a newer release is waiting, and the three
-                     steps that take it there (FeatureSettingsView.Updates.cs). They
-                     were on Server status, a page away from the policy that drives
-                     them (review finding F272). Shown on the Updates page alone. -->
+                <scaffold:InlineNotice x:Name="StatusNotice" Visibility="Collapsed" />
+                <TextBlock x:Name="PathText" Style="{StaticResource TextCaptionTertiary}" Margin="{StaticResource AppCardGap}" />
+                <!-- The Updates page's own card, under the page's notice and its file
+                     caption, as on every page of settings, and above its policy: the
+                     version this server runs, whether a newer release is waiting, and the
+                     three steps that take it there (FeatureSettingsView.Updates.cs). They
+                     were on Server status, a page away from the policy that drives them
+                     (review finding F272). Shown on the Updates page alone. -->
                 <scaffold:Card x:Name="UpdateCard" Title="{loc:L 'Version and updates'}" Visibility="Collapsed"
                                Margin="{StaticResource AppCardGap}" AutomationProperties.AutomationId="updates-status">
                     <StackPanel>
@@ -76,9 +79,6 @@
                         </WrapPanel>
                     </scaffold:Card.Footer>
                 </scaffold:Card>
-
-                <scaffold:InlineNotice x:Name="StatusNotice" Visibility="Collapsed" />
-                <TextBlock x:Name="PathText" Style="{StaticResource TextCaptionTertiary}" Margin="{StaticResource AppCardGap}" />
                 <StackPanel x:Name="CardsPanel" />
             </StackPanel>
         </StackPanel>

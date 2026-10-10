@@ -2191,7 +2191,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   version, Live update, Patch, Release channel and Automatic updates, and by the tasks "install a new version",
   "turn on automatic updates" and "is there a new version". A read of the update status that fails says why on the
   card, with Try again, and holds Check for updates, Download update and Install update until a read works, as
-  Server status held them. Server status, the Dashboard and About say in one line
+  Server status held them; with the link to the service lost the page says so once, under its header, and the card's
+  readouts say Not read. The card sits under the page's notice and the line that says where its settings are kept,
+  as on every settings page. Server status, the Dashboard and About say in one line
   when a release is waiting - "hMailServer 6.3.7 is available." - with Open Updates beside it, shown to a credential
   that may open the page; the Control Panel that opens again after an administrator's install says how it ended on
   the Updates page, and "Not checked yet" points at the daily check below it rather than at API & monitoring. API &

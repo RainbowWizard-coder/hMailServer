@@ -103,6 +103,17 @@ namespace hMailServer.ControlPanel.Tests.Services
          foreach (string button in new[] { "CheckUpdateButton", "DownloadUpdateButton", "InstallUpdateButton", "UpdateValue", "InstalledVersionValue" })
             Assert.True(page.IndexOf("x:Name=\"" + button + "\"", StringComparison.Ordinal) > card, button + " is not on the Updates page's card.");
 
+         // Under the page's notice and its file caption, as on every page of settings
+         // (ControlPanelDesign.md: the file a page edits in a caption under the header, a
+         // save that wrote nothing in a Critical notice under the header), and above the
+         // policy it drives: the card stood above both, and a lost link put the page's
+         // Critical notice under the card's.
+         int notice = page.IndexOf("x:Name=\"StatusNotice\"", StringComparison.Ordinal);
+         int path = page.IndexOf("x:Name=\"PathText\"", StringComparison.Ordinal);
+         int cards = page.IndexOf("x:Name=\"CardsPanel\"", StringComparison.Ordinal);
+         Assert.True(notice > 0 && path > notice && card > path && cards > card,
+            "The Updates page's order is not the page's notice, its file caption, the card and the policy.");
+
          string status = ReadControlPanelFile(Path.Join("Views", "StatusView.xaml"));
          foreach (string gone in new[] { "CheckUpdateButton", "DownloadUpdateButton", "InstallUpdateButton", "UpdateValue" })
             Assert.DoesNotContain("x:Name=\"" + gone + "\"", status, StringComparison.Ordinal);
@@ -137,6 +148,23 @@ namespace hMailServer.ControlPanel.Tests.Services
          foreach (string button in new[] { "CheckUpdateButton", "DownloadUpdateButton", "InstallUpdateButton" })
             Assert.Contains(button, call, StringComparison.Ordinal);
          Assert.Contains("CheckUpdateButton.IsEnabled = true;", steps, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// With the link lost the page says so under its header, Connection lost and why,
+      /// and the card says it no second time: a lost link showed two Critical notices of
+      /// one cause, the card's and then the page's. The steps are held all the same.
+      /// </summary>
+      [Fact]
+      public void ALostLinkIsSaidOnceOnThePage()
+      {
+         string steps = ReadControlPanelFile(Path.Join("Views", "FeatureSettingsView.Updates.cs"));
+         int lost = steps.IndexOf("if (saveState_.State == SettingsPageState.NotConnected)", StringComparison.Ordinal);
+         int card = steps.IndexOf("ReadFailure.Show(UpdateReadNotice,", StringComparison.Ordinal);
+         Assert.True(lost > 0 && card > lost, "The Updates page's card says a lost link the page has already said.");
+         string held = steps.Substring(lost, card - lost);
+         Assert.Contains("ReadFailure.Clear(UpdateReadNotice);", held, StringComparison.Ordinal);
+         Assert.Contains("ReadFailure.Show(null, null, null, null, readError, null, CheckUpdateButton, DownloadUpdateButton, InstallUpdateButton);", held, StringComparison.Ordinal);
       }
 
       /// <summary>Server status, the Dashboard and About say a waiting release in one line.</summary>

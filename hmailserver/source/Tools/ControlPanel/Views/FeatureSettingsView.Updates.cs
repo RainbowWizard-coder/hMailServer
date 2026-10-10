@@ -101,7 +101,11 @@ namespace hMailServer.ControlPanel.Views
       /// of its cause, with Try again, and the three steps held while it shows:
       /// Check for updates as well as Download and Install, since the service that
       /// runs them did not answer - with the link lost it offered Check, and
-      /// pressing it brought "The update step could not be run".
+      /// pressing it brought "The update step could not be run". Where the page
+      /// has already said under its header that the link is lost - Connection
+      /// lost, and why - the card says it no second time: its readouts say Not
+      /// read and its steps wait for the server, where a lost link put a second
+      /// Critical notice, of the same cause, under the first.
       /// </summary>
       private void ReloadUpdate_()
       {
@@ -172,6 +176,13 @@ namespace hMailServer.ControlPanel.Views
          {
             ReadFailure.Clear(UpdateReadNotice);
             CheckUpdateButton.IsEnabled = true;
+            return;
+         }
+
+         if (saveState_.State == SettingsPageState.NotConnected)
+         {
+            ReadFailure.Clear(UpdateReadNotice);
+            ReadFailure.Show(null, null, null, null, readError, null, CheckUpdateButton, DownloadUpdateButton, InstallUpdateButton);
             return;
          }
 
