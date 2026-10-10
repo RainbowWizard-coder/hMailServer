@@ -3588,6 +3588,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   hears as it changes (review finding F027; T3.3 work item 9). `HelpPaneControlsTests` holds the three. Two new
   strings in all seventeen languages.
 
+- **Fixed: three small misalignments - the sign-in card's two-factor link, the Domains page's untitled domains card,
+  and its domain list scrolling inside a page that scrolls.** The link's words started ten pixels right of the
+  card's captions, boxes and Connect, pushed in by the link button's own padding; they start on the card's text
+  column now, the hover fill and the focus rectangle still reaching past them inside the card. The domains card had
+  no title, so its search sat 23 pixels above the accounts card's beside it; it is titled Domains, and the two
+  searches share a line. In the one column of a narrow window the domain list kept a floor of three rows and needed
+  a scroll bar of its own for the fourth domain, inside the page's and over the rows' delete buttons; there it shows
+  as many rows as it has, up to 25, and the page alone scrolls, and each of the page's four lists keeps its rows
+  clear of its own scroll bar while it shows one (review findings F032, F100, F101; T3.3 work item 10).
+  `AlignmentFixesTests` holds the three.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

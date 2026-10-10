@@ -102,8 +102,12 @@
             <scaffold:FillPanel x:Name="DomainColumn" ViewportHeight="{Binding ViewportHeight, ElementName=PageScroll}">
 
             <!-- Domain list -->
+            <!-- Titled, as the accounts card beside it is, so that the two cards'
+                 searches share a line: untitled, the domains card's search sat 23
+                 pixels above the accounts card's (review finding F100). The title
+                 is the card's name to a screen reader as well. -->
             <scaffold:Card x:Name="DomainCard" scaffold:FillPanel.Fill="True" scaffold:FillPanel.Weight="2"
-                           Margin="0,0,12,0" Padding="12" AutomationProperties.Name="{loc:L 'Domains'}">
+                           Margin="0,0,12,0" Padding="12" Title="{loc:L 'Domains'}">
                 <scaffold:FillPanel>
                     <scaffold:Toolbar x:Name="DomainSearch" SearchPlaceholder="{loc:L 'Search domains'}"
                                       SearchTextChanged="DomainSearch_TextChanged" Margin="0,0,0,8" />

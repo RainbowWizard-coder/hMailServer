@@ -74,6 +74,45 @@ namespace hMailServer.ControlPanel.Services
             Apply_(viewer);
       }
 
+      /// <summary>
+      /// The same for a list's own viewer, the ScrollViewer in its template: a list
+      /// whose rows end in buttons drew its bar over them where it scrolled - the
+      /// Domains page's rows' delete buttons (review finding F101) - and, kept
+      /// clear for good, the rows of a list that fits would end twelve pixels
+      /// short of the form above them. Applied once the list has its template.
+      /// </summary>
+      public static void ForList(Control list)
+      {
+         if (list == null)
+            return;
+
+         void Enable(object sender, RoutedEventArgs args)
+         {
+            if (ViewerOf_(list) is ScrollViewer viewer && !GetIsEnabled(viewer))
+               SetIsEnabled(viewer, true);
+         }
+
+         list.Loaded += Enable;
+         if (list.IsLoaded)
+            Enable(list, null);
+      }
+
+      /// <summary>The first ScrollViewer in a control's template, or null before it has one.</summary>
+      private static ScrollViewer ViewerOf_(DependencyObject root)
+      {
+         var pending = new System.Collections.Generic.Queue<DependencyObject>();
+         pending.Enqueue(root);
+         while (pending.Count > 0)
+         {
+            DependencyObject node = pending.Dequeue();
+            if (node is ScrollViewer viewer && !ReferenceEquals(node, root))
+               return viewer;
+            for (int i = 0; i < System.Windows.Media.VisualTreeHelper.GetChildrenCount(node); i++)
+               pending.Enqueue(System.Windows.Media.VisualTreeHelper.GetChild(node, i));
+         }
+         return null;
+      }
+
       private static void Apply_(ScrollViewer viewer)
       {
          bool showing = viewer.ComputedVerticalScrollBarVisibility == Visibility.Visible;

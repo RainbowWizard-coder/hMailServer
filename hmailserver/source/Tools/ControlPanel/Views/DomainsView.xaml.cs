@@ -38,6 +38,12 @@ namespace hMailServer.ControlPanel.Views
          InitializeComponent();
          WireRows_();
          WireForms_();
+
+         // Every row of the four lists ends in buttons, and a list's bar is drawn
+         // over its rows: while a list scrolls, its rows keep clear of the bar
+         // (review finding F101).
+         foreach (ListView list in new[] { DomainList, AccountList, AliasList, DistList })
+            ScrollBarInset.ForList(list);
          NewAccountPassword.PasswordChanged += (s, e) => ShowNewAccountStrength_();
       }
 
@@ -57,8 +63,36 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>F5: the domains again, the selected one kept, and with it its accounts, aliases and lists.</summary>
       void IRefreshablePage.Refresh() => ReloadDomains();
 
+      // A domain's row: its 40 pixels, which the list's floor of three rows (123,
+      // DomainsView.xaml) is built on.
+      private const double DomainRowHeight = 40;
+
       private void PageColumns_SizeChanged(object sender, SizeChangedEventArgs e)
-         => ArrangeColumns(SideBySide.Fits(e.NewSize.Width, ColumnWeights, ColumnMinWidths));
+      {
+         ArrangeColumns(SideBySide.Fits(e.NewSize.Width, ColumnWeights, ColumnMinWidths));
+         FloorDomainList_();
+      }
+
+      /// <summary>
+      /// The domains list's floor: three rows beside the accounts, and in the one
+      /// column of a narrow window as many rows as it shows, up to
+      /// ListRowsFloor.MostRows, so that the page scrolls and the list does not
+      /// scroll inside it. Held at three rows there, the fourth domain needed a
+      /// scroll bar of the list's own inside the page's, over the rows' delete
+      /// buttons (review finding F101).
+      /// </summary>
+      private void FloorDomainList_()
+      {
+         bool oneColumn = !DomainColumn.Children.Contains(DomainCard);
+         // A row as it is drawn, once there is one; 40 pixels until then.
+         double row = DomainList.ItemContainerGenerator.ContainerFromIndex(0) is FrameworkElement first && first.ActualHeight > 0
+            ? first.ActualHeight
+            : DomainRowHeight;
+         double threeRows = ListRowsFloor.For(ListRowsFloor.FewestRows, DomainRowHeight);
+         double floor = oneColumn ? Math.Max(threeRows, ListRowsFloor.For(DomainList.Items.Count, row)) : threeRows;
+         if (DomainList.MinHeight != floor)
+            DomainList.MinHeight = floor;
+      }
 
       /// <summary>
       /// Two columns - the domains card beside the accounts card and the alias and
@@ -204,6 +238,7 @@ namespace hMailServer.ControlPanel.Views
          ReadFailure.Clear(DomainNotice, AddDomainButton);
          DomainList.ItemsSource = rows;
          ListSearch.Apply(DomainList, DomainSearch.SearchText);
+         FloorDomainList_();
          StatusText.Show(DomainStatus, null, rows.Count, null, L("No domains yet. Add the first one to start receiving mail."));
 
          // Replacing ItemsSource clears the selection; put it back on the same
@@ -228,7 +263,10 @@ namespace hMailServer.ControlPanel.Views
       }
 
       private void DomainSearch_TextChanged(object sender, EventArgs e)
-         => ListSearch.Apply(DomainList, DomainSearch.SearchText);
+      {
+         ListSearch.Apply(DomainList, DomainSearch.SearchText);
+         FloorDomainList_();
+      }
 
       private void AccountSearch_TextChanged(object sender, EventArgs e)
          => ListSearch.Apply(AccountList, AccountSearch.SearchText);
