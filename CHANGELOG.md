@@ -3425,6 +3425,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   monospaced text is one size, the new `AppFontSizeMono` (13), where the live log was 12, the diagnostics 12, the DNS
   record and DKIM boxes 12 and the event script 14. `MonospacedDataTests` holds the faces, the size and the runs.
 
+- **Changed: REST API keys is under Sign-in & access.** It was the last row of Monitoring & troubleshooting, a group
+  whose purpose - "Is mail flowing, and if it is not, where has it stopped?" - says nothing of credentials; a key is a
+  credential that is not the administrator password, and the page now follows Administrative access, the page its
+  Related links already paired it with. Its key is unchanged, so the palette, the Related links, the tours and every
+  automation id still arrive, and the settings pages' signpost names the new place. The Compliance and Virus scanning
+  groups the review proposed beside it each add a rail glyph and wait on the owner's decision. `SidebarStructureTests`
+  holds the place.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

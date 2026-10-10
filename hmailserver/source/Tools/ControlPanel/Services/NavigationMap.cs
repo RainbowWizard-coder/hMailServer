@@ -873,6 +873,20 @@ namespace hMailServer.ControlPanel.Services
                            "Password policy|Password rules|Password length|Password complexity|Password expiry|Password history|Breached passwords|Pwned passwords",
                   seeAlso: "roles|authentication"),
 
+               // Under Sign-in & access, directly after Administrative access, since
+               // review finding F152: a key is a credential that is not the
+               // administrator password - the page's own words - and the group says
+               // who may authenticate, where Monitoring & troubleshooting asks whether
+               // mail is flowing. Its own page rather than a card on API & monitoring:
+               // keys are a list of objects with their own lifecycle, and the page has
+               // to be usable while the REST listener is switched off - which is the
+               // state every installation is in when it first comes here. The key is
+               // unchanged, so its links, its tours and nav-apikeys still arrive.
+               Page("apikeys", N("REST API keys"),
+                  N("Scoped, expiring credentials for the REST API, so automation does not have to carry the administrator password."),
+                  aliases: "API key|Bearer token|Access token|Credential|Service account for the API|Revoke a key|hmapi|Automation credential|Read-only key",
+                  seeAlso: "api|adminaccess"),
+
                Page("ipranges", N("IP ranges"),
                   N("Which addresses may connect, which may relay without authenticating, and which must authenticate first."),
                   aliases: "IP range|Firewall|Block an IP|Allow an IP|Open relay|Relay permissions|Require authentication|Let a device send mail|Printer|Scanner|LAN|Localhost|My IP",
@@ -1014,16 +1028,7 @@ namespace hMailServer.ControlPanel.Services
                Page("api", N("API & monitoring"),
                   N("The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions."),
                   aliases: "REST|Prometheus|Grafana|Metrics|Health endpoint|Nagios|Zabbix|Automation|OpenTelemetry|OTLP|Windows Event Log|Event Viewer|ManageSieve|Sieve|Sieve scripts|Graceful shutdown|Drain on stop",
-                  seeAlso: "apikeys|logging|status|webservices"),
-
-               // Its own page rather than a card on API & monitoring: keys are a
-               // list of objects with their own lifecycle, and the page has to be
-               // usable while the REST listener is switched off - which is the
-               // state every installation is in when it first comes here.
-               Page("apikeys", N("REST API keys"),
-                  N("Scoped, expiring credentials for the REST API, so automation does not have to carry the administrator password."),
-                  aliases: "API key|Bearer token|Access token|Credential|Service account for the API|Revoke a key|hmapi|Automation credential|Read-only key",
-                  seeAlso: "api|adminaccess")),
+                  seeAlso: "apikeys|logging|status|webservices")),
 
             Group("Wrench24", N("Maintenance"),
                N("Housekeeping, tuning, and the settings that still have no better home."),
