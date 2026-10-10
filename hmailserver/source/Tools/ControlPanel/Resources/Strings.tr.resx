@@ -765,6 +765,9 @@
   <data name="API &amp; monitoring" xml:space="preserve">
     <value>API ve izleme</value>
   </data>
+  <data name="API key" xml:space="preserve">
+    <value>API anahtarı</value>
+  </data>
   <data name="API keys" xml:space="preserve">
     <value>API anahtarları</value>
   </data>
@@ -1212,6 +1215,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Address attri_bute" xml:space="preserve">
     <value>Adres öznite_liği</value>
   </data>
+  <data name="Address book share removed" xml:space="preserve">
+    <value>Adres defteri paylaşımı kaldırıldı</value>
+  </data>
   <data name="Address contains" xml:space="preserve">
     <value>Adres şunu içeriyor</value>
   </data>
@@ -1284,6 +1290,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Administrative access" xml:space="preserve">
     <value>Yönetimsel erişim</value>
   </data>
+  <data name="Administrator" xml:space="preserve">
+    <value>Yönetici</value>
+  </data>
   <data name="Administrator UI language (third-party COM tools only)" xml:space="preserve">
     <value>Yönetici arayüz dili (yalnızca üçüncü taraf COM araçları)</value>
   </data>
@@ -1322,6 +1331,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
     <value>Bu sunucunun gönderdiği toplu rapor şeması: 1 = RFC 7489 Ek C, 2 = RFC 9990</value>
+  </data>
+  <data name="Alert rule" xml:space="preserve">
+    <value>Uyarı kuralı</value>
   </data>
   <data name="Alert rules, outbound webhooks and the SNMP agent tell another system what happened." xml:space="preserve">
     <value>Uyarı kuralları, giden webhook'lar ve SNMP aracısı başka bir sisteme ne olduğunu bildirir.</value>
@@ -1404,6 +1416,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Allow and block list" xml:space="preserve">
     <value>İzin ve engel listesi</value>
   </data>
+  <data name="Allow and block list entry" xml:space="preserve">
+    <value>İzin ve engel listesi girdisi</value>
+  </data>
   <data name="Allow and release" xml:space="preserve">
     <value>İzin ver ve serbest bırak</value>
   </data>
@@ -1445,6 +1460,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="Allowed as {0}." xml:space="preserve">
     <value>{0} olarak izin verildi.</value>
+  </data>
+  <data name="Allowed or blocked domain" xml:space="preserve">
+    <value>İzin verilen veya engellenen alan adı</value>
   </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>İzin verilen imzalama algoritmaları (virgülle ayrılmış)</value>
@@ -1681,6 +1699,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Anything that is not a letter or a digit counts, rather than a fixed list of punctuation, so a keyboard layout you do not have cannot make the rule unsatisfiable." xml:space="preserve">
     <value>Sabit bir noktalama işareti listesi yerine, harf veya rakam olmayan her şey sayılır; böylece sahip olmadığınız bir klavye düzeni kuralı yerine getirilemez hâle getiremez.</value>
   </data>
+  <data name="App password" xml:space="preserve">
+    <value>Uygulama parolası</value>
+  </data>
   <data name="App passwords" xml:space="preserve">
     <value>Uygulama parolaları</value>
   </data>
@@ -1755,6 +1776,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Archive folder (empty = archiving off)" xml:space="preserve">
     <value>Arşiv klasörü (boş = arşivleme kapalı)</value>
+  </data>
+  <data name="Archived message" xml:space="preserve">
+    <value>Arşivlenmiş ileti</value>
   </data>
   <data name="Archives in the destination" xml:space="preserve">
     <value>Hedefteki arşivler</value>
@@ -2005,6 +2029,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Back up to the configured destination before an unattended apply (no destination or a failed backup means no apply)" xml:space="preserve">
     <value>Gözetimsiz bir uygulamadan önce yapılandırılmış hedefe yedekle (hedef yoksa veya yedekleme başarısız olursa uygulama yapılmaz)</value>
   </data>
+  <data name="Back-off cleared" xml:space="preserve">
+    <value>Bekleme süresi temizlendi</value>
+  </data>
   <data name="Back_up archive (HMBackup*.7z on the server)" xml:space="preserve">
     <value>_Yedek arşivi (sunucudaki HMBackup*.7z)</value>
   </data>
@@ -2152,11 +2179,17 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Blocked" xml:space="preserve">
     <value>Engellenen</value>
   </data>
+  <data name="Blocked attachment" xml:space="preserve">
+    <value>Engellenen ek</value>
+  </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>Engellenen ekler</value>
   </data>
   <data name="Blocked senders" xml:space="preserve">
     <value>Engellenen gönderenler</value>
+  </data>
+  <data name="Blocked senders entry" xml:space="preserve">
+    <value>Engellenen gönderen</value>
   </data>
   <data name="Blocked. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
     <value>Engellendi. Liste kaydı: {0}. Silinen ileti: {1}.</value>
@@ -2175,6 +2208,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Body read chunk size (bytes)" xml:space="preserve">
     <value>Gövde okuma parçası boyutu (bayt)</value>
+  </data>
+  <data name="Booking policy" xml:space="preserve">
+    <value>Rezervasyon ilkesi</value>
   </data>
   <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox in the Control Deck's delivery queue or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
     <value>Her iki adres de ayarlı. Hizmetin yanıt verip vermediği buradan anlaşılamaz: dışarıdan, gönderilen türde bir dosya eklenmiş bir ileti gönderin ve onu Control Deck'in teslim kuyruğundaki Korumalı alan için bekletilenler bölümünde ya da uygulama günlüğünde korumalı alana gönderildiğini söyleyen bir satırda arayın.</value>
@@ -2307,6 +2343,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Cancel the next key of {0}? The staged selector is removed, a key file the rotation generated for it is deleted, and signing does not change." xml:space="preserve">
     <value>{0} için sonraki anahtar iptal edilsin mi? Hazırlanan seçici kaldırılır, döndürmenin onun için oluşturduğu anahtar dosyası silinir ve imzalama değişmez.</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Vazgeçildi</value>
   </data>
   <data name="Cannot be checked from here" xml:space="preserve">
     <value>Buradan denetlenemez</value>
@@ -2776,6 +2815,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Complete. The user's DN comes from the template, proved with a simple bind against {0} over {1} - no search and no service account needed." xml:space="preserve">
     <value>Tamam. Kullanıcının DN'si şablondan gelir ve {1} üzerinden {0} karşısında basit bir bağlamayla kanıtlanır - arama ve hizmet hesabı gerekmez.</value>
   </data>
+  <data name="Compromise lock cleared" xml:space="preserve">
+    <value>Ele geçirme kilidi kaldırıldı</value>
+  </data>
   <data name="Compromised accounts" xml:space="preserve">
     <value>Ele geçirilmiş hesaplar</value>
   </data>
@@ -2889,6 +2931,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Content filters" xml:space="preserve">
     <value>İçerik süzgeçleri</value>
+  </data>
+  <data name="Contents read" xml:space="preserve">
+    <value>İçerik okundu</value>
   </data>
   <data name="Control Deck" xml:space="preserve">
     <value>Control Deck</value>
@@ -3552,6 +3597,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it." xml:space="preserve">
     <value>DMARC, alıcılara SPF ve DKIM'den geçemeyen postayla ne yapacaklarını ve nereye bildireceklerini söyler.</value>
   </data>
+  <data name="DNS block list" xml:space="preserve">
+    <value>DNS engelleme listesi</value>
+  </data>
   <data name="DNS block list checks" xml:space="preserve">
     <value>DNS engelleme listesi denetimleri</value>
   </data>
@@ -3698,6 +3746,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Debug messages to syslog" xml:space="preserve">
     <value>Hata ayıklama iletileri syslog'a</value>
+  </data>
+  <data name="Declined" xml:space="preserve">
+    <value>Reddedildi</value>
   </data>
   <data name="Default 10, allowed range 1 to 90. The server reads values below 1 as 10 and clamps values above 90, because &quot;wait forever&quot; for an unreachable directory is how connection threads get exhausted." xml:space="preserve">
     <value>Varsayılan 10, izin verilen aralık 1 ile 90. Sunucu 1'in altındaki değerleri 10 olarak okur ve 90'ın üstündekileri sıkıştırır, çünkü ulaşılamayan bir dizin için "sonsuza dek beklemek" bağlantı iş parçacıklarının tükenme biçimidir.</value>
@@ -4124,6 +4175,9 @@ Yine de kaydedilsin mi?</value>
   <data name="Directory entry" xml:space="preserve">
     <value>Rehber kaydı</value>
   </data>
+  <data name="Directory opt-out changed" xml:space="preserve">
+    <value>Dizinden çıkma tercihi değişti</value>
+  </data>
   <data name="Directory server" xml:space="preserve">
     <value>Dizin sunucusu</value>
   </data>
@@ -4150,6 +4204,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Discard your unsaved changes and read the settings again?" xml:space="preserve">
     <value>Kaydedilmemiş değişiklikler atılıp ayarlar yeniden okunsun mu?</value>
   </data>
+  <data name="Discarded" xml:space="preserve">
+    <value>Atıldı</value>
+  </data>
   <data name="Disconnect clients sending too many invalid commands" xml:space="preserve">
     <value>Çok fazla geçersiz komut gönderen istemcilerin bağlantısını kes</value>
   </data>
@@ -4159,8 +4216,20 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Discovery" xml:space="preserve">
     <value>eDiscovery</value>
   </data>
+  <data name="Discovery case" xml:space="preserve">
+    <value>eDiscovery davası</value>
+  </data>
   <data name="Discovery cases" xml:space="preserve">
     <value>eDiscovery davaları</value>
+  </data>
+  <data name="Discovery export" xml:space="preserve">
+    <value>eDiscovery dışa aktarması</value>
+  </data>
+  <data name="Discovery hold" xml:space="preserve">
+    <value>eDiscovery tutması</value>
+  </data>
+  <data name="Discovery search" xml:space="preserve">
+    <value>eDiscovery araması</value>
   </data>
   <data name="Disk space" xml:space="preserve">
     <value>Disk alanı</value>
@@ -4173,6 +4242,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Distribution list - {0}" xml:space="preserve">
     <value>Dağıtım listesi - {0}</value>
+  </data>
+  <data name="Distribution list member" xml:space="preserve">
+    <value>Dağıtım listesi üyesi</value>
   </data>
   <data name="Distribution lists" xml:space="preserve">
     <value>Dağıtım listeleri</value>
@@ -4242,6 +4314,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Domain or account" xml:space="preserve">
     <value>Alan adı veya hesap</value>
+  </data>
+  <data name="Domain or account setting" xml:space="preserve">
+    <value>Alan adı veya hesap ayarı</value>
   </data>
   <data name="Domain or pattern" xml:space="preserve">
     <value>Alan adı veya kalıp</value>
@@ -4552,6 +4627,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Encryption to other servers, the signatures this server adds and checks, the results it records, forwarded mail and the reports it sends." xml:space="preserve">
     <value>Diğer sunuculara şifreleme, bu sunucunun eklediği ve denetlediği imzalar, kaydettiği sonuçlar, iletilen posta ve gönderdiği raporlar.</value>
   </data>
+  <data name="Ended" xml:space="preserve">
+    <value>Sona erdi</value>
+  </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Uç nokta (boş = hizmetin kendi uç noktası)</value>
   </data>
@@ -4566,6 +4644,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Enrol {0} again? A new secret replaces the current one, and the codes the authenticator app shows now stop working until it scans the new QR code." xml:space="preserve">
     <value>{0} yeniden kaydedilsin mi? Yeni bir gizli anahtar geçerli olanın yerini alır ve kimlik doğrulama uygulamasının şu anda gösterdiği kodlar, yeni QR kodunu tarayana kadar çalışmaz.</value>
+  </data>
+  <data name="Enrolled" xml:space="preserve">
+    <value>Kaydedildi</value>
   </data>
   <data name="Enter" xml:space="preserve">
     <value>Enter</value>
@@ -5029,6 +5110,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="External" xml:space="preserve">
     <value>Dış</value>
   </data>
+  <data name="External POP3 or IMAP account" xml:space="preserve">
+    <value>Dış POP3 veya IMAP hesabı</value>
+  </data>
   <data name="External accounts" xml:space="preserve">
     <value>Dış hesaplar</value>
   </data>
@@ -5196,6 +5280,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
     <value>Klasör adı (alt klasörler için hiyerarşi ayırıcısını kullanın):</value>
+  </data>
+  <data name="Folder permission" xml:space="preserve">
+    <value>Klasör izni</value>
   </data>
   <data name="Folders" xml:space="preserve">
     <value>Klasörler</value>
@@ -5392,8 +5479,14 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Greylisting" xml:space="preserve">
     <value>Greylisting</value>
   </data>
+  <data name="Greylisting bypass entry" xml:space="preserve">
+    <value>Gri listeleme atlama girdisi</value>
+  </data>
   <data name="Greylisting bypass list" xml:space="preserve">
     <value>Gri listeleme atlama listesi</value>
+  </data>
+  <data name="Greylisting exemption" xml:space="preserve">
+    <value>Greylisting istisnası</value>
   </data>
   <data name="Greylisting exemptions" xml:space="preserve">
     <value>Greylisting istisnaları</value>
@@ -5415,6 +5508,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Group by" xml:space="preserve">
     <value>Gruplandırma ölçütü</value>
+  </data>
+  <data name="Group member" xml:space="preserve">
+    <value>Grup üyesi</value>
   </data>
   <data name="Group name" xml:space="preserve">
     <value>Grup adı</value>
@@ -5890,6 +5986,12 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Gelen istemci sertifikaları - portun bir CA paketine, istemcilerin sertifikalara ihtiyacı var</value>
   </data>
+  <data name="Inbound webhook" xml:space="preserve">
+    <value>Gelen webhook</value>
+  </data>
+  <data name="Inbound webhook delivery" xml:space="preserve">
+    <value>Gelen webhook teslimi</value>
+  </data>
   <data name="Include the client IP in the X-AuthUser header" xml:space="preserve">
     <value>X-AuthUser başlığına istemci IP'sini ekle</value>
   </data>
@@ -5954,6 +6056,24 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="Install update stopped before anything was changed: {0}." xml:space="preserve">
     <value>"Güncelleştirmeyi yükle" hiçbir şey değiştirilmeden durdu: {0}.</value>
+  </data>
+  <data name="Installation cancelled" xml:space="preserve">
+    <value>Kurulum iptal edildi</value>
+  </data>
+  <data name="Installation failed" xml:space="preserve">
+    <value>Kurulum başarısız oldu</value>
+  </data>
+  <data name="Installation requested" xml:space="preserve">
+    <value>Kurulum istendi</value>
+  </data>
+  <data name="Installation started" xml:space="preserve">
+    <value>Kurulum başladı</value>
+  </data>
+  <data name="Installed" xml:space="preserve">
+    <value>Kuruldu</value>
+  </data>
+  <data name="Installed incompletely" xml:space="preserve">
+    <value>Eksik kuruldu</value>
   </data>
   <data name="Installed version" xml:space="preserve">
     <value>Yüklü sürüm</value>
@@ -6038,6 +6158,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Günlükleme ve çift teslim</value>
+  </data>
+  <data name="Journaling rule" xml:space="preserve">
+    <value>Günlükleme kuralı</value>
   </data>
   <data name="Ke_y passphrase (only for an encrypted key)" xml:space="preserve">
     <value>Anahtar parola _ifadesi (yalnızca şifreli bir anahtar için)</value>
@@ -6411,6 +6534,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Logging is off altogether, so nothing below will be written until it is on." xml:space="preserve">
     <value>Günlükleme tümüyle kapalı; bu yüzden açılana kadar aşağıdakilerin hiçbiri yazılmayacak.</value>
   </data>
+  <data name="Logon failures" xml:space="preserve">
+    <value>Oturum açma hataları</value>
+  </data>
   <data name="Logon tarpit" xml:space="preserve">
     <value>Oturum açma tarpit'i</value>
   </data>
@@ -6582,20 +6708,50 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Mail to the spam trap {0}" xml:space="preserve">
     <value>{0} spam tuzağına posta</value>
   </data>
+  <data name="Mailbox changed" xml:space="preserve">
+    <value>Posta kutusu değiştirildi</value>
+  </data>
   <data name="Mailbox created" xml:space="preserve">
     <value>Posta kutusu oluşturuldu</value>
   </data>
   <data name="Mailbox emptied." xml:space="preserve">
     <value>Posta kutusu boşaltıldı.</value>
   </data>
+  <data name="Mailbox encryption turned off" xml:space="preserve">
+    <value>Posta kutusu şifrelemesi kapatıldı</value>
+  </data>
+  <data name="Mailbox encryption turned on" xml:space="preserve">
+    <value>Posta kutusu şifrelemesi açıldı</value>
+  </data>
   <data name="Mailbox full" xml:space="preserve">
     <value>Posta kutusu dolu</value>
+  </data>
+  <data name="Mailbox key forfeited" xml:space="preserve">
+    <value>Posta kutusu anahtarından vazgeçildi</value>
+  </data>
+  <data name="Mailbox key recovered" xml:space="preserve">
+    <value>Posta kutusu anahtarı kurtarıldı</value>
   </data>
   <data name="Mailbox migrations from another server, and imports of Outlook data files (PST). The jobs are started in the Control Deck or over the REST API." xml:space="preserve">
     <value>Başka bir sunucudan posta kutusu geçişleri ve Outlook veri dosyalarının (PST) içe aktarılması. İşler Control Deck'te veya REST API üzerinden başlatılır.</value>
   </data>
   <data name="Mailbox passwords are set on the account, inside its domain." xml:space="preserve">
     <value>Posta kutusu parolaları hesap üzerinde, etki alanının içinde ayarlanır.</value>
+  </data>
+  <data name="Mailbox read" xml:space="preserve">
+    <value>Posta kutusu okundu</value>
+  </data>
+  <data name="Mailbox recovery key made" xml:space="preserve">
+    <value>Posta kutusu kurtarma anahtarı oluşturuldu</value>
+  </data>
+  <data name="Mailbox recovery key removed" xml:space="preserve">
+    <value>Posta kutusu kurtarma anahtarı kaldırıldı</value>
+  </data>
+  <data name="Mailbox recovery key replaced" xml:space="preserve">
+    <value>Posta kutusu kurtarma anahtarı değiştirildi</value>
+  </data>
+  <data name="Mailbox restore started" xml:space="preserve">
+    <value>Posta kutusu geri yüklemesi başladı</value>
   </data>
   <data name="Mailbox restore {0} started - runs in the background on the server." xml:space="preserve">
     <value>Posta kutusu geri yükleme {0} başlatıldı - sunucuda arka planda çalışır.</value>
@@ -6862,6 +7018,12 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Message for local s_enders (empty = same as above)" xml:space="preserve">
     <value>Yerel gönderenler _için ileti (boş = yukarıdakiyle aynı)</value>
   </data>
+  <data name="Message held by the sandbox" xml:space="preserve">
+    <value>Korumalı alanın tuttuğu ileti</value>
+  </data>
+  <data name="Message held for review" xml:space="preserve">
+    <value>İnceleme için tutulan ileti</value>
+  </data>
   <data name="Message indexing" xml:space="preserve">
     <value>İleti indeksleme</value>
   </data>
@@ -6991,6 +7153,12 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Microsoft token endpoint" xml:space="preserve">
     <value>Microsoft belirteç uç noktası</value>
   </data>
+  <data name="Migration" xml:space="preserve">
+    <value>Geçiş</value>
+  </data>
+  <data name="Migration job" xml:space="preserve">
+    <value>Geçiş işi</value>
+  </data>
   <data name="Migrations" xml:space="preserve">
     <value>Geçişler</value>
   </data>
@@ -7081,6 +7249,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Move action up" xml:space="preserve">
     <value>Eylemi yukarı taşı</value>
   </data>
+  <data name="Move failed" xml:space="preserve">
+    <value>Taşıma başarısız oldu</value>
+  </data>
   <data name="Move or rename {0}" xml:space="preserve">
     <value>{0} posta kutusunu taşı veya yeniden adlandır</value>
   </data>
@@ -7113,6 +7284,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Move to the next or the previous part of the window: the command bar, the navigation, the page and the help" xml:space="preserve">
     <value>Pencerenin sonraki veya önceki bölümüne geç: komut çubuğu, gezinti, sayfa ve yardım</value>
+  </data>
+  <data name="Moved" xml:space="preserve">
+    <value>Taşındı</value>
   </data>
   <data name="Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves." xml:space="preserve">
     <value>Bir iletiyi \Junk olarak belirlenmiş klasöre taşımak onu sa-learn'e spam olarak bildirir, oradan geri çıkarmak ise ham olarak bildirir; böylece filtre, kimsenin yerine getirmediği ayrı bir tören yerine insanların zaten yaptıklarından öğrenir. Varsayılan olarak kapalıdır: her taşımada sa-learn'i çalıştırır ve haber bültenlerini Junk klasörüne koyan bir kullanıcı, filtreye haber bültenlerinin tarayıcının hizmet ettiği herkes için spam olduğunu öğretmiş olur.</value>
@@ -7194,6 +7368,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Never judged by country (addresses and CIDR ranges, comma separated)" xml:space="preserve">
     <value>Asla ülkeye göre değerlendirilmez (adresler ve CIDR aralıkları, virgülle ayrılmış)</value>
+  </data>
+  <data name="Never-ban name" xml:space="preserve">
+    <value>Asla yasaklanmayan ad</value>
   </data>
   <data name="New IMAP folder" xml:space="preserve">
     <value>Yeni IMAP klasörü</value>
@@ -8440,6 +8617,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="OpenPGP in the webmail - keys, signing, encrypting and decrypting, all in the browser - and publishing and looking up keys." xml:space="preserve">
     <value>Web postasında OpenPGP - anahtarlar, imzalama, şifreleme ve şifre çözme, hepsi tarayıcıda - ve anahtarların yayımlanması ile aranması.</value>
   </data>
+  <data name="OpenPGP key" xml:space="preserve">
+    <value>OpenPGP anahtarı</value>
+  </data>
   <data name="OpenTelemetry OTLP endpoint for logs (empty = disabled)" xml:space="preserve">
     <value>Günlükler için OpenTelemetry OTLP uç noktası (boş = devre dışı)</value>
   </data>
@@ -8668,6 +8848,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Passed" xml:space="preserve">
     <value>Geçti</value>
   </data>
+  <data name="Passkey" xml:space="preserve">
+    <value>Geçiş anahtarı</value>
+  </data>
   <data name="Passkeys" xml:space="preserve">
     <value>Geçiş anahtarları</value>
   </data>
@@ -8822,6 +9005,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   </data>
   <data name="Policy file the server will serve (read-only; served by the server itself):" xml:space="preserve">
     <value>Sunucunun sunacağı ilke dosyası (salt okunur; sunucunun kendisi tarafından sunulur):</value>
+  </data>
+  <data name="Policy for a remote domain" xml:space="preserve">
+    <value>Uzak alan adı ilkesi</value>
   </data>
   <data name="Policy for mailbox passwords" xml:space="preserve">
     <value>Posta kutusu parolaları için ilke</value>
@@ -9090,6 +9276,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="Publishing this record asks every server that delivers to {0} to e-mail you a daily report when TLS to you fails or is downgraded. The reports go to the rua= mailbox, which must exist and accept mail from strangers. This works regardless of any hMailServer setting - the senders do the reporting." xml:space="preserve">
     <value>Bu kaydı yayımlamak, {0} adresine teslim eden her sunucudan, size yapılan TLS başarısız olduğunda ya da düşürüldüğünde size günlük bir rapor e-postalamasını ister. Raporlar rua= posta kutusuna gider; bu posta kutusu var olmalı ve yabancılardan posta kabul etmelidir. Bu, herhangi bir hMailServer ayarından bağımsız olarak çalışır - raporlamayı gönderenler yapar.</value>
   </data>
+  <data name="Push subscriptions removed" xml:space="preserve">
+    <value>Anında iletme abonelikleri kaldırıldı</value>
+  </data>
   <data name="Pushes the same counters the Prometheus endpoint serves, under the same names, on the interval below. Not everything on /metrics is exported: queue depth, database probes and certificate expiry are computed by the metrics listener from database and file reads, and a push exporter does not own those." xml:space="preserve">
     <value>Prometheus uç noktasının sunduğu aynı sayaçları, aynı adlarla, aşağıdaki aralıkta iter. /metrics üzerindeki her şey dışa aktarılmaz: kuyruk derinliği, veritabanı yoklamaları ve sertifika süre sonu, ölçüm dinleyicisi tarafından veritabanı ve dosya okumalarından hesaplanır ve bir itme dışa aktarıcısı bunlara sahip değildir.</value>
   </data>
@@ -9134,6 +9323,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   </data>
   <data name="Quarantine: hold the copy until it is released" xml:space="preserve">
     <value>Karantina: serbest bırakılana kadar kopyayı tut</value>
+  </data>
+  <data name="Quarantined message" xml:space="preserve">
+    <value>Karantinadaki ileti</value>
   </data>
   <data name="Query failed: {0}" xml:space="preserve">
     <value>Sorgu başarısız oldu: {0}</value>
@@ -9421,6 +9613,18 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   <data name="Recovery" xml:space="preserve">
     <value>Kurtarma</value>
   </data>
+  <data name="Recovery address cleared" xml:space="preserve">
+    <value>Kurtarma adresi silindi</value>
+  </data>
+  <data name="Recovery address set" xml:space="preserve">
+    <value>Kurtarma adresi ayarlandı</value>
+  </data>
+  <data name="Recovery codes cleared" xml:space="preserve">
+    <value>Kurtarma kodları silindi</value>
+  </data>
+  <data name="Recovery codes generated" xml:space="preserve">
+    <value>Kurtarma kodları oluşturuldu</value>
+  </data>
   <data name="Redirect /.well-known/caldav to (empty = answer 404)" xml:space="preserve">
     <value>/.well-known/caldav yönlendirmesi (boş = 404 yanıtla)</value>
   </data>
@@ -9616,6 +9820,9 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   <data name="Release this group" xml:space="preserve">
     <value>Bu grubu serbest bırak</value>
   </data>
+  <data name="Released" xml:space="preserve">
+    <value>Serbest bırakıldı</value>
+  </data>
   <data name="Released {0} message to its recipients." xml:space="preserve">
     <value>{0} ileti alıcılarına serbest bırakıldı.</value>
   </data>
@@ -9736,6 +9943,9 @@ Bu gruba verilmiş her erişim o hesap için uygulanmaz olur.</value>
   </data>
   <data name="Remove {0} messages from the queue? They are deleted without a bounce, so their senders are not told." xml:space="preserve">
     <value>{0} ileti kuyruktan kaldırılsın mı? Geri dönüş iletisi olmadan silinirler, bu yüzden gönderenlerine bildirilmez.</value>
+  </data>
+  <data name="Removed" xml:space="preserve">
+    <value>Kaldırıldı</value>
   </data>
   <data name="Rename {0} to {1}?&#10;&#10;Every account, alias and distribution list moves to the new name, and forwards or memberships in other domains that point at {0} addresses are updated to match. Mail sent to the old name will no longer be accepted." xml:space="preserve">
     <value>{0}, {1} olarak yeniden adlandırılsın mı?
@@ -9966,6 +10176,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Restore one message" xml:space="preserve">
     <value>Tek bir iletiyi geri yükle</value>
   </data>
+  <data name="Restore started" xml:space="preserve">
+    <value>Geri yükleme başladı</value>
+  </data>
   <data name="Restore started - runs in the background on the server." xml:space="preserve">
     <value>Geri yükleme başlatıldı - sunucuda arka planda çalışır.</value>
   </data>
@@ -10020,6 +10233,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Retr_y through Windows logon when the directory is unavailable (FallbackToWindowsLogon)" xml:space="preserve">
     <value>Dizin erişilemez _olduğunda Windows oturum açması üzerinden yeniden dene (FallbackToWindowsLogon)</value>
   </data>
+  <data name="Retried" xml:space="preserve">
+    <value>Yeniden denendi</value>
+  </data>
   <data name="Retries" xml:space="preserve">
     <value>Yeniden denemeler</value>
   </data>
@@ -10037,6 +10253,12 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Reverse DNS (PTR) and the HELO name - set by whoever owns your IP address" xml:space="preserve">
     <value>Ters DNS (PTR) ve HELO adı - IP adresinizin sahibi tarafından ayarlanır</value>
+  </data>
+  <data name="Reverted" xml:space="preserve">
+    <value>Geri alındı</value>
+  </data>
+  <data name="Review settings changed" xml:space="preserve">
+    <value>İnceleme ayarları değişti</value>
   </data>
   <data name="Revoke" xml:space="preserve">
     <value>İptal et</value>
@@ -10068,6 +10290,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Roles" xml:space="preserve">
     <value>Roller</value>
   </data>
+  <data name="Rolled back" xml:space="preserve">
+    <value>Önceki sürüme dönüldü</value>
+  </data>
   <data name="Rotate _now…" xml:space="preserve">
     <value>Şi_mdi döndür…</value>
   </data>
@@ -10086,11 +10311,20 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Route - {0}" xml:space="preserve">
     <value>Rota - {0}</value>
   </data>
+  <data name="Route address" xml:space="preserve">
+    <value>Rota adresi</value>
+  </data>
   <data name="Route all outbound mail through another SMTP server instead of delivering directly. For failover, separate several hosts with a vertical bar: the next host is tried when one cannot be reached (all hosts share the port, security and credentials below)." xml:space="preserve">
     <value>Tüm giden postayı doğrudan teslim etmek yerine başka bir SMTP sunucusu üzerinden yönlendirin. Yedekleme için birden çok ana bilgisayarı dikey çizgiyle ayırın: birine ulaşılamadığında bir sonraki denenir (tüm ana bilgisayarlar aşağıdaki portu, güvenliği ve kimlik bilgilerini paylaşır).</value>
   </data>
   <data name="Routes" xml:space="preserve">
     <value>Rotalar</value>
+  </data>
+  <data name="Rule action" xml:space="preserve">
+    <value>Kural eylemi</value>
+  </data>
+  <data name="Rule criterion" xml:space="preserve">
+    <value>Kural ölçütü</value>
   </data>
   <data name="Rule for {0} added." xml:space="preserve">
     <value>{0} için kural eklendi.</value>
@@ -10184,6 +10418,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="S/MIME - to the partner's certificate" xml:space="preserve">
     <value>S/MIME - ortağın sertifikasına</value>
+  </data>
+  <data name="S/MIME certificate" xml:space="preserve">
+    <value>S/MIME sertifikası</value>
   </data>
   <data name="S/MIME certificate authority" xml:space="preserve">
     <value>S/MIME sertifika yetkilisi</value>
@@ -10758,6 +10995,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="SearchBase (or UserDnTemplate, to bind directly without searching)" xml:space="preserve">
     <value>SearchBase (veya aramadan doğrudan bağlanmak için UserDnTemplate)</value>
   </data>
+  <data name="Searched" xml:space="preserve">
+    <value>Arandı</value>
+  </data>
   <data name="Searches" xml:space="preserve">
     <value>Aramalar</value>
   </data>
@@ -11067,6 +11307,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Server limits &amp; expert settings (the timeouts)" xml:space="preserve">
     <value>Sunucu sınırları ve uzman ayarları (zaman aşımları)</value>
   </data>
+  <data name="Server message text" xml:space="preserve">
+    <value>Sunucu iletisi metni</value>
+  </data>
   <data name="Server messages" xml:space="preserve">
     <value>Sunucu iletileri</value>
   </data>
@@ -11241,6 +11484,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Setting  -  {0}" xml:space="preserve">
     <value>Ayar  -  {0}</value>
   </data>
+  <data name="Setting profile" xml:space="preserve">
+    <value>Ayar profili</value>
+  </data>
   <data name="Setting profiles" xml:space="preserve">
     <value>Ayar profilleri</value>
   </data>
@@ -11412,6 +11658,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Signed by {0} and recorded in the Sigstore log at {1}; version {2}, {3}." xml:space="preserve">
     <value>{0} tarafından imzalandı ve {1} saatinde Sigstore günlüğüne kaydedildi; sürüm {2}, {3}.</value>
   </data>
+  <data name="Signed-in device" xml:space="preserve">
+    <value>Oturum açılmış cihaz</value>
+  </data>
   <data name="Signing" xml:space="preserve">
     <value>İmzalama</value>
   </data>
@@ -11547,6 +11796,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Spam exemptions" xml:space="preserve">
     <value>Spam istisnaları</value>
   </data>
+  <data name="Spam exemptions entry" xml:space="preserve">
+    <value>Spam istisnası</value>
+  </data>
   <data name="Spam filtering overview" xml:space="preserve">
     <value>Spam filtreleme genel bakışı</value>
   </data>
@@ -11555,6 +11807,12 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Spam refuse threshold (score)" xml:space="preserve">
     <value>Spam reddetme eşiği (puan)</value>
+  </data>
+  <data name="Spam trap" xml:space="preserve">
+    <value>Spam tuzağı</value>
+  </data>
+  <data name="Spam trap hits" xml:space="preserve">
+    <value>Spam tuzağı isabetleri</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>Spam tuzakları</value>
@@ -11760,8 +12018,14 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
     <value>Örneğin zen.spamhaus.org veya bl.spamcop.net</value>
   </data>
+  <data name="Support session opened" xml:space="preserve">
+    <value>Destek oturumu açıldı</value>
+  </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Engelleme listesi</value>
+  </data>
+  <data name="Suppression list entry" xml:space="preserve">
+    <value>Engelleme listesi girdisi</value>
   </data>
   <data name="Sw_itch now…" xml:space="preserve">
     <value>_Şimdi geç…</value>
@@ -13951,6 +14215,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="Turn on the require-authentication options for the range that covers your clients." xml:space="preserve">
     <value>İstemcilerinizi kapsayan aralık için kimlik doğrulaması gerektir seçeneklerini açın.</value>
   </data>
+  <data name="Turned off" xml:space="preserve">
+    <value>Kapatıldı</value>
+  </data>
   <data name="Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. For an administrator whose policy is that nothing derived from a long-lived key ever goes on the wire. The only cost is resumption efficiency - every client can still connect with a full handshake." xml:space="preserve">
     <value>Bunu kapatmak her TLS sürümünde oturum biletlerini durdurur: TLS 1.2 ve daha eski istemciler bu süreci hiç terk etmeyen sunucu tarafı oturum önbelleğine geri döner ve TLS 1.3 istemcilerine hiç bilet gönderilmez. İlkesi "uzun ömürlü bir anahtardan türetilen hiçbir şey asla hatta çıkmaz" olan yönetici için. Tek bedeli sürdürme verimliliğidir - her istemci yine de tam el sıkışmayla bağlanabilir.</value>
   </data>
@@ -14257,6 +14524,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="Wakes the indexer instead of waiting for its next pass, and reports how many of this server's messages are currently indexed. The pass itself runs in the background and is bounded by the limits above, so on a large backlog it makes progress rather than finishing. With indexing switched off there is no indexer to wake, and this says so rather than reporting success." xml:space="preserve">
     <value>Bir sonraki geçişini beklemek yerine dizinleyiciyi uyandırır ve bu sunucunun iletilerinden şu anda kaçının dizinlendiğini bildirir. Geçişin kendisi arka planda çalışır ve yukarıdaki sınırlarla bağlıdır; bu yüzden büyük bir birikimde bitirmek yerine ilerler. Dizinleme kapalıyken uyandırılacak dizinleyici yoktur ve bu, başarı bildirmek yerine bunu söyler.</value>
   </data>
+  <data name="Warm-up schedule" xml:space="preserve">
+    <value>Isınma takvimi</value>
+  </data>
   <data name="Warn in the application log and Windows event log below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Boş alan bu miktarın altına düştüğünde uygulama günlüğünde ve Windows olay günlüğünde uyar (MB; 0 = hiçbir zaman)</value>
   </data>
@@ -14304,6 +14574,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="Web services &amp; autoconfiguration" xml:space="preserve">
     <value>Web hizmetleri ve otomatik yapılandırma</value>
+  </data>
+  <data name="Webhook subscription" xml:space="preserve">
+    <value>Webhook aboneliği</value>
   </data>
   <data name="Webhooks" xml:space="preserve">
     <value>Webhook'lar</value>

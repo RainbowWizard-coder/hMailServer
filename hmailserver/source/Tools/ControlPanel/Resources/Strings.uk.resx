@@ -771,6 +771,9 @@
   <data name="API &amp; monitoring" xml:space="preserve">
     <value>API та моніторинг</value>
   </data>
+  <data name="API key" xml:space="preserve">
+    <value>Ключ API</value>
+  </data>
   <data name="API keys" xml:space="preserve">
     <value>Ключі API</value>
   </data>
@@ -1218,6 +1221,9 @@
   <data name="Address attri_bute" xml:space="preserve">
     <value>_Атрибут адреси</value>
   </data>
+  <data name="Address book share removed" xml:space="preserve">
+    <value>Спільний доступ до адресної книги видалено</value>
+  </data>
   <data name="Address contains" xml:space="preserve">
     <value>Адреса містить</value>
   </data>
@@ -1290,6 +1296,9 @@
   <data name="Administrative access" xml:space="preserve">
     <value>Адміністративний доступ</value>
   </data>
+  <data name="Administrator" xml:space="preserve">
+    <value>Адміністратор</value>
+  </data>
   <data name="Administrator UI language (third-party COM tools only)" xml:space="preserve">
     <value>Мова інтерфейсу адміністратора (лише для сторонніх засобів на COM)</value>
   </data>
@@ -1328,6 +1337,9 @@
   </data>
   <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
     <value>Схема зведених звітів, які надсилає цей сервер: 1 = RFC 7489, додаток C, 2 = RFC 9990</value>
+  </data>
+  <data name="Alert rule" xml:space="preserve">
+    <value>Правило оповіщення</value>
   </data>
   <data name="Alert rules, outbound webhooks and the SNMP agent tell another system what happened." xml:space="preserve">
     <value>Правила оповіщень, вихідні вебхуки та агент SNMP повідомляють іншій системі, що сталося.</value>
@@ -1413,6 +1425,9 @@
   <data name="Allow and block list" xml:space="preserve">
     <value>Список дозволених і заблокованих</value>
   </data>
+  <data name="Allow and block list entry" xml:space="preserve">
+    <value>Запис списку дозволених і заблокованих</value>
+  </data>
   <data name="Allow and release" xml:space="preserve">
     <value>Дозволити й випустити</value>
   </data>
@@ -1457,6 +1472,9 @@
   </data>
   <data name="Allowed as {0}." xml:space="preserve">
     <value>Дозволено як {0}.</value>
+  </data>
+  <data name="Allowed or blocked domain" xml:space="preserve">
+    <value>Дозволений або заблокований домен</value>
   </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>Дозволені алгоритми підписування (через кому)</value>
@@ -1693,6 +1711,9 @@
   <data name="Anything that is not a letter or a digit counts, rather than a fixed list of punctuation, so a keyboard layout you do not have cannot make the rule unsatisfiable." xml:space="preserve">
     <value>Зараховується будь-який символ, що не є літерою чи цифрою, а не фіксований перелік розділових знаків, тож розкладка клавіатури, якої у вас немає, не зробить це правило нездійсненним.</value>
   </data>
+  <data name="App password" xml:space="preserve">
+    <value>Пароль програми</value>
+  </data>
   <data name="App passwords" xml:space="preserve">
     <value>Паролі програм</value>
   </data>
@@ -1770,6 +1791,9 @@
   </data>
   <data name="Archive folder (empty = archiving off)" xml:space="preserve">
     <value>Папка архіву (порожньо = архівування вимкнено)</value>
+  </data>
+  <data name="Archived message" xml:space="preserve">
+    <value>Архівне повідомлення</value>
   </data>
   <data name="Archives in the destination" xml:space="preserve">
     <value>Архіви в папці призначення</value>
@@ -2026,6 +2050,9 @@
   <data name="Back up to the configured destination before an unattended apply (no destination or a failed backup means no apply)" xml:space="preserve">
     <value>Створювати резервну копію в налаштоване місце призначення перед застосуванням без нагляду (відсутність місця призначення або невдале резервне копіювання означає, що застосування не відбудеться)</value>
   </data>
+  <data name="Back-off cleared" xml:space="preserve">
+    <value>Відкладання скинуто</value>
+  </data>
   <data name="Back_up archive (HMBackup*.7z on the server)" xml:space="preserve">
     <value>_Архів резервної копії (HMBackup*.7z на сервері)</value>
   </data>
@@ -2176,11 +2203,17 @@
   <data name="Blocked" xml:space="preserve">
     <value>Заблокований</value>
   </data>
+  <data name="Blocked attachment" xml:space="preserve">
+    <value>Заблоковане вкладення</value>
+  </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>Заблоковані вкладення</value>
   </data>
   <data name="Blocked senders" xml:space="preserve">
     <value>Заблоковані відправники</value>
+  </data>
+  <data name="Blocked senders entry" xml:space="preserve">
+    <value>Заблокований відправник</value>
   </data>
   <data name="Blocked. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
     <value>Заблоковано. Записів у списку: {0}. Видалено повідомлень: {1}.</value>
@@ -2199,6 +2232,9 @@
   </data>
   <data name="Body read chunk size (bytes)" xml:space="preserve">
     <value>Розмір блоку читання тіла (байтів)</value>
+  </data>
+  <data name="Booking policy" xml:space="preserve">
+    <value>Правила бронювання</value>
   </data>
   <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox in the Control Deck's delivery queue or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
     <value>Обидві адреси задано. Чи відповідає служба, звідси визначити не можна: надішліть ззовні повідомлення з вкладеним файлом типу, що надсилається, і знайдіть його в розділі «Затримано для пісочниці» у черзі доставки в Control Deck або знайдіть у журналі програми рядок про те, що його надіслано до пісочниці.</value>
@@ -2331,6 +2367,9 @@
   </data>
   <data name="Cancel the next key of {0}? The staged selector is removed, a key file the rotation generated for it is deleted, and signing does not change." xml:space="preserve">
     <value>Скасувати наступний ключ домену {0}? Підготовлений селектор буде вилучено, файл ключа, створений для нього ротацією, буде видалено, а підпис не зміниться.</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Скасовано</value>
   </data>
   <data name="Cannot be checked from here" xml:space="preserve">
     <value>Неможливо перевірити звідси</value>
@@ -2800,6 +2839,9 @@
   <data name="Complete. The user's DN comes from the template, proved with a simple bind against {0} over {1} - no search and no service account needed." xml:space="preserve">
     <value>Налаштування повне. DN користувача береться з шаблону й перевіряється простою прив’язкою до {0} через {1} — ні пошук, ні обліковий запис служби не потрібні.</value>
   </data>
+  <data name="Compromise lock cleared" xml:space="preserve">
+    <value>Блокування через компрометацію знято</value>
+  </data>
   <data name="Compromised accounts" xml:space="preserve">
     <value>Скомпрометовані облікові записи</value>
   </data>
@@ -2913,6 +2955,9 @@
   </data>
   <data name="Content filters" xml:space="preserve">
     <value>Фільтри вмісту</value>
+  </data>
+  <data name="Contents read" xml:space="preserve">
+    <value>Вміст прочитано</value>
   </data>
   <data name="Control Deck" xml:space="preserve">
     <value>Control Deck</value>
@@ -3576,6 +3621,9 @@
   <data name="DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it." xml:space="preserve">
     <value>DMARC повідомляє одержувачам, що робити з поштою, яка не проходить SPF і DKIM, і куди про це звітувати.</value>
   </data>
+  <data name="DNS block list" xml:space="preserve">
+    <value>Список блокування DNS</value>
+  </data>
   <data name="DNS block list checks" xml:space="preserve">
     <value>Перевірки за списками блокування DNS</value>
   </data>
@@ -3722,6 +3770,9 @@
   </data>
   <data name="Debug messages to syslog" xml:space="preserve">
     <value>Налагоджувальні повідомлення до syslog</value>
+  </data>
+  <data name="Declined" xml:space="preserve">
+    <value>Відхилено</value>
   </data>
   <data name="Default 10, allowed range 1 to 90. The server reads values below 1 as 10 and clamps values above 90, because &quot;wait forever&quot; for an unreachable directory is how connection threads get exhausted." xml:space="preserve">
     <value>Типове значення — 10, дозволений діапазон — від 1 до 90. Значення, менші за 1, сервер читає як 10, а більші за 90 обмежує, бо «чекати вічно» на недосяжний каталог — це саме той шлях, яким вичерпуються потоки підключень.</value>
@@ -4176,6 +4227,9 @@
   <data name="Directory entry" xml:space="preserve">
     <value>Запис у каталозі</value>
   </data>
+  <data name="Directory opt-out changed" xml:space="preserve">
+    <value>Відмову від каталогу змінено</value>
+  </data>
   <data name="Directory server" xml:space="preserve">
     <value>Сервер каталогу</value>
   </data>
@@ -4202,6 +4256,9 @@
   <data name="Discard your unsaved changes and read the settings again?" xml:space="preserve">
     <value>Відкинути незбережені зміни й перечитати параметри?</value>
   </data>
+  <data name="Discarded" xml:space="preserve">
+    <value>Відкинуто</value>
+  </data>
   <data name="Disconnect clients sending too many invalid commands" xml:space="preserve">
     <value>Від'єднувати клієнтів, що надсилають забагато недійсних команд</value>
   </data>
@@ -4211,8 +4268,20 @@
   <data name="Discovery" xml:space="preserve">
     <value>eDiscovery</value>
   </data>
+  <data name="Discovery case" xml:space="preserve">
+    <value>Справа eDiscovery</value>
+  </data>
   <data name="Discovery cases" xml:space="preserve">
     <value>Справи eDiscovery</value>
+  </data>
+  <data name="Discovery export" xml:space="preserve">
+    <value>Експорт eDiscovery</value>
+  </data>
+  <data name="Discovery hold" xml:space="preserve">
+    <value>Утримання eDiscovery</value>
+  </data>
+  <data name="Discovery search" xml:space="preserve">
+    <value>Пошук eDiscovery</value>
   </data>
   <data name="Disk space" xml:space="preserve">
     <value>Місце на диску</value>
@@ -4225,6 +4294,9 @@
   </data>
   <data name="Distribution list - {0}" xml:space="preserve">
     <value>Список розсилки - {0}</value>
+  </data>
+  <data name="Distribution list member" xml:space="preserve">
+    <value>Учасник списку розсилки</value>
   </data>
   <data name="Distribution lists" xml:space="preserve">
     <value>Списки розсилки</value>
@@ -4294,6 +4366,9 @@
   </data>
   <data name="Domain or account" xml:space="preserve">
     <value>Домен або обліковий запис</value>
+  </data>
+  <data name="Domain or account setting" xml:space="preserve">
+    <value>Налаштування домену або облікового запису</value>
   </data>
   <data name="Domain or pattern" xml:space="preserve">
     <value>Домен або шаблон</value>
@@ -4604,6 +4679,9 @@
   <data name="Encryption to other servers, the signatures this server adds and checks, the results it records, forwarded mail and the reports it sends." xml:space="preserve">
     <value>Шифрування під час зв'язку з іншими серверами, підписи, які цей сервер додає й перевіряє, результати, які він записує, переслана пошта і звіти, які він надсилає.</value>
   </data>
+  <data name="Ended" xml:space="preserve">
+    <value>Завершено</value>
+  </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Кінцева точка (порожньо = власна точка служби)</value>
   </data>
@@ -4618,6 +4696,9 @@
   </data>
   <data name="Enrol {0} again? A new secret replaces the current one, and the codes the authenticator app shows now stop working until it scans the new QR code." xml:space="preserve">
     <value>Зареєструвати {0} знову? Новий секрет замінить поточний, і коди, які зараз показує застосунок автентифікації, перестануть працювати, доки він не відсканує новий QR-код.</value>
+  </data>
+  <data name="Enrolled" xml:space="preserve">
+    <value>Зареєстровано</value>
   </data>
   <data name="Enter" xml:space="preserve">
     <value>Enter</value>
@@ -5099,6 +5180,9 @@
   <data name="External" xml:space="preserve">
     <value>Зовнішній</value>
   </data>
+  <data name="External POP3 or IMAP account" xml:space="preserve">
+    <value>Зовнішній обліковий запис POP3 або IMAP</value>
+  </data>
   <data name="External accounts" xml:space="preserve">
     <value>Зовнішні облікові записи</value>
   </data>
@@ -5266,6 +5350,9 @@
   </data>
   <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
     <value>Назва папки (використовуйте роздільник ієрархії для підпапок):</value>
+  </data>
+  <data name="Folder permission" xml:space="preserve">
+    <value>Право на папку</value>
   </data>
   <data name="Folders" xml:space="preserve">
     <value>Папки</value>
@@ -5462,8 +5549,14 @@
   <data name="Greylisting" xml:space="preserve">
     <value>Сірий список</value>
   </data>
+  <data name="Greylisting bypass entry" xml:space="preserve">
+    <value>Запис списку обходу сірого списку</value>
+  </data>
   <data name="Greylisting bypass list" xml:space="preserve">
     <value>Список обходу сірого списку</value>
+  </data>
+  <data name="Greylisting exemption" xml:space="preserve">
+    <value>Виняток сірого списку</value>
   </data>
   <data name="Greylisting exemptions" xml:space="preserve">
     <value>Винятки сірого списку</value>
@@ -5485,6 +5578,9 @@
   </data>
   <data name="Group by" xml:space="preserve">
     <value>Групувати за</value>
+  </data>
+  <data name="Group member" xml:space="preserve">
+    <value>Учасник групи</value>
   </data>
   <data name="Group name" xml:space="preserve">
     <value>Назва групи</value>
@@ -5960,6 +6056,12 @@
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Вхідні клієнтські сертифікати - порту потрібен пакет ЦС, клієнтам потрібні сертифікати</value>
   </data>
+  <data name="Inbound webhook" xml:space="preserve">
+    <value>Вхідний вебхук</value>
+  </data>
+  <data name="Inbound webhook delivery" xml:space="preserve">
+    <value>Доставка у вхідний вебхук</value>
+  </data>
   <data name="Include the client IP in the X-AuthUser header" xml:space="preserve">
     <value>Включати IP клієнта до заголовка X-AuthUser</value>
   </data>
@@ -6024,6 +6126,24 @@
   </data>
   <data name="Install update stopped before anything was changed: {0}." xml:space="preserve">
     <value>«Установити оновлення» зупинилося до будь-яких змін: {0}.</value>
+  </data>
+  <data name="Installation cancelled" xml:space="preserve">
+    <value>Встановлення скасовано</value>
+  </data>
+  <data name="Installation failed" xml:space="preserve">
+    <value>Встановлення не вдалося</value>
+  </data>
+  <data name="Installation requested" xml:space="preserve">
+    <value>Встановлення запитано</value>
+  </data>
+  <data name="Installation started" xml:space="preserve">
+    <value>Встановлення розпочато</value>
+  </data>
+  <data name="Installed" xml:space="preserve">
+    <value>Встановлено</value>
+  </data>
+  <data name="Installed incompletely" xml:space="preserve">
+    <value>Встановлено не повністю</value>
   </data>
   <data name="Installed version" xml:space="preserve">
     <value>Установлена версія</value>
@@ -6108,6 +6228,9 @@
   </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Журналювання та подвійна доставка</value>
+  </data>
+  <data name="Journaling rule" xml:space="preserve">
+    <value>Правило журналювання</value>
   </data>
   <data name="Ke_y passphrase (only for an encrypted key)" xml:space="preserve">
     <value>Парольна фраза _ключа (лише для зашифрованого ключа)</value>
@@ -6481,6 +6604,9 @@
   <data name="Logging is off altogether, so nothing below will be written until it is on." xml:space="preserve">
     <value>Журналювання повністю вимкнено, тому нічого з наведеного нижче не записуватиметься, доки його не ввімкнути.</value>
   </data>
+  <data name="Logon failures" xml:space="preserve">
+    <value>Невдалі входи</value>
+  </data>
   <data name="Logon tarpit" xml:space="preserve">
     <value>Затримка входу</value>
   </data>
@@ -6655,20 +6781,50 @@
   <data name="Mail to the spam trap {0}" xml:space="preserve">
     <value>Пошта на пастку для спаму {0}</value>
   </data>
+  <data name="Mailbox changed" xml:space="preserve">
+    <value>Скриньку змінено</value>
+  </data>
   <data name="Mailbox created" xml:space="preserve">
     <value>Скриньку створено</value>
   </data>
   <data name="Mailbox emptied." xml:space="preserve">
     <value>Поштову скриньку очищено.</value>
   </data>
+  <data name="Mailbox encryption turned off" xml:space="preserve">
+    <value>Шифрування скриньки вимкнено</value>
+  </data>
+  <data name="Mailbox encryption turned on" xml:space="preserve">
+    <value>Шифрування скриньки ввімкнено</value>
+  </data>
   <data name="Mailbox full" xml:space="preserve">
     <value>Скринька переповнена</value>
+  </data>
+  <data name="Mailbox key forfeited" xml:space="preserve">
+    <value>Від ключа скриньки відмовлено</value>
+  </data>
+  <data name="Mailbox key recovered" xml:space="preserve">
+    <value>Ключ скриньки відновлено</value>
   </data>
   <data name="Mailbox migrations from another server, and imports of Outlook data files (PST). The jobs are started in the Control Deck or over the REST API." xml:space="preserve">
     <value>Міграції поштових скриньок з іншого сервера та імпорт файлів даних Outlook (PST). Завдання запускають у Control Deck або через REST API.</value>
   </data>
   <data name="Mailbox passwords are set on the account, inside its domain." xml:space="preserve">
     <value>Паролі поштових скриньок задаються на обліковому записі, всередині його домену.</value>
+  </data>
+  <data name="Mailbox read" xml:space="preserve">
+    <value>Скриньку прочитано</value>
+  </data>
+  <data name="Mailbox recovery key made" xml:space="preserve">
+    <value>Ключ відновлення скриньок створено</value>
+  </data>
+  <data name="Mailbox recovery key removed" xml:space="preserve">
+    <value>Ключ відновлення скриньок видалено</value>
+  </data>
+  <data name="Mailbox recovery key replaced" xml:space="preserve">
+    <value>Ключ відновлення скриньок замінено</value>
+  </data>
+  <data name="Mailbox restore started" xml:space="preserve">
+    <value>Відновлення скриньки розпочато</value>
   </data>
   <data name="Mailbox restore {0} started - runs in the background on the server." xml:space="preserve">
     <value>Відновлення скриньки {0} розпочато - виконується у фоні на сервері.</value>
@@ -6938,6 +7094,12 @@
   <data name="Message for local s_enders (empty = same as above)" xml:space="preserve">
     <value>Повідомлення _для локальних відправників (порожньо = як вище)</value>
   </data>
+  <data name="Message held by the sandbox" xml:space="preserve">
+    <value>Повідомлення, затримане пісочницею</value>
+  </data>
+  <data name="Message held for review" xml:space="preserve">
+    <value>Повідомлення, затримане для перевірки</value>
+  </data>
   <data name="Message indexing" xml:space="preserve">
     <value>Індексування повідомлень</value>
   </data>
@@ -7067,6 +7229,12 @@
   <data name="Microsoft token endpoint" xml:space="preserve">
     <value>Кінцева точка токенів Microsoft</value>
   </data>
+  <data name="Migration" xml:space="preserve">
+    <value>Міграція</value>
+  </data>
+  <data name="Migration job" xml:space="preserve">
+    <value>Завдання міграції</value>
+  </data>
   <data name="Migrations" xml:space="preserve">
     <value>Міграції</value>
   </data>
@@ -7157,6 +7325,9 @@
   <data name="Move action up" xml:space="preserve">
     <value>Перемістити дію вгору</value>
   </data>
+  <data name="Move failed" xml:space="preserve">
+    <value>Переміщення не вдалося</value>
+  </data>
   <data name="Move or rename {0}" xml:space="preserve">
     <value>Перенести або перейменувати {0}</value>
   </data>
@@ -7189,6 +7360,9 @@
   </data>
   <data name="Move to the next or the previous part of the window: the command bar, the navigation, the page and the help" xml:space="preserve">
     <value>Перейти до наступної або попередньої частини вікна: панелі команд, навігації, сторінки й довідки</value>
+  </data>
+  <data name="Moved" xml:space="preserve">
+    <value>Переміщено</value>
   </data>
   <data name="Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves." xml:space="preserve">
     <value>Переміщення повідомлення до папки, позначеної як Junk, повідомляє про нього sa-learn як про спам, а переміщення назад повідомляє про нього як про ham, тож фільтр учиться з того, що люди й так роблять, а не з окремого ритуалу, якого ніхто не виконує. Типово вимкнено: на кожне переміщення запускається sa-learn, а користувач, який складає інформаційні розсилки до Junk, навчає фільтр, що інформаційні розсилки є спамом для всіх, кого обслуговує сканер.</value>
@@ -7270,6 +7444,9 @@
   </data>
   <data name="Never judged by country (addresses and CIDR ranges, comma separated)" xml:space="preserve">
     <value>Ніколи не оцінюються за країною (адреси та діапазони CIDR, через кому)</value>
+  </data>
+  <data name="Never-ban name" xml:space="preserve">
+    <value>Ім'я зі списку «ніколи не банити»</value>
   </data>
   <data name="New IMAP folder" xml:space="preserve">
     <value>Нова папка IMAP</value>
@@ -8534,6 +8711,9 @@
   <data name="OpenPGP in the webmail - keys, signing, encrypting and decrypting, all in the browser - and publishing and looking up keys." xml:space="preserve">
     <value>OpenPGP у вебпошті — ключі, підпис, шифрування й розшифрування, усе в браузері — а також публікація та пошук ключів.</value>
   </data>
+  <data name="OpenPGP key" xml:space="preserve">
+    <value>Ключ OpenPGP</value>
+  </data>
   <data name="OpenTelemetry OTLP endpoint for logs (empty = disabled)" xml:space="preserve">
     <value>Кінцева точка OpenTelemetry OTLP для журналів (порожньо = вимкнено)</value>
   </data>
@@ -8762,6 +8942,9 @@
   <data name="Passed" xml:space="preserve">
     <value>Пройдено</value>
   </data>
+  <data name="Passkey" xml:space="preserve">
+    <value>Ключ доступу</value>
+  </data>
   <data name="Passkeys" xml:space="preserve">
     <value>Ключі доступу</value>
   </data>
@@ -8916,6 +9099,9 @@
   </data>
   <data name="Policy file the server will serve (read-only; served by the server itself):" xml:space="preserve">
     <value>Файл політики, який надаватиме сервер (лише читання; надається самим сервером):</value>
+  </data>
+  <data name="Policy for a remote domain" xml:space="preserve">
+    <value>Правило для зовнішнього домену</value>
   </data>
   <data name="Policy for mailbox passwords" xml:space="preserve">
     <value>Політика для паролів поштових скриньок</value>
@@ -9184,6 +9370,9 @@
   <data name="Publishing this record asks every server that delivers to {0} to e-mail you a daily report when TLS to you fails or is downgraded. The reports go to the rua= mailbox, which must exist and accept mail from strangers. This works regardless of any hMailServer setting - the senders do the reporting." xml:space="preserve">
     <value>Публікація цього запису просить кожен сервер, який доставляє пошту до {0}, надсилати вам щоденний звіт, коли TLS до вас не вдається або понижується. Звіти надходять до поштової скриньки rua=, яка має існувати й приймати пошту від сторонніх. Це працює незалежно від будь-якого параметра hMailServer — звітують відправники.</value>
   </data>
+  <data name="Push subscriptions removed" xml:space="preserve">
+    <value>Push-підписки видалено</value>
+  </data>
   <data name="Pushes the same counters the Prometheus endpoint serves, under the same names, on the interval below. Not everything on /metrics is exported: queue depth, database probes and certificate expiry are computed by the metrics listener from database and file reads, and a push exporter does not own those." xml:space="preserve">
     <value>Надсилає ті самі лічильники, які надає кінцева точка Prometheus, під тими самими іменами, з інтервалом нижче. Експортується не все, що є на /metrics: глибину черги, зонди бази даних і термін дії сертифікатів слухач метрик обчислює з читання бази даних і файлів, а експортер надсилання ними не володіє.</value>
   </data>
@@ -9228,6 +9417,9 @@
   </data>
   <data name="Quarantine: hold the copy until it is released" xml:space="preserve">
     <value>Карантин: утримувати копію до звільнення</value>
+  </data>
+  <data name="Quarantined message" xml:space="preserve">
+    <value>Повідомлення в карантині</value>
   </data>
   <data name="Query failed: {0}" xml:space="preserve">
     <value>Запит не вдався: {0}</value>
@@ -9515,6 +9707,18 @@
   <data name="Recovery" xml:space="preserve">
     <value>Відновлення</value>
   </data>
+  <data name="Recovery address cleared" xml:space="preserve">
+    <value>Адресу відновлення видалено</value>
+  </data>
+  <data name="Recovery address set" xml:space="preserve">
+    <value>Адресу відновлення задано</value>
+  </data>
+  <data name="Recovery codes cleared" xml:space="preserve">
+    <value>Коди відновлення видалено</value>
+  </data>
+  <data name="Recovery codes generated" xml:space="preserve">
+    <value>Коди відновлення створено</value>
+  </data>
   <data name="Redirect /.well-known/caldav to (empty = answer 404)" xml:space="preserve">
     <value>Перенаправляти /.well-known/caldav на (порожньо = відповідати 404)</value>
   </data>
@@ -9719,6 +9923,9 @@
   <data name="Release this group" xml:space="preserve">
     <value>Випустити цю групу</value>
   </data>
+  <data name="Released" xml:space="preserve">
+    <value>Випущено</value>
+  </data>
   <data name="Released {0} message to its recipients." xml:space="preserve">
     <value>Випущено {0} повідомлення одержувачам.</value>
   </data>
@@ -9845,6 +10052,9 @@
   </data>
   <data name="Remove {0} messages from the queue? They are deleted without a bounce, so their senders are not told.|few" xml:space="preserve">
     <value>Вилучити з черги {0} повідомлення? Їх буде видалено без повідомлень про недоставку, тож їхні відправники про це не дізнаються.</value>
+  </data>
+  <data name="Removed" xml:space="preserve">
+    <value>Прибрано</value>
   </data>
   <data name="Rename {0} to {1}?&#10;&#10;Every account, alias and distribution list moves to the new name, and forwards or memberships in other domains that point at {0} addresses are updated to match. Mail sent to the old name will no longer be accepted." xml:space="preserve">
     <value>Перейменувати {0} на {1}?
@@ -10075,6 +10285,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Restore one message" xml:space="preserve">
     <value>Відновити одне повідомлення</value>
   </data>
+  <data name="Restore started" xml:space="preserve">
+    <value>Відновлення розпочато</value>
+  </data>
   <data name="Restore started - runs in the background on the server." xml:space="preserve">
     <value>Відновлення розпочато — виконується у фоновому режимі на сервері.</value>
   </data>
@@ -10129,6 +10342,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Retr_y through Windows logon when the directory is unavailable (FallbackToWindowsLogon)" xml:space="preserve">
     <value>Повторювати спробу через вхід _Windows, коли каталог недоступний (FallbackToWindowsLogon)</value>
   </data>
+  <data name="Retried" xml:space="preserve">
+    <value>Повторено</value>
+  </data>
   <data name="Retries" xml:space="preserve">
     <value>Повторні спроби</value>
   </data>
@@ -10146,6 +10362,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Reverse DNS (PTR) and the HELO name - set by whoever owns your IP address" xml:space="preserve">
     <value>Зворотний DNS (PTR) та ім’я HELO - задає власник вашої IP-адреси</value>
+  </data>
+  <data name="Reverted" xml:space="preserve">
+    <value>Повернуто</value>
+  </data>
+  <data name="Review settings changed" xml:space="preserve">
+    <value>Параметри перевірки змінено</value>
   </data>
   <data name="Revoke" xml:space="preserve">
     <value>Відкликати</value>
@@ -10177,6 +10399,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Roles" xml:space="preserve">
     <value>Ролі</value>
   </data>
+  <data name="Rolled back" xml:space="preserve">
+    <value>Відкочено до попередньої версії</value>
+  </data>
   <data name="Rotate _now…" xml:space="preserve">
     <value>_Виконати ротацію зараз…</value>
   </data>
@@ -10195,11 +10420,20 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Route - {0}" xml:space="preserve">
     <value>Маршрут — {0}</value>
   </data>
+  <data name="Route address" xml:space="preserve">
+    <value>Адреса маршруту</value>
+  </data>
   <data name="Route all outbound mail through another SMTP server instead of delivering directly. For failover, separate several hosts with a vertical bar: the next host is tried when one cannot be reached (all hosts share the port, security and credentials below)." xml:space="preserve">
     <value>Спрямовувати всю вихідну пошту через інший сервер SMTP замість прямої доставки. Для резервування розділіть кілька вузлів вертикальною рискою: коли один недосяжний, пробується наступний (усі вузли мають спільні порт, захист і облікові дані нижче).</value>
   </data>
   <data name="Routes" xml:space="preserve">
     <value>Маршрути</value>
+  </data>
+  <data name="Rule action" xml:space="preserve">
+    <value>Дія правила</value>
+  </data>
+  <data name="Rule criterion" xml:space="preserve">
+    <value>Критерій правила</value>
   </data>
   <data name="Rule for {0} added." xml:space="preserve">
     <value>Правило для {0} додано.</value>
@@ -10293,6 +10527,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="S/MIME - to the partner's certificate" xml:space="preserve">
     <value>S/MIME - на сертифікат партнера</value>
+  </data>
+  <data name="S/MIME certificate" xml:space="preserve">
+    <value>Сертифікат S/MIME</value>
   </data>
   <data name="S/MIME certificate authority" xml:space="preserve">
     <value>Центр сертифікації S/MIME</value>
@@ -10894,6 +11131,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="SearchBase (or UserDnTemplate, to bind directly without searching)" xml:space="preserve">
     <value>SearchBase (або UserDnTemplate, щоб прив'язуватися напряму без пошуку)</value>
   </data>
+  <data name="Searched" xml:space="preserve">
+    <value>Виконано пошук</value>
+  </data>
   <data name="Searches" xml:space="preserve">
     <value>Пошуки</value>
   </data>
@@ -11206,6 +11446,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Server limits &amp; expert settings (the timeouts)" xml:space="preserve">
     <value>Обмеження сервера та експертні параметри (часи очікування)</value>
   </data>
+  <data name="Server message text" xml:space="preserve">
+    <value>Текст повідомлення сервера</value>
+  </data>
   <data name="Server messages" xml:space="preserve">
     <value>Повідомлення сервера</value>
   </data>
@@ -11379,6 +11622,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Setting  -  {0}" xml:space="preserve">
     <value>Параметр  -  {0}</value>
+  </data>
+  <data name="Setting profile" xml:space="preserve">
+    <value>Профіль параметрів</value>
   </data>
   <data name="Setting profiles" xml:space="preserve">
     <value>Профілі параметрів</value>
@@ -11554,6 +11800,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Signed by {0} and recorded in the Sigstore log at {1}; version {2}, {3}." xml:space="preserve">
     <value>Підписано {0} і записано в журнал Sigstore о {1}; версія {2}, {3}.</value>
   </data>
+  <data name="Signed-in device" xml:space="preserve">
+    <value>Пристрій із виконаним входом</value>
+  </data>
   <data name="Signing" xml:space="preserve">
     <value>Підписування</value>
   </data>
@@ -11689,6 +11938,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Spam exemptions" xml:space="preserve">
     <value>Винятки антиспаму</value>
   </data>
+  <data name="Spam exemptions entry" xml:space="preserve">
+    <value>Виняток антиспаму</value>
+  </data>
   <data name="Spam filtering overview" xml:space="preserve">
     <value>Огляд фільтрації спаму</value>
   </data>
@@ -11697,6 +11949,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Spam refuse threshold (score)" xml:space="preserve">
     <value>Поріг відхилення спаму (оцінка)</value>
+  </data>
+  <data name="Spam trap" xml:space="preserve">
+    <value>Пастка для спаму</value>
+  </data>
+  <data name="Spam trap hits" xml:space="preserve">
+    <value>Спрацювання пасток для спаму</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>Пастки для спаму</value>
@@ -11902,8 +12160,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
     <value>Наприклад, zen.spamhaus.org або bl.spamcop.net</value>
   </data>
+  <data name="Support session opened" xml:space="preserve">
+    <value>Сеанс підтримки відкрито</value>
+  </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Список придушення</value>
+  </data>
+  <data name="Suppression list entry" xml:space="preserve">
+    <value>Запис списку придушення</value>
   </data>
   <data name="Sw_itch now…" xml:space="preserve">
     <value>П_еремкнути зараз…</value>
@@ -14132,6 +14396,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Turn on the require-authentication options for the range that covers your clients." xml:space="preserve">
     <value>Увімкніть параметри обов'язкової автентифікації для діапазону, що охоплює ваших клієнтів.</value>
   </data>
+  <data name="Turned off" xml:space="preserve">
+    <value>Вимкнено</value>
+  </data>
   <data name="Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. For an administrator whose policy is that nothing derived from a long-lived key ever goes on the wire. The only cost is resumption efficiency - every client can still connect with a full handshake." xml:space="preserve">
     <value>Вимкнення цього зупиняє квитки сесій для всіх версій TLS: клієнти TLS 1.2 і старші відкочуються до серверного кешу сесій, який ніколи не покидає цей процес, а клієнтам TLS 1.3 квиток не надсилається взагалі. Для адміністратора, чия політика в тому, що ніщо, похідне від довгоживучого ключа, ніколи не виходить у мережу. Єдина ціна - ефективність поновлення: будь-який клієнт усе ще може підключитися з повним рукостисканням.</value>
   </data>
@@ -14441,6 +14708,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Wakes the indexer instead of waiting for its next pass, and reports how many of this server's messages are currently indexed. The pass itself runs in the background and is bounded by the limits above, so on a large backlog it makes progress rather than finishing. With indexing switched off there is no indexer to wake, and this says so rather than reporting success." xml:space="preserve">
     <value>Будить індексатор замість очікування його наступного проходу і повідомляє, скільки повідомлень цього сервера наразі проіндексовано. Сам прохід виконується у фоні й обмежений межами вище, тому за великого відставання він просувається, а не завершується. З вимкненим індексуванням будити нікого, і про це повідомляється, а не звітується про успіх.</value>
   </data>
+  <data name="Warm-up schedule" xml:space="preserve">
+    <value>План прогріву</value>
+  </data>
   <data name="Warn in the application log and Windows event log below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Попереджати в журналі застосунку та журналі подій Windows, коли вільного місця менше за це (МБ; 0 = ніколи)</value>
   </data>
@@ -14488,6 +14758,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Web services &amp; autoconfiguration" xml:space="preserve">
     <value>Вебслужби та автоконфігурація</value>
+  </data>
+  <data name="Webhook subscription" xml:space="preserve">
+    <value>Підписка на вебхук</value>
   </data>
   <data name="Webhooks" xml:space="preserve">
     <value>Вебхуки</value>

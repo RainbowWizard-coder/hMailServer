@@ -137,42 +137,166 @@ namespace hMailServer.ControlPanel.Services
          _ => Humanise(interfaceName)
       };
 
-      /// <summary>What a change was made to, in the reader's words; one the page does not name is humanised.</summary>
-      public static string ObjectWord(string objectType) => (objectType ?? "").Trim().ToLowerInvariant() switch
+      /// <summary>
+      /// What a change was made to, in the reader's words: every object the server
+      /// records - the audited tables' (AuditTrail.cpp, AuditedTables) and the events'
+      /// and mail reads' own nouns - named as the pages that hold them name it, the
+      /// old white lists by owner decision 4 ("Spam exemptions entry", "Greylisting
+      /// exemption"); a word a newer server writes is humanised. Only 18 were named,
+      /// and the rest read in English in every language, "Dns blacklist" and "White
+      /// list address" among them (review finding F254).
+      /// </summary>
+      public static string ObjectWord(string objectType)
+         => ObjectWords.TryGetValue((objectType ?? "").Trim().ToLowerInvariant(), out string word) ? L(word) : Humanise(objectType);
+
+      /// <summary>Whether the page has a word of its own for an object type the server writes.</summary>
+      public static bool NamesObject(string objectType) => ObjectWords.ContainsKey((objectType ?? "").Trim().ToLowerInvariant());
+
+      /// <summary>
+      /// What was done, in the reader's words: every action the server records - a
+      /// row's created, updated and deleted, and each event's and mail read's own
+      /// verb (every RecordEvent call) - where 8 were named and the rest humanised in
+      /// English, "Directory opt out changed" with its hyphen lost; an action a newer
+      /// server writes is humanised.
+      /// </summary>
+      public static string ActionWord(string action)
+         => ActionWords.TryGetValue((action ?? "").Trim().ToLowerInvariant(), out string word) ? L(word) : Humanise(action);
+
+      /// <summary>Whether the page has a word of its own for an action the server writes.</summary>
+      public static bool NamesAction(string action) => ActionWords.ContainsKey((action ?? "").Trim().ToLowerInvariant());
+
+      // The server's tokens, as it writes them and lower-cased ("OpenPGP key"), and the page's words.
+      private static readonly Dictionary<string, string> ObjectWords = new(StringComparer.Ordinal)
       {
-         "setting" => L("Setting"), // no-loc: the server's token
-         "domain" => L("Domain"), // no-loc: the server's token
-         "domain alias" => L("Domain alias"), // no-loc: the server's token
-         "account" => L("Account"), // no-loc: the server's token
-         "alias" => L("Alias address"), // no-loc: the server's token
-         "distribution list" => L("Distribution list"), // no-loc: the server's token
-         "rule" => L("Mail rule"), // no-loc: the server's token
-         "route" => L("Route"), // no-loc: the server's token
-         "ip range" => L("IP range"), // no-loc: the server's token
-         "tcp/ip port" => L("TCP/IP port"), // no-loc: the server's token
-         "ssl certificate" => L("SSL certificate"), // no-loc: the server's token
-         "incoming relay" => L("Incoming relay"), // no-loc: the server's token
-         "group" => L("Group"), // no-loc: the server's token
-         "role" => L("Role"), // no-loc: the server's token
-         "role assignment" or "role_assignment" => L("Role assignment"), // no-loc: the server's token
-         "backup" => L("Backup"), // no-loc: the server's token
-         "queue" => L("Delivery queue"), // no-loc: the server's token
-         "update" => L("Software update"), // no-loc: the server's token
-         _ => Humanise(objectType)
+         ["setting"] = N("Setting"),
+         ["domain"] = N("Domain"),
+         ["domain alias"] = N("Domain alias"),
+         ["account"] = N("Account"),
+         ["booking policy"] = N("Booking policy"),
+         ["alias"] = N("Alias address"),
+         ["distribution list"] = N("Distribution list"),
+         ["distribution list recipient"] = N("Distribution list member"),
+         ["rule"] = N("Mail rule"),
+         ["rule criterion"] = N("Rule criterion"),
+         ["rule action"] = N("Rule action"),
+         ["route"] = N("Route"),
+         ["route address"] = N("Route address"),
+         ["ip range"] = N("IP range"),
+         ["tcp/ip port"] = N("TCP/IP port"),
+         ["ssl certificate"] = N("SSL certificate"),
+         ["incoming relay"] = N("Incoming relay"),
+         ["dns blacklist"] = N("DNS block list"),
+         ["surbl server"] = N("SURBL server"),
+         ["white list address"] = N("Spam exemptions entry"),
+         ["greylisting white address"] = N("Greylisting exemption"),
+         ["greylisting bypass entry"] = N("Greylisting bypass entry"),
+         ["blocked attachment"] = N("Blocked attachment"),
+         ["blocked sender"] = N("Blocked senders entry"),
+         ["sender list entry"] = N("Allow and block list entry"),
+         ["spam trap"] = N("Spam trap"),
+         ["spam trap hits"] = N("Spam trap hits"),
+         ["domain policy list entry"] = N("Allowed or blocked domain"),
+         ["never-ban name"] = N("Never-ban name"),
+         ["journal rule"] = N("Journaling rule"),
+         ["server message"] = N("Server message text"),
+         ["group"] = N("Group"),
+         ["group member"] = N("Group member"),
+         ["fetch account"] = N("External POP3 or IMAP account"),
+         ["application password"] = N("App password"),
+         ["passkey"] = N("Passkey"),
+         ["alert rule"] = N("Alert rule"),
+         ["folder permission"] = N("Folder permission"),
+         ["remote domain policy"] = N("Policy for a remote domain"),
+         ["warm-up schedule"] = N("Warm-up schedule"),
+         ["archive"] = N("Archive"),
+         ["archive entry"] = N("Archived message"),
+         ["discovery case"] = N("Discovery case"),
+         ["discovery search"] = N("Discovery search"),
+         ["discovery hold"] = N("Discovery hold"),
+         ["discovery export"] = N("Discovery export"),
+         ["role"] = N("Role"),
+         ["role assignment"] = N("Role assignment"),
+         ["role_assignment"] = N("Role assignment"),
+         ["suppression list entry"] = N("Suppression list entry"),
+         ["webhook subscription"] = N("Webhook subscription"),
+         ["inbound webhook"] = N("Inbound webhook"),
+         ["inbound webhook delivery"] = N("Inbound webhook delivery"),
+         ["openpgp key"] = N("OpenPGP key"),
+         ["s/mime authority"] = N("S/MIME certificate authority"),
+         ["s/mime certificate"] = N("S/MIME certificate"),
+         ["setting level"] = N("Domain or account setting"),
+         ["migration"] = N("Migration"),
+         ["migration job"] = N("Migration job"),
+         ["backup"] = N("Backup"),
+         ["queue"] = N("Delivery queue"),
+         ["update"] = N("Software update"),
+         ["server"] = N("Server"),
+         ["administrator"] = N("Administrator"),
+         ["api key"] = N("API key"),
+         ["device"] = N("Signed-in device"),
+         ["profile"] = N("Setting profile"),
+         ["logon failures"] = N("Logon failures"),
+         ["quarantined message"] = N("Quarantined message"),
+         ["sandbox hold"] = N("Message held by the sandbox"),
+         ["held message"] = N("Message held for review"),
       };
 
-      /// <summary>What was done, in the reader's words; an act the page does not name is humanised.</summary>
-      public static string ActionWord(string action) => (action ?? "").Trim().ToLowerInvariant() switch
+      private static readonly Dictionary<string, string> ActionWords = new(StringComparer.Ordinal)
       {
-         "created" => L("Created"), // no-loc: the server's token
-         "updated" => L("Updated"), // no-loc: the server's token
-         "deleted" => L("Deleted"), // no-loc: the server's token
-         "unlocked" => L("Unlocked"), // no-loc: the server's token
-         "cleared" => L("Cleared"), // no-loc: the server's token
-         "revoked" => L("Revoked"), // no-loc: the server's token
-         "applied" => L("Applied"), // no-loc: the server's token
-         "password_reset" or "password reset" => L("Password reset"), // no-loc: the server's token
-         _ => Humanise(action)
+         ["created"] = N("Created"),
+         ["updated"] = N("Updated"),
+         ["deleted"] = N("Deleted"),
+         ["unlocked"] = N("Unlocked"),
+         ["cleared"] = N("Cleared"),
+         ["revoked"] = N("Revoked"),
+         ["applied"] = N("Applied"),
+         ["reverted"] = N("Reverted"),
+         ["declined"] = N("Declined"),
+         ["discarded"] = N("Discarded"),
+         ["released"] = N("Released"),
+         ["removed"] = N("Removed"),
+         ["retried"] = N("Retried"),
+         ["downloaded"] = N("Downloaded"),
+         ["cancelled"] = N("Cancelled"),
+         ["moved"] = N("Moved"),
+         ["move failed"] = N("Move failed"),
+         ["enrolled"] = N("Enrolled"),
+         ["disabled"] = N("Turned off"),
+         ["entered"] = N("Started"),
+         ["left"] = N("Ended"),
+         ["read"] = N("Contents read"),
+         ["searched"] = N("Searched"),
+         ["mailbox-read"] = N("Mailbox read"),
+         ["mailbox-changed"] = N("Mailbox changed"),
+         ["password_reset"] = N("Password reset"),
+         ["password reset"] = N("Password reset"),
+         ["restore started"] = N("Restore started"),
+         ["mailbox restore started"] = N("Mailbox restore started"),
+         ["back-off cleared"] = N("Back-off cleared"),
+         ["directory-opt-out-changed"] = N("Directory opt-out changed"),
+         ["recovery-address-set"] = N("Recovery address set"),
+         ["recovery-address-cleared"] = N("Recovery address cleared"),
+         ["recovery-codes-generated"] = N("Recovery codes generated"),
+         ["recovery-codes-cleared"] = N("Recovery codes cleared"),
+         ["push-subscriptions-removed"] = N("Push subscriptions removed"),
+         ["address-book-share-removed"] = N("Address book share removed"),
+         ["review-changed"] = N("Review settings changed"),
+         ["compromise-lock-cleared"] = N("Compromise lock cleared"),
+         ["support-session-opened"] = N("Support session opened"),
+         ["mailbox-recovery-key-made"] = N("Mailbox recovery key made"),
+         ["mailbox-recovery-key-replaced"] = N("Mailbox recovery key replaced"),
+         ["mailbox-recovery-key-removed"] = N("Mailbox recovery key removed"),
+         ["mailbox-encryption-on"] = N("Mailbox encryption turned on"),
+         ["mailbox-encryption-off"] = N("Mailbox encryption turned off"),
+         ["mailbox-key-forfeited"] = N("Mailbox key forfeited"),
+         ["mailbox-key-recovered"] = N("Mailbox key recovered"),
+         ["install requested"] = N("Installation requested"),
+         ["install started"] = N("Installation started"),
+         ["install cancelled"] = N("Installation cancelled"),
+         ["installed"] = N("Installed"),
+         ["installed incomplete"] = N("Installed incompletely"),
+         ["rolled back"] = N("Rolled back"),
+         ["install failed"] = N("Installation failed"),
       };
 
       /// <summary>

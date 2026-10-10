@@ -771,6 +771,9 @@
   <data name="API &amp; monitoring" xml:space="preserve">
     <value>API и мониторинг</value>
   </data>
+  <data name="API key" xml:space="preserve">
+    <value>Ключ API</value>
+  </data>
   <data name="API keys" xml:space="preserve">
     <value>Ключи API</value>
   </data>
@@ -1218,6 +1221,9 @@ Control Panel может читать файлы сообщений только
   <data name="Address attri_bute" xml:space="preserve">
     <value>_Атрибут адреса</value>
   </data>
+  <data name="Address book share removed" xml:space="preserve">
+    <value>Общий доступ к адресной книге удалён</value>
+  </data>
   <data name="Address contains" xml:space="preserve">
     <value>Адрес содержит</value>
   </data>
@@ -1290,6 +1296,9 @@ Control Panel может читать файлы сообщений только
   <data name="Administrative access" xml:space="preserve">
     <value>Административный доступ</value>
   </data>
+  <data name="Administrator" xml:space="preserve">
+    <value>Администратор</value>
+  </data>
   <data name="Administrator UI language (third-party COM tools only)" xml:space="preserve">
     <value>Язык интерфейса администратора (только для сторонних средств на COM)</value>
   </data>
@@ -1328,6 +1337,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
     <value>Схема сводных отчётов, которую отправляет этот сервер: 1 — RFC 7489, приложение C; 2 — RFC 9990</value>
+  </data>
+  <data name="Alert rule" xml:space="preserve">
+    <value>Правило оповещения</value>
   </data>
   <data name="Alert rules, outbound webhooks and the SNMP agent tell another system what happened." xml:space="preserve">
     <value>Правила оповещений, исходящие веб-хуки и агент SNMP сообщают другой системе о случившемся.</value>
@@ -1413,6 +1425,9 @@ Control Panel может читать файлы сообщений только
   <data name="Allow and block list" xml:space="preserve">
     <value>Список разрешённых и заблокированных</value>
   </data>
+  <data name="Allow and block list entry" xml:space="preserve">
+    <value>Запись списка разрешённых и заблокированных</value>
+  </data>
   <data name="Allow and release" xml:space="preserve">
     <value>Разрешить и выпустить</value>
   </data>
@@ -1457,6 +1472,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Allowed as {0}." xml:space="preserve">
     <value>Разрешено как {0}.</value>
+  </data>
+  <data name="Allowed or blocked domain" xml:space="preserve">
+    <value>Разрешённый или заблокированный домен</value>
   </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>Разрешённые алгоритмы подписи (через запятую)</value>
@@ -1693,6 +1711,9 @@ Control Panel может читать файлы сообщений только
   <data name="Anything that is not a letter or a digit counts, rather than a fixed list of punctuation, so a keyboard layout you do not have cannot make the rule unsatisfiable." xml:space="preserve">
     <value>Засчитывается всё, что не является буквой или цифрой, а не фиксированный перечень знаков препинания, — поэтому раскладка клавиатуры, которой у вас нет, не сделает правило невыполнимым.</value>
   </data>
+  <data name="App password" xml:space="preserve">
+    <value>Пароль приложения</value>
+  </data>
   <data name="App passwords" xml:space="preserve">
     <value>Пароли приложений</value>
   </data>
@@ -1770,6 +1791,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Archive folder (empty = archiving off)" xml:space="preserve">
     <value>Папка архива (пусто — архивирование выключено)</value>
+  </data>
+  <data name="Archived message" xml:space="preserve">
+    <value>Архивное сообщение</value>
   </data>
   <data name="Archives in the destination" xml:space="preserve">
     <value>Архивы в папке назначения</value>
@@ -2026,6 +2050,9 @@ Control Panel может читать файлы сообщений только
   <data name="Back up to the configured destination before an unattended apply (no destination or a failed backup means no apply)" xml:space="preserve">
     <value>Создавать резервную копию в настроенное расположение перед автоматической установкой (нет расположения или неудачная резервная копия — значит установка не выполняется)</value>
   </data>
+  <data name="Back-off cleared" xml:space="preserve">
+    <value>Отсрочка сброшена</value>
+  </data>
   <data name="Back_up archive (HMBackup*.7z on the server)" xml:space="preserve">
     <value>Архив _резервной копии (HMBackup*.7z на сервере)</value>
   </data>
@@ -2176,11 +2203,17 @@ Control Panel может читать файлы сообщений только
   <data name="Blocked" xml:space="preserve">
     <value>Заблокирован</value>
   </data>
+  <data name="Blocked attachment" xml:space="preserve">
+    <value>Заблокированное вложение</value>
+  </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>Заблокированные вложения</value>
   </data>
   <data name="Blocked senders" xml:space="preserve">
     <value>Заблокированные отправители</value>
+  </data>
+  <data name="Blocked senders entry" xml:space="preserve">
+    <value>Заблокированный отправитель</value>
   </data>
   <data name="Blocked. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
     <value>Заблокировано. Записей в списке: {0}. Удалено сообщений: {1}.</value>
@@ -2199,6 +2232,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Body read chunk size (bytes)" xml:space="preserve">
     <value>Размер блока чтения тела письма (байты)</value>
+  </data>
+  <data name="Booking policy" xml:space="preserve">
+    <value>Правила бронирования</value>
   </data>
   <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox in the Control Deck's delivery queue or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
     <value>Оба адреса заданы. Отвечает ли служба, отсюда определить нельзя: отправьте извне сообщение с вложенным файлом отправляемого типа и найдите его в разделе «Задержано для песочницы» в очереди доставки в Control Deck или найдите в журнале приложения строку о том, что оно отправлено в песочницу.</value>
@@ -2331,6 +2367,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Cancel the next key of {0}? The staged selector is removed, a key file the rotation generated for it is deleted, and signing does not change." xml:space="preserve">
     <value>Отменить следующий ключ домена {0}? Подготовленный селектор будет удалён, файл ключа, созданный для него ротацией, будет удалён, а подпись не изменится.</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Отменено</value>
   </data>
   <data name="Cannot be checked from here" xml:space="preserve">
     <value>Отсюда проверить нельзя</value>
@@ -2800,6 +2839,9 @@ Control Panel может читать файлы сообщений только
   <data name="Complete. The user's DN comes from the template, proved with a simple bind against {0} over {1} - no search and no service account needed." xml:space="preserve">
     <value>Настройка полна. DN пользователя берётся из шаблона и проверяется простой привязкой к {0} по {1} — ни поиск, ни служебная учётная запись не нужны.</value>
   </data>
+  <data name="Compromise lock cleared" xml:space="preserve">
+    <value>Блокировка из-за компрометации снята</value>
+  </data>
   <data name="Compromised accounts" xml:space="preserve">
     <value>Скомпрометированные учётные записи</value>
   </data>
@@ -2913,6 +2955,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Content filters" xml:space="preserve">
     <value>Фильтры содержимого</value>
+  </data>
+  <data name="Contents read" xml:space="preserve">
+    <value>Содержимое прочитано</value>
   </data>
   <data name="Control Deck" xml:space="preserve">
     <value>Control Deck</value>
@@ -3576,6 +3621,9 @@ Control Panel может читать файлы сообщений только
   <data name="DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it." xml:space="preserve">
     <value>DMARC сообщает получателям, что делать с почтой, не прошедшей SPF и DKIM, и куда об этом сообщать.</value>
   </data>
+  <data name="DNS block list" xml:space="preserve">
+    <value>Список блокировки DNS</value>
+  </data>
   <data name="DNS block list checks" xml:space="preserve">
     <value>Проверки по спискам блокировки DNS</value>
   </data>
@@ -3722,6 +3770,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Debug messages to syslog" xml:space="preserve">
     <value>Отладочные сообщения в syslog</value>
+  </data>
+  <data name="Declined" xml:space="preserve">
+    <value>Отклонено</value>
   </data>
   <data name="Default 10, allowed range 1 to 90. The server reads values below 1 as 10 and clamps values above 90, because &quot;wait forever&quot; for an unreachable directory is how connection threads get exhausted." xml:space="preserve">
     <value>По умолчанию 10, допустимый диапазон — от 1 до 90. Значения меньше 1 сервер читает как 10, а значения больше 90 подтягивает к границе, потому что «ждать вечно» недоступного каталога — это как раз то, из-за чего заканчиваются потоки подключений.</value>
@@ -4176,6 +4227,9 @@ Control Panel может читать файлы сообщений только
   <data name="Directory entry" xml:space="preserve">
     <value>Запись в каталоге</value>
   </data>
+  <data name="Directory opt-out changed" xml:space="preserve">
+    <value>Отказ от каталога изменён</value>
+  </data>
   <data name="Directory server" xml:space="preserve">
     <value>Сервер каталога</value>
   </data>
@@ -4202,6 +4256,9 @@ Control Panel может читать файлы сообщений только
   <data name="Discard your unsaved changes and read the settings again?" xml:space="preserve">
     <value>Отбросить несохранённые изменения и перечитать параметры?</value>
   </data>
+  <data name="Discarded" xml:space="preserve">
+    <value>Отброшено</value>
+  </data>
   <data name="Disconnect clients sending too many invalid commands" xml:space="preserve">
     <value>Отключать клиентов, отправляющих слишком много недопустимых команд</value>
   </data>
@@ -4211,8 +4268,20 @@ Control Panel может читать файлы сообщений только
   <data name="Discovery" xml:space="preserve">
     <value>eDiscovery</value>
   </data>
+  <data name="Discovery case" xml:space="preserve">
+    <value>Дело eDiscovery</value>
+  </data>
   <data name="Discovery cases" xml:space="preserve">
     <value>Дела eDiscovery</value>
+  </data>
+  <data name="Discovery export" xml:space="preserve">
+    <value>Экспорт eDiscovery</value>
+  </data>
+  <data name="Discovery hold" xml:space="preserve">
+    <value>Удержание eDiscovery</value>
+  </data>
+  <data name="Discovery search" xml:space="preserve">
+    <value>Поиск eDiscovery</value>
   </data>
   <data name="Disk space" xml:space="preserve">
     <value>Дисковое пространство</value>
@@ -4225,6 +4294,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Distribution list - {0}" xml:space="preserve">
     <value>Список рассылки — {0}</value>
+  </data>
+  <data name="Distribution list member" xml:space="preserve">
+    <value>Участник списка рассылки</value>
   </data>
   <data name="Distribution lists" xml:space="preserve">
     <value>Списки рассылки</value>
@@ -4294,6 +4366,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Domain or account" xml:space="preserve">
     <value>Домен или учётная запись</value>
+  </data>
+  <data name="Domain or account setting" xml:space="preserve">
+    <value>Настройка домена или учётной записи</value>
   </data>
   <data name="Domain or pattern" xml:space="preserve">
     <value>Домен или шаблон</value>
@@ -4604,6 +4679,9 @@ Control Panel может читать файлы сообщений только
   <data name="Encryption to other servers, the signatures this server adds and checks, the results it records, forwarded mail and the reports it sends." xml:space="preserve">
     <value>Шифрование при связи с другими серверами, подписи, которые этот сервер добавляет и проверяет, результаты, которые он записывает, пересылаемая почта и отчёты, которые он отправляет.</value>
   </data>
+  <data name="Ended" xml:space="preserve">
+    <value>Завершено</value>
+  </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Конечная точка (пусто = собственная точка службы)</value>
   </data>
@@ -4618,6 +4696,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Enrol {0} again? A new secret replaces the current one, and the codes the authenticator app shows now stop working until it scans the new QR code." xml:space="preserve">
     <value>Зарегистрировать {0} заново? Новый секрет заменит текущий, и коды, которые сейчас показывает приложение-аутентификатор, перестанут работать, пока оно не отсканирует новый QR-код.</value>
+  </data>
+  <data name="Enrolled" xml:space="preserve">
+    <value>Зарегистрировано</value>
   </data>
   <data name="Enter" xml:space="preserve">
     <value>Enter</value>
@@ -5099,6 +5180,9 @@ Control Panel может читать файлы сообщений только
   <data name="External" xml:space="preserve">
     <value>Внешний</value>
   </data>
+  <data name="External POP3 or IMAP account" xml:space="preserve">
+    <value>Внешняя учётная запись POP3 или IMAP</value>
+  </data>
   <data name="External accounts" xml:space="preserve">
     <value>Внешние учётные записи</value>
   </data>
@@ -5266,6 +5350,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
     <value>Имя папки (для вложенных папок используйте разделитель иерархии):</value>
+  </data>
+  <data name="Folder permission" xml:space="preserve">
+    <value>Разрешение на папку</value>
   </data>
   <data name="Folders" xml:space="preserve">
     <value>Папки</value>
@@ -5462,8 +5549,14 @@ Control Panel может читать файлы сообщений только
   <data name="Greylisting" xml:space="preserve">
     <value>Серые списки</value>
   </data>
+  <data name="Greylisting bypass entry" xml:space="preserve">
+    <value>Запись списка обхода серых списков</value>
+  </data>
   <data name="Greylisting bypass list" xml:space="preserve">
     <value>Список обхода серых списков</value>
+  </data>
+  <data name="Greylisting exemption" xml:space="preserve">
+    <value>Исключение серых списков</value>
   </data>
   <data name="Greylisting exemptions" xml:space="preserve">
     <value>Исключения серых списков</value>
@@ -5485,6 +5578,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Group by" xml:space="preserve">
     <value>Группировать по</value>
+  </data>
+  <data name="Group member" xml:space="preserve">
+    <value>Участник группы</value>
   </data>
   <data name="Group name" xml:space="preserve">
     <value>Имя группы</value>
@@ -5960,6 +6056,12 @@ Control Panel может читать файлы сообщений только
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Входящие клиентские сертификаты — порту нужен набор сертификатов ЦС, а клиентам нужны сертификаты</value>
   </data>
+  <data name="Inbound webhook" xml:space="preserve">
+    <value>Входящий веб-хук</value>
+  </data>
+  <data name="Inbound webhook delivery" xml:space="preserve">
+    <value>Доставка во входящий веб-хук</value>
+  </data>
   <data name="Include the client IP in the X-AuthUser header" xml:space="preserve">
     <value>Включать IP клиента в заголовок X-AuthUser</value>
   </data>
@@ -6024,6 +6126,24 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Install update stopped before anything was changed: {0}." xml:space="preserve">
     <value>«Установить обновление» остановилось до каких-либо изменений: {0}.</value>
+  </data>
+  <data name="Installation cancelled" xml:space="preserve">
+    <value>Установка отменена</value>
+  </data>
+  <data name="Installation failed" xml:space="preserve">
+    <value>Установка не удалась</value>
+  </data>
+  <data name="Installation requested" xml:space="preserve">
+    <value>Установка запрошена</value>
+  </data>
+  <data name="Installation started" xml:space="preserve">
+    <value>Установка начата</value>
+  </data>
+  <data name="Installed" xml:space="preserve">
+    <value>Установлено</value>
+  </data>
+  <data name="Installed incompletely" xml:space="preserve">
+    <value>Установлено не полностью</value>
   </data>
   <data name="Installed version" xml:space="preserve">
     <value>Установленная версия</value>
@@ -6108,6 +6228,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Журналирование и двойная доставка</value>
+  </data>
+  <data name="Journaling rule" xml:space="preserve">
+    <value>Правило журналирования</value>
   </data>
   <data name="Ke_y passphrase (only for an encrypted key)" xml:space="preserve">
     <value>Парольная фраза _ключа (только для зашифрованного ключа)</value>
@@ -6481,6 +6604,9 @@ Control Panel может читать файлы сообщений только
   <data name="Logging is off altogether, so nothing below will be written until it is on." xml:space="preserve">
     <value>Журналирование выключено полностью, поэтому ничего из перечисленного ниже записываться не будет, пока оно не включено.</value>
   </data>
+  <data name="Logon failures" xml:space="preserve">
+    <value>Неудачные входы</value>
+  </data>
   <data name="Logon tarpit" xml:space="preserve">
     <value>Замедление входа (tarpit)</value>
   </data>
@@ -6655,20 +6781,50 @@ Control Panel может читать файлы сообщений только
   <data name="Mail to the spam trap {0}" xml:space="preserve">
     <value>Почта на ловушку для спама {0}</value>
   </data>
+  <data name="Mailbox changed" xml:space="preserve">
+    <value>Ящик изменён</value>
+  </data>
   <data name="Mailbox created" xml:space="preserve">
     <value>Ящик создан</value>
   </data>
   <data name="Mailbox emptied." xml:space="preserve">
     <value>Почтовый ящик очищен.</value>
   </data>
+  <data name="Mailbox encryption turned off" xml:space="preserve">
+    <value>Шифрование ящика выключено</value>
+  </data>
+  <data name="Mailbox encryption turned on" xml:space="preserve">
+    <value>Шифрование ящика включено</value>
+  </data>
   <data name="Mailbox full" xml:space="preserve">
     <value>Ящик переполнен</value>
+  </data>
+  <data name="Mailbox key forfeited" xml:space="preserve">
+    <value>Ключ ящика отброшен</value>
+  </data>
+  <data name="Mailbox key recovered" xml:space="preserve">
+    <value>Ключ ящика восстановлен</value>
   </data>
   <data name="Mailbox migrations from another server, and imports of Outlook data files (PST). The jobs are started in the Control Deck or over the REST API." xml:space="preserve">
     <value>Миграции почтовых ящиков с другого сервера и импорт файлов данных Outlook (PST). Задания запускаются в Control Deck или через REST API.</value>
   </data>
   <data name="Mailbox passwords are set on the account, inside its domain." xml:space="preserve">
     <value>Пароли почтовых ящиков задаются в учётной записи, внутри её домена.</value>
+  </data>
+  <data name="Mailbox read" xml:space="preserve">
+    <value>Ящик прочитан</value>
+  </data>
+  <data name="Mailbox recovery key made" xml:space="preserve">
+    <value>Ключ восстановления ящиков создан</value>
+  </data>
+  <data name="Mailbox recovery key removed" xml:space="preserve">
+    <value>Ключ восстановления ящиков удалён</value>
+  </data>
+  <data name="Mailbox recovery key replaced" xml:space="preserve">
+    <value>Ключ восстановления ящиков заменён</value>
+  </data>
+  <data name="Mailbox restore started" xml:space="preserve">
+    <value>Восстановление ящика начато</value>
   </data>
   <data name="Mailbox restore {0} started - runs in the background on the server." xml:space="preserve">
     <value>Восстановление ящика {0} запущено - выполняется в фоне на сервере.</value>
@@ -6938,6 +7094,12 @@ Control Panel может читать файлы сообщений только
   <data name="Message for local s_enders (empty = same as above)" xml:space="preserve">
     <value>Сообщение для локальных отп_равителей (пусто — то же, что выше)</value>
   </data>
+  <data name="Message held by the sandbox" xml:space="preserve">
+    <value>Сообщение, задержанное песочницей</value>
+  </data>
+  <data name="Message held for review" xml:space="preserve">
+    <value>Сообщение, задержанное для проверки</value>
+  </data>
   <data name="Message indexing" xml:space="preserve">
     <value>Индексирование сообщений</value>
   </data>
@@ -7067,6 +7229,12 @@ Control Panel может читать файлы сообщений только
   <data name="Microsoft token endpoint" xml:space="preserve">
     <value>Конечная точка токенов Microsoft</value>
   </data>
+  <data name="Migration" xml:space="preserve">
+    <value>Миграция</value>
+  </data>
+  <data name="Migration job" xml:space="preserve">
+    <value>Задание миграции</value>
+  </data>
   <data name="Migrations" xml:space="preserve">
     <value>Миграции</value>
   </data>
@@ -7157,6 +7325,9 @@ Control Panel может читать файлы сообщений только
   <data name="Move action up" xml:space="preserve">
     <value>Переместить действие вверх</value>
   </data>
+  <data name="Move failed" xml:space="preserve">
+    <value>Перемещение не удалось</value>
+  </data>
   <data name="Move or rename {0}" xml:space="preserve">
     <value>Перенести или переименовать {0}</value>
   </data>
@@ -7189,6 +7360,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Move to the next or the previous part of the window: the command bar, the navigation, the page and the help" xml:space="preserve">
     <value>Перейти к следующей или предыдущей части окна: панели команд, навигации, странице и справке</value>
+  </data>
+  <data name="Moved" xml:space="preserve">
+    <value>Перемещено</value>
   </data>
   <data name="Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves." xml:space="preserve">
     <value>Перемещение сообщения в папку, обозначенную \Junk, сообщает sa-learn, что это спам, а перемещение обратно — что это ham, так что фильтр учится на том, что люди и так делают, а не на отдельном ритуале, который никто не выполняет. По умолчанию выключено: sa-learn запускается на каждое перемещение, а пользователь, складывающий новостные рассылки в Junk, учит фильтр тому, что новостные рассылки — это спам, для всех, кого обслуживает сканер.</value>
@@ -7270,6 +7444,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Never judged by country (addresses and CIDR ranges, comma separated)" xml:space="preserve">
     <value>Никогда не оцениваются по стране (адреса и диапазоны CIDR, через запятую)</value>
+  </data>
+  <data name="Never-ban name" xml:space="preserve">
+    <value>Имя из списка «никогда не банить»</value>
   </data>
   <data name="New IMAP folder" xml:space="preserve">
     <value>Новая папка IMAP</value>
@@ -8534,6 +8711,9 @@ Control Panel может читать файлы сообщений только
   <data name="OpenPGP in the webmail - keys, signing, encrypting and decrypting, all in the browser - and publishing and looking up keys." xml:space="preserve">
     <value>OpenPGP в веб-почте — ключи, подпись, шифрование и расшифровка, всё в браузере — а также публикация и поиск ключей.</value>
   </data>
+  <data name="OpenPGP key" xml:space="preserve">
+    <value>Ключ OpenPGP</value>
+  </data>
   <data name="OpenTelemetry OTLP endpoint for logs (empty = disabled)" xml:space="preserve">
     <value>Конечная точка OpenTelemetry OTLP для журналов (пусто — выключено)</value>
   </data>
@@ -8762,6 +8942,9 @@ Control Panel может читать файлы сообщений только
   <data name="Passed" xml:space="preserve">
     <value>Пройдена</value>
   </data>
+  <data name="Passkey" xml:space="preserve">
+    <value>Ключ доступа</value>
+  </data>
   <data name="Passkeys" xml:space="preserve">
     <value>Ключи доступа</value>
   </data>
@@ -8916,6 +9099,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Policy file the server will serve (read-only; served by the server itself):" xml:space="preserve">
     <value>Файл политики, который будет отдавать сервер (только чтение; отдаётся самим сервером):</value>
+  </data>
+  <data name="Policy for a remote domain" xml:space="preserve">
+    <value>Правило для внешнего домена</value>
   </data>
   <data name="Policy for mailbox passwords" xml:space="preserve">
     <value>Политика для паролей почтовых ящиков</value>
@@ -9184,6 +9370,9 @@ Control Panel может читать файлы сообщений только
   <data name="Publishing this record asks every server that delivers to {0} to e-mail you a daily report when TLS to you fails or is downgraded. The reports go to the rua= mailbox, which must exist and accept mail from strangers. This works regardless of any hMailServer setting - the senders do the reporting." xml:space="preserve">
     <value>Публикация этой записи просит каждый сервер, доставляющий почту в {0}, ежедневно присылать вам по почте отчёт, когда TLS до вас не работает или понижается. Отчёты приходят в почтовый ящик, указанный в rua=, который должен существовать и принимать почту от посторонних. Это работает независимо от любых параметров hMailServer: отчёты составляют сами отправители.</value>
   </data>
+  <data name="Push subscriptions removed" xml:space="preserve">
+    <value>Push-подписки удалены</value>
+  </data>
   <data name="Pushes the same counters the Prometheus endpoint serves, under the same names, on the interval below. Not everything on /metrics is exported: queue depth, database probes and certificate expiry are computed by the metrics listener from database and file reads, and a push exporter does not own those." xml:space="preserve">
     <value>Отправляет те же счётчики, что отдаёт конечная точка Prometheus, под теми же именами и с указанным ниже интервалом. Экспортируется не всё, что есть на /metrics: глубина очереди, пробы базы данных и срок действия сертификата вычисляются прослушивателем метрик по чтениям из базы данных и файлов, а экспортёру, который сам отправляет данные, они не принадлежат.</value>
   </data>
@@ -9228,6 +9417,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Quarantine: hold the copy until it is released" xml:space="preserve">
     <value>Карантин: удерживать копию до освобождения</value>
+  </data>
+  <data name="Quarantined message" xml:space="preserve">
+    <value>Сообщение в карантине</value>
   </data>
   <data name="Query failed: {0}" xml:space="preserve">
     <value>Запрос не удался: {0}</value>
@@ -9515,6 +9707,18 @@ Control Panel может читать файлы сообщений только
   <data name="Recovery" xml:space="preserve">
     <value>Восстановление</value>
   </data>
+  <data name="Recovery address cleared" xml:space="preserve">
+    <value>Адрес восстановления удалён</value>
+  </data>
+  <data name="Recovery address set" xml:space="preserve">
+    <value>Адрес восстановления задан</value>
+  </data>
+  <data name="Recovery codes cleared" xml:space="preserve">
+    <value>Коды восстановления удалены</value>
+  </data>
+  <data name="Recovery codes generated" xml:space="preserve">
+    <value>Коды восстановления созданы</value>
+  </data>
   <data name="Redirect /.well-known/caldav to (empty = answer 404)" xml:space="preserve">
     <value>Перенаправлять /.well-known/caldav на (пусто — отвечать 404)</value>
   </data>
@@ -9719,6 +9923,9 @@ Control Panel может читать файлы сообщений только
   <data name="Release this group" xml:space="preserve">
     <value>Выпустить эту группу</value>
   </data>
+  <data name="Released" xml:space="preserve">
+    <value>Выпущено</value>
+  </data>
   <data name="Released {0} message to its recipients." xml:space="preserve">
     <value>Выпущено {0} сообщение получателям.</value>
   </data>
@@ -9845,6 +10052,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Remove {0} messages from the queue? They are deleted without a bounce, so their senders are not told.|few" xml:space="preserve">
     <value>Удалить из очереди {0} сообщения? Они удаляются без уведомлений о недоставке, так что их отправители об этом не узнают.</value>
+  </data>
+  <data name="Removed" xml:space="preserve">
+    <value>Убрано</value>
   </data>
   <data name="Rename {0} to {1}?&#10;&#10;Every account, alias and distribution list moves to the new name, and forwards or memberships in other domains that point at {0} addresses are updated to match. Mail sent to the old name will no longer be accepted." xml:space="preserve">
     <value>Переименовать {0} в {1}?
@@ -10075,6 +10285,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Restore one message" xml:space="preserve">
     <value>Восстановить одно сообщение</value>
   </data>
+  <data name="Restore started" xml:space="preserve">
+    <value>Восстановление начато</value>
+  </data>
   <data name="Restore started - runs in the background on the server." xml:space="preserve">
     <value>Восстановление запущено — выполняется в фоне на сервере.</value>
   </data>
@@ -10129,6 +10342,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Retr_y through Windows logon when the directory is unavailable (FallbackToWindowsLogon)" xml:space="preserve">
     <value>Повторять попытку _через вход Windows, когда каталог недоступен (FallbackToWindowsLogon)</value>
   </data>
+  <data name="Retried" xml:space="preserve">
+    <value>Повторено</value>
+  </data>
   <data name="Retries" xml:space="preserve">
     <value>Повторные попытки</value>
   </data>
@@ -10146,6 +10362,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Reverse DNS (PTR) and the HELO name - set by whoever owns your IP address" xml:space="preserve">
     <value>Обратный DNS (PTR) и имя HELO - задаются владельцем вашего IP-адреса</value>
+  </data>
+  <data name="Reverted" xml:space="preserve">
+    <value>Возвращено</value>
+  </data>
+  <data name="Review settings changed" xml:space="preserve">
+    <value>Параметры проверки изменены</value>
   </data>
   <data name="Revoke" xml:space="preserve">
     <value>Отозвать</value>
@@ -10177,6 +10399,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Roles" xml:space="preserve">
     <value>Роли</value>
   </data>
+  <data name="Rolled back" xml:space="preserve">
+    <value>Откачено к предыдущей версии</value>
+  </data>
   <data name="Rotate _now…" xml:space="preserve">
     <value>Выпол_нить ротацию сейчас…</value>
   </data>
@@ -10195,11 +10420,20 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Route - {0}" xml:space="preserve">
     <value>Маршрут — {0}</value>
   </data>
+  <data name="Route address" xml:space="preserve">
+    <value>Адрес маршрута</value>
+  </data>
   <data name="Route all outbound mail through another SMTP server instead of delivering directly. For failover, separate several hosts with a vertical bar: the next host is tried when one cannot be reached (all hosts share the port, security and credentials below)." xml:space="preserve">
     <value>Направлять всю исходящую почту через другой сервер SMTP вместо прямой доставки. Для отказоустойчивости разделите несколько узлов вертикальной чертой: если до одного узла не удаётся достучаться, пробуется следующий (все узлы используют указанные ниже порт, безопасность и учётные данные).</value>
   </data>
   <data name="Routes" xml:space="preserve">
     <value>Маршруты</value>
+  </data>
+  <data name="Rule action" xml:space="preserve">
+    <value>Действие правила</value>
+  </data>
+  <data name="Rule criterion" xml:space="preserve">
+    <value>Критерий правила</value>
   </data>
   <data name="Rule for {0} added." xml:space="preserve">
     <value>Правило для {0} добавлено.</value>
@@ -10293,6 +10527,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="S/MIME - to the partner's certificate" xml:space="preserve">
     <value>S/MIME - на сертификат партнёра</value>
+  </data>
+  <data name="S/MIME certificate" xml:space="preserve">
+    <value>Сертификат S/MIME</value>
   </data>
   <data name="S/MIME certificate authority" xml:space="preserve">
     <value>Центр сертификации S/MIME</value>
@@ -10894,6 +11131,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="SearchBase (or UserDnTemplate, to bind directly without searching)" xml:space="preserve">
     <value>SearchBase (или UserDnTemplate, чтобы выполнять привязку напрямую, без поиска)</value>
   </data>
+  <data name="Searched" xml:space="preserve">
+    <value>Выполнен поиск</value>
+  </data>
   <data name="Searches" xml:space="preserve">
     <value>Поиски</value>
   </data>
@@ -11206,6 +11446,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Server limits &amp; expert settings (the timeouts)" xml:space="preserve">
     <value>Ограничения сервера и экспертные параметры (тайм-ауты)</value>
   </data>
+  <data name="Server message text" xml:space="preserve">
+    <value>Текст сообщения сервера</value>
+  </data>
   <data name="Server messages" xml:space="preserve">
     <value>Сообщения сервера</value>
   </data>
@@ -11379,6 +11622,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Setting  -  {0}" xml:space="preserve">
     <value>Параметр  —  {0}</value>
+  </data>
+  <data name="Setting profile" xml:space="preserve">
+    <value>Профиль параметров</value>
   </data>
   <data name="Setting profiles" xml:space="preserve">
     <value>Профили параметров</value>
@@ -11554,6 +11800,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Signed by {0} and recorded in the Sigstore log at {1}; version {2}, {3}." xml:space="preserve">
     <value>Подписано {0} и записано в журнал Sigstore в {1}; версия {2}, {3}.</value>
   </data>
+  <data name="Signed-in device" xml:space="preserve">
+    <value>Устройство с выполненным входом</value>
+  </data>
   <data name="Signing" xml:space="preserve">
     <value>Подпись</value>
   </data>
@@ -11689,6 +11938,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Spam exemptions" xml:space="preserve">
     <value>Исключения антиспама</value>
   </data>
+  <data name="Spam exemptions entry" xml:space="preserve">
+    <value>Исключение антиспама</value>
+  </data>
   <data name="Spam filtering overview" xml:space="preserve">
     <value>Обзор фильтрации спама</value>
   </data>
@@ -11697,6 +11949,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Spam refuse threshold (score)" xml:space="preserve">
     <value>Порог отклонения спама (оценка)</value>
+  </data>
+  <data name="Spam trap" xml:space="preserve">
+    <value>Ловушка для спама</value>
+  </data>
+  <data name="Spam trap hits" xml:space="preserve">
+    <value>Срабатывания ловушек для спама</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>Ловушки для спама</value>
@@ -11902,8 +12160,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
     <value>Например, zen.spamhaus.org или bl.spamcop.net</value>
   </data>
+  <data name="Support session opened" xml:space="preserve">
+    <value>Сеанс поддержки открыт</value>
+  </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Список подавления</value>
+  </data>
+  <data name="Suppression list entry" xml:space="preserve">
+    <value>Запись списка подавления</value>
   </data>
   <data name="Sw_itch now…" xml:space="preserve">
     <value>Перек_лючить сейчас…</value>
@@ -14132,6 +14396,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Turn on the require-authentication options for the range that covers your clients." xml:space="preserve">
     <value>Включите параметры обязательной аутентификации для диапазона, покрывающего ваших клиентов.</value>
   </data>
+  <data name="Turned off" xml:space="preserve">
+    <value>Выключено</value>
+  </data>
   <data name="Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. For an administrator whose policy is that nothing derived from a long-lived key ever goes on the wire. The only cost is resumption efficiency - every client can still connect with a full handshake." xml:space="preserve">
     <value>Выключение этого останавливает билеты сессий для всех версий TLS: клиенты TLS 1.2 и старше откатываются к серверному кешу сессий, который никогда не покидает этот процесс, а клиентам TLS 1.3 билет не отправляется вовсе. Для администратора, чья политика в том, что ничто, производное от долгоживущего ключа, никогда не выходит в сеть. Единственная цена - эффективность возобновления: любой клиент по-прежнему может подключиться с полным рукопожатием.</value>
   </data>
@@ -14441,6 +14708,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Wakes the indexer instead of waiting for its next pass, and reports how many of this server's messages are currently indexed. The pass itself runs in the background and is bounded by the limits above, so on a large backlog it makes progress rather than finishing. With indexing switched off there is no indexer to wake, and this says so rather than reporting success." xml:space="preserve">
     <value>Будит индексатор вместо ожидания его следующего прохода и сообщает, сколько сообщений этого сервера сейчас проиндексировано. Сам проход идёт в фоне и ограничен пределами выше, поэтому при большом отставании он продвигается, а не завершается. При выключенном индексировании будить некого, и об этом сообщается, а не докладывается об успехе.</value>
   </data>
+  <data name="Warm-up schedule" xml:space="preserve">
+    <value>План прогрева</value>
+  </data>
   <data name="Warn in the application log and Windows event log below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Предупреждать в журнале приложения и журнале событий Windows, когда свободного места меньше этого (МБ; 0 = никогда)</value>
   </data>
@@ -14488,6 +14758,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Web services &amp; autoconfiguration" xml:space="preserve">
     <value>Веб-службы и автоконфигурация</value>
+  </data>
+  <data name="Webhook subscription" xml:space="preserve">
+    <value>Подписка на веб-хук</value>
   </data>
   <data name="Webhooks" xml:space="preserve">
     <value>Веб-хуки</value>

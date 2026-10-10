@@ -3,7 +3,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using hMailServer.ControlPanel.Services;
 using Xunit;
 
@@ -47,6 +51,21 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("rule", "Mail rule")]
       [InlineData("update", "Software update")]
       [InlineData("webhook subscription", "Webhook subscription")]
+      // The server's fixed vocabulary, where Humanise wrote English in every language
+      // with the wrong case, lost hyphens and the white-list wording owner decision 4
+      // retired: "Dns blacklist", "Never ban name", "White list address".
+      [InlineData("dns blacklist", "DNS block list")]
+      [InlineData("surbl server", "SURBL server")]
+      [InlineData("white list address", "Spam exemptions entry")]
+      [InlineData("greylisting white address", "Greylisting exemption")]
+      [InlineData("sender list entry", "Allow and block list entry")]
+      [InlineData("domain policy list entry", "Allowed or blocked domain")]
+      [InlineData("never-ban name", "Never-ban name")]
+      [InlineData("warm-up schedule", "Warm-up schedule")]
+      [InlineData("OpenPGP key", "OpenPGP key")]
+      [InlineData("journal rule", "Journaling rule")]
+      [InlineData("fetch account", "External POP3 or IMAP account")]
+      [InlineData("a newer server's noun", "A newer server's noun")]
       public void TheObjects_AreTheReadersWords(string token, string expected)
          => Assert.Equal(expected, AuditTrailReport.ObjectWord(token));
 
@@ -55,9 +74,141 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("password_reset", "Password reset")]
       [InlineData("mailbox-key-forfeited", "Mailbox key forfeited")]
       [InlineData("restore started", "Restore started")]
+      [InlineData("directory-opt-out-changed", "Directory opt-out changed")]
+      [InlineData("recovery-codes-cleared", "Recovery codes cleared")]
+      [InlineData("disabled", "Turned off")]
+      [InlineData("entered", "Started")]
+      [InlineData("left", "Ended")]
+      [InlineData("read", "Contents read")]
+      [InlineData("a-newer-servers-verb", "A newer servers verb")]
       [InlineData("", "")]
       public void TheActions_AreTheReadersWords_AndAnUnknownOneIsHumanised(string token, string expected)
          => Assert.Equal(expected, AuditTrailReport.ActionWord(token));
+
+      /// <summary>
+      /// Every object type and action the server writes to the trail has a word of the
+      /// page's, read from the server's own source: the audited tables' nouns
+      /// (AuditTrail.cpp, AuditedTables), a row's and a setting's created, updated and
+      /// deleted, the first and third arguments of every RecordEvent and RecordMailRead_
+      /// call, and the update's outcomes. Only 18 objects and 8 actions were named, and
+      /// the rest read in English in every language (review finding F254); a token the
+      /// server gains fails here until the page names it in every catalogue.
+      /// </summary>
+      [Fact]
+      public void EveryObjectAndActionTheServerRecords_HasTheReadersWord()
+      {
+         var objects = new List<string>();
+         var actions = new List<string> { "created", "updated", "deleted" };
+
+         string trail = File.ReadAllText(ServerFile(Path.Join("Common", "Util", "AuditTrail.cpp")));
+         foreach (Match table in Regex.Matches(trail, "\\{\\s*L\"hm_\\w+\",\\s*L\"([^\"]+)\"\\s*\\}"))
+            objects.Add(table.Groups[1].Value);
+         Assert.True(objects.Count >= 50, "AuditTrail.cpp's AuditedTables were not read: " + objects.Count + " found.");
+
+         int calls = 0;
+         string source = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(ServerFile(Path.Join("Common", "Util", "AuditTrail.cpp")))));
+         foreach (string file in Directory.EnumerateFiles(source, "*.cpp", SearchOption.AllDirectories))
+         {
+            string code = File.ReadAllText(file);
+            foreach (Match call in Regex.Matches(code, "\\b(?:RecordEvent|RecordMailRead_)\\("))
+            {
+               // A call named in a comment is not one.
+               int line = code.LastIndexOf('\n', call.Index) + 1;
+               if (code.Substring(line, call.Index - line).Contains("//", StringComparison.Ordinal))
+                  continue;
+               List<string> arguments = ArgumentsAt(code, call.Index + call.Length);
+               if (arguments == null || arguments.Count < 3)
+                  continue;
+               calls++;
+               objects.AddRange(Literals(arguments[0]));
+               actions.AddRange(Literals(arguments[2]));
+            }
+         }
+         Assert.True(calls >= 50, "The server's RecordEvent and RecordMailRead_ calls were not read: " + calls + " found.");
+
+         // The update's outcome, chosen into a variable before its RecordEvent: the
+         // String(...) it is, not the statuses it is chosen by.
+         string installer = File.ReadAllText(ServerFile(Path.Join("Common", "Util", "UpdateInstaller.cpp")));
+         Match outcome = Regex.Match(installer, "const String action = [^;]+;");
+         Assert.True(outcome.Success, "UpdateInstaller.cpp's outcome actions were not found.");
+         List<string> outcomes = Regex.Matches(outcome.Value, "String\\(_T\\(\"([^\"]*)\"\\)\\)").Select(match => match.Groups[1].Value).ToList();
+         Assert.True(outcomes.Count >= 4, "UpdateInstaller.cpp's outcome actions were not read: " + string.Join(", ", outcomes));
+         actions.AddRange(outcomes);
+
+         List<string> unnamedObjects = objects.Distinct().Where(token => !AuditTrailReport.NamesObject(token)).ToList();
+         List<string> unnamedActions = actions.Distinct().Where(token => !AuditTrailReport.NamesAction(token)).ToList();
+         Assert.True(unnamedObjects.Count == 0, "The audit trail has no word for the server's object type(s): " + string.Join(", ", unnamedObjects));
+         Assert.True(unnamedActions.Count == 0, "The audit trail has no word for the server's action(s): " + string.Join(", ", unnamedActions));
+      }
+
+      private static IEnumerable<string> Literals(string text)
+         => Regex.Matches(text, "_T\\(\"([^\"]*)\"\\)").Select(match => match.Groups[1].Value);
+
+      /// <summary>A call's arguments from just after its opening bracket, split at its own commas; null where it never closes.</summary>
+      private static List<string> ArgumentsAt(string code, int start)
+      {
+         var arguments = new List<string>();
+         var current = new StringBuilder();
+         int depth = 0;
+         for (int i = start; i < code.Length; i++)
+         {
+            char c = code[i];
+            if (c == '/' && i + 1 < code.Length && code[i + 1] == '/')
+            {
+               // A comment between the arguments: to the end of its line.
+               int end = code.IndexOf('\n', i);
+               i = end < 0 ? code.Length : end;
+               continue;
+            }
+            if (c == '"' || c == '\'')
+            {
+               int end = i + 1;
+               while (end < code.Length && code[end] != c)
+                  end += code[end] == '\\' ? 2 : 1;
+               current.Append(code, i, Math.Min(end + 1, code.Length) - i);
+               i = end;
+               continue;
+            }
+            if (c == '(' || c == '{' || c == '[')
+               depth++;
+            else if (c == ')' || c == '}' || c == ']')
+            {
+               if (depth == 0)
+               {
+                  arguments.Add(current.ToString());
+                  return arguments;
+               }
+               depth--;
+            }
+            else if (c == ',' && depth == 0)
+            {
+               arguments.Add(current.ToString());
+               current.Clear();
+               continue;
+            }
+            current.Append(c);
+         }
+
+         return null;
+      }
+
+      private static string ServerFile(string relative)
+      {
+         var directory = new DirectoryInfo(AppContext.BaseDirectory);
+         while (directory != null)
+         {
+            string candidate = Path.Join(directory.FullName, "Server", relative);
+            if (File.Exists(candidate))
+               return candidate;
+            candidate = Path.Join(directory.FullName, "hmailserver", "source", "Server", relative);
+            if (File.Exists(candidate))
+               return candidate;
+            directory = directory.Parent;
+         }
+
+         Assert.Fail("Server/" + relative.Replace('\\', '/') + " could not be found from the test binaries.");
+         return null;
+      }
 
       [Fact]
       public void ASettingsChange_IsSplitIntoItsTwoValues_WhereItSaysWhereTheOldOneEnds()

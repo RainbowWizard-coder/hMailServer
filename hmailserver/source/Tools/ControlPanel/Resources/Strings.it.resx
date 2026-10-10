@@ -765,6 +765,9 @@
   <data name="API &amp; monitoring" xml:space="preserve">
     <value>API e monitoraggio</value>
   </data>
+  <data name="API key" xml:space="preserve">
+    <value>Chiave API</value>
+  </data>
   <data name="API keys" xml:space="preserve">
     <value>Chiavi API</value>
   </data>
@@ -1212,6 +1215,9 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Address attri_bute" xml:space="preserve">
     <value>Attri_buto dell'indirizzo</value>
   </data>
+  <data name="Address book share removed" xml:space="preserve">
+    <value>Condivisione della rubrica rimossa</value>
+  </data>
   <data name="Address contains" xml:space="preserve">
     <value>L'indirizzo contiene</value>
   </data>
@@ -1284,6 +1290,9 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Administrative access" xml:space="preserve">
     <value>Accesso amministrativo</value>
   </data>
+  <data name="Administrator" xml:space="preserve">
+    <value>Amministratore</value>
+  </data>
   <data name="Administrator UI language (third-party COM tools only)" xml:space="preserve">
     <value>Lingua dell'interfaccia amministratore (solo strumenti COM di terze parti)</value>
   </data>
@@ -1322,6 +1331,9 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   </data>
   <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
     <value>Schema dei rapporti aggregati inviati da questo server: 1 = RFC 7489 appendice C, 2 = RFC 9990</value>
+  </data>
+  <data name="Alert rule" xml:space="preserve">
+    <value>Regola di avviso</value>
   </data>
   <data name="Alert rules, outbound webhooks and the SNMP agent tell another system what happened." xml:space="preserve">
     <value>Le regole di avviso, i webhook in uscita e l'agente SNMP dicono a un altro sistema che cosa è successo.</value>
@@ -1404,6 +1416,9 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Allow and block list" xml:space="preserve">
     <value>Elenco consentiti e bloccati</value>
   </data>
+  <data name="Allow and block list entry" xml:space="preserve">
+    <value>Voce dell'elenco consentiti e bloccati</value>
+  </data>
   <data name="Allow and release" xml:space="preserve">
     <value>Consenti e rilascia</value>
   </data>
@@ -1445,6 +1460,9 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   </data>
   <data name="Allowed as {0}." xml:space="preserve">
     <value>Consentito come {0}.</value>
+  </data>
+  <data name="Allowed or blocked domain" xml:space="preserve">
+    <value>Dominio consentito o bloccato</value>
   </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>Algoritmi di firma consentiti (separati da virgole)</value>
@@ -1681,6 +1699,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Anything that is not a letter or a digit counts, rather than a fixed list of punctuation, so a keyboard layout you do not have cannot make the rule unsatisfiable." xml:space="preserve">
     <value>Conta qualsiasi cosa non sia una lettera o una cifra, invece di un elenco fisso di punteggiatura, così che un layout di tastiera che non hai non possa rendere la regola impossibile da soddisfare.</value>
   </data>
+  <data name="App password" xml:space="preserve">
+    <value>Password per app</value>
+  </data>
   <data name="App passwords" xml:space="preserve">
     <value>Password per app</value>
   </data>
@@ -1755,6 +1776,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="Archive folder (empty = archiving off)" xml:space="preserve">
     <value>Cartella di archivio (vuoto = archiviazione disattivata)</value>
+  </data>
+  <data name="Archived message" xml:space="preserve">
+    <value>Messaggio archiviato</value>
   </data>
   <data name="Archives in the destination" xml:space="preserve">
     <value>Archivi nella cartella di destinazione</value>
@@ -2005,6 +2029,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Back up to the configured destination before an unattended apply (no destination or a failed backup means no apply)" xml:space="preserve">
     <value>Esegui il backup nella destinazione configurata prima di un'installazione non presidiata (nessuna destinazione o un backup fallito significa nessuna installazione)</value>
   </data>
+  <data name="Back-off cleared" xml:space="preserve">
+    <value>Attesa tra i tentativi azzerata</value>
+  </data>
   <data name="Back_up archive (HMBackup*.7z on the server)" xml:space="preserve">
     <value>Archivio di back_up (HMBackup*.7z sul server)</value>
   </data>
@@ -2152,11 +2179,17 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Blocked" xml:space="preserve">
     <value>Bloccato</value>
   </data>
+  <data name="Blocked attachment" xml:space="preserve">
+    <value>Allegato bloccato</value>
+  </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>Allegati bloccati</value>
   </data>
   <data name="Blocked senders" xml:space="preserve">
     <value>Mittenti bloccati</value>
+  </data>
+  <data name="Blocked senders entry" xml:space="preserve">
+    <value>Mittente bloccato</value>
   </data>
   <data name="Blocked. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
     <value>Bloccato. Voci nell'elenco: {0}. Messaggi eliminati: {1}.</value>
@@ -2175,6 +2208,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="Body read chunk size (bytes)" xml:space="preserve">
     <value>Dimensione dei blocchi di lettura del corpo (byte)</value>
+  </data>
+  <data name="Booking policy" xml:space="preserve">
+    <value>Criterio di prenotazione</value>
   </data>
   <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox in the Control Deck's delivery queue or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
     <value>Entrambi gli indirizzi sono impostati. Se il servizio risponde non si può stabilire da qui: invia dall'esterno un messaggio con allegato un file di un tipo inviato e cercalo in Trattenuti per una sandbox nella coda di consegna del Control Deck, oppure cerca nel registro dell'applicazione una riga che dica che è stato inviato alla sandbox.</value>
@@ -2307,6 +2343,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="Cancel the next key of {0}? The staged selector is removed, a key file the rotation generated for it is deleted, and signing does not change." xml:space="preserve">
     <value>Annullare la chiave successiva di {0}? Il selettore predisposto viene rimosso, il file della chiave generato per esso dalla rotazione viene eliminato e la firma non cambia.</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Annullato</value>
   </data>
   <data name="Cannot be checked from here" xml:space="preserve">
     <value>Non verificabile da qui</value>
@@ -2776,6 +2815,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Complete. The user's DN comes from the template, proved with a simple bind against {0} over {1} - no search and no service account needed." xml:space="preserve">
     <value>Completa. Il DN dell'utente proviene dal modello, verificato con un bind semplice contro {0} su {1} - non servono né una ricerca né un account di servizio.</value>
   </data>
+  <data name="Compromise lock cleared" xml:space="preserve">
+    <value>Blocco per compromissione rimosso</value>
+  </data>
   <data name="Compromised accounts" xml:space="preserve">
     <value>Account compromessi</value>
   </data>
@@ -2889,6 +2931,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="Content filters" xml:space="preserve">
     <value>Filtri dei contenuti</value>
+  </data>
+  <data name="Contents read" xml:space="preserve">
+    <value>Contenuto letto</value>
   </data>
   <data name="Control Deck" xml:space="preserve">
     <value>Control Deck</value>
@@ -3552,6 +3597,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it." xml:space="preserve">
     <value>DMARC dice ai destinatari cosa fare della posta che non supera SPF e DKIM, e dove segnalarla.</value>
   </data>
+  <data name="DNS block list" xml:space="preserve">
+    <value>Lista di blocco DNS</value>
+  </data>
   <data name="DNS block list checks" xml:space="preserve">
     <value>Controlli sulle liste di blocco DNS</value>
   </data>
@@ -3698,6 +3746,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="Debug messages to syslog" xml:space="preserve">
     <value>Messaggi di debug verso syslog</value>
+  </data>
+  <data name="Declined" xml:space="preserve">
+    <value>Rifiutato</value>
   </data>
   <data name="Default 10, allowed range 1 to 90. The server reads values below 1 as 10 and clamps values above 90, because &quot;wait forever&quot; for an unreachable directory is how connection threads get exhausted." xml:space="preserve">
     <value>Predefinito 10, intervallo consentito da 1 a 90. Il server legge i valori inferiori a 1 come 10 e vincola quelli superiori a 90, perché "aspetta per sempre" su una directory irraggiungibile è il modo in cui si esauriscono i thread di connessione.</value>
@@ -4124,6 +4175,9 @@ Salvare comunque?</value>
   <data name="Directory entry" xml:space="preserve">
     <value>Scheda nella rubrica</value>
   </data>
+  <data name="Directory opt-out changed" xml:space="preserve">
+    <value>Esclusione dalla directory modificata</value>
+  </data>
   <data name="Directory server" xml:space="preserve">
     <value>Server di directory</value>
   </data>
@@ -4150,6 +4204,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Discard your unsaved changes and read the settings again?" xml:space="preserve">
     <value>Scartare le modifiche non salvate e rileggere le impostazioni?</value>
   </data>
+  <data name="Discarded" xml:space="preserve">
+    <value>Scartato</value>
+  </data>
   <data name="Disconnect clients sending too many invalid commands" xml:space="preserve">
     <value>Disconnetti i client che inviano troppi comandi non validi</value>
   </data>
@@ -4159,8 +4216,20 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Discovery" xml:space="preserve">
     <value>eDiscovery</value>
   </data>
+  <data name="Discovery case" xml:space="preserve">
+    <value>Caso di eDiscovery</value>
+  </data>
   <data name="Discovery cases" xml:space="preserve">
     <value>Casi di eDiscovery</value>
+  </data>
+  <data name="Discovery export" xml:space="preserve">
+    <value>Esportazione di eDiscovery</value>
+  </data>
+  <data name="Discovery hold" xml:space="preserve">
+    <value>Blocco di eDiscovery</value>
+  </data>
+  <data name="Discovery search" xml:space="preserve">
+    <value>Ricerca di eDiscovery</value>
   </data>
   <data name="Disk space" xml:space="preserve">
     <value>Spazio su disco</value>
@@ -4173,6 +4242,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Distribution list - {0}" xml:space="preserve">
     <value>Lista di distribuzione - {0}</value>
+  </data>
+  <data name="Distribution list member" xml:space="preserve">
+    <value>Membro della lista di distribuzione</value>
   </data>
   <data name="Distribution lists" xml:space="preserve">
     <value>Liste di distribuzione</value>
@@ -4242,6 +4314,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Domain or account" xml:space="preserve">
     <value>Dominio o account</value>
+  </data>
+  <data name="Domain or account setting" xml:space="preserve">
+    <value>Impostazione di dominio o account</value>
   </data>
   <data name="Domain or pattern" xml:space="preserve">
     <value>Dominio o schema</value>
@@ -4552,6 +4627,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Encryption to other servers, the signatures this server adds and checks, the results it records, forwarded mail and the reports it sends." xml:space="preserve">
     <value>La cifratura verso gli altri server, le firme che questo server aggiunge e verifica, i risultati che registra, la posta inoltrata e i rapporti che invia.</value>
   </data>
+  <data name="Ended" xml:space="preserve">
+    <value>Terminato</value>
+  </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Endpoint (vuoto = quello del servizio)</value>
   </data>
@@ -4566,6 +4644,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Enrol {0} again? A new secret replaces the current one, and the codes the authenticator app shows now stop working until it scans the new QR code." xml:space="preserve">
     <value>Registrare di nuovo {0}? Un nuovo segreto sostituisce quello attuale, e i codici che l'app di autenticazione mostra ora smettono di funzionare finché non scansiona il nuovo codice QR.</value>
+  </data>
+  <data name="Enrolled" xml:space="preserve">
+    <value>Registrato</value>
   </data>
   <data name="Enter" xml:space="preserve">
     <value>Invio</value>
@@ -5029,6 +5110,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="External" xml:space="preserve">
     <value>Esterno</value>
   </data>
+  <data name="External POP3 or IMAP account" xml:space="preserve">
+    <value>Account esterno POP3 o IMAP</value>
+  </data>
   <data name="External accounts" xml:space="preserve">
     <value>Account esterni</value>
   </data>
@@ -5196,6 +5280,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
     <value>Nome della cartella (usa il delimitatore di gerarchia per le sottocartelle):</value>
+  </data>
+  <data name="Folder permission" xml:space="preserve">
+    <value>Permesso della cartella</value>
   </data>
   <data name="Folders" xml:space="preserve">
     <value>Cartelle</value>
@@ -5392,8 +5479,14 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Greylisting" xml:space="preserve">
     <value>Greylisting</value>
   </data>
+  <data name="Greylisting bypass entry" xml:space="preserve">
+    <value>Voce di bypass del greylisting</value>
+  </data>
   <data name="Greylisting bypass list" xml:space="preserve">
     <value>Elenco di bypass del greylisting</value>
+  </data>
+  <data name="Greylisting exemption" xml:space="preserve">
+    <value>Esenzione dal greylisting</value>
   </data>
   <data name="Greylisting exemptions" xml:space="preserve">
     <value>Esenzioni dal greylisting</value>
@@ -5415,6 +5508,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Group by" xml:space="preserve">
     <value>Raggruppa per</value>
+  </data>
+  <data name="Group member" xml:space="preserve">
+    <value>Membro del gruppo</value>
   </data>
   <data name="Group name" xml:space="preserve">
     <value>Nome del gruppo</value>
@@ -5890,6 +5986,12 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Certificati client in ingresso - la porta richiede un bundle di CA, i client richiedono certificati</value>
   </data>
+  <data name="Inbound webhook" xml:space="preserve">
+    <value>Webhook in ingresso</value>
+  </data>
+  <data name="Inbound webhook delivery" xml:space="preserve">
+    <value>Consegna del webhook in ingresso</value>
+  </data>
   <data name="Include the client IP in the X-AuthUser header" xml:space="preserve">
     <value>Includi l'IP del client nell'intestazione X-AuthUser</value>
   </data>
@@ -5954,6 +6056,24 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   </data>
   <data name="Install update stopped before anything was changed: {0}." xml:space="preserve">
     <value>"Installa l'aggiornamento" si è fermato prima di cambiare qualcosa: {0}.</value>
+  </data>
+  <data name="Installation cancelled" xml:space="preserve">
+    <value>Installazione annullata</value>
+  </data>
+  <data name="Installation failed" xml:space="preserve">
+    <value>Installazione non riuscita</value>
+  </data>
+  <data name="Installation requested" xml:space="preserve">
+    <value>Installazione richiesta</value>
+  </data>
+  <data name="Installation started" xml:space="preserve">
+    <value>Installazione avviata</value>
+  </data>
+  <data name="Installed" xml:space="preserve">
+    <value>Installato</value>
+  </data>
+  <data name="Installed incompletely" xml:space="preserve">
+    <value>Installato in modo incompleto</value>
   </data>
   <data name="Installed version" xml:space="preserve">
     <value>Versione installata</value>
@@ -6038,6 +6158,9 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Journaling e consegna doppia</value>
+  </data>
+  <data name="Journaling rule" xml:space="preserve">
+    <value>Regola di journaling</value>
   </data>
   <data name="Ke_y passphrase (only for an encrypted key)" xml:space="preserve">
     <value>Passphrase della _chiave (solo per una chiave cifrata)</value>
@@ -6411,6 +6534,9 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="Logging is off altogether, so nothing below will be written until it is on." xml:space="preserve">
     <value>La registrazione è del tutto disattivata, quindi nulla di quanto segue verrà scritto finché non viene attivata.</value>
   </data>
+  <data name="Logon failures" xml:space="preserve">
+    <value>Accessi non riusciti</value>
+  </data>
   <data name="Logon tarpit" xml:space="preserve">
     <value>Tarpit di accesso</value>
   </data>
@@ -6582,20 +6708,50 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="Mail to the spam trap {0}" xml:space="preserve">
     <value>Posta alla trappola per spam {0}</value>
   </data>
+  <data name="Mailbox changed" xml:space="preserve">
+    <value>Casella modificata</value>
+  </data>
   <data name="Mailbox created" xml:space="preserve">
     <value>Casella creata</value>
   </data>
   <data name="Mailbox emptied." xml:space="preserve">
     <value>Casella svuotata.</value>
   </data>
+  <data name="Mailbox encryption turned off" xml:space="preserve">
+    <value>Cifratura della casella disattivata</value>
+  </data>
+  <data name="Mailbox encryption turned on" xml:space="preserve">
+    <value>Cifratura della casella attivata</value>
+  </data>
   <data name="Mailbox full" xml:space="preserve">
     <value>Casella piena</value>
+  </data>
+  <data name="Mailbox key forfeited" xml:space="preserve">
+    <value>Chiave della casella abbandonata</value>
+  </data>
+  <data name="Mailbox key recovered" xml:space="preserve">
+    <value>Chiave della casella recuperata</value>
   </data>
   <data name="Mailbox migrations from another server, and imports of Outlook data files (PST). The jobs are started in the Control Deck or over the REST API." xml:space="preserve">
     <value>Migrazioni di caselle da un altro server e importazioni di file di dati di Outlook (PST). I processi si avviano nel Control Deck o tramite l'API REST.</value>
   </data>
   <data name="Mailbox passwords are set on the account, inside its domain." xml:space="preserve">
     <value>Le password delle caselle si impostano sull'account, all'interno del suo dominio.</value>
+  </data>
+  <data name="Mailbox read" xml:space="preserve">
+    <value>Casella letta</value>
+  </data>
+  <data name="Mailbox recovery key made" xml:space="preserve">
+    <value>Chiave di recupero delle caselle creata</value>
+  </data>
+  <data name="Mailbox recovery key removed" xml:space="preserve">
+    <value>Chiave di recupero delle caselle rimossa</value>
+  </data>
+  <data name="Mailbox recovery key replaced" xml:space="preserve">
+    <value>Chiave di recupero delle caselle sostituita</value>
+  </data>
+  <data name="Mailbox restore started" xml:space="preserve">
+    <value>Ripristino della casella avviato</value>
   </data>
   <data name="Mailbox restore {0} started - runs in the background on the server." xml:space="preserve">
     <value>Ripristino della casella {0} avviato - in esecuzione in background sul server.</value>
@@ -6862,6 +7018,12 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Message for local s_enders (empty = same as above)" xml:space="preserve">
     <value>Messaggio per i mitt_enti locali (vuoto = come sopra)</value>
   </data>
+  <data name="Message held by the sandbox" xml:space="preserve">
+    <value>Messaggio trattenuto dalla sandbox</value>
+  </data>
+  <data name="Message held for review" xml:space="preserve">
+    <value>Messaggio trattenuto per la revisione</value>
+  </data>
   <data name="Message indexing" xml:space="preserve">
     <value>Indicizzazione dei messaggi</value>
   </data>
@@ -6991,6 +7153,12 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Microsoft token endpoint" xml:space="preserve">
     <value>Endpoint del token di Microsoft</value>
   </data>
+  <data name="Migration" xml:space="preserve">
+    <value>Migrazione</value>
+  </data>
+  <data name="Migration job" xml:space="preserve">
+    <value>Processo di migrazione</value>
+  </data>
   <data name="Migrations" xml:space="preserve">
     <value>Migrazioni</value>
   </data>
@@ -7081,6 +7249,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Move action up" xml:space="preserve">
     <value>Sposta l'azione in alto</value>
   </data>
+  <data name="Move failed" xml:space="preserve">
+    <value>Spostamento non riuscito</value>
+  </data>
   <data name="Move or rename {0}" xml:space="preserve">
     <value>Sposta o rinomina {0}</value>
   </data>
@@ -7113,6 +7284,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="Move to the next or the previous part of the window: the command bar, the navigation, the page and the help" xml:space="preserve">
     <value>Passa alla parte successiva o precedente della finestra: la barra dei comandi, la navigazione, la pagina e la guida</value>
+  </data>
+  <data name="Moved" xml:space="preserve">
+    <value>Spostato</value>
   </data>
   <data name="Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves." xml:space="preserve">
     <value>Spostare un messaggio nella cartella designata come Junk lo segnala a sa-learn come spam, e riportarne uno fuori lo segnala come ham, così il filtro impara da ciò che le persone già fanno anziché da un rituale a parte che nessuno esegue. Disattivato per impostazione predefinita: esegue sa-learn a ogni spostamento, e un utente che archivia le newsletter in Junk sta insegnando al filtro che le newsletter sono spam per tutti coloro che lo scanner serve.</value>
@@ -7194,6 +7368,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="Never judged by country (addresses and CIDR ranges, comma separated)" xml:space="preserve">
     <value>Mai valutati per paese (indirizzi e intervalli CIDR, separati da virgole)</value>
+  </data>
+  <data name="Never-ban name" xml:space="preserve">
+    <value>Nome mai bloccato</value>
   </data>
   <data name="New IMAP folder" xml:space="preserve">
     <value>Nuova cartella IMAP</value>
@@ -8440,6 +8617,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="OpenPGP in the webmail - keys, signing, encrypting and decrypting, all in the browser - and publishing and looking up keys." xml:space="preserve">
     <value>OpenPGP nella webmail - chiavi, firma, cifratura e decifratura, tutto nel browser - e la pubblicazione e la ricerca delle chiavi.</value>
   </data>
+  <data name="OpenPGP key" xml:space="preserve">
+    <value>Chiave OpenPGP</value>
+  </data>
   <data name="OpenTelemetry OTLP endpoint for logs (empty = disabled)" xml:space="preserve">
     <value>Endpoint OTLP OpenTelemetry per i registri (vuoto = disattivato)</value>
   </data>
@@ -8668,6 +8848,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Passed" xml:space="preserve">
     <value>Superato</value>
   </data>
+  <data name="Passkey" xml:space="preserve">
+    <value>Passkey</value>
+  </data>
   <data name="Passkeys" xml:space="preserve">
     <value>Passkey</value>
   </data>
@@ -8822,6 +9005,9 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   </data>
   <data name="Policy file the server will serve (read-only; served by the server itself):" xml:space="preserve">
     <value>File del criterio che il server servirà (sola lettura; servito dal server stesso):</value>
+  </data>
+  <data name="Policy for a remote domain" xml:space="preserve">
+    <value>Criterio per dominio remoto</value>
   </data>
   <data name="Policy for mailbox passwords" xml:space="preserve">
     <value>Criterio per le password delle caselle</value>
@@ -9090,6 +9276,9 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   <data name="Publishing this record asks every server that delivers to {0} to e-mail you a daily report when TLS to you fails or is downgraded. The reports go to the rua= mailbox, which must exist and accept mail from strangers. This works regardless of any hMailServer setting - the senders do the reporting." xml:space="preserve">
     <value>Pubblicare questo record chiede a ogni server che consegna a {0} di inviarti per e-mail un rapporto quotidiano quando il TLS verso di te fallisce o viene declassato. I rapporti vanno alla casella rua=, che deve esistere e accettare posta da estranei. Questo funziona indipendentemente da qualsiasi impostazione di hMailServer - sono i mittenti a fare i rapporti.</value>
   </data>
+  <data name="Push subscriptions removed" xml:space="preserve">
+    <value>Sottoscrizioni push rimosse</value>
+  </data>
   <data name="Pushes the same counters the Prometheus endpoint serves, under the same names, on the interval below. Not everything on /metrics is exported: queue depth, database probes and certificate expiry are computed by the metrics listener from database and file reads, and a push exporter does not own those." xml:space="preserve">
     <value>Invia gli stessi contatori che l'endpoint Prometheus serve, con gli stessi nomi, all'intervallo indicato qui sotto. Non tutto ciò che sta su /metrics viene esportato: la profondità della coda, le sonde del database e la scadenza dei certificati sono calcolate dal listener delle metriche a partire da letture del database e dei file, e un esportatore push non le possiede.</value>
   </data>
@@ -9134,6 +9323,9 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   </data>
   <data name="Quarantine: hold the copy until it is released" xml:space="preserve">
     <value>Quarantena: trattieni la copia finché non viene rilasciata</value>
+  </data>
+  <data name="Quarantined message" xml:space="preserve">
+    <value>Messaggio in quarantena</value>
   </data>
   <data name="Query failed: {0}" xml:space="preserve">
     <value>Query non riuscita: {0}</value>
@@ -9421,6 +9613,18 @@ Esegui questa operazione se i client segnalano messaggi che compaiono con l'UID 
   <data name="Recovery" xml:space="preserve">
     <value>Recupero</value>
   </data>
+  <data name="Recovery address cleared" xml:space="preserve">
+    <value>Indirizzo di recupero cancellato</value>
+  </data>
+  <data name="Recovery address set" xml:space="preserve">
+    <value>Indirizzo di recupero impostato</value>
+  </data>
+  <data name="Recovery codes cleared" xml:space="preserve">
+    <value>Codici di recupero cancellati</value>
+  </data>
+  <data name="Recovery codes generated" xml:space="preserve">
+    <value>Codici di recupero generati</value>
+  </data>
   <data name="Redirect /.well-known/caldav to (empty = answer 404)" xml:space="preserve">
     <value>Reindirizza /.well-known/caldav a (vuoto = rispondi 404)</value>
   </data>
@@ -9616,6 +9820,9 @@ Esegui questa operazione se i client segnalano messaggi che compaiono con l'UID 
   <data name="Release this group" xml:space="preserve">
     <value>Rilascia questo gruppo</value>
   </data>
+  <data name="Released" xml:space="preserve">
+    <value>Rilasciato</value>
+  </data>
   <data name="Released {0} message to its recipients." xml:space="preserve">
     <value>{0} messaggio rilasciato ai destinatari.</value>
   </data>
@@ -9736,6 +9943,9 @@ Ogni accesso concesso a questo gruppo smette di applicarsi a quell'account.</val
   </data>
   <data name="Remove {0} messages from the queue? They are deleted without a bounce, so their senders are not told." xml:space="preserve">
     <value>Rimuovere dalla coda {0} messaggi? Vengono eliminati senza rimbalzo, quindi i mittenti non vengono avvisati.</value>
+  </data>
+  <data name="Removed" xml:space="preserve">
+    <value>Rimosso</value>
   </data>
   <data name="Rename {0} to {1}?&#10;&#10;Every account, alias and distribution list moves to the new name, and forwards or memberships in other domains that point at {0} addresses are updated to match. Mail sent to the old name will no longer be accepted." xml:space="preserve">
     <value>Rinominare {0} in {1}?
@@ -9966,6 +10176,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Restore one message" xml:space="preserve">
     <value>Ripristina un messaggio</value>
   </data>
+  <data name="Restore started" xml:space="preserve">
+    <value>Ripristino avviato</value>
+  </data>
   <data name="Restore started - runs in the background on the server." xml:space="preserve">
     <value>Ripristino avviato - viene eseguito in background sul server.</value>
   </data>
@@ -10020,6 +10233,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Retr_y through Windows logon when the directory is unavailable (FallbackToWindowsLogon)" xml:space="preserve">
     <value>Riprova tramite l'accesso Windows _quando la directory non è disponibile (FallbackToWindowsLogon)</value>
   </data>
+  <data name="Retried" xml:space="preserve">
+    <value>Ritentato</value>
+  </data>
   <data name="Retries" xml:space="preserve">
     <value>Nuovi tentativi</value>
   </data>
@@ -10037,6 +10253,12 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   </data>
   <data name="Reverse DNS (PTR) and the HELO name - set by whoever owns your IP address" xml:space="preserve">
     <value>DNS inverso (PTR) e nome HELO - impostati da chi possiede il tuo indirizzo IP</value>
+  </data>
+  <data name="Reverted" xml:space="preserve">
+    <value>Ripristinato</value>
+  </data>
+  <data name="Review settings changed" xml:space="preserve">
+    <value>Impostazioni di revisione modificate</value>
   </data>
   <data name="Revoke" xml:space="preserve">
     <value>Revoca</value>
@@ -10068,6 +10290,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Roles" xml:space="preserve">
     <value>Ruoli</value>
   </data>
+  <data name="Rolled back" xml:space="preserve">
+    <value>Riportato alla versione precedente</value>
+  </data>
   <data name="Rotate _now…" xml:space="preserve">
     <value>_Ruota ora…</value>
   </data>
@@ -10086,11 +10311,20 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Route - {0}" xml:space="preserve">
     <value>Rotta - {0}</value>
   </data>
+  <data name="Route address" xml:space="preserve">
+    <value>Indirizzo di rotta</value>
+  </data>
   <data name="Route all outbound mail through another SMTP server instead of delivering directly. For failover, separate several hosts with a vertical bar: the next host is tried when one cannot be reached (all hosts share the port, security and credentials below)." xml:space="preserve">
     <value>Instrada tutta la posta in uscita attraverso un altro server SMTP invece di consegnarla direttamente. Per il failover, separa più host con una barra verticale: quando uno non è raggiungibile viene provato l'host successivo (tutti gli host condividono la porta, la sicurezza e le credenziali qui sotto).</value>
   </data>
   <data name="Routes" xml:space="preserve">
     <value>Rotte</value>
+  </data>
+  <data name="Rule action" xml:space="preserve">
+    <value>Azione della regola</value>
+  </data>
+  <data name="Rule criterion" xml:space="preserve">
+    <value>Criterio della regola</value>
   </data>
   <data name="Rule for {0} added." xml:space="preserve">
     <value>Regola per {0} aggiunta.</value>
@@ -10184,6 +10418,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   </data>
   <data name="S/MIME - to the partner's certificate" xml:space="preserve">
     <value>S/MIME - verso il certificato del partner</value>
+  </data>
+  <data name="S/MIME certificate" xml:space="preserve">
+    <value>Certificato S/MIME</value>
   </data>
   <data name="S/MIME certificate authority" xml:space="preserve">
     <value>Autorità di certificazione S/MIME</value>
@@ -10758,6 +10995,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="SearchBase (or UserDnTemplate, to bind directly without searching)" xml:space="preserve">
     <value>SearchBase (oppure UserDnTemplate, per fare il bind direttamente senza cercare)</value>
   </data>
+  <data name="Searched" xml:space="preserve">
+    <value>Cercato</value>
+  </data>
   <data name="Searches" xml:space="preserve">
     <value>Ricerche</value>
   </data>
@@ -11067,6 +11307,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Server limits &amp; expert settings (the timeouts)" xml:space="preserve">
     <value>Limiti del server e impostazioni avanzate (i timeout)</value>
   </data>
+  <data name="Server message text" xml:space="preserve">
+    <value>Testo del messaggio del server</value>
+  </data>
   <data name="Server messages" xml:space="preserve">
     <value>Messaggi del server</value>
   </data>
@@ -11241,6 +11484,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Setting  -  {0}" xml:space="preserve">
     <value>Impostazione  -  {0}</value>
   </data>
+  <data name="Setting profile" xml:space="preserve">
+    <value>Profilo di impostazioni</value>
+  </data>
   <data name="Setting profiles" xml:space="preserve">
     <value>Profili di impostazioni</value>
   </data>
@@ -11412,6 +11658,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Signed by {0} and recorded in the Sigstore log at {1}; version {2}, {3}." xml:space="preserve">
     <value>Firmato da {0} e registrato nel registro Sigstore alle {1}; versione {2}, {3}.</value>
   </data>
+  <data name="Signed-in device" xml:space="preserve">
+    <value>Dispositivo connesso</value>
+  </data>
   <data name="Signing" xml:space="preserve">
     <value>Firma</value>
   </data>
@@ -11547,6 +11796,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Spam exemptions" xml:space="preserve">
     <value>Esenzioni antispam</value>
   </data>
+  <data name="Spam exemptions entry" xml:space="preserve">
+    <value>Esenzione antispam</value>
+  </data>
   <data name="Spam filtering overview" xml:space="preserve">
     <value>Panoramica del filtraggio antispam</value>
   </data>
@@ -11555,6 +11807,12 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   </data>
   <data name="Spam refuse threshold (score)" xml:space="preserve">
     <value>Soglia di rifiuto dello spam (punteggio)</value>
+  </data>
+  <data name="Spam trap" xml:space="preserve">
+    <value>Trappola per spam</value>
+  </data>
+  <data name="Spam trap hits" xml:space="preserve">
+    <value>Rilevamenti delle trappole per spam</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>Trappole per spam</value>
@@ -11760,8 +12018,14 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
     <value>Ad esempio zen.spamhaus.org o bl.spamcop.net</value>
   </data>
+  <data name="Support session opened" xml:space="preserve">
+    <value>Sessione di assistenza aperta</value>
+  </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Lista di soppressione</value>
+  </data>
+  <data name="Suppression list entry" xml:space="preserve">
+    <value>Voce della lista di soppressione</value>
   </data>
   <data name="Sw_itch now…" xml:space="preserve">
     <value>Cam_bia ora…</value>
@@ -13951,6 +14215,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="Turn on the require-authentication options for the range that covers your clients." xml:space="preserve">
     <value>Attivare le opzioni che richiedono l'autenticazione per l'intervallo che copre i propri client.</value>
   </data>
+  <data name="Turned off" xml:space="preserve">
+    <value>Disattivato</value>
+  </data>
   <data name="Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. For an administrator whose policy is that nothing derived from a long-lived key ever goes on the wire. The only cost is resumption efficiency - every client can still connect with a full handshake." xml:space="preserve">
     <value>Disattivarlo ferma i ticket di sessione su ogni versione di TLS: i client TLS 1.2 e precedenti ripiegano sulla cache di sessione lato server, che non lascia mai questo processo, e ai client TLS 1.3 non viene inviato alcun ticket. È pensato per l'amministratore il cui criterio è che nulla di derivato da una chiave a lunga durata finisca mai in rete. L'unico costo è l'efficienza della ripresa - ogni client può comunque connettersi con un handshake completo.</value>
   </data>
@@ -14257,6 +14524,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="Wakes the indexer instead of waiting for its next pass, and reports how many of this server's messages are currently indexed. The pass itself runs in the background and is bounded by the limits above, so on a large backlog it makes progress rather than finishing. With indexing switched off there is no indexer to wake, and this says so rather than reporting success." xml:space="preserve">
     <value>Sveglia l'indicizzatore anziché attendere la sua prossima passata, e riporta quanti messaggi di questo server sono attualmente indicizzati. La passata stessa viene eseguita in background ed è delimitata dai limiti qui sopra, quindi su un arretrato ampio produce progressi anziché completarsi. Con l'indicizzazione disattivata non c'è alcun indicizzatore da svegliare, e questo viene detto esplicitamente anziché segnalare un successo.</value>
   </data>
+  <data name="Warm-up schedule" xml:space="preserve">
+    <value>Piano di riscaldamento</value>
+  </data>
   <data name="Warn in the application log and Windows event log below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Avvisa nel registro dell'applicazione e nel registro eventi di Windows sotto questo spazio libero (MB; 0 = mai)</value>
   </data>
@@ -14304,6 +14574,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="Web services &amp; autoconfiguration" xml:space="preserve">
     <value>Servizi web e configurazione automatica</value>
+  </data>
+  <data name="Webhook subscription" xml:space="preserve">
+    <value>Sottoscrizione webhook</value>
   </data>
   <data name="Webhooks" xml:space="preserve">
     <value>Webhook</value>
