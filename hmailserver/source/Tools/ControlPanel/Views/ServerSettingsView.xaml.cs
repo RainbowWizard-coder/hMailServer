@@ -5697,9 +5697,10 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// The sentence under the header, or nothing when there is nothing to say -
-      /// which is the ordinary case, and is why a page that read cleanly shows no
-      /// notice at all rather than a line confirming that nothing went wrong.
+      /// The page's notice, above the first card of the tab on screen (PlaceNotice_),
+      /// or nothing when there is nothing to say - which is the ordinary case, and is
+      /// why a page that read cleanly shows no notice at all rather than a line
+      /// confirming that nothing went wrong.
       /// </summary>
       private void ShowNotice_(string sentence, StatusLevel level)
       {
@@ -6461,7 +6462,7 @@ namespace hMailServer.ControlPanel.Views
 
       /// <summary>
       /// Writes every row this build of the page showed an editor for, and says on
-      /// the pill and under the header what reached the server. True when every row
+      /// the pill and in the page's notice what reached the server. True when every row
       /// was saved - which is what the question before leaving a page with unsaved
       /// changes waits for before it goes on.
       /// </summary>
