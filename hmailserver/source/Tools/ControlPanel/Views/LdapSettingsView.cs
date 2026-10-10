@@ -597,7 +597,7 @@ namespace hMailServer.ControlPanel.Views
       private Card BuildTestCard_()
       {
          Card card = Section_(L("Test the connection"),
-            L("Runs the same steps the server runs, in the same order, using the values in the editors above as they stand: connect, protect the transport, bind the service credential, search for the user - and, only if a password is typed below, bind as that user to prove it. The password is used once and never stored, and the test refuses to run any configuration that would put a password on the network unprotected. One honest caveat: the test runs from this computer, so a firewall that treats this machine and the hMailServer service differently can make the two disagree."),
+            L("Runs the same steps the server runs, in the same order, using the values in the editors above as they stand: connect, protect the transport, bind the service credential, search for the user - and, only if a password is typed below, bind as that user to prove it. The password is used once and never stored, and the test refuses to run any configuration that would put a password on the network unprotected. Note: the test runs from this computer, so a firewall that treats this machine and the hMailServer service differently can make the two disagree."),
             out StackPanel content);
 
          content.Children.Add(LabelledBox_(L("User name to _look up"), testUsername_, "ldap-test-username",

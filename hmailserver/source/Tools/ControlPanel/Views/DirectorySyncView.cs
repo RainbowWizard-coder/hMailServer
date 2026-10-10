@@ -390,7 +390,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Label = L("D_omain"),
             Content = domainChoice_,
-            Hint = L("Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. Bringing one domain over at a time is the sane way to do this the first time.")
+            Hint = L("Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. The first time, bring one domain over at a time.")
          });
 
          disableMissing_.Content = L("Also mark accounts _inactive when their directory entry has gone");

@@ -3110,6 +3110,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   and string, the captions, the keys in the hints, the missing sentences and the placeholders, and
   `SettingNamesInTextTests` reads the two [LDAP] pages' keys.
 
+- **Fixed: three hints carried an aside or the project's history.** Directory authentication (LDAP)'s connection test
+  began its last sentence "One honest caveat:", Directory synchronisation called bringing one domain over at a time
+  "the sane way to do this the first time", and the archive retention on the Protocols page's SMTP tab said that
+  "until now nothing ever removed anything from it" and that the administrator who found out was "the one whose disk
+  filled up" - words every translator had to recreate and that told the administrator nothing. They now read "Note:
+  the test runs from this computer, ...", "The first time, bring one domain over at a time." and "The archive folder
+  is a raw copy of every message that passes through the server, so on a busy server it is a directory that only
+  grows; this prunes it.", in every language; the Auto-ban tarpit's history of TarpitDelay had gone with the copy
+  pass. `HintAsidesTests` holds the catalogue to none of the asides.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

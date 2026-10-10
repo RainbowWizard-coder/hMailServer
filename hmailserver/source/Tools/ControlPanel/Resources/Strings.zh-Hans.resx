@@ -8479,8 +8479,8 @@
   <data name="Only destinations named here get a bearer token; every other relay keeps password authentication. This is deliberate - a token presented to the wrong relay is a leaked token." xml:space="preserve">
     <value>只有列在此处的目标才会获得持有者令牌；其他所有中继保持密码身份验证。这是有意的 - 出示给错误中继的令牌就是泄露的令牌。</value>
   </data>
-  <data name="Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. Bringing one domain over at a time is the sane way to do this the first time." xml:space="preserve">
-    <value>只列出设置了 Active Directory 域名的域 - 正是该字段把邮件域与目录关联起来。第一次做这件事时，一次只迁移一个域才是明智的做法。</value>
+  <data name="Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. The first time, bring one domain over at a time." xml:space="preserve">
+    <value>只列出设置了 Active Directory 域名的域 - 正是该字段把邮件域与目录关联起来。第一次做时，请一次只迁移一个域。</value>
   </data>
   <data name="Only for an archive that was written with a passphrase." xml:space="preserve">
     <value>仅用于以口令写入的存档。</value>
@@ -10425,8 +10425,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Runs hMailServer.exe /GrantServiceAccess as an administrator, after Windows asks: NT SERVICE\hMailServer is given Modify on the program folder's own Data, Logs, Temp and Database folders and on the folders an administrator has approved, and Read on the program folder - never hMailServer.ini. A folder the configuration names elsewhere, such as a backup or archive folder set later, is approved only after a question that names it; key files outside those folders are listed. It can be run again at any time, and removes nobody else's permission." xml:space="preserve">
     <value>在 Windows 询问后，以管理员身份运行 hMailServer.exe /GrantServiceAccess：NT SERVICE\hMailServer 获得程序文件夹自身的 Data、Logs、Temp 和 Database 文件夹以及管理员已批准的文件夹的修改权限，以及程序文件夹的读取权限——但绝不包括 hMailServer.ini。配置在其他位置指定的文件夹（例如之后设置的备份或存档文件夹）只有在指明它的询问之后才会被批准；这些文件夹之外的密钥文件会被列出。可以随时再次运行，且不会移除任何人的权限。</value>
   </data>
-  <data name="Runs the same steps the server runs, in the same order, using the values in the editors above as they stand: connect, protect the transport, bind the service credential, search for the user - and, only if a password is typed below, bind as that user to prove it. The password is used once and never stored, and the test refuses to run any configuration that would put a password on the network unprotected. One honest caveat: the test runs from this computer, so a firewall that treats this machine and the hMailServer service differently can make the two disagree." xml:space="preserve">
-    <value>按服务器所用的相同顺序执行相同的步骤，并直接使用上面各编辑框中当前的值：连接、保护传输、绑定服务凭据、搜索用户 - 并且只有在下面输入了密码时，才以该用户的身份绑定来加以证实。密码只使用一次，绝不存储，而且只要某项配置会让密码不加保护地经过网络，测试就会拒绝运行。有一点必须坦白说明：测试是从这台计算机上运行的，因此如果防火墙对这台机器和 hMailServer 服务区别对待，两者的结果就可能不一致。</value>
+  <data name="Runs the same steps the server runs, in the same order, using the values in the editors above as they stand: connect, protect the transport, bind the service credential, search for the user - and, only if a password is typed below, bind as that user to prove it. The password is used once and never stored, and the test refuses to run any configuration that would put a password on the network unprotected. Note: the test runs from this computer, so a firewall that treats this machine and the hMailServer service differently can make the two disagree." xml:space="preserve">
+    <value>按服务器所用的相同顺序执行相同的步骤，并直接使用上面各编辑框中当前的值：连接、保护传输、绑定服务凭据、搜索用户 - 并且只有在下面输入了密码时，才以该用户的身份绑定来加以证实。密码只使用一次，绝不存储，而且只要某项配置会让密码不加保护地经过网络，测试就会拒绝运行。注意：测试是从这台计算机上运行的，因此如果防火墙对这台机器和 hMailServer 服务区别对待，两者的结果就可能不一致。</value>
   </data>
   <data name="Runs the server's built-in connectivity and configuration checks (outbound port 25, MX resolution, backup directory, IP configuration). The message-store consistency scan below is a separate read-only background task - the server runs it at start-up and hourly and records what it found in a recovery report." xml:space="preserve">
     <value>运行服务器内置的连通性和配置检查（出站端口 25、MX 解析、备份目录、IP 配置）。下面的邮件存储一致性扫描是一个独立的只读后台任务 - 服务器在启动时以及每小时运行一次，并把发现的结果记录在恢复报告中。</value>
@@ -12561,8 +12561,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The anti-virus configuration could not be read: " xml:space="preserve">
     <value>无法读取防病毒配置： </value>
   </data>
-  <data name="The archive folder is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
-    <value>存档文件夹保存的是经过服务器的每一封邮件的原始副本，而直到现在都没有任何机制从中删除任何东西 - 因此在繁忙的服务器上，它是一个只增不减的目录，而发现这一点的管理员往往就是磁盘被写满的那一位。此项会对它进行清理。0 表示保留全部，而且这是刻意为之的默认值：保留存档通常出于法律或合同上的原因，而一台在升级后开始从中删除内容的服务器，恰恰会销毁它被要求保留的东西。清理只会删除 .eml 文件，因此您在存档中保存的其他内容不会被动；它在启动时运行，此后每十二小时运行一次。</value>
+  <data name="The archive folder is a raw copy of every message that passes through the server, so on a busy server it is a directory that only grows; this prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
+    <value>存档文件夹保存的是经过服务器的每一封邮件的原始副本，因此在繁忙的服务器上，它是一个只增不减的目录；此项会对它进行清理。0 表示保留全部，而且这是刻意为之的默认值：保留存档通常出于法律或合同上的原因，而一台在升级后开始从中删除内容的服务器，恰恰会销毁它被要求保留的东西。清理只会删除 .eml 文件，因此您在存档中保存的其他内容不会被动；它在启动时运行，此后每十二小时运行一次。</value>
   </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>存档中没有此账户的邮件。</value>
