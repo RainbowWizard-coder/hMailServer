@@ -4261,6 +4261,9 @@
   <data name="Editing {0} - saved changes are live within two seconds." xml:space="preserve">
     <value>{0} を編集中 - 保存した変更は 2 秒以内に反映されます。</value>
   </data>
+  <data name="Eight lists decide whether a sender is let through or stopped - two of them can do either - each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
+    <value>送信者を通すか止めるかは 8 つのリストで決まり、そのうち 2 つはどちらも行えます。それぞれメッセージが届く過程の決まった時点で読まれ、メッセージの決まった部分と照合されます。メッセージが通る順に示します:</value>
+  </data>
   <data name="Either" xml:space="preserve">
     <value>どちらでも</value>
   </data>
@@ -4959,9 +4962,6 @@
   </data>
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>まず: どちらの半分が詰まっているか?</value>
-  </data>
-  <data name="Five lists let a sender through and three stop one, each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
-    <value>送信者を通すリストが 5 つ、止めるリストが 3 つあり、それぞれメッセージが届く過程の決まった時点で読まれ、メッセージの決まった部分と照合されます。メッセージが通る順に示します:</value>
   </data>
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>固定トークン (上級者向け。取得せずにそのまま使われます)</value>

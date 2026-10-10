@@ -4261,6 +4261,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Editing {0} - saved changes are live within two seconds." xml:space="preserve">
     <value>Redigerar {0} - sparade ändringar är i drift inom två sekunder.</value>
   </data>
+  <data name="Eight lists decide whether a sender is let through or stopped - two of them can do either - each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
+    <value>Åtta listor avgör om en avsändare släpps igenom eller stoppas - två av dem kan göra båda delarna; var och en läses vid sin egen tidpunkt medan meddelandet kommer in och jämförs med sin egen del av det. I den ordning ett meddelande möter dem:</value>
+  </data>
   <data name="Either" xml:space="preserve">
     <value>Endera</value>
   </data>
@@ -4959,9 +4962,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>Först: vilken halva har fastnat?</value>
-  </data>
-  <data name="Five lists let a sender through and three stop one, each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
-    <value>Fem listor släpper igenom en avsändare och tre stoppar en; var och en läses vid sin egen tidpunkt medan meddelandet kommer in och jämförs med sin egen del av det. I den ordning ett meddelande möter dem:</value>
   </data>
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>Fast token (avancerat; används ordagrant i stället för att hämtas)</value>

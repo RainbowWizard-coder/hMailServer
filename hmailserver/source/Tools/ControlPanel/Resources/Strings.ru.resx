@@ -4307,6 +4307,9 @@ Control Panel может читать файлы сообщений только
   <data name="Editing {0} - saved changes are live within two seconds." xml:space="preserve">
     <value>Изменение {0} — сохранённые изменения вступают в силу в течение двух секунд.</value>
   </data>
+  <data name="Eight lists decide whether a sender is let through or stopped - two of them can do either - each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
+    <value>Восемь списков решают, пропустить отправителя или остановить его, - два из них могут и то и другое; каждый читается в свой момент прихода письма и сравнивается со своей частью письма. В том порядке, в каком письмо их встречает:</value>
+  </data>
   <data name="Either" xml:space="preserve">
     <value>Любой</value>
   </data>
@@ -5023,9 +5026,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>Сначала: какая из двух половин застряла?</value>
-  </data>
-  <data name="Five lists let a sender through and three stop one, each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
-    <value>Пять списков пропускают отправителя, а три останавливают его; каждый читается в свой момент прихода письма и сравнивается со своей частью письма. В том порядке, в каком письмо их встречает:</value>
   </data>
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>Фиксированный токен (для опытных; используется дословно вместо получения)</value>

@@ -37,8 +37,8 @@ namespace hMailServer.ControlPanel.Services
    /// <summary>
    /// "Which list do I need?": the eight lists that let a sender through or stop one,
    /// in the order a message meets them, each with when it is read, what it is
-   /// matched against and what a match does. There are five ways to let a sender
-   /// through and three to stop one, and each page explained at most one neighbour
+   /// matched against and what a match does. Three let a sender through, three stop
+   /// one and two can do either, and each page explained at most one neighbour
    /// (review finding F269). What each says is the server's: the spam exemptions and
    /// the allowed and blocked domains are read at MAIL FROM (SMTPConnection::
    /// InitializeSpamProtectionType_, and the domain policy right after it), the

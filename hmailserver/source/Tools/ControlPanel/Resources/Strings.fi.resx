@@ -4261,6 +4261,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Editing {0} - saved changes are live within two seconds." xml:space="preserve">
     <value>Muokataan: {0} - tallennetut muutokset ovat voimassa kahden sekunnin kuluessa.</value>
   </data>
+  <data name="Eight lists decide whether a sender is let through or stopped - two of them can do either - each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
+    <value>Kahdeksan luetteloa ratkaisee, päästetäänkö lähettäjä läpi vai pysäytetäänkö se - kaksi niistä voi tehdä kumpaa tahansa; kukin luetaan omassa vaiheessaan viestin saapuessa ja verrataan viestin omaan osaansa. Siinä järjestyksessä, jossa viesti kohtaa ne:</value>
+  </data>
   <data name="Either" xml:space="preserve">
     <value>Kumpi tahansa</value>
   </data>
@@ -4959,9 +4962,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>Ensin: kumpi puolisko on jumissa?</value>
-  </data>
-  <data name="Five lists let a sender through and three stop one, each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
-    <value>Viisi luetteloa päästää lähettäjän läpi ja kolme pysäyttää sen; kukin luetaan omassa vaiheessaan viestin saapuessa ja verrataan viestin omaan osaansa. Siinä järjestyksessä, jossa viesti kohtaa ne:</value>
   </data>
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>Kiinteä token (edistynyt; käytetään sellaisenaan noutamisen sijaan)</value>

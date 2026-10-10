@@ -4307,6 +4307,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Editing {0} - saved changes are live within two seconds." xml:space="preserve">
     <value>Edytowanie {0} - zapisane zmiany działają w ciągu dwóch sekund.</value>
   </data>
+  <data name="Eight lists decide whether a sender is let through or stopped - two of them can do either - each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
+    <value>O tym, czy nadawca zostanie przepuszczony, czy zatrzymany, decyduje osiem list - dwie z nich potrafią jedno i drugie; każdą czyta się w innej chwili nadejścia wiadomości i porównuje z inną jej częścią. W kolejności, w jakiej wiadomość na nie trafia:</value>
+  </data>
   <data name="Either" xml:space="preserve">
     <value>Dowolne</value>
   </data>
@@ -5023,9 +5026,6 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>Najpierw: która połowa utknęła?</value>
-  </data>
-  <data name="Five lists let a sender through and three stop one, each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
-    <value>Pięć list przepuszcza nadawcę, a trzy go zatrzymują; każdą czyta się w innej chwili nadejścia wiadomości i porównuje z inną jej częścią. W kolejności, w jakiej wiadomość na nie trafia:</value>
   </data>
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>Stały token (zaawansowane; używany dosłownie zamiast pobierania)</value>

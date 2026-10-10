@@ -4261,6 +4261,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Editing {0} - saved changes are live within two seconds." xml:space="preserve">
     <value>Redigerer {0} - lagrede endringer er aktive innen to sekunder.</value>
   </data>
+  <data name="Eight lists decide whether a sender is let through or stopped - two of them can do either - each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
+    <value>Åtte lister avgjør om en avsender slippes gjennom eller stoppes - to av dem kan gjøre begge deler; hver leses på sitt eget tidspunkt mens meldingen kommer inn, og sammenlignes med sin egen del av den. I den rekkefølgen en melding møter dem:</value>
+  </data>
   <data name="Either" xml:space="preserve">
     <value>Begge</value>
   </data>
@@ -4959,9 +4962,6 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>Først: hvilken halvdel sitter fast?</value>
-  </data>
-  <data name="Five lists let a sender through and three stop one, each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
-    <value>Fem lister slipper en avsender gjennom og tre stopper en; hver leses på sitt eget tidspunkt mens meldingen kommer inn, og sammenlignes med sin egen del av den. I den rekkefølgen en melding møter dem:</value>
   </data>
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>Fast token (avansert; brukes ordrett i stedet for å hentes)</value>

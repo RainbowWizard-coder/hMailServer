@@ -606,7 +606,7 @@ namespace hMailServer.ControlPanel.Views
       /// one, in the order a message meets them, each with when it is read, what it
       /// is matched against and what a match does, its page and its count (review
       /// finding F269). The card was "The lists behind the checks", seven names and
-      /// counts; there are five ways to let a sender through and three to stop one,
+      /// counts; three let a sender through, three stop one and two can do either,
       /// and only one of their pages said how it differed from another. The words
       /// are <see cref="SenderListGuide"/>'s, which says where in the server each
       /// comes from.
@@ -614,7 +614,7 @@ namespace hMailServer.ControlPanel.Views
       private Card ListsCard(SpamPipelineConfig config)
       {
          Card card = Section(L("Which list do I need?"), out StackPanel content);
-         content.Children.Add(Paragraph(L("Five lists let a sender through and three stop one, each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:"),
+         content.Children.Add(Paragraph(L("Eight lists decide whether a sender is let through or stopped - two of them can do either - each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:"),
             Typography.Caption));
 
          // The list's names as wide as the widest of them, so that none is cut, and the

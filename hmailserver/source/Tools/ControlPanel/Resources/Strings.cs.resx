@@ -4307,6 +4307,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Editing {0} - saved changes are live within two seconds." xml:space="preserve">
     <value>Úprava {0} - uložené změny jsou živé do dvou sekund.</value>
   </data>
+  <data name="Eight lists decide whether a sender is let through or stopped - two of them can do either - each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
+    <value>O tom, zda odesílatele propustit, nebo zastavit, rozhoduje osm seznamů - dva z nich umějí obojí; každý se čte v jiném okamžiku příchodu zprávy a porovnává se s jinou její částí. V pořadí, v jakém na ně zpráva narazí:</value>
+  </data>
   <data name="Either" xml:space="preserve">
     <value>Obojí</value>
   </data>
@@ -5023,9 +5026,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>Nejdřív: která polovina uvázla?</value>
-  </data>
-  <data name="Five lists let a sender through and three stop one, each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
-    <value>Pět seznamů odesílatele propustí a tři ho zastaví; každý se čte v jiném okamžiku příchodu zprávy a porovnává se s jinou její částí. V pořadí, v jakém na ně zpráva narazí:</value>
   </data>
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>Pevný token (pokročilé; použije se doslovně místo stahování)</value>

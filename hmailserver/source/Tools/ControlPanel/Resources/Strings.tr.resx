@@ -4261,6 +4261,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Editing {0} - saved changes are live within two seconds." xml:space="preserve">
     <value>{0} düzenleniyor - kaydedilen değişiklikler iki saniye içinde geçerli olur.</value>
   </data>
+  <data name="Eight lists decide whether a sender is let through or stopped - two of them can do either - each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
+    <value>Bir gönderenin geçirilmesine mi durdurulmasına mı sekiz liste karar verir - bunlardan ikisi ikisini de yapabilir; her biri iletinin gelişinin kendi anında okunur ve iletinin kendi bölümüyle karşılaştırılır. Bir iletinin onlarla karşılaştığı sırayla:</value>
+  </data>
   <data name="Either" xml:space="preserve">
     <value>Her ikisi</value>
   </data>
@@ -4959,9 +4962,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>Önce: hangi yarı takılı?</value>
-  </data>
-  <data name="Five lists let a sender through and three stop one, each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
-    <value>Beş liste bir göndereni geçirir, üçü durdurur; her biri iletinin gelişinin kendi anında okunur ve iletinin kendi bölümüyle karşılaştırılır. Bir iletinin onlarla karşılaştığı sırayla:</value>
   </data>
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>Sabit belirteç (gelişmiş; getirmek yerine olduğu gibi kullanılır)</value>

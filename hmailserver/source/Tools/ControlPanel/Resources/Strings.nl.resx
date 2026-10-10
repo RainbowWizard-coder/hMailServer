@@ -4261,6 +4261,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Editing {0} - saved changes are live within two seconds." xml:space="preserve">
     <value>{0} wordt bewerkt - opgeslagen wijzigingen zijn binnen twee seconden actief.</value>
   </data>
+  <data name="Eight lists decide whether a sender is let through or stopped - two of them can do either - each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
+    <value>Acht lijsten beslissen of een afzender wordt doorgelaten of tegengehouden - twee ervan kunnen allebei; elke lijst wordt op zijn eigen moment gelezen terwijl een bericht binnenkomt en vergeleken met zijn eigen deel ervan. In de volgorde waarin een bericht ze tegenkomt:</value>
+  </data>
   <data name="Either" xml:space="preserve">
     <value>Beide</value>
   </data>
@@ -4959,9 +4962,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>Eerst: welke helft zit vast?</value>
-  </data>
-  <data name="Five lists let a sender through and three stop one, each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
-    <value>Vijf lijsten laten een afzender door en drie houden er een tegen; elke lijst wordt op zijn eigen moment gelezen terwijl een bericht binnenkomt en vergeleken met zijn eigen deel ervan. In de volgorde waarin een bericht ze tegenkomt:</value>
   </data>
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>Vast token (geavanceerd; wordt letterlijk gebruikt in plaats van opgehaald)</value>

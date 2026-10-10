@@ -4307,6 +4307,9 @@
   <data name="Editing {0} - saved changes are live within two seconds." xml:space="preserve">
     <value>Редагування {0} - збережені зміни діють протягом двох секунд.</value>
   </data>
+  <data name="Eight lists decide whether a sender is let through or stopped - two of them can do either - each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
+    <value>Вісім списків вирішують, пропустити відправника чи зупинити його, - два з них можуть і те, і те; кожен читається у свій момент надходження листа й порівнюється зі своєю частиною листа. У порядку, в якому лист їх зустрічає:</value>
+  </data>
   <data name="Either" xml:space="preserve">
     <value>Будь-який</value>
   </data>
@@ -5023,9 +5026,6 @@
   </data>
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>Спершу: яка половина зависла?</value>
-  </data>
-  <data name="Five lists let a sender through and three stop one, each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
-    <value>П'ять списків пропускають відправника, а три зупиняють його; кожен читається у свій момент надходження листа й порівнюється зі своєю частиною листа. У порядку, в якому лист їх зустрічає:</value>
   </data>
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>Фіксований токен (додатково; використовується як є замість отримання)</value>

@@ -4261,6 +4261,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Editing {0} - saved changes are live within two seconds." xml:space="preserve">
     <value>{0} wird bearbeitet - gespeicherte Änderungen sind innerhalb von zwei Sekunden aktiv.</value>
   </data>
+  <data name="Eight lists decide whether a sender is let through or stopped - two of them can do either - each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
+    <value>Acht Listen entscheiden, ob ein Absender durchgelassen oder aufgehalten wird - zwei von ihnen können beides; jede wird zu ihrem eigenen Zeitpunkt beim Eintreffen einer Nachricht gelesen und mit ihrem eigenen Teil davon verglichen. In der Reihenfolge, in der eine Nachricht auf sie trifft:</value>
+  </data>
   <data name="Either" xml:space="preserve">
     <value>Beides</value>
   </data>
@@ -4959,9 +4962,6 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   </data>
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>Zuerst: welche Hälfte hängt?</value>
-  </data>
-  <data name="Five lists let a sender through and three stop one, each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
-    <value>Fünf Listen lassen einen Absender durch und drei halten ihn auf; jede wird zu ihrem eigenen Zeitpunkt beim Eintreffen einer Nachricht gelesen und mit ihrem eigenen Teil davon verglichen. In der Reihenfolge, in der eine Nachricht auf sie trifft:</value>
   </data>
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>Festes Token (fortgeschritten; wird wörtlich verwendet statt geholt)</value>

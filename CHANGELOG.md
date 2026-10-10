@@ -2230,27 +2230,28 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Contrast. A row that shares its key with others on its page is shown by its label: Auto-ban's four country rows, one
   for each kind of connection, open at IMAP, POP3 or the web as chosen, not all at SMTP (review finding F274).
 
-- **New: the spam filtering overview says which list to use, and checks a sender against every list.** Five lists
-  let a sender through and three stop one - the spam exemptions, the allowed and blocked domains, the blocked senders,
-  the DNS block lists, the greylisting exemptions, the greylisting bypass list, SURBL and the allow and block list -
-  and each page explained at most one neighbour, with nothing to say whether a sender was on any of them. The
-  overview's "The lists behind the checks" is now "Which list do I need?": one row for each list, in the order a
-  message meets them, with when the server reads it, what it is matched against and what a match does, its page and
-  its count. Under it, "Check a sender" takes an address, a connecting IP address or both and says what each list
-  does with them - stops it, lets it through, adds to the score, depends on a condition (an IP range, an SPF, DKIM or
-  DMARC pass), no match, not checked, or not reached - by the rules the server matches each list by: the exemptions'
-  IP ranges and address wildcards, an entry with an @ as one exact address and one without as a domain with its
-  subdomains, the most specific entry of the allow and block list and a block on a tie, an expired entry skipped, the
-  greylisting exemptions' wildcards, and an exact domain over a .suffix. The answers are the server's, in the order it
-  reads the lists: a spam exemption that covers the sender keeps the server from every other list but the allow and
-  block list, which delivery still reads; a blocked domain is refused at MAIL FROM, before any later list; and an
-  allowed domain is never greylisted, nor refused or quarantined by its score, so a blocked sender's entry adds to the
-  score without stopping it. Above the rows, a line says which list decides, at its level and with its sentence - "The
-  list that decides is Allowed and blocked domains. The entry mass-mail.example blocks this domain: its mail is refused
-  at MAIL FROM." - or that none does and the spam checks and their score decide, and a screen reader hears it once the
-  check is done, the keyboard staying in the address box. The DNS block lists and SURBL are asked of the network as
-  mail arrives and are not checked here, nor are entries matched against the HELO name alone; a list that cannot be
-  read says so while the others answer, and the line then says the answer may change (review finding F269).
+- **New: the spam filtering overview says which list to use, and checks a sender against every list.** Eight lists
+  decide whether a sender is let through or stopped, and two of them can do either - the spam exemptions, the allowed
+  and blocked domains, the blocked senders, the DNS block lists, the greylisting exemptions, the greylisting bypass
+  list, SURBL and the allow and block list - and each page explained at most one neighbour, with nothing to say
+  whether a sender was on any of them. The overview's "The lists behind the checks" is now "Which list do I need?":
+  one row for each list, in the order a message meets them, with when the server reads it, what it is matched against
+  and what a match does, its page and its count. Under it, "Check a sender" takes an address, a connecting IP address
+  or both and says what each list does with them - stops it, lets it through, adds to the score, depends on a
+  condition (an IP range, an SPF, DKIM or DMARC pass), no match, not checked, or not reached - by the rules the server
+  matches each list by: the exemptions' IP ranges and address wildcards, an entry with an @ as one exact address and
+  one without as a domain with its subdomains, the most specific entry of the allow and block list and a block on a
+  tie, an expired entry skipped, the greylisting exemptions' wildcards, and an exact domain over a .suffix. The
+  answers are the server's, in the order it reads the lists: a spam exemption that covers the sender keeps the server
+  from every other list but the allow and block list, which delivery still reads; a blocked domain is refused at MAIL
+  FROM, before any later list; and an allowed domain is never greylisted, nor refused or quarantined by its score, so
+  a blocked sender's entry adds to the score without stopping it. Above the rows, a line says which list decides, at
+  its level and with its sentence - "The list that decides is Allowed and blocked domains. The entry mass-mail.example
+  blocks this domain: its mail is refused at MAIL FROM." - or that none does and the spam checks and their score
+  decide, and a screen reader hears it once the check is done, the keyboard staying in the address box. The DNS block
+  lists and SURBL are asked of the network as mail arrives and are not checked here, nor are entries matched against
+  the HELO name alone; a list that cannot be read says so while the others answer, and the line then says the answer
+  may change (review finding F269).
 
 ### Administration
 

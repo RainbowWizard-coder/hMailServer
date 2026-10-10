@@ -40,9 +40,17 @@ namespace hMailServer.ControlPanel.Tests.Services
             Assert.False(string.IsNullOrWhiteSpace(row.Does));
          }
 
-         // Five let a sender through and three stop one, as the card's lead says.
+         // Two of the eight can do either, as the card's lead says: the allowed and
+         // blocked domains and the allow and block list each say what an allowed entry
+         // does and what a blocked one does.
          Assert.Contains("Skips every spam check", SenderListGuide.Rows[0].Does, StringComparison.Ordinal);
          Assert.Contains("refused at MAIL FROM", SenderListGuide.Rows[1].Does, StringComparison.Ordinal);
+         string[] either = SenderListGuide.Rows.Where(r => r.Does.StartsWith("Allowed:", StringComparison.Ordinal) && r.Does.Contains(" Blocked: ", StringComparison.Ordinal))
+            .Select(r => r.Page).ToArray();
+         Assert.Equal(new[] { "domainpolicylist", "senderlist" }, either);
+         string view = ReadView_("SpamOverviewView.cs");
+         Assert.Contains("L(\"Eight lists decide whether a sender is let through or stopped - two of them can do either - ", view, StringComparison.Ordinal);
+         Assert.DoesNotContain("Five lists let a sender through and three stop one", view, StringComparison.Ordinal);
       }
 
       // ---- the spam exemptions: WhiteListCache::IsWhitelisted -----------------------

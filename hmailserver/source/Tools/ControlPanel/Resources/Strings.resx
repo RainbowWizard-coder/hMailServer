@@ -4261,6 +4261,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Editing {0} - saved changes are live within two seconds." xml:space="preserve">
     <value>Editing {0} - saved changes are live within two seconds.</value>
   </data>
+  <data name="Eight lists decide whether a sender is let through or stopped - two of them can do either - each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
+    <value>Eight lists decide whether a sender is let through or stopped - two of them can do either - each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:</value>
+  </data>
   <data name="Either" xml:space="preserve">
     <value>Either</value>
   </data>
@@ -4959,9 +4962,6 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>First: which half is stuck?</value>
-  </data>
-  <data name="Five lists let a sender through and three stop one, each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
-    <value>Five lists let a sender through and three stop one, each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:</value>
   </data>
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>Fixed token (advanced; used verbatim instead of fetching)</value>

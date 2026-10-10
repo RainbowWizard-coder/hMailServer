@@ -4261,6 +4261,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Editing {0} - saved changes are live within two seconds." xml:space="preserve">
     <value>Modification de {0} - les changements enregistrés sont actifs sous deux secondes.</value>
   </data>
+  <data name="Eight lists decide whether a sender is let through or stopped - two of them can do either - each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
+    <value>Huit listes décident si un expéditeur passe ou est arrêté - deux d'entre elles peuvent faire l'un ou l'autre ; chacune est lue à son propre moment de l'arrivée d'un message et comparée à sa propre partie de celui-ci. Dans l'ordre où un message les rencontre :</value>
+  </data>
   <data name="Either" xml:space="preserve">
     <value>L'un ou l'autre</value>
   </data>
@@ -4959,9 +4962,6 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   </data>
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>D'abord : quelle moitié est bloquée ?</value>
-  </data>
-  <data name="Five lists let a sender through and three stop one, each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
-    <value>Cinq listes laissent passer un expéditeur et trois l'arrêtent ; chacune est lue à son propre moment de l'arrivée d'un message et comparée à sa propre partie de celui-ci. Dans l'ordre où un message les rencontre :</value>
   </data>
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>Jeton fixe (avancé ; utilisé tel quel au lieu d'être récupéré)</value>

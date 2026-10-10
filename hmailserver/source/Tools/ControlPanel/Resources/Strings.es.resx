@@ -4261,6 +4261,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Editing {0} - saved changes are live within two seconds." xml:space="preserve">
     <value>Editando {0} - los cambios guardados están activos en dos segundos.</value>
   </data>
+  <data name="Eight lists decide whether a sender is let through or stopped - two of them can do either - each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
+    <value>Ocho listas deciden si un remitente pasa o se detiene, y dos de ellas pueden hacer ambas cosas; cada una se lee en su propio momento de la llegada de un mensaje y se compara con su propia parte de él. En el orden en que un mensaje las encuentra:</value>
+  </data>
   <data name="Either" xml:space="preserve">
     <value>Cualquiera</value>
   </data>
@@ -4959,9 +4962,6 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>Primero: ¿qué mitad está atascada?</value>
-  </data>
-  <data name="Five lists let a sender through and three stop one, each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
-    <value>Cinco listas dejan pasar a un remitente y tres lo detienen; cada una se lee en su propio momento de la llegada de un mensaje y se compara con su propia parte de él. En el orden en que un mensaje las encuentra:</value>
   </data>
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>Token fijo (avanzado; se usa tal cual en vez de obtenerlo)</value>

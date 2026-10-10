@@ -4261,6 +4261,9 @@
   <data name="Editing {0} - saved changes are live within two seconds." xml:space="preserve">
     <value>正在编辑 {0} - 保存的更改会在两秒钟内生效。</value>
   </data>
+  <data name="Eight lists decide whether a sender is let through or stopped - two of them can do either - each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
+    <value>八个列表决定放行还是拦下发件人，其中两个两者都能做；每个列表在邮件到达过程中的特定时刻读取，并与邮件的特定部分比对。按邮件经过它们的顺序列出：</value>
+  </data>
   <data name="Either" xml:space="preserve">
     <value>任一</value>
   </data>
@@ -4959,9 +4962,6 @@
   </data>
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>首先：卡住的是哪一半？</value>
-  </data>
-  <data name="Five lists let a sender through and three stop one, each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
-    <value>五个列表会放行发件人，三个会拦下发件人；每个列表在邮件到达过程中的特定时刻读取，并与邮件的特定部分比对。按邮件经过它们的顺序列出：</value>
   </data>
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>固定令牌（高级；按原样使用而不是获取）</value>
