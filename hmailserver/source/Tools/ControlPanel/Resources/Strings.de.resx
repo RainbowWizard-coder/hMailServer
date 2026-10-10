@@ -1083,9 +1083,6 @@ Das Control Panel kann Nachrichtendateien nur lesen, wenn es auf demselben Rechn
   <data name="Add distribution list" xml:space="preserve">
     <value>Verteilerliste hinzufügen</value>
   </data>
-  <data name="Add domains, accounts, aliases and distribution lists." xml:space="preserve">
-    <value>Domains, Konten, Aliase und Verteilerlisten hinzufügen.</value>
-  </data>
   <data name="Add domains, accounts, aliases, distribution lists, DKIM signing and external (POP3) collection." xml:space="preserve">
     <value>Domains, Konten, Aliase, Verteilerlisten, DKIM-Signierung und externe (POP3-)Abholung hinzufügen.</value>
   </data>
@@ -1932,9 +1929,6 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   </data>
   <data name="Back up or restore the configuration, the domains and the messages." xml:space="preserve">
     <value>Konfiguration, Domains und Nachrichten sichern oder wiederherstellen.</value>
-  </data>
-  <data name="Back up or restore your configuration and data." xml:space="preserve">
-    <value>Sichern oder stellen Sie Ihre Konfiguration und Daten wieder her.</value>
   </data>
   <data name="Back up the configuration and the mail" xml:space="preserve">
     <value>Konfiguration und Mail sichern</value>
@@ -3365,9 +3359,6 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   </data>
   <data name="DANE for inbound mail - publish TLSA records for your MX hosts" xml:space="preserve">
     <value>DANE für eingehende Mail - TLSA-Einträge für Ihre MX-Hosts veröffentlichen</value>
-  </data>
-  <data name="DANE, MTA-STS, ARC and TLS reporting." xml:space="preserve">
-    <value>DANE, MTA-STS, ARC und TLS-Berichte.</value>
   </data>
   <data name="DKIM" xml:space="preserve">
     <value>DKIM</value>
@@ -6111,9 +6102,6 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   <data name="Live logs" xml:space="preserve">
     <value>Live-Protokolle</value>
   </data>
-  <data name="Live processed-mail, spam and virus counters with charts." xml:space="preserve">
-    <value>Live-Zähler für verarbeitete Mail, Spam und Viren, mit Diagrammen.</value>
-  </data>
   <data name="Live server statistics - last update {0}" xml:space="preserve">
     <value>Live-Serverstatistik - letzte Aktualisierung {0}</value>
   </data>
@@ -8128,6 +8116,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="Opens {0}" xml:space="preserve">
     <value>Öffnet {0}</value>
   </data>
+  <data name="Opens {0}, the first page of this area." xml:space="preserve">
+    <value>Öffnet {0}, die erste Seite dieses Bereichs.</value>
+  </data>
   <data name="Open…" xml:space="preserve">
     <value>Öffnen…</value>
   </data>
@@ -8669,9 +8660,6 @@ Es werden keine neuen Verbindungen angenommen und keine Mail zugestellt, bis er 
   </data>
   <data name="Protocols" xml:space="preserve">
     <value>Protokolle</value>
-  </data>
-  <data name="Protocols, delivery, anti-spam, anti-virus and advanced options." xml:space="preserve">
-    <value>Protokolle, Zustellung, Anti-Spam, Antivirus und erweiterte Optionen.</value>
   </data>
   <data name="Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)" xml:space="preserve">
     <value>Proxys, die einen PROXY-Header senden dürfen (kommagetrennte Adressen oder CIDR-Bereiche)</value>
@@ -10612,9 +10600,6 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Server sendout mails every account, or every account matching a wildcard." xml:space="preserve">
     <value>Die Server-Rundsendung mailt an jedes Konto oder an jedes Konto, das einem Platzhalter entspricht.</value>
   </data>
-  <data name="Server settings" xml:space="preserve">
-    <value>Servereinstellungen</value>
-  </data>
   <data name="Server status" xml:space="preserve">
     <value>Serverstatus</value>
   </data>
@@ -11220,9 +11205,6 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   </data>
   <data name="Stream the server log as it is written - the fastest way to see what happened to one message." xml:space="preserve">
     <value>Das Serverprotokoll streamen, während es geschrieben wird - der schnellste Weg zu sehen, was mit einer einzelnen Nachricht geschehen ist.</value>
-  </data>
-  <data name="Stream the server log in real time." xml:space="preserve">
-    <value>Das Serverprotokoll in Echtzeit streamen.</value>
   </data>
   <data name="Streaming {0}" xml:space="preserve">
     <value>{0} wird gestreamt</value>

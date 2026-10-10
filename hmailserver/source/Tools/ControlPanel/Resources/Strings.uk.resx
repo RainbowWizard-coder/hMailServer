@@ -1089,9 +1089,6 @@
   <data name="Add distribution list" xml:space="preserve">
     <value>Додати список розсилки</value>
   </data>
-  <data name="Add domains, accounts, aliases and distribution lists." xml:space="preserve">
-    <value>Додавайте домени, облікові записи, псевдоніми та списки розсилки.</value>
-  </data>
   <data name="Add domains, accounts, aliases, distribution lists, DKIM signing and external (POP3) collection." xml:space="preserve">
     <value>Додавайте домени, облікові записи, псевдоніми, списки розсилки, підписування DKIM і зовнішнє збирання пошти (POP3).</value>
   </data>
@@ -1953,9 +1950,6 @@
   </data>
   <data name="Back up or restore the configuration, the domains and the messages." xml:space="preserve">
     <value>Створіть резервну копію або відновіть конфігурацію, домени та повідомлення.</value>
-  </data>
-  <data name="Back up or restore your configuration and data." xml:space="preserve">
-    <value>Створіть резервну копію або відновіть свою конфігурацію та дані.</value>
   </data>
   <data name="Back up the configuration and the mail" xml:space="preserve">
     <value>Резервне копіювання конфігурації та пошти</value>
@@ -3389,9 +3383,6 @@
   </data>
   <data name="DANE for inbound mail - publish TLSA records for your MX hosts" xml:space="preserve">
     <value>DANE для вхідної пошти — опублікуйте TLSA-записи для своїх MX-вузлів</value>
-  </data>
-  <data name="DANE, MTA-STS, ARC and TLS reporting." xml:space="preserve">
-    <value>DANE, MTA-STS, ARC і звітування про TLS.</value>
   </data>
   <data name="DKIM" xml:space="preserve">
     <value>DKIM</value>
@@ -6175,9 +6166,6 @@
   <data name="Live logs" xml:space="preserve">
     <value>Живі журнали</value>
   </data>
-  <data name="Live processed-mail, spam and virus counters with charts." xml:space="preserve">
-    <value>Живі лічильники обробленої пошти, спаму та вірусів із діаграмами.</value>
-  </data>
   <data name="Live server statistics - last update {0}" xml:space="preserve">
     <value>Жива статистика сервера — останнє оновлення {0}</value>
   </data>
@@ -8216,6 +8204,9 @@
   <data name="Opens {0}" xml:space="preserve">
     <value>Відкриває {0}</value>
   </data>
+  <data name="Opens {0}, the first page of this area." xml:space="preserve">
+    <value>Відкриває сторінку «{0}», першу в цьому розділі.</value>
+  </data>
   <data name="Open…" xml:space="preserve">
     <value>Відкрити…</value>
   </data>
@@ -8757,9 +8748,6 @@
   </data>
   <data name="Protocols" xml:space="preserve">
     <value>Протоколи</value>
-  </data>
-  <data name="Protocols, delivery, anti-spam, anti-virus and advanced options." xml:space="preserve">
-    <value>Протоколи, доставка, захист від спаму, захист від вірусів і додаткові параметри.</value>
   </data>
   <data name="Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)" xml:space="preserve">
     <value>Проксі, яким дозволено надсилати заголовок PROXY (адреси або діапазони CIDR через кому)</value>
@@ -10736,9 +10724,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Server sendout mails every account, or every account matching a wildcard." xml:space="preserve">
     <value>Розсилання сервера надсилає лист кожному обліковому запису або кожному, що відповідає шаблону.</value>
   </data>
-  <data name="Server settings" xml:space="preserve">
-    <value>Параметри сервера</value>
-  </data>
   <data name="Server status" xml:space="preserve">
     <value>Стан сервера</value>
   </data>
@@ -11347,9 +11332,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Stream the server log as it is written - the fastest way to see what happened to one message." xml:space="preserve">
     <value>Показувати журнал сервера у міру запису - найшвидший спосіб побачити, що сталося з одним повідомленням.</value>
-  </data>
-  <data name="Stream the server log in real time." xml:space="preserve">
-    <value>Показувати журнал сервера в реальному часі.</value>
   </data>
   <data name="Streaming {0}" xml:space="preserve">
     <value>Показується {0}</value>

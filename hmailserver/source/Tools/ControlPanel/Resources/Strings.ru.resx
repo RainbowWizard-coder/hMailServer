@@ -1089,9 +1089,6 @@ Control Panel может читать файлы сообщений только
   <data name="Add distribution list" xml:space="preserve">
     <value>Добавить список рассылки</value>
   </data>
-  <data name="Add domains, accounts, aliases and distribution lists." xml:space="preserve">
-    <value>Добавляйте домены, учётные записи, псевдонимы и списки рассылки.</value>
-  </data>
   <data name="Add domains, accounts, aliases, distribution lists, DKIM signing and external (POP3) collection." xml:space="preserve">
     <value>Добавляйте домены, учётные записи, псевдонимы, списки рассылки, подписывание DKIM и внешний сбор почты (POP3).</value>
   </data>
@@ -1953,9 +1950,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Back up or restore the configuration, the domains and the messages." xml:space="preserve">
     <value>Создавайте резервные копии конфигурации, доменов и сообщений или восстанавливайте их из копии.</value>
-  </data>
-  <data name="Back up or restore your configuration and data." xml:space="preserve">
-    <value>Создавайте резервные копии конфигурации и данных или восстанавливайте их из копии.</value>
   </data>
   <data name="Back up the configuration and the mail" xml:space="preserve">
     <value>Резервное копирование конфигурации и почты</value>
@@ -3389,9 +3383,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="DANE for inbound mail - publish TLSA records for your MX hosts" xml:space="preserve">
     <value>DANE для входящей почты — опубликуйте записи TLSA для своих узлов MX</value>
-  </data>
-  <data name="DANE, MTA-STS, ARC and TLS reporting." xml:space="preserve">
-    <value>DANE, MTA-STS, ARC и отчётность по TLS.</value>
   </data>
   <data name="DKIM" xml:space="preserve">
     <value>DKIM</value>
@@ -6175,9 +6166,6 @@ Control Panel может читать файлы сообщений только
   <data name="Live logs" xml:space="preserve">
     <value>Журналы в реальном времени</value>
   </data>
-  <data name="Live processed-mail, spam and virus counters with charts." xml:space="preserve">
-    <value>Счётчики обработанной почты, спама и вирусов в реальном времени с графиками.</value>
-  </data>
   <data name="Live server statistics - last update {0}" xml:space="preserve">
     <value>Статистика сервера в реальном времени — последнее обновление {0}</value>
   </data>
@@ -8216,6 +8204,9 @@ Control Panel может читать файлы сообщений только
   <data name="Opens {0}" xml:space="preserve">
     <value>Открывает {0}</value>
   </data>
+  <data name="Opens {0}, the first page of this area." xml:space="preserve">
+    <value>Открывает страницу «{0}», первую в этом разделе.</value>
+  </data>
   <data name="Open…" xml:space="preserve">
     <value>Открыть…</value>
   </data>
@@ -8757,9 +8748,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Protocols" xml:space="preserve">
     <value>Протоколы</value>
-  </data>
-  <data name="Protocols, delivery, anti-spam, anti-virus and advanced options." xml:space="preserve">
-    <value>Протоколы, доставка, антиспам, антивирус и дополнительные параметры.</value>
   </data>
   <data name="Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)" xml:space="preserve">
     <value>Прокси, которым разрешено отправлять заголовок PROXY (адреса или диапазоны CIDR через запятую)</value>
@@ -10736,9 +10724,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Server sendout mails every account, or every account matching a wildcard." xml:space="preserve">
     <value>Рассылка с сервера отправляет почту всем учётным записям или всем, подходящим под шаблон.</value>
   </data>
-  <data name="Server settings" xml:space="preserve">
-    <value>Параметры сервера</value>
-  </data>
   <data name="Server status" xml:space="preserve">
     <value>Состояние сервера</value>
   </data>
@@ -11347,9 +11332,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Stream the server log as it is written - the fastest way to see what happened to one message." xml:space="preserve">
     <value>Просмотр журнала сервера по мере его записи — самый быстрый способ увидеть, что произошло с конкретным сообщением.</value>
-  </data>
-  <data name="Stream the server log in real time." xml:space="preserve">
-    <value>Просмотр журнала сервера в реальном времени.</value>
   </data>
   <data name="Streaming {0}" xml:space="preserve">
     <value>Потоковый просмотр {0}</value>

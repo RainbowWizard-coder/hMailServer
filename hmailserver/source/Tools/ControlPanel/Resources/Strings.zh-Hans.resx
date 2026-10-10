@@ -1083,9 +1083,6 @@
   <data name="Add distribution list" xml:space="preserve">
     <value>添加分发列表</value>
   </data>
-  <data name="Add domains, accounts, aliases and distribution lists." xml:space="preserve">
-    <value>添加域、账户、别名和分发列表。</value>
-  </data>
   <data name="Add domains, accounts, aliases, distribution lists, DKIM signing and external (POP3) collection." xml:space="preserve">
     <value>添加域、账户、别名、分发列表、DKIM 签名以及外部 (POP3) 收取。</value>
   </data>
@@ -1932,9 +1929,6 @@
   </data>
   <data name="Back up or restore the configuration, the domains and the messages." xml:space="preserve">
     <value>备份或还原配置、域和邮件。</value>
-  </data>
-  <data name="Back up or restore your configuration and data." xml:space="preserve">
-    <value>备份或还原您的配置和数据。</value>
   </data>
   <data name="Back up the configuration and the mail" xml:space="preserve">
     <value>备份配置和邮件</value>
@@ -3365,9 +3359,6 @@
   </data>
   <data name="DANE for inbound mail - publish TLSA records for your MX hosts" xml:space="preserve">
     <value>入站邮件的 DANE - 为您的 MX 主机发布 TLSA 记录</value>
-  </data>
-  <data name="DANE, MTA-STS, ARC and TLS reporting." xml:space="preserve">
-    <value>DANE、MTA-STS、ARC 和 TLS 报告。</value>
   </data>
   <data name="DKIM" xml:space="preserve">
     <value>DKIM</value>
@@ -6111,9 +6102,6 @@
   <data name="Live logs" xml:space="preserve">
     <value>实时日志</value>
   </data>
-  <data name="Live processed-mail, spam and virus counters with charts." xml:space="preserve">
-    <value>带图表的实时已处理邮件、垃圾邮件和病毒计数器。</value>
-  </data>
   <data name="Live server statistics - last update {0}" xml:space="preserve">
     <value>实时服务器统计 - 上次更新 {0}</value>
   </data>
@@ -8128,6 +8116,9 @@
   <data name="Opens {0}" xml:space="preserve">
     <value>打开 {0}</value>
   </data>
+  <data name="Opens {0}, the first page of this area." xml:space="preserve">
+    <value>打开 {0}，即此区域的第一个页面。</value>
+  </data>
   <data name="Open…" xml:space="preserve">
     <value>打开…</value>
   </data>
@@ -8669,9 +8660,6 @@
   </data>
   <data name="Protocols" xml:space="preserve">
     <value>协议</value>
-  </data>
-  <data name="Protocols, delivery, anti-spam, anti-virus and advanced options." xml:space="preserve">
-    <value>协议、投递、反垃圾邮件、反病毒和高级选项。</value>
   </data>
   <data name="Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)" xml:space="preserve">
     <value>允许发送 PROXY 标头的代理（以逗号分隔的地址或 CIDR 范围）</value>
@@ -10612,9 +10600,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Server sendout mails every account, or every account matching a wildcard." xml:space="preserve">
     <value>服务器群发会给每个账户或每个匹配通配符的账户发送邮件。</value>
   </data>
-  <data name="Server settings" xml:space="preserve">
-    <value>服务器设置</value>
-  </data>
   <data name="Server status" xml:space="preserve">
     <value>服务器状态</value>
   </data>
@@ -11220,9 +11205,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Stream the server log as it is written - the fastest way to see what happened to one message." xml:space="preserve">
     <value>在服务器日志写入时实时流式显示 - 这是查看某一封邮件遭遇了什么的最快方法。</value>
-  </data>
-  <data name="Stream the server log in real time." xml:space="preserve">
-    <value>实时流式显示服务器日志。</value>
   </data>
   <data name="Streaming {0}" xml:space="preserve">
     <value>正在流式显示 {0}</value>

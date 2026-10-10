@@ -2280,6 +2280,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   auth tab, where the trusted sealers are, and Server limits & expert settings' row for SRS and BATV opens the
   Forwarding tab: a signpost row that names a tab opens its page on it (MainWindow.NavigateToTab).
 
+- **Fixed: the Welcome page's "Or browse by area" tiles were not the sidebar's areas.** Six tiles were written into the
+  page: "Domains & accounts" beside the group Accounts & domains, opening a page the tree calls Domains; "Server
+  settings", promising protocols, delivery, anti-spam, anti-virus and advanced options and opening Protocols alone;
+  the Dashboard, the next row of the sidebar; and Transport security, an expert page. The tiles are now the groups of
+  the tree the signed-in credential sees, in the sidebar's order, each with the group's glyph, title and purpose, and
+  each opening the group's first page - so a renamed or reordered group renames or moves its tile, and a role whose
+  tree leaves a group out has no tile for it (a domain administrator sees Accounts & domains and Monitoring &
+  troubleshooting). A tile's tool tip, and what a screen reader hears after its name, say which page it opens; the
+  tiles of a row are as tall as each other and each row as tall as its tallest tile.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

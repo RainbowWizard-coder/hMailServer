@@ -62,6 +62,21 @@ namespace hMailServer.ControlPanel.Views
       private string sampleState_ = "";
       private bool sampleBusy_;
 
+      // The "Or browse by area" tiles: the groups of the tree the credential signed in
+      // sees (Services/WelcomeAreas, review finding F276), where six tiles written
+      // into this page named areas the sidebar does not have. Three to a row, each row
+      // as tall as its tallest tile: a uniform grid made every row as tall as the
+      // tallest tile of all.
+      private readonly Grid areas_ = new()
+      {
+         ColumnDefinitions =
+         {
+            new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) },
+            new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) },
+            new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }
+         }
+      };
+
       public WelcomeView()
       {
          var panel = new StackPanel { MaxWidth = 980, HorizontalAlignment = HorizontalAlignment.Left };
@@ -102,28 +117,18 @@ namespace hMailServer.ControlPanel.Views
             "TextSecondary", new Thickness(0, 0, 0, 16)));
 
          // Keyed on intent, in the administrator's words, and short enough to scan:
-         // the twelve reasons this application gets opened, with the one that had no
-         // route at all - mail that has stalled - first. The list lives in
-         // WelcomeIntents so a test can hold every entry to a page that exists.
+         // the reasons this application gets opened, the setup checklist first and
+         // then the one that had no route at all - mail that has stalled. The list
+         // lives in WelcomeIntents so a test can hold every entry to a page that
+         // exists, and the right number of them.
          var intents = new System.Windows.Controls.Primitives.UniformGrid { Columns = 2 };
          foreach (WelcomeIntent intent in WelcomeIntents.Entries)
             intents.Children.Add(IntentRow(intent));
          panel.Children.Add(new SettingsSection { Heading = L("What do you want to do?"), Content = intents });
 
-         var tiles = new System.Windows.Controls.Primitives.UniformGrid { Columns = 3 };
-         tiles.Children.Add(Tile(Wpf.Ui.Controls.SymbolRegular.Globe24, L("Domains & accounts"),
-            L("Add domains, accounts, aliases and distribution lists."), "domains"));
-         tiles.Children.Add(Tile(Wpf.Ui.Controls.SymbolRegular.Server24, L("Server settings"),
-            L("Protocols, delivery, anti-spam, anti-virus and advanced options."), "protocols"));
-         tiles.Children.Add(Tile(Wpf.Ui.Controls.SymbolRegular.DataUsage24, L("Dashboard"),
-            L("Live processed-mail, spam and virus counters with charts."), "dashboard"));
-         tiles.Children.Add(Tile(Wpf.Ui.Controls.SymbolRegular.DocumentText24, L("Live logs"),
-            L("Stream the server log in real time."), "logs"));
-         tiles.Children.Add(Tile(Wpf.Ui.Controls.SymbolRegular.Key24, L("Transport security"),
-            L("DANE, MTA-STS, ARC and TLS reporting."), "security"));
-         tiles.Children.Add(Tile(Wpf.Ui.Controls.SymbolRegular.ArrowSync24, L("Backup & restore"),
-            L("Back up or restore your configuration and data."), "backup"));
-         panel.Children.Add(new SettingsSection { Heading = L("Or browse by area"), Content = tiles, Margin = new Thickness(0) });
+         // One tile per group of the sidebar the signed-in credential sees, filled
+         // as the page is entered (ShowAreas_).
+         panel.Children.Add(new SettingsSection { Heading = L("Or browse by area"), Content = areas_, Margin = new Thickness(0) });
 
          var scroll = new ScrollViewer { Content = panel, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
          scroll.SetResourceReference(PaddingProperty, "AppPagePadding");
@@ -167,29 +172,70 @@ namespace hMailServer.ControlPanel.Views
          return btn;
       }
 
-      private static Wpf.Ui.Controls.Button Tile(Wpf.Ui.Controls.SymbolRegular icon, string heading, string subtitle, string navKey)
+      /// <summary>
+      /// The area tiles for the credential signed in: one per group of the tree it
+      /// sees, in the sidebar's order (Services/WelcomeAreas). Built on every entry,
+      /// since a sign-in as another role sees another tree.
+      /// </summary>
+      private void ShowAreas_()
       {
+         ServerSession session = ServerSession.Current;
+         Func<string, bool> mayUse = session == null || session.Permissions == null ? null : session.May;
+
+         areas_.Children.Clear();
+         areas_.RowDefinitions.Clear();
+
+         IReadOnlyList<WelcomeArea> areas = WelcomeAreas.For(mayUse);
+         int columns = areas_.ColumnDefinitions.Count;
+         for (int i = 0; i < areas.Count; i++)
+         {
+            if (i % columns == 0)
+               areas_.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+            Wpf.Ui.Controls.Button tile = Tile(areas[i]);
+            Grid.SetRow(tile, i / columns);
+            Grid.SetColumn(tile, i % columns);
+            areas_.Children.Add(tile);
+         }
+      }
+
+      /// <summary>
+      /// One area as a tile: the group's glyph, its title and its purpose, as the
+      /// sidebar has them, opening the group's first page - which shows the group in
+      /// the sidebar - and saying which page that is in its tool tip and to a screen
+      /// reader.
+      /// </summary>
+      private static Wpf.Ui.Controls.Button Tile(WelcomeArea area)
+      {
+         string heading = L(area.Title);
+         string opens = F("Opens {0}, the first page of this area.", L(area.PageTitle));
+
+         var stack = new StackPanel();
+
          // Centred across the WHOLE tile, which needs the stack below to be
          // stretched: with the stack sized to its content, "centre" meant the centre
          // of the widest line of text, so every tile put its icon somewhere
          // different - above the middle of "Domains & accounts" in one and much
          // further left above "Live logs" in another. Six tiles, six positions, none
-         // of them chosen. Reported as issue #30.
-         var icn = new Wpf.Ui.Controls.SymbolIcon
+         // of them chosen. Reported as issue #30. An icon name the glyph set does not
+         // have draws no glyph, as the sidebar does.
+         if (Enum.TryParse(area.Icon, out Wpf.Ui.Controls.SymbolRegular symbol))
          {
-            Symbol = icon,
-            FontSize = 24,
-            Margin = new Thickness(0, 0, 0, 12),
-            HorizontalAlignment = HorizontalAlignment.Center
-         };
-         // By key, never by a held brush: the brand brush is republished on every
-         // theme change, and under High Contrast it is the system highlight.
-         icn.SetResourceReference(ForegroundProperty, "AppBrandBrush");
+            var icn = new Wpf.Ui.Controls.SymbolIcon
+            {
+               Symbol = symbol,
+               FontSize = 24,
+               Margin = new Thickness(0, 0, 0, 12),
+               HorizontalAlignment = HorizontalAlignment.Center
+            };
+            // By key, never by a held brush: the brand brush is republished on every
+            // theme change, and under High Contrast it is the system highlight.
+            icn.SetResourceReference(ForegroundProperty, "AppBrandBrush");
+            stack.Children.Add(icn);
+         }
 
-         var stack = new StackPanel();
-         stack.Children.Add(icn);
          stack.Children.Add(Text(heading, "TextBodyStrong", new Thickness(0, 0, 0, 4)));
-         stack.Children.Add(Text(subtitle, "TextCaption", new Thickness(0)));
+         stack.Children.Add(Text(L(area.Purpose), "TextCaption", new Thickness(0)));
 
          var btn = new Wpf.Ui.Controls.Button
          {
@@ -203,12 +249,16 @@ namespace hMailServer.ControlPanel.Views
             // blocks left-aligned exactly where they already were (a TextBlock in a
             // stretched vertical StackPanel still draws its text from the left).
             HorizontalContentAlignment = HorizontalAlignment.Stretch,
+            // As tall as the row, which is as tall as its tallest tile.
+            VerticalAlignment = VerticalAlignment.Stretch,
             VerticalContentAlignment = VerticalAlignment.Top,
             MinHeight = 128,
             Cursor = System.Windows.Input.Cursors.Hand
          };
+         btn.ToolTip = opens;
          System.Windows.Automation.AutomationProperties.SetName(btn, heading);
-         btn.Click += (s, e) => (Application.Current.MainWindow as MainWindow)?.NavigateTo(navKey);
+         System.Windows.Automation.AutomationProperties.SetHelpText(btn, opens);
+         btn.Click += (s, e) => (Application.Current.MainWindow as MainWindow)?.NavigateTo(area.Page);
          return btn;
       }
 
@@ -225,6 +275,8 @@ namespace hMailServer.ControlPanel.Views
 
          var shell = Application.Current.MainWindow as MainWindow;
          tourOffer_.Visibility = shell != null && !shell.HasFinishedFirstRun ? Visibility.Visible : Visibility.Collapsed;
+
+         ShowAreas_();
 
          LoadSample_();
       }

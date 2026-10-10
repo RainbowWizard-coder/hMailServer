@@ -1083,9 +1083,6 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Add distribution list" xml:space="preserve">
     <value>Lägg till distributionslista</value>
   </data>
-  <data name="Add domains, accounts, aliases and distribution lists." xml:space="preserve">
-    <value>Lägg till domäner, konton, alias och distributionslistor.</value>
-  </data>
   <data name="Add domains, accounts, aliases, distribution lists, DKIM signing and external (POP3) collection." xml:space="preserve">
     <value>Lägg till domäner, konton, alias, distributionslistor, DKIM-signering och extern (POP3) hämtning.</value>
   </data>
@@ -1932,9 +1929,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Back up or restore the configuration, the domains and the messages." xml:space="preserve">
     <value>Säkerhetskopiera eller återställ konfigurationen, domänerna och meddelandena.</value>
-  </data>
-  <data name="Back up or restore your configuration and data." xml:space="preserve">
-    <value>Säkerhetskopiera eller återställ din konfiguration och dina data.</value>
   </data>
   <data name="Back up the configuration and the mail" xml:space="preserve">
     <value>Säkerhetskopiera konfigurationen och posten</value>
@@ -3365,9 +3359,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="DANE for inbound mail - publish TLSA records for your MX hosts" xml:space="preserve">
     <value>DANE för inkommande post - publicera TLSA-poster för dina MX-värdar</value>
-  </data>
-  <data name="DANE, MTA-STS, ARC and TLS reporting." xml:space="preserve">
-    <value>DANE, MTA-STS, ARC och TLS-rapportering.</value>
   </data>
   <data name="DKIM" xml:space="preserve">
     <value>DKIM</value>
@@ -6111,9 +6102,6 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Live logs" xml:space="preserve">
     <value>Direktloggar</value>
   </data>
-  <data name="Live processed-mail, spam and virus counters with charts." xml:space="preserve">
-    <value>Direkträknare för behandlad post, skräppost och virus med diagram.</value>
-  </data>
   <data name="Live server statistics - last update {0}" xml:space="preserve">
     <value>Serverstatistik i realtid - senast uppdaterad {0}</value>
   </data>
@@ -8128,6 +8116,9 @@ Inget som redan finns där tas bort.</value>
   <data name="Opens {0}" xml:space="preserve">
     <value>Öppnar {0}</value>
   </data>
+  <data name="Opens {0}, the first page of this area." xml:space="preserve">
+    <value>Öppnar {0}, den första sidan i det här området.</value>
+  </data>
   <data name="Open…" xml:space="preserve">
     <value>Öppna…</value>
   </data>
@@ -8669,9 +8660,6 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   </data>
   <data name="Protocols" xml:space="preserve">
     <value>Protokoll</value>
-  </data>
-  <data name="Protocols, delivery, anti-spam, anti-virus and advanced options." xml:space="preserve">
-    <value>Protokoll, leverans, skräppost, antivirus och avancerade alternativ.</value>
   </data>
   <data name="Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)" xml:space="preserve">
     <value>Proxyer som får skicka en PROXY-rubrik (kommaseparerade adresser eller CIDR-intervall)</value>
@@ -10612,9 +10600,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Server sendout mails every account, or every account matching a wildcard." xml:space="preserve">
     <value>Serverutskick skickar till varje konto, eller varje konto som matchar en joker.</value>
   </data>
-  <data name="Server settings" xml:space="preserve">
-    <value>Serverinställningar</value>
-  </data>
   <data name="Server status" xml:space="preserve">
     <value>Serverstatus</value>
   </data>
@@ -11220,9 +11205,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Stream the server log as it is written - the fastest way to see what happened to one message." xml:space="preserve">
     <value>Strömma serverloggen medan den skrivs - det snabbaste sättet att se vad som hände med ett meddelande.</value>
-  </data>
-  <data name="Stream the server log in real time." xml:space="preserve">
-    <value>Strömma serverloggen i realtid.</value>
   </data>
   <data name="Streaming {0}" xml:space="preserve">
     <value>Strömmar {0}</value>

@@ -78,6 +78,9 @@
          directory - the names, the two exclusions, the bytes. -->
     <Compile Include="..\ControlPanel\Services\HelpPages.cs" />
     <Compile Include="..\ControlPanel\Services\WelcomeIntents.cs" />
+    <!-- The Welcome page's areas: one per group of the tree the credential sees
+         (review finding F276). Held by WelcomeAreasTests. -->
+    <Compile Include="..\ControlPanel\Services\WelcomeAreas.cs" />
     <Compile Include="..\ControlPanel\Services\IntentIndex.cs" />
     <Compile Include="..\ControlPanel\Services\PaletteUsage.cs" />
     <Compile Include="..\ControlPanel\Services\PaletteSearch.cs" />

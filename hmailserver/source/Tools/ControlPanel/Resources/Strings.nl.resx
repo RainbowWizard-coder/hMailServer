@@ -1083,9 +1083,6 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Add distribution list" xml:space="preserve">
     <value>Distributielijst toevoegen</value>
   </data>
-  <data name="Add domains, accounts, aliases and distribution lists." xml:space="preserve">
-    <value>Domeinen, accounts, aliassen en distributielijsten toevoegen.</value>
-  </data>
   <data name="Add domains, accounts, aliases, distribution lists, DKIM signing and external (POP3) collection." xml:space="preserve">
     <value>Domeinen, accounts, aliassen, distributielijsten, DKIM-ondertekening en externe (POP3-)ophaling toevoegen.</value>
   </data>
@@ -1932,9 +1929,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Back up or restore the configuration, the domains and the messages." xml:space="preserve">
     <value>Maak een back-up van de configuratie, de domeinen en de berichten, of herstel die.</value>
-  </data>
-  <data name="Back up or restore your configuration and data." xml:space="preserve">
-    <value>Maak een back-up van uw configuratie en gegevens, of herstel die.</value>
   </data>
   <data name="Back up the configuration and the mail" xml:space="preserve">
     <value>Back-up van de configuratie en de mail</value>
@@ -3365,9 +3359,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="DANE for inbound mail - publish TLSA records for your MX hosts" xml:space="preserve">
     <value>DANE voor inkomende mail - publiceer TLSA-records voor uw MX-hosts</value>
-  </data>
-  <data name="DANE, MTA-STS, ARC and TLS reporting." xml:space="preserve">
-    <value>DANE, MTA-STS, ARC en TLS-rapportage.</value>
   </data>
   <data name="DKIM" xml:space="preserve">
     <value>DKIM</value>
@@ -6111,9 +6102,6 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Live logs" xml:space="preserve">
     <value>Live logboeken</value>
   </data>
-  <data name="Live processed-mail, spam and virus counters with charts." xml:space="preserve">
-    <value>Live tellers voor verwerkte mail, spam en virussen, met grafieken.</value>
-  </data>
   <data name="Live server statistics - last update {0}" xml:space="preserve">
     <value>Live serverstatistieken - laatste update {0}</value>
   </data>
@@ -8128,6 +8116,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Opens {0}" xml:space="preserve">
     <value>Opent {0}</value>
   </data>
+  <data name="Opens {0}, the first page of this area." xml:space="preserve">
+    <value>Opent {0}, de eerste pagina van dit gebied.</value>
+  </data>
   <data name="Open…" xml:space="preserve">
     <value>Openen…</value>
   </data>
@@ -8669,9 +8660,6 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   </data>
   <data name="Protocols" xml:space="preserve">
     <value>Protocollen</value>
-  </data>
-  <data name="Protocols, delivery, anti-spam, anti-virus and advanced options." xml:space="preserve">
-    <value>Protocollen, bezorging, antispam, antivirus en geavanceerde opties.</value>
   </data>
   <data name="Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)" xml:space="preserve">
     <value>Proxy's die een PROXY-header mogen sturen (door komma's gescheiden adressen of CIDR-bereiken)</value>
@@ -10612,9 +10600,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Server sendout mails every account, or every account matching a wildcard." xml:space="preserve">
     <value>Serververzending mailt elk account, of elk account dat aan een jokerteken voldoet.</value>
   </data>
-  <data name="Server settings" xml:space="preserve">
-    <value>Serverinstellingen</value>
-  </data>
   <data name="Server status" xml:space="preserve">
     <value>Serverstatus</value>
   </data>
@@ -11220,9 +11205,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Stream the server log as it is written - the fastest way to see what happened to one message." xml:space="preserve">
     <value>Stream het serverlogboek terwijl het wordt geschreven - de snelste manier om te zien wat er met één bericht is gebeurd.</value>
-  </data>
-  <data name="Stream the server log in real time." xml:space="preserve">
-    <value>Stream het serverlogboek in realtime.</value>
   </data>
   <data name="Streaming {0}" xml:space="preserve">
     <value>{0} wordt gestreamd</value>

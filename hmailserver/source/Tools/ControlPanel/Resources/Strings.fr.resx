@@ -1083,9 +1083,6 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="Add distribution list" xml:space="preserve">
     <value>Ajouter une liste de diffusion</value>
   </data>
-  <data name="Add domains, accounts, aliases and distribution lists." xml:space="preserve">
-    <value>Ajouter des domaines, des comptes, des alias et des listes de diffusion.</value>
-  </data>
   <data name="Add domains, accounts, aliases, distribution lists, DKIM signing and external (POP3) collection." xml:space="preserve">
     <value>Ajouter des domaines, des comptes, des alias, des listes de diffusion, la signature DKIM et la collecte externe (POP3).</value>
   </data>
@@ -1932,9 +1929,6 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   </data>
   <data name="Back up or restore the configuration, the domains and the messages." xml:space="preserve">
     <value>Sauvegarder ou restaurer la configuration, les domaines et les messages.</value>
-  </data>
-  <data name="Back up or restore your configuration and data." xml:space="preserve">
-    <value>Sauvegardez ou restaurez votre configuration et vos données.</value>
   </data>
   <data name="Back up the configuration and the mail" xml:space="preserve">
     <value>Sauvegarder la configuration et le courrier</value>
@@ -3365,9 +3359,6 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   </data>
   <data name="DANE for inbound mail - publish TLSA records for your MX hosts" xml:space="preserve">
     <value>DANE pour le courrier entrant - publiez des enregistrements TLSA pour vos hôtes MX</value>
-  </data>
-  <data name="DANE, MTA-STS, ARC and TLS reporting." xml:space="preserve">
-    <value>DANE, MTA-STS, ARC et rapports TLS.</value>
   </data>
   <data name="DKIM" xml:space="preserve">
     <value>DKIM</value>
@@ -6111,9 +6102,6 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Live logs" xml:space="preserve">
     <value>Journaux en direct</value>
   </data>
-  <data name="Live processed-mail, spam and virus counters with charts." xml:space="preserve">
-    <value>Compteurs en direct du courrier traité, du spam et des virus, avec graphiques.</value>
-  </data>
   <data name="Live server statistics - last update {0}" xml:space="preserve">
     <value>Statistiques du serveur en direct - dernière mise à jour {0}</value>
   </data>
@@ -8128,6 +8116,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Opens {0}" xml:space="preserve">
     <value>Ouvre {0}</value>
   </data>
+  <data name="Opens {0}, the first page of this area." xml:space="preserve">
+    <value>Ouvre {0}, la première page de cette rubrique.</value>
+  </data>
   <data name="Open…" xml:space="preserve">
     <value>Ouvrir…</value>
   </data>
@@ -8669,9 +8660,6 @@ Aucune nouvelle connexion ne sera acceptée et aucun courrier ne sera livré jus
   </data>
   <data name="Protocols" xml:space="preserve">
     <value>Protocoles</value>
-  </data>
-  <data name="Protocols, delivery, anti-spam, anti-virus and advanced options." xml:space="preserve">
-    <value>Protocoles, livraison, anti-spam, antivirus et options avancées.</value>
   </data>
   <data name="Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)" xml:space="preserve">
     <value>Proxys autorisés à envoyer un en-tête PROXY (adresses ou plages CIDR séparées par des virgules)</value>
@@ -10612,9 +10600,6 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Server sendout mails every account, or every account matching a wildcard." xml:space="preserve">
     <value>L'envoi groupé du serveur écrit à chaque compte, ou à chaque compte correspondant à un joker.</value>
   </data>
-  <data name="Server settings" xml:space="preserve">
-    <value>Réglages du serveur</value>
-  </data>
   <data name="Server status" xml:space="preserve">
     <value>État du serveur</value>
   </data>
@@ -11220,9 +11205,6 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="Stream the server log as it is written - the fastest way to see what happened to one message." xml:space="preserve">
     <value>Diffuser le journal du serveur au fur et à mesure de son écriture - le moyen le plus rapide de voir ce qui est arrivé à un message.</value>
-  </data>
-  <data name="Stream the server log in real time." xml:space="preserve">
-    <value>Diffuser le journal du serveur en temps réel.</value>
   </data>
   <data name="Streaming {0}" xml:space="preserve">
     <value>Diffusion de {0}</value>
