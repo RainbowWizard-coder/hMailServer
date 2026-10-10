@@ -92,8 +92,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("UserBox.Text = user;", code, StringComparison.Ordinal);
 
          // No page-wide Enter: the default button takes it.
-         Assert.DoesNotContain("KeyDown +=", code, StringComparison.Ordinal);
-         Assert.DoesNotContain("Key.Enter", code, StringComparison.Ordinal);
+         Assert.DoesNotMatch(new Regex(@"(?m)^\s*(this\.)?KeyDown \+="), code);
          Assert.Contains("ConnectButton.IsDefault = true;", code, StringComparison.Ordinal);
 
          string fail = WithheldRowTests.MemberText(code, "private void Fail_(string message, StatusLevel level)");
@@ -112,6 +111,28 @@ namespace hMailServer.ControlPanel.Tests.Services
          string session = ReadControlPanelFile(Path.Join("Services", "ServerSession.cs"));
          Assert.Contains("CredentialRefused = error == AuthenticationFailed_;", session, StringComparison.Ordinal);
          Assert.Contains("CredentialRefused = false;", session, StringComparison.Ordinal);
+      }
+
+      [Fact]
+      public void EnterOnTheClosedLanguageBox_OpensItsList_AndSignsNothingIn()
+      {
+         // The default button takes every Enter that the control with the keyboard
+         // leaves unhandled, and a closed ComboBox leaves it: Enter on the Language box
+         // still started a sign-in, as the page-wide handler did (F030). The box opens
+         // its list on Enter instead, and no other control's Enter is caught.
+         string code = ConnectPageTestsSource("ConnectView.xaml.cs");
+         Assert.Contains("LanguageBox.KeyDown += Language_KeyDown;", code, StringComparison.Ordinal);
+
+         string enter = WithheldRowTests.MemberText(code, "private void Language_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)");
+         Assert.True(enter != null, "ConnectView.Language_KeyDown is gone.");
+         // Only on the closed box: in the open list Enter chooses the item, the box's own.
+         Assert.Contains("if (e.Key != System.Windows.Input.Key.Enter || LanguageBox.IsDropDownOpen)\n            return;", enter, StringComparison.Ordinal);
+         Assert.Contains("LanguageBox.IsDropDownOpen = true;\n         e.Handled = true;", enter, StringComparison.Ordinal);
+
+         // And the page names Enter nowhere else, nor hooks a key on another control.
+         Assert.Equal(1, CountOf(code, "Key.Enter"));
+         Assert.Equal(1, CountOf(code, "KeyDown +="));
+         Assert.DoesNotContain("KeyDown=", ConnectPageTestsSource("ConnectView.xaml"), StringComparison.Ordinal);
       }
 
       [Fact]

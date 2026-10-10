@@ -49,6 +49,7 @@ namespace hMailServer.ControlPanel.Views
          InitializeComponent();
          onConnected_ = onConnected;
          BuildLanguageBox_();
+         LanguageBox.KeyDown += Language_KeyDown;
 
          // The server and the user name of the last sign-in that worked, where
          // every launch opened on localhost and Administrator (review finding F033).
@@ -57,11 +58,12 @@ namespace hMailServer.ControlPanel.Views
          HostBox.Text = host;
          UserBox.Text = user;
 
-         // Enter signs in through the default button, which a screen reader can name
-         // as the one Enter presses, where a KeyDown handler on the whole page started
-         // a sign-in from any control that left Enter unhandled - the closed Language
-         // box among them (F030). Collapsed while a sign-in runs, it presses nothing
-         // then; Connect_Click's guard stays.
+         // Enter on a field signs in through the default button, where a KeyDown
+         // handler on the whole page started a sign-in (F030). The default button takes
+         // every Enter that the control with the keyboard leaves unhandled, the closed
+         // Language box's too: the box opens its list on Enter instead
+         // (Language_KeyDown). Collapsed while a sign-in runs, the button presses
+         // nothing then; Connect_Click's guard stays.
          ConnectButton.IsDefault = true;
 
          if (!string.IsNullOrEmpty(notice))
@@ -199,6 +201,19 @@ namespace hMailServer.ControlPanel.Views
       }
 
       private void Language_DropDownClosed(object sender, EventArgs e) => ApplyLanguage_();
+
+      // Enter on the closed box opens its list, as F4 and Alt+Down do, where the
+      // page's default button took it and started a sign-in (review finding F030):
+      // a closed ComboBox leaves Enter unhandled. In the open list the box's own
+      // handling chooses the item and closes it, and this handler is not reached.
+      private void Language_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+      {
+         if (e.Key != System.Windows.Input.Key.Enter || LanguageBox.IsDropDownOpen)
+            return;
+
+         LanguageBox.IsDropDownOpen = true;
+         e.Handled = true;
+      }
 
       private void ApplyLanguage_()
       {

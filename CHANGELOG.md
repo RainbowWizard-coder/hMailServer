@@ -3643,18 +3643,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   screen reader while it worked and opened on localhost and Administrator every time, and the window never said which
   server it managed.** A password or a one-time code the server refused, and a second-factor prompt cancelled, are now
   a Warning, the reader's to type again; only a server that could not be reached or asked is Critical, where every
-  failure was, and that was the first word the page's assertive notice spoke. Enter presses the sign-in button as the
-  page's default button, where a KeyDown handler on the whole page started a sign-in from any control that left Enter
-  unhandled, the closed Language box among them. The busy line is a polite live region, announced as it changes -
-  "Contacting localhost…", then "Signing in…" - and the progress ring is named "Signing in". The server and the user
-  name of the last sign-in that worked are kept beside the window's other settings, as `LastHost` and `LastUser` under
+  failure was, and that was the first word the page's assertive notice spoke. Enter on a field presses the sign-in
+  button as the page's default button, and Enter on the closed Language box opens its list, as F4 does, where a
+  KeyDown handler on the whole page started a sign-in from any control that left Enter unhandled, the closed Language
+  box among them. The busy line is a polite live region, announced as it changes - "Contacting localhost…", then
+  "Signing in…" - and the progress ring is named "Signing in". The server and the user name of the last sign-in that
+  worked are kept beside the window's other settings, as `LastHost` and `LastUser` under
   `HKCU\Software\hMailServer\ControlPanel` - never the password - and the page opens on them, localhost and
   Administrator where nothing is kept. Once signed in, the window's title, in its title bar, the taskbar and Alt+Tab,
   is "mail.example.com - hMailServer Control Panel", so that two Control Panels on two servers can be told apart, and
   the product alone again on the sign-in page. Setup, which asks for an open Control Panel to be closed before it
-  installs, looked for that window by the title "hMailServer Control Panel" alone, which a signed-in window's title
-  no longer is and a Japanese, Swedish, Turkish or Chinese one never was; it now looks for the named mutex the
-  Control Panel holds while it runs as well, and still for the title, which finds one from before the mutex.
+  installs, looked for that window by the title "hMailServer Control Panel" alone, which a signed-in window's title no
+  longer is and a Japanese, Swedish, Turkish or Chinese one never was; it now looks for the named mutex the Control
+  Panel holds while it runs as well, and still for the title, which finds one from before the mutex.
   `SignInMemoryTests` holds the levels, the prefill, the title, setup's check and the page and the window to using
   them.
 
