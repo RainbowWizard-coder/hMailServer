@@ -5350,6 +5350,12 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Hide password" xml:space="preserve">
     <value>Hide password</value>
   </data>
+  <data name="Hide the details" xml:space="preserve">
+    <value>Hide the details</value>
+  </data>
+  <data name="Hide the details of {0}" xml:space="preserve">
+    <value>Hide the details of {0}</value>
+  </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>Hide the new API key</value>
   </data>
@@ -10960,6 +10966,12 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
     <value>Show the auto-ban IP ranges on the IP ranges page</value>
   </data>
+  <data name="Show the details" xml:space="preserve">
+    <value>Show the details</value>
+  </data>
+  <data name="Show the details of {0}" xml:space="preserve">
+    <value>Show the details of {0}</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>Show the group {0} in the navigation</value>
   </data>
@@ -14671,6 +14683,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="_Give the role" xml:space="preserve">
     <value>_Give the role</value>
+  </data>
+  <data name="_Go to the next step" xml:space="preserve">
+    <value>_Go to the next step</value>
   </data>
   <data name="_Group name" xml:space="preserve">
     <value>_Group name</value>

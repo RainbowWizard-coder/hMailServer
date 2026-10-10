@@ -5350,6 +5350,12 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Hide password" xml:space="preserve">
     <value>Masquer le mot de passe</value>
   </data>
+  <data name="Hide the details" xml:space="preserve">
+    <value>Masquer les détails</value>
+  </data>
+  <data name="Hide the details of {0}" xml:space="preserve">
+    <value>Masquer les détails : {0}</value>
+  </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>Masquer la nouvelle clé d'API</value>
   </data>
@@ -10960,6 +10966,12 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
     <value>Afficher les plages IP de bannissement automatique sur la page Plages IP</value>
   </data>
+  <data name="Show the details" xml:space="preserve">
+    <value>Afficher les détails</value>
+  </data>
+  <data name="Show the details of {0}" xml:space="preserve">
+    <value>Afficher les détails : {0}</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>Afficher le groupe {0} dans la navigation</value>
   </data>
@@ -14671,6 +14683,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="_Give the role" xml:space="preserve">
     <value>_Attribuer le rôle</value>
+  </data>
+  <data name="_Go to the next step" xml:space="preserve">
+    <value>_Aller à l'étape suivante</value>
   </data>
   <data name="_Group name" xml:space="preserve">
     <value>_Nom du groupe</value>

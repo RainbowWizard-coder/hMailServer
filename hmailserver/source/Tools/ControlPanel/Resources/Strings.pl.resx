@@ -5414,6 +5414,12 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Hide password" xml:space="preserve">
     <value>Ukryj hasło</value>
   </data>
+  <data name="Hide the details" xml:space="preserve">
+    <value>Ukryj szczegóły</value>
+  </data>
+  <data name="Hide the details of {0}" xml:space="preserve">
+    <value>Ukryj szczegóły: {0}</value>
+  </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>Ukryj nowy klucz API</value>
   </data>
@@ -11087,6 +11093,12 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
     <value>Pokaż zakresy adresów IP automatycznej blokady na stronie Zakresy adresów IP</value>
   </data>
+  <data name="Show the details" xml:space="preserve">
+    <value>Pokaż szczegóły</value>
+  </data>
+  <data name="Show the details of {0}" xml:space="preserve">
+    <value>Pokaż szczegóły: {0}</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>Pokaż grupę {0} w nawigacji</value>
   </data>
@@ -14843,6 +14855,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="_Give the role" xml:space="preserve">
     <value>_Przypisz rolę</value>
+  </data>
+  <data name="_Go to the next step" xml:space="preserve">
+    <value>_Przejdź do następnego kroku</value>
   </data>
   <data name="_Group name" xml:space="preserve">
     <value>_Nazwa grupy</value>

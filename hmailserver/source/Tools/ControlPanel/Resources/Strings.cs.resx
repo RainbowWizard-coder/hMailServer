@@ -5414,6 +5414,12 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Hide password" xml:space="preserve">
     <value>Skrýt heslo</value>
   </data>
+  <data name="Hide the details" xml:space="preserve">
+    <value>Skrýt podrobnosti</value>
+  </data>
+  <data name="Hide the details of {0}" xml:space="preserve">
+    <value>Skrýt podrobnosti: {0}</value>
+  </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>Skrýt nový klíč API</value>
   </data>
@@ -11087,6 +11093,12 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
     <value>Zobrazit rozsahy IP automatického blokování na stránce Rozsahy IP</value>
   </data>
+  <data name="Show the details" xml:space="preserve">
+    <value>Zobrazit podrobnosti</value>
+  </data>
+  <data name="Show the details of {0}" xml:space="preserve">
+    <value>Zobrazit podrobnosti: {0}</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>Zobrazit skupinu {0} v navigaci</value>
   </data>
@@ -14843,6 +14855,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Give the role" xml:space="preserve">
     <value>_Přidělit roli</value>
+  </data>
+  <data name="_Go to the next step" xml:space="preserve">
+    <value>_Přejít na další krok</value>
   </data>
   <data name="_Group name" xml:space="preserve">
     <value>_Název skupiny</value>

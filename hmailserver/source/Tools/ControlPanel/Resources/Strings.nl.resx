@@ -5350,6 +5350,12 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Hide password" xml:space="preserve">
     <value>Wachtwoord verbergen</value>
   </data>
+  <data name="Hide the details" xml:space="preserve">
+    <value>Details verbergen</value>
+  </data>
+  <data name="Hide the details of {0}" xml:space="preserve">
+    <value>Details verbergen: {0}</value>
+  </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>De nieuwe API-sleutel verbergen</value>
   </data>
@@ -10960,6 +10966,12 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
     <value>De IP-bereiken voor automatisch verbannen weergeven op de pagina IP-bereiken</value>
   </data>
+  <data name="Show the details" xml:space="preserve">
+    <value>Details tonen</value>
+  </data>
+  <data name="Show the details of {0}" xml:space="preserve">
+    <value>Details tonen: {0}</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>De groep {0} in de navigatie tonen</value>
   </data>
@@ -14671,6 +14683,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Give the role" xml:space="preserve">
     <value>Rol _toewijzen</value>
+  </data>
+  <data name="_Go to the next step" xml:space="preserve">
+    <value>_Ga naar de volgende stap</value>
   </data>
   <data name="_Group name" xml:space="preserve">
     <value>_Groepsnaam</value>

@@ -5350,6 +5350,12 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Hide password" xml:space="preserve">
     <value>Skjul adgangskode</value>
   </data>
+  <data name="Hide the details" xml:space="preserve">
+    <value>Skjul detaljerne</value>
+  </data>
+  <data name="Hide the details of {0}" xml:space="preserve">
+    <value>Skjul detaljerne: {0}</value>
+  </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>Skjul den nye API-nøgle</value>
   </data>
@@ -10960,6 +10966,12 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
     <value>Vis IP-intervallerne fra automatisk blokering på siden IP-intervaller</value>
   </data>
+  <data name="Show the details" xml:space="preserve">
+    <value>Vis detaljerne</value>
+  </data>
+  <data name="Show the details of {0}" xml:space="preserve">
+    <value>Vis detaljerne: {0}</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>Vis gruppen {0} i navigationen</value>
   </data>
@@ -14671,6 +14683,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="_Give the role" xml:space="preserve">
     <value>_Tildel rollen</value>
+  </data>
+  <data name="_Go to the next step" xml:space="preserve">
+    <value>_Gå til næste trin</value>
   </data>
   <data name="_Group name" xml:space="preserve">
     <value>Gruppe_navn</value>

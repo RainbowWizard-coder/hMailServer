@@ -5350,6 +5350,12 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Hide password" xml:space="preserve">
     <value>Parolayı gizle</value>
   </data>
+  <data name="Hide the details" xml:space="preserve">
+    <value>Ayrıntıları gizle</value>
+  </data>
+  <data name="Hide the details of {0}" xml:space="preserve">
+    <value>Ayrıntıları gizle: {0}</value>
+  </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>Yeni API anahtarını gizle</value>
   </data>
@@ -10960,6 +10966,12 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
     <value>Otomatik yasaklama IP aralıklarını IP aralıkları sayfasında göster</value>
   </data>
+  <data name="Show the details" xml:space="preserve">
+    <value>Ayrıntıları göster</value>
+  </data>
+  <data name="Show the details of {0}" xml:space="preserve">
+    <value>Ayrıntıları göster: {0}</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>{0} grubunu gezintide göster</value>
   </data>
@@ -14671,6 +14683,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="_Give the role" xml:space="preserve">
     <value>Rolü _ver</value>
+  </data>
+  <data name="_Go to the next step" xml:space="preserve">
+    <value>Sonraki adıma _git</value>
   </data>
   <data name="_Group name" xml:space="preserve">
     <value>_Grup adı</value>

@@ -5350,6 +5350,12 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Hide password" xml:space="preserve">
     <value>Dölj lösenordet</value>
   </data>
+  <data name="Hide the details" xml:space="preserve">
+    <value>Dölj detaljerna</value>
+  </data>
+  <data name="Hide the details of {0}" xml:space="preserve">
+    <value>Dölj detaljerna: {0}</value>
+  </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>Dölj den nya API-nyckeln</value>
   </data>
@@ -10960,6 +10966,12 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
     <value>Visa de automatiskt spärrade IP-intervallen på sidan IP-intervall</value>
   </data>
+  <data name="Show the details" xml:space="preserve">
+    <value>Visa detaljerna</value>
+  </data>
+  <data name="Show the details of {0}" xml:space="preserve">
+    <value>Visa detaljerna: {0}</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>Visa gruppen {0} i navigeringen</value>
   </data>
@@ -14671,6 +14683,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="_Give the role" xml:space="preserve">
     <value>_Tilldela rollen</value>
+  </data>
+  <data name="_Go to the next step" xml:space="preserve">
+    <value>_Gå till nästa steg</value>
   </data>
   <data name="_Group name" xml:space="preserve">
     <value>_Gruppnamn</value>

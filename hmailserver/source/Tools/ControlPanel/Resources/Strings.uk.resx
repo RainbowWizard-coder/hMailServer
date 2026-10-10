@@ -5414,6 +5414,12 @@
   <data name="Hide password" xml:space="preserve">
     <value>Сховати пароль</value>
   </data>
+  <data name="Hide the details" xml:space="preserve">
+    <value>Сховати подробиці</value>
+  </data>
+  <data name="Hide the details of {0}" xml:space="preserve">
+    <value>Сховати подробиці: {0}</value>
+  </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>Сховати новий ключ API</value>
   </data>
@@ -11087,6 +11093,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
     <value>Показати діапазони IP автоблокування на сторінці «Діапазони IP»</value>
   </data>
+  <data name="Show the details" xml:space="preserve">
+    <value>Показати подробиці</value>
+  </data>
+  <data name="Show the details of {0}" xml:space="preserve">
+    <value>Показати подробиці: {0}</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>Показувати групу {0} у навігації</value>
   </data>
@@ -14843,6 +14855,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Give the role" xml:space="preserve">
     <value>_Призначити роль</value>
+  </data>
+  <data name="_Go to the next step" xml:space="preserve">
+    <value>_Перейти до наступного кроку</value>
   </data>
   <data name="_Group name" xml:space="preserve">
     <value>Назва _групи</value>

@@ -5350,6 +5350,12 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Hide password" xml:space="preserve">
     <value>Ocultar a senha</value>
   </data>
+  <data name="Hide the details" xml:space="preserve">
+    <value>Ocultar os detalhes</value>
+  </data>
+  <data name="Hide the details of {0}" xml:space="preserve">
+    <value>Ocultar os detalhes: {0}</value>
+  </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>Ocultar a nova chave de API</value>
   </data>
@@ -10960,6 +10966,12 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
     <value>Mostrar as faixas de IP de banimento automático na página Faixas de IP</value>
   </data>
+  <data name="Show the details" xml:space="preserve">
+    <value>Mostrar os detalhes</value>
+  </data>
+  <data name="Show the details of {0}" xml:space="preserve">
+    <value>Mostrar os detalhes: {0}</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>Mostrar o grupo {0} na navegação</value>
   </data>
@@ -14671,6 +14683,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="_Give the role" xml:space="preserve">
     <value>_Atribuir a função</value>
+  </data>
+  <data name="_Go to the next step" xml:space="preserve">
+    <value>_Ir para o próximo passo</value>
   </data>
   <data name="_Group name" xml:space="preserve">
     <value>_Nome do grupo</value>

@@ -5350,6 +5350,12 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Hide password" xml:space="preserve">
     <value>Piilota salasana</value>
   </data>
+  <data name="Hide the details" xml:space="preserve">
+    <value>Piilota tiedot</value>
+  </data>
+  <data name="Hide the details of {0}" xml:space="preserve">
+    <value>Piilota tiedot: {0}</value>
+  </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>Piilota uusi API-avain</value>
   </data>
@@ -10960,6 +10966,12 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
     <value>Näytä automaattisen eston IP-alueet IP-alueet-sivulla</value>
   </data>
+  <data name="Show the details" xml:space="preserve">
+    <value>Näytä tiedot</value>
+  </data>
+  <data name="Show the details of {0}" xml:space="preserve">
+    <value>Näytä tiedot: {0}</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>Näytä ryhmä {0} navigoinnissa</value>
   </data>
@@ -14671,6 +14683,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="_Give the role" xml:space="preserve">
     <value>_Anna rooli</value>
+  </data>
+  <data name="_Go to the next step" xml:space="preserve">
+    <value>_Siirry seuraavaan vaiheeseen</value>
   </data>
   <data name="_Group name" xml:space="preserve">
     <value>_Ryhmän nimi</value>

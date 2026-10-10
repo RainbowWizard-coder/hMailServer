@@ -5350,6 +5350,12 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Hide password" xml:space="preserve">
     <value>Ocultar la contraseña</value>
   </data>
+  <data name="Hide the details" xml:space="preserve">
+    <value>Ocultar los detalles</value>
+  </data>
+  <data name="Hide the details of {0}" xml:space="preserve">
+    <value>Ocultar los detalles: {0}</value>
+  </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>Ocultar la nueva clave de API</value>
   </data>
@@ -10960,6 +10966,12 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
     <value>Mostrar los rangos de IP de bloqueo automático en la página Rangos de IP</value>
   </data>
+  <data name="Show the details" xml:space="preserve">
+    <value>Mostrar los detalles</value>
+  </data>
+  <data name="Show the details of {0}" xml:space="preserve">
+    <value>Mostrar los detalles: {0}</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>Mostrar el grupo {0} en la navegación</value>
   </data>
@@ -14671,6 +14683,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="_Give the role" xml:space="preserve">
     <value>_Asignar el rol</value>
+  </data>
+  <data name="_Go to the next step" xml:space="preserve">
+    <value>_Ir al paso siguiente</value>
   </data>
   <data name="_Group name" xml:space="preserve">
     <value>_Nombre del grupo</value>

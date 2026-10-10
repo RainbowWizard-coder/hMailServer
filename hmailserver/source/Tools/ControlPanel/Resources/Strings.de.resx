@@ -5350,6 +5350,12 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Hide password" xml:space="preserve">
     <value>Kennwort ausblenden</value>
   </data>
+  <data name="Hide the details" xml:space="preserve">
+    <value>Details ausblenden</value>
+  </data>
+  <data name="Hide the details of {0}" xml:space="preserve">
+    <value>Details ausblenden: {0}</value>
+  </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>Den neuen API-Schlüssel verbergen</value>
   </data>
@@ -10960,6 +10966,12 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
     <value>Die Auto-Bann-IP-Bereiche auf der Seite IP-Bereiche anzeigen</value>
   </data>
+  <data name="Show the details" xml:space="preserve">
+    <value>Details anzeigen</value>
+  </data>
+  <data name="Show the details of {0}" xml:space="preserve">
+    <value>Details anzeigen: {0}</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>Die Gruppe {0} in der Navigation anzeigen</value>
   </data>
@@ -14671,6 +14683,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="_Give the role" xml:space="preserve">
     <value>Rolle _zuweisen</value>
+  </data>
+  <data name="_Go to the next step" xml:space="preserve">
+    <value>Zum _nächsten Schritt</value>
   </data>
   <data name="_Group name" xml:space="preserve">
     <value>_Gruppenname</value>

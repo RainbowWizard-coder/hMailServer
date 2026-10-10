@@ -5350,6 +5350,12 @@
   <data name="Hide password" xml:space="preserve">
     <value>パスワードを隠す</value>
   </data>
+  <data name="Hide the details" xml:space="preserve">
+    <value>詳細を隠す</value>
+  </data>
+  <data name="Hide the details of {0}" xml:space="preserve">
+    <value>詳細を隠す: {0}</value>
+  </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>新しい API キーを隠す</value>
   </data>
@@ -10960,6 +10966,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
     <value>自動ブロックの IP 範囲を IP 範囲ページに表示</value>
   </data>
+  <data name="Show the details" xml:space="preserve">
+    <value>詳細を表示</value>
+  </data>
+  <data name="Show the details of {0}" xml:space="preserve">
+    <value>詳細を表示: {0}</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>ナビゲーションにグループ {0} を表示する</value>
   </data>
@@ -14671,6 +14683,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Give the role" xml:space="preserve">
     <value>ロールを割り当てる(_G)</value>
+  </data>
+  <data name="_Go to the next step" xml:space="preserve">
+    <value>次の手順へ移動(_G)</value>
   </data>
   <data name="_Group name" xml:space="preserve">
     <value>グループ名(_G)</value>

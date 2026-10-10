@@ -5350,6 +5350,12 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Hide password" xml:space="preserve">
     <value>Nascondi la password</value>
   </data>
+  <data name="Hide the details" xml:space="preserve">
+    <value>Nascondi i dettagli</value>
+  </data>
+  <data name="Hide the details of {0}" xml:space="preserve">
+    <value>Nascondi i dettagli: {0}</value>
+  </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>Nascondi la nuova chiave API</value>
   </data>
@@ -10960,6 +10966,12 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
     <value>Mostra gli intervalli IP di ban automatico nella pagina Intervalli IP</value>
   </data>
+  <data name="Show the details" xml:space="preserve">
+    <value>Mostra i dettagli</value>
+  </data>
+  <data name="Show the details of {0}" xml:space="preserve">
+    <value>Mostra i dettagli: {0}</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>Mostra il gruppo {0} nella navigazione</value>
   </data>
@@ -14671,6 +14683,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="_Give the role" xml:space="preserve">
     <value>_Assegna il ruolo</value>
+  </data>
+  <data name="_Go to the next step" xml:space="preserve">
+    <value>_Vai al passo successivo</value>
   </data>
   <data name="_Group name" xml:space="preserve">
     <value>_Nome del gruppo</value>

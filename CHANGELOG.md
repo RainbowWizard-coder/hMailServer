@@ -2562,6 +2562,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   and the cards are at the form width. `LdapFilterFieldTests` holds the boxes, the cards and each default to the
   server's own constant in LdapSettings.cpp, character for character.
 
+- **Fixed: the Setup checklist named its next step without leading to it, below every finished item at full size.** On
+  a server that had done the first four items the summary said "Next step: Passwords only over TLS…" with nothing to
+  press, and the step was off-screen under four Done cards, each with its description, its finding and its Open
+  button, which a returning administrator scrolled past on every visit. The summary now carries Go to the next step,
+  which brings the marked card on screen and puts the keyboard on its Open button; and an item that is Done or Not
+  needed is one line - its number, its pill, its title and its Open button - with a chevron beside Open, and a click
+  on it or on the title, that shows what the item is for and what was found, and stays open while the page draws the
+  list again after its DNS lookups. Action needed and Cannot tell keep their whole text. `SetupChecklistNextStepTests`
+  holds the button, where it goes and the one-line items.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

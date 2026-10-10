@@ -94,6 +94,27 @@ namespace hMailServer.ControlPanel.Views
       // the quietest text on the page.
       private readonly TextBlock status_ = new();
 
+      // The tally's action: the marked next step brought on screen, with the
+      // keyboard on its Open button (review finding F016). The summary named the
+      // step without leading to it, below four finished cards a returning
+      // administrator scrolled past on every visit.
+      private readonly Wpf.Ui.Controls.Button goToNext_ = new()
+      {
+         Content = L("_Go to the next step"),
+         Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary
+      };
+
+      // The next step's card and the button on it that opens its page, from the
+      // last RenderItems; null when nothing needs action.
+      private Card nextCard_;
+      private FrameworkElement nextLink_;
+
+      // The finished items - Done and Not needed - are one line each, and open to
+      // their full text on a click; the ones opened stay open while the page
+      // draws them again (the DNS pass draws every item a second time). By title,
+      // which names one item.
+      private readonly System.Collections.Generic.HashSet<string> opened_ = new(StringComparer.Ordinal);
+
       public ExternalSetupView()
       {
          var page = new StackPanel { MaxWidth = 1000, HorizontalAlignment = HorizontalAlignment.Left };
@@ -109,6 +130,9 @@ namespace hMailServer.ControlPanel.Views
             Subtitle = L("What this server still needs, in the order a new installation meets it. Each item says whether it is done, the next one to do is marked, and the button beside it opens the page that does it. Where the answer cannot be read from here, the item says what to check instead of guessing."),
             Actions = refresh
          });
+
+         System.Windows.Automation.AutomationProperties.SetAutomationId(goToNext_, "external-setup-go-to-next");
+         goToNext_.Click += (s, e) => GoToNextStep_();
 
          page.Children.Add(summary_);
          page.Children.Add(readFailure_);
@@ -206,9 +230,23 @@ namespace hMailServer.ControlPanel.Views
          // (docs/SetupChecklist.md), so the first open item is the one to do.
          SetupItem next = checks_.Items.FirstOrDefault(i => i.State == SetupItemState.ActionNeeded);
 
+         nextCard_ = null;
+         nextLink_ = null;
          int number = 0;
          foreach (SetupItem item in checks_.Items)
-            body_.Children.Add(ItemCard(item, ++number, ReferenceEquals(item, next)));
+         {
+            bool isNext = ReferenceEquals(item, next);
+            Card card = ItemCard(item, ++number, isNext, out FrameworkElement link);
+            body_.Children.Add(card);
+            if (isNext)
+            {
+               nextCard_ = card;
+               nextLink_ = link;
+            }
+         }
+
+         // The tally leads to the step it names.
+         summary_.Content = next != null ? goToNext_ : null;
 
          int action = checks_.Items.Count(i => i.State == SetupItemState.ActionNeeded);
          int unknown = checks_.Items.Count(i => i.State == SetupItemState.CannotTell);
@@ -226,10 +264,17 @@ namespace hMailServer.ControlPanel.Views
          status_.Text = Sentences(baseStatus_, dnsNote);
       }
 
-      private Card ItemCard(SetupItem item, int number, bool isNext)
+      private Card ItemCard(SetupItem item, int number, bool isNext, out FrameworkElement openButton)
       {
          var card = new Card();
          card.SetResourceReference(MarginProperty, "AppCardGap");
+         openButton = null;
+
+         // A finished item - Done or Not needed - is one line: its number, its
+         // pill, its title and its Open button, and the rest on a click (review
+         // finding F016). Action needed and Cannot tell keep their whole text,
+         // which is what the reader came for.
+         bool compact = item.State == SetupItemState.Done || item.State == SetupItemState.NotNeeded;
 
          var content = new StackPanel();
 
@@ -242,6 +287,8 @@ namespace hMailServer.ControlPanel.Views
          header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
          header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
          header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+         header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+         // The compact card's details button, between the title and the Open button.
          header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
          var numberText = new TextBlock
@@ -290,8 +337,9 @@ namespace hMailServer.ControlPanel.Views
             FrameworkElement link = PageLink(item.Page, item.Tab, F("Open {0}", pageTitle),
                F("Open {0}, which owns the settings for: {1}", pageTitle, L(item.Title)), isNext);
             link.VerticalAlignment = VerticalAlignment.Top;
-            Grid.SetColumn(link, 3);
+            Grid.SetColumn(link, 4);
             header.Children.Add(link);
+            openButton = link;
          }
 
          content.Children.Add(header);
@@ -349,8 +397,90 @@ namespace hMailServer.ControlPanel.Views
             content.Children.Add(action);
          }
 
+         if (compact)
+            FoldDetails_(content, header, title, item, number);
+
          card.Content = content;
          return card;
+      }
+
+      /// <summary>
+      /// A finished item's card made one line: everything under its header - what
+      /// the item is for and what was found - goes into a panel shown on a click,
+      /// on the title or on the chevron beside the Open button, which a keyboard
+      /// reaches and a screen reader hears as Show the details of the item. Open
+      /// stays on the line. The card stays open while the page draws it again.
+      /// </summary>
+      private void FoldDetails_(StackPanel content, Grid header, TextBlock title, SetupItem item, int number)
+      {
+         var details = new StackPanel();
+         while (content.Children.Count > 1)
+         {
+            UIElement part = content.Children[1];
+            content.Children.RemoveAt(1);
+            details.Children.Add(part);
+         }
+         content.Children.Add(details);
+
+         var chevron = new Wpf.Ui.Controls.SymbolIcon { FontSize = 16 };
+         var toggle = new Wpf.Ui.Controls.Button
+         {
+            Content = chevron,
+            Appearance = Wpf.Ui.Controls.ControlAppearance.Transparent,
+            Padding = new Thickness(4),
+            MinWidth = 24,
+            MinHeight = 24,
+            Margin = new Thickness(0, 0, 8, 0),
+            VerticalAlignment = VerticalAlignment.Top,
+            Cursor = System.Windows.Input.Cursors.Hand
+         };
+         System.Windows.Automation.AutomationProperties.SetAutomationId(toggle,
+            "external-setup-details-" + number.ToString(System.Globalization.CultureInfo.InvariantCulture));
+         Grid.SetColumn(toggle, 3);
+         header.Children.Add(toggle);
+
+         void Show(bool open)
+         {
+            details.Visibility = open ? Visibility.Visible : Visibility.Collapsed;
+            chevron.Symbol = open ? Wpf.Ui.Controls.SymbolRegular.ChevronUp24 : Wpf.Ui.Controls.SymbolRegular.ChevronDown24;
+            toggle.ToolTip = open ? L("Hide the details") : L("Show the details");
+            System.Windows.Automation.AutomationProperties.SetName(toggle,
+               open ? F("Hide the details of {0}", item.Title) : F("Show the details of {0}", item.Title));
+         }
+
+         void Toggle()
+         {
+            bool open = !opened_.Contains(item.Title);
+            if (open)
+               opened_.Add(item.Title);
+            else
+               opened_.Remove(item.Title);
+            Show(open);
+         }
+
+         toggle.Click += (s, e) => Toggle();
+         title.Cursor = System.Windows.Input.Cursors.Hand;
+         title.MouseLeftButtonUp += (s, e) => Toggle();
+         Show(opened_.Contains(item.Title));
+      }
+
+      /// <summary>
+      /// The tally's Go to the next step: the marked card brought on screen, and
+      /// the keyboard on its Open button once the scroll is laid out, so that
+      /// Enter opens the page that does it.
+      /// </summary>
+      private void GoToNextStep_()
+      {
+         if (nextCard_ == null)
+            return;
+
+         nextCard_.BringIntoView(new Rect(0, 0, nextCard_.ActualWidth, nextCard_.ActualHeight));
+         FrameworkElement link = nextLink_;
+         Dispatcher.BeginInvoke(new Action(() =>
+         {
+            if (link != null && link.IsVisible)
+               System.Windows.Input.Keyboard.Focus(link);
+         }), System.Windows.Threading.DispatcherPriority.Loaded);
       }
 
       /// <summary>
