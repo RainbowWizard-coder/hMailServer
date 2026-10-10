@@ -102,14 +102,25 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>The stack a tab's fields go in, set off from the tab strip by one step.</summary>
       public static StackPanel TabPanel() => new() { Margin = new Thickness(0, DesignTokens.Space.Md, 0, 0) };
 
-      /// <summary>A tab's content: the fields, scrolling when the tab is taller than the dialog allows.</summary>
-      public static ScrollViewer Scroll(UIElement content) => new()
+      /// <summary>
+      /// A tab's content: the fields, scrolling when the tab is taller than the
+      /// dialog allows, and kept clear of the bar while it shows - the bar is
+      /// drawn over the content, and covered the right border of every box and
+      /// the end of every hint on the domain dialog's Limits and DKIM tabs
+      /// (Services/ScrollBarInset).
+      /// </summary>
+      public static ScrollViewer Scroll(UIElement content)
       {
-         Content = content,
-         VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-         HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
-         Focusable = false
-      };
+         var viewer = new ScrollViewer
+         {
+            Content = content,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+            Focusable = false
+         };
+         ScrollBarInset.SetIsEnabled(viewer, true);
+         return viewer;
+      }
 
       /// <summary>A collapsed notice, shown by <see cref="Show"/> when there is something to say.</summary>
       public static InlineNotice Notice() => new() { Visibility = Visibility.Collapsed };
@@ -195,15 +206,59 @@ namespace hMailServer.ControlPanel.Views
       public static void FitTabs(TabControl tabs, double contentWidth)
       {
          var available = new Size(contentWidth, double.PositiveInfinity);
+         tabs.Height = DialogLayout.TabControlHeight(Needed_(tabs, available),
+            DialogLayout.MaxWindowHeight(SystemParameters.WorkArea.Height));
+      }
 
-         // Each tab's content is measured on its own rather than through the tab
-         // control. Selecting a tab and measuring the control does not work here:
-         // the control is not in a tree yet, and the selected item reaches its
-         // content presenter on a later layout pass, so every measure reports the
-         // tab that was showing before - which is how the route editor's address
-         // list came out a third short and scrolled out of sight. The contents
-         // are ordinary elements this file built, and measuring one applies its
-         // template and the templates of the scaffold controls inside it.
+      /// <summary>
+      /// <see cref="FitTabs"/> for a dialog of many tabs - the domain and account
+      /// dialogs, whose tabs range from three fields to a form of twenty and to
+      /// whole embedded lists: as tall as its tallest tab, no taller than
+      /// <see cref="DialogLayout.ManyTabsCap"/>, past which that tab scrolls, and
+      /// no shorter than <see cref="DialogLayout.ListTabFloor"/>, which an embedded
+      /// list needs. They took the ceiling the work area allows without measuring
+      /// anything, 1,180 pixels on a large screen, General's three fields above
+      /// 780 pixels of nothing and Save at the screen's foot (review finding F194).
+      /// </summary>
+      public static void FitManyTabs(TabControl tabs, double contentWidth)
+      {
+         var available = new Size(contentWidth, double.PositiveInfinity);
+         tabs.Height = DialogLayout.TabControlHeight(Needed_(tabs, available),
+            DialogLayout.MaxWindowHeight(SystemParameters.WorkArea.Height), DialogLayout.ListTabFloor, DialogLayout.ManyTabsCap);
+      }
+
+      /// <summary>
+      /// What the tab control needs for its tallest tab and its strip, measured as
+      /// the dialog will draw them. The control is not in the window yet, so it is
+      /// given the window's font first (FluentDialogWindow's, which its tabs
+      /// inherit through the logical tree): measured in the system's default font,
+      /// the strip's row of headers came out two pixels shorter than it is drawn,
+      /// and the tallest tab of the IP range and route dialogs scrolled by those
+      /// two pixels under a bar drawn over its fields (review finding F192). Then
+      /// rounded up, with four pixels for layout rounding: at 150 % each part of a
+      /// tab is rounded up to a device pixel in the window, which the measure here
+      /// cannot do, and the IP range dialog's General tab, measured at 282, was
+      /// drawn 284 tall and scrolled by those two.
+      /// </summary>
+      private static double Needed_(TabControl tabs, Size available)
+      {
+         InDialogFont_(tabs);
+         return Math.Ceiling(TallestTab_(tabs, available) + StripHeight_(tabs, available)) + DesignTokens.Space.Xs;
+      }
+
+      /// <summary>
+      /// The tallest tab's content at the dialog's width. Each tab's content is
+      /// measured on its own rather than through the tab control. Selecting a tab
+      /// and measuring the control does not work here: the control is not in a tree
+      /// yet, and the selected item reaches its content presenter on a later layout
+      /// pass, so every measure reports the tab that was showing before - which is
+      /// how the route editor's address list came out a third short and scrolled
+      /// out of sight. The contents are ordinary elements this file built, and
+      /// measuring one applies its template and the templates of the scaffold
+      /// controls inside it.
+      /// </summary>
+      private static double TallestTab_(TabControl tabs, Size available)
+      {
          double tallest = 0;
          foreach (object item in tabs.Items)
          {
@@ -214,13 +269,35 @@ namespace hMailServer.ControlPanel.Views
             }
          }
 
-         // The strip above the content, taken from the control rather than
-         // guessed: one row of headers plus whatever the theme puts around them.
+         return tallest;
+      }
+
+      /// <summary>
+      /// The strip above a tab's content: its row of headers and the divider under
+      /// it. Taken from the headers themselves - a TabItem's template draws its
+      /// header alone - as well as from the control, whose measure outside a tree
+      /// can come before the selected tab reaches its content presenter, which
+      /// gave a strip of nothing and a tallest tab that scrolled by the strip's
+      /// height: the route dialog's Addresses tab and the German IP range dialog's
+      /// General tab (review finding F192).
+      /// </summary>
+      private static double StripHeight_(TabControl tabs, Size available)
+      {
          tabs.Measure(available);
          double strip = Math.Max(0, tabs.DesiredSize.Height - TallestSelectedContent_(tabs, available));
 
-         tabs.Height = DialogLayout.TabControlHeight(tallest + strip,
-            DialogLayout.MaxWindowHeight(SystemParameters.WorkArea.Height));
+         double headers = 0;
+         foreach (object item in tabs.Items)
+         {
+            if (item is TabItem header)
+            {
+               header.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+               headers = Math.Max(headers, header.DesiredSize.Height);
+            }
+         }
+
+         // The divider: the strip's one-pixel bottom border in App.xaml.
+         return Math.Max(strip, headers + 1);
       }
 
       private static double TallestSelectedContent_(TabControl tabs, Size available)
@@ -235,17 +312,36 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// Gives a tab control the tallest height the dialog allows, without
-      /// measuring anything. For the two big editors, whose tabs hold whole
-      /// embedded views - a grid of fetch accounts, a rules editor, an app
-      /// password panel - <see cref="FitTabs"/> would realise every one of the
-      /// twelve at construction to settle a height that the tallest of them
-      /// exceeds anyway. The window still never resizes on a tab switch, which
-      /// is the reason for sizing the strip at all; the tabs that are shorter
-      /// than the ceiling simply have room under them.
+      /// The width a tabbed dialog asks the frame for so that every header of its
+      /// strip is whole: <paramref name="preferred"/>, or wider where the headers in
+      /// the language in force need it (Services/DialogLayout.WidthForStrip). Each
+      /// header is measured on its own, as <see cref="FitTabs"/> measures the tabs.
       /// </summary>
-      public static void FillTabs(TabControl tabs)
-         => tabs.Height = DialogLayout.TabControlHeight(double.PositiveInfinity, DialogLayout.MaxWindowHeight(SystemParameters.WorkArea.Height));
+      public static double WidthForTabs(TabControl tabs, double preferred)
+      {
+         InDialogFont_(tabs);
+         double strip = 0;
+         foreach (object item in tabs.Items)
+         {
+            if (item is TabItem { Visibility: Visibility.Visible } header)
+            {
+               header.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+               strip += header.DesiredSize.Width;
+            }
+         }
+
+         return DialogLayout.WidthForStrip(strip, preferred);
+      }
+
+      /// <summary>
+      /// Gives a tab control that is not in its window yet the window's font
+      /// (FluentDialogWindow's), so that what is measured is what will be drawn.
+      /// </summary>
+      private static void InDialogFont_(TabControl tabs)
+      {
+         if (tabs.ReadLocalValue(Control.FontFamilyProperty) == DependencyProperty.UnsetValue)
+            tabs.FontFamily = new System.Windows.Media.FontFamily(Typography.UiFontFamily);
+      }
 
       /// <summary>The width the body of a dialog gets: the dialog's width less the frame's inset on both sides.</summary>
       public static double BodyWidth(double dialogWidth) => dialogWidth - 2 * DesignTokens.Space.Xl;

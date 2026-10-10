@@ -92,6 +92,9 @@
     <!-- And where a setting found by search is scrolled to: a third of the way down,
          with room for its ring and what follows it (Views/SettingReveal). -->
     <Compile Include="..\ControlPanel\Services\RevealOffset.cs" />
+    <!-- And where an overflowing tab strip scrolls to, by whole headers, and which of
+         its edges cuts a header and so fades (review findings F193 and F107). -->
+    <Compile Include="..\ControlPanel\Services\TabStripSnap.cs" />
     <!-- And the server settings page's own, which is a different lifecycle from
          the INI pages' above: read and written over COM, so it is clean, unsaved,
          saving, saved or partly saved, with no service restart in it. -->

@@ -2336,6 +2336,36 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   text: the REST API's card is REST administration API and the Control Deck, where it said Web Control Deck, and the
   sandbox check sends the reader to the Control Deck's delivery queue, where it said the Deck's queue page.
 
+- **Fixed: a dialog's scroll bar was drawn over its fields.** WPF-UI draws a scroll bar over the content it scrolls,
+  and a dialog's tabs and its body gave their fields the whole width under it: on the domain dialog's Limits and DKIM
+  tabs every text box lost its right border and *Browse…* was cut in half, and the distribution list dialog's hints
+  ended under the bar. A tab's fields (`DialogFields.Scroll`) and the frame's body (`DialogFrame`) now keep twelve
+  pixels clear of the bar while it shows, and none while the content fits, so that a tab that does not scroll still
+  ends its fields where the strip and the Save button end (`Services/ScrollBarInset`). The IP range dialog's General
+  tab and the route dialog's Addresses tab no longer scroll by two pixels: the tab control was measured outside its
+  window in the system's default font, in which the row of headers is two pixels shorter than the dialog draws it, and
+  is now measured in the dialog's own font and rounded up, with four pixels for the layout rounding that the window
+  does at 150 % and the measure cannot.
+
+- **Fixed: the tab strips cut their headers mid-word, and the domain and account dialogs showed a third of theirs.**
+  An overflowing strip scrolled by pixels - four fifths of its width a chevron click, 48 a wheel notch, Windows' least
+  distance for the selected tab - so that it began "… ing and disclaimer" or "… al" and ended "Tagg" or "Ex", and in
+  the 640-pixel domain and account dialogs six or seven of seventeen and sixteen headers were in sight. The strip now
+  moves by whole headers (`Services/TabStripSnap`): a chevron puts the first header cut or out of sight at the right
+  at the left edge, or goes back by as many whole headers as fit, a wheel notch is one header, a tab chosen by
+  keyboard or click comes in by a whole-header step, and each chevron is live while a header is cut or hidden on its
+  side; an edge that still cuts a header fades over 24 pixels, so that the header reads as one that goes on under the
+  chevron. The domain and account dialogs are 800 pixels wide, and the route and IP range dialogs as wide as their
+  five headers need in the language in force, where in German "Authentifizierung" and "Schutz" were cut behind the
+  chevron (`DialogFields.WidthForTabs`).
+
+- **Fixed: the domain and account dialogs opened at nine tenths of the screen's height whatever the tab held.** They
+  gave their tabs the whole height the work area allowed without measuring them - 1,180 pixels on a large screen, the
+  domain's General tab three fields above 780 pixels of nothing and Save at the foot of the screen. They are now as
+  tall as their tallest tab, no taller than 640 pixels for the tabs and their strip, past which a long form such as
+  Limits or DKIM scrolls inside its tab, and no lower than the 360 an embedded list needs (`DialogFields.FitManyTabs`,
+  `DialogLayout.ManyTabsCap`).
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

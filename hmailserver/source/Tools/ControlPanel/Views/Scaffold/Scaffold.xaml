@@ -13,7 +13,8 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-    xmlns:scaffold="clr-namespace:hMailServer.ControlPanel.Views.Scaffold">
+    xmlns:scaffold="clr-namespace:hMailServer.ControlPanel.Views.Scaffold"
+    xmlns:svc="clr-namespace:hMailServer.ControlPanel.Services">
 
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/hMailCP;component/Views/Scaffold/Tokens.xaml" />
@@ -429,8 +430,12 @@
                             <TextBlock x:Name="PART_Description" Text="{TemplateBinding Description}"
                                        Style="{StaticResource TextCaption}" Margin="0,4,0,0" />
                         </StackPanel>
+                        <!-- Kept clear of its bar while the bar shows, which is drawn
+                             over the content: the distribution list dialog's hints
+                             ended under it (Services/ScrollBarInset). -->
                         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
-                                      HorizontalScrollBarVisibility="Disabled" Focusable="False">
+                                      HorizontalScrollBarVisibility="Disabled" Focusable="False"
+                                      svc:ScrollBarInset.IsEnabled="True">
                             <ContentPresenter Content="{TemplateBinding Body}" />
                         </ScrollViewer>
                         <Grid Grid.Row="2" Margin="0,16,0,0">

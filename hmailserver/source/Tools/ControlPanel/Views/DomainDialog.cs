@@ -18,9 +18,9 @@ namespace hMailServer.ControlPanel.Views
    /// Modal, tabbed editor for one domain: general, limits, signature and DKIM.
    /// Aliases and distribution lists are managed from the Domains page itself.
    ///
-   /// On the standard frame: the domain name is the heading, the seven tabs all
-   /// take the height the dialog allows so the window never resizes on a click of
-   /// the strip, every field is a <see cref="FieldRow"/>, each of the eight
+   /// On the standard frame: the domain name is the heading, the tabs all take
+   /// the height of the tallest within a cap (DialogFields.FitManyTabs) so the
+   /// window never resizes on a click of the strip, every field is a <see cref="FieldRow"/>, each of the eight
    /// numbers that can be wrong is said on its own field rather than in one line
    /// at the foot of the dialog, and the key rotation's outcome and each record
    /// check is an <see cref="InlineNotice"/> that carries its level in colour, shape
@@ -30,8 +30,13 @@ namespace hMailServer.ControlPanel.Views
    /// </summary>
    public class DomainDialog : FluentDialogWindow
    {
-      /// <summary>The width this dialog asks the frame for.</summary>
-      private const double DialogWidth = 640;
+      /// <summary>
+      /// The width this dialog asks the frame for: 800, where 640 showed six or
+      /// seven of its headers and cut the next mid-word, so that a third of the
+      /// tabs could be reached only through the chevrons (review finding F193).
+      /// The token allows 900.
+      /// </summary>
+      private const double DialogWidth = 800;
 
       private readonly string domainName_;
 
@@ -231,7 +236,9 @@ namespace hMailServer.ControlPanel.Views
          tabs.Items.Add(new TabItem { Header = L("OpenPGP"), Content = BuildOpenPgp() });
          tabs.Items.Add(new TabItem { Header = L("Webhooks"), Content = BuildWebhooks() });
          tabs.Items.Add(new TabItem { Header = L("Levels"), Content = BuildLevels() });
-         DialogFields.FillTabs(tabs);
+         // As tall as the tallest tab within a cap, never the whole height the
+         // screen allows (review finding F194).
+         DialogFields.FitManyTabs(tabs, DialogFields.BodyWidth(DialogWidth));
 
          var body = new StackPanel();
          body.Children.Add(notice_);

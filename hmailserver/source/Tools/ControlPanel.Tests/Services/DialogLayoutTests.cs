@@ -67,5 +67,48 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(double.IsFinite(ceiling));
          Assert.Equal(ceiling, DialogLayout.TabControlHeight(1_000_000, maxWindow));
       }
+
+      /// <summary>
+      /// The domain and account dialogs are as tall as their tallest tab within a
+      /// cap, never the whole height a large screen allows (review finding F194):
+      /// on a work area of 1,400 pixels the ceiling is 1,060 and the tab control
+      /// was given all of it, General's three fields above 780 pixels of nothing.
+      /// </summary>
+      [Fact]
+      public void ManyTabsAreCappedWhateverTheScreenAllows()
+      {
+         double large = DialogLayout.MaxWindowHeight(1400);
+         Assert.Equal(DialogLayout.ManyTabsCap, DialogLayout.TabControlHeight(1100, large, DialogLayout.ListTabFloor, DialogLayout.ManyTabsCap));
+         Assert.True(DialogLayout.ManyTabsCap < DialogLayout.TabControlHeight(1100, large));
+      }
+
+      [Fact]
+      public void ManyShortTabsAreAsTallAsTheTallestOrTheListFloor()
+      {
+         double large = DialogLayout.MaxWindowHeight(1400);
+         Assert.Equal(500, DialogLayout.TabControlHeight(500, large, DialogLayout.ListTabFloor, DialogLayout.ManyTabsCap));
+         Assert.Equal(DialogLayout.ListTabFloor, DialogLayout.TabControlHeight(200, large, DialogLayout.ListTabFloor, DialogLayout.ManyTabsCap));
+      }
+
+      [Fact]
+      public void ManyTabsOnASmallScreenStillKeepTheFooterOnIt()
+      {
+         double small = DialogLayout.MaxWindowHeight(720);   // 648
+         double height = DialogLayout.TabControlHeight(1100, small, DialogLayout.ListTabFloor, DialogLayout.ManyTabsCap);
+         Assert.Equal(small - DialogLayout.FrameChrome, height);
+      }
+
+      /// <summary>
+      /// A dialog of a few tabs is as wide as its headers need, so that none is
+      /// cut behind a chevron in German (review finding F193), and no wider than
+      /// the dialog token allows.
+      /// </summary>
+      [Fact]
+      public void ADialogIsWideEnoughForItsHeaders()
+      {
+         Assert.Equal(560, DialogLayout.WidthForStrip(400, 560));
+         Assert.Equal(System.Math.Ceiling(540 + DialogLayout.StripSlack + 2 * DesignTokens.Space.Xl), DialogLayout.WidthForStrip(540, 560));
+         Assert.Equal(DesignTokens.Dialog.MaxWidth, DialogLayout.WidthForStrip(2000, 560));
+      }
    }
 }

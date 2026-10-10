@@ -24,7 +24,11 @@ namespace hMailServer.ControlPanel.Views
    /// </summary>
    public class IPRangeDialog : FluentDialogWindow
    {
-      /// <summary>The width this dialog asks the frame for; the tabs are measured against the body inside it.</summary>
+      /// <summary>
+      /// The width this dialog asks the frame for where its five headers fit in it;
+      /// wider where they do not (DialogFields.WidthForTabs). The tabs are measured
+      /// against the body inside the width it is given.
+      /// </summary>
       private const double DialogWidth = 560;
 
       private readonly int rangeId_;
@@ -84,7 +88,11 @@ namespace hMailServer.ControlPanel.Views
          // One height for every tab, taken from the tallest: a window sized to
          // its content would otherwise grow and shrink with each click on the
          // strip, which is the tabbed dialog's version of a jumping layout.
-         DialogFields.FitTabs(tabs, DialogFields.BodyWidth(DialogWidth));
+         // As wide as the headers need in the language in force, so that none is
+         // cut behind a chevron: in German "Authentifizierung" and "Schutz" were
+         // (review finding F193).
+         double width = DialogFields.WidthForTabs(tabs, DialogWidth);
+         DialogFields.FitTabs(tabs, DialogFields.BodyWidth(width));
 
          var body = new StackPanel();
          body.Children.Add(notice_);
@@ -96,7 +104,7 @@ namespace hMailServer.ControlPanel.Views
          var cancel = new Wpf.Ui.Controls.Button { Content = L("Cancel"), MinWidth = 88 };
          cancel.Click += (s, e) => Close();
 
-         UseFrame(L("IP range"), body, save, cancel, width: DialogWidth);
+         UseFrame(L("IP range"), body, save, cancel, width: width);
          Loaded += (s, e) => Load();
       }
 

@@ -3,10 +3,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;   // ButtonBase, for the chevron RepeatButtons
 using System.Windows.Input;
+using System.Windows.Media;   // Visual and VisualTreeHelper, to find the header a request comes from
 
 namespace hMailServer.ControlPanel.Services
 {
@@ -44,18 +46,20 @@ namespace hMailServer.ControlPanel.Services
    /// gets it without opting in. Attaching it per dialog is how AccountDialog would
    /// have been fixed and DomainDialog would not.
    /// </summary>
+   ///
+   /// Since 10 October 2026 the strip moves by whole headers (Services/TabStripSnap,
+   /// review findings F193 and F107): a chevron click puts the first header that
+   /// was cut or out of sight at the right at the strip's left edge, or goes back
+   /// by as many whole headers as fit; a wheel notch is one header; and a header
+   /// selected by keyboard or click is brought in by a whole-header step. By pixels
+   /// - four fifths of the strip a click, 48 a notch, and Windows' least distance
+   /// for the selected header - the strip began and ended mid-word ("… ing and
+   /// disclaimer", "Tagg"). An edge that still cuts a header - the right edge as a
+   /// rule, the left only at the strip's end - fades over
+   /// <see cref="TabStripSnap.FadeWidth"/> pixels, so the cut header reads as one
+   /// that goes on under the chevron.
    public static class TabStripScrolling
    {
-      /// <summary>
-      /// How far one chevron click travels. A shade under a full viewport, so a
-      /// tab that straddles the edge is not skipped over entirely - the usual
-      /// complaint about page-at-a-time scrolling.
-      /// </summary>
-      private const double PageFraction = 0.8;
-
-      /// <summary>How far one wheel notch travels.</summary>
-      private const double WheelStep = 48.0;
-
       /// <summary>
       /// Sub-pixel slack. Scroll offsets are doubles and a maxed-out ScrollViewer
       /// routinely lands a fraction short of ScrollableWidth, which would leave
@@ -120,6 +124,77 @@ namespace hMailServer.ControlPanel.Services
 
          viewer.Loaded -= OnLoaded;
          viewer.Loaded += OnLoaded;
+
+         // A header given the keyboard or clicked asks to be brought into view;
+         // the viewer's own handler does it by the least distance, which leaves
+         // the header beside it cut. Snapped to a whole header once that is done.
+         viewer.RemoveHandler(FrameworkElement.RequestBringIntoViewEvent, (RequestBringIntoViewEventHandler)OnRequestBringIntoView);
+         viewer.AddHandler(FrameworkElement.RequestBringIntoViewEvent, (RequestBringIntoViewEventHandler)OnRequestBringIntoView, true);
+      }
+
+      private static void OnRequestBringIntoView(object sender, RequestBringIntoViewEventArgs args)
+      {
+         if (sender is not ScrollViewer viewer || HeaderOf_(viewer, args.TargetObject) is not { } header)
+            return;
+
+         viewer.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, new Action(() => Reveal_(viewer, header)));
+      }
+
+      /// <summary>The header of this strip that <paramref name="target"/> is or is inside, or null.</summary>
+      private static TabItem HeaderOf_(ScrollViewer viewer, DependencyObject target)
+      {
+         if (viewer.Content is not Panel panel)
+            return null;
+
+         for (DependencyObject current = target; current != null && !ReferenceEquals(current, viewer); current = current is Visual ? VisualTreeHelper.GetParent(current) : LogicalTreeHelper.GetParent(current))
+         {
+            if (current is TabItem item && panel.Children.Contains(item))
+               return item;
+         }
+
+         return null;
+      }
+
+      /// <summary>
+      /// The headers that are drawn, as left edge and width in the strip's own
+      /// coordinates, in the order they are laid out.
+      /// </summary>
+      private static List<(double Left, double Width)> Headers_(ScrollViewer viewer, out List<TabItem> items)
+      {
+         var headers = new List<(double Left, double Width)>();
+         items = new List<TabItem>();
+         if (viewer.Content is not Panel panel)
+            return headers;
+
+         foreach (object child in panel.Children)
+         {
+            if (child is not TabItem item || item.Visibility != Visibility.Visible || item.ActualWidth <= 0)
+               continue;
+
+            try
+            {
+               headers.Add((item.TranslatePoint(new Point(0, 0), panel).X, item.ActualWidth));
+               items.Add(item);
+            }
+            catch (InvalidOperationException)
+            {
+               // Not under the panel any more (removed between layout and now).
+            }
+         }
+
+         return headers;
+      }
+
+      private static void Reveal_(ScrollViewer viewer, TabItem header)
+      {
+         List<(double Left, double Width)> headers = Headers_(viewer, out List<TabItem> items);
+         int index = items.IndexOf(header);
+         if (index < 0)
+            return;
+
+         double offset = TabStripSnap.Reveal(headers, index, viewer.HorizontalOffset, viewer.ViewportWidth, viewer.ScrollableWidth);
+         if (Math.Abs(offset - viewer.HorizontalOffset) > Epsilon)
+            viewer.ScrollToHorizontalOffset(offset);
       }
 
       private static void OnLoaded(object sender, RoutedEventArgs args)
@@ -149,8 +224,10 @@ namespace hMailServer.ControlPanel.Services
          if (sender is not ScrollViewer viewer || viewer.ScrollableWidth <= Epsilon)
             return;
 
-         viewer.ScrollToHorizontalOffset(
-            Clamp(viewer.HorizontalOffset - Math.Sign(args.Delta) * WheelStep, viewer.ScrollableWidth));
+         // One header a notch: a wheel turned towards the reader (a negative
+         // delta) moves the strip on, as a vertical list scrolls down.
+         viewer.ScrollToHorizontalOffset(TabStripSnap.Notch(Headers_(viewer, out _), viewer.HorizontalOffset,
+            viewer.ScrollableWidth, -Math.Sign(args.Delta)));
 
          // Handled, or the gesture keeps travelling up to whatever scrollable
          // panel the dialog sits in and scrolls the page behind the tabs instead.
@@ -162,32 +239,69 @@ namespace hMailServer.ControlPanel.Services
          if (sender is not ButtonBase button || button.Tag is not ScrollViewer viewer)
             return;
 
-         double step = Math.Max(WheelStep, viewer.ViewportWidth * PageFraction);
          bool left = ReferenceEquals(GetLeftButton(viewer), button);
+         List<(double Left, double Width)> headers = Headers_(viewer, out _);
 
-         viewer.ScrollToHorizontalOffset(
-            Clamp(viewer.HorizontalOffset + (left ? -step : step), viewer.ScrollableWidth));
+         viewer.ScrollToHorizontalOffset(left
+            ? TabStripSnap.Back(headers, viewer.HorizontalOffset, viewer.ViewportWidth, viewer.ScrollableWidth)
+            : TabStripSnap.Forward(headers, viewer.HorizontalOffset, viewer.ViewportWidth, viewer.ScrollableWidth));
       }
 
       private static void Update(ScrollViewer viewer)
       {
          bool overflowing = viewer.ScrollableWidth > Epsilon;
+         List<(double Left, double Width)> headers = overflowing ? Headers_(viewer, out _) : null;
 
          ButtonBase left = GetLeftButton(viewer);
          ButtonBase right = GetRightButton(viewer);
 
+         // Each chevron is live while a header is out of sight or cut on its
+         // side: with the strip on the last header's whole-header step, the few
+         // pixels left to scroll are the strip's own end, not another tab.
          if (left != null)
          {
             left.Visibility = overflowing ? Visibility.Visible : Visibility.Collapsed;
-            left.IsEnabled = overflowing && viewer.HorizontalOffset > Epsilon;
+            left.IsEnabled = overflowing && viewer.HorizontalOffset > Epsilon
+                             && (headers.Count == 0 || TabStripSnap.MoreBefore(headers, viewer.HorizontalOffset));
          }
 
          if (right != null)
          {
             right.Visibility = overflowing ? Visibility.Visible : Visibility.Collapsed;
-            right.IsEnabled = overflowing &&
-                              viewer.HorizontalOffset < viewer.ScrollableWidth - Epsilon;
+            right.IsEnabled = overflowing && viewer.HorizontalOffset < viewer.ScrollableWidth - Epsilon
+                              && (headers.Count == 0 || TabStripSnap.MoreAfter(headers, viewer.HorizontalOffset, viewer.ViewportWidth));
          }
+
+         Fade_(viewer, headers);
+      }
+
+      /// <summary>
+      /// Fades each edge of the strip that cuts a header, over
+      /// <see cref="TabStripSnap.FadeWidth"/> pixels, as an opacity mask on the
+      /// viewer: a colour laid over the edge would have to be the colour of what
+      /// is behind the strip, which is a dialog's Mica, a page or a card.
+      /// </summary>
+      private static void Fade_(ScrollViewer viewer, List<(double Left, double Width)> headers)
+      {
+         bool atLeft = headers != null && TabStripSnap.CutAtLeft(headers, viewer.HorizontalOffset);
+         bool atRight = headers != null && TabStripSnap.CutAtRight(headers, viewer.HorizontalOffset, viewer.ViewportWidth);
+         double width = viewer.ActualWidth;
+
+         if ((!atLeft && !atRight) || width <= 2 * TabStripSnap.FadeWidth)
+         {
+            if (viewer.OpacityMask != null)
+               viewer.OpacityMask = null;
+            return;
+         }
+
+         double fade = TabStripSnap.FadeWidth / width;
+         var mask = new System.Windows.Media.LinearGradientBrush { StartPoint = new Point(0, 0.5), EndPoint = new Point(1, 0.5) };
+         mask.GradientStops.Add(new System.Windows.Media.GradientStop(atLeft ? System.Windows.Media.Colors.Transparent : System.Windows.Media.Colors.Black, 0));
+         mask.GradientStops.Add(new System.Windows.Media.GradientStop(System.Windows.Media.Colors.Black, atLeft ? fade : 0));
+         mask.GradientStops.Add(new System.Windows.Media.GradientStop(System.Windows.Media.Colors.Black, atRight ? 1 - fade : 1));
+         mask.GradientStops.Add(new System.Windows.Media.GradientStop(atRight ? System.Windows.Media.Colors.Transparent : System.Windows.Media.Colors.Black, 1));
+         mask.Freeze();
+         viewer.OpacityMask = mask;
       }
 
       /// <summary>
@@ -204,15 +318,15 @@ namespace hMailServer.ControlPanel.Services
             if (child is TabItem { IsSelected: true } selected)
             {
                // Deferred: during a Loaded or an extent change the item may not
-               // have been arranged yet, and BringIntoView on a zero-sized element
-               // scrolls to the wrong place or to nowhere at all.
+               // have been arranged yet, and a header of no size is in no place
+               // to scroll to. Brought in by a whole-header step.
                selected.Dispatcher.BeginInvoke(
                   System.Windows.Threading.DispatcherPriority.Loaded,
                   new Action(() =>
                   {
                      try
                      {
-                        selected.BringIntoView();
+                        Reveal_(viewer, selected);
                      }
                      catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
                      {
@@ -223,14 +337,6 @@ namespace hMailServer.ControlPanel.Services
                return;
             }
          }
-      }
-
-      private static double Clamp(double offset, double scrollable)
-      {
-         if (offset < 0)
-            return 0;
-
-         return offset > scrollable ? scrollable : offset;
       }
    }
 }

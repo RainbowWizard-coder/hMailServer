@@ -17,9 +17,9 @@ namespace hMailServer.ControlPanel.Views
    /// Modal, tabbed editor for one account: general, forwarding, auto-reply,
    /// signature and Active Directory.
    ///
-   /// On the standard frame: the address is the heading, the twelve tabs all take
-   /// the height the dialog allows so the window never resizes on a click of the
-   /// strip, every field is a <see cref="FieldRow"/> carrying its own caption,
+   /// On the standard frame: the address is the heading, the tabs all take the
+   /// height of the tallest within a cap (DialogFields.FitManyTabs) so the window
+   /// never resizes on a click of the strip, every field is a <see cref="FieldRow"/> carrying its own caption,
    /// hint and validation message, and a number or an address that will not do is
    /// said on that field - which brings its tab forward and puts the keyboard in
    /// it - rather than in a line at the foot of a dialog the reader has already
@@ -28,8 +28,13 @@ namespace hMailServer.ControlPanel.Views
    /// </summary>
    public class AccountDialog : FluentDialogWindow
    {
-      /// <summary>The width this dialog asks the frame for.</summary>
-      private const double DialogWidth = 640;
+      /// <summary>
+      /// The width this dialog asks the frame for: 800, where 640 showed six or
+      /// seven of its headers and cut the next mid-word, so that a third of the
+      /// tabs could be reached only through the chevrons (review finding F193).
+      /// The token allows 900.
+      /// </summary>
+      private const double DialogWidth = 800;
 
       private readonly string domainName_;
       private readonly string address_;
@@ -210,7 +215,9 @@ namespace hMailServer.ControlPanel.Views
          tabs.Items.Add(new TabItem { Header = L("Directory entry"), Content = BuildDirectoryEntry() });
          tabs.Items.Add(new TabItem { Header = L("Identity"), Content = BuildIdentity() });
          tabs.Items.Add(new TabItem { Header = L("Levels"), Content = BuildLevels() });
-         DialogFields.FillTabs(tabs);
+         // As tall as the tallest tab within a cap, never the whole height the
+         // screen allows (review finding F194).
+         DialogFields.FitManyTabs(tabs, DialogFields.BodyWidth(DialogWidth));
 
          var body = new StackPanel();
          body.Children.Add(notice_);

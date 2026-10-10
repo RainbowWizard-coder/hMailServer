@@ -23,7 +23,11 @@ namespace hMailServer.ControlPanel.Views
    /// </summary>
    public class RouteDialog : FluentDialogWindow
    {
-      /// <summary>The width this dialog asks the frame for; the tabs are measured against the body inside it.</summary>
+      /// <summary>
+      /// The width this dialog asks the frame for where its five headers fit in it;
+      /// wider where they do not (DialogFields.WidthForTabs). The tabs are measured
+      /// against the body inside the width it is given.
+      /// </summary>
       private const double DialogWidth = 560;
 
       private readonly string domainName_;
@@ -65,7 +69,11 @@ namespace hMailServer.ControlPanel.Views
          tabs.Items.Add(new TabItem { Header = L("Security"), Content = BuildSecurity() });
          tabs.Items.Add(new TabItem { Header = L("Authentication"), Content = BuildAuth() });
 
-         DialogFields.FitTabs(tabs, DialogFields.BodyWidth(DialogWidth));
+         // As wide as the headers need in the language in force, so that none is
+         // cut behind a chevron: in German "Authentifizierung" and "Schutz" were
+         // (review finding F193).
+         double width = DialogFields.WidthForTabs(tabs, DialogWidth);
+         DialogFields.FitTabs(tabs, DialogFields.BodyWidth(width));
 
          var body = new StackPanel();
          body.Children.Add(notice_);
@@ -76,7 +84,7 @@ namespace hMailServer.ControlPanel.Views
          var cancel = new Wpf.Ui.Controls.Button { Content = L("Cancel"), MinWidth = 88 };
          cancel.Click += (s, e) => Close();
 
-         UseFrame(domainName, body, save, cancel, width: DialogWidth);
+         UseFrame(domainName, body, save, cancel, width: width);
          Loaded += (s, e) => Load();
       }
 
