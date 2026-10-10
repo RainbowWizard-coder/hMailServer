@@ -120,6 +120,25 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("is StatusView status", shell, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// A read of the update status that failed holds all three steps while the card
+      /// says so, as Server status held them before they moved: with the link lost the
+      /// card said "Could not read the update status" and still offered Check for
+      /// updates, which answered "The update step could not be run". A read that worked
+      /// gives Check back.
+      /// </summary>
+      [Fact]
+      public void AFailedReadHoldsEveryStep()
+      {
+         string steps = ReadControlPanelFile(Path.Join("Views", "FeatureSettingsView.Updates.cs"));
+         int show = steps.IndexOf("ReadFailure.Show(UpdateReadNotice,", StringComparison.Ordinal);
+         Assert.True(show > 0, "The Updates page's card says no failed read.");
+         string call = steps.Substring(show, steps.IndexOf(");", show, StringComparison.Ordinal) - show);
+         foreach (string button in new[] { "CheckUpdateButton", "DownloadUpdateButton", "InstallUpdateButton" })
+            Assert.Contains(button, call, StringComparison.Ordinal);
+         Assert.Contains("CheckUpdateButton.IsEnabled = true;", steps, StringComparison.Ordinal);
+      }
+
       /// <summary>Server status, the Dashboard and About say a waiting release in one line.</summary>
       [Theory]
       [InlineData("StatusView.xaml.cs", "UpdateNotice.ShowIn(UpdateNoticeHost, \"status-update-available\");")]

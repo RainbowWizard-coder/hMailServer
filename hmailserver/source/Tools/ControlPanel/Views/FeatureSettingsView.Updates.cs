@@ -98,8 +98,10 @@ namespace hMailServer.ControlPanel.Views
       /// The version and the update check's verdict, kept by the server; the row
       /// says what the scheduled check (UpdateCheckEnabled) or an on-demand one
       /// last found. A read that failed is said once, in the card, at the level
-      /// of its cause, with Try again, and Download and Install held while it
-      /// shows; Check for updates needs nothing read.
+      /// of its cause, with Try again, and the three steps held while it shows:
+      /// Check for updates as well as Download and Install, since the service that
+      /// runs them did not answer - with the link lost it offered Check, and
+      /// pressing it brought "The update step could not be run".
       /// </summary>
       private void ReloadUpdate_()
       {
@@ -174,7 +176,7 @@ namespace hMailServer.ControlPanel.Views
          }
 
          ReadFailure.Show(UpdateReadNotice, null, null, L("Could not read the update status: "), readError, ReloadUpdate_,
-            DownloadUpdateButton, InstallUpdateButton);
+            CheckUpdateButton, DownloadUpdateButton, InstallUpdateButton);
       }
 
       /// <summary>

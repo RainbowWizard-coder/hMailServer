@@ -2189,7 +2189,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   server runs, the update check's verdict and the three steps above the policy, which is the same card under the
   title "How this server updates"; its help is UpdateFeed.md, and the palette finds it by Update, Upgrade, New
   version, Live update, Patch, Release channel and Automatic updates, and by the tasks "install a new version",
-  "turn on automatic updates" and "is there a new version". Server status, the Dashboard and About say in one line
+  "turn on automatic updates" and "is there a new version". A read of the update status that fails says why on the
+  card, with Try again, and holds Check for updates, Download update and Install update until a read works, as
+  Server status held them. Server status, the Dashboard and About say in one line
   when a release is waiting - "hMailServer 6.3.7 is available." - with Open Updates beside it, shown to a credential
   that may open the page; the Control Panel that opens again after an administrator's install says how it ended on
   the Updates page, and "Not checked yet" points at the daily check below it rather than at API & monitoring. API &
