@@ -29,7 +29,17 @@ namespace hMailServer.ControlPanel.Views
       /// REST settings client find the listener; null with the reason when it cannot
       /// be opened from here.
       /// </summary>
-      public static Uri Find(out string whyNot)
+      public static Uri Find(out string whyNot) => Find(null, out whyNot);
+
+      /// <summary>
+      /// <see cref="Find(out string)"/>, with <paramref name="whyOffHere"/> the reason a
+      /// page that holds the REST API's port gives while it is off (null for the
+      /// sentence that names the API &amp; monitoring page). The settings saved and not
+      /// yet applied are asked of the server, so that the button is not pressable
+      /// while hMailServer.ini names an address nothing listens on yet
+      /// (ControlDeck.ListenerSettings).
+      /// </summary>
+      public static Uri Find(string whyOffHere, out string whyNot)
       {
          try
          {
@@ -48,7 +58,8 @@ namespace hMailServer.ControlPanel.Views
             return ControlDeck.Address(
                ini.Read("RestApiPort", "0"), ini.Read("RestApiBindAddress", "127.0.0.1"), // no-loc
                ini.Read("RestApiCertificateFile", ""), ini.Read("RestApiPrivateKeyFile", ""), // no-loc
-               acmeCertificate, ServerSession.IsLocalSession, ServerSession.Current?.Host, out whyNot);
+               acmeCertificate, ServerSession.IsLocalSession, ServerSession.Current?.Host,
+               IniFeatureStore.PendingNames(), whyOffHere, out whyNot);
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {
@@ -60,9 +71,11 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>
       /// The button, read for where the Deck is now (<see cref="Update"/>):
       /// <paramref name="caption"/> is its words - with an Alt key in a page's header,
-      /// without one on a card, whose row buttons carry none.
+      /// without one on a card, whose row buttons carry none - and
+      /// <paramref name="whyOffHere"/> the reason it gives on a page that holds the
+      /// REST API's port while the port is 0, or null (<see cref="Find(string, out string)"/>).
       /// </summary>
-      public static Wpf.Ui.Controls.Button Button(string caption)
+      public static Wpf.Ui.Controls.Button Button(string caption, string whyOffHere = null)
       {
          var button = new Wpf.Ui.Controls.Button
          {
@@ -77,7 +90,7 @@ namespace hMailServer.ControlPanel.Views
          ToolTipService.SetShowOnDisabled(button, true);
          AutomationProperties.SetAutomationId(button, "open-control-deck");
          button.Click += (s, e) => Open_(button.Tag as Uri);
-         Update(button);
+         Update(button, whyOffHere);
          return button;
       }
 
@@ -87,9 +100,9 @@ namespace hMailServer.ControlPanel.Views
       /// A page that keeps its button calls this as it is entered, since the REST API
       /// may have been turned on or off since.
       /// </summary>
-      public static string Update(Wpf.Ui.Controls.Button button)
+      public static string Update(Wpf.Ui.Controls.Button button, string whyOffHere = null)
       {
-         Uri deck = Find(out string whyNot);
+         Uri deck = Find(whyOffHere, out string whyNot);
          string help = deck != null ? F("Opens {0} in the web browser.", deck.AbsoluteUri) : whyNot;
 
          button.Tag = deck;
@@ -102,11 +115,11 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>
       /// The button as a card's row, with the reason beside it while it is disabled,
       /// wrapping in a narrow card. The row is made as its page is built, which is as
-      /// the page is entered.
+      /// the page is entered. <paramref name="whyOffHere"/> is as for <see cref="Button"/>.
       /// </summary>
-      public static FrameworkElement Row(string caption)
+      public static FrameworkElement Row(string caption, string whyOffHere = null)
       {
-         Wpf.Ui.Controls.Button button = Button(caption);
+         Wpf.Ui.Controls.Button button = Button(caption, whyOffHere);
          button.Margin = new Thickness(0, 4, 8, 0);
 
          var row = new WrapPanel();

@@ -11539,6 +11539,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>De Active Directory-gebruikersnaam (sAMAccountName) - dezelfde waarde als op het tabblad Windows-directory van het account. Optioneel: leeg gelaten stopt de test na de fasen verbinding en servicereferentie.</value>
   </data>
+  <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
+    <value>De Control Deck wordt geleverd door de REST-API, die uit staat - geef die hieronder een poort.</value>
+  </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port on the API &amp; monitoring page." xml:space="preserve">
     <value>De Control Deck wordt geleverd door de REST-API, die uit staat - geef die een poort op de pagina API en monitoring.</value>
   </data>
@@ -11617,6 +11620,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
     <value>De REST-API draait niet: luisteren op {0} vereist een certificaat, in te stellen op de pagina API en monitoring.</value>
   </data>
+  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and both this page and the Control Deck read the cases over it. Give it a port there." xml:space="preserve">
+    <value>De REST-API staat uit (de poort op de pagina API en monitoring is {0}), en zowel deze pagina als de Control Deck lezen de zaken erover. Geef hem daar een poort.</value>
+  </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>De REST-API staat uit (de poort op de pagina API en monitoring is {0}), en deze instellingen worden erover bereikt: de server bewaart ze, maar geen COM-eigenschap draagt ze. Geef de REST-API een poort op de pagina API en monitoring, initialiseer de server opnieuw en open deze pagina opnieuw.</value>
   </data>
@@ -11637,6 +11643,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="The REST API's listener and the web services listener share this one." xml:space="preserve">
     <value>De listener van de REST-API en de webservices-listener delen deze.</value>
+  </data>
+  <data name="The REST API's new settings are saved but not yet in effect - the Control Deck can be opened once the server applies them." xml:space="preserve">
+    <value>De nieuwe instellingen van de REST-API zijn opgeslagen, maar nog niet van kracht - de Control Deck kan worden geopend zodra de server ze toepast.</value>
   </data>
   <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions." xml:space="preserve">
     <value>De REST-API, de Prometheus-metrics en de gezondheidseindpunten die een extern monitoringsysteem uitleest, het Windows-gebeurtenislogboek, de ManageSieve-listener, en hoe lang een service die stopt op zijn sessies wacht.</value>

@@ -11539,6 +11539,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Active Directory-användarnamnet (sAMAccountName) - samma värde som kontots flik Windows-katalog innehåller. Valfritt: lämnat tomt stoppar testet efter anslutnings- och tjänsteuppgiftsstegen.</value>
   </data>
+  <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
+    <value>Control Deck levereras av REST-API:et, som är avstängt - ge det en port nedan.</value>
+  </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port on the API &amp; monitoring page." xml:space="preserve">
     <value>Control Deck levereras av REST-API:et, som är avstängt - ge det en port på sidan API &amp; övervakning.</value>
   </data>
@@ -11617,6 +11620,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
     <value>REST-API:et körs inte: att lyssna på {0} kräver ett certifikat, som anges på sidan API &amp; övervakning.</value>
   </data>
+  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and both this page and the Control Deck read the cases over it. Give it a port there." xml:space="preserve">
+    <value>REST-API:t är avstängt (dess port på sidan API &amp; övervakning är {0}), och både den här sidan och Control Deck läser ärendena genom det. Ge det en port där.</value>
+  </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>REST-API:t är avstängt (dess port på sidan API &amp; övervakning är {0}), och de här inställningarna nås via det: servern sparar dem, men ingen COM-egenskap bär dem. Ge REST-API:t en port på sidan API &amp; övervakning, initiera om servern och öppna den här sidan igen.</value>
   </data>
@@ -11637,6 +11643,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="The REST API's listener and the web services listener share this one." xml:space="preserve">
     <value>REST-API:ts lyssnare och webbtjänstlyssnaren delar på denna.</value>
+  </data>
+  <data name="The REST API's new settings are saved but not yet in effect - the Control Deck can be opened once the server applies them." xml:space="preserve">
+    <value>REST-API:ts nya inställningar är sparade men gäller inte än - Control Deck kan öppnas när servern har tillämpat dem.</value>
   </data>
   <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions." xml:space="preserve">
     <value>REST API:et, Prometheus-mätvärdena och hälsoslutpunkterna som ett externt övervakningssystem läser, Windows händelselogg, ManageSieve-lyssnaren, och hur länge en tjänst som stoppas väntar på sina sessioner.</value>

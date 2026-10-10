@@ -2320,8 +2320,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   accounts, Alerts, Outbound webhooks and Migrations cards, and on the REST API's card - and opens the REST listener's
   root, where the Deck is served, in the browser; its tool tip and its accessible help text give the address. While
   the Deck cannot be opened from here the button is disabled and says why, beside it on a card: the REST API is off
-  ("give it a port on the API & monitoring page"), it listens on the loopback address and this Control Panel is on
-  another machine, or it cannot listen beyond this machine without a certificate. The Deck has no address for one of
+  ("give it a port on the API & monitoring page", and on the REST API's own card, two rows above the port, "give it a
+  port below"), its new port, bind address or certificate is saved and not yet applied by the server - where the
+  button opened an address nothing listened on until a reinitialise or a restart - it listens on the loopback address
+  and this Control Panel is on another machine, or it cannot listen beyond this machine without a certificate.
+  Discovery's sentence for a REST API that is off says that the page and the Deck both read the cases over it and to
+  give it a port on the API & monitoring page, where it said to turn it on under Settings or read the cases in the
+  Control Deck, whose button beside it was disabled for the same reason. The Deck has no address for one of
   its views, so each button opens the Deck itself (the owner's decision of 9 October 2026: deep links where it has
   them). It is the Control Deck in every text: the REST API's card is REST administration API and the Control Deck,
   where it said Web Control Deck, and the sandbox check sends the reader to the Control Deck's delivery queue, where it

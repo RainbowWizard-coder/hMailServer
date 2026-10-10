@@ -11669,6 +11669,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Ім'я користувача Active Directory (sAMAccountName) - те саме значення, що на вкладці «Каталог Windows» облікового запису. Необов'язково: якщо залишити порожнім, тест зупиниться після етапів з'єднання та облікових даних служби.</value>
   </data>
+  <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
+    <value>Control Deck обслуговує REST API, який вимкнено - призначте йому порт нижче.</value>
+  </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port on the API &amp; monitoring page." xml:space="preserve">
     <value>Control Deck обслуговує REST API, який вимкнено - призначте йому порт на сторінці «API та моніторинг».</value>
   </data>
@@ -11747,6 +11750,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
     <value>REST API не працює: для прослуховування {0} потрібен сертифікат, який задається на сторінці «API та моніторинг».</value>
   </data>
+  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and both this page and the Control Deck read the cases over it. Give it a port there." xml:space="preserve">
+    <value>REST API вимкнено (його порт на сторінці «API та моніторинг» дорівнює {0}), а ця сторінка й Control Deck читають справи через нього. Призначте йому порт на тій сторінці.</value>
+  </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>REST API вимкнено (його порт на сторінці «API та моніторинг» дорівнює {0}), а ці параметри доступні через нього: сервер їх зберігає, але жодна властивість COM їх не передає. Задайте REST API порт на сторінці «API та моніторинг», повторно ініціалізуйте сервер і знову відкрийте цю сторінку.</value>
   </data>
@@ -11767,6 +11773,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The REST API's listener and the web services listener share this one." xml:space="preserve">
     <value>Слухач REST API і слухач вебслужб використовують це спільне значення.</value>
+  </data>
+  <data name="The REST API's new settings are saved but not yet in effect - the Control Deck can be opened once the server applies them." xml:space="preserve">
+    <value>Нові параметри REST API збережено, але вони ще не діють - Control Deck можна буде відкрити, коли сервер їх застосує.</value>
   </data>
   <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions." xml:space="preserve">
     <value>REST API, метрики Prometheus і кінцеві точки стану здоров'я, які читає зовнішня система моніторингу, журнал подій Windows, прослуховувач ManageSieve і те, як довго служба, що зупиняється, чекає на свої сеанси.</value>

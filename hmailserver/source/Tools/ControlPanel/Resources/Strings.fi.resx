@@ -11539,6 +11539,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Active Directory -käyttäjänimi (sAMAccountName) - sama arvo, joka on tilin Windows-hakemisto-välilehdellä. Valinnainen: tyhjäksi jätettynä testi pysähtyy yhteys- ja palvelun tunnistetietovaiheiden jälkeen.</value>
   </data>
+  <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
+    <value>Control Deckin tarjoaa REST-rajapinta, joka on pois päältä - anna sille portti alempana.</value>
+  </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port on the API &amp; monitoring page." xml:space="preserve">
     <value>Control Deckin tarjoaa REST-rajapinta, joka on pois päältä - anna sille portti sivulla API ja valvonta.</value>
   </data>
@@ -11617,6 +11620,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
     <value>REST-rajapinta ei ole käynnissä: kuuntelu osoitteessa {0} vaatii varmenteen, joka asetetaan sivulla API ja valvonta.</value>
   </data>
+  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and both this page and the Control Deck read the cases over it. Give it a port there." xml:space="preserve">
+    <value>REST-rajapinta on pois käytöstä (sen portti sivulla API ja valvonta on {0}), ja sekä tämä sivu että Control Deck lukevat tapaukset sen kautta. Anna sille portti siellä.</value>
+  </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>REST API on pois käytöstä (sen portti sivulla API ja valvonta on {0}), ja nämä asetukset tavoitetaan sen kautta: palvelin säilyttää ne, mutta mikään COM-ominaisuus ei kanna niitä. Anna REST API:lle portti sivulla API ja valvonta, alusta palvelin uudelleen ja avaa tämä sivu uudelleen.</value>
   </data>
@@ -11637,6 +11643,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="The REST API's listener and the web services listener share this one." xml:space="preserve">
     <value>REST API:n kuuntelija ja verkkopalvelujen kuuntelija jakavat tämän.</value>
+  </data>
+  <data name="The REST API's new settings are saved but not yet in effect - the Control Deck can be opened once the server applies them." xml:space="preserve">
+    <value>REST-rajapinnan uudet asetukset on tallennettu, mutta ne eivät ole vielä voimassa - Control Deckin voi avata, kun palvelin ottaa ne käyttöön.</value>
   </data>
   <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions." xml:space="preserve">
     <value>REST-rajapinta, Prometheus-mittarit ja kuntopäätepisteet, joita ulkoinen valvontajärjestelmä lukee, Windowsin tapahtumaloki, ManageSieve-kuuntelija ja se, kuinka kauan pysähtyvä palvelu odottaa istuntojaan.</value>

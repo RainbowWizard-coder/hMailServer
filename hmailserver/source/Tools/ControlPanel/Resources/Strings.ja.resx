@@ -11539,6 +11539,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Active Directory のユーザー名 (sAMAccountName)。アカウントの [Windows ディレクトリ] タブにあるものと同じ値です。省略可: 空のままにすると、テストは接続とサービス資格情報のステージの後で停止します。</value>
   </data>
+  <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
+    <value>Control Deck は REST API が提供していますが、REST API はオフです - 下でポートを設定してください。</value>
+  </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port on the API &amp; monitoring page." xml:space="preserve">
     <value>Control Deck は REST API が提供していますが、REST API はオフです - 「API と監視」ページでポートを設定してください。</value>
   </data>
@@ -11617,6 +11620,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
     <value>REST API は動作していません: {0} で待ち受けるには証明書が必要で、「API と監視」ページで設定します。</value>
   </data>
+  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and both this page and the Control Deck read the cases over it. Give it a port there." xml:space="preserve">
+    <value>REST API はオフです (「API と監視」ページのポートは {0})。このページも Control Deck も、ケースを REST API 経由で読み取ります。そのページでポートを設定してください。</value>
+  </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>REST API はオフ (「API と監視」ページでのポートは {0}) ですが、これらの設定は REST API 経由でしか扱えません。サーバーは値を保持していますが、COM プロパティはありません。「API と監視」ページで REST API にポートを割り当て、サーバーを再初期化してから、このページを開き直してください。</value>
   </data>
@@ -11637,6 +11643,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The REST API's listener and the web services listener share this one." xml:space="preserve">
     <value>REST API のリスナーと Web サービスのリスナーは、この 1 つの値を共有します。</value>
+  </data>
+  <data name="The REST API's new settings are saved but not yet in effect - the Control Deck can be opened once the server applies them." xml:space="preserve">
+    <value>REST API の新しい設定は保存されていますが、まだ有効になっていません - サーバーが適用すると Control Deck を開けます。</value>
   </data>
   <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions." xml:space="preserve">
     <value>外部の監視システムが読み取る REST API、Prometheus メトリクス、ヘルス エンドポイント、Windows イベント ログ、ManageSieve のリスナー、および停止中のサービスがセッションを待つ時間。</value>

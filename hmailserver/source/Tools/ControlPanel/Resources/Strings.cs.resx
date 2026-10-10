@@ -11669,6 +11669,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Uživatelské jméno v Active Directory (sAMAccountName) – stejná hodnota, jakou nese karta Adresář Windows u účtu. Nepovinné: ponecháte-li je prázdné, test skončí po fázi připojení a fázi přihlašovacích údajů služby.</value>
   </data>
+  <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
+    <value>Control Deck obsluhuje REST API, které je vypnuté - přidělte mu port níže.</value>
+  </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port on the API &amp; monitoring page." xml:space="preserve">
     <value>Control Deck obsluhuje REST API, které je vypnuté - přidělte mu port na stránce API a monitorování.</value>
   </data>
@@ -11747,6 +11750,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
     <value>REST API neběží: naslouchání na {0} vyžaduje certifikát, který se nastavuje na stránce API a monitorování.</value>
   </data>
+  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and both this page and the Control Deck read the cases over it. Give it a port there." xml:space="preserve">
+    <value>REST API je vypnuté (jeho port na stránce API a monitorování je {0}) a tato stránka i Control Deck přes něj čtou případy. Přidělte mu tam port.</value>
+  </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>REST API je vypnuté (jeho port na stránce API a monitorování je {0}) a tato nastavení se dosahují přes něj: server je uchovává, ale žádná vlastnost COM je nenese. Dejte REST API port na stránce API a monitorování, reinicializujte server a otevřete tuto stránku znovu.</value>
   </data>
@@ -11767,6 +11773,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="The REST API's listener and the web services listener share this one." xml:space="preserve">
     <value>Listener REST API a listener webových služeb sdílejí tuto jednu.</value>
+  </data>
+  <data name="The REST API's new settings are saved but not yet in effect - the Control Deck can be opened once the server applies them." xml:space="preserve">
+    <value>Nová nastavení REST API jsou uložená, ale zatím neplatí - Control Deck lze otevřít, jakmile je server použije.</value>
   </data>
   <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions." xml:space="preserve">
     <value>REST API, metriky pro Prometheus a koncové body stavu, které čte vnější monitorovací systém, log událostí Windows, naslouchací proces ManageSieve a to, jak dlouho zastavovaná služba čeká na své relace.</value>

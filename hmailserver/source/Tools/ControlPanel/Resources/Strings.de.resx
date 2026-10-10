@@ -11539,6 +11539,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Der Active-Directory-Benutzername (sAMAccountName) - derselbe Wert, den die Registerkarte Windows-Verzeichnis des Kontos enthält. Optional: Bleibt er leer, endet der Test nach den Stufen Verbindung und Dienstzugangsdaten.</value>
   </data>
+  <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
+    <value>Das Control Deck wird von der REST-API ausgeliefert, die ausgeschaltet ist - geben Sie ihr unten einen Port.</value>
+  </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port on the API &amp; monitoring page." xml:space="preserve">
     <value>Das Control Deck wird von der REST-API ausgeliefert, die ausgeschaltet ist - geben Sie ihr auf der Seite API und Überwachung einen Port.</value>
   </data>
@@ -11617,6 +11620,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
     <value>Die REST-API läuft nicht: Das Lauschen auf {0} erfordert ein Zertifikat, das auf der Seite API und Überwachung gesetzt wird.</value>
   </data>
+  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and both this page and the Control Deck read the cases over it. Give it a port there." xml:space="preserve">
+    <value>Die REST-API ist aus (ihr Port auf der Seite API und Überwachung ist {0}), und sowohl diese Seite als auch das Control Deck lesen die Fälle über sie. Geben Sie ihr dort einen Port.</value>
+  </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>Die REST-API ist aus (ihr Port auf der Seite API und Überwachung ist {0}), und diese Einstellungen werden über sie erreicht: Der Server hält sie, aber keine COM-Eigenschaft trägt sie. Geben Sie der REST-API auf der Seite API und Überwachung einen Port, initialisieren Sie den Server neu und öffnen Sie diese Seite erneut.</value>
   </data>
@@ -11637,6 +11643,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   </data>
   <data name="The REST API's listener and the web services listener share this one." xml:space="preserve">
     <value>Der Listener der REST-API und der Webdienst-Listener teilen sich diese.</value>
+  </data>
+  <data name="The REST API's new settings are saved but not yet in effect - the Control Deck can be opened once the server applies them." xml:space="preserve">
+    <value>Die neuen Einstellungen der REST-API sind gespeichert, aber noch nicht wirksam - das Control Deck lässt sich öffnen, sobald der Server sie übernimmt.</value>
   </data>
   <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions." xml:space="preserve">
     <value>Die REST-API, die Prometheus-Metriken und die Zustandsprüfungs-Endpunkte, die ein externes Überwachungssystem liest, das Windows-Ereignisprotokoll, der ManageSieve-Listener und wie lange ein Dienst beim Beenden auf seine Sitzungen wartet.</value>

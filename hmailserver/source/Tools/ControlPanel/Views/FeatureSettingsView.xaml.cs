@@ -1124,14 +1124,16 @@ namespace hMailServer.ControlPanel.Views
       /// The Control Deck's button on the REST API's card, which says the Deck is
       /// served at the listener's root (review finding F281; Views/ControlDeckLink).
       /// It carries no Key: it edits nothing and the settings index has nothing to
-      /// find in it.
+      /// find in it. While the REST API is off it says to give it a port below, the
+      /// card's Port field two rows down, where it named the API &amp; monitoring page
+      /// the reader was on (found re-checking eeff3c210).
       /// </summary>
       private sealed class DeckLinkSetting : Setting
       {
          public override FrameworkElement CreateEditor(IniFeatureStore store)
          {
             // The gap a row of this page keeps below it, as the signpost rows do.
-            FrameworkElement row = ControlDeckLink.Row(L("Open the Control Deck"));
+            FrameworkElement row = ControlDeckLink.Row(L("Open the Control Deck"), L("The Control Deck is served by the REST API, which is off - give it a port below."));
             row.Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md);
             return row;
          }

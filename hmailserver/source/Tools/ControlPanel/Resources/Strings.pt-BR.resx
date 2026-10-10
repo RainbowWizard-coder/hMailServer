@@ -11539,6 +11539,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>O nome de usuário do Active Directory (sAMAccountName) - o mesmo valor que a aba Diretório do Windows da conta contém. Opcional: deixado vazio, o teste para depois das etapas de conexão e de credencial de serviço.</value>
   </data>
+  <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
+    <value>O Control Deck é servido pela API REST, que está desligada - dê a ela uma porta abaixo.</value>
+  </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port on the API &amp; monitoring page." xml:space="preserve">
     <value>O Control Deck é servido pela API REST, que está desligada - dê a ela uma porta na página API e monitoramento.</value>
   </data>
@@ -11617,6 +11620,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
     <value>A API REST não está em execução: escutar em {0} exige um certificado, definido na página API e monitoramento.</value>
   </data>
+  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and both this page and the Control Deck read the cases over it. Give it a port there." xml:space="preserve">
+    <value>A API REST está desligada (a porta dela na página API e monitoramento é {0}), e tanto esta página quanto o Control Deck leem os casos por meio dela. Dê a ela uma porta lá.</value>
+  </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>A API REST está desligada (sua porta na página API e monitoramento é {0}), e estas configurações são acessadas por ela: o servidor as guarda, mas nenhuma propriedade COM as carrega. Dê uma porta à API REST na página API e monitoramento, reinicialize o servidor e abra esta página de novo.</value>
   </data>
@@ -11637,6 +11643,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="The REST API's listener and the web services listener share this one." xml:space="preserve">
     <value>O ouvinte da API REST e o ouvinte dos serviços web compartilham esta.</value>
+  </data>
+  <data name="The REST API's new settings are saved but not yet in effect - the Control Deck can be opened once the server applies them." xml:space="preserve">
+    <value>As novas configurações da API REST estão salvas, mas ainda não valem - o Control Deck poderá ser aberto assim que o servidor as aplicar.</value>
   </data>
   <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions." xml:space="preserve">
     <value>A API REST, as métricas Prometheus e os endpoints de saúde que um sistema de monitoramento externo lê, o log de eventos do Windows, o ouvinte do ManageSieve e quanto tempo um serviço que está parando espera por suas sessões.</value>

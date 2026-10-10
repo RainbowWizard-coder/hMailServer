@@ -50,6 +50,94 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
+      /// The listener runs on what the server last applied, and hMailServer.ini holds
+      /// what was saved: the REST API turned on and saved listens nowhere until the
+      /// server applies it, and a port changed and saved still listens on the old one
+      /// (IniSettingsBaseline.h marks the four AppliesReinitialize). While one of them
+      /// waits, the button is disabled and says so, where it opened an address nothing
+      /// listened on; a port saved as 0 is the REST API turned off, said as it is.
+      /// </summary>
+      [Fact]
+      public void TheButton_WaitsForTheListenersSettingsToApply()
+      {
+         Assert.Equal(new[] { "RestApiPort", "RestApiBindAddress", "RestApiCertificateFile", "RestApiPrivateKeyFile" }, ControlDeck.ListenerSettings);
+         const string waiting = "The REST API's new settings are saved but not yet in effect - the Control Deck can be opened once the server applies them.";
+
+         foreach (string name in ControlDeck.ListenerSettings)
+         {
+            Assert.Null(ControlDeck.Address("8045", "127.0.0.1", "", "", null, true, null, new[] { name.ToLowerInvariant() }, null, out string whyNot));
+            Assert.Equal(waiting, whyNot);
+         }
+
+         // Nothing of the listener's waiting - another setting, an empty list, or a
+         // server that cannot say - and the Deck is where the file says.
+         Assert.Equal(new Uri("http://127.0.0.1:8045/"), ControlDeck.Address("8045", "127.0.0.1", "", "", null, true, null, new[] { "MaxDeliveryThreads" }, null, out _));
+         Assert.Equal(new Uri("http://127.0.0.1:8045/"), ControlDeck.Address("8045", "127.0.0.1", "", "", null, true, null, Array.Empty<string>(), null, out _));
+         Assert.Equal(new Uri("http://127.0.0.1:8045/"), ControlDeck.Address("8045", "127.0.0.1", "", "", null, true, null, null, null, out _));
+
+         // Turned off and saved: off, whatever is still listening.
+         Assert.Null(ControlDeck.Address("0", "127.0.0.1", "", "", null, true, null, new[] { "RestApiPort" }, null, out string turnedOff));
+         Assert.Equal("The Control Deck is served by the REST API, which is off - give it a port on the API & monitoring page.", turnedOff);
+
+         // The button asks the server for what waits.
+         string link = ReadControlPanelFile(Path.Join("Views", "ControlDeckLink.cs"));
+         Assert.Contains("IniFeatureStore.PendingNames(), whyOffHere, out whyNot);", link, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// On the REST API's own card the Port field is two rows below the button, and
+      /// the button's reason says so, where it sent the reader to the API &amp;
+      /// monitoring page they were on; every other page names that page.
+      /// </summary>
+      [Fact]
+      public void OnThePortsOwnPage_TheReasonPointsBelow()
+      {
+         const string below = "The Control Deck is served by the REST API, which is off - give it a port below.";
+         Assert.Null(ControlDeck.Address("0", "127.0.0.1", "", "", null, true, null, null, below, out string here));
+         Assert.Equal(below, here);
+
+         // Only for a REST API that is off: the other reasons are the same on every page.
+         Assert.Null(ControlDeck.Address("8045", "127.0.0.1", "", "", null, false, "mail.example.com", null, below, out string remote));
+         Assert.Equal("The REST API listens on 127.0.0.1 only, so the Control Deck opens only in a browser on the server itself.", remote);
+
+         string feature = ReadControlPanelFile(Path.Join("Views", "FeatureSettingsView.xaml.cs"));
+         string setting = WithheldRowTests.MemberText(feature, "private sealed class DeckLinkSetting : Setting");
+         Assert.True(setting != null, "FeatureSettingsView.DeckLinkSetting is gone.");
+         Assert.Contains("ControlDeckLink.Row(L(\"Open the Control Deck\"), L(\"" + below + "\"))", setting, StringComparison.Ordinal);
+         Assert.Single(Regex.Matches(feature, @"new DeckLinkSetting\(\)"));
+         Assert.Matches(new Regex(@"Settings =\s*\{\s*new DeckLinkSetting\(\),\s*[^}]*Key = ""RestApiPort"""), feature);
+      }
+
+      /// <summary>
+      /// Discovery's reason for a REST API that is off sends the reader to give it a
+      /// port, and not to the Control Deck, which reads the cases over the same REST
+      /// API and whose button beside it is disabled for the same reason; it said "Turn
+      /// it on under Settings, or read the cases in the Control Deck" (found
+      /// re-checking eeff3c210). A REST API that cannot listen without a certificate is
+      /// the same; only one that listens on the server alone sends the reader to the
+      /// Deck - on the server, where it opens.
+      /// </summary>
+      [Theory]
+      [InlineData("0", "127.0.0.1", "", "", true, true)]
+      [InlineData("", null, null, null, true, true)]
+      [InlineData("70000", "127.0.0.1", "", "", true, true)]
+      [InlineData("off", "127.0.0.1", "", "", false, true)]
+      [InlineData("8045", "0.0.0.0", "", "", true, false)]
+      public void NoRefusalOfTheRestApi_SendsTheReaderToADeckItAlsoRefuses(string port, string bind, string certificate, string key, bool local, bool off)
+      {
+         Assert.Null(DiscoveryReport.Endpoint(port, bind, certificate, key, false, local, "mail.example.com", out string refusal));
+         Assert.Null(ControlDeck.Address(port, bind, certificate, key, false, local, "mail.example.com", out _));
+         Assert.DoesNotContain("in the Control Deck", refusal, StringComparison.Ordinal);
+         Assert.DoesNotContain("under Settings", refusal, StringComparison.Ordinal);
+         if (off)
+            Assert.Contains("Give it a port there.", refusal, StringComparison.Ordinal);
+
+         // Listening on the server alone, from another machine: the Deck in a browser there.
+         Assert.Null(DiscoveryReport.Endpoint("8045", "127.0.0.1", "", "", null, false, "mail.example.com", out string remote));
+         Assert.EndsWith("Read the cases in the Control Deck on the server.", remote, StringComparison.Ordinal);
+      }
+
+      /// <summary>
       /// The button is where the texts send the reader: in Discovery's header, read
       /// again with the cases, and on the cards whose settings are the server's half
       /// of what the Deck holds, and on the REST API's own card.
@@ -86,7 +174,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheButton_SaysWhatItOpens_OrWhyNot()
       {
          string link = ReadControlPanelFile(Path.Join("Views", "ControlDeckLink.cs"));
-         string update = WithheldRowTests.MemberText(link, "public static string Update(Wpf.Ui.Controls.Button button)");
+         string update = WithheldRowTests.MemberText(link, "public static string Update(Wpf.Ui.Controls.Button button, string whyOffHere = null)");
          Assert.True(update != null, "ControlDeckLink.Update is gone.");
          Assert.Contains("button.IsEnabled = deck != null;", update, StringComparison.Ordinal);
          Assert.Contains("AutomationProperties.SetHelpText(button, help);", update, StringComparison.Ordinal);

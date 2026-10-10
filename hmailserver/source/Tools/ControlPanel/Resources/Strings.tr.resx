@@ -11539,6 +11539,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Active Directory kullanıcı adı (sAMAccountName) - hesabın Windows dizini sekmesinin tuttuğu değerin aynısı. İsteğe bağlı: boş bırakılırsa sınama bağlantı ve hizmet kimlik bilgisi aşamalarından sonra durur.</value>
   </data>
+  <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
+    <value>Control Deck'i REST API sunar ve REST API kapalı - aşağıda ona bir bağlantı noktası verin.</value>
+  </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port on the API &amp; monitoring page." xml:space="preserve">
     <value>Control Deck'i REST API sunar ve REST API kapalı - API ve izleme sayfasında ona bir bağlantı noktası verin.</value>
   </data>
@@ -11617,6 +11620,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
     <value>REST API çalışmıyor: {0} üzerinde dinlemek için API ve izleme sayfasında ayarlanan bir sertifika gerekir.</value>
   </data>
+  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and both this page and the Control Deck read the cases over it. Give it a port there." xml:space="preserve">
+    <value>REST API kapalı (API ve izleme sayfasındaki bağlantı noktası {0}) ve hem bu sayfa hem de Control Deck davaları onun üzerinden okur. Ona orada bir bağlantı noktası verin.</value>
+  </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>REST API kapalı (API ve izleme sayfasındaki portu {0}) ve bu ayarlara onun üzerinden ulaşılır: sunucu bunları tutar, ancak hiçbir COM özelliği bunları taşımaz. API ve izleme sayfasında REST API'ye bir bağlantı noktası verin, sunucuyu yeniden başlatın (Reinitialize) ve bu sayfayı yeniden açın.</value>
   </data>
@@ -11637,6 +11643,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="The REST API's listener and the web services listener share this one." xml:space="preserve">
     <value>REST API dinleyicisi ve web hizmetleri dinleyicisi bu tek değeri paylaşır.</value>
+  </data>
+  <data name="The REST API's new settings are saved but not yet in effect - the Control Deck can be opened once the server applies them." xml:space="preserve">
+    <value>REST API'nin yeni ayarları kaydedildi ancak henüz geçerli değil - sunucu bunları uyguladığında Control Deck açılabilir.</value>
   </data>
   <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions." xml:space="preserve">
     <value>Dış bir izleme sisteminin okuduğu REST API, Prometheus ölçümleri ve sağlık uç noktaları, Windows Olay Günlüğü, ManageSieve dinleyicisi ve duran bir hizmetin oturumlarını ne kadar beklediği.</value>

@@ -11539,6 +11539,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Active Directory 用户名 (sAMAccountName) - 与账户“Windows 目录”选项卡中的值相同。可选: 留空时，测试在连接和服务凭据阶段之后停止。</value>
   </data>
+  <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
+    <value>Control Deck 由 REST API 提供，而 REST API 已关闭 - 请在下方为它设置端口。</value>
+  </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port on the API &amp; monitoring page." xml:space="preserve">
     <value>Control Deck 由 REST API 提供，而 REST API 已关闭 - 请在“API 与监控”页面为它设置端口。</value>
   </data>
@@ -11617,6 +11620,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
     <value>REST API 未运行：在 {0} 上监听需要证书，请在“API 与监控”页面设置。</value>
   </data>
+  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and both this page and the Control Deck read the cases over it. Give it a port there." xml:space="preserve">
+    <value>REST API 已关闭（“API 与监控”页面上的端口为 {0}），而此页面和 Control Deck 都通过它读取案件。请在该页面为它设置端口。</value>
+  </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>REST API 已关闭（其在“API 与监控”页上的端口为 {0}），而这些设置要通过它访问：服务器保存着它们，但没有任何 COM 属性携带它们。请在“API 与监控”页面上为 REST API 指定端口，重新初始化服务器，然后再次打开此页面。</value>
   </data>
@@ -11637,6 +11643,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The REST API's listener and the web services listener share this one." xml:space="preserve">
     <value>REST API 监听器和 Web 服务监听器共用这一个值。</value>
+  </data>
+  <data name="The REST API's new settings are saved but not yet in effect - the Control Deck can be opened once the server applies them." xml:space="preserve">
+    <value>REST API 的新设置已保存，但尚未生效 - 服务器应用这些设置后即可打开 Control Deck。</value>
   </data>
   <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions." xml:space="preserve">
     <value>外部监控系统读取的 REST API、Prometheus 指标和健康端点，Windows 事件日志，ManageSieve 侦听器，以及正在停止的服务等待其会话的时长。</value>

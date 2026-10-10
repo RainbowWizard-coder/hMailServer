@@ -191,7 +191,10 @@ namespace hMailServer.ControlPanel.Services
          string portText = (port ?? "").Trim();
          if (!int.TryParse(portText, NumberStyles.Integer, CultureInfo.InvariantCulture, out int number) || number <= 0 || number > 65535)
          {
-            refusal = F("The REST API is off (its port on the API & monitoring page is {0}), and this page reads the cases over it. Give it a port there, or read the cases in the Control Deck.",
+            // Not "or read the cases in the Control Deck": the Deck reads them over the
+            // same REST API, and its button beside this sentence is disabled for the
+            // same reason (found re-checking eeff3c210).
+            refusal = F("The REST API is off (its port on the API & monitoring page is {0}), and both this page and the Control Deck read the cases over it. Give it a port there.",
                portText.Length == 0 ? "0" : portText);
             return null;
          }

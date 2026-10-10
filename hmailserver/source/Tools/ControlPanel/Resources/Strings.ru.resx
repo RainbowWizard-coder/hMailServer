@@ -11669,6 +11669,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Имя пользователя Active Directory (sAMAccountName) — то же значение, что хранится на вкладке «Каталог Windows» учётной записи. Необязательно: если оставить поле пустым, проверка остановится после этапов подключения и учётных данных службы.</value>
   </data>
+  <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
+    <value>Control Deck обслуживается REST API, который выключен - задайте ему порт ниже.</value>
+  </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port on the API &amp; monitoring page." xml:space="preserve">
     <value>Control Deck обслуживается REST API, который выключен - задайте ему порт на странице «API и мониторинг».</value>
   </data>
@@ -11747,6 +11750,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
     <value>REST API не работает: для прослушивания {0} нужен сертификат, который задаётся на странице «API и мониторинг».</value>
   </data>
+  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and both this page and the Control Deck read the cases over it. Give it a port there." xml:space="preserve">
+    <value>REST API выключен (его порт на странице «API и мониторинг» равен {0}), а эта страница и Control Deck читают дела через него. Задайте ему порт на той странице.</value>
+  </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>REST API выключен (его порт на странице «API и мониторинг» равен {0}), а эти параметры доступны через него: сервер их хранит, но ни одно свойство COM их не передаёт. Задайте REST API порт на странице «API и мониторинг», повторно инициализируйте сервер и снова откройте эту страницу.</value>
   </data>
@@ -11767,6 +11773,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The REST API's listener and the web services listener share this one." xml:space="preserve">
     <value>Прослушиватель REST API и прослушиватель веб-служб используют это общее значение.</value>
+  </data>
+  <data name="The REST API's new settings are saved but not yet in effect - the Control Deck can be opened once the server applies them." xml:space="preserve">
+    <value>Новые параметры REST API сохранены, но ещё не действуют - Control Deck можно будет открыть, когда сервер их применит.</value>
   </data>
   <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions." xml:space="preserve">
     <value>REST API, метрики Prometheus и конечные точки работоспособности, которые читает внешняя система мониторинга, журнал событий Windows, прослушиватель ManageSieve и то, как долго останавливающаяся служба ждёт своих сеансов.</value>
