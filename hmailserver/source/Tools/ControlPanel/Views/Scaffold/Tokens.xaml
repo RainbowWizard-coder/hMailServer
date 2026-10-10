@@ -73,6 +73,11 @@
     <!-- A size off the ramp that App.xaml's styles wrote as a number: a grid
          cell's text. -->
     <sys:Double x:Key="AppFontSizeGrid">13</sys:Double>
+    <!-- A line of Live logs: its 13-pixel text (AppFontSizeMono) in lines of 17,
+         one line touching none of its neighbours. A height, not a size, set at the
+         Windows text size with the sizes all the same (TextScale.IsTextSizeKey): at a
+         line height of 17 the log's text at 150 per cent ran into the next line. -->
+    <sys:Double x:Key="AppLineHeightLog">17</sys:Double>
     <!-- Every size above is set at the Windows text size when the Control Panel
          starts (Services/TextScale, review finding F317), so text takes them by
          DynamicResource, never as a number of its own. -->

@@ -3775,15 +3775,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   at the factor, the shared styles, the shell and the sign-in, Domains, Dashboard and Live logs pages take their text
   sizes from those tokens where they wrote numbers, and the sizes pages set in code (`Typography`) are at it too, the
   help pane's headings among them, which kept 20 and 16 pixels and so stood smaller than the text under them; an icon
-  keeps its size. Grid floors are measured in the scaled font, a dialog widens with its text within the work area, the
-  one-time code boxes grow with their digits, and the certificates grid's Name, Certificate and Private key columns -
-  fixed at 170 and 210 pixels, which larger text cut short - share the width over a floor or keep floors that rise
-  with the text size, and the rules grid's Enabled column fits its pill. Three WPF-UI styles that held the size their
-  dictionary had when it was read - a caption with an Alt key, a list box's rows, a rich text box - take the scaled
-  size. When Windows says the setting changed, the resources follow at once and a toast says that pages already open
-  keep the rest of their text at the old size until the Control Panel is restarted. docs/ControlPanelDesign.md says
-  the rule. `TextScaleTests` holds the factor, the ramp, the start-up, the tokens on every converted file, the sizes
-  set in code, the grid floors, the dialogs and the columns.
+  keeps its size. Live logs' lines keep their spacing as their text grows, where at 150 per cent the log's 18-pixel
+  text stood in lines 17 pixels apart and each line ran into the next. Grid floors are measured in the scaled font, a
+  dialog widens with its text within the work area, the one-time code boxes grow with their digits, and the
+  certificates grid's Name, Certificate and Private key columns - fixed at 170 and 210 pixels, which larger text cut
+  short - share the width over a floor or keep floors that rise with the text size, and the rules grid's Enabled
+  column fits its pill. Three WPF-UI styles that held the size their dictionary had when it was read - a caption with
+  an Alt key, a list box's rows, a rich text box - take the scaled size. When Windows says the setting changed, the
+  resources follow at once and a toast says that pages already open keep the rest of their text at the old size until
+  the Control Panel is restarted. docs/ControlPanelDesign.md says the rule. `TextScaleTests` holds the factor, the
+  ramp, the start-up, the tokens and line heights on every converted file, the sizes set in code, the grid floors, the
+  dialogs and the columns.
 
 ### Administration
 

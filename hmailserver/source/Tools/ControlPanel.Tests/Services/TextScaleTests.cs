@@ -90,6 +90,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("private const string ValueName = \"TextScaleFactor\";", scale, StringComparison.Ordinal);
          // Every font-size resource of every merged dictionary, an icon's excepted, from the size it first held.
          Assert.Contains("name.Contains(\"FontSize\", StringComparison.Ordinal) && !name.Contains(\"Icon\", StringComparison.Ordinal)", scale, StringComparison.Ordinal);
+         // And the line height of text set in lines, which rises with its text.
+         Assert.Contains("|| name.StartsWith(\"AppLineHeight\", StringComparison.Ordinal)", scale, StringComparison.Ordinal);
          Assert.Contains("foreach (ResourceDictionary merged in dictionary.MergedDictionaries)", scale, StringComparison.Ordinal);
          Assert.Contains("double scaled = TextScaleFactor.Scaled(baseSize, factor);", scale, StringComparison.Ordinal);
          Assert.Contains("SystemEvents.UserPreferenceChanged +=", scale, StringComparison.Ordinal);
@@ -99,6 +101,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// The text sizes of the shared styles and the converted pages are the ramp's tokens
       /// taken by DynamicResource, which TextScale sets: a number, or a token taken by
       /// StaticResource, is a size the text size never reaches. An icon keeps its number.
+      /// A line height is a token too: Live logs' lines kept 17 while their text rose to
+      /// 18 at 150 per cent, and each line ran into the next.
       /// </summary>
       [Theory]
       [InlineData("Views\\Scaffold\\Tokens.xaml")]
@@ -124,6 +128,12 @@ namespace hMailServer.ControlPanel.Tests.Services
                   continue;
                Assert.True(attribute.Value.StartsWith("{DynamicResource AppFontSize", StringComparison.Ordinal),
                   file + ": " + e.Name.LocalName + " sets its text at " + attribute.Value + ", which the Windows text size does not reach.");
+            }
+
+            foreach (XAttribute attribute in e.Attributes().Where(a => a.Name.LocalName == "LineHeight"))
+            {
+               Assert.True(attribute.Value.StartsWith("{DynamicResource AppLineHeight", StringComparison.Ordinal),
+                  file + ": " + e.Name.LocalName + " sets its lines " + attribute.Value + " apart, which the Windows text size does not reach.");
             }
          }
       }
@@ -271,7 +281,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          foreach (string file in new[] { "App.xaml", "MainWindow.xaml", Path.Join("Views", "DomainsView.xaml"), Path.Join("Views", "ConnectView.xaml"),
             Path.Join("Views", "DashboardView.xaml"), Path.Join("Views", "LogsView.xaml"), Path.Join("Views", "Scaffold", "Scaffold.xaml") })
          {
-            foreach (Match m in Regex.Matches(Read("", file), @"\{DynamicResource (AppFontSize\w+)\}"))
+            foreach (Match m in Regex.Matches(Read("", file), @"\{DynamicResource (AppFontSize\w+|AppLineHeight\w+)\}"))
                Assert.Contains("x:Key=\"" + m.Groups[1].Value + "\"", tokens, StringComparison.Ordinal);
          }
       }

@@ -80,9 +80,14 @@ namespace hMailServer.ControlPanel.Services
             Scale_(Application.Current.Resources, f, new HashSet<ResourceDictionary>());
       }
 
-      /// <summary>Whether a resource key is one of a text size: the name says FontSize and not an icon's.</summary>
+      /// <summary>
+      /// Whether a resource key is one of a text size: the name says FontSize and not an
+      /// icon's, or it is the line height of text set in lines (AppLineHeight*), which
+      /// rises with its text - at 150 per cent Live logs' 18-pixel lines stood 17 apart.
+      /// </summary>
       public static bool IsTextSizeKey(object key)
-         => key is string name && name.Contains("FontSize", StringComparison.Ordinal) && !name.Contains("Icon", StringComparison.Ordinal);
+         => key is string name && ((name.Contains("FontSize", StringComparison.Ordinal) && !name.Contains("Icon", StringComparison.Ordinal))
+            || name.StartsWith("AppLineHeight", StringComparison.Ordinal));
 
       private static void Scale_(ResourceDictionary dictionary, double factor, HashSet<ResourceDictionary> seen)
       {
