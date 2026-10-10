@@ -587,13 +587,20 @@ namespace hMailServer.ControlPanel.Views
             // switch, on a dialog of seventeen fields that scrolls, where an
             // Edit opened to switch the account off must find it in sight.
             new FieldSpec { Prop = "Enabled", Label = L("Enabled"), Kind = FieldKind.Bool, GridWidth = 70, Default = true },
-            new FieldSpec { Prop = "Name", Label = L("Name"), GridWidth = 150, Default = "" },
+            // The grid is the server's: the one column that says which mailbox a
+            // row collects from, and the one star column, had about 110 pixels of
+            // the dialog's 578 beside four fixed ones and read "pop.oldprovide…"
+            // (review finding F199). The name is narrower, the port as wide as
+            // its five digits, and the connection security, whose words are
+            // sentences, is in the dialog only, beside the port it goes with:
+            // the server has some 280 pixels.
+            new FieldSpec { Prop = "Name", Label = L("Name"), GridWidth = 130, Default = "" },
             // Off the grid: its wording is a sentence about collection and
             // deletion, and five fixed columns left the server's name, the one
             // star column, about 40 pixels ("Ser…") in the account dialog.
             new FieldSpec { Prop = "ServerType", Label = L("Server type"), Kind = FieldKind.Combo, Options = ServerTypeOptions, ShowInGrid = false, Default = 0 },
             new FieldSpec { Prop = "ServerAddress", Label = L("Server"), Default = "" },
-            new FieldSpec { Prop = "Port", Label = L("Port"), Kind = FieldKind.Number, GridWidth = 70, Default = 110 },
+            new FieldSpec { Prop = "Port", Label = L("Port"), Kind = FieldKind.Number, GridWidth = 60, Default = 110 },
             new FieldSpec { Prop = "Username", Label = L("User name"), ShowInGrid = false, Default = "" },
             new FieldSpec { Prop = "Password", Label = L("Password"), Kind = FieldKind.Password, ShowInGrid = false, Default = "" },
             new FieldSpec { Prop = "MinutesBetweenFetch", Label = L("Minutes between downloads"), Kind = FieldKind.Number, ShowInGrid = false, Default = 15 },
@@ -618,10 +625,9 @@ namespace hMailServer.ControlPanel.Views
             {
                Prop = "ConnectionSecurity",
                Label = L("Connection security"),
-               GridLabel = L("Security"),
                Kind = FieldKind.Combo,
                Options = ConnectionSecurityOptions,
-               GridWidth = 150,
+               ShowInGrid = false,
                Default = 0
             },
             new FieldSpec { Prop = "UseAntiSpam", Label = L("Run anti-spam on downloaded mail"), Kind = FieldKind.Bool, ShowInGrid = false, Default = true },

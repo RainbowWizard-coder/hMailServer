@@ -2449,6 +2449,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   screen and scrolls away with it, moving with the tab chosen; below 600 pixels of page the subtitle is the title's
   tool tip (and still the header's help text for a screen reader); the header and the tab strip stay pinned.
 
+- **Fixed: the account dialog's External tab left the server, the column that says which mailbox an external account
+  collects from, about 110 pixels.** Beside fixed columns for Enabled, the name, the port and the connection security,
+  whose cells are the dialog's sentences ("SSL/TLS - encrypted…"), a row read "pop.oldprovide…". The connection
+  security is in the account's dialog only, beside the port it goes with, as the server type already was, the name is
+  narrower and the port as wide as its five digits, so that the server has some 280 pixels.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

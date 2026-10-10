@@ -109,7 +109,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          string specs = Specs();
          Assert.Matches(new Regex(@"Prop = ""AliasName"", Label = L\(""Alias domain name \(e\.g\. example\.net\)""\), GridLabel = L\(""Alias domain""\)"), specs);
          Assert.Matches(new Regex(@"Prop = ""ServerType"".*ShowInGrid = false"), specs);
-         Assert.Matches(new Regex(@"Prop = ""ConnectionSecurity"",\s*Label = L\(""Connection security""\),\s*GridLabel = L\(""Security""\)"), specs);
+         // The connection security is off the grid as well, so that the server has
+         // the room (F199, ExternalAccountsGridTests).
+         Assert.Matches(new Regex(@"Prop = ""ConnectionSecurity"",\s*Label = L\(""Connection security""\),[^}]*ShowInGrid = false"), specs);
       }
 
       /// <summary>
