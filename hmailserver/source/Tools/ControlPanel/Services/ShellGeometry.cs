@@ -17,11 +17,14 @@ namespace hMailServer.ControlPanel.Services
    /// squeezed the sidebar from 280 pixels to its 200 floor, and three group names
    /// were cut - "Accounts &amp; doma…", "Mail flow &amp; deliv…", "Connections &amp; pr…"
    /// (review finding F021) - while at the window's opening size "Web services &amp;
-   /// autoconfiguration" was the one page label cut in English and German (F022).
+   /// autoconfiguration" was cut in English, and seven page labels in German (F022).
    /// The sidebar is now a share of the window's width, whatever the help pane
    /// does, so the pane takes its width from the page alone; and where that would
    /// leave the page narrower than <see cref="PageMinWidthBesideHelp"/>, the
    /// sidebar is the rail while the pane is open, and the tree again once it closes.
+   /// At 1280 its 310 pixels hold every English page label whole and five of the
+   /// seven German ones; "Übersicht der Transportverschlüsselung" and "Servergrenzen
+   /// und Experteneinstellungen" still end in an ellipsis, whole in their tool tips.
    /// </summary>
    public static class ShellGeometry
    {

@@ -3554,24 +3554,26 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   and About were letters in the rail, and the breadcrumb could wrap onto two lines.** The sidebar was a star column
   beside the page, so the help pane, a column of fixed width, took its width from both: opened in a 1280-pixel window
   it pushed the tree from 280 pixels to its 200 floor and cut "Accounts & doma...", "Mail flow & deliv..." and
-  "Connections & pr..."; and at the window's opening size "Web services & autoconfiguration" was the one page label
-  cut, in English and German. The tree is now a share of the window's width - 310 pixels at 1280 - set in pixels as
+  "Connections & pr..."; and at the window's opening size "Web services & autoconfiguration" was cut in English and
+  seven page labels in German. The tree is now a share of the window's width - 310 pixels at 1280 - set in pixels as
   the window changes (`Services/ShellGeometry`), so the pane takes its width from the page alone; where the tree and
   the pane would leave the page less than 512 pixels, the sidebar is the rail while the pane is open, a glyph opening
   its group's pages in the flyout, and the tree again once the pane closes, neither recorded as a choice; a keyboard
-  on the tree's row for the page goes to the rail's glyph for it and back, where it was left on the window. Welcome,
-  the Dashboard and About have glyphs of their own - a house, a chart and an information mark - where the rail drew
-  their translated initials and their labels started left of the groups' in the tree, and Sign-in & access is a person
-  with a lock, where it was a second shield beside Spam & virus filtering's. The breadcrumb's trail no longer wraps:
-  where its line is too short, the groups' segments are cut short first and the page's name last, each with an
-  ellipsis and whole in its tool tip, so that beside the help pane in the narrowest window the bar still names the
-  page (`Views/Scaffold/BreadcrumbTrailPanel`), and the Related links keep twelve pixels from it, where "Certificates
-  (ACME)" went onto a second line at 760 pixels and "Transport security" ran into "Related:" (review findings F021,
-  F022, F023, F047; T3.3 work item 7). Beside the wider sidebar the Domains page's alias and list cards keep 270
-  pixels each where they kept 280, so that they stay side by side at 1280, and the audit trail's grid scrolls sideways
-  where it had cut its Detail column to a letter, Detail floored at 120 pixels and the columns before it at their
-  words. `ShellGeometryTests` holds the widths, the rail beside the pane, the glyphs, the breadcrumb and the audit
-  trail's floors.
+  on the tree's row for the page goes to the rail's glyph for it and back, where it was left on the window. At 1280
+  the tree holds every English page label whole and five of the seven German ones; "Übersicht der
+  Transportverschlüsselung" and "Servergrenzen und Experteneinstellungen" still end in an ellipsis, whole in their
+  tool tips. Welcome, the Dashboard and About have glyphs of their own - a house, a chart and an information mark -
+  where the rail drew their translated initials and their labels started left of the groups' in the tree, and Sign-in
+  & access is a person with a lock, where it was a second shield beside Spam & virus filtering's. The breadcrumb's
+  trail no longer wraps: where its line is too short, the groups' segments are cut short first and the page's name
+  last, each with an ellipsis and whole in its tool tip, so that beside the help pane in the narrowest window the bar
+  still names the page (`Views/Scaffold/BreadcrumbTrailPanel`), and the Related links keep twelve pixels from it,
+  where "Certificates (ACME)" went onto a second line at 760 pixels and "Transport security" ran into "Related:"
+  (review findings F021, F022, F023, F047; T3.3 work item 7). Beside the wider sidebar the Domains page's alias and
+  list cards keep 270 pixels each where they kept 280, so that they stay side by side at 1280, and the audit trail's
+  grid scrolls sideways where it had cut its Detail column to a letter, Detail floored at 120 pixels and the columns
+  before it at their words. `ShellGeometryTests` holds the widths, the rail beside the pane, the glyphs, the
+  breadcrumb and the audit trail's floors.
 
 - **Fixed: the page tour's button and the help pane's were one question-mark glyph, 250 pixels apart.** On a page a
   tour visits - Domains, TCP/IP ports, SSL certificates and the Dashboard - the header's question mark started the

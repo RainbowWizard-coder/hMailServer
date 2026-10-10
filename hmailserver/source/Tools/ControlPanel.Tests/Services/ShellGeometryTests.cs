@@ -13,7 +13,8 @@ namespace hMailServer.ControlPanel.Tests.Services
 {
    /// <summary>
    /// The shell's geometry (T3.3 work item 7): the sidebar keeps its width when the
-   /// help pane opens, and is wide enough at the opening size for every page label
+   /// help pane opens, and at the opening size holds every English page label whole
+   /// and all but two of the German, where it cut one English label and seven German
    /// (review findings F021, F022); every top-level row of the tree and the rail is
    /// a glyph, Sign-in &amp; access no longer a second shield beside Spam &amp; virus
    /// filtering (F023); and the breadcrumb is one line however narrow the window
