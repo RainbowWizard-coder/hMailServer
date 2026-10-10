@@ -1704,8 +1704,13 @@ namespace HM
       if (notification_server_) notification_server_.reset();
       if (folder_manager_) folder_manager_.reset();
 
-      MessageIndexer::Instance()->Stop();
-      
+      // Joined, with the service controller's checkpoint meanwhile: a Reinitialize
+      // closes the database as soon as this returns (ExitInstance), and until 10
+      // October 2026 the indexer was interrupted and not waited for, so that a pass
+      // in the middle of a batch made its next statement through the empty database
+      // manager - which on Linux ended the process (MessageIndexer::Stop).
+      MessageIndexer::Instance()->Stop(stop_progress_);
+
       ServerStatus::Instance()->SetState(ServerStatus::StateStopped);
 
       LOG_APPLICATION("Servers stopped.")

@@ -48,6 +48,15 @@
 //     ExceptionHandler.cpp): until 10 October 2026 it was passed on, on POSIX, to
 //     std::terminate. Run late, since it stops the log's writes for the rest of the
 //     program (the handler reports the exception, HM4208).
+//   - The message indexer's thread is waited for when it is stopped, and a Start
+//     straight after a Stop begins a new one (MessageIndexerTester, Common/
+//     Application/MessageIndexer.cpp, over a stand-in pass with no database):
+//     until 10 October 2026 a Stop interrupted and returned, a pass in the middle
+//     of a batch went on to the database a Reinitialize had closed - the Linux
+//     server ended there, in the Alpine suite - and the Start after it took the
+//     ending thread for the running indexer and started none. And an exception on
+//     its thread ends that thread alone, and the next Start begins it again (after
+//     the check above, as it reports the exception too).
 //   - A message's X-hMailServer-LoopCount, which comes with mail from anyone, is a
 //     count only when it is digits, and never above the limit (LoopCountTester,
 //     Common/Rules/RuleGuard.cpp): MessageData and the Sieve evaluator read it with
@@ -118,6 +127,7 @@
 #include "../Common/Util/MailboxKeys.h"
 #include "../Common/Application/ExceptionHandler.h"
 #include "../Common/Application/Logger.h"
+#include "../Common/Application/MessageIndexer.h"
 #include "../Common/Util/OidcSignIn.h"
 #include "../Common/Util/RestApiServer.h"
 
@@ -420,6 +430,25 @@ namespace
    }
 
    void
+   TestMessageIndexerStopAndStart()
+   {
+      HM::MessageIndexerTester tester;
+      tester.Test();
+   }
+
+   void
+   TestMessageIndexerException()
+   {
+      // The log's writes are stopped already (TestWorkerException).
+      const long before = HM::Logger::SuppressedWrites();
+
+      HM::MessageIndexerTester tester;
+      tester.TestAnExceptionOnItsThread();
+
+      Expect(HM::Logger::SuppressedWrites() > before, "the exception on the indexer's thread was not reported");
+   }
+
+   void
    TestLoopCount()
    {
       HM::LoopCountTester tester;
@@ -491,7 +520,9 @@ main(int /*argc*/, char * /*argv*/[])
    failed += Run(&TestArcAuthenticationResults, "an ARC seal's spf= is the server's own SPF result, carried by copies, the queue row and a quarantined copy's name, never a Received-SPF field the message carries, and the seal names header.d and smtp.mailfrom");
    failed += Run(&TestSieveFromAddress, "a Sieve vacation reply or notification is from its :from only when that reaches the account, and no Sieve edit changes who a message is from");
    failed += Run(&TestManageSieveQuoting, "a ManageSieve quoted string holds no line break: a refusal quoting a script's line with one in it is one line");
+   failed += Run(&TestMessageIndexerStopAndStart, "the message indexer's Stop waits for the pass in flight, and a Start straight after a Stop begins a new indexer");
    failed += Run(&TestWorkerException, "an exception on a worker's thread is reported and answered as a failure, and ends nothing more than the work");
+   failed += Run(&TestMessageIndexerException, "an exception on the message indexer's thread is reported and ends that thread, not the process, and the next Start begins the indexer again");
 
    return failed == 0 ? 0 : 1;
 }

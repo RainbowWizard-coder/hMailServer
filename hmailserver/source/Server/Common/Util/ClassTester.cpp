@@ -58,6 +58,7 @@
 #include "MigrationImapClient.h"
 #include "MigrationSources.h"
 #include "../Application/MigrationJob.h"
+#include "../Application/MessageIndexer.h"
 #include "../Pst/PstTester.h"
 #include "../Pst/PstItemsTester.h"
 #include "../Pst/PstReaderWireTester.h"
@@ -874,6 +875,15 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing the mailbox keys' idle sweep against a key in use\n"));
       MailboxKeyIdleTester mailboxKeyIdleTester;
       mailboxKeyIdleTester.Test();
+
+      // The message indexer's thread stopped and waited for before what it uses
+      // goes, and a Start straight after a Stop beginning a new one, over a
+      // stand-in pass with no database (Application/MessageIndexer.h). Until 10
+      // October 2026 a Stop interrupted and returned: a pass went on to the
+      // database a Reinitialize had closed, and the Start after it started none.
+      OutputDebugString(_T("hMailServer: Testing the message indexer's stop and start\n"));
+      MessageIndexerTester messageIndexerTester;
+      messageIndexerTester.Test();
 
       // Parameter substitution matters most on the two backends the bench does not
       // usually run: MySQL and PostgreSQL report GetSupportsCommandParameters() as

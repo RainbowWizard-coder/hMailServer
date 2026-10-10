@@ -443,6 +443,25 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the handler as it was it ended in `terminate called after throwing an instance of 'std::runtime_error'`, exit
   134. Found by the batch's Alpine suite, where the message indexer's thread ended the server two thirds of the
   way through (below).
+- **Fixed: a reinitialise or a service stop while the message indexer was in the middle of a batch could end the
+  server on Linux, and left the indexer stopped until its setting was saved again.** Stopping the indexer
+  interrupted its thread and did not wait for it (in every version). The thread went on to the end of the message
+  it was indexing, and a reinitialise closes the database as soon as the servers have stopped, so its next
+  statement went through a database manager that was no longer there and threw ("boost unique_lock has no mutex",
+  HM4208), or faulted, the close shutting the connection a statement was using too - which on Linux ended the
+  process (the exception above; a fault ends it still) and on Windows wrote a minidump. And the start that followed
+  found the thread still ending, took it for the running indexer and started none. The stop now waits for the
+  thread to end - at most the statement or the message it is in, since a batch's messages, the sweeps' slices and
+  the pauses are where it stops - telling the service controller meanwhile; a start after it begins a new thread;
+  and no indexer is started while the servers are stopped, from a reinitialise's stop to its start, the setting
+  being kept for the start. `MessageIndexerTester` (`TestInternals` on Windows, `business-object-tests` on Linux)
+  runs the indexer's thread over a stand-in pass that holds no interruption point for 300 ms: with the stop and
+  the start as they were, the pass made a statement after the stop had returned, and a start straight after a
+  stop began no indexer. Found by the batch's Alpine suite: the teardown of
+  `FullTextSearch.AMailboxLargerThanOneLookupIsSearchedAWindowAtATime` reinitialised while the indexer was in the
+  second batch of the test's 450 messages, and every fixture after it was refused a connection. With the test's
+  backfill made one batch, so that its teardown always comes in the middle of it, the server died there in three
+  Alpine runs of three (twice a segmentation fault, once the exception) and lives through it with the fix.
 
 ### Downloads and the release
 
