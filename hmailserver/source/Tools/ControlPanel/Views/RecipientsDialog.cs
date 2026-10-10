@@ -144,7 +144,9 @@ namespace hMailServer.ControlPanel.Views
 
          // Escape closes; there is no default button, because Enter in the add
          // box means "add" and Enter with a row selected must not close the list.
-         var closeButton = new Wpf.Ui.Controls.Button { Content = L("Close"), MinWidth = 88 };
+         // Close, the footer's only button, is drawn Primary, as every dialog's
+         // lone Close is (review finding F296).
+         var closeButton = new Wpf.Ui.Controls.Button { Content = L("Close"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary, MinWidth = 88 };
          closeButton.Click += (s, e) => Close();
 
          UseFrame(F("Members of {0}", listAddress), body, null, closeButton, width: 520);

@@ -3509,6 +3509,21 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   user's. `BrandAccentTests` holds the accent to the brand, the words on it, the theme change and the two blues that
   were left.
 
+- **Fixed: the keyboard's focus was drawn four ways, the breadcrumb and the Related links read as chips, a one-line
+  message box was a block of tint 200 pixels tall, and icon sizes had no token.** The text fields drew a violet ring,
+  the navigation's rows a violet border, the grids and the tabs a black and white ring, and every WPF-UI control - its
+  buttons and check boxes - a one-pixel rectangle in the text colour; WPF-UI's Transparent buttons kept their outline,
+  so that the trail, the Related links and the command bar's buttons were a row of boxes; a message box was at least
+  320 pixels tall, its notice stretched down it, a question had no mark, and Close was the primary button in one
+  dialog and a secondary one in others; and glyphs ran from 12 to 40 pixels with no size of their own (review findings
+  F296 and F041). Every control now draws one ring, the focus colour two pixels wide, outside a button, a check box or
+  a grid's cell and inside a tab and a navigation or list row, with the black and white ring under High Contrast
+  alone; the trail's Back, Forward and groups, the Related links and the command bar's buttons have nothing round them
+  at rest (`SubtleButton`); a message box is as tall as its message, its notice at the top, a question marked as a
+  notice at the level that says nothing; a dialog whose footer holds Close alone draws it as its one primary button;
+  and icons take four sizes, 16, 20, 24 and 40 (`AppIconSizeSm` to `AppIconSizeXl`). `FocusRingAndButtonsTests` holds
+  each.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

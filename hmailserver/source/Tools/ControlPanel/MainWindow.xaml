@@ -58,7 +58,7 @@
 
             <!-- The tool tip and accessible name are owned by UpdateSidebarToggle_
                  in code-behind, which points both at what a click will do. -->
-            <ui:Button x:Name="SidebarToggle" Grid.Column="0" Appearance="Transparent" Padding="8,6"
+            <ui:Button x:Name="SidebarToggle" Grid.Column="0" Style="{StaticResource SubtleButton}" Padding="8,6"
                        Icon="{ui:SymbolIcon Navigation24}" VerticalAlignment="Center"
                        AutomationProperties.AutomationId="sidebar-toggle"
                        Click="SidebarToggle_Click" />
@@ -98,7 +98,7 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <ui:SymbolIcon Symbol="Search24" FontSize="14" VerticalAlignment="Center"
+                    <ui:SymbolIcon Symbol="Search24" FontSize="{StaticResource AppIconSizeSm}" VerticalAlignment="Center"
                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                     <TextBlock Grid.Column="1" Text="{loc:L 'Search'}" FontSize="14" Margin="8,0,0,0"
                                VerticalAlignment="Center"
@@ -119,7 +119,7 @@
                  state a click will produce (sun while dark, moon while light) and
                  re-points them when the OS flips the theme. The XAML icon is only
                  a placeholder for the instant before ApplySavedTheme runs. -->
-            <ui:Button x:Name="ThemeButton" Grid.Column="4" Appearance="Transparent" Padding="8,6"
+            <ui:Button x:Name="ThemeButton" Grid.Column="4" Style="{StaticResource SubtleButton}" Padding="8,6"
                        Icon="{ui:SymbolIcon WeatherMoon24}" VerticalAlignment="Center"
                        AutomationProperties.AutomationId="theme-toggle"
                        Click="Theme_Click" />
@@ -127,7 +127,7 @@
             <!-- Help where the question is: the documentation for the page showing,
                  in a pane beside it (Views/HelpPane.cs), which F1 also opens. The
                  words, not just a glyph, in the accessible name and the tool tip. -->
-            <ui:Button x:Name="HelpButton" Grid.Column="5" Appearance="Transparent" Padding="8,6" Margin="4,0,0,0"
+            <ui:Button x:Name="HelpButton" Grid.Column="5" Style="{StaticResource SubtleButton}" Padding="8,6" Margin="4,0,0,0"
                        Icon="{ui:SymbolIcon QuestionCircle24}" VerticalAlignment="Center"
                        AutomationProperties.AutomationId="help-toggle"
                        AutomationProperties.Name="{loc:L 'Help for this page. Keyboard shortcut F1.'}"
@@ -136,7 +136,7 @@
 
             <!-- The administrator's menu: who is signed in and where, the server
                  version, the language, the theme, and the About page. -->
-            <ui:Button x:Name="AdminButton" Grid.Column="6" Appearance="Transparent" Padding="8,6" Margin="4,0,0,0"
+            <ui:Button x:Name="AdminButton" Grid.Column="6" Style="{StaticResource SubtleButton}" Padding="8,6" Margin="4,0,0,0"
                        Icon="{ui:SymbolIcon Person24}" VerticalAlignment="Center"
                        AutomationProperties.AutomationId="admin-menu"
                        AutomationProperties.Name="{loc:L 'Administrator menu'}"
@@ -212,7 +212,7 @@
                                             <Border x:Name="Bd" CornerRadius="{StaticResource AppControlCornerRadius}" Cursor="Hand"
                                                     MinHeight="{StaticResource AppNavRowHeight}"
                                                     Background="{TemplateBinding Background}" SnapsToDevicePixels="True"
-                                                    BorderThickness="1.5" BorderBrush="Transparent">
+                                                    BorderThickness="2" BorderBrush="Transparent">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="18" />
@@ -322,20 +322,20 @@
                                  Alt+Right and the mouse's two side buttons do the same. -->
                             <StackPanel x:Name="HistoryButtons" Orientation="Horizontal" VerticalAlignment="Center"
                                         Margin="-8,0,8,0">
-                                <ui:Button x:Name="BackButton" Appearance="Transparent" Padding="6,3" IsEnabled="False"
+                                <ui:Button x:Name="BackButton" Style="{StaticResource SubtleButton}" Padding="6,3" IsEnabled="False"
                                            AutomationProperties.AutomationId="history-back"
                                            AutomationProperties.AcceleratorKey="Alt+Left"
                                            Click="Back_Click">
                                     <ui:Button.Icon>
-                                        <ui:SymbolIcon Symbol="ArrowLeft24" FontSize="14" />
+                                        <ui:SymbolIcon Symbol="ArrowLeft24" FontSize="{StaticResource AppIconSizeSm}" />
                                     </ui:Button.Icon>
                                 </ui:Button>
-                                <ui:Button x:Name="ForwardButton" Appearance="Transparent" Padding="6,3" IsEnabled="False"
+                                <ui:Button x:Name="ForwardButton" Style="{StaticResource SubtleButton}" Padding="6,3" IsEnabled="False"
                                            AutomationProperties.AutomationId="history-forward"
                                            AutomationProperties.AcceleratorKey="Alt+Right"
                                            Click="Forward_Click">
                                     <ui:Button.Icon>
-                                        <ui:SymbolIcon Symbol="ArrowRight24" FontSize="14" />
+                                        <ui:SymbolIcon Symbol="ArrowRight24" FontSize="{StaticResource AppIconSizeSm}" />
                                     </ui:Button.Icon>
                                 </ui:Button>
                             </StackPanel>

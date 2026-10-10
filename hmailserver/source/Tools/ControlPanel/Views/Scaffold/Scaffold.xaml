@@ -220,7 +220,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type scaffold:EmptyState}">
                     <StackPanel Margin="{TemplateBinding Padding}" HorizontalAlignment="Center">
-                        <ui:SymbolIcon x:Name="PART_Icon" Symbol="{TemplateBinding Icon}" FontSize="40"
+                        <ui:SymbolIcon x:Name="PART_Icon" Symbol="{TemplateBinding Icon}" FontSize="{StaticResource AppIconSizeXl}"
                                        Foreground="{DynamicResource TextFillColorTertiaryBrush}"
                                        HorizontalAlignment="Center" Margin="0,0,0,12" />
                         <TextBlock x:Name="PART_Text" Text="{TemplateBinding Text}" Style="{StaticResource TextSecondary}"
@@ -450,7 +450,7 @@
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <StackPanel Margin="0,0,0,12">
+                        <StackPanel x:Name="PART_Head" Margin="0,0,0,12">
                             <TextBlock x:Name="PART_Heading" Text="{TemplateBinding Heading}"
                                        Style="{StaticResource TextSubtitle}" />
                             <TextBlock x:Name="PART_Description" Text="{TemplateBinding Description}"
@@ -491,6 +491,16 @@
                         <Trigger Property="PrimaryButton" Value="{x:Null}">
                             <Setter TargetName="PART_Primary" Property="Visibility" Value="Collapsed" />
                         </Trigger>
+                        <!-- With neither, the head's gap goes too: a message box, which has
+                             no heading, began its message twelve pixels lower than its
+                             inset (review finding F041). -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Heading" Value="{x:Null}" />
+                                <Condition Property="Description" Value="{x:Null}" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="PART_Head" Property="Visibility" Value="Collapsed" />
+                        </MultiTrigger>
                         <Trigger Property="SecondaryButton" Value="{x:Null}">
                             <Setter TargetName="PART_Secondary" Property="Visibility" Value="Collapsed" />
                         </Trigger>

@@ -51,6 +51,14 @@
     <!-- The widest a page's subtitle runs under its title (DesignTokens.SubtitleWidth). -->
     <sys:Double x:Key="AppSubtitleWidth">840</sys:Double>
 
+    <!-- Icon sizes (DesignTokens.IconSize): a glyph beside text or on a small
+         button 16, on a toolbar's or a header's glyph button 20, the rail's 24, an
+         empty state's 40. -->
+    <sys:Double x:Key="AppIconSizeSm">16</sys:Double>
+    <sys:Double x:Key="AppIconSizeMd">20</sys:Double>
+    <sys:Double x:Key="AppIconSizeLg">24</sys:Double>
+    <sys:Double x:Key="AppIconSizeXl">40</sys:Double>
+
     <!-- The type ramp (Services/Typography.cs): Caption 12, Body 14, Subtitle 20, Title 28. -->
     <sys:Double x:Key="AppFontSizeCaption">12</sys:Double>
     <sys:Double x:Key="AppFontSizeBody">14</sys:Double>

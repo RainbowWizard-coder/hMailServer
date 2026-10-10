@@ -118,8 +118,10 @@ namespace hMailServer.ControlPanel.Views
          var actions = new StackPanel { Orientation = Orientation.Horizontal };
          // Add… and Edit… end in the ellipsis: each opens the entry's dialog, which
          // asks for the account or group and its rights before it saves (review
-         // finding F305), as the list editor's Add… and Edit… do.
-         var add = new Wpf.Ui.Controls.Button { Content = L("_Add…"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary, Margin = new Thickness(0, 0, DesignTokens.Space.Sm, 0), MinWidth = 88 };
+         // finding F305), as the list editor's Add… and Edit… do. A secondary
+         // button: the dialog's one Primary is Close, the footer's only button
+         // (review finding F296).
+         var add = new Wpf.Ui.Controls.Button { Content = L("_Add…"), Margin = new Thickness(0, 0, DesignTokens.Space.Sm, 0), MinWidth = 88 };
          add.Click += (s, e) => AddOrEdit(-1);
          var edit = new Wpf.Ui.Controls.Button { Content = L("_Edit…"), Margin = new Thickness(0, 0, DesignTokens.Space.Sm, 0), MinWidth = 88 };
          edit.Click += (s, e) => { if (list_.SelectedIndex >= 0) AddOrEdit(ids_[list_.SelectedIndex]); };
@@ -140,8 +142,10 @@ namespace hMailServer.ControlPanel.Views
 
          // Escape only. "Add" is deliberately not the default button: Enter with a
          // row selected in the list must not open the add dialog, and the list's own
-         // double-click already covers "open the thing I am looking at".
-         var close = new Wpf.Ui.Controls.Button { Content = L("Close"), MinWidth = 88 };
+         // double-click already covers "open the thing I am looking at". Close, the
+         // footer's only button, is drawn Primary, as every dialog's lone Close is
+         // (review finding F296), and takes no Enter.
+         var close = new Wpf.Ui.Controls.Button { Content = L("Close"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary, MinWidth = 88 };
          close.Click += (s, e) => Close();
 
          // Headed by the window's title, the kind and then the name, where the

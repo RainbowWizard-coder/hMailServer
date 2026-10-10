@@ -98,6 +98,10 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       public void SizeToContentWithin(double width)
       {
+         // As short as its content: WPF-UI's window style holds every window to 320
+         // pixels at least, which drew a message box of one line 320 tall, its notice
+         // stretched down it (review finding F041).
+         MinHeight = 0;
          MinWidth = DesignTokens.Dialog.MinWidth;
          MaxWidth = DesignTokens.Dialog.MaxWidth;
          Width = Math.Max(DesignTokens.Dialog.MinWidth, Math.Min(DesignTokens.Dialog.MaxWidth, width));

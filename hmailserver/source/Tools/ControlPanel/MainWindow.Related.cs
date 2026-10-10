@@ -67,7 +67,6 @@ namespace hMailServer.ControlPanel
 
          relatedMore_ = new Wpf.Ui.Controls.Button
          {
-            Appearance = Wpf.Ui.Controls.ControlAppearance.Transparent,
             FontSize = Typography.Caption,
             Padding = new Thickness(6, 2, 6, 2),
             Margin = new Thickness(2, 0, 0, 0),
@@ -75,6 +74,7 @@ namespace hMailServer.ControlPanel
             ToolTip = L("Related pages that do not fit beside the trail"),
             Visibility = Visibility.Collapsed
          };
+         relatedMore_.SetResourceReference(StyleProperty, "SubtleButton");
          AutomationProperties.SetAutomationId(relatedMore_, "breadcrumb-related-more");
          relatedMore_.Click += (s, e) => ShowMoreRelated_();
          RelatedHost.Children.Add(relatedMore_);

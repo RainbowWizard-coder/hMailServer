@@ -311,6 +311,10 @@ namespace hMailServer.ControlPanel.Services
          DesignTokens.FocusArgb focus = DesignTokens.Focus(CurrentChartTheme, CurrentSystemColors);
          Publish("AppFocusBrush", FromArgb(focus.Ring));
          Publish("AppFocusGlowBrush", FromArgb(focus.Glow));
+
+         // The one focus ring every other control draws, in that colour, or the
+         // two-tone ring under High Contrast (AccessibleFocus).
+         AccessibleFocus.Apply(CurrentChartTheme == ChartTheme.HighContrast);
          foreach (string themeKey in new[] { "TextControlFocusedBorderBrush", "ComboBoxBorderBrushFocused" })
          {
             if (DesignTokens.FocusGlowFor(CurrentChartTheme))

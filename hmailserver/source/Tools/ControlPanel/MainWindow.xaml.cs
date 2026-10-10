@@ -905,7 +905,6 @@ namespace hMailServer.ControlPanel
          var button = new Wpf.Ui.Controls.Button
          {
             Content = L(group.Title),
-            Appearance = Wpf.Ui.Controls.ControlAppearance.Transparent,
             FontSize = Typography.Label,
             Padding = new Thickness(4, 2, 4, 2),
             Cursor = System.Windows.Input.Cursors.Hand,
@@ -913,6 +912,8 @@ namespace hMailServer.ControlPanel
                ? F("Show {0} in the navigation", L(group.Title))
                : L(group.Purpose)
          };
+         // Nothing round it at rest (review finding F296), as the trail's Back and Forward.
+         button.SetResourceReference(StyleProperty, "SubtleButton");
          System.Windows.Automation.AutomationProperties.SetAutomationId(button, "breadcrumb-group-" + NavigationMap.Slug(group.Title));
          System.Windows.Automation.AutomationProperties.SetName(button, F("Show the group {0} in the navigation", L(group.Title)));
          button.Click += (s, e) =>
@@ -930,12 +931,12 @@ namespace hMailServer.ControlPanel
          var button = new Wpf.Ui.Controls.Button
          {
             Content = L(page.Title),
-            Appearance = Wpf.Ui.Controls.ControlAppearance.Transparent,
             FontSize = Typography.Caption,
             Padding = new Thickness(6, 2, 6, 2),
             Cursor = System.Windows.Input.Cursors.Hand,
             ToolTip = L(page.Purpose)
          };
+         button.SetResourceReference(StyleProperty, "SubtleButton");
          System.Windows.Automation.AutomationProperties.SetAutomationId(button, "breadcrumb-related-" + page.Key);
          System.Windows.Automation.AutomationProperties.SetName(button, F("Go to the related page {0}", L(page.Title)));
          button.Click += (s, e) => NavigateTo(page.Key);

@@ -87,10 +87,11 @@ namespace hMailServer.ControlPanel.Views
 
          var actions = new StackPanel { Orientation = Orientation.Horizontal };
 
+         // A secondary button: the dialog's one Primary is Close, the footer's only
+         // button (review finding F296).
          var add = new Wpf.Ui.Controls.Button
          {
             Content = L("_Add account…"),
-            Appearance = Wpf.Ui.Controls.ControlAppearance.Primary,
             Margin = new Thickness(0, 0, DesignTokens.Space.Sm, 0),
             MinWidth = 110
          };
@@ -117,8 +118,9 @@ namespace hMailServer.ControlPanel.Views
          body.Children.Add(actions);
 
          // Escape only, and deliberately no default button: Enter with a row
-         // selected must not re-open the add prompt.
-         var close = new Wpf.Ui.Controls.Button { Content = L("Close"), MinWidth = 88 };
+         // selected must not re-open the add prompt. Close, the footer's only
+         // button, is drawn Primary, as every dialog's lone Close is (F296).
+         var close = new Wpf.Ui.Controls.Button { Content = L("Close"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary, MinWidth = 88 };
          close.Click += (s, e) => Close();
 
          // Headed by the window's title, the kind and then the name, where the

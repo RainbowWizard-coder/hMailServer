@@ -80,7 +80,7 @@ namespace hMailServer.ControlPanel.Views
             defaultResult = MessageBoxResult.None;
 
          var dialog = new MessageDialog(ActiveWindow_(), CaptionOrDefault_(caption), messageBoxText,
-            LevelFor(icon), ChoicesFor_(button, icon, defaultResult));
+            LevelFor(icon), ChoicesFor_(button, icon, defaultResult), question: icon == MessageBoxImage.Question);
          dialog.ShowDialog();
 
          MessageBoxResult result = dialog.Result;
@@ -164,7 +164,7 @@ namespace hMailServer.ControlPanel.Views
             {
                new Choice(action, MessageBoxResult.Yes, Primary: true, IsCancel: false, IsDefault: !cancelTakesEnter, Destructive: destructive),
                new Choice(decline ?? L("Cancel"), MessageBoxResult.Cancel, Primary: false, IsCancel: true, IsDefault: cancelTakesEnter, Destructive: false)
-            });
+            }, question: true);
       }
 
       /// <summary>
@@ -343,7 +343,15 @@ namespace hMailServer.ControlPanel.Views
       {
          public MessageBoxResult Result { get; private set; } = MessageBoxResult.None;
 
-         public MessageDialog(Window owner, string caption, string text, StatusLevel level, IReadOnlyList<Choice> choices)
+         /// <summary>
+         /// A box at a level is a notice at it; a question at none is one at Normal - its
+         /// mark and no word - as the boxes beside it are notices (review finding F296),
+         /// where it was the one box with nothing to say what it was; a bare message at
+         /// none is body text. Either is at the top of the body, the window's height its
+         /// own: stretched down a 320-pixel window, a one-line notice was a block of tint
+         /// two hundred pixels tall (F041).
+         /// </summary>
+         public MessageDialog(Window owner, string caption, string text, StatusLevel level, IReadOnlyList<Choice> choices, bool question = false)
          {
             // Startup errors can fire before any window exists; centre on the
             // screen rather than on nothing. The owner is set before the frame,
@@ -353,8 +361,8 @@ namespace hMailServer.ControlPanel.Views
 
             Title = caption;
 
-            UIElement body;
-            if (level == StatusLevel.Normal)
+            FrameworkElement body;
+            if (level == StatusLevel.Normal && !question)
             {
                var block = new TextBlock { Text = text };
                block.SetResourceReference(StyleProperty, "TextBody");
@@ -364,6 +372,7 @@ namespace hMailServer.ControlPanel.Views
             {
                body = new InlineNotice { Level = level, Text = text, Margin = new Thickness(0) };
             }
+            body.VerticalAlignment = VerticalAlignment.Top;
 
             Wpf.Ui.Controls.Button primary = null, cancel = null;
             var others = new List<Wpf.Ui.Controls.Button>();

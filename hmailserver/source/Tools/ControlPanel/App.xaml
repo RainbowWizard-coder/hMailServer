@@ -94,7 +94,7 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="RadioButton">
                             <Border x:Name="Bg" CornerRadius="{DynamicResource AppControlCornerRadius}" Background="Transparent"
-                                    BorderThickness="1.5" BorderBrush="Transparent" SnapsToDevicePixels="True">
+                                    BorderThickness="2" BorderBrush="Transparent" SnapsToDevicePixels="True">
                                 <Grid>
                                     <Rectangle x:Name="Pill" Width="3" Height="16" RadiusX="1.5" RadiusY="1.5"
                                                HorizontalAlignment="Left" VerticalAlignment="Center" Margin="1,0,0,0"
@@ -147,7 +147,7 @@
                         <ControlTemplate TargetType="ListBoxItem">
                             <Border x:Name="Bd" CornerRadius="{DynamicResource AppControlCornerRadius}"
                                     MinHeight="{DynamicResource AppNavRowHeight}" Background="Transparent"
-                                    BorderThickness="1.5" BorderBrush="Transparent" SnapsToDevicePixels="True">
+                                    BorderThickness="2" BorderBrush="Transparent" SnapsToDevicePixels="True">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="18" />
@@ -257,6 +257,12 @@
             <Style TargetType="TabItem">
                 <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
                 <Setter Property="Cursor" Value="Hand" />
+                <!-- The one focus ring (Services/AccessibleFocus), drawn inside the
+                     tab: the theme's own TabItem style names a dotted rectangle of its
+                     own, which a focused tab drew where every other control drew the
+                     ring, and the strip's scroller cuts what is drawn outside a tab
+                     (review finding F296). -->
+                <Setter Property="FocusVisualStyle" Value="{DynamicResource AppFocusVisualInset}" />
                 <Setter Property="Padding" Value="15,9" />
                 <Setter Property="Margin" Value="0,0,4,0" />
                 <Setter Property="Template">
@@ -641,6 +647,18 @@
                 <Setter Property="Cursor" Value="Hand" />
             </Style>
 
+            <!-- A button with nothing round it at rest - the breadcrumb's Back,
+                 Forward and groups, the Related links, the command bar's glyphs -
+                 and the theme's subtle fill under the pointer. WPF-UI's Transparent
+                 appearance keeps the control's one-pixel outline, so that the trail
+                 and the Related links read as a row of chips (review finding F296).
+                 No border at all, in every state, rather than a transparent one: the
+                 disabled state draws its own border colour. -->
+            <Style x:Key="SubtleButton" TargetType="{x:Type ui:Button}" BasedOn="{StaticResource {x:Type ui:Button}}">
+                <Setter Property="Appearance" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+            </Style>
+
             <!-- A number column's header, right-aligned over its right-aligned
                  cells (GridNumberText, in Scaffold.xaml, is the cells' style). -->
             <Style x:Key="GridNumberHeader" TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
@@ -751,9 +769,10 @@
                  List rows. The row of every ListBox and ListView, drawn as the
                  grid row above, with the sidebar's pill: the control radius, the
                  subtle grey under the pointer, the selection fill and the brand
-                 pill on the selected row, and a 1.5-pixel ring in the focus
+                 pill on the selected row, and a 2-pixel ring in the focus
                  colour round the row the keyboard is on in place of the stock
-                 focus visual - the pill says which row is selected, the ring
+                 focus visual - the focus ring every control draws, inside the
+                 row since its neighbours leave no room outside it (F296) - the pill says which row is selected, the ring
                  where the keyboard is, and the two are not one colour. The
                  content keeps its own text styles: the palette's TextBody and
                  TextCaption, the domains page's names, a public folder's name
@@ -783,7 +802,7 @@
                                     <Rectangle x:Name="Pill" Width="3" Height="16" RadiusX="1.5" RadiusY="1.5"
                                                HorizontalAlignment="Left" VerticalAlignment="Center" Margin="1,0,0,0"
                                                Fill="{DynamicResource AppBrandBrush}" Opacity="0" IsHitTestVisible="False" />
-                                    <Rectangle x:Name="Ring" RadiusX="4" RadiusY="4" Stroke="Transparent" StrokeThickness="1.5"
+                                    <Rectangle x:Name="Ring" RadiusX="4" RadiusY="4" Stroke="Transparent" StrokeThickness="2"
                                                IsHitTestVisible="False" />
                                 </Grid>
                             </Border>
@@ -799,7 +818,7 @@
                                 </Trigger>
                                 <Trigger Property="IsKeyboardFocused" Value="True">
                                     <Setter TargetName="Ring" Property="Stroke" Value="{DynamicResource AppFocusBrush}" />
-                                    <Setter TargetName="Ring" Property="StrokeThickness" Value="1.5" />
+                                    <Setter TargetName="Ring" Property="StrokeThickness" Value="2" />
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>

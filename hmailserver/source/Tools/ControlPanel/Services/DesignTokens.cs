@@ -54,6 +54,21 @@ namespace hMailServer.ControlPanel.Services
          public const double Pill = 4;
       }
 
+      /// <summary>
+      /// Icon sizes (review finding F296: they ran from 12 to 40 with no token): a
+      /// glyph beside text or on a small button - the breadcrumb's Back and Forward,
+      /// the search field's, a row's 24-pixel button's - is Small; a toolbar's or a
+      /// page header's glyph button's Medium; the rail's group glyph Large; an empty
+      /// state's Hero. AppIconSizeSm to AppIconSizeXl in Tokens.xaml.
+      /// </summary>
+      public static class IconSize
+      {
+         public const double Small = 16;
+         public const double Medium = 20;
+         public const double Large = 24;
+         public const double Hero = 40;
+      }
+
       /// <summary>The shell's fixed dimensions.</summary>
       public static class Shell
       {
