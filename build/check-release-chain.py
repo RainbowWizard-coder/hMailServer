@@ -208,7 +208,13 @@ refuses it. This checker holds them to each other. It fails when:
     release's files are signed with, or no longer attests each platform's SBOM
     (container-image-sbom, build/ci/container-image-sbom.sh) to that platform's image
     and verifies the attestation; or container-image-start does not start the pushed
-    image with the command its test script names, on a network of its own; or the
+    image with the command its test script names, on a network of its own; or
+    container_scanning names its analyzer but as GitLab's registry holds it, by a
+    major version and a digest on its one image: line (CONTAINER_SCANNING): by a tag
+    alone, which would run whatever GitLab built last in a release's pipeline, or from
+    a copy in the project's registry, which the image's licences forbid - GitLab's EE
+    code and its advisory database are in it - or container_scanning_arm64 names an
+    image of its own; or the
     switch, the project's own CI/CD variable HM_PUBLISH_IMAGE, is not read as the jobs
     run - container-image-deb.sh, linux-image.sh and container-image-push.sh must
     refuse, exiting non-zero, unless it is "1" - or is read by a rule, which is
@@ -622,6 +628,14 @@ MIRRORED_SAST = re.compile(r"^    name: registry\.gitlab\.com/hmailserver/hmails
 # landing's scanner from.
 MIRRORED_SECRETS = re.compile(r"^  image: registry\.gitlab\.com/hmailserver/hmailserver/mirror/secrets:"
                               r"[0-9]+(?:\.[0-9]+)*-([0-9a-f]{12})@sha256:([0-9a-f]{64})\s*$", re.MULTILINE)
+# container_scanning's analyzer as GitLab's registry holds it, by a major version and a
+# digest, on the job's one image: line. It is not copied into the project's registry,
+# as the two above are: the image carries code under GitLab's EE licence and a database
+# built with the GitLab Advisory Database, whose terms allow neither to be published
+# (.gitlab/ci/container-image.yml's header); GitLab rebuilds it daily, and the digest is
+# taken again before a release tag.
+CONTAINER_SCANNING = re.compile(r"^  image: registry\.gitlab\.com/security-products/container-scanning:[0-9]+"
+                                r"@sha256:[0-9a-f]{64}\s*$", re.MULTILINE)
 # The scans on linix that judge a batch as a whole: on a protected batch* branch their
 # rules compare the tree with master, not with the push before.
 WHOLE_CHANGE_SCANS = ["static-analysis", "semgrep", "ci-image-packages", "dependency-scan"]
@@ -1701,6 +1715,16 @@ def check(texts, chain, feed):
     if scanning and not re.search(r"^  dependencies: \[container-image\]\s*$", scanning, re.MULTILINE):
         problems.append("container_scanning does not take container-image's dotenv report (dependencies: [container-image]): "
                         "the template's dependencies: [] leaves it no CS_IMAGE")
+    if scanning and not CONTAINER_SCANNING.search(scanning):
+        problems.append("container_scanning does not name GitLab's analyzer as GitLab's registry holds it, by a major version "
+                        "and a digest on one line (image: registry.gitlab.com/security-products/container-scanning:<major>"
+                        "@sha256:<digest>): a tag alone runs whatever GitLab built last in a release's pipeline, and the "
+                        "image may not be copied into the project's registry - it carries GitLab's EE code and a database "
+                        "built with the GitLab Advisory Database, whose terms forbid that (ContinuousIntegration.md, "
+                        "\"container_scanning's analyzer\")")
+    if re.search(r"^  image:", image_jobs.get("container_scanning_arm64", ""), re.MULTILINE):
+        problems.append("container_scanning_arm64 names an image of its own: it runs container_scanning's analyzer, which it "
+                        "extends, and which is held to GitLab's by digest")
     image_script = texts["image-sign"]
     for needle, why in (('platforms="%s"' % " ".join(IMAGE_PLATFORMS), "every platform's image signed"),
                         ('\nsign index "$index"\n', "the index, which every tag names, signed"),
@@ -4010,6 +4034,19 @@ def self_test(chain, feed):
            "    - job: container-image-start\n      artifacts: false\n    - job: container-image-start-arm64\n      artifacts: false\n  timeout: 15 minutes",
            "  needs: []\n  timeout: 15 minutes", "container-image-sign does not need container-image")
     broken("the scan without the image's name", "image", "  dependencies: [container-image]\n", "", "container_scanning does not take")
+    scanner = CONTAINER_SCANNING.search(texts["image"])
+    scanner_pin = scanner.group(0).rstrip() if scanner else "container_scanning's pinned analyzer is not found"
+    broken("container_scanning's analyzer by its tag alone", "image", scanner_pin, scanner_pin.split("@")[0],
+           "container_scanning does not name GitLab's analyzer as GitLab's registry holds it")
+    broken("container_scanning's analyzer from a copy in the project's registry", "image", scanner_pin,
+           scanner_pin.replace("registry.gitlab.com/security-products/container-scanning:8@",
+                               "registry.gitlab.com/hmailserver/hmailserver/mirror/container-scanning:8.6.35-000000000000@"),
+           "container_scanning does not name GitLab's analyzer as GitLab's registry holds it")
+    broken("container_scanning's analyzer named over two lines", "image", scanner_pin,
+           scanner_pin.replace("  image: ", "  image:\n    name: ", 1), "container_scanning does not name GitLab's analyzer")
+    broken("the arm64 scan in an image of its own", "image", "container_scanning_arm64:\n  extends: container_scanning\n",
+           "container_scanning_arm64:\n  extends: container_scanning\n  image: registry.example/scanner:1\n",
+           "container_scanning_arm64 names an image of its own")
     broken("the image signed before its SBOM is made", "image", "    - job: container-image-sbom\n      artifacts: true\n", "",
            "container-image-sign does not need container-image-sbom")
     broken("the image's SBOM made from release-sign's artifact", "image", "  variables:\n    HM_IMAGE_DEB_DIR: container-image-deb\n  script:\n    - bash",

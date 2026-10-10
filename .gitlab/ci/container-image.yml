@@ -119,11 +119,21 @@
 #
 # The Container Scanning analyzer is pinned by digest, as the other scans' images are:
 # registry.gitlab.com's security-products/container-scanning:8 as it was on
-# 30 September 2026 (analyzer 8.6.35). GitLab rebuilds that image under its version
-# tags and stops serving a digest it has replaced within days: the digests of
-# 26 and 28 September both answered 404 on 30 September, so a pin older than that
-# fails the pull (the job is allowed to fail, and the scan is then lost). kaniko's
-# image is linux-image's, by reference, so that one digest serves every build job.
+# 10 October 2026 (analyzer 8.6.35, built that day at 16:22 UTC). GitLab rebuilds that
+# image every day, the analyzer unchanged and its vulnerability databases new, and stops
+# serving a digest it has replaced within a day or two: the digests of 26 and 28
+# September both answered 404 on 30 September, and the one taken on 5 October answered
+# 404 on 10 October, so a pin older than that fails the pull (the job is allowed to
+# fail, and the scan is then lost). Unlike gitlab-security.yml's two analyzers it has no
+# copy in the project's registry, and may not have one: the image carries GitLab's
+# Enterprise Edition code (the analyzer gem's ee/, under GitLab's EE licence) and a
+# database built with the GitLab Advisory Database (/home/gitlab/.cache/trivy/ee, under
+# GitLab's Security Alert Database Terms), and neither allows a copy to be published.
+# So the digest is taken again the day a release is tagged (RELEASE.md, step 1), and
+# build/check-image-pins.py, in Renovate's schedule's pipeline, names it once it is
+# gone; build/check-release-chain.py holds the job to GitLab's image by digest
+# (docs/ContinuousIntegration.md, "container_scanning's analyzer"). kaniko's image is
+# linux-image's, by reference, so that one digest serves every build job.
 
 include:
   - template: Jobs/Container-Scanning.gitlab-ci.yml
@@ -357,9 +367,10 @@ container-image-sign:
 # digest: CS_IMAGE comes from container-image's dotenv report, which the template's
 # `dependencies: []` would keep from it, so dependencies names that job.
 container_scanning:
-  # By digest, as gitlab-security.yml's analyzers are; re-taken on 5 October 2026,
-  # when the registry no longer served the one of 26 September.
-  image: registry.gitlab.com/security-products/container-scanning:8@sha256:34e43a8964c4b8d8e29105d81b05fbf1d99f3fadbfd14cd9b450adc511506f2d
+  # GitLab's own, by digest, on one line (the header says why it is not a copy);
+  # re-taken on 10 October 2026, when the registry no longer served the one of 5
+  # October.
+  image: registry.gitlab.com/security-products/container-scanning:8@sha256:fa105a4e2835c9177186c31ed3ce2d999a7479c1268f0d1932828e831d541f97
   stage: release
   needs:
     - job: container-image

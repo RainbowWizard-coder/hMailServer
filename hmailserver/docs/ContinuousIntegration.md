@@ -1203,7 +1203,8 @@ What the host needs:
   `archlinux:base` and `regclient/regctl:v0.11.6-alpine`, Microsoft's
   `mcr.microsoft.com/dotnet/sdk:10.0`, `gcr.io/projectsigstore/cosign`, the
   project's copies of GitLab's analyzers (`mirror/semgrep`, `mirror/secrets`) and
-  GitLab's `security-products/container-scanning:8`.
+  GitLab's `security-products/container-scanning:8`, which may not be copied
+  ([Security scanning](#security-scanning)).
 - The runner's local cache, which carries the fuzz corpus from night to night
   (`cache:` in `linux-fuzz`). The docker executor keeps it in volumes on the
   host, one for each of the three places a job can run in, so a night's job
@@ -1852,6 +1853,7 @@ pinned by digest where the CI file names it.
 | `semgrep-sast` | `registry.gitlab.com/hmailserver/hmailserver/mirror/semgrep`, by digest: GitLab's `security-products/semgrep` 6.26.1, copied digest for digest ([Change checks](#change-checks)) | the analyzer, Semgrep and GitLab's rules, all in the image |
 | `secret_detection` | `registry.gitlab.com/hmailserver/hmailserver/mirror/secrets`, by digest: GitLab's `security-products/secrets` 7.40.0, copied digest for digest ([Change checks](#change-checks)) | the analyzer, gitleaks 8.30.1 and GitLab's rules 0.25.1, all in the image; `build/scan-secrets.py` takes the same image |
 | `image-pins` | `python:3.14-slim-trixie` (Docker Hub) | Python's own library alone; it asks each pin's own registry for its manifest, and downloads nothing |
+| `container_scanning`, `container_scanning_arm64` | `registry.gitlab.com/security-products/container-scanning:8`, by digest: GitLab's own, which may not be copied ([Security scanning](#security-scanning)) | the analyzer (gcs 8.6.35), Trivy and its two databases, all in the image as GitLab built it that day |
 | `semgrep-sast-gate`, `mr-dependency-check` | `python:3.14-slim-trixie` (Docker Hub) | git from Debian's archive; OSV's export from Google Cloud Storage (`osv-vulnerabilities.storage.googleapis.com`) and OSV's API (`api.osv.dev`); the checkers are the standard library's Python |
 | `scorecard` | `nixos/nix:2.35.2` (Docker Hub) | OpenSSF Scorecard 5.5.0 and its closure from `cache.nixos.org`, by its Nix store path and pinned NAR hash, each path checked against the signature of the `cache.nixos.org-1` key the image trusts ([OpenSSF Scorecard](#openssf-scorecard)) |
 | `linux-db-upgrade-*` services | `postgres:18`, `mariadb:13` (Docker Hub) | the database servers |
@@ -3782,6 +3784,28 @@ pushes, each platform's by its digest, after the push, in the same way, with
 GitLab's analyzer as GitLab's registry holds it, pinned by digest
 ([The container image](#the-container-image)); `CONTAINER_SCANNING_DISABLED=true`
 turns it off.
+
+**`container_scanning`'s analyzer.** It is GitLab's
+`security-products/container-scanning:8`, by digest, and not a copy in the
+project's registry as the other two analyzers are, because it may not be
+copied: the image carries GitLab's Enterprise Edition code (the analyzer gem's
+`ee/`, under GitLab's EE licence, which allows no copy to be published) and a
+vulnerability database built with the GitLab Advisory Database
+(`/home/gitlab/.cache/trivy/ee`, 114 MB, under GitLab's Security Alert
+Database Terms, which forbid copying and mirroring it). The analyzer on the
+Free tier reads the other database, Trivy's own (`ce`), but the image holds
+both. GitLab rebuilds the image every day - analyzer 8.6.35, revision
+`fa5e43f4`, built at 16:23 UTC on 9 October 2026 and at 16:22 on 10 October,
+the analyzer the same and both databases new - and stops serving a digest it
+has replaced within a day or two: the digests of 26 and 28 September answered
+404 on 30 September, and the one taken on 5 October answered 404 on 10 October.
+The job is allowed to fail, so a scan lost that way says nothing. So the digest
+is taken again the day a release is tagged (RELEASE.md, step 1), which also
+gives the scan that day's advisories; `build/check-image-pins.py` names it once
+it is gone ([Image pins](#image-pins)); and `build/check-release-chain.py` fails
+when the job names the analyzer by a tag alone, which would run whatever GitLab
+built last, from the project's registry, or over two lines, and when
+`container_scanning_arm64` names an image of its own.
 
 `semgrep-sast` passes whatever it found, and holds nothing to a baseline; what
 holds a change or a release on its findings is the job that reads its report

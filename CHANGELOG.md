@@ -4664,6 +4664,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `allow_failure`, and RELEASE.md runs the check before a tag; `checkers` runs the self-test alone. On 10 October it
   found 59 pins in 118 places, and
   `container_scanning`'s gone (ContinuousIntegration.md, "Image pins").
+- **`container_scanning` runs again: its analyzer is re-pinned to the digest GitLab's `container-scanning:8` names on
+  10 October 2026, and is not copied into the project's registry, which its licences forbid.** The digest taken on 5
+  October answered 404 by 10 October, and the job, which runs in a release tag's pipeline alone and is allowed to fail,
+  would have lost both platforms' scans without a word. GitLab rebuilds the image every day, the analyzer (8.6.35) the
+  same and its vulnerability databases new, and serves a replaced digest for a day or two. A copy, as
+  `semgrep-sast`'s and `secret_detection`'s are, was the plan, and is not made: the image carries GitLab's
+  Enterprise Edition code (the analyzer gem's `ee/`) and a database built with the GitLab Advisory Database, whose
+  licence and terms allow no copy to be published. So the release commit takes the digest again (RELEASE.md, step 1),
+  and `build/check-release-chain.py` fails when the job names the analyzer by a tag alone, from the project's
+  registry or over two lines, or `container_scanning_arm64` names an image of its own (ContinuousIntegration.md,
+  "container_scanning's analyzer").
 
 ### Documentation
 
