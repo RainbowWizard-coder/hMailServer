@@ -86,11 +86,18 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("Confirmations.DeleteCertificate(row.Name, PortsPresenting_(row.Id))", delete, StringComparison.Ordinal);
          Assert.Contains("L(\"_Delete certificate\")", delete, StringComparison.Ordinal);
 
+         // The ports by certificate are read once (PortsByCertificate_, which the Used by
+         // column reads too, review finding F235); the question takes this one's.
          string ports = WithheldRowTests.MemberText(page, "private static List<string> PortsPresenting_(int certificateId)");
          Assert.True(ports != null, "SslCertificatesView.PortsPresenting_ is gone.");
-         Assert.Contains("(int)port.ConnectionSecurity > 0", ports, StringComparison.Ordinal);
-         Assert.Contains("(int)port.SSLCertificateID == certificateId", ports, StringComparison.Ordinal);
+         Assert.Contains("PortsByCertificate_()", ports, StringComparison.Ordinal);
          Assert.Contains("return null;", ports, StringComparison.Ordinal);
+
+         string all = WithheldRowTests.MemberText(page, "private static Dictionary<int, List<string>> PortsByCertificate_()");
+         Assert.True(all != null, "SslCertificatesView.PortsByCertificate_ is gone.");
+         Assert.Contains("(int)port.ConnectionSecurity > 0 && certificateId > 0", all, StringComparison.Ordinal);
+         Assert.Contains("int certificateId = (int)port.SSLCertificateID;", all, StringComparison.Ordinal);
+         Assert.Contains("return null;", all, StringComparison.Ordinal);
       }
 
       [Fact]

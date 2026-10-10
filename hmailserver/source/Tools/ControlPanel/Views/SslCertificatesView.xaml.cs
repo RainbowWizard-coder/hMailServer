@@ -3,12 +3,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Media;
 using Microsoft.Win32;
@@ -72,6 +75,9 @@ namespace hMailServer.ControlPanel.Views
          public string CertificateState { get; set; }
          public string PrivateKeyState { get; set; }
 
+         /// <summary>The TCP/IP ports that present it, "SMTP 465, IMAP 993", or Not used (Services/CertificateRows).</summary>
+         public string UsedBy { get; set; }
+
          // What a screen reader says for the row: its cells, not the name of
          // this class, which is what a grid row is announced as otherwise.
          public override string ToString() => Name + ", " + CertificateState + ", " + PrivateKeyState;
@@ -96,12 +102,14 @@ namespace hMailServer.ControlPanel.Views
       public SslCertificatesView()
       {
          InitializeComponent();
-         hMailServer.ControlPanel.Services.SelectionGate.Bind(CertGrid, DeleteButton);
+         hMailServer.ControlPanel.Services.SelectionGate.Bind(CertGrid, EditButton, DeleteButton);
 
-         // Delete deletes the selected certificate after asking and Insert goes to
-         // the add form; Enter in the form adds the certificate, and Enter in the
-         // passphrase box saves the passphrase (Views/GridKeys, FormSubmit).
-         GridKeys.Wire(CertGrid, null, GridKeys.Pressing(DeleteButton), GridKeys.Focusing(NewCertName));
+         // Enter, F2 and a double-click edit the selected certificate, Delete deletes
+         // it after asking and Insert goes to the add form; Enter in the form adds the
+         // certificate, and Enter in the passphrase box saves the passphrase
+         // (Views/GridKeys, FormSubmit).
+         GridKeys.Wire(CertGrid, GridKeys.Pressing(EditButton), GridKeys.Pressing(DeleteButton), GridKeys.Focusing(NewCertName));
+         PemHint.Text = CertificateDialog.PfxHint;
          FormSubmit.Bind(AddCertForm, AddCertButton, NewCertName, NewCertFile, NewKeyFile, NewKeyPassphrase);
          FormSubmit.Bind(PassphraseBox, SavePassphraseButton, PassphraseBox);
 
@@ -125,7 +133,7 @@ namespace hMailServer.ControlPanel.Views
 
       // ---- loading ------------------------------------------------------------
 
-      private async void Reload(int reselectId = 0)
+      private async void Reload(int reselectId = 0, Action after = null)
       {
          int version = ++reloadVersion_;
 
@@ -196,10 +204,15 @@ namespace hMailServer.ControlPanel.Views
          }
 
          UpdateDetailsPane();
+         after?.Invoke();
       }
 
       private static void ReadRowsFromCom(List<CertRow> rows)
       {
+         // Which ports present each certificate, read once for every row; null when
+         // the ports could not be read, which the column says rather than "Not used".
+         Dictionary<int, List<string>> ports = PortsByCertificate_();
+
          dynamic certs = ServerSession.Current.Application.Settings.SSLCertificates;
          try
          {
@@ -216,6 +229,7 @@ namespace hMailServer.ControlPanel.Views
                      CertificateFile = (string)cert.CertificateFile,
                      PrivateKeyFile = (string)cert.PrivateKeyFile
                   };
+                  row.UsedBy = CertificateRows.UsedBy(ports == null ? null : ports.TryGetValue(row.Id, out List<string> presenting) ? presenting : new List<string>());
 
                   // Only the EMPTINESS of the stored passphrase is tested; the
                   // value itself is never rendered anywhere on this page. The
@@ -520,7 +534,76 @@ namespace hMailServer.ControlPanel.Views
       // ---- search / browse / add / delete ----------------------------------------
 
       /// <summary>The header's Refresh: the certificates and their file checks read again, as F5 reads them.</summary>
-      private void Refresh_Click(object sender, RoutedEventArgs e) => Reload((CertGrid.SelectedItem as CertRow)?.Id ?? 0);
+      private void Refresh_Click(object sender, RoutedEventArgs e)
+      {
+         OutcomeNotice.Visibility = Visibility.Collapsed;
+         Reload((CertGrid.SelectedItem as CertRow)?.Id ?? 0);
+      }
+
+      /// <summary>What the last act did, at its level, after the list it acted on was read again.</summary>
+      private void ShowOutcome_(StatusLevel level, string text, UIElement action = null)
+      {
+         OutcomeNotice.Level = level;
+         OutcomeNotice.Text = text;
+         OutcomeNotice.Content = action;
+         OutcomeNotice.Visibility = Visibility.Visible;
+      }
+
+      /// <summary>
+      /// Edit...: the selected certificate's name and files in a dialog, saved in
+      /// place - its id kept, so that every TCP/IP port that presents it keeps it -
+      /// and the list read again with it selected (review finding F235).
+      /// </summary>
+      private void Edit_Click(object sender, RoutedEventArgs e)
+      {
+         if (CertGrid.SelectedItem is not CertRow row)
+            return;
+
+         OutcomeNotice.Visibility = Visibility.Collapsed;
+         string saved = CertificateDialog.Edit(Window.GetWindow(this), row.Id);
+         if (saved == null)
+            return;
+
+         Reload(row.Id, () => ShowOutcome_(StatusLevel.Good, Sentences(ListOutcome.Saved(saved, DateTime.Now),
+            L("The TCP/IP ports that present it read its files again when the server is next reinitialised."))));
+      }
+
+      /// <summary>
+      /// The Certificate column sorts by how much a certificate asks for attention,
+      /// then by how soon it expires (Services/CertificateRows), where it sorted by
+      /// its status word, which put "Expired" before "Expires soon" and both among
+      /// the good.
+      /// </summary>
+      private void CertGrid_Sorting(object sender, DataGridSortingEventArgs e)
+      {
+         if (!ReferenceEquals(e.Column, CertificateColumn))
+            return;
+
+         e.Handled = true;
+         ListSortDirection direction = e.Column.SortDirection == ListSortDirection.Ascending ? ListSortDirection.Descending : ListSortDirection.Ascending;
+         foreach (DataGridColumn column in CertGrid.Columns)
+            column.SortDirection = null;
+         e.Column.SortDirection = direction;
+
+         if (CollectionViewSource.GetDefaultView(CertGrid.ItemsSource) is ListCollectionView view)
+            view.CustomSort = new CertificateOrder_(direction);
+      }
+
+      private sealed class CertificateOrder_ : IComparer
+      {
+         private readonly int sign_;
+
+         public CertificateOrder_(ListSortDirection direction) => sign_ = direction == ListSortDirection.Ascending ? 1 : -1;
+
+         public int Compare(object x, object y)
+         {
+            if (x is not CertRow a || y is not CertRow b)
+               return 0;
+
+            return sign_ * CertificateRows.Compare(a.CertBadge?.Level ?? StatusLevel.Normal, a.Health?.DaysRemaining,
+               b.CertBadge?.Level ?? StatusLevel.Normal, b.Health?.DaysRemaining);
+         }
+      }
 
       // What an empty list means, said by a read that finds no certificate and by
       // a search cleared over none.
@@ -689,6 +772,10 @@ namespace hMailServer.ControlPanel.Views
                 L("_Delete certificate"), destructive: true))
             return;
 
+         OutcomeNotice.Visibility = Visibility.Collapsed;
+         int at = CertGrid.SelectedIndex;
+         bool deleted = false;
+
          dynamic certs = ServerSession.Current.Application.Settings.SSLCertificates;
          try
          {
@@ -699,6 +786,7 @@ namespace hMailServer.ControlPanel.Views
                if ((int)cert.ID == row.Id)
                {
                   cert.Delete();
+                  deleted = true;
                   ServerSession.Release((object)cert);
                   break;
                }
@@ -714,7 +802,16 @@ namespace hMailServer.ControlPanel.Views
             ServerSession.Release((object)certs);
          }
 
-         Reload();
+         // The outcome after the list is read again, with the row that took the
+         // deleted one's place selected (Services/ListOutcome).
+         Reload(0, () =>
+         {
+            int next = ListOutcome.IndexAfterDelete(CertGrid.Items.Count, at);
+            if (next >= 0)
+               CertGrid.SelectedIndex = next;
+            if (deleted)
+               ShowOutcome_(StatusLevel.Good, ListOutcome.Deleted(row.Name));
+         });
       }
 
       /// <summary>
@@ -725,7 +822,21 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private static List<string> PortsPresenting_(int certificateId)
       {
-         var presenting = new List<string>();
+         Dictionary<int, List<string>> ports = PortsByCertificate_();
+         if (ports == null)
+            return null;
+
+         return ports.TryGetValue(certificateId, out List<string> presenting) ? presenting : new List<string>();
+      }
+
+      /// <summary>
+      /// Every TCP/IP port that presents a certificate, by the certificate's id, as
+      /// "SMTP 465": for the Used by column and the question before a delete. Null
+      /// when the ports could not be read.
+      /// </summary>
+      private static Dictionary<int, List<string>> PortsByCertificate_()
+      {
+         var presenting = new Dictionary<int, List<string>>();
          dynamic ports = null;
          try
          {
@@ -737,7 +848,8 @@ namespace hMailServer.ControlPanel.Views
                try
                {
                   // eConnectionSecurity: 0 none, 1 SSL/TLS, 2 STARTTLS optional, 3 required.
-                  if ((int)port.ConnectionSecurity > 0 && (int)port.SSLCertificateID == certificateId)
+                  int certificateId = (int)port.SSLCertificateID;
+                  if ((int)port.ConnectionSecurity > 0 && certificateId > 0)
                   {
                      int protocol = (int)port.Protocol;
                      string name = protocol switch
@@ -747,7 +859,9 @@ namespace hMailServer.ControlPanel.Views
                         ServerSession.SessionImap => "IMAP",
                         _ => "#" + protocol
                      };
-                     presenting.Add(name + " " + (int)port.PortNumber);
+                     if (!presenting.TryGetValue(certificateId, out List<string> names))
+                        presenting[certificateId] = names = new List<string>();
+                     names.Add(name + " " + (int)port.PortNumber);
                   }
                }
                finally

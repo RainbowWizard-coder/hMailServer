@@ -3105,6 +3105,9 @@
   <data name="Could not read the bans: {0}" xml:space="preserve">
     <value>ブロックを読み込めませんでした: {0}</value>
   </data>
+  <data name="Could not read the certificate: {0}" xml:space="preserve">
+    <value>証明書を読み込めませんでした: {0}</value>
+  </data>
   <data name="Could not read the certificates: " xml:space="preserve">
     <value>証明書を読み取れませんでした: </value>
   </data>
@@ -3236,6 +3239,9 @@
   </data>
   <data name="Could not save the backup settings: {0}" xml:space="preserve">
     <value>バックアップ設定を保存できませんでした: {0}</value>
+  </data>
+  <data name="Could not save the certificate: {0}" xml:space="preserve">
+    <value>証明書を保存できませんでした: {0}</value>
   </data>
   <data name="Could not save the criterion: {0}" xml:space="preserve">
     <value>条件を保存できませんでした: {0}</value>
@@ -4260,6 +4266,9 @@
   </data>
   <data name="Edit action" xml:space="preserve">
     <value>アクションを編集</value>
+  </data>
+  <data name="Edit certificate" xml:space="preserve">
+    <value>証明書の編集</value>
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>条件を編集</value>
@@ -7639,6 +7648,9 @@
   <data name="Not in the directory" xml:space="preserve">
     <value>ディレクトリにない</value>
   </data>
+  <data name="Not known" xml:space="preserve">
+    <value>不明</value>
+  </data>
   <data name="Not known here: the server is on another computer" xml:space="preserve">
     <value>ここでは不明 (サーバーは別のコンピューター上にあります)</value>
   </data>
@@ -7674,6 +7686,9 @@
   </data>
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>テストしていません: この構成では、保護されていない LDAP でシンプル バインドによりパスワードを送信することになり、AllowUnprotectedPassword がオフです。そのためサーバーはこの構成下のすべてのログオンを拒否し、このテストも同じ理由で何も送信しません。LDAPS か StartTLS、または Negotiate バインド方式を選ぶか、保護されていないパスワードを明示的に許可してください。</value>
+  </data>
+  <data name="Not used" xml:space="preserve">
+    <value>未使用</value>
   </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>{0} まで無効</value>
@@ -11887,6 +11902,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
     <value>TCP/IP ポート一覧を読み取れませんでした: {0}</value>
   </data>
+  <data name="The TCP/IP ports that present it read its files again when the server is next reinitialised." xml:space="preserve">
+    <value>これを提示している TCP/IP ポートは、次にサーバーが再初期化されたときにそのファイルを読み直します。</value>
+  </data>
   <data name="The TLS report sender address could not be read: {0}" xml:space="preserve">
     <value>TLS レポートの送信者アドレスを読み取れませんでした: {0}</value>
   </data>
@@ -12147,6 +12165,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The certificate is not valid until {0}. The server serves it (error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
     <value>証明書は {0} まで有効になりません。サーバーはそれを提示し (アプリケーション ログのエラー 5991)、クライアントはその日付までそれを拒否します。証明書とこのサーバーの時計を確認してください。</value>
+  </data>
+  <data name="The certificate keeps its place on every TCP/IP port that presents it. Those ports read the files again when the server is next reinitialised." xml:space="preserve">
+    <value>証明書は、それを提示しているすべての TCP/IP ポートでそのまま使われます。それらのポートは、次にサーバーが再初期化されたときにファイルを読み直します。</value>
   </data>
   <data name="The certificate no longer exists - it was deleted after this list was read." xml:space="preserve">
     <value>その証明書はもう存在しません。この一覧を読み取った後に削除されました。</value>
@@ -12988,6 +13009,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The server only hands this value back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
     <value>サーバーはこの値を COM API 経由で返すだけで、自身では何も翻訳しません。このコントロールパネルには独自の言語設定 (右上の管理者メニューの「言語を変更」) があるため、これはサードパーティの管理ツールにのみ影響します。バウンスとエラーの文言はサーバー メッセージ ページにあります。</value>
   </data>
+  <data name="The server reads PEM files. Convert a .pfx or .p12 file first, for example with openssl pkcs12 -in cert.pfx -nokeys -out cert.pem and openssl pkcs12 -in cert.pfx -nocerts -nodes -out key.pem." xml:space="preserve">
+    <value>サーバーが読み込むのは PEM ファイルです。.pfx または .p12 ファイルは先に変換してください。たとえば openssl pkcs12 -in cert.pfx -nokeys -out cert.pem と openssl pkcs12 -in cert.pfx -nocerts -nodes -out key.pem を使います。</value>
+  </data>
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>サーバーは、各アカウントに誰が書いたか、各アカウントが誰に書いたかを覚えていて、外部の送信者が初めて現れたときに読み手に知らせます。このドメインに配信されるメッセージごとにデータベース参照が一回かかり、オフの間は何もかかりません。</value>
   </data>
@@ -13798,6 +13822,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last." xml:space="preserve">
     <value>リストが送信するすべてのコピーのエンベロープ送信者として使われるため、配信失敗 (無効になった購読者、いっぱいのメールボックス) は、たまたま最後に投稿した人ではなくリストの所有者に届きます。</value>
+  </data>
+  <data name="Used by" xml:space="preserve">
+    <value>使用中のポート</value>
   </data>
   <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Windows directory tab; type the same value here." xml:space="preserve">
     <value>%d プレースホルダーと Negotiate バインドに使われます (ドメインに参加していないホストでは NTLM がこれを必要とします)。サーバーはこれをアカウントの [Windows ディレクトリ] タブから取得します。ここにも同じ値を入力してください。</value>

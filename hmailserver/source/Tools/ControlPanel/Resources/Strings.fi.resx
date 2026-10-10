@@ -3105,6 +3105,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Could not read the bans: {0}" xml:space="preserve">
     <value>Estoja ei voitu lukea: {0}</value>
   </data>
+  <data name="Could not read the certificate: {0}" xml:space="preserve">
+    <value>Varmennetta ei voitu lukea: {0}</value>
+  </data>
   <data name="Could not read the certificates: " xml:space="preserve">
     <value>Varmenteita ei voitu lukea: </value>
   </data>
@@ -3236,6 +3239,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Could not save the backup settings: {0}" xml:space="preserve">
     <value>Varmuuskopioinnin asetuksia ei voitu tallentaa: {0}</value>
+  </data>
+  <data name="Could not save the certificate: {0}" xml:space="preserve">
+    <value>Varmennetta ei voitu tallentaa: {0}</value>
   </data>
   <data name="Could not save the criterion: {0}" xml:space="preserve">
     <value>Ehtoa ei voitu tallentaa: {0}</value>
@@ -4260,6 +4266,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Edit action" xml:space="preserve">
     <value>Muokkaa toimintoa</value>
+  </data>
+  <data name="Edit certificate" xml:space="preserve">
+    <value>Muokkaa varmennetta</value>
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>Muokkaa ehtoa</value>
@@ -7639,6 +7648,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Not in the directory" xml:space="preserve">
     <value>Ei hakemistossa</value>
   </data>
+  <data name="Not known" xml:space="preserve">
+    <value>Ei tiedossa</value>
+  </data>
   <data name="Not known here: the server is on another computer" xml:space="preserve">
     <value>Ei tiedossa täällä: palvelin on toisessa tietokoneessa</value>
   </data>
@@ -7674,6 +7686,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>Ei testattu: tämä määritys lähettäisi salasanan suojaamattoman LDAP:n yli yksinkertaisella sidonnalla, ja AllowUnprotectedPassword on pois päältä - joten palvelin hylkää jokaisen kirjautumisen sen alla, ja tämä testi kieltäytyy lähettämästä mitään samasta syystä. Valitse LDAPS tai StartTLS tai Negotiate-sidontatapa, tai salli suojaamaton salasana nimenomaisesti.</value>
+  </data>
+  <data name="Not used" xml:space="preserve">
+    <value>Ei käytössä</value>
   </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Ei voimassa ennen {0}</value>
@@ -11887,6 +11902,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
     <value>TCP/IP-porttiluetteloa ei voitu lukea: {0}</value>
   </data>
+  <data name="The TCP/IP ports that present it read its files again when the server is next reinitialised." xml:space="preserve">
+    <value>TCP/IP-portit, jotka esittävät sitä, lukevat sen tiedostot uudelleen, kun palvelin seuraavan kerran alustetaan uudelleen.</value>
+  </data>
   <data name="The TLS report sender address could not be read: {0}" xml:space="preserve">
     <value>TLS-raporttien lähettäjäosoitetta ei voitu lukea: {0}</value>
   </data>
@@ -12147,6 +12165,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="The certificate is not valid until {0}. The server serves it (error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
     <value>Varmenne ei ole voimassa ennen {0}. Palvelin tarjoaa sen (virhe 5991 sovelluslokissa), ja asiakkaat hylkäävät sen siihen päivään asti - tarkista varmenne ja tämän palvelimen kello.</value>
+  </data>
+  <data name="The certificate keeps its place on every TCP/IP port that presents it. Those ports read the files again when the server is next reinitialised." xml:space="preserve">
+    <value>Varmenne säilyttää paikkansa jokaisessa sitä esittävässä TCP/IP-portissa. Nämä portit lukevat tiedostot uudelleen, kun palvelin seuraavan kerran alustetaan uudelleen.</value>
   </data>
   <data name="The certificate no longer exists - it was deleted after this list was read." xml:space="preserve">
     <value>Varmennetta ei enää ole - se poistettiin tämän luettelon lukemisen jälkeen.</value>
@@ -12988,6 +13009,9 @@ Lisätäänkö silti?</value>
   <data name="The server only hands this value back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
     <value>Palvelin vain palauttaa tämän arvon COM-rajapinnan kautta - se ei itse käännä mitään, ja tällä Control Panelilla on oma kieliasetuksensa (Vaihda kieli järjestelmänvalvojan valikossa oikeassa yläkulmassa) - joten se vaikuttaa vain kolmansien osapuolten hallintatyökaluihin. Palautus- ja virhetekstien sanamuoto on Palvelimen viestit -sivulla.</value>
   </data>
+  <data name="The server reads PEM files. Convert a .pfx or .p12 file first, for example with openssl pkcs12 -in cert.pfx -nokeys -out cert.pem and openssl pkcs12 -in cert.pfx -nocerts -nodes -out key.pem." xml:space="preserve">
+    <value>Palvelin lukee PEM-tiedostoja. Muunna .pfx- tai .p12-tiedosto ensin, esimerkiksi komennoilla openssl pkcs12 -in cert.pfx -nokeys -out cert.pem ja openssl pkcs12 -in cert.pfx -nocerts -nodes -out key.pem.</value>
+  </data>
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>Palvelin muistaa, kuka on kirjoittanut kullekin tilille ja kenelle kukin tili on kirjoittanut, ja kertoo siitä lukijassa, kun ulkopuolinen lähettäjä ilmestyy ensimmäisen kerran. Se maksaa yhden tietokantahaun jokaista tälle toimialueelle toimitettua viestiä kohden, eikä yhtään mitään silloin kun tämä on pois päältä.</value>
   </data>
@@ -13798,6 +13822,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last." xml:space="preserve">
     <value>Käytetään kuoren lähettäjänä jokaisessa listan lähettämässä kopiossa, jotta toimitusvirheet - kuollut tilaaja, täysi postilaatikko - päätyvät listan omistajalle eivätkä sille, joka sattui kirjoittamaan viimeksi.</value>
+  </data>
+  <data name="Used by" xml:space="preserve">
+    <value>Käyttävät portit</value>
   </data>
   <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Windows directory tab; type the same value here." xml:space="preserve">
     <value>Käytetään %d-paikkamerkkiin ja Negotiate-sidontaan (NTLM tarvitsee sitä koneella, jota ei ole liitetty toimialueeseen). Palvelin ottaa tämän tilin Windows-hakemisto-välilehdeltä; kirjoita tähän sama arvo.</value>
@@ -15201,7 +15228,7 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
     <value>_Palvelin</value>
   </data>
   <data name="_Set up ACME…" xml:space="preserve">
-    <value>_Määritä ACME…</value>
+    <value>Määritä A_CME…</value>
   </data>
   <data name="_Show the bans" xml:space="preserve">
     <value>Näytä _estot</value>

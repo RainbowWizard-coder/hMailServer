@@ -668,7 +668,7 @@ namespace hMailServer.ControlPanel.Services
 
                Page("certs", N("SSL certificates"),
                   N("The certificates this server presents, which port uses which, and when each expires."),
-                  aliases: "Certificate|SSL certificate|TLS certificate|PFX|PEM|Expiry|Renew|Install a certificate|Chain|Private key",
+                  aliases: "Certificate|SSL certificate|TLS certificate|PFX|P12|Convert a PFX|PEM|Expiry|Renew|Install a certificate|Chain|Private key",
                   seeAlso: "acme|ports|security"),
 
                Page("acme", N("Automatic certificates (ACME)"),

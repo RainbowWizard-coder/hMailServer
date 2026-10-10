@@ -3105,6 +3105,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Could not read the bans: {0}" xml:space="preserve">
     <value>Yasaklar okunamadı: {0}</value>
   </data>
+  <data name="Could not read the certificate: {0}" xml:space="preserve">
+    <value>Sertifika okunamadı: {0}</value>
+  </data>
   <data name="Could not read the certificates: " xml:space="preserve">
     <value>Sertifikalar okunamadı: </value>
   </data>
@@ -3236,6 +3239,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Could not save the backup settings: {0}" xml:space="preserve">
     <value>Yedekleme ayarları kaydedilemedi: {0}</value>
+  </data>
+  <data name="Could not save the certificate: {0}" xml:space="preserve">
+    <value>Sertifika kaydedilemedi: {0}</value>
   </data>
   <data name="Could not save the criterion: {0}" xml:space="preserve">
     <value>Ölçüt kaydedilemedi: {0}</value>
@@ -4260,6 +4266,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Edit action" xml:space="preserve">
     <value>Eylemi düzenle</value>
+  </data>
+  <data name="Edit certificate" xml:space="preserve">
+    <value>Sertifikayı düzenle</value>
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>Ölçütü düzenle</value>
@@ -7639,6 +7648,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Not in the directory" xml:space="preserve">
     <value>Dizinde yok</value>
   </data>
+  <data name="Not known" xml:space="preserve">
+    <value>Bilinmiyor</value>
+  </data>
   <data name="Not known here: the server is on another computer" xml:space="preserve">
     <value>Burada bilinmiyor: sunucu başka bir bilgisayarda</value>
   </data>
@@ -7674,6 +7686,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>Sınanmadı: bu yapılandırma bir parolayı basit bind ile korumasız LDAP üzerinden gönderirdi ve AllowUnprotectedPassword kapalı - bu yüzden sunucu bu yapılandırmadaki her oturum açmayı reddeder ve bu sınama da aynı nedenle hiçbir şey iletmeyi reddeder. LDAPS ya da StartTLS'yi, ya da Negotiate bind yöntemini seçin, ya da korumasız parolaya açıkça izin verin.</value>
+  </data>
+  <data name="Not used" xml:space="preserve">
+    <value>Kullanılmıyor</value>
   </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>{0} tarihine kadar geçerli değil</value>
@@ -11887,6 +11902,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
     <value>TCP/IP port listesi okunamadı: {0}</value>
   </data>
+  <data name="The TCP/IP ports that present it read its files again when the server is next reinitialised." xml:space="preserve">
+    <value>Onu sunan TCP/IP portları, sunucu bir sonraki yeniden başlatmada (Reinitialize) dosyalarını yeniden okur.</value>
+  </data>
   <data name="The TLS report sender address could not be read: {0}" xml:space="preserve">
     <value>TLS rapor gönderen adresi okunamadı: {0}</value>
   </data>
@@ -12147,6 +12165,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="The certificate is not valid until {0}. The server serves it (error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
     <value>Sertifika {0} tarihine kadar geçerli değil. Sunucu onu sunuyor (uygulama günlüğünde 5991 hatası) ve istemciler o tarihe kadar onu reddediyor - sertifikayı ve bu sunucunun saatini denetleyin.</value>
+  </data>
+  <data name="The certificate keeps its place on every TCP/IP port that presents it. Those ports read the files again when the server is next reinitialised." xml:space="preserve">
+    <value>Sertifika, onu sunan her TCP/IP portundaki yerini korur. Bu portlar, sunucu bir sonraki yeniden başlatmada (Reinitialize) dosyaları yeniden okur.</value>
   </data>
   <data name="The certificate no longer exists - it was deleted after this list was read." xml:space="preserve">
     <value>Sertifika artık yok - bu liste okunduktan sonra silindi.</value>
@@ -12988,6 +13009,9 @@ Yine de eklensin mi?</value>
   <data name="The server only hands this value back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
     <value>Sunucu bu değeri yalnızca COM API üzerinden geri verir - kendisi hiçbir şeyi çevirmez ve bu Denetim Masası'nın kendi dil ayarı vardır (sağ üstteki yönetici menüsünde Dili değiştir) - bu yüzden yalnızca üçüncü taraf yönetim araçlarını etkiler. Geri dönme ve hata ifadeleri Sunucu iletileri sayfasındadır.</value>
   </data>
+  <data name="The server reads PEM files. Convert a .pfx or .p12 file first, for example with openssl pkcs12 -in cert.pfx -nokeys -out cert.pem and openssl pkcs12 -in cert.pfx -nocerts -nodes -out key.pem." xml:space="preserve">
+    <value>Sunucu PEM dosyalarını okur. Bir .pfx veya .p12 dosyasını önce dönüştürün, örneğin openssl pkcs12 -in cert.pfx -nokeys -out cert.pem ve openssl pkcs12 -in cert.pfx -nocerts -nodes -out key.pem ile.</value>
+  </data>
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>Sunucu, her hesaba kimin yazdığını ve her hesabın kime yazdığını hatırlar ve dışarıdan bir gönderen ilk kez göründüğünde bunu okuyucuda söyler. Bu etki alanına teslim edilen her ileti için bir veritabanı sorgusuna mal olur, kapalıyken ise hiçbir şeye mal olmaz.</value>
   </data>
@@ -13799,6 +13823,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last." xml:space="preserve">
     <value>Listenin gönderdiği her kopyanın zarf göndericisi olarak kullanılır; böylece teslim başarısızlıkları - ölü bir abone, dolu bir posta kutusu - en son kim yazdıysa ona değil, liste sahibine ulaşır.</value>
   </data>
+  <data name="Used by" xml:space="preserve">
+    <value>Kullanan portlar</value>
+  </data>
   <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Windows directory tab; type the same value here." xml:space="preserve">
     <value>%d yer tutucusu ve Negotiate bağlaması için kullanılır (NTLM, etki alanına katılmamış bir ana bilgisayarda buna ihtiyaç duyar). Sunucu bunu hesabın Windows dizini sekmesinden alır; buraya aynı değeri yazın.</value>
   </data>
@@ -14604,7 +14631,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>Sonraki anahtarı _iptal et</value>
   </data>
   <data name="_Certificate file (PEM)" xml:space="preserve">
-    <value>Sertifika _dosyası (PEM)</value>
+    <value>Sertifika dos_yası (PEM)</value>
   </data>
   <data name="_Change the pepper" xml:space="preserve">
     <value>Biberi _değiştir</value>

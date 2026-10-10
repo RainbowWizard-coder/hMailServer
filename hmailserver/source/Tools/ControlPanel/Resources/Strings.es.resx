@@ -3105,6 +3105,9 @@ Los detalles completos se escribieron en:
   <data name="Could not read the bans: {0}" xml:space="preserve">
     <value>No se pudieron leer los bloqueos: {0}</value>
   </data>
+  <data name="Could not read the certificate: {0}" xml:space="preserve">
+    <value>No se pudo leer el certificado: {0}</value>
+  </data>
   <data name="Could not read the certificates: " xml:space="preserve">
     <value>No se pudieron leer los certificados: </value>
   </data>
@@ -3236,6 +3239,9 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Could not save the backup settings: {0}" xml:space="preserve">
     <value>No se pudieron guardar los ajustes de copia: {0}</value>
+  </data>
+  <data name="Could not save the certificate: {0}" xml:space="preserve">
+    <value>No se pudo guardar el certificado: {0}</value>
   </data>
   <data name="Could not save the criterion: {0}" xml:space="preserve">
     <value>No se pudo guardar el criterio: {0}</value>
@@ -4260,6 +4266,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="Edit action" xml:space="preserve">
     <value>Editar acción</value>
+  </data>
+  <data name="Edit certificate" xml:space="preserve">
+    <value>Editar certificado</value>
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>Editar criterio</value>
@@ -7639,6 +7648,9 @@ No se elimina nada de lo que ya está.</value>
   <data name="Not in the directory" xml:space="preserve">
     <value>No está en el directorio</value>
   </data>
+  <data name="Not known" xml:space="preserve">
+    <value>Desconocido</value>
+  </data>
   <data name="Not known here: the server is on another computer" xml:space="preserve">
     <value>No se sabe aquí: el servidor está en otro equipo</value>
   </data>
@@ -7674,6 +7686,9 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>No probado: esta configuración enviaría una contraseña por LDAP sin proteger con un bind simple, y AllowUnprotectedPassword está desactivado - así que el servidor rechaza todos los inicios de sesión bajo ella, y esta prueba se niega a transmitir nada por la misma razón. Elija LDAPS o StartTLS, o el método de bind Negotiate, o permita explícitamente la contraseña sin proteger.</value>
+  </data>
+  <data name="Not used" xml:space="preserve">
+    <value>Sin usar</value>
   </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>No válido hasta {0}</value>
@@ -11887,6 +11902,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
     <value>No se pudo leer la lista de puertos TCP/IP: {0}</value>
   </data>
+  <data name="The TCP/IP ports that present it read its files again when the server is next reinitialised." xml:space="preserve">
+    <value>Los puertos TCP/IP que lo presentan vuelven a leer sus archivos la próxima vez que se reinicialice el servidor.</value>
+  </data>
   <data name="The TLS report sender address could not be read: {0}" xml:space="preserve">
     <value>No se pudo leer la dirección remitente de los informes TLS: {0}</value>
   </data>
@@ -12147,6 +12165,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="The certificate is not valid until {0}. The server serves it (error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
     <value>El certificado no es válido hasta el {0}. El servidor lo sirve (error 5991 en el registro de la aplicación) y los clientes lo rechazan hasta esa fecha - revise el certificado y el reloj de este servidor.</value>
+  </data>
+  <data name="The certificate keeps its place on every TCP/IP port that presents it. Those ports read the files again when the server is next reinitialised." xml:space="preserve">
+    <value>El certificado conserva su lugar en cada puerto TCP/IP que lo presenta. Esos puertos vuelven a leer los archivos la próxima vez que se reinicialice el servidor.</value>
   </data>
   <data name="The certificate no longer exists - it was deleted after this list was read." xml:space="preserve">
     <value>El certificado ya no existe - se eliminó después de leer esta lista.</value>
@@ -12988,6 +13009,9 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   <data name="The server only hands this value back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
     <value>El servidor solo devuelve este valor por la API COM - no traduce nada por sí mismo, y este Control Panel tiene su propio ajuste de idioma (Cambiar el idioma, en el menú del administrador arriba a la derecha) -, así que afecta únicamente a las herramientas de administración de terceros. La redacción de los rebotes y los errores está en la página Mensajes del servidor.</value>
   </data>
+  <data name="The server reads PEM files. Convert a .pfx or .p12 file first, for example with openssl pkcs12 -in cert.pfx -nokeys -out cert.pem and openssl pkcs12 -in cert.pfx -nocerts -nodes -out key.pem." xml:space="preserve">
+    <value>El servidor lee archivos PEM. Convierta antes un archivo .pfx o .p12, por ejemplo con openssl pkcs12 -in cert.pfx -nokeys -out cert.pem y openssl pkcs12 -in cert.pfx -nocerts -nodes -out key.pem.</value>
+  </data>
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>El servidor recuerda quién ha escrito a cada cuenta y a quién ha escrito cada cuenta, y lo dice en el lector la primera vez que aparece un remitente de fuera. Cuesta una consulta a la base de datos por cada mensaje entregado a este dominio, y nada en absoluto mientras esté desactivado.</value>
   </data>
@@ -13798,6 +13822,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last." xml:space="preserve">
     <value>Se usa como remitente de sobre de cada copia que envía la lista, así que los fallos de entrega - un suscriptor muerto, un buzón lleno - llegan al propietario de la lista y no a quien resultó publicar el último.</value>
+  </data>
+  <data name="Used by" xml:space="preserve">
+    <value>Usado por</value>
   </data>
   <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Windows directory tab; type the same value here." xml:space="preserve">
     <value>Se usa para el marcador %d y para un bind Negotiate (NTLM lo necesita en un host que no está unido al dominio). El servidor lo toma de la pestaña Directorio de Windows de la cuenta; escriba aquí el mismo valor.</value>

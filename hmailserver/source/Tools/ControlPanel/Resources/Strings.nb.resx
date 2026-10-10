@@ -3105,6 +3105,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Could not read the bans: {0}" xml:space="preserve">
     <value>Blokkeringene kunne ikke leses: {0}</value>
   </data>
+  <data name="Could not read the certificate: {0}" xml:space="preserve">
+    <value>Kunne ikke lese sertifikatet: {0}</value>
+  </data>
   <data name="Could not read the certificates: " xml:space="preserve">
     <value>Kunne ikke lese sertifikatene: </value>
   </data>
@@ -3236,6 +3239,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   </data>
   <data name="Could not save the backup settings: {0}" xml:space="preserve">
     <value>Kunne ikke lagre innstillingene for sikkerhetskopiering: {0}</value>
+  </data>
+  <data name="Could not save the certificate: {0}" xml:space="preserve">
+    <value>Kunne ikke lagre sertifikatet: {0}</value>
   </data>
   <data name="Could not save the criterion: {0}" xml:space="preserve">
     <value>Kunne ikke lagre kriteriet: {0}</value>
@@ -4260,6 +4266,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Edit action" xml:space="preserve">
     <value>Rediger handling</value>
+  </data>
+  <data name="Edit certificate" xml:space="preserve">
+    <value>Rediger sertifikat</value>
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>Rediger kriterium</value>
@@ -7639,6 +7648,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Not in the directory" xml:space="preserve">
     <value>Ikke i katalogen</value>
   </data>
+  <data name="Not known" xml:space="preserve">
+    <value>Ukjent</value>
+  </data>
   <data name="Not known here: the server is on another computer" xml:space="preserve">
     <value>Ukjent her: serveren er på en annen datamaskin</value>
   </data>
@@ -7674,6 +7686,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>Ikke testet: denne konfigurasjonen ville sende et passord over ubeskyttet LDAP med en enkel binding, og AllowUnprotectedPassword er av - så serveren avviser hver pålogging under den, og denne testen nekter å sende noe av samme grunn. Velg LDAPS eller StartTLS, eller bindingsmetoden Negotiate, eller tillat det ubeskyttede passordet uttrykkelig.</value>
+  </data>
+  <data name="Not used" xml:space="preserve">
+    <value>Brukes ikke</value>
   </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Ikke gyldig før {0}</value>
@@ -8761,7 +8776,7 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
     <value>Privat nøkkel</value>
   </data>
   <data name="Private key _file (PEM)" xml:space="preserve">
-    <value>P_rivat nøkkelfil (PEM)</value>
+    <value>Priva_t nøkkelfil (PEM)</value>
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>Privat nøkkelfil</value>
@@ -11887,6 +11902,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
     <value>TCP/IP-portlisten kunne ikke leses: {0}</value>
   </data>
+  <data name="The TCP/IP ports that present it read its files again when the server is next reinitialised." xml:space="preserve">
+    <value>TCP/IP-portene som presenterer det, leser filene på nytt neste gang serveren reinitialiseres.</value>
+  </data>
   <data name="The TLS report sender address could not be read: {0}" xml:space="preserve">
     <value>Avsenderadressen for TLS-rapporter kunne ikke leses: {0}</value>
   </data>
@@ -12147,6 +12165,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   </data>
   <data name="The certificate is not valid until {0}. The server serves it (error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
     <value>Sertifikatet er ikke gyldig før {0}. Serveren serverer det (feil 5991 i applikasjonsloggen), og klienter avviser det fram til den datoen - sjekk sertifikatet og klokken på denne serveren.</value>
+  </data>
+  <data name="The certificate keeps its place on every TCP/IP port that presents it. Those ports read the files again when the server is next reinitialised." xml:space="preserve">
+    <value>Sertifikatet beholder plassen sin på hver TCP/IP-port som presenterer det. Disse portene leser filene på nytt neste gang serveren reinitialiseres.</value>
   </data>
   <data name="The certificate no longer exists - it was deleted after this list was read." xml:space="preserve">
     <value>Sertifikatet finnes ikke lenger - det ble slettet etter at denne listen ble lest.</value>
@@ -12988,6 +13009,9 @@ Legg til likevel?</value>
   <data name="The server only hands this value back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
     <value>Serveren gir bare denne verdien tilbake over COM-API-et - den oversetter ingenting selv, og dette Control Panel har sin egen språkinnstilling (Bytt språk i administratormenyen øverst til høyre) - så den påvirker bare tredjeparts administrasjonsverktøy. Ordlyden i avvisninger og feil er på siden Servermeldinger.</value>
   </data>
+  <data name="The server reads PEM files. Convert a .pfx or .p12 file first, for example with openssl pkcs12 -in cert.pfx -nokeys -out cert.pem and openssl pkcs12 -in cert.pfx -nocerts -nodes -out key.pem." xml:space="preserve">
+    <value>Serveren leser PEM-filer. Konverter en .pfx- eller .p12-fil først, for eksempel med openssl pkcs12 -in cert.pfx -nokeys -out cert.pem og openssl pkcs12 -in cert.pfx -nocerts -nodes -out key.pem.</value>
+  </data>
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>Serveren husker hvem som har skrevet til hver konto og hvem hver konto har skrevet til, og sier fra i leseren første gang en avsender utenfra dukker opp. Det koster ett databaseoppslag for hver melding som leveres til dette domenet, og ingenting i det hele tatt mens det er av.</value>
   </data>
@@ -13798,6 +13822,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last." xml:space="preserve">
     <value>Brukes som konvoluttavsender for hver kopi listen sender, slik at leveringsfeil - en død abonnent, en full postboks - når listeeieren i stedet for den som tilfeldigvis skrev sist.</value>
+  </data>
+  <data name="Used by" xml:space="preserve">
+    <value>Brukes av</value>
   </data>
   <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Windows directory tab; type the same value here." xml:space="preserve">
     <value>Brukes for plassholderen %d og for en Negotiate-binding (NTLM trenger det på en vert som ikke er domenemedlem). Serveren henter dette fra kontoens fane Windows-katalog; skriv inn samme verdi her.</value>

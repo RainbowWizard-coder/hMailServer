@@ -3129,6 +3129,9 @@
   <data name="Could not read the bans: {0}" xml:space="preserve">
     <value>Не вдалося прочитати блокування: {0}</value>
   </data>
+  <data name="Could not read the certificate: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати сертифікат: {0}</value>
+  </data>
   <data name="Could not read the certificates: " xml:space="preserve">
     <value>Не вдалося прочитати сертифікати: </value>
   </data>
@@ -3260,6 +3263,9 @@
   </data>
   <data name="Could not save the backup settings: {0}" xml:space="preserve">
     <value>Не вдалося зберегти параметри резервного копіювання: {0}</value>
+  </data>
+  <data name="Could not save the certificate: {0}" xml:space="preserve">
+    <value>Не вдалося зберегти сертифікат: {0}</value>
   </data>
   <data name="Could not save the criterion: {0}" xml:space="preserve">
     <value>Не вдалося зберегти критерій: {0}</value>
@@ -4309,6 +4315,9 @@
   </data>
   <data name="Edit action" xml:space="preserve">
     <value>Редагувати дію</value>
+  </data>
+  <data name="Edit certificate" xml:space="preserve">
+    <value>Змінити сертифікат</value>
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>Редагувати критерій</value>
@@ -7724,6 +7733,9 @@
   <data name="Not in the directory" xml:space="preserve">
     <value>Немає в каталозі</value>
   </data>
+  <data name="Not known" xml:space="preserve">
+    <value>Невідомо</value>
+  </data>
   <data name="Not known here: the server is on another computer" xml:space="preserve">
     <value>Тут невідомо: сервер на іншому комп'ютері</value>
   </data>
@@ -7759,6 +7771,9 @@
   </data>
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>Не перевірено: ця конфігурація надіслала б пароль через незахищений LDAP простою прив’язкою, а AllowUnprotectedPassword вимкнено — тому сервер відхиляє кожен вхід із нею, і ця перевірка з тієї самої причини відмовляється будь-що передавати. Виберіть LDAPS чи StartTLS або метод прив’язки Negotiate, або явно дозвольте незахищений пароль.</value>
+  </data>
+  <data name="Not used" xml:space="preserve">
+    <value>Не використовується</value>
   </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Недійсний до {0}</value>
@@ -8846,7 +8861,7 @@
     <value>Пріоритет</value>
   </data>
   <data name="Private _key passphrase" xml:space="preserve">
-    <value>Парольна фраза _закритого ключа</value>
+    <value>Па_рольна фраза закритого ключа</value>
   </data>
   <data name="Private key" xml:space="preserve">
     <value>Закритий ключ</value>
@@ -12020,6 +12035,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
     <value>Не вдалося прочитати список портів TCP/IP: {0}</value>
   </data>
+  <data name="The TCP/IP ports that present it read its files again when the server is next reinitialised." xml:space="preserve">
+    <value>Порти TCP/IP, які його надають, прочитають його файли знову під час наступної повторної ініціалізації сервера.</value>
+  </data>
   <data name="The TLS report sender address could not be read: {0}" xml:space="preserve">
     <value>Не вдалося прочитати адресу відправника звітів TLS: {0}</value>
   </data>
@@ -12298,6 +12316,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The certificate is not valid until {0}. The server serves it (error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
     <value>Сертифікат дійсний лише з {0}. Сервер його віддає (помилка 5991 у журналі застосунку), а клієнти відхиляють його до цієї дати - перевірте сертифікат і годинник цього сервера.</value>
+  </data>
+  <data name="The certificate keeps its place on every TCP/IP port that presents it. Those ports read the files again when the server is next reinitialised." xml:space="preserve">
+    <value>Сертифікат залишається на кожному порту TCP/IP, який його надає. Ці порти прочитають файли знову під час наступної повторної ініціалізації сервера.</value>
   </data>
   <data name="The certificate no longer exists - it was deleted after this list was read." xml:space="preserve">
     <value>Сертифіката більше не існує — його видалено після того, як цей список було прочитано.</value>
@@ -13154,6 +13175,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The server only hands this value back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
     <value>Сервер лише віддає це значення назад через COM API - сам він нічого не перекладає, а ця Панель керування має власний параметр мови (Змінити мову в меню адміністратора праворуч угорі), - тому воно впливає лише на сторонні інструменти адміністрування. Формулювання повернень і помилок - на сторінці «Повідомлення сервера».</value>
   </data>
+  <data name="The server reads PEM files. Convert a .pfx or .p12 file first, for example with openssl pkcs12 -in cert.pfx -nokeys -out cert.pem and openssl pkcs12 -in cert.pfx -nocerts -nodes -out key.pem." xml:space="preserve">
+    <value>Сервер читає файли PEM. Файл .pfx або .p12 спершу перетворіть, наприклад командами openssl pkcs12 -in cert.pfx -nokeys -out cert.pem і openssl pkcs12 -in cert.pfx -nocerts -nodes -out key.pem.</value>
+  </data>
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>Сервер пам'ятає, хто писав кожному обліковому запису і кому писав він, і каже про це у програмі читання, коли зовнішній відправник з'являється вперше. Це коштує одного звернення до бази даних на кожне доставлене в цей домен повідомлення і зовсім нічого, доки це вимкнено.</value>
   </data>
@@ -13967,6 +13991,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last." xml:space="preserve">
     <value>Використовується як відправник конверта кожної копії, яку надсилає список, щоб збої доставки - мертвий підписник, повна скринька - доходили до власника списку, а не до того, хто випадково написав останнім.</value>
+  </data>
+  <data name="Used by" xml:space="preserve">
+    <value>Де використовується</value>
   </data>
   <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Windows directory tab; type the same value here." xml:space="preserve">
     <value>Використовується для підстановки %d і для прив'язки Negotiate (NTLM потребує його на вузлі, не приєднаному до домену). Сервер бере це з вкладки «Каталог Windows» облікового запису; введіть тут те саме значення.</value>

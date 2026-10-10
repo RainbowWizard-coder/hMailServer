@@ -295,6 +295,11 @@
        (review finding F229). -->
   <ItemGroup>
     <Compile Include="..\ControlPanel\Services\RelayExposure.cs" />
+  <!-- The SSL certificates page's rows: which ports present each certificate and the
+       order its Certificate column sorts in (review finding F235). In StatusLevel's
+       terms, so here beside StatusSemantics rather than in Core. -->
+  <ItemGroup>
+    <Compile Include="..\ControlPanel\Services\CertificateRows.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -51,13 +51,25 @@
         <scaffold:Toolbar x:Name="SearchBar" SearchPlaceholder="{loc:L 'Search certificates'}"
                           SearchTextChanged="Search_TextChanged">
             <scaffold:Toolbar.Actions>
-                <ui:Button x:Name="DeleteButton" Content="{loc:L '_Delete selected'}" Style="{StaticResource DangerTextButton}" Click="Delete_Click"
-                           AutomationProperties.HelpText="{loc:L 'Delete the selected certificate'}" ToolTip="{loc:L 'Delete the selected certificate'}" />
+                <!-- Edit... first, the selected row's own verb, then Delete (the list
+                     page pattern). Edit keeps the certificate's id, so that every port
+                     that presents it keeps it (review finding F235). -->
+                <WrapPanel HorizontalAlignment="Right">
+                    <ui:Button x:Name="EditButton" Content="{loc:L '_Edit…'}" Click="Edit_Click" Margin="0,2,8,2"
+                               AutomationProperties.AutomationId="certs-edit" />
+                    <ui:Button x:Name="DeleteButton" Content="{loc:L '_Delete selected'}" Style="{StaticResource DangerTextButton}" Click="Delete_Click" Margin="0,2,0,2"
+                               AutomationProperties.HelpText="{loc:L 'Delete the selected certificate'}" ToolTip="{loc:L 'Delete the selected certificate'}" />
+                </WrapPanel>
             </scaffold:Toolbar.Actions>
         </scaffold:Toolbar>
 
         <!-- A load that failed, above the grid rather than in its place. -->
         <scaffold:InlineNotice x:Name="LoadNotice" Visibility="Collapsed" />
+
+        <!-- What the last act did - a certificate saved, deleted - said after the
+             list it acted on was read again. -->
+        <scaffold:InlineNotice x:Name="OutcomeNotice" Visibility="Collapsed"
+                               AutomationProperties.AutomationId="certs-outcome" />
 
         <!-- The floor: four rows, one more than the IP ranges page's three, so
              that the selected certificate is seen among its neighbours - the
@@ -78,13 +90,15 @@
                 <DataGrid x:Name="CertGrid" scaffold:FillPanel.Fill="True" MinHeight="170" AutoGenerateColumns="False" IsReadOnly="True"
                           AutomationProperties.AutomationId="certs-grid"
                           EnableRowVirtualization="False"
-                          SelectionMode="Single" SelectionChanged="CertGrid_SelectionChanged"
+                          SelectionMode="Single" SelectionChanged="CertGrid_SelectionChanged" Sorting="CertGrid_Sorting"
                           AutomationProperties.Name="{loc:L 'SSL certificates'}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="{loc:L 'Name'}" Binding="{Binding Name}" Width="170" ElementStyle="{StaticResource GridTrimmedText}" />
                         <DataGridTextColumn Header="{loc:L 'Certificate file'}" Binding="{Binding CertificateFile}" Width="*" ElementStyle="{StaticResource GridTrimmedText}" />
                         <DataGridTextColumn Header="{loc:L 'Private key file'}" Binding="{Binding PrivateKeyFile}" Width="*" ElementStyle="{StaticResource GridTrimmedText}" />
-                        <DataGridTemplateColumn Header="{loc:L 'Certificate'}" Width="210" SortMemberPath="CertificateState">
+                        <!-- Sorted by how much the certificate asks for attention, then by how
+                             soon it expires (CertGrid_Sorting), not by its status word. -->
+                        <DataGridTemplateColumn x:Name="CertificateColumn" Header="{loc:L 'Certificate'}" Width="210" SortMemberPath="CertificateState">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <ContentControl Loaded="CertificateBadge_Loaded" IsTabStop="False" Focusable="False" />
@@ -98,6 +112,10 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
+                        <!-- The TCP/IP ports that present it, "SMTP 465, IMAP 993" or Not
+                             used: the page's purpose is which port uses which, and no
+                             column said it (review finding F235). -->
+                        <DataGridTextColumn Header="{loc:L 'Used by'}" Binding="{Binding UsedBy}" Width="150" ElementStyle="{StaticResource GridTrimmedText}" />
                     </DataGrid.Columns>
                 </DataGrid>
                 </scaffold:FillPanel>
@@ -194,6 +212,11 @@
                                    VerticalAlignment="Top" Margin="0" />
                     </Grid>
                 </Grid>
+                <!-- What the server reads, and how a .pfx or .p12 is made into it: the
+                     search finds this page for "PFX", and the form said nothing of one
+                     (review finding F235). The words are the edit dialog's. -->
+                <TextBlock x:Name="PemHint" Style="{StaticResource TextCaption}" Margin="0,8,0,0"
+                           AutomationProperties.AutomationId="certs-pem-hint" />
                 <!-- Filled in by code when the picked key file turns out to be
                      encrypted: that is knowable from the file itself, and saying
                      it now is cheaper than error 6170 after the next restart. -->

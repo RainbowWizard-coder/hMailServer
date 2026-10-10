@@ -17,7 +17,7 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | over REST but not reached by any Deck view | 0 |
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 100 |
-| desktop pages read | 96 |
+| desktop pages read | 97 |
 | REST routes (path and method) | 595, 263 of them writes |
 | Deck views | 40 |
 
@@ -727,9 +727,9 @@ Every COM property the desktop program writes, the page that writes it, the REST
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `CertificateFile` | SslCertificatesView | `POST /api/v1/certificates` (setter)<br>`POST /api/v1/backup/restore` (words, loose, scope unknown)<br>`POST /api/v1/backup/{archive}/mailboxes/{address}/restore` (words, loose, scope unknown) | backup, certs |
-| `Name` | SslCertificatesView | `POST /api/v1/certificates` (setter)<br>`POST /api/v1/passkeys` (setter, scope unknown)<br>`POST /api/v1/settings/profiles/{name}/apply` (path, scope unknown)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown)<br>`POST /api/v1/diagnostics/run` (name, scope unknown)<br>`POST /api/v1/backup/{archive}/mailboxes/{address}/restore` (name, scope unknown)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown) | certs, checklist, diagnostics, passkeys, roles, webhooks |
-| `PrivateKeyFile` | SslCertificatesView | `POST /api/v1/certificates` (setter) | certs |
+| `CertificateFile` | CertificateDialog, SslCertificatesView | `POST /api/v1/certificates` (setter)<br>`POST /api/v1/backup/restore` (words, loose, scope unknown)<br>`POST /api/v1/backup/{archive}/mailboxes/{address}/restore` (words, loose, scope unknown) | backup, certs |
+| `Name` | CertificateDialog, SslCertificatesView | `POST /api/v1/certificates` (setter)<br>`POST /api/v1/passkeys` (setter, scope unknown)<br>`POST /api/v1/settings/profiles/{name}/apply` (path, scope unknown)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown)<br>`POST /api/v1/diagnostics/run` (name, scope unknown)<br>`POST /api/v1/backup/{archive}/mailboxes/{address}/restore` (name, scope unknown)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown) | certs, checklist, diagnostics, passkeys, roles, webhooks |
+| `PrivateKeyFile` | CertificateDialog, SslCertificatesView | `POST /api/v1/certificates` (setter) | certs |
 | `PrivateKeyPassword` | SslCertificatesView | `POST /api/v1/certificates` (setter) | certs |
 
 ### Group

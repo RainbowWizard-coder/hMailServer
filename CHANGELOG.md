@@ -2779,6 +2779,22 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the order of the page, the question, the columns and the filter; docs/AutoBan.md says where the bans are and what
   Lift ban does.
 
+- **Fixed: the SSL certificates page could not change a certificate, never said which ports use one, and sorted its
+  Certificate column by the status word.** A certificate whose file had moved - "File missing" - could be put right
+  only by deleting it and adding it again, which gave it a new id and left every TCP/IP port that presented the old
+  one with no certificate, so that it did not start; no column said which ports present each, though the page's
+  purpose is "which port uses which"; the search found the page for "PFX" while the form took PEM alone and said
+  nothing of a .pfx; and the Certificate column put "Expired" beside the good ones by its word. Edit… in the toolbar,
+  Enter, F2 and a double-click open the certificate's name and its two files in a dialog that saves them in place,
+  its id kept, says an empty box under it and the server's refusal above the fields, and the page then says
+  "mail.example.com saved. The TCP/IP ports that present it read its files again when the server is next
+  reinitialised."; a Used by column names the ports ("SMTP 465, IMAP 993", Not used, or Not known when the ports could
+  not be read); the form and the dialog say that the server reads PEM and give the two openssl commands that make a
+  .pfx or .p12 into it; the Certificate column sorts by how much a certificate asks for attention and then by how
+  soon it expires; and Delete selected says what it deleted and selects the row that took its place, after the
+  question that already named the ports. `CertificatesEditTests` holds the order, the column, the dialog's save by
+  id and the wiring.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -3105,6 +3105,9 @@
   <data name="Could not read the bans: {0}" xml:space="preserve">
     <value>无法读取封禁：{0}</value>
   </data>
+  <data name="Could not read the certificate: {0}" xml:space="preserve">
+    <value>无法读取该证书：{0}</value>
+  </data>
   <data name="Could not read the certificates: " xml:space="preserve">
     <value>无法读取证书：</value>
   </data>
@@ -3236,6 +3239,9 @@
   </data>
   <data name="Could not save the backup settings: {0}" xml:space="preserve">
     <value>无法保存备份设置：{0}</value>
+  </data>
+  <data name="Could not save the certificate: {0}" xml:space="preserve">
+    <value>无法保存该证书：{0}</value>
   </data>
   <data name="Could not save the criterion: {0}" xml:space="preserve">
     <value>无法保存该条件：{0}</value>
@@ -4260,6 +4266,9 @@
   </data>
   <data name="Edit action" xml:space="preserve">
     <value>编辑操作</value>
+  </data>
+  <data name="Edit certificate" xml:space="preserve">
+    <value>编辑证书</value>
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>编辑条件</value>
@@ -7639,6 +7648,9 @@
   <data name="Not in the directory" xml:space="preserve">
     <value>不在目录中</value>
   </data>
+  <data name="Not known" xml:space="preserve">
+    <value>未知</value>
+  </data>
   <data name="Not known here: the server is on another computer" xml:space="preserve">
     <value>此处无法得知：服务器在另一台计算机上</value>
   </data>
@@ -7674,6 +7686,9 @@
   </data>
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>未测试：此配置会通过未受保护的 LDAP 以简单绑定发送密码，而 AllowUnprotectedPassword 已关闭 - 因此服务器会拒绝在此配置下的每次登录，而此测试出于同样的原因拒绝传输任何内容。请选择 LDAPS 或 StartTLS，或者 Negotiate 绑定方法，或者明确允许未受保护的密码。</value>
+  </data>
+  <data name="Not used" xml:space="preserve">
+    <value>未使用</value>
   </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>在 {0} 之前无效</value>
@@ -11887,6 +11902,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
     <value>无法读取 TCP/IP 端口列表：{0}</value>
   </data>
+  <data name="The TCP/IP ports that present it read its files again when the server is next reinitialised." xml:space="preserve">
+    <value>出示它的 TCP/IP 端口会在服务器下次重新初始化时重新读取其文件。</value>
+  </data>
   <data name="The TLS report sender address could not be read: {0}" xml:space="preserve">
     <value>无法读取 TLS 报告发件人地址：{0}</value>
   </data>
@@ -12147,6 +12165,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The certificate is not valid until {0}. The server serves it (error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
     <value>证书在 {0} 之前尚未生效。服务器仍会提供它 (应用程序日志中的错误 5991)，而客户端在该日期之前都会拒绝它 - 请检查证书和本服务器的时钟。</value>
+  </data>
+  <data name="The certificate keeps its place on every TCP/IP port that presents it. Those ports read the files again when the server is next reinitialised." xml:space="preserve">
+    <value>该证书在出示它的每个 TCP/IP 端口上保持不变。这些端口会在服务器下次重新初始化时重新读取文件。</value>
   </data>
   <data name="The certificate no longer exists - it was deleted after this list was read." xml:space="preserve">
     <value>该证书已不存在 - 它在读取此列表之后被删除了。</value>
@@ -12988,6 +13009,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The server only hands this value back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
     <value>服务器只是通过 COM API 把这个值返回 - 它自己不翻译任何内容，而此控制面板有自己的语言设置 (右上角管理员菜单中的“更改语言”) - 因此它只影响第三方管理工具。退信和错误的措辞在“服务器消息”页。</value>
   </data>
+  <data name="The server reads PEM files. Convert a .pfx or .p12 file first, for example with openssl pkcs12 -in cert.pfx -nokeys -out cert.pem and openssl pkcs12 -in cert.pfx -nocerts -nodes -out key.pem." xml:space="preserve">
+    <value>服务器读取 PEM 文件。请先转换 .pfx 或 .p12 文件，例如使用 openssl pkcs12 -in cert.pfx -nokeys -out cert.pem 和 openssl pkcs12 -in cert.pfx -nocerts -nodes -out key.pem。</value>
+  </data>
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>服务器会记住谁写信给每个账户、每个账户又写信给谁，并在外部发件人首次出现时在阅读界面中说明。这会为投递到本域的每封邮件带来一次数据库查询；关闭时则毫无开销。</value>
   </data>
@@ -13798,6 +13822,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last." xml:space="preserve">
     <value>用作列表发送的每份副本的信封发件人，这样投递失败 - 失效的订阅者、已满的邮箱 - 会到达列表所有者，而不是碰巧最后一个发帖的人。</value>
+  </data>
+  <data name="Used by" xml:space="preserve">
+    <value>使用端口</value>
   </data>
   <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Windows directory tab; type the same value here." xml:space="preserve">
     <value>用于 %d 占位符和 Negotiate 绑定 (在未加入域的主机上 NTLM 需要它)。服务器从账户的“Windows 目录”选项卡获取此值；请在此输入相同的值。</value>

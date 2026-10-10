@@ -3105,6 +3105,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Could not read the bans: {0}" xml:space="preserve">
     <value>De verbanningen konden niet worden gelezen: {0}</value>
   </data>
+  <data name="Could not read the certificate: {0}" xml:space="preserve">
+    <value>Kon het certificaat niet lezen: {0}</value>
+  </data>
   <data name="Could not read the certificates: " xml:space="preserve">
     <value>Kon de certificaten niet lezen: </value>
   </data>
@@ -3236,6 +3239,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Could not save the backup settings: {0}" xml:space="preserve">
     <value>Kon de back-upinstellingen niet opslaan: {0}</value>
+  </data>
+  <data name="Could not save the certificate: {0}" xml:space="preserve">
+    <value>Kon het certificaat niet opslaan: {0}</value>
   </data>
   <data name="Could not save the criterion: {0}" xml:space="preserve">
     <value>Kon het criterium niet opslaan: {0}</value>
@@ -4260,6 +4266,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Edit action" xml:space="preserve">
     <value>Actie bewerken</value>
+  </data>
+  <data name="Edit certificate" xml:space="preserve">
+    <value>Certificaat bewerken</value>
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>Criterium bewerken</value>
@@ -7639,6 +7648,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Not in the directory" xml:space="preserve">
     <value>Niet in de directory</value>
   </data>
+  <data name="Not known" xml:space="preserve">
+    <value>Onbekend</value>
+  </data>
   <data name="Not known here: the server is on another computer" xml:space="preserve">
     <value>Hier onbekend: de server staat op een andere computer</value>
   </data>
@@ -7674,6 +7686,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>Niet getest: deze configuratie zou een wachtwoord over onbeschermd LDAP met een simple bind verzenden, en AllowUnprotectedPassword staat uit - dus de server weigert elke aanmelding onder deze configuratie, en deze test weigert om dezelfde reden iets te verzenden. Kies LDAPS of StartTLS, of de bindmethode Negotiate, of sta het onbeschermde wachtwoord uitdrukkelijk toe.</value>
+  </data>
+  <data name="Not used" xml:space="preserve">
+    <value>Niet gebruikt</value>
   </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Pas geldig vanaf {0}</value>
@@ -11887,6 +11902,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
     <value>De lijst met TCP/IP-poorten kon niet worden gelezen: {0}</value>
   </data>
+  <data name="The TCP/IP ports that present it read its files again when the server is next reinitialised." xml:space="preserve">
+    <value>De TCP/IP-poorten die het presenteren, lezen de bestanden opnieuw wanneer de server de volgende keer wordt geherinitialiseerd.</value>
+  </data>
   <data name="The TLS report sender address could not be read: {0}" xml:space="preserve">
     <value>Het afzenderadres voor TLS-rapporten kon niet worden gelezen: {0}</value>
   </data>
@@ -12147,6 +12165,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="The certificate is not valid until {0}. The server serves it (error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
     <value>Het certificaat is pas geldig vanaf {0}. De server biedt het aan (fout 5991 in het toepassingslogboek) en clients weigeren het tot die datum - controleer het certificaat en de klok van deze server.</value>
+  </data>
+  <data name="The certificate keeps its place on every TCP/IP port that presents it. Those ports read the files again when the server is next reinitialised." xml:space="preserve">
+    <value>Het certificaat houdt zijn plaats op elke TCP/IP-poort die het presenteert. Die poorten lezen de bestanden opnieuw wanneer de server de volgende keer wordt geherinitialiseerd.</value>
   </data>
   <data name="The certificate no longer exists - it was deleted after this list was read." xml:space="preserve">
     <value>Het certificaat bestaat niet meer - het is verwijderd nadat deze lijst werd gelezen.</value>
@@ -12988,6 +13009,9 @@ Toch toevoegen?</value>
   <data name="The server only hands this value back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
     <value>De server geeft deze waarde alleen terug via de COM-API - hij vertaalt zelf niets, en dit Control Panel heeft een eigen taalinstelling (De taal wijzigen, in het beheerdersmenu rechtsboven) - dus het raakt alleen beheerhulpmiddelen van derden. De formulering van bounces en fouten staat op de pagina Serverberichten.</value>
   </data>
+  <data name="The server reads PEM files. Convert a .pfx or .p12 file first, for example with openssl pkcs12 -in cert.pfx -nokeys -out cert.pem and openssl pkcs12 -in cert.pfx -nocerts -nodes -out key.pem." xml:space="preserve">
+    <value>De server leest PEM-bestanden. Zet een .pfx- of .p12-bestand eerst om, bijvoorbeeld met openssl pkcs12 -in cert.pfx -nokeys -out cert.pem en openssl pkcs12 -in cert.pfx -nocerts -nodes -out key.pem.</value>
+  </data>
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>De server onthoudt wie naar elk account heeft geschreven en naar wie elk account heeft geschreven, en zegt het in het leesprogramma de eerste keer dat een afzender van buiten verschijnt. Dat kost één databaseopvraging per bericht dat aan dit domein wordt afgeleverd, en helemaal niets zolang dit uit staat.</value>
   </data>
@@ -13798,6 +13822,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last." xml:space="preserve">
     <value>Wordt gebruikt als envelopafzender van elke kopie die de lijst verstuurt, zodat bezorgfouten - een dode abonnee, een vol postvak - bij de eigenaar van de lijst terechtkomen in plaats van bij degene die toevallig het laatst heeft gepost.</value>
+  </data>
+  <data name="Used by" xml:space="preserve">
+    <value>Gebruikt door</value>
   </data>
   <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Windows directory tab; type the same value here." xml:space="preserve">
     <value>Wordt gebruikt voor de tijdelijke aanduiding %d en voor een Negotiate-bind (NTLM heeft die nodig op een host die geen domeinlid is). De server haalt dit uit het tabblad Windows-directory van het account; typ hier dezelfde waarde.</value>

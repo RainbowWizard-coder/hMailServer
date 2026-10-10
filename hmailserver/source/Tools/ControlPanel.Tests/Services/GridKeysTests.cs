@@ -55,7 +55,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("RulesView.xaml.cs", "GridKeys.Wire(RuleGrid, null, GridKeys.Pressing(DeleteRuleButton), GridKeys.Focusing(NewRuleName));")]
       [InlineData("RulesView.xaml.cs", "GridKeys.Wire(CriteriaGrid, EditCriterionButton, RemoveCriterionButton, AddCriterionButton);")]
       [InlineData("RulesView.xaml.cs", "GridKeys.Wire(ActionsGrid, EditActionButton, RemoveActionButton, AddActionButton);")]
-      [InlineData("SslCertificatesView.xaml.cs", "GridKeys.Wire(CertGrid, null, GridKeys.Pressing(DeleteButton), GridKeys.Focusing(NewCertName));")]
+      [InlineData("SslCertificatesView.xaml.cs", "GridKeys.Wire(CertGrid, GridKeys.Pressing(EditButton), GridKeys.Pressing(DeleteButton), GridKeys.Focusing(NewCertName));")]
       [InlineData("QueueView.xaml.cs", "GridKeys.Wire(QueueGrid, ViewButton, RemoveButton, null);")]
       [InlineData("UtilityViews.cs", "GridKeys.Wire(relays_, GridKeys.Pressing(edit), GridKeys.Pressing(del), GridKeys.Focusing(name_));")]
       [InlineData("SuppressionListView.cs", "GridKeys.Wire(entries_, null, remove, addButton_);")]

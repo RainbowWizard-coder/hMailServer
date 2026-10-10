@@ -3105,6 +3105,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Could not read the bans: {0}" xml:space="preserve">
     <value>Spärrarna kunde inte läsas: {0}</value>
   </data>
+  <data name="Could not read the certificate: {0}" xml:space="preserve">
+    <value>Kunde inte läsa certifikatet: {0}</value>
+  </data>
   <data name="Could not read the certificates: " xml:space="preserve">
     <value>Kunde inte läsa certifikaten: </value>
   </data>
@@ -3236,6 +3239,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Could not save the backup settings: {0}" xml:space="preserve">
     <value>Kunde inte spara inställningarna för säkerhetskopiering: {0}</value>
+  </data>
+  <data name="Could not save the certificate: {0}" xml:space="preserve">
+    <value>Kunde inte spara certifikatet: {0}</value>
   </data>
   <data name="Could not save the criterion: {0}" xml:space="preserve">
     <value>Kunde inte spara kriteriet: {0}</value>
@@ -4260,6 +4266,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Edit action" xml:space="preserve">
     <value>Redigera åtgärd</value>
+  </data>
+  <data name="Edit certificate" xml:space="preserve">
+    <value>Redigera certifikat</value>
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>Redigera kriterium</value>
@@ -7639,6 +7648,9 @@ Inget som redan finns där tas bort.</value>
   <data name="Not in the directory" xml:space="preserve">
     <value>Inte i katalogen</value>
   </data>
+  <data name="Not known" xml:space="preserve">
+    <value>Okänt</value>
+  </data>
   <data name="Not known here: the server is on another computer" xml:space="preserve">
     <value>Okänd här: servern finns på en annan dator</value>
   </data>
@@ -7674,6 +7686,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>Inte testat: den här konfigurationen skulle skicka ett lösenord över oskyddad LDAP med en enkel bindning, och AllowUnprotectedPassword är av - så servern avvisar varje inloggning under den, och det här testet vägrar sända något av samma skäl. Välj LDAPS eller StartTLS, eller bindningsmetoden Negotiate, eller tillåt uttryckligen det oskyddade lösenordet.</value>
+  </data>
+  <data name="Not used" xml:space="preserve">
+    <value>Används inte</value>
   </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Inte giltigt förrän {0}</value>
@@ -11887,6 +11902,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
     <value>Listan över TCP/IP-portar kunde inte läsas: {0}</value>
   </data>
+  <data name="The TCP/IP ports that present it read its files again when the server is next reinitialised." xml:space="preserve">
+    <value>TCP/IP-portarna som presenterar det läser dess filer igen nästa gång servern ominitieras.</value>
+  </data>
   <data name="The TLS report sender address could not be read: {0}" xml:space="preserve">
     <value>Avsändaradressen för TLS-rapporter kunde inte läsas: {0}</value>
   </data>
@@ -12147,6 +12165,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="The certificate is not valid until {0}. The server serves it (error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
     <value>Certifikatet är inte giltigt förrän {0}. Servern serverar det (fel 5991 i programloggen) och klienter vägrar det fram till det datumet - kontrollera certifikatet och den här serverns klocka.</value>
+  </data>
+  <data name="The certificate keeps its place on every TCP/IP port that presents it. Those ports read the files again when the server is next reinitialised." xml:space="preserve">
+    <value>Certifikatet behåller sin plats på varje TCP/IP-port som presenterar det. De portarna läser filerna igen nästa gång servern ominitieras.</value>
   </data>
   <data name="The certificate no longer exists - it was deleted after this list was read." xml:space="preserve">
     <value>Certifikatet finns inte längre - det togs bort efter att den här listan lästes.</value>
@@ -12988,6 +13009,9 @@ Lägg till det ändå?</value>
   <data name="The server only hands this value back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
     <value>Servern lämnar bara tillbaka det här värdet över COM API:et - den översätter inget själv, och den här Kontrollpanelen har en egen språkinställning (Byt språk i administratörsmenyn längst upp till höger) - så det påverkar bara administrationsverktyg från tredje part. Formuleringar för studsar och fel finns på sidan Servermeddelanden.</value>
   </data>
+  <data name="The server reads PEM files. Convert a .pfx or .p12 file first, for example with openssl pkcs12 -in cert.pfx -nokeys -out cert.pem and openssl pkcs12 -in cert.pfx -nocerts -nodes -out key.pem." xml:space="preserve">
+    <value>Servern läser PEM-filer. Konvertera först en .pfx- eller .p12-fil, till exempel med openssl pkcs12 -in cert.pfx -nokeys -out cert.pem och openssl pkcs12 -in cert.pfx -nocerts -nodes -out key.pem.</value>
+  </data>
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>Servern minns vem som har skrivit till varje konto och vem varje konto har skrivit till, och säger det i läsaren första gången en avsändare utifrån dyker upp. Det kostar en databasuppslagning för varje meddelande som levereras till den här domänen, och ingenting alls medan det är avstängt.</value>
   </data>
@@ -13798,6 +13822,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last." xml:space="preserve">
     <value>Används som kuvertavsändare för varje kopia listan skickar, så att leveransfel - en död prenumerant, en full brevlåda - når listägaren i stället för den som råkade posta senast.</value>
+  </data>
+  <data name="Used by" xml:space="preserve">
+    <value>Används av</value>
   </data>
   <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Windows directory tab; type the same value here." xml:space="preserve">
     <value>Används för platshållaren %d och för en Negotiate-bindning (NTLM behöver den på en värd som inte är domänansluten). Servern tar detta från kontots flik Windows-katalog; skriv in samma värde här.</value>
