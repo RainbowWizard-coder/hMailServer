@@ -2850,10 +2850,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   paused: no connections are accepted and no mail is delivered until it is resumed.", with Resume. The Updates page
   offers one step at a time as its Primary - Check for updates until a release is known, then Download update, then
   Install update, with Check again before it - and none while an install is under way; each step runs off the UI
-  thread with a line in the card that says which, "Downloading 6.3.7…", while the rest of the page can be used. The
-  install window's steps are the status marks in their levels' colours: finished Good, failed Critical, skipped
-  Warning, under way Information. `ServerStatusFlowTests` holds the state's words and levels, the step for every
-  update state, the notice, the one step and its thread, and the marks.
+  thread with a line in the card that says which, "Downloading 6.3.7…", and holds every step until it is done, a
+  Reload meanwhile included, while the rest of the page can be used. The install window's steps are the status
+  marks in their levels' colours: finished Good, failed Critical, skipped Warning, under way Information.
+  `ServerStatusFlowTests` holds the state's words and levels, the step for every update state, the notice, the one
+  step, its thread and its hold, and the marks.
 
 - **Fixed: the delivery queue acted on one message of the several chosen, did not say why a message waits, and led
   nowhere from a message to its trace.** Several rows could be chosen, but Deliver now and Remove acted on the first

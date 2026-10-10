@@ -148,8 +148,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          foreach (string button in new[] { "CheckUpdateButton", "DownloadUpdateButton", "InstallUpdateButton" })
             Assert.Contains(button, call, StringComparison.Ordinal);
          // Check comes back with a read that worked, unless an install is under way
-         // (ShowUpdateSteps_, review finding F246).
-         Assert.Contains("CheckUpdateButton.IsEnabled = shownStep_ != UpdateStep.None;", steps, StringComparison.Ordinal);
+         // (ShowUpdateSteps_, review finding F246) or a step is running.
+         Assert.Contains("CheckUpdateButton.IsEnabled = UpdateSteps.CanPress(UpdateStep.Check, shownStep_, updateRunning_);", steps, StringComparison.Ordinal);
       }
 
       /// <summary>

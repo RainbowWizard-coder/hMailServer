@@ -70,5 +70,16 @@ namespace hMailServer.ControlPanel.Services
             _ => UpdateStep.Check
          };
       }
+
+      /// <summary>
+      /// Whether a step's button can be pressed: the step offered, and Check whenever
+      /// any step is, but none while a step runs. The steps run off the UI thread, so
+      /// the page can be read again while one is under way - Reload, Try again, the
+      /// read that follows an install - and each such read enabled the buttons the
+      /// state called for while the busy line still said "Downloading 6.3.7...", and a
+      /// press then did nothing and said nothing.
+      /// </summary>
+      public static bool CanPress(UpdateStep button, UpdateStep offered, bool running)
+         => !running && offered != UpdateStep.None && (button == UpdateStep.Check || button == offered);
    }
 }

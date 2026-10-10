@@ -90,6 +90,59 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("The Control Panel waits while it does", xaml, StringComparison.Ordinal);
       }
 
+      [Theory]
+      // The step offered can be pressed, and Check beside it; the steps not offered cannot.
+      [InlineData(UpdateStep.Check, UpdateStep.Check, false, true)]
+      [InlineData(UpdateStep.Download, UpdateStep.Check, false, false)]
+      [InlineData(UpdateStep.Check, UpdateStep.Download, false, true)]
+      [InlineData(UpdateStep.Download, UpdateStep.Download, false, true)]
+      [InlineData(UpdateStep.Install, UpdateStep.Download, false, false)]
+      [InlineData(UpdateStep.Install, UpdateStep.Install, false, true)]
+      // Nothing while an install is under way, nor while a step runs, whatever the state calls for.
+      [InlineData(UpdateStep.Check, UpdateStep.None, false, false)]
+      [InlineData(UpdateStep.Check, UpdateStep.Download, true, false)]
+      [InlineData(UpdateStep.Download, UpdateStep.Download, true, false)]
+      [InlineData(UpdateStep.Install, UpdateStep.Install, true, false)]
+      public void AnUpdateStep_CanBePressed_WhenOfferedAndNoStepRuns(UpdateStep button, UpdateStep offered, bool running, bool pressable)
+         => Assert.Equal(pressable, UpdateSteps.CanPress(button, offered, running));
+
+      /// <summary>
+      /// The step runs off the UI thread, so the page's Reload - BuildUi, then
+      /// EnterUpdates_, then ReloadUpdate_ - reads the card again while it is under way:
+      /// it enabled Download and Install as the state called for while the busy line
+      /// still said "Downloading 6.3.7...", and a press then returned without a word
+      /// (the skeptic's review of F246). Every step's button follows CanPress with the
+      /// running flag, which only SetUpdateBusy_ sets and clears.
+      /// </summary>
+      [Fact]
+      public void TheUpdateSteps_StayHeld_WhileOneRuns_HoweverOftenTheCardIsRead()
+      {
+         string code = Read("FeatureSettingsView.Updates.cs");
+
+         Match steps = Regex.Match(code, @"private void ShowUpdateSteps_\(UpdateStep step\)\s*\{(.*?)\n      \}", RegexOptions.Singleline);
+         Assert.True(steps.Success, "ShowUpdateSteps_ is gone.");
+         foreach (string button in new[] { "Check", "Download", "Install" })
+            Assert.Contains(button + "UpdateButton.IsEnabled = UpdateSteps.CanPress(UpdateStep." + button + ", step, updateRunning_);", steps.Groups[1].Value, StringComparison.Ordinal);
+
+         Match reload = Regex.Match(code, @"private void ReloadUpdate_\(\)\s*\{(.*?)\n      \}", RegexOptions.Singleline);
+         Assert.True(reload.Success, "ReloadUpdate_ is gone.");
+         Assert.Contains("CheckUpdateButton.IsEnabled = UpdateSteps.CanPress(UpdateStep.Check, shownStep_, updateRunning_);", reload.Groups[1].Value, StringComparison.Ordinal);
+         Assert.DoesNotContain("CheckUpdateButton.IsEnabled = shownStep_ != UpdateStep.None;", reload.Groups[1].Value, StringComparison.Ordinal);
+
+         // Set and cleared in one place, and the one guard of a press.
+         Assert.Single(Regex.Matches(code, @"\bupdateRunning_ = "));
+         Match busy = Regex.Match(code, @"private void SetUpdateBusy_\(string text\)\s*\{(.*?)\n      \}", RegexOptions.Singleline);
+         Assert.True(busy.Success, "SetUpdateBusy_ is gone.");
+         Assert.Contains("updateRunning_ = busy;", busy.Groups[1].Value, StringComparison.Ordinal);
+         Assert.Contains("if (app == null || updateRunning_)", code, StringComparison.Ordinal);
+
+         // Reload reaches the card through EnterUpdates_.
+         string page = Read("FeatureSettingsView.xaml.cs");
+         Match click = Regex.Match(page, @"private void Reload_Click\(object sender, RoutedEventArgs e\)\s*\{(.*?)\n      \}", RegexOptions.Singleline);
+         Assert.True(click.Success, "Reload_Click is gone.");
+         Assert.Contains("EnterUpdates_();", click.Groups[1].Value, StringComparison.Ordinal);
+      }
+
       [Fact]
       public void TheInstallWindowsSteps_AreStatusMarksAtTheirLevels()
       {

@@ -180,7 +180,7 @@ namespace hMailServer.ControlPanel.Views
          if (readError == null)
          {
             ReadFailure.Clear(UpdateReadNotice);
-            CheckUpdateButton.IsEnabled = shownStep_ != UpdateStep.None;
+            CheckUpdateButton.IsEnabled = UpdateSteps.CanPress(UpdateStep.Check, shownStep_, updateRunning_);
             return;
          }
 
@@ -196,9 +196,11 @@ namespace hMailServer.ControlPanel.Views
       }
 
       // The release the card read and the step it offers, for the busy line's words and
-      // for Check's being pressable once a read worked.
+      // for Check's being pressable once a read worked; and whether a step is under way,
+      // which holds every step however often the card is read meanwhile.
       private string shownVersion_;
       private UpdateStep shownStep_ = UpdateStep.Check;
+      private bool updateRunning_;
 
       /// <summary>
       /// The one step the state calls for, as the Primary, and Check again as the
@@ -213,24 +215,28 @@ namespace hMailServer.ControlPanel.Views
          bool checkIsTheStep = step == UpdateStep.Check;
          CheckUpdateButton.Content = checkIsTheStep ? L("Check for _updates") : L("Check _again");
          CheckUpdateButton.Appearance = checkIsTheStep ? Wpf.Ui.Controls.ControlAppearance.Primary : Wpf.Ui.Controls.ControlAppearance.Secondary;
-         CheckUpdateButton.IsEnabled = step != UpdateStep.None;
+         CheckUpdateButton.IsEnabled = UpdateSteps.CanPress(UpdateStep.Check, step, updateRunning_);
          // The step's appearance is set here, not in the XAML, where two Primaries in one
          // row - only one of them ever shown - read as a Primary before another button.
          DownloadUpdateButton.Appearance = Wpf.Ui.Controls.ControlAppearance.Primary;
          InstallUpdateButton.Appearance = Wpf.Ui.Controls.ControlAppearance.Primary;
          DownloadUpdateButton.Visibility = step == UpdateStep.Download ? Visibility.Visible : Visibility.Collapsed;
-         DownloadUpdateButton.IsEnabled = step == UpdateStep.Download;
+         DownloadUpdateButton.IsEnabled = UpdateSteps.CanPress(UpdateStep.Download, step, updateRunning_);
          InstallUpdateButton.Visibility = step == UpdateStep.Install ? Visibility.Visible : Visibility.Collapsed;
-         InstallUpdateButton.IsEnabled = step == UpdateStep.Install;
+         InstallUpdateButton.IsEnabled = UpdateSteps.CanPress(UpdateStep.Install, step, updateRunning_);
       }
 
       /// <summary>
       /// A step under way: the line that says which, and every step held until it is
-      /// done; the rest of the page can be used meanwhile.
+      /// done - through updateRunning_, which ShowUpdateSteps_ and ReloadUpdate_ read,
+      /// so that the page's Reload during a download, which reads the card again, does
+      /// not enable the steps under "Downloading 6.3.7..." - while the rest of the page
+      /// can be used meanwhile.
       /// </summary>
       private void SetUpdateBusy_(string text)
       {
          bool busy = text != null;
+         updateRunning_ = busy;
          UpdateBusy.Text = text ?? "";
          UpdateBusy.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
          if (busy)
@@ -428,7 +434,7 @@ namespace hMailServer.ControlPanel.Views
       private async void RunUpdateAction_(string action)
       {
          dynamic app = ServerSession.Current?.Application;
-         if (app == null || UpdateBusy.Visibility == Visibility.Visible)
+         if (app == null || updateRunning_)
             return;
 
          if (action == "install" && !MessageBox.Confirm(
