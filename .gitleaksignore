@@ -83,13 +83,14 @@ c19f5481847677b677d566cb17aea5ee5a6ef3a8:hmailserver/source/Server/Common/Util/H
 # pipeline 2886389460 on 27 September 2026. Each line below is one of those, read
 # again in the tree at 6bc09509d: the tester PEM and armour fragments, the SigV4
 # example access key, and the regression suite's own keys. A line moves when its file
-# is edited above it; the job then names the finding again, and the line is written
-# anew once it has been read again. The prefix is CI_PROJECT_DIR, /builds/<the
-# project's path>: /builds/hmailserver/hmailserver since the project moved into the
-# group hmailserver on 29 September 2026 (/builds/Progressiverobot/hmailserver
-# before), and a move to another path changes it again. The landing's own scan
-# (build/scan-secrets.py) reads commits, never a directory, and is matched by the
-# lines above; these are the pipeline's alone.
+# is edited above it: build/check-gitleaksignore.py, which checkers runs, then fails
+# the change that moved it, naming the line the finding is on now, and the line here
+# is written anew once the finding has been read again. The prefix is CI_PROJECT_DIR,
+# /builds/<the project's path>: /builds/hmailserver/hmailserver since the project
+# moved into the group hmailserver on 29 September 2026
+# (/builds/Progressiverobot/hmailserver before), and a move to another path changes
+# it again. The landing's own scan (build/scan-secrets.py) reads commits, never a
+# directory, and is matched by the lines above; these are the pipeline's alone.
 /builds/hmailserver/hmailserver/hmailserver/source/Server/Common/AntiSpam/DKIM/DkimRotationPlan.cpp:PKCS8 private key:728
 /builds/hmailserver/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:PGP private key:1634
 /builds/hmailserver/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:PGP private key:1647

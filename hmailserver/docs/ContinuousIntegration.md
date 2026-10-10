@@ -3855,7 +3855,19 @@ findings is empty, naming the files; and it is `allow_failure: false`. What was
 read and found not to be a secret is named in `.gitleaksignore` at the root, one
 gitleaks fingerprint a line (`<commit>:<file>:<rule>:<line>`), which gitleaks
 reads from the checkout. A real secret is revoked where it was issued, not
-listed.
+listed. A pipeline that brings no range of commits - one started through the
+API - scans the checkout as files instead, and gitleaks then fingerprints a
+finding `<path>:<rule>:<line>`, the path under the checkout,
+`/builds/hmailserver/hmailserver/`, which `.gitleaksignore` names in that form
+too. A line number is all that ties such a line to its finding, and an edit
+above the finding moves it: four had moved by 10 October 2026, found only by a
+scan of the tree. `build/check-gitleaksignore.py`, which `checkers` runs, matches
+the patterns of the rules those lines name - GitLab's, as the analyzer has them -
+over each file they name, and fails a tree in which a line names no finding of
+its rule, or a finding of a named file and rule has no line, saying where the
+finding is now, so that the change that moves a finding moves its line. Over
+`master`'s tree at 74aed9ab8 it named those four, each with its finding's new
+line.
 
 **The whole history, once.** A scan of every commit rather than the pushed
 ones is the pipeline of a schedule on `master` described `security`: there

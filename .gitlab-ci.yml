@@ -387,6 +387,10 @@ checkers:
       # The image pins' check, against a registry it serves on the loopback: what it
       # reads, how it asks, and what a gone or unanswered pin makes of the exit code.
       check python3 build/check-image-pins.py --self-test
+      # .gitleaksignore's directory-form lines held to the tree's files, over fixtures: a
+      # line an edit moved, a finding no line names, a rule it has no pattern for. The
+      # loop above runs it over the tree.
+      check python3 build/check-gitleaksignore.py --self-test
       # Token-Permissions against CI files made to pass it and made to break it: a
       # protected-ref clause inside an OR, rules it could misread, a template's token.
       check python3 build/ci/repo-hygiene.py --self-test

@@ -4702,6 +4702,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   rules, when the tree carries a `.gitlab/secret-detection-ruleset.toml`, and when the landing's `GATE_FILES` leave the
   script out; `scan-secrets.py`'s self-test runs the script over fixtures, refusals and all, and reads what it makes as
   gitleaks does (ContinuousIntegration.md, "What the secret scans read").
+- **A directory-form line of `.gitleaksignore` that an edit has moved fails the change that moved it, not a later
+  pipeline.** A pipeline that brings no range of commits, one started through the API, scans the checkout as files,
+  and `.gitleaksignore` names what that scan finds as `<path>:<rule>:<line>`, tied to its finding by the line number
+  alone: four such lines had been moved by later edits of their files, unseen until a scan of the tree on 10 October
+  2026, and an edit above a fixture in a file such as `build/deck-script-test.js` would have failed the next such
+  pipeline's `secret_detection`. The new `build/check-gitleaksignore.py`, which `checkers` runs, with its self-test,
+  matches the patterns of the rules those lines name, GitLab's, over each file they name, and fails when a line names
+  no finding of its rule or a finding of a named file and rule has no line, saying where the finding is now; over
+  `master` at 74aed9ab8 it names the four this batch moved, each with its new line (ContinuousIntegration.md,
+  "Security scanning").
 
 ### Documentation
 
