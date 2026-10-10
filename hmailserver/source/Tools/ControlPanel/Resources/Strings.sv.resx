@@ -1530,9 +1530,6 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Also mark accounts _inactive when their directory entry has gone" xml:space="preserve">
     <value>Markera också konton som _inaktiva när deras katalogpost är borta</value>
   </data>
-  <data name="Also mark accounts inactive when their directory entry has gone" xml:space="preserve">
-    <value>Markera också konton som inaktiva när deras katalogpost är borta</value>
-  </data>
   <data name="Also require a valid Authenticode signature on the installer" xml:space="preserve">
     <value>Kräv också en giltig Authenticode-signatur på installationsprogrammet</value>
   </data>
@@ -4306,9 +4303,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Distribution lists" xml:space="preserve">
     <value>Distributionslistor</value>
   </data>
-  <data name="Distribution lists are created inside the domain that owns the list address." xml:space="preserve">
-    <value>Distributionslistor skapas inuti domänen som äger listadressen.</value>
-  </data>
   <data name="Distribution lists live in the domain that owns the list address." xml:space="preserve">
     <value>Distributionslistor finns i domänen som äger listadressen.</value>
   </data>
@@ -5968,6 +5962,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>IP-intervallet '{0}' tillåter leverans från extern till extern utan autentisering (risk för öppet relä).</value>
   </data>
+  <data name="IP range - {0}" xml:space="preserve">
+    <value>IP-intervall - {0}</value>
+  </data>
   <data name="IP ranges" xml:space="preserve">
     <value>IP-intervall</value>
   </data>
@@ -6671,9 +6668,6 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Look up a correspondent's key in their domain's Web Key Directory" xml:space="preserve">
     <value>Slå upp en korrespondents nyckel i dennes domäns Web Key Directory</value>
-  </data>
-  <data name="Look up the MX records for any domain." xml:space="preserve">
-    <value>Slå upp MX-posterna för vilken domän som helst.</value>
   </data>
   <data name="Look up where mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
     <value>Slå upp vart e-post för en domän levereras, för att kontrollera DNS innan servern får skulden.</value>
@@ -10818,12 +10812,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Saved {0} - restart the service to apply." xml:space="preserve">
     <value>Sparat {0} - starta om tjänsten för att tillämpa.</value>
   </data>
-  <data name="Saved {0} - the server picks the selection up within two seconds; no service restart is needed." xml:space="preserve">
-    <value>Sparat {0} - servern plockar upp valet inom två sekunder; ingen omstart av tjänsten behövs.</value>
-  </data>
-  <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
-    <value>Sparat {0} - servern plockar upp valet inom två sekunder; det nya schemat gäller när tjänsten startas om.</value>
-  </data>
   <data name="Saved {0} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts." xml:space="preserve">
     <value>Sparat {0} - servern plockar upp detta inom två sekunder, men schemat för katalogsynkronisering börjar gälla först när tjänsten startas om.</value>
   </data>
@@ -11936,12 +11924,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Software update" xml:space="preserve">
     <value>Programuppdatering</value>
-  </data>
-  <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
-    <value>Vissa värden kunde inte läsas, så korten nedan kan vara ofullständiga. Den första orsaken: {0}</value>
-  </data>
-  <data name="Some values could not be read, so the cards below may be incomplete. Why: {0}" xml:space="preserve">
-    <value>Vissa värden kunde inte läsas, så korten nedan kan vara ofullständiga. Varför: {0}</value>
   </data>
   <data name="Some values could not be read, so the sections below may be incomplete. The first reason: {0}" xml:space="preserve">
     <value>Vissa värden kunde inte läsas, så avsnitten nedan kan vara ofullständiga. Den första orsaken: {0}</value>
@@ -13408,9 +13390,6 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
     <value>Den nya posten har ännu inte gått att slå upp under hela spridningstiden. Byta signeringen ändå? Mottagare vars resolvrar inte har hunnit ikapp låter de nya signaturerna misslyckas tills de har det. Själva posten måste ändå gå att slå upp: servern kontrollerar den först i vilket fall som helst.</value>
   </data>
-  <data name="The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
-    <value>Det nya schemat börjar gälla först när tjänsten hMailServer startas om. Starta om tjänsten nu? Alla klienter som är anslutna till servern kopplas från medan den stoppas och startar igen.</value>
-  </data>
   <data name="The next key was cancelled." xml:space="preserve">
     <value>Nästa nyckel avbröts.</value>
   </data>
@@ -14422,9 +14401,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Turn on debug logging first" xml:space="preserve">
     <value>Slå på felsökningsloggning först</value>
   </data>
-  <data name="Turn on debug logging now" xml:space="preserve">
-    <value>Slå på felsökningsloggning nu</value>
-  </data>
   <data name="Turn on the AWStats-compatible log. That is a separate file - the log line format setting does not change it." xml:space="preserve">
     <value>Slå på den AWStats-kompatibla loggen. Det är en separat fil - inställningen för loggradsformat ändrar den inte.</value>
   </data>
@@ -15279,9 +15255,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="Work out whether accepting or delivering has stalled, turn on the logging that names the cause, and read the lines that do." xml:space="preserve">
     <value>Ta reda på om mottagandet eller leveransen har stannat, slå på loggningen som namnger orsaken, och läs raderna som gör det.</value>
-  </data>
-  <data name="Work out which half has stalled - accepting or delivering - turn on the logging that names the cause, and read the lines that do." xml:space="preserve">
-    <value>Ta reda på vilken halva som stannat - mottagande eller leverans - slå på loggningen som namnger orsaken, och läs raderna som gör det.</value>
   </data>
   <data name="Worker thread priority (stored, but the server does not use it)" xml:space="preserve">
     <value>Arbetstrådsprioritet (lagras, men servern använder den inte)</value>

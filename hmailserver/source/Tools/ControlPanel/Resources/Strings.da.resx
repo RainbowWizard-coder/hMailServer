@@ -1530,9 +1530,6 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Also mark accounts _inactive when their directory entry has gone" xml:space="preserve">
     <value>Markér også konti som _inaktive, når deres katalogpost er væk</value>
   </data>
-  <data name="Also mark accounts inactive when their directory entry has gone" xml:space="preserve">
-    <value>Markér også konti som inaktive, når deres katalogpost er væk</value>
-  </data>
   <data name="Also require a valid Authenticode signature on the installer" xml:space="preserve">
     <value>Kræv også en gyldig Authenticode-signatur på installationsprogrammet</value>
   </data>
@@ -4306,9 +4303,6 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Distribution lists" xml:space="preserve">
     <value>Distributionslister</value>
   </data>
-  <data name="Distribution lists are created inside the domain that owns the list address." xml:space="preserve">
-    <value>Distributionslister oprettes inde i det domæne, der ejer listeadressen.</value>
-  </data>
   <data name="Distribution lists live in the domain that owns the list address." xml:space="preserve">
     <value>Distributionslister hører hjemme i det domæne, der ejer listeadressen.</value>
   </data>
@@ -5968,6 +5962,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>IP-intervallet '{0}' tillader levering fra ekstern til ekstern uden godkendelse (risiko for åbent relay).</value>
   </data>
+  <data name="IP range - {0}" xml:space="preserve">
+    <value>IP-interval - {0}</value>
+  </data>
   <data name="IP ranges" xml:space="preserve">
     <value>IP-intervaller</value>
   </data>
@@ -6671,9 +6668,6 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="Look up a correspondent's key in their domain's Web Key Directory" xml:space="preserve">
     <value>Slå en korrespondents nøgle op i vedkommendes domænes Web Key Directory</value>
-  </data>
-  <data name="Look up the MX records for any domain." xml:space="preserve">
-    <value>Slå MX-posterne op for et hvilket som helst domæne.</value>
   </data>
   <data name="Look up where mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
     <value>Slå op, hvor e-mail til et domæne leveres, for at kontrollere DNS, før du giver serveren skylden.</value>
@@ -10818,12 +10812,6 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Saved {0} - restart the service to apply." xml:space="preserve">
     <value>Gemte {0} - genstart tjenesten for at anvende.</value>
   </data>
-  <data name="Saved {0} - the server picks the selection up within two seconds; no service restart is needed." xml:space="preserve">
-    <value>Gemt {0} - serveren opfanger valget inden for to sekunder; ingen genstart af tjenesten er nødvendig.</value>
-  </data>
-  <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
-    <value>Gemt {0} - serveren opfanger valget inden for to sekunder; den nye tidsplan træder i kraft, når tjenesten genstartes.</value>
-  </data>
   <data name="Saved {0} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts." xml:space="preserve">
     <value>Gemt {0} - serveren opfanger det inden for to sekunder, men tidsplanen for katalogsynkronisering træder først i kraft, når tjenesten genstartes.</value>
   </data>
@@ -11936,12 +11924,6 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   </data>
   <data name="Software update" xml:space="preserve">
     <value>Softwareopdatering</value>
-  </data>
-  <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
-    <value>Nogle værdier kunne ikke læses, så kortene nedenfor kan være ufuldstændige. Den første årsag: {0}</value>
-  </data>
-  <data name="Some values could not be read, so the cards below may be incomplete. Why: {0}" xml:space="preserve">
-    <value>Nogle værdier kunne ikke læses, så kortene nedenfor kan være ufuldstændige. Hvorfor: {0}</value>
   </data>
   <data name="Some values could not be read, so the sections below may be incomplete. The first reason: {0}" xml:space="preserve">
     <value>Nogle værdier kunne ikke læses, så afsnittene nedenfor kan være ufuldstændige. Den første årsag: {0}</value>
@@ -13408,9 +13390,6 @@ kunne ikke indlæses. Meddelelsen er sandsynligvis leveret og ikke længere i k�
   <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
     <value>Den nye post har endnu ikke kunnet slås op i hele udbredelsesperioden. Skifte signeringen alligevel? Modtagere, hvis resolvere ikke er fulgt med, lader de nye signaturer fejle, indtil de er. Selve posten skal stadig kunne slås op: serveren kontrollerer den først under alle omstændigheder.</value>
   </data>
-  <data name="The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
-    <value>Den nye tidsplan træder først i kraft, når hMailServer-tjenesten genstartes. Genstart tjenesten nu? Alle klienter, der er forbundet til serveren, afbrydes, mens den stopper og starter igen.</value>
-  </data>
   <data name="The next key was cancelled." xml:space="preserve">
     <value>Den næste nøgle blev annulleret.</value>
   </data>
@@ -14422,9 +14401,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="Turn on debug logging first" xml:space="preserve">
     <value>Slå debug-logning til først</value>
   </data>
-  <data name="Turn on debug logging now" xml:space="preserve">
-    <value>Slå debug-logning til nu</value>
-  </data>
   <data name="Turn on the AWStats-compatible log. That is a separate file - the log line format setting does not change it." xml:space="preserve">
     <value>Slå den AWStats-kompatible log til. Det er en separat fil - indstillingen for loglinjeformat ændrer den ikke.</value>
   </data>
@@ -15279,9 +15255,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="Work out whether accepting or delivering has stalled, turn on the logging that names the cause, and read the lines that do." xml:space="preserve">
     <value>Find ud af, om det er accept eller levering, der er gået i stå, slå den logning til, der nævner årsagen, og læs de linjer, der gør det.</value>
-  </data>
-  <data name="Work out which half has stalled - accepting or delivering - turn on the logging that names the cause, and read the lines that do." xml:space="preserve">
-    <value>Find ud af, hvilken halvdel der er gået i stå - accept eller levering - slå den logning til, der nævner årsagen, og læs de linjer, der gør det.</value>
   </data>
   <data name="Worker thread priority (stored, but the server does not use it)" xml:space="preserve">
     <value>Prioritet for arbejdstråde (gemt, men serveren bruger den ikke)</value>

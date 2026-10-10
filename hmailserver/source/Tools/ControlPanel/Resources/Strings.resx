@@ -1530,9 +1530,6 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Also mark accounts _inactive when their directory entry has gone" xml:space="preserve">
     <value>Also mark accounts _inactive when their directory entry has gone</value>
   </data>
-  <data name="Also mark accounts inactive when their directory entry has gone" xml:space="preserve">
-    <value>Also mark accounts inactive when their directory entry has gone</value>
-  </data>
   <data name="Also require a valid Authenticode signature on the installer" xml:space="preserve">
     <value>Also require a valid Authenticode signature on the installer</value>
   </data>
@@ -4306,9 +4303,6 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Distribution lists" xml:space="preserve">
     <value>Distribution lists</value>
   </data>
-  <data name="Distribution lists are created inside the domain that owns the list address." xml:space="preserve">
-    <value>Distribution lists are created inside the domain that owns the list address.</value>
-  </data>
   <data name="Distribution lists live in the domain that owns the list address." xml:space="preserve">
     <value>Distribution lists live in the domain that owns the list address.</value>
   </data>
@@ -5968,6 +5962,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>IP range '{0}' allows external-to-external delivery without authentication (open relay risk).</value>
   </data>
+  <data name="IP range - {0}" xml:space="preserve">
+    <value>IP range - {0}</value>
+  </data>
   <data name="IP ranges" xml:space="preserve">
     <value>IP ranges</value>
   </data>
@@ -6671,9 +6668,6 @@ The verified installer is handed to the update helper: the service stops, the ne
   </data>
   <data name="Look up a correspondent's key in their domain's Web Key Directory" xml:space="preserve">
     <value>Look up a correspondent's key in their domain's Web Key Directory</value>
-  </data>
-  <data name="Look up the MX records for any domain." xml:space="preserve">
-    <value>Look up the MX records for any domain.</value>
   </data>
   <data name="Look up where mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
     <value>Look up where mail for a domain is delivered, to check DNS before blaming the server.</value>
@@ -10818,12 +10812,6 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Saved {0} - restart the service to apply." xml:space="preserve">
     <value>Saved {0} - restart the service to apply.</value>
   </data>
-  <data name="Saved {0} - the server picks the selection up within two seconds; no service restart is needed." xml:space="preserve">
-    <value>Saved {0} - the server picks the selection up within two seconds; no service restart is needed.</value>
-  </data>
-  <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
-    <value>Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts.</value>
-  </data>
   <data name="Saved {0} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts." xml:space="preserve">
     <value>Saved {0} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts.</value>
   </data>
@@ -11936,12 +11924,6 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="Software update" xml:space="preserve">
     <value>Software update</value>
-  </data>
-  <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
-    <value>Some values could not be read, so the cards below may be incomplete. The first reason: {0}</value>
-  </data>
-  <data name="Some values could not be read, so the cards below may be incomplete. Why: {0}" xml:space="preserve">
-    <value>Some values could not be read, so the cards below may be incomplete. Why: {0}</value>
   </data>
   <data name="Some values could not be read, so the sections below may be incomplete. The first reason: {0}" xml:space="preserve">
     <value>Some values could not be read, so the sections below may be incomplete. The first reason: {0}</value>
@@ -13408,9 +13390,6 @@ could not be loaded. The message has probably been delivered and is no longer in
   <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
     <value>The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way.</value>
   </data>
-  <data name="The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
-    <value>The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again.</value>
-  </data>
   <data name="The next key was cancelled." xml:space="preserve">
     <value>The next key was cancelled.</value>
   </data>
@@ -14422,9 +14401,6 @@ It will keep trying as you use the application.</value>
   <data name="Turn on debug logging first" xml:space="preserve">
     <value>Turn on debug logging first</value>
   </data>
-  <data name="Turn on debug logging now" xml:space="preserve">
-    <value>Turn on debug logging now</value>
-  </data>
   <data name="Turn on the AWStats-compatible log. That is a separate file - the log line format setting does not change it." xml:space="preserve">
     <value>Turn on the AWStats-compatible log. That is a separate file - the log line format setting does not change it.</value>
   </data>
@@ -15279,9 +15255,6 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="Work out whether accepting or delivering has stalled, turn on the logging that names the cause, and read the lines that do." xml:space="preserve">
     <value>Work out whether accepting or delivering has stalled, turn on the logging that names the cause, and read the lines that do.</value>
-  </data>
-  <data name="Work out which half has stalled - accepting or delivering - turn on the logging that names the cause, and read the lines that do." xml:space="preserve">
-    <value>Work out which half has stalled - accepting or delivering - turn on the logging that names the cause, and read the lines that do.</value>
   </data>
   <data name="Worker thread priority (stored, but the server does not use it)" xml:space="preserve">
     <value>Worker thread priority (stored, but the server does not use it)</value>

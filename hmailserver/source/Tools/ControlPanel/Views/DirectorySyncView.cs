@@ -395,8 +395,6 @@ namespace hMailServer.ControlPanel.Views
 
          disableMissing_.Content = L("Also mark accounts _inactive when their directory entry has gone");
          disableMissing_.Margin = new Thickness(0, 0, 0, 4);
-         System.Windows.Automation.AutomationProperties.SetName(disableMissing_,
-            L("Also mark accounts inactive when their directory entry has gone"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(disableMissing_, "dirsync-disable-missing");
          System.Windows.Automation.AutomationProperties.SetHelpText(disableMissing_,
             L("Off by default. An account that stops being visible is far more often a filter that changed than a person who left, and the two mistakes do not cost the same. No message is ever deleted and no account is removed - re-enabling one restores everything."));
@@ -667,14 +665,15 @@ namespace hMailServer.ControlPanel.Views
          // never from the last save: a second save after a schedule change, with no
          // restart between, said that no restart was needed. And measured as the server
          // registers it, from the file as written: while directory access is off nothing
-         // runs whatever the minutes say, and 5 is 15.
+         // runs whatever the minutes say, and 5 is 15. The LDAP page's sentences,
+         // which say the same of the same schedule (review finding F325).
          string time = DateTime.Now.ToLongTimeString();
          bool scheduleWaits = DirectorySyncSchedule.Shared.SavedFile(store_.IniPath);
          if (scheduleWaits)
-            saveState_.Settle(SettingsPageState.WaitsForRestart, F("Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts.", time),
+            saveState_.Settle(SettingsPageState.WaitsForRestart, F("Saved {0} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts.", time),
                action: RestartAction_());
          else
-            saveState_.Settle(SettingsPageState.Saved, F("Saved {0} - the server picks the selection up within two seconds; no service restart is needed.", time));
+            saveState_.Settle(SettingsPageState.Saved, F("Saved {0} - the server picks this up within two seconds. No service restart is needed.", time));
          return true;
       }
 
@@ -686,7 +685,7 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private Wpf.Ui.Controls.Button RestartAction_()
          => saveState_.RestartAction("dirsync-restart-service",
-            L("The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again."));
+            L("The directory synchronisation schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again."));
 
       /// <summary>
       /// Writes one [LDAP] key, and throws when the file refused it: the six writes

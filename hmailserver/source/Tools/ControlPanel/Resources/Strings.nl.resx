@@ -1530,9 +1530,6 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Also mark accounts _inactive when their directory entry has gone" xml:space="preserve">
     <value>Accounts ook als _inactief markeren wanneer hun directoryvermelding is verdwenen</value>
   </data>
-  <data name="Also mark accounts inactive when their directory entry has gone" xml:space="preserve">
-    <value>Accounts ook als inactief markeren wanneer hun directoryvermelding is verdwenen</value>
-  </data>
   <data name="Also require a valid Authenticode signature on the installer" xml:space="preserve">
     <value>Ook een geldige Authenticode-handtekening op het installatieprogramma vereisen</value>
   </data>
@@ -4306,9 +4303,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Distribution lists" xml:space="preserve">
     <value>Distributielijsten</value>
   </data>
-  <data name="Distribution lists are created inside the domain that owns the list address." xml:space="preserve">
-    <value>Distributielijsten worden aangemaakt binnen het domein dat het lijstadres bezit.</value>
-  </data>
   <data name="Distribution lists live in the domain that owns the list address." xml:space="preserve">
     <value>Distributielijsten staan in het domein dat het lijstadres bezit.</value>
   </data>
@@ -5968,6 +5962,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>IP-bereik '{0}' staat bezorging van extern naar extern toe zonder authenticatie (risico op open relay).</value>
   </data>
+  <data name="IP range - {0}" xml:space="preserve">
+    <value>IP-bereik - {0}</value>
+  </data>
   <data name="IP ranges" xml:space="preserve">
     <value>IP-bereiken</value>
   </data>
@@ -6671,9 +6668,6 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Look up a correspondent's key in their domain's Web Key Directory" xml:space="preserve">
     <value>De sleutel van een correspondent opzoeken in de Web Key Directory van zijn domein</value>
-  </data>
-  <data name="Look up the MX records for any domain." xml:space="preserve">
-    <value>Zoek de MX-records van elk willekeurig domein op.</value>
   </data>
   <data name="Look up where mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
     <value>Zoek op waar e-mail voor een domein wordt bezorgd, om DNS te controleren voordat u de server de schuld geeft.</value>
@@ -10818,12 +10812,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Saved {0} - restart the service to apply." xml:space="preserve">
     <value>{0} opgeslagen - herstart de service om het toe te passen.</value>
   </data>
-  <data name="Saved {0} - the server picks the selection up within two seconds; no service restart is needed." xml:space="preserve">
-    <value>{0} opgeslagen - de server pikt de selectie binnen twee seconden op; een herstart van de service is niet nodig.</value>
-  </data>
-  <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
-    <value>{0} opgeslagen - de server pikt de selectie binnen twee seconden op; het nieuwe schema wordt van kracht wanneer de service opnieuw start.</value>
-  </data>
   <data name="Saved {0} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts." xml:space="preserve">
     <value>{0} opgeslagen - de server pikt dit binnen twee seconden op, maar het schema van de directorysynchronisatie wordt pas van kracht wanneer de service opnieuw start.</value>
   </data>
@@ -11936,12 +11924,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Software update" xml:space="preserve">
     <value>Software-update</value>
-  </data>
-  <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
-    <value>Sommige waarden konden niet worden gelezen, dus de kaarten hieronder kunnen onvolledig zijn. De eerste reden: {0}</value>
-  </data>
-  <data name="Some values could not be read, so the cards below may be incomplete. Why: {0}" xml:space="preserve">
-    <value>Sommige waarden konden niet worden gelezen, dus de kaarten hieronder kunnen onvolledig zijn. Waarom: {0}</value>
   </data>
   <data name="Some values could not be read, so the sections below may be incomplete. The first reason: {0}" xml:space="preserve">
     <value>Sommige waarden konden niet worden gelezen, dus de onderstaande secties kunnen onvolledig zijn. De eerste reden: {0}</value>
@@ -13408,9 +13390,6 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
     <value>Het nieuwe record is nog niet de hele propagatieperiode opgelost. Het ondertekenen toch verplaatsen? Ontvangers van wie de resolvers nog niet zijn bijgewerkt, laten de nieuwe handtekeningen mislukken tot ze dat wel zijn. Het record zelf moet wel worden opgelost: de server controleert het in elk geval eerst.</value>
   </data>
-  <data name="The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
-    <value>Het nieuwe schema wordt pas van kracht wanneer de hMailServer-service opnieuw start. De service nu herstarten? Alle clients die met de server verbonden zijn, worden verbroken terwijl hij stopt en opnieuw start.</value>
-  </data>
   <data name="The next key was cancelled." xml:space="preserve">
     <value>De volgende sleutel is geannuleerd.</value>
   </data>
@@ -14422,9 +14401,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Turn on debug logging first" xml:space="preserve">
     <value>Zet eerst debuglogging aan</value>
   </data>
-  <data name="Turn on debug logging now" xml:space="preserve">
-    <value>Zet debuglogging nu aan</value>
-  </data>
   <data name="Turn on the AWStats-compatible log. That is a separate file - the log line format setting does not change it." xml:space="preserve">
     <value>Zet het AWStats-compatibele logboek aan. Dat is een apart bestand - de instelling voor de indeling van logregels verandert het niet.</value>
   </data>
@@ -15279,9 +15255,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="Work out whether accepting or delivering has stalled, turn on the logging that names the cause, and read the lines that do." xml:space="preserve">
     <value>Stel vast of het accepteren of het bezorgen is vastgelopen, zet de logging aan die de oorzaak noemt, en lees de regels die dat doen.</value>
-  </data>
-  <data name="Work out which half has stalled - accepting or delivering - turn on the logging that names the cause, and read the lines that do." xml:space="preserve">
-    <value>Stel vast welke helft is vastgelopen - accepteren of bezorgen - zet de logging aan die de oorzaak noemt, en lees de regels die dat doen.</value>
   </data>
   <data name="Worker thread priority (stored, but the server does not use it)" xml:space="preserve">
     <value>Prioriteit van werkthreads (opgeslagen, maar de server gebruikt hem niet)</value>

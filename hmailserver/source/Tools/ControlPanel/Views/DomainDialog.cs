@@ -249,7 +249,10 @@ namespace hMailServer.ControlPanel.Views
          var cancel = new Wpf.Ui.Controls.Button { Content = L("Cancel"), MinWidth = 88 };
          cancel.Click += (s, e) => Close();
 
-         UseFrame(domainName, body, save, cancel, width: DialogWidth);
+         // Headed by the window's title, the kind and then the name, where the
+         // heading was the bare name and the kind only in a title the frame does
+         // not show (review finding F293).
+         UseFrame(Title, body, save, cancel, width: DialogWidth);
          Loaded += (s, e) => { Load(); aliasEditor_?.OnEnter(); senderListEditor_?.OnEnter(); };
       }
 
@@ -286,7 +289,7 @@ namespace hMailServer.ControlPanel.Views
          var save = new Microsoft.Win32.SaveFileDialog
          {
             Title = L("Save the DKIM private key"),
-            Filter = "PEM key files (*.pem)|*.pem|All files (*.*)|*.*",
+            Filter = L("PEM key files (*.pem)|*.pem|All files (*.*)|*.*"),
             FileName = selector + "._domainkey." + domainName_ + ".pem"
          };
          try
@@ -633,7 +636,7 @@ namespace hMailServer.ControlPanel.Views
          AutomationProperties.SetAutomationId(dkimBrowse, "DkimKeyBrowse");
          dkimBrowse.Click += (s, e) =>
          {
-            string file = PathPicker.PickFile(dkimKeyFile_.Text, "PEM/key files (*.pem;*.key)|*.pem;*.key|All files (*.*)|*.*");
+            string file = PathPicker.PickFile(dkimKeyFile_.Text, L("PEM/key files (*.pem;*.key)|*.pem;*.key|All files (*.*)|*.*"));
             if (file != null)
                dkimKeyFile_.Text = file;
          };

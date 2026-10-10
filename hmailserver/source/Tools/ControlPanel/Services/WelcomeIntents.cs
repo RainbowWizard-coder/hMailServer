@@ -51,7 +51,7 @@ namespace hMailServer.ControlPanel.Services
             N("What this server still needs before anybody can use it, in order - a domain, an account, TLS for mail clients, the DNS records, a backup - with what is done, what is next, and a button to the page that does each one."),
             "externalsetup"),
          new WelcomeIntent(N("Mail is stuck or slow"),
-            N("Work out which half has stalled - accepting or delivering - turn on the logging that names the cause, and read the lines that do."),
+            N("Work out whether accepting or delivering has stalled, turn on the logging that names the cause, and read the lines that do."),
             "stalledmail"),
          new WelcomeIntent(N("See what is waiting to go out"),
             N("Every message still in the delivery queue, the last error the server got for it, and when it is retried."),

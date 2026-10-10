@@ -120,7 +120,6 @@ namespace hMailServer.ControlPanel.Views
             Appearance = Wpf.Ui.Controls.ControlAppearance.Primary,
             Margin = new Thickness(0, 4, 8, 0)
          };
-         AutomationProperties.SetName(enable, L("Turn on debug logging now"));
          enable.Click += (s, e) => SetDebugLogging(true);
          row.Children.Add(enable);
 

@@ -1548,9 +1548,6 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Also mark accounts _inactive when their directory entry has gone" xml:space="preserve">
     <value>_Označovat účty také jako neaktivní, když jejich položka v adresáři zmizí</value>
   </data>
-  <data name="Also mark accounts inactive when their directory entry has gone" xml:space="preserve">
-    <value>Označovat účty také jako neaktivní, když jejich položka v adresáři zmizí</value>
-  </data>
   <data name="Also require a valid Authenticode signature on the installer" xml:space="preserve">
     <value>Vyžadovat u instalačního programu také platný podpis Authenticode</value>
   </data>
@@ -4364,9 +4361,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Distribution lists" xml:space="preserve">
     <value>Distribuční seznamy</value>
   </data>
-  <data name="Distribution lists are created inside the domain that owns the list address." xml:space="preserve">
-    <value>Distribuční seznamy se vytvářejí uvnitř domény, které patří adresa seznamu.</value>
-  </data>
   <data name="Distribution lists live in the domain that owns the list address." xml:space="preserve">
     <value>Distribuční seznamy žijí v doméně, které patří adresa seznamu.</value>
   </data>
@@ -6044,6 +6038,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>Rozsah IP '{0}' povoluje doručování z externí do externí bez ověření (riziko otevřeného relaye).</value>
   </data>
+  <data name="IP range - {0}" xml:space="preserve">
+    <value>Rozsah IP – {0}</value>
+  </data>
   <data name="IP ranges" xml:space="preserve">
     <value>Rozsahy IP</value>
   </data>
@@ -6747,9 +6744,6 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Look up a correspondent's key in their domain's Web Key Directory" xml:space="preserve">
     <value>Vyhledat klíč korespondenta ve Web Key Directory jeho domény</value>
-  </data>
-  <data name="Look up the MX records for any domain." xml:space="preserve">
-    <value>Vyhledejte MX záznamy libovolné domény.</value>
   </data>
   <data name="Look up where mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
     <value>Vyhledejte, kam se doručuje e-mail pro doménu, a zkontrolujte tak DNS dřív, než začnete vinit server.</value>
@@ -10933,12 +10927,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Saved {0} - restart the service to apply." xml:space="preserve">
     <value>Uloženo {0} – změny se projeví po restartu služby.</value>
   </data>
-  <data name="Saved {0} - the server picks the selection up within two seconds; no service restart is needed." xml:space="preserve">
-    <value>Uloženo {0} – server výběr načte do dvou sekund; restart služby není potřeba.</value>
-  </data>
-  <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
-    <value>Uloženo {0} – server výběr načte do dvou sekund; nový plán se projeví po restartu služby.</value>
-  </data>
   <data name="Saved {0} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts." xml:space="preserve">
     <value>Uloženo {0} – server to načte do dvou sekund, ale plán synchronizace s adresářem se projeví až po restartu služby.</value>
   </data>
@@ -12084,12 +12072,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Software update" xml:space="preserve">
     <value>Aktualizace softwaru</value>
-  </data>
-  <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
-    <value>Některé hodnoty se nepodařilo přečíst, proto mohou být karty níže neúplné. První důvod: {0}</value>
-  </data>
-  <data name="Some values could not be read, so the cards below may be incomplete. Why: {0}" xml:space="preserve">
-    <value>Některé hodnoty se nepodařilo přečíst, proto mohou být karty níže neúplné. Důvod: {0}</value>
   </data>
   <data name="Some values could not be read, so the sections below may be incomplete. The first reason: {0}" xml:space="preserve">
     <value>Některé hodnoty se nepodařilo přečíst, proto mohou být níže uvedené části neúplné. První důvod: {0}</value>
@@ -13586,9 +13568,6 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
     <value>Nový záznam se ještě nepřekládá po celou dobu šíření. Přesto přepnout podepisování? Příjemci, jejichž resolvery se ještě neaktualizovaly, budou nové podpisy odmítat, dokud se neaktualizují. Samotný záznam se přesto musí překládat: server ho v každém případě nejprve zkontroluje.</value>
   </data>
-  <data name="The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
-    <value>Nový plán se projeví až po restartu služby hMailServer. Restartovat službu nyní? Všichni klienti připojení k serveru budou během zastavení a opětovného spuštění odpojeni.</value>
-  </data>
   <data name="The next key was cancelled." xml:space="preserve">
     <value>Další klíč byl zrušen.</value>
   </data>
@@ -14603,9 +14582,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Turn on debug logging first" xml:space="preserve">
     <value>Nejdřív zapněte ladicí logování</value>
   </data>
-  <data name="Turn on debug logging now" xml:space="preserve">
-    <value>Zapnout ladicí logování teď</value>
-  </data>
   <data name="Turn on the AWStats-compatible log. That is a separate file - the log line format setting does not change it." xml:space="preserve">
     <value>Zapněte log kompatibilní s AWStats. Je to samostatný soubor - nastavení formátu řádku logu ho nemění.</value>
   </data>
@@ -15463,9 +15439,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Work out whether accepting or delivering has stalled, turn on the logging that names the cause, and read the lines that do." xml:space="preserve">
     <value>Zjistěte, zda uvázlo přijímání nebo doručování, zapněte logování, které pojmenuje příčinu, a přečtěte si řádky, které to dělají.</value>
-  </data>
-  <data name="Work out which half has stalled - accepting or delivering - turn on the logging that names the cause, and read the lines that do." xml:space="preserve">
-    <value>Zjistěte, která polovina uvázla - přijímání nebo doručování - zapněte logování, které pojmenuje příčinu, a přečtěte si řádky, které to dělají.</value>
   </data>
   <data name="Worker thread priority (stored, but the server does not use it)" xml:space="preserve">
     <value>Priorita pracovních vláken (uložena, ale server ji nepoužívá)</value>

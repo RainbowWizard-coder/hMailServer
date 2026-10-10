@@ -105,8 +105,10 @@ namespace hMailServer.ControlPanel.Services
             N("Run the built-in checks: outbound port 25, MX resolution, backup folder and IP configuration.")),
          new IntentEntry(N("check if the server is healthy"), "diagnostics",
             N("Run the built-in connectivity and configuration checks.")),
+         // The page's own purpose (NavigationMap), where this said it a third way
+         // (review finding F325).
          new IntentEntry(N("where does mail for a domain go"), "mxquery",
-            N("Look up the MX records for any domain.")),
+            N("Look up where e-mail for a domain is delivered, to check DNS before blaming the server.")),
          new IntentEntry(N("is anyone connected"), "status",
             N("Server status lists the live sessions for each protocol.")),
 
@@ -149,8 +151,10 @@ namespace hMailServer.ControlPanel.Services
             N("Aliases are listed under their domain and can be deleted without touching the mailbox behind them.")),
          new IntentEntry(N("delete a mailing list"), "domains",
             N("Distribution lists live in the domain that owns the list address.")),
+         // The answer of "delete a mailing list" above: one sentence for the two,
+         // where they said the same thing two ways (review finding F325).
          new IntentEntry(N("set up a mailing list"), "domains",
-            N("Distribution lists are created inside the domain that owns the list address.")),
+            N("Distribution lists live in the domain that owns the list address.")),
          new IntentEntry(N("forward one address to another"), "domains",
             N("An alias points one address at another without needing a second mailbox.")),
          new IntentEntry(N("set a mailbox size limit"), "domains",

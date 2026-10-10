@@ -1530,9 +1530,6 @@
   <data name="Also mark accounts _inactive when their directory entry has gone" xml:space="preserve">
     <value>目录条目消失时同时把账户标记为非活动(_I)</value>
   </data>
-  <data name="Also mark accounts inactive when their directory entry has gone" xml:space="preserve">
-    <value>目录条目消失时同时把账户标记为非活动</value>
-  </data>
   <data name="Also require a valid Authenticode signature on the installer" xml:space="preserve">
     <value>同时要求安装程序具有有效的 Authenticode 签名</value>
   </data>
@@ -4306,9 +4303,6 @@
   <data name="Distribution lists" xml:space="preserve">
     <value>分发列表</value>
   </data>
-  <data name="Distribution lists are created inside the domain that owns the list address." xml:space="preserve">
-    <value>分发列表在拥有列表地址的域内创建。</value>
-  </data>
   <data name="Distribution lists live in the domain that owns the list address." xml:space="preserve">
     <value>分发列表位于拥有列表地址的域中。</value>
   </data>
@@ -5968,6 +5962,9 @@
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>IP 范围 '{0}' 允许无需身份验证的外部到外部投递（开放中继风险）。</value>
   </data>
+  <data name="IP range - {0}" xml:space="preserve">
+    <value>IP 范围 - {0}</value>
+  </data>
   <data name="IP ranges" xml:space="preserve">
     <value>IP 范围</value>
   </data>
@@ -6671,9 +6668,6 @@
   </data>
   <data name="Look up a correspondent's key in their domain's Web Key Directory" xml:space="preserve">
     <value>在对方域的 Web Key Directory 中查找其密钥</value>
-  </data>
-  <data name="Look up the MX records for any domain." xml:space="preserve">
-    <value>查询任意域的 MX 记录。</value>
   </data>
   <data name="Look up where mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
     <value>查询某个域的电子邮件投递到哪里，以便在归咎于服务器之前先检查 DNS。</value>
@@ -10818,12 +10812,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Saved {0} - restart the service to apply." xml:space="preserve">
     <value>已保存 {0} - 重启服务以应用。</value>
   </data>
-  <data name="Saved {0} - the server picks the selection up within two seconds; no service restart is needed." xml:space="preserve">
-    <value>已于 {0} 保存 - 服务器会在两秒内读取所选内容；无需重启服务。</value>
-  </data>
-  <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
-    <value>已于 {0} 保存 - 服务器会在两秒内读取所选内容；新的计划在服务重启后生效。</value>
-  </data>
   <data name="Saved {0} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts." xml:space="preserve">
     <value>已保存 {0} - 服务器会在两秒内读取，但目录同步计划在服务重启后才会生效。</value>
   </data>
@@ -11936,12 +11924,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Software update" xml:space="preserve">
     <value>软件更新</value>
-  </data>
-  <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
-    <value>部分值无法读取，因此下面的卡片可能不完整。第一个原因：{0}</value>
-  </data>
-  <data name="Some values could not be read, so the cards below may be incomplete. Why: {0}" xml:space="preserve">
-    <value>部分值无法读取，因此下面的卡片可能不完整。原因：{0}</value>
   </data>
   <data name="Some values could not be read, so the sections below may be incomplete. The first reason: {0}" xml:space="preserve">
     <value>部分值无法读取，因此下面的各节可能不完整。第一个原因：{0}</value>
@@ -13408,9 +13390,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
     <value>新记录尚未在整个传播期内都能解析。仍要切换签名吗？解析器尚未更新的接收方在更新之前，会验证新签名失败。记录本身仍必须能够解析：无论哪种情况，服务器都会先检查它。</value>
   </data>
-  <data name="The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
-    <value>新的计划只有在 hMailServer 服务重启后才会生效。现在重启服务吗？服务停止并重新启动期间，所有连接到服务器的客户端都会断开。</value>
-  </data>
   <data name="The next key was cancelled." xml:space="preserve">
     <value>已取消下一个密钥。</value>
   </data>
@@ -14422,9 +14401,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Turn on debug logging first" xml:space="preserve">
     <value>请先开启调试日志</value>
   </data>
-  <data name="Turn on debug logging now" xml:space="preserve">
-    <value>立即开启调试日志</value>
-  </data>
   <data name="Turn on the AWStats-compatible log. That is a separate file - the log line format setting does not change it." xml:space="preserve">
     <value>开启与 AWStats 兼容的日志。那是一个单独的文件 - 日志行格式设置不会改变它。</value>
   </data>
@@ -15279,9 +15255,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Work out whether accepting or delivering has stalled, turn on the logging that names the cause, and read the lines that do." xml:space="preserve">
     <value>弄清楚是接收还是投递停滞了，开启指明原因的日志，然后阅读指明原因的那些行。</value>
-  </data>
-  <data name="Work out which half has stalled - accepting or delivering - turn on the logging that names the cause, and read the lines that do." xml:space="preserve">
-    <value>弄清楚是哪一半停滞了 - 接收还是投递 - 开启指明原因的日志，然后阅读指明原因的那些行。</value>
   </data>
   <data name="Worker thread priority (stored, but the server does not use it)" xml:space="preserve">
     <value>工作线程优先级 (已存储，但服务器不使用它)</value>

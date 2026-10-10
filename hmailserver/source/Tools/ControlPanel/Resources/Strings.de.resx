@@ -1530,9 +1530,6 @@ Das Control Panel kann Nachrichtendateien nur lesen, wenn es auf demselben Rechn
   <data name="Also mark accounts _inactive when their directory entry has gone" xml:space="preserve">
     <value>Konten auch als _inaktiv markieren, wenn ihr Verzeichniseintrag verschwunden ist</value>
   </data>
-  <data name="Also mark accounts inactive when their directory entry has gone" xml:space="preserve">
-    <value>Konten auch als inaktiv markieren, wenn ihr Verzeichniseintrag verschwunden ist</value>
-  </data>
   <data name="Also require a valid Authenticode signature on the installer" xml:space="preserve">
     <value>Zusätzlich eine gültige Authenticode-Signatur des Installers verlangen</value>
   </data>
@@ -4306,9 +4303,6 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Distribution lists" xml:space="preserve">
     <value>Verteilerlisten</value>
   </data>
-  <data name="Distribution lists are created inside the domain that owns the list address." xml:space="preserve">
-    <value>Verteilerlisten werden in der Domain angelegt, der die Listenadresse gehört.</value>
-  </data>
   <data name="Distribution lists live in the domain that owns the list address." xml:space="preserve">
     <value>Verteilerlisten leben in der Domain, der die Listenadresse gehört.</value>
   </data>
@@ -5968,6 +5962,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>Der IP-Bereich '{0}' erlaubt Zustellung von extern nach extern ohne Authentifizierung (Risiko eines offenen Relays).</value>
   </data>
+  <data name="IP range - {0}" xml:space="preserve">
+    <value>IP-Bereich - {0}</value>
+  </data>
   <data name="IP ranges" xml:space="preserve">
     <value>IP-Bereiche</value>
   </data>
@@ -6671,9 +6668,6 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   </data>
   <data name="Look up a correspondent's key in their domain's Web Key Directory" xml:space="preserve">
     <value>Den Schlüssel eines Korrespondenten im Web Key Directory seiner Domain suchen</value>
-  </data>
-  <data name="Look up the MX records for any domain." xml:space="preserve">
-    <value>Die MX-Einträge einer beliebigen Domain nachschlagen.</value>
   </data>
   <data name="Look up where mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
     <value>Nachschlagen, wohin E-Mail für eine Domain zugestellt wird, um das DNS zu prüfen, bevor man dem Server die Schuld gibt.</value>
@@ -10818,12 +10812,6 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Saved {0} - restart the service to apply." xml:space="preserve">
     <value>{0} gespeichert - starten Sie den Dienst neu, damit es wirksam wird.</value>
   </data>
-  <data name="Saved {0} - the server picks the selection up within two seconds; no service restart is needed." xml:space="preserve">
-    <value>{0} gespeichert - der Server übernimmt die Auswahl innerhalb von zwei Sekunden; ein Neustart des Dienstes ist nicht nötig.</value>
-  </data>
-  <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
-    <value>{0} gespeichert - der Server übernimmt die Auswahl innerhalb von zwei Sekunden; der neue Zeitplan wirkt, sobald der Dienst neu startet.</value>
-  </data>
   <data name="Saved {0} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts." xml:space="preserve">
     <value>{0} gespeichert - der Server übernimmt das innerhalb von zwei Sekunden, aber der Zeitplan der Verzeichnissynchronisation wirkt erst, wenn der Dienst neu startet.</value>
   </data>
@@ -11936,12 +11924,6 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   </data>
   <data name="Software update" xml:space="preserve">
     <value>Softwareupdate</value>
-  </data>
-  <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
-    <value>Einige Werte konnten nicht gelesen werden, daher sind die Karten unten möglicherweise unvollständig. Erster Grund: {0}</value>
-  </data>
-  <data name="Some values could not be read, so the cards below may be incomplete. Why: {0}" xml:space="preserve">
-    <value>Einige Werte konnten nicht gelesen werden, daher sind die Karten unten möglicherweise unvollständig. Grund: {0}</value>
   </data>
   <data name="Some values could not be read, so the sections below may be incomplete. The first reason: {0}" xml:space="preserve">
     <value>Einige Werte konnten nicht gelesen werden, daher können die Abschnitte unten unvollständig sein. Erster Grund: {0}</value>
@@ -13408,9 +13390,6 @@ konnte nicht geladen werden. Die Nachricht wurde wahrscheinlich zugestellt und i
   <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
     <value>Der neue Eintrag ist noch nicht die ganze Verbreitungszeit lang auflösbar. Die Signatur trotzdem wechseln? Empfänger, deren Resolver noch nicht nachgezogen haben, lassen die neuen Signaturen scheitern, bis sie es tun. Der Eintrag selbst muss trotzdem auflösbar sein: Der Server prüft ihn in jedem Fall zuerst.</value>
   </data>
-  <data name="The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
-    <value>Der neue Zeitplan wirkt erst, wenn der hMailServer-Dienst neu startet. Den Dienst jetzt neu starten? Alle mit dem Server verbundenen Clients werden getrennt, während er anhält und neu startet.</value>
-  </data>
   <data name="The next key was cancelled." xml:space="preserve">
     <value>Der nächste Schlüssel wurde verworfen.</value>
   </data>
@@ -14422,9 +14401,6 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="Turn on debug logging first" xml:space="preserve">
     <value>Zuerst die Debug-Protokollierung einschalten</value>
   </data>
-  <data name="Turn on debug logging now" xml:space="preserve">
-    <value>Debug-Protokollierung jetzt einschalten</value>
-  </data>
   <data name="Turn on the AWStats-compatible log. That is a separate file - the log line format setting does not change it." xml:space="preserve">
     <value>Schalten Sie das AWStats-kompatible Protokoll ein. Das ist eine eigene Datei - die Einstellung für das Format der Protokollzeilen ändert sie nicht.</value>
   </data>
@@ -15279,9 +15255,6 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="Work out whether accepting or delivering has stalled, turn on the logging that names the cause, and read the lines that do." xml:space="preserve">
     <value>Stellen Sie fest, ob die Annahme oder die Zustellung stillsteht, schalten Sie die Protokollierung ein, die die Ursache benennt, und lesen Sie die Zeilen, die das tun.</value>
-  </data>
-  <data name="Work out which half has stalled - accepting or delivering - turn on the logging that names the cause, and read the lines that do." xml:space="preserve">
-    <value>Stellen Sie fest, welche Hälfte stillsteht - die Annahme oder die Zustellung -, schalten Sie die Protokollierung ein, die die Ursache benennt, und lesen Sie die Zeilen, die das tun.</value>
   </data>
   <data name="Worker thread priority (stored, but the server does not use it)" xml:space="preserve">
     <value>Priorität der Arbeitsthreads (wird gespeichert, aber vom Server nicht verwendet)</value>

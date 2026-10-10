@@ -78,6 +78,7 @@ namespace hMailServer.ControlPanel.Views
       private FieldRow expiresRow_;
 
       private readonly InlineNotice notice_ = DialogFields.Notice();
+      private readonly DialogFrame frame_;
 
       public IPRangeDialog(Window owner, int rangeId)
       {
@@ -110,7 +111,7 @@ namespace hMailServer.ControlPanel.Views
          var cancel = new Wpf.Ui.Controls.Button { Content = L("Cancel"), MinWidth = 88 };
          cancel.Click += (s, e) => Close();
 
-         UseFrame(L("IP range"), body, save, cancel, width: width);
+         frame_ = UseFrame(Title, body, save, cancel, width: width);
          Loaded += (s, e) => Load();
       }
 
@@ -249,6 +250,14 @@ namespace hMailServer.ControlPanel.Views
             if (r == null) { Close(); return; }
 
             name_.Text = (string)r.Name ?? "";
+            // The window and its heading say which range this is, as it was read,
+            // as the TCP/IP port's do, where the heading was "IP range" for every
+            // range (review finding F293).
+            if (name_.Text.Trim().Length > 0)
+            {
+               Title = F("IP range - {0}", name_.Text.Trim());
+               frame_.Heading = Title;
+            }
             lower_.Text = (string)r.LowerIP ?? "";
             upper_.Text = (string)r.UpperIP ?? "";
             priority_.Text = ((int)r.Priority).ToString();

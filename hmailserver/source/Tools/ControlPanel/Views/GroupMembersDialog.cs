@@ -121,7 +121,10 @@ namespace hMailServer.ControlPanel.Views
          var close = new Wpf.Ui.Controls.Button { Content = L("Close"), MinWidth = 88 };
          close.Click += (s, e) => Close();
 
-         UseFrame(groupName_, body, null, close,
+         // Headed by the window's title, the kind and then the name, where the
+         // heading was the bare name and the kind only in a title the frame does
+         // not show (review finding F293).
+         UseFrame(Title, body, null, close,
             L("A group exists so that several accounts can be given the same rights at once - grant the group access to a public folder under Public folders, and every account listed here gets that access. An empty group grants nothing to anyone."),
             width: 520);
          Loaded += (s, e) => Reload();

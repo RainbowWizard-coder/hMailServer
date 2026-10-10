@@ -77,7 +77,10 @@ namespace hMailServer.ControlPanel.Views
          var cancel = new Wpf.Ui.Controls.Button { Content = L("Cancel"), MinWidth = 88 };
          cancel.Click += (s, e) => Close();
 
-         UseFrame(address_, body, move_, cancel,
+         // Headed by the window's title, the kind and then the name, where the
+         // heading was the bare name and the kind only in a title the frame does
+         // not show (review finding F293).
+         UseFrame(Title, body, move_, cancel,
             L("The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role."),
             width: 560);
 

@@ -1548,9 +1548,6 @@ Control Panel может читать файлы сообщений только
   <data name="Also mark accounts _inactive when their directory entry has gone" xml:space="preserve">
     <value>_Также помечать учётные записи неактивными, когда их запись в каталоге исчезла</value>
   </data>
-  <data name="Also mark accounts inactive when their directory entry has gone" xml:space="preserve">
-    <value>Также помечать учётные записи неактивными, когда их запись в каталоге исчезла</value>
-  </data>
   <data name="Also require a valid Authenticode signature on the installer" xml:space="preserve">
     <value>Также требовать действительную подпись Authenticode у установщика</value>
   </data>
@@ -4364,9 +4361,6 @@ Control Panel может читать файлы сообщений только
   <data name="Distribution lists" xml:space="preserve">
     <value>Списки рассылки</value>
   </data>
-  <data name="Distribution lists are created inside the domain that owns the list address." xml:space="preserve">
-    <value>Списки рассылки создаются внутри домена, которому принадлежит адрес списка.</value>
-  </data>
   <data name="Distribution lists live in the domain that owns the list address." xml:space="preserve">
     <value>Списки рассылки находятся в том домене, которому принадлежит адрес списка.</value>
   </data>
@@ -6044,6 +6038,9 @@ Control Panel может читать файлы сообщений только
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>Диапазон IP «{0}» разрешает доставку с внешнего на внешний без аутентификации (риск открытой ретрансляции).</value>
   </data>
+  <data name="IP range - {0}" xml:space="preserve">
+    <value>Диапазон IP — {0}</value>
+  </data>
   <data name="IP ranges" xml:space="preserve">
     <value>Диапазоны IP</value>
   </data>
@@ -6747,9 +6744,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Look up a correspondent's key in their domain's Web Key Directory" xml:space="preserve">
     <value>Искать ключ корреспондента в Web Key Directory его домена</value>
-  </data>
-  <data name="Look up the MX records for any domain." xml:space="preserve">
-    <value>Найти MX-записи для любого домена.</value>
   </data>
   <data name="Look up where mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
     <value>Узнайте, куда доставляется почта домена, чтобы проверить DNS, прежде чем винить сервер.</value>
@@ -10933,12 +10927,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Saved {0} - restart the service to apply." xml:space="preserve">
     <value>Сохранено: {0} — чтобы изменения применились, перезапустите службу.</value>
   </data>
-  <data name="Saved {0} - the server picks the selection up within two seconds; no service restart is needed." xml:space="preserve">
-    <value>Сохранено: {0} — выбор сервер подхватит в течение двух секунд; перезапуск службы не нужен.</value>
-  </data>
-  <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
-    <value>Сохранено: {0} — выбор сервер подхватит в течение двух секунд; новое расписание вступит в силу после перезапуска службы.</value>
-  </data>
   <data name="Saved {0} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts." xml:space="preserve">
     <value>Сохранено: {0} — сервер подхватит это в течение двух секунд, но расписание синхронизации с каталогом вступит в силу только после перезапуска службы.</value>
   </data>
@@ -12084,12 +12072,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Software update" xml:space="preserve">
     <value>Обновление программы</value>
-  </data>
-  <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
-    <value>Некоторые значения не удалось прочитать, поэтому карточки ниже могут быть неполными. Первая причина: {0}</value>
-  </data>
-  <data name="Some values could not be read, so the cards below may be incomplete. Why: {0}" xml:space="preserve">
-    <value>Некоторые значения не удалось прочитать, поэтому карточки ниже могут быть неполными. Причина: {0}</value>
   </data>
   <data name="Some values could not be read, so the sections below may be incomplete. The first reason: {0}" xml:space="preserve">
     <value>Некоторые значения не удалось прочитать, поэтому разделы ниже могут быть неполными. Первая причина: {0}</value>
@@ -13586,9 +13568,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
     <value>Новая запись ещё не разрешалась в течение всего периода распространения. Всё равно перевести подпись? Получатели, чьи резолверы ещё не обновились, не смогут проверить новые подписи, пока не обновятся. Сама запись всё равно должна разрешаться: сервер в любом случае сначала проверяет её.</value>
   </data>
-  <data name="The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
-    <value>Новое расписание вступит в силу только после перезапуска службы hMailServer. Перезапустить службу сейчас? Все клиенты, подключённые к серверу, будут отключены, пока она останавливается и запускается снова.</value>
-  </data>
   <data name="The next key was cancelled." xml:space="preserve">
     <value>Следующий ключ отменён.</value>
   </data>
@@ -14603,9 +14582,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Turn on debug logging first" xml:space="preserve">
     <value>Сначала включите отладочный журнал</value>
   </data>
-  <data name="Turn on debug logging now" xml:space="preserve">
-    <value>Включить отладочный журнал сейчас</value>
-  </data>
   <data name="Turn on the AWStats-compatible log. That is a separate file - the log line format setting does not change it." xml:space="preserve">
     <value>Включите журнал, совместимый с AWStats. Это отдельный файл - параметр формата строки журнала на него не влияет.</value>
   </data>
@@ -15463,9 +15439,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Work out whether accepting or delivering has stalled, turn on the logging that names the cause, and read the lines that do." xml:space="preserve">
     <value>Определите, застряли приём или доставка, включите журналирование, которое называет причину, и прочитайте строки, которые её называют.</value>
-  </data>
-  <data name="Work out which half has stalled - accepting or delivering - turn on the logging that names the cause, and read the lines that do." xml:space="preserve">
-    <value>Определите, какая половина застряла - приём или доставка, - включите журналирование, которое называет причину, и прочитайте строки, которые её называют.</value>
   </data>
   <data name="Worker thread priority (stored, but the server does not use it)" xml:space="preserve">
     <value>Приоритет рабочих потоков (хранится, но сервер его не использует)</value>

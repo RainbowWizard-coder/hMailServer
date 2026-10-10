@@ -228,7 +228,10 @@ namespace hMailServer.ControlPanel.Views
          var cancel = new Wpf.Ui.Controls.Button { Content = L("Cancel"), MinWidth = 88 };
          cancel.Click += (s, e) => Close();
 
-         UseFrame(address, body, save, cancel, width: DialogWidth);
+         // Headed by the window's title, the kind and then the name, where the
+         // heading was the bare name and the kind only in a title the frame does
+         // not show (review finding F293).
+         UseFrame(Title, body, save, cancel, width: DialogWidth);
 
          Loaded += (s, e) =>
          {

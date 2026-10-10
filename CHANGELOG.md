@@ -3318,8 +3318,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   "…", and is named by its caption and the field it fills, "Browse: Database folder", so that in every language the
   name starts with the word on the button; an account's Administration level says that the Administrator roles page
   can give the account a narrower, named role instead, which nothing on the dialog said, and Domains lists
-  Administrator roles among its related pages for an administrator who may open it (review finding F324).
-  `FilePickerCopyTests` holds it.
+  Administrator roles among its related pages for an administrator who may open it (review finding F324). Texts that
+  said one thing two ways say it one way, ten texts fewer to translate seventeen times: the DNS records page's read
+  failure is the overviews' sentence; Directory synchronisation's save and restart messages are the LDAP page's, which
+  say the same of the same schedule; the stalled-mail starting point on Welcome and its search answer are one
+  sentence, as are the MX query's purpose and its search answer and the two answers about mailing lists; and a button
+  and a check box named by hand with their own captions are named by WPF, as every other is. The DKIM key's two file
+  pickers' filters are translated, as the DNS records page's are (F325). The object dialogs are headed by their
+  window's title, the kind and then the name - "Account - user00@example.com", "Distribution list -
+  everyone@example.com", "Members - Sales team", "Permissions - Sales", "Move or rename user00@example.com" - where
+  the heading was the bare name and the kind only in a title the frame does not show, and an IP range's dialog by its
+  name once it is read, "IP range - Internet", as a TCP/IP port's is, where it said "IP range" for every range (F293).
+  `FilePickerCopyTests`, `NearDuplicateTextTests` and `DialogHeadingTests` hold it.
 
 ### Administration
 

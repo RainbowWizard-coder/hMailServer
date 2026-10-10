@@ -1540,9 +1540,6 @@
   <data name="Also mark accounts _inactive when their directory entry has gone" xml:space="preserve">
     <value>ディレクトリのエントリがなくなったアカウントも無効としてマークする(_I)</value>
   </data>
-  <data name="Also mark accounts inactive when their directory entry has gone" xml:space="preserve">
-    <value>ディレクトリのエントリがなくなったアカウントも無効としてマークする</value>
-  </data>
   <data name="Also require a valid Authenticode signature on the installer" xml:space="preserve">
     <value>インストーラーに有効な Authenticode 署名があることも必須にする</value>
   </data>
@@ -4316,9 +4313,6 @@
   <data name="Distribution lists" xml:space="preserve">
     <value>配布リスト</value>
   </data>
-  <data name="Distribution lists are created inside the domain that owns the list address." xml:space="preserve">
-    <value>配布リストは、リスト アドレスを所有するドメインの中で作成します。</value>
-  </data>
   <data name="Distribution lists live in the domain that owns the list address." xml:space="preserve">
     <value>配布リストは、リスト アドレスを所有するドメインに属します。</value>
   </data>
@@ -5978,6 +5972,9 @@
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>IP 範囲 '{0}' は、認証なしの外部から外部への配信を許可しています (オープン リレーの危険)。</value>
   </data>
+  <data name="IP range - {0}" xml:space="preserve">
+    <value>IP 範囲 - {0}</value>
+  </data>
   <data name="IP ranges" xml:space="preserve">
     <value>IP 範囲</value>
   </data>
@@ -6681,9 +6678,6 @@
   </data>
   <data name="Look up a correspondent's key in their domain's Web Key Directory" xml:space="preserve">
     <value>相手のキーをそのドメインの Web Key Directory で探す</value>
-  </data>
-  <data name="Look up the MX records for any domain." xml:space="preserve">
-    <value>任意のドメインの MX レコードを参照します。</value>
   </data>
   <data name="Look up where mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
     <value>ドメイン宛てのメールがどこに配信されるかを参照し、サーバーを疑う前に DNS を確認します。</value>
@@ -10828,12 +10822,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Saved {0} - restart the service to apply." xml:space="preserve">
     <value>{0} を保存しました。適用するにはサービスを再起動してください。</value>
   </data>
-  <data name="Saved {0} - the server picks the selection up within two seconds; no service restart is needed." xml:space="preserve">
-    <value>{0} に保存しました。サーバーは 2 秒以内に選択を取り込みます。サービスの再起動は不要です。</value>
-  </data>
-  <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
-    <value>{0} に保存しました。サーバーは 2 秒以内に選択を取り込みます。新しいスケジュールはサービスの再起動後に有効になります。</value>
-  </data>
   <data name="Saved {0} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts." xml:space="preserve">
     <value>{0} を保存しました。サーバーは 2 秒以内にこれを取り込みますが、ディレクトリ同期のスケジュールはサービスの再起動後に有効になります。</value>
   </data>
@@ -11946,12 +11934,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Software update" xml:space="preserve">
     <value>ソフトウェア更新</value>
-  </data>
-  <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
-    <value>一部の値を読み取れなかったため、下のカードは不完全な可能性があります。最初の理由: {0}</value>
-  </data>
-  <data name="Some values could not be read, so the cards below may be incomplete. Why: {0}" xml:space="preserve">
-    <value>一部の値を読み取れなかったため、下のカードは不完全な可能性があります。理由: {0}</value>
   </data>
   <data name="Some values could not be read, so the sections below may be incomplete. The first reason: {0}" xml:space="preserve">
     <value>一部の値を読み取れなかったため、以下のセクションは不完全な場合があります。最初の理由: {0}</value>
@@ -13418,9 +13400,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
     <value>新しいレコードは、まだ伝播期間全体を通じて解決できていません。それでも署名を切り替えますか？リゾルバーが追いついていない受信側では、追いつくまで新しい署名の検証に失敗します。レコード自体は解決できる必要があります。どちらの場合も、サーバーは最初にレコードを確認します。</value>
   </data>
-  <data name="The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
-    <value>新しいスケジュールは、hMailServer サービスを再起動したときにだけ有効になります。今すぐサービスを再起動しますか? サービスが停止して再開する間、サーバーに接続しているクライアントはすべて切断されます。</value>
-  </data>
   <data name="The next key was cancelled." xml:space="preserve">
     <value>次のキーを取り消しました。</value>
   </data>
@@ -14432,9 +14411,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Turn on debug logging first" xml:space="preserve">
     <value>まずデバッグ ログをオンにしてください</value>
   </data>
-  <data name="Turn on debug logging now" xml:space="preserve">
-    <value>今すぐデバッグ ログをオンにする</value>
-  </data>
   <data name="Turn on the AWStats-compatible log. That is a separate file - the log line format setting does not change it." xml:space="preserve">
     <value>AWStats 互換ログをオンにします。これは別のファイルであり、ログ行フォーマットの設定では変わりません。</value>
   </data>
@@ -15289,9 +15265,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Work out whether accepting or delivering has stalled, turn on the logging that names the cause, and read the lines that do." xml:space="preserve">
     <value>受け入れと配信のどちらが停滞しているかを見極め、原因を示すログをオンにし、それを示す行を読んでください。</value>
-  </data>
-  <data name="Work out which half has stalled - accepting or delivering - turn on the logging that names the cause, and read the lines that do." xml:space="preserve">
-    <value>どちらの半分 (受け入れか配信か) が停滞しているかを見極め、原因を示すログをオンにし、それを示す行を読んでください。</value>
   </data>
   <data name="Worker thread priority (stored, but the server does not use it)" xml:space="preserve">
     <value>ワーカー スレッドの優先度 (保存されますが、サーバーは使用しません)</value>

@@ -141,7 +141,10 @@ namespace hMailServer.ControlPanel.Views
          var close = new Wpf.Ui.Controls.Button { Content = L("Close"), MinWidth = 88 };
          close.Click += (s, e) => Close();
 
-         UseFrame(folderName, body, null, close, width: 520);
+         // Headed by the window's title, the kind and then the name, where the
+         // heading was the bare name and the kind only in a title the frame does
+         // not show (review finding F293).
+         UseFrame(Title, body, null, close, width: 520);
          list_.MouseDoubleClick += (s, e) => { if (list_.SelectedIndex >= 0) AddOrEdit(ids_[list_.SelectedIndex]); };
          Loaded += (s, e) => Reload();
       }

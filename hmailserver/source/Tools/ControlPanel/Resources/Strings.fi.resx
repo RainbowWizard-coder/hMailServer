@@ -1530,9 +1530,6 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Also mark accounts _inactive when their directory entry has gone" xml:space="preserve">
     <value>Merkitse tilit myös ei-aktiivisiksi, kun niiden _hakemistomerkintä on poistunut</value>
   </data>
-  <data name="Also mark accounts inactive when their directory entry has gone" xml:space="preserve">
-    <value>Merkitse tilit myös ei-aktiivisiksi, kun niiden hakemistomerkintä on poistunut</value>
-  </data>
   <data name="Also require a valid Authenticode signature on the installer" xml:space="preserve">
     <value>Vaadi asennusohjelmalta myös kelvollinen Authenticode-allekirjoitus</value>
   </data>
@@ -4306,9 +4303,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Distribution lists" xml:space="preserve">
     <value>Jakelulistat</value>
   </data>
-  <data name="Distribution lists are created inside the domain that owns the list address." xml:space="preserve">
-    <value>Jakelulistat luodaan siihen verkkotunnukseen, joka omistaa listan osoitteen.</value>
-  </data>
   <data name="Distribution lists live in the domain that owns the list address." xml:space="preserve">
     <value>Jakelulistat elävät siinä verkkotunnuksessa, joka omistaa listan osoitteen.</value>
   </data>
@@ -5968,6 +5962,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>IP-alue '{0}' sallii toimituksen ulkoisesta ulkoiseen ilman todennusta (avoimen välityksen riski).</value>
   </data>
+  <data name="IP range - {0}" xml:space="preserve">
+    <value>IP-alue - {0}</value>
+  </data>
   <data name="IP ranges" xml:space="preserve">
     <value>IP-alueet</value>
   </data>
@@ -6671,9 +6668,6 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Look up a correspondent's key in their domain's Web Key Directory" xml:space="preserve">
     <value>Etsi kirjeenvaihtajan avain hänen verkkotunnuksensa Web Key Directorysta</value>
-  </data>
-  <data name="Look up the MX records for any domain." xml:space="preserve">
-    <value>Hae minkä tahansa verkkotunnuksen MX-tietueet.</value>
   </data>
   <data name="Look up where mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
     <value>Hae, minne verkkotunnuksen sähköposti toimitetaan, tarkistaaksesi DNS:n ennen palvelimen syyttämistä.</value>
@@ -10818,12 +10812,6 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Saved {0} - restart the service to apply." xml:space="preserve">
     <value>Tallennettu {0} - käynnistä palvelu uudelleen ottaaksesi käyttöön.</value>
   </data>
-  <data name="Saved {0} - the server picks the selection up within two seconds; no service restart is needed." xml:space="preserve">
-    <value>Tallennettu {0} - palvelin poimii valinnan kahden sekunnin kuluessa; palvelun uudelleenkäynnistystä ei tarvita.</value>
-  </data>
-  <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
-    <value>Tallennettu {0} - palvelin poimii valinnan kahden sekunnin kuluessa; uusi aikataulu tulee voimaan, kun palvelu käynnistetään uudelleen.</value>
-  </data>
   <data name="Saved {0} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts." xml:space="preserve">
     <value>Tallennettu {0} - palvelin poimii tämän kahden sekunnin kuluessa, mutta hakemiston synkronoinnin aikataulu tulee voimaan vasta, kun palvelu käynnistetään uudelleen.</value>
   </data>
@@ -11936,12 +11924,6 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Software update" xml:space="preserve">
     <value>Ohjelmistopäivitys</value>
-  </data>
-  <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
-    <value>Joitakin arvoja ei voitu lukea, joten alla olevat kortit voivat olla puutteellisia. Ensimmäinen syy: {0}</value>
-  </data>
-  <data name="Some values could not be read, so the cards below may be incomplete. Why: {0}" xml:space="preserve">
-    <value>Joitakin arvoja ei voitu lukea, joten alla olevat kortit voivat olla puutteellisia. Syy: {0}</value>
   </data>
   <data name="Some values could not be read, so the sections below may be incomplete. The first reason: {0}" xml:space="preserve">
     <value>Joitakin arvoja ei voitu lukea, joten alla olevat osiot voivat olla puutteellisia. Ensimmäinen syy: {0}</value>
@@ -13408,9 +13390,6 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
     <value>Uusi tietue ei ole vielä ratkennut koko leviämisajan. Siirretäänkö allekirjoitus silti? Vastaanottajat, joiden nimipalvelimet eivät ole vielä päivittyneet, hylkäävät uudet allekirjoitukset, kunnes ne päivittyvät. Tietueen on silti ratkettava: palvelin tarkistaa sen joka tapauksessa ensin.</value>
   </data>
-  <data name="The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
-    <value>Uusi aikataulu tulee voimaan vasta, kun hMailServer-palvelu käynnistetään uudelleen. Käynnistetäänkö palvelu uudelleen nyt? Kaikki palvelimeen yhdistetyt asiakkaat katkaistaan, kun se pysähtyy ja käynnistyy uudelleen.</value>
-  </data>
   <data name="The next key was cancelled." xml:space="preserve">
     <value>Seuraava avain peruutettiin.</value>
   </data>
@@ -14422,9 +14401,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="Turn on debug logging first" xml:space="preserve">
     <value>Ota ensin vianjäljityslokitus käyttöön</value>
   </data>
-  <data name="Turn on debug logging now" xml:space="preserve">
-    <value>Ota vianjäljityslokitus käyttöön nyt</value>
-  </data>
   <data name="Turn on the AWStats-compatible log. That is a separate file - the log line format setting does not change it." xml:space="preserve">
     <value>Ota AWStats-yhteensopiva loki käyttöön. Se on erillinen tiedosto - lokirivin muodon asetus ei muuta sitä.</value>
   </data>
@@ -15279,9 +15255,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="Work out whether accepting or delivering has stalled, turn on the logging that names the cause, and read the lines that do." xml:space="preserve">
     <value>Selvitä, onko vastaanotto vai toimitus jumissa, kytke päälle lokitus, joka nimeää syyn, ja lue rivit, jotka sen tekevät.</value>
-  </data>
-  <data name="Work out which half has stalled - accepting or delivering - turn on the logging that names the cause, and read the lines that do." xml:space="preserve">
-    <value>Selvitä, kumpi puolisko on jumissa - vastaanotto vai toimitus -, kytke päälle lokitus, joka nimeää syyn, ja lue rivit, jotka sen tekevät.</value>
   </data>
   <data name="Worker thread priority (stored, but the server does not use it)" xml:space="preserve">
     <value>Työsäikeiden prioriteetti (tallennetaan, mutta palvelin ei käytä sitä)</value>

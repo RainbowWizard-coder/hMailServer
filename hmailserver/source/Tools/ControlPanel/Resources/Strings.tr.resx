@@ -1530,9 +1530,6 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Also mark accounts _inactive when their directory entry has gone" xml:space="preserve">
     <value>Dizin girdisi ortadan kalkan hesapları ayrıca etkin değ_il olarak işaretle</value>
   </data>
-  <data name="Also mark accounts inactive when their directory entry has gone" xml:space="preserve">
-    <value>Dizin girdisi ortadan kalkan hesapları ayrıca etkin değil olarak işaretle</value>
-  </data>
   <data name="Also require a valid Authenticode signature on the installer" xml:space="preserve">
     <value>Kurulum programında geçerli bir Authenticode imzasını da zorunlu tut</value>
   </data>
@@ -4306,9 +4303,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Distribution lists" xml:space="preserve">
     <value>Dağıtım listeleri</value>
   </data>
-  <data name="Distribution lists are created inside the domain that owns the list address." xml:space="preserve">
-    <value>Dağıtım listeleri, liste adresinin sahibi olan etki alanının içinde oluşturulur.</value>
-  </data>
   <data name="Distribution lists live in the domain that owns the list address." xml:space="preserve">
     <value>Dağıtım listeleri, liste adresinin sahibi olan etki alanında yaşar.</value>
   </data>
@@ -5968,6 +5962,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>'{0}' IP aralığı, kimlik doğrulaması olmadan dıştan dışa teslime izin veriyor (açık aktarma riski).</value>
   </data>
+  <data name="IP range - {0}" xml:space="preserve">
+    <value>IP aralığı - {0}</value>
+  </data>
   <data name="IP ranges" xml:space="preserve">
     <value>IP aralıkları</value>
   </data>
@@ -6671,9 +6668,6 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="Look up a correspondent's key in their domain's Web Key Directory" xml:space="preserve">
     <value>Bir muhatabın anahtarını etki alanının Web Key Directory'sinde ara</value>
-  </data>
-  <data name="Look up the MX records for any domain." xml:space="preserve">
-    <value>Herhangi bir etki alanının MX kayıtlarını arayın.</value>
   </data>
   <data name="Look up where mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
     <value>Sunucuyu suçlamadan önce DNS'i denetlemek için bir etki alanının e-postasının nereye teslim edildiğini arayın.</value>
@@ -10818,12 +10812,6 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Saved {0} - restart the service to apply." xml:space="preserve">
     <value>{0} kaydedildi - uygulamak için hizmeti yeniden başlatın.</value>
   </data>
-  <data name="Saved {0} - the server picks the selection up within two seconds; no service restart is needed." xml:space="preserve">
-    <value>{0} kaydedildi - sunucu seçimi iki saniye içinde alır; hizmetin yeniden başlatılması gerekmez.</value>
-  </data>
-  <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
-    <value>{0} kaydedildi - sunucu seçimi iki saniye içinde alır; yeni zamanlama hizmet yeniden başlatıldığında geçerli olur.</value>
-  </data>
   <data name="Saved {0} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts." xml:space="preserve">
     <value>{0} kaydedildi - sunucu bunu iki saniye içinde alır, ancak dizin eşitleme zamanlaması hizmet yeniden başlatıldığında geçerli olur.</value>
   </data>
@@ -11936,12 +11924,6 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Software update" xml:space="preserve">
     <value>Yazılım güncelleştirmesi</value>
-  </data>
-  <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
-    <value>Bazı değerler okunamadı, bu yüzden aşağıdaki kartlar eksik olabilir. İlk neden: {0}</value>
-  </data>
-  <data name="Some values could not be read, so the cards below may be incomplete. Why: {0}" xml:space="preserve">
-    <value>Bazı değerler okunamadı, bu yüzden aşağıdaki kartlar eksik olabilir. Nedeni: {0}</value>
   </data>
   <data name="Some values could not be read, so the sections below may be incomplete. The first reason: {0}" xml:space="preserve">
     <value>Bazı değerler okunamadı, bu yüzden aşağıdaki bölümler eksik olabilir. İlk neden: {0}</value>
@@ -13408,9 +13390,6 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
     <value>Yeni kayıt henüz yayılma süresinin tamamı boyunca çözümlenmedi. İmzalama yine de geçirilsin mi? Çözümleyicileri henüz güncellenmemiş alıcılar, güncellenene kadar yeni imzaları doğrulayamaz. Kaydın kendisi yine de çözümlenmelidir: sunucu her iki durumda da önce onu denetler.</value>
   </data>
-  <data name="The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
-    <value>Yeni zamanlama yalnızca hMailServer hizmeti yeniden başlatıldığında geçerli olur. Hizmet şimdi yeniden başlatılsın mı? Hizmet durup yeniden başlarken sunucuya bağlı tüm istemcilerin bağlantısı kesilir.</value>
-  </data>
   <data name="The next key was cancelled." xml:space="preserve">
     <value>Sonraki anahtar iptal edildi.</value>
   </data>
@@ -14422,9 +14401,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="Turn on debug logging first" xml:space="preserve">
     <value>Önce hata ayıklama günlüğünü açın</value>
   </data>
-  <data name="Turn on debug logging now" xml:space="preserve">
-    <value>Hata ayıklama günlüğünü şimdi aç</value>
-  </data>
   <data name="Turn on the AWStats-compatible log. That is a separate file - the log line format setting does not change it." xml:space="preserve">
     <value>AWStats uyumlu günlüğü açın. Bu ayrı bir dosyadır - günlük satırı biçimi ayarı onu değiştirmez.</value>
   </data>
@@ -15279,9 +15255,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="Work out whether accepting or delivering has stalled, turn on the logging that names the cause, and read the lines that do." xml:space="preserve">
     <value>Kabul etmenin mi yoksa teslim etmenin mi takıldığını belirleyin, nedeni adlandıran günlüğü açın ve bunu yapan satırları okuyun.</value>
-  </data>
-  <data name="Work out which half has stalled - accepting or delivering - turn on the logging that names the cause, and read the lines that do." xml:space="preserve">
-    <value>Hangi yarının takıldığını belirleyin - kabul etme mi, teslim etme mi - nedeni adlandıran günlüğü açın ve bunu yapan satırları okuyun.</value>
   </data>
   <data name="Worker thread priority (stored, but the server does not use it)" xml:space="preserve">
     <value>Çalışan iş parçacığı önceliği (saklanır, ancak sunucu kullanmaz)</value>
