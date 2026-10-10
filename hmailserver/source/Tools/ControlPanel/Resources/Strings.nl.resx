@@ -3108,6 +3108,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Could not read the queue: " xml:space="preserve">
     <value>Kon de wachtrij niet lezen: </value>
   </data>
+  <data name="Could not read the relay: {0}" xml:space="preserve">
+    <value>Kon de relay niet lezen: {0}</value>
+  </data>
   <data name="Could not read the roles: " xml:space="preserve">
     <value>Kon de rollen niet lezen: </value>
   </data>
@@ -3203,6 +3206,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Could not save the range: {0}" xml:space="preserve">
     <value>Kon het bereik niet opslaan: {0}</value>
+  </data>
+  <data name="Could not save the relay: {0}" xml:space="preserve">
+    <value>Kon de relay niet opslaan: {0}</value>
   </data>
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>Kon de route niet opslaan: {0}</value>
@@ -4203,6 +4209,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>Criterium bewerken</value>
+  </data>
+  <data name="Edit incoming relay" xml:space="preserve">
+    <value>Inkomende relay bewerken</value>
   </data>
   <data name="Edit the DNS block list" xml:space="preserve">
     <value>De DNS-blokkeerlijst bewerken</value>
@@ -6336,6 +6345,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Mail servers for {0}, in the order this server would try them:" xml:space="preserve">
     <value>Mailservers voor {0}, in de volgorde waarin deze server ze zou proberen:</value>
   </data>
+  <data name="Mail that arrives from these addresses is judged by the address before them, so a gateway's own address is not scored or banned as the sender's." xml:space="preserve">
+    <value>E-mail die van deze adressen komt, wordt beoordeeld op het adres daarvóór, zodat het eigen adres van een gateway niet als dat van de afzender wordt gescoord of verbannen.</value>
+  </data>
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Mail aan een beheerder wanneer iets aandacht nodig heeft, zoals een schijf die volloopt, een werkwachtrij die vastloopt, een certificaat dat bijna verloopt of een mislukte back-up. Welke omstandigheden worden bewaakt, bepalen de waarschuwingsregels in het Control Deck; er wordt niets verstuurd totdat beide adressen hieronder zijn ingesteld.</value>
   </data>
@@ -6888,6 +6900,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Name" xml:space="preserve">
     <value>Naam</value>
+  </data>
+  <data name="Name or address contains" xml:space="preserve">
+    <value>Naam of adres bevat</value>
   </data>
   <data name="Name or suffix" xml:space="preserve">
     <value>Naam of achtervoegsel</value>
@@ -12260,6 +12275,9 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
     <value>Het bestand kon niet als PEM-certificaat worden ingelezen. De server laadt certificaten alleen in PEM-formaat, dus dit bestand laadt niet en elke TLS-poort die het gebruikt, start niet (serverfout 5113).</value>
   </data>
+  <data name="The first address of the gateway's range." xml:space="preserve">
+    <value>Het eerste adres van het bereik van de gateway.</value>
+  </data>
   <data name="The first scanner to find something ends the scan, so the order is also the cost: a slow scanner in front of a fast one is paid for on every clean message." xml:space="preserve">
     <value>De eerste scanner die iets vindt, beëindigt de scan, dus de volgorde bepaalt ook de kosten: een trage scanner vóór een snelle betaalt u bij elk schoon bericht.</value>
   </data>
@@ -12406,6 +12424,9 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   </data>
   <data name="The language could not be saved: {0}" xml:space="preserve">
     <value>De taal kon niet worden opgeslagen: {0}</value>
+  </data>
+  <data name="The last address; the same as the first for one gateway." xml:space="preserve">
+    <value>Het laatste adres; hetzelfde als het eerste voor één gateway.</value>
   </data>
   <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
     <value>De laatste poging is mislukt op {0}: {1}</value>
@@ -15060,7 +15081,7 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
     <value>Po_stvak ontgrendelen</value>
   </data>
   <data name="_Upper IP" xml:space="preserve">
-    <value>_Bovenste IP</value>
+    <value>Bovenste _IP</value>
   </data>
   <data name="_Upper IP (e.g. 10.0.0.255)" xml:space="preserve">
     <value>Bovenste IP (bi_jv. 10.0.0.255)</value>
@@ -16382,6 +16403,12 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} hours ago" xml:space="preserve">
     <value>{0} uur geleden</value>
+  </data>
+  <data name="{0} incoming relay" xml:space="preserve">
+    <value>{0} inkomende relay</value>
+  </data>
+  <data name="{0} incoming relays" xml:space="preserve">
+    <value>{0} inkomende relays</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} is al lid van deze groep.</value>

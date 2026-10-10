@@ -3132,6 +3132,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Could not read the queue: " xml:space="preserve">
     <value>Nepodařilo se přečíst frontu: </value>
   </data>
+  <data name="Could not read the relay: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst relay: {0}</value>
+  </data>
   <data name="Could not read the roles: " xml:space="preserve">
     <value>Nepodařilo se přečíst role: </value>
   </data>
@@ -3227,6 +3230,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Could not save the range: {0}" xml:space="preserve">
     <value>Nepodařilo se uložit rozsah: {0}</value>
+  </data>
+  <data name="Could not save the relay: {0}" xml:space="preserve">
+    <value>Nepodařilo se uložit relay: {0}</value>
   </data>
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>Nepodařilo se uložit trasu: {0}</value>
@@ -4249,6 +4255,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>Upravit kritérium</value>
+  </data>
+  <data name="Edit incoming relay" xml:space="preserve">
+    <value>Upravit příchozí relay</value>
   </data>
   <data name="Edit the DNS block list" xml:space="preserve">
     <value>Upravit blokovací seznam DNS</value>
@@ -6403,6 +6412,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Mail servers for {0}, in the order this server would try them:" xml:space="preserve">
     <value>Poštovní servery pro {0}, v pořadí, v jakém by je tento server zkoušel:</value>
   </data>
+  <data name="Mail that arrives from these addresses is judged by the address before them, so a gateway's own address is not scored or banned as the sender's." xml:space="preserve">
+    <value>Pošta přicházející z těchto adres se posuzuje podle adresy před nimi, takže vlastní adresa brány se nehodnotí ani nezakazuje jako adresa odesílatele.</value>
+  </data>
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Pošta správci, když něco potřebuje pozornost, například zaplňující se disk, zaseknutá pracovní fronta, brzy vyprší certifikát nebo selhala záloha. Které podmínky se sledují, určují pravidla upozornění v Control Deck; nic se neodesílá, dokud nejsou obě adresy níže nastavené.</value>
   </data>
@@ -6961,6 +6973,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Name" xml:space="preserve">
     <value>Název</value>
+  </data>
+  <data name="Name or address contains" xml:space="preserve">
+    <value>Název nebo adresa obsahuje</value>
   </data>
   <data name="Name or suffix" xml:space="preserve">
     <value>Název nebo přípona</value>
@@ -12417,6 +12432,9 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
     <value>Soubor nešlo načíst jako certifikát PEM. Server načítá certifikáty pouze ve formátu PEM, takže tento soubor se nenačte a každý port TLS, který ho používá, se nespustí (chyba serveru 5113).</value>
   </data>
+  <data name="The first address of the gateway's range." xml:space="preserve">
+    <value>První adresa rozsahu brány.</value>
+  </data>
   <data name="The first scanner to find something ends the scan, so the order is also the cost: a slow scanner in front of a fast one is paid for on every clean message." xml:space="preserve">
     <value>První skener, který něco najde, kontrolu ukončí, takže pořadí je zároveň cena: pomalý skener před rychlým se platí na každé čisté zprávě.</value>
   </data>
@@ -12569,6 +12587,9 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   </data>
   <data name="The language could not be saved: {0}" xml:space="preserve">
     <value>Jazyk nešlo uložit: {0}</value>
+  </data>
+  <data name="The last address; the same as the first for one gateway." xml:space="preserve">
+    <value>Poslední adresa; pro jednu bránu stejná jako první.</value>
   </data>
   <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
     <value>Poslední pokus selhal {0}: {1}</value>
@@ -16650,6 +16671,15 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} hours ago|few" xml:space="preserve">
     <value>před {0} hodinami</value>
+  </data>
+  <data name="{0} incoming relay" xml:space="preserve">
+    <value>Příchozí relaye: {0}</value>
+  </data>
+  <data name="{0} incoming relays" xml:space="preserve">
+    <value>Příchozí relaye: {0}</value>
+  </data>
+  <data name="{0} incoming relays|few" xml:space="preserve">
+    <value>Příchozí relaye: {0}</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} je již členem této skupiny.</value>

@@ -3108,6 +3108,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Could not read the queue: " xml:space="preserve">
     <value>Jonoa ei voitu lukea: </value>
   </data>
+  <data name="Could not read the relay: {0}" xml:space="preserve">
+    <value>Välityspalvelinta ei voitu lukea: {0}</value>
+  </data>
   <data name="Could not read the roles: " xml:space="preserve">
     <value>Rooleja ei voitu lukea: </value>
   </data>
@@ -3203,6 +3206,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Could not save the range: {0}" xml:space="preserve">
     <value>Aluetta ei voitu tallentaa: {0}</value>
+  </data>
+  <data name="Could not save the relay: {0}" xml:space="preserve">
+    <value>Välityspalvelinta ei voitu tallentaa: {0}</value>
   </data>
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>Reittiä ei voitu tallentaa: {0}</value>
@@ -4203,6 +4209,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>Muokkaa ehtoa</value>
+  </data>
+  <data name="Edit incoming relay" xml:space="preserve">
+    <value>Muokkaa saapuvaa välityspalvelinta</value>
   </data>
   <data name="Edit the DNS block list" xml:space="preserve">
     <value>Muokkaa DNS-estolistaa</value>
@@ -6336,6 +6345,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Mail servers for {0}, in the order this server would try them:" xml:space="preserve">
     <value>Postipalvelimet kohteelle {0} siinä järjestyksessä, jossa tämä palvelin yrittäisi niitä:</value>
   </data>
+  <data name="Mail that arrives from these addresses is judged by the address before them, so a gateway's own address is not scored or banned as the sender's." xml:space="preserve">
+    <value>Näistä osoitteista saapuvaa postia arvioidaan niitä edeltävän osoitteen mukaan, joten yhdyskäytävän omaa osoitetta ei pisteytetä eikä estetä lähettäjän osoitteena.</value>
+  </data>
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Postia ylläpitäjälle, kun jokin vaatii huomiota, kuten levyn täyttyminen, työjonon jumittuminen, pian vanheneva varmenne tai epäonnistunut varmuuskopio. Valvottavat ehdot määräävät hälytyssäännöt Control Deckissä; mitään ei lähetetä, ennen kuin molemmat alla olevat osoitteet on asetettu.</value>
   </data>
@@ -6888,6 +6900,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Name" xml:space="preserve">
     <value>Nimi</value>
+  </data>
+  <data name="Name or address contains" xml:space="preserve">
+    <value>Nimi tai osoite sisältää</value>
   </data>
   <data name="Name or suffix" xml:space="preserve">
     <value>Nimi tai pääte</value>
@@ -12260,6 +12275,9 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
     <value>Tiedostoa ei voitu jäsentää PEM-varmenteeksi. Palvelin lataa varmenteita vain PEM-muodossa, joten tämä tiedosto ei lataudu, eikä yksikään sitä käyttävä TLS-portti käynnisty (palvelinvirhe 5113).</value>
   </data>
+  <data name="The first address of the gateway's range." xml:space="preserve">
+    <value>Yhdyskäytävän alueen ensimmäinen osoite.</value>
+  </data>
   <data name="The first scanner to find something ends the scan, so the order is also the cost: a slow scanner in front of a fast one is paid for on every clean message." xml:space="preserve">
     <value>Ensimmäinen jotain löytävä tarkistin päättää tarkistuksen, joten järjestys on samalla hinta: hitaasta tarkistimesta nopean edellä maksetaan jokaisella puhtaalla viestillä.</value>
   </data>
@@ -12406,6 +12424,9 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   </data>
   <data name="The language could not be saved: {0}" xml:space="preserve">
     <value>Kieltä ei voitu tallentaa: {0}</value>
+  </data>
+  <data name="The last address; the same as the first for one gateway." xml:space="preserve">
+    <value>Viimeinen osoite; yhdelle yhdyskäytävälle sama kuin ensimmäinen.</value>
   </data>
   <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
     <value>Viimeisin yritys epäonnistui {0}: {1}</value>
@@ -16382,6 +16403,12 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} hours ago" xml:space="preserve">
     <value>{0} tuntia sitten</value>
+  </data>
+  <data name="{0} incoming relay" xml:space="preserve">
+    <value>{0} saapuva välityspalvelin</value>
+  </data>
+  <data name="{0} incoming relays" xml:space="preserve">
+    <value>{0} saapuvaa välityspalvelinta</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} on jo tämän ryhmän jäsen.</value>

@@ -2519,6 +2519,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   smallest window gave the name nothing ("Co" under a header cut to "N..."). `DiscoveryPageTests` holds the counts,
   the padding, the floors, the empty states and the ring.
 
+- **Fixed: the Incoming relays page was a list of strings with no columns, no way to change a relay, and a delete that
+  went by the name.** Each row read "Front-end spam filter (203.0.113.40 - 203.0.113.41)", 23 pixels tall, with no
+  headers, no search and an outline for a selection; a wrong address meant deleting the relay and adding it again; and
+  Delete selected, the page header's only button, recovered the name by splitting the row's text at " (" and deleted
+  the first relay of that name, whichever was selected. The page is now a grid of Name, Lower IP and Upper IP, each
+  row the relay's own by its id, three rows always in view and the page scrolling below them, under a toolbar with a
+  search over the name and both addresses and the row's verbs, Edit… and Delete selected; the count is beside the
+  title and Refresh in the header. Edit…, Enter, F2 and a double-click open the relay's dialog, which saves its three
+  fields in place, says an empty box under it and the server's refusal above the fields; Delete selected deletes the
+  relay by its id. Each says what it did above the list ("Front-end spam filter saved.", "... deleted."), a refusal at
+  Critical there where it was a message box. `IncomingRelaysPageTests` holds the grid, the id, the delete, the toolbar
+  and the dialog.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

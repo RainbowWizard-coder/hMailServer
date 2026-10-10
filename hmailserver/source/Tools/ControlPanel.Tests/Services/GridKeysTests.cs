@@ -57,9 +57,10 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("RulesView.xaml.cs", "GridKeys.Wire(ActionsGrid, EditActionButton, RemoveActionButton, AddActionButton);")]
       [InlineData("SslCertificatesView.xaml.cs", "GridKeys.Wire(CertGrid, null, GridKeys.Pressing(DeleteButton), GridKeys.Focusing(NewCertName));")]
       [InlineData("QueueView.xaml.cs", "GridKeys.Wire(QueueGrid, ViewButton, RemoveButton, null);")]
-      [InlineData("UtilityViews.cs", "GridKeys.Wire(list_, null, GridKeys.Pressing(del), GridKeys.Focusing(name_));")]
+      [InlineData("UtilityViews.cs", "GridKeys.Wire(relays_, GridKeys.Pressing(edit), GridKeys.Pressing(del), GridKeys.Focusing(name_));")]
       [InlineData("SuppressionListView.cs", "GridKeys.Wire(entries_, null, remove, addButton_);")]
       [InlineData("DomainPolicyListView.cs", "GridKeys.Wire(entries_, null, remove, addButton_);")]
+      [InlineData("DomainPolicyListView.cs", "GridKeys.Wire(entries_, edit, null, null);")]
       [InlineData("JournalingView.cs", "GridKeys.Wire(rules_, null, GridKeys.Pressing(remove), GridKeys.Focusing(target_));")]
       public void EveryListPage_WiresItsList(string file, string wiring)
       {

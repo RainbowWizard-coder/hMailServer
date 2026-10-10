@@ -3108,6 +3108,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Could not read the queue: " xml:space="preserve">
     <value>Could not read the queue: </value>
   </data>
+  <data name="Could not read the relay: {0}" xml:space="preserve">
+    <value>Could not read the relay: {0}</value>
+  </data>
   <data name="Could not read the roles: " xml:space="preserve">
     <value>Could not read the roles: </value>
   </data>
@@ -3203,6 +3206,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Could not save the range: {0}" xml:space="preserve">
     <value>Could not save the range: {0}</value>
+  </data>
+  <data name="Could not save the relay: {0}" xml:space="preserve">
+    <value>Could not save the relay: {0}</value>
   </data>
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>Could not save the route: {0}</value>
@@ -4203,6 +4209,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>Edit criterion</value>
+  </data>
+  <data name="Edit incoming relay" xml:space="preserve">
+    <value>Edit incoming relay</value>
   </data>
   <data name="Edit the DNS block list" xml:space="preserve">
     <value>Edit the DNS block list</value>
@@ -6336,6 +6345,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Mail servers for {0}, in the order this server would try them:" xml:space="preserve">
     <value>Mail servers for {0}, in the order this server would try them:</value>
   </data>
+  <data name="Mail that arrives from these addresses is judged by the address before them, so a gateway's own address is not scored or banned as the sender's." xml:space="preserve">
+    <value>Mail that arrives from these addresses is judged by the address before them, so a gateway's own address is not scored or banned as the sender's.</value>
+  </data>
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set.</value>
   </data>
@@ -6888,6 +6900,9 @@ Nothing already there is removed.</value>
   </data>
   <data name="Name" xml:space="preserve">
     <value>Name</value>
+  </data>
+  <data name="Name or address contains" xml:space="preserve">
+    <value>Name or address contains</value>
   </data>
   <data name="Name or suffix" xml:space="preserve">
     <value>Name or suffix</value>
@@ -12260,6 +12275,9 @@ could not be loaded. The message has probably been delivered and is no longer in
   <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
     <value>The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113).</value>
   </data>
+  <data name="The first address of the gateway's range." xml:space="preserve">
+    <value>The first address of the gateway's range.</value>
+  </data>
   <data name="The first scanner to find something ends the scan, so the order is also the cost: a slow scanner in front of a fast one is paid for on every clean message." xml:space="preserve">
     <value>The first scanner to find something ends the scan, so the order is also the cost: a slow scanner in front of a fast one is paid for on every clean message.</value>
   </data>
@@ -12406,6 +12424,9 @@ could not be loaded. The message has probably been delivered and is no longer in
   </data>
   <data name="The language could not be saved: {0}" xml:space="preserve">
     <value>The language could not be saved: {0}</value>
+  </data>
+  <data name="The last address; the same as the first for one gateway." xml:space="preserve">
+    <value>The last address; the same as the first for one gateway.</value>
   </data>
   <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
     <value>The last attempt failed at {0}: {1}</value>
@@ -16382,6 +16403,12 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="{0} hours ago" xml:space="preserve">
     <value>{0} hours ago</value>
+  </data>
+  <data name="{0} incoming relay" xml:space="preserve">
+    <value>{0} incoming relay</value>
+  </data>
+  <data name="{0} incoming relays" xml:space="preserve">
+    <value>{0} incoming relays</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} is already a member of this group.</value>

@@ -3108,6 +3108,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Could not read the queue: " xml:space="preserve">
     <value>Kunne ikke lese køen: </value>
   </data>
+  <data name="Could not read the relay: {0}" xml:space="preserve">
+    <value>Kunne ikke lese relayet: {0}</value>
+  </data>
   <data name="Could not read the roles: " xml:space="preserve">
     <value>Kunne ikke lese rollene: </value>
   </data>
@@ -3203,6 +3206,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   </data>
   <data name="Could not save the range: {0}" xml:space="preserve">
     <value>Kunne ikke lagre området: {0}</value>
+  </data>
+  <data name="Could not save the relay: {0}" xml:space="preserve">
+    <value>Kunne ikke lagre relayet: {0}</value>
   </data>
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>Kunne ikke lagre ruten: {0}</value>
@@ -4203,6 +4209,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>Rediger kriterium</value>
+  </data>
+  <data name="Edit incoming relay" xml:space="preserve">
+    <value>Rediger innkommende relay</value>
   </data>
   <data name="Edit the DNS block list" xml:space="preserve">
     <value>Rediger DNS-blokkeringslisten</value>
@@ -6336,6 +6345,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Mail servers for {0}, in the order this server would try them:" xml:space="preserve">
     <value>E-postservere for {0}, i rekkefølgen denne serveren ville prøve dem:</value>
   </data>
+  <data name="Mail that arrives from these addresses is judged by the address before them, so a gateway's own address is not scored or banned as the sender's." xml:space="preserve">
+    <value>E-post som kommer fra disse adressene, vurderes etter adressen før dem, slik at gatewayens egen adresse ikke får poeng eller blir blokkert som avsenderens.</value>
+  </data>
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Post til en administrator når noe trenger oppmerksomhet, for eksempel en disk som fylles, en arbeidskø som stopper opp, et sertifikat som snart utløper, eller en sikkerhetskopi som mislyktes. Hvilke forhold som overvåkes, bestemmes av alarmreglene i Control Deck; ingenting sendes før begge adressene nedenfor er angitt.</value>
   </data>
@@ -6888,6 +6900,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="Name" xml:space="preserve">
     <value>Navn</value>
+  </data>
+  <data name="Name or address contains" xml:space="preserve">
+    <value>Navn eller adresse inneholder</value>
   </data>
   <data name="Name or suffix" xml:space="preserve">
     <value>Navn eller suffiks</value>
@@ -12260,6 +12275,9 @@ kunne ikke lastes. Meldingen er sannsynligvis levert og ikke lenger i køen.</va
   <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
     <value>Filen kunne ikke parses som et PEM-sertifikat. Serveren laster sertifikater bare i PEM-format, så denne filen lastes ikke, og hver TLS-port som bruker den, vil ikke kunne starte (serverfeil 5113).</value>
   </data>
+  <data name="The first address of the gateway's range." xml:space="preserve">
+    <value>Den første adressen i gatewayens område.</value>
+  </data>
   <data name="The first scanner to find something ends the scan, so the order is also the cost: a slow scanner in front of a fast one is paid for on every clean message." xml:space="preserve">
     <value>Den første skanneren som finner noe, avslutter skanningen, så rekkefølgen er også kostnaden: en treg skanner foran en rask betales for på hver ren melding.</value>
   </data>
@@ -12406,6 +12424,9 @@ kunne ikke lastes. Meldingen er sannsynligvis levert og ikke lenger i køen.</va
   </data>
   <data name="The language could not be saved: {0}" xml:space="preserve">
     <value>Språket kunne ikke lagres: {0}</value>
+  </data>
+  <data name="The last address; the same as the first for one gateway." xml:space="preserve">
+    <value>Den siste adressen; den samme som den første for én gateway.</value>
   </data>
   <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
     <value>Det siste forsøket mislyktes {0}: {1}</value>
@@ -16382,6 +16403,12 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="{0} hours ago" xml:space="preserve">
     <value>for {0} timer siden</value>
+  </data>
+  <data name="{0} incoming relay" xml:space="preserve">
+    <value>{0} innkommende relay</value>
+  </data>
+  <data name="{0} incoming relays" xml:space="preserve">
+    <value>{0} innkommende relayer</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} er allerede medlem av denne gruppen.</value>

@@ -19,12 +19,31 @@ namespace hMailServer.ControlPanel.Views
    /// <summary>Incoming relays: trusted upstream servers whose IPs are skipped in spam host checks.</summary>
    public class IncomingRelaysView : UserControl, IPageLifecycle, IRefreshablePage
    {
-      private readonly ListView list_ = new()
+      // A grid with a column each for the name and the two ends of the range,
+      // each row the relay's own, by its id (IncomingRelayRow), where it was a
+      // list of strings - "Front-end spam filter   (203.0.113.40 - 203.0.113.41)",
+      // 23 pixels tall, no headers, an outline for a selection - from which
+      // Delete selected recovered the name by splitting at "   (" and then
+      // deleted the first relay of that name (review finding F221). No
+      // MinHeight of its own: its card is floored by the page's FillPanel.
+      private readonly DataGrid relays_ = new()
       {
-         BorderThickness = new Thickness(0),
-         Background = System.Windows.Media.Brushes.Transparent,
-         HorizontalContentAlignment = HorizontalAlignment.Stretch
+         AutoGenerateColumns = false,
+         IsReadOnly = true,
+         CanUserAddRows = false,
+         CanUserDeleteRows = false,
+         SelectionMode = DataGridSelectionMode.Single
       };
+
+      private readonly Toolbar toolbar_ = new() { SearchPlaceholder = L("Name or address contains") };
+
+      // How many relays there are, beside the title, as the list pages say it.
+      private readonly StatusPill count_ = new() { Level = StatusLevel.Normal, Visibility = Visibility.Collapsed };
+
+      // What Edit… or Delete selected did, or the server's refusal of it,
+      // above the list: the two said nothing on success, and a refusal came in a
+      // message box.
+      private readonly InlineNotice outcome_ = new() { Visibility = Visibility.Collapsed };
       // The three boxes are captioned by their FieldRows now, so the caption is
       // the accessible name and the placeholder would only repeat it.
       private readonly Wpf.Ui.Controls.TextBox name_ = new();
@@ -56,37 +75,77 @@ namespace hMailServer.ControlPanel.Views
          var grid = new Grid();
          grid.SetResourceReference(MarginProperty, "AppPagePadding");
          grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
+         // Edit… and Delete selected act on the selected relay, in the toolbar
+         // over the list as the list pages' verbs are; Delete selected was the
+         // page header's only button, beside the title. Edit…, as the list
+         // editor's pages say it, opens the relay's dialog.
+         var edit = new Wpf.Ui.Controls.Button { Content = L("_Edit…"), Margin = new Thickness(0, 0, 8, 0) };
+         System.Windows.Automation.AutomationProperties.SetAutomationId(edit, "relays-edit");
+         edit.Click += (s, e) => EditSelected();
          var del = new Wpf.Ui.Controls.Button { Content = L("_Delete selected") };
          ButtonStyles.DangerText(del);
+         System.Windows.Automation.AutomationProperties.SetAutomationId(del, "relays-delete");
          del.Click += (s, e) => DeleteSelected();
+         var refresh = new Wpf.Ui.Controls.Button { Content = L("_Refresh") };
+         System.Windows.Automation.AutomationProperties.SetAutomationId(refresh, "relays-refresh");
+         refresh.Click += (s, e) => Reload();
 
          grid.Children.Add(new PageHeader
          {
             PageKey = "relays",
             Subtitle = L("Upstream gateways (spam filters, load balancers) whose IP addresses should not count as the connecting client in anti-spam host checks."),
-            Actions = del
+            Status = count_,
+            Actions = refresh
          });
 
-         System.Windows.Automation.AutomationProperties.SetName(list_, L("Incoming relays"));
+         // The IP ranges shape: the toolbar, the notices, the list down to a
+         // floor of three rows and the add form, in a scroll viewer; the list
+         // was a star row of the page's grid.
+         ScrollViewer scroll = FillPanel.ScrollingPage(out FillPanel parts);
+         Grid.SetRow(scroll, 1);
+         grid.Children.Add(scroll);
 
-         // Delete selected acts on the selected relay; it was a live red button
-         // with an empty list, the only one of its kind on a list page.
-         SelectionGate.Bind(list_, del);
+         var actions = new StackPanel { Orientation = Orientation.Horizontal };
+         actions.Children.Add(edit);
+         actions.Children.Add(del);
+         toolbar_.Actions = actions;
+         // Filtered as it is typed in, over the name and both addresses.
+         toolbar_.SearchTextChanged += (s, e) => ListSearch.Apply(relays_, toolbar_.SearchText);
+         parts.Children.Add(toolbar_);
 
-         Grid.SetRow(notice_, 1);
-         grid.Children.Add(notice_);
+         relays_.Columns.Add(GridStyles.Trimmed(new DataGridTextColumn
+         {
+            Header = L("Name"),
+            Binding = new System.Windows.Data.Binding(nameof(IncomingRelayRow.Name)),
+            Width = new DataGridLength(1, DataGridLengthUnitType.Star),
+            MinWidth = Math.Max(160, GridStyles.HeaderWidth(L("Name")))
+         }));
+         relays_.Columns.Add(AddressColumn_(L("Lower IP"), nameof(IncomingRelayRow.LowerIP)));
+         relays_.Columns.Add(AddressColumn_(L("Upper IP"), nameof(IncomingRelayRow.UpperIP)));
+         System.Windows.Automation.AutomationProperties.SetName(relays_, L("Incoming relays"));
 
+         // Edit… and Delete selected act on the selected relay; Delete selected
+         // was a live red button with an empty list, the only one of its kind on
+         // a list page.
+         SelectionGate.Bind(relays_, edit, del);
+
+         parts.Children.Add(notice_);
+         parts.Children.Add(outcome_);
+
+         // The grid's three rows on a FillPanel of their own and the card floored
+         // at what it holds, so that the empty state laid over them raises the
+         // card's floor where it needs more.
+         var rows = new FillPanel();
+         rows.Children.Add(FillPanel.Filling(relays_, FillPanel.ListRowsFloor));
          var listHost = new Grid();
-         listHost.Children.Add(list_);
+         listHost.Children.Add(rows);
          listHost.Children.Add(empty_);
-         var listCard = new Card { Padding = new Thickness(10), Content = listHost };
+         EmptyStateUnderHeaders.Keep(empty_, relays_);
+         var listCard = new Card { Padding = new Thickness(8), Content = listHost };
          listCard.SetResourceReference(MarginProperty, "AppCardGap");
-         Grid.SetRow(listCard, 2);
-         grid.Children.Add(listCard);
+         parts.Children.Add(FillPanel.Filling(listCard, 0));
 
          var row = new Grid();
          Grid.SetIsSharedSizeScope(row, true);
@@ -114,16 +173,29 @@ namespace hMailServer.ControlPanel.Views
          Grid.SetColumn(addLine, 3);
          row.Children.Add(addLine);
 
-         // Delete deletes the selected relay after asking, Insert goes to the form,
-         // and Enter in the form adds; Escape empties it (Views/GridKeys, FormSubmit).
-         GridKeys.Wire(list_, null, GridKeys.Pressing(del), GridKeys.Focusing(name_));
+         // Enter, F2 and a double-click open the selected relay's dialog,
+         // Delete deletes it after asking, Insert goes to the form, and Enter in
+         // the form adds; Escape empties it (Views/GridKeys, FormSubmit).
+         GridKeys.Wire(relays_, GridKeys.Pressing(edit), GridKeys.Pressing(del), GridKeys.Focusing(name_));
          FormSubmit.Bind(row, add_, name_, lower_, upper_);
 
          var addCard = new Card { Title = L("Add relay"), Content = row };
-         Grid.SetRow(addCard, 3);
-         grid.Children.Add(addCard);
+         parts.Children.Add(addCard);
 
          Content = grid;
+      }
+
+      /// <summary>One end of a relay's range: 170 pixels, or its header's width where that is more.</summary>
+      private static DataGridTextColumn AddressColumn_(string header, string path)
+      {
+         double width = Math.Max(170, GridStyles.HeaderWidth(header));
+         return GridStyles.Trimmed(new DataGridTextColumn
+         {
+            Header = header,
+            Binding = new System.Windows.Data.Binding(path),
+            Width = new DataGridLength(width),
+            MinWidth = width
+         });
       }
 
       public void OnEnter() => Reload();
@@ -136,7 +208,8 @@ namespace hMailServer.ControlPanel.Views
 
       private void Reload()
       {
-         var rows = new List<string>();
+         var rows = new List<IncomingRelayRow>();
+         outcome_.Visibility = Visibility.Collapsed;
          try
          {
             dynamic relays = ServerSession.Current.Application.Settings.IncomingRelays;
@@ -146,7 +219,13 @@ namespace hMailServer.ControlPanel.Views
                for (int i = 0; i < count; i++)
                {
                   dynamic relay = relays.Item[i];
-                  rows.Add((string)relay.Name + "   (" + (string)relay.LowerIP + " - " + (string)relay.UpperIP + ")");
+                  rows.Add(new IncomingRelayRow
+                  {
+                     Id = (int)relay.ID,
+                     Name = (string)relay.Name ?? "",
+                     LowerIP = (string)relay.LowerIP ?? "",
+                     UpperIP = (string)relay.UpperIP ?? ""
+                  });
                   ServerSession.Release(relay);
                }
             }
@@ -160,14 +239,55 @@ namespace hMailServer.ControlPanel.Views
             // Neither the rows of the last read nor "No incoming relays." is a fact
             // this page has now: both go, the notice says what happened, with Try
             // again, and Add waits for a read that works (Services/ReadFailure).
-            ReadFailure.Show(notice_, empty_, list_, L("Could not read the incoming relays: "), ex, Reload, add_);
+            ReadFailure.Show(notice_, empty_, relays_, L("Could not read the incoming relays: "), ex, Reload, add_);
+            count_.Visibility = Visibility.Collapsed;
             return;
          }
 
          ReadFailure.Clear(notice_, add_);
-         list_.ItemsSource = rows;
+         relays_.ItemsSource = rows;
+         ListSearch.Apply(relays_, toolbar_.SearchText);
          StatusText.Show(empty_, null, rows.Count, null,
             L("No incoming relays. Add one only for a gateway in front of this server whose address you trust."));
+         count_.Text = Plural(rows.Count, "{0} incoming relay", "{0} incoming relays");
+         count_.Visibility = Visibility.Visible;
+      }
+
+      /// <summary>What an act on a relay did, above the list, at its level.</summary>
+      private void Say_(StatusLevel level, string text)
+      {
+         outcome_.Level = level;
+         outcome_.Text = text;
+         outcome_.Visibility = Visibility.Visible;
+      }
+
+      /// <summary>Selects the relay with this id after a read, and brings it into view.</summary>
+      private void Select_(int id)
+      {
+         if (relays_.ItemsSource is not List<IncomingRelayRow> rows || rows.Find(r => r.Id == id) is not IncomingRelayRow row)
+            return;
+
+         relays_.SelectedItem = row;
+         relays_.ScrollIntoView(row);
+      }
+
+      /// <summary>
+      /// Edit…, Enter and a double-click: the relay's three fields in a
+      /// dialog that saves them in place (IncomingRelayDialog), where a wrong
+      /// address meant deleting the relay and adding it again.
+      /// </summary>
+      private void EditSelected()
+      {
+         if (relays_.SelectedItem is not IncomingRelayRow row)
+            return;
+
+         string saved = IncomingRelayDialog.Edit(Window.GetWindow(this), row.Id);
+         if (saved == null)
+            return;
+
+         Reload();
+         Select_(row.Id);
+         Say_(StatusLevel.Good, ListOutcome.Saved(saved, DateTime.Now));
       }
 
       private void Add()
@@ -215,43 +335,50 @@ namespace hMailServer.ControlPanel.Views
          Reload();
       }
 
+      /// <summary>
+      /// Deletes the selected relay by its id, after asking, and says so above the
+      /// list with the row that took its place selected; the server's refusal is
+      /// said there too. The name the row showed is never matched: two relays may
+      /// share one, and the first of them was the one deleted.
+      /// </summary>
       private void DeleteSelected()
       {
-         string selected = list_.SelectedItem as string;
-         if (selected == null)
+         if (relays_.SelectedItem is not IncomingRelayRow row)
             return;
 
-         string relayName = selected.Split("   (")[0];
-
-         if (!MessageBox.Confirm(F("Delete the incoming relay {0}?", relayName), L("Control Panel"), L("_Delete relay"), destructive: true))
+         if (!MessageBox.Confirm(F("Delete the incoming relay {0}?", row.Name), L("Control Panel"), L("_Delete relay"), destructive: true))
             return;
 
+         int at = relays_.SelectedIndex;
          dynamic relays = ServerSession.Current.Application.Settings.IncomingRelays;
+         dynamic relay = null;
          try
          {
-            int count = (int)relays.Count;
-            for (int i = 0; i < count; i++)
-            {
-               dynamic relay = relays.Item[i];
-               if ((string)relay.Name == relayName)
-               {
-                  relay.Delete();
-                  ServerSession.Release(relay);
-                  break;
-               }
-               ServerSession.Release(relay);
-            }
+            // The relay itself, by its id, deletes itself - the path the page
+            // always took, which holds the session to a server administrator's.
+            relay = relays.ItemByDBID[row.Id];
+            relay.Delete();
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not delete the relay: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
+            Say_(StatusLevel.Critical, F("Could not delete the relay: {0}", ServerSession.DescribeComError(ex)));
+            return;
          }
          finally
          {
+            ServerSession.Release((object)relay);
             ServerSession.Release(relays);
          }
 
          Reload();
+         if (relays_.ItemsSource is List<IncomingRelayRow> rows)
+         {
+            int next = ListOutcome.IndexAfterDelete(rows.Count, at);
+            if (next >= 0)
+               Select_(rows[next].Id);
+         }
+
+         Say_(StatusLevel.Good, ListOutcome.Deleted(row.Name));
       }
    }
 

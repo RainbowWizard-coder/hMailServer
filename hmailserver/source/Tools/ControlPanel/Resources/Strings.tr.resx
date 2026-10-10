@@ -3108,6 +3108,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Could not read the queue: " xml:space="preserve">
     <value>Kuyruk okunamadı: </value>
   </data>
+  <data name="Could not read the relay: {0}" xml:space="preserve">
+    <value>Aktarma okunamadı: {0}</value>
+  </data>
   <data name="Could not read the roles: " xml:space="preserve">
     <value>Roller okunamadı: </value>
   </data>
@@ -3203,6 +3206,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Could not save the range: {0}" xml:space="preserve">
     <value>Aralık kaydedilemedi: {0}</value>
+  </data>
+  <data name="Could not save the relay: {0}" xml:space="preserve">
+    <value>Aktarma kaydedilemedi: {0}</value>
   </data>
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>Rota kaydedilemedi: {0}</value>
@@ -4203,6 +4209,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>Ölçütü düzenle</value>
+  </data>
+  <data name="Edit incoming relay" xml:space="preserve">
+    <value>Gelen aktarmayı düzenle</value>
   </data>
   <data name="Edit the DNS block list" xml:space="preserve">
     <value>DNS engelleme listesini düzenle</value>
@@ -6336,6 +6345,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Mail servers for {0}, in the order this server would try them:" xml:space="preserve">
     <value>{0} için posta sunucuları, bu sunucunun deneyeceği sırayla:</value>
   </data>
+  <data name="Mail that arrives from these addresses is judged by the address before them, so a gateway's own address is not scored or banned as the sender's." xml:space="preserve">
+    <value>Bu adreslerden gelen posta, onlardan önceki adrese göre değerlendirilir; böylece bir ağ geçidinin kendi adresi gönderenin adresi olarak puanlanmaz ve yasaklanmaz.</value>
+  </data>
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Bir şey dikkat gerektirdiğinde yöneticiye posta: dolan bir disk, duran bir iş kuyruğu, süresi dolmak üzere olan bir sertifika veya başarısız bir yedekleme gibi. Hangi koşulların izlendiğini Control Deck'teki uyarı kuralları belirler; aşağıdaki iki adres de ayarlanana kadar hiçbir şey gönderilmez.</value>
   </data>
@@ -6888,6 +6900,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Name" xml:space="preserve">
     <value>Ad</value>
+  </data>
+  <data name="Name or address contains" xml:space="preserve">
+    <value>Ad veya adres şunu içerir</value>
   </data>
   <data name="Name or suffix" xml:space="preserve">
     <value>Ad veya sonek</value>
@@ -12260,6 +12275,9 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
     <value>Dosya bir PEM sertifikası olarak ayrıştırılamadı. Sunucu sertifikaları yalnızca PEM biçiminde yükler; bu yüzden bu dosya yüklenmez ve onu kullanan her TLS portu başlatılamaz (sunucu hatası 5113).</value>
   </data>
+  <data name="The first address of the gateway's range." xml:space="preserve">
+    <value>Ağ geçidinin aralığındaki ilk adres.</value>
+  </data>
   <data name="The first scanner to find something ends the scan, so the order is also the cost: a slow scanner in front of a fast one is paid for on every clean message." xml:space="preserve">
     <value>Bir şey bulan ilk tarayıcı taramayı bitirir; bu yüzden sıra aynı zamanda maliyettir: hızlı bir tarayıcının önündeki yavaş bir tarayıcının bedeli her temiz iletide ödenir.</value>
   </data>
@@ -12406,6 +12424,9 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   </data>
   <data name="The language could not be saved: {0}" xml:space="preserve">
     <value>Dil kaydedilemedi: {0}</value>
+  </data>
+  <data name="The last address; the same as the first for one gateway." xml:space="preserve">
+    <value>Son adres; tek bir ağ geçidi için ilk adresle aynıdır.</value>
   </data>
   <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
     <value>Son deneme {0} tarihinde başarısız oldu: {1}</value>
@@ -16382,6 +16403,12 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} hours ago" xml:space="preserve">
     <value>{0} saat önce</value>
+  </data>
+  <data name="{0} incoming relay" xml:space="preserve">
+    <value>{0} gelen aktarma</value>
+  </data>
+  <data name="{0} incoming relays" xml:space="preserve">
+    <value>{0} gelen aktarma</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} zaten bu grubun üyesi.</value>

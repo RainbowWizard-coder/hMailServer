@@ -3108,6 +3108,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Could not read the queue: " xml:space="preserve">
     <value>Impossibile leggere la coda: </value>
   </data>
+  <data name="Could not read the relay: {0}" xml:space="preserve">
+    <value>Impossibile leggere il relay: {0}</value>
+  </data>
   <data name="Could not read the roles: " xml:space="preserve">
     <value>Impossibile leggere i ruoli: </value>
   </data>
@@ -3203,6 +3206,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="Could not save the range: {0}" xml:space="preserve">
     <value>Impossibile salvare l'intervallo: {0}</value>
+  </data>
+  <data name="Could not save the relay: {0}" xml:space="preserve">
+    <value>Impossibile salvare il relay: {0}</value>
   </data>
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>Impossibile salvare la rotta: {0}</value>
@@ -4203,6 +4209,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>Modifica criterio</value>
+  </data>
+  <data name="Edit incoming relay" xml:space="preserve">
+    <value>Modifica relay in ingresso</value>
   </data>
   <data name="Edit the DNS block list" xml:space="preserve">
     <value>Modifica la lista di blocco DNS</value>
@@ -6336,6 +6345,9 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="Mail servers for {0}, in the order this server would try them:" xml:space="preserve">
     <value>Server di posta per {0}, nell'ordine in cui questo server li proverebbe:</value>
   </data>
+  <data name="Mail that arrives from these addresses is judged by the address before them, so a gateway's own address is not scored or banned as the sender's." xml:space="preserve">
+    <value>La posta che arriva da questi indirizzi viene giudicata in base all'indirizzo che li precede, così l'indirizzo del gateway non viene valutato né bannato come quello del mittente.</value>
+  </data>
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Posta a un amministratore quando qualcosa richiede attenzione, come il disco che si riempie, una coda di lavoro che si blocca, un certificato in scadenza o un backup fallito. Quali condizioni sorvegliare lo decidono le regole di avviso nel Control Deck; non viene inviato nulla finché entrambi gli indirizzi qui sotto non sono impostati.</value>
   </data>
@@ -6888,6 +6900,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="Name" xml:space="preserve">
     <value>Nome</value>
+  </data>
+  <data name="Name or address contains" xml:space="preserve">
+    <value>Il nome o l'indirizzo contiene</value>
   </data>
   <data name="Name or suffix" xml:space="preserve">
     <value>Nome o suffisso</value>
@@ -12260,6 +12275,9 @@ non ha potuto essere caricato. Il messaggio è probabilmente già stato consegna
   <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
     <value>Non è stato possibile interpretare il file come certificato PEM. Il server carica certificati solo in formato PEM, quindi questo file non verrà caricato e ogni porta TLS che lo usa non riuscirà ad avviarsi (errore del server 5113).</value>
   </data>
+  <data name="The first address of the gateway's range." xml:space="preserve">
+    <value>Il primo indirizzo dell'intervallo del gateway.</value>
+  </data>
   <data name="The first scanner to find something ends the scan, so the order is also the cost: a slow scanner in front of a fast one is paid for on every clean message." xml:space="preserve">
     <value>Il primo scanner che trova qualcosa termina la scansione, quindi l'ordine è anche il costo: uno scanner lento posto davanti a uno veloce si paga su ogni messaggio pulito.</value>
   </data>
@@ -12406,6 +12424,9 @@ non ha potuto essere caricato. Il messaggio è probabilmente già stato consegna
   </data>
   <data name="The language could not be saved: {0}" xml:space="preserve">
     <value>Non è stato possibile salvare la lingua: {0}</value>
+  </data>
+  <data name="The last address; the same as the first for one gateway." xml:space="preserve">
+    <value>L'ultimo indirizzo; lo stesso del primo per un solo gateway.</value>
   </data>
   <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
     <value>L'ultimo tentativo non è riuscito il {0}: {1}</value>
@@ -15060,7 +15081,7 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
     <value>Sblocca _la casella</value>
   </data>
   <data name="_Upper IP" xml:space="preserve">
-    <value>IP _superiore</value>
+    <value>IP s_uperiore</value>
   </data>
   <data name="_Upper IP (e.g. 10.0.0.255)" xml:space="preserve">
     <value>IP s_uperiore (es. 10.0.0.255)</value>
@@ -16382,6 +16403,12 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="{0} hours ago" xml:space="preserve">
     <value>{0} ore fa</value>
+  </data>
+  <data name="{0} incoming relay" xml:space="preserve">
+    <value>{0} relay in ingresso</value>
+  </data>
+  <data name="{0} incoming relays" xml:space="preserve">
+    <value>{0} relay in ingresso</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} è già membro di questo gruppo.</value>

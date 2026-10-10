@@ -17,7 +17,7 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | over REST but not reached by any Deck view | 0 |
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 100 |
-| desktop pages read | 91 |
+| desktop pages read | 92 |
 | REST routes (path and method) | 595, 263 of them writes |
 | Deck views | 40 |
 
@@ -757,9 +757,9 @@ Every COM property the desktop program writes, the page that writes it, the REST
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `LowerIP` | UtilityViews | `POST /api/v1/incoming-relays` (name)<br>`PUT /api/v1/incoming-relays/{id}` (name)<br>`POST /api/v1/roles` (words, loose, scope unknown)<br>`PUT /api/v1/roles/{name}` (words, loose, scope unknown)<br>`POST /api/v1/webhooks` (words, loose, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (words, loose, scope unknown) | lists, settings, webhooks |
-| `Name` | UtilityViews | `POST /api/v1/incoming-relays` (setter)<br>`PUT /api/v1/incoming-relays/{id}` (setter)<br>`POST /api/v1/passkeys` (setter, scope unknown)<br>`POST /api/v1/settings/profiles/{name}/apply` (path, scope unknown)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown)<br>`POST /api/v1/diagnostics/run` (name, scope unknown)<br>`POST /api/v1/backup/{archive}/mailboxes/{address}/restore` (name, scope unknown)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown) | checklist, diagnostics, lists, passkeys, roles, settings, webhooks |
-| `UpperIP` | UtilityViews | `POST /api/v1/incoming-relays` (name)<br>`PUT /api/v1/incoming-relays/{id}` (name) | lists, settings |
+| `LowerIP` | IncomingRelayDialog, UtilityViews | `POST /api/v1/incoming-relays` (name)<br>`PUT /api/v1/incoming-relays/{id}` (name)<br>`POST /api/v1/roles` (words, loose, scope unknown)<br>`PUT /api/v1/roles/{name}` (words, loose, scope unknown)<br>`POST /api/v1/webhooks` (words, loose, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (words, loose, scope unknown) | lists, settings, webhooks |
+| `Name` | IncomingRelayDialog, UtilityViews | `POST /api/v1/incoming-relays` (setter)<br>`PUT /api/v1/incoming-relays/{id}` (setter)<br>`POST /api/v1/passkeys` (setter, scope unknown)<br>`POST /api/v1/settings/profiles/{name}/apply` (path, scope unknown)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown)<br>`POST /api/v1/diagnostics/run` (name, scope unknown)<br>`POST /api/v1/backup/{archive}/mailboxes/{address}/restore` (name, scope unknown)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown) | checklist, diagnostics, lists, passkeys, roles, settings, webhooks |
+| `UpperIP` | IncomingRelayDialog, UtilityViews | `POST /api/v1/incoming-relays` (name)<br>`PUT /api/v1/incoming-relays/{id}` (name) | lists, settings |
 
 ### MessageIndexing
 

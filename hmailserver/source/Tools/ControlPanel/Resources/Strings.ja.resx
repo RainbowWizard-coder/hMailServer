@@ -3108,6 +3108,9 @@
   <data name="Could not read the queue: " xml:space="preserve">
     <value>キューを読み取れませんでした: </value>
   </data>
+  <data name="Could not read the relay: {0}" xml:space="preserve">
+    <value>リレーを読み取れませんでした: {0}</value>
+  </data>
   <data name="Could not read the roles: " xml:space="preserve">
     <value>ロールを読み取れませんでした: </value>
   </data>
@@ -3203,6 +3206,9 @@
   </data>
   <data name="Could not save the range: {0}" xml:space="preserve">
     <value>範囲を保存できませんでした: {0}</value>
+  </data>
+  <data name="Could not save the relay: {0}" xml:space="preserve">
+    <value>リレーを保存できませんでした: {0}</value>
   </data>
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>ルートを保存できませんでした: {0}</value>
@@ -4203,6 +4209,9 @@
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>条件を編集</value>
+  </data>
+  <data name="Edit incoming relay" xml:space="preserve">
+    <value>受信リレーを編集</value>
   </data>
   <data name="Edit the DNS block list" xml:space="preserve">
     <value>DNS ブロック リストを編集</value>
@@ -6336,6 +6345,9 @@
   <data name="Mail servers for {0}, in the order this server would try them:" xml:space="preserve">
     <value>{0} のメール サーバー (このサーバーが試す順):</value>
   </data>
+  <data name="Mail that arrives from these addresses is judged by the address before them, so a gateway's own address is not scored or banned as the sender's." xml:space="preserve">
+    <value>これらのアドレスから届くメールは、その手前のアドレスで判定されます。ゲートウェイ自身のアドレスが送信者のアドレスとして採点されたりブロックされたりすることはありません。</value>
+  </data>
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>ディスクの残量不足、作業キューの停止、期限切れ間近の証明書、失敗したバックアップなど、注意が必要なときに管理者に送るメール。どの状態を監視するかは Control Deck のアラート ルールで設定します。下の 2 つのアドレスを両方設定するまで何も送られません。</value>
   </data>
@@ -6888,6 +6900,9 @@
   </data>
   <data name="Name" xml:space="preserve">
     <value>名前</value>
+  </data>
+  <data name="Name or address contains" xml:space="preserve">
+    <value>名前またはアドレスに含まれる文字</value>
   </data>
   <data name="Name or suffix" xml:space="preserve">
     <value>名前またはサフィックス</value>
@@ -12260,6 +12275,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
     <value>ファイルを PEM 証明書として解析できませんでした。サーバーは PEM 形式の証明書のみを読み込むため、このファイルは読み込まれず、これを使うすべての TLS ポートが起動に失敗します (サーバー エラー 5113)。</value>
   </data>
+  <data name="The first address of the gateway's range." xml:space="preserve">
+    <value>ゲートウェイの範囲の最初のアドレス。</value>
+  </data>
   <data name="The first scanner to find something ends the scan, so the order is also the cost: a slow scanner in front of a fast one is paid for on every clean message." xml:space="preserve">
     <value>何かを見つけた最初のスキャナーでスキャンは終了するため、順序はコストでもあります。速いスキャナーの前に遅いスキャナーがあると、正常なメッセージすべてでそのコストを払うことになります。</value>
   </data>
@@ -12406,6 +12424,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The language could not be saved: {0}" xml:space="preserve">
     <value>言語を保存できませんでした: {0}</value>
+  </data>
+  <data name="The last address; the same as the first for one gateway." xml:space="preserve">
+    <value>最後のアドレス。ゲートウェイが 1 台なら最初のアドレスと同じです。</value>
   </data>
   <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
     <value>前回の試行は {0} に失敗しました: {1}</value>
@@ -16382,6 +16403,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} hours ago" xml:space="preserve">
     <value>{0} 時間前</value>
+  </data>
+  <data name="{0} incoming relay" xml:space="preserve">
+    <value>受信リレー {0} 件</value>
+  </data>
+  <data name="{0} incoming relays" xml:space="preserve">
+    <value>受信リレー {0} 件</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} は既にこのグループのメンバーです。</value>

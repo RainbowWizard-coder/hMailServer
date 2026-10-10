@@ -3132,6 +3132,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Could not read the queue: " xml:space="preserve">
     <value>Nie udało się odczytać kolejki: </value>
   </data>
+  <data name="Could not read the relay: {0}" xml:space="preserve">
+    <value>Nie udało się odczytać przekaźnika: {0}</value>
+  </data>
   <data name="Could not read the roles: " xml:space="preserve">
     <value>Nie udało się odczytać ról: </value>
   </data>
@@ -3227,6 +3230,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Could not save the range: {0}" xml:space="preserve">
     <value>Nie udało się zapisać zakresu: {0}</value>
+  </data>
+  <data name="Could not save the relay: {0}" xml:space="preserve">
+    <value>Nie udało się zapisać przekaźnika: {0}</value>
   </data>
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>Nie udało się zapisać trasy: {0}</value>
@@ -4249,6 +4255,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>Edytuj kryterium</value>
+  </data>
+  <data name="Edit incoming relay" xml:space="preserve">
+    <value>Edytuj przekaźnik przychodzący</value>
   </data>
   <data name="Edit the DNS block list" xml:space="preserve">
     <value>Edytuj listę blokowania DNS</value>
@@ -6403,6 +6412,9 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   <data name="Mail servers for {0}, in the order this server would try them:" xml:space="preserve">
     <value>Serwery pocztowe domeny {0}, w kolejności, w jakiej ten serwer by je wypróbował:</value>
   </data>
+  <data name="Mail that arrives from these addresses is judged by the address before them, so a gateway's own address is not scored or banned as the sender's." xml:space="preserve">
+    <value>Poczta przychodząca z tych adresów jest oceniana według adresu przed nimi, więc własny adres bramy nie jest punktowany ani blokowany jako adres nadawcy.</value>
+  </data>
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Poczta do administratora, gdy coś wymaga uwagi, na przykład zapełniający się dysk, zatrzymująca się kolejka pracy, wygasający wkrótce certyfikat albo nieudana kopia zapasowa. Które warunki są obserwowane, ustalają reguły alertów w Control Deck; nic nie jest wysyłane, dopóki oba adresy poniżej nie są ustawione.</value>
   </data>
@@ -6961,6 +6973,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   </data>
   <data name="Name" xml:space="preserve">
     <value>Nazwa</value>
+  </data>
+  <data name="Name or address contains" xml:space="preserve">
+    <value>Nazwa lub adres zawiera</value>
   </data>
   <data name="Name or suffix" xml:space="preserve">
     <value>Nazwa lub sufiks</value>
@@ -12417,6 +12432,9 @@ Wiadomość została prawdopodobnie dostarczona i nie ma jej już w kolejce.</va
   <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
     <value>Nie udało się przetworzyć tego pliku jako certyfikatu PEM. Serwer wczytuje certyfikaty wyłącznie w formacie PEM, więc ten plik się nie wczyta, a każdy port TLS, który go używa, nie uruchomi się (błąd serwera 5113).</value>
   </data>
+  <data name="The first address of the gateway's range." xml:space="preserve">
+    <value>Pierwszy adres zakresu bramy.</value>
+  </data>
   <data name="The first scanner to find something ends the scan, so the order is also the cost: a slow scanner in front of a fast one is paid for on every clean message." xml:space="preserve">
     <value>Pierwszy skaner, który coś znajdzie, kończy skanowanie, więc kolejność jest zarazem kosztem: za wolny skaner ustawiony przed szybkim płaci się przy każdej czystej wiadomości.</value>
   </data>
@@ -12569,6 +12587,9 @@ Wiadomość została prawdopodobnie dostarczona i nie ma jej już w kolejce.</va
   </data>
   <data name="The language could not be saved: {0}" xml:space="preserve">
     <value>Nie udało się zapisać języka: {0}</value>
+  </data>
+  <data name="The last address; the same as the first for one gateway." xml:space="preserve">
+    <value>Ostatni adres; dla jednej bramy taki sam jak pierwszy.</value>
   </data>
   <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
     <value>Ostatnia próba nie powiodła się {0}: {1}</value>
@@ -16650,6 +16671,15 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} hours ago|few" xml:space="preserve">
     <value>{0} godziny temu</value>
+  </data>
+  <data name="{0} incoming relay" xml:space="preserve">
+    <value>Przekaźniki przychodzące: {0}</value>
+  </data>
+  <data name="{0} incoming relays" xml:space="preserve">
+    <value>Przekaźniki przychodzące: {0}</value>
+  </data>
+  <data name="{0} incoming relays|few" xml:space="preserve">
+    <value>Przekaźniki przychodzące: {0}</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} jest już członkiem tej grupy.</value>

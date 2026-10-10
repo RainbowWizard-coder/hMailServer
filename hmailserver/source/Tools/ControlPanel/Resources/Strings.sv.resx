@@ -3108,6 +3108,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Could not read the queue: " xml:space="preserve">
     <value>Kunde inte läsa kön: </value>
   </data>
+  <data name="Could not read the relay: {0}" xml:space="preserve">
+    <value>Kunde inte läsa reläet: {0}</value>
+  </data>
   <data name="Could not read the roles: " xml:space="preserve">
     <value>Kunde inte läsa rollerna: </value>
   </data>
@@ -3203,6 +3206,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Could not save the range: {0}" xml:space="preserve">
     <value>Kunde inte spara intervallet: {0}</value>
+  </data>
+  <data name="Could not save the relay: {0}" xml:space="preserve">
+    <value>Kunde inte spara reläet: {0}</value>
   </data>
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>Kunde inte spara rutten: {0}</value>
@@ -4203,6 +4209,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>Redigera kriterium</value>
+  </data>
+  <data name="Edit incoming relay" xml:space="preserve">
+    <value>Redigera inkommande relä</value>
   </data>
   <data name="Edit the DNS block list" xml:space="preserve">
     <value>Redigera DNS-spärrlistan</value>
@@ -6336,6 +6345,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Mail servers for {0}, in the order this server would try them:" xml:space="preserve">
     <value>E-postservrar för {0}, i den ordning den här servern skulle prova dem:</value>
   </data>
+  <data name="Mail that arrives from these addresses is judged by the address before them, so a gateway's own address is not scored or banned as the sender's." xml:space="preserve">
+    <value>E-post som kommer från de här adresserna bedöms efter adressen före dem, så att en gateways egen adress inte poängsätts eller spärras som avsändarens.</value>
+  </data>
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Post till en administratör när något behöver uppmärksamhet, till exempel en disk som fylls, en arbetskö som fastnar, ett certifikat som snart löper ut eller en säkerhetskopiering som misslyckades. Vilka villkor som bevakas bestäms av larmreglerna i Control Deck; ingenting skickas förrän båda adresserna nedan är angivna.</value>
   </data>
@@ -6888,6 +6900,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="Name" xml:space="preserve">
     <value>Namn</value>
+  </data>
+  <data name="Name or address contains" xml:space="preserve">
+    <value>Namnet eller adressen innehåller</value>
   </data>
   <data name="Name or suffix" xml:space="preserve">
     <value>Namn eller suffix</value>
@@ -12260,6 +12275,9 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
     <value>Filen kunde inte tolkas som ett PEM-certifikat. Servern läser bara in certifikat i PEM-format, så den här filen läses inte in och varje TLS-port som använder den kommer att misslyckas att starta (serverfel 5113).</value>
   </data>
+  <data name="The first address of the gateway's range." xml:space="preserve">
+    <value>Den första adressen i gatewayens intervall.</value>
+  </data>
   <data name="The first scanner to find something ends the scan, so the order is also the cost: a slow scanner in front of a fast one is paid for on every clean message." xml:space="preserve">
     <value>Den första skannern som hittar något avslutar skanningen, så ordningen är också kostnaden: en långsam skanner framför en snabb betalas för vid varje rent meddelande.</value>
   </data>
@@ -12406,6 +12424,9 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   </data>
   <data name="The language could not be saved: {0}" xml:space="preserve">
     <value>Språket kunde inte sparas: {0}</value>
+  </data>
+  <data name="The last address; the same as the first for one gateway." xml:space="preserve">
+    <value>Den sista adressen; samma som den första för en gateway.</value>
   </data>
   <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
     <value>Det senaste försöket misslyckades {0}: {1}</value>
@@ -16382,6 +16403,12 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} hours ago" xml:space="preserve">
     <value>{0} timmar sedan</value>
+  </data>
+  <data name="{0} incoming relay" xml:space="preserve">
+    <value>{0} inkommande relä</value>
+  </data>
+  <data name="{0} incoming relays" xml:space="preserve">
+    <value>{0} inkommande reläer</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} är redan medlem i den här gruppen.</value>

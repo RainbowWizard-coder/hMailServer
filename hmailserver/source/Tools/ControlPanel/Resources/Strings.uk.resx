@@ -3132,6 +3132,9 @@
   <data name="Could not read the queue: " xml:space="preserve">
     <value>Не вдалося прочитати чергу: </value>
   </data>
+  <data name="Could not read the relay: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати ретранслятор: {0}</value>
+  </data>
   <data name="Could not read the roles: " xml:space="preserve">
     <value>Не вдалося прочитати ролі: </value>
   </data>
@@ -3227,6 +3230,9 @@
   </data>
   <data name="Could not save the range: {0}" xml:space="preserve">
     <value>Не вдалося зберегти діапазон: {0}</value>
+  </data>
+  <data name="Could not save the relay: {0}" xml:space="preserve">
+    <value>Не вдалося зберегти ретранслятор: {0}</value>
   </data>
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>Не вдалося зберегти маршрут: {0}</value>
@@ -4249,6 +4255,9 @@
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>Редагувати критерій</value>
+  </data>
+  <data name="Edit incoming relay" xml:space="preserve">
+    <value>Змінити вхідний ретранслятор</value>
   </data>
   <data name="Edit the DNS block list" xml:space="preserve">
     <value>Редагувати список блокування DNS</value>
@@ -6403,6 +6412,9 @@
   <data name="Mail servers for {0}, in the order this server would try them:" xml:space="preserve">
     <value>Поштові сервери для {0} в тому порядку, в якому цей сервер їх пробував би:</value>
   </data>
+  <data name="Mail that arrives from these addresses is judged by the address before them, so a gateway's own address is not scored or banned as the sender's." xml:space="preserve">
+    <value>Пошта, що надходить із цих адрес, оцінюється за адресою перед ними, тож власна адреса шлюзу не отримує балів і не блокується як адреса відправника.</value>
+  </data>
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Пошта адміністраторові, коли щось потребує уваги, наприклад заповнюється диск, зупиняється робоча черга, скоро спливає сертифікат або не вдалося резервне копіювання. Які умови відстежуються, задають правила оповіщень у Control Deck; нічого не надсилається, доки не задано обидві адреси нижче.</value>
   </data>
@@ -6961,6 +6973,9 @@
   </data>
   <data name="Name" xml:space="preserve">
     <value>Ім’я</value>
+  </data>
+  <data name="Name or address contains" xml:space="preserve">
+    <value>Назва або адреса містить</value>
   </data>
   <data name="Name or suffix" xml:space="preserve">
     <value>Ім'я або суфікс</value>
@@ -12417,6 +12432,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
     <value>Файл не вдалося розібрати як сертифікат PEM. Сервер завантажує сертифікати лише у форматі PEM, тому цей файл не завантажиться, і кожен порт TLS, що його використовує, не запуститься (помилка сервера 5113).</value>
   </data>
+  <data name="The first address of the gateway's range." xml:space="preserve">
+    <value>Перша адреса діапазону шлюзу.</value>
+  </data>
   <data name="The first scanner to find something ends the scan, so the order is also the cost: a slow scanner in front of a fast one is paid for on every clean message." xml:space="preserve">
     <value>Перший сканер, який щось знаходить, завершує сканування, тому порядок - це ще й вартість: за повільний сканер перед швидким платять на кожному чистому повідомленні.</value>
   </data>
@@ -12569,6 +12587,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The language could not be saved: {0}" xml:space="preserve">
     <value>Не вдалося зберегти мову: {0}</value>
+  </data>
+  <data name="The last address; the same as the first for one gateway." xml:space="preserve">
+    <value>Остання адреса; для одного шлюзу така сама, як перша.</value>
   </data>
   <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
     <value>Остання спроба не вдалася {0}: {1}</value>
@@ -14911,7 +14932,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>Атрибут _імені для входу</value>
   </data>
   <data name="_Lower IP" xml:space="preserve">
-    <value>_Нижня IP-адреса</value>
+    <value>Ни_жня IP-адреса</value>
   </data>
   <data name="_Lower IP address" xml:space="preserve">
     <value>Нижня _IP-адреса</value>
@@ -16650,6 +16671,15 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} hours ago|few" xml:space="preserve">
     <value>{0} год. тому</value>
+  </data>
+  <data name="{0} incoming relay" xml:space="preserve">
+    <value>Вхідні ретранслятори: {0}</value>
+  </data>
+  <data name="{0} incoming relays" xml:space="preserve">
+    <value>Вхідні ретранслятори: {0}</value>
+  </data>
+  <data name="{0} incoming relays|few" xml:space="preserve">
+    <value>Вхідні ретранслятори: {0}</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} уже є учасником цієї групи.</value>
