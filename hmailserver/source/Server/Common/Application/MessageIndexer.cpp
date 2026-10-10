@@ -21,6 +21,7 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <exception>
 #include <mutex>
 #include <stdexcept>
 #include <thread>
@@ -71,8 +72,18 @@ namespace HM
    {
       // The server's indexer is never destroyed (Singleton); a tester's is, and
       // a thread object let go of while its thread runs leaves the thread with
-      // this object gone under it.
-      Stop();
+      // this object gone under it. A Stop that throws - its lock, or the join,
+      // refused by the system - has not ended the thread, which would then run
+      // on over freed memory, so the process ends: as it did when the exception
+      // left this destructor, which may not throw, said here where it happens.
+      try
+      {
+         Stop();
+      }
+      catch (...)
+      {
+         std::terminate();
+      }
    }
 
    void
@@ -170,6 +181,7 @@ namespace HM
    // ends at its next interruption point after all, as the Stop asked.
    //---------------------------------------------------------------------------()
    {
+      bool takenBack = false;
       try
       {
          boost::this_thread::restore_interruption asBefore(noInterruption);
@@ -177,10 +189,11 @@ namespace HM
       }
       catch (boost::thread_interrupted &)
       {
-         // The Stop's, taken back.
+         // The Stop's, taken back: the interruption point forgot it as it threw.
+         takenBack = true;
       }
 
-      if (!boost::this_thread::interruption_requested())
+      if (takenBack || !boost::this_thread::interruption_requested())
          stop_asked_ = false;
    }
 
@@ -924,13 +937,9 @@ namespace HM
                {
                   indexer_->Start();
                }
-               else if (ask == AskStopThenStart)
+               else if (ask == AskStopThenStart || ask == AskStopThenStartWhileAStopWaits)
                {
-                  indexer_->Stop();
-                  indexer_->Start();
-               }
-               else if (ask == AskStopThenStartWhileAStopWaits)
-               {
+                  // The two differ in when they are asked (above), not in what.
                   indexer_->Stop();
                   indexer_->Start();
                }

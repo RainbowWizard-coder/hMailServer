@@ -1411,6 +1411,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `docker` group, could have Fulcio certify a key as that release's pipeline while the token is valid. Those machines
   build the release's Linux packages already, and only a protected ref's pipeline reaches them (the same section,
   "What it trusts").
+- **The message indexer's stop and start, as fixed above (*Correctness*), leave `static-analysis` nothing new to
+  say.** Run over them as the job runs it, cppcheck and clang-tidy found four findings in `MessageIndexer.cpp` that
+  no baseline holds, none of them a defect in what the code does, and each is now written so that the tools have
+  nothing to say: the destructor called a Stop that may throw from a destructor that may not (cppcheck's
+  `throwInNoexceptFunction`, High, and `bugprone-exception-escape`), and now catches what it throws and ends the
+  process, as the exception leaving the destructor did, since the thread would otherwise run on over the indexer
+  gone; the catch by which a Start on the indexer's own thread takes back a Stop made there was empty
+  (`bugprone-empty-catch`) and now notes that it took the stop back, which the test after it reads; and the
+  tester's two asks that do the same are one branch (`bugprone-branch-clone`). What the server does is unchanged.
 
 ### Documentation
 
