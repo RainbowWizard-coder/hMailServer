@@ -63,8 +63,9 @@ namespace HM
       // free at once: the stop that holds it may be waiting for this thread to
       // end, a reinitialise's without a limit, and this thread would wait for
       // it in turn, for ever, as until 10 October 2026 such a Reinitialize did.
-      // Elsewhere it waits until the mutex is free.
-      bool LockServersUnlessOnItsThread(boost::unique_lock<boost::timed_mutex> &lock);
+      // Elsewhere it waits until the mutex is free, or for maxWaitSeconds when
+      // that is above 0 (COM's Application.Stop and Start).
+      bool LockServersUnlessOnItsThread(boost::unique_lock<boost::timed_mutex> &lock, int maxWaitSeconds = 0);
 
       void IndexNow();
 

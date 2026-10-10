@@ -281,7 +281,7 @@ namespace HM
    }
 
    bool
-   MessageIndexer::LockServersUnlessOnItsThread(boost::unique_lock<boost::timed_mutex> &lock)
+   MessageIndexer::LockServersUnlessOnItsThread(boost::unique_lock<boost::timed_mutex> &lock, int maxWaitSeconds)
    {
       // Asked of worker_id_, as Start and Stop ask it, and let go of before the
       // servers' mutex is taken: a stop holding that one takes this one.
@@ -293,6 +293,9 @@ namespace HM
 
       if (onItsThread)
          return lock.try_lock();
+
+      if (maxWaitSeconds > 0)
+         return lock.try_lock_for(boost::chrono::seconds(maxWaitSeconds));
 
       lock.lock();
       return true;

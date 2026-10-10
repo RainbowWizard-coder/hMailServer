@@ -103,18 +103,32 @@ namespace HM
       // own thread, by an OnError script it runs, each is refused when another
       // holds the mutex (MessageIndexer::LockServersUnlessOnItsThread); made on
       // the thread that holds it, by a script the stop or the start runs, each
-      // is refused; and after ShutDown has begun every one is.
+      // is refused; and after ShutDown has begun every one is, at once.
       //
       // StartServers: COM's Application.Start, the service's start, the Linux
       // server's, a /Test run. False when the start failed or was refused, the
-      // reason in the log.
-      bool StartServers();
+      // reason in the log, and a refusal's in refused when it is given. One
+      // under way is waited for until it has ended, or for maxWaitSeconds when
+      // that is above 0, and the start then refused.
+      bool StartServers(int maxWaitSeconds = 0, String *refused = nullptr);
 
       // COM's Application.Stop: the servers stopped, to be started again in
       // this process (StartServers, Reinitialize) on the database it leaves
       // open, the indexer waited for until it has ended. Answers empty, or why
-      // the stop was refused.
-      String StopServers();
+      // the stop was refused. maxWaitSeconds as StartServers'.
+      String StopServers(int maxWaitSeconds = 0);
+
+      // How long COM's Application.Stop and Start wait for a stop, a start or
+      // a reinitialise under way before they are refused. Until 10 October
+      // 2026 a Stop during a reinitialise did nothing and answered that it had
+      // stopped the servers, and a Start was refused; holding the mutex, both
+      // waited for the reinitialise, whose stop waits for the message indexer
+      // without a limit - a Control Panel's Stop for as long as the indexer's
+      // statement, and a script's on one of a work queue's threads past the
+      // ten seconds that queue's stop gives the thread (WorkQueue::Stop),
+      // after which it stopped the servers the reinitialise had started again.
+      // Five seconds, below those ten.
+      static const int ComServersWaitSeconds = 5;
 
       // The stop before the process ends - the service's stop and Windows'
       // shutdown (TerminateServer), a signal's on Linux, the end of a /Debug or
@@ -246,8 +260,10 @@ namespace HM
       // indexer's own thread while another holds it; or after ShutDown has
       // begun. The caller declares a ServersLockHeld_ straight after lock.
       // indexer is the server's (MessageIndexer::Instance), or a tester's
-      // stand-in (ServersLockTester).
-      String TakeServersLock_(boost::unique_lock<boost::timed_mutex> &lock, MessageIndexer &indexer);
+      // stand-in (ServersLockTester). A stop, a start or a reinitialise under
+      // way is waited for until it has ended, or for maxWaitSeconds when that
+      // is above 0 (StartServers); after ShutDown has begun nothing is.
+      String TakeServersLock_(boost::unique_lock<boost::timed_mutex> &lock, MessageIndexer &indexer, int maxWaitSeconds = 0);
 
       // Says which thread holds servers_mutex_ from when it is taken
       // (TakeServersLock_, ShutDown) until this goes, before the lock does.
@@ -437,8 +453,10 @@ namespace HM
    // the indexer it asks on being a stand-in with no database, so that it runs
    // wherever ClassTester runs - in the server, on Windows - and in
    // business-object-tests. TestTheStopBeforeExit makes the stop before the
-   // process ends, and sets the process's server state, and so runs in
-   // business-object-tests alone, which has no servers, after every other test.
+   // process ends, sets the process's server state and holds the mutex for
+   // seconds, and so runs in business-object-tests alone, which has no
+   // servers, after every other test. It also holds COM's Application.Stop and
+   // Start to the few seconds they wait for one under way.
    class ServersLockTester
    {
    public:
@@ -450,6 +468,7 @@ namespace HM
       void TestAskedOnTheIndexersThreadWhileAStopWaits_();
       void TestRefusedOnceTheStopBeforeExitHasBegun_();
       void TestTheStopBeforeExitWaitsForOneUnderWay_();
+      void TestComsStopAndStartWaitAMomentAtMost_();
       void TestAWorkQueuesThreadLeftKeepsTheDatabaseOpen_();
    };
 }

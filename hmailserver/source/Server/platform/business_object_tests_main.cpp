@@ -571,7 +571,7 @@ main(int /*argc*/, char * /*argv*/[])
    failed += Run(&TestServersLock, "a reinitialise, a stop or a start asked on the thread that holds the servers' mutex, or on the message indexer's own thread while a stop that holds it waits for the indexer, is refused at once");
 
    // Last: it makes the stop before the process ends.
-   failed += Run(&TestServersLockBeforeExit, "once the stop before the process ends has begun a reinitialise, a stop or a start is refused, that stop waits for one under way, and it leaves the database open while a thread a work queue's stop gave up on still runs");
+   failed += Run(&TestServersLockBeforeExit, "once the stop before the process ends has begun a reinitialise, a stop or a start is refused, that stop waits for one under way, and it leaves the database open while a thread a work queue's stop gave up on still runs; COM's Stop and Start wait a few seconds at most for one under way");
 
    return failed == 0 ? 0 : 1;
 }

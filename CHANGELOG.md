@@ -516,8 +516,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   of the servers - COM's `Start` and `Stop` among them - now holds one lock, and the stop before the process ends
   waits for one under way: the indexer a minute at most, as its own stop gives it, after which a reinitialise stops
   short and leaves the rest to that stop; a reinitialise, a stop or a start that comes after it is refused, where
-  one queued behind it started the servers again in a process that was ending. A script that a stop or a start runs
-  on its own thread, asking for another, is refused rather than made to wait for itself. And the callback through
+  one queued behind it started the servers again in a process that was ending - at once, without waiting for the
+  lock. A script that a stop or a start runs on its own thread, asking for another, is refused rather than made to
+  wait for itself. COM's `Application.Stop` and `Start` wait five seconds at most for a stop, a start or a
+  reinitialise under way, and are then refused with an error that says so: until now a `Stop` during a reinitialise
+  did nothing and answered that it had stopped the servers, and a `Start` was refused as a start that failed. The
+  limit keeps a Control Panel's call from waiting as long as the indexer's statement, and a script's call on one of a
+  work queue's threads below the ten seconds that queue's stop gives the thread, after which the call would have
+  stopped the servers the reinitialise had started again. And the callback through
   which a stop tells the Windows service controller that it is progressing is read under a lock of its own, where a
   reinitialise's stop held a reference to it while the service's stop set it and reset it. On Linux, with the
   indexer held in a statement by another session's lock, a SIGTERM three seconds after a REST reinitialise ended the
@@ -4591,7 +4597,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   and with the stop going straight on it returned while the lock was held. And with a work queue's thread held in a
   task past its queue's stop, the stop answers that a thread is left, which leaves the database open, and once the
   thread has ended it answers that none is; with the database closed whatever the queues left, as before, or the
-  queue not counted, the test fails. `business-object-tests` now writes each
+  queue not counted, the test fails. COM's `Stop` and `Start`, made while a reinitialise holds the lock, must be
+  refused after their five seconds and not before them; waiting without a limit, they had not returned after twenty.
+  A reinitialise asked once the stop before the process ends has begun must be refused before the lock is let go
+  of. `business-object-tests` now writes each
   result out as it comes, so that a test after a failure that never returns leaves the failure in the output.
 
 ### Documentation

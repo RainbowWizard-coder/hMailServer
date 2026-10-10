@@ -97,8 +97,17 @@ STDMETHODIMP InterfaceApplication::Start()
       if (!authentication_->GetIsServerAdmin())
          return authentication_->GetAccessDenied();
    
-      if (!HM::Application::Instance()->StartServers())
+      // Refused, rather than waited for, when a stop, a start or a
+      // reinitialise is under way and has not ended within a few seconds
+      // (Application::ComServersWaitSeconds).
+      HM::String refused;
+      if (!HM::Application::Instance()->StartServers(HM::Application::ComServersWaitSeconds, &refused))
+      {
+         if (!refused.IsEmpty())
+            return COMError::GenerateError("The servers were not started: " + refused);
+
          return COMError::GenerateError("Server start failed. Please check the hMailServer error log.");
+      }
    
       return S_OK;
    }
@@ -117,10 +126,11 @@ STDMETHODIMP InterfaceApplication::Stop()
          return authentication_->GetAccessDenied();
        
       // The servers may be started again over COM, on the database this leaves
-      // open. Refused while the server is stopping, and on the message
-      // indexer's own thread while another stop, start or reinitialise is under
-      // way (Application::StopServers).
-      HM::String refused = HM::Application::Instance()->StopServers();
+      // open. Refused while the server is stopping, and while another stop,
+      // start or reinitialise is under way that has not ended within a few
+      // seconds - at once on the message indexer's own thread
+      // (Application::StopServers, ComServersWaitSeconds).
+      HM::String refused = HM::Application::Instance()->StopServers(HM::Application::ComServersWaitSeconds);
       if (!refused.IsEmpty())
          return COMError::GenerateError("The servers were not stopped: " + refused);
 
