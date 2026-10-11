@@ -27,8 +27,9 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          Assert.Contains("F(\"Queue ID {0} - select and choose \\\"Follow this message\\\".\", QueueId)",
             ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "MessageTraceView.cs")), StringComparison.Ordinal);
-         Assert.Contains("F(\"Message {0} will be tried again now.\", row.Id)",
-            ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "QueueView.xaml.cs")), StringComparison.Ordinal);
+         // Through t213c's QueueWords.Retried, which names one message and counts more (F248).
+         Assert.Contains("return F(\"Message {0} will be tried again now.\", ids[0]);",
+            ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Services", "QueueWords.cs")), StringComparison.Ordinal);
       }
 
       [Fact]
@@ -56,7 +57,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheMessageSourceShowsItsPathAsTheDescription_AndStartsInTheSource()
       {
          string dialog = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "MessageViewerDialog.cs"));
-         Assert.Contains("UseFrame(L(\"Message source\"), body, close, null, description: filePath, width: 760)", dialog, StringComparison.Ordinal);
+         Assert.Contains("UseFrame(L(\"Message source\"), body, close, null, description: filePath, width: DesignTokens.Dialog.WidestWidth)", dialog, StringComparison.Ordinal);
          Assert.DoesNotContain("pathBox", dialog, StringComparison.Ordinal);
       }
 

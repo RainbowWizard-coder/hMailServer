@@ -36,7 +36,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string code = View_("SuppressionListView.cs");
          string build = WithheldRowTests.MemberText(code, "private void Build()");
          Assert.True(build != null, "SuppressionListView.Build is gone.");
-         Assert.Contains("var listCard = new Card { Title = L(\"Suppressed addresses\"), Padding = new Thickness(8), Content = host };", build, StringComparison.Ordinal);
+         Assert.Contains("var listCard = new Card { Title = L(\"Suppressed addresses\"), Padding = new Thickness(DesignTokens.ListCardPadding), Content = host };", build, StringComparison.Ordinal);
          Assert.Contains("FillPanel.Filling(listCard, FillPanel.TitledListCardFloor, 2)", build, StringComparison.Ordinal);
          Assert.Contains("Title = L(\"Bounce counts\"),", build, StringComparison.Ordinal);
          // Each grid is named as its card is titled.
@@ -172,8 +172,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("Level = StatusLevel.Normal,", code.Substring(offer, 200), StringComparison.Ordinal);
          string sample = WithheldRowTests.MemberText(code, "private void ShowSample_(string json)");
          Assert.True(sample != null, "WelcomeView.ShowSample_ is gone.");
-         Assert.Contains("sample_.Level = StatusLevel.Normal;", sample, StringComparison.Ordinal);
-         Assert.DoesNotContain("sample_.Level = StatusLevel.Information;", sample, StringComparison.Ordinal);
+         // The sample domain's offer is its card's description (t213a, F275), no notice at all.
+         Assert.Contains("sampleNotice_.Hide();", sample, StringComparison.Ordinal);
+         Assert.DoesNotContain("StatusLevel.Information", sample, StringComparison.Ordinal);
       }
 
       /// <summary>The brand blue marks the selection; a row's glyph is the secondary text, the domains' as the accounts'.</summary>

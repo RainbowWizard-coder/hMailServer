@@ -129,7 +129,8 @@ namespace hMailServer.ControlPanel.Tests.Services
             }
          }
 
-         Assert.True(opening >= 8, "The XAML buttons that open a dialog were not found: " + opening);
+         // Seven since the sign-in card lost its two-factor link (review finding F241).
+         Assert.True(opening >= 7, "The XAML buttons that open a dialog were not found: " + opening);
          Assert.True(offending.Count == 0, "A button that opens a dialog for input must end in an ellipsis: " + string.Join("; ", offending));
       }
 
@@ -264,7 +265,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string app = Read("App.xaml");
          Match label = Regex.Match(app, @"<Style x:Key=""KpiLabel""[^>]*>(.*?)</Style>", RegexOptions.Singleline);
          Assert.True(label.Success, "App.xaml has no KpiLabel style.");
-         Assert.Contains("<Setter Property=\"FontSize\" Value=\"{StaticResource AppFontSizeCaption}\" />", label.Value, StringComparison.Ordinal);
+         Assert.Contains("<Setter Property=\"FontSize\" Value=\"{DynamicResource AppFontSizeCaption}\" />", label.Value, StringComparison.Ordinal);
          Assert.Contains("<Setter Property=\"TextWrapping\" Value=\"Wrap\" />", label.Value, StringComparison.Ordinal);
       }
 

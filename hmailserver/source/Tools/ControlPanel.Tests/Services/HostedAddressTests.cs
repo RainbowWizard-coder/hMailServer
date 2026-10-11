@@ -149,12 +149,12 @@ namespace hMailServer.ControlPanel.Tests.Services
          XElement page = Page();
          var expected = new (string list, string click, string name)[]
          {
-            ("DomainList", "EditDomain_Click", "{Binding PropertiesName}"),
+            ("DomainList", "EditDomain_Click", "{Binding EditName}"),
             ("DomainList", "DeleteDomain_Click", "{Binding DeleteName}"),
             ("AccountList", "EditAccount_Click", "{Binding EditName}"),
             ("AccountList", "DeleteAccount_Click", "{Binding DeleteName}"),
             ("AliasList", "DeleteAlias_Click", "{Binding DeleteName}"),
-            ("DistList", "EditDistList_Click", "{Binding PropertiesName}"),
+            ("DistList", "EditDistList_Click", "{Binding EditName}"),
             ("DistList", "EditRecipients_Click", "{Binding MembersName}"),
             ("DistList", "DeleteDistList_Click", "{Binding DeleteName}"),
          };
@@ -170,7 +170,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string code = CodeBehind();
          foreach (string property in new[]
          {
-            "public string PropertiesName => F(\"Properties of domain {0}\", Name);",
+            "public string EditName => F(\"Edit domain {0}\", Name);",
             "public string DeleteName => F(\"Delete domain {0}\", Name);",
             "public string EditName => F(\"Edit account {0}\", Address);",
             "public string DeleteName => F(\"Delete account {0}\", Address);",
@@ -186,7 +186,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// voice-control user says the caption on the screen.
       /// </summary>
       [Theory]
-      [InlineData("Properties", "Properties of domain {0}")]
+      [InlineData("Edit", "Edit domain {0}")]
       [InlineData("Edit", "Edit account {0}")]
       [InlineData("Delete", "Delete account {0}")]
       public void ACaptionedRowButtonsName_StartsWithItsCaption_InEveryLanguage(string caption, string name)

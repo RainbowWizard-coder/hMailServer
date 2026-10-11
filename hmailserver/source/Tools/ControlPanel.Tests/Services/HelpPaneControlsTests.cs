@@ -93,7 +93,10 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          // An empty box clears the line: the search's TextChanged runs Find_, which
          // says nothing for a term too short to search.
-         Assert.Contains("search_.TextChanged += (s, e) => Find_(false);", pane, StringComparison.Ordinal);
+         // (through SearchChanged_, which runs it for a document and the list's own search for the list).
+         Assert.Contains("search_.TextChanged += (s, e) => SearchChanged_();", pane, StringComparison.Ordinal);
+         string changed = WithheldRowTests.MemberText(ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "HelpPane.List.cs")), "private void SearchChanged_()");
+         Assert.Contains("Find_(false);", changed, StringComparison.Ordinal);
       }
    }
 }

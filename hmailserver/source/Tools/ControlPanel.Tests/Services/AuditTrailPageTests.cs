@@ -334,8 +334,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          // The time measured in its widest digit, where "2026-10-10 00:00:00" - ones and
          // noughts - measured narrower than 23:56:48 and cut it.
          Assert.Contains("GridStyles.CellWidth(WidestTime_())", code, StringComparison.Ordinal);
-         Assert.Contains("AuditTrailReport.WidestDigits(new DateTime(2026, 10, 10, 10, 10, 10).ToString(WhenFormat), text => GridStyles.CellWidth(text))", code, StringComparison.Ordinal);
-         Assert.Contains(".ToLocalTime().ToString(WhenFormat)", code, StringComparison.Ordinal);
+         // The time ServerTimeText writes (t34b, review finding F321), at its widest.
+         Assert.Contains("AuditTrailReport.WidestDigits(ServerTimeText.CellWithSeconds(new DateTime(2026, 10, 10, 10, 10, 10)), text => GridStyles.CellWidth(text))", code, StringComparison.Ordinal);
+         Assert.Contains("When = ServerTimeText.FromUnix(row.Time) is DateTime when ? ServerTimeText.CellWithSeconds(when) : \"\",", code, StringComparison.Ordinal);
          Assert.DoesNotContain("\"2026-10-10 00:00:00\"", code, StringComparison.Ordinal);
 
          // Every column of words floored at its words on the page shown, where they

@@ -49,8 +49,11 @@ namespace hMailServer.ControlPanel.Tests.Services
          XElement grid = XDocument.Parse(Read("RulesView.xaml")).Root.Descendants(Wpf + "DataGrid")
             .Single(g => (string)g.Attribute(XName.Get("Name", "http://schemas.microsoft.com/winfx/2006/xaml")) == "RuleGrid");
 
-         XElement name = grid.Descendants(Wpf + "DataGridTextColumn").Single(c => (string)c.Attribute("Binding") == "{Binding Name}");
-         XElement trigger = name.Descendants(Wpf + "DataTrigger").Single();
+         // The whole row of a rule switched off, the name with it, in the secondary text: the
+         // grid's CellStyle (t213b, review findings F225 and F051), where this unit greyed the
+         // Name column alone; the fold keeps one of the two.
+         XElement cells = grid.Elements().Single(e => e.Name.LocalName == "DataGrid.CellStyle");
+         XElement trigger = cells.Descendants(Wpf + "DataTrigger").Single();
          Assert.Equal("{Binding Active}", (string)trigger.Attribute("Binding"));
          Assert.Equal("False", (string)trigger.Attribute("Value"));
          Assert.Equal("{DynamicResource TextFillColorSecondaryBrush}", (string)trigger.Descendants(Wpf + "Setter").Single().Attribute("Value"));

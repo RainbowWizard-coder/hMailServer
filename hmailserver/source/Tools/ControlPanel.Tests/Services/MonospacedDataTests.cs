@@ -225,7 +225,7 @@ namespace hMailServer.ControlPanel.Tests.Services
                if (codeBoxes.Contains(key))
                {
                   codeBoxesSeen.Add(key);
-                  if (!Regex.IsMatch(body, @"(?<![\w.])FontSize\s*=\s*28\b"))
+                  if (!Regex.IsMatch(body, @"(?<![\w.])FontSize\s*=\s*(?:28\b|Typography\.Title\b)"))
                      problems.Add(where + ": a one-time code box that is not the 28 pixels the others are");
                   continue;
                }
@@ -340,7 +340,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [Fact]
       public void TheLiveLogAndTheMessageViewerAreTheMonoSize()
       {
-         Assert.Contains("FontFamily=\"Cascadia Mono, Consolas\" FontSize=\"{StaticResource AppFontSizeMono}\"", Read("Views", "LogsView.xaml"), StringComparison.Ordinal);
+         Assert.Contains("FontFamily=\"Cascadia Mono, Consolas\" FontSize=\"{DynamicResource AppFontSizeMono}\"", Read("Views", "LogsView.xaml"), StringComparison.Ordinal);
          Assert.Contains("content.SetResourceReference(FontSizeProperty, \"AppFontSizeMono\");", Read("Views", "MessageViewerDialog.cs"), StringComparison.Ordinal);
       }
 

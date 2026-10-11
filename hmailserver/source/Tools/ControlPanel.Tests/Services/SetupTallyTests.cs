@@ -136,7 +136,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("SetupTally.Summary(action, unknown, total)", summary, StringComparison.Ordinal);
 
          string checklist = ReadView("ExternalSetupView.cs");
-         Assert.Contains("summary_.Text = SetupTally.Tally(action, unknown, done, unused, next?.Title);", checklist, StringComparison.Ordinal);
+         Assert.Contains("SetupTally.Tally(action, unknown, done, unused, next?.Title));", checklist, StringComparison.Ordinal);
 
          // The old texts as literals, not as the comments that say what they were.
          foreach (string old in new[] { "\"{0} thing needs attention.\"", "\"{0} things need attention.\"", "\"Nothing needs attention - ", "\"{0} need action, {1} cannot be told from here" })

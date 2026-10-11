@@ -107,7 +107,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("Subtitle = L(\"Who may administer what: the roles this server has, and the accounts that hold them.\"),", page, StringComparison.Ordinal);
          int card = page.IndexOf("Title = L(\"Roles\"),", StringComparison.Ordinal);
          Assert.True(card >= 0, "The roles card has no title of its own.");
-         string roles = page.Substring(card, page.IndexOf("Content = roleGrid_", card, StringComparison.Ordinal) - card);
+         string roles = page.Substring(card, page.IndexOf("Content = rolesContent", card, StringComparison.Ordinal) - card);
          Assert.Contains("L(\"The four built-in roles cannot be edited:", roles, StringComparison.Ordinal);
          Assert.Contains("L(\"An account with no role here holds whatever its admin level has always given it.\")", roles, StringComparison.Ordinal);
          Assert.Contains("empty_.Text = L(\"Nobody has been given a role yet.\");", page, StringComparison.Ordinal);
@@ -122,11 +122,12 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("address_.PlaceholderText = \"helpdesk@example.com\";", page, StringComparison.Ordinal);
          Assert.Contains("domains_.PlaceholderText = \"example.com, example.net\";", page, StringComparison.Ordinal);
          Assert.Contains("domainsRow.Hint = L(\"Empty: the account's own domain, or every domain for serveradmin and auditor. * is every domain for any role.\");", page, StringComparison.Ordinal);
-         Assert.Contains("Write_(address, role, RoleWords.DomainsToSend(domains_.Text));", page, StringComparison.Ordinal);
+         Assert.Contains("Write_(address, role, RoleWords.DomainsToSend(domains_.Text), ", page, StringComparison.Ordinal);
 
-         // The buttons stand on the boxes' line whatever a hint or a message adds under a box.
-         Assert.Contains("form.Children.Add(OnTheBoxesLine_(give_, L(\"_Domains\")));", page, StringComparison.Ordinal);
-         Assert.Contains("form.Children.Add(OnTheBoxesLine_(take_, L(\"_Domains\")));", page, StringComparison.Ordinal);
+         // The buttons stand on the boxes' line whatever a hint or a message adds under a box:
+         // under a row as tall as the captions (t34a's LabelGroup row, F088).
+         Assert.Contains("form.Children.Add(BesideTheBoxes_(give_, new Thickness(0, 0, 8, 12)));", page, StringComparison.Ordinal);
+         Assert.Contains("form.Children.Add(BesideTheBoxes_(take_, new Thickness(0, 0, 0, 12)));", page, StringComparison.Ordinal);
          string field = WithheldRowTests.MemberText(page, "private static Scaffold.FieldRow FormField_(string caption, FrameworkElement editor)");
          Assert.True(field != null && field.Contains("VerticalAlignment = VerticalAlignment.Top", StringComparison.Ordinal), "The form's boxes are not at the top of its line.");
       }

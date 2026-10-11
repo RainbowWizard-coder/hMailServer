@@ -95,7 +95,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          var scopes = new[]
          {
             new[] { "_Edit…", "_Members…", "Delete _list" },
-            new[] { "_Add", "_Edit", "_Delete", "_Refresh", "Add the _first entry…", "_Members…" }
+            new[] { "_Add…", "_Edit…", "_Delete", "_Refresh", "Add the _first entry…", "_Members…" }
          };
          var failures = new List<string>();
          foreach (string path in Directory.GetFiles(ResourcesDirectory(), "Strings.*.resx"))
@@ -125,7 +125,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(marked.Count == 0, "The members dialog still says recipient: " + string.Join(" | ", marked));
 
          Assert.Contains("Title = F(\"Members - {0}\", listAddress);", dialog, StringComparison.Ordinal);
-         Assert.Contains("UseFrame(F(\"Members of {0}\", listAddress), body, null, closeButton, width: 520);", dialog, StringComparison.Ordinal);
+         Assert.Contains("frame_ = UseFrame(F(\"Members of {0}\", listAddress), body, null, closeButton, width: DesignTokens.Dialog.DefaultWidth);", dialog, StringComparison.Ordinal);
          Assert.Contains("DialogFields.Caption(L(\"Address to add as a member\"))", dialog, StringComparison.Ordinal);
          Assert.Contains("F(\"Remove the member {0} from this list?\", address)", dialog, StringComparison.Ordinal);
       }

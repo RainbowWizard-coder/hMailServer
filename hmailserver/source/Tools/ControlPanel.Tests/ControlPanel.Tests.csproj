@@ -63,6 +63,8 @@
        and the server gave no detail: where it asked and what to check (review finding F049). -->
   <ItemGroup>
     <Compile Include="..\ControlPanel\Services\ScannerTestFallback.cs" />
+  </ItemGroup>
+
   <!-- The Domains & accounts page's addresses: a name completed with the selected
        domain, the boxes' example placeholders, and the domain an account search's
        whole address names (review findings F092 and F096). -->
@@ -310,6 +312,8 @@
        (review finding F242). -->
   <ItemGroup>
     <Compile Include="..\ControlPanel\Services\ConfigurationWarning.cs" />
+  </ItemGroup>
+
   <!-- The accounts the group members dialog offers to add, and what it says after an
        add (review finding F203). -->
   <ItemGroup>
@@ -338,6 +342,8 @@
        (review finding F229). -->
   <ItemGroup>
     <Compile Include="..\ControlPanel\Services\RelayExposure.cs" />
+  </ItemGroup>
+
   <!-- The SSL certificates page's rows: which ports present each certificate and the
        order its Certificate column sorts in (review finding F235). In StatusLevel's
        terms, so here beside StatusSemantics rather than in Core. -->
@@ -349,6 +355,8 @@
        finding F246). -->
   <ItemGroup>
     <Compile Include="..\ControlPanel\Services\ServerStateText.cs" />
+  </ItemGroup>
+
   <!-- The shell's sidebar width beside the help pane, and when the pane makes it the
        rail (review findings F021 and F022). -->
   <ItemGroup>

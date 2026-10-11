@@ -128,10 +128,9 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("DiscoveryView.cs", "var casesCard = new Card { Padding = new Thickness(DesignTokens.ListCardPadding), Content = host };")]
       [InlineData("DomainPolicyListView.cs", "var listCard = new Card { Padding = new Thickness(DesignTokens.ListCardPadding), Content = host };")]
       [InlineData("MessageTraceView.cs", "var card = new Card { Padding = new Thickness(DesignTokens.ListCardPadding), Content = host };")]
-      [InlineData("ProfilesView.cs", "var card = new Card { Padding = new Thickness(DesignTokens.ListCardPadding), Content = body };")]
       [InlineData("PublicFoldersView.cs", "var card = new Card { Padding = new Thickness(DesignTokens.ListCardPadding), Content = host };")]
       [InlineData("QuarantineView.cs", "var card = new Card { Padding = new Thickness(DesignTokens.ListCardPadding), Content = host };")]
-      [InlineData("SuppressionListView.cs", "var listCard = new Card { Padding = new Thickness(DesignTokens.ListCardPadding), Content = host };")]
+      [InlineData("SuppressionListView.cs", "var listCard = new Card { Title = L(\"Suppressed addresses\"), Padding = new Thickness(DesignTokens.ListCardPadding), Content = host };")]
       [InlineData("UtilityViews.cs", "var listCard = new Card { Padding = new Thickness(DesignTokens.ListCardPadding), Content = listHost };")]
       [InlineData("IPRangesView.xaml", "<scaffold:Card scaffold:FillPanel.Fill=\"True\" Padding=\"{StaticResource AppListCardPadding}\">")]
       [InlineData("RoutesView.xaml", "<scaffold:Card scaffold:FillPanel.Fill=\"True\" Padding=\"{StaticResource AppListCardPadding}\">")]
@@ -139,7 +138,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("SslCertificatesView.xaml", "<scaffold:Card scaffold:FillPanel.Fill=\"True\" Padding=\"{StaticResource AppListCardPadding}\">")]
       [InlineData("TcpIpPortsView.xaml", "<scaffold:Card scaffold:FillPanel.Fill=\"True\" Padding=\"{StaticResource AppListCardPadding}\">")]
       [InlineData("QueueView.xaml", "<scaffold:Card Grid.Row=\"3\" Padding=\"{StaticResource AppListCardPadding}\">")]
-      [InlineData("LogsView.xaml", "<scaffold:Card Grid.Row=\"1\" Padding=\"{StaticResource AppListCardPadding}\">")]
+      [InlineData("LogsView.xaml", "<scaffold:Card scaffold:FillPanel.Fill=\"True\" MinHeight=\"165\" Padding=\"{StaticResource AppListCardPadding}\">")]
       public void AListCardsInset_IsTheToken(string file, string line)
          => Assert.Contains(line, SaveStateModelTests.ReadControlPanelFile("Views/" + file), StringComparison.Ordinal);
 

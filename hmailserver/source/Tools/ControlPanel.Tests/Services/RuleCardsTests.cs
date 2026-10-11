@@ -177,7 +177,7 @@ namespace hMailServer.ControlPanel.Tests.Services
             Assert.Same(Named(grid).Parent.Parent, Named(empty).Parent);
 
          XElement trigger = Named("RuleGrid").Descendants().Single(e => e.Name.LocalName == "DataTrigger");
-         Assert.Equal("{Binding IsActive}", (string)trigger.Attribute("Binding"));
+         Assert.Equal("{Binding Active}", (string)trigger.Attribute("Binding"));
          Assert.Equal("False", (string)trigger.Attribute("Value"));
          XElement setter = trigger.Elements().Single();
          Assert.Equal("Foreground", (string)setter.Attribute("Property"));

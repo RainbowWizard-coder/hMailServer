@@ -46,7 +46,9 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          Assert.Contains("Note: the test runs from this computer, so a firewall that treats this machine and the hMailServer service differently can make the two disagree.", ldap, StringComparison.Ordinal);
          Assert.Contains("that field is what links a mail domain to a directory. The first time, bring one domain over at a time.", sync, StringComparison.Ordinal);
-         Assert.Contains("The archive folder is a raw copy of every message that passes through the server, so on a busy server it is a directory that only grows; this prunes it.", server, StringComparison.Ordinal);
+         // The archive's blurb keeps two sentences (t31c, F311), its history in docs/Protocols.md.
+         Assert.Contains("Blurb = L(\"0 keeps everything, and that is the default on purpose:", server, StringComparison.Ordinal);
+         Assert.DoesNotContain("until now nothing ever removed anything", server, StringComparison.Ordinal);
       }
    }
 }

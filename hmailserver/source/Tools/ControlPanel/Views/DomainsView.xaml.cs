@@ -201,10 +201,8 @@ namespace hMailServer.ControlPanel.Views
          public string EditName => F("Edit domain {0}", Name);
          public override string ToString() => Active ? Name : F("{0} (inactive)", Name);
 
-         // The row's buttons named for the row (review finding F102), each name
-         // starting with its button's caption: on every row a screen reader heard
-         // "Properties" and "Delete domain", with nothing to say which domain.
-         public string PropertiesName => F("Properties of domain {0}", Name);
+         // The row's Delete named for the row too (review finding F102): on every row a
+         // screen reader heard "Delete domain", with nothing to say which domain.
          public string DeleteName => F("Delete domain {0}", Name);
       }
 
@@ -218,7 +216,7 @@ namespace hMailServer.ControlPanel.Views
          public string EditName => F("Edit account {0}", Address);
          public override string ToString() => Active ? Address : F("{0} (inactive)", Address);
 
-         public string EditName => F("Edit account {0}", Address);
+         // The row's Delete by the account it deletes (review finding F102).
          public string DeleteName => F("Delete account {0}", Address);
       }
 

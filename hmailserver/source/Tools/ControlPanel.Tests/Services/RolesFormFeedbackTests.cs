@@ -67,7 +67,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void AChange_SaysWhatItDid_AfterTheListIsReadAgain()
       {
          string code = Source();
-         Assert.Contains("Write_(address, role, (domains_.Text ?? \"\").Trim(), F(\"{0} now holds {1}.\", address, role));", code, StringComparison.Ordinal);
+         Assert.Contains("Write_(address, role, RoleWords.DomainsToSend(domains_.Text), F(\"{0} now holds {1}.\", address, role));", code, StringComparison.Ordinal);
          Assert.Contains("Write_(row.Address, \"\", \"\", F(\"{0} no longer holds {1}, and holds what its admin level gives it.\", row.Address, row.Role));", code, StringComparison.Ordinal);
 
          string write = WithheldRowTests.MemberText(code, "private void Write_(string address, string role, string domains, string outcome)");
@@ -82,7 +82,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheRolesCard_SaysWhereCustomRolesAreMade_WithTheDecksButton()
       {
          string code = Source();
-         Assert.Contains("Description = L(\"The built-in roles cannot be changed. Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds.\"),", code, StringComparison.Ordinal);
+         // Between t31a's two sentences on the card (review finding F085).
+         Assert.Contains("L(\"Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds.\"),", code, StringComparison.Ordinal);
          Assert.Contains("rolesContent.Children.Add(deckRow_);", code, StringComparison.Ordinal);
 
          string reload = WithheldRowTests.MemberText(code, "private void Reload_()");

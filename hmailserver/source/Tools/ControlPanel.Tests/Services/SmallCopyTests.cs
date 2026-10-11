@@ -143,8 +143,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          foreach (string reader in CaptionHelpers.Concat(new[] { "Label =", "prompt", "XAML" }))
             Assert.True(read.GetValueOrDefault(reader) > 0, "No caption read through " + reader + "; the rule's pattern for it no longer matches the source.");
 
-         string folders = ReadControlPanelFile(Path.Join("Views", "PublicFoldersView.cs"));
-         Assert.Contains("InputDialog.Prompt(Window.GetWindow(this), L(\"New public folder\"), L(\"_Folder name\"));", folders, StringComparison.Ordinal);
+         // t213b's dialog asks for the public folder's name (review finding F206).
+         string folders = ReadControlPanelFile(Path.Join("Views", "PublicFolderNameDialog.cs"));
+         Assert.Contains("nameRow_ = DialogFields.Field(L(\"_Folder name\"), name_, PublicFolderTree.Hint(delimiter));", folders, StringComparison.Ordinal);
          string dns = ReadControlPanelFile(Path.Join("Views", "DnsRecordsView.cs"));
          Assert.Contains("new FieldRow { Label = L(\"_Domain\"), Content = domainCombo_ }", dns, StringComparison.Ordinal);
       }

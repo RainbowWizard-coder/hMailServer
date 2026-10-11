@@ -53,10 +53,9 @@ namespace hMailServer.ControlPanel.Tests.Services
       [Fact]
       public void ServerStatusesState_IsPaused_AsThePillSaysIt()
       {
-         string state = WithheldRowTests.MemberText(Read("Views", "StatusView.xaml.cs"), "private static string ServerStateName(int state)");
-         Assert.True(state != null, "StatusView.ServerStateName is gone.");
-         Assert.Contains("1 => L(\"Paused\"),", state, StringComparison.Ordinal);
-         Assert.DoesNotContain("L(\"Stopped\")", state, StringComparison.Ordinal);
+         // t213c's ServerStateText.For names the state for Server status's pill (F246).
+         Assert.Equal("Paused", ServerStateText.For(ServerStateText.Stopped).Word);
+         Assert.DoesNotContain("L(\"Stopped\")", Read("Services", "ServerStateText.cs"), StringComparison.Ordinal);
          Assert.Equal("Paused", ConnectionStatus.PausedWord);
       }
 

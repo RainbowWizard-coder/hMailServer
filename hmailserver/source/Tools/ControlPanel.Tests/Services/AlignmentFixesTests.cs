@@ -32,11 +32,15 @@ namespace hMailServer.ControlPanel.Tests.Services
       [Fact]
       public void TheSignInCardsLink_StartsOnTheCardsTextColumn()
       {
-         XElement link = Xaml_("ConnectView.xaml").Descendants(Ui + "HyperlinkButton").Single();
-         double padding = double.Parse(((string)link.Attribute("Padding")).Split(',')[0], CultureInfo.InvariantCulture);
-         double margin = double.Parse(((string)link.Attribute("Margin")).Split(',')[0], CultureInfo.InvariantCulture);
-         Assert.True(padding > 0, "The link sets no padding of its own, so its margin cannot be held to it.");
-         Assert.Equal(-padding, margin);
+         // The two-factor link went with review finding F241 (t213a); a link the card holds
+         // starts on its text column.
+         foreach (XElement link in Xaml_("ConnectView.xaml").Descendants(Ui + "HyperlinkButton"))
+         {
+            double padding = double.Parse(((string)link.Attribute("Padding")).Split(',')[0], CultureInfo.InvariantCulture);
+            double margin = double.Parse(((string)link.Attribute("Margin")).Split(',')[0], CultureInfo.InvariantCulture);
+            Assert.True(padding > 0, "The link sets no padding of its own, so its margin cannot be held to it.");
+            Assert.Equal(-padding, margin);
+         }
       }
 
       [Fact]

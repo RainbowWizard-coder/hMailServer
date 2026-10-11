@@ -125,7 +125,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       /// <summary>A dialog whose footer holds Close alone draws it Primary, its lists' Add secondary, and gives it no Enter.</summary>
       [Theory]
-      [InlineData("FolderPermissionsDialog.cs", "var close = new Wpf.Ui.Controls.Button { Content = L(\"Close\")", "var add = new Wpf.Ui.Controls.Button { Content = L(\"_Add\")")]
+      [InlineData("FolderPermissionsDialog.cs", "var close = new Wpf.Ui.Controls.Button { Content = L(\"Close\")", "var add = new Wpf.Ui.Controls.Button { Content = L(\"_Add…\")")]
       [InlineData("GroupMembersDialog.cs", "var close = new Wpf.Ui.Controls.Button { Content = L(\"Close\")", "Content = L(\"_Add account…\"),")]
       [InlineData("RecipientsDialog.cs", "var closeButton = new Wpf.Ui.Controls.Button { Content = L(\"Close\")", null)]
       public void ALoneClose_IsTheDialogsPrimary(string file, string close, string add)

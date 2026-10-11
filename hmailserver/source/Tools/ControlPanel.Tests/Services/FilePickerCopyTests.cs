@@ -86,14 +86,14 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Null(key.Attribute("Grid.ColumnSpan"));
          Assert.Equal((string)cert.Attribute("LabelGroup"), (string)key.Attribute("LabelGroup"));
 
-         // The second line: the name in the first half, the passphrase and Add in the second.
-         XElement name = Named("NewCertNameRow"), last = Named("AddCertLastLine");
+         // The second line: the name in the first half, the passphrase in the second; Add is the
+         // card's own action, in its footer (t213c, F236).
+         XElement name = Named("NewCertNameRow"), passphrase = Named("NewKeyPassphraseRow");
          Assert.Equal(("1", "0"), (Row(name), Column(name)));
-         Assert.Equal(("1", "1"), (Row(last), Column(last)));
-         Assert.Equal(new[] { "*", "Auto" }, Widths(last));
-         Assert.Equal(last, Named("NewKeyPassphraseRow").Parent);
-         Assert.True(Named("AddCertButton").Ancestors().Contains(last), "Add is not on the passphrase's line.");
-         Assert.Equal((string)name.Attribute("LabelGroup"), (string)Named("NewKeyPassphraseRow").Attribute("LabelGroup"));
+         Assert.Equal(("1", "1"), (Row(passphrase), Column(passphrase)));
+         Assert.Equal(form, passphrase.Parent);
+         Assert.False(form.Descendants().Contains(Named("AddCertButton")), "Add is on the form's line.");
+         Assert.Equal((string)name.Attribute("LabelGroup"), (string)passphrase.Attribute("LabelGroup"));
          Assert.NotEqual((string)cert.Attribute("LabelGroup"), (string)name.Attribute("LabelGroup"));
          Assert.Equal(4, form.Elements().Count(e => !e.Name.LocalName.StartsWith("Grid.", StringComparison.Ordinal)));
 

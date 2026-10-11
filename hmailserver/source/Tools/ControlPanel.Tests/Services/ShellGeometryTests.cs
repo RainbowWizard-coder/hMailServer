@@ -339,14 +339,17 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          string page = ConfirmationPatternTests.ReadControlPanelFile(System.IO.Path.Join("Views", "AuditTrailView.cs"));
          Match floor = Regex.Match(page, @"detail_?\.MinWidth = (?:Math\.Max\()?(\d+)");
+         // t213d's: Detail twice a share and at least 200, the columns of words floored at their words.
          Assert.True(floor.Success, "The audit trail's Detail column has no floor.");
          Assert.True(int.Parse(floor.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture) >= 120, "The audit trail's Detail column is floored under 120 pixels.");
          Assert.Contains("ScrollViewer.SetVerticalScrollBarVisibility(rows_, ScrollBarVisibility.Visible);", page, StringComparison.Ordinal);
          string reload = WithheldRowTests.MemberText(page, "private void Reload()");
          Assert.True(reload != null, "AuditTrailView.Reload is gone.");
-         Assert.Contains("GridStyles.FloorAtTheirWords(rows_, shown, detail_);", reload, StringComparison.Ordinal);
-         Assert.True(reload.IndexOf("rows_.ItemsSource = shown;", StringComparison.Ordinal) < reload.IndexOf("GridStyles.FloorAtTheirWords(", StringComparison.Ordinal),
-            "The audit trail floors its columns before the rows they are floored at are shown.");
+         Assert.Contains("Show_(report.Entries);", reload, StringComparison.Ordinal);
+         string show = WithheldRowTests.MemberText(page, "private void Show_(IReadOnlyList<AuditRow> rows)");
+         Assert.True(show != null, "AuditTrailView.Show_ is gone.");
+         Assert.True(show.IndexOf("FloorShared_(shown);", StringComparison.Ordinal) < show.IndexOf("rows_.ItemsSource = shown;", StringComparison.Ordinal),
+            "The audit trail shows its rows before its columns are floored at them.");
       }
 
       /// <summary>A glyph's family: its name without the size and without the qualifier after the first word - "ShieldKeyhole24" is a Shield.</summary>

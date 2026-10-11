@@ -36,9 +36,11 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          string dialog = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "IPRangeDialog.cs"));
          Assert.DoesNotContain("Require auth: ", dialog, StringComparison.Ordinal);
-         foreach (string caption in new[] { "_Local to local", "Local to _external", "E_xternal to local", "External to exte_rnal" })
-            Assert.Contains("Content = L(\"" + caption + "\")", dialog, StringComparison.Ordinal);
-         Assert.Contains("ControlHelp.Explain(direction, L(\"Require SMTP authentication for each delivery direction\"));", dialog, StringComparison.Ordinal);
+         // Each direction once, a row of its Allow and Only after SMTP authentication boxes, which
+         // the row's caption and the column's name (DeliveryRow) - t213b's Delivery tab (F229).
+         foreach (string caption in new[] { "_Local to local", "Lo_cal to external", "E_xternal to local", "External to external (rela_y)" })
+            Assert.Contains("(L(\"" + caption + "\"), ", dialog, StringComparison.Ordinal);
+         Assert.Contains("p.Children.Add(DeliveryRow.BuildGrid(new[]", dialog, StringComparison.Ordinal);
       }
 
       [Fact]

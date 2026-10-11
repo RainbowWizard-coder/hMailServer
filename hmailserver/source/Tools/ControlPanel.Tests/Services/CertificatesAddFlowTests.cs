@@ -57,10 +57,11 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          var fields = form.Elements().Where(e => e.Name.LocalName == "FieldRow").ToList();
          Assert.Equal(4, fields.Count);
+         // The files first (t31c, F324), which fill the name in; then the name and the passphrase.
          foreach (XElement field in fields)
          {
             bool first = (string)field.Attribute("Grid.Row") == null;
-            Assert.Equal(first ? "CertNameLine" : "CertFileLine", (string)field.Attribute("LabelGroup"));
+            Assert.Equal(first ? "CertFileLine" : "CertNameLine", (string)field.Attribute("LabelGroup"));
          }
 
          // Add is not on a line of the form, and is the card's footer.

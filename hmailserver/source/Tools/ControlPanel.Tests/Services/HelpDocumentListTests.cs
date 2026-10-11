@@ -96,7 +96,8 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          // Back: kept by every link in the pane, started again by a page's help.
          Assert.Contains("AutomationProperties.SetAutomationId(backButton_, \"help-back\");", list, StringComparison.Ordinal);
-         Assert.Contains("allButton_.Click += (s, e) => GoTo_(ShowAll);", pane, StringComparison.Ordinal);
+         string all = pane[pane.IndexOf("allButton_.Click += (s, e) =>", StringComparison.Ordinal)..];
+         Assert.Contains("GoTo_(ShowAll);", all[..all.IndexOf("};", StringComparison.Ordinal)], StringComparison.Ordinal);
          Assert.Contains("(doc, fragment) => GoTo_(() => ShowDocument(doc, HeadingForFragment_(doc, fragment)))", pane, StringComparison.Ordinal);
          Assert.Contains("link.Click += (s, e) => GoTo_(() => ShowDocument(opened, null));", list, StringComparison.Ordinal);
          string showPage = WithheldRowTests.MemberText(pane, "public void ShowPage(string navigationKey, string tab)");
@@ -154,20 +155,22 @@ namespace hMailServer.ControlPanel.Tests.Services
          string list = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "HelpPane.List.cs"));
          string pane = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "HelpPane.cs"));
 
-         Assert.Contains("ShowListStatus_(ListResult_(search_.Text.Trim()));", Member("HelpPane.List.cs", "private void FilterList_()"), StringComparison.Ordinal);
+         Assert.Contains("ShowFindStatus_(ListResult_(search_.Text.Trim()));", Member("HelpPane.List.cs", "private void FilterList_()"), StringComparison.Ordinal);
          string result = Member("HelpPane.List.cs", "private static string ListResult_(string term)");
          Assert.Contains("if (term.Length < HelpDocumentList.ShortestTerm)", result, StringComparison.Ordinal);
          Assert.Contains("F(\"No document contains \\\"{0}\\\".\", term)", result, StringComparison.Ordinal);
          Assert.Contains("PluralF(found, \"{0} document contains \\\"{1}\\\".\", \"{0} documents contain \\\"{1}\\\".\", found, term)", result, StringComparison.Ordinal);
 
-         string show = Member("HelpPane.List.cs", "private void ShowListStatus_(string text)");
-         Assert.Contains("Announce.Request(listStatus_);", show, StringComparison.Ordinal);
-         Assert.Contains("AutomationProperties.SetLiveSetting(listStatus_, AutomationLiveSetting.Polite);", list, StringComparison.Ordinal);
-         Assert.Contains("FrameworkElement searchRow = SearchWithListStatus_();", pane, StringComparison.Ordinal);
+         // The one line under the box, t33b's findStatus_, says the list's result as well.
+         string show = Member("HelpPane.cs", "private void ShowFindStatus_(string text)");
+         Assert.Contains("Announce.Request(findStatus_);", show, StringComparison.Ordinal);
+         Assert.Contains("AutomationProperties.SetLiveSetting(findStatus_, AutomationLiveSetting.Polite);", pane, StringComparison.Ordinal);
+         Assert.Contains("searchBlock.Children.Add(findStatus_);", pane, StringComparison.Ordinal);
+         Assert.DoesNotContain("listStatus_", list, StringComparison.Ordinal);
 
          // Said once, under the box, and gone with the list.
          Assert.DoesNotContain("No document contains", Member("HelpPane.List.cs", "private void AddDocumentSections_(FlowDocument document)"), StringComparison.Ordinal);
-         Assert.Contains("ShowListStatus_(null);", Member("HelpPane.List.cs", "private void SearchChanged_()"), StringComparison.Ordinal);
+         Assert.Contains("Find_(false);", Member("HelpPane.List.cs", "private void SearchChanged_()"), StringComparison.Ordinal);
 
          // Both forms are in every catalogue, and the few form where a language has one.
          var english = XDocument.Load(ConfirmationPatternTests.ControlPanelFile(Path.Join("Resources", "Strings.resx"))).Root

@@ -74,7 +74,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [Fact]
       public void TheToolbarsAccessKeys_AreDistinct_InEveryLanguage()
       {
-         string[] captions = { "_Members…", "_Edit", "_Delete", "_Add", "_Refresh" };
+         string[] captions = { "_Members…", "_Edit…", "_Delete", "_Add…", "_Refresh" };
          string specs = ReadControlPanelFile(Path.Join("Views", "CollectionSpecs.cs"));
          string editor = ReadControlPanelFile(Path.Join("Views", "CollectionEditorView.cs"));
          Assert.Contains("L(\"_Members…\")", specs, StringComparison.Ordinal);

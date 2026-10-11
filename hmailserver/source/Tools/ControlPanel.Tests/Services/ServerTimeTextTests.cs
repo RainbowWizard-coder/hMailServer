@@ -143,14 +143,15 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          string code = Read("QueueView.xaml.cs");
          string reload = WithheldRowTests.MemberText(code, "private void Reload()");
-         Assert.Contains("DateTime? now = ServerSession.IsLocalSession ? DateTime.Now : null;", reload, StringComparison.Ordinal);
-         Assert.Contains("CreatedColumn.Header = now == null ? L(\"Created (server time)\") : L(\"Created\");", reload, StringComparison.Ordinal);
-         Assert.Contains("NextTryColumn.Header = now == null ? L(\"Next try (server time)\") : L(\"Next try\");", reload, StringComparison.Ordinal);
-         Assert.Contains("Created = ServerTimeText.GridCell(columns[1], now),", reload, StringComparison.Ordinal);
-         Assert.Contains("NextTry = ServerTimeText.DueCell(columns[4], now, L(\"As soon as possible\")),", reload, StringComparison.Ordinal);
+         // The next try is t213c's State column, the wait to it in words and its time in the
+         // cell's tool tip (QueueWords.StateTip); Created names the clock as it is written.
+         Assert.Contains("DateTime? localNow = sameClock ? now : null;", reload, StringComparison.Ordinal);
+         Assert.Contains("CreatedColumn.Header = localNow == null ? L(\"Created (server time)\") : L(\"Created\");", reload, StringComparison.Ordinal);
+         Assert.Contains("Created = ServerTimeText.GridCell(columns[1], localNow),", reload, StringComparison.Ordinal);
+         Assert.DoesNotContain("NextTryColumn", reload, StringComparison.Ordinal);
 
          XElement grid = XDocument.Parse(Read("QueueView.xaml")).Root.Descendants(Wpf + "DataGrid").Single();
-         foreach ((string name, string sort, string tip) in new[] { ("CreatedColumn", "CreatedAt", "{Binding CreatedTip}"), ("NextTryColumn", "NextTryAt", "{Binding NextTryTip}") })
+         foreach ((string name, string sort, string tip) in new[] { ("CreatedColumn", "CreatedAt", "{Binding CreatedTip}") })
          {
             XElement column = grid.Descendants(Wpf + "DataGridTextColumn").Single(c => (string)c.Attribute(X + "Name") == name);
             Assert.Equal(sort, (string)column.Attribute("SortMemberPath"));
@@ -220,7 +221,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          // under a header that names the server's clock.
          string editor = WithheldRowTests.MemberText(HostedAddressTests.ReadControlPanelFile(Path.Join("Views", "CollectionEditorView.cs")), "internal static string FormatCell(object v)");
          Assert.Contains("if (v is DateTime when) return when.Year < 1970 ? \"\" : ServerTimeText.Cell(when);", editor, StringComparison.Ordinal);
-         Assert.Contains("Prop = \"ExpiresTime\", Label = L(\"Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)\"), GridLabel = L(\"Expires (server time)\")",
+         Assert.Contains("Prop = \"ExpiresTime\", Label = L(\"Expires on (YYYY-MM-DD HH:MM:SS)\"), GridLabel = L(\"Expires (server time)\")",
             HostedAddressTests.ReadControlPanelFile(Path.Join("Views", "CollectionSpecs.cs")), StringComparison.Ordinal);
 
          // The allowed and blocked domains' Added sorts by the server's own form, as the times do.

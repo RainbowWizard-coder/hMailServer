@@ -51,7 +51,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          NavNode page = NavigationMap.Find("apikeys");
          Assert.NotNull(page);
          Assert.Equal("REST API keys", page.Title);
-         Assert.Equal(new[] { "api", "adminaccess" }, page.SeeAlso.ToArray());
+         // A key's role is one of the Administrator roles page's (t34a, review finding F089).
+         Assert.Equal(new[] { "api", "adminaccess", "roles" }, page.SeeAlso.ToArray());
          Assert.Contains("apikeys", NavigationMap.Find("api").SeeAlso);
 
          // The groups, in the sidebar's order: none added until the owner decides.

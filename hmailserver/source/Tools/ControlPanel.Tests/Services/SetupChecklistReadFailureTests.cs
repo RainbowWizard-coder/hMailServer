@@ -55,7 +55,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          // value is a Cannot tell finding of its item.
          Assert.DoesNotContain("Only what could be read", Source(), StringComparison.Ordinal);
          Assert.Contains("summary_.Text = Sentences(partial ? L(\"An item that depends on a value that could not be read is counted as one that cannot be told, unless what was read already shows that it needs action.\") : null,", render, StringComparison.Ordinal);
-         Assert.Contains("next != null ? F(\"Next step: {0}.\", next.Title) : null);", render, StringComparison.Ordinal);
+         Assert.Contains("SetupTally.Tally(action, unknown, done, unused, next?.Title));", render, StringComparison.Ordinal);
       }
 
       [Fact]
@@ -70,7 +70,8 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          int partial = render.IndexOf("bool partial = checks_.FailedReads > 0;", StringComparison.Ordinal);
          int next = render.IndexOf("SetupItem next = partial ? null : checks_.Items.FirstOrDefault(i => i.State == SetupItemState.ActionNeeded);", StringComparison.Ordinal);
-         int cards = render.IndexOf("body_.Children.Add(ItemCard(item, ++number, ReferenceEquals(item, next)));", StringComparison.Ordinal);
+         int cards = render.IndexOf("Card card = ItemCard(item, ++number, isNext, out FrameworkElement link);", StringComparison.Ordinal);
+         Assert.Contains("bool isNext = ReferenceEquals(item, next);", render, StringComparison.Ordinal);
          Assert.True(partial >= 0, "RenderItems no longer asks whether values could not be read.");
          Assert.True(next > partial, "The next step is chosen without asking whether values could not be read, or before it is asked.");
          Assert.True(cards > next, "The cards are drawn before the next step is chosen, or no longer told which card it is.");
