@@ -1194,7 +1194,7 @@ namespace hMailServer.ControlPanel.Views
             var skipLine = new TextBlock
             {
                Text = parts.Length >= 2
-                  ? parts[0].Trim() + "  -  " + string.Join(" ", parts, 1, parts.Length - 1).Trim()
+                  ? parts[0].Trim() + " - " + string.Join(" ", parts, 1, parts.Length - 1).Trim()
                   : line,
                TextWrapping = TextWrapping.Wrap,
                Margin = new Thickness(0, 0, 0, 2)
@@ -1229,7 +1229,7 @@ namespace hMailServer.ControlPanel.Views
          var panel = new StackPanel();
          var head = new TextBlock
          {
-            Text = (row.Address.Length == 0 ? L("(no address)") : row.Address) + "  -  " + row.Action,
+            Text = (row.Address.Length == 0 ? L("(no address)") : row.Address) + " - " + row.Action,
             TextWrapping = TextWrapping.Wrap
          };
          head.SetResourceReference(StyleProperty, emphasise ? "TextBodyStrong" : "TextBody");
