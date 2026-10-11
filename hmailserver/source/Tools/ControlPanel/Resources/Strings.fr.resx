@@ -8948,7 +8948,7 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
     <value>Vérification de l'enregistrement PTR</value>
   </data>
   <data name="P_ort" xml:space="preserve">
-    <value>P_ort</value>
+    <value>Por_t</value>
   </data>
   <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM" xml:space="preserve">
     <value>_Publiez cet enregistrement DNS TXT chez votre fournisseur DNS, puis activez DKIM</value>
@@ -9154,7 +9154,7 @@ Aucune nouvelle connexion ne sera acceptée et aucun courrier ne sera livré jus
     <value>Refus de politique</value>
   </data>
   <data name="Por_t" xml:space="preserve">
-    <value>P_ort</value>
+    <value>_Port</value>
   </data>
   <data name="Port" xml:space="preserve">
     <value>Port</value>
@@ -15867,9 +15867,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="_Propagation period (hours, 1 to 720)" xml:space="preserve">
     <value>Période de propagation (_heures, 1 à 720)</value>
-  </data>
-  <data name="_Properties" xml:space="preserve">
-    <value>_Propriétés</value>
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Protocole</value>

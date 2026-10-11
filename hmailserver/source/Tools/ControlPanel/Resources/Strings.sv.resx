@@ -15868,9 +15868,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_Propagation period (hours, 1 to 720)" xml:space="preserve">
     <value>S_pridningstid (timmar, 1 till 720)</value>
   </data>
-  <data name="_Properties" xml:space="preserve">
-    <value>Egenska_per</value>
-  </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Protokoll</value>
   </data>

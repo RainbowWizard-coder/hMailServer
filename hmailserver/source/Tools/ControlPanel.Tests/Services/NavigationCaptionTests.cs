@@ -87,6 +87,84 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(offending.Count == 0, "A button that only opens a page ends in an ellipsis: " + string.Join("; ", offending));
       }
 
+      /// <summary>
+      /// A XAML button whose Click handler opens a dialog that asks for more - an
+      /// entry's own dialog, a rule's criterion or action - ends in the ellipsis, so
+      /// that pages built alike say alike: IP ranges' Properties read "Prop_erties…"
+      /// while Routes' and TCP/IP ports', which open their entry's dialog the same
+      /// way, read "_Properties" (review finding F305). The handler is read with the
+      /// methods of its file that it calls, three calls deep. Not held to it: a dialog
+      /// that asks nothing (the message viewer of View source) or that is a step of
+      /// another act (the code the sign-in asks for when the server wants a second
+      /// factor), and the domains page's row buttons, which are to become 24-pixel
+      /// icon buttons named for their row (the owner's decision 15 of 9 October 2026).
+      /// </summary>
+      [Fact]
+      public void EveryXamlButtonThatOpensADialogForInputEndsInAnEllipsis()
+      {
+         var asksNothing = new HashSet<string>(StringComparer.Ordinal) { "MessageViewerDialog", "TotpPromptDialog" };
+         var rowButtons = new HashSet<string>(StringComparer.Ordinal) { "DomainsView.xaml EditDomain_Click", "DomainsView.xaml EditAccount_Click" };
+         var button = new Regex(@"<ui:(?:Button|HyperlinkButton)\b[^>]*>", RegexOptions.Singleline);
+         var offending = new List<string>();
+         int opening = 0;
+         foreach (string xaml in ViewFiles("*.xaml"))
+         {
+            string codeBehind = xaml + ".cs";
+            if (!File.Exists(codeBehind))
+               continue;
+            string code = File.ReadAllText(codeBehind);
+            foreach (Match element in button.Matches(File.ReadAllText(xaml)))
+            {
+               Match caption = Regex.Match(element.Value, @"Content=""\{loc:L '((?:[^'\\]|\\.)*)'\}""");
+               Match click = Regex.Match(element.Value, @"Click=""(\w+)""");
+               if (!caption.Success || !click.Success)
+                  continue;
+               var dialogs = DialogsOpenedBy(code, MethodBody(code, click.Groups[1].Value), 0, new HashSet<string>(StringComparer.Ordinal));
+               dialogs.ExceptWith(asksNothing);
+               if (dialogs.Count == 0 || rowButtons.Contains(Path.GetFileName(xaml) + " " + click.Groups[1].Value))
+                  continue;
+               opening++;
+               if (!EndsInEllipsis(caption.Groups[1].Value))
+                  offending.Add(Path.GetFileName(xaml) + ": \"" + caption.Groups[1].Value + "\" opens " + string.Join(", ", dialogs));
+            }
+         }
+
+         Assert.True(opening >= 8, "The XAML buttons that open a dialog were not found: " + opening);
+         Assert.True(offending.Count == 0, "A button that opens a dialog for input must end in an ellipsis: " + string.Join("; ", offending));
+      }
+
+      /// <summary>The body of the method <paramref name="name"/> in <paramref name="code"/>, or null.</summary>
+      private static string MethodBody(string code, string name)
+      {
+         Match head = Regex.Match(code, @"\b(?:void|bool|Task|async\s+void|async\s+Task)\s+" + Regex.Escape(name) + @"\s*\([^)]*\)\s*(=>[^;]+;|\{)");
+         if (!head.Success)
+            return null;
+         if (head.Groups[1].Value.StartsWith("=>", StringComparison.Ordinal))
+            return head.Groups[1].Value;
+         int i = head.Index + head.Length, depth = 1;
+         for (; i < code.Length && depth > 0; i++)
+            depth += code[i] == '{' ? 1 : code[i] == '}' ? -1 : 0;
+         return code.Substring(head.Index, i - head.Index);
+      }
+
+      /// <summary>The dialogs <paramref name="body"/> constructs, itself or through the methods of the file it calls.</summary>
+      private static HashSet<string> DialogsOpenedBy(string code, string body, int depth, HashSet<string> seen)
+      {
+         var found = new HashSet<string>(StringComparer.Ordinal);
+         if (body == null)
+            return found;
+         foreach (Match dialog in Regex.Matches(body, @"new\s+(\w+Dialog)\s*\("))
+            found.Add(dialog.Groups[1].Value);
+         if (depth >= 3)
+            return found;
+         foreach (Match call in Regex.Matches(body, @"(?<![\w.])(\w+)\s*\("))
+         {
+            if (seen.Add(call.Groups[1].Value))
+               found.UnionWith(DialogsOpenedBy(code, MethodBody(code, call.Groups[1].Value), depth + 1, seen));
+         }
+         return found;
+      }
+
       [Fact]
       public void TheListEditorsAddAndEditSayTheyOpenADialog()
       {

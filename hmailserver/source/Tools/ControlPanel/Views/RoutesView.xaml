@@ -46,7 +46,7 @@
                           SearchTextChanged="Search_TextChanged">
             <scaffold:Toolbar.Actions>
                 <WrapPanel HorizontalAlignment="Right">
-                    <ui:Button x:Name="PropertiesButton" Content="{loc:L '_Properties'}" Click="Edit_Click" Margin="0,2,8,2" />
+                    <ui:Button x:Name="PropertiesButton" Content="{loc:L 'Prop_erties…'}" Click="Edit_Click" Margin="0,2,8,2" />
                     <ui:Button x:Name="DeleteButton" Content="{loc:L '_Delete selected'}" Style="{StaticResource DangerTextButton}" Click="Delete_Click" Margin="0,2,0,2" />
                 </WrapPanel>
             </scaffold:Toolbar.Actions>

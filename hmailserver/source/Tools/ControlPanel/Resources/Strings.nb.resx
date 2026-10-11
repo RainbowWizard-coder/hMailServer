@@ -10312,7 +10312,7 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
     <value>Gjenoppretting startet - kjører i bakgrunnen på serveren.</value>
   </data>
   <data name="Restore the default p_orts" xml:space="preserve">
-    <value>_Gjenopprett standardportene</value>
+    <value>Gjenopprett standardpo_rtene</value>
   </data>
   <data name="Restore the default ran_ges" xml:space="preserve">
     <value>Gjenopprett standard_områdene</value>
@@ -15867,9 +15867,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="_Propagation period (hours, 1 to 720)" xml:space="preserve">
     <value>Spredningsperiode (_timer, 1 til 720)</value>
-  </data>
-  <data name="_Properties" xml:space="preserve">
-    <value>Ege_nskaper</value>
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Protokoll</value>

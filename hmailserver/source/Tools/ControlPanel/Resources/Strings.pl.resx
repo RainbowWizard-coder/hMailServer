@@ -16055,9 +16055,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="_Propagation period (hours, 1 to 720)" xml:space="preserve">
     <value>Okres propaga_cji (godziny, od 1 do 720)</value>
   </data>
-  <data name="_Properties" xml:space="preserve">
-    <value>Właś_ciwości</value>
-  </data>
   <data name="_Protocol" xml:space="preserve">
     <value>Pr_otokół</value>
   </data>

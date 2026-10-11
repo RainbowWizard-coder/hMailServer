@@ -2357,7 +2357,7 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
     <value>COMPRESS=DEFLATE (RFC 4978)</value>
   </data>
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
-    <value>Pacote de certificados de C_A (PEM) ao qual os certificados de cliente devem encadear</value>
+    <value>Pac_ote de certificados de CA (PEM) ao qual os certificados de cliente devem encadear</value>
   </data>
   <data name="C_ertificate" xml:space="preserve">
     <value>_Certificado</value>
@@ -8948,7 +8948,7 @@ Nada do que já está lá é removido.</value>
     <value>Verificação do registro PTR</value>
   </data>
   <data name="P_ort" xml:space="preserve">
-    <value>P_orta</value>
+    <value>Port_a</value>
   </data>
   <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM" xml:space="preserve">
     <value>Publique _este registro DNS TXT no seu provedor de DNS e então ative o DKIM</value>
@@ -9154,7 +9154,7 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
     <value>Recusa por política</value>
   </data>
   <data name="Por_t" xml:space="preserve">
-    <value>P_orta</value>
+    <value>_Porta</value>
   </data>
   <data name="Port" xml:space="preserve">
     <value>Porta</value>
@@ -15867,9 +15867,6 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="_Propagation period (hours, 1 to 720)" xml:space="preserve">
     <value>Período de propagação (_horas, 1 a 720)</value>
-  </data>
-  <data name="_Properties" xml:space="preserve">
-    <value>_Propriedades</value>
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>P_rotocolo</value>

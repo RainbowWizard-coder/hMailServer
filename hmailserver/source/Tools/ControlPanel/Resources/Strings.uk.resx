@@ -9407,7 +9407,7 @@
     <value>Тут вмикаються метрики Prometheus, кінцеві точки справності та REST API.</value>
   </data>
   <data name="Prop_erties…" xml:space="preserve">
-    <value>Вл_астивості…</value>
+    <value>Вла_стивості…</value>
   </data>
   <data name="Propagating" xml:space="preserve">
     <value>Триває поширення</value>
@@ -16054,9 +16054,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Propagation period (hours, 1 to 720)" xml:space="preserve">
     <value>Період поширення (_години, від 1 до 720)</value>
-  </data>
-  <data name="_Properties" xml:space="preserve">
-    <value>_Властивості</value>
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Протокол</value>

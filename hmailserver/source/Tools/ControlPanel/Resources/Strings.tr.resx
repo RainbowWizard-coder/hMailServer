@@ -15868,9 +15868,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="_Propagation period (hours, 1 to 720)" xml:space="preserve">
     <value>_Yayılma süresi (saat, 1 ile 720 arası)</value>
   </data>
-  <data name="_Properties" xml:space="preserve">
-    <value>_Özellikler</value>
-  </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Protokol</value>
   </data>

@@ -15868,9 +15868,6 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="_Propagation period (hours, 1 to 720)" xml:space="preserve">
     <value>_Verbreitungszeit (Stunden, 1 bis 720)</value>
   </data>
-  <data name="_Properties" xml:space="preserve">
-    <value>_Eigenschaften</value>
-  </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Protokoll</value>
   </data>

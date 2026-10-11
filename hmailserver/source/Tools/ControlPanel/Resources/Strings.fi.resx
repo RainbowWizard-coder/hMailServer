@@ -15868,9 +15868,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="_Propagation period (hours, 1 to 720)" xml:space="preserve">
     <value>Leviämisaika (t_untia, 1–720)</value>
   </data>
-  <data name="_Properties" xml:space="preserve">
-    <value>_Ominaisuudet</value>
-  </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Protokolla</value>
   </data>

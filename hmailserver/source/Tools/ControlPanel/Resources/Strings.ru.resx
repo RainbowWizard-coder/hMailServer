@@ -9407,7 +9407,7 @@ Control Panel может читать файлы сообщений только
     <value>Здесь включаются метрики Prometheus, конечные точки проверки работоспособности и REST API.</value>
   </data>
   <data name="Prop_erties…" xml:space="preserve">
-    <value>С_войства…</value>
+    <value>Свойс_тва…</value>
   </data>
   <data name="Propagating" xml:space="preserve">
     <value>Идёт распространение</value>
@@ -16054,9 +16054,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Propagation period (hours, 1 to 720)" xml:space="preserve">
     <value>Период распространения (_часы, от 1 до 720)</value>
-  </data>
-  <data name="_Properties" xml:space="preserve">
-    <value>_Свойства</value>
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Протокол</value>

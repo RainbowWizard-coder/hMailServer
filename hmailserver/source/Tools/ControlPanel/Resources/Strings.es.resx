@@ -10312,7 +10312,7 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
     <value>Restauración iniciada - se ejecuta en segundo plano en el servidor.</value>
   </data>
   <data name="Restore the default p_orts" xml:space="preserve">
-    <value>Restaurar los puert_os predeterminados</value>
+    <value>Restaurar los _puertos predeterminados</value>
   </data>
   <data name="Restore the default ran_ges" xml:space="preserve">
     <value>Restaurar los rangos predeter_minados</value>
@@ -15867,9 +15867,6 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="_Propagation period (hours, 1 to 720)" xml:space="preserve">
     <value>Período de propagación (_horas, 1 a 720)</value>
-  </data>
-  <data name="_Properties" xml:space="preserve">
-    <value>_Propiedades</value>
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Protocolo</value>

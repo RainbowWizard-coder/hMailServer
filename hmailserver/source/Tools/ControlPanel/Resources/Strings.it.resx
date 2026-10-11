@@ -8948,7 +8948,7 @@ Nulla di ciò che è già presente viene rimosso.</value>
     <value>Controllo del record PTR</value>
   </data>
   <data name="P_ort" xml:space="preserve">
-    <value>P_orta</value>
+    <value>Por_ta</value>
   </data>
   <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM" xml:space="preserve">
     <value>_Pubblica questo record DNS TXT presso il tuo provider DNS, poi attiva DKIM</value>
@@ -9154,7 +9154,7 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
     <value>Rifiuto per criterio</value>
   </data>
   <data name="Por_t" xml:space="preserve">
-    <value>P_orta</value>
+    <value>_Porta</value>
   </data>
   <data name="Port" xml:space="preserve">
     <value>Porta</value>
@@ -15867,9 +15867,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="_Propagation period (hours, 1 to 720)" xml:space="preserve">
     <value>_Periodo di propagazione (ore, da 1 a 720)</value>
-  </data>
-  <data name="_Properties" xml:space="preserve">
-    <value>_Proprietà</value>
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Protocollo</value>

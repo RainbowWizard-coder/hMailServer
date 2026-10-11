@@ -15878,9 +15878,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Propagation period (hours, 1 to 720)" xml:space="preserve">
     <value>伝播期間 (時間、1 から 720)(_P)</value>
   </data>
-  <data name="_Properties" xml:space="preserve">
-    <value>プロパティ(_P)</value>
-  </data>
   <data name="_Protocol" xml:space="preserve">
     <value>プロトコル(_P)</value>
   </data>

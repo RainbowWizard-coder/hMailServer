@@ -15573,7 +15573,7 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
     <value>_Zpět na výsledky</value>
   </data>
   <data name="_Bind address (0.0.0.0)" xml:space="preserve">
-    <value>_Adresa pro navázání (0.0.0.0)</value>
+    <value>A_dresa pro navázání (0.0.0.0)</value>
   </data>
   <data name="_Bind method" xml:space="preserve">
     <value>_Metoda bindu</value>
@@ -16054,9 +16054,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Propagation period (hours, 1 to 720)" xml:space="preserve">
     <value>Doba _šíření (hodiny, 1 až 720)</value>
-  </data>
-  <data name="_Properties" xml:space="preserve">
-    <value>_Vlastnosti</value>
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>P_rotokol</value>

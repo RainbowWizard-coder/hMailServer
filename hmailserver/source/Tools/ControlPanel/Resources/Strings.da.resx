@@ -15868,9 +15868,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="_Propagation period (hours, 1 to 720)" xml:space="preserve">
     <value>_Udbredelsesperiode (timer, 1 til 720)</value>
   </data>
-  <data name="_Properties" xml:space="preserve">
-    <value>_Egenskaber</value>
-  </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Protokol</value>
   </data>
