@@ -11522,7 +11522,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>Надсилайте його як bearer-токен у цьому заголовку на слухач REST, налаштований на сторінці «API та моніторинг»:</value>
   </data>
   <data name="Send it during this _hour of the local day (0 to 23)" xml:space="preserve">
-    <value>Надсилати в цю _годину місцевої доби (0–23)</value>
+    <value>Надсилати в цю _годину місцевої доби (0-23)</value>
   </data>
   <data name="Send it unencrypted and log it" xml:space="preserve">
     <value>Надіслати без шифрування та записати в журнал</value>
@@ -12743,7 +12743,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>Ім’я HELO/EHLO</value>
   </data>
   <data name="The Host name on the Protocols page is empty, so the server falls back to its Windows computer name - shown above as this machine's name. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
-    <value>Ім'я вузла на сторінці «Протоколи» порожнє, тому сервер відкочується до імені свого комп'ютера Windows — показано вище як ім’я цього комп’ютера. Голе ім'я комп'ютера - не публічне ім'я DNS: отримувачі, які порівнюють HELO з DNS, штрафуватимуть його, і жоден PTR не може з ним збігтися. Спершу задайте справжнє ім'я вузла.</value>
+    <value>Ім'я вузла на сторінці «Протоколи» порожнє, тому сервер відкочується до імені свого комп'ютера Windows — показано вище як ім’я цього комп’ютера. Голе ім'я комп'ютера — не публічне ім'я DNS: отримувачі, які порівнюють HELO з DNS, штрафуватимуть його, і жоден PTR не може з ним збігтися. Спершу задайте справжнє ім'я вузла.</value>
   </data>
   <data name="The Host name on the Protocols page is empty, so the server falls back to its Windows computer name, which cannot be read from this machine. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>Ім'я вузла на сторінці «Протоколи» порожнє, тому сервер відкочується до імені свого комп'ютера Windows, яке неможливо прочитати з цього комп’ютера. Голе ім'я комп'ютера - не публічне ім'я DNS: отримувачі, які порівнюють HELO з DNS, штрафуватимуть його, і жоден PTR не може з ним збігтися. Спершу задайте справжнє ім'я вузла.</value>

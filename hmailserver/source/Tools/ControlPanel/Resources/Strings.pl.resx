@@ -11522,7 +11522,7 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
     <value>Wysyłaj go jako token bearer w tym nagłówku do nasłuchu REST skonfigurowanego na stronie API i monitorowanie:</value>
   </data>
   <data name="Send it during this _hour of the local day (0 to 23)" xml:space="preserve">
-    <value>Wysyłaj w tej _godzinie lokalnej doby (0–23)</value>
+    <value>Wysyłaj w tej _godzinie lokalnej doby (0-23)</value>
   </data>
   <data name="Send it unencrypted and log it" xml:space="preserve">
     <value>Wyślij bez szyfrowania i zapisz w dzienniku</value>

@@ -5426,7 +5426,7 @@
     <value>适用于多人共用的邮箱。</value>
   </data>
   <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed sign-ins, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the allowed and blocked domains still apply. Empty, the default, changes nothing." xml:space="preserve">
-    <value>适用于主机共用一个反向名称、地址经常变动的提供商：当连接地址的某个反向名称被此处的名称覆盖、并且正向解析回该地址时，该地址永远不会被自动封禁——无论是登录失败、垃圾邮件陷阱还是空发件人。其他检查一概不跳过：灰名单、SPF、DKIM、DMARC 以及允许与拦截的域仍然适用。为空（默认）时不做任何改变。</value>
+    <value>适用于主机共用一个反向名称、地址经常变动的提供商：当连接地址的某个反向名称被此处的名称覆盖、并且正向解析回该地址时，该地址永远不会被自动封禁 - 无论是登录失败、垃圾邮件陷阱还是空发件人。其他检查一概不跳过：灰名单、SPF、DKIM、DMARC 以及允许与拦截的域仍然适用。为空（默认）时不做任何改变。</value>
   </data>
   <data name="For a record of who corresponds with whom, keeping it for ever should be a decision rather than a default - which is why 0 is offered as an option instead of being one." xml:space="preserve">
     <value>对于谁与谁通信的记录，永久保留应当是一个决定而不是默认值 - 这就是为什么 0 只是作为选项提供，而不是默认值。</value>
@@ -10621,7 +10621,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
     <value>从 Events 文件夹运行事件脚本（OnAcceptMessage、OnDeliveryStart等）；脚本本身在“事件脚本”页上编辑。保存时引擎会重新加载。</value>
   </data>
   <data name="Runs hMailServer.exe /GrantServiceAccess as an administrator, after Windows asks: NT SERVICE\hMailServer is given Modify on the program folder's own Data, Logs, Temp and Database folders and on the folders an administrator has approved, and Read on the program folder - never hMailServer.ini. A folder the configuration names elsewhere, such as a backup or archive folder set later, is approved only after a question that names it; key files outside those folders are listed. It can be run again at any time, and removes nobody else's permission." xml:space="preserve">
-    <value>在 Windows 询问后，以管理员身份运行 hMailServer.exe /GrantServiceAccess：NT SERVICE\hMailServer 获得程序文件夹自身的 Data、Logs、Temp 和 Database 文件夹以及管理员已批准的文件夹的修改权限，以及程序文件夹的读取权限——但绝不包括 hMailServer.ini。配置在其他位置指定的文件夹（例如之后设置的备份或存档文件夹）只有在指明它的询问之后才会被批准；这些文件夹之外的密钥文件会被列出。可以随时再次运行，且不会移除任何人的权限。</value>
+    <value>在 Windows 询问后，以管理员身份运行 hMailServer.exe /GrantServiceAccess：NT SERVICE\hMailServer 获得程序文件夹自身的 Data、Logs、Temp 和 Database 文件夹以及管理员已批准的文件夹的修改权限，以及程序文件夹的读取权限 - 但绝不包括 hMailServer.ini。配置在其他位置指定的文件夹（例如之后设置的备份或存档文件夹）只有在指明它的询问之后才会被批准；这些文件夹之外的密钥文件会被列出。可以随时再次运行，且不会移除任何人的权限。</value>
   </data>
   <data name="Runs the same steps the server runs, in the same order, using the values in the editors above as they stand: connect, protect the transport, bind the service credential, search for the user - and, only if a password is typed below, bind as that user to prove it. The password is used once and never stored, and the test refuses to run any configuration that would put a password on the network unprotected. Note: the test runs from this computer, so a firewall that treats this machine and the hMailServer service differently can make the two disagree." xml:space="preserve">
     <value>按服务器所用的相同顺序执行相同的步骤，并直接使用上面各编辑框中当前的值：连接、保护传输、绑定服务凭据、搜索用户 - 并且只有在下面输入了密码时，才以该用户的身份绑定来加以证实。密码只使用一次，绝不存储，而且只要某项配置会让密码不加保护地经过网络，测试就会拒绝运行。注意：测试是从这台计算机上运行的，因此如果防火墙对这台机器和 hMailServer 服务区别对待，两者的结果就可能不一致。</value>
@@ -14582,7 +14582,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
     <value>UDP 端口（1 到 65535）</value>
   </data>
   <data name="UDP truncates an entry to 1,024 bytes, which is RFC 5426's guidance and is under every path MTU that matters; the two stream transports frame each entry with its own length (RFC 5425) and truncate nothing. TLS verifies the collector's certificate chain and its name against the machine's root store, and refuses the connection when either fails - so a collector with a self-signed certificate needs that certificate trusted on this machine." xml:space="preserve">
-    <value>UDP 会把条目截断到 1,024 字节，这是 RFC 5426 的建议，也低于所有需要考虑的路径 MTU；两种流式传输方式按各自长度为每条条目加帧（RFC 5425），不作任何截断。TLS 会对照本机根证书存储校验收集器的证书链及其名称，任一项失败即拒绝连接——因此使用自签名证书的收集器，需要在本机信任该证书。</value>
+    <value>UDP 会把条目截断到 1,024 字节，这是 RFC 5426 的建议，也低于所有需要考虑的路径 MTU；两种流式传输方式按各自长度为每条条目加帧（RFC 5425），不作任何截断。TLS 会对照本机根证书存储校验收集器的证书链及其名称，任一项失败即拒绝连接 - 因此使用自签名证书的收集器，需要在本机信任该证书。</value>
   </data>
   <data name="Unable to reach the server (RPC unavailable)." xml:space="preserve">
     <value>无法访问服务器 (RPC 不可用)。</value>

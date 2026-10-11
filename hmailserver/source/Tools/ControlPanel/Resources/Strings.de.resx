@@ -3493,7 +3493,7 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
     <value>Pro Benutzername statt pro Adresse gezählt, über jedes Protokoll, das authentifiziert, sodass ein Botnetz, das seine Versuche über tausende Adressen verteilt, trotzdem das Postfach sperrt, an dem es rät. Ein gesperrter Name wird mit der gewöhnlichen Antwort für ungültige Zugangsdaten abgelehnt und kann nicht durch Eingabe des richtigen Passworts entsperrt werden - die Sperre wird zuerst geprüft - die Obergrenze sollte also mit Blick auf die Kosten gesetzt werden. Fehler gegen einen nicht existierenden Namen sperren diesen Namen absichtlich ebenfalls: sonst könnte ein Angreifer über die Sperre herausfinden, welche Konten echt sind.</value>
   </data>
   <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their &quot;Auto-ban:&quot; range expires - delete it on the IP ranges page to release one now." xml:space="preserve">
-    <value>Gezählte Anmeldefehler gelöscht. Bereits gebannte Adressen bleiben gebannt, bis ihr „Auto-ban:"-Bereich abläuft - löschen Sie ihn auf der Seite IP-Bereiche, um eine sofort freizugeben.</value>
+    <value>Gezählte Anmeldefehler gelöscht. Bereits gebannte Adressen bleiben gebannt, bis ihr „Auto-ban:“-Bereich abläuft - löschen Sie ihn auf der Seite IP-Bereiche, um eine sofort freizugeben.</value>
   </data>
   <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
     <value>Gezählte Anmeldefehler gelöscht. Bereits gebannte Adressen bleiben gebannt, bis ihr Bann endet - Bann aufheben unter Jetzt gebannt lässt eine sofort wieder zu.</value>
@@ -3817,7 +3817,7 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
     <value>Abgelehnt</value>
   </data>
   <data name="Default 10. The server reads values below 1 as 10 and clamps values above 90, because &quot;wait forever&quot; for an unreachable directory is how connection threads get exhausted." xml:space="preserve">
-    <value>Vorgabe 10. Der Server liest Werte unter 1 als 10 und begrenzt Werte über 90, weil „ewig warten" auf ein unerreichbares Verzeichnis der Weg ist, auf dem Verbindungsthreads aufgebraucht werden.</value>
+    <value>Vorgabe 10. Der Server liest Werte unter 1 als 10 und begrenzt Werte über 90, weil „ewig warten“ auf ein unerreichbares Verzeichnis der Weg ist, auf dem Verbindungsthreads aufgebraucht werden.</value>
   </data>
   <data name="Default domain (for sign-ins without a domain)" xml:space="preserve">
     <value>Standarddomain (für Anmeldungen ohne Domain)</value>
@@ -8300,7 +8300,7 @@ Nichts, was schon dort ist, wird entfernt.</value>
     <value>Es wird nichts zurückgehalten. Die Quarantäne ist ausgeschaltet: bis sie unter Anti-Spam-Einstellungen eingeschaltet wird, wird Spam über der Abweisungsschwelle während der SMTP-Sitzung abgewiesen statt gespeichert.</value>
   </data>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.ini key." xml:space="preserve">
-    <value>Nichts passte auf „{0}". Versuchen Sie es mit dem, was Sie erreichen wollen („Spam stoppen", „ein Gerät Mail senden lassen"), einem Seitennamen oder einem Schlüssel aus hMailServer.ini.</value>
+    <value>Nichts passte auf „{0}“. Versuchen Sie es mit dem, was Sie erreichen wollen („Spam stoppen“, „ein Gerät Mail senden lassen“), einem Seitennamen oder einem Schlüssel aus hMailServer.ini.</value>
   </data>
   <data name="Nothing needs action - all {0} external setup checks are done or not needed." xml:space="preserve">
     <value>Kein Handlungsbedarf - alle {0} Prüfungen der externen Einrichtung sind fertig oder nicht nötig.</value>
@@ -8384,7 +8384,7 @@ Nichts, was schon dort ist, wird entfernt.</value>
     <value>OAuth2 ist eingeschaltet und lässt RS256 zu, aber 'Öffentliche RSA-/EC-Schlüsseldatei' auf der Seite Authentifizierung ist leer - jedes RS256-Token scheitert an der Signaturprüfung, kein Client kann sich also mit einem Token anmelden. Installieren Sie den öffentlichen Schlüssel des Identitätsanbieters als PEM-Datei und wählen Sie sie dort aus.</value>
   </data>
   <data name="OAuth2 is switched on but no client can sign in with a token, because it is missing {0}. Signature verification cannot run at all, so every token is rejected and the log records only a failed sign-in - which reads as &quot;the password is wrong&quot; rather than as a configuration gap." xml:space="preserve">
-    <value>OAuth2 ist eingeschaltet, aber kein Client kann sich mit einem Token anmelden, weil {0} fehlt. Die Signaturprüfung kann überhaupt nicht laufen, jedes Token wird also zurückgewiesen und das Protokoll hält nur eine fehlgeschlagene Anmeldung fest - was sich wie „das Passwort ist falsch" liest und nicht wie eine Konfigurationslücke.</value>
+    <value>OAuth2 ist eingeschaltet, aber kein Client kann sich mit einem Token anmelden, weil {0} fehlt. Die Signaturprüfung kann überhaupt nicht laufen, jedes Token wird also zurückgewiesen und das Protokoll hält nur eine fehlgeschlagene Anmeldung fest - was sich wie „das Passwort ist falsch“ liest und nicht wie eine Konfigurationslücke.</value>
   </data>
   <data name="OK" xml:space="preserve">
     <value>OK</value>
@@ -9005,7 +9005,7 @@ Nichts, was schon dort ist, wird entfernt.</value>
     <value>POP3-Konversationen an syslog</value>
   </data>
   <data name="POP3 has no way for the server to tell a client that mail has arrived, so clients that want to look responsive poll - and some poll every few seconds. Each poll is a new connection, a TLS handshake and a password verification, which with Argon2id is deliberately expensive, so a handful of eager clients can cost more than the mail does. Setting a delay tells clients the interval in the server's capability list and refuses sign-ins that arrive early with a code the client understands as &quot;slow down&quot; rather than as a wrong password." xml:space="preserve">
-    <value>POP3 bietet dem Server keine Möglichkeit, einem Client mitzuteilen, dass Mail eingetroffen ist, deshalb fragen Clients, die reaktionsschnell wirken wollen, immer wieder nach - manche alle paar Sekunden. Jede Abfrage ist eine neue Verbindung, ein TLS-Handshake und eine Passwortprüfung, die mit Argon2id absichtlich teuer ist, eine Handvoll eifriger Clients kann also mehr kosten als die Mail selbst. Eine gesetzte Verzögerung nennt den Clients das Intervall in der Fähigkeitenliste des Servers und lehnt zu früh eintreffende Anmeldungen mit einem Code ab, den der Client als „langsamer" versteht und nicht als falsches Passwort.</value>
+    <value>POP3 bietet dem Server keine Möglichkeit, einem Client mitzuteilen, dass Mail eingetroffen ist, deshalb fragen Clients, die reaktionsschnell wirken wollen, immer wieder nach - manche alle paar Sekunden. Jede Abfrage ist eine neue Verbindung, ein TLS-Handshake und eine Passwortprüfung, die mit Argon2id absichtlich teuer ist, eine Handvoll eifriger Clients kann also mehr kosten als die Mail selbst. Eine gesetzte Verzögerung nennt den Clients das Intervall in der Fähigkeitenliste des Servers und lehnt zu früh eintreffende Anmeldungen mit einem Code ab, den der Client als „langsamer“ versteht und nicht als falsches Passwort.</value>
   </data>
   <data name="POP3 or IMAP mailboxes hMailServer collects mail from on behalf of this account. Connection security and port go together: SSL/TLS on 995 (POP3) or 993 (IMAP), STARTTLS on 110 or 143." xml:space="preserve">
     <value>POP3- oder IMAP-Postfächer, aus denen hMailServer im Namen dieses Kontos Mail abholt. Verbindungssicherheit und Port gehören zusammen: SSL/TLS auf 995 (POP3) oder 993 (IMAP), STARTTLS auf 110 oder 143.</value>
@@ -9553,7 +9553,7 @@ Es werden keine neuen Verbindungen angenommen und keine Mail zugestellt, bis er 
     <value>MX-Einträge für {0} werden abgefragt…</value>
   </data>
   <data name="Queue ID {0} - select and choose &quot;Follow this message&quot;." xml:space="preserve">
-    <value>Warteschlangen-ID {0} - auswählen und „Dieser Nachricht folgen" wählen.</value>
+    <value>Warteschlangen-ID {0} - auswählen und „Dieser Nachricht folgen“ wählen.</value>
   </data>
   <data name="Quick early retries before the normal schedule (0 = off)" xml:space="preserve">
     <value>Schnelle frühe Wiederholungen vor dem normalen Zeitplan (0 = aus)</value>
@@ -13861,7 +13861,7 @@ Trotzdem hinzufügen?</value>
     <value>Der zu fragende Server (leer = die MX-Hosts der Domain)</value>
   </data>
   <data name="The server's Host name (Protocols &gt; SMTP) is empty, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
-    <value>Der Hostname des Servers (Protokolle &gt; SMTP) ist leer, er kündigt also in HELO/EHLO seinen Windows-Computernamen an - keinen öffentlichen DNS-Namen - und es lässt sich kein „a:"-Mechanismus anbieten. Der Vorschlag autorisiert nur die MX-Hosts der Domain. Setzen Sie zuerst den Hostnamen; mehrere Einträge auf dieser Seite brauchen ihn.</value>
+    <value>Der Hostname des Servers (Protokolle &gt; SMTP) ist leer, er kündigt also in HELO/EHLO seinen Windows-Computernamen an - keinen öffentlichen DNS-Namen - und es lässt sich kein „a:“-Mechanismus anbieten. Der Vorschlag autorisiert nur die MX-Hosts der Domain. Setzen Sie zuerst den Hostnamen; mehrere Einträge auf dieser Seite brauchen ihn.</value>
   </data>
   <data name="The server's administrator code" xml:space="preserve">
     <value>Administratorcode des Servers</value>
@@ -15341,7 +15341,7 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
     <value>Ist der Listenmanager eingeschaltet, beantwortet die Liste ihre eigenen Adressen - ihre -subscribe-, -unsubscribe-, -request-, -owner- und -bounces-Adressen - und schickt jedem Mitglied eine eigene Kopie, mit einem eigenen Weg, die Liste zu verlassen. Zustellung und Bounces jedes Mitglieds werden im Control Deck angezeigt.</value>
   </data>
   <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other." xml:space="preserve">
-    <value>Ist dies eingeschaltet, muss MAIL FROM in einer authentifizierten Sitzung die eigene Adresse des Kontos sein, ein Alias, der darauf auflöst, oder ein anderes Postfach, dessen Besitzer dem Konto das Recht „post" (p) auf seinem INBOX gewährt hat - so wird Send-As für ein gemeinsam genutztes Postfach gewährt, aus dem ACL-Editor (SETACL) eines beliebigen IMAP-Clients oder über die COM-API. Alles andere wird mit 550 5.7.1 abgelehnt, bevor ein Byte der Nachricht angenommen ist, ein kompromittiertes oder unachtsames Konto kann also nicht mehr als jedes andere senden.</value>
+    <value>Ist dies eingeschaltet, muss MAIL FROM in einer authentifizierten Sitzung die eigene Adresse des Kontos sein, ein Alias, der darauf auflöst, oder ein anderes Postfach, dessen Besitzer dem Konto das Recht „post“ (p) auf seinem INBOX gewährt hat - so wird Send-As für ein gemeinsam genutztes Postfach gewährt, aus dem ACL-Editor (SETACL) eines beliebigen IMAP-Clients oder über die COM-API. Alles andere wird mit 550 5.7.1 abgelehnt, bevor ein Byte der Nachricht angenommen ist, ein kompromittiertes oder unachtsames Konto kann also nicht mehr als jedes andere senden.</value>
   </data>
   <data name="With this on, an account's own vacation message still answers colleagues, but outside senders get the domain's generic text instead - so personal detail in a vacation message stays inside the organisation." xml:space="preserve">
     <value>Ist dies eingeschaltet, antwortet die eigene Abwesenheitsnachricht eines Kontos weiterhin Kollegen, aber Absender von außen bekommen stattdessen den allgemeinen Text der Domain - persönliche Einzelheiten in einer Abwesenheitsnachricht bleiben so innerhalb der Organisation.</value>

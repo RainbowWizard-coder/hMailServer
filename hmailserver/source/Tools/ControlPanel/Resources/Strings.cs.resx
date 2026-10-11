@@ -382,7 +382,7 @@
     <value>Cíl zálohy - dokud není nastaven, žádná záloha není</value>
   </data>
   <data name="A ceiling on one pass - 5,000 when left empty - so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted." xml:space="preserve">
-    <value>Strop pro jeden průchod - 5 000, když pole zůstane prázdné - aby na příliš vysoko nastavenou bázi hledání nebylo možné odpovědět přečtením celé doménové struktury. Pokud se ho dosáhne, běh to oznámí a nezakáže vůbec nic – za limitem je položka, která existuje, nerozeznatelná od položky, která byla smazána.</value>
+    <value>Strop pro jeden průchod – 5 000, když pole zůstane prázdné – aby na příliš vysoko nastavenou bázi hledání nebylo možné odpovědět přečtením celé doménové struktury. Pokud se ho dosáhne, běh to oznámí a nezakáže vůbec nic – za limitem je položka, která existuje, nerozeznatelná od položky, která byla smazána.</value>
   </data>
   <data name="A certificate has been issued into {0}, but its expiry could not be read: {1}" xml:space="preserve">
     <value>Certifikát byl vydán do {0}, ale nepodařilo se přečíst jeho vypršení platnosti: {1}</value>
