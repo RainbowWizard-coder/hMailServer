@@ -23,15 +23,21 @@ namespace hMailServer.ControlPanel.Services
    {
       /// <summary>
       /// A colon-separated list - OpenSSL's cipher and group lists - with a place to
-      /// break after each colon (a zero-width space) and none at its hyphens (each a
-      /// non-breaking hyphen), so that it wraps between its items and never inside
-      /// one, whose names are joined by hyphens: a hyphen is a place to break, and
-      /// with the colons alone the overview still broke "ECDHE-RSA-" / "AES256-GCM-".
+      /// break after each colon (a zero-width space) and none at its hyphens (each
+      /// followed by a word joiner, U+2060), so that it wraps between its items and
+      /// never inside one, whose names are joined by hyphens: a hyphen is a place to
+      /// break, and with the colons alone the overview still broke "ECDHE-RSA-" /
+      /// "AES256-GCM-". The hyphen stays the ASCII one, which both monospaced faces
+      /// draw: the non-breaking hyphen (U+2011) this wrote first is not in Consolas,
+      /// the face a machine without Cascadia Mono shows, which took it from the UI
+      /// face, a narrower hyphen in a monospaced run. Neither face has the joiner,
+      /// nor Cascadia Mono the zero-width space, and WPF draws neither: rendered on
+      /// server1 in each face, the list breaks at its colons alone, with no box.
       /// </summary>
       public static string BreakAfterColons(string list)
          => string.IsNullOrEmpty(list)
             ? list ?? ""
-            : list.Replace("-", "\u2011", StringComparison.Ordinal).Replace(":", ":\u200B", StringComparison.Ordinal);
+            : list.Replace("-", "-\u2060", StringComparison.Ordinal).Replace(":", ":\u200B", StringComparison.Ordinal);
 
       /// <summary>
       /// A long path cut in its middle - its root and first folder, an ellipsis, its

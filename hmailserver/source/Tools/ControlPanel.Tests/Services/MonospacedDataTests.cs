@@ -26,15 +26,24 @@ namespace hMailServer.ControlPanel.Tests.Services
    /// </summary>
    public class MonospacedDataTests
    {
+      /// <summary>
+      /// A cipher list breaks after a colon and never at a hyphen: each hyphen is the
+      /// ASCII one, which Cascadia Mono and Consolas both draw, held to the letter
+      /// after it by a word joiner. The non-breaking hyphen (U+2011) it was is not in
+      /// Consolas, so that where Cascadia Mono is missing every hyphen of the list came
+      /// from the UI face, narrower than the letters beside it.
+      /// </summary>
       [Fact]
       public void AColonSeparatedListBreaksOnlyAfterItsColons()
       {
          string shown = DataText.BreakAfterColons("ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384");
 
-         Assert.Equal("ECDHE-ECDSA-AES128-GCM-SHA256:\u200BECDHE-RSA-AES256-GCM-SHA384".Replace("-", "\u2011", StringComparison.Ordinal), shown);
-         Assert.DoesNotContain('-', shown);
+         Assert.Equal("ECDHE-\u2060ECDSA-\u2060AES128-\u2060GCM-\u2060SHA256:\u200BECDHE-\u2060RSA-\u2060AES256-\u2060GCM-\u2060SHA384", shown);
+         Assert.DoesNotContain('\u2011', shown);
          Assert.Equal("", DataText.BreakAfterColons(null));
-         Assert.Equal("AEAD\u2011ONLY", DataText.BreakAfterColons("AEAD-ONLY"));
+         Assert.Equal("AEAD-\u2060ONLY", DataText.BreakAfterColons("AEAD-ONLY"));
+         // The characters the list is shown with are the ones it holds, the joiners aside.
+         Assert.Equal("ECDHE-RSA:AES", DataText.BreakAfterColons("ECDHE-RSA:AES").Replace("\u2060", "", StringComparison.Ordinal).Replace("\u200B", "", StringComparison.Ordinal));
       }
 
       [Fact]
