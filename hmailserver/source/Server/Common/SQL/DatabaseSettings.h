@@ -23,9 +23,10 @@ namespace HM
       // How often SQL Server Compact writes what has been committed to its
       // file, in seconds (SSCE:Flush Interval, SQLCEConnection's connection
       // string). It runs in this process, and a commit since its last write is
-      // in the process's memory alone until the next, or until its last
-      // connection to the file closes: a process that ends without that close
-      // loses it. Declared here, where the POSIX build sees it too, for the
+      // in the process's memory alone until the next, or until one of its
+      // connections to the file closes, which writes what every connection
+      // had committed: a process that ends before either loses it. Declared
+      // here, where the POSIX build sees it too, for the
       // close before the process ends
       // (DatabaseConnectionManager::SecondsToWaitForConnectionsInUse). Read by
       // value only.

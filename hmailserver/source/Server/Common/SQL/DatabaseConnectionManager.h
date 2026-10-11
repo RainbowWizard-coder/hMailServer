@@ -44,12 +44,18 @@ namespace HM
 
       // How long CloseWhenIdle waits for a connection in use before the
       // process ends without it. SQL Server Compact: its flush interval and
-      // two seconds more - it writes what was committed to its file only then,
-      // or when its last connection closes, and with one left open nothing
-      // else does; the wait covers what was committed before CloseWhenIdle
-      // began, on every connection. The database servers: not at all, since
-      // what they took is theirs, and a statement the process's end cuts off
-      // is theirs to roll back.
+      // two seconds more. It writes what was committed to its file at that
+      // interval, and when any of its connections to the file closes - on
+      // server1 on 11 October 2026 the close of a connection that had made no
+      // statement of its own wrote what another, left open, had committed -
+      // so with its one connection (IniFileSettings) still in use nothing is
+      // closed, and only the interval writes it: the wait covers what was
+      // committed before CloseWhenIdle began. A connection opened and closed
+      // for the purpose would write the same at once; none is, since that
+      // would open the file beside a statement still running on it, which was
+      // not measured. The database servers: not at all, since what they took
+      // is theirs, and a statement the process's end cuts off is theirs to
+      // roll back.
       static int SecondsToWaitForConnectionsInUse(DatabaseSettings::SQLDBType type);
 
       // Four overloads rather than two with a defaulted reference. The default

@@ -2096,7 +2096,10 @@ TerminateServer()
    // wait loop does through the callback. The ninety seconds on top are the
    // installer's own margin for the same wait (GetServiceStopBudgetMs in
    // hMailServerInnoExtension.iss): the minute the stop gives the message
-   // indexer's thread, and thirty seconds of headroom.
+   // indexer's thread, and thirty seconds of headroom. On SQL Server Compact
+   // twelve seconds of that headroom go on a database connection still in use
+   // when the stop closes the database, which is waited for that long
+   // (DatabaseConnectionManager::SecondsToWaitForConnectionsInUse).
    ServiceStatus.dwWaitHint = (HM::IniFileSettings::Instance()->GetShutdownDrainSeconds() + 90) * 1000;
    ServiceStatus.dwCheckPoint++;
    ReportServiceStatus(SERVICE_STOP_PENDING, 0);

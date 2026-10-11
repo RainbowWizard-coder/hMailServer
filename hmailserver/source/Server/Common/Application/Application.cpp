@@ -577,7 +577,8 @@ namespace HM
       // (DatabaseConnectionManager::SecondsToWaitForConnectionsInUse): not at
       // all on a database server, which has it; on SQL Server Compact, which
       // runs in this process and writes what was committed to its file every
-      // ten seconds, or when its last connection closes, that interval and two
+      // ten seconds, or when any of its connections to the file closes - and
+      // whose one connection is then the one in use - that interval and two
       // seconds more. From 10 October 2026 until the re-check of that change
       // the database was left open, nothing closed, whenever the indexer had
       // not ended or a work queue's stop had once given up on a thread - in
