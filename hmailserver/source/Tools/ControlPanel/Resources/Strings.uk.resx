@@ -1864,9 +1864,6 @@
   <data name="Arriving" xml:space="preserve">
     <value>Вхідна</value>
   </data>
-  <data name="As soon as possible" xml:space="preserve">
-    <value>Якнайшвидше</value>
-  </data>
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>Питати сервер ключів, коли їхній домен не має ключа</value>
   </data>
@@ -2031,9 +2028,6 @@
   </data>
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>Автоматичні сертифікати (ACME)</value>
-  </data>
-  <data name="Automatic lockout of an address that keeps failing to sign in. The ban itself is an expiring IP range, so it is listed on the IP ranges page." xml:space="preserve">
-    <value>Автоматичне блокування адреси, з якої входи раз за разом не вдаються. Саме блокування — це IP-діапазон із терміном дії, тому воно перелічене на сторінці «Діапазони IP».</value>
   </data>
   <data name="Automatic lockout of an address that keeps failing to sign in. The bans in force are listed first, each with Lift ban, which lets the address in again at once." xml:space="preserve">
     <value>Автоматичне блокування адреси, з якої входи раз за разом не вдаються. Чинні блокування перелічено першими, у кожного є кнопка «Зняти блокування», яка одразу знову впускає адресу.</value>
@@ -2394,9 +2388,6 @@
   </data>
   <data name="COM objects a script may create" xml:space="preserve">
     <value>Об'єкти COM, які може створювати скрипт</value>
-  </data>
-  <data name="COM objects a script may create (comma separated; * = any, empty = only hMailServer's own)" xml:space="preserve">
-    <value>Об'єкти COM, які може створювати скрипт (через кому; * = будь-які, порожньо = лише власні об'єкти hMailServer)</value>
   </data>
   <data name="COMPRESS=DEFLATE (RFC 4978)" xml:space="preserve">
     <value>COMPRESS=DEFLATE (RFC 4978)</value>
@@ -3226,12 +3217,6 @@
   <data name="Could not list the messages: {0}" xml:space="preserve">
     <value>Не вдалося показати повідомлення: {0}</value>
   </data>
-  <data name="Could not load aliases: " xml:space="preserve">
-    <value>Не вдалося завантажити псевдоніми: </value>
-  </data>
-  <data name="Could not load distribution lists: " xml:space="preserve">
-    <value>Не вдалося завантажити списки розсилки: </value>
-  </data>
   <data name="Could not load folders: " xml:space="preserve">
     <value>Не вдалося завантажити папки: </value>
   </data>
@@ -3524,9 +3509,6 @@
   </data>
   <data name="Counted per user name rather than per address, across every protocol that authenticates, so a botnet spreading its guesses over thousands of addresses still locks the mailbox it is guessing at. A locked name is refused with the ordinary invalid-credentials reply and cannot be unlocked by typing the right password - the lock is checked first - so the ceiling is worth setting with the cost in mind. Failures against a name that does not exist lock that name too, deliberately: doing otherwise would let an attacker use the lockout to discover which accounts are real." xml:space="preserve">
     <value>Підраховується для кожного імені користувача, а не для кожної адреси, в усіх протоколах, що автентифікують, тож ботнет, який розподіляє свої спроби між тисячами адрес, усе одно заблокує ту поштову скриньку, яку добирає. Заблокованому імені відмовляють звичайною відповіддю про хибні облікові дані, і розблокувати його введенням правильного пароля неможливо — блокування перевіряється першим, — тож межу варто задавати, зважаючи на цю ціну. Невдалі спроби для імені, якого не існує, блокують і його теж, і це зроблено навмисно: інакше зловмисник міг би скористатися блокуванням, щоб дізнатися, які облікові записи справжні.</value>
-  </data>
-  <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their &quot;Auto-ban:&quot; range expires - delete it on the IP ranges page to release one now." xml:space="preserve">
-    <value>Лічильники невдалих входів очищено. Адреси, які вже заблоковано, залишаються заблокованими, доки не спливе термін дії їхнього діапазону «Auto-ban:», — щоб звільнити якусь із них зараз, видаліть цей діапазон на сторінці «Діапазони IP».</value>
   </data>
   <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
     <value>Лічильники невдалих входів очищено. Адреси, які вже заблоковано, залишаються заблокованими до кінця блокування - кнопка «Зняти блокування» в розділі «Заблоковано зараз» одразу впускає адресу.</value>
@@ -4643,9 +4625,6 @@
   <data name="Email address" xml:space="preserve">
     <value>Адреса електронної пошти</value>
   </data>
-  <data name="Email address to add to the list" xml:space="preserve">
-    <value>Адреса електронної пошти, яку додати до списку</value>
-  </data>
   <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should. Worth doing when the index has more entries than the server has messages, which means entries for mail that no longer exists." xml:space="preserve">
     <value>Спорожняє індекс і просить індексатор перебудувати його. Пошту не чіпають - індекс є похідними даними - але доки перебудова не наздожене, IMAP SEARCH знаходить менше, ніж має. Варто робити, коли в індексі більше записів, ніж повідомлень на сервері, тобто є записи для пошти, якої вже немає.</value>
   </data>
@@ -5237,9 +5216,6 @@
   <data name="Expires on (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>Спливає (YYYY-MM-DD HH:MM:SS)</value>
   </data>
-  <data name="Expires on (YYYY-MM-DD HH:MM:SS, when it stops mattering)" xml:space="preserve">
-    <value>Спливає (YYYY-MM-DD HH:MM:SS, коли перестає діяти)</value>
-  </data>
   <data name="Expires on {0} (in less than a day)" xml:space="preserve">
     <value>Спливає {0} (менш ніж за добу)</value>
   </data>
@@ -5333,9 +5309,6 @@
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>Зовнішні одержувачі (адреси, які цей сервер не обслуговує)</value>
   </data>
-  <data name="External to exte_rnal" xml:space="preserve">
-    <value>Зовнішні _до зовнішніх</value>
-  </data>
   <data name="External to external (rela_y)" xml:space="preserve">
     <value>Зовнішні до зовнішніх (_ретрансляція)</value>
   </data>
@@ -5353,9 +5326,6 @@
   </data>
   <data name="Failed sign-ins before an address is banned (0 = off)" xml:space="preserve">
     <value>Невдалі входи до блокування адреси (0 = вимкнено)</value>
-  </data>
-  <data name="Failed sign-ins from a listed address are not counted at all, so it can never be banned. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine. Example: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. An entry that is not an address is reported by name in the error log and ignored." xml:space="preserve">
-    <value>Невдалі входи з адреси зі списку не рахуються взагалі, тож її неможливо забанити ніколи. Внесіть сюди адреси, з яких ви адмініструєте, перш ніж вмикати параметр брандмауера: бан, що дістався брандмауера, закриває цій адресі всі поштові порти цієї машини. Приклад: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. Запис, що не є адресою, повідомляється за назвою в журналі помилок і пропускається.</value>
   </data>
   <data name="Fails when the connecting address has no reverse DNS record." xml:space="preserve">
     <value>Не проходить, коли адреса, що підключається, не має зворотного запису DNS.</value>
@@ -5479,9 +5449,6 @@
   </data>
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>Роздільник ієрархії папок</value>
-  </data>
-  <data name="Folder name" xml:space="preserve">
-    <value>Назва папки</value>
   </data>
   <data name="Folder name (use the hierarchy delimiter for sub-folders)" xml:space="preserve">
     <value>Назва папки (використовуйте роздільник ієрархії для підпапок)</value>
@@ -6742,9 +6709,6 @@
   <data name="Loading…" xml:space="preserve">
     <value>Завантаження…</value>
   </data>
-  <data name="Local to _external" xml:space="preserve">
-    <value>Ло_кальні до зовнішніх</value>
-  </data>
   <data name="LocalSystem, which is the most privileged account on this machine" xml:space="preserve">
     <value>LocalSystem — найпривілейованіший обліковий запис на цьому комп’ютері</value>
   </data>
@@ -6798,9 +6762,6 @@
   </data>
   <data name="Logging is off altogether, so nothing below will be written until it is on." xml:space="preserve">
     <value>Журналювання повністю вимкнено, тому нічого з наведеного нижче не записуватиметься, доки його не ввімкнути.</value>
-  </data>
-  <data name="Logon failures" xml:space="preserve">
-    <value>Невдалі входи</value>
   </data>
   <data name="Longest such window (minutes)" xml:space="preserve">
     <value>Найдовше таке вікно (хвилини)</value>
@@ -7280,13 +7241,7 @@
   <data name="Message finalisation deadline (240)" xml:space="preserve">
     <value>Граничний час завершення обробки повідомлення (240)</value>
   </data>
-  <data name="Message finalisation deadline (seconds; 0 = no deadline)" xml:space="preserve">
-    <value>Граничний час завершення обробки повідомлення (секунд; 0 = без обмеження)</value>
-  </data>
   <data name="Message finalisation deadline (seconds; 0 = no time limit)" xml:space="preserve">
-    <value>Граничний час завершення обробки повідомлення (секунди; 0 = без обмеження часу)</value>
-  </data>
-  <data name="Message finalization deadline (seconds; 0 = no time limit)" xml:space="preserve">
     <value>Граничний час завершення обробки повідомлення (секунди; 0 = без обмеження часу)</value>
   </data>
   <data name="Message for colleag_ues (empty = same as above)" xml:space="preserve">
@@ -7646,9 +7601,6 @@
   <data name="Never auto-ban these addresses" xml:space="preserve">
     <value>Ніколи не банити автоматично ці адреси</value>
   </data>
-  <data name="Never auto-ban these addresses (comma separated)" xml:space="preserve">
-    <value>Ніколи не банити автоматично ці адреси (через кому)</value>
-  </data>
   <data name="Never greylisted." xml:space="preserve">
     <value>Ніколи не потрапляє до сірого списку.</value>
   </data>
@@ -7693,9 +7645,6 @@
   </data>
   <data name="Next step: {0}." xml:space="preserve">
     <value>Наступний крок: {0}.</value>
-  </data>
-  <data name="Next try (server time)" xml:space="preserve">
-    <value>Наступна спроба (час сервера)</value>
   </data>
   <data name="Next try at {0}" xml:space="preserve">
     <value>Наступна спроба: {0}</value>
@@ -9041,9 +8990,6 @@
   <data name="Outbound TLS" xml:space="preserve">
     <value>Вихідний TLS</value>
   </data>
-  <data name="Outbound delivery behaviour, retries and smart-host relaying." xml:space="preserve">
-    <value>Поведінка вихідної доставки, повторні спроби та ретрансляція через смарт-хост.</value>
-  </data>
   <data name="Outbound delivery security (after MX lookup)" xml:space="preserve">
     <value>Безпека вихідної доставки (після пошуку MX)</value>
   </data>
@@ -9172,9 +9118,6 @@
   </data>
   <data name="Part of a name (empty = everyone)" xml:space="preserve">
     <value>Частина імені (порожньо = усі)</value>
-  </data>
-  <data name="Part of a name (empty lists everyone)" xml:space="preserve">
-    <value>Частина імені (порожньо - показати всіх)</value>
   </data>
   <data name="Partly saved" xml:space="preserve">
     <value>Збережено частково</value>
@@ -9487,14 +9430,8 @@
   <data name="ProgIDs or CLSIDs, separated by commas. An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
     <value>ProgID або CLSID через кому. Скрипт подій виконується всередині сервера з правами облікового запису служби, тому те, які об'єкти йому дозволено створювати, — це рішення щодо безпеки, а не питання зручності. У постаченому вигляді тут стоїть *, що дозволяє будь-який об'єкт, щоб оновлення ніколи не зламало скрипт, який інсталяція вже виконує, — це параметр, який слід звужувати, а не безпечний стан. Називайте лише те, що справді потрібне якомусь із ваших скриптів, — об'єкт файлової системи для скриптів, HTTP-клієнт, — а все інше відхиляється із записом імені об'єкта в журнал помилок; порожньо відхиляє все, крім власних об'єктів hMailServer.</value>
   </data>
-  <data name="ProgIDs or CLSIDs." xml:space="preserve">
-    <value>ProgIDs або CLSIDs.</value>
-  </data>
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>Програма, що запускається, коли адресу забанено або розбанено (порожньо = немає)</value>
-  </data>
-  <data name="Progressive Robot Ltd is a software engineering company that builds and modernises production software - taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
-    <value>Progressive Robot Ltd — компанія з розробки програмного забезпечення, яка створює та модернізує робоче програмне забезпечення: бере зрілі системи з реального світу й доводить їх до сучасних стандартів безпеки, надійності та інструментарію.</value>
   </data>
   <data name="Progressive Robot Ltd is a software engineering company. It maintains the hMailServer 6.x line, an independent fork of the open-source mail server." xml:space="preserve">
     <value>Progressive Robot Ltd - компанія з розроблення програмного забезпечення. Вона супроводжує лінійку hMailServer 6.x, незалежний форк поштового сервера з відкритим кодом.</value>
@@ -9513,9 +9450,6 @@
   </data>
   <data name="Propagation period in hours" xml:space="preserve">
     <value>Період поширення в годинах</value>
-  </data>
-  <data name="Properties of domain {0}" xml:space="preserve">
-    <value>Властивості домену {0}</value>
   </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Захищати збережені секрети за допомогою Windows DPAPI</value>
@@ -12253,9 +12187,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Start here: jump straight to a common task, or describe what you want to do in the search." xml:space="preserve">
     <value>Почніть тут: перейдіть одразу до поширеного завдання або опишіть у пошуку, що хочете зробити.</value>
   </data>
-  <data name="Start the mail server engine again, as the header's Resume does" xml:space="preserve">
-    <value>Знову запустити рушій поштового сервера, як кнопка «Продовжити» в заголовку</value>
-  </data>
   <data name="Start with a domain: the part after the @ that this server accepts mail for. Add yours here." xml:space="preserve">
     <value>Почніть із домену: це частина після @, для якої цей сервер приймає пошту. Додайте свій тут.</value>
   </data>
@@ -12964,9 +12895,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The anti-virus configuration could not be read: " xml:space="preserve">
     <value>Не вдалося прочитати антивірусну конфігурацію: </value>
   </data>
-  <data name="The archive folder is a raw copy of every message that passes through the server, so on a busy server it is a directory that only grows; this prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
-    <value>Папка архіву — це необроблена копія кожного повідомлення, що проходить через сервер, тож на завантаженому сервері це папка, яка лише росте; цей параметр очищає її. 0 зберігає все, і це типове значення обрано навмисно: архів зазвичай ведуть із юридичних або договірних причин, а сервер, який після оновлення почав би з нього видаляти, знищував би саме те, що йому доручили зберігати. Очищення видаляє лише файли .eml, тож усе інше, що ви тримаєте в архіві, лишається недоторканим; воно виконується під час запуску й далі кожні дванадцять годин.</value>
-  </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>В архіві немає повідомлень для цього облікового запису.</value>
   </data>
@@ -13023,9 +12951,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The built-in connectivity and configuration checks, and the last message-store consistency scan." xml:space="preserve">
     <value>Вбудовані перевірки з'єднання та конфігурації, а також останнє сканування цілісності сховища повідомлень.</value>
-  </data>
-  <data name="The built-in roles cannot be changed. Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds." xml:space="preserve">
-    <value>Вбудовані ролі змінити не можна. Власні ролі створюються через REST API, а Control Deck видаляє роль, якої ні в кого немає.</value>
   </data>
   <data name="The case's lines on the audit trail" xml:space="preserve">
     <value>Рядки справи в журналі аудиту</value>
@@ -13612,9 +13537,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The mail server is paused - nothing is accepted or delivered." xml:space="preserve">
     <value>Поштовий сервер призупинено - нічого не приймається і не доставляється.</value>
-  </data>
-  <data name="The mail server is paused: no connections are accepted and no mail is delivered until it is resumed." xml:space="preserve">
-    <value>Поштовий сервер призупинено: доки його не продовжать, він не приймає з'єднань і не доставляє пошту.</value>
   </data>
   <data name="The mailbox could not be moved: {0}" xml:space="preserve">
     <value>Не вдалося перенести скриньку: {0}</value>
@@ -14959,9 +14881,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Version and updates" xml:space="preserve">
     <value>Версія та оновлення</value>
-  </data>
-  <data name="Version {0} - .NET {1}" xml:space="preserve">
-    <value>Версія {0} - .NET {1}</value>
   </data>
   <data name="Version, build and licence information." xml:space="preserve">
     <value>Відомості про версію, збірку та ліцензію.</value>

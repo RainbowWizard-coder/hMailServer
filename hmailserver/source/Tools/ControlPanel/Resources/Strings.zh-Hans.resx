@@ -1843,9 +1843,6 @@
   <data name="Arriving" xml:space="preserve">
     <value>收到的</value>
   </data>
-  <data name="As soon as possible" xml:space="preserve">
-    <value>尽快</value>
-  </data>
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>当对方的域没有密钥时询问密钥服务器</value>
   </data>
@@ -2004,9 +2001,6 @@
   </data>
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>自动证书（ACME）</value>
-  </data>
-  <data name="Automatic lockout of an address that keeps failing to sign in. The ban itself is an expiring IP range, so it is listed on the IP ranges page." xml:space="preserve">
-    <value>自动锁定反复登录失败的地址。封禁本身是一个会过期的 IP 范围，因此它会列在“IP 范围”页上。</value>
   </data>
   <data name="Automatic lockout of an address that keeps failing to sign in. The bans in force are listed first, each with Lift ban, which lets the address in again at once." xml:space="preserve">
     <value>自动锁定反复登录失败的地址。当前有效的封禁列在最前面，每项都带有“解除封禁”，可立即让该地址重新进入。</value>
@@ -2361,9 +2355,6 @@
   </data>
   <data name="COM objects a script may create" xml:space="preserve">
     <value>脚本可以创建的 COM 对象</value>
-  </data>
-  <data name="COM objects a script may create (comma separated; * = any, empty = only hMailServer's own)" xml:space="preserve">
-    <value>脚本可以创建的 COM 对象（以逗号分隔；* = 任意，留空 = 仅 hMailServer 自己的）</value>
   </data>
   <data name="COMPRESS=DEFLATE (RFC 4978)" xml:space="preserve">
     <value>COMPRESS=DEFLATE (RFC 4978)</value>
@@ -3193,12 +3184,6 @@
   <data name="Could not list the messages: {0}" xml:space="preserve">
     <value>无法列出邮件: {0}</value>
   </data>
-  <data name="Could not load aliases: " xml:space="preserve">
-    <value>无法加载别名： </value>
-  </data>
-  <data name="Could not load distribution lists: " xml:space="preserve">
-    <value>无法加载分发列表： </value>
-  </data>
   <data name="Could not load folders: " xml:space="preserve">
     <value>无法加载文件夹： </value>
   </data>
@@ -3491,9 +3476,6 @@
   </data>
   <data name="Counted per user name rather than per address, across every protocol that authenticates, so a botnet spreading its guesses over thousands of addresses still locks the mailbox it is guessing at. A locked name is refused with the ordinary invalid-credentials reply and cannot be unlocked by typing the right password - the lock is checked first - so the ceiling is worth setting with the cost in mind. Failures against a name that does not exist lock that name too, deliberately: doing otherwise would let an attacker use the lockout to discover which accounts are real." xml:space="preserve">
     <value>按用户名而不是按地址计数，覆盖所有进行身份验证的协议，因此把猜测分散到数千个地址上的僵尸网络仍然会锁住它所猜测的那个邮箱。被锁定的用户名会以普通的凭据无效应答拒绝，而且无法通过输入正确密码来解锁 - 锁定会先被检查 - 因此设置此上限时值得权衡代价。针对不存在的用户名的失败同样会锁定该用户名，这是有意的：否则攻击者就能利用锁定来发现哪些账户是真实存在的。</value>
-  </data>
-  <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their &quot;Auto-ban:&quot; range expires - delete it on the IP ranges page to release one now." xml:space="preserve">
-    <value>已清除计数的登录失败。已被封禁的地址在其“Auto-ban:”范围过期之前仍保持封禁 - 要立即解除某一个，请在“IP 范围”页删除它。</value>
   </data>
   <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
     <value>已清除计数的登录失败。已被封禁的地址在其封禁结束之前仍保持封禁 - 在“当前封禁”下使用“解除封禁”可立即让其进入。</value>
@@ -4582,9 +4564,6 @@
   <data name="Email address" xml:space="preserve">
     <value>电子邮件地址</value>
   </data>
-  <data name="Email address to add to the list" xml:space="preserve">
-    <value>要添加到列表的电子邮件地址</value>
-  </data>
   <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should. Worth doing when the index has more entries than the server has messages, which means entries for mail that no longer exists." xml:space="preserve">
     <value>清空索引并要求索引器重建。不会触及任何邮件 - 索引是派生数据 - 但在重建赶上进度之前，IMAP SEARCH 找到的结果会比应有的少。当索引中的条目比服务器上的邮件还多时值得这样做，因为那意味着存在指向已不存在邮件的条目。</value>
   </data>
@@ -5158,9 +5137,6 @@
   <data name="Expires on (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>失效时间（YYYY-MM-DD HH:MM:SS）</value>
   </data>
-  <data name="Expires on (YYYY-MM-DD HH:MM:SS, when it stops mattering)" xml:space="preserve">
-    <value>失效时间 (YYYY-MM-DD HH:MM:SS，即失效的时间)</value>
-  </data>
   <data name="Expires on {0} (in less than a day)" xml:space="preserve">
     <value>{0} 到期（不到一天后）</value>
   </data>
@@ -5248,9 +5224,6 @@
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>外部收件人 (此服务器未托管的地址)</value>
   </data>
-  <data name="External to exte_rnal" xml:space="preserve">
-    <value>外部到外部(_R)</value>
-  </data>
   <data name="External to external (rela_y)" xml:space="preserve">
     <value>外部到外部（中继）(_Y)</value>
   </data>
@@ -5268,9 +5241,6 @@
   </data>
   <data name="Failed sign-ins before an address is banned (0 = off)" xml:space="preserve">
     <value>封禁地址前允许的登录失败次数（0 = 关闭）</value>
-  </data>
-  <data name="Failed sign-ins from a listed address are not counted at all, so it can never be banned. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine. Example: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. An entry that is not an address is reported by name in the error log and ignored." xml:space="preserve">
-    <value>来自列表中地址的登录失败根本不计数，因此它永远不会被封禁。在启用防火墙选项之前，请先在此填入您用于管理的地址：到达防火墙的封禁会把该地址挡在本机所有邮件端口之外。示例：192.0.2.10, 203.0.113.0/24, 2001:db8::/32。不是地址的条目会在错误日志中按名称报告并被忽略。</value>
   </data>
   <data name="Fails when the connecting address has no reverse DNS record." xml:space="preserve">
     <value>当连接地址没有反向 DNS 记录时判定失败。</value>
@@ -5394,9 +5364,6 @@
   </data>
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>文件夹层次分隔符</value>
-  </data>
-  <data name="Folder name" xml:space="preserve">
-    <value>文件夹名称</value>
   </data>
   <data name="Folder name (use the hierarchy delimiter for sub-folders)" xml:space="preserve">
     <value>文件夹名称（子文件夹请使用层次分隔符）</value>
@@ -6657,9 +6624,6 @@
   <data name="Loading…" xml:space="preserve">
     <value>正在加载…</value>
   </data>
-  <data name="Local to _external" xml:space="preserve">
-    <value>本地到外部(_E)</value>
-  </data>
   <data name="LocalSystem, which is the most privileged account on this machine" xml:space="preserve">
     <value>LocalSystem，即本机上权限最高的账户</value>
   </data>
@@ -6713,9 +6677,6 @@
   </data>
   <data name="Logging is off altogether, so nothing below will be written until it is on." xml:space="preserve">
     <value>日志记录已完全关闭，因此在打开之前下面的内容都不会写入。</value>
-  </data>
-  <data name="Logon failures" xml:space="preserve">
-    <value>登录失败</value>
   </data>
   <data name="Longest such window (minutes)" xml:space="preserve">
     <value>此类窗口的最长时间（分钟）</value>
@@ -7189,13 +7150,7 @@
   <data name="Message finalisation deadline (240)" xml:space="preserve">
     <value>邮件最终处理期限（240）</value>
   </data>
-  <data name="Message finalisation deadline (seconds; 0 = no deadline)" xml:space="preserve">
-    <value>邮件最终处理期限（秒；0 = 无期限）</value>
-  </data>
   <data name="Message finalisation deadline (seconds; 0 = no time limit)" xml:space="preserve">
-    <value>邮件最终处理期限（秒；0 = 无时间限制）</value>
-  </data>
-  <data name="Message finalization deadline (seconds; 0 = no time limit)" xml:space="preserve">
     <value>邮件最终处理期限（秒；0 = 无时间限制）</value>
   </data>
   <data name="Message for colleag_ues (empty = same as above)" xml:space="preserve">
@@ -7555,9 +7510,6 @@
   <data name="Never auto-ban these addresses" xml:space="preserve">
     <value>永不自动封禁这些地址</value>
   </data>
-  <data name="Never auto-ban these addresses (comma separated)" xml:space="preserve">
-    <value>永不自动封禁这些地址（逗号分隔）</value>
-  </data>
   <data name="Never greylisted." xml:space="preserve">
     <value>从不进行灰名单处理。</value>
   </data>
@@ -7602,9 +7554,6 @@
   </data>
   <data name="Next step: {0}." xml:space="preserve">
     <value>下一步: {0}。</value>
-  </data>
-  <data name="Next try (server time)" xml:space="preserve">
-    <value>下次尝试（服务器时间）</value>
   </data>
   <data name="Next try at {0}" xml:space="preserve">
     <value>下次尝试：{0}</value>
@@ -8932,9 +8881,6 @@
   <data name="Outbound TLS" xml:space="preserve">
     <value>发送 TLS</value>
   </data>
-  <data name="Outbound delivery behaviour, retries and smart-host relaying." xml:space="preserve">
-    <value>出站投递行为、重试和智能主机中继。</value>
-  </data>
   <data name="Outbound delivery security (after MX lookup)" xml:space="preserve">
     <value>出站投递安全（MX 查询之后）</value>
   </data>
@@ -9063,9 +9009,6 @@
   </data>
   <data name="Part of a name (empty = everyone)" xml:space="preserve">
     <value>名称的一部分（空 = 所有人）</value>
-  </data>
-  <data name="Part of a name (empty lists everyone)" xml:space="preserve">
-    <value>名称的一部分（留空则列出所有人）</value>
   </data>
   <data name="Partly saved" xml:space="preserve">
     <value>部分已保存</value>
@@ -9378,14 +9321,8 @@
   <data name="ProgIDs or CLSIDs, separated by commas. An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
     <value>ProgID 或 CLSID，以逗号分隔。事件脚本在服务器内部以服务账户的权限运行，因此它可以实例化什么是一项安全决定，而不是一件图方便的事。出厂设置为 *，即允许任何对象，这样升级永远不会弄坏某个安装环境已经在运行的脚本 - 这是一个应当收窄的设置，而不是安全状态。只写下您的脚本确实需要的东西 - 一个脚本文件系统对象、一个 HTTP 客户端 - 其余一切都会被拒绝，并把对象的名称记入错误日志；留空则拒绝 hMailServer 自己的对象以外的一切。</value>
   </data>
-  <data name="ProgIDs or CLSIDs." xml:space="preserve">
-    <value>ProgIDs 或 CLSIDs。</value>
-  </data>
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>封禁或解封地址时运行的程序（留空 = 无）</value>
-  </data>
-  <data name="Progressive Robot Ltd is a software engineering company that builds and modernises production software - taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
-    <value>Progressive Robot Ltd 是一家构建并现代化生产软件的软件工程公司 - 接手成熟的、真实世界中的系统，并把它们提升到当前的安全、可靠性和工具链标准。</value>
   </data>
   <data name="Progressive Robot Ltd is a software engineering company. It maintains the hMailServer 6.x line, an independent fork of the open-source mail server." xml:space="preserve">
     <value>Progressive Robot Ltd 是一家软件工程公司。它维护 hMailServer 6.x 系列，这是该开源邮件服务器的一个独立分支。</value>
@@ -9404,9 +9341,6 @@
   </data>
   <data name="Propagation period in hours" xml:space="preserve">
     <value>传播期（小时）</value>
-  </data>
-  <data name="Properties of domain {0}" xml:space="preserve">
-    <value>属性：域 {0}</value>
   </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>用 Windows DPAPI 保护存储的机密</value>
@@ -12096,9 +12030,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Start here: jump straight to a common task, or describe what you want to do in the search." xml:space="preserve">
     <value>从这里开始：直接跳到常见任务，或在搜索中描述您想做什么。</value>
   </data>
-  <data name="Start the mail server engine again, as the header's Resume does" xml:space="preserve">
-    <value>重新启动邮件服务器引擎，与标题中的“恢复”相同</value>
-  </data>
   <data name="Start with a domain: the part after the @ that this server accepts mail for. Add yours here." xml:space="preserve">
     <value>从域开始：@ 后面的部分，也就是这台服务器为之接收邮件的范围。在这里添加您自己的域。</value>
   </data>
@@ -12804,9 +12735,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The anti-virus configuration could not be read: " xml:space="preserve">
     <value>无法读取防病毒配置： </value>
   </data>
-  <data name="The archive folder is a raw copy of every message that passes through the server, so on a busy server it is a directory that only grows; this prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
-    <value>存档文件夹保存的是经过服务器的每一封邮件的原始副本，因此在繁忙的服务器上，它是一个只增不减的目录；此项会对它进行清理。0 表示保留全部，而且这是刻意为之的默认值：保留存档通常出于法律或合同上的原因，而一台在升级后开始从中删除内容的服务器，恰恰会销毁它被要求保留的东西。清理只会删除 .eml 文件，因此您在存档中保存的其他内容不会被动；它在启动时运行，此后每十二小时运行一次。</value>
-  </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>存档中没有此账户的邮件。</value>
   </data>
@@ -12863,9 +12791,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The built-in connectivity and configuration checks, and the last message-store consistency scan." xml:space="preserve">
     <value>内置的连通性和配置检查，以及最近一次邮件存储一致性扫描。</value>
-  </data>
-  <data name="The built-in roles cannot be changed. Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds." xml:space="preserve">
-    <value>内置角色无法更改。自定义角色通过 REST API 创建，Control Deck 可以删除没有人拥有的角色。</value>
   </data>
   <data name="The case's lines on the audit trail" xml:space="preserve">
     <value>此案件在审计记录中的行</value>
@@ -13425,9 +13350,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The mail server is paused - nothing is accepted or delivered." xml:space="preserve">
     <value>邮件服务器已暂停 - 不接收也不投递任何邮件。</value>
-  </data>
-  <data name="The mail server is paused: no connections are accepted and no mail is delivered until it is resumed." xml:space="preserve">
-    <value>邮件服务器已暂停：在恢复之前，不接受任何连接，也不投递任何邮件。</value>
   </data>
   <data name="The mailbox could not be moved: {0}" xml:space="preserve">
     <value>无法迁移此邮箱：{0}</value>
@@ -14766,9 +14688,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Version and updates" xml:space="preserve">
     <value>版本和更新</value>
-  </data>
-  <data name="Version {0} - .NET {1}" xml:space="preserve">
-    <value>版本 {0} - .NET {1}</value>
   </data>
   <data name="Version, build and licence information." xml:space="preserve">
     <value>版本、构建和许可证信息。</value>

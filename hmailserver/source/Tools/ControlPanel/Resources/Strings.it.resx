@@ -1843,9 +1843,6 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Arriving" xml:space="preserve">
     <value>In arrivo</value>
   </data>
-  <data name="As soon as possible" xml:space="preserve">
-    <value>Appena possibile</value>
-  </data>
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>Chiedere a un keyserver quando il loro dominio non ha una chiave</value>
   </data>
@@ -2004,9 +2001,6 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>Certificati automatici (ACME)</value>
-  </data>
-  <data name="Automatic lockout of an address that keeps failing to sign in. The ban itself is an expiring IP range, so it is listed on the IP ranges page." xml:space="preserve">
-    <value>Blocco automatico di un indirizzo che continua a fallire l'accesso. Il ban in sé è un intervallo IP con scadenza, quindi compare nella pagina Intervalli IP.</value>
   </data>
   <data name="Automatic lockout of an address that keeps failing to sign in. The bans in force are listed first, each with Lift ban, which lets the address in again at once." xml:space="preserve">
     <value>Blocco automatico di un indirizzo che continua a fallire l'accesso. I ban in vigore sono elencati per primi, ciascuno con Revoca ban, che fa rientrare subito l'indirizzo.</value>
@@ -2361,9 +2355,6 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="COM objects a script may create" xml:space="preserve">
     <value>Oggetti COM che uno script può creare</value>
-  </data>
-  <data name="COM objects a script may create (comma separated; * = any, empty = only hMailServer's own)" xml:space="preserve">
-    <value>Oggetti COM che uno script può creare (separati da virgole; * = qualsiasi, vuoto = solo quelli di hMailServer)</value>
   </data>
   <data name="COMPRESS=DEFLATE (RFC 4978)" xml:space="preserve">
     <value>COMPRESS=DEFLATE (RFC 4978)</value>
@@ -3193,12 +3184,6 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Could not list the messages: {0}" xml:space="preserve">
     <value>Impossibile elencare i messaggi: {0}</value>
   </data>
-  <data name="Could not load aliases: " xml:space="preserve">
-    <value>Impossibile caricare gli alias: </value>
-  </data>
-  <data name="Could not load distribution lists: " xml:space="preserve">
-    <value>Impossibile caricare le liste di distribuzione: </value>
-  </data>
   <data name="Could not load folders: " xml:space="preserve">
     <value>Impossibile caricare le cartelle: </value>
   </data>
@@ -3491,9 +3476,6 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="Counted per user name rather than per address, across every protocol that authenticates, so a botnet spreading its guesses over thousands of addresses still locks the mailbox it is guessing at. A locked name is refused with the ordinary invalid-credentials reply and cannot be unlocked by typing the right password - the lock is checked first - so the ceiling is worth setting with the cost in mind. Failures against a name that does not exist lock that name too, deliberately: doing otherwise would let an attacker use the lockout to discover which accounts are real." xml:space="preserve">
     <value>Conteggiato per nome utente anziché per indirizzo, su ogni protocollo che autentica, così che una botnet che distribuisce i suoi tentativi su migliaia di indirizzi blocchi comunque la casella che sta cercando di indovinare. Un nome bloccato viene rifiutato con la normale risposta di credenziali non valide e non può essere sbloccato digitando la password giusta - il blocco viene verificato per primo - quindi vale la pena impostare il limite tenendo conto di questo costo. Anche i fallimenti contro un nome che non esiste bloccano quel nome, deliberatamente: fare altrimenti permetterebbe a un attaccante di usare il blocco per scoprire quali account sono reali.</value>
-  </data>
-  <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their &quot;Auto-ban:&quot; range expires - delete it on the IP ranges page to release one now." xml:space="preserve">
-    <value>Accessi non riusciti conteggiati azzerati. Gli indirizzi già banditi restano banditi finché il loro intervallo "Auto-ban:" non scade - eliminalo nella pagina Intervalli IP per liberarne uno subito.</value>
   </data>
   <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
     <value>Accessi non riusciti conteggiati azzerati. Gli indirizzi già banditi restano banditi finché il loro ban non termina - Revoca ban in Bannati ora ne fa rientrare uno subito.</value>
@@ -4582,9 +4564,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Email address" xml:space="preserve">
     <value>Indirizzo e-mail</value>
   </data>
-  <data name="Email address to add to the list" xml:space="preserve">
-    <value>Indirizzo e-mail da aggiungere alla lista</value>
-  </data>
   <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should. Worth doing when the index has more entries than the server has messages, which means entries for mail that no longer exists." xml:space="preserve">
     <value>Svuota l'indice e chiede all'indicizzatore di ricostruirlo. Nessuna posta viene toccata - l'indice è un dato derivato - ma finché la ricostruzione non è al passo, IMAP SEARCH trova meno di quanto dovrebbe. Vale la pena farlo quando l'indice ha più voci dei messaggi presenti sul server, cioè voci per posta che non esiste più.</value>
   </data>
@@ -5158,9 +5137,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Expires on (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>Scade il (YYYY-MM-DD HH:MM:SS)</value>
   </data>
-  <data name="Expires on (YYYY-MM-DD HH:MM:SS, when it stops mattering)" xml:space="preserve">
-    <value>Scade il (YYYY-MM-DD HH:MM:SS, quando smette di valere)</value>
-  </data>
   <data name="Expires on {0} (in less than a day)" xml:space="preserve">
     <value>Scade il {0} (tra meno di un giorno)</value>
   </data>
@@ -5248,9 +5224,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>Destinatari esterni (indirizzi che questo server non ospita)</value>
   </data>
-  <data name="External to exte_rnal" xml:space="preserve">
-    <value>Da esterno a este_rno</value>
-  </data>
   <data name="External to external (rela_y)" xml:space="preserve">
     <value>Da esterno a esterno (rela_y)</value>
   </data>
@@ -5268,9 +5241,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Failed sign-ins before an address is banned (0 = off)" xml:space="preserve">
     <value>Accessi non riusciti prima che un indirizzo venga bloccato (0 = disattivato)</value>
-  </data>
-  <data name="Failed sign-ins from a listed address are not counted at all, so it can never be banned. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine. Example: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. An entry that is not an address is reported by name in the error log and ignored." xml:space="preserve">
-    <value>Gli accessi falliti da un indirizzo in elenco non vengono conteggiati affatto, quindi non può mai essere bloccato. Inserite qui gli indirizzi da cui amministrate prima di attivare l'opzione firewall: un blocco che raggiunge il firewall esclude quell'indirizzo da ogni porta di posta di questa macchina. Esempio: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. Una voce che non è un indirizzo viene segnalata per nome nel registro degli errori e ignorata.</value>
   </data>
   <data name="Fails when the connecting address has no reverse DNS record." xml:space="preserve">
     <value>Fallisce quando l'indirizzo che si connette non ha un record DNS inverso.</value>
@@ -5394,9 +5364,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>Delimitatore della gerarchia di cartelle</value>
-  </data>
-  <data name="Folder name" xml:space="preserve">
-    <value>Nome della cartella</value>
   </data>
   <data name="Folder name (use the hierarchy delimiter for sub-folders)" xml:space="preserve">
     <value>Nome della cartella (usa il delimitatore di gerarchia per le sottocartelle)</value>
@@ -6657,9 +6624,6 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="Loading…" xml:space="preserve">
     <value>Caricamento…</value>
   </data>
-  <data name="Local to _external" xml:space="preserve">
-    <value>Da locale a _esterno</value>
-  </data>
   <data name="LocalSystem, which is the most privileged account on this machine" xml:space="preserve">
     <value>LocalSystem, che è l'account con più privilegi su questa macchina</value>
   </data>
@@ -6713,9 +6677,6 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   </data>
   <data name="Logging is off altogether, so nothing below will be written until it is on." xml:space="preserve">
     <value>La registrazione è del tutto disattivata, quindi nulla di quanto segue verrà scritto finché non viene attivata.</value>
-  </data>
-  <data name="Logon failures" xml:space="preserve">
-    <value>Accessi non riusciti</value>
   </data>
   <data name="Longest such window (minutes)" xml:space="preserve">
     <value>Finestra più lunga di questo tipo (minuti)</value>
@@ -7189,13 +7150,7 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Message finalisation deadline (240)" xml:space="preserve">
     <value>Scadenza per la finalizzazione del messaggio (240)</value>
   </data>
-  <data name="Message finalisation deadline (seconds; 0 = no deadline)" xml:space="preserve">
-    <value>Scadenza per la finalizzazione del messaggio (secondi; 0 = nessuna scadenza)</value>
-  </data>
   <data name="Message finalisation deadline (seconds; 0 = no time limit)" xml:space="preserve">
-    <value>Scadenza per la finalizzazione del messaggio (secondi; 0 = nessun limite di tempo)</value>
-  </data>
-  <data name="Message finalization deadline (seconds; 0 = no time limit)" xml:space="preserve">
     <value>Scadenza per la finalizzazione del messaggio (secondi; 0 = nessun limite di tempo)</value>
   </data>
   <data name="Message for colleag_ues (empty = same as above)" xml:space="preserve">
@@ -7555,9 +7510,6 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Never auto-ban these addresses" xml:space="preserve">
     <value>Non bloccare mai automaticamente questi indirizzi</value>
   </data>
-  <data name="Never auto-ban these addresses (comma separated)" xml:space="preserve">
-    <value>Non bloccare mai automaticamente questi indirizzi (separati da virgole)</value>
-  </data>
   <data name="Never greylisted." xml:space="preserve">
     <value>Mai sottoposto a greylisting.</value>
   </data>
@@ -7602,9 +7554,6 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="Next step: {0}." xml:space="preserve">
     <value>Passo successivo: {0}.</value>
-  </data>
-  <data name="Next try (server time)" xml:space="preserve">
-    <value>Prossimo tentativo (ora del server)</value>
   </data>
   <data name="Next try at {0}" xml:space="preserve">
     <value>Prossimo tentativo il {0}</value>
@@ -8932,9 +8881,6 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Outbound TLS" xml:space="preserve">
     <value>TLS in uscita</value>
   </data>
-  <data name="Outbound delivery behaviour, retries and smart-host relaying." xml:space="preserve">
-    <value>Comportamento della consegna in uscita, nuovi tentativi e inoltro tramite smart host.</value>
-  </data>
   <data name="Outbound delivery security (after MX lookup)" xml:space="preserve">
     <value>Sicurezza della consegna in uscita (dopo la ricerca MX)</value>
   </data>
@@ -9063,9 +9009,6 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="Part of a name (empty = everyone)" xml:space="preserve">
     <value>Parte di un nome (vuoto = tutti)</value>
-  </data>
-  <data name="Part of a name (empty lists everyone)" xml:space="preserve">
-    <value>Parte di un nome (vuoto elenca tutti)</value>
   </data>
   <data name="Partly saved" xml:space="preserve">
     <value>Salvato parzialmente</value>
@@ -9378,14 +9321,8 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   <data name="ProgIDs or CLSIDs, separated by commas. An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
     <value>ProgID o CLSID, separati da virgole. Uno script di evento viene eseguito dentro il server con i diritti dell'account del servizio, quindi ciò che gli è consentito istanziare è una decisione di sicurezza, non una comodità. Così come fornito, qui c'è *, che consente qualsiasi oggetto, in modo che un aggiornamento non rompa mai uno script che un'installazione esegue già - è l'impostazione da restringere, non lo stato sicuro. Indica solo ciò di cui uno dei tuoi script ha davvero bisogno - un oggetto file system di scripting, un client HTTP - e tutto il resto viene rifiutato, con il nome dell'oggetto nel registro degli errori; vuoto rifiuta tutto tranne gli oggetti propri di hMailServer.</value>
   </data>
-  <data name="ProgIDs or CLSIDs." xml:space="preserve">
-    <value>ProgIDs o CLSIDs.</value>
-  </data>
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>Programma da eseguire quando un indirizzo viene bloccato o sbloccato (vuoto = nessuno)</value>
-  </data>
-  <data name="Progressive Robot Ltd is a software engineering company that builds and modernises production software - taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
-    <value>Progressive Robot Ltd è una società di ingegneria del software che realizza e modernizza software di produzione - prende sistemi maturi, in uso nel mondo reale, e li porta agli standard attuali di sicurezza, affidabilità e strumenti di sviluppo.</value>
   </data>
   <data name="Progressive Robot Ltd is a software engineering company. It maintains the hMailServer 6.x line, an independent fork of the open-source mail server." xml:space="preserve">
     <value>Progressive Robot Ltd è un'azienda di ingegneria del software. Mantiene la linea hMailServer 6.x, un fork indipendente del server di posta open source.</value>
@@ -9404,9 +9341,6 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   </data>
   <data name="Propagation period in hours" xml:space="preserve">
     <value>Ore del periodo di propagazione</value>
-  </data>
-  <data name="Properties of domain {0}" xml:space="preserve">
-    <value>Proprietà del dominio {0}</value>
   </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Proteggi i segreti memorizzati con Windows DPAPI</value>
@@ -12096,9 +12030,6 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Start here: jump straight to a common task, or describe what you want to do in the search." xml:space="preserve">
     <value>Inizia da qui: vai direttamente a un'attività comune, oppure descrivi nella ricerca cosa vuoi fare.</value>
   </data>
-  <data name="Start the mail server engine again, as the header's Resume does" xml:space="preserve">
-    <value>Riavvia il motore del server di posta, come fa Riprendi nell'intestazione</value>
-  </data>
   <data name="Start with a domain: the part after the @ that this server accepts mail for. Add yours here." xml:space="preserve">
     <value>Inizia da un dominio: la parte dopo la @ per cui questo server accetta la posta. Aggiungi il tuo qui.</value>
   </data>
@@ -12804,9 +12735,6 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="The anti-virus configuration could not be read: " xml:space="preserve">
     <value>Impossibile leggere la configurazione antivirus: </value>
   </data>
-  <data name="The archive folder is a raw copy of every message that passes through the server, so on a busy server it is a directory that only grows; this prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
-    <value>La cartella di archivio è una copia grezza di ogni messaggio che passa per il server, quindi su un server impegnato è una directory che cresce soltanto; questo la pota. 0 conserva tutto, ed è l'impostazione predefinita di proposito: un archivio di solito viene conservato per un motivo legale o contrattuale, e un server che iniziasse a cancellarne all'aggiornamento distruggerebbe esattamente ciò che gli è stato detto di conservare. La scansione rimuove solo file .eml, quindi qualunque altra cosa tu conservi nell'archivio viene lasciata in pace, e viene eseguita all'avvio e ogni dodici ore dopo.</value>
-  </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>L'archivio non contiene messaggi per questo account.</value>
   </data>
@@ -12863,9 +12791,6 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   </data>
   <data name="The built-in connectivity and configuration checks, and the last message-store consistency scan." xml:space="preserve">
     <value>I controlli integrati di connettività e configurazione, e l'ultima scansione di coerenza dell'archivio dei messaggi.</value>
-  </data>
-  <data name="The built-in roles cannot be changed. Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds." xml:space="preserve">
-    <value>I ruoli integrati non si possono modificare. I ruoli personalizzati si creano tramite l'API REST, e il Control Deck elimina un ruolo che nessuno ha.</value>
   </data>
   <data name="The case's lines on the audit trail" xml:space="preserve">
     <value>Le righe del caso nel registro di audit</value>
@@ -13425,9 +13350,6 @@ non ha potuto essere caricato. Il messaggio è probabilmente già stato consegna
   </data>
   <data name="The mail server is paused - nothing is accepted or delivered." xml:space="preserve">
     <value>Il server di posta è in pausa - non viene accettato né consegnato nulla.</value>
-  </data>
-  <data name="The mail server is paused: no connections are accepted and no mail is delivered until it is resumed." xml:space="preserve">
-    <value>Il server di posta è in pausa: non accetta connessioni e non consegna posta finché non viene ripreso.</value>
   </data>
   <data name="The mailbox could not be moved: {0}" xml:space="preserve">
     <value>Non è stato possibile spostare la casella: {0}</value>
@@ -14766,9 +14688,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="Version and updates" xml:space="preserve">
     <value>Versione e aggiornamenti</value>
-  </data>
-  <data name="Version {0} - .NET {1}" xml:space="preserve">
-    <value>Versione {0} - .NET {1}</value>
   </data>
   <data name="Version, build and licence information." xml:space="preserve">
     <value>Informazioni su versione, build e licenza.</value>

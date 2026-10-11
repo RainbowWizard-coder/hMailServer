@@ -1853,9 +1853,6 @@
   <data name="Arriving" xml:space="preserve">
     <value>受信</value>
   </data>
-  <data name="As soon as possible" xml:space="preserve">
-    <value>できるだけ早く</value>
-  </data>
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>相手のドメインにキーがない場合はキーサーバーに問い合わせる</value>
   </data>
@@ -2014,9 +2011,6 @@
   </data>
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>自動証明書 (ACME)</value>
-  </data>
-  <data name="Automatic lockout of an address that keeps failing to sign in. The ban itself is an expiring IP range, so it is listed on the IP ranges page." xml:space="preserve">
-    <value>サインインに失敗し続けるアドレスの自動ロックアウト。ブロック自体は期限付きの IP 範囲なので、IP 範囲ページに一覧表示されます。</value>
   </data>
   <data name="Automatic lockout of an address that keeps failing to sign in. The bans in force are listed first, each with Lift ban, which lets the address in again at once." xml:space="preserve">
     <value>サインインに失敗し続けるアドレスの自動ロックアウト。有効なブロックが最初に一覧表示され、それぞれの「ブロックを解除」でそのアドレスをすぐに再び受け入れます。</value>
@@ -2371,9 +2365,6 @@
   </data>
   <data name="COM objects a script may create" xml:space="preserve">
     <value>スクリプトが作成できる COM オブジェクト</value>
-  </data>
-  <data name="COM objects a script may create (comma separated; * = any, empty = only hMailServer's own)" xml:space="preserve">
-    <value>スクリプトが作成できる COM オブジェクト (コンマ区切り、* = すべて、空 = hMailServer 自身のもののみ)</value>
   </data>
   <data name="COMPRESS=DEFLATE (RFC 4978)" xml:space="preserve">
     <value>COMPRESS=DEFLATE (RFC 4978)</value>
@@ -3203,12 +3194,6 @@
   <data name="Could not list the messages: {0}" xml:space="preserve">
     <value>メッセージを一覧表示できませんでした: {0}</value>
   </data>
-  <data name="Could not load aliases: " xml:space="preserve">
-    <value>エイリアスを読み込めませんでした: </value>
-  </data>
-  <data name="Could not load distribution lists: " xml:space="preserve">
-    <value>配布リストを読み込めませんでした: </value>
-  </data>
   <data name="Could not load folders: " xml:space="preserve">
     <value>フォルダーを読み込めませんでした: </value>
   </data>
@@ -3501,9 +3486,6 @@
   </data>
   <data name="Counted per user name rather than per address, across every protocol that authenticates, so a botnet spreading its guesses over thousands of addresses still locks the mailbox it is guessing at. A locked name is refused with the ordinary invalid-credentials reply and cannot be unlocked by typing the right password - the lock is checked first - so the ceiling is worth setting with the cost in mind. Failures against a name that does not exist lock that name too, deliberately: doing otherwise would let an attacker use the lockout to discover which accounts are real." xml:space="preserve">
     <value>アドレスごとではなくユーザー名ごとに、認証を行うすべてのプロトコルにわたって数えます。そのため、推測を何千ものアドレスに分散させるボットネットでも、狙っているメールボックスはロックされます。ロックされた名前は通常の「資格情報が無効」応答で拒否され、正しいパスワードを入力してもロックは解除されません (ロックが先に確認されます)。したがって上限は、そのコストを念頭に置いて設定する価値があります。存在しない名前に対する失敗もその名前をロックします。これは意図的で、そうしなければ攻撃者がロックアウトを使ってどのアカウントが実在するかを発見できてしまいます。</value>
-  </data>
-  <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their &quot;Auto-ban:&quot; range expires - delete it on the IP ranges page to release one now." xml:space="preserve">
-    <value>数えられていたサインイン失敗をクリアしました。すでにブロックされているアドレスは、その "Auto-ban:" 範囲が期限切れになるまでブロックされたままです。今すぐ解除するには、IP 範囲ページでその範囲を削除してください。</value>
   </data>
   <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
     <value>数えられていたサインインの失敗をクリアしました。すでにブロックされているアドレスは、そのブロックが終わるまでブロックされたままです。「現在のブロック」の「ブロックを解除」で、すぐに受け入れることができます。</value>
@@ -4592,9 +4574,6 @@
   <data name="Email address" xml:space="preserve">
     <value>メール アドレス</value>
   </data>
-  <data name="Email address to add to the list" xml:space="preserve">
-    <value>リストに追加するメール アドレス</value>
-  </data>
   <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should. Worth doing when the index has more entries than the server has messages, which means entries for mail that no longer exists." xml:space="preserve">
     <value>インデックスを空にし、インデクサーに再構築を依頼します。メールには触れません (インデックスは派生データです) が、再構築が追いつくまでは、IMAP SEARCH の検索結果が本来より少なくなります。インデックスのエントリ数がサーバーのメッセージ数より多い場合、つまりすでに存在しないメールのエントリがある場合に行う価値があります。</value>
   </data>
@@ -5168,9 +5147,6 @@
   <data name="Expires on (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>有効期限 (YYYY-MM-DD HH:MM:SS)</value>
   </data>
-  <data name="Expires on (YYYY-MM-DD HH:MM:SS, when it stops mattering)" xml:space="preserve">
-    <value>有効期限 (YYYY-MM-DD HH:MM:SS、無効になる日時)</value>
-  </data>
   <data name="Expires on {0} (in less than a day)" xml:space="preserve">
     <value>有効期限 {0} (1 日以内)</value>
   </data>
@@ -5258,9 +5234,6 @@
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>外部の受信者 (このサーバーがホストしていないアドレス)</value>
   </data>
-  <data name="External to exte_rnal" xml:space="preserve">
-    <value>外部から外部(_R)</value>
-  </data>
   <data name="External to external (rela_y)" xml:space="preserve">
     <value>外部から外部へ (リレー)(_Y)</value>
   </data>
@@ -5278,9 +5251,6 @@
   </data>
   <data name="Failed sign-ins before an address is banned (0 = off)" xml:space="preserve">
     <value>アドレスをブロックするまでのサインイン失敗回数 (0 = オフ)</value>
-  </data>
-  <data name="Failed sign-ins from a listed address are not counted at all, so it can never be banned. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine. Example: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. An entry that is not an address is reported by name in the error log and ignored." xml:space="preserve">
-    <value>登録されたアドレスからのサインイン失敗はまったく数えられないため、そのアドレスが BAN されることはありません。ファイアウォールのオプションを有効にする前に、管理に使うアドレスをここに登録してください。ファイアウォールまで届く BAN は、そのアドレスをこのマシンのすべてのメールポートから締め出します。例: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32。アドレスでない項目はエラーログに名前付きで報告され、無視されます。</value>
   </data>
   <data name="Fails when the connecting address has no reverse DNS record." xml:space="preserve">
     <value>接続元アドレスに逆引き DNS レコードがない場合に失敗します。</value>
@@ -5404,9 +5374,6 @@
   </data>
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>フォルダー階層の区切り文字</value>
-  </data>
-  <data name="Folder name" xml:space="preserve">
-    <value>フォルダー名</value>
   </data>
   <data name="Folder name (use the hierarchy delimiter for sub-folders)" xml:space="preserve">
     <value>フォルダー名 (サブフォルダーには階層の区切り文字を使用)</value>
@@ -6667,9 +6634,6 @@
   <data name="Loading…" xml:space="preserve">
     <value>読み込み中…</value>
   </data>
-  <data name="Local to _external" xml:space="preserve">
-    <value>ローカルから外部(_E)</value>
-  </data>
   <data name="LocalSystem, which is the most privileged account on this machine" xml:space="preserve">
     <value>LocalSystem。このコンピューターで最も強い権限を持つアカウントです</value>
   </data>
@@ -6723,9 +6687,6 @@
   </data>
   <data name="Logging is off altogether, so nothing below will be written until it is on." xml:space="preserve">
     <value>ログ記録が完全にオフになっているため、オンにするまで下のものは何も書き込まれません。</value>
-  </data>
-  <data name="Logon failures" xml:space="preserve">
-    <value>ログオンの失敗</value>
   </data>
   <data name="Longest such window (minutes)" xml:space="preserve">
     <value>このウィンドウの最長時間 (分)</value>
@@ -7199,13 +7160,7 @@
   <data name="Message finalisation deadline (240)" xml:space="preserve">
     <value>メッセージ最終処理の期限 (240)</value>
   </data>
-  <data name="Message finalisation deadline (seconds; 0 = no deadline)" xml:space="preserve">
-    <value>メッセージ最終処理の期限 (秒、0 = 期限なし)</value>
-  </data>
   <data name="Message finalisation deadline (seconds; 0 = no time limit)" xml:space="preserve">
-    <value>メッセージ最終処理の期限 (秒、0 = 時間制限なし)</value>
-  </data>
-  <data name="Message finalization deadline (seconds; 0 = no time limit)" xml:space="preserve">
     <value>メッセージ最終処理の期限 (秒、0 = 時間制限なし)</value>
   </data>
   <data name="Message for colleag_ues (empty = same as above)" xml:space="preserve">
@@ -7565,9 +7520,6 @@
   <data name="Never auto-ban these addresses" xml:space="preserve">
     <value>これらのアドレスは決して自動 BAN しない</value>
   </data>
-  <data name="Never auto-ban these addresses (comma separated)" xml:space="preserve">
-    <value>これらのアドレスは決して自動 BAN しない (コンマ区切り)</value>
-  </data>
   <data name="Never greylisted." xml:space="preserve">
     <value>グレイリスティングの対象になりません。</value>
   </data>
@@ -7612,9 +7564,6 @@
   </data>
   <data name="Next step: {0}." xml:space="preserve">
     <value>次の手順: {0}。</value>
-  </data>
-  <data name="Next try (server time)" xml:space="preserve">
-    <value>次の試行 (サーバー時刻)</value>
   </data>
   <data name="Next try at {0}" xml:space="preserve">
     <value>次の試行: {0}</value>
@@ -8942,9 +8891,6 @@
   <data name="Outbound TLS" xml:space="preserve">
     <value>送信時の TLS</value>
   </data>
-  <data name="Outbound delivery behaviour, retries and smart-host relaying." xml:space="preserve">
-    <value>送信配信の動作、再試行、スマート ホスト経由のリレー。</value>
-  </data>
   <data name="Outbound delivery security (after MX lookup)" xml:space="preserve">
     <value>送信配信のセキュリティ (MX 参照の後)</value>
   </data>
@@ -9073,9 +9019,6 @@
   </data>
   <data name="Part of a name (empty = everyone)" xml:space="preserve">
     <value>名前の一部 (空 = 全員)</value>
-  </data>
-  <data name="Part of a name (empty lists everyone)" xml:space="preserve">
-    <value>名前の一部 (空にすると全員を表示)</value>
   </data>
   <data name="Partly saved" xml:space="preserve">
     <value>一部のみ保存しました</value>
@@ -9388,14 +9331,8 @@
   <data name="ProgIDs or CLSIDs, separated by commas. An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
     <value>ProgID または CLSID をコンマ区切りで指定します。イベント スクリプトはサーバーの内部で、サービス アカウントの権限で実行されます。そのため、スクリプトが何をインスタンス化してよいかは、利便性の問題ではなくセキュリティ上の決定です。出荷時の設定は * で、あらゆるオブジェクトを許可します。これは、インストール済みの環境がすでに実行しているスクリプトをアップグレードが壊すことのないようにするためであり、狭めるべき設定であって、安全な状態ではありません。自分のスクリプトが実際に必要とするものだけ (スクリプト用のファイル システム オブジェクト、HTTP クライアントなど) を指定してください。それ以外はすべて拒否され、オブジェクトの名前がエラー ログに記録されます。空にすると、hMailServer 自身のオブジェクト以外はすべて拒否されます。</value>
   </data>
-  <data name="ProgIDs or CLSIDs." xml:space="preserve">
-    <value>ProgIDs または CLSIDs です。</value>
-  </data>
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>アドレスの BAN と解除の際に実行するプログラム (空 = なし)</value>
-  </data>
-  <data name="Progressive Robot Ltd is a software engineering company that builds and modernises production software - taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
-    <value>Progressive Robot Ltd は、実運用ソフトウェアの構築と近代化を手がけるソフトウェア エンジニアリング企業です。成熟した実世界のシステムを引き受け、セキュリティ、信頼性、ツール群を現在の水準へ引き上げます。</value>
   </data>
   <data name="Progressive Robot Ltd is a software engineering company. It maintains the hMailServer 6.x line, an independent fork of the open-source mail server." xml:space="preserve">
     <value>Progressive Robot Ltd はソフトウェア エンジニアリング企業です。オープンソースのメール サーバーの独立したフォークである hMailServer 6.x 系列を保守しています。</value>
@@ -9414,9 +9351,6 @@
   </data>
   <data name="Propagation period in hours" xml:space="preserve">
     <value>伝播期間 (時間)</value>
-  </data>
-  <data name="Properties of domain {0}" xml:space="preserve">
-    <value>プロパティ: ドメイン {0}</value>
   </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>保存されたシークレットを Windows DPAPI で保護する</value>
@@ -12106,9 +12040,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Start here: jump straight to a common task, or describe what you want to do in the search." xml:space="preserve">
     <value>ここから始めましょう。よくあるタスクに直接ジャンプするか、やりたいことを検索に入力してください。</value>
   </data>
-  <data name="Start the mail server engine again, as the header's Resume does" xml:space="preserve">
-    <value>ヘッダーの [再開] と同じく、メール サーバーのエンジンを再び開始します</value>
-  </data>
   <data name="Start with a domain: the part after the @ that this server accepts mail for. Add yours here." xml:space="preserve">
     <value>まずドメインから。@ の後ろの部分で、このサーバーがメールを受け付ける範囲です。ご自分のドメインをここに追加します。</value>
   </data>
@@ -12814,9 +12745,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The anti-virus configuration could not be read: " xml:space="preserve">
     <value>ウイルス対策設定を読み取れませんでした: </value>
   </data>
-  <data name="The archive folder is a raw copy of every message that passes through the server, so on a busy server it is a directory that only grows; this prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
-    <value>アーカイブ フォルダーはサーバーを通過するすべてのメッセージの生のコピーなので、忙しいサーバーでは増える一方のディレクトリになります。この設定はそこを整理します。0 はすべてを保持し、それが意図的な既定値です。アーカイブは通常、法的または契約上の理由で保持されるものであり、アップグレードを機にそこから削除を始めるサーバーは、保持せよと命じられたものをまさに破壊することになるからです。この掃除が削除するのは .eml ファイルだけなので、アーカイブに置いてあるほかのものはそのまま残ります。実行は起動時と、その後 12 時間ごとです。</value>
-  </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>アーカイブにはこのアカウントのメッセージがありません。</value>
   </data>
@@ -12873,9 +12801,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The built-in connectivity and configuration checks, and the last message-store consistency scan." xml:space="preserve">
     <value>組み込みの接続性と設定のチェック、および直近のメッセージ ストア整合性スキャン。</value>
-  </data>
-  <data name="The built-in roles cannot be changed. Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds." xml:space="preserve">
-    <value>組み込みのロールは変更できません。カスタム ロールは REST API で作成し、誰も持っていないロールは Control Deck で削除できます。</value>
   </data>
   <data name="The case's lines on the audit trail" xml:space="preserve">
     <value>このケースの監査ログの行</value>
@@ -13435,9 +13360,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The mail server is paused - nothing is accepted or delivered." xml:space="preserve">
     <value>メール サーバーは一時停止中です - 何も受け付けず、配信もしません。</value>
-  </data>
-  <data name="The mail server is paused: no connections are accepted and no mail is delivered until it is resumed." xml:space="preserve">
-    <value>メール サーバーは一時停止中です。再開されるまで接続を受け付けず、メールも配信しません。</value>
   </data>
   <data name="The mailbox could not be moved: {0}" xml:space="preserve">
     <value>メールボックスを移動できませんでした: {0}</value>
@@ -14776,9 +14698,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Version and updates" xml:space="preserve">
     <value>バージョンと更新プログラム</value>
-  </data>
-  <data name="Version {0} - .NET {1}" xml:space="preserve">
-    <value>バージョン {0} - .NET {1}</value>
   </data>
   <data name="Version, build and licence information." xml:space="preserve">
     <value>バージョン、ビルド、ライセンスの情報。</value>

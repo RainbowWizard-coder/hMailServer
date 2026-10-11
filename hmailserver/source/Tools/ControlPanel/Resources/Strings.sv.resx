@@ -1843,9 +1843,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Arriving" xml:space="preserve">
     <value>Inkommande</value>
   </data>
-  <data name="As soon as possible" xml:space="preserve">
-    <value>Så snart som möjligt</value>
-  </data>
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>Fråga en nyckelserver när deras domän saknar nyckel</value>
   </data>
@@ -2004,9 +2001,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>Automatiska certifikat (ACME)</value>
-  </data>
-  <data name="Automatic lockout of an address that keeps failing to sign in. The ban itself is an expiring IP range, so it is listed on the IP ranges page." xml:space="preserve">
-    <value>Automatisk utestängning av en adress som gång på gång misslyckas med att logga in. Själva spärren är ett IP-intervall som går ut, så den listas på sidan IP-intervall.</value>
   </data>
   <data name="Automatic lockout of an address that keeps failing to sign in. The bans in force are listed first, each with Lift ban, which lets the address in again at once." xml:space="preserve">
     <value>Automatisk utestängning av en adress som gång på gång misslyckas med att logga in. Spärrarna som gäller står först, var och en med Häv spärr, som genast släpper in adressen igen.</value>
@@ -2361,9 +2355,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="COM objects a script may create" xml:space="preserve">
     <value>COM-objekt ett skript får skapa</value>
-  </data>
-  <data name="COM objects a script may create (comma separated; * = any, empty = only hMailServer's own)" xml:space="preserve">
-    <value>COM-objekt ett skript får skapa (kommaseparerade; * = alla, tomt = bara hMailServers egna)</value>
   </data>
   <data name="COMPRESS=DEFLATE (RFC 4978)" xml:space="preserve">
     <value>COMPRESS=DEFLATE (RFC 4978)</value>
@@ -3193,12 +3184,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Could not list the messages: {0}" xml:space="preserve">
     <value>Meddelandena kunde inte listas: {0}</value>
   </data>
-  <data name="Could not load aliases: " xml:space="preserve">
-    <value>Kunde inte läsa in alias: </value>
-  </data>
-  <data name="Could not load distribution lists: " xml:space="preserve">
-    <value>Kunde inte läsa in distributionslistor: </value>
-  </data>
   <data name="Could not load folders: " xml:space="preserve">
     <value>Kunde inte läsa in mappar: </value>
   </data>
@@ -3491,9 +3476,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Counted per user name rather than per address, across every protocol that authenticates, so a botnet spreading its guesses over thousands of addresses still locks the mailbox it is guessing at. A locked name is refused with the ordinary invalid-credentials reply and cannot be unlocked by typing the right password - the lock is checked first - so the ceiling is worth setting with the cost in mind. Failures against a name that does not exist lock that name too, deliberately: doing otherwise would let an attacker use the lockout to discover which accounts are real." xml:space="preserve">
     <value>Räknas per användarnamn snarare än per adress, över varje protokoll som autentiserar, så ett botnät som sprider sina gissningar över tusentals adresser låser ändå den brevlåda det gissar på. Ett låst namn avvisas med det vanliga svaret för ogiltiga uppgifter och kan inte låsas upp genom att skriva rätt lösenord - låset kontrolleras först - så taket är värt att sätta med kostnaden i åtanke. Misslyckanden mot ett namn som inte finns låser det namnet också, med avsikt: annars kunde en angripare använda utestängningen för att ta reda på vilka konton som är riktiga.</value>
-  </data>
-  <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their &quot;Auto-ban:&quot; range expires - delete it on the IP ranges page to release one now." xml:space="preserve">
-    <value>Räknade misslyckade inloggningar rensade. Adresser som redan är spärrade förblir spärrade tills deras "Auto-ban:"-intervall går ut - ta bort det på sidan IP-intervall för att släppa en nu.</value>
   </data>
   <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
     <value>Räknade misslyckade inloggningar rensade. Adresser som redan är spärrade förblir spärrade tills spärren upphör - Häv spärr under Spärrade nu släpper genast in en.</value>
@@ -4582,9 +4564,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Email address" xml:space="preserve">
     <value>E-postadress</value>
   </data>
-  <data name="Email address to add to the list" xml:space="preserve">
-    <value>E-postadress att lägga till i listan</value>
-  </data>
   <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should. Worth doing when the index has more entries than the server has messages, which means entries for mail that no longer exists." xml:space="preserve">
     <value>Tömmer indexet och ber indexeraren bygga om det. Ingen post rörs - indexet är härledd data - men tills ombyggnaden kommer ikapp hittar IMAP SEARCH mindre än det borde. Värt att göra när indexet har fler poster än servern har meddelanden, vilket betyder poster för post som inte längre finns.</value>
   </data>
@@ -5158,9 +5137,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Expires on (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>Går ut (YYYY-MM-DD HH:MM:SS)</value>
   </data>
-  <data name="Expires on (YYYY-MM-DD HH:MM:SS, when it stops mattering)" xml:space="preserve">
-    <value>Går ut (YYYY-MM-DD HH:MM:SS, när den slutar gälla)</value>
-  </data>
   <data name="Expires on {0} (in less than a day)" xml:space="preserve">
     <value>Går ut {0} (om mindre än en dag)</value>
   </data>
@@ -5248,9 +5224,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>Externa mottagare (adresser som den här servern inte hanterar)</value>
   </data>
-  <data name="External to exte_rnal" xml:space="preserve">
-    <value>Externt till exte_rnt</value>
-  </data>
   <data name="External to external (rela_y)" xml:space="preserve">
     <value>Externt t_ill externt (relä)</value>
   </data>
@@ -5268,9 +5241,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Failed sign-ins before an address is banned (0 = off)" xml:space="preserve">
     <value>Misslyckade inloggningar innan en adress blockeras (0 = av)</value>
-  </data>
-  <data name="Failed sign-ins from a listed address are not counted at all, so it can never be banned. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine. Example: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. An entry that is not an address is reported by name in the error log and ignored." xml:space="preserve">
-    <value>Misslyckade inloggningar från en listad adress räknas inte alls, så den kan aldrig stängas av. Skriv in adresserna du administrerar från här innan du slår på brandväggsvalet: en avstängning som når brandväggen stänger ute adressen från alla e-postportar på den här maskinen. Exempel: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. En post som inte är en adress rapporteras med namn i felloggen och ignoreras.</value>
   </data>
   <data name="Fails when the connecting address has no reverse DNS record." xml:space="preserve">
     <value>Underkänns när den anslutande adressen saknar omvänd DNS-post.</value>
@@ -5394,9 +5364,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>Avgränsare för mapphierarki</value>
-  </data>
-  <data name="Folder name" xml:space="preserve">
-    <value>Mappnamn</value>
   </data>
   <data name="Folder name (use the hierarchy delimiter for sub-folders)" xml:space="preserve">
     <value>Mappnamn (använd hierarkiavgränsaren för undermappar)</value>
@@ -6657,9 +6624,6 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Loading…" xml:space="preserve">
     <value>Läser in…</value>
   </data>
-  <data name="Local to _external" xml:space="preserve">
-    <value>Lokalt till _externt</value>
-  </data>
   <data name="LocalSystem, which is the most privileged account on this machine" xml:space="preserve">
     <value>LocalSystem, som är det mest privilegierade kontot på den här datorn</value>
   </data>
@@ -6713,9 +6677,6 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Logging is off altogether, so nothing below will be written until it is on." xml:space="preserve">
     <value>Loggningen är helt av, så inget nedan skrivs förrän den är på.</value>
-  </data>
-  <data name="Logon failures" xml:space="preserve">
-    <value>Misslyckade inloggningar</value>
   </data>
   <data name="Longest such window (minutes)" xml:space="preserve">
     <value>Längsta sådana fönster (minuter)</value>
@@ -7189,13 +7150,7 @@ Inget som redan finns där tas bort.</value>
   <data name="Message finalisation deadline (240)" xml:space="preserve">
     <value>Tidsgräns för slutbehandling av meddelanden (240)</value>
   </data>
-  <data name="Message finalisation deadline (seconds; 0 = no deadline)" xml:space="preserve">
-    <value>Tidsgräns för slutbehandling av meddelanden (sekunder; 0 = ingen gräns)</value>
-  </data>
   <data name="Message finalisation deadline (seconds; 0 = no time limit)" xml:space="preserve">
-    <value>Tidsgräns för slutbehandling av meddelanden (sekunder; 0 = ingen tidsgräns)</value>
-  </data>
-  <data name="Message finalization deadline (seconds; 0 = no time limit)" xml:space="preserve">
     <value>Tidsgräns för slutbehandling av meddelanden (sekunder; 0 = ingen tidsgräns)</value>
   </data>
   <data name="Message for colleag_ues (empty = same as above)" xml:space="preserve">
@@ -7555,9 +7510,6 @@ Inget som redan finns där tas bort.</value>
   <data name="Never auto-ban these addresses" xml:space="preserve">
     <value>Stäng aldrig av dessa adresser automatiskt</value>
   </data>
-  <data name="Never auto-ban these addresses (comma separated)" xml:space="preserve">
-    <value>Stäng aldrig av dessa adresser automatiskt (kommaseparerade)</value>
-  </data>
   <data name="Never greylisted." xml:space="preserve">
     <value>Gråstlistas aldrig.</value>
   </data>
@@ -7602,9 +7554,6 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="Next step: {0}." xml:space="preserve">
     <value>Nästa steg: {0}.</value>
-  </data>
-  <data name="Next try (server time)" xml:space="preserve">
-    <value>Nästa försök (servertid)</value>
   </data>
   <data name="Next try at {0}" xml:space="preserve">
     <value>Nästa försök: {0}</value>
@@ -8932,9 +8881,6 @@ Inget som redan finns där tas bort.</value>
   <data name="Outbound TLS" xml:space="preserve">
     <value>Utgående TLS</value>
   </data>
-  <data name="Outbound delivery behaviour, retries and smart-host relaying." xml:space="preserve">
-    <value>Utgående leveransbeteende, omförsök och relä via smart värd.</value>
-  </data>
   <data name="Outbound delivery security (after MX lookup)" xml:space="preserve">
     <value>Säkerhet för utgående leverans (efter MX-uppslagning)</value>
   </data>
@@ -9063,9 +9009,6 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="Part of a name (empty = everyone)" xml:space="preserve">
     <value>En del av ett namn (tomt = alla)</value>
-  </data>
-  <data name="Part of a name (empty lists everyone)" xml:space="preserve">
-    <value>En del av ett namn (tomt visar alla)</value>
   </data>
   <data name="Partly saved" xml:space="preserve">
     <value>Delvis sparat</value>
@@ -9378,14 +9321,8 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="ProgIDs or CLSIDs, separated by commas. An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
     <value>ProgID:n eller CLSID:n åtskilda med kommatecken. Ett händelseskript körs inne i servern med tjänstekontots rättigheter, så vad det får instansiera är ett säkerhetsbeslut snarare än en bekvämlighet. Som levererat är detta *, vilket tillåter alla objekt, så att en uppgradering aldrig förstör ett skript som en installation redan kör - det är inställningen att snäva in, inte det säkra tillståndet. Namnge bara det som ett av dina skript faktiskt behöver - ett filsystemsobjekt för skript, en HTTP-klient - så avvisas allt annat med objektets namn i felloggen; tomt avvisar allt utöver hMailServers egna objekt.</value>
   </data>
-  <data name="ProgIDs or CLSIDs." xml:space="preserve">
-    <value>ProgIDs eller CLSIDs.</value>
-  </data>
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>Program som körs när en adress stängs av eller släpps (tomt = inget)</value>
-  </data>
-  <data name="Progressive Robot Ltd is a software engineering company that builds and modernises production software - taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
-    <value>Progressive Robot Ltd är ett programvaruföretag som bygger och moderniserar produktionsprogramvara - tar mogna, verkliga system och lyfter dem till dagens standard för säkerhet, tillförlitlighet och verktyg.</value>
   </data>
   <data name="Progressive Robot Ltd is a software engineering company. It maintains the hMailServer 6.x line, an independent fork of the open-source mail server." xml:space="preserve">
     <value>Progressive Robot Ltd är ett mjukvaruutvecklingsföretag. Det underhåller hMailServer 6.x-serien, en oberoende fork av e-postservern med öppen källkod.</value>
@@ -9404,9 +9341,6 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   </data>
   <data name="Propagation period in hours" xml:space="preserve">
     <value>Spridningstid i timmar</value>
-  </data>
-  <data name="Properties of domain {0}" xml:space="preserve">
-    <value>Egenskaper för domänen {0}</value>
   </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Skydda lagrade hemligheter med Windows DPAPI</value>
@@ -12096,9 +12030,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Start here: jump straight to a common task, or describe what you want to do in the search." xml:space="preserve">
     <value>Börja här: hoppa direkt till en vanlig uppgift, eller beskriv i sökningen vad du vill göra.</value>
   </data>
-  <data name="Start the mail server engine again, as the header's Resume does" xml:space="preserve">
-    <value>Starta e-postserverns motor igen, som Återuppta i sidhuvudet gör</value>
-  </data>
   <data name="Start with a domain: the part after the @ that this server accepts mail for. Add yours here." xml:space="preserve">
     <value>Börja med en domän: delen efter @ som den här servern tar emot post för. Lägg till din här.</value>
   </data>
@@ -12804,9 +12735,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="The anti-virus configuration could not be read: " xml:space="preserve">
     <value>Antiviruskonfigurationen kunde inte läsas: </value>
   </data>
-  <data name="The archive folder is a raw copy of every message that passes through the server, so on a busy server it is a directory that only grows; this prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
-    <value>Arkivmappen är en rå kopia av varje meddelande som passerar servern, så på en upptagen server är det en katalog som bara växer; detta gallrar den. 0 behåller allt, och det är standardvärdet med avsikt: ett arkiv hålls oftast av juridiska eller avtalsmässiga skäl, och en server som började ta bort ur ett vid uppgradering skulle förstöra exakt det den sagts att behålla. Svepet tar bara någonsin bort .eml-filer, så allt annat du förvarar i arkivet lämnas i fred, och det körs vid start och var tolfte timme därefter.</value>
-  </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>Arkivet innehåller inga meddelanden för det här kontot.</value>
   </data>
@@ -12863,9 +12791,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="The built-in connectivity and configuration checks, and the last message-store consistency scan." xml:space="preserve">
     <value>De inbyggda anslutnings- och konfigurationskontrollerna, och den senaste konsistensgenomsökningen av meddelandelagret.</value>
-  </data>
-  <data name="The built-in roles cannot be changed. Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds." xml:space="preserve">
-    <value>De inbyggda rollerna kan inte ändras. Anpassade roller skapas via REST-API:t, och Control Deck tar bort en som ingen har.</value>
   </data>
   <data name="The case's lines on the audit trail" xml:space="preserve">
     <value>Ärendets rader i granskningsloggen</value>
@@ -13425,9 +13350,6 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   </data>
   <data name="The mail server is paused - nothing is accepted or delivered." xml:space="preserve">
     <value>E-postservern är pausad - inget tas emot eller levereras.</value>
-  </data>
-  <data name="The mail server is paused: no connections are accepted and no mail is delivered until it is resumed." xml:space="preserve">
-    <value>E-postservern är pausad: inga anslutningar tas emot och ingen e-post levereras förrän den återupptas.</value>
   </data>
   <data name="The mailbox could not be moved: {0}" xml:space="preserve">
     <value>Brevlådan kunde inte flyttas: {0}</value>
@@ -14766,9 +14688,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="Version and updates" xml:space="preserve">
     <value>Version och uppdateringar</value>
-  </data>
-  <data name="Version {0} - .NET {1}" xml:space="preserve">
-    <value>Version {0} - .NET {1}</value>
   </data>
   <data name="Version, build and licence information." xml:space="preserve">
     <value>Version, bygge och licensinformation.</value>

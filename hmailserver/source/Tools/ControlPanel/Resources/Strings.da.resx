@@ -1843,9 +1843,6 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Arriving" xml:space="preserve">
     <value>Indgående</value>
   </data>
-  <data name="As soon as possible" xml:space="preserve">
-    <value>Så snart som muligt</value>
-  </data>
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>Spørg en nøgleserver, når deres domæne ikke har nogen nøgle</value>
   </data>
@@ -2004,9 +2001,6 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   </data>
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>Automatiske certifikater (ACME)</value>
-  </data>
-  <data name="Automatic lockout of an address that keeps failing to sign in. The ban itself is an expiring IP range, so it is listed on the IP ranges page." xml:space="preserve">
-    <value>Automatisk udelukkelse af en adresse, der bliver ved med at fejle pålogning. Selve blokeringen er et udløbende IP-interval, så den er anført på siden IP-intervaller.</value>
   </data>
   <data name="Automatic lockout of an address that keeps failing to sign in. The bans in force are listed first, each with Lift ban, which lets the address in again at once." xml:space="preserve">
     <value>Automatisk udelukkelse af en adresse, der bliver ved med at fejle pålogning. De gældende blokeringer står først, hver med Ophæv blokering, som straks lukker adressen ind igen.</value>
@@ -2361,9 +2355,6 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   </data>
   <data name="COM objects a script may create" xml:space="preserve">
     <value>COM-objekter, som et script må oprette</value>
-  </data>
-  <data name="COM objects a script may create (comma separated; * = any, empty = only hMailServer's own)" xml:space="preserve">
-    <value>COM-objekter, som et script må oprette (kommasepareret; * = alle, tomt = kun hMailServers egne)</value>
   </data>
   <data name="COMPRESS=DEFLATE (RFC 4978)" xml:space="preserve">
     <value>COMPRESS=DEFLATE (RFC 4978)</value>
@@ -3193,12 +3184,6 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Could not list the messages: {0}" xml:space="preserve">
     <value>Beskederne kunne ikke vises: {0}</value>
   </data>
-  <data name="Could not load aliases: " xml:space="preserve">
-    <value>Kunne ikke indlæse aliasser: </value>
-  </data>
-  <data name="Could not load distribution lists: " xml:space="preserve">
-    <value>Kunne ikke indlæse distributionslister: </value>
-  </data>
   <data name="Could not load folders: " xml:space="preserve">
     <value>Kunne ikke indlæse mapper: </value>
   </data>
@@ -3491,9 +3476,6 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   </data>
   <data name="Counted per user name rather than per address, across every protocol that authenticates, so a botnet spreading its guesses over thousands of addresses still locks the mailbox it is guessing at. A locked name is refused with the ordinary invalid-credentials reply and cannot be unlocked by typing the right password - the lock is checked first - so the ceiling is worth setting with the cost in mind. Failures against a name that does not exist lock that name too, deliberately: doing otherwise would let an attacker use the lockout to discover which accounts are real." xml:space="preserve">
     <value>Talt pr. brugernavn snarere end pr. adresse, på tværs af hver protokol, der godkender, så et botnet, der spreder sine gæt over tusindvis af adresser, stadig låser den postkasse, det gætter på. Et låst navn afvises med det almindelige svar om ugyldige legitimationsoplysninger og kan ikke låses op ved at skrive den rigtige adgangskode - låsen kontrolleres først - så loftet er værd at sætte med omkostningen for øje. Fejl mod et navn, der ikke findes, låser også det navn, med vilje: at gøre andet ville lade en angriber bruge udelukkelsen til at finde ud af, hvilke konti der er rigtige.</value>
-  </data>
-  <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their &quot;Auto-ban:&quot; range expires - delete it on the IP ranges page to release one now." xml:space="preserve">
-    <value>Talte pålogningsfejl ryddet. Adresser, der allerede er blokeret, forbliver blokeret, indtil deres "Auto-ban:"-interval udløber - slet det på siden IP-intervaller for at frigive en nu.</value>
   </data>
   <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
     <value>Talte pålogningsfejl ryddet. Adresser, der allerede er blokeret, forbliver blokeret, indtil deres blokering udløber - Ophæv blokering under Blokeret nu lukker en ind med det samme.</value>
@@ -4582,9 +4564,6 @@ Ingen post røres - indekset er udledt af den - men indtil genopbygningen har in
   <data name="Email address" xml:space="preserve">
     <value>E-mailadresse</value>
   </data>
-  <data name="Email address to add to the list" xml:space="preserve">
-    <value>E-mailadresse, der skal føjes til listen</value>
-  </data>
   <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should. Worth doing when the index has more entries than the server has messages, which means entries for mail that no longer exists." xml:space="preserve">
     <value>Tømmer indekset og beder indekseringen om at genopbygge det. Ingen post røres - indekset er afledte data - men indtil genopbygningen har indhentet det, finder IMAP SEARCH mindre, end den burde. Værd at gøre, når indekset har flere poster, end serveren har meddelelser, hvilket betyder poster for post, der ikke længere findes.</value>
   </data>
@@ -5158,9 +5137,6 @@ Ingen post røres - indekset er udledt af den - men indtil genopbygningen har in
   <data name="Expires on (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>Udløber den (YYYY-MM-DD HH:MM:SS)</value>
   </data>
-  <data name="Expires on (YYYY-MM-DD HH:MM:SS, when it stops mattering)" xml:space="preserve">
-    <value>Udløber den (YYYY-MM-DD HH:MM:SS, hvornår den ophører med at gælde)</value>
-  </data>
   <data name="Expires on {0} (in less than a day)" xml:space="preserve">
     <value>Udløber {0} (om mindre end en dag)</value>
   </data>
@@ -5248,9 +5224,6 @@ Ingen post røres - indekset er udledt af den - men indtil genopbygningen har in
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>Eksterne modtagere (adresser denne server ikke hoster)</value>
   </data>
-  <data name="External to exte_rnal" xml:space="preserve">
-    <value>Ekstern til ekste_rn</value>
-  </data>
   <data name="External to external (rela_y)" xml:space="preserve">
     <value>Ekstern til ekstern (rela_y)</value>
   </data>
@@ -5268,9 +5241,6 @@ Ingen post røres - indekset er udledt af den - men indtil genopbygningen har in
   </data>
   <data name="Failed sign-ins before an address is banned (0 = off)" xml:space="preserve">
     <value>Mislykkede pålogninger, før en adresse blokeres (0 = fra)</value>
-  </data>
-  <data name="Failed sign-ins from a listed address are not counted at all, so it can never be banned. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine. Example: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. An entry that is not an address is reported by name in the error log and ignored." xml:space="preserve">
-    <value>Mislykkede logon fra en adresse på listen tælles slet ikke, så den kan aldrig udelukkes. Skriv de adresser, du administrerer fra, her, før du slår firewall-indstillingen til: en udelukkelse, der når firewallen, lukker adressen ude fra alle mailporte på denne maskine. Eksempel: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. En post, der ikke er en adresse, rapporteres ved navn i fejlloggen og ignoreres.</value>
   </data>
   <data name="Fails when the connecting address has no reverse DNS record." xml:space="preserve">
     <value>Fejler, når den forbindende adresse ikke har nogen omvendt DNS-post.</value>
@@ -5394,9 +5364,6 @@ Ingen post røres - indekset er udledt af den - men indtil genopbygningen har in
   </data>
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>Skilletegn i mappehierarkiet</value>
-  </data>
-  <data name="Folder name" xml:space="preserve">
-    <value>Mappenavn</value>
   </data>
   <data name="Folder name (use the hierarchy delimiter for sub-folders)" xml:space="preserve">
     <value>Mappenavn (brug hierarkiets skilletegn til undermapper)</value>
@@ -6657,9 +6624,6 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Loading…" xml:space="preserve">
     <value>Indlæser…</value>
   </data>
-  <data name="Local to _external" xml:space="preserve">
-    <value>Lokal til _ekstern</value>
-  </data>
   <data name="LocalSystem, which is the most privileged account on this machine" xml:space="preserve">
     <value>LocalSystem, som er den mest privilegerede konto på denne maskine</value>
   </data>
@@ -6713,9 +6677,6 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="Logging is off altogether, so nothing below will be written until it is on." xml:space="preserve">
     <value>Logføring er helt slået fra, så intet nedenfor bliver skrevet, før den er slået til.</value>
-  </data>
-  <data name="Logon failures" xml:space="preserve">
-    <value>Pålogningsfejl</value>
   </data>
   <data name="Longest such window (minutes)" xml:space="preserve">
     <value>Længste sådanne vindue (minutter)</value>
@@ -7189,13 +7150,7 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Message finalisation deadline (240)" xml:space="preserve">
     <value>Frist for færdiggørelse af meddelelser (240)</value>
   </data>
-  <data name="Message finalisation deadline (seconds; 0 = no deadline)" xml:space="preserve">
-    <value>Frist for færdiggørelse af meddelelser (sekunder; 0 = ingen frist)</value>
-  </data>
   <data name="Message finalisation deadline (seconds; 0 = no time limit)" xml:space="preserve">
-    <value>Frist for færdiggørelse af meddelelser (sekunder; 0 = ingen tidsgrænse)</value>
-  </data>
-  <data name="Message finalization deadline (seconds; 0 = no time limit)" xml:space="preserve">
     <value>Frist for færdiggørelse af meddelelser (sekunder; 0 = ingen tidsgrænse)</value>
   </data>
   <data name="Message for colleag_ues (empty = same as above)" xml:space="preserve">
@@ -7555,9 +7510,6 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Never auto-ban these addresses" xml:space="preserve">
     <value>Udeluk aldrig disse adresser automatisk</value>
   </data>
-  <data name="Never auto-ban these addresses (comma separated)" xml:space="preserve">
-    <value>Udeluk aldrig disse adresser automatisk (kommasepareret)</value>
-  </data>
   <data name="Never greylisted." xml:space="preserve">
     <value>Aldrig greylistet.</value>
   </data>
@@ -7602,9 +7554,6 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="Next step: {0}." xml:space="preserve">
     <value>Næste trin: {0}.</value>
-  </data>
-  <data name="Next try (server time)" xml:space="preserve">
-    <value>Næste forsøg (servertid)</value>
   </data>
   <data name="Next try at {0}" xml:space="preserve">
     <value>Næste forsøg: {0}</value>
@@ -8932,9 +8881,6 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Outbound TLS" xml:space="preserve">
     <value>Udgående TLS</value>
   </data>
-  <data name="Outbound delivery behaviour, retries and smart-host relaying." xml:space="preserve">
-    <value>Adfærd ved udgående levering, genforsøg og relay via smart host.</value>
-  </data>
   <data name="Outbound delivery security (after MX lookup)" xml:space="preserve">
     <value>Sikkerhed ved udgående levering (efter MX-opslag)</value>
   </data>
@@ -9063,9 +9009,6 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="Part of a name (empty = everyone)" xml:space="preserve">
     <value>En del af et navn (tomt = alle)</value>
-  </data>
-  <data name="Part of a name (empty lists everyone)" xml:space="preserve">
-    <value>En del af et navn (tomt viser alle)</value>
   </data>
   <data name="Partly saved" xml:space="preserve">
     <value>Delvist gemt</value>
@@ -9378,14 +9321,8 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   <data name="ProgIDs or CLSIDs, separated by commas. An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
     <value>ProgID'er eller CLSID'er adskilt af kommaer. Et hændelsesscript kører inde i serveren med tjenestekontoens rettigheder, så hvad det må instantiere, er en sikkerhedsbeslutning frem for en bekvemmelighed. Som leveret er dette *, som tillader ethvert objekt, så en opgradering aldrig ødelægger et script, en installation allerede kører - det er indstillingen at indsnævre, ikke den sikre tilstand. Navngiv kun det, et af dine egne scripts rent faktisk har brug for - et scripting-filsystemobjekt, en HTTP-klient - og alt andet afvises med objektets navn i fejlloggen; tomt afviser alt ud over hMailServers egne objekter.</value>
   </data>
-  <data name="ProgIDs or CLSIDs." xml:space="preserve">
-    <value>ProgIDs eller CLSIDs.</value>
-  </data>
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>Program, der køres, når en adresse udelukkes eller frigives (tomt = intet)</value>
-  </data>
-  <data name="Progressive Robot Ltd is a software engineering company that builds and modernises production software - taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
-    <value>Progressive Robot Ltd er en softwareudviklingsvirksomhed, der bygger og moderniserer produktionssoftware - tager modne systemer fra den virkelige verden og bringer dem op på nutidens standarder for sikkerhed, pålidelighed og værktøjer.</value>
   </data>
   <data name="Progressive Robot Ltd is a software engineering company. It maintains the hMailServer 6.x line, an independent fork of the open-source mail server." xml:space="preserve">
     <value>Progressive Robot Ltd er en softwareudviklingsvirksomhed. Den vedligeholder hMailServer 6.x-serien, en uafhængig fork af open source-postserveren.</value>
@@ -9404,9 +9341,6 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   </data>
   <data name="Propagation period in hours" xml:space="preserve">
     <value>Udbredelsesperiode i timer</value>
-  </data>
-  <data name="Properties of domain {0}" xml:space="preserve">
-    <value>Egenskaber for domænet {0}</value>
   </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Beskyt gemte hemmeligheder med Windows DPAPI</value>
@@ -12096,9 +12030,6 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Start here: jump straight to a common task, or describe what you want to do in the search." xml:space="preserve">
     <value>Start her: spring direkte til en almindelig opgave, eller beskriv i søgningen, hvad du vil gøre.</value>
   </data>
-  <data name="Start the mail server engine again, as the header's Resume does" xml:space="preserve">
-    <value>Start mailserverens motor igen, som Genoptag i overskriften gør</value>
-  </data>
   <data name="Start with a domain: the part after the @ that this server accepts mail for. Add yours here." xml:space="preserve">
     <value>Start med et domæne: delen efter @, som denne server tager imod post for. Tilføj dit her.</value>
   </data>
@@ -12804,9 +12735,6 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="The anti-virus configuration could not be read: " xml:space="preserve">
     <value>Antiviruskonfigurationen kunne ikke læses: </value>
   </data>
-  <data name="The archive folder is a raw copy of every message that passes through the server, so on a busy server it is a directory that only grows; this prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
-    <value>Arkivmappen er en rå kopi af hver eneste meddelelse, der passerer gennem serveren, så på en travl server er det en mappe, der kun vokser; dette beskærer den. 0 beholder alt, og det er standarden med vilje: et arkiv opbevares som regel af juridiske eller kontraktlige årsager, og en server, der ved en opgradering begyndte at slette fra et arkiv, ville ødelægge præcis det, den fik besked på at bevare. Oprydningen fjerner kun .eml-filer, så alt andet, du gemmer i arkivet, bliver ladt i fred, og den kører ved opstart og hver tolvte time derefter.</value>
-  </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>Arkivet indeholder ingen beskeder for denne konto.</value>
   </data>
@@ -12863,9 +12791,6 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   </data>
   <data name="The built-in connectivity and configuration checks, and the last message-store consistency scan." xml:space="preserve">
     <value>De indbyggede forbindelses- og konfigurationskontroller og den seneste konsistensscanning af meddelelseslageret.</value>
-  </data>
-  <data name="The built-in roles cannot be changed. Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds." xml:space="preserve">
-    <value>De indbyggede roller kan ikke ændres. Brugerdefinerede roller oprettes via REST-API'et, og Control Deck sletter en, som ingen har.</value>
   </data>
   <data name="The case's lines on the audit trail" xml:space="preserve">
     <value>Sagens linjer i revisionsloggen</value>
@@ -13425,9 +13350,6 @@ kunne ikke indlæses. Meddelelsen er sandsynligvis leveret og ikke længere i k�
   </data>
   <data name="The mail server is paused - nothing is accepted or delivered." xml:space="preserve">
     <value>Mailserveren er sat på pause - intet modtages eller leveres.</value>
-  </data>
-  <data name="The mail server is paused: no connections are accepted and no mail is delivered until it is resumed." xml:space="preserve">
-    <value>Mailserveren er sat på pause: ingen forbindelser modtages, og ingen post leveres, før den genoptages.</value>
   </data>
   <data name="The mailbox could not be moved: {0}" xml:space="preserve">
     <value>Postkassen kunne ikke flyttes: {0}</value>
@@ -14766,9 +14688,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="Version and updates" xml:space="preserve">
     <value>Version og opdateringer</value>
-  </data>
-  <data name="Version {0} - .NET {1}" xml:space="preserve">
-    <value>Version {0} - .NET {1}</value>
   </data>
   <data name="Version, build and licence information." xml:space="preserve">
     <value>Oplysninger om version, build og licens.</value>
