@@ -1003,7 +1003,12 @@ in to gitlab.com as a Maintainer. In order, and stopping at the first refusal:
    the checkout's rules script, in the analyzer image the checkout's
    `secret_detection` names, so the landing runs from a checkout of
    `master`, where the batch chooses neither the scanner nor its rules ([What
-   the secret scans read](#what-the-secret-scans-read)). A `batch*` branch's pipeline does not run
+   the secret scans read](#what-the-secret-scans-read)); before anything else
+   it refuses (exit 2) unless the checkout's copies of the files it runs -
+   `CHECKOUT_COPIES`: the landing script, `sign-off.py`, `scan-secrets.py`, the
+   rules script and `gitlab-security.yml` - are the remote `master`'s, working
+   tree and all, so that a checkout behind `master`, an edited one, or the
+   batch's own worktree is not what judges the batch. A `batch*` branch's pipeline does not run
    `secret_detection`, and its merge request runs no pipeline, so this is the
    scan that reads a batch before it is on GitLab. A batch that changes the
    gates' own files - `GATE_FILES`: the five gate scripts; `.gitlab-ci.yml`,
@@ -4141,17 +4146,25 @@ What each scan trusts:
   range it scans it takes the commits, and the `.gitleaksignore` of the range's
   tip (the working tree's, for a staged scan), as a pipeline would read it. It
   prints every line the range adds to `.gitleaksignore`, every line it changes
-  in the rules script, and the image the range's tip names when that is not the
-  one the scan ran; and a line that carries gitleaks' inline allow marker is a
-  finding of it like any other (`--ignore-gitleaks-allow`): the range chooses
-  neither the scanner nor its rules, and what it can waive, a finding it names in
-  `.gitleaksignore`, is shown.
+  in the rules script, and the image the range's tip names when the range moves
+  it, which the scan did not run; and a line that carries gitleaks' inline allow
+  marker is a finding of it like any other (`--ignore-gitleaks-allow`). So the
+  range chooses neither the scanner nor its rules, and what it can waive, a
+  finding it names in `.gitleaksignore`, is shown. Run from a tree whose copies
+  are the range's own, it says that the range "was judged by its own copies";
+  from one whose copies are neither the range's base's nor its tip's - a
+  checkout behind the base, or edited - that the range "was judged by that
+  tree's copies". Neither is a gate: the landing's refusal, below, is.
 - **The landing** runs `scan-secrets.py` from its own checkout, the tree
-  `build/land-via-mr.py` is in. From a checkout of `master`, as a landing is, a
-  batch is scanned with `master`'s scan, `master`'s rules script and `master`'s
-  analyzer, and nothing of the batch runs in it. Run from the batch's own
-  worktree, the batch's copies of all three would judge the batch: the scan then
-  says that the range "was judged by its own copies", and that is no gate.
+  `build/land-via-mr.py` is in, and refuses to run from one whose copies of
+  `scan-secrets.py`, the rules script and `gitlab-security.yml` - and of the
+  landing script and `sign-off.py` - are not the remote `master`'s, working tree
+  and all. So a batch is scanned with `master`'s scan, `master`'s rules script
+  and `master`'s analyzer, and nothing of the batch runs in it: neither a
+  checkout behind `master`, nor an edited one, nor the batch's own worktree,
+  whose copies would be the batch's, can judge it. A landing leaves a worktree
+  that has `master` checked out as it is, and says that it is to be brought to
+  the new `master` before the next landing, which refuses it until then.
 - **The hooks** run the clone's own `scan-secrets.py`, from its working tree,
   over what the clone commits or pushes.
 

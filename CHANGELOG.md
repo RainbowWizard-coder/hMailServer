@@ -4694,7 +4694,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Ultimate's and gitleaks' `[extend]` takes no allowlist away, and `scan-secrets.py` runs its own tree's copy of the
   script before gitleaks, in the analyzer image its own tree's `secret_detection` names - never the scanned range's
   script or image, which are written for each other. So the landing, run from a checkout of `master`, scans a batch
-  that moves either with `master`'s, and prints the lines the batch changes in the script and the image it names. The
+  that moves either with `master`'s, and prints the lines the batch changes in the script and the image it moves to;
+  and `build/land-via-mr.py` refuses to run from a checkout whose copies of the scan, the rules script and
+  `gitlab-security.yml`, of itself or of `sign-off.py` are not the remote `master`'s, working tree and all
+  (`CHECKOUT_COPIES`), which `build/check-release-chain.py` holds to what it runs - a checkout left behind `master`
+  after a landing, an edited one, or the batch's own worktree would have judged the batch by its own copies with no
+  word, or a word that blamed the batch - and names a worktree with `master` checked out, which it leaves as it is,
+  to be brought to the new `master` before the next landing. The
   script refuses when GitLab's table does not hash to the one it was written for, so that new rules that change what
   GitLab leaves out are read first, and when either entry it changes is not on exactly one line of the table; it is
   one of the gates' own files (`build/land-via-mr.py`'s `GATE_FILES`), which a batch changes only with

@@ -28,16 +28,18 @@ scans: this script, the rules script, and the image the tree's
 written for each other, so both from one tree. From the range it takes the commits it
 scans and its tip's .gitleaksignore, as the pipeline would read it (the working tree's
 for --staged), and prints every line the range adds to that file, every line it
-changes in the rules script, and the image its tip names when that is another. A
+changes in the rules script, and the image its tip names when the range moves it. A
 line that carries gitleaks' inline allow marker (the word gitleaks, then ":allow") is
 a finding here like any other (--ignore-gitleaks-allow), so that only a .gitleaksignore
 line, which is shown, waives one; secret_detection's analyzer, which cannot be given
 the flag, would take the marker as a waiver, and build/check-gitleaksignore.py fails a
 tree that carries it. So the range chooses neither the scanner nor its rules, and what
-it waives is shown. That holds when this script runs from a tree outside the range, as
-the landing's does when build/land-via-mr.py runs from a checkout of master; run from
-a batch's own worktree, the batch's copies judge the batch, and the scan says so.
-Where it runs:
+it waives is shown. That holds when this script runs from a tree whose copies of OWN
+are the range's base's, as the landing's are: build/land-via-mr.py refuses to run from a
+checkout whose copies are not master's. Run from a tree whose copies are the range's
+own (a batch's worktree), the batch's copies judge the batch; from one whose copies are
+neither (a checkout behind the base, or edited), that tree's do; and the scan says
+which. Where it runs:
 
   docker    Docker on this machine: the image, with the repository's git directory
             mounted read-only.
@@ -228,23 +230,43 @@ def rules_script():
 OWN = ("build/scan-secrets.py", RULES_SCRIPT, SECURITY_YML)
 
 
-def judged_by_its_own(repo, log_opts):
-    """The files of OWN that the range changes and that this tree has as the range's tip
-    has them: a scan run from the range's own tree, such as a batch's worktree, whose
-    copies judge the range. The CI file counts by its secret_detection image alone."""
+def base_of(log_opts):
+    """The commit a range starts from (A of A..B), or None when it names none."""
     first = log_opts.split()[0]
-    if ".." not in first:
+    return first.split("..", 1)[0] if ".." in first else None
+
+
+def copies_of_own(repo, log_opts):
+    """[(path, the range's base's copy, its tip's, this tree's)] for each file of OWN, CRLF
+    read as LF, the CI file by its secret_detection image alone (None for none); [] for a
+    range with no base."""
+    base = base_of(log_opts)
+    if base is None:
         return []
-    base, tip = first.split("..", 1)
+    tip = tip_of(log_opts)
     found = []
     for path in OWN:
         base_copy, tip_copy, own_copy = [text.replace("\r\n", "\n") for text in
                                          (text_of(repo, base, path), text_of(repo, tip, path), text_of(ROOT, None, path))]
         if path == SECURITY_YML:
             base_copy, tip_copy, own_copy = image_or_none(base_copy), image_or_none(tip_copy), image_or_none(own_copy)
-        if own_copy == tip_copy != base_copy:
-            found.append(path)
+        found.append((path, base_copy, tip_copy, own_copy))
     return found
+
+
+def judged_by_its_own(repo, log_opts):
+    """The files of OWN that the range changes and that this tree has as the range's tip
+    has them: a scan run from the range's own tree, such as a batch's worktree, whose
+    copies judge the range."""
+    return [path for path, base_copy, tip_copy, own_copy in copies_of_own(repo, log_opts) if own_copy == tip_copy != base_copy]
+
+
+def judged_by_neither(repo, log_opts):
+    """The files of OWN that this tree has as neither the range's base nor its tip has
+    them: a scan run from a checkout behind the base, or edited, whose copies judge the
+    range though they are neither what it lands on nor its own."""
+    return [path for path, base_copy, tip_copy, own_copy in copies_of_own(repo, log_opts)
+            if own_copy != base_copy and own_copy != tip_copy]
 
 
 def added_ignore_lines(repo, log_opts):
@@ -542,9 +564,14 @@ def scan(repo, what, engine, say=print):
                 "pipeline on (this scan ran this tree's copy) - read them:" % (len(changed), RULES_SCRIPT))
             for line in changed:
                 say("    " + line)
+        named = lambda paths: paths[0] if len(paths) == 1 else ", ".join(paths[:-1]) + " and " + paths[-1]
         if image:
+            # The image the range's tip names, when the range moves it - or when the range
+            # has no base to tell: one its base names too is not the range's move, and a
+            # tree that runs another than both is said below.
+            base = base_of(log_opts)
             theirs = image_or_none(text_of(repo, tip, SECURITY_YML))
-            if theirs != image:
+            if theirs != image and (base is None or theirs != image_or_none(text_of(repo, base, SECURITY_YML))):
                 say("scan-secrets: the range's tip names %s for secret_detection, where this tree names %s, which this "
                     "scan ran: this scan did not run the range's, which for a batch master's secret_detection runs "
                     "first, once the batch has landed - compare the two over the history before "
@@ -553,9 +580,16 @@ def scan(repo, what, engine, say=print):
         own = judged_by_its_own(repo, log_opts)
         if own:
             say("scan-secrets: this scan ran from a tree whose %s %s the range's own, which the range changes: the range "
-                "was judged by its own copies. A landing runs from a checkout of master (ContinuousIntegration.md, "
-                "\"What the secret scans read\")" % (own[0] if len(own) == 1 else ", ".join(own[:-1]) + " and " + own[-1],
-                                                       "is" if len(own) == 1 else "are"))
+                "was judged by its own copies. A landing refuses such a tree (build/land-via-mr.py), and runs from a "
+                "checkout of master (ContinuousIntegration.md, \"What the secret scans read\")"
+                % (named(own), "is" if len(own) == 1 else "are"))
+        neither = judged_by_neither(repo, log_opts)
+        if neither:
+            say("scan-secrets: this scan ran from a tree whose %s %s neither the range's base's nor its tip's (the CI "
+                "file by its secret_detection image) - a checkout behind the base, or edited: the range was judged by "
+                "that tree's copies, not by those of what it lands on. A landing refuses such a checkout "
+                "(build/land-via-mr.py): bring it to the base, unedited (ContinuousIntegration.md, \"What the secret "
+                "scans read\")" % (named(neither), "is" if len(neither) == 1 else "are"))
     if not findings:
         say("scan-secrets: %s scanned by %s - nothing found" % (subject, how))
         return 0
@@ -738,7 +772,8 @@ def self_test():
     return 1 if failures else 0
 
 
-# throwaway_range's commits, each made on the one before it:
+# throwaway_range's commits, each made on the one before it but the last, "stale", which
+# is made on "tip":
 #   base      a secret_detection image, a rules script and a .gitleaksignore of its own;
 #   tip       base..tip moves the image, changes the rules script and adds a line to
 #             .gitleaksignore (RANGE_IMAGES, RANGE_RULES, RANGE_IGNORED);
@@ -748,8 +783,11 @@ def self_test():
 #   same      own..same changes build/x.txt alone, both its ends this tree's: a landing's
 #             usual range, scanned from a checkout of master, over a batch that leaves
 #             OWN alone;
-#   unpinned  same..unpinned names no image pinned by digest for secret_detection.
-RANGE_COMMITS = ("base", "tip", "own", "same", "unpinned")
+#   unpinned  same..unpinned names no image pinned by digest for secret_detection;
+#   stale     tip..stale changes build/x.txt alone, both its ends naming an image and
+#             carrying a rules script that are not this tree's: a scan from a checkout
+#             behind the range's base.
+RANGE_COMMITS = ("base", "tip", "own", "same", "unpinned", "stale")
 RANGE_IMAGES = ("registry.example/base/secrets:1.0.0-%s@sha256:%s" % ("3" * 12, "3" * 64),
                 "registry.example/tip/secrets:2.0.0-%s@sha256:%s" % ("4" * 12, "4" * 64))
 RANGE_RULES = ("#!/bin/sh\necho the base's rules\n", "#!/bin/sh\necho the range's own rules\n")
@@ -770,10 +808,11 @@ def throwaway_range(work):
     files = {"base": {SECURITY_YML: job % RANGE_IMAGES[0], RULES_SCRIPT: RANGE_RULES[0], IGNORE: "# the base's\n",
                       "build/x.txt": "nothing to find\n"},
              "tip": {SECURITY_YML: job % RANGE_IMAGES[1], RULES_SCRIPT: RANGE_RULES[1], IGNORE: "# the base's\n%s\n" % RANGE_IGNORED},
+             "stale": {"build/x.txt": "nothing to find, behind the base\n"},
              "own": own,
              "same": {"build/x.txt": "nothing to find, from this tree\n"},
              "unpinned": {SECURITY_YML: "secret_detection:\n  needs: []\n"}}
-    parents = {"base": None, "tip": "base", "own": "tip", "same": "own", "unpinned": "same"}
+    parents = {"base": None, "tip": "base", "stale": "tip", "own": "tip", "same": "own", "unpinned": "same"}
     made = {}
     for name in RANGE_COMMITS:
         parent = made.get(parents[name])
@@ -797,10 +836,11 @@ def range_self_test(repo, commits, expect):
     held_which = shutil.which
     asked = []
     between = lambda base, tip: "%s..%s" % (commits[base], commits[tip])
-    # What the scan says of the image the range's tip names, and of a range judged by its
-    # own copies.
+    # What the scan says of the image the range's tip names, of a range judged by its own
+    # copies, and of one judged by copies that are neither its base's nor its tip's.
     moved = "for secret_detection, where this tree names"
     judged = "judged by its own"
+    neither = "whose %s, %s and %s are neither the range's base's nor its tip's" % OWN
     try:
         for name in held:
             globals()[name] = (lambda engine: lambda *a: asked.append((engine,) + a) or (0, "[]", ""))(name[len("run_"):])
@@ -815,7 +855,8 @@ def range_self_test(repo, commits, expect):
         # The container is handed this script's own rules script and runs in this tree's own
         # image, whatever the range's tip names, with the tip's .gitleaksignore; and the
         # reader is shown the line the range adds to the one, the lines it changes in the
-        # other, and the image its tip names that this scan did not run.
+        # other, the image its tip names that this scan did not run, and that this tree's
+        # copies, which judged the range, are neither the range's base's nor its own.
         own = rules_script()
         own_image = image_of(text_of(ROOT, None, SECURITY_YML))
         os.environ["HM_SECRET_SCAN_SSH"] = "u@h:/g/.git"
@@ -844,7 +885,14 @@ def range_self_test(repo, commits, expect):
                    and judged not in shown,
                    "with %s the reader is shown the image the range's tip names, which this scan did not run: %s"
                    % (engine, shown))
+            expect(neither in shown, "with %s the reader is shown that this tree's copies are neither the range's base's "
+                   "nor its tip's: %s" % (engine, shown))
         for (base, tip), (wanted, what) in (
+                # Both ends name an image and carry a rules script that are not this
+                # tree's: the image is not the range's move, and the scan says that this
+                # tree's copies judged the range.
+                (("tip", "stale"), ((neither,), "a range that leaves OWN alone, scanned from a tree whose copies are "
+                                                "not its base's")),
                 # Run from a tree whose copies of OWN are the range's own - here the range
                 # brings this tree's - the scan says that the range was judged by them.
                 (("tip", "own"), (("whose %s, %s and %s are the range's own" % OWN, judged),
@@ -862,7 +910,7 @@ def range_self_test(repo, commits, expect):
                 expect(False, "%s: %s" % (what, e))
                 continue
             shown = "\n".join(said)
-            unwanted = [note for note in (moved, judged) if note in shown and not any(note in w for w in wanted)]
+            unwanted = [note for note in (moved, judged, neither) if note in shown and not any(note in w for w in wanted)]
             expect(code == 0 and len(asked) == 1 and all(w in shown for w in wanted) and not unwanted,
                    "%s: %s, and nothing of %s: exit %s, %s" % (what, wanted, unwanted, code, shown))
         # With no scanner the scan refuses, exit 3.

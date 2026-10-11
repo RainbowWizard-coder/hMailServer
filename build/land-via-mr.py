@@ -20,12 +20,13 @@ refusal:
      .gitleaksignore, in Docker here or where HM_SECRET_SCAN_SSH points) finds
      nothing and could run. The scan, its rules script and the analyzer image
      it runs, the one this checkout's secret_detection names, are this
-     checkout's own, not the batch's: run from a checkout of master, as a
-     landing is, the batch has no say in what scans it or how, but for the
-     .gitleaksignore lines it adds, which the scan prints (a line that carries
-     gitleaks' inline allow marker is a finding of the scan like any other);
-     from the batch's own worktree the batch's copies would judge the batch,
-     which the scan says.
+     checkout's own, not the batch's, and so are this script and the sign-off
+     check (CHECKOUT_COPIES); it refuses (exit 2) unless each is as the
+     remote's master has it, working tree and all - not a checkout behind
+     master, nor an edited one, nor the batch's own worktree when the batch
+     changes one. So the batch has no say in what scans it or how, but for the
+     .gitleaksignore lines it adds, which the scan prints; a line that carries
+     gitleaks' inline allow marker is a finding of the scan like any other.
      A batch branch's pipeline does not run the
      secret_detection job and its merge request runs none, so this scan is the
      one that reads a batch before it is on GitLab. And a batch that changes the
@@ -81,8 +82,10 @@ refusal:
   8. It records the landing: a note on the merge request (the pipeline, its
      gate jobs, the sign-off, the approvals, who landed it) and a line in
      land-via-mr.log in the repository's git directory. Then it moves the local
-     master to the tip when no worktree has master checked out, and deletes the
-     branch, remote and local, where it can.
+     master to the tip when no worktree has master checked out - when one has,
+     it names it, to be brought to the tip before the next landing, which
+     refuses it until then - and deletes the branch, remote and local, where it
+     can.
 
 It needs glab, logged in to gitlab.com as a Maintainer (only Maintainers may
 push a batch* branch or merge into master), and git.
@@ -106,8 +109,9 @@ Usage:
                  has read that change whole: REASON says who and what, and is
                  recorded
 
-Exit codes: 0 landed (or the dry run or --no-wait passed), 2 usage or a git or
-GitLab error, 3 the branch cannot land by fast-forward, 4 a commit is not signed
+Exit codes: 0 landed (or the dry run or --no-wait passed), 2 usage, a git or
+GitLab error, or a checkout whose files the landing runs are not master's
+(CHECKOUT_COPIES), 3 the branch cannot land by fast-forward, 4 a commit is not signed
 off, 5 the merge request, its pipeline or a gate job in it did not pass, 6
 GitLab would not merge, 7 no second person approved and the owner gave no
 override, or the override was refused, 8 the secret scan found a possible
@@ -203,6 +207,16 @@ GATE_FILES = GATE_CODE + (".gitlab-ci.yml", ".gitlab/ci/mr-checks.yml", ".gitlab
                           ".gitlab/ci/no-github.yml", "build/land-via-mr.py", "build/check-release-chain.py",
                           "build/sign-off.py", "build/scan-secrets.py", "build/ci/secret-detection-rules.sh",
                           "build/ci/static-analysis.sh", "build/ci/semgrep.sh")
+# The files a landing runs from its own checkout - the tree this script is in - and not
+# from the batch: this script, the sign-off check, the secret scan, the rules script the
+# scan hands its container, and the CI file whose secret_detection image it runs in
+# (build/scan-secrets.py's OWN). They judge the batch, so each must be as the base has
+# it, working tree and all: a checkout behind master, or edited, would judge the batch
+# by other code than master's without a word, and the batch's own worktree by the
+# batch's (checkout_differs). build/check-release-chain.py holds this list to the
+# scripts the landing runs and the CI file.
+CHECKOUT_COPIES = ("build/land-via-mr.py", "build/sign-off.py", "build/scan-secrets.py",
+                   "build/ci/secret-detection-rules.sh", ".gitlab/ci/gitlab-security.yml")
 # A pipeline's jobs are read a page at a time; a batch's has more than a hundred.
 JOBS_PER_PAGE = 100
 MOST_JOB_PAGES = 50
@@ -223,6 +237,25 @@ def _load_sign_off():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def checkout_differs(repo, base, root=ROOT):
+    """The files of CHECKOUT_COPIES whose copy in root's working tree is not base's, as
+    repo, which has base, holds it: a file one of them lacks counts as another, and CRLF
+    as LF, as a checkout on Windows writes it."""
+    differ = []
+    for path in CHECKOUT_COPIES:
+        done = subprocess.run(["git", "-C", repo, "cat-file", "blob", "%s:%s" % (base, path)], stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE)
+        theirs = done.stdout.replace(b"\r\n", b"\n") if done.returncode == 0 else None
+        try:
+            with open(os.path.join(root, *path.split("/")), "rb") as f:
+                ours = f.read().replace(b"\r\n", b"\n")
+        except OSError:
+            ours = None
+        if ours != theirs:
+            differ.append(path)
+    return differ
 
 
 def secret_scan(repo, base, tip):
@@ -494,7 +527,7 @@ def describe_jobs(statuses):
                      for name, status, allowed in statuses)
 
 
-def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_scan):
+def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_scan, checkout=checkout_differs):
     say = lambda text="": print(text, file=out)
     sign_off = _load_sign_off()
     branch = opts.branch
@@ -511,6 +544,14 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_sca
     base = git.sha("refs/remotes/%s/%s" % (remote, TARGET))
     if not base:
         raise Refused(2, "%s/%s cannot be read" % (remote, TARGET))
+    # What judges the batch here is this checkout's: it must be the base's, unedited.
+    stale = checkout(git.repo, base)
+    if stale:
+        raise Refused(2, "REFUSED: this landing runs from %s, whose %s %s not as %s/%s (%s) has %s, so the batch would be "
+                         "judged by other code than %s's: bring that checkout to %s, with nothing in %s edited, and run "
+                         "this again from it" % (ROOT, ", ".join(stale), "is" if len(stale) == 1 else "are", remote, TARGET,
+                                                 base[:12], "it" if len(stale) == 1 else "them", TARGET, base[:12],
+                                                 "it" if len(stale) == 1 else "them"))
     if not git.ok("merge-base", "--is-ancestor", base, tip):
         raise Refused(3, "REFUSED: %s (%s) is not on top of %s/%s (%s); the project merges by fast-forward only. "
                          "Rebase it onto %s/%s; its pipeline then runs again." % (branch, tip[:12], remote, TARGET, base[:12], remote, TARGET))
@@ -790,7 +831,11 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_sca
     worktrees = git.run("worktree", "list", "--porcelain")
     local_master = git.sha("refs/heads/" + TARGET)
     if "branch refs/heads/%s\n" % TARGET in worktrees + "\n":
-        say("A worktree has %s checked out; the local %s was left as it is." % (TARGET, TARGET))
+        where = [block.split("\n", 1)[0][len("worktree "):] for block in worktrees.replace("\r\n", "\n").split("\n\n")
+                 if block.startswith("worktree ") and "\nbranch refs/heads/%s\n" % TARGET in block + "\n"]
+        say("A worktree has %s checked out (%s); the local %s was left as it is. Bring it to %s (git -C <that worktree> "
+            "merge --ff-only %s) before the next landing, which refuses a checkout whose copies of the files it runs are "
+            "not %s's." % (TARGET, ", ".join(where) or "?", TARGET, tip[:12], tip, TARGET))
     elif local_master is None or git.ok("merge-base", "--is-ancestor", local_master, tip):
         git.run("update-ref", "refs/heads/" + TARGET, tip)
         say("The local %s is %s." % (TARGET, tip[:12]))
@@ -1021,6 +1066,17 @@ def self_test():
             run(work, *(["commit", "-q", "-m", message] + (["-s"] if signoff else [])))
             return run(work, "rev-parse", "HEAD")
 
+        def commit_files(work, files, message):
+            for relative, content in files.items():
+                path = os.path.join(work, *relative.split("/"))
+                if not os.path.isdir(os.path.dirname(path)):
+                    os.makedirs(os.path.dirname(path))
+                with io.open(path, "w") as f:
+                    f.write(content)
+                run(work, "add", relative)
+            run(work, "commit", "-q", "-s", "-m", message)
+            return run(work, "rev-parse", "HEAD")
+
         # The secret scan stands in: scan-secrets.py needs Docker or gitleaks, which the
         # checkers job does not have (its own self-test covers it). Each call is kept.
         scans = []
@@ -1028,6 +1084,14 @@ def self_test():
         def clean_scan(repo, base, tip):
             scans.append((repo, base, tip))
             return 0, "scan-secrets: nothing found\n"
+
+        # The checkout's copies of the files a landing runs stand in too: this tree's are not
+        # the scenarios' (checkout_differs is tried on its own below). Each call is kept.
+        checkouts = []
+
+        def same_checkout(repo, base):
+            checkouts.append((repo, base))
+            return []
 
         def attempt(work, api, **kw):
             opts = argparse.Namespace(branch=kw.get("branch", "batch1"), remote="origin", project="1", dry_run=kw.get("dry_run", False),
@@ -1037,7 +1101,8 @@ def self_test():
             run(work, "checkout", "-q", "--detach")
             sink = io.StringIO()
             try:
-                code = land(opts, Git(work), api, sink, sleep=lambda s: None, scan=kw.get("scan", clean_scan))
+                code = land(opts, Git(work), api, sink, sleep=lambda s: None, scan=kw.get("scan", clean_scan),
+                            checkout=kw.get("checkout", same_checkout))
             except Refused as e:
                 print(str(e), file=sink)
                 code = e.code
@@ -1054,9 +1119,11 @@ def self_test():
         tip = commit(work, "second, signed")
         api = FakeGitLab(bare, approved_by=[zain])
         del scans[:]
+        del checkouts[:]
         code, text = attempt(work, api)
         expect("happy: exit", code, 0)
         expect("happy: the secret scan read the batch's commits, from master to the tip", scans, [(work, master_before, tip)])
+        expect("happy: the checkout's copies were held to master's", checkouts, [(work, master_before)])
         expect("happy: what the scan said is shown", "scan-secrets: nothing found" in text, True)
         expect("happy: the project's master is the tip", remote_ref(bare, "refs/heads/master"), tip)
         expect("happy: the local master too", run(work, "rev-parse", "master"), tip)
@@ -1101,6 +1168,81 @@ def self_test():
         code, text = attempt(work, api, scan=lambda repo, base, tip: (2, "scan-secrets: the scan failed\n"))
         expect("a failed scan: exit", code, 8)
         expect("a failed scan: no API call", api.calls, [])
+
+        # 2b. A checkout whose copies of the files a landing runs are not master's - behind
+        #     it, edited, or the batch's own worktree - refuses before anything else runs.
+        bare, work = scenario("stale-checkout")
+        commit(work, "signed")
+        api = FakeGitLab(bare, approved_by=[zain])
+        del scans[:]
+        code, text = attempt(work, api, checkout=lambda repo, base: ["build/scan-secrets.py", ".gitlab/ci/gitlab-security.yml"])
+        expect("a stale checkout: exit", code, 2)
+        expect("a stale checkout: nothing pushed", remote_ref(bare, "refs/heads/batch1"), None)
+        expect("a stale checkout: no API call, no scan", (api.calls, scans), ([], []))
+        expect("a stale checkout: the files are named, and what to do",
+               "build/scan-secrets.py, .gitlab/ci/gitlab-security.yml are not as origin/master" in text
+               and "bring that checkout to" in text, True)
+        # checkout_differs itself, over a root that has master's copies, or not.
+        bare, work = scenario("checkout-copies")
+        held_copies = dict((path, "the base's %s\n" % path) for path in CHECKOUT_COPIES if path != "build/sign-off.py")
+        run(work, "checkout", "-q", "master")
+        base = commit_files(work, held_copies, "the files a landing runs, signed")
+        run(work, "push", "-q", "origin", "master")
+        root = os.path.join(tmp, "checkout-copies", "root")
+
+        def root_with(copies):
+            shutil.rmtree(root, ignore_errors=True)
+            for path, content in copies.items():
+                full = os.path.join(root, *path.split("/"))
+                if not os.path.isdir(os.path.dirname(full)):
+                    os.makedirs(os.path.dirname(full))
+                with io.open(full, "w", newline="") as f:
+                    f.write(content)
+            return checkout_differs(work, base, root=root)
+
+        expect("a root with the base's copies, sign-off.py absent from both", root_with(held_copies), [])
+        expect("a root checked out CRLF", root_with(dict((p, c.replace("\n", "\r\n")) for p, c in held_copies.items())), [])
+        expect("a root with one copy edited", root_with(dict(held_copies, **{"build/scan-secrets.py": "edited\n"})),
+               ["build/scan-secrets.py"])
+        expect("a root that lacks one", root_with(dict((p, c) for p, c in held_copies.items() if p != ".gitlab/ci/gitlab-security.yml")),
+               [".gitlab/ci/gitlab-security.yml"])
+        expect("a root that has one the base lacks", root_with(dict(held_copies, **{"build/sign-off.py": "new\n"})),
+               ["build/sign-off.py"])
+        expect("a base the repository does not have counts as none", checkout_differs(work, "f" * 40, root=root),
+               [p for p in CHECKOUT_COPIES])
+        # And in a landing: refused from a root that is not the base's, landed from one that is.
+        run(work, "checkout", "-q", "-b", "batch2")
+        commit(work, "signed")
+        root_with(dict(held_copies, **{"build/ci/secret-detection-rules.sh": "behind\n"}))
+        code, text = attempt(work, FakeGitLab(bare, approved_by=[zain]), branch="batch2",
+                             checkout=lambda repo, base: checkout_differs(repo, base, root=root))
+        expect("a root one file behind: exit", code, 2)
+        expect("a root one file behind: named", "build/ci/secret-detection-rules.sh is not as origin/master" in text, True)
+        root_with(held_copies)
+        code, text = attempt(work, FakeGitLab(bare, approved_by=[zain]), branch="batch2",
+                             checkout=lambda repo, base: checkout_differs(repo, base, root=root))
+        expect("a root with the base's copies: exit", code, 0)
+        # What the landing runs from its checkout: this script and the sign-off check, and
+        # everything build/scan-secrets.py takes from its own tree.
+        scanner = importlib.util.spec_from_file_location("scan_secrets_own", os.path.join(ROOT, "build", "scan-secrets.py"))
+        scanner_module = importlib.util.module_from_spec(scanner)
+        scanner.loader.exec_module(scanner_module)
+        expect("CHECKOUT_COPIES hold this script, sign-off.py and scan-secrets.py's OWN",
+               sorted((set(scanner_module.OWN) | {"build/land-via-mr.py", "build/sign-off.py"}) - set(CHECKOUT_COPIES)), [])
+
+        # 2c. A worktree with master checked out keeps it, and is named, to be brought to
+        #     the tip before the next landing.
+        bare, work = scenario("master-checked-out")
+        master_before = remote_ref(bare, "refs/heads/master")
+        tip = commit(work, "signed")
+        held_master = os.path.join(tmp, "master-checked-out", "held-master-worktree")
+        run(work, "worktree", "add", "-q", held_master, "master")
+        code, text = attempt(work, FakeGitLab(bare, approved_by=[zain]))
+        expect("master checked out: exit", code, 0)
+        expect("master checked out: the local master is left", run(work, "rev-parse", "master"), master_before)
+        expect("master checked out: the worktree is named, and what to do",
+               "A worktree has master checked out (" in text and os.path.basename(held_master) in text
+               and "merge --ff-only %s" % tip in text and "the next landing" in text, True)
 
         # 3. Behind master: refused before the push.
         bare, work = scenario("behind")
@@ -1300,17 +1442,6 @@ def self_test():
         # 14. A batch of documents alone - Markdown at the root and under a dot-directory -
         #     needs the change gates and not the scans .own-runners creates none of; one
         #     anywhere else is not documents alone.
-        def commit_files(work, files, message):
-            for relative, content in files.items():
-                path = os.path.join(work, *relative.split("/"))
-                if not os.path.isdir(os.path.dirname(path)):
-                    os.makedirs(os.path.dirname(path))
-                with io.open(path, "w") as f:
-                    f.write(content)
-                run(work, "add", relative)
-            run(work, "commit", "-q", "-s", "-m", message)
-            return run(work, "rev-parse", "HEAD")
-
         bare, work = scenario("documents")
         tip = commit_files(work, {"README.md": "read me\n", ".gitlab/notes.md": "notes\n"}, "documents, signed")
         api = FakeGitLab(bare, approved_by=[zain], jobs=full_pipeline(**{"static-analysis": None, "semgrep": None}))

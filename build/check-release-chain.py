@@ -683,6 +683,10 @@ LANDING_REQUIRED = {"GATE_JOBS": sorted(CHANGE_GATES) + [GATE_SCAN, "checkers"],
 # the secret scan, and the script that makes the scan's rules, which secret_detection runs
 # too - which its GATE_FILES must name with the CI files the gates run in.
 LANDING_RUNS = ("build/sign-off.py", "build/scan-secrets.py", "build/ci/secret-detection-rules.sh")
+# What a landing runs from its own checkout, which its CHECKOUT_COPIES must hold to the
+# base before it runs any: those scripts, the landing script itself, and the CI file
+# whose secret_detection image the secret scan runs in.
+LANDING_CHECKOUT = LANDING_RUNS + ("build/land-via-mr.py", ".gitlab/ci/gitlab-security.yml")
 LANDING_DOCUMENTS = "documents_only"
 # Paths beside the tree's own on which documents_only and the CI files must agree: a
 # document at the root and under a dot-directory, which start no scan, and one under
@@ -2609,7 +2613,9 @@ def change_gate_problems(texts, jobs, security_jobs, security_gate=None):
     # (security-gate.py's GATE_CODE, which the base's copy runs), .gitlab-ci.yml (its
     # workflow, defaults and includes), every CI file the gate jobs are in or reach with
     # extends or !reference (gate_job_files), the scripts the landing runs, and the source
-    # scans' scripts (security-gate.py's SCAN_SCRIPTS); its GATE_CODE is
+    # scans' scripts (security-gate.py's SCAN_SCRIPTS); its CHECKOUT_COPIES, which it holds
+    # to the base before it runs any, name what it runs from its own checkout
+    # (LANDING_CHECKOUT); its GATE_CODE is
     # security-gate.py's; its BASE_GATES, whose logs it reads for the base, are the change
     # gates; and its BASE_COPY_SCRIPTS, whose base's copy each gate's log must say passed
     # a batch that changes GATE_CODE, name each gate's own script. No other CI file
@@ -2626,6 +2632,11 @@ def change_gate_problems(texts, jobs, security_jobs, security_gate=None):
         problems.append("build/land-via-mr.py's GATE_FILES leave out %s: a batch could change what judges it, or whether "
                         "and how its jobs run, with no person's word that the change was read"
                         % ", ".join(sorted(needed - gate_files)))
+    copies = set(getattr(landing, "CHECKOUT_COPIES", None) or ())
+    if set(LANDING_CHECKOUT) - copies:
+        problems.append("build/land-via-mr.py's CHECKOUT_COPIES leave out %s: a landing would run it from a checkout whose "
+                        "copy is not master's, behind it or edited, and judge the batch by that copy without a word"
+                        % ", ".join(sorted(set(LANDING_CHECKOUT) - copies)))
     if security_gate is not None and sorted(getattr(landing, "GATE_CODE", None) or ()) != sorted(security_gate.GATE_CODE):
         problems.append("build/land-via-mr.py's GATE_CODE is not security-gate.py's (%s): a landing would not ask the gates' "
                         "logs for the base's copy when the batch changes the code it runs" % ", ".join(security_gate.GATE_CODE))
@@ -4458,6 +4469,11 @@ def self_test(chain, feed):
              "GATE_FILES leave out build/ci/static-analysis.sh"),
             ("GATE_FILES", files_held + ("build/ci/release-chain.py",),
              "build/ci/release-chain.py does not keep its own directory off sys.path"),
+            ("CHECKOUT_COPIES", tuple(f for f in landing.CHECKOUT_COPIES if f != ".gitlab/ci/gitlab-security.yml"),
+             "CHECKOUT_COPIES leave out .gitlab/ci/gitlab-security.yml"),
+            ("CHECKOUT_COPIES", tuple(f for f in landing.CHECKOUT_COPIES if f != "build/scan-secrets.py"),
+             "CHECKOUT_COPIES leave out build/scan-secrets.py"),
+            ("CHECKOUT_COPIES", None, "CHECKOUT_COPIES leave out"),
             ("GATE_CODE", tuple(landing.GATE_CODE)[:-1], "GATE_CODE is not security-gate.py's"),
             ("BASE_GATES", ("semgrep-sast-gate",), "BASE_GATES are not the change gates"),
             ("BASE_COPY_SCRIPTS", {"semgrep-sast-gate": "build/ci/security-findings.py",
