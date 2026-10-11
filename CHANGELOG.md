@@ -472,7 +472,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   however long it takes, and the thread then goes on in the queue it has let go of, which faulted in the re-check's
   run, the stop never finishing (in every version, and not changed here). Either way, a connection in use is closed
   once its caller hands it back, none is handed out after the close, and a thread that asks for one is answered that
-  there is none. SQL Server Compact, the database of a default Windows installation, runs in the server's process and
+  there is none. A start or a reinitialise that such a stop gave up waiting for may still be making its connections:
+  one made after the close is now closed rather than put in the pool, which took it without the pool's lock while
+  the close read and cleared the pool, and the start is answered that the database was closed, which it writes to the
+  application log rather than reporting a database that could not be reached, or whose version could not be
+  detected. The checks made on a connection once they are all made - the server's version, and on MySQL the internal
+  database's upkeep - run with that connection checked out, where they ran on the first connection in the pool, read
+  without the lock: the close could clear the pool or close the connection under them, and another caller could be
+  handed it meanwhile. A pool of no connections at all (`[Database] NumberOfConnections` below 1) is refused as one
+  that could not connect, where the first connection was read from the empty pool. SQL Server Compact, the database of a default Windows installation, runs in the server's process and
   writes what was committed to its file every ten seconds, or when any of its connections to the file closes, and
   what a process that ends before either had not yet written is lost: its one connection, when still in use, is
   waited for twelve seconds before the process ends. On Linux, with another session's lock holding the external
@@ -515,7 +523,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   by the re-check of that, and by the re-check after it that the database was then left open, nothing closed, whenever
   a work queue's stop had once given up on a thread in the process's life, the thread ended or not: on SQL Server
   Compact the process's end then lost what had been committed since the last write - nine acknowledged saves of the
-  last second in the re-check's run, whose process ended without a close another way.
+  last second in the re-check's run, whose process ended without a close another way. A connection made after the
+  close, and that SQL Server Compact writes what was committed when any of its connections closes, were found by the
+  re-check after that.
 - **Fixed: a service stop, a Windows shutdown or a SIGTERM during a reinitialise closed the database under the
   reinitialise, and the process could end in a fault.** A reinitialise - COM's `Application.Reinitialize`, the REST
   API's `POST /api/v1/server/reinitialize`, a backup restore's, an ACME deployment's - runs on a thread of its own,
@@ -4623,7 +4633,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   connection in use, as before, a thread counted after it has ended, a connection handed back put back in the pool, or
   one handed out after the close, the test fails; and `DatabaseConnectionManagerTester` (`TestInternals` and
   `business-object-tests`, over stand-in connections) fails too, and when SQL Server Compact's flush interval is not
-  waited out for a connection in use. COM's `Stop` and `Start`, made while a reinitialise holds the lock, must be
+  waited out for a connection in use, when a connection made after the close is put in the pool or left open, or
+  when a close during the checks on a connection made closes it under them. COM's `Stop` and `Start`, made while a reinitialise holds the lock, must be
   refused after their five seconds and not before them; waiting without a limit, they had not returned after twenty.
   So must a reinitialise asked with no limit of its own on a thread running an event script, while a stop holds the
   lock; with a script's call waited for as any other, it had not returned after twenty. A

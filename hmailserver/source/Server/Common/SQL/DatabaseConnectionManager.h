@@ -58,6 +58,12 @@ namespace HM
       // roll back.
       static int SecondsToWaitForConnectionsInUse(DatabaseSettings::SQLDBType type);
 
+      // CloseWhenIdle has begun: no connection is handed out or pooled from
+      // now on, and a start or a reinitialise still making them is answered
+      // that the database was closed (Connect_), not that it could not be
+      // reached (Application::OpenDatabase).
+      bool GetIsClosingBeforeExit();
+
       // Four overloads rather than two with a defaulted reference. The default
       // used to be String(_T("")) - a temporary bound to a non-const reference,
       // which MSVC accepts as an extension and every conforming compiler
@@ -97,6 +103,24 @@ namespace HM
       friend class DatabaseConnectionManagerTester;
 
       DALConnection::ConnectionResult Connect_(String &sErrorMessage);
+
+      // A connection Connect_ has made, put in the pool under mutex_ - or,
+      // once CloseWhenIdle has begun, closed instead, and false answered. A
+      // start or a reinitialise that the stop before the process ends gave up
+      // waiting for may still be making them (Application::ShutDown). Until
+      // 11 October 2026 they went into the pool without the lock, while that
+      // close read the pool under it and cleared it, and one made after the
+      // close stayed open.
+      bool Pool_(const std::shared_ptr<DALConnection> &pConnection);
+
+      // Connect_'s checks on one of the connections it has made - the
+      // server's version, and what the backend does once connected - with
+      // that connection checked out as a statement's is: no other caller is
+      // handed it meanwhile, and CloseWhenIdle waits for it rather than
+      // closing it under them. FatalError, the connection closed, once
+      // CloseWhenIdle has begun. Until 11 October 2026 they ran on the first
+      // connection in the pool, read from it without the lock.
+      DALConnection::ConnectionResult CheckConnectionMade_(String &sErrorMessage);
 
       std::shared_ptr<DALConnection> GetConnection_();
       void ReleaseConnection_(std::shared_ptr<DALConnection> pConn);
@@ -155,5 +179,7 @@ namespace HM
       void TestTheConnectionInUseIsClosedOnlyWhenHandedBack_();
       void TestTheWaitEndsWithTheLastConnectionBack_();
       void TestTheWaitForAConnectionInUse_();
+      void TestAConnectionMadeAfterTheCloseIsClosed_();
+      void TestTheChecksOnAConnectionMadeHoldIt_();
    };
 }

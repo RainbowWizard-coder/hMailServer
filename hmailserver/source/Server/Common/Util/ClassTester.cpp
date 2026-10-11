@@ -907,7 +907,9 @@ namespace HM
       // manager of the test's own with stand-in connections: an idle one is
       // closed at once and one in use only when it is handed back, nothing is
       // handed out meanwhile, and SQL Server Compact's flush interval is waited
-      // out for one still in use. The server's own manager is not touched.
+      // out for one still in use; a connection made after the close is closed,
+      // not pooled, and one the start's checks run on is held for them. The
+      // server's own manager is not touched.
       OutputDebugString(_T("hMailServer: Testing the database's close before the process ends\n"));
       DatabaseConnectionManagerTester databaseConnectionManagerTester;
       databaseConnectionManagerTester.Test();

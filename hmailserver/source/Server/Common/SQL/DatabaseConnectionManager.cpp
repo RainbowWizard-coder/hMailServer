@@ -58,6 +58,13 @@
 
 namespace HM
 {
+   namespace
+   {
+      // Connect_'s answer when the close before the process ends began while
+      // it made its connections (Pool_, CheckConnectionMade_).
+      const char *const ClosedBeforeExitMessage = "The database was closed for the end of the process while its connections were being made.";
+   }
+
    DatabaseConnectionManager::DatabaseConnectionManager(void)
    {
    }
@@ -149,17 +156,79 @@ namespace HM
          if (result != DALConnection::Connected)
             return result;
 
-         available_connections_.insert(pConnection);
+         if (!Pool_(pConnection))
+         {
+            sErrorMessage = ClosedBeforeExitMessage;
+            return DALConnection::FatalError;
+         }
       }
 
-      // Fetch first connection
-      auto iter = available_connections_.begin();
-      if (!(*iter)->CheckServerVersion(sErrorMessage))
+      return CheckConnectionMade_(sErrorMessage);
+   }
+
+   bool
+   DatabaseConnectionManager::Pool_(const std::shared_ptr<DALConnection> &pConnection)
+   {
+      {
+         boost::lock_guard<boost::recursive_mutex> guard(mutex_);
+
+         if (!closing_)
+         {
+            available_connections_.insert(pConnection);
+
+            // A caller waiting in GetConnection_ takes it now.
+            connection_released_.notify_one();
+            return true;
+         }
+      }
+
+      // Made after the close before the process ends, which nothing will
+      // close again: closed now, as one handed back after it is.
+      CloseBeforeExit_(pConnection);
+      return false;
+   }
+
+   DALConnection::ConnectionResult
+   DatabaseConnectionManager::CheckConnectionMade_(String &sErrorMessage)
+   {
+      // Checked out as a statement's connection is - the first in the pool,
+      // as it was, or another one free when a caller has taken that one.
+      std::shared_ptr<DALConnection> pConnection = GetConnection_();
+      if (!pConnection)
+      {
+         if (GetIsClosingBeforeExit())
+            sErrorMessage = ClosedBeforeExitMessage;
+         else
+            sErrorMessage = "No database connection is available.";
+
+         return DALConnection::FatalError;
+      }
+
+      const bool versionAccepted = pConnection->CheckServerVersion(sErrorMessage);
+      if (versionAccepted)
+         pConnection->OnConnected();
+
+      // Back in the pool - or closed, when the close before the process ends
+      // began meanwhile.
+      ReleaseConnection_(pConnection);
+
+      if (!versionAccepted)
          return DALConnection::FatalError;
 
-      (*iter)->OnConnected();
+      if (GetIsClosingBeforeExit())
+      {
+         sErrorMessage = ClosedBeforeExitMessage;
+         return DALConnection::FatalError;
+      }
 
       return DALConnection::Connected;
+   }
+
+   bool
+   DatabaseConnectionManager::GetIsClosingBeforeExit()
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(mutex_);
+      return closing_;
    }
 
    void
@@ -892,21 +961,36 @@ namespace HM
          bool Disconnect() override { closed_.store(true); return true; }
          ExecutionResult TryExecute(const SQLCommand &/*command*/, String &/*sErrorMessage*/, __int64 * /*iInsertID*/, int /*iIgnoreErrors*/) override { return DALSuccess; }
          bool IsConnected() const override { return !closed_.load(); }
-         void OnConnected() override {}
+         void OnConnected() override { connected_open_.store(!closed_.load()); }
          bool BeginTransaction(String &/*sErrorMessage*/) override { return true; }
          bool CommitTransaction(String &/*sErrorMessage*/) override { return true; }
          bool RollbackTransaction(String &/*sErrorMessage*/) override { return true; }
          void SetTimeout(int /*seconds*/) override {}
          bool GetSupportsCommandParameters() const override { return true; }
-         bool CheckServerVersion(String &/*errorMessage*/) override { return true; }
+         bool CheckServerVersion(String &/*errorMessage*/) override
+         {
+            if (during_check_)
+               during_check_();
+
+            return true;
+         }
          void EscapeString(String &/*sInput*/) override {}
          std::shared_ptr<DALRecordset> CreateRecordset() override { return std::shared_ptr<DALRecordset>(); }
          std::shared_ptr<IMacroExpander> CreateMacroExpander() override { return std::shared_ptr<IMacroExpander>(); }
 
          bool IsClosed() const { return closed_.load(); }
 
+         // Run while the server's version is asked, as the close before the
+         // process ends may run on another thread meanwhile.
+         void RunDuringTheCheck(const std::function<void()> &duringCheck) { during_check_ = duringCheck; }
+
+         // OnConnected ran, on a connection that was still open.
+         bool WasConnectedOpen() const { return connected_open_.load(); }
+
       private:
          std::atomic<bool> closed_{false};
+         std::atomic<bool> connected_open_{false};
+         std::function<void()> during_check_;
       };
 
       void ExpectOfTheClose(bool condition, const char *failure)
@@ -922,6 +1006,8 @@ namespace HM
       TestTheConnectionInUseIsClosedOnlyWhenHandedBack_();
       TestTheWaitEndsWithTheLastConnectionBack_();
       TestTheWaitForAConnectionInUse_();
+      TestAConnectionMadeAfterTheCloseIsClosed_();
+      TestTheChecksOnAConnectionMadeHoldIt_();
    }
 
    std::shared_ptr<DatabaseConnectionManager>
@@ -1069,5 +1155,79 @@ namespace HM
 
       manager.CommitTransaction(inUse, error);
       ExpectOfTheClose(connection->IsClosed(), "the connection in use was not closed when its caller handed it back after the close's wait.");
+   }
+
+   void
+   DatabaseConnectionManagerTester::TestAConnectionMadeAfterTheCloseIsClosed_()
+   {
+      // A start or a reinitialise that the stop before the process ends gave
+      // up waiting for, still making its connections.
+      DatabaseConnectionManager manager;
+      std::shared_ptr<StandInConnection> before = std::make_shared<StandInConnection>();
+      ExpectOfTheClose(manager.Pool_(before), "a connection made before the close was not put in the pool.");
+      ExpectOfTheClose(manager.GetAvailableConnectionCount() == 1 && !before->IsClosed(), "a connection made before the close was not left open in the pool.");
+      ExpectOfTheClose(!manager.GetIsClosingBeforeExit(), "the manager answered that it was closing before the close had begun.");
+
+      manager.CloseWhenIdle(0, std::function<void()>());
+      ExpectOfTheClose(manager.GetIsClosingBeforeExit(), "the manager did not answer that it was closing once the close had begun.");
+
+      std::shared_ptr<StandInConnection> after = std::make_shared<StandInConnection>();
+      const bool pooled = manager.Pool_(after);
+
+      ExpectOfTheClose(!pooled, "a connection made after the close was put in the pool - until 11 October 2026 it went in, without the pool's lock, and stayed open.");
+      ExpectOfTheClose(after->IsClosed(), "a connection made after the close was left open.");
+      ExpectOfTheClose(manager.GetAvailableConnectionCount() == 0 && manager.GetBusyConnectionCount() == 0, "a connection made after the close is still in the pool.");
+
+      // The refusal marks this thread's statement as one the database did
+      // not take, which is put back as it was.
+      const bool markedBefore = DatabaseUnavailableMarker::IsMarked();
+      String error;
+      const DALConnection::ConnectionResult result = manager.CheckConnectionMade_(error);
+      if (!markedBefore)
+         DatabaseUnavailableMarker::Clear();
+
+      ExpectOfTheClose(result == DALConnection::FatalError && !error.IsEmpty(),
+         "the checks on the connections made answered that they had connected, with nothing said, after the close.");
+   }
+
+   void
+   DatabaseConnectionManagerTester::TestTheChecksOnAConnectionMadeHoldIt_()
+   {
+      // As the start makes them, with nothing in the way: the connection goes
+      // back to the pool.
+      {
+         DatabaseConnectionManager manager;
+         std::shared_ptr<StandInConnection> connection = std::make_shared<StandInConnection>();
+         manager.Pool_(connection);
+
+         String error;
+         const DALConnection::ConnectionResult result = manager.CheckConnectionMade_(error);
+
+         ExpectOfTheClose(result == DALConnection::Connected, "the checks on a connection made did not answer that it had connected.");
+         ExpectOfTheClose(connection->WasConnectedOpen(), "the checks on a connection made did not run OnConnected on it.");
+         ExpectOfTheClose(manager.GetAvailableConnectionCount() == 1 && manager.GetBusyConnectionCount() == 0, "the connection the checks ran on did not go back to the pool.");
+      }
+
+      // The close before the process ends during the checks, as on another
+      // thread: it finds the connection in use, leaves it open for the rest
+      // of them, and it is closed once they end.
+      DatabaseConnectionManager manager;
+      std::shared_ptr<StandInConnection> connection = std::make_shared<StandInConnection>();
+      manager.Pool_(connection);
+
+      int leftInUse = -1;
+      connection->RunDuringTheCheck([&manager, &leftInUse]()
+      {
+         leftInUse = manager.CloseWhenIdle(0, std::function<void()>());
+      });
+
+      String error;
+      const DALConnection::ConnectionResult result = manager.CheckConnectionMade_(error);
+
+      ExpectOfTheClose(leftInUse == 1, "the close during the checks on a connection made did not find it in use - until 11 October 2026 they ran on it in the pool.");
+      ExpectOfTheClose(connection->WasConnectedOpen(), "the close during the checks on a connection made closed it under them.");
+      ExpectOfTheClose(connection->IsClosed(), "the connection the checks ran on was not closed when they ended after the close.");
+      ExpectOfTheClose(manager.GetAvailableConnectionCount() == 0 && manager.GetBusyConnectionCount() == 0, "the connection the checks ran on went back to the pool after the close.");
+      ExpectOfTheClose(result == DALConnection::FatalError && !error.IsEmpty(), "the checks answered that the connection made had connected, with nothing said, after the close had begun during them.");
    }
 }
