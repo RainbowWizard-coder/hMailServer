@@ -52,7 +52,7 @@
                  (Services/AutoBanList), among the permanent ranges the list holds
                  (review finding F231). -->
             <scaffold:Toolbar.Filters>
-                <CheckBox x:Name="BansOnlyBox" Content="{loc:L 'Show auto-_bans only'}" VerticalAlignment="Center"
+                <CheckBox x:Name="BansOnlyBox" Content="{loc:L '_Show auto-bans only'}" VerticalAlignment="Center"
                           Checked="BansOnly_Changed" Unchecked="BansOnly_Changed"
                           AutomationProperties.AutomationId="ipranges-bans-only" />
             </scaffold:Toolbar.Filters>

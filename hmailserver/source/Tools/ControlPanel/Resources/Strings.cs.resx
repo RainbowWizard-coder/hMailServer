@@ -2404,9 +2404,6 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>_Balík certifikátů CA (PEM), ke kterému musí klientské certifikáty vést řetězem</value>
   </data>
-  <data name="C_ertificate" xml:space="preserve">
-    <value>C_ertifikát</value>
-  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>_Změnit heslo</value>
   </data>
@@ -2499,6 +2496,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these are re-read within a couple of seconds of a change - saving here applies them without a service restart. Counters survive a restart via a state file in the data directory." xml:space="preserve">
     <value>Stropy toho, kolik smí jeden ověřený účet odeslat za klouzavé období – brzda proti tomu, aby se kompromitovaný účet používal k rozesílání spamu. Počítá se pro každý účet při odeslání přes SMTP: zvlášť zprávy a zvlášť příjemci obálky, a zpráva odmítnutá tímto limitem dostane dočasnou chybu, takže to skutečný klient později zkusí znovu. Na rozdíl od zbytku této stránky se tyto hodnoty znovu načítají do několika sekund po změně – uložení zde je uplatní bez restartu služby. Čítače přežijí restart díky stavovému souboru v datovém adresáři.</value>
+  </data>
+  <data name="Cert_ificate" xml:space="preserve">
+    <value>C_ertifikát</value>
   </data>
   <data name="Certificate" xml:space="preserve">
     <value>Certifikát</value>
@@ -3883,7 +3883,7 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
     <value>Odstranit _doménu</value>
   </data>
   <data name="Delete _expired messages…" xml:space="preserve">
-    <value>Odstranit _prošlé zprávy…</value>
+    <value>O_dstranit prošlé zprávy…</value>
   </data>
   <data name="Delete _list" xml:space="preserve">
     <value>Odstranit distribuční _seznam</value>
@@ -11914,9 +11914,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Shortest search string the index answers for (3 to 64)" xml:space="preserve">
     <value>Nejkratší hledaný řetězec, na který index odpovídá (3 až 64)</value>
   </data>
-  <data name="Show auto-_bans only" xml:space="preserve">
-    <value>_Jen bany</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Zobrazit graf</value>
   </data>
@@ -16333,6 +16330,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Set up ACME" xml:space="preserve">
     <value>Nas_tavit ACME</value>
+  </data>
+  <data name="_Show auto-bans only" xml:space="preserve">
+    <value>_Jen bany</value>
   </data>
   <data name="_Show the bans" xml:space="preserve">
     <value>Z_obrazit bany</value>

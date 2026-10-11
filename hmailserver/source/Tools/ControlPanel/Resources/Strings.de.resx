@@ -2371,9 +2371,6 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>C_A-Zertifikatbündel (PEM), auf das Client-Zertifikate zurückführen müssen</value>
   </data>
-  <data name="C_ertificate" xml:space="preserve">
-    <value>_Zertifikat</value>
-  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>_Passwort ändern</value>
   </data>
@@ -2466,6 +2463,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   </data>
   <data name="Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these are re-read within a couple of seconds of a change - saving here applies them without a service restart. Counters survive a restart via a state file in the data directory." xml:space="preserve">
     <value>Obergrenzen dafür, was ein angemeldetes Konto über einen gleitenden Zeitraum einliefern darf - die Bremse dagegen, dass ein kompromittiertes Konto zum Spammen benutzt wird. Gezählt pro Konto bei der SMTP-Einlieferung: Nachrichten und Umschlagempfänger getrennt, und eine von der Grenze abgelehnte Nachricht bekommt einen vorübergehenden Fehler, damit ein echter Client es später erneut versucht. Anders als der Rest dieser Seite werden diese innerhalb von ein paar Sekunden nach einer Änderung neu gelesen - das Speichern hier wendet sie ohne Neustart des Dienstes an. Die Zähler überleben einen Neustart über eine Zustandsdatei im Datenverzeichnis.</value>
+  </data>
+  <data name="Cert_ificate" xml:space="preserve">
+    <value>_Zertifikat</value>
   </data>
   <data name="Certificate" xml:space="preserve">
     <value>Zertifikat</value>
@@ -11757,9 +11757,6 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Shortest search string the index answers for (3 to 64)" xml:space="preserve">
     <value>Kürzeste Suchzeichenfolge, die der Index beantwortet (3 bis 64)</value>
   </data>
-  <data name="Show auto-_bans only" xml:space="preserve">
-    <value>Nur auto_matische Banns</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Diagramm anzeigen</value>
   </data>
@@ -16137,6 +16134,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="_Set up ACME" xml:space="preserve">
     <value>_ACME einrichten</value>
+  </data>
+  <data name="_Show auto-bans only" xml:space="preserve">
+    <value>Nur auto_matische Banns</value>
   </data>
   <data name="_Show the bans" xml:space="preserve">
     <value>_Banns anzeigen</value>

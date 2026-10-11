@@ -2404,9 +2404,6 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>Pakiet _certyfikatów CA (PEM), do którego muszą prowadzić certyfikaty klienta</value>
   </data>
-  <data name="C_ertificate" xml:space="preserve">
-    <value>C_ertyfikat</value>
-  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>_Zmień hasło</value>
   </data>
@@ -2499,6 +2496,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these are re-read within a couple of seconds of a change - saving here applies them without a service restart. Counters survive a restart via a state file in the data directory." xml:space="preserve">
     <value>Pułapy tego, ile jedno uwierzytelnione konto może wysłać w ruchomym okresie - hamulec na przejęte konto wykorzystywane do rozsyłania spamu. Liczone osobno dla każdego konta przy wysyłce SMTP: wiadomości i odbiorcy koperty oddzielnie, a wiadomość odrzucona przez limit otrzymuje błąd tymczasowy, więc prawdziwy klient ponowi próbę później. W odróżnieniu od reszty tej strony wartości te są odczytywane ponownie w ciągu kilku sekund od zmiany - zapisanie ich tutaj stosuje je bez ponownego uruchamiania usługi. Liczniki przetrwają ponowne uruchomienie dzięki plikowi stanu w katalogu danych.</value>
+  </data>
+  <data name="Cert_ificate" xml:space="preserve">
+    <value>C_ertyfikat</value>
   </data>
   <data name="Certificate" xml:space="preserve">
     <value>Certyfikat</value>
@@ -11914,9 +11914,6 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Shortest search string the index answers for (3 to 64)" xml:space="preserve">
     <value>Najkrótszy ciąg wyszukiwania, na który odpowiada indeks (od 3 do 64)</value>
   </data>
-  <data name="Show auto-_bans only" xml:space="preserve">
-    <value>Tylko automatyczne _blokady</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Pokaż wykres</value>
   </data>
@@ -16333,6 +16330,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="_Set up ACME" xml:space="preserve">
     <value>_Skonfiguruj ACME</value>
+  </data>
+  <data name="_Show auto-bans only" xml:space="preserve">
+    <value>Tylko automatyczne _blokady</value>
   </data>
   <data name="_Show the bans" xml:space="preserve">
     <value>P_okaż blokady</value>

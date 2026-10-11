@@ -2371,9 +2371,6 @@ Los detalles completos se escribieron en:
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>Paquete de certificados de C_A (PEM) al que deben encadenarse los certificados de cliente</value>
   </data>
-  <data name="C_ertificate" xml:space="preserve">
-    <value>_Certificado</value>
-  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>Ca_mbiar la contraseña</value>
   </data>
@@ -2466,6 +2463,9 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these are re-read within a couple of seconds of a change - saving here applies them without a service restart. Counters survive a restart via a state file in the data directory." xml:space="preserve">
     <value>Topes a lo que una cuenta autenticada puede enviar en un periodo móvil - el freno a que una cuenta comprometida se use para enviar spam. Contados por cuenta en el envío SMTP: mensajes y destinatarios de sobre por separado, y un mensaje rechazado por el límite recibe un error temporal para que un cliente real lo reintente más tarde. A diferencia del resto de esta página, se releen a los pocos segundos de un cambio - guardar aquí los aplica sin reiniciar el servicio. Los contadores sobreviven a un reinicio mediante un archivo de estado en el directorio de datos.</value>
+  </data>
+  <data name="Cert_ificate" xml:space="preserve">
+    <value>_Certificado</value>
   </data>
   <data name="Certificate" xml:space="preserve">
     <value>Certificado</value>
@@ -4340,7 +4340,7 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
     <value>No enviar mensajes mayores de (KB; 0 = sin límite)</value>
   </data>
   <data name="Do_main" xml:space="preserve">
-    <value>D_ominio</value>
+    <value>Do_minio</value>
   </data>
   <data name="Does not match the certificate" xml:space="preserve">
     <value>No coincide con el certificado</value>
@@ -6649,7 +6649,7 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
     <value>Lo_cal a externo</value>
   </data>
   <data name="Lo_wer IP" xml:space="preserve">
-    <value>IP ini_cial</value>
+    <value>IP in_ferior</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Cargando…</value>
@@ -10357,7 +10357,7 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
     <value>Restaurar la configuración, los dominios y los mensajes desde un archivo de copia de seguridad.</value>
   </data>
   <data name="Restore de_faults" xml:space="preserve">
-    <value>Restaurar los valores por de_fecto</value>
+    <value>Restaurar los _valores por defecto</value>
   </data>
   <data name="Restore dom_ains" xml:space="preserve">
     <value>Restaurar domi_nios</value>
@@ -11756,9 +11756,6 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Shortest search string the index answers for (3 to 64)" xml:space="preserve">
     <value>Cadena de búsqueda más corta que responde el índice (3 a 64)</value>
-  </data>
-  <data name="Show auto-_bans only" xml:space="preserve">
-    <value>Solo bloqueos automáti_cos</value>
   </data>
   <data name="Show chart" xml:space="preserve">
     <value>Mostrar el gráfico</value>
@@ -16137,6 +16134,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="_Set up ACME" xml:space="preserve">
     <value>Confi_gurar ACME</value>
+  </data>
+  <data name="_Show auto-bans only" xml:space="preserve">
+    <value>Solo blo_queos automáticos</value>
   </data>
   <data name="_Show the bans" xml:space="preserve">
     <value>_Ver los bloqueos</value>

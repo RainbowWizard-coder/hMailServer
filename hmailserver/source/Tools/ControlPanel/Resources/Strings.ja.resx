@@ -2381,9 +2381,6 @@
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>クライアント証明書のチェーン先となる CA 証明書バンドル (PEM)(_A)</value>
   </data>
-  <data name="C_ertificate" xml:space="preserve">
-    <value>証明書(_E)</value>
-  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>パスワードを変更(_H)</value>
   </data>
@@ -2476,6 +2473,9 @@
   </data>
   <data name="Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these are re-read within a couple of seconds of a change - saving here applies them without a service restart. Counters survive a restart via a state file in the data directory." xml:space="preserve">
     <value>認証済みの 1 アカウントが一定期間内に送信できる量の上限で、侵害されたアカウントがスパム送信に使われることへのブレーキです。SMTP サブミッション時にアカウントごとに、メッセージ数とエンベロープ受信者数を別々に数えます。制限で拒否されたメッセージには一時エラーが返されるため、正規のクライアントは後で再試行します。このページのほかの項目とは異なり、これらは変更から数秒以内に再読み込みされます。ここで保存すると、サービスを再起動せずに適用されます。カウンターはデータ ディレクトリ内の状態ファイルによって再起動をまたいで保持されます。</value>
+  </data>
+  <data name="Cert_ificate" xml:space="preserve">
+    <value>証明書(_I)</value>
   </data>
   <data name="Certificate" xml:space="preserve">
     <value>証明書</value>
@@ -11767,9 +11767,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Shortest search string the index answers for (3 to 64)" xml:space="preserve">
     <value>インデックスが応答する最短の検索文字列 (3 から 64)</value>
   </data>
-  <data name="Show auto-_bans only" xml:space="preserve">
-    <value>自動ブロックのみ表示(_B)</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>グラフを表示</value>
   </data>
@@ -16147,6 +16144,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Set up ACME" xml:space="preserve">
     <value>ACME を設定(_S)</value>
+  </data>
+  <data name="_Show auto-bans only" xml:space="preserve">
+    <value>自動 BAN のみ表示(_S)</value>
   </data>
   <data name="_Show the bans" xml:space="preserve">
     <value>ブロックを表示(_S)</value>

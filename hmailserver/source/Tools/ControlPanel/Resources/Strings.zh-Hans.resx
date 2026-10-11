@@ -2371,9 +2371,6 @@
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>客户端证书必须链接到的 CA 证书包(_A)（PEM）</value>
   </data>
-  <data name="C_ertificate" xml:space="preserve">
-    <value>证书(_E)</value>
-  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>更改密码(_H)</value>
   </data>
@@ -2466,6 +2463,9 @@
   </data>
   <data name="Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these are re-read within a couple of seconds of a change - saving here applies them without a service restart. Counters survive a restart via a state file in the data directory." xml:space="preserve">
     <value>一个已验证账户在一段滚动时间内可提交量的上限 - 是防止被盗账户被用来发垃圾邮件的刹车。在 SMTP 提交时按账户计数：邮件数和信封收件人数分别计数，被该限制拒绝的邮件会收到临时错误，因此真正的客户端稍后会重试。与本页的其他内容不同，这些设置会在更改后的几秒钟内重新读取 - 在此处保存后无需重启服务即可生效。计数器通过数据目录中的一个状态文件在重启后得以保留。</value>
+  </data>
+  <data name="Cert_ificate" xml:space="preserve">
+    <value>证书(_I)</value>
   </data>
   <data name="Certificate" xml:space="preserve">
     <value>证书</value>
@@ -11757,9 +11757,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Shortest search string the index answers for (3 to 64)" xml:space="preserve">
     <value>索引可应答的最短搜索字符串（3 到 64）</value>
   </data>
-  <data name="Show auto-_bans only" xml:space="preserve">
-    <value>仅显示自动封禁(_B)</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>显示图表</value>
   </data>
@@ -16137,6 +16134,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Set up ACME" xml:space="preserve">
     <value>设置 ACME(_S)</value>
+  </data>
+  <data name="_Show auto-bans only" xml:space="preserve">
+    <value>仅显示自动封禁(_S)</value>
   </data>
   <data name="_Show the bans" xml:space="preserve">
     <value>显示封禁(_S)</value>

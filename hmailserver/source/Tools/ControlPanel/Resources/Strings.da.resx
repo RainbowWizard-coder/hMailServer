@@ -2371,9 +2371,6 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>C_A-certifikatbundt (PEM), som klientcertifikater skal kæde til</value>
   </data>
-  <data name="C_ertificate" xml:space="preserve">
-    <value>_Certifikat</value>
-  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>_Skift adgangskoden</value>
   </data>
@@ -2466,6 +2463,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   </data>
   <data name="Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these are re-read within a couple of seconds of a change - saving here applies them without a service restart. Counters survive a restart via a state file in the data directory." xml:space="preserve">
     <value>Lofter for, hvad én godkendt konto må indlevere over en glidende periode - bremsen mod, at en kompromitteret konto bruges til at spamme. Talt pr. konto ved SMTP-indlevering: meddelelser og konvolutmodtagere hver for sig, og en meddelelse afvist af grænsen får en midlertidig fejl, så en rigtig klient prøver igen senere. I modsætning til resten af denne side genlæses disse inden for et par sekunder efter en ændring - at gemme her anvender dem uden genstart af tjenesten. Tællere overlever en genstart via en tilstandsfil i datamappen.</value>
+  </data>
+  <data name="Cert_ificate" xml:space="preserve">
+    <value>_Certifikat</value>
   </data>
   <data name="Certificate" xml:space="preserve">
     <value>Certifikat</value>
@@ -11757,9 +11757,6 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Shortest search string the index answers for (3 to 64)" xml:space="preserve">
     <value>Korteste søgestreng, indekset svarer på (3 til 64)</value>
   </data>
-  <data name="Show auto-_bans only" xml:space="preserve">
-    <value>Vis kun automatiske _blokeringer</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Vis diagram</value>
   </data>
@@ -16137,6 +16134,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="_Set up ACME" xml:space="preserve">
     <value>_Konfigurer ACME</value>
+  </data>
+  <data name="_Show auto-bans only" xml:space="preserve">
+    <value>Vis kun automatiske _blokeringer</value>
   </data>
   <data name="_Show the bans" xml:space="preserve">
     <value>Vis _blokeringerne</value>

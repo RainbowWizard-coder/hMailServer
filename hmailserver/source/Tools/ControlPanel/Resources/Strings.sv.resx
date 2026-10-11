@@ -2371,9 +2371,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>_CA-certifikatpaket (PEM) som klientcertifikat måste kedja till</value>
   </data>
-  <data name="C_ertificate" xml:space="preserve">
-    <value>_Certifikat</value>
-  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>Byt _lösenordet</value>
   </data>
@@ -2466,6 +2463,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these are re-read within a couple of seconds of a change - saving here applies them without a service restart. Counters survive a restart via a state file in the data directory." xml:space="preserve">
     <value>Tak för vad ett autentiserat konto får lämna in under en rullande period - bromsen mot att ett komprometterat konto används för skräppost. Räknas per konto vid SMTP-inlämning: meddelanden och kuvertmottagare var för sig, och ett meddelande som avvisas av gränsen får ett tillfälligt fel så att en riktig klient försöker igen senare. Till skillnad från resten av den här sidan läses de om inom ett par sekunder efter en ändring - att spara här tillämpar dem utan omstart av tjänsten. Räknarna överlever en omstart via en tillståndsfil i datakatalogen.</value>
+  </data>
+  <data name="Cert_ificate" xml:space="preserve">
+    <value>_Certifikat</value>
   </data>
   <data name="Certificate" xml:space="preserve">
     <value>Certifikat</value>
@@ -11757,9 +11757,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Shortest search string the index answers for (3 to 64)" xml:space="preserve">
     <value>Kortaste söksträng indexet svarar för (3 till 64)</value>
   </data>
-  <data name="Show auto-_bans only" xml:space="preserve">
-    <value>Visa bara auto_matiska spärrar</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Visa diagram</value>
   </data>
@@ -16137,6 +16134,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="_Set up ACME" xml:space="preserve">
     <value>_Konfigurera ACME</value>
+  </data>
+  <data name="_Show auto-bans only" xml:space="preserve">
+    <value>Visa bara auto_matiska spärrar</value>
   </data>
   <data name="_Show the bans" xml:space="preserve">
     <value>_Visa spärrarna</value>

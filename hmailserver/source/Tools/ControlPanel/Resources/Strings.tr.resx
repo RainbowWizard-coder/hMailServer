@@ -2371,9 +2371,6 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>_İstemci sertifikalarının zincirleneceği CA sertifika paketi (PEM)</value>
   </data>
-  <data name="C_ertificate" xml:space="preserve">
-    <value>S_ertifika</value>
-  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>_Parolayı değiştir</value>
   </data>
@@ -2466,6 +2463,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these are re-read within a couple of seconds of a change - saving here applies them without a service restart. Counters survive a restart via a state file in the data directory." xml:space="preserve">
     <value>Kimliği doğrulanmış bir hesabın kayan bir dönemde gönderebileceklerine üst sınırlar - ele geçirilmiş bir hesabın spam için kullanılmasına karşı fren. SMTP gönderiminde hesap başına sayılır: iletiler ve zarf alıcıları ayrı ayrı; sınır tarafından reddedilen bir ileti geçici bir hata alır, böylece gerçek bir istemci daha sonra yeniden dener. Bu sayfanın geri kalanından farklı olarak bunlar bir değişiklikten sonra birkaç saniye içinde yeniden okunur - buradan kaydetmek, hizmeti yeniden başlatmadan uygular. Sayaçlar, veri dizinindeki bir durum dosyası aracılığıyla yeniden başlatmadan etkilenmez.</value>
+  </data>
+  <data name="Cert_ificate" xml:space="preserve">
+    <value>S_ertifika</value>
   </data>
   <data name="Certificate" xml:space="preserve">
     <value>Sertifika</value>
@@ -4260,7 +4260,7 @@ Yine de kaydedilsin mi?</value>
     <value>Dizin eşitleme</value>
   </data>
   <data name="Disc_laimer text" xml:space="preserve">
-    <value>_Sorumluluk reddi metni</value>
+    <value>Sorumlu_luk reddi metni</value>
   </data>
   <data name="Discard the index and rebuild it" xml:space="preserve">
     <value>İndeksi at ve yeniden oluştur</value>
@@ -11757,9 +11757,6 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Shortest search string the index answers for (3 to 64)" xml:space="preserve">
     <value>Dizinin yanıt verdiği en kısa arama dizesi (3 ile 64 arası)</value>
   </data>
-  <data name="Show auto-_bans only" xml:space="preserve">
-    <value>Yalnızca oto_matik yasaklar</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Grafiği göster</value>
   </data>
@@ -16137,6 +16134,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="_Set up ACME" xml:space="preserve">
     <value>ACME'yi aya_rla</value>
+  </data>
+  <data name="_Show auto-bans only" xml:space="preserve">
+    <value>Yalnızca otomatik ya_saklar</value>
   </data>
   <data name="_Show the bans" xml:space="preserve">
     <value>Yasakları _göster</value>

@@ -2371,9 +2371,6 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>Bundle di certificati C_A (PEM) a cui i certificati client devono ricondursi</value>
   </data>
-  <data name="C_ertificate" xml:space="preserve">
-    <value>_Certificato</value>
-  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>Ca_mbia la password</value>
   </data>
@@ -2466,6 +2463,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these are re-read within a couple of seconds of a change - saving here applies them without a service restart. Counters survive a restart via a state file in the data directory." xml:space="preserve">
     <value>Limiti su quanto un singolo account autenticato può inviare in un periodo scorrevole - il freno su un account compromesso usato per fare spam. Conteggiati per account all'invio SMTP: messaggi e destinatari della busta separatamente, e un messaggio rifiutato dal limite riceve un errore temporaneo, così un client vero riprova più tardi. A differenza del resto di questa pagina questi valori vengono riletti entro un paio di secondi da una modifica - salvare qui li applica senza un riavvio del servizio. I contatori sopravvivono a un riavvio grazie a un file di stato nella directory dei dati.</value>
+  </data>
+  <data name="Cert_ificate" xml:space="preserve">
+    <value>_Certificato</value>
   </data>
   <data name="Certificate" xml:space="preserve">
     <value>Certificato</value>
@@ -11757,9 +11757,6 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Shortest search string the index answers for (3 to 64)" xml:space="preserve">
     <value>Stringa di ricerca più corta a cui l'indice risponde (da 3 a 64)</value>
   </data>
-  <data name="Show auto-_bans only" xml:space="preserve">
-    <value>Solo _ban automatici</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Mostra il grafico</value>
   </data>
@@ -16137,6 +16134,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="_Set up ACME" xml:space="preserve">
     <value>Confi_gura ACME</value>
+  </data>
+  <data name="_Show auto-bans only" xml:space="preserve">
+    <value>Solo _ban automatici</value>
   </data>
   <data name="_Show the bans" xml:space="preserve">
     <value>_Mostra i ban</value>

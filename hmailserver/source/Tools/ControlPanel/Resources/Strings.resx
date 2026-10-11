@@ -2371,9 +2371,6 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>C_A certificate bundle (PEM) that client certificates must chain to</value>
   </data>
-  <data name="C_ertificate" xml:space="preserve">
-    <value>C_ertificate</value>
-  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>C_hange the password</value>
   </data>
@@ -2466,6 +2463,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these are re-read within a couple of seconds of a change - saving here applies them without a service restart. Counters survive a restart via a state file in the data directory." xml:space="preserve">
     <value>Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these are re-read within a couple of seconds of a change - saving here applies them without a service restart. Counters survive a restart via a state file in the data directory.</value>
+  </data>
+  <data name="Cert_ificate" xml:space="preserve">
+    <value>Cert_ificate</value>
   </data>
   <data name="Certificate" xml:space="preserve">
     <value>Certificate</value>
@@ -11757,9 +11757,6 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Shortest search string the index answers for (3 to 64)" xml:space="preserve">
     <value>Shortest search string the index answers for (3 to 64)</value>
   </data>
-  <data name="Show auto-_bans only" xml:space="preserve">
-    <value>Show auto-_bans only</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Show chart</value>
   </data>
@@ -16137,6 +16134,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="_Set up ACME" xml:space="preserve">
     <value>_Set up ACME</value>
+  </data>
+  <data name="_Show auto-bans only" xml:space="preserve">
+    <value>_Show auto-bans only</value>
   </data>
   <data name="_Show the bans" xml:space="preserve">
     <value>_Show the bans</value>

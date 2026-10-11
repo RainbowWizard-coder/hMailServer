@@ -2371,9 +2371,6 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>_CA-varmennepaketti (PEM), johon asiakasvarmenteiden on ketjuuduttava</value>
   </data>
-  <data name="C_ertificate" xml:space="preserve">
-    <value>Var_menne</value>
-  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>Vaihda _salasana</value>
   </data>
@@ -2466,6 +2463,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these are re-read within a couple of seconds of a change - saving here applies them without a service restart. Counters survive a restart via a state file in the data directory." xml:space="preserve">
     <value>Katot sille, mitä yksi todennettu tili saa lähettää liukuvan jakson aikana - jarru sitä vastaan, että murrettua tiliä käytetään roskapostitukseen. Lasketaan tiliä kohden SMTP-lähetyksessä: viestit ja kuoren vastaanottajat erikseen, ja rajan hylkäämä viesti saa tilapäisen virheen, jotta aito asiakas yrittää myöhemmin uudelleen. Toisin kuin muu tämä sivu, nämä luetaan uudelleen parin sekunnin kuluessa muutoksesta - tallentaminen täällä ottaa ne käyttöön ilman palvelun uudelleenkäynnistystä. Laskurit säilyvät uudelleenkäynnistyksen yli datakansion tilatiedoston kautta.</value>
+  </data>
+  <data name="Cert_ificate" xml:space="preserve">
+    <value>Var_menne</value>
   </data>
   <data name="Certificate" xml:space="preserve">
     <value>Varmenne</value>
@@ -3850,7 +3850,7 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
     <value>Poista _verkkotunnus</value>
   </data>
   <data name="Delete _expired messages…" xml:space="preserve">
-    <value>Poista _vanhentuneet viestit…</value>
+    <value>Poista va_nhentuneet viestit…</value>
   </data>
   <data name="Delete _list" xml:space="preserve">
     <value>Poista jakelu_lista</value>
@@ -11757,9 +11757,6 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Shortest search string the index answers for (3 to 64)" xml:space="preserve">
     <value>Lyhin hakumerkkijono, johon indeksi vastaa (3-64)</value>
   </data>
-  <data name="Show auto-_bans only" xml:space="preserve">
-    <value>Ra_jaa automaattisiin estoihin</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Näytä kaavio</value>
   </data>
@@ -16137,6 +16134,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="_Set up ACME" xml:space="preserve">
     <value>Määritä A_CME</value>
+  </data>
+  <data name="_Show auto-bans only" xml:space="preserve">
+    <value>Ra_jaa automaattisiin estoihin</value>
   </data>
   <data name="_Show the bans" xml:space="preserve">
     <value>Näytä _estot</value>

@@ -184,7 +184,7 @@
                 <!-- The certificate a TLS port presents, which the form could not set: a
                      port added with SSL/TLS or STARTTLS and no certificate did not start
                      (review finding F222). Enabled while the security is not None. -->
-                <scaffold:FieldRow x:Name="PortCertificateRow" Grid.Column="4" Label="{loc:L 'C_ertificate'}" Margin="0,0,8,0" LabelGroup="PortLine">
+                <scaffold:FieldRow x:Name="PortCertificateRow" Grid.Column="4" Label="{loc:L 'Cert_ificate'}" Margin="0,0,8,0" LabelGroup="PortLine">
                     <ComboBox x:Name="NewCertificate" IsEnabled="False" AutomationProperties.AutomationId="ports-new-certificate" />
                 </scaffold:FieldRow>
                 <Grid x:Name="AddPortLine" Grid.Column="5">

@@ -2371,9 +2371,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>C_A-certificaatbundel (PEM) waarnaar clientcertificaten moeten ketenen</value>
   </data>
-  <data name="C_ertificate" xml:space="preserve">
-    <value>_Certificaat</value>
-  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>Wachtwoord _wijzigen</value>
   </data>
@@ -2466,6 +2463,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these are re-read within a couple of seconds of a change - saving here applies them without a service restart. Counters survive a restart via a state file in the data directory." xml:space="preserve">
     <value>Plafonds voor wat één geauthenticeerd account over een voortschrijdende periode mag indienen - de rem op een gecompromitteerd account dat voor spam wordt gebruikt. Wordt per account geteld bij SMTP-indiening: berichten en envelopontvangers afzonderlijk, en een bericht dat door de limiet wordt geweigerd krijgt een tijdelijke fout, zodat een echte client het later opnieuw probeert. Anders dan de rest van deze pagina worden deze binnen een paar seconden na een wijziging opnieuw gelezen - hier opslaan past ze zonder een herstart van de service toe. Tellers overleven een herstart via een statusbestand in de datamap.</value>
+  </data>
+  <data name="Cert_ificate" xml:space="preserve">
+    <value>_Certificaat</value>
   </data>
   <data name="Certificate" xml:space="preserve">
     <value>Certificaat</value>
@@ -3850,7 +3850,7 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
     <value>_Domein verwijderen</value>
   </data>
   <data name="Delete _expired messages…" xml:space="preserve">
-    <value>_Verlopen berichten verwijderen…</value>
+    <value>V_erlopen berichten verwijderen…</value>
   </data>
   <data name="Delete _list" xml:space="preserve">
     <value>Distributielijst _verwijderen</value>
@@ -10402,7 +10402,7 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
     <value>S_tandaardpoorten herstellen</value>
   </data>
   <data name="Restore the default ran_ges" xml:space="preserve">
-    <value>Standaardberei_ken herstellen</value>
+    <value>Standaardb_ereiken herstellen</value>
   </data>
   <data name="Restore the mailbo_x" xml:space="preserve">
     <value>De mailbo_x herstellen</value>
@@ -11756,9 +11756,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Shortest search string the index answers for (3 to 64)" xml:space="preserve">
     <value>Kortste zoekterm die de index beantwoordt (3 tot 64)</value>
-  </data>
-  <data name="Show auto-_bans only" xml:space="preserve">
-    <value>Alleen a_utomatische verbanningen</value>
   </data>
   <data name="Show chart" xml:space="preserve">
     <value>Grafiek tonen</value>
@@ -16137,6 +16134,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Set up ACME" xml:space="preserve">
     <value>ACME _instellen</value>
+  </data>
+  <data name="_Show auto-bans only" xml:space="preserve">
+    <value>Alleen a_utomatische verbanningen</value>
   </data>
   <data name="_Show the bans" xml:space="preserve">
     <value>_Verbanningen weergeven</value>

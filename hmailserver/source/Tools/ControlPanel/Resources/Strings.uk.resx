@@ -2404,9 +2404,6 @@
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>Пакет _сертифікатів ЦС (PEM), до якого мають вибудовувати ланцюжок клієнтські сертифікати</value>
   </data>
-  <data name="C_ertificate" xml:space="preserve">
-    <value>_Сертифікат</value>
-  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>_Змінити пароль</value>
   </data>
@@ -2499,6 +2496,9 @@
   </data>
   <data name="Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these are re-read within a couple of seconds of a change - saving here applies them without a service restart. Counters survive a restart via a state file in the data directory." xml:space="preserve">
     <value>Межі того, скільки один автентифікований обліковий запис може подати за рухомий період, — гальмо на випадок, коли зламаний обліковий запис використовують для розсилання спаму. Підраховується для кожного облікового запису під час подання через SMTP: окремо повідомлення й окремо отримувачі конверта, а повідомлення, відхилене за обмеженням, отримує тимчасову помилку, тож справжній клієнт повторить спробу пізніше. На відміну від решти цієї сторінки, ці значення перечитуються протягом кількох секунд після зміни — збереження тут застосовує їх без перезапуску служби. Лічильники переживають перезапуск завдяки файлу стану в каталозі даних.</value>
+  </data>
+  <data name="Cert_ificate" xml:space="preserve">
+    <value>С_ертифікат</value>
   </data>
   <data name="Certificate" xml:space="preserve">
     <value>Сертифікат</value>
@@ -3883,7 +3883,7 @@
     <value>Видалити _домен</value>
   </data>
   <data name="Delete _expired messages…" xml:space="preserve">
-    <value>Видалити _прострочені повідомлення…</value>
+    <value>Видалити п_рострочені повідомлення…</value>
   </data>
   <data name="Delete _list" xml:space="preserve">
     <value>Видалити список _розсилки</value>
@@ -11914,9 +11914,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Shortest search string the index answers for (3 to 64)" xml:space="preserve">
     <value>Найкоротший рядок пошуку, на який відповідає індекс (від 3 до 64)</value>
   </data>
-  <data name="Show auto-_bans only" xml:space="preserve">
-    <value>Лише автобло_кування</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Показати діаграму</value>
   </data>
@@ -16333,6 +16330,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Set up ACME" xml:space="preserve">
     <value>На_лаштувати ACME</value>
+  </data>
+  <data name="_Show auto-bans only" xml:space="preserve">
+    <value>Лише автобло_кування</value>
   </data>
   <data name="_Show the bans" xml:space="preserve">
     <value>Показ_ати блокування</value>

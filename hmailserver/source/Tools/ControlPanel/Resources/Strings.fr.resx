@@ -2371,9 +2371,6 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>Bundle de certificats d'_AC (PEM) auquel les certificats client doivent se rattacher</value>
   </data>
-  <data name="C_ertificate" xml:space="preserve">
-    <value>Cert_ificat</value>
-  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>C_hanger le mot de passe</value>
   </data>
@@ -2466,6 +2463,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   </data>
   <data name="Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these are re-read within a couple of seconds of a change - saving here applies them without a service restart. Counters survive a restart via a state file in the data directory." xml:space="preserve">
     <value>Plafonds sur ce qu'un compte authentifié peut soumettre sur une période glissante - le frein contre un compte compromis utilisé pour spammer. Comptés par compte à la soumission SMTP : messages et destinataires d'enveloppe séparément, et un message refusé par la limite reçoit une erreur temporaire pour qu'un vrai client réessaie plus tard. Contrairement au reste de cette page, ils sont relus quelques secondes après un changement - enregistrer ici les applique sans redémarrage du service. Les compteurs survivent à un redémarrage via un fichier d'état dans le répertoire de données.</value>
+  </data>
+  <data name="Cert_ificate" xml:space="preserve">
+    <value>Cert_ificat</value>
   </data>
   <data name="Certificate" xml:space="preserve">
     <value>Certificat</value>
@@ -11757,9 +11757,6 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Shortest search string the index answers for (3 to 64)" xml:space="preserve">
     <value>Chaîne de recherche la plus courte à laquelle l'index répond (3 à 64)</value>
   </data>
-  <data name="Show auto-_bans only" xml:space="preserve">
-    <value>Bannissements automati_ques seuls</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Afficher le graphique</value>
   </data>
@@ -16137,6 +16134,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="_Set up ACME" xml:space="preserve">
     <value>Confi_gurer ACME</value>
+  </data>
+  <data name="_Show auto-bans only" xml:space="preserve">
+    <value>Bannissements automati_ques seuls</value>
   </data>
   <data name="_Show the bans" xml:space="preserve">
     <value>_Voir les bannissements</value>
