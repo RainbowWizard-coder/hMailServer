@@ -79,7 +79,8 @@
                           SelectionChanged="QueueGrid_SelectionChanged"
                           AutomationProperties.Name="{loc:L 'Delivery queue'}">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="64" MinWidth="56" />
+                        <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="64" MinWidth="56"
+                                            ElementStyle="{StaticResource GridNumberText}" HeaderStyle="{StaticResource GridNumberHeader}" />
                         <!-- The header names the server's clock where the cells are its
                              dates (QueueView.Reload); each cell's tool tip is the whole time. -->
                         <DataGridTextColumn x:Name="CreatedColumn" Header="{loc:L 'Created'}" Binding="{Binding Created}" Width="Auto" MinWidth="110"

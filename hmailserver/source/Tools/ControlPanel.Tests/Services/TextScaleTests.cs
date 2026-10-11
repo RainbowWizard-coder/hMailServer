@@ -363,7 +363,9 @@ namespace hMailServer.ControlPanel.Tests.Services
                string width = (string)column.Attribute("Width");
                bool pixels = width != null && double.TryParse(width, NumberStyles.Float, CultureInfo.InvariantCulture, out _);
                bool number = (string)column.Attribute("ElementStyle") == "{StaticResource GridNumberText}";
-               if (pixels && !number)
+               // A column with no header holds a row's 24-pixel icon (the queue's Trace message), no words.
+               bool icon = (string)column.Attribute("Header") == "";
+               if (pixels && !number && !icon)
                   found.Add(file + ": " + ((string)column.Attribute("Header") ?? (string)column.Attribute("Binding")) + " is " + width + " pixels wide");
             }
          }
@@ -393,6 +395,8 @@ namespace hMailServer.ControlPanel.Tests.Services
             "Views/QuarantineView.cs: ActionsWidth",
             "Views/QuarantineView.cs: Math.Ceiling(held)",
             "Views/RolesView.cs: floor",
+            // Auto-ban's Banned now: the row's Lift ban icon, no words.
+            "Views/ServerSettingsView.BannedNow.cs: 40",
          };
 
          var found = new List<string>();

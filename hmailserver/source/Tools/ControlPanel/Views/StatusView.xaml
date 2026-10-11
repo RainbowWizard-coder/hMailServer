@@ -168,7 +168,7 @@
                              with when it ends and Lift ban (review finding F231),
                              where the IP ranges page draws them among every range. -->
                         <ui:Button x:Name="AutobanLink" Content="{loc:L '_Show the bans'}" Click="OpenAutoBan_Click"
-                                   FontSize="{StaticResource AppFontSizeCaption}" Padding="8,2,8,2"
+                                   FontSize="{DynamicResource AppFontSizeCaption}" Padding="8,2,8,2"
                                    Margin="12,0,0,0" VerticalAlignment="Center"
                                    AutomationProperties.AutomationId="status-open-autoban"
                                    AutomationProperties.HelpText="{loc:L 'Show the bans in force under Banned now on the Auto-ban page, where each can be lifted'}"

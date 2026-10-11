@@ -630,10 +630,10 @@
             <Style x:Key="CompactPageLink" TargetType="{x:Type ui:Button}" BasedOn="{StaticResource {x:Type ui:Button}}">
                 <Style.Resources>
                     <DataTemplate DataType="{x:Type sys:String}">
-                        <AccessText Text="{Binding}" FontSize="{StaticResource AppFontSizeCaption}" />
+                        <AccessText Text="{Binding}" FontSize="{DynamicResource AppFontSizeCaption}" />
                     </DataTemplate>
                 </Style.Resources>
-                <Setter Property="FontSize" Value="{StaticResource AppFontSizeCaption}" />
+                <Setter Property="FontSize" Value="{DynamicResource AppFontSizeCaption}" />
                 <Setter Property="Padding" Value="8,4,8,4" />
                 <Setter Property="MinHeight" Value="28" />
                 <Setter Property="Cursor" Value="Hand" />

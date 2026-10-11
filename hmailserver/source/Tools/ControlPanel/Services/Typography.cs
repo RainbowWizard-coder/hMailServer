@@ -73,7 +73,8 @@ namespace hMailServer.ControlPanel.Services
       /// an LDAP filter, a log line, a script, a token, a path. It was 12 for the live
       /// log, the Label size for the diagnostics and 14 for the event script (review
       /// finding F304); 13 sets the monospaced face to the UI face's 14 by its x-height.
-      /// AppFontSizeMono in Tokens.xaml says the same.</summary>
-      public const double Mono = 13;
+      /// AppFontSizeMono in Tokens.xaml says the same, and both follow the Windows text
+      /// size as the rest of the ramp does (review finding F317).</summary>
+      public static double Mono => TextScaleFactor.Scaled(13);
    }
 }
