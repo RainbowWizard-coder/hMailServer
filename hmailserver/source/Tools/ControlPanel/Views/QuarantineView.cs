@@ -1246,6 +1246,7 @@ namespace hMailServer.ControlPanel.Views
 
             flyoutText_.Text = text;
             flyoutText_.FontFamily = headers ? new FontFamily(Typography.MonoFontFamily) : new FontFamily(Typography.UiFontFamily);
+            flyoutText_.FontSize = headers ? Typography.Mono : Typography.Body;
             flyoutText_.TextWrapping = headers ? TextWrapping.NoWrap : TextWrapping.Wrap;
             flyoutText_.ScrollToHome();
             AutomationProperties.SetName(flyoutText_, flyoutTitle_.Text);

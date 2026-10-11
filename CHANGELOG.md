@@ -3427,7 +3427,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   monospaced face now - the overview's list a run of its own that breaks only after a colon, the header on a line of
   its own, the store's path cut in its middle with the whole of it in the tool tip - and every box and block of
   monospaced text is one size, the new `AppFontSizeMono` (13), where the live log was 12, the diagnostics 12, the DNS
-  record and DKIM boxes 12 and the event script 14. `MonospacedDataTests` holds the faces, the size and the runs.
+  record and DKIM boxes 12, the help pane's code blocks 12, and the event script, the TOTP setup key, the generated
+  password, the quarantine's headers and a setting's name 14; the one-time code boxes stay 28 pixels, for six digits
+  typed off a phone. `MonospacedDataTests` holds the faces, the size at every site of the face in the Control Panel's
+  sources, and the runs.
 
 - **Changed: REST API keys is under Sign-in & access.** It was the last row of Monitoring & troubleshooting, a group
   whose purpose - "Is mail flowing, and if it is not, where has it stopped?" - says nothing of credentials; a key is a

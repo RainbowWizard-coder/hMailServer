@@ -3,7 +3,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using hMailServer.ControlPanel.Services;
 using Xunit;
@@ -111,42 +113,179 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// Every box or block of monospaced text is the one size: none sets
-      /// MonoFontFamily beside another of the ramp's sizes. The one-time code boxes,
-      /// set large for typing six digits, are the exception.
+      /// Every box or block of monospaced text is the one size, read off every source
+      /// file of the Control Panel: a site that sets the face sets Typography.Mono
+      /// (AppFontSizeMono in XAML) beside it, a run inside a sentence sets no size and
+      /// takes the sentence's, and the three one-time code boxes, set large for six
+      /// digits typed off a phone, are the only exception. A site that sets no size
+      /// fails, where the test this replaces read seven named files and passed over
+      /// one: the TOTP setup key in its three places, the generated password, the
+      /// quarantine's headers and a setting's name were 14 pixels beside the 13 of
+      /// the API key's token, and the help pane's code blocks were 12 (review finding
+      /// F304).
       /// </summary>
-      [Theory]
-      [InlineData("Views", "ScriptsView.cs")]
-      [InlineData("Views", "AccountDialog.cs")]
-      [InlineData("Views", "AppPasswordsPanel.cs")]
-      [InlineData("Views", "UtilityViews.cs")]
-      [InlineData("Views", "DnsRecordsView.cs")]
-      [InlineData("Views", "DomainDialog.cs")]
-      [InlineData("Views", "ApiKeysView.cs")]
-      public void MonospacedTextIsTheMonoSize(string folder, string file)
+      [Fact]
+      public void EveryMonospacedBoxAndBlockIsTheMonoSize()
       {
-         string source = Read(folder, file);
-         var initialiser = new Regex(@"\{[^{}]*Typography\.MonoFontFamily[^{}]*\}", RegexOptions.Singleline);
-         int seen = 0;
-         foreach (Match block in initialiser.Matches(source))
+         var codeBoxes = new HashSet<string>(StringComparer.Ordinal)
          {
-            Match size = Regex.Match(block.Value, @"FontSize = (Typography\.\w+)");
-            if (!size.Success)
-               continue;
-            seen++;
-            Assert.True(size.Groups[1].Value == "Typography.Mono", file + " sets monospaced text at " + size.Groups[1].Value + ": " + block.Value.Trim());
+            "TotpPromptDialog.cs code_", "TotpSetupDialog.cs code_", "AdministratorTwoFactorDialog.cs code_",
+         };
+         var codeBoxesSeen = new HashSet<string>(StringComparer.Ordinal);
+         var problems = new List<string>();
+         int sites = 0, runs = 0;
+         string controlPanel = ContrastTokensTests.FindControlPanelDirectory();
+         Assert.True(controlPanel != null, "The Control Panel's sources were not found above the test binaries.");
+
+         IEnumerable<string> code = new[] { "Views", "Services" }
+            .SelectMany(folder => Directory.GetFiles(Path.Join(controlPanel, folder), "*.cs", SearchOption.AllDirectories))
+            .Where(file => !file.EndsWith(".g.cs", StringComparison.OrdinalIgnoreCase));
+         foreach (string file in code)
+         {
+            string name = Path.GetFileName(file);
+            string source = File.ReadAllText(file);
+            if (name != "Typography.cs")
+               Assert.False(Regex.IsMatch(source, @"""[^""\n]*(?:Cascadia|Consolas)"), name + " names a monospaced face of its own; use Typography.MonoFontFamily.");
+
+            // A face kept in a field: "static readonly FontFamily Mono = new(Typography.MonoFontFamily);".
+            string face = @"(?:new\s*(?:[\w.]*FontFamily)?\(\s*Typography\.MonoFontFamily\s*\)"
+               + string.Concat(Regex.Matches(source, @"\bFontFamily\s+(\w+)\s*=\s*new\s*(?:[\w.]*FontFamily)?\(\s*Typography\.MonoFontFamily\s*\)")
+                  .Select(alias => @"|\b" + alias.Groups[1].Value + @"\b"))
+               + ")";
+
+            // In an object initialiser: "{ ..., FontFamily = <the face>, ... }".
+            foreach (Match member in Regex.Matches(source, @"(?<![\w.])FontFamily\s*=\s*" + face))
+            {
+               (string type, string variable, string body) = Initialiser(source, member.Index);
+               string where = name + " " + (variable ?? type ?? "?");
+               if (type == null)
+               {
+                  problems.Add(where + ": a monospaced face set outside an object initialiser this test can read");
+                  continue;
+               }
+               if (type == "Run")
+               {
+                  runs++;
+                  if (Regex.IsMatch(body, @"(?<![\w.])FontSize\s*="))
+                     problems.Add(where + ": a run inside a sentence sets a size of its own; it takes the sentence's");
+                  continue;
+               }
+
+               sites++;
+               string key = name + " " + variable;
+               if (codeBoxes.Contains(key))
+               {
+                  codeBoxesSeen.Add(key);
+                  if (!Regex.IsMatch(body, @"(?<![\w.])FontSize\s*=\s*28\b"))
+                     problems.Add(where + ": a one-time code box that is not the 28 pixels the others are");
+                  continue;
+               }
+               if (!Regex.IsMatch(body, @"(?<![\w.])FontSize\s*=[^,;}]*\bTypography\.Mono\b") && !(variable != null && SizedLater(source, variable, member.Index)))
+                  problems.Add(where + ": monospaced at a size other than Typography.Mono, or at none");
+            }
+
+            // In a statement: "x.FontFamily = <the face>;" (or a choice that may be it).
+            foreach (Match statement in Regex.Matches(source, @"\b(\w+)\.FontFamily\s*=\s*[^;]*?" + face + "[^;]*;"))
+            {
+               sites++;
+               string variable = statement.Groups[1].Value;
+               if (!SizedLater(source, variable, statement.Index) && !SizedInItsInitialiser(source, variable, statement.Index))
+                  problems.Add(name + " " + variable + ": monospaced at a size other than Typography.Mono, or at none");
+            }
          }
 
-         foreach (Match line in Regex.Matches(source, @"(\w+)\.FontFamily = new System\.Windows\.Media\.FontFamily\(Typography\.MonoFontFamily\);"))
+         // XAML: an element in the face carries the size beside it.
+         IEnumerable<string> markup = Directory.GetFiles(Path.Join(controlPanel, "Views"), "*.xaml", SearchOption.AllDirectories)
+            .Append(Path.Join(controlPanel, "App.xaml"));
+         foreach (string file in markup)
          {
-            Match size = Regex.Match(source, Regex.Escape(line.Groups[1].Value) + @"\.FontSize = (Typography\.\w+);");
-            if (!size.Success)
-               continue;
-            seen++;
-            Assert.Equal("Typography.Mono", size.Groups[1].Value);
+            foreach (Match element in Regex.Matches(File.ReadAllText(file), @"<[\w:.]+\b[^<>]*?FontFamily=""[^""]*(?:Cascadia|Consolas|MonoFontFamily)[^""]*""[^<>]*>", RegexOptions.Singleline))
+            {
+               sites++;
+               if (!Regex.IsMatch(element.Value, @"FontSize=""\{(?:Static|Dynamic)Resource AppFontSizeMono\}"""))
+                  problems.Add(Path.GetFileName(file) + ": " + element.Value.Split('\n')[0].Trim() + " is not at AppFontSizeMono");
+            }
          }
 
-         Assert.True(seen > 0, file + " sets no monospaced text at a size.");
+         Assert.True(sites >= 25, "Fewer monospaced boxes and blocks than the Control Panel has: " + sites);
+         Assert.True(runs >= 3, "Fewer monospaced runs than the Control Panel has: " + runs);
+         Assert.True(codeBoxesSeen.SetEquals(codeBoxes), "A one-time code box named as the exception was not found: " + string.Join(", ", codeBoxes.Except(codeBoxesSeen)));
+         Assert.True(problems.Count == 0, "Monospaced text must be one size, Typography.Mono:\n" + string.Join("\n", problems));
+      }
+
+      /// <summary>
+      /// The object initialiser that holds the member at <paramref name="at"/>: the type
+      /// it constructs (its last name), the variable or field it is assigned to (null for
+      /// an argument) and its body - or a null type when the member is not in one.
+      /// </summary>
+      private static (string Type, string Variable, string Body) Initialiser(string source, int at)
+      {
+         int depth = 0, open = -1;
+         for (int i = at - 1; i >= 0; i--)
+         {
+            if (source[i] == '}')
+               depth++;
+            else if (source[i] == '{' && depth-- == 0)
+            {
+               open = i;
+               break;
+            }
+         }
+         if (open < 0)
+            return (null, null, null);
+
+         int close = open;
+         for (int i = open, level = 0; i < source.Length; i++)
+         {
+            if (source[i] == '{')
+               level++;
+            else if (source[i] == '}' && --level == 0)
+            {
+               close = i;
+               break;
+            }
+         }
+         string body = source.Substring(open, close - open + 1);
+
+         // What comes before the brace: "new Type(arguments)", "new Type" or "new()".
+         int end = open - 1;
+         while (end >= 0 && char.IsWhiteSpace(source[end]))
+            end--;
+         if (end >= 0 && source[end] == ')')
+         {
+            for (int level = 0; end >= 0; end--)
+            {
+               if (source[end] == ')')
+                  level++;
+               else if (source[end] == '(' && --level == 0)
+                  break;
+            }
+            end--;
+         }
+         Match constructed = Regex.Match(source.Substring(0, end + 1), @"\bnew\s*([\w.]*)\s*$");
+         if (!constructed.Success)
+            return (null, null, null);
+         string type = constructed.Groups[1].Value.Length == 0 ? "" : constructed.Groups[1].Value.Split('.')[^1];
+         Match assigned = Regex.Match(source.Substring(0, constructed.Index), @"(\w+)\s*=\s*$");
+         return (type, assigned.Success ? assigned.Groups[1].Value : null, body);
+      }
+
+      /// <summary>Whether <paramref name="variable"/> is given the Mono size near <paramref name="at"/>, in a statement.</summary>
+      private static bool SizedLater(string source, string variable, int at)
+      {
+         int from = Math.Max(0, at - 2000);
+         string near = source.Substring(from, Math.Min(source.Length, at + 2000) - from);
+         return Regex.IsMatch(near, @"\b" + variable + @"\.FontSize\s*=[^;]*\bTypography\.Mono\b")
+            || near.Contains(variable + ".SetResourceReference(FontSizeProperty, \"AppFontSizeMono\")", StringComparison.Ordinal);
+      }
+
+      /// <summary>Whether the initialiser <paramref name="variable"/> was made with, before <paramref name="at"/>, gives it the Mono size.</summary>
+      private static bool SizedInItsInitialiser(string source, string variable, int at)
+      {
+         int from = Math.Max(0, at - 2000);
+         string before = source.Substring(from, at - from);
+         Match made = Regex.Matches(before, @"\b" + variable + @"\s*=\s*new\b[^;{]*\{([^{}]*)\}").LastOrDefault();
+         return made != null && Regex.IsMatch(made.Groups[1].Value, @"(?<![\w.])FontSize\s*=[^,;}]*\bTypography\.Mono\b");
       }
 
       [Fact]

@@ -181,7 +181,7 @@ namespace hMailServer.ControlPanel.Views
          {
             // The name, from data: a setting's name is the server's word and
             // carries no access key.
-            var name = new TextBlock { Text = level.Name, FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily) };
+            var name = new TextBlock { Text = level.Name, FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily), FontSize = Typography.Mono };
             panel.Children.Add(name);
             panel.Children.Add(effect);
             var where = new TextBlock { Text = L("Edited on this dialog's other tabs."), TextWrapping = TextWrapping.Wrap };

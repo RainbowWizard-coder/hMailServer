@@ -100,10 +100,14 @@ namespace hMailServer.ControlPanel.Services
                   break;
 
                case MdCode code:
+                  // A block of code is the one monospaced size, as every box and
+                  // block of data is (Typography.Mono); it was the Caption size,
+                  // a size apart from the 13 of the boxes (review finding F304).
+                  // Code inside a sentence is a run at the sentence's size.
                   var pre = new Paragraph(new Run(code.Text))
                   {
                      FontFamily = new FontFamily(Typography.MonoFontFamily),
-                     FontSize = Typography.Caption,
+                     FontSize = Typography.Mono,
                      Padding = new Thickness(10, 8, 10, 8),
                      Margin = new Thickness(0, 0, 0, 10)
                   };

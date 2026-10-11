@@ -48,6 +48,7 @@ namespace hMailServer.ControlPanel.Views
       {
          IsReadOnly = true,
          FontFamily = Mono,
+         FontSize = Typography.Mono,
          VerticalContentAlignment = VerticalAlignment.Center
       };
 

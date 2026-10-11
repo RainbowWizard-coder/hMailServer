@@ -305,6 +305,7 @@ namespace hMailServer.ControlPanel.Views
 
          generatedShow_.IsReadOnly = true;
          generatedShow_.FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily);
+         generatedShow_.FontSize = Typography.Mono;
          // No caption of its own, so name it directly - otherwise the one-time
          // password value is announced as an anonymous read-only "edit".
          AutomationProperties.SetName(generatedShow_, L("Generated password"));
