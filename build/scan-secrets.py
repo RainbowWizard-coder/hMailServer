@@ -28,11 +28,16 @@ scans: this script, the rules script, and the image the tree's
 written for each other, so both from one tree. From the range it takes the commits it
 scans and its tip's .gitleaksignore, as the pipeline would read it (the working tree's
 for --staged), and prints every line the range adds to that file, every line it
-changes in the rules script, and the image its tip names when that is another: the
-range chooses neither the scanner nor its rules, and what it waives is shown. That
-holds when this script runs from a tree outside the range, as the landing's does when
-build/land-via-mr.py runs from a checkout of master; run from a batch's own worktree,
-the batch's copies judge the batch, and the scan says so. Where it runs:
+changes in the rules script, and the image its tip names when that is another. A
+line that carries gitleaks' inline allow marker (the word gitleaks, then ":allow") is
+a finding here like any other (--ignore-gitleaks-allow), so that only a .gitleaksignore
+line, which is shown, waives one; secret_detection's analyzer, which cannot be given
+the flag, would take the marker as a waiver, and build/check-gitleaksignore.py fails a
+tree that carries it. So the range chooses neither the scanner nor its rules, and what
+it waives is shown. That holds when this script runs from a tree outside the range, as
+the landing's does when build/land-via-mr.py runs from a checkout of master; run from
+a batch's own worktree, the batch's copies judge the batch, and the scan says so.
+Where it runs:
 
   docker    Docker on this machine: the image, with the repository's git directory
             mounted read-only.
@@ -42,7 +47,8 @@ the batch's copies judge the batch, and the scan says so. Where it runs:
             for the key when the ssh configuration does not name it).
   gitleaks  a gitleaks 8.x on PATH (or HM_GITLEAKS), with its own default rules: close
             to GitLab's, not the same, so the pipeline's job may still find what this did
-            not.
+            not. One too old to take --ignore-gitleaks-allow refuses it, and the scan
+            fails (exit 2).
 
 --engine auto (the default) takes docker when Docker answers, else ssh when
 HM_SECRET_SCAN_SSH is set, else gitleaks when there is one; with none of them the scan
@@ -284,6 +290,10 @@ def gitleaks_arguments(mode, log_opts, ignore_path, report_path, config, repo_pa
         arguments += ["--log-opts", log_opts]
         if ignore_path:
             arguments += ["--gitleaks-ignore-path", ignore_path]
+    # gitleaks leaves out, by default, a finding whose line carries its inline allow
+    # marker: a waiver written on the secret's own line, which no one is shown and no
+    # owner accepts. Here it is a finding, which only a .gitleaksignore line waives.
+    arguments += ["--ignore-gitleaks-allow"]
     arguments += ["--redact", "--no-banner", "--no-color", "--exit-code", "1", "--report-format", "json",
                   "--report-path", report_path]
     if mode == "git":
@@ -641,9 +651,16 @@ def self_test():
            "the container runs gitleaks with the rules made there, the ignore file, redacted: %s" % script)
     expect(0 <= script.find("sh /work/rules.sh /gitleaks.toml /work/gitleaks.toml || exit 5; ") < script.find("exec gitleaks"),
            "the rules are made from the image's own before gitleaks runs, a refusal ending the scan: %s" % script)
+    expect("'--ignore-gitleaks-allow'" in script, "a range scan in the container reports a line marked as allowed: %s" % script)
     script = container_script("stdin", "", "", "img", "/work")
     expect(script.endswith("< /work/stream") and "--log-opts" not in script and RULES_STEP in script,
            "a staged scan reads the stream, with the same rules: %s" % script)
+    expect("'--ignore-gitleaks-allow'" in script, "a staged scan in the container reports a line marked as allowed: %s" % script)
+    # gitleaks on PATH is given the same arguments: a line that carries gitleaks' inline
+    # allow marker is a finding, which only a .gitleaksignore line waives.
+    for mode in ("git", "stdin"):
+        arguments = gitleaks_arguments(mode, "%s..%s" % (a, b), "/i", "/r.json", None, "/repo")
+        expect("--ignore-gitleaks-allow" in arguments, "gitleaks on PATH reports a line marked as allowed (%s): %s" % (mode, arguments))
     remote = remote_script("img", "/g/.git", "git", "%s..%s" % (a, b), b, "x", "", "#!/bin/sh\necho rules\n")
     expect("base64 -d > \"$work/rules.sh\"" in remote and base64.b64encode(b"#!/bin/sh\necho rules\n").decode("ascii") in remote
            and "allowlist" not in remote, "the ssh host is given the rules script, and nothing else to make the rules of: %s" % remote)

@@ -4718,6 +4718,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `master` at 74aed9ab8 it names the four this batch moved, each with its new line. Its patterns are a copy of the
   analyzer 7.40.0's, and it fails while `secret_detection` runs another version, until they are read again from that
   version's rules (ContinuousIntegration.md, "Security scanning").
+- **A line that carries gitleaks' inline allow marker is a finding of the hooks' and the landing's secret scan, and
+  fails `checkers`, where both secret scans took it as a waiver no one was shown.** gitleaks leaves out, by default, a
+  finding whose line holds the marker (the word `gitleaks`, then `:allow`), and neither `build/scan-secrets.py` nor
+  `secret_detection` changed that: a made-up GitLab token under `build/` with the marker on its line passed both, on
+  server2 on 11 October 2026, where the same line without it failed both - a waiver around `.gitleaksignore`, which
+  is the owner's to accept (`.gitlab/CODEOWNERS`) and whose new lines the landing prints. `scan-secrets.py` now runs
+  gitleaks with `--ignore-gitleaks-allow`, in the analyzer's image and on `PATH` alike, so that only a
+  `.gitleaksignore` line waives a finding; `secret_detection`'s analyzer cannot be given the flag, so
+  `build/check-gitleaksignore.py` fails a tree in which any file carries the marker, naming each line. The tree
+  carried none but in that check's own fixtures, which now spell it in two parts (ContinuousIntegration.md, "What the
+  secret scans read").
 
 ### Documentation
 

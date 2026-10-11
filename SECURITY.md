@@ -802,6 +802,8 @@ machine against the release's commit and the same gate over their reports before
   of their global allowlist that left out every path under a directory named `build`, `bin`, `obj`, `target` or
   `packages`, this tree's `build/` among them: since 10 October 2026 both read those paths
   ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#what-the-secret-scans-read)).
+  gitleaks' inline allow marker on a secret's line waives nothing either: `scan-secrets.py` reports such a line,
+  and the `checkers` job fails a tree that carries the marker, which the job's analyzer would take as a waiver.
   It has run in `master`'s pipelines since 27 September 2026: 2886389460 failed on
   twenty-four vetted test fixtures, which `.gitleaksignore` has named since, and 2892849251, on 29 September, passed. The
   whole history was scanned once, on 26 September 2026, with the job's own image on the project's Linux machine:

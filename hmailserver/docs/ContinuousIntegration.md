@@ -3883,7 +3883,10 @@ finding is now, so that the change that moves a finding moves its line. Over
 line. Its patterns are a copy, read from the analyzer 7.40.0's `/gitleaks.toml`
 (its `RULES_FROM`), and it fails while `secret_detection` runs another version,
 whose rules may write a pattern otherwise, until they are read again from that
-version's file.
+version's file. It fails, too, on any line of the tree that carries gitleaks'
+inline allow marker (the word `gitleaks`, then `:allow`), which the analyzer
+takes as a waiver of the finding on that line, named nowhere: only
+`.gitleaksignore`, the owner's in `.gitlab/CODEOWNERS`, waives a finding.
 
 **The whole history, once.** A scan of every commit rather than the pushed
 ones is the pipeline of a schedule on `master` described `security`: there
@@ -4067,7 +4070,10 @@ maintainer's clone at `/mnt/hmailserver`), or, without Docker, a `gitleaks` on
 `PATH` with gitleaks' own rules. With none of them it refuses (exit 3). The
 scan's container has no network. It prints each finding as gitleaks
 fingerprints it and never the secret, and lists any `.gitleaksignore` line the
-range adds, which the reader checks. Its first run, on 26 September 2026 over
+range adds, which the reader checks. gitleaks' inline allow marker (the word
+`gitleaks`, then `:allow`, on the secret's own line) waives nothing in it: it
+runs gitleaks with `--ignore-gitleaks-allow`, so that such a line is a finding,
+which only a `.gitleaksignore` line, the owner's, waives. Its first run, on 26 September 2026 over
 `master..batch40` (35 commits, seven seconds on linix), found ten findings
 `secret_detection` would have failed the next push to `master` on: AWS's example
 access key id, quoted in this document, in `.gitleaksignore`'s comment and in
@@ -4122,7 +4128,11 @@ What each scan trusts:
   lines, the rules script and `.gitleaksignore` are all that commit's. In a merge
   request's pipeline they are the change's own, which is why
   `gitlab-security.yml` and the rules script are gate files, and why
-  `.gitleaksignore` is the owner's in `.gitlab/CODEOWNERS`.
+  `.gitleaksignore` is the owner's in `.gitlab/CODEOWNERS`. Its analyzer runs
+  gitleaks as GitLab wrote it, and takes a line that carries gitleaks' inline
+  allow marker as a waiver of the finding on it, shown to no one: so
+  `build/check-gitleaksignore.py`, which `checkers` runs, fails a tree in which
+  any file carries the marker.
 - **`scan-secrets.py`** trusts the tree it runs from, and reads it from that
   tree's files, not from a commit: its own code, the rules script, and the
   analyzer image that tree's `gitlab-security.yml` names for `secret_detection` -
@@ -4132,8 +4142,10 @@ What each scan trusts:
   tip (the working tree's, for a staged scan), as a pipeline would read it. It
   prints every line the range adds to `.gitleaksignore`, every line it changes
   in the rules script, and the image the range's tip names when that is not the
-  one the scan ran: the range chooses neither the scanner nor its rules, and
-  what it can waive, a finding it names in `.gitleaksignore`, is shown.
+  one the scan ran; and a line that carries gitleaks' inline allow marker is a
+  finding of it like any other (`--ignore-gitleaks-allow`): the range chooses
+  neither the scanner nor its rules, and what it can waive, a finding it names in
+  `.gitleaksignore`, is shown.
 - **The landing** runs `scan-secrets.py` from its own checkout, the tree
   `build/land-via-mr.py` is in. From a checkout of `master`, as a landing is, a
   batch is scanned with `master`'s scan, `master`'s rules script and `master`'s

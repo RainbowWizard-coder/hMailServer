@@ -25,8 +25,13 @@ directory scan would report: where an entry moved to), saying which. It fails, t
 an entry under another directory than the checkout's, on a path the tree does not have,
 and on a rule it has no pattern for. The patterns are those of GitLab's rules the
 entries name (RULES), as secret_detection's analyzer has them; a new rule in an entry
-needs its pattern here, from the analyzer's /gitleaks.toml. A line marked gitleaks:allow
-is no finding. The commit-form entries are not read.
+needs its pattern here, from the analyzer's /gitleaks.toml. A line that carries gitleaks'
+inline allow marker (ALLOW) is no finding: secret_detection's analyzer runs gitleaks
+without --ignore-gitleaks-allow, and cannot be made to. So this fails, too, on any file of
+the tree that carries the marker, which would waive a finding on its line in that job with
+no word to anyone: build/scan-secrets.py, the hooks' and the landing's scan, reports such a
+line, and only a .gitleaksignore line, the owner's to accept, waives a finding. The
+commit-form entries are not read.
 
 The patterns are a copy, read from one analyzer's rules (RULES_FROM, its version): it
 fails, too, when .gitlab/ci/gitlab-security.yml has secret_detection run another version,
@@ -38,8 +43,9 @@ the scan no longer has - until the patterns are read again from that image's
   python build/check-gitleaksignore.py --self-test  against fixtures
 
 Exit codes: 0 every directory-form entry names its finding; 1 one does not, a finding of
-a named file and rule has no entry, or secret_detection runs another analyzer than the
-one RULES were read from; 2 the file could not be read.
+a named file and rule has no entry, secret_detection runs another analyzer than the one
+RULES were read from, or a file of the tree carries the marker or cannot be searched for
+it; 2 the file could not be read.
 """
 
 import os
@@ -53,6 +59,7 @@ sys.path[:] = [p for p in sys.path if os.path.normcase(os.path.realpath(p or os.
 import argparse
 import re
 import shutil
+import subprocess
 import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -88,6 +95,10 @@ RULES_FROM = "7.40.0"
 # (security-products/secrets:<version>), by digest.
 ANALYZER = re.compile(r"^  image: \S*/secrets:([0-9]+(?:\.[0-9]+)*)(?:-[0-9a-f]{12})?@sha256:[0-9a-f]{64}[ \t]*\r?$",
                       re.MULTILINE)
+# gitleaks' inline allow marker: a finding whose line holds it is left out, unless gitleaks
+# runs with --ignore-gitleaks-allow, as secret_detection's analyzer cannot be made to. In
+# two literals, so that this file does not carry it.
+ALLOW = "gitleaks" ":allow"
 COMMIT_FORM = re.compile(r"^[0-9a-f]{40}:")
 ENTRY = re.compile(r"^(.+):([^:]+):([0-9]+)$")
 
@@ -110,12 +121,12 @@ def entries(text):
 
 def finding_lines(text, rule):
     """The lines (1-based) at which rule's pattern matches text, each match at the line it
-    starts on, as gitleaks reports it; a line marked gitleaks:allow is left out."""
+    starts on, as gitleaks reports it; a line that carries ALLOW is left out."""
     lines = text.split("\n")
     starts = set()
     for match in re.finditer(RULES[rule], text):
         number = text.count("\n", 0, match.start()) + 1
-        if "gitleaks:allow" not in lines[number - 1]:
+        if ALLOW not in lines[number - 1]:
             starts.add(number)
     return starts
 
@@ -185,6 +196,41 @@ def analyzer_problems(root):
     return []
 
 
+def marked_lines(root):
+    """[(path, line)] of each line of a file of the tree that carries ALLOW - the files
+    git tracks, when root is the top of a git work tree, as the checkers job's checkout is;
+    else every file under root - or a str, why, when the tree could not be searched."""
+    top = subprocess.run(["git", "-C", root, "rev-parse", "--show-toplevel"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    same = lambda a, b: os.path.normcase(os.path.realpath(a)) == os.path.normcase(os.path.realpath(b))
+    tracked = top.returncode == 0 and same(top.stdout.decode("utf-8", "replace").strip(), root)
+    done = subprocess.run(["git", "-C", root, "-c", "core.quotePath=false", "grep"] + ([] if tracked else ["--no-index"]) +
+                          ["-n", "-z", "-a", "-F", "--no-color", "-e", ALLOW], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if done.returncode not in (0, 1):
+        return "git grep exited %d: %s" % (done.returncode, done.stderr.decode("utf-8", "replace").strip())
+    found, out, at = [], done.stdout, 0
+    # Each match is <path>\0<line>\0<the line's text>\n, the path verbatim (-z).
+    while at < len(out):
+        path_end = out.find(b"\0", at)
+        line_end = out.find(b"\0", path_end + 1) if path_end >= 0 else -1
+        text_end = out.find(b"\n", line_end + 1) if line_end >= 0 else -1
+        if text_end < 0 or not out[path_end + 1:line_end].isdigit():
+            return "git grep's output cannot be read: %r" % out[at:at + 200]
+        found.append((out[at:path_end].decode("utf-8", "replace"), int(out[path_end + 1:line_end])))
+        at = text_end + 1
+    return found
+
+
+def marker_problems(root):
+    """A problem for each line of the tree that carries gitleaks' inline allow marker."""
+    found = marked_lines(root)
+    if isinstance(found, str):
+        return ["the tree cannot be searched for gitleaks' inline allow marker (%s): %s" % (ALLOW, found)]
+    return ["%s:%d carries gitleaks' inline allow marker (%s), which secret_detection takes as a waiver of a finding on "
+            "that line that no one is shown: take it out, and name a finding that is not a secret in %s, by the "
+            "fingerprint the landing's scan prints (CONTRIBUTING.md, \"Secrets\")" % (path, line, ALLOW, IGNORE)
+            for path, line in found]
+
+
 def check(root=ROOT, say=print):
     try:
         with open(os.path.join(root, IGNORE), "rb") as f:
@@ -193,14 +239,16 @@ def check(root=ROOT, say=print):
         say("check-gitleaksignore: cannot read %s: %s" % (IGNORE, e))
         return 2
     problems, count, groups = problems_of(root, text)
-    problems = analyzer_problems(root) + problems
+    problems = analyzer_problems(root) + problems + marker_problems(root)
     for problem in problems:
         say("FAIL: " + problem)
     if problems:
-        say("check-gitleaksignore: %d problem(s) in %s's directory-form entries" % (len(problems), IGNORE))
+        say("check-gitleaksignore: %d problem(s) in %s's directory-form entries, the analyzer they were read from, or "
+            "the tree's waivers" % (len(problems), IGNORE))
         return 1
     say("check-gitleaksignore: %d directory-form entr%s of %s, over %d file and rule pair(s), each name a finding, and "
-        "every finding of those files and rules is named, by the patterns of the analyzer %s, secret_detection's"
+        "every finding of those files and rules is named, by the patterns of the analyzer %s, secret_detection's; and no "
+        "file of the tree carries gitleaks' inline allow marker"
         % (count, "y" if count == 1 else "ies", IGNORE, groups, RULES_FROM))
     return 0
 
@@ -252,8 +300,19 @@ def self_test():
         code, text = tree({"src/k.cpp": source + "x = \"%s\"\n" % pkcs8}, good)
         expect(code == 1 and "src/k.cpp line 7 is a finding of the rule PKCS8 private key that no directory-form entry names" in text,
                "a second finding of a named file and rule, unnamed, fails: %s" % text)
-        code, text = tree({"src/k.cpp": source + "x = \"%s\" // gitleaks:allow\n" % pkcs8}, good)
-        expect(code == 0, "a line marked gitleaks:allow is no finding: %s" % text)
+        # A line that carries gitleaks' inline allow marker is no finding, as the job reads
+        # it; and a file of the tree that carries the marker fails, at its line.
+        marked = source + "x = \"%s\" // %s\n" % (pkcs8, ALLOW)
+        expect(finding_lines(marked, "PKCS8 private key") == {3}, "a line that carries the marker is no finding: %s"
+               % sorted(finding_lines(marked, "PKCS8 private key")))
+        code, text = tree({"src/k.cpp": marked}, good)
+        expect(code == 1 and "src/k.cpp:7 carries gitleaks' inline allow marker" in text
+               and text.count("carries gitleaks' inline allow marker") == 1,
+               "a file of the tree that carries the marker fails, at its line: %s" % text)
+        code, text = tree({"src/k.cpp": source, "docs/n.md": "a\n\nthe word alone, %s\n" % ALLOW}, good)
+        expect(code == 1 and "docs/n.md:3 carries gitleaks' inline allow marker" in text,
+               "the marker fails wherever it is, a finding on its line or not: %s" % text)
+        os.remove(os.path.join(work, "docs", "n.md"))
         # The entry's finding gone with the line.
         code, text = tree({"src/k.cpp": source.replace(pkcs8, "removed")}, good)
         expect(code == 1 and "line 3 holds no finding of the rule PKCS8 private key: the entry has moved or is gone" in text,
@@ -305,12 +364,39 @@ def self_test():
     finally:
         shutil.rmtree(work, ignore_errors=True)
 
-    # This file holds the patterns, and is no finding of any of them.
+    # In a git work tree the files git tracks are searched for the marker, at their paths:
+    # a tracked file that carries it is found, and one git does not track is not the tree's.
+    repo = tempfile.mkdtemp(prefix="check-gitleaksignore-git-")
+    try:
+        subprocess.run(["git", "init", "-q", repo], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        os.makedirs(os.path.join(repo, "a dir"))
+        for name, text in (("a dir/tracked.txt", "one\ntwo %s\n" % ALLOW), ("untracked.txt", "%s\n" % ALLOW)):
+            with open(os.path.join(repo, *name.split("/")), "w", encoding="utf-8", newline="") as f:
+                f.write(text)
+        added = subprocess.run(["git", "-C", repo, "add", "a dir/tracked.txt"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        found = marked_lines(repo)
+        expect(added.returncode == 0 and found == [("a dir/tracked.txt", 2)],
+               "in a git work tree a tracked file that carries the marker is found, and an untracked one is not: %s" % (found,))
+        # A tree git cannot search is a problem, not a tree without the marker.
+        gone = marker_problems(os.path.join(repo, "no such directory"))
+        expect(len(gone) == 1 and "cannot be searched" in gone[0], "a tree that cannot be searched fails: %s" % gone)
+    finally:
+        for base, _, names in os.walk(repo):
+            for name in names:
+                try:
+                    os.chmod(os.path.join(base, name), 0o600)
+                except OSError:
+                    pass
+        shutil.rmtree(repo, ignore_errors=True)
+
+    # This file holds the patterns, and is no finding of any of them; nor does it carry the
+    # marker it looks for.
     with open(os.path.abspath(__file__), "rb") as f:
         own = f.read().decode("utf-8").replace("\r\n", "\n")
     for rule in sorted(RULES):
         expect(not finding_lines(own, rule), "this file is no finding of the rule %s: lines %s"
                % (rule, sorted(finding_lines(own, rule))))
+    expect(ALLOW not in own, "this file does not carry gitleaks' inline allow marker")
     # The tree's own file passes, and names some directory-form entries.
     said = []
     code = check(ROOT, said.append)

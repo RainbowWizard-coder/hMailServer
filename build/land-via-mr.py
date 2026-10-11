@@ -22,8 +22,10 @@ refusal:
      it runs, the one this checkout's secret_detection names, are this
      checkout's own, not the batch's: run from a checkout of master, as a
      landing is, the batch has no say in what scans it or how, but for the
-     .gitleaksignore lines it adds, which the scan prints; from the batch's own
-     worktree the batch's copies would judge the batch, which the scan says.
+     .gitleaksignore lines it adds, which the scan prints (a line that carries
+     gitleaks' inline allow marker is a finding of the scan like any other);
+     from the batch's own worktree the batch's copies would judge the batch,
+     which the scan says.
      A batch branch's pipeline does not run the
      secret_detection job and its merge request runs none, so this scan is the
      one that reads a batch before it is on GitLab. And a batch that changes the

@@ -438,7 +438,7 @@ Run each as `python build/<name>.py` (`python3` on Linux).
 | `check-deck-script.py` | Runs the Deck's script against a small DOM and a recorded server | Needs `node`; `--extract-only` does without |
 | `check-environment-names.py` | Every `HM_SETTING_` and `HM_PROPERTY_` name in the container files and documents is a real setting | |
 | `check-forge-export.py` | The weekly `forge-export` job runs for the `export` schedule alone, on linix, with its artifact for Developers only and no token in any CI file, and `build/ci/forge-export.py` passes its self-test ([Mirroring.md](hmailserver/docs/Mirroring.md)) | Proves its own negative controls on every run |
-| `check-gitleaksignore.py` | Each directory-form line of `.gitleaksignore` (`/builds/hmailserver/hmailserver/<path>:<rule>:<line>`, what a pipeline's scan of the checkout matches) names a finding of its rule at its line, and every finding of a file and rule those lines name has one, so that the change that moves a fixture moves its line; and fails while `secret_detection` runs another analyzer than the one its patterns were read from (`RULES_FROM`) ([What the secret scans read](hmailserver/docs/ContinuousIntegration.md#what-the-secret-scans-read)) | `--self-test` |
+| `check-gitleaksignore.py` | Each directory-form line of `.gitleaksignore` (`/builds/hmailserver/hmailserver/<path>:<rule>:<line>`, what a pipeline's scan of the checkout matches) names a finding of its rule at its line, and every finding of a file and rule those lines name has one, so that the change that moves a fixture moves its line; fails while `secret_detection` runs another analyzer than the one its patterns were read from (`RULES_FROM`); and fails on any line of the tree that carries gitleaks' inline allow marker, which that job takes as a waiver shown to no one ([What the secret scans read](hmailserver/docs/ContinuousIntegration.md#what-the-secret-scans-read)) | `--self-test` |
 | `check-help-map.py` | Every page of the three surfaces has help, and every help entry names a real document and heading | `--self-test` |
 | `check-idl-case.py` | `hMailServer.idl` spells every name one way whatever its case, but for the seven that shipped two ways, each with its reason: a type library keeps one spelling, so a new `Helo` renames `Client.HELO` for every early-bound client | `--self-test` |
 | `check-image-pins.py` | Every image the CI files and the build scripts pin by digest is still served by its registry, asked as a runner asks it ([Image pins](hmailserver/docs/ContinuousIntegration.md#image-pins)) | Needs the network; `--list` asks nothing; `--self-test` asks a registry it serves on the loopback |
@@ -791,6 +791,8 @@ into a commit. Three things stand in the way, as GitLab's push protection is not
   entries of their global allowlist that leave those directories out, as `build/ci/secret-detection-rules.sh`
   derives them from GitLab's own
   ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#what-the-secret-scans-read)).
+  gitleaks' inline allow marker (the word `gitleaks`, then `:allow`, on the secret's line) waives nothing: the
+  hooks and the landing report such a line as any other, and the `checkers` job fails a tree that carries it.
 * **`.gitignore`** leaves out the usual key and credential files (`*.pem`, `*.key`, `*.pfx`, `*.p12`, `*.jks`,
   SSH private keys, `.env`, `.netrc`, `.npmrc`, `.pypirc`, `credentials.json`), but for the directories of the
   test fixtures. Adding one elsewhere takes `git add -f`, which is the moment to ask whether it should be there.
