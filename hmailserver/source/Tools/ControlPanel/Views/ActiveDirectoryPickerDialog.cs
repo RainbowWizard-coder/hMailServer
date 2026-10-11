@@ -38,7 +38,7 @@ namespace hMailServer.ControlPanel.Views
 
       // What an empty box does is said in the box (review finding F124), where only
       // the box's accessible name and a status line said it.
-      private readonly Wpf.Ui.Controls.TextBox searchBox_ = new() { PlaceholderText = L("Part of a name (empty lists everyone)") };
+      private readonly Wpf.Ui.Controls.TextBox searchBox_ = new() { PlaceholderText = L("Part of a name (empty = everyone)") };
 
       private readonly Wpf.Ui.Controls.Button searchButton_ = new() { Content = L("_Search") };
 

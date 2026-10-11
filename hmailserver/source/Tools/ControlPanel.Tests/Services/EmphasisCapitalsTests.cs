@@ -38,6 +38,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          "MAIL FROM", "RCPT TO", "NT SERVICE", "SEARCH BODY and TEXT", "YYYY-MM-DD", "HH:MM:SS", "HH:MM",
          "[EXTERNAL]", "DOMAIN\\name", "--export-stored-secrets-key FILE", "CAP_NET_ADMIN",
+         // The trust anchors' example, the IANA root's DS record (FeatureSettingsView).
+         "20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D",
       };
 
       // The words in capitals that are names. A new one goes here only when it is a name; a
@@ -47,7 +49,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          "AAAA", "ACL", "ACME", "AD", "ADFS", "ADO", "AEAD", "API", "ARC", "ASCII", "AUTH", "AV", "AWS", "BATV",
          "BDAT", "BIMI", "BINARYMIME", "CA", "CBC", "CC", "CE", "CHUNKING", "CIDR", "CLI", "CN", "CNAME", "COM",
          "COMPRESS", "CONDSTORE", "DANE", "DATA", "DC", "DCOM", "DEFLATE", "DELETE", "DHE", "DKIM", "DLP", "DMARC",
-         "DMZ", "DN", "DNS", "DNSBL", "DNSSEC", "DPAPI", "ECDHE", "ECDSA", "EHLO", "FETCH", "GB", "GET", "GIF",
+         "DMZ", "DN", "DNS", "DNSBL", "DNSSEC", "DPAPI", "DS", "ECDHE", "ECDSA", "EHLO", "FETCH", "GB", "GET", "GIF",
          "GNU", "GSSAPI", "GUI", "HELO", "HKLM", "HMAC", "HS", "HTML", "HTTP", "HTTPS", "ID", "IDLE", "IE", "IMAP",
          "INBOX", "INI", "IP", "ISP", "JPEG", "JSON", "JWK", "JWKS", "KB", "LDAP", "LDAPS", "MB", "MIME", "MS",
          "MSVC", "MTA", "MTU", "MX", "NAT", "NCSA", "NIST", "NTFS", "NTLM", "OK", "OTLP", "PEM", "PIPELINING",
@@ -62,7 +64,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       // or a protocol named where the English says "the record" or "the check".
       private static readonly HashSet<string> NamesAnyTranslationAdds = new HashSet<string>(StringComparer.Ordinal)
       {
-         "CBC", "DKIM", "DMARC", "DN", "DNS", "DNSSEC", "EXPUNGE", "IBAN", "ID", "IP", "JSON", "MX", "PST", "RSA",
+         "CBC", "CIDR", "CLSID", "DKIM", "DMARC", "DN", "DNS", "DNSSEC", "EXPUNGE", "IBAN", "ID", "IP", "JSON", "MX", "PST", "RSA",
          "SPF", "SRS", "STARTTLS", "TLS", "TTL", "TXT", "URL",
       };
 

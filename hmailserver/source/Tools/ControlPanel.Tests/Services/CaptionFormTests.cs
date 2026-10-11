@@ -203,8 +203,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          foreach (string text in XDocument.Load(path).Root.Elements("data").Select(d => (string)d.Attribute("name")))
          {
             Match last = Regex.Match(text, @"\(([^()]*)\)\s*$");
-            // "(empty)" alone is a value shown, not a caption
-            if (last.Success && last.Index > 0 && last.Groups[1].Value.Split("; ").Any(EmptyInProse))
+            // "(empty)" alone is a value shown, not a caption - the whole text or the value a
+            // rule's action sets, "Set header {0} to (empty)" (RulePartText)
+            if (last.Success && last.Index > 0 && last.Groups[1].Value != "empty" && last.Groups[1].Value.Split("; ").Any(EmptyInProse))
                offenders.Add(text);
          }
 
@@ -259,7 +260,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          var number = new Regex(@"(?<![\w,.:/#+-])\d{4,}(?![\w,.:/]?\w)");
          var named = new Regex(@"(?:RFC|port|ports|error|HM|schema|version|ID|PBKDF2|SHA|X\.|BIMI|DS|TLSA|code)[ -]?$", RegexOptions.IgnoreCase);
-         string[] literals = { "such as 1048576 for 1 MB", "1048576 bytes is 1 MB" };
+         string[] literals = { "such as 1048576 for 1 MB", "1048576 bytes is 1 MB", "such as 20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D" };
          string path = ConfirmationPatternTests.ControlPanelFile(Path.Join("Resources", "Strings.resx"));
          var offenders = new List<string>();
          foreach (string text in XDocument.Load(path).Root.Elements("data").Select(d => (string)d.Attribute("name")))

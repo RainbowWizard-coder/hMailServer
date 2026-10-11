@@ -60,7 +60,7 @@ namespace hMailServer.ControlPanel.Views
             nameRow_.Error = null;
          };
 
-         UseFrame(L("New public folder"), nameRow_, createButton, cancel, width: 460);
+         UseFrame(L("New public folder"), nameRow_, createButton, cancel, width: DesignTokens.Dialog.DefaultWidth);
          KeepRoomForFieldErrors(2, nameRow_);
 
          // The caret after the selected folder's name, so that typing names the

@@ -5216,6 +5216,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Expired {0} days ago.|few" xml:space="preserve">
     <value>Wygasł {0} dni temu.</value>
   </data>
+  <data name="Expires" xml:space="preserve">
+    <value>Wygasa</value>
+  </data>
   <data name="Expires (server time)" xml:space="preserve">
     <value>Wygasa (czas serwera)</value>
   </data>
@@ -9167,6 +9170,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Pages" xml:space="preserve">
     <value>Strony</value>
   </data>
+  <data name="Part of a name (empty = everyone)" xml:space="preserve">
+    <value>Część nazwy (puste = wszyscy)</value>
+  </data>
   <data name="Part of a name (empty lists everyone)" xml:space="preserve">
     <value>Część nazwy (puste pokazuje wszystkich)</value>
   </data>
@@ -12024,6 +12030,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="Sign-in cancelled." xml:space="preserve">
     <value>Logowanie anulowane.</value>
+  </data>
+  <data name="Sign-in failures" xml:space="preserve">
+    <value>Nieudane logowania</value>
   </data>
   <data name="Sign-in tarpit" xml:space="preserve">
     <value>Tarpit logowania</value>

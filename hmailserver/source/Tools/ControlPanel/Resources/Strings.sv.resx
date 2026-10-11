@@ -5140,6 +5140,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Expired {0} days ago." xml:space="preserve">
     <value>Gick ut för {0} dagar sedan.</value>
   </data>
+  <data name="Expires" xml:space="preserve">
+    <value>Går ut</value>
+  </data>
   <data name="Expires (server time)" xml:space="preserve">
     <value>Går ut (servertid)</value>
   </data>
@@ -9058,6 +9061,9 @@ Inget som redan finns där tas bort.</value>
   <data name="Pages" xml:space="preserve">
     <value>Sidor</value>
   </data>
+  <data name="Part of a name (empty = everyone)" xml:space="preserve">
+    <value>En del av ett namn (tomt = alla)</value>
+  </data>
   <data name="Part of a name (empty lists everyone)" xml:space="preserve">
     <value>En del av ett namn (tomt visar alla)</value>
   </data>
@@ -11867,6 +11873,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Sign-in cancelled." xml:space="preserve">
     <value>Inloggningen avbröts.</value>
+  </data>
+  <data name="Sign-in failures" xml:space="preserve">
+    <value>Misslyckade inloggningar</value>
   </data>
   <data name="Sign-in tarpit" xml:space="preserve">
     <value>Inloggningstjärgrop</value>

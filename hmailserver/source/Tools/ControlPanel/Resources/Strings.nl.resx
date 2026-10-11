@@ -5140,6 +5140,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Expired {0} days ago." xml:space="preserve">
     <value>{0} dagen geleden verlopen.</value>
   </data>
+  <data name="Expires" xml:space="preserve">
+    <value>Verloopt</value>
+  </data>
   <data name="Expires (server time)" xml:space="preserve">
     <value>Verloopt (servertijd)</value>
   </data>
@@ -9058,6 +9061,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Pages" xml:space="preserve">
     <value>Pagina's</value>
   </data>
+  <data name="Part of a name (empty = everyone)" xml:space="preserve">
+    <value>Deel van een naam (leeg = iedereen)</value>
+  </data>
   <data name="Part of a name (empty lists everyone)" xml:space="preserve">
     <value>Deel van een naam (leeg toont iedereen)</value>
   </data>
@@ -11867,6 +11873,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Sign-in cancelled." xml:space="preserve">
     <value>Aanmelden geannuleerd.</value>
+  </data>
+  <data name="Sign-in failures" xml:space="preserve">
+    <value>Mislukte aanmeldingen</value>
   </data>
   <data name="Sign-in tarpit" xml:space="preserve">
     <value>Aanmeldtarpit</value>

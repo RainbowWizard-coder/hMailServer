@@ -108,7 +108,7 @@ namespace hMailServer.ControlPanel.Services
          // The page's own purpose (NavigationMap), where this said it a third way
          // (review finding F325).
          new IntentEntry(N("where does mail for a domain go"), "mxquery",
-            N("Look up where e-mail for a domain is delivered, to check DNS before blaming the server.")),
+            N("Look up where mail for a domain is delivered, to check DNS before blaming the server.")),
          new IntentEntry(N("is anyone connected"), "status",
             N("Server status lists the live sessions for each protocol.")),
 

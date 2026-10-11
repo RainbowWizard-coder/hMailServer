@@ -235,7 +235,7 @@ namespace hMailServer.ControlPanel.Services
          ["api key"] = N("API key"),
          ["device"] = N("Signed-in device"),
          ["profile"] = N("Setting profile"),
-         ["logon failures"] = N("Logon failures"),
+         ["logon failures"] = N("Sign-in failures"),
          ["quarantined message"] = N("Quarantined message"),
          ["sandbox hold"] = N("Message held by the sandbox"),
          ["held message"] = N("Message held for review"),

@@ -5140,6 +5140,9 @@
   <data name="Expired {0} days ago." xml:space="preserve">
     <value>已于 {0} 天前过期。</value>
   </data>
+  <data name="Expires" xml:space="preserve">
+    <value>到期</value>
+  </data>
   <data name="Expires (server time)" xml:space="preserve">
     <value>到期（服务器时间）</value>
   </data>
@@ -9058,6 +9061,9 @@
   <data name="Pages" xml:space="preserve">
     <value>页面</value>
   </data>
+  <data name="Part of a name (empty = everyone)" xml:space="preserve">
+    <value>名称的一部分（空 = 所有人）</value>
+  </data>
   <data name="Part of a name (empty lists everyone)" xml:space="preserve">
     <value>名称的一部分（留空则列出所有人）</value>
   </data>
@@ -11867,6 +11873,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Sign-in cancelled." xml:space="preserve">
     <value>登录已取消。</value>
+  </data>
+  <data name="Sign-in failures" xml:space="preserve">
+    <value>登录失败</value>
   </data>
   <data name="Sign-in tarpit" xml:space="preserve">
     <value>登录延迟陷阱</value>

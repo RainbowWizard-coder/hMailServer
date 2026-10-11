@@ -43,9 +43,10 @@ namespace hMailServer.ControlPanel.Views
          var body = new StackPanel();
          body.Children.Add(notice);
          FieldRow nameRow = DialogFields.Field(L("_Name"), name);
-         FieldRow certificateRow = DialogFields.Field(L("_Certificate file (PEM)"), WithBrowse_(certificate, L("Browse for the certificate file")),
-            PfxHint);
-         FieldRow keyRow = DialogFields.Field(L("Private key _file (PEM)"), WithBrowse_(key, L("Browse for the private key file")));
+         FieldRow certificateRow = DialogFields.Field(L("_Certificate file (PEM)"),
+            WithBrowse_(certificate, L("_Certificate file (PEM)"), L("Browse for the certificate file")), PfxHint);
+         FieldRow keyRow = DialogFields.Field(L("Private key _file (PEM)"),
+            WithBrowse_(key, L("Private key _file (PEM)"), L("Browse for the private key file")));
          body.Children.Add(nameRow);
          body.Children.Add(certificateRow);
          body.Children.Add(keyRow);
@@ -65,9 +66,9 @@ namespace hMailServer.ControlPanel.Views
             if ((name.Text ?? "").Trim().Length == 0)
                nameRow.Error = L("Enter a name for the certificate.");
             if ((certificate.Text ?? "").Trim().Length == 0)
-               certificateRow.Error = L("Enter the path of the certificate file, or choose the file with the … button beside the box.");
+               certificateRow.Error = L("Enter the path of the certificate file, or choose the file with Browse… beside the box.");
             if ((key.Text ?? "").Trim().Length == 0)
-               keyRow.Error = L("Enter the path of the private key file, or choose the file with the … button beside the box.");
+               keyRow.Error = L("Enter the path of the private key file, or choose the file with Browse… beside the box.");
             if (DialogFields.ShowFirstError(nameRow, certificateRow, keyRow))
                return;
 
@@ -87,7 +88,7 @@ namespace hMailServer.ControlPanel.Views
 
          dialog.Frame(L("Edit certificate"), body, save, cancel,
             L("The certificate keeps its place on every TCP/IP port that presents it. Those ports read the files again when the server is next reinitialised."),
-            width: 560);
+            width: DesignTokens.Dialog.WideWidth);
          // Room for the three boxes' messages, which one press can say together,
          // so that Save and Cancel stay where they were pressed (review finding F213).
          dialog.KeepRoomForFieldErrors(3);
@@ -103,16 +104,21 @@ namespace hMailServer.ControlPanel.Views
       public static string PfxHint
          => L("The server reads PEM files. Convert a .pfx or .p12 file first, for example with openssl pkcs12 -in cert.pfx -nokeys -out cert.pem and openssl pkcs12 -in cert.pfx -nocerts -nodes -out key.pem.");
 
-      /// <summary>A path box with the … button beside it that chooses the file, as the page's add form has.</summary>
-      private static FrameworkElement WithBrowse_(TextBox box, string browseName)
+      /// <summary>
+      /// A path box with Browse… beside it, which chooses the file, as the page's add form
+      /// has: named "Browse: " and the field it fills, the sentence that said what it does
+      /// its help text (review finding F324).
+      /// </summary>
+      private static FrameworkElement WithBrowse_(TextBox box, string caption, string browseHelp)
       {
          var grid = new Grid();
          grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
          grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
          grid.Children.Add(box);
 
-         var browse = new Wpf.Ui.Controls.Button { Content = "…", Margin = new Thickness(DesignTokens.Space.Xs, 0, 0, 0) }; // no-loc: the glyph; the name says what it does
-         System.Windows.Automation.AutomationProperties.SetName(browse, browseName);
+         var browse = new Wpf.Ui.Controls.Button { Content = L("Browse…"), Margin = new Thickness(DesignTokens.Space.Xs, 0, 0, 0) };
+         ControlHelp.Explain(browse, browseHelp);
+         ControlHelp.NameLink(browse, L("Browse…"), LabelInName.Shown(caption));
          browse.Click += (_, _) =>
          {
             var picker = new Microsoft.Win32.OpenFileDialog { Filter = L("PEM files (*.pem;*.crt;*.key)|*.pem;*.crt;*.key|All files (*.*)|*.*") };

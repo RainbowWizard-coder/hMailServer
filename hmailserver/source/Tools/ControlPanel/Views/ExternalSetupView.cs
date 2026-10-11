@@ -185,15 +185,16 @@ namespace hMailServer.ControlPanel.Views
          // The level from the cause: a lost link is Critical, as the shell's pill
          // calls it, and values a server that answered could not give are a Warning.
          readFailure_.Level = ComErrorText.LevelFor(checks_.LinkLost);
-         // In DNS records' words, which say the same of its cards: what follows
+         // In DNS records' and the overviews' words, one sentence for one thing (review
+         // finding F325), which say the same of their sections: what follows
          // first, the reason last, where a sentence after it ran on from the
          // runtime's text in brackets that it may end with; and no count, since one
          // read that failed may be the whole of an item.
          readFailure_.Text = checks_.FailedReads == 0
             ? null
             : checks_.FailedReads == 1
-               ? F("Some values could not be read, so the cards below may be incomplete. Why: {0}", checks_.FirstError)
-               : F("Some values could not be read, so the cards below may be incomplete. The first reason: {0}", checks_.FirstError);
+               ? F("Some values could not be read, so the sections below may be incomplete. Why: {0}", checks_.FirstError)
+               : F("Some values could not be read, so the sections below may be incomplete. The first reason: {0}", checks_.FirstError);
          readFailure_.Visibility = checks_.FailedReads == 0 ? Visibility.Collapsed : Visibility.Visible;
 
          RenderItems(checks_.DnsLookupCount > 0

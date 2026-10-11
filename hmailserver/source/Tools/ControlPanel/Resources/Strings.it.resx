@@ -5140,6 +5140,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Expired {0} days ago." xml:space="preserve">
     <value>È scaduto {0} giorni fa.</value>
   </data>
+  <data name="Expires" xml:space="preserve">
+    <value>Scade</value>
+  </data>
   <data name="Expires (server time)" xml:space="preserve">
     <value>Scade (ora del server)</value>
   </data>
@@ -9058,6 +9061,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Pages" xml:space="preserve">
     <value>Pagine</value>
   </data>
+  <data name="Part of a name (empty = everyone)" xml:space="preserve">
+    <value>Parte di un nome (vuoto = tutti)</value>
+  </data>
   <data name="Part of a name (empty lists everyone)" xml:space="preserve">
     <value>Parte di un nome (vuoto elenca tutti)</value>
   </data>
@@ -11867,6 +11873,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   </data>
   <data name="Sign-in cancelled." xml:space="preserve">
     <value>Accesso annullato.</value>
+  </data>
+  <data name="Sign-in failures" xml:space="preserve">
+    <value>Accessi non riusciti</value>
   </data>
   <data name="Sign-in tarpit" xml:space="preserve">
     <value>Tarpit di accesso</value>

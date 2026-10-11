@@ -5140,6 +5140,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Expired {0} days ago." xml:space="preserve">
     <value>Expired {0} days ago.</value>
   </data>
+  <data name="Expires" xml:space="preserve">
+    <value>Expires</value>
+  </data>
   <data name="Expires (server time)" xml:space="preserve">
     <value>Expires (server time)</value>
   </data>
@@ -9058,6 +9061,9 @@ Nothing already there is removed.</value>
   <data name="Pages" xml:space="preserve">
     <value>Pages</value>
   </data>
+  <data name="Part of a name (empty = everyone)" xml:space="preserve">
+    <value>Part of a name (empty = everyone)</value>
+  </data>
   <data name="Part of a name (empty lists everyone)" xml:space="preserve">
     <value>Part of a name (empty lists everyone)</value>
   </data>
@@ -11867,6 +11873,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="Sign-in cancelled." xml:space="preserve">
     <value>Sign-in cancelled.</value>
+  </data>
+  <data name="Sign-in failures" xml:space="preserve">
+    <value>Sign-in failures</value>
   </data>
   <data name="Sign-in tarpit" xml:space="preserve">
     <value>Sign-in tarpit</value>

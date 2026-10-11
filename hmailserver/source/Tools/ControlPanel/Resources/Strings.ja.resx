@@ -5150,6 +5150,9 @@
   <data name="Expired {0} days ago." xml:space="preserve">
     <value>{0} 日前に期限切れになりました。</value>
   </data>
+  <data name="Expires" xml:space="preserve">
+    <value>有効期限</value>
+  </data>
   <data name="Expires (server time)" xml:space="preserve">
     <value>有効期限 (サーバー時刻)</value>
   </data>
@@ -9068,6 +9071,9 @@
   <data name="Pages" xml:space="preserve">
     <value>ページ</value>
   </data>
+  <data name="Part of a name (empty = everyone)" xml:space="preserve">
+    <value>名前の一部 (空 = 全員)</value>
+  </data>
   <data name="Part of a name (empty lists everyone)" xml:space="preserve">
     <value>名前の一部 (空にすると全員を表示)</value>
   </data>
@@ -11877,6 +11883,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Sign-in cancelled." xml:space="preserve">
     <value>サインインがキャンセルされました。</value>
+  </data>
+  <data name="Sign-in failures" xml:space="preserve">
+    <value>サインインの失敗</value>
   </data>
   <data name="Sign-in tarpit" xml:space="preserve">
     <value>サインイン タールピット</value>

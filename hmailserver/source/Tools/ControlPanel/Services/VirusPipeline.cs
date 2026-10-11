@@ -596,7 +596,7 @@ namespace hMailServer.ControlPanel.Services
          if (Sandbox(config).Level == StatusLevel.Warning)
          {
             notes.Add(new VirusPipelineNote(StatusLevel.Warning,
-               L("The sandbox is ON but an address is empty, so nothing is held and nothing is submitted until both are set - the application log says so at every start. Set both addresses, or turn it off.")));
+               L("The sandbox is on but an address is empty, so nothing is held and nothing is submitted until both are set - the application log says so at every start. Set both addresses, or turn it off.")));
          }
 
          if (blocking && config.AttachmentBlockingEnabled && config.BlockedAttachmentPatterns == 0)

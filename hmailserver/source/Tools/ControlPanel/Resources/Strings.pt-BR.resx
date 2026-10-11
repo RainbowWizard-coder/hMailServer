@@ -5140,6 +5140,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Expired {0} days ago." xml:space="preserve">
     <value>Expirou há {0} dias.</value>
   </data>
+  <data name="Expires" xml:space="preserve">
+    <value>Expira</value>
+  </data>
   <data name="Expires (server time)" xml:space="preserve">
     <value>Expira (horário do servidor)</value>
   </data>
@@ -9058,6 +9061,9 @@ Nada do que já está lá é removido.</value>
   <data name="Pages" xml:space="preserve">
     <value>Páginas</value>
   </data>
+  <data name="Part of a name (empty = everyone)" xml:space="preserve">
+    <value>Parte de um nome (vazio = todos)</value>
+  </data>
   <data name="Part of a name (empty lists everyone)" xml:space="preserve">
     <value>Parte de um nome (vazio lista todos)</value>
   </data>
@@ -11867,6 +11873,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="Sign-in cancelled." xml:space="preserve">
     <value>Login cancelado.</value>
+  </data>
+  <data name="Sign-in failures" xml:space="preserve">
+    <value>Falhas de login</value>
   </data>
   <data name="Sign-in tarpit" xml:space="preserve">
     <value>Tarpit de login</value>

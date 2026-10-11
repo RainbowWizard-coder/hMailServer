@@ -707,7 +707,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          (level, state, sentence) = VirusPipeline.Sandbox(config);
          Assert.Equal((StatusLevel.Warning, "On, but cannot run"), (level, state));
          Assert.Equal("The sandbox is switched on, but its submit or verdict address is empty.", sentence);
-         VirusPipelineNote inert = VirusPipeline.Notes(config).Single(n => n.Text.StartsWith("The sandbox is ON but an address is empty", StringComparison.Ordinal));
+         VirusPipelineNote inert = VirusPipeline.Notes(config).Single(n => n.Text.StartsWith("The sandbox is on but an address is empty", StringComparison.Ordinal));
          Assert.Equal((StatusLevel.Warning, "antivirus"), (inert.Level, inert.Page));
 
          config.SandboxVerdictUrl = "https://sandbox.example/verdict";

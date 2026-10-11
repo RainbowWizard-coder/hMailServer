@@ -5140,6 +5140,9 @@ Ingen post røres - indekset er udledt af den - men indtil genopbygningen har in
   <data name="Expired {0} days ago." xml:space="preserve">
     <value>Udløb for {0} dage siden.</value>
   </data>
+  <data name="Expires" xml:space="preserve">
+    <value>Udløber</value>
+  </data>
   <data name="Expires (server time)" xml:space="preserve">
     <value>Udløber (servertid)</value>
   </data>
@@ -9058,6 +9061,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Pages" xml:space="preserve">
     <value>Sider</value>
   </data>
+  <data name="Part of a name (empty = everyone)" xml:space="preserve">
+    <value>En del af et navn (tomt = alle)</value>
+  </data>
   <data name="Part of a name (empty lists everyone)" xml:space="preserve">
     <value>En del af et navn (tomt viser alle)</value>
   </data>
@@ -11867,6 +11873,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   </data>
   <data name="Sign-in cancelled." xml:space="preserve">
     <value>Pålogning annulleret.</value>
+  </data>
+  <data name="Sign-in failures" xml:space="preserve">
+    <value>Pålogningsfejl</value>
   </data>
   <data name="Sign-in tarpit" xml:space="preserve">
     <value>Pålognings-tarpit</value>

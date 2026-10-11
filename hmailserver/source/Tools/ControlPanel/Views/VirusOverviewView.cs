@@ -800,7 +800,7 @@ namespace hMailServer.ControlPanel.Views
          grid.Children.Add(pill);
 
          // On the tab that holds them, Sandbox, where the page opens on its first.
-         FrameworkElement link = PageLink("antivirus", L("Settings…"),
+         FrameworkElement link = PageLink("antivirus", F("{0} →", L(NavigationMap.TitleOf("antivirus"))),
             F("Open {0}, which owns the {1} settings", L(NavigationMap.TitleOf("antivirus")), L("Sandbox")), N("Sandbox"));
          link.Margin = new Thickness(0, 4, 0, 4);
          link.VerticalAlignment = VerticalAlignment.Top;

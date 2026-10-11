@@ -39,8 +39,9 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          string code = Source();
          Assert.DoesNotContain("above may be incomplete", code, StringComparison.Ordinal);
-         Assert.Contains("F(\"Some values could not be read, so the cards below may be incomplete. Why: {0}\", checks_.FirstError)", code, StringComparison.Ordinal);
-         Assert.Contains("F(\"Some values could not be read, so the cards below may be incomplete. The first reason: {0}\", checks_.FirstError)", code, StringComparison.Ordinal);
+         // DNS records' and the overviews' sentence (t31c, F325), one for one thing.
+         Assert.Contains("F(\"Some values could not be read, so the sections below may be incomplete. Why: {0}\", checks_.FirstError)", code, StringComparison.Ordinal);
+         Assert.Contains("F(\"Some values could not be read, so the sections below may be incomplete. The first reason: {0}\", checks_.FirstError)", code, StringComparison.Ordinal);
       }
 
       [Fact]
