@@ -129,40 +129,18 @@ namespace hMailServer.ControlPanel.Views
 
       /// <summary>
       /// The engine's state in its pill, named "State" for a screen reader as the other
-      /// readouts are, and the paused notice under the header with its Resume (review
-      /// finding F246). Draining - the listeners closed while what is in flight
-      /// finishes, entered and left over REST (POST and DELETE /api/v1/server/drain)
-      /// and by the live update - is the pill's Warning alone: it is not this page's
-      /// Pause, and Resume does not end it.
+      /// readouts are (review finding F246): Paused at Warning, which the window's bar
+      /// at its foot says on every page with Resume (MainWindow.ServerPaused.cs, F019).
+      /// Draining - the listeners closed while what is in flight finishes, entered and
+      /// left over REST (POST and DELETE /api/v1/server/drain) and by the live update -
+      /// is the pill's Warning alone: it is not this page's Pause, and Resume does not
+      /// end it.
       /// </summary>
-      private void ShowState_(string word, StatusLevel level, bool paused)
+      private void ShowState_(string word, StatusLevel level)
       {
          StatePill.Level = level;
          StatePill.Text = word;
          AutomationProperties.SetName(StatePill, L("State") + ", " + word);
-         PausedNotice.Visibility = paused ? Visibility.Visible : Visibility.Collapsed;
-         PausedNotice.Content = paused ? ResumeAction_() : null;
-      }
-
-      // The paused notice's Resume, made once and kept: the notice's action carries no
-      // Alt key, which the header's R_esume beside it has (Services/NoticeActions).
-      private Wpf.Ui.Controls.Button resumeAction_;
-
-      private Wpf.Ui.Controls.Button ResumeAction_()
-      {
-         if (resumeAction_ != null)
-            return resumeAction_;
-
-         resumeAction_ = new Wpf.Ui.Controls.Button
-         {
-            Content = MnemonicText.Strip(L("R_esume")),
-            Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary,
-            VerticalAlignment = VerticalAlignment.Center
-         };
-         AutomationProperties.SetAutomationId(resumeAction_, "status-paused-resume");
-         ControlHelp.Explain(resumeAction_, L("Start the mail server engine again, as the header's Resume does"));
-         resumeAction_.Click += PauseResume_Click;
-         return resumeAction_;
       }
 
       // The first read of this Reload that failed, said under the header, or
@@ -198,7 +176,7 @@ namespace hMailServer.ControlPanel.Views
          {
             int state = (int)app.ServerState;
             (string word, StatusLevel level) = ServerStateText.For(state);
-            ShowState_(word, level, ServerStateText.IsPaused(state));
+            ShowState_(word, level);
             UpdatePauseButton_(state);
 
             // The window says a paused server under every page, from what this
@@ -207,7 +185,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {
-            ShowState_(NotRead_(fatalCheck), StatusLevel.Normal, false);
+            ShowState_(NotRead_(fatalCheck), StatusLevel.Normal);
             PauseButton.IsEnabled = false;
          }
 

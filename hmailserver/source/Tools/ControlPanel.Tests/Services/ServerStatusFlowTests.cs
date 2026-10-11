@@ -17,7 +17,7 @@ namespace hMailServer.ControlPanel.Tests.Services
    /// shows no tool tip), Check and Download ran on the UI thread behind a wait cursor
    /// with a tool tip that said the Control Panel waits, and the install window drew
    /// its steps as hollow circles in one colour whether done or failed. The state is a
-   /// pill at its level with the paused notice and Resume under the header; the
+   /// pill at its level, a paused engine said with Resume by the window's bar (F019); the
    /// Updates page offers one step at a time as its Primary, off the UI thread with a
    /// busy line; and the install window's steps are status marks in their levels'
    /// colours.
@@ -59,12 +59,15 @@ namespace hMailServer.ControlPanel.Tests.Services
          string code = Read("StatusView.xaml.cs");
          Assert.Contains("<scaffold:StatusPill Grid.Row=\"1\" Grid.Column=\"1\" x:Name=\"StatePill\"", xaml, StringComparison.Ordinal);
          Assert.DoesNotContain("x:Name=\"StateValue\"", xaml, StringComparison.Ordinal);
-         Assert.True(xaml.IndexOf("x:Name=\"ReadNotice\"", StringComparison.Ordinal) < xaml.IndexOf("x:Name=\"PausedNotice\"", StringComparison.Ordinal),
-            "The paused notice is not under the header's read notice.");
+         // A paused engine is the pill at Warning and the window's bar at its foot, with Resume, on
+         // this page as on every other (t213a, review finding F019): a notice of the page's own
+         // said it a second time beside a second Resume.
+         Assert.DoesNotContain("PausedNotice", xaml, StringComparison.Ordinal);
+         Assert.DoesNotContain("PausedNotice", code, StringComparison.Ordinal);
+         Assert.Contains("x:Name=\"PausedBar\"", FormLineAssert.ReadControlPanelFile("MainWindow.xaml"), StringComparison.Ordinal);
 
          Assert.Contains("(string word, StatusLevel level) = ServerStateText.For(state);", code, StringComparison.Ordinal);
-         Assert.Contains("PausedNotice.Visibility = paused ? Visibility.Visible : Visibility.Collapsed;", code, StringComparison.Ordinal);
-         Assert.Contains("resumeAction_.Click += PauseResume_Click;", code, StringComparison.Ordinal);
+         Assert.Equal(StatusLevel.Warning, ServerStateText.For(ServerStateText.Stopped).Level);
          Assert.DoesNotContain("L(\"Stopped\")", code, StringComparison.Ordinal);
       }
 

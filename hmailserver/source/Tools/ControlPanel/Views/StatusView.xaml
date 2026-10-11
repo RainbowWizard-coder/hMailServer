@@ -38,12 +38,10 @@
             <scaffold:InlineNotice x:Name="ReadNotice" Visibility="Collapsed"
                                    AutomationProperties.AutomationId="status-read-failure" />
 
-            <!-- A paused engine, under the header with Resume (review finding F246):
-                 the state was a word in the Server card, and nothing else said that
-                 no mail was coming in or going out. -->
-            <scaffold:InlineNotice x:Name="PausedNotice" Level="Warning" Visibility="Collapsed"
-                                   Text="{loc:L 'The mail server is paused: no connections are accepted and no mail is delivered until it is resumed.'}"
-                                   AutomationProperties.AutomationId="status-paused" />
+            <!-- A paused engine is said by the State pill at Warning (review finding
+                 F246) and by the window's bar at its foot, on this page as on every
+                 other, with Resume (MainWindow.ServerPaused.cs, F019): a notice here
+                 said it a second time, with a second Resume beside the header's. -->
 
             <!-- A newer release waiting, in one line with the page that installs it
                  (Views/UpdateNotice); nothing while there is none. -->
