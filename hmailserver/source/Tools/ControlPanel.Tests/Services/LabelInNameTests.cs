@@ -201,6 +201,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("Show what a synchronisation would do, changing nothing", "_Preview", false)]
       [InlineData("Why it is listed", "N_ote", false)]
       [InlineData("Add distribution list", "Add li_st", false)]
+      [InlineData("SSL/TLS: Open SSL/TLS, which owns the protocol versions and cipher lists", "SSL/TLS →", true)]
       public void TheRule(string name, string caption, bool keeps)
       {
          Assert.Equal(keeps, StartsWithCaption(name, caption));
@@ -218,6 +219,11 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("Open Domains", "Open Domains, which owns the settings for: DKIM signing", "Open Domains, which owns the settings for: DKIM signing")]
       [InlineData("Host name setting…", "Open Protocols, whose SMTP tab has the Host name", "Host name setting: Open Protocols, whose SMTP tab has the Host name")]
       [InlineData("Pr_operties…", "", "Properties")]
+      // An overview's link to a page ends in an arrow, which is no word of its name:
+      // it was "TCP/IP ports →: Open TCP/IP ports, ...".
+      [InlineData("TCP/IP ports →", "Open TCP/IP ports, which owns the per-listener security setting", "TCP/IP ports: Open TCP/IP ports, which owns the per-listener security setting")]
+      [InlineData("Anti-virus settings →", "Open Anti-virus settings, which owns the ClamAV settings", "Anti-virus settings: Open Anti-virus settings, which owns the ClamAV settings")]
+      [InlineData("Next ›", "", "Next")]
       public void ALink_IsNamedByItsCaptionThenWhereItGoes(string caption, string destination, string name)
       {
          Assert.Equal(name, LabelInName.LinkName(caption, destination));

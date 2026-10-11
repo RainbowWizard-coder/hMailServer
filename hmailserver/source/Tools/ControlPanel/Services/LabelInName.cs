@@ -15,7 +15,10 @@ namespace hMailServer.ControlPanel.Services
    /// "click Settings" in voice control reaches the button that says Settings.
    /// The words a caption shows are the caption without its Alt-key underscore -
    /// and without the (_X) a Chinese or Japanese caption carries its key in - and
-   /// without the ellipsis or colon it may end in.
+   /// without the ellipsis, colon or arrow it may end in: an overview's link to a
+   /// page, "TCP/IP ports →", is named "TCP/IP ports: Open TCP/IP ports, which
+   /// owns the per-listener security setting", where a screen reader read the
+   /// arrow and a colon after it in the middle of the name (review finding F305).
    ///
    /// Plain functions, without WPF, so that LabelInNameTests holds the rule and
    /// the names it makes; Views/ControlHelp is the half that sets them.
@@ -27,7 +30,7 @@ namespace hMailServer.ControlPanel.Services
       {
          string text = MnemonicText.Strip(caption ?? "");
          text = Regex.Replace(text, @"\((?:\w)\)", "");
-         return text.TrimEnd('.', '…', ' ', ':').Trim();
+         return text.TrimEnd('.', '…', '→', '›', ' ', ':').Trim();
       }
 
       /// <summary>Whether <paramref name="name"/> starts with the words <paramref name="caption"/> shows.</summary>
