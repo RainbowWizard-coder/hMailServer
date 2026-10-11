@@ -140,15 +140,17 @@ namespace hMailServer.ControlPanel.Views
             L("Between the 354 and the 250 the server runs the accept pipeline - spam tests, message modifications, archiving, the OnAcceptMessage script and the database save - on a bounded pool of threads, and replies only when it finishes. The log times each stage. Read it as a sequence and look for the last line written: the stage that is stuck is the one after it. Two stages announce themselves with a start line (spam-protection and script/save); message modifications do not, so a stall there shows as \"done spam-protection\" followed by silence. A stage taking ten seconds or more is logged at application level even without debug logging."));
          var content = (StackPanel)card.Content;
 
-         content.Children.Add(Table(new[]
+         // What the log writes - a spam test's name, the field its time is in, a stage,
+         // a reply code - is the data of each row's sentence, never translated.
+         content.Children.Add(LogTable(new[]
          {
-            (L("SpamTestSpamAssassin with a large Time:"), L("spamd is unreachable, overloaded, or accepting connections without answering.")),
-            (L("SpamTestDNSBlackLists, SpamTestSURBL or SpamTestSPF slow"), L("The resolver is not answering: look in the TCP/IP log for \"DNS - Query timed out\". Do not reach for 'Override DNS server' on the DNS resolver page as the fix - leave it empty unless you need a specific resolver.")),
-            (L("\"done spam-protection\", then silence"), L("Message modifications: the spam headers, the signature, the List-* headers, or the write of the modified message back to disk.")),
-            (L("script/save slow"), L("An OnAcceptMessage event script, or the database.")),
-            (L("Nothing between 354 and silence"), L("A version older than 6.2.17; upgrade, because that is the version that added these lines.")),
-            (L("451 4.3.1 replies"), L("Acceptance exceeded the message finalisation deadline (240 s by default): the sender retries rather than waiting for ever, the error entry names the deadline, and the stage timings above it name what consumed the time.")),
-         }, logLines: true));
+            (L("{0} with a large {1}"), new[] { "SpamTestSpamAssassin", "Time:" }, L("spamd is unreachable, overloaded, or accepting connections without answering.")),
+            (L("{0}, {1} or {2} slow"), new[] { "SpamTestDNSBlackLists", "SpamTestSURBL", "SpamTestSPF" }, L("The resolver is not answering: look in the TCP/IP log for \"DNS - Query timed out\". Do not reach for 'Override DNS server' on the DNS resolver page as the fix - leave it empty unless you need a specific resolver.")),
+            (L("{0}, then silence"), new[] { "done spam-protection" }, L("Message modifications: the spam headers, the signature, the List-* headers, or the write of the modified message back to disk.")), // no-loc: the log's words
+            (L("{0} slow"), new[] { "script/save" }, L("An OnAcceptMessage event script, or the database.")),
+            (L("Nothing between {0} and silence"), new[] { "354" }, L("A version older than 6.2.17; upgrade, because that is the version that added these lines.")),
+            (L("{0} replies"), new[] { "451 4.3.1" }, L("Acceptance exceeded the message finalisation deadline (240 s by default): the sender retries rather than waiting for ever, the error entry names the deadline, and the stage timings above it name what consumed the time.")),
+         }));
 
          var links = new WrapPanel { Margin = new Thickness(0, 10, 0, 0) };
          links.Children.Add(Link(L("Open the live logs"), "logs"));
@@ -342,34 +344,47 @@ namespace hMailServer.ControlPanel.Views
          return block;
       }
 
+      /// <summary>Two columns, what is seen and what it means, the first in SemiBold.</summary>
+      private static Grid Table((string what, string cause)[] rows)
+         => Table(rows.Length, i => rows[i].cause, (what, i) =>
+         {
+            what.Text = rows[i].what;
+            what.SetResourceReference(StyleProperty, "TextBodyStrong");
+         });
+
       /// <summary>
-      /// Two columns, what is seen and what it means. With <paramref name="logLines"/>
-      /// the first column is what the log writes - a stage's name, its timing line, a
-      /// reply code - in the monospaced face at its size, where it was body text in
-      /// SemiBold beside the explanation (review finding F304).
+      /// Two columns, what the log shows and what it means: the first a sentence whose
+      /// placeholders are what the log writes - a spam test's name, the field its time
+      /// is in, a stage, a reply code - set as runs in the monospaced face, its words in
+      /// the body face (DataTextBlock.FillPlaceholders). The log's words were body text
+      /// in SemiBold, and then the whole cell was monospaced, so that "with a large",
+      /// "slow" and "then silence" read as text to look for in the log (review finding
+      /// F304); the help document writes the same rows with the log's words as code.
       /// </summary>
-      private static Grid Table((string what, string cause)[] rows, bool logLines = false)
+      private static Grid LogTable((string sentence, string[] logText, string cause)[] rows)
+         => Table(rows.Length, i => rows[i].cause, (what, i) =>
+         {
+            what.SetResourceReference(StyleProperty, "TextBody");
+            DataTextBlock.FillPlaceholders(what, rows[i].sentence, rows[i].logText);
+         });
+
+      private static Grid Table(int count, Func<int, string> causeOf, Action<TextBlock, int> fillWhat)
       {
          var grid = new Grid { Margin = new Thickness(0, 6, 0, 0) };
          grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
          grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(3, GridUnitType.Star) });
 
-         for (int i = 0; i < rows.Length; i++)
+         for (int i = 0; i < count; i++)
          {
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-            var what = new TextBlock { Text = rows[i].what, Margin = new Thickness(0, 2, 12, 6) };
-            what.SetResourceReference(StyleProperty, logLines ? "TextBody" : "TextBodyStrong");
-            if (logLines)
-            {
-               what.FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily);
-               what.FontSize = Typography.Mono;
-            }
+            var what = new TextBlock { Margin = new Thickness(0, 2, 12, 6) };
+            fillWhat(what, i);
             Grid.SetRow(what, i);
             Grid.SetColumn(what, 0);
             grid.Children.Add(what);
 
-            var cause = new TextBlock { Text = rows[i].cause, Margin = new Thickness(0, 2, 0, 6) };
+            var cause = new TextBlock { Text = causeOf(i), Margin = new Thickness(0, 2, 0, 6) };
             cause.SetResourceReference(StyleProperty, "TextSecondary");
             Grid.SetRow(cause, i);
             Grid.SetColumn(cause, 1);

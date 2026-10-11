@@ -3425,7 +3425,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   REST API keys marked off "Authorization: Bearer hmapi_..." by two spaces inside its sentence and wrapped the key
   store's path at a backslash; and the stalled-mail guide's log lines were body text in SemiBold. Each is in the
   monospaced face now - the overview's list a run of its own that breaks only after a colon, the header on a line of
-  its own, the store's path cut in its middle with the whole of it in the tool tip - and every box and block of
+  its own, the store's path cut in its middle with the whole of it in the tool tip, the guide's log words
+  (SpamTestSpamAssassin, Time:, done spam-protection, 451 4.3.1) runs of their own in each row's sentence, whose other
+  words, such as "with a large", "slow" and "then silence", stay in the body face - and every box and block of
   monospaced text is one size, the new `AppFontSizeMono` (13), where the live log was 12, the diagnostics 12, the DNS
   record and DKIM boxes 12, the help pane's code blocks 12, and the event script, the TOTP setup key, the generated
   password, the quarantine's headers and a setting's name 14; the one-time code boxes stay 28 pixels, for six digits

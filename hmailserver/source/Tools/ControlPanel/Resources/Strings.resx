@@ -18,9 +18,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="&quot;done spam-protection&quot;, then silence" xml:space="preserve">
-    <value>"done spam-protection", then silence</value>
-  </data>
   <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Protocols &gt; SMTP &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
     <value>"mx" authorises whatever {0}'s MX records point at; "a:{1}" authorises the address of the host name this server announces in HELO/EHLO (Protocols &gt; SMTP &gt; Host name). "~all" soft-fails everything else - deliberately softer than "-all" until you are sure the list is complete.</value>
   </data>
@@ -296,9 +293,6 @@
   </data>
   <data name="45 by default. A stale database is still used; the application log says it is stale." xml:space="preserve">
     <value>45 by default. A stale database is still used; the application log says it is stale.</value>
-  </data>
-  <data name="451 4.3.1 replies" xml:space="preserve">
-    <value>451 4.3.1 replies</value>
   </data>
   <data name="5 by default, the stock mark threshold, so such a message is marked as spam unless the thresholds have been raised. A newsletter of a hundred links names far fewer domains than that; lower it if mail you want names more." xml:space="preserve">
     <value>5 by default, the stock mark threshold, so such a message is marked as spam unless the thresholds have been raised. A newsletter of a hundred links names far fewer domains than that; lower it if mail you want names more.</value>
@@ -8194,8 +8188,8 @@ Nothing already there is removed.</value>
   <data name="Nothing below is served until a port is set here. The server answers on either port, but an MTA-STS policy is only valid over HTTPS and Outlook only accepts autodiscover over HTTPS - so in practice set the HTTPS port and a certificate covering the host names clients use." xml:space="preserve">
     <value>Nothing below is served until a port is set here. The server answers on either port, but an MTA-STS policy is only valid over HTTPS and Outlook only accepts autodiscover over HTTPS - so in practice set the HTTPS port and a certificate covering the host names clients use.</value>
   </data>
-  <data name="Nothing between 354 and silence" xml:space="preserve">
-    <value>Nothing between 354 and silence</value>
+  <data name="Nothing between {0} and silence" xml:space="preserve">
+    <value>Nothing between {0} and silence</value>
   </data>
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking has no patterns, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Nothing examines incoming mail. No scanner can run and attachment blocking has no patterns, so an infected message is delivered to the mailbox exactly as it arrived.</value>
@@ -11987,12 +11981,6 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="SpamAssassin: idle timeout, and a session ceiling of this plus 30 s. 0 does not mean no time limit." xml:space="preserve">
     <value>SpamAssassin: idle timeout, and a session ceiling of this plus 30 s. 0 does not mean no time limit.</value>
-  </data>
-  <data name="SpamTestDNSBlackLists, SpamTestSURBL or SpamTestSPF slow" xml:space="preserve">
-    <value>SpamTestDNSBlackLists, SpamTestSURBL or SpamTestSPF slow</value>
-  </data>
-  <data name="SpamTestSpamAssassin with a large Time:" xml:space="preserve">
-    <value>SpamTestSpamAssassin with a large Time:</value>
   </data>
   <data name="Specialist knobs - leave at the defaults unless you have a specific reason." xml:space="preserve">
     <value>Specialist knobs - leave at the defaults unless you have a specific reason.</value>
@@ -16787,9 +16775,6 @@ It will keep trying as you use the application.</value>
   <data name="scan for viruses" xml:space="preserve">
     <value>scan for viruses</value>
   </data>
-  <data name="script/save slow" xml:space="preserve">
-    <value>script/save slow</value>
-  </data>
   <data name="scrypt (memory-hard, RFC 7914)" xml:space="preserve">
     <value>scrypt (memory-hard, RFC 7914)</value>
   </data>
@@ -17738,6 +17723,9 @@ It will keep trying as you use the application.</value>
   <data name="{0} remote domain policies" xml:space="preserve">
     <value>{0} remote domain policies</value>
   </data>
+  <data name="{0} replies" xml:space="preserve">
+    <value>{0} replies</value>
+  </data>
   <data name="{0} route" xml:space="preserve">
     <value>{0} route</value>
   </data>
@@ -17816,6 +17804,9 @@ It will keep trying as you use the application.</value>
   <data name="{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server." xml:space="preserve">
     <value>{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server.</value>
   </data>
+  <data name="{0} slow" xml:space="preserve">
+    <value>{0} slow</value>
+  </data>
   <data name="{0} spam exemptions" xml:space="preserve">
     <value>{0} spam exemptions</value>
   </data>
@@ -17872,6 +17863,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="{0} was removed, with everything in it - mailboxes: {1}, distribution lists: {2}, rules: {3}, messages: {4}." xml:space="preserve">
     <value>{0} was removed, with everything in it - mailboxes: {1}, distribution lists: {2}, rules: {3}, messages: {4}.</value>
+  </data>
+  <data name="{0} with a large {1}" xml:space="preserve">
+    <value>{0} with a large {1}</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} with full authority</value>
@@ -17950,6 +17944,12 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="{0}, on the {1} page" xml:space="preserve">
     <value>{0}, on the {1} page</value>
+  </data>
+  <data name="{0}, then silence" xml:space="preserve">
+    <value>{0}, then silence</value>
+  </data>
+  <data name="{0}, {1} or {2} slow" xml:space="preserve">
+    <value>{0}, {1} or {2} slow</value>
   </data>
   <data name="{0}, {1}, as read at {2}" xml:space="preserve">
     <value>{0}, {1}, as read at {2}</value>

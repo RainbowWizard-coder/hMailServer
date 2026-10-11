@@ -18,9 +18,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="&quot;done spam-protection&quot;, then silence" xml:space="preserve">
-    <value>« done spam-protection », puis silence</value>
-  </data>
   <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Protocols &gt; SMTP &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
     <value>« mx » autorise tout ce vers quoi pointent les enregistrements MX de {0} ; « a:{1} » autorise l'adresse du nom d'hôte que ce serveur annonce en HELO/EHLO (Protocoles &gt; SMTP &gt; Nom d'hôte). « ~all » fait échouer en douceur tout le reste - délibérément plus doux que « -all » tant que vous n'êtes pas sûr que la liste est complète.</value>
   </data>
@@ -296,9 +293,6 @@
   </data>
   <data name="45 by default. A stale database is still used; the application log says it is stale." xml:space="preserve">
     <value>45 par défaut. Une base obsolète est toujours utilisée ; le journal de l'application indique qu'elle est obsolète.</value>
-  </data>
-  <data name="451 4.3.1 replies" xml:space="preserve">
-    <value>Réponses 451 4.3.1</value>
   </data>
   <data name="5 by default, the stock mark threshold, so such a message is marked as spam unless the thresholds have been raised. A newsletter of a hundred links names far fewer domains than that; lower it if mail you want names more." xml:space="preserve">
     <value>5 par défaut, le seuil de marquage d'origine : un tel message est donc marqué comme spam tant que les seuils n'ont pas été relevés. Une lettre d'information de cent liens nomme bien moins de domaines ; baissez-le si du courrier que vous voulez en nomme davantage.</value>
@@ -8194,8 +8188,8 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Nothing below is served until a port is set here. The server answers on either port, but an MTA-STS policy is only valid over HTTPS and Outlook only accepts autodiscover over HTTPS - so in practice set the HTTPS port and a certificate covering the host names clients use." xml:space="preserve">
     <value>Rien de ce qui suit n'est servi tant qu'un port n'est pas défini ici. Le serveur répond sur l'un ou l'autre port, mais une politique MTA-STS n'est valide qu'en HTTPS et Outlook n'accepte l'autodiscover qu'en HTTPS - en pratique, définissez donc le port HTTPS et un certificat couvrant les noms d'hôte que les clients utilisent.</value>
   </data>
-  <data name="Nothing between 354 and silence" xml:space="preserve">
-    <value>Rien entre 354 et le silence</value>
+  <data name="Nothing between {0} and silence" xml:space="preserve">
+    <value>Rien entre {0} et le silence</value>
   </data>
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking has no patterns, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Rien n'examine le courrier entrant. Aucun analyseur ne peut s'exécuter et le blocage des pièces jointes n'a aucun motif : un message infecté est donc livré dans la boîte exactement tel qu'il est arrivé.</value>
@@ -11987,12 +11981,6 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="SpamAssassin: idle timeout, and a session ceiling of this plus 30 s. 0 does not mean no time limit." xml:space="preserve">
     <value>SpamAssassin : délai d'inactivité, et un plafond de session égal à cette valeur plus 30 s. 0 ne signifie pas l'absence de limite de temps.</value>
-  </data>
-  <data name="SpamTestDNSBlackLists, SpamTestSURBL or SpamTestSPF slow" xml:space="preserve">
-    <value>SpamTestDNSBlackLists, SpamTestSURBL ou SpamTestSPF lents</value>
-  </data>
-  <data name="SpamTestSpamAssassin with a large Time:" xml:space="preserve">
-    <value>SpamTestSpamAssassin avec un Time: élevé</value>
   </data>
   <data name="Specialist knobs - leave at the defaults unless you have a specific reason." xml:space="preserve">
     <value>Réglages spécialisés - laissez les valeurs par défaut sauf raison précise.</value>
@@ -16787,9 +16775,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="scan for viruses" xml:space="preserve">
     <value>rechercher des virus</value>
   </data>
-  <data name="script/save slow" xml:space="preserve">
-    <value>script/save lent</value>
-  </data>
   <data name="scrypt (memory-hard, RFC 7914)" xml:space="preserve">
     <value>scrypt (coûteux en mémoire, RFC 7914)</value>
   </data>
@@ -17738,6 +17723,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="{0} remote domain policies" xml:space="preserve">
     <value>{0} règles de domaine distant</value>
   </data>
+  <data name="{0} replies" xml:space="preserve">
+    <value>Réponses {0}</value>
+  </data>
   <data name="{0} route" xml:space="preserve">
     <value>{0} route</value>
   </data>
@@ -17816,6 +17804,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server." xml:space="preserve">
     <value>{0} réglages de cette carte n'ont pas pu être lus ; ils sont donc marqués « Non lu » et l'enregistrement les laisse tels quels sur le serveur.</value>
   </data>
+  <data name="{0} slow" xml:space="preserve">
+    <value>{0} lent</value>
+  </data>
   <data name="{0} spam exemptions" xml:space="preserve">
     <value>{0} exemptions anti-spam</value>
   </data>
@@ -17872,6 +17863,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="{0} was removed, with everything in it - mailboxes: {1}, distribution lists: {2}, rules: {3}, messages: {4}." xml:space="preserve">
     <value>{0} a été supprimé avec tout son contenu - boîtes : {1}, listes de diffusion : {2}, règles : {3}, messages : {4}.</value>
+  </data>
+  <data name="{0} with a large {1}" xml:space="preserve">
+    <value>{0} avec un {1} élevé</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} avec pleine autorité</value>
@@ -17950,6 +17944,12 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="{0}, on the {1} page" xml:space="preserve">
     <value>{0}, sur la page {1}</value>
+  </data>
+  <data name="{0}, then silence" xml:space="preserve">
+    <value>{0}, puis silence</value>
+  </data>
+  <data name="{0}, {1} or {2} slow" xml:space="preserve">
+    <value>{0}, {1} ou {2} lents</value>
   </data>
   <data name="{0}, {1}, as read at {2}" xml:space="preserve">
     <value>{0}, {1}, lu à {2}</value>

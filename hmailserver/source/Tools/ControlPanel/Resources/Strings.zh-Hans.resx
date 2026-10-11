@@ -18,9 +18,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="&quot;done spam-protection&quot;, then silence" xml:space="preserve">
-    <value>“done spam-protection”，然后便没有下文</value>
-  </data>
   <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Protocols &gt; SMTP &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
     <value>"mx" 授权 {0} 的 MX 记录所指向的一切主机；"a:{1}" 授权本服务器在 HELO/EHLO 中所声明的主机名（“协议 &gt; SMTP &gt; 主机名”）对应的地址。"~all" 对其余一切做软失败处理 - 在您确认这份列表完整之前，这比 "-all" 有意宽松一些。</value>
   </data>
@@ -296,9 +293,6 @@
   </data>
   <data name="45 by default. A stale database is still used; the application log says it is stale." xml:space="preserve">
     <value>默认 45。过时的数据库仍会被使用；应用程序日志会说明它已过时。</value>
-  </data>
-  <data name="451 4.3.1 replies" xml:space="preserve">
-    <value>451 4.3.1 应答</value>
   </data>
   <data name="5 by default, the stock mark threshold, so such a message is marked as spam unless the thresholds have been raised. A newsletter of a hundred links names far fewer domains than that; lower it if mail you want names more." xml:space="preserve">
     <value>默认为 5，即出厂的标记阈值，因此除非已提高阈值，这样的邮件会被标记为垃圾邮件。含一百个链接的新闻简报所含域名要少得多；如果您需要的邮件含有更多域名，请降低此值。</value>
@@ -8194,8 +8188,8 @@
   <data name="Nothing below is served until a port is set here. The server answers on either port, but an MTA-STS policy is only valid over HTTPS and Outlook only accepts autodiscover over HTTPS - so in practice set the HTTPS port and a certificate covering the host names clients use." xml:space="preserve">
     <value>在此处设置端口之前，下面的内容都不会提供。服务器在任一端口上都会应答，但 MTA-STS 策略只有通过 HTTPS 才有效，而 Outlook 只接受通过 HTTPS 的 autodiscover - 因此实际上请设置 HTTPS 端口，并准备一个涵盖客户端所用主机名的证书。</value>
   </data>
-  <data name="Nothing between 354 and silence" xml:space="preserve">
-    <value>354 之后便没有下文</value>
+  <data name="Nothing between {0} and silence" xml:space="preserve">
+    <value>{0} 之后便没有下文</value>
   </data>
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking has no patterns, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>没有任何东西检查传入邮件。没有扫描器可以运行，附件拦截也没有任何模式，因此受感染的邮件会按到达时的原样投递到邮箱。</value>
@@ -11987,12 +11981,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="SpamAssassin: idle timeout, and a session ceiling of this plus 30 s. 0 does not mean no time limit." xml:space="preserve">
     <value>SpamAssassin: 空闲超时，以及等于此值加 30 秒的会话上限。0 不表示无时间限制。</value>
-  </data>
-  <data name="SpamTestDNSBlackLists, SpamTestSURBL or SpamTestSPF slow" xml:space="preserve">
-    <value>SpamTestDNSBlackLists、SpamTestSURBL 或 SpamTestSPF 缓慢</value>
-  </data>
-  <data name="SpamTestSpamAssassin with a large Time:" xml:space="preserve">
-    <value>Time: 值很大的 SpamTestSpamAssassin</value>
   </data>
   <data name="Specialist knobs - leave at the defaults unless you have a specific reason." xml:space="preserve">
     <value>专业选项 - 除非有明确原因，否则请保留默认值。</value>
@@ -16787,9 +16775,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="scan for viruses" xml:space="preserve">
     <value>扫描病毒</value>
   </data>
-  <data name="script/save slow" xml:space="preserve">
-    <value>script/save slow</value>
-  </data>
   <data name="scrypt (memory-hard, RFC 7914)" xml:space="preserve">
     <value>scrypt（内存硬化，RFC 7914）</value>
   </data>
@@ -17738,6 +17723,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} remote domain policies" xml:space="preserve">
     <value>{0} 条远程域策略</value>
   </data>
+  <data name="{0} replies" xml:space="preserve">
+    <value>{0} 应答</value>
+  </data>
   <data name="{0} route" xml:space="preserve">
     <value>{0} 条路由</value>
   </data>
@@ -17816,6 +17804,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server." xml:space="preserve">
     <value>此卡片上有 {0} 个设置无法读取，因此标为“未读取”；保存时它们在服务器上保持不变。</value>
   </data>
+  <data name="{0} slow" xml:space="preserve">
+    <value>{0} 缓慢</value>
+  </data>
   <data name="{0} spam exemptions" xml:space="preserve">
     <value>{0} 条反垃圾邮件豁免</value>
   </data>
@@ -17872,6 +17863,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} was removed, with everything in it - mailboxes: {1}, distribution lists: {2}, rules: {3}, messages: {4}." xml:space="preserve">
     <value>已移除 {0} 及其中的全部内容 - 邮箱：{1}，通讯组列表：{2}，规则：{3}，邮件：{4}。</value>
+  </data>
+  <data name="{0} with a large {1}" xml:space="preserve">
+    <value>{1} 值很大的 {0}</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} 具有完全权限</value>
@@ -17950,6 +17944,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0}, on the {1} page" xml:space="preserve">
     <value>{0}（{1} 页面）</value>
+  </data>
+  <data name="{0}, then silence" xml:space="preserve">
+    <value>{0}，然后便没有下文</value>
+  </data>
+  <data name="{0}, {1} or {2} slow" xml:space="preserve">
+    <value>{0}、{1} 或 {2} 缓慢</value>
   </data>
   <data name="{0}, {1}, as read at {2}" xml:space="preserve">
     <value>{0}，{1}，读取于 {2}</value>

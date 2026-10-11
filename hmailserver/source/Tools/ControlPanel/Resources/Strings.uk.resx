@@ -18,9 +18,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="&quot;done spam-protection&quot;, then silence" xml:space="preserve">
-    <value>«done spam-protection», далі тиша</value>
-  </data>
   <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Protocols &gt; SMTP &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
     <value>«mx» авторизує все, на що вказують MX-записи домену {0}; «a:{1}» авторизує адресу того імені вузла, яке цей сервер повідомляє в HELO/EHLO (Протоколи &gt; SMTP &gt; Ім'я вузла). «~all» дає м’яку відмову для всього іншого — навмисно м’якше за «-all», доки ви не впевнені, що список повний.</value>
   </data>
@@ -296,9 +293,6 @@
   </data>
   <data name="45 by default. A stale database is still used; the application log says it is stale." xml:space="preserve">
     <value>Типово 45. Застаріла база все одно використовується; журнал застосунку повідомляє, що вона застаріла.</value>
-  </data>
-  <data name="451 4.3.1 replies" xml:space="preserve">
-    <value>відповіді 451 4.3.1</value>
   </data>
   <data name="5 by default, the stock mark threshold, so such a message is marked as spam unless the thresholds have been raised. A newsletter of a hundred links names far fewer domains than that; lower it if mail you want names more." xml:space="preserve">
     <value>За замовчуванням 5 — штатний поріг позначення, тож таке повідомлення позначається як спам, якщо пороги не підвищено. Розсилка зі ста посиланнями називає значно менше доменів; зменште значення, якщо потрібна вам пошта називає більше.</value>
@@ -8288,8 +8282,8 @@
   <data name="Nothing below is served until a port is set here. The server answers on either port, but an MTA-STS policy is only valid over HTTPS and Outlook only accepts autodiscover over HTTPS - so in practice set the HTTPS port and a certificate covering the host names clients use." xml:space="preserve">
     <value>Ніщо з наведеного нижче не надається, доки тут не задано порт. Сервер відповідає на будь-якому з портів, але політика MTA-STS дійсна лише через HTTPS, а Outlook приймає autodiscover лише через HTTPS — тож на практиці задайте порт HTTPS і сертифікат, який охоплює імена вузлів, що їх використовують клієнти.</value>
   </data>
-  <data name="Nothing between 354 and silence" xml:space="preserve">
-    <value>Між 354 і тишею — нічого</value>
+  <data name="Nothing between {0} and silence" xml:space="preserve">
+    <value>Між {0} і тишею — нічого</value>
   </data>
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking has no patterns, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Вхідну пошту ніщо не перевіряє. Жоден сканер не може працювати, а блокування вкладень не має шаблонів, тому заражене повідомлення доставляється до поштової скриньки точно таким, яким надійшло.</value>
@@ -12135,12 +12129,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="SpamAssassin: idle timeout, and a session ceiling of this plus 30 s. 0 does not mean no time limit." xml:space="preserve">
     <value>SpamAssassin: час очікування простою та межа сесії, що дорівнює йому плюс 30 с. 0 не означає відсутності обмеження часу.</value>
-  </data>
-  <data name="SpamTestDNSBlackLists, SpamTestSURBL or SpamTestSPF slow" xml:space="preserve">
-    <value>Повільні SpamTestDNSBlackLists, SpamTestSURBL або SpamTestSPF</value>
-  </data>
-  <data name="SpamTestSpamAssassin with a large Time:" xml:space="preserve">
-    <value>SpamTestSpamAssassin з великим Time:</value>
   </data>
   <data name="Specialist knobs - leave at the defaults unless you have a specific reason." xml:space="preserve">
     <value>Спеціалізовані регулятори — залиште типові значення, якщо немає конкретної причини.</value>
@@ -16989,9 +16977,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="scan for viruses" xml:space="preserve">
     <value>сканувати на віруси</value>
   </data>
-  <data name="script/save slow" xml:space="preserve">
-    <value>етап script/save виконується повільно</value>
-  </data>
   <data name="scrypt (memory-hard, RFC 7914)" xml:space="preserve">
     <value>scrypt (вимогливий до пам’яті, RFC 7914)</value>
   </data>
@@ -18111,6 +18096,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} remote domain policies" xml:space="preserve">
     <value>Правил для зовнішніх доменів: {0}</value>
   </data>
+  <data name="{0} replies" xml:space="preserve">
+    <value>відповіді {0}</value>
+  </data>
   <data name="{0} route" xml:space="preserve">
     <value>{0} маршрут</value>
   </data>
@@ -18222,6 +18210,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server.|few" xml:space="preserve">
     <value>Параметрів на цій картці, які не вдалося прочитати: {0}. Вони позначені «Не прочитано»; під час збереження вони залишаються на сервері без змін.</value>
   </data>
+  <data name="{0} slow" xml:space="preserve">
+    <value>етап {0} виконується повільно</value>
+  </data>
   <data name="{0} spam exemptions" xml:space="preserve">
     <value>Винятків антиспаму: {0}</value>
   </data>
@@ -18290,6 +18281,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} was removed, with everything in it - mailboxes: {1}, distribution lists: {2}, rules: {3}, messages: {4}." xml:space="preserve">
     <value>{0} вилучено з усім вмістом — скриньок: {1}, списків розсилки: {2}, правил: {3}, повідомлень: {4}.</value>
+  </data>
+  <data name="{0} with a large {1}" xml:space="preserve">
+    <value>{0} з великим {1}</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} з повними повноваженнями</value>
@@ -18383,6 +18377,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0}, on the {1} page" xml:space="preserve">
     <value>{0}, на сторінці «{1}»</value>
+  </data>
+  <data name="{0}, then silence" xml:space="preserve">
+    <value>{0}, далі тиша</value>
+  </data>
+  <data name="{0}, {1} or {2} slow" xml:space="preserve">
+    <value>Повільні {0}, {1} або {2}</value>
   </data>
   <data name="{0}, {1}, as read at {2}" xml:space="preserve">
     <value>{0}, {1}, за даними на {2}</value>

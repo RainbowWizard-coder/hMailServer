@@ -18,9 +18,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="&quot;done spam-protection&quot;, then silence" xml:space="preserve">
-    <value>"done spam-protection", sedan tystnad</value>
-  </data>
   <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Protocols &gt; SMTP &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
     <value>"mx" auktoriserar det {0}:s MX-poster pekar på; "a:{1}" auktoriserar adressen till det värdnamn den här servern annonserar i HELO/EHLO (Protokoll &gt; SMTP &gt; Värdnamn). "~all" underkänner mjukt allt annat - avsiktligt mjukare än "-all" tills du är säker på att listan är komplett.</value>
   </data>
@@ -296,9 +293,6 @@
   </data>
   <data name="45 by default. A stale database is still used; the application log says it is stale." xml:space="preserve">
     <value>45 som standard. En inaktuell databas används ändå; programloggen säger att den är inaktuell.</value>
-  </data>
-  <data name="451 4.3.1 replies" xml:space="preserve">
-    <value>451 4.3.1-svar</value>
   </data>
   <data name="5 by default, the stock mark threshold, so such a message is marked as spam unless the thresholds have been raised. A newsletter of a hundred links names far fewer domains than that; lower it if mail you want names more." xml:space="preserve">
     <value>5 som standard, den medföljande märkningströskeln, så ett sådant meddelande märks som skräppost om inte trösklarna har höjts. Ett nyhetsbrev med hundra länkar nämner betydligt färre domäner; sänk värdet om post du vill ha nämner fler.</value>
@@ -8194,8 +8188,8 @@ Inget som redan finns där tas bort.</value>
   <data name="Nothing below is served until a port is set here. The server answers on either port, but an MTA-STS policy is only valid over HTTPS and Outlook only accepts autodiscover over HTTPS - so in practice set the HTTPS port and a certificate covering the host names clients use." xml:space="preserve">
     <value>Inget nedan serveras förrän en port anges här. Servern svarar på endera porten, men en MTA-STS-policy är bara giltig över HTTPS och Outlook godtar autodiscover bara över HTTPS - så i praktiken, ange HTTPS-porten och ett certifikat som täcker de värdnamn klienterna använder.</value>
   </data>
-  <data name="Nothing between 354 and silence" xml:space="preserve">
-    <value>Inget mellan 354 och tystnad</value>
+  <data name="Nothing between {0} and silence" xml:space="preserve">
+    <value>Inget mellan {0} och tystnad</value>
   </data>
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking has no patterns, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Inget undersöker inkommande post. Ingen skanner kan köras och bilageblockering har inga mönster, så ett infekterat meddelande levereras till brevlådan exakt som det kom.</value>
@@ -11987,12 +11981,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="SpamAssassin: idle timeout, and a session ceiling of this plus 30 s. 0 does not mean no time limit." xml:space="preserve">
     <value>SpamAssassin: inaktivitetsgräns, och ett sessionstak på detta plus 30 s. 0 betyder inte ingen tidsgräns.</value>
-  </data>
-  <data name="SpamTestDNSBlackLists, SpamTestSURBL or SpamTestSPF slow" xml:space="preserve">
-    <value>SpamTestDNSBlackLists, SpamTestSURBL eller SpamTestSPF långsamma</value>
-  </data>
-  <data name="SpamTestSpamAssassin with a large Time:" xml:space="preserve">
-    <value>SpamTestSpamAssassin med en stor Time:</value>
   </data>
   <data name="Specialist knobs - leave at the defaults unless you have a specific reason." xml:space="preserve">
     <value>Specialistvred - lämna standardvärdena om du inte har ett specifikt skäl.</value>
@@ -16787,9 +16775,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="scan for viruses" xml:space="preserve">
     <value>skanna efter virus</value>
   </data>
-  <data name="script/save slow" xml:space="preserve">
-    <value>script/save långsamt</value>
-  </data>
   <data name="scrypt (memory-hard, RFC 7914)" xml:space="preserve">
     <value>scrypt (minneskrävande, RFC 7914)</value>
   </data>
@@ -17738,6 +17723,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} remote domain policies" xml:space="preserve">
     <value>{0} regler för externa domäner</value>
   </data>
+  <data name="{0} replies" xml:space="preserve">
+    <value>{0}-svar</value>
+  </data>
   <data name="{0} route" xml:space="preserve">
     <value>{0} rutt</value>
   </data>
@@ -17816,6 +17804,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server." xml:space="preserve">
     <value>{0} inställningar på det här kortet kunde inte läsas, så de är markerade Inte läst; när du sparar lämnas de som de är på servern.</value>
   </data>
+  <data name="{0} slow" xml:space="preserve">
+    <value>{0} långsamt</value>
+  </data>
   <data name="{0} spam exemptions" xml:space="preserve">
     <value>{0} skräppostundantag</value>
   </data>
@@ -17872,6 +17863,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} was removed, with everything in it - mailboxes: {1}, distribution lists: {2}, rules: {3}, messages: {4}." xml:space="preserve">
     <value>{0} togs bort med allt innehåll - brevlådor: {1}, distributionslistor: {2}, regler: {3}, meddelanden: {4}.</value>
+  </data>
+  <data name="{0} with a large {1}" xml:space="preserve">
+    <value>{0} med en stor {1}</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} med full behörighet</value>
@@ -17950,6 +17944,12 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0}, on the {1} page" xml:space="preserve">
     <value>{0}, på sidan {1}</value>
+  </data>
+  <data name="{0}, then silence" xml:space="preserve">
+    <value>{0}, sedan tystnad</value>
+  </data>
+  <data name="{0}, {1} or {2} slow" xml:space="preserve">
+    <value>{0}, {1} eller {2} långsamma</value>
   </data>
   <data name="{0}, {1}, as read at {2}" xml:space="preserve">
     <value>{0}, {1}, enligt läsningen kl. {2}</value>

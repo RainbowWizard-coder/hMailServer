@@ -3,6 +3,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Text;
 
 namespace hMailServer.ControlPanel.Services
 {
@@ -48,6 +51,52 @@ namespace hMailServer.ControlPanel.Services
             return path;
 
          return string.Join(separator, parts[0], parts[1], "\u2026", parts[^2], parts[^1]);
+      }
+
+      /// <summary>
+      /// A translated sentence whose placeholders are data - "{0}, then silence",
+      /// "{0}, {1} or {2} slow" - cut into its pieces in order: each stretch of its
+      /// words, and each {n} as the n-th of <paramref name="data"/>, marked as data, so
+      /// that the data alone is set in the monospaced face and the words around it in
+      /// the sentence's (review finding F304: the stalled-mail guide set whole cells in
+      /// the monospaced face, and "with a large", "slow" and "then silence" read as text
+      /// the log writes). A doubled brace is a brace, as string.Format reads it; a
+      /// placeholder with no data stays as it is written.
+      /// </summary>
+      public static IReadOnlyList<(string Text, bool IsData)> Pieces(string template, IReadOnlyList<string> data)
+      {
+         var pieces = new List<(string Text, bool IsData)>();
+         var words = new StringBuilder();
+         template ??= "";
+         for (int i = 0; i < template.Length; i++)
+         {
+            char c = template[i];
+            if ((c == '{' || c == '}') && i + 1 < template.Length && template[i + 1] == c)
+            {
+               words.Append(c);
+               i++;
+               continue;
+            }
+
+            int close = c == '{' ? template.IndexOf('}', i + 1) : -1;
+            if (close > i + 1 && data != null
+                && int.TryParse(template.AsSpan(i + 1, close - i - 1), NumberStyles.None, CultureInfo.InvariantCulture, out int index)
+                && index < data.Count)
+            {
+               if (words.Length > 0)
+                  pieces.Add((words.ToString(), false));
+               words.Clear();
+               pieces.Add((data[index] ?? "", true));
+               i = close;
+               continue;
+            }
+
+            words.Append(c);
+         }
+
+         if (words.Length > 0)
+            pieces.Add((words.ToString(), false));
+         return pieces;
       }
    }
 }

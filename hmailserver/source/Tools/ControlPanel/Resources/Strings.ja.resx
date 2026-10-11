@@ -28,9 +28,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="&quot;done spam-protection&quot;, then silence" xml:space="preserve">
-    <value>「done spam-protection」の後、無応答</value>
-  </data>
   <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Protocols &gt; SMTP &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
     <value>「mx」は {0} の MX レコードが指すホストをすべて許可します。「a:{1}」は、このサーバーが HELO/EHLO で名乗るホスト名のアドレスを許可します (プロトコル &gt; SMTP &gt; ホスト名)。「~all」はそれ以外をソフトフェイルにします。リストが完全だと確信できるまでは、意図的に「-all」より緩くしてあります。</value>
   </data>
@@ -306,9 +303,6 @@
   </data>
   <data name="45 by default. A stale database is still used; the application log says it is stale." xml:space="preserve">
     <value>既定は 45 です。古いデータベースもそのまま使われ、アプリケーション ログに古いことが記録されます。</value>
-  </data>
-  <data name="451 4.3.1 replies" xml:space="preserve">
-    <value>451 4.3.1 応答</value>
   </data>
   <data name="5 by default, the stock mark threshold, so such a message is marked as spam unless the thresholds have been raised. A newsletter of a hundred links names far fewer domains than that; lower it if mail you want names more." xml:space="preserve">
     <value>既定値は 5 で、出荷時のマークしきい値です。しきい値を上げていない限り、そのようなメッセージはスパムとしてマークされます。100 個のリンクを含むニュースレターでも、挙げるドメインはずっと少数です。必要なメールがそれより多くを挙げる場合は値を下げてください。</value>
@@ -8204,8 +8198,8 @@
   <data name="Nothing below is served until a port is set here. The server answers on either port, but an MTA-STS policy is only valid over HTTPS and Outlook only accepts autodiscover over HTTPS - so in practice set the HTTPS port and a certificate covering the host names clients use." xml:space="preserve">
     <value>ここでポートが設定されるまで、下のものは何も配信されません。サーバーはどちらのポートでも応答しますが、MTA-STS ポリシーは HTTPS 経由でのみ有効で、Outlook は HTTPS 経由の autodiscover しか受け入れません - そのため実際には、HTTPS ポートと、クライアントが使うホスト名をカバーする証明書を設定してください。</value>
   </data>
-  <data name="Nothing between 354 and silence" xml:space="preserve">
-    <value>354 の後、何もなく沈黙</value>
+  <data name="Nothing between {0} and silence" xml:space="preserve">
+    <value>{0} の後、何もなく沈黙</value>
   </data>
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking has no patterns, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>受信メールを調べるものは何もありません。実行できるスキャナーがなく、添付ファイルのブロックにもパターンが 1 つもないため、感染したメッセージは到着したそのままの状態でメールボックスに配信されます。</value>
@@ -11997,12 +11991,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="SpamAssassin: idle timeout, and a session ceiling of this plus 30 s. 0 does not mean no time limit." xml:space="preserve">
     <value>SpamAssassin: アイドル タイムアウトと、これに 30 秒を加えたセッション上限。0 は時間制限なしという意味ではありません。</value>
-  </data>
-  <data name="SpamTestDNSBlackLists, SpamTestSURBL or SpamTestSPF slow" xml:space="preserve">
-    <value>SpamTestDNSBlackLists、SpamTestSURBL、または SpamTestSPF が遅い</value>
-  </data>
-  <data name="SpamTestSpamAssassin with a large Time:" xml:space="preserve">
-    <value>Time: が大きい SpamTestSpamAssassin</value>
   </data>
   <data name="Specialist knobs - leave at the defaults unless you have a specific reason." xml:space="preserve">
     <value>専門的なつまみ - 明確な理由がない限り既定値のままにしてください。</value>
@@ -16797,9 +16785,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="scan for viruses" xml:space="preserve">
     <value>ウイルスをスキャンする</value>
   </data>
-  <data name="script/save slow" xml:space="preserve">
-    <value>script/save slow</value>
-  </data>
   <data name="scrypt (memory-hard, RFC 7914)" xml:space="preserve">
     <value>scrypt (メモリ ハード、RFC 7914)</value>
   </data>
@@ -17748,6 +17733,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} remote domain policies" xml:space="preserve">
     <value>リモートドメインのポリシー {0} 件</value>
   </data>
+  <data name="{0} replies" xml:space="preserve">
+    <value>{0} 応答</value>
+  </data>
   <data name="{0} route" xml:space="preserve">
     <value>ルート {0} 件</value>
   </data>
@@ -17826,6 +17814,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server." xml:space="preserve">
     <value>このカードの設定を {0} 件読み取れなかったため、「未読み取り」と表示しています。保存しても、サーバー上のこれらの設定は変わりません。</value>
   </data>
+  <data name="{0} slow" xml:space="preserve">
+    <value>{0} が遅い</value>
+  </data>
   <data name="{0} spam exemptions" xml:space="preserve">
     <value>スパム対策の除外 {0} 件</value>
   </data>
@@ -17882,6 +17873,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} was removed, with everything in it - mailboxes: {1}, distribution lists: {2}, rules: {3}, messages: {4}." xml:space="preserve">
     <value>{0} を、その中身ごと削除しました - メールボックス: {1} 件、配布リスト: {2} 件、ルール: {3} 件、メッセージ: {4} 件。</value>
+  </data>
+  <data name="{0} with a large {1}" xml:space="preserve">
+    <value>{1} が大きい {0}</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} 件は完全な権限</value>
@@ -17960,6 +17954,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0}, on the {1} page" xml:space="preserve">
     <value>{0} ({1} ページ)</value>
+  </data>
+  <data name="{0}, then silence" xml:space="preserve">
+    <value>{0} の後、無応答</value>
+  </data>
+  <data name="{0}, {1} or {2} slow" xml:space="preserve">
+    <value>{0}、{1}、または {2} が遅い</value>
   </data>
   <data name="{0}, {1}, as read at {2}" xml:space="preserve">
     <value>{0}、{1}、{2} 時点の値</value>

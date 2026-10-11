@@ -34,5 +34,21 @@ namespace hMailServer.ControlPanel.Services
          if (after.Length > 0)
             block.Inlines.Add(new Run(after));
       }
+
+      /// <summary>
+      /// Fills <paramref name="block"/> with a translated sentence whose {0}, {1} ...
+      /// are data (<see cref="DataText.Pieces"/>): its words in the block's own face,
+      /// each piece of data a run in the monospaced one at the sentence's size - the
+      /// stalled-mail guide's "{0} with a large {1}", SpamTestSpamAssassin and Time:.
+      /// </summary>
+      public static void FillPlaceholders(TextBlock block, string template, params string[] data)
+      {
+         if (block == null)
+            return;
+
+         block.Inlines.Clear();
+         foreach ((string text, bool isData) in DataText.Pieces(template, data))
+            block.Inlines.Add(isData ? new Run(text) { FontFamily = new FontFamily(Typography.MonoFontFamily) } : new Run(text));
+      }
    }
 }

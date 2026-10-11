@@ -18,9 +18,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="&quot;done spam-protection&quot;, then silence" xml:space="preserve">
-    <value>„done spam-protection“, poté ticho</value>
-  </data>
   <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Protocols &gt; SMTP &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
     <value>„mx“ autorizuje vše, na co ukazují MX záznamy domény {0}; „a:{1}“ autorizuje adresu názvu hostitele, který tento server oznamuje v HELO/EHLO (Protokoly &gt; SMTP &gt; Název hostitele). „~all“ vše ostatní měkce odmítá (soft fail) – záměrně mírnější než „-all“, dokud si nejste jisti, že je seznam úplný.</value>
   </data>
@@ -296,9 +293,6 @@
   </data>
   <data name="45 by default. A stale database is still used; the application log says it is stale." xml:space="preserve">
     <value>Výchozí 45. Zastaralá databáze se dál používá; protokol aplikace uvádí, že je zastaralá.</value>
-  </data>
-  <data name="451 4.3.1 replies" xml:space="preserve">
-    <value>odpovědi 451 4.3.1</value>
   </data>
   <data name="5 by default, the stock mark threshold, so such a message is marked as spam unless the thresholds have been raised. A newsletter of a hundred links names far fewer domains than that; lower it if mail you want names more." xml:space="preserve">
     <value>Výchozí hodnota 5, výchozí práh pro označení, takže taková zpráva se označí jako spam, pokud prahy nebyly zvýšeny. Zpravodaj se stovkou odkazů jmenuje mnohem méně domén; snižte hodnotu, pokud pošta, kterou chcete, jmenuje víc.</value>
@@ -8288,8 +8282,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Nothing below is served until a port is set here. The server answers on either port, but an MTA-STS policy is only valid over HTTPS and Outlook only accepts autodiscover over HTTPS - so in practice set the HTTPS port and a certificate covering the host names clients use." xml:space="preserve">
     <value>Dokud zde není nastaven port, nic z níže uvedeného se neposkytuje. Server odpovídá na kterémkoli z obou portů, ale politika MTA-STS je platná pouze přes HTTPS a Outlook přijímá autodiscover jen přes HTTPS – v praxi tedy nastavte HTTPS port a certifikát pokrývající názvy hostitelů, které klienti používají.</value>
   </data>
-  <data name="Nothing between 354 and silence" xml:space="preserve">
-    <value>Mezi 354 a tichem nic</value>
+  <data name="Nothing between {0} and silence" xml:space="preserve">
+    <value>Mezi {0} a tichem nic</value>
   </data>
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking has no patterns, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Příchozí poštu nikdo nezkoumá. Nemůže běžet žádný skener a blokování příloh nemá žádné vzory, takže nakažená zpráva se do poštovní schránky doručí přesně tak, jak přišla.</value>
@@ -12135,12 +12129,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="SpamAssassin: idle timeout, and a session ceiling of this plus 30 s. 0 does not mean no time limit." xml:space="preserve">
     <value>SpamAssassin: časový limit nečinnosti a strop relace ve výši této hodnoty plus 30 s. 0 neznamená bez časového limitu.</value>
-  </data>
-  <data name="SpamTestDNSBlackLists, SpamTestSURBL or SpamTestSPF slow" xml:space="preserve">
-    <value>SpamTestDNSBlackLists, SpamTestSURBL nebo SpamTestSPF jsou pomalé</value>
-  </data>
-  <data name="SpamTestSpamAssassin with a large Time:" xml:space="preserve">
-    <value>SpamTestSpamAssassin s velkým Time:</value>
   </data>
   <data name="Specialist knobs - leave at the defaults unless you have a specific reason." xml:space="preserve">
     <value>Specializovaná nastavení – pokud nemáte konkrétní důvod, ponechte výchozí hodnoty.</value>
@@ -16989,9 +16977,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="scan for viruses" xml:space="preserve">
     <value>skenovat na viry</value>
   </data>
-  <data name="script/save slow" xml:space="preserve">
-    <value>script/save pomalé</value>
-  </data>
   <data name="scrypt (memory-hard, RFC 7914)" xml:space="preserve">
     <value>scrypt (paměťově náročný, RFC 7914)</value>
   </data>
@@ -18111,6 +18096,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} remote domain policies" xml:space="preserve">
     <value>Pravidla pro vzdálené domény: {0}</value>
   </data>
+  <data name="{0} replies" xml:space="preserve">
+    <value>odpovědi {0}</value>
+  </data>
   <data name="{0} route" xml:space="preserve">
     <value>{0} trasa</value>
   </data>
@@ -18222,6 +18210,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server.|few" xml:space="preserve">
     <value>Nastavení na této kartě, která se nepodařilo přečíst: {0}. Jsou označena „Nepřečteno“; uložení je na serveru ponechá beze změny.</value>
   </data>
+  <data name="{0} slow" xml:space="preserve">
+    <value>{0} pomalé</value>
+  </data>
   <data name="{0} spam exemptions" xml:space="preserve">
     <value>Výjimky z antispamu: {0}</value>
   </data>
@@ -18290,6 +18281,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} was removed, with everything in it - mailboxes: {1}, distribution lists: {2}, rules: {3}, messages: {4}." xml:space="preserve">
     <value>{0} byla odstraněna se vším, co obsahovala - schránky: {1}, distribuční seznamy: {2}, pravidla: {3}, zprávy: {4}.</value>
+  </data>
+  <data name="{0} with a large {1}" xml:space="preserve">
+    <value>{0} s velkým {1}</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} s plnou pravomocí</value>
@@ -18383,6 +18377,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0}, on the {1} page" xml:space="preserve">
     <value>{0}, na stránce {1}</value>
+  </data>
+  <data name="{0}, then silence" xml:space="preserve">
+    <value>{0}, poté ticho</value>
+  </data>
+  <data name="{0}, {1} or {2} slow" xml:space="preserve">
+    <value>{0}, {1} nebo {2} jsou pomalé</value>
   </data>
   <data name="{0}, {1}, as read at {2}" xml:space="preserve">
     <value>{0}, {1}, podle čtení v {2}</value>

@@ -102,14 +102,54 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("storePath_.ToolTip = path;", keys, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// The stalled-mail guide's log rows set what the log writes, and only that, in
+      /// the monospaced face: each row is a sentence whose placeholders are the log's
+      /// words, passed apart and never translated. The whole cell was monospaced, so
+      /// that "with a large", "slow", "then silence" and "replies" read as text the
+      /// log writes, and in Japanese the whole translated phrase did.
+      /// </summary>
       [Fact]
-      public void TheStalledMailGuidesLogLinesAreMonospaced()
+      public void TheStalledMailGuidesLogRowsSetOnlyTheLogsWordsMonospaced()
       {
          string guide = Read("Views", "StalledMailView.cs");
-         Assert.Contains("}, logLines: true));", guide, StringComparison.Ordinal);
-         string table = WithheldRowTests.MemberText(guide, "private static Grid Table((string what, string cause)[] rows, bool logLines = false)");
-         Assert.True(table != null, "StalledMailView has no Table with log lines.");
-         Assert.Contains("what.FontSize = Typography.Mono;", table, StringComparison.Ordinal);
+         foreach (string row in new[]
+         {
+            "(L(\"{0} with a large {1}\"), new[] { \"SpamTestSpamAssassin\", \"Time:\" },",
+            "(L(\"{0}, {1} or {2} slow\"), new[] { \"SpamTestDNSBlackLists\", \"SpamTestSURBL\", \"SpamTestSPF\" },",
+            "(L(\"{0}, then silence\"), new[] { \"done spam-protection\" },",
+            "(L(\"{0} slow\"), new[] { \"script/save\" },",
+            "(L(\"Nothing between {0} and silence\"), new[] { \"354\" },",
+            "(L(\"{0} replies\"), new[] { \"451 4.3.1\" },",
+         })
+            Assert.Contains(row, guide, StringComparison.Ordinal);
+
+         int start = guide.IndexOf("private static Grid LogTable((string sentence, string[] logText, string cause)[] rows)", StringComparison.Ordinal);
+         int end = guide.IndexOf("private static Grid Table(int count", StringComparison.Ordinal);
+         Assert.True(start >= 0 && end > start, "StalledMailView has no LogTable before its Table.");
+         string table = guide.Substring(start, end - start);
+         Assert.Contains("DataTextBlock.FillPlaceholders(what, rows[i].sentence, rows[i].logText);", table, StringComparison.Ordinal);
+         Assert.DoesNotContain("MonoFontFamily", table, StringComparison.Ordinal);
+
+         string block = Read("Services", "DataTextBlock.cs");
+         Assert.Contains("isData ? new Run(text) { FontFamily = new FontFamily(Typography.MonoFontFamily) } : new Run(text)", block, StringComparison.Ordinal);
+      }
+
+      /// <summary>A sentence cut at its placeholders, in the order its language puts them.</summary>
+      [Fact]
+      public void ASentenceIsCutAtItsPlaceholders()
+      {
+         Assert.Equal(new[] { ("SpamTestSpamAssassin", true), (" with a large ", false), ("Time:", true) },
+            DataText.Pieces("{0} with a large {1}", new[] { "SpamTestSpamAssassin", "Time:" }));
+         // The Japanese puts the field before the test.
+         Assert.Equal(new[] { ("Time:", true), (" が大きい ", false), ("SpamTestSpamAssassin", true) },
+            DataText.Pieces("{1} が大きい {0}", new[] { "SpamTestSpamAssassin", "Time:" }));
+         Assert.Equal(new[] { ("A", true), (", ", false), ("B", true), (" or ", false), ("C", true), (" slow", false) },
+            DataText.Pieces("{0}, {1} or {2} slow", new[] { "A", "B", "C" }));
+         // A doubled brace is a brace, and a placeholder with no data stays as it is written.
+         Assert.Equal(new[] { ("{0} ", false), ("x", true) }, DataText.Pieces("{{0}} {0}", new[] { "x" }));
+         Assert.Equal(new[] { ("{1} and ", false), ("a", true) }, DataText.Pieces("{1} and {0}", new[] { "a" }));
+         Assert.Empty(DataText.Pieces(null, new[] { "a" }));
       }
 
       /// <summary>
