@@ -345,7 +345,16 @@ namespace HM
       String sAddressPart = sFirstPart.Mid(iForPos + 4);
 
       sAddressPart.TrimLeft(_T(" \r\n\t"));
-      sAddressPart.TrimRight(_T(" \r\n\t"));
+
+      // The address alone: a comment may follow it before the date - TLS details,
+      // or Gmail's "for <user@example.com> (Google Transport Security);" - and was
+      // run into it, so that no address was found and the message fetched was not
+      // delivered to the recipient the header named (upstream #665).
+      int iEndPos = sAddressPart.StartsWith(_T("<")) ? sAddressPart.Find(_T(">")) : sAddressPart.FindOneOf(_T(" \r\n\t("));
+      if (iEndPos >= 0)
+         sAddressPart = sAddressPart.Mid(0, iEndPos + 1);
+
+      sAddressPart.TrimRight(_T(" \r\n\t("));
 
       sAddressPart.Replace(_T("<"), _T(""));
       sAddressPart.Replace(_T(">"), _T(""));
@@ -582,6 +591,35 @@ namespace HM
             HM_TEST_FAILED();
 
       sHeader = "from host.edu (host.edu [1.2.3.4]) by mailhost.host.edu (8.8.5/8.7.2) with ESMTP id LAA20869 for <tmh@host.edu>; Tue, 18 Mar 1997 14:39:24 -0800 (PST)";
+      sRecipient = Utilities::GetRecipientFromReceivedHeader(sHeader);
+      if (sRecipient != _T("tmh@host.edu"))
+         HM_TEST_FAILED();
+
+      // A comment after the address (upstream #665): the address is found all the same.
+      sHeader = "Received: from example.com (example.com [1.2.3.4])\r\n"
+                "\tby mail.example.test with ESMTPS for <recipient@example.test>\r\n"
+                "\t(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256)\r\n"
+                "\t; Wed, 23 Sep 2026 08:21:37 +0200\r\n";
+      sRecipient = Utilities::GetRecipientFromReceivedHeader(sHeader);
+      if (sRecipient != _T("recipient@example.test"))
+         HM_TEST_FAILED();
+
+      sHeader = "by 2002:a05:6512:2316:b0:5a1:1c2b:7e4f with SMTP id bu22csp1234567lfb;\r\n"
+                "        Mon, 12 Oct 2026 03:14:15 -0700 (PDT)";
+      sRecipient = Utilities::GetRecipientFromReceivedHeader(sHeader);
+      if (sRecipient != _T(""))
+         HM_TEST_FAILED();
+
+      sHeader = "from mail-sor-f41.google.com (mail-sor-f41.google.com. [209.85.220.41])\r\n"
+                "        by mx.google.com with SMTPS id a1sor123456qkb.12.2026.10.12.03.14.15\r\n"
+                "        for <someone@example.test>\r\n"
+                "        (Google Transport Security);\r\n"
+                "        Mon, 12 Oct 2026 03:14:15 -0700 (PDT)";
+      sRecipient = Utilities::GetRecipientFromReceivedHeader(sHeader);
+      if (sRecipient != _T("someone@example.test"))
+         HM_TEST_FAILED();
+
+      sHeader = "from host.edu (host.edu [1.2.3.4]) by mail.host.edu with ESMTP for tmh@host.edu (comment); Tue, 18 Mar 1997 14:39:24 -0800 (PST)";
       sRecipient = Utilities::GetRecipientFromReceivedHeader(sHeader);
       if (sRecipient != _T("tmh@host.edu"))
          HM_TEST_FAILED();

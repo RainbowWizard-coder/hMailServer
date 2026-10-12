@@ -794,6 +794,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   events come. `Infrastructure/BackupRestore.cs` fails a backup whose `OnBackupFailed` takes three seconds and starts
   the next as soon as the log says so. Found by upstream's #668, which met it in its own regression suite.
 
+- **Fixed: an external account set to deliver each message to the accounts its headers name found no recipient in a
+  `Received` header that had a comment after its `for` address** - Gmail's `for <someone@example.com> (Google Transport
+  Security);`, or TLS details on a line of their own - because the comment was run into the address. The address
+  alone is read now (`UtilitiesTester`, run by `Infrastructure.MainOperations`). Found by upstream's #665.
+
 ### Downloads and the release
 
 - **The Helm chart's and the container image's repositories are on Artifact Hub, and the tree holds the IDs Artifact
