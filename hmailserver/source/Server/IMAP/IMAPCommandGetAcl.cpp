@@ -76,7 +76,7 @@ namespace HM
       // existence too: the reply distinguishes a folder they have no rights on from
       // one that is not there.
       if (!pConnection->CheckPermission(pFolder, ACLPermission::PermissionAdminister))
-         return IMAPResult(IMAPResult::ResultNo, "Permission denied.");
+         return IMAPResult(IMAPResult::ResultNo, "[NOPERM] Permission denied.");
 
       String sResponse = IMAPACLHelper::CreateACLList(pFolder, sOriginalFolderName);
       sResponse += pArgument->Tag() + _T(" OK GetAcl complete\r\n");

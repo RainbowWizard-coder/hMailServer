@@ -63,7 +63,7 @@ namespace HM
       // implicitly, so this costs an owner nothing; a caller without it could
       // previously use LISTRIGHTS to confirm any folder's existence.
       if (!pConnection->CheckPermission(pFolder, ACLPermission::PermissionAdminister))
-         return IMAPResult(IMAPResult::ResultNo, "Permission denied.");
+         return IMAPResult(IMAPResult::ResultNo, "[NOPERM] Permission denied.");
 
       // Always produce the same output.
       String sIdentifier = pParser->Word(2)->Value();

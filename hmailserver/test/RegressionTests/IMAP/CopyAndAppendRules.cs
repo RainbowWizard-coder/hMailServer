@@ -210,5 +210,77 @@ namespace RegressionTests.IMAP
 
          simulator.Disconnect();
       }
+
+      // A grant to this fixture's account on a folder of another account's, as an
+      // hm_acl row (SharedMailboxes.GrantRightsOnFolder does the same), with the
+      // rights as their bits: l 1, x 128.
+      private void GrantOnAnotherAccountsFolder(IMAPFolder folder, int rightsMask)
+      {
+         SingletonProvider<TestSetup>.Instance.GetApp().Database.ExecuteSQL(
+            string.Format(
+               "insert into hm_acl (aclsharefolderid, aclpermissiontype, aclpermissiongroupid, aclpermissionaccountid, aclvalue) " +
+               "values ({0}, 0, 0, {1}, {2})",
+               folder.ID, _account.ID, rightsMask));
+      }
+
+      [Test]
+      [Description("RENAME, SETACL, GETACL and LISTRIGHTS refused by the access control are NO [NOPERM] as " +
+                   "well (RFC 5530 section 3): RENAME without the 'x' right on the folder, or the 'k' right " +
+                   "where it would go, in a public folder and in another account's, and the three ACL commands " +
+                   "without the 'a' right. They answered NO with no response code.")]
+      public void RenameAndTheAclCommandsRefusedByTheAccessControlAreNoPerm()
+      {
+         const int lookup = 1;
+         const int deleteMailbox = 128;
+
+         AddPublicFolder("Fixed", eACLPermission.ePermissionLookup, eACLPermission.ePermissionRead);
+         AddPublicFolder("Parent", eACLPermission.ePermissionLookup, eACLPermission.ePermissionRead, eACLPermission.ePermissionCreate);
+
+         var owner = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "noperm-owner@example.test", "test");
+         SmtpClientSimulator.StaticSend("sender@example.test", owner.Address, "Inbox", "Body");
+         CustomAsserts.AssertFolderMessageCount(owner.IMAPFolders.get_ItemByName("INBOX"), 1);
+
+         var ownerSimulator = new ImapClientSimulator();
+         Assert.IsTrue(ownerSimulator.ConnectAndLogon(owner.Address, "test"));
+         Assert.IsTrue(ownerSimulator.CreateFolder("Locked"));
+         Assert.IsTrue(ownerSimulator.CreateFolder("Cases"));
+         Assert.IsTrue(ownerSimulator.CreateFolder("INBOX.Drafts"));
+         ownerSimulator.Disconnect();
+
+         // "Locked" may be seen only; "Cases" and INBOX with its "Drafts" may be seen
+         // and deleted, and nothing may be created anywhere in the owner's tree.
+         GrantOnAnotherAccountsFolder(CustomAsserts.AssertFolderExists(owner.IMAPFolders, "Locked"), lookup);
+         GrantOnAnotherAccountsFolder(CustomAsserts.AssertFolderExists(owner.IMAPFolders, "Cases"), lookup | deleteMailbox);
+         GrantOnAnotherAccountsFolder(owner.IMAPFolders.get_ItemByName("INBOX"), lookup | deleteMailbox);
+
+         const string tree = "#Users.noperm-owner@example.test.";
+
+         var simulator = SignIn();
+
+         var refusals = new[]
+         {
+            // A public folder renamed without 'x' on it.
+            "A01 RENAME \"#Public.Fixed\" \"#Public.Parent.Fixed\"",
+            // Another account's folder renamed without 'x' on it...
+            "A02 RENAME \"" + tree + "Locked\" \"" + tree + "INBOX.Locked\"",
+            // ...with 'x', under a parent without 'k'...
+            "A03 RENAME \"" + tree + "INBOX.Drafts\" \"" + tree + "INBOX.Done\"",
+            // ...and with 'x', to the root of the owner's tree, where only the owner creates.
+            "A04 RENAME \"" + tree + "Cases\" \"" + tree + "Closed\"",
+            // The ACL of a folder the user may not administer.
+            "A05 SETACL \"#Public.Fixed\" " + _account.Address + " lr",
+            "A06 GETACL \"#Public.Fixed\"",
+            "A07 LISTRIGHTS \"#Public.Fixed\" " + _account.Address
+         };
+
+         foreach (var command in refusals)
+         {
+            string tag = command.Substring(0, 3);
+            string response = simulator.SendSingleCommand(command);
+            StringAssert.Contains(tag + " NO [NOPERM] ", response, command);
+         }
+
+         simulator.Disconnect();
+      }
    }
 }

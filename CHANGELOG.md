@@ -4632,8 +4632,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   's' right was left out.
   RFC 3501 section 6.4.7 has a COPY that fails leave the destination as it was; a COPY over the quota or with a file
   that would not copy, part way through a set, left the copies already made in the destination and answered `NO`. A
-  refusal by the access control is now `NO [NOPERM]` (RFC 5530), as it is meant to be told from a malformed command.
-  `IMAP/CopyAndAppendRules.cs` holds each. Found by upstream's UIDPLUS work (#650, #666), which met the same.
+  refusal by the access control is now `NO [NOPERM]` (RFC 5530), as it is meant to be told from a malformed command -
+  `RENAME` without the 'x' right on the folder or the 'k' right where it would go, and `SETACL`, `GETACL` and
+  `LISTRIGHTS` without the 'a' right, among them. `IMAP/CopyAndAppendRules.cs` holds each. Found by upstream's UIDPLUS
+  work (upstream PRs 650 and 666), which met the same.
 
 - **Fixed: an IMAP `COPY` or `MOVE` by message number copied or moved the wrong message when another session had
   just expunged one before it.** The server tells a session of another's expunge at the start of its next command

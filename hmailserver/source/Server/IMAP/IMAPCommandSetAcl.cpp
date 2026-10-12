@@ -71,7 +71,7 @@ namespace HM
       // resolution already answered "Folder could not be found", identically to
       // a folder that does not exist.
       if (!pConnection->CheckPermission(pFolder, ACLPermission::PermissionAdminister))
-         return IMAPResult(IMAPResult::ResultNo, "Permission denied.");
+         return IMAPResult(IMAPResult::ResultNo, "[NOPERM] Permission denied.");
 
       String sIdentifier = pParser->Word(2)->Value();
       String sAccessRights = pParser->Word(3)->Value();

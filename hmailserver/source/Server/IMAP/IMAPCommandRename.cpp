@@ -229,7 +229,7 @@ namespace HM
 
       // Check if the user has access to rename this folder
       if (!pConnection->CheckPermission(pFolderToRename, ACLPermission::PermissionDeleteMailbox))
-         return IMAPResult(IMAPResult::ResultNo, "ACL DeleteMailbox permission denied (required for RENAME).");
+         return IMAPResult(IMAPResult::ResultNo, "[NOPERM] ACL DeleteMailbox permission denied (required for RENAME).");
          
       String hierarchyDelimiter = Configuration::Instance()->GetIMAPConfiguration()->GetHierarchyDelimiter();
       String sNewFolderName = StringParser::JoinVector(vecNewPath, hierarchyDelimiter);
@@ -364,7 +364,7 @@ namespace HM
       // the "k" right on its new parent - it is a delete at the old name and a
       // create at the new one. The "x" half:
       if (!pConnection->CheckPermission(pFolderToRename, ACLPermission::PermissionDeleteMailbox))
-         return IMAPResult(IMAPResult::ResultNo, "ACL DeleteMailbox permission denied (required for RENAME).");
+         return IMAPResult(IMAPResult::ResultNo, "[NOPERM] ACL DeleteMailbox permission denied (required for RENAME).");
 
       // The "k" half. The destination parent must already exist in the owner's
       // tree - unlike the classic flow this one never creates missing parent
@@ -384,7 +384,7 @@ namespace HM
             return IMAPResult(IMAPResult::ResultNo, "RENAME: The destination folder does not exist.");
 
          if (!pConnection->CheckPermission(pNewParentFolder, ACLPermission::PermissionCreate))
-            return IMAPResult(IMAPResult::ResultNo, "ACL CreateMailbox permission denied (required for RENAME).");
+            return IMAPResult(IMAPResult::ResultNo, "[NOPERM] ACL CreateMailbox permission denied (required for RENAME).");
       }
       else
       {
@@ -392,7 +392,7 @@ namespace HM
          // right, so only the owner may put a folder there. There is no
          // folder-that-grants-create at the root of somebody else's account.
          if (callerAccountID != ownerAccountID)
-            return IMAPResult(IMAPResult::ResultNo, "ACL CreateMailbox permission denied (required for RENAME).");
+            return IMAPResult(IMAPResult::ResultNo, "[NOPERM] ACL CreateMailbox permission denied (required for RENAME).");
       }
 
       // Existence is checked in the OWNER's tree. The connection's resolver
