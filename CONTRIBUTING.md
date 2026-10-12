@@ -433,6 +433,7 @@ Run each as `python build/<name>.py` (`python3` on Linux).
 | `check-com-dispids.py` | No two members of one COM interface share a dispatch id | |
 | `check-com-error-info.py` | Every COM class that raises errors answers `ISupportErrorInfo` | `--self-test` |
 | `check-com-shared-copies.py` | A COM change to an item of one of the running server's collections is written onto a copy, and every hand-out attaches the shared collection | `--self-test` |
+| `check-control-bytes.py` | No tracked text file holds a control character other than tab, line feed, and a carriage return before a line feed: the character a tool wrote where it was given an escape (`\7`, `\x1b`, `\x01`) shows nowhere on the screen. The few files that hold one on purpose are listed in the script, each with its reason | Proves its own negative controls on every run |
 | `check-db-settings-coverage.py` | Every database setting `SettingsDefaults.h` names has a Control Panel editor - through a COM property the Control Panel writes, or a REST settings row one of its pages names - or a recorded reason for having none | `--self-test`; `--list` prints how each setting is reached |
 | `check-deck-languages.py` | The Control Deck's catalogues against its page | `--keys` |
 | `check-deck-parity.py` | A census of the desktop Control Panel's writes against the REST API and the Deck | **Rewrites** `hmailserver/docs/DeckParity.md` by default; `--no-doc` prints only; `--strict` exits 1 when anything is missing. After a change, run it and commit `DeckParity.md` if it moved |
@@ -506,7 +507,7 @@ something which already exists.
 
 | You changed | Run at least |
 |---|---|
-| Anything | `add-license-headers.py --check`, `check-project-items.py` |
+| Anything | `add-license-headers.py --check`, `check-project-items.py`, `check-control-bytes.py` |
 | C++ in the server | The server build (`/WX`); `check-collection-iteration.py`, `check-audit-choke-point.py`, `check-role-choke-point.py`, `check-authz-choke-point.py`, `check-com-dispids.py`, `check-com-error-info.py`, `check-idl-case.py`, `check-password-choice-sites.py`, `check-setting-levels.py`, `check-address-parsing.py`, `check-source-literals.py` where they apply; the Linux build or census if the file is in the Linux core |
 | SQL or the schema | `check-schema-versions.ps1`, `check-db-scripts.ps1`, `check-mysql-charset.py`, `check-sql-separators.py`, `check-sql-parameters.py`, `check-upgrade-inserts.py`, `check-settings-rows.py`, `check-account-stores.py`, `generate-settings-defaults.py --check` |
 | A REST route | `check-role-choke-point.py`, `check-openapi-blocks.py`, `check-audit-choke-point.py`, `check-deck-parity.py`, `check-cli.py` if a client verb changed |

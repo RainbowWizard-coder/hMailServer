@@ -137,7 +137,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("CI\r\nScope=full")]
       [InlineData("CI\nfoo")]
       [InlineData("CI\tdeploy")]
-      [InlineData("CIdeploy")]
+      [InlineData("CI\u007Fdeploy")]
       public void ValidateLabel_RefusesControlCharacters(string label)
       {
          Assert.NotNull(ApiKeyStore.ValidateLabel(label));

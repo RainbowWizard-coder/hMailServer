@@ -6,7 +6,7 @@ using System;
 using System.Threading;
 using hMailServer;
 using NUnit.Framework;
-using RegressionTests.Shared;
+using RegressionTests.Shared;
 using System.Globalization;
 using Microsoft.Win32;
 

@@ -105,7 +105,7 @@ namespace RegressionTests.IMAP
          SmtpClientSimulator.StaticSendRaw("sender@example.test", account.Address,
             MessageWithAttachment("sender@example.test", account.Address, "Binary", "A binary file is attached.",
                "application/octet-stream", "blob.bin", "base64",
-               Base64Lines("BorealisNeedleFour")));
+               Base64Lines("\u0001\u0002BorealisNeedleFour\u0003\u0004")));
 
          CustomAsserts.AssertRecipientsInDeliveryQueue(0);
          Pop3ClientSimulator.AssertMessageCount(account.Address, Password, 4);

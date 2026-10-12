@@ -1559,7 +1559,7 @@ def run_powershell_config_cases(url, tmp, verbose):
         # it, so these checks are about what the module SAYS and not about
         # where the console chose to break it. Only the ERROR text is folded:
         # the answers on stdout are read line by line by other checks.
-        completed.stderr = " ".join(re.sub(r"\[[0-9;]*m", "", completed.stderr or "").split())
+        completed.stderr = " ".join(re.sub(r"\x1b\[[0-9;]*m", "", completed.stderr or "").split())
         return completed
 
     with Recorder.lock:
@@ -2328,7 +2328,7 @@ def run_powershell_import_cases(url, tmp):
         # error record at the host width, which is not the same in CI as it is
         # on a bench, and these checks are about the sentence and not the break.
         # stdout is left alone - other checks read its lines.
-        completed.stderr = " ".join(re.sub(r"\[[0-9;]*m", "", completed.stderr or "").split())
+        completed.stderr = " ".join(re.sub(r"\x1b\[[0-9;]*m", "", completed.stderr or "").split())
         with Recorder.lock:
             return completed, list(Recorder.requests)
 

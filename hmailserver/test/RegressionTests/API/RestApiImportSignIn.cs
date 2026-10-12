@@ -184,7 +184,7 @@ namespace RegressionTests.API
             // First collection: the folders are listed for the reader, nothing is brought.
             var listing = new ScriptedImapServer(ImapPort, mailboxes) { AcceptXOAuth2 = true, ImplicitTls = true };
             Poll(listing, fetchAccount);
-            Assert.AreEqual("user=" + SignedInAddress + "auth=Bearer access-2",
+            Assert.AreEqual("user=" + SignedInAddress + "\u0001auth=Bearer access-2\u0001\u0001",
                Encoding.UTF8.GetString(Convert.FromBase64String(listing.XOAuth2Blob ?? "")), "The bearer the refresh gave, for the address that signed in.");
             StringAssert.Contains("grant_type=refresh_token&refresh_token=refresh-1", Encoding.ASCII.GetString(provider.RequestBodies.Last()));
             Assert.AreEqual(0, listing.FetchedUids.Count, "Nothing is brought before the reader chooses.");

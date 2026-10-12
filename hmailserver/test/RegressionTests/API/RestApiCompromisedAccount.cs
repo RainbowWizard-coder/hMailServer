@@ -601,7 +601,7 @@ namespace RegressionTests.API
 
       private static string XOAuth2Response(string email, string token)
       {
-         return Convert.ToBase64String(Encoding.ASCII.GetBytes("user=" + email + "auth=Bearer " + token + ""));
+         return Convert.ToBase64String(Encoding.ASCII.GetBytes("user=" + email + "\u0001auth=Bearer " + token + "\u0001\u0001"));
       }
 
       private static string SmtpAuthXOAuth2(string email, string token)

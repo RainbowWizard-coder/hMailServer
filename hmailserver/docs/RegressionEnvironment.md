@@ -193,7 +193,7 @@ the list of what any new bench needs beyond this document:
   machine-wide `hMailServerLibs` variable pointing at them.
 * Four things the repository does not carry, copied from a working bench:
   `libraries\msado28`, `libraries\mariadb-connector-c-3.4.11`,
-  `installation\Extrasza.exe` and the two `Languages\*.ini` files of the Release
+  `installation\Extras\7za.exe` and the two `Languages\*.ini` files of the Release
   output. SQL Server Compact 4.0 from `installation\SQLCE` (also untracked).
 * ClamAV at `C:\clamav`, run as a scheduled task at start-up rather than from a
   shell - a process started from an SSH session dies with the session - and

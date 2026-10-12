@@ -4285,6 +4285,21 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   each way, one for a plugin without `uninsrestartdelete` and one for the wildcard the installer took them by until
   now.
 
+- **No tracked text file may hold a stray control character, and the seven files that did are put right.** A tool
+  that reads an escape as the character it stands for writes that character where the escape was meant to go, and
+  nothing on the screen shows it. `hmailserver/docs/RegressionEnvironment.md` said `installation\Extras`, a BEL and
+  `za.exe`, its `\7` taken for an octal escape, and the help page the server serves from it carried the BEL;
+  `build/check-cli.py`'s pattern for a colour code began with a raw ESC where `\x1b` was written; and four C# tests -
+  two XOAUTH2 strings, `AttachmentTextSearch`'s binary attachment and a label `ApiKeyStore.ValidateLabel` refuses -
+  held SOH, STX, ETX, EOT and DEL raw. Those were the values meant, and they are now written as four-digit escapes,
+  since C#'s `\x` takes up to four hex digits: `"\x01auth"` is U+001A followed by `uth`. `MessageIndexing.cs` had a
+  line ending CR CR LF, which also kept git from normalising that file's line ends. `build/check-control-bytes.py`
+  now refuses, in every tracked text file, a C0 control character other than tab, line feed and carriage return,
+  DEL, and a carriage return not followed by a line feed. The five files that hold one on purpose - the LGPL text's
+  form feeds, the NUL that ends three RTF licences, and the CR CR LF inside an SQL Server Compact upgrade script's
+  message - are listed with their reasons, and the check proves its own negative controls on every run; the
+  *checkers* job runs it with every other `build/check-*.py`.
+
 - **Every change is checked before it lands, a maintainer's batch as well as a merge request** (OpenSSF Baseline
   OSPS-VM-05.03 and OSPS-VM-06.02). `semgrep-sast`, `semgrep-sast-gate` and `mr-dependency-check` ran in a merge
   request's pipeline alone, and a maintainer's `batch*` branch, whose merge request runs no pipeline of its own, landed
