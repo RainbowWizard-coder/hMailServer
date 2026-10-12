@@ -88,11 +88,11 @@ namespace HM
          struct Answer
          {
             // False: the query failed, as a SERVFAIL or a timeout fails it.
-            bool answered;
+            bool answered = false;
 
             // What DNSResolverWinApi::Query reports with it: 0, 9003 for
             // NXDOMAIN, 9501 for NODATA, a failure's own number.
-            int status;
+            int status = 0;
 
             std::vector<DNSRecord> records;
          };
