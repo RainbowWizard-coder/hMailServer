@@ -100,6 +100,11 @@ namespace hMailServer.ControlPanel
          WireTourCard_();
          RegisterPages();
          BuildNavTree();
+         // The rows keep clear of the sidebar's scroll bar while it shows, as the
+         // Domains page's lists do (review finding F101): the bar is drawn over the
+         // rows, and the keyboard's ring and the hover fill of a row ran under it
+         // (the final check of Tier 2, g4 defect 10).
+         ScrollBarInset.ForList(NavTree);
          BuildNavRail_();
          LoadSidebarPreference_();
          LoadHelpPreference_();

@@ -109,5 +109,20 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("<TreeView.ItemContainerStyle>", xaml, StringComparison.Ordinal);
          Assert.Contains("<Trigger Property=\"IsKeyboardFocused\" Value=\"True\">", xaml, StringComparison.Ordinal);
       }
+
+      /// <summary>
+      /// The sidebar's rows keep clear of its scroll bar while it shows: WPF-UI draws
+      /// the bar over the rows, and the keyboard's ring on a row ran under it, cut on
+      /// the right (the final check of Tier 2, g4 defect 10).
+      /// </summary>
+      [Fact]
+      public void TheRowsKeepClearOfTheSidebarsScrollBar()
+      {
+         string code = ContrastTokensTests.ReadControlPanelFile("MainWindow.xaml.cs");
+         if (code == null)
+            return;
+
+         Assert.Contains("ScrollBarInset.ForList(NavTree);", code, StringComparison.Ordinal);
+      }
    }
 }

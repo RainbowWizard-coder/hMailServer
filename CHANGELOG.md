@@ -3935,6 +3935,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   overview showed as "スキャンされます：ClamAV。", the half- and full-width mixing review finding F302 removed. They write ": ",
   and the catalogue's style note and `JapaneseStyleTests` say so.
 
+- **Fixed: the sidebar's rows ran under its scroll bar.** The scroll bar is drawn over the rows, and since the
+  keyboard's ring shows on a row after sign-in its right edge was cut under the bar, as were the hover and selection
+  fills. The rows keep clear of the bar while it shows, as the Domains page's lists do (review finding F101).
+  `SidebarShellTests` holds it.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
