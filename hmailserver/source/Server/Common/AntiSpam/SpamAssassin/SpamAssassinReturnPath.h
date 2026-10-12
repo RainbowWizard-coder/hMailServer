@@ -33,10 +33,11 @@
 //
 // A field is a Return-Path field when its line starts with the name, in any case,
 // and a colon follows it, with only spaces or tabs between (the obsolete syntax of
-// RFC 5322 section 4.5.3); its continuation lines - those that start with a space
-// or a tab - go with it. The header block ends at the first empty line, CR LF or a
-// bare LF; nothing after it is looked at, so a Return-Path in the body, or in the
-// header of an attached message, stays where it is.
+// RFC 5322 section 4.5, obs-return in section 4.5.7); its continuation lines -
+// those that start with a space or a tab - go with it. The header block ends at
+// the first empty line, CR LF or a bare LF; nothing after it is looked at, so a
+// Return-Path in the body, or in the header of an attached message, stays where it
+// is.
 
 #pragma once
 
