@@ -3352,22 +3352,21 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   and Windows on the clipboard, in English, for a report - then the versions as a label and a value a line with the
   licence, Connected to and the report's server line keeping the host when the server does not give its version,
   "Server: hMailServer (version not read) on mail.example.com" - then who maintains it, the name in ordinary strong
-  text; it promised "where to get support" with no forum,
-  no issue tracker and nothing to copy, set the developer's name larger than the product's, and read as a brochure ("A
-  modern administration app", "re-armed with modern cryptography"), where its words now say what is so (review finding
-  F314, and the owner's choice of 9 October 2026). The help pane's list of every document is grouped as the sidebar is
-  - under each group the documents its pages and their tabs open - then Reference and Building and packaging, each by
-  title, the project's pipelines, environments and packages under the last, the snap with the Nix flake and Alpine,
-  where some 120 documents stood in one run with ContinuousIntegration, Fuzzing and Nix among the operators' guides;
-  while the list shows, its search box says Search all documentation and narrows the list to the documents
-  whose title or text holds the words, the line under it saying how many do - "3 documents contain "DNSSEC"." - or
-  that none does, to a screen reader as well, and Enter opening the first once two characters narrow the list, where
-  it said Search this document and searched the list's own words; and Back, at the head of the pane, returns to what
-  a link in it left, and hands the keyboard to the search box when it goes with nothing left to go back to.
-  docs/ControlPanelDesign.md's
-  frame describes the window's four rows, the help pane and the pending bar, and names the two renamed groups by their
-  old names and their new ones, and the account-rules list editor nothing built, whose subtitle said a rule's criteria
-  could not be edited here, is gone with its seven texts (F315). `AboutPageTests` and `HelpDocumentListTests` hold it.
+  text; it promised "where to get support" with no forum, no issue tracker and nothing to copy, set the developer's name
+  larger than the product's, and read as a brochure ("A modern administration app", "re-armed with modern
+  cryptography"), where its words now say what is so (review finding F314, and the owner's choice of 9 October 2026).
+  The help pane's list of every document is grouped as the sidebar is - under each group the documents its pages and
+  their tabs open - then Reference and Building and packaging, each by title, the project's pipelines, environments and
+  packages under the last, the snap with the Nix flake and Alpine, where some 120 documents stood in one run with
+  ContinuousIntegration, Fuzzing and Nix among the operators' guides; while the list shows, its search box says Search
+  all documentation and narrows the list to the documents whose title or text holds the words, the line under it saying
+  how many do - "3 documents contain "DNSSEC"." - or that none does, to a screen reader as well, and Enter opening the
+  first once two characters narrow the list, where it said Search this document and searched the list's own words; and
+  Back, at the head of the pane, returns to what a link in it left, and hands the keyboard to the search box when it
+  goes with nothing left to go back to. docs/ControlPanelDesign.md's frame describes the window's four rows, the help
+  pane and the pending bar, and names the two renamed groups by their old names and their new ones, and the
+  account-rules list editor nothing built, whose subtitle said a rule's criteria could not be edited here, is gone with
+  its seven texts (F315). `AboutPageTests` and `HelpDocumentListTests` hold it.
 
 - **Fixed: the help pane's list of documents was justified.** All documentation, and the list a page without a guide
   shows, spread a wrapped title's words across the pane ("Account  recovery:  a  recovery  address  and  one-time")
