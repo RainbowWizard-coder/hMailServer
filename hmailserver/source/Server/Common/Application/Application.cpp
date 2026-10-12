@@ -382,9 +382,13 @@ namespace HM
       {
          // The stop before the process ends gave up waiting for this start or
          // reinitialise and closed the database while its connections were
-         // made (ShutDown, CloseDatabaseBeforeExit_): said, and not reported
-         // as a database that could not be reached, in the moment before the
-         // process ends.
+         // made (ShutDown, CloseDatabaseBeforeExit_): not reported as a
+         // database that could not be reached, in the moment before the
+         // process ends. The line is written only once logging is configured:
+         // in a reinitialise, when application logging is on. At the
+         // service's start (InitInstanceAndStart) the logger's mask is 0 until
+         // Configuration::Load, so nothing is written, where an HM4354 was
+         // reported before, and the process ends at once (TerminateServer).
          if (manager->GetIsClosingBeforeExit())
          {
             LOG_APPLICATION("The database was not opened, the process ending: " + sErrorMessage);
@@ -414,7 +418,10 @@ namespace HM
 
          // Closed before the process ends since OpenDatabase connected
          // (ShutDown): the statement found no connection, which is not a
-         // database whose version is not there.
+         // database whose version is not there. Written as OpenDatabase's line
+         // is: in a reinitialise, when application logging is on, and at the
+         // service's start, before Configuration::Load, not at all, where an
+         // HM5010 was reported before.
          if (manager->GetIsClosingBeforeExit())
          {
             LOG_APPLICATION("The database's version was not read, the process ending: the database was closed for the end of the process.");

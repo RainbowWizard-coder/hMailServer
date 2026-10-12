@@ -474,14 +474,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   once its caller hands it back, none is handed out after the close, and a thread that asks for one is answered that
   there is none. A start or a reinitialise that such a stop gave up waiting for may still be making its connections:
   one made after the close is now closed rather than put in the pool, which took it without the pool's lock while
-  the close read and cleared the pool, and the start is answered that the database was closed, which it writes to the
-  application log rather than reporting a database that could not be reached, or whose version could not be
-  detected. The checks made on a connection once they are all made - the server's version, and on MySQL the internal
-  database's upkeep - run with that connection checked out, where they ran on the first connection in the pool, read
-  without the lock: the close could clear the pool or close the connection under them, and another caller could be
-  handed it meanwhile. A pool of no connections at all (`[Database] NumberOfConnections` below 1) is refused as one
-  that could not connect, where the first connection was read from the empty pool. SQL Server Compact, the database of a default Windows installation, runs in the server's process and
-  writes what was committed to its file every ten seconds, or when any of its connections to the file closes, and
+  the close read and cleared the pool, and the start is answered that the database was closed, which is written to
+  the application log once logging is configured, as in a reinitialise, rather than reported as a database that
+  could not be reached, or whose version could not be detected; at the service's start, before its settings are
+  loaded, nothing is written, and the process ends at once. The checks made on a connection once they are all made -
+  the server's version, and on MySQL the internal database's upkeep - run with that connection checked out, where
+  they ran on the first connection in the pool, read without the lock: the close could clear the pool or close the
+  connection under them, and another caller could be handed it meanwhile. A pool of no connections at all
+  (`[Database] NumberOfConnections` below 1) is refused as one that could not connect, where the first connection
+  was read from the empty pool. SQL Server Compact, the database of a default Windows installation, runs in the
+  server's process and writes what was committed to its file every ten seconds, or when any of its connections to
+  the file closes, and
   what a process that ends before either had not yet written is lost: its one connection, when still in use, is
   waited for twelve seconds before the process ends. On Linux, with another session's lock holding the external
   fetch manager's first statement and the indexer idle, a SIGTERM closed the database under the statement 16 seconds
