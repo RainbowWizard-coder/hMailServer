@@ -756,8 +756,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   refusal of a sender that retried too soon, the backup MX's recipient callout, the domain policy list, the FQDN
   checks, restricted delivery, a null sender's second recipient, a rule's rejection, an XCLIENT `LOGIN` naming a
   room. The count is still the connection's, and RSET, a command that succeeds and a message accepted leave it as it
-  is; `OnRecipientUnknown` still fires for a recipient the server does not have and for no counted reply whose text
-  reads `Unknown user`. `DisconnectInvalidClients` is off by default; the office profile turns it on with a limit of
+  is; `OnRecipientUnknown` still fires only when a recipient is refused as one the server does not have, and not for
+  a script's or a spam test's refusal whose text reads `Unknown user`. `DisconnectInvalidClients` is off by default; the office profile turns it on with a limit of
   20 ([EventScripts.md](hmailserver/docs/EventScripts.md), [Profiles.md](hmailserver/docs/Profiles.md)).
   `SMTP/InvalidCommandLimit.cs` holds each counted reply to the limit and the session closed after it, where the
   count starts again, and as controls a `453`, a session with the limit off and such a script's text; the spam case
