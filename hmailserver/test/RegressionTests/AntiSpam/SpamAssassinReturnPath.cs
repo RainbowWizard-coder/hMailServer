@@ -36,14 +36,18 @@ namespace RegressionTests.AntiSpam
    ///    back, byte for byte, and only a spamd of our own can say. Each test reads the
    ///    stored message file itself: the delivery's Return-Path, then exactly what was
    ///    there before the scan - or, after a completed scan, exactly what spamd returned
-   ///    less the line.
+   ///    less the line. And one collects a message from an external account, which is
+   ///    saved straight after the scan: with the size of spamd's result, which the
+   ///    rewrite used to set and which a global rule on the size reads.
    /// </summary>
    [TestFixture]
    public class SpamAssassinReturnPath : TestFixtureBase
    {
-      // Pre-allocated to this fixture (47080-47099). Nothing listens on it, which the
-      // test that uses it checks first.
+      // Pre-allocated to this fixture (47080-47099). Nothing listens on the first,
+      // which the test that uses it checks first; the second is the simulated
+      // remote POP3 server a message is collected from.
       private const int RefusedPort = 47080;
+      private const int FetchPort = 47081;
 
       private const string Sender = "rp-sender@example.com";
 
@@ -230,10 +234,86 @@ namespace RegressionTests.AntiSpam
          AssertStoredAsReceived(stored, message);
       }
 
+      [Test]
+      [Description("A message collected from an external account and scanned is saved with the size of spamd's result, which replaced its file, so that a global rule on the size reads the message's size")]
+      public void ACollectedMessageIsSavedWithTheSizeOfTheScannedFile()
+      {
+         // SpamAssassin's report fields, some 6 KB: the result is that much larger
+         // than the message collected.
+         var report = new StringBuilder(SpamHeaders);
+         report.Append("X-Spam-Report:\r\n");
+         for (int i = 0; i < 80; i++)
+            report.Append("\t* 0.0 RP_SIZE_").Append(i.ToString("D2")).Append(" A line of the report SpamAssassin adds to the message\r\n");
+         _spamd.Reply = message => InsertAfterFirstLine(message, report.ToString());
+
+         // Between the two sizes: the message as collected, with what the server adds
+         // to it on the way in, is well under it, and the scanned one well over it.
+         int threshold = TestMessage.Length + 3000;
+         ClassicAssert.Greater(report.Length, 6000);
+
+         var rule = _application.Rules.Add();
+         rule.Name = "Larger than the message collected";
+         rule.Active = true;
+
+         var criteria = rule.Criterias.Add();
+         criteria.UsePredefined = true;
+         criteria.PredefinedField = eRulePredefinedField.eFTMessageSize;
+         criteria.MatchType = eRuleMatchType.eMTGreaterThan;
+         criteria.MatchValue = threshold.ToString();
+         criteria.Save();
+
+         var action = rule.Actions.Add();
+         action.Type = eRuleActionType.eRASetHeaderValue;
+         action.HeaderName = "X-Rp-Size-Rule";
+         action.Value = "larger";
+         action.Save();
+
+         rule.Save();
+
+         AssertNothingListensOn(FetchPort);
+
+         using (var pop3Server = new Pop3ServerSimulator(1, FetchPort, new List<string> { TestMessage }))
+         {
+            pop3Server.StartListen();
+
+            var fetchAccount = _account.FetchAccounts.Add();
+            fetchAccount.Enabled = true;
+            fetchAccount.MinutesBetweenFetch = 10;
+            fetchAccount.Name = "Return-Path size";
+            fetchAccount.Username = "test@example.com";
+            fetchAccount.Password = "test";
+            fetchAccount.UseSSL = false;
+            fetchAccount.ServerAddress = "localhost";
+            fetchAccount.Port = FetchPort;
+            fetchAccount.ProcessMIMERecipients = false;
+            fetchAccount.DaysToKeepMessages = -1;
+            fetchAccount.UseAntiSpam = true;
+            fetchAccount.Save();
+            fetchAccount.DownloadNow();
+
+            pop3Server.WaitForCompletion();
+         }
+
+         var stored = ReadStoredFile();
+
+         var sent = Bytes.GetString(_spamd.WaitForMessage(0));
+         StringAssert.StartsWith(ReturnPathLine, sent, "The collected message was not scanned with the envelope sender's Return-Path ahead of it.");
+         StringAssert.Contains("X-Spam-Report:", stored, "spamd's result did not replace the collected message.");
+         ClassicAssert.Less(sent.Length - ReturnPathLine.Length, threshold, "The message collected is not under the rule's size; the test proves nothing.");
+
+         StringAssert.Contains("X-Rp-Size-Rule: larger", stored,
+            "The global rule on the size did not match: the collected message was saved with its size from before the scan, not its file's.");
+      }
+
       private string DeliverAndReadStoredFile(string message)
       {
          new SmtpClientSimulator().SendRaw(Sender, _account.Address, message);
 
+         return ReadStoredFile();
+      }
+
+      private string ReadStoredFile()
+      {
          var stored = CustomAsserts.AssertGetFirstMessage(_account, "INBOX");
 
          using (var file = new FileStream(stored.Filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))

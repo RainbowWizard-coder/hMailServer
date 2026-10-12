@@ -729,10 +729,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   stored without it, byte for byte, every other byte as SpamAssassin returned it, and nothing is parsed or rewritten.
   The stored message is never written for it, so a scan that fails leaves the message exactly as it was received.
   `HM5509` (the message could not be read back after the scan) now says that SpamAssassin's verdict could not be
-  read, since nothing is rewritten any more. `SpamAssassinReturnPathTester` (`public-suffix-tests` on Linux) holds the
-  filter to its edges in every split of its input, and `AntiSpam/SpamAssassinReturnPath.cs` reads the stored file
-  byte for byte after a completed scan and after spamd refused the connection, reset it, cut its reply short and hung
-  up mid-request. Found by the project's own review.
+  read, since nothing is rewritten any more; and a message collected from an external account, saved straight after
+  the scan, still takes the size of spamd's result, which the rewrite used to set and a global rule on the size reads.
+  `SpamAssassinReturnPathTester` (`public-suffix-tests` on Linux) holds the filter to its edges in every split of its
+  input, and `AntiSpam/SpamAssassinReturnPath.cs`, on Windows and on Linux, reads the stored file byte for byte after a
+  completed scan and after spamd refused the connection, reset it, cut its reply short and hung up mid-request. Found
+  by the project's own review.
 
 ### Downloads and the release
 

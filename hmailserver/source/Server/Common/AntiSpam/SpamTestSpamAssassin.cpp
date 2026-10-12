@@ -142,6 +142,14 @@ namespace HM
          return setSpamTestResults;
       }
 
+      // The message's size is its file's, which a completed scan's result has
+      // replaced. A message collected from an external account is saved with the
+      // size it holds straight after these tests (ExternalFetchClientBase), and the
+      // global rules that read a message's size at delivery read that. Until 6.3.7
+      // the rewrite that took the Return-Path out set it (MessageData::Write);
+      // nothing here writes the file any more, so it is set here.
+      pMessage->SetSize(MessageStore::FileSize(sFilename));
+
       // Check if the message is tagged as spam.
       std::shared_ptr<MessageData> pMessageData = pTestData->GetMessageData();
 
