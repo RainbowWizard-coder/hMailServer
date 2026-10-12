@@ -24,10 +24,14 @@ namespace RegressionTests.Shared
             throw new Exception(string.Format("{0} does not contain {1}", actual, expected));
       }
 
-      public static void GreaterOrEqual(long expected, long actual)
+      // At most max. This was GreaterOrEqual(expected, actual), called by the one
+      // caller - SessionLimitingTests.AssertMaxSessionCount - with the most it may be
+      // as the expected value, so that a count that had not come down passed and only
+      // one that had come down further failed (upstream 1cf0bcd63).
+      public static void LessOrEqual(long max, long actual)
       {
-         if (actual < expected)
-            throw new Exception(string.Format("{0} is not greater or equal to {1}", actual, expected));
+         if (actual > max)
+            throw new Exception(string.Format("{0} is greater than {1}", actual, max));
       }
    }
 }

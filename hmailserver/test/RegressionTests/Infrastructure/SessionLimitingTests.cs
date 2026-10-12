@@ -147,7 +147,8 @@ namespace RegressionTests.Infrastructure
             Assert.IsTrue(conn1.Connect(143));
          }
 
-         AssertMaxSessionCount(eSessionType.eSTPOP3, countBefore);
+         // The IMAP count, which was read before: it was the POP3 count that was asked.
+         AssertMaxSessionCount(eSessionType.eSTIMAP, countBefore);
       }
 
       [Test]
@@ -171,7 +172,10 @@ namespace RegressionTests.Infrastructure
          var app = SingletonProvider<TestSetup>.Instance.GetApp();
 
          var status = app.Status;
-         var countBefore = status.get_SessionCount(eSessionType.eSTSMTP);
+
+         // The connection below is to POP3, so the POP3 count is the one it changes; the
+         // SMTP count was read and asked for (upstream 1cf0bcd63).
+         var countBefore = status.get_SessionCount(eSessionType.eSTPOP3);
 
          var scripting = app.Settings.Scripting;
 
@@ -183,11 +187,13 @@ namespace RegressionTests.Infrastructure
          scripting.Enabled = true;
          scripting.Reload();
 
-         var socket = new TcpConnection();
-         Assert.IsTrue(socket.Connect(110));
-         Assert.IsEmpty(socket.Receive());
+         using (var socket = new TcpConnection())
+         {
+            Assert.IsTrue(socket.Connect(110));
+            Assert.IsEmpty(socket.Receive());
+         }
 
-         AssertMaxSessionCount(eSessionType.eSTSMTP, countBefore);
+         AssertMaxSessionCount(eSessionType.eSTPOP3, countBefore);
       }
 
 
@@ -199,7 +205,7 @@ namespace RegressionTests.Infrastructure
          {
             var count = application.Status.get_SessionCount(sessionType);
 
-            RetryableAssert.GreaterOrEqual(maxExpectedCount, count);
+            RetryableAssert.LessOrEqual(maxExpectedCount, count);
          });
       }
    }

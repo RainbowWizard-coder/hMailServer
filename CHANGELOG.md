@@ -5253,6 +5253,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `.resx` files, from one `catalogues()`, whose one parse is the baseline's; what the check and its self-test print
   is the same as before, and the baseline is unchanged.
 
+- **The session-count tests asked the opposite of what they meant.** `SessionLimitingTests.AssertMaxSessionCount`
+  asserted that a session count was at least the most it was allowed to be, so a count that had not come down passed;
+  the IMAP test read the IMAP count and asked for the POP3 one, and the `OnClientConnect` test connected to POP3 and
+  counted SMTP. Each now asks that the count it read has not grown. Found by upstream's 1cf0bcd63, which
+  corrected the first and the last.
+
 ### Documentation
 
 - **SmtpPolicy.md, RestrictedDelivery.md and ImpersonationProtection.md say what the server's IDNA conversion reads
