@@ -6,8 +6,9 @@
 // about and the MX-record spam test falls back to - as a program of its own, for
 // the POSIX build: the counterpart of spf-tests and xml-tree-tests. With it, the
 // SURBL test's reading of the links in a message, which hands the cut its hosts:
-// the host after a link's userinfo, the forms of an address, the code points a
-// browser deletes from a host, links with no scheme, HTML's character references,
+// the host after a link's userinfo, the forms of an address, a host as UTS 46
+// reads it (the code points a browser deletes, the ones it maps, xn-- forms;
+// idna-tests holds UTS 46 itself), links with no scheme, HTML's character references,
 // and the answers the lists publish as errors; and what the lookup SURBL and the
 // DNS blacklists make - of the A record alone - and the address lookup answer
 // when a query fails (DNSResolverTester, upstream PR 640). And the session names
@@ -70,7 +71,7 @@ main(int /*argc*/, char * /*argv*/[])
       return 1;
    }
 
-   printf("ok    the SURBL test's links: the host after the userinfo, ports, IPv6 and the IPv4 addresses it carries, percent-encoding as UTF-8, the code points UTS 46 ignores, the forms of an address, links with no scheme, HTML's references and quotes, the names asked about, a lookup that fails passed over and one that throws ending the list, the lists' error codes, and the sender lists' URL entries read the same way and matched against every link\n");
+   printf("ok    the SURBL test's links: the host after the userinfo, ports, IPv6 and the IPv4 addresses it carries, percent-encoding as UTF-8, UTS 46 (the code points it ignores, fullwidth letters, ideographic full stops, xn-- forms, the labels it refuses), the forms of an address, links with no scheme, HTML's references and quotes, the names asked about, a lookup that fails passed over and one that throws ending the list, the lists' error codes, and the sender lists' URL entries read the same way and matched against every link\n");
 
    // What an address lookup answers when one of its queries fails, and the
    // lookup the SURBL lookups above and the DNS blacklists make - of the A

@@ -163,9 +163,13 @@ namespace HM
       // parameter's '=' (?u=//evil.example, ?u=%2F%2Fevil.example). Its
       // authority is read as RFC 3986 and the WHATWG URL standard read it: the
       // host follows the last '@' before the path, a port is not part of a
-      // name, the host is percent-decoded as UTF-8 and the code points UTS 46
-      // ignores are deleted from it (a soft hyphen, a zero-width space, the
-      // variation selectors), an IPv4 address may be written in any of the
+      // name, the host is percent-decoded as UTF-8, a host that is not ASCII is
+      // read by UTS 46 as the URL standard's domain parser reads it (Idna.h) -
+      // the code points it ignores deleted (a soft hyphen, a zero-width space,
+      // the variation selectors), the ones it maps replaced (fullwidth letters
+      // and digits by ASCII ones, U+3002 and the other full stops by '.'), NFC,
+      // and each label in its ASCII form, "xn--" and its Punycode for one in
+      // Unicode - an IPv4 address may be written in any of the
       // forms a browser accepts (0x7f.1, 2130706433), and an IPv6 address in
       // brackets is the IPv4 address it carries when it is IPv4-mapped
       // (::ffff:192.0.2.1) or under the NAT64 prefix (64:ff9b::c000:201), and
@@ -181,9 +185,10 @@ namespace HM
       // dotted decimal. A host with any other character in it hands over the
       // name up to that character (a link followed by punctuation) and the
       // labels after the last label that holds one (a working link's registered
-      // name), where those are a name. Any other IPv6 address, and a host that
-      // is only Unicode, hand over nothing: an internationalised name is not
-      // mapped by UTS 46 nor turned into its xn-- form. html: text is HTML,
+      // name), where those are a name; a label in Unicode that UTS 46 refuses
+      // (a code point it disallows, the bidi or joiner rules broken), or whose
+      // xn-- form is longer than 63 characters, is such a label. Any other
+      // IPv6 address hands over nothing. html: text is HTML,
       // whose character references are read as the browser reads them, and a
       // link opened by a quote runs to the closing quote; and a quoted value of
       // a tag is read again as the URL parser reads it, its tabs and line
@@ -218,15 +223,19 @@ namespace HM
 
       // The host a link whose authority is this goes to, in the form
       // FindLinkHosts hands it over: the part after the last '@', without its
-      // port, percent-decoded as UTF-8 with the code points UTS 46 ignores
-      // deleted, and in lower case - a name without its trailing dots and its
-      // leading "www.", or an IPv4 address in dotted decimal, which an
-      // IPv4-mapped or NAT64 IPv6 address in brackets is too. Empty when that
-      // is not one name or address a list could be asked about: any other
-      // IPv6 address, a name with a character a name cannot hold, one label,
-      // nothing. The URL entries of the sender lists (SenderPattern) are read
-      // with it, so that an entry and the links it is matched against name a
-      // host alike.
+      // port, percent-decoded as UTF-8, read by UTS 46 when it is not ASCII
+      // (each label in its ASCII form, so b<U+00FC>cher.example is
+      // xn--bcher-kva.example), and in lower case - a name without its
+      // trailing dots and its leading "www.", or an IPv4 address in dotted
+      // decimal, which an IPv4-mapped or NAT64 IPv6 address in brackets is too.
+      // Empty when that is not one name or address a list could be asked
+      // about: any other IPv6 address, a name with a character a name cannot
+      // hold, a host that is not ASCII with a label UTS 46 refuses (a browser
+      // fails it), one label, nothing. The URL
+      // entries of the sender lists (SenderPattern) are read with it, so that
+      // an entry and the links it is matched against name a host alike: an
+      // entry written in Unicode covers a link written in its xn-- form, and
+      // the other way round.
       static String HostOfAuthority(const String &authority);
 
       // What a list's answer is. The URI lists answer some queries with a code
@@ -322,7 +331,9 @@ namespace HM
 
    // SURBL's reading of links held to what a browser does with them: the
    // userinfo, ports, IPv6 and the IPv4 addresses it carries, percent-encoding
-   // as UTF-8 and the code points UTS 46 ignores, the IPv4 forms, backslashes,
+   // as UTF-8, UTS 46 (the code points it ignores, fullwidth letters and
+   // digits, the ideographic full stops, NFC, xn-- forms, and the labels it
+   // refuses), the IPv4 forms, backslashes,
    // links with no scheme, quoted-printable soft line breaks, HTML character
    // references and quotes, and punctuation after a link; the names asked
    // about for each host, the ICANN section's domain among them; which of a

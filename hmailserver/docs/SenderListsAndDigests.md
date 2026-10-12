@@ -33,7 +33,7 @@ and optionally when it stops mattering.
 | `someone@example.com` | That one address, in any case. No wildcards. |
 | `example.com` | `example.com` and every subdomain of it — `mail.example.com`, not `notexample.com`, not `example.com.attacker.net`. |
 | `@example.com` | The same as `example.com`. Stored as `example.com`. |
-| `https://bad.example/anything` | A **URL**: stored as `bad.example/`, and covering a link in the message whose host is `bad.example` or a subdomain of it, whoever sent the message. Its host is read as the link extractor reads a link's: the part after the last `@` (`http://a@b@bad.example/` is `bad.example/`), up to a port, a `/`, `?`, `#` or `\`, percent-decoded as UTF-8 with the characters a browser deletes from a host deleted (`sh%C2%ADop.example`, with a soft hyphen, is `shop.example/`), with each leading `www.` dropped while two labels or more are left, and an address in dotted decimal - an IPv4-mapped IPv6 address (`http://[::ffff:192.0.2.61]/`) or one under the NAT64 prefix `64:ff9b::/96` is the IPv4 address it carries (`192.0.2.61/`). A host no link can have there — any other IPv6 address, a name with a character a name cannot hold, a name of one label — is refused. |
+| `https://bad.example/anything` | A **URL**: stored as `bad.example/`, and covering a link in the message whose host is `bad.example` or a subdomain of it, whoever sent the message. Its host is read as the link extractor reads a link's: the part after the last `@` (`http://a@b@bad.example/` is `bad.example/`), up to a port, a `/`, `?`, `#` or `\`, percent-decoded as UTF-8, and a host that is not ASCII read as a browser reads it, by UTS 46: the characters a browser deletes from a host deleted (`sh%C2%ADop.example`, with a soft hyphen, is `shop.example/`), fullwidth letters and the ideographic full stops read as the ASCII ones, and a name in Unicode written in its `xn--` form, as DNS carries it (`https://bücher.example/` is `xn--bcher-kva.example/`, and covers a link written either way); with each leading `www.` dropped while two labels or more are left, and an address in dotted decimal - an IPv4-mapped IPv6 address (`http://[::ffff:192.0.2.61]/`) or one under the NAT64 prefix `64:ff9b::/96` is the IPv4 address it carries (`192.0.2.61/`). A host no link can have there — any other IPv6 address, a name with a character a name cannot hold, a name in Unicode that UTS 46 refuses, a name of one label — is refused. |
 
 An entry covers a message when it matches **either** the envelope sender
 (`MAIL FROM`) **or** the address in the message's `From` header. The header is
@@ -49,8 +49,10 @@ A URL entry is about what the message points at, not who sent it, and is
 consulted only when neither address decided anything: the links are read from
 the body the way the SURBL check reads them, each for the host it goes to - the
 host after the link's user name, if it has one, without its port,
-percent-decoded as UTF-8 with the characters a browser deletes from a host (a
-soft hyphen, a zero-width space) deleted, and an address in its own order, an
+percent-decoded as UTF-8, a host that is not ASCII read by UTS 46 as a browser
+reads it (the characters it deletes from a host - a soft hyphen, a zero-width
+space - deleted, fullwidth letters and the ideographic full stop read as ASCII
+ones, a name in Unicode in its `xn--` form), and an address in its own order, an
 IPv4-mapped IPv6 address (`[::ffff:192.0.2.1]`) as the IPv4 address it carries;
 in a text part also the name before a `)`, `"` or `}` in the user name, where a
 mail program ends the link, and the name before a zero-width no-break space,
@@ -473,13 +475,13 @@ the digest does not stop mail being held — it is still on the Held mail page.
 What this does not do
 ---------------------
 
-* **A link whose host is internationalised** - written in Unicode, or in
-  fullwidth or other characters a browser maps to ASCII - is not read as a
-  browser reads it: the host is not mapped by UTS 46 nor turned into its `xn--`
-  form ([Roadmap3.md](../../Roadmap3.md), "Internationalised link hosts"). A URL
-  entry for the registered name after such a label still covers the link, and so
-  does one for an ASCII host a browser would reach once it deleted a soft hyphen
-  or a zero-width space.
+* **A link whose host a browser refuses is not refused here.** A host in
+  Unicode with a label UTS 46 refuses - a character it disallows, Latin and
+  Hebrew in one label - goes nowhere in a browser; the link is still read, for
+  the name before such a label and the labels after it, and a URL entry for
+  either covers it. Until 6.3.7 every label in Unicode was read that way, so a
+  link written in fullwidth letters named nothing, and one to an
+  internationalised name only the labels after its last label in Unicode.
 * An administrator cannot make a domain or server block override an account's
   own safe senders. **Blocked senders** is that mechanism.
 * The digest is not HTML. (The hour, per domain until 23 September 2026, may now

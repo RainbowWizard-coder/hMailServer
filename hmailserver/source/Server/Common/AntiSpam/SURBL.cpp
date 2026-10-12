@@ -6,6 +6,7 @@
 #include "./SURBL.h"
 
 #include "../../Common/AntiSpam/AntiSpamDiagnostics.h"
+#include "../../Common/Idna/Idna.h"
 #include "../../Common/BO/MessageData.h"
 #include "../../Common/BO/SURBLServer.h"
 #include "../../Common/TCPIP/DNSResolver.h"
@@ -83,47 +84,16 @@ namespace HM
 
       const unsigned int replacementCharacter = 0xFFFD;
 
-      struct CodePointRange
+      // How a link's host is read when it is not ASCII: UTS 46 with the URL
+      // standard's flags (Idna.h), and no label of more code points than a DNS
+      // label has characters converted - no such label has an ASCII form DNS
+      // carries, and Punycode takes time that grows with the square of a
+      // label's length, which a link of a megabyte would make seconds.
+      Idna::Options LinkHostOptions_()
       {
-         unsigned int first;
-         unsigned int last;
-      };
-
-      // The code points UTS 46 marks "ignored" - IdnaMappingTable.txt of
-      // Unicode 18.0.0, every line with that status, as the table writes
-      // them. A browser deletes them from a host before it looks the name up
-      // (the WHATWG URL standard's "domain to ASCII" maps the host by UTS 46),
-      // so http://ev<SOFT HYPHEN>il.example/ and a zero-width space inside a
-      // name go to evil.example. The rest of UTS 46 - the characters it maps
-      // to others (fullwidth letters, U+3002 for a dot), NFC and Punycode - is
-      // not done here (Roadmap3, "Internationalised link hosts").
-      const CodePointRange ignoredInAHost[] =
-      {
-         { 0x00AD, 0x00AD },     // SOFT HYPHEN
-         { 0x034F, 0x034F },     // COMBINING GRAPHEME JOINER
-         { 0x115F, 0x1160 },     // HANGUL CHOSEONG FILLER..HANGUL JUNGSEONG FILLER
-         { 0x17B4, 0x17B5 },     // KHMER VOWEL INHERENT AQ..KHMER VOWEL INHERENT AA
-         { 0x180B, 0x180E },     // MONGOLIAN FREE VARIATION SELECTOR ONE..MONGOLIAN VOWEL SEPARATOR
-         { 0x180F, 0x180F },     // MONGOLIAN FREE VARIATION SELECTOR FOUR
-         { 0x200B, 0x200B },     // ZERO WIDTH SPACE
-         { 0x2060, 0x2063 },     // WORD JOINER..INVISIBLE SEPARATOR
-         { 0x2064, 0x2064 },     // INVISIBLE PLUS
-         { 0x206A, 0x206F },     // INHIBIT SYMMETRIC SWAPPING..NOMINAL DIGIT SHAPES
-         { 0x3164, 0x3164 },     // HANGUL FILLER
-         { 0xFE00, 0xFE0F },     // VARIATION SELECTOR-1..VARIATION SELECTOR-16
-         { 0xFEFF, 0xFEFF },     // ZERO WIDTH NO-BREAK SPACE
-         { 0xFFA0, 0xFFA0 },     // HALFWIDTH HANGUL FILLER
-         { 0x1BCA0, 0x1BCA3 },   // SHORTHAND FORMAT LETTER OVERLAP..SHORTHAND FORMAT UP STEP
-         { 0x1D173, 0x1D17A },   // MUSICAL SYMBOL BEGIN BEAM..MUSICAL SYMBOL END PHRASE
-         { 0xE0100, 0xE01EF },   // VARIATION SELECTOR-17..VARIATION SELECTOR-256
-      };
-
-      bool IsIgnoredInAHost_(unsigned int codePoint)
-      {
-         for (const CodePointRange &range : ignoredInAHost)
-            if (codePoint >= range.first && codePoint <= range.last)
-               return true;
-         return false;
+         Idna::Options options = Idna::UrlStandardOptions();
+         options.longestLabel = maxLabelLength;
+         return options;
       }
 
       // text[i] as the number it holds, through wchar_t's own unsigned type: a
@@ -662,26 +632,85 @@ namespace HM
          return String(name);
       }
 
-      // A host part as a browser reads it before it looks the name up: percent-
-      // decoded as UTF-8 (%C2%AD is a soft hyphen), the code points UTS 46
-      // ignores deleted, and ASCII in lower case. Until 6.3.6 a
-      // byte past ASCII was U+FFFD and nothing was deleted, so
+      // A host part as a browser reads it before it looks the name up - the URL
+      // standard's host parser, whose domain parser is UTS 46's ToASCII (Idna.h):
+      // percent-decoded as UTF-8 (%C2%AD is a soft hyphen); then, when it is
+      // ASCII, in lower case and nothing more, as the standard has it; and
+      // otherwise mapped by UTS 46 - the code points it ignores deleted, the
+      // ones it maps replaced (fullwidth letters by ASCII ones, U+3002 and the
+      // other full stops by '.', capitals by small letters), in NFC - and each
+      // label written in its ASCII form, "xn--" and its Punycode for one with
+      // non-ASCII in it: http://b<U+00FC>cher.example/ is
+      // xn--bcher-kva.example, as DNS is asked for it.
+      //
+      // Label by label: a label UTS 46 refuses - a code point it disallows, the
+      // bidi or joiner rules broken - or whose ASCII form is longer than a
+      // label can be, stays as UTS 46 mapped it, its non-ASCII code points
+      // characters a name cannot hold, so that what HostsOfHostPart_ hands over
+      // for a host with such a label - the name before it, the labels after it
+      // - is what it was before 6.3.7, when every non-ASCII label was such a
+      // label; and one written "xn--" that it refuses (not Punycode, or not a
+      // label it allows once decoded) stays as written, as an ASCII label
+      // does. refused says whether UTS 46 refused any label of a host that is
+      // not ASCII: a browser then goes nowhere (HostOfAuthority).
+      //
+      // Until 6.3.6 a byte past ASCII was U+FFFD and nothing was deleted, so
       // http://ev%C2%ADil.example/ and a zero-width space in a name were no
-      // name at all, where a browser goes to evil.example.
-      std::wstring HostDecoded_(const std::wstring &hostPart)
+      // name at all, where a browser goes to evil.example; until 6.3.7 only the
+      // code points UTS 46 ignores were deleted, and nothing was mapped, so a
+      // link written in fullwidth letters named nothing, and one to an
+      // internationalised name only the labels after its last non-ASCII one.
+      std::wstring HostDecoded_(const std::wstring &hostPart, bool &refused)
       {
+         refused = false;
+
+         const std::vector<unsigned int> codePoints = PercentDecodedCodePoints_(hostPart);
+
          std::wstring host;
-         host.reserve(hostPart.size());
+         host.reserve(codePoints.size());
 
-         for (unsigned int codePoint : PercentDecodedCodePoints_(hostPart))
+         bool ascii = true;
+         for (unsigned int codePoint : codePoints)
+            if (codePoint >= 0x80)
+               ascii = false;
+
+         if (ascii)
          {
-            if (IsIgnoredInAHost_(codePoint))
-               continue;
+            for (unsigned int codePoint : codePoints)
+            {
+               if (codePoint >= static_cast<unsigned int>('A') && codePoint <= static_cast<unsigned int>('Z'))
+                  codePoint += static_cast<unsigned int>('a' - 'A');
+               host += static_cast<wchar_t>(codePoint);
+            }
 
-            if (codePoint >= static_cast<unsigned int>('A') && codePoint <= static_cast<unsigned int>('Z'))
-               codePoint += static_cast<unsigned int>('a' - 'A');
+            return host;
+         }
 
-            AppendCodePoint_(codePoint, host);
+         std::vector<Idna::Label> labels;
+         Idna::ProcessLabels(codePoints, LinkHostOptions_(), labels);
+
+         for (size_t i = 0; i < labels.size(); i++)
+         {
+            const Idna::Label &label = labels[i];
+            if (i > 0)
+               host += L'.';
+
+            if (label.errors != 0)
+               refused = true;
+
+            // A label UTS 46 took: its ASCII form, unless that is longer than
+            // a label can be. One it refused: as written (as mapped), if it was
+            // written "xn--", and otherwise as UTS 46 mapped it.
+            if (label.errors == 0 && !label.ascii.empty() && label.ascii.size() <= maxLabelLength)
+            {
+               for (char character : label.ascii)
+                  host += static_cast<wchar_t>(static_cast<unsigned char>(character));
+            }
+            else
+            {
+               for (unsigned int codePoint : label.punycode ? label.mapped : label.unicode)
+                  AppendCodePoint_(codePoint, host);
+            }
          }
 
          return host;
@@ -690,7 +719,8 @@ namespace HM
       // The hosts one link's host part hands over (SURBL::FindLinkHosts).
       void HostsOfHostPart_(const std::wstring &hostPart, std::vector<String> &hosts)
       {
-         const std::wstring host = HostDecoded_(hostPart);
+         bool refused = false;
+         const std::wstring host = HostDecoded_(hostPart, refused);
 
          // A host whose last label is a number is an address, or nothing a
          // browser can reach.
@@ -1605,8 +1635,15 @@ namespace HM
       // The whole host part, as HostsOfHostPart_ hands over a host that is all
       // a name's characters or an address; and nothing for one that is not,
       // where a link hands over the name before the character and the labels
-      // after it: an entry names one host, and is not widened to another.
-      return Canonical_(HostDecoded_(hostPart));
+      // after it: an entry names one host, and is not widened to another. Nor
+      // for a host that is not ASCII with a label UTS 46 refuses, which a
+      // browser fails, whatever its other labels are.
+      bool refused = false;
+      const std::wstring host = HostDecoded_(hostPart, refused);
+      if (refused)
+         return String();
+
+      return Canonical_(host);
    }
 
    SURBL::AnswerKind
@@ -2731,8 +2768,8 @@ namespace HM
 
          // A character a name cannot hold, before the registered name.
          { L"http://a!b.evil.example/", false, L"evil.example", "a '!' in a label" },
-         { L"http://\x0430" L"pple.evil.example/", false, L"evil.example", "a label in Unicode" },
-         { L"http://b\x00FC" L"cher.example/", false, L"", "an internationalised name, not turned into its xn-- form" },
+         { L"http://\x0430" L"pple.evil.example/", false, L"xn--pple-43d.evil.example", "a label in Unicode, in its xn-- form (until 6.3.7 the labels after it)" },
+         { L"http://b\x00FC" L"cher.example/", false, L"xn--bcher-kva.example", "an internationalised name, in its xn-- form (until 6.3.7 nothing)" },
          { L"http://evil.example),see.also.example", false, L"evil.example|also.example", "the name before the character and the labels after its label" },
 
          // Quoted-printable soft line breaks, and line breaks that are not.
@@ -2796,6 +2833,32 @@ namespace HM
          { L"<a href=\"http://e&NoBreak;v&it;i&ic;l&af;.example/\">", true, L"evil.example", "&NoBreak;, &it;, &ic; and &af;" },
          { L"<a href=\"http://evil&#xE0100;.example/\">", true, L"evil.example", "a numeric reference outside the Basic Multilingual Plane" },
          { L"https://r.example/?u=http%3A%2F%2Fev%C2%ADil.example", false, L"r.example|evil.example", "a soft hyphen in a link in another's query" },
+
+         // UTS 46's mapping, NFC and Punycode, which a browser runs on a host
+         // that is not ASCII before it asks DNS for it (Idna.h): each label in
+         // its ASCII form. Until 6.3.7 a link written in fullwidth letters
+         // named nothing, and an internationalised name only the labels after
+         // its last label in Unicode.
+         { L"http://\uFF45\uFF56\uFF49\uFF4C\uFF0E\uFF45\uFF58\uFF41\uFF4D\uFF50\uFF4C\uFF45/", false, L"evil.example", "a link written in fullwidth letters, with a fullwidth full stop" },
+         { L"see http://\uFF25\uFF36\uFF29\uFF2C.example/ now", false, L"evil.example", "fullwidth capitals" },
+         { L"<a href=\"http://\uFF45\uFF56\uFF49\uFF4C\uFF0E\uFF45\uFF58\uFF41\uFF4D\uFF50\uFF4C\uFF45/\">", true, L"evil.example", "fullwidth letters in an attribute's value" },
+         { L"<a href=\"http://&#xFF45;vil&#xFF0E;example/\">", true, L"evil.example", "fullwidth letters written as character references" },
+         { L"https://r.example/?u=http%3A%2F%2F%EF%BD%85vil.example", false, L"r.example|evil.example", "a fullwidth letter, percent-encoded, in a link in another's query" },
+         { L"http://evil\u3002example/", false, L"evil.example", "an ideographic full stop" },
+         { L"http://evil\uFF61example/", false, L"evil.example", "a halfwidth ideographic full stop" },
+         { L"http://evil.example\u3002/", false, L"evil.example", "an ideographic full stop at the end, a trailing dot" },
+         { L"http://\uFF11\uFF19\uFF12\uFF0E\uFF10\uFF0E\uFF12\uFF0E\uFF11/", false, L"192.0.2.1", "an address in fullwidth digits, an address once mapped" },
+         { L"http://b%C3%BCcher.example/", false, L"xn--bcher-kva.example", "an internationalised name, percent-encoded as UTF-8" },
+         { L"http://B\u00DCCHER.Example/", false, L"xn--bcher-kva.example", "capitals, mapped to small letters before Punycode" },
+         { L"http://bu\u0308cher.example/", false, L"xn--bcher-kva.example", "a u and a combining diaeresis, composed (NFC)" },
+         { L"http://fa\u00DF.example/", false, L"xn--fa-hia.example", "a sharp s, kept, as a browser's Nontransitional Processing keeps it" },
+         { L"http://xn--bcher-kva.example/", false, L"xn--bcher-kva.example", "a name written in its xn-- form" },
+         { L"http://xn--zz.b\u00FCcher.example/", false, L"xn--zz.xn--bcher-kva.example", "an xn-- label that is not Punycode beside one in Unicode: as written" },
+         { L"http://xn--abc-.b\u00FCcher.example/", false, L"xn--abc-.xn--bcher-kva.example", "an xn-- label that decodes to ASCII alone, which UTS 46 refuses: as written, not decoded" },
+         { L"http://xn--b\u00FC.evil.example/", false, L"evil.example", "an xn-- label with a code point past ASCII: as written, so the labels after it" },
+         { L"http://\u4E00\u4E25\u4E4A\u4E6F\u4E94\u4EB9\u4EDE\u4F03\u4F28\u4F4D\u4F72\u4F97\u4FBC\u4FE1\u5006\u502B\u5050\u5075\u509A\u50BF\u50E4\u5109\u512E\u5153\u5178\u519D\u51C2\u51E7\u520C\u5231.evil.example/", false, L"evil.example", "a label whose xn-- form is longer than a label can be: the labels after it" },
+         { L"http://a\u05D0.evil.example/", false, L"evil.example", "a label of Latin and Hebrew, which RFC 5893 refuses: the labels after it" },
+         { L"http://evil.example\uFF0Fpath", false, L"evil.example", "a fullwidth solidus, mapped to a '/' that no name holds: the name before it" },
 
          // Where a mail program's script ends a link in running text at a
          // code point its \s matches and a browser given the whole link
@@ -2952,6 +3015,11 @@ namespace HM
          { L"https://a!b.example/", L"a!b.example/", false, "an entry with a character a name cannot hold" },
          { L"https://nodot/x", L"nodot/", false, "an entry of one label" },
          { L"https://", L"/", false, "an entry with no host" },
+         { L"https://B\u00FCcher.Example/", L"xn--bcher-kva.example/", true, "an entry of an internationalised name: its xn-- form" },
+         { L"http://\uFF53\uFF48\uFF4F\uFF50\u3002example/", L"shop.example/", true, "an entry in fullwidth letters, with an ideographic full stop" },
+         { L"https://xn--zz.b\u00FCcher.example/", L"xn--zz.b\u00FCcher.example/", false, "an entry not ASCII with a label UTS 46 refuses, which a browser fails" },
+         { L"https://xn--abc-.b\u00FCcher.example/", L"xn--abc-.b\u00FCcher.example/", false, "an entry not ASCII with an xn-- label that decodes to ASCII alone" },
+         { L"https://xn--zz.example/", L"xn--zz.example/", true, "an ASCII entry with an xn-- label that is not Punycode: as written, as a browser takes it" },
       };
 
       // Whether a URL entry covers a link: the hosts FindLinkHosts hands over
@@ -2976,6 +3044,9 @@ namespace HM
          { L"https://shop.example/", L"http://sh\u00ADop.example/", true, "an entry covers a link with a soft hyphen in its host" },
          { L"http://192.0.2.61/", L"http://[::ffff:192.0.2.61]/", true, "an address's entry covers a link to it as an IPv4-mapped address" },
          { L"https://shop.example/", L"https://r.example/?u=//cdn.shop.example/", true, "an entry covers a link with no scheme in another's query" },
+         { L"https://xn--bcher-kva.example/", L"http://b\u00FCcher.example/", true, "an entry in its xn-- form covers a link in Unicode" },
+         { L"https://b\u00FCcher.example/", L"http://www.xn--bcher-kva.example/x", true, "an entry in Unicode covers a link in its xn-- form" },
+         { L"https://shop.example/", L"http://\uFF53\uFF48\uFF4F\uFF50\uFF0Eexample/", true, "an entry covers a link written in fullwidth letters" },
       };
 
       // The entry hosts that cover a link's host (SenderPattern::UrlEntryHostsCovering).
@@ -2992,6 +3063,7 @@ namespace HM
          { L"www.shop.example", L"shop.example|example", "the host read again as an entry is: www. dropped" },
          { L"192.0.2.61", L"192.0.2.61|0.2.61|2.61|61", "an address" },
          { L"a!b.example", L"", "no host a link can have" },
+         { L"b\u00FCcher.example", L"xn--bcher-kva.example|example", "a host in Unicode, read as its xn-- form" },
       };
 
       void Fail_(const char *why, const String &input, const String &got, const String &expected)

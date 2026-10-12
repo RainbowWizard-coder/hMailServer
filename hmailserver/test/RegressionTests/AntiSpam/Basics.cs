@@ -73,7 +73,10 @@ namespace RegressionTests.AntiSpam
             // SurblAsksAboutTheIcannDomainOfAHostUnderAPrivateSuffix: a whole
             // hosting domain listed, as URIBL, which is not wildcarded, lists
             // one. Nothing is served for its tenants' names.
-            .WithA("duckdns.org.multi.surbl.org", "127.0.0.2");
+            .WithA("duckdns.org.multi.surbl.org", "127.0.0.2")
+            // SurblReadsAHostThatIsNotAsciiAsABrowserDoes: an internationalised
+            // name, listed in its xn-- form, which is how DNS carries it.
+            .WithA("xn--bcher-kva.test.multi.surbl.org", "127.0.0.2");
       }
 
       [OneTimeTearDown]
@@ -826,6 +829,67 @@ namespace RegressionTests.AntiSpam
 
          surblServer.Active = false;
          surblServer.Save();
+      }
+
+      [Test]
+      public void SurblReadsAHostThatIsNotAsciiAsABrowserDoes()
+      {
+         // A browser reads a host that is not ASCII by UTS 46 before it asks DNS
+         // for it - the URL standard's domain parser: fullwidth letters and their
+         // full stop mapped to ASCII, an ideographic full stop to '.', capitals to
+         // small letters, and a label in Unicode turned into its xn-- form. Until
+         // 6.3.7 only the code points UTS 46 ignores were deleted, so a listed
+         // name written in fullwidth letters was no name at all, and a link to an
+         // internationalised name was asked about only as the labels after its
+         // last label in Unicode: a spammer escaped every URI list by writing
+         // the name so. surbl-userinfo.test and xn--bcher-kva.test (b, u with
+         // diaeresis, cher) are listed.
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "surbl-uts46@example.test", "test");
+         var surblServer = ArmSurbl_("");
+
+         LogHandler.DeleteCurrentDefaultLog();
+
+         var messages = new[]
+         {
+            new { What = "a link written in fullwidth letters, with a fullwidth hyphen and full stop", Type = "text/plain",
+                  Body = "A link: http://\uFF53\uFF55\uFF52\uFF42\uFF4C\uFF0D\uFF55\uFF53\uFF45\uFF52\uFF49\uFF4E\uFF46\uFF4F\uFF0E\uFF54\uFF45\uFF53\uFF54/ here" },
+            new { What = "an ideographic full stop", Type = "text/plain",
+                  Body = "A link: http://surbl-userinfo\u3002test/ here" },
+            new { What = "fullwidth capitals in an HTML link", Type = "text/html",
+                  Body = "<html><body><a href=\"http://\uFF33\uFF35\uFF32\uFF22\uFF2C\uFF0D\uFF35\uFF33\uFF25\uFF32\uFF29\uFF2E\uFF26\uFF2F\uFF0E\uFF34\uFF25\uFF33\uFF34/\">a link</a></body></html>" },
+            new { What = "an internationalised name", Type = "text/plain",
+                  Body = "A link: http://b\u00FCcher.test/ here" },
+         };
+
+         foreach (var message in messages)
+         {
+            SmtpClientSimulator.StaticSendRaw(account.Address, account.Address,
+               Utf8Message_(account.Address, "SURBL-UTS46", message.Type, message.Body));
+            var text = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+            Assert.IsTrue(text.Contains("X-hMailServer-Spam"), message.What + " was not looked up as the listed name a browser goes to.");
+         }
+
+         Assert.IsTrue(LogHandler.DefaultLogContains("SURBL: Lookup: surbl-userinfo.test.multi.surbl.org"),
+            "The fullwidth link's host was not asked about as surbl-userinfo.test.");
+         Assert.IsTrue(LogHandler.DefaultLogContains("SURBL: Lookup: xn--bcher-kva.test.multi.surbl.org"),
+            "The internationalised name was not asked about in its xn-- form.");
+
+         surblServer.Active = false;
+         surblServer.Save();
+      }
+
+      // A message of one part in UTF-8, base64-encoded, whose body is the given
+      // text: the characters past ASCII reach the server as the sender wrote them.
+      private static string Utf8Message_(string address, string subject, string contentType, string body)
+      {
+         return "From: " + address + "\r\n" +
+                "To: " + address + "\r\n" +
+                "Subject: " + subject + "\r\n" +
+                "MIME-Version: 1.0\r\n" +
+                "Content-Type: " + contentType + "; charset=utf-8\r\n" +
+                "Content-Transfer-Encoding: base64\r\n" +
+                "\r\n" +
+                Convert.ToBase64String(Encoding.UTF8.GetBytes(body), Base64FormattingOptions.InsertLineBreaks) + "\r\n";
       }
 
       [Test]

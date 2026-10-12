@@ -870,6 +870,32 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   count starts again, and as controls a `453`, a session with the limit off and such a script's text; the spam case
   needs an incoming relay, which the Linux suite's REST API does not have, and runs on Windows. Found by upstream.
 
+### Anti-spam, anti-virus and mail flow rules
+
+- **A link's host that is not ASCII is read by UTS 46, as a browser reads it: a listed name written in fullwidth
+  letters, or an internationalised one, no longer escapes the URI block lists.** Before it looks a host up, a browser
+  maps it by Unicode's UTS 46, which is the WHATWG URL standard's "domain to ASCII": fullwidth and other compatibility
+  letters and digits become ASCII ones, `U+3002` and the other full stops `.`, capitals small letters, the name is put
+  in NFC, and each label in Unicode becomes `xn--` and its Punycode - `http://ｅｖｉｌ。example/` goes to `evil.example`,
+  and `http://bücher.example/` to `xn--bcher-kva.example`. The SURBL test and the sender lists' URL entries deleted
+  only the code points UTS 46 ignores (6.3.6) and mapped nothing, so a listed name written in fullwidth letters was no
+  name at all, and a link to an internationalised name was asked about only as the ASCII labels after its last label
+  in Unicode, or not at all (in every version). A host that is not ASCII is now read by UTS 46 with the URL standard's
+  flags - the mapping, NFC, the validity criteria with RFC 5893's bidi rule and RFC 5892's joiner rules, and
+  Punycode - from tables generated out of Unicode 18.0.0's own data files and compiled in (`Common/Idna`,
+  `build/generate-idna-tables.py`), so that Windows and Linux read a host alike whatever Unicode version the system
+  has; an ASCII host is lowered and nothing more, as the standard has it. A label UTS 46 refuses - a code point it
+  disallows, the bidi or joiner rules broken, an `xn--` label that is not Punycode - still hands over the name before
+  it and the labels after it, as every label in Unicode did; a URL entry whose host is not ASCII and has such a label
+  is refused, as a browser fails it; and an entry written in Unicode covers a link written in its `xn--` form and the
+  other way round (`https://bücher.example/` is stored as `xn--bcher-kva.example/`). `IdnaTester` holds the
+  implementation to every line of Unicode's `IdnaTestV2.txt` (6,396, in ClassTester and, on Linux, in the new
+  `idna-tests`), `SURBLTester` (`public-suffix-tests`) holds the links and the entries, and `AntiSpam/Basics.cs`
+  delivers a link in fullwidth letters, one with an ideographic full stop, one in fullwidth capitals in an HTML part
+  and one to an internationalised name, each to a listed name, and finds each tagged
+  ([SenderListsAndDigests.md](hmailserver/docs/SenderListsAndDigests.md); [Roadmap3.md](Roadmap3.md),
+  "Internationalised link hosts").
+
 ### Control Panel
 
 - **Fixed: a list page whose read failed showed its empty state, the rows of its last visit or a count of zero as if
