@@ -3940,6 +3940,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   fills. The rows keep clear of the bar while it shows, as the Domains page's lists do (review finding F101).
   `SidebarShellTests` holds it.
 
+- **Fixed: list toolbars wrapped their actions a word at a time beside the search.** A list page's actions stayed beside
+  its search and filters while the widest of them fitted there, and wrapped there: at 760 pixels the IP ranges'
+  Properties, Delete selected range and Restore defaults stood in a column of three; in German at 1280 the delivery
+  queue's Primary, Deliver now, wrapped alone onto a second line at the left, and IP ranges' Restore defaults; and in
+  Japanese the Rules page's Delete rule. The actions now stay beside the search only while all of them fit there on one
+  line, and otherwise go on a row of their own under it, at the right edge, the Primary last. `ListPagePatternTests`
+  holds the rule.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

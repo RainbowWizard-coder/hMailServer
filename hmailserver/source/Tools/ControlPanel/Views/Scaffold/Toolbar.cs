@@ -90,10 +90,9 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       protected override AutomationControlType ControlType => AutomationControlType.ToolBar;
 
       /// <summary>
-      /// The actions sit beside the search box and the filters while the widest of
-      /// them fits in the width those leave, wrapping there when they are a
-      /// WrapPanel, and go on a row of their own under them, at the right edge,
-      /// when it does not (Services/ToolbarRows): a list page's Edit, Delete and
+      /// The actions sit beside the search box and the filters while all of them fit
+      /// there on one line, and go on a row of their own under them, at the right
+      /// edge, when they do not (Services/ToolbarRows): a list page's Edit, Delete and
       /// Add… beside the suppression list's search and sending domain had no width
       /// in the narrowest window and were not drawn at all. The filters go under the
       /// search, from the left, when the two are wider than the toolbar, and the
@@ -128,7 +127,7 @@ namespace hMailServer.ControlPanel.Views.Scaffold
                slot.HorizontalAlignment = HorizontalAlignment.Left;
 
             bool under = actions.Visibility == Visibility.Visible
-                         && Services.ToolbarRows.ActionsUnder(constraint.Width, search, filtersUnder ? 0 : filters, WidestAction_(Actions, any));
+                         && Services.ToolbarRows.ActionsUnder(constraint.Width, search, filtersUnder ? 0 : filters, ActionsOnOneLine_(Actions, any));
             int row = under ? (filtersUnder ? 2 : 1) : 0;
             Place_(actions, row, under ? 0 : 2, under ? 4 : 2, under ? new Thickness(0, Services.ToolbarRows.Gap, 0, 0) : null);
          }
@@ -157,23 +156,25 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       }
 
       /// <summary>
-      /// The width of the widest action of a WrapPanel of them, which wraps them; of
-      /// any other panel or element as a whole, since it does not.
+      /// The width the actions take on one line: a WrapPanel's shown children side by
+      /// side, each with its margin; any other panel or element as a whole. Measured by
+      /// the widest alone, a WrapPanel of three stayed beside the search and wrapped
+      /// after every one of them.
       /// </summary>
-      private static double WidestAction_(object actions, Size any)
+      private static double ActionsOnOneLine_(object actions, Size any)
       {
          if (actions is System.Windows.Controls.WrapPanel panel)
          {
-            double widest = 0;
+            double line = 0;
             foreach (UIElement child in panel.Children)
             {
                if (child.Visibility == Visibility.Collapsed)
                   continue;
                child.Measure(any);
-               widest = System.Math.Max(widest, child.DesiredSize.Width);
+               line += child.DesiredSize.Width;
             }
 
-            return widest;
+            return line;
          }
 
          if (actions is UIElement element)

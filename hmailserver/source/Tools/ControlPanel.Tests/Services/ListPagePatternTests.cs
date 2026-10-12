@@ -290,13 +290,21 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// The toolbar's actions go on a row of their own once the widest does not fit
+      /// The toolbar's actions go on a row of their own once they do not fit on one line
       /// beside the search and the filters - the suppression list's in the narrowest
-      /// window - and stay beside them otherwise.
+      /// window - and stay beside them otherwise. Measured by the widest alone, the IP
+      /// ranges' three stood in a column at 760 and the delivery queue's Primary wrapped
+      /// alone, at the left, in German at 1280 (the final check of Tier 2).
       /// </summary>
       [Fact]
-      public void TheToolbar_PutsItsActionsUnderWhenTheWidestDoesNotFit()
+      public void TheToolbar_PutsItsActionsUnderWhenTheyDoNotFitOnOneLine()
       {
+         // 652 wide at 760, a 220 search, a 175 filter: 245 left; Properties, Delete
+         // selected range and Restore defaults, 90 + 150 + 130, do not fit, though each
+         // alone would.
+         Assert.True(ToolbarRows.ActionsUnder(652, 220, 175, 90 + 150 + 130));
+         Assert.False(ToolbarRows.ActionsUnder(652, 220, 175, 150));
+
          // 650 wide, a 220 search and a filter of 400: 18 left, Add… needs 80.
          Assert.True(ToolbarRows.ActionsUnder(650, 220, 400, 80));
          // 1000 wide: 368 left.
@@ -319,8 +327,13 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("Place_(actions, row,", toolbar, StringComparison.Ordinal);
 
          // Actions that cannot wrap are as wide as all of them: the message trace's
-         // two, in a StackPanel, were cut at 760 pixels in German beside its search.
+         // two, in a StackPanel, were cut at 760 pixels in German beside its search;
+         // and a WrapPanel's are measured on one line, side by side.
          Assert.Contains("if (actions is System.Windows.Controls.WrapPanel panel)", toolbar, StringComparison.Ordinal);
+         string line = WithheldRowTests.MemberText(toolbar, "private static double ActionsOnOneLine_(object actions, Size any)");
+         Assert.True(line != null, "Toolbar.ActionsOnOneLine_ is gone.");
+         Assert.Contains("line += child.DesiredSize.Width;", line, StringComparison.Ordinal);
+         Assert.DoesNotContain("WidestAction_", toolbar, StringComparison.Ordinal);
       }
 
       private static XElement Page(string file) => XDocument.Parse(ReadControlPanelFile(Path.Join("Views", file))).Root;
