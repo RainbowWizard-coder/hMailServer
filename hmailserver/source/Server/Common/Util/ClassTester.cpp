@@ -25,6 +25,7 @@
 #include "../Util/ContentPolicy.h"
 #include "../AntiSpam/QuarantineReview.h"
 #include "../AntiSpam/FqdnCheck.h"
+#include "../Idna/Idna.h"
 #include "../Util/WebPush.h"
 #include "../Util/PushSubscriptions.h"
 #include "../Util/PushNotifier.h"
@@ -470,6 +471,14 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing AutoBanWidener\n"));
       AutoBanWidenerTester autoBanWidenerTester;
       autoBanWidenerTester.Test();
+
+      // UTS 46, which the next reads a link's host with when it is not ASCII:
+      // Unicode's own conformance tests, IdnaTestV2.txt, every line - the
+      // mapping table, NFC, the validity, bidi and joiner rules, Punycode -
+      // and the URL standard's domain parser.
+      OutputDebugString(_T("hMailServer: Testing UTS 46 (IDNA)\n"));
+      IdnaTester idnaTester;
+      idnaTester.Test();
 
       // The host each link in a message goes to, as a browser reads the link:
       // after the last '@' of its userinfo, without its port, percent-decoded,

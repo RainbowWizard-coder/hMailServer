@@ -149,6 +149,8 @@ SOURCE_COMPONENTS = [
      "BSD-style notice", "the SPF conformance tests spf-tests runs"),
     ("public-suffix-list", "Public Suffix List", "hmailserver/source/Server/Common/AntiSpam/DMARC/PublicSuffixListData.h",
      "MPL-2.0", None, "the list's rules, compiled into the server"),
+    ("unicode-idna-data", "Unicode Character Database for UTS 46 (Unicode 18.0.0)", "hmailserver/source/Server/Common/Idna/ucd",
+     "Unicode-3.0", None, "the IDNA mapping table and the normalisation, bidi and joining data, compiled into the server as tables"),
     ("atl-script-host", "ATL Active Script host (VisionTech Limited)", "hmailserver/source/Server/Common/Scripting/ScriptSite.h",
      None, "its own permissive notice", "compiled into hMailServer.exe only"),
     ("mail-dkim-corpus", "DKIM test messages (Mail::DKIM's corpus)", "hmailserver/test/TestData/DKIM",

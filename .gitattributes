@@ -91,6 +91,14 @@ build/fixtures/pst/** binary
 ###############################################################################
 build/db-upgrade-6029/*.sql -text
 
+###############################################################################
+# Unicode's data files for UTS 46 (hmailserver/source/Server/Common/Idna/ucd),
+# byte for byte as unicode.org serves them, LF and all: the generator of the
+# tables built from them, build/generate-idna-tables.py, holds each to the
+# SHA-256 of the file Unicode publishes, which a CRLF checkout would change.
+###############################################################################
+hmailserver/source/Server/Common/Idna/ucd/** -text
+
 # Explicitly binary
 *.exe binary
 *.dll binary

@@ -370,6 +370,10 @@ EXIT 0
     <ClCompile Include="..\Common\Util\NeverBanNameList.cpp" />
     <ClCompile Include="..\Common\Util\AutoBanWidener.cpp" />
     <ClCompile Include="..\Common\AntiSpam\SURBL.cpp" />
+    <ClCompile Include="..\Common\Idna\Idna.cpp" />
+    <ClCompile Include="..\Common\Idna\IdnaTables.cpp" />
+    <ClCompile Include="..\Common\Idna\IdnaTestData.cpp" />
+    <ClCompile Include="..\Common\Idna\IdnaTester.cpp" />
     <ClCompile Include="..\Common\AntiSpam\WhiteListCache.cpp" />
     <ClCompile Include="..\Common\AntiVirus\AntiVirusConfiguration.cpp" />
     <ClCompile Include="..\Common\AntiVirus\ClamAVVirusScanner.cpp" />
@@ -1374,6 +1378,8 @@ EXIT 0
     <ClInclude Include="..\Common\Util\NeverBanNameList.h" />
     <ClInclude Include="..\Common\Util\AutoBanWidener.h" />
     <ClInclude Include="..\Common\AntiSpam\SURBL.h" />
+    <ClInclude Include="..\Common\Idna\Idna.h" />
+    <ClInclude Include="..\Common\Idna\IdnaTables.h" />
     <ClInclude Include="..\Common\AntiSpam\WhiteListCache.h" />
     <ClInclude Include="..\Common\AntiVirus\AntiVirusConfiguration.h" />
     <ClInclude Include="..\Common\AntiVirus\ClamAVVirusScanner.h" />

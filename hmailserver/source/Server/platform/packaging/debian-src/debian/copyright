@@ -151,6 +151,30 @@ Comment:
  where DMARC finds a domain's organisational domain with it, and the SURBL
  lookups and the MX-record spam test the registrable domain of a host name.
 
+Files: hmailserver/source/Server/Common/Idna/ucd/*.txt
+       hmailserver/source/Server/Common/Idna/ucd/unicode.LICENSE
+       hmailserver/docs/Licenses/License?-?Unicode?data.txt
+Copyright: 1991-2026 Unicode, Inc.
+License: Unicode-3.0
+Comment:
+ The Unicode 18.0.0 data files UTS 46 is done from - IdnaMappingTable.txt and
+ its conformance tests, IdnaTestV2.txt, UnicodeData.txt,
+ CompositionExclusions.txt, DerivedJoiningType.txt and DerivedBidiClass.txt -
+ vendored unmodified as unicode.org serves them, each held to its SHA-256 by
+ build/generate-idna-tables.py.
+
+Files: hmailserver/source/Server/Common/Idna/IdnaTables.cpp
+       hmailserver/source/Server/Common/Idna/IdnaTestData.cpp
+Copyright: 1991-2026 Unicode, Inc.
+           2026 Christopher Holloway / Progressive Robot Ltd
+License: Unicode-3.0 and AGPL-3+
+Comment:
+ Made from the Unicode data files above by build/generate-idna-tables.py, and
+ compiled into /usr/bin/hmailserver, which reads the host of a link in a
+ message with them as a browser does (UTS 46, the WHATWG URL standard's domain
+ to ASCII) for the SURBL test and the sender lists' URL entries.
+ IdnaTestData.cpp is Unicode's conformance tests, which idna-tests runs.
+
 Files: hmailserver/source/Server/Common/Scripting/ScriptSite.h
 Copyright: 2001 VisionTech Limited
            2005-2014 Martin Knafve / hMailServer.com
@@ -928,6 +952,47 @@ License: MPL-2.0
  .
  On Debian systems, the complete text of the Mozilla Public License, version
  2.0, can be found in "/usr/share/common-licenses/MPL-2.0".
+
+License: Unicode-3.0
+ UNICODE LICENSE V3
+ .
+ COPYRIGHT AND PERMISSION NOTICE
+ .
+ Copyright © 1991-2026 Unicode, Inc.
+ .
+ NOTICE TO USER: Carefully read the following legal agreement. BY
+ DOWNLOADING, INSTALLING, COPYING OR OTHERWISE USING DATA FILES, AND/OR
+ SOFTWARE, YOU UNEQUIVOCALLY ACCEPT, AND AGREE TO BE BOUND BY, ALL OF THE
+ TERMS AND CONDITIONS OF THIS AGREEMENT. IF YOU DO NOT AGREE, DO NOT
+ DOWNLOAD, INSTALL, COPY, DISTRIBUTE OR USE THE DATA FILES OR SOFTWARE.
+ .
+ Permission is hereby granted, free of charge, to any person obtaining a
+ copy of data files and any associated documentation (the "Data Files") or
+ software and any associated documentation (the "Software") to deal in the
+ Data Files or Software without restriction, including without limitation
+ the rights to use, copy, modify, merge, publish, distribute, and/or sell
+ copies of the Data Files or Software, and to permit persons to whom the
+ Data Files or Software are furnished to do so, provided that either (a)
+ this copyright and permission notice appear with all copies of the Data
+ Files or Software, or (b) this copyright and permission notice appear in
+ associated Documentation.
+ .
+ THE DATA FILES AND SOFTWARE ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+ KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
+ THIRD PARTY RIGHTS.
+ .
+ IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE
+ BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT OR CONSEQUENTIAL DAMAGES,
+ OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+ WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THE DATA
+ FILES OR SOFTWARE.
+ .
+ Except as contained in this notice, the name of a copyright holder shall
+ not be used in advertising or otherwise to promote the sale, use or other
+ dealings in these Data Files or Software without prior written
+ authorization of the copyright holder.
 
 License: ScriptSite
  VisionTech Limited makes no warranties, either express or implied,

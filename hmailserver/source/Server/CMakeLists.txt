@@ -659,6 +659,20 @@ add_executable(public-suffix-tests ${SERVER_DIR}/platform/public_suffix_tests_ma
 target_link_libraries(public-suffix-tests PRIVATE hmailserver_core)
 set_target_properties(public-suffix-tests PROPERTIES OUTPUT_NAME public-suffix-tests)
 
+# ---------------------------------------------------------------- UTS 46
+#
+# IdnaTester (Common/Idna/Idna.h) as a program of its own, for the reason
+# spf-tests is one: on Windows it runs inside the server through ClassTester,
+# which nothing reaches here. UTS 46 - the mapping table, NFC, the validity, bidi
+# and joiner rules and Punycode that a browser runs on a link's host, and that
+# the SURBL test and the sender lists' URL entries read a host with - held to
+# every line of Unicode's IdnaTestV2.txt, and the URL standard's domain parser.
+# The tables and the test lines are compiled in (build/generate-idna-tables.py);
+# no database, configuration, file or network. Not installed; a bench tool.
+add_executable(idna-tests ${SERVER_DIR}/platform/idna_tests_main.cpp)
+target_link_libraries(idna-tests PRIVATE hmailserver_core)
+set_target_properties(idna-tests PROPERTIES OUTPUT_NAME idna-tests)
+
 # ---------------------------------------------------------------- the never-ban list by reverse name
 #
 # NeverBanNameListTester (Common/Util/NeverBanNameList.h, GitLab work item #56)

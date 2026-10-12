@@ -201,6 +201,8 @@ REQUIRED = (
     ("hmailserver/docs/Licenses/License - String library.rtf", "Common/Util/StdString.h's licence (Joseph M. O'Leary)"),
     (SERVER + "/SMTP/SPF/Conformance/rfc7208-tests.LICENSE", "the RFC 7208 test suite's licence, which spf-tests runs"),
     ("hmailserver/docs/Licenses/License - RFC 7208 test suite.txt", "the same, among the third-party notices"),
+    (SERVER + "/Common/Idna/ucd/unicode.LICENSE", "the Unicode License v3 of the UTS 46 data the server compiles in"),
+    ("hmailserver/docs/Licenses/License - Unicode data.txt", "the same, among the third-party notices"),
 )
 
 # Archives the tarball may carry, by path, each with the reason it is not a binary
@@ -743,6 +745,8 @@ def self_test():
         "hmailserver/docs/Licenses/License - Microsoft SQL Server Compact Edition.rtf": "EULA",
         "hmailserver/docs/Licenses/License - Microsoft SQL Server Compact Edition 4.rtf": "EULA",
         SERVER + "/SMTP/SPF/Conformance/rfc7208-tests.LICENSE": "BSD",
+        SERVER + "/Common/Idna/ucd/unicode.LICENSE": "Unicode-3.0",
+        "hmailserver/docs/Licenses/License - Unicode data.txt": "Unicode-3.0",
         SERVER + "/Common/Util/Deflate.cpp": '#include "../../zlib/zlib.h"\n',
         SERVER + "/Common/Util/Win.cpp": '#ifndef HM_PLATFORM_POSIX\n#include "../../COM/Api.h"\n#endif\n',
         SERVER + "/Common/Util/Both.cpp": ('#ifdef HM_PLATFORM_POSIX\n#include <zlib.h>\n#else\n#include "../../zlib/zlib.h"\n#endif\n'
@@ -879,6 +883,8 @@ def self_test():
             "hmailserver/docs/Licenses/License - String library.rtf": b"free",
             "hmailserver/docs/Licenses/License - RFC 7208 test suite.txt": b"BSD",
             SERVER + "/SMTP/SPF/Conformance/rfc7208-tests.LICENSE": b"BSD",
+            SERVER + "/Common/Idna/ucd/unicode.LICENSE": b"Unicode-3.0",
+            "hmailserver/docs/Licenses/License - Unicode data.txt": b"Unicode-3.0",
             "hmailserver/docs/Licenses/License list.ods": b"PK\x03\x04 spreadsheet",
         })
         files.update(extra or {})
