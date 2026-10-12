@@ -85,10 +85,12 @@ namespace HM
       const unsigned int replacementCharacter = 0xFFFD;
 
       // How a link's host is read when it is not ASCII: UTS 46 with the URL
-      // standard's flags (Idna.h), and no label of more code points than a DNS
-      // label has characters converted - no such label has an ASCII form DNS
-      // carries, and Punycode takes time that grows with the square of a
-      // label's length, which a link of a megabyte would make seconds.
+      // standard's flags (Idna.h), and no label in Unicode, or written "xn--",
+      // of more code points than a DNS label has characters converted - no
+      // such label has an ASCII form DNS carries, and Punycode takes time that
+      // grows with the square of a label's length, which a link of a megabyte
+      // would make seconds. An ASCII label is read whatever its length, as an
+      // address's part may be (0x1.000...0.1).
       Idna::Options LinkHostOptions_()
       {
          Idna::Options options = Idna::UrlStandardOptions();
@@ -2848,6 +2850,8 @@ namespace HM
          { L"http://evil\uFF61example/", false, L"evil.example", "a halfwidth ideographic full stop" },
          { L"http://evil.example\u3002/", false, L"evil.example", "an ideographic full stop at the end, a trailing dot" },
          { L"http://\uFF11\uFF19\uFF12\uFF0E\uFF10\uFF0E\uFF12\uFF0E\uFF11/", false, L"192.0.2.1", "an address in fullwidth digits, an address once mapped" },
+         { L"http://0x1\uFF0E0000000000000000000000000000000000000000000000000000000000000000000000\uFF0E1/", false, L"1.0.0.1",
+           "an address with a part of seventy zeros beside fullwidth full stops: an ASCII label of any length is read" },
          { L"http://b%C3%BCcher.example/", false, L"xn--bcher-kva.example", "an internationalised name, percent-encoded as UTF-8" },
          { L"http://B\u00DCCHER.Example/", false, L"xn--bcher-kva.example", "capitals, mapped to small letters before Punycode" },
          { L"http://bu\u0308cher.example/", false, L"xn--bcher-kva.example", "a u and a combining diaeresis, composed (NFC)" },

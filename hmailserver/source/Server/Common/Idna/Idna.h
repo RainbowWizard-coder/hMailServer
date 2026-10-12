@@ -40,8 +40,10 @@ namespace HM
          bool verifyDnsLength;
 
          // Not UTS 46's: a label of more code points than this, after mapping and
-         // normalisation, is not checked nor converted to or from Punycode, and
-         // gets ErrorLabelTooLong. 0, the default, is no limit. No label of more
+         // normalisation, that holds one past ASCII or is written "xn--" is not
+         // checked nor converted to or from Punycode, and gets
+         // ErrorLabelTooLong; an ASCII label not written "xn--" is processed
+         // whatever its length. 0, the default, is no limit. No label of more
          // than 63 code points has an ASCII form DNS can carry - every code point
          // is a character of it at least - and Punycode takes time that grows
          // with the square of a label's length, so a reader of untrusted text

@@ -804,7 +804,12 @@ namespace HM
          {
             Label &label = labels[index];
 
-            if (options.longestLabel > 0 && label.unicode.size() > options.longestLabel)
+            // The limit is for Punycode's cost: an ASCII label not written
+            // "xn--" is checked whatever its length, which costs a pass over it,
+            // so that an address in one of a browser's forms with a long run of
+            // zeros (0x1.000...0.1) stays an address.
+            if (options.longestLabel > 0 && label.unicode.size() > options.longestLabel &&
+                (!IsAscii_(label.unicode) || StartsWithXn_(label.unicode)))
             {
                label.errors |= ErrorLabelTooLong;
                label.punycode = StartsWithXn_(label.unicode);

@@ -397,6 +397,17 @@ namespace HM
           labels[1].errors != 0 || labels[1].ascii != "cn")
          Fail_("a long label", "was not left alone beside the label after it");
 
+      // An ASCII label is processed whatever its length - it needs no Punycode
+      // - so that an address a browser reads with a long run of zeros in a
+      // part, beside a fullwidth full stop, stays one.
+      CodePoints longAscii = { '0', 'x', '1', 0xFF0E };
+      longAscii.insert(longAscii.end(), 100, '0');
+      longAscii.push_back(0xFF0E);
+      longAscii.push_back('1');
+      Idna::ProcessLabels(longAscii, limited, labels);
+      if (labels.size() != 3 || labels[1].errors != 0 || labels[1].ascii != std::string(100, '0') || labels[2].ascii != "1")
+         Fail_("a long ASCII label", "was not processed as any other ASCII label is");
+
       // Each label as written beside the label as Processing leaves it: an
       // "xn--" label that decodes to ASCII alone is refused, decoded; the
       // label it was is kept, as the mapping left it (in small letters).
