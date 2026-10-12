@@ -560,6 +560,13 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.False(client.Open(null, false, out string refusal));
          Assert.NotEqual("Sign in to a server first.", refusal);
          Assert.Contains("no password the REST API can sign in with", refusal, StringComparison.Ordinal);
+
+         // eDiscovery, a page outside F217's list, said it too (the final check of Tier 2,
+         // g1 defect 5): only a page with no session says "Sign in to a server first.".
+         string discovery = ReadView("DiscoveryView.cs");
+         Assert.Contains("Status_(StatusLevel.Warning, session == null\n                  ? L(\"Sign in to a server first.\")\n                  : L(\"This session holds no password the REST API can sign in with.",
+            discovery.Replace("\r\n", "\n"), StringComparison.Ordinal);
+         Assert.DoesNotContain("Status_(StatusLevel.Warning, L(\"Sign in to a server first.\"));", discovery, StringComparison.Ordinal);
       }
 
       /// <summary>

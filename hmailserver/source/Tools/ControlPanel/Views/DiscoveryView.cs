@@ -139,10 +139,16 @@ namespace hMailServer.ControlPanel.Views
          {
             ServerSession session = ServerSession.Current;
             string authorization = session?.RestAuthorization();
+            // A session that holds no credential the REST API takes is told so, as the
+            // settings pages' REST rows are (RestSettingsClient): "Sign in to a server
+            // first." was said here under the shell's Connected pill. Only a page with
+            // no session at all says that.
             if (authorization == null)
             {
                Clear_();
-               Status_(StatusLevel.Warning, L("Sign in to a server first."));
+               Status_(StatusLevel.Warning, session == null
+                  ? L("Sign in to a server first.")
+                  : L("This session holds no password the REST API can sign in with. Sign in again with the administrator's user name and password."));
                return;
             }
 

@@ -3881,6 +3881,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the page again as Reload does, kept from one failure to the next so that the keyboard stays on it
   (`ReadFailure.TryAgainOn`). `FailureStateTests` holds both pages.
 
+- **Fixed: eDiscovery told a signed-in administrator to sign in.** With a session that holds no password the REST API
+  can sign in with, the page said "Sign in to a server first." as a Warning under the shell's Connected pill - the
+  defect review finding F217 put right on the settings pages, on a page outside its list. The page now says what the
+  settings pages say: that the session holds no password the REST API can sign in with, and to sign in again with the
+  administrator's user name and password. Only a page with no session at all says "Sign in to a server first.".
+  `FailureStateTests` holds it.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
