@@ -719,9 +719,14 @@ namespace hMailServer.ControlPanel.Views
          var cancel = new Wpf.Ui.Controls.Button { Content = L("Cancel"), MinWidth = 88 };
          cancel.Click += (_, _) => dialog.Close();
 
+         // At the wide width, where the action's options are whole in every catalogue:
+         // at the default 520 German's "Zugelassen: kein Greylisting, keine Abweisung
+         // wegen der Spam-Bewertung" was cut at "Spam-Bew", and Polish, Italian, Finnish
+         // and Czech passed the box's 430 pixels too (the final check of Tier 2, g3
+         // defect 3). The longest, Polish's, is about 484 pixels; the box at 640 about 550.
          dialog.Frame(L("Allow or block a domain"), body, ok, cancel,
             L("The entry applies to the next session from that domain. It is consulted for unauthenticated inbound sessions of an IP range that runs the spam tests, and never to override authentication."),
-            width: DesignTokens.Dialog.DefaultWidth);
+            width: DesignTokens.Dialog.WideWidth);
          // A refusal of the domain, typed or the server's, is said under its box
          // without moving Add and Cancel.
          dialog.KeepRoomForFieldErrors();

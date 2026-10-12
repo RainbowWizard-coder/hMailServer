@@ -256,6 +256,33 @@ namespace hMailServer.ControlPanel.Tests.Services
          return result;
       }
 
+      /// <summary>
+      /// The dialog opens at the wide width, where the action's two options are whole in
+      /// every catalogue: at the default width German's Allowed option was cut, and four
+      /// more languages passed the box. Held by length, about six and a half pixels a
+      /// character in the box's font, within the about 550 pixels the box has at 640.
+      /// </summary>
+      [Fact]
+      public void TheDialog_IsWideEnoughForTheActionsOptions_InEveryLanguage()
+      {
+         Assert.Contains("width: DesignTokens.Dialog.WideWidth);", Page(), StringComparison.Ordinal);
+         var keys = new[] { "Allowed: not greylisted, not refused on the spam score", "Blocked: refused at MAIL FROM" };
+         var tooLong = new List<string>();
+         foreach (string path in Directory.GetFiles(ResourcesDirectory(), "Strings.*.resx"))
+         {
+            Dictionary<string, string> values = System.Xml.Linq.XDocument.Load(path).Root.Elements("data")
+               .ToDictionary(d => (string)d.Attribute("name"), d => (string)d.Element("value") ?? "", StringComparer.Ordinal);
+            foreach (string key in keys)
+            {
+               Assert.True(values.ContainsKey(key), Path.GetFileName(path) + " lacks \"" + key + "\".");
+               if (values[key].Length > 80)
+                  tooLong.Add(Path.GetFileName(path) + ": " + values[key]);
+            }
+         }
+
+         Assert.True(tooLong.Count == 0, "An option longer than the box: " + string.Join("; ", tooLong));
+      }
+
       private static string ResourcesDirectory()
       {
          var directory = new DirectoryInfo(AppContext.BaseDirectory);

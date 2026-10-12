@@ -3917,6 +3917,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   it passed the rule against columns of words at a fixed width - and its IDs and header sat at the right. It is as wide
   as its widest ID over a floor of 56 pixels, left-aligned. `DeliveryQueueTests` holds it.
 
+- **Fixed: Allow or block a domain cut its Action option in German.** At the default dialog width the option
+  "Zugelassen: kein Greylisting, keine Abweisung wegen der Spam-Bewertung" read "... wegen der Spam-Bew", and Polish,
+  Italian, Finnish and Czech passed the box too, where Tier 1's shorter wording had fitted. The dialog opens at the wide
+  width, 640 pixels, where both options are whole in every language. `DomainPolicyEditTests` holds the width and each
+  option's length in every catalogue.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
