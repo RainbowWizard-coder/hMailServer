@@ -151,10 +151,11 @@ namespace HM
    // set aside as the file says - and to cases of its own: Punycode against
    // RFC 3492's samples, NFC, the URL standard's domain to ASCII (fullwidth
    // letters, ideographic full stops, forbidden code points), the time a long
-   // label takes, and a label as written beside the label it decodes to. It runs inside the service with the other class tests
-   // (ClassTester), and on Linux in idna-tests. No file, DNS, database or
-   // setting: the test data is compiled in. It throws std::logic_error naming
-   // the first thing that is wrong.
+   // label takes, and a label as written beside the label it decodes to. It
+   // runs inside the service with the other class tests (ClassTester), and on
+   // Linux in idna-tests. No file, DNS, database or setting: the test data is
+   // compiled in. It throws std::logic_error naming the first thing that is
+   // wrong.
    class IdnaTester
    {
    public:

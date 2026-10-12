@@ -29,12 +29,13 @@ covers `example` itself as well as `mail.example`, and does not cover
 `notexample` or `example.evil.test`. The list is ASCII, as the policy list
 is: an internationalised domain name is written in its IDNA form (`xn--...`),
 and the envelope must arrive in that form - a sender whose SMTPUTF8 envelope
-carries the Unicode spelling is compared as written and is not covered; this
-server does no IDNA conversion. A name that is not a domain - an address, a
-path, an address literal - is refused with a sentence over REST (400) and
-over COM, and so is a list longer than 2,000 characters or one with a
-character outside ASCII. A list restored from a backup goes through the same
-check; one that does not pass restores as empty, with a line in the
+carries the Unicode spelling is compared as written and is not covered: the
+server converts no envelope's domain to its IDNA form (its UTS 46, from 6.3.7,
+reads the host of a link in a message and nothing else). A name that is not a
+domain - an address, a path, an address literal - is refused with a sentence
+over REST (400) and over COM, and so is a list longer than 2,000 characters or
+one with a character outside ASCII. A list restored from a backup goes through
+the same check; one that does not pass restores as empty, with a line in the
 application log.
 
 The other side's domain is judged in both spellings: as written, and after

@@ -5100,6 +5100,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 
 ### Documentation
 
+- **SmtpPolicy.md, RestrictedDelivery.md and ImpersonationProtection.md say what the server's IDNA conversion reads
+  and what it does not.** They said the server has none, and that the Linux build has no Unicode tables, which UTS 46
+  for a link's host made untrue ("Anti-spam, anti-virus and mail flow rules", above): the domain policy list and
+  restricted delivery still compare an envelope's domain as written, so a sender whose SMTPUTF8 envelope carries the
+  Unicode spelling of a listed name is covered by no row written in its `xn--` form, and the impersonation check's
+  NFKC is still Windows' alone, the Unicode tables the Linux build compiles in being UTS 46's, which hold no
+  compatibility decompositions.
 - **The 6.3.6 section names the CVE identifiers GitLab's CNA has assigned since the tag**, six so far, and says what
   the correction notes posted on the CVE requests on release day establish: the string replacement and the header
   unfolding were reached in the default configuration by the DMARC test while a message was received, the replacement

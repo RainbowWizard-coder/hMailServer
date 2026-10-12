@@ -130,8 +130,10 @@ namespace HM
       }
 
       // Unicode NFKC where the platform has it. On Windows this is the same
-      // NormalizeString call SASLprep makes; the Linux build has no Unicode
-      // tables, so there the compatibility step is skipped and the doc says so.
+      // NormalizeString call SASLprep makes; the Linux build has no NFKC - the
+      // Unicode tables it compiles in (Common/Idna, UTS 46's) hold no
+      // compatibility decompositions - so there the compatibility step is
+      // skipped and the doc says so.
       // Text the normaliser refuses - an unpaired surrogate - is folded as it is.
       String NormalizeKC(const String &text)
       {

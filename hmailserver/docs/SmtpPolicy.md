@@ -333,8 +333,11 @@ Every change is in the audit trail as a `domain policy list entry`.
   so a U-label (`bücher.example`) is refused when it is typed and an A-label
   (`xn--bcher-kva.example`) matches only a sender that writes the domain that
   way; a sender that writes it as Unicode under SMTPUTF8 is not covered by
-  either row. The server has no IDNA converter, and one belongs to the whole
-  server rather than to this list.
+  either row. The server's IDNA conversion (UTS 46, from 6.3.7) reads the host
+  of a link in a message, for the SURBL test and the sender lists' URL
+  entries, and nothing converts an envelope's or a HELO's domain: that belongs
+  to the whole server's reading of an SMTPUTF8 envelope rather than to this
+  list.
 - `hmctl` has no verb for the list; the REST routes are the way from a script.
 - The white verdict does not touch the DNS blacklists' or SpamAssassin's
   *running* - only what the resulting score is allowed to do. An operator who
