@@ -96,6 +96,7 @@
 #include "../Util/Charset.h"
 #include "../Util/RegularExpression.h"
 #include "../TCPIP/LocalIPAddresses.h"
+#include "../TCPIP/DNSResolver.h"
 #include "../TCPIP/IPAddress.h"
 #include "../TCPIP/CertificateVerifier.h"
 #include "../TCPIP/DeflateStreams.h"
@@ -476,6 +477,15 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing SURBL\n"));
       SURBLTester surblTester;
       surblTester.Test();
+
+      // What an address lookup answers when one of its queries fails - a
+      // failure, not "no addresses", unless addresses were found - which the
+      // HELO test, the DNS blacklists and SURBL read; the second attempt the
+      // last two make past the DNS cache; and a record lookup whose CNAME
+      // query failed. Against answers scripted on this thread (upstream PR 640).
+      OutputDebugString(_T("hMailServer: Testing DNSResolver\n"));
+      DNSResolverTester dnsResolverTester;
+      dnsResolverTester.Test();
 
       // The command lines of the custom virus scanner and ClamWin: the file's
       // path one argument wherever %FILE% stands, quoted or not, and ClamWin's

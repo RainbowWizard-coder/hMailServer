@@ -4,6 +4,7 @@
 
 #include "stdafx.h"
 #include "BLCheck.h"
+#include "../Common/AntiSpam/AntiSpamDiagnostics.h"
 #include "../Common/TCPIP/DNSResolver.h"
 #include "../Common/TCPIP/IPAddress.h"
 
@@ -32,9 +33,29 @@ namespace HM
 
       String sCheckHost = sReverted + "." + sDNSBLHost;
 
+      // Asked once more when the lookup did not complete, past the DNS cache
+      // (upstream PR 640). Its answer is a verdict, and before 6.3.7 a failed A
+      // query beside an AAAA query the list answered NXDOMAIN - which it
+      // answers every address it does not list - was read as "not listed".
       std::vector<String> foundAddresses;
       DNSResolver resolver;
-      resolver.GetIpAddresses(sCheckHost, foundAddresses, false);
+      const bool lookupCompleted = resolver.GetIpAddressesWithRetry(sCheckHost, foundAddresses, false);
+
+      if (!lookupCompleted)
+      {
+         // Not "0 addresses found": the list was not asked, so it has not cleared
+         // the client. The client is let through, as for any spam check that
+         // cannot be made, and the log says which list did not answer - the
+         // TCP/IP log for this client, the application log once in a while for
+         // a list that keeps not answering (AntiSpamDiagnostics).
+         LOG_TCPIP(Formatter::Format("DNS lookup failed: {0}. The client could not be checked against this blacklist.", sCheckHost));
+
+         AntiSpamDiagnostics::ReportCheckIncomplete(AntiSpamDiagnostics::CheckDnsbl,
+            Formatter::Format("DNSBL: The lookup of {0} did not complete, asked twice. The client could not be checked against {1}, and its messages are accepted without that list's verdict.",
+               sCheckHost, sDNSBLHost));
+
+         return false;
+      }
 
       bool isBlocked = false;
 

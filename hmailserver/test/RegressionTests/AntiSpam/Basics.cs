@@ -605,7 +605,8 @@ namespace RegressionTests.AntiSpam
       [Test]
       public void SurblNameDnsCannotCarryDoesNotEndTheCheck()
       {
-         // A lookup that fails abandons the list for the message. Until 6.3.6 a
+         // Before 6.3.7 a lookup that failed abandoned the list for the message
+         // (DnsLookupFailures has what it does now). Until 6.3.6 a
          // link's host went to the resolver as the message wrote it, and the names
          // were asked about in sorted order: a sentence ending in a link
          // ("sentence-end.example." asked as "sentence-end.example..multi.surbl.org"),

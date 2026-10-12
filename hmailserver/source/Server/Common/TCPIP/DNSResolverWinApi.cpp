@@ -98,8 +98,11 @@ namespace HM
    }
 
    bool
-   DNSResolverWinApi::Query(const String &query, int resourceType, std::vector<DNSRecord> &foundRecords, int &outStatus)
+   DNSResolverWinApi::Query(const String &query, int resourceType, std::vector<DNSRecord> &foundRecords, int &outStatus, bool /*bypassCache*/)
    {
+      // bypassCache has nothing to bypass here: this resolver keeps no cache, so
+      // every query goes to the configured servers already.
+      //
       // foundRecords is NOT cleared, for the same reason the Windows retry path does
       // not clear it: callers accumulate several queries into one vector, and a failed
       // query that emptied it would discard the answers to the ones before it.
@@ -274,12 +277,16 @@ namespace HM
    // a forged subdomain and a policy that rejects mail from a real one.
    //---------------------------------------------------------------------------()
    bool
-   DNSResolverWinApi::Query(const String &query, int resourceType, std::vector<DNSRecord> &foundRecords, int &outStatus)
+   DNSResolverWinApi::Query(const String &query, int resourceType, std::vector<DNSRecord> &foundRecords, int &outStatus, bool bypassCache)
    {
       DWORD fOptions;
       fOptions = DNS_QUERY_STANDARD;
 
-      if (!IniFileSettings::Instance()->GetUseDNSCache())
+      // A query asked again after a failure has to reach the server: answered
+      // from what the DNS client kept of the first attempt, it would be no second
+      // attempt at all (upstream PR 640 found the client serving the failure
+      // again).
+      if (bypassCache || !IniFileSettings::Instance()->GetUseDNSCache())
       {
          fOptions |= DNS_QUERY_BYPASS_CACHE;
       }

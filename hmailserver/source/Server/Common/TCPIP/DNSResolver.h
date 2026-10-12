@@ -18,8 +18,28 @@ namespace HM
       virtual ~DNSResolver();
 
       bool GetEmailServers(const String &sDomainName, std::vector<HostNameAndIpAddress> &saFoundNames);
+
+      // False when the lookup did not complete: the MX query failed, or it found
+      // nothing and the query that asks whether the name is an alias failed.
       bool GetMXRecords(const String &sDomain, std::vector<String> &vecFoundNames);
-      bool GetIpAddresses(const String &sDomain, std::vector<String> &saFoundNames, bool followCnameRecords);
+
+      // The name's IPv4 and IPv6 addresses, A and AAAA (AAAA where IPv6 is
+      // available on this server), and with followCnameRecords those of the
+      // name it is an alias of when it holds none itself. True when addresses
+      // were found, or when every query made was answered and none had any - the
+      // name does not exist, or holds no address: then nothing is added. False
+      // when nothing was found and a query failed (a SERVFAIL, a timeout, no DNS
+      // server), because then whether the name has addresses is not known.
+      // Until upstream PR 640 a failed A query beside an AAAA query answered "no
+      // AAAA records" - the answer of every IPv4-only host - was true with none.
+      // bypassCache: every query goes past the Windows DNS cache.
+      bool GetIpAddresses(const String &sDomain, std::vector<String> &saFoundNames, bool followCnameRecords, bool bypassCache = false);
+
+      // GetIpAddresses, and once more past the DNS cache when it did not
+      // complete. For the lookups whose answer is a verdict - a DNS blacklist's,
+      // SURBL's - where one failed query would otherwise stand for "not listed".
+      bool GetIpAddressesWithRetry(const String &sDomain, std::vector<String> &saFoundNames, bool followCnameRecords);
+
       bool GetTXTRecords(const String &sDomain, std::vector<String> &foundResult);
       bool GetPTRRecords(const String &sIP, std::vector<String> &vecFoundNames);
 
@@ -28,10 +48,11 @@ namespace HM
       bool DomainExists(const String &sDomain, bool &dnsError);
 
       // The values of one record type, as the bytes they arrived as, following a
-      // CNAME where the name holds none of that type. False means the query could
-      // not be answered; true with nothing in values means the name holds no record
-      // of that type. resourceType is a DNS_TYPE_ constant, as DNSResolverWinApi
-      // takes.
+      // CNAME where the name holds none of that type. False means the lookup could
+      // not be completed - the query failed, or it found nothing and the query
+      // asking whether the name is an alias failed; true with nothing in values
+      // means the name holds no record of that type. resourceType is a DNS_TYPE_
+      // constant, as DNSResolverWinApi takes.
       //
       // For SPF, which cannot use the typed methods above because each of them adds
       // something its own callers want and RFC 7208 forbids. GetIpAddresses merges A
@@ -52,7 +73,7 @@ namespace HM
    private:
 
       bool GetEmailServersRecursive_(const String &sDomainName, std::vector<HostNameAndIpAddress> &saFoundNames, int recursionLevel);
-      bool GetIpAddressesRecursive_(const String &hostName, std::vector<String> &addresses, int recursionLevel, bool followCnameRecords);
+      bool GetIpAddressesRecursive_(const String &hostName, std::vector<String> &addresses, int recursionLevel, bool followCnameRecords, bool bypassCache);
       bool GetTXTRecordsRecursive_(const String &sDomain, std::vector<String> &foundResult, int recursionLevel);
 
       // The records of one type, following a CNAME where the name holds none of that
@@ -70,5 +91,23 @@ namespace HM
       std::vector<String> GetDnsRecordsValues_(std::vector<DNSRecord> records);
    };
 
+   // What a lookup answers when one of its queries fails, against answers the
+   // tester scripts on its own thread in place of the DNS (every other thread
+   // asks the DNS as always): an address lookup fails unless addresses were
+   // found or every query - A, AAAA and, when one is made, the CNAME query -
+   // was answered, whichever of A and AAAA failed and whatever the other
+   // answered; NXDOMAIN and NODATA stay "no addresses"; an alias is followed;
+   // GetIpAddressesWithRetry asks a lookup that did not complete once more,
+   // and only that one, past the DNS cache; and a TXT, MX or other record
+   // lookup that found nothing fails when the query asking whether the name is
+   // an alias failed (upstream PR 640). It runs inside the service with the
+   // other class tests (ClassTester), and on Linux in public-suffix-tests. No
+   // DNS, database or setting. It throws std::logic_error naming the first
+   // thing that is wrong.
+   class DNSResolverTester
+   {
+   public:
+      void Test();
+   };
 
 }

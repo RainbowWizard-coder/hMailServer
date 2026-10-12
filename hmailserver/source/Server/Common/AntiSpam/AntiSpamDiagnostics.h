@@ -34,7 +34,8 @@ namespace HM
          CheckDkim = 0,
          CheckDmarc = 1,
          CheckSurbl = 2,
-         CheckCount = 3
+         CheckDnsbl = 3,
+         CheckCount = 4
       };
 
       // Writes message to the application log at most once per check per
@@ -60,7 +61,7 @@ namespace HM
 
          // One slot per check. Zero means "not yet reported"; GetTickCount64 is
          // monotonic for the life of the process, so no wrap handling is needed.
-         static volatile LONG64 lastReported[CheckCount] = { 0, 0, 0 };
+         static volatile LONG64 lastReported[CheckCount] = { 0, 0, 0, 0 };
 
          const ULONGLONG now = GetTickCount64();
          const LONG64 previous = lastReported[check];

@@ -133,9 +133,12 @@ namespace HM
       // Asks one list about the names, up to LookupsAtOnce at a time - the
       // calling thread and threads of SURBLLookupPool::Server() - and answers
       // false when the list lists one of them. No lookup is begun after ten
-      // seconds, or once the list has listed a name, refused a query or failed
-      // to answer one; those already begun are waited for, and a listing among
-      // them counts.
+      // seconds, or once the list has listed a name or refused a query; those
+      // already begun are waited for, and a listing among them counts. A name
+      // whose lookup did not complete, asked twice
+      // (DNSResolver::GetIpAddressesWithRetry), is passed over and the rest are
+      // asked (upstream PR 640): before 6.3.7 it ended the list for the
+      // message, and a listed link after it was never asked about.
       bool Run(std::shared_ptr<SURBLServer> pSURBLServer, const std::vector<String> &vecUrls);
 
       // Run with the lookup of its own: lookup(name, answers) is the A lookup
@@ -326,7 +329,8 @@ namespace HM
    // message's names are asked - every domain up to MaxDomainsAsked, whatever
    // else the message links to, and a message with more told apart - and that
    // Run asks a list about all of them several at a time, through a stand-in
-   // for the resolver, and stops at a lookup that fails or throws; that many
+   // for the resolver, passes over a lookup that fails and asks the rest, and
+   // stops at one that throws; that many
    // messages tested at once share a pool's threads, held to its size, each
    // message in turn and none with more than its share; the lists'
    // error codes; and the sender lists' URL entries, whose host is read the

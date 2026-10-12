@@ -2220,6 +2220,7 @@ namespace hMailServer
       public string DNSHost { get; set; }
       public string RejectMessage { get; set; }
       public string Result { get; set; }
+      public string ExpectedResult { get; set; }
       public int Score { get; set; }
       public bool Active { get; set; }
 

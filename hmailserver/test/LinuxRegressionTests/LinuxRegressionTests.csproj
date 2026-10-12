@@ -153,6 +153,7 @@
     <Compile Include="..\RegressionTests\AntiSpam\DKIM\Sha1SignatureRejection.cs" Link="AntiSpam\DKIM\Sha1SignatureRejection.cs" />
     <Compile Include="..\RegressionTests\AntiSpam\DKIM\Verification.cs" Link="AntiSpam\DKIM\Verification.cs" />
     <Compile Include="..\RegressionTests\AntiSpam\DmarcNonExistentSubdomainPolicy.cs" Link="AntiSpam\DmarcNonExistentSubdomainPolicy.cs" />
+    <Compile Include="..\RegressionTests\AntiSpam\DnsLookupFailures.cs" Link="AntiSpam\DnsLookupFailures.cs" />
     <Compile Include="..\RegressionTests\AntiSpam\FilterHook.cs" Link="AntiSpam\FilterHook.cs" />
     <Compile Include="..\RegressionTests\AntiSpam\GreyListing.cs" Link="AntiSpam\GreyListing.cs" />
     <Compile Include="..\RegressionTests\AntiSpam\GreyListingHardened.cs" Link="AntiSpam\GreyListingHardened.cs" />

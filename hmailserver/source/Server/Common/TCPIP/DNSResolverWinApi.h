@@ -17,7 +17,13 @@ namespace HM
       virtual ~DNSResolverWinApi();
 
       bool Query(const String &query, int resourceType, std::vector<DNSRecord> &foundRecords);
-      bool Query(const String &query, int resourceType, std::vector<DNSRecord> &foundRecords, int &outStatus);
+
+      // bypassCache asks the Windows DNS client to go to the DNS server rather
+      // than answer from its cache, so that a lookup asked again after a failure
+      // is asked again (DNSResolver::GetIpAddressesWithRetry). UseDNSCache=0 and
+      // a DNSServer bypass the cache on every query already. The POSIX resolver
+      // keeps no cache, and ignores it.
+      bool Query(const String &query, int resourceType, std::vector<DNSRecord> &foundRecords, int &outStatus, bool bypassCache = false);
 
    private:
 

@@ -2299,8 +2299,10 @@ namespace HM
    {
       return Run(pSURBLServer, vecUrls, [](const String &name, std::vector<String> &answers) -> bool
       {
+         // Asked once more when the lookup did not complete, past the DNS
+         // cache: a lookup that fails is a name the list was not asked about.
          DNSResolver resolver;
-         return resolver.GetIpAddresses(name, answers, false);
+         return resolver.GetIpAddressesWithRetry(name, answers, false);
       });
    }
 
@@ -2334,8 +2336,9 @@ namespace HM
       const String zone = pSURBLServer->GetDNSHost();
 
       // What the lookups found, shared by the threads that make them. The
-      // first that ends the list for the message - a listing, a refusal, a
-      // lookup that failed, the deadline - stops any more being begun.
+      // first that ends the list for the message - a listing, a refusal, the
+      // deadline - stops any more being begun. A lookup that failed does not:
+      // its name is passed over, and the others are asked.
       struct Progress
       {
          std::mutex lock;
@@ -2349,7 +2352,9 @@ namespace HM
          // asked about whole, as for a lookup that failed.
          std::atomic<bool> broke{false};
 
+         // The first name whose lookup did not complete, and how many did not.
          String failedName;
+         int failed = 0;
          String refusedName;
          String refusedAnswer;
          String refusedMeaning;
@@ -2392,8 +2397,9 @@ namespace HM
          String sHostToLookup = sURL + "." + zone;
 
          // A name DNS cannot carry is not asked about. The resolver would
-         // refuse it, and a lookup that fails abandons the list for the
-         // message, so one long name in a link would have hidden the rest.
+         // refuse it - twice, since a lookup that fails is asked again - and
+         // before 6.3.7 a lookup that failed abandoned the list for the
+         // message, so one long name in a link hid the rest.
          // A zone written with the root's dot does not count it.
          size_t lookupLength = static_cast<size_t>(sHostToLookup.GetLength());
          if (sHostToLookup.Right(1) == _T("."))
@@ -2416,18 +2422,26 @@ namespace HM
          }
          catch (...)
          {
-            resolved = false;
+            // An exception from the lookup - out of memory, most likely - is not
+            // a lookup that failed and is passed over: it ends the list for the
+            // message, as one from anywhere else in a lookup does (step, below).
+            progress.broke = true;
+            return false;
          }
 
          if (!resolved)
          {
-            LOG_DEBUG(Formatter::Format(_T("SURBL: DNS query failed: {0}"), sHostToLookup));
+            // Passed over, and the next name asked (upstream PR 640). Before
+            // 6.3.7 a lookup that failed ended the list for the message, so one
+            // name the list's servers could not answer for - or one SERVFAIL -
+            // hid every link after it, a listed one among them.
+            LOG_DEBUG(Formatter::Format(_T("SURBL: DNS query failed: {0}. The name is passed over."), sHostToLookup));
 
             std::lock_guard<std::mutex> guard(progress.lock);
             if (progress.failedName.IsEmpty())
                progress.failedName = sHostToLookup;
-            progress.stop = true;
-            return false;
+            progress.failed++;
+            return true;
          }
 
          bool listed = false;
@@ -2556,13 +2570,19 @@ namespace HM
 
       if (!progress.failedName.IsEmpty())
       {
-         // Abandoning the whole list on the first failed lookup means the URLs
-         // after it are never checked either, and the message is reported as
-         // clean. That is the safe direction to fail, but it was completely
-         // silent, so a resolver that had stopped answering presented as a
-         // SURBL that never matches anything.
+         // The names whose lookups did not complete were not asked about; the
+         // others were, and listed none. Accepting the message without the
+         // list's verdict on those names is the safe direction to fail, but a
+         // silent one would make a resolver that has stopped answering look
+         // like a list that never matches anything, so it is said - once in a
+         // while (AntiSpamDiagnostics), not once a message.
+         const String others = progress.failed > 1
+            ? Formatter::Format(_T(", nor did {0} other lookups of the same message"), progress.failed - 1)
+            : String();
+
          AntiSpamDiagnostics::ReportCheckIncomplete(AntiSpamDiagnostics::CheckSurbl,
-            Formatter::Format("SURBL: The lookup of {0} did not complete. URI blacklists cannot be checked while that continues, and affected messages are accepted without a SURBL verdict.", progress.failedName));
+            Formatter::Format("SURBL: The lookup of {0} did not complete{1}. The message's other names were asked about, and it is accepted without the list's verdict on the names whose lookups did not complete.",
+               progress.failedName, others));
 
          return true;
       }
@@ -3572,21 +3592,22 @@ namespace HM
             Fail_("a listing among the last names is found", _T("256 names, the last one listed"),
                _T("clean"), _T("listed"));
 
-         // A lookup that is not answered, or that throws, ends the list for
-         // the message, as one lookup at a time did: no more are begun, the
-         // message goes on without the list's verdict (fail-open, and told),
-         // and the listing among the last names is not reached. The lookups
-         // in flight beside it finish; far fewer than all are asked.
-         for (int throws = 0; throws < 2; throws++)
+         // A lookup that is not answered is passed over, and the others are
+         // asked (upstream PR 640): every name but the ones that failed, and
+         // the listing among the last names is found. Before 6.3.7 it ended
+         // the list for the message, and the listing was not reached.
          {
             asked.clear();
-            const String broken = names[2] + _T(".uri.list.test");
+            std::set<String> broken;
+            for (size_t i = 2; i < names.size() - 1; i += 7)
+               broken.insert(names[i] + _T(".uri.list.test"));
+
             SURBL::Lookup failing = [&](const String &name, std::vector<String> &answers) -> bool
             {
-               if (name == broken)
+               if (broken.find(name) != broken.end())
                {
-                  if (throws == 1)
-                     throw std::runtime_error("a lookup that throws");
+                  std::lock_guard<std::mutex> guard(lock);
+                  asked.insert(name);
                   return false;
                }
 
@@ -3594,9 +3615,49 @@ namespace HM
             };
 
             const bool clean = surbl.Run(list, names, failing);
+            if (clean || asked.size() != SURBL::MaxNamesAsked)
+               Fail_("a lookup that fails is passed over, and the other names are asked",
+                  _T("256 names, every seventh from the third not answered, the last one listed"),
+                  StringParser::IntToString(static_cast<int>(asked.size())) + (clean ? _T(" asked, clean") : _T(" asked, listed")),
+                  _T("256 asked, listed"));
+
+            // Every name failing: each is asked, none is listed, and the
+            // message goes on without the list's verdict (fail-open, and told).
+            asked.clear();
+            SURBL::Lookup allFailing = [&](const String &name, std::vector<String> & /*answers*/) -> bool
+            {
+               std::lock_guard<std::mutex> guard(lock);
+               asked.insert(name);
+               return false;
+            };
+
+            const bool cleanWhenNoneAnswer = surbl.Run(list, names, allFailing);
+            if (!cleanWhenNoneAnswer || asked.size() != SURBL::MaxNamesAsked)
+               Fail_("when no lookup is answered every name is asked, and the message is not listed",
+                  _T("256 names, none answered"),
+                  StringParser::IntToString(static_cast<int>(asked.size())) + (cleanWhenNoneAnswer ? _T(" asked, clean") : _T(" asked, listed")),
+                  _T("256 asked, clean"));
+         }
+
+         // A lookup that throws - out of memory - still ends the list for the
+         // message: no more are begun, the message goes on without the list's
+         // verdict, and the listing among the last names is not reached. The
+         // lookups in flight beside it finish; far fewer than all are asked.
+         {
+            asked.clear();
+            const String broken = names[2] + _T(".uri.list.test");
+            SURBL::Lookup throwing = [&](const String &name, std::vector<String> &answers) -> bool
+            {
+               if (name == broken)
+                  throw std::runtime_error("a lookup that throws");
+
+               return lookup(name, answers);
+            };
+
+            const bool clean = surbl.Run(list, names, throwing);
             if (!clean || asked.size() >= SURBL::MaxNamesAsked / 2)
-               Fail_(throws == 1 ? "a lookup that throws ends the list for the message" : "a lookup that fails ends the list for the message",
-                  _T("256 names, the third not answered, the last one listed"),
+               Fail_("a lookup that throws ends the list for the message",
+                  _T("256 names, the third throws, the last one listed"),
                   StringParser::IntToString(static_cast<int>(asked.size())) + (clean ? _T(" asked, clean") : _T(" asked, listed")),
                   _T("fewer than 128 asked, clean"));
          }

@@ -49,8 +49,10 @@ namespace RegressionTests.Shared
    {
       public const int TypeA = 1;
       public const int TypeCname = 5;
+      public const int TypePtr = 12;
       public const int TypeMx = 15;
       public const int TypeTxt = 16;
+      public const int TypeAaaa = 28;
 
       // CNAME targets by owner name. A query for an owner answers the CNAME and then
       // whatever the target holds of the requested type, which is what a real server
@@ -84,6 +86,12 @@ namespace RegressionTests.Shared
       // verification deadline is about.
       private readonly HashSet<string> silent_ =
          new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+      // Questions - "type/name" - answered SERVFAIL so many more times before they
+      // are answered as the zone otherwise would: a resolver that failed once and
+      // then recovered, which is what a lookup asked a second time is for.
+      private readonly Dictionary<string, int> failuresLeft_ =
+         new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
       // Records given in wire form, which is how DNSSEC's own types arrive: DNSKEY, DS,
       // TLSA and the TXT or MX records of a signed zone. Keyed like the text answers by
@@ -208,6 +216,15 @@ namespace RegressionTests.Shared
       }
 
       /// <summary>
+      ///    Adds a PTR answer: name, a reverse name such as "4.2.0.192.in-addr.arpa",
+      ///    points at target.
+      /// </summary>
+      public FakeDnsServer WithPtr(string name, string target)
+      {
+         return Add_(TypePtr, name, target.TrimEnd('.'));
+      }
+
+      /// <summary>
       ///    Adds an MX answer. The value is "preference exchange", e.g. "10 mail.x.test";
       ///    the exchange usually needs its own WithA so the caller can resolve it.
       /// </summary>
@@ -270,11 +287,38 @@ namespace RegressionTests.Shared
          return this;
       }
 
+      /// <summary>
+      ///    Makes the queries of one type for a name go unanswered, and the name's
+      ///    other types answer as they otherwise would: a lookup whose one query
+      ///    times out. Undone by <see cref="Reset"/>.
+      /// </summary>
+      public FakeDnsServer WithSilence(string name, int type)
+      {
+         lock (answers_)
+            silent_.Add(Key_(type, name));
+
+         return this;
+      }
+
       /// <summary>The name answers again, as whatever was added for it says.</summary>
       public FakeDnsServer WithoutSilence(string name)
       {
          lock (answers_)
             silent_.Remove(name.TrimEnd('.').ToLowerInvariant());
+
+         return this;
+      }
+
+      /// <summary>
+      ///    Answers the next <paramref name="times"/> queries of one type for a name
+      ///    SERVFAIL, and the ones after as the zone otherwise would - over any
+      ///    answer added for the name, while the failures last. A resolver that
+      ///    failed and then recovered. Undone by <see cref="Reset"/>.
+      /// </summary>
+      public FakeDnsServer WithServFailFirst(string name, int type, int times)
+      {
+         lock (answers_)
+            failuresLeft_[Key_(type, name)] = times;
 
          return this;
       }
@@ -321,6 +365,7 @@ namespace RegressionTests.Shared
             nonExistent_.Clear();
             serverFailing_.Clear();
             silent_.Clear();
+            failuresLeft_.Clear();
             cnames_.Clear();
             raw_.Clear();
             rrsigs_.Clear();
@@ -594,6 +639,15 @@ namespace RegressionTests.Shared
          WriteRdata_(m, IPAddress.Parse(address).GetAddressBytes());
       }
 
+      // A record whose RDATA is one name, uncompressed: a PTR's target.
+      private static void WriteNameAnswer_(List<byte> m, int recordType, string target, string owner)
+      {
+         WriteAnswerHeader_(m, recordType, owner);
+         var rdata = new List<byte>();
+         WriteName_(rdata, target);
+         WriteRdata_(m, rdata);
+      }
+
       /// <summary>
       ///    The questions asked so far, oldest first, as "type/name". A snapshot: the
       ///    serve threads keep appending to the real list.
@@ -656,8 +710,18 @@ namespace RegressionTests.Shared
 
          lock (answers_)
          {
-            if (silent_.Contains(name))
+            if (silent_.Contains(name) || silent_.Contains(Key_(type, name)))
                return null;
+
+            // A failure still owed to this question, before any answer.
+            if (failuresLeft_.TryGetValue(Key_(type, name), out int failuresLeft) && failuresLeft > 0)
+            {
+               failuresLeft_[Key_(type, name)] = failuresLeft - 1;
+
+               var failure = new List<byte>();
+               WriteHeaderAndQuestion_(failure, query, 0, 0, 2);
+               return failure.ToArray();
+            }
          }
 
          string cnameTarget;
@@ -727,6 +791,8 @@ namespace RegressionTests.Shared
                   WriteTxtAnswer_(m, value, cnameTarget);
                else if (type == TypeMx)
                   WriteMxAnswer_(m, value, cnameTarget);
+               else if (type == TypePtr)
+                  WriteNameAnswer_(m, TypePtr, value, cnameTarget);
                else
                   WriteAAnswer_(m, value, cnameTarget);
             }

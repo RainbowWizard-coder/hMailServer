@@ -73,7 +73,7 @@ Common causes, in the order they actually occur:
 | What the log shows | Cause |
 |---|---|
 | `SpamTestSpamAssassin` with a large `Time:` | spamd is unreachable, overloaded, or accepting connections without answering |
-| `SpamTestDNSBlackLists`, `SpamTestSURBL` or `SpamTestSPF` slow | the resolver is not answering. Look in the TCP/IP log for `DNS - Query timed out` and `DNS - Query failure`. **Do not reach for `DNSServer` as the fix** — see the warning below |
+| `SpamTestDNSBlackLists`, `SpamTestSURBL` or `SpamTestSPF` slow | the resolver is not answering. Look in the TCP/IP log for `DNS - Query timed out` and `DNS - Query failure`. A DNS blacklist or SURBL lookup that fails is asked once more (below), so one that times out waits for `DNSQueryTimeout` twice for each of its A and AAAA queries; and SURBL, which stopped at the first lookup that failed, goes on to the message's other names until its ten seconds for beginning lookups are up, the ones begun then waited for. **Do not reach for `DNSServer` as the fix** — see the warning below |
 | `done spam-protection`, then silence | message modifications: the spam headers, the signature, the List-\* headers, or the write of the modified message back to disk |
 | `script/save` slow | an `OnAcceptMessage` event script, or the database |
 | Nothing between `354` and silence | you are on a version older than 6.2.17; upgrade, because that is the version that added these lines |
@@ -116,6 +116,52 @@ Common causes, in the order they actually occur:
 > cache setting, the query timeout and DNSSEC validation all apply to SPF now as
 > they always did to everything else. If you run 6.3.3 or earlier on Linux, an SPF
 > or DMARC verdict from it is not a verdict.
+
+### When a spam test cannot look a name up
+
+A spam test that cannot complete a DNS lookup lets the message through without
+its verdict: it does not score, refuse or reject for a lookup that failed. From
+6.3.7 a lookup has failed when it found nothing and any of its queries failed -
+a SERVFAIL, a timeout, no DNS server answering - and not only when all of them
+did (upstream PR 640). An address lookup asks A and AAAA (AAAA where IPv6 is
+available, which is everywhere in practice), and the name's CNAME when neither
+found anything. Before 6.3.7 an A query that failed beside an AAAA query
+answered "no AAAA records" - the answer of every IPv4-only host, and of every
+address a DNS blacklist does not list - was read as "this name has no
+addresses". NXDOMAIN and NODATA are answers, and still mean "no addresses".
+
+| Test | When its lookup fails | Before 6.3.7 |
+|---|---|---|
+| The HELO host (`CheckHostInHelo`) | not scored | scored when one of A and AAAA failed and the other was answered without an address, or when both were and the CNAME query failed |
+| PTR (`CheckPTR`) | not scored, whether the PTR lookup or the address lookup of the name it gives failed | a failed address lookup of the reverse name was scored |
+| MX records (`UseMXChecks`) | not scored | scored when the MX query found nothing and the CNAME query failed |
+| A DNS blacklist | asked once more, past the DNS cache; when that fails too, the client is not checked against that list, and the log says so | asked once; a lookup that failed was "not listed", logged as `0 addresses found` like a list's answer |
+| SURBL | asked once more, past the DNS cache; when that fails too, the name is passed over and the message's other names are asked | the first lookup that failed ended the list for the message, so a listed link after it was never asked about |
+| DKIM keys, DMARC policies, SPF records | a temporary error, as for any lookup that fails: DKIM `TempFail`, DMARC and SPF `temperror` | a lookup that found no record and whose CNAME query failed read as "not published" - for a DKIM key, a `PermFail` |
+
+The second attempt of a DNS blacklist or SURBL lookup bypasses the Windows DNS
+cache, which would otherwise answer it from the first; on Linux the server keeps
+no cache, and the second attempt is asked of the DNS server again. Setting
+`UseDNSCache=0` or a `DNSServer` bypasses the cache for every query already.
+A lookup that answered - with addresses or without - is not asked again.
+
+Delivery makes the same address lookup of each of a recipient's mail servers,
+and retries a message whose servers it cannot reach either way. When the lookup
+failed for every one of them, the notice to the sender now says
+`Unable to find the recipient's email server. The DNS query has failed.`
+(`4.4.4`); before 6.3.7 a failed A query beside an AAAA query answered without
+an address made it `No mail servers appear to exists for the recipient's
+address` (`4.1.2`), which asks the sender to check the address.
+
+What the log says:
+
+| Line | Log | When |
+|---|---|---|
+| `DNS lookup failed: <address reversed>.<list>. The client could not be checked against this blacklist.` | TCP/IP | A DNS blacklist lookup failed twice. In place of the `DNS lookup: ..., 0 addresses found: (none), Match: False` line an answered lookup writes |
+| `DNSBL: The lookup of <name> did not complete, asked twice. The client could not be checked against <list>, and its messages are accepted without that list's verdict.` | application | The same, at most once every 15 minutes |
+| `SURBL: The lookup of <name> did not complete[, nor did <n> other lookups of the same message]. The message's other names were asked about, and it is accepted without the list's verdict on the names whose lookups did not complete.` | application | A SURBL lookup failed twice and no other name of the message was listed, at most once every 15 minutes |
+| `DNS - The lookup of <name> did not complete. Asking once more, past the DNS cache.` | debug | A DNS blacklist or SURBL lookup is asked a second time |
+| `SpamTestHeloHost: The lookup of <host> did not complete. The HELO host is not scored.` and `SpamTestPTR: The lookup of <name>, the reverse name of <address>, did not complete. The address is not scored.` | debug | The HELO or PTR test passed over a lookup that failed |
 
 Since 6.2.17 acceptance is also bounded: if it exceeds `FinalizationTimeout`
 (240 seconds by default) the server answers `451` and the sender retries, rather
@@ -303,5 +349,14 @@ resolver at all); and `Logger`'s `ERROR_hmailserver_%s.log`. The DNSSEC deferral
 lines were checked on 7 October 2026 against `ExternalDelivery::DeliverToSingleDomain_`
 (the application log lines and their bracketed reason) and `DnssecResolver.cpp`
 (`QueryValidatedRrset_`, `ValidateRrset`, `ValidateZoneKeys`, `FetchDsRecords`,
-`WhereUnproven` and `DescribeCheck`, which word every reason). If you change one of
+`WhereUnproven` and `DescribeCheck`, which word every reason). The lookups a spam
+test cannot complete were checked on 12 October 2026 against
+`DNSResolver::GetIpAddressesRecursive_`, `GetIpAddressesWithRetry`,
+`GetRecordsOfTypeRecursive_` and `GetMXRecordsRecursive_` (what counts as a failed
+lookup, and the second attempt), `DNSResolverWinApi::Query` (the cache bypass),
+`BLCheck::ClientExistsInDNSBL`, `SURBL::Run`, `SpamTestHeloHost::CheckHostInHelo_`,
+`SpamTestPTR::CheckPTR_`, `SpamTestMXRecords::HasAnyMXRecords_`, `DKIM.cpp`'s key
+lookup, `DMARC.cpp` and `SPFEvaluator` (the table and every line quoted),
+`DNSResolver::GetEmailServersRecursive_` and `ExternalDelivery::HandleNoRecipientServers_`
+(the delivery notice), and `AntiSpamDiagnostics` (the fifteen minutes). If you change one of
 those, this page is the second place to look.

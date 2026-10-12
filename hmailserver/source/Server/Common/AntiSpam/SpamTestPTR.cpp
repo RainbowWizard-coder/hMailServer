@@ -76,7 +76,17 @@ namespace HM
       if (ptrresult.size() > 0)
       {
          std::vector<String> ipresults;
-         if (dns_resolver.GetIpAddresses(ptrresult[0], ipresults, false) && ipresults.size() > 0)
+         if (!dns_resolver.GetIpAddresses(ptrresult[0], ipresults, false))
+         {
+            // DNS failure, as for the PTR lookup above. Assume it's not spam.
+            // Before 6.3.7 a forward lookup of the reverse name that did not
+            // complete was taken for a reverse name that does not resolve back,
+            // and the message was scored (the shape of upstream PR 640).
+            LOG_DEBUG(Formatter::Format(_T("SpamTestPTR: The lookup of {0}, the reverse name of {1}, did not complete. The address is not scored."), ptrresult[0], _sIPAddress));
+            return true;
+         }
+
+         if (ipresults.size() > 0)
          {
             // Check that the IP address is one of these A or AAAA records.
             // Might be A or AAAA or multiple, so we loop through them and find a match

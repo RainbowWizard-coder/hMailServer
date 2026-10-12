@@ -101,7 +101,11 @@ namespace HM
          DNSResolver resolver;
          if (!resolver.GetIpAddresses(sHeloHost, saFoundNames, true))
          {
-            // DNS failure. Assume it's not spam.
+            // DNS failure. Assume it's not spam. Before 6.3.7 a failed A query
+            // beside an AAAA query answered NODATA - as it is for every
+            // IPv4-only host - reached the match below as a name with no
+            // addresses, and the message was scored (upstream PR 640).
+            LOG_DEBUG(Formatter::Format(_T("SpamTestHeloHost: The lookup of {0} did not complete. The HELO host is not scored."), sHeloHost));
             return true;
          }
 

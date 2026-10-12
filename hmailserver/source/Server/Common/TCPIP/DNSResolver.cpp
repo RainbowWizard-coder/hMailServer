@@ -40,6 +40,9 @@
 #endif
 #include <boost/asio.hpp>
 
+#include <map>
+#include <stdexcept>
+
 #include "HostNameAndIpAddress.h"
 #include "IPAddress.h"
 
@@ -66,6 +69,113 @@ namespace HM
 
    bool SortDnsRecordWithPreference(DnsRecordWithPreference first, DnsRecordWithPreference second) { return (first.Preference<second.Preference); }
 
+   namespace
+   {
+      // ----------------------------------------------------------------
+      // DNSResolverTester's DNS
+      //
+      // Every query this class makes goes through Ask_, which asks
+      // DNSResolverWinApi - the Windows DNS client, or the POSIX resolver -
+      // unless the tester has put answers of its own on the calling thread.
+      // Then the question is answered from them, nothing is sent, and the
+      // question is written down, so that the tester can say what was asked
+      // and whether it went past the cache. In the service the tester runs
+      // beside real deliveries, and every other thread sees nothing of it.
+      // ----------------------------------------------------------------
+
+      struct ScriptedDns
+      {
+         struct Answer
+         {
+            // False: the query failed, as a SERVFAIL or a timeout fails it.
+            bool answered;
+
+            // What DNSResolverWinApi::Query reports with it: 0, 9003 for
+            // NXDOMAIN, 9501 for NODATA, a failure's own number.
+            int status;
+
+            std::vector<DNSRecord> records;
+         };
+
+         // By "type/name", the answers given in turn; the last is given again
+         // once they run out. A question with none is answered NODATA, as the
+         // regression suite's own zone answers one.
+         std::map<AnsiString, std::vector<Answer>> answers;
+
+         // Every question, in order: "type/name", and " bypassing the cache"
+         // when it was asked so.
+         std::vector<AnsiString> asked;
+
+         bool ipv6Available = true;
+         bool ipv6Preferred = false;
+      };
+
+      thread_local ScriptedDns *scripted_dns = nullptr;
+
+      AnsiString
+      QuestionKey_(int resourceType, const String &query)
+      {
+         AnsiString key;
+         key.Format("%d/", resourceType);
+         return key + AnsiString(query);
+      }
+
+      bool
+      Ask_(const String &query, int resourceType, std::vector<DNSRecord> &records, int &status, bool bypassCache)
+      {
+         if (scripted_dns == nullptr)
+         {
+            DNSResolverWinApi resolver;
+            return resolver.Query(query, resourceType, records, status, bypassCache);
+         }
+
+         const AnsiString key = QuestionKey_(resourceType, query);
+         size_t askedBefore = 0;
+         for (const AnsiString &question : scripted_dns->asked)
+         {
+            if (question == key || question == key + " bypassing the cache")
+               askedBefore++;
+         }
+
+         scripted_dns->asked.push_back(bypassCache ? key + " bypassing the cache" : key);
+
+         auto scripted = scripted_dns->answers.find(key);
+         if (scripted == scripted_dns->answers.end() || scripted->second.empty())
+         {
+            status = DNS_INFO_NO_RECORDS;
+            return true;
+         }
+
+         const ScriptedDns::Answer &answer = scripted->second[(std::min)(askedBefore, scripted->second.size() - 1)];
+         status = answer.status;
+
+         // As DNSResolverWinApi does: a failed query adds nothing, and an answer
+         // is added to what the caller already holds.
+         if (answer.answered)
+            records.insert(records.end(), answer.records.begin(), answer.records.end());
+
+         return answer.answered;
+      }
+
+      bool
+      IPv6Available_()
+      {
+         if (scripted_dns != nullptr)
+            return scripted_dns->ipv6Available;
+
+         return Configuration::Instance()->IsIPv6Available();
+      }
+
+      bool
+      IPv6Preferred_()
+      {
+         if (scripted_dns != nullptr)
+            return scripted_dns->ipv6Preferred;
+
+         return Configuration::Instance()->GetIPv6Preferred();
+      }
+   }
+
 
    DNSResolver::DNSResolver()
    {
@@ -91,7 +201,7 @@ namespace HM
    }
    
    bool
-   DNSResolver::GetIpAddresses(const String &sDomain, std::vector<String> &vecFoundNames, bool followCnameRecords)
+   DNSResolver::GetIpAddresses(const String &sDomain, std::vector<String> &vecFoundNames, bool followCnameRecords, bool bypassCache)
    {
       // An address is not a name, so it is not asked about in DNS.
       //
@@ -124,11 +234,34 @@ namespace HM
          return true;
       }
 
-      return GetIpAddressesRecursive_(sDomain, vecFoundNames, 0, followCnameRecords);
+      return GetIpAddressesRecursive_(sDomain, vecFoundNames, 0, followCnameRecords, bypassCache);
    }
 
    bool
-   DNSResolver::GetIpAddressesRecursive_(const String &hostName, std::vector<String> &addresses, int recursionLevel, bool followCnameRecords)
+   DNSResolver::GetIpAddressesWithRetry(const String &sDomain, std::vector<String> &saFoundNames, bool followCnameRecords)
+   {
+      // A lookup whose answer is a verdict - a DNS blacklist's, SURBL's - is asked
+      // once more when it did not complete, because a single failed query would
+      // otherwise stand for "not listed" (upstream PR 640). Past the DNS cache: the
+      // Windows DNS client would otherwise answer the second attempt from what it
+      // kept of the first. A lookup that answered, with addresses or without, is
+      // not asked again, and nothing a failed attempt left behind is in
+      // saFoundNames - a lookup that fails adds no address.
+      //
+      // A lookup that timed out is asked again too, and so waits for the DNS
+      // twice: on Linux the resolver sends one packet to each server and waits
+      // for it, so a timeout there is as often one lost packet as a server that
+      // is down.
+      if (GetIpAddresses(sDomain, saFoundNames, followCnameRecords))
+         return true;
+
+      LOG_DEBUG(Formatter::Format(_T("DNS - The lookup of {0} did not complete. Asking once more, past the DNS cache."), sDomain));
+
+      return GetIpAddresses(sDomain, saFoundNames, followCnameRecords, true);
+   }
+
+   bool
+   DNSResolver::GetIpAddressesRecursive_(const String &hostName, std::vector<String> &addresses, int recursionLevel, bool followCnameRecords, bool bypassCache)
    {
       if (hostName.IsEmpty())
       {
@@ -144,42 +277,64 @@ namespace HM
          return false;
       }
 
-      DNSResolverWinApi resolver;
-
       std::vector<DNSRecord> foundRecords;
+      int status = 0;
 
-      bool ipv4QueryResult = false;
-      bool ipv6QueryResult = false;
+      // Whether every query made here was answered - with records or without. A
+      // query answered NXDOMAIN or NODATA says the name holds no address of that
+      // family; one that failed - a SERVFAIL, a timeout - says nothing at all.
+      // Until upstream PR 640 the two results were joined by OR, so a failed A
+      // query beside an AAAA query answered NODATA, which is the answer of every
+      // IPv4-only host, made "this host has no addresses": the HELO test scored
+      // the message for a name it could not look up, and a DNS blacklist or SURBL
+      // lookup read a failure as "not listed".
+      bool everyQueryAnswered = true;
+
       // if IPv6 is preferred first do IPv6 DNS Lookup(s)
-      if (Configuration::Instance()->IsIPv6Available() && Configuration::Instance()->GetIPv6Preferred())
+      const bool ipv6Available = IPv6Available_();
+      if (ipv6Available && IPv6Preferred_())
       {
-         ipv6QueryResult = resolver.Query(hostName, DNS_TYPE_AAAA, foundRecords);
-         ipv4QueryResult = resolver.Query(hostName, DNS_TYPE_A, foundRecords);
+         if (!Ask_(hostName, DNS_TYPE_AAAA, foundRecords, status, bypassCache))
+            everyQueryAnswered = false;
+
+         if (!Ask_(hostName, DNS_TYPE_A, foundRecords, status, bypassCache))
+            everyQueryAnswered = false;
       }
-      else // Standard 
+      else // Standard
       {
-         ipv4QueryResult = resolver.Query(hostName, DNS_TYPE_A, foundRecords);
-         ipv6QueryResult = Configuration::Instance()->IsIPv6Available() ? resolver.Query(hostName, DNS_TYPE_AAAA, foundRecords) : false;
+         if (!Ask_(hostName, DNS_TYPE_A, foundRecords, status, bypassCache))
+            everyQueryAnswered = false;
+
+         if (ipv6Available && !Ask_(hostName, DNS_TYPE_AAAA, foundRecords, status, bypassCache))
+            everyQueryAnswered = false;
       }
 
       if (foundRecords.size() == 0 && followCnameRecords)
       {
          // The queries for A/AAAA didn't return any records. Attempt to look up via CNAME
          std::vector<DNSRecord> foundCNames;
-         bool cnameQueryResult = resolver.Query(hostName, DNS_TYPE_CNAME, foundCNames);
+         bool cnameQueryResult = Ask_(hostName, DNS_TYPE_CNAME, foundCNames, status, bypassCache);
 
          // A CNAME should only point at a single host name.
          if (cnameQueryResult && foundCNames.size() == 1)
          {
             auto cnameHostName = foundCNames[0].GetValue();
-            return GetIpAddressesRecursive_(cnameHostName, addresses, recursionLevel + 1, followCnameRecords);
+            return GetIpAddressesRecursive_(cnameHostName, addresses, recursionLevel + 1, followCnameRecords, bypassCache);
          }
+
+         // Whether the name is an alias of one that has addresses is not known
+         // either, so neither is whether it has any.
+         if (!cnameQueryResult)
+            everyQueryAnswered = false;
       }
 
       std::vector<String> foundValues = GetDnsRecordsValues_(foundRecords);
       addresses.insert(addresses.end(), foundValues.begin(), foundValues.end());
 
-      return ipv4QueryResult || ipv6QueryResult;
+      // Addresses found are an answer whatever else failed: a host whose AAAA
+      // query fails still has the IPv4 addresses its A query found. Without any,
+      // a failed query leaves the answer unknown rather than empty.
+      return !foundRecords.empty() || everyQueryAnswered;
    }
 
 
@@ -311,15 +466,15 @@ namespace HM
          return false;
       }
 
-      DNSResolverWinApi resolver;
+      int status = 0;
 
-      bool result = resolver.Query(query, resourceType, records);
+      bool result = Ask_(query, resourceType, records, status, false);
 
       if (records.size() == 0)
       {
          // Nothing of the type asked for. The name may be an alias.
          std::vector<DNSRecord> foundCNames;
-         bool cnameQueryResult = resolver.Query(query, DNS_TYPE_CNAME, foundCNames);
+         bool cnameQueryResult = Ask_(query, DNS_TYPE_CNAME, foundCNames, status, false);
 
          // A CNAME should only point at a single host name.
          if (cnameQueryResult && foundCNames.size() == 1)
@@ -327,6 +482,16 @@ namespace HM
             auto cnameHostName = foundCNames[0].GetValue();
             return GetRecordsOfTypeRecursive_(cnameHostName, resourceType, records, recursionLevel + 1);
          }
+
+         // Whether the name is an alias of one that holds such records could not
+         // be told, so the lookup did not complete - which is not "no records",
+         // the answer a DKIM key, a DMARC policy or an SPF record that is not
+         // published gets (upstream PR 640). On Windows this is the path of every
+         // alias: the DNS client follows the CNAME, and the target's records come
+         // back under the target's name, which the query's own name filters out -
+         // a DKIM selector that is a CNAME, as Microsoft 365's are, among them.
+         if (!cnameQueryResult)
+            return false;
       }
 
       return result;
@@ -360,11 +525,10 @@ namespace HM
       if (sDomain.IsEmpty())
          return false;
 
-      DNSResolverWinApi resolver;
       std::vector<DNSRecord> foundRecords;
       int dnsStatus = 0;
 
-      bool queried = resolver.Query(sDomain, DNS_TYPE_A, foundRecords, dnsStatus);
+      bool queried = Ask_(sDomain, DNS_TYPE_A, foundRecords, dnsStatus, false);
 
       // Records came back, so the name is plainly there. Checked first and on its own,
       // because the return value below cannot be read as "it worked": Query answers
@@ -415,10 +579,10 @@ namespace HM
       String message = Formatter::Format("DNS MX lookup: {0}", sDomainName);
       LOG_TCPIP(message);
 
-      DNSResolverWinApi resolver;
       std::vector<DNSRecord> foundMxRecords;
+      int status = 0;
 
-      if (!resolver.Query(sDomainName, DNS_TYPE_MX, foundMxRecords))
+      if (!Ask_(sDomainName, DNS_TYPE_MX, foundMxRecords, status, false))
       {
          String logMessage;
             logMessage.Format(_T("Failed to resolve email servers (MX lookup). Domain name: %s."), sDomainName.c_str());
@@ -431,7 +595,7 @@ namespace HM
       {
          // The queries for MX didn't return any records. Attempt to look up via CNAME
          std::vector<DNSRecord> foundCNames;
-         bool cnameQueryResult = resolver.Query(sDomainName, DNS_TYPE_CNAME, foundCNames);
+         bool cnameQueryResult = Ask_(sDomainName, DNS_TYPE_CNAME, foundCNames, status, false);
 
          // A CNAME should only point at a single host name.
          if (cnameQueryResult && foundCNames.size() == 1)
@@ -575,16 +739,16 @@ namespace HM
          return false;
       }
       
-      DNSResolverWinApi resolver;
       std::vector<DNSRecord> foundMxRecords;
+      int status = 0;
 
-      bool result = resolver.Query(sDomain, DNS_TYPE_MX, foundMxRecords);
+      bool result = Ask_(sDomain, DNS_TYPE_MX, foundMxRecords, status, false);
 
       if (foundMxRecords.size() == 0)
       {
          // The queries for MX didn't return any records. Attempt to look up via CNAME
          std::vector<DNSRecord> foundCNames;
-         bool cnameQueryResult = resolver.Query(sDomain, DNS_TYPE_CNAME, foundCNames);
+         bool cnameQueryResult = Ask_(sDomain, DNS_TYPE_CNAME, foundCNames, status, false);
 
          // A CNAME should only point at a single host name.
          if (cnameQueryResult && foundCNames.size() == 1)
@@ -592,6 +756,12 @@ namespace HM
             auto cnameHostName = foundCNames[0].GetValue();
             return GetMXRecordsRecursive_(cnameHostName, vecFoundNames, recursionLevel + 1);
          }
+
+         // Whether the name is an alias of one with MX records could not be told:
+         // the lookup did not complete, which the MX-record spam test reads as a
+         // failure and not as a domain with no MX (GetRecordsOfTypeRecursive_).
+         if (!cnameQueryResult)
+            result = false;
       }
 
       for (DNSRecord dnsRecord : foundMxRecords)
@@ -639,14 +809,302 @@ namespace HM
       }
 
 
-      DNSResolverWinApi resolver;
       std::vector<DNSRecord> foundRecords;
+      int status = 0;
 
-      bool result = resolver.Query(fullQuery, DNS_TYPE_PTR, foundRecords);
+      bool result = Ask_(fullQuery, DNS_TYPE_PTR, foundRecords, status, false);
 
       vecFoundNames = GetDnsRecordsValues_(foundRecords);
       return result;
 
+   }
+
+   void
+   DNSResolverTester::Test()
+   {
+      auto expect = [](bool condition, const std::string &what)
+      {
+         if (!condition)
+            throw std::logic_error(std::string("DNSResolverTester: ") + what);
+      };
+
+      // The numbers DNSResolverWinApi reports, on both platforms: 9003 NXDOMAIN
+      // and 9501 NODATA, which are answers; 9002 a server failure and 258 the
+      // query's own timeout, which are not.
+      const int nxdomain = 9003;
+      const int nodata = 9501;
+      const int servfail = 9002;
+      const int timedOut = 258;
+
+      typedef ScriptedDns::Answer Answer;
+
+      auto withRecord = [](int type, const char *value) -> Answer
+      {
+         Answer answer;
+         answer.answered = true;
+         answer.status = 0;
+         answer.records.push_back(DNSRecord(AnsiString(value), type, 0));
+         return answer;
+      };
+
+      auto noRecords = [](int status) -> Answer
+      {
+         Answer answer;
+         answer.answered = true;
+         answer.status = status;
+         return answer;
+      };
+
+      auto failed = [](int status) -> Answer
+      {
+         Answer answer;
+         answer.answered = false;
+         answer.status = status;
+         return answer;
+      };
+
+      // Installs a zone on this thread for as long as it lives.
+      struct Installed
+      {
+         explicit Installed(ScriptedDns &zone) { scripted_dns = &zone; }
+         ~Installed() { scripted_dns = nullptr; }
+      };
+
+      auto joined = [](const std::vector<String> &values) -> std::string
+      {
+         String text = StringParser::JoinVector(values, _T(","));
+         return std::string(AnsiString(text).c_str());
+      };
+
+      auto askedOf = [](const ScriptedDns &zone) -> std::string
+      {
+         std::string text;
+         for (const AnsiString &question : zone.asked)
+            text += (text.empty() ? "" : ", ") + std::string(question.c_str());
+         return text;
+      };
+
+      // One address lookup: what it returns, and what it found.
+      struct Case
+      {
+         const char *why;
+         std::vector<std::pair<int, Answer>> answers;   // by type, for host.test
+         bool followCnames;
+         bool expected;
+         const char *expectedAddresses;
+      };
+
+      const int a = DNS_TYPE_A;
+      const int aaaa = DNS_TYPE_AAAA;
+      const int cname = DNS_TYPE_CNAME;
+
+      const std::vector<Case> cases =
+      {
+         // The defect: a failed A query beside an AAAA query answered NODATA,
+         // the answer of every IPv4-only host, was "no addresses".
+         { "a failed A query, the AAAA query answered NODATA: the lookup failed",
+           { { a, failed(servfail) }, { aaaa, noRecords(nodata) } }, false, false, "" },
+         { "a failed A query, the AAAA query answered NXDOMAIN: the lookup failed",
+           { { a, failed(servfail) }, { aaaa, noRecords(nxdomain) } }, false, false, "" },
+         { "the A query timed out, the AAAA query answered NODATA: the lookup failed",
+           { { a, failed(timedOut) }, { aaaa, noRecords(nodata) } }, false, false, "" },
+         { "the A query answered NODATA, a failed AAAA query: the lookup failed",
+           { { a, noRecords(nodata) }, { aaaa, failed(servfail) } }, false, false, "" },
+         { "both failed: the lookup failed",
+           { { a, failed(servfail) }, { aaaa, failed(servfail) } }, false, false, "" },
+
+         // Answers stay answers.
+         { "both answered NODATA: no addresses",
+           { { a, noRecords(nodata) }, { aaaa, noRecords(nodata) } }, false, true, "" },
+         { "both answered NXDOMAIN: no addresses",
+           { { a, noRecords(nxdomain) }, { aaaa, noRecords(nxdomain) } }, false, true, "" },
+         { "an A record and a failed AAAA query: the A record",
+           { { a, withRecord(a, "192.0.2.1") }, { aaaa, failed(servfail) } }, false, true, "192.0.2.1" },
+         { "a failed A query and an AAAA record: the AAAA record",
+           { { a, failed(servfail) }, { aaaa, withRecord(aaaa, "2001:db8::1") } }, false, true, "2001:db8::1" },
+         { "both records",
+           { { a, withRecord(a, "192.0.2.1") }, { aaaa, withRecord(aaaa, "2001:db8::1") } }, false, true, "192.0.2.1,2001:db8::1" },
+
+         // The CNAME query, made when A and AAAA found nothing, is a query too.
+         { "NODATA for both and a failed CNAME query: the lookup failed",
+           { { a, noRecords(nodata) }, { aaaa, noRecords(nodata) }, { cname, failed(servfail) } }, true, false, "" },
+         { "NODATA for both and NODATA for the CNAME: no addresses",
+           { { a, noRecords(nodata) }, { aaaa, noRecords(nodata) }, { cname, noRecords(nodata) } }, true, true, "" },
+         { "a failed A query and an alias: the alias's target's addresses",
+           { { a, failed(servfail) }, { aaaa, noRecords(nodata) }, { cname, withRecord(cname, "target.test") } }, true, true, "192.0.2.9" },
+      };
+
+      for (const Case &test : cases)
+      {
+         ScriptedDns zone;
+         for (const auto &answer : test.answers)
+            zone.answers[QuestionKey_(answer.first, _T("host.test"))].push_back(answer.second);
+         zone.answers[QuestionKey_(a, _T("target.test"))].push_back(withRecord(a, "192.0.2.9"));
+
+         Installed installed(zone);
+         DNSResolver resolver;
+         std::vector<String> found;
+         const bool result = resolver.GetIpAddresses(_T("host.test"), found, test.followCnames);
+
+         expect(result == test.expected, std::string(test.why) + ": answered " + (result ? "true" : "false") + "; asked " + askedOf(zone));
+         expect(joined(found) == test.expectedAddresses, std::string(test.why) + ": found \"" + joined(found) + "\", expected \"" + test.expectedAddresses + "\"");
+      }
+
+      // With IPv6 preferred the AAAA query goes first, and the rule is the same.
+      {
+         ScriptedDns zone;
+         zone.ipv6Preferred = true;
+         zone.answers[QuestionKey_(aaaa, _T("host.test"))].push_back(noRecords(nodata));
+         zone.answers[QuestionKey_(a, _T("host.test"))].push_back(failed(servfail));
+
+         Installed installed(zone);
+         DNSResolver resolver;
+         std::vector<String> found;
+         expect(!resolver.GetIpAddresses(_T("host.test"), found, false),
+                "IPv6 preferred: NODATA for AAAA, then a failed A query: the lookup failed; asked " + askedOf(zone));
+         expect(askedOf(zone) == "28/host.test, 1/host.test", "IPv6 preferred: AAAA asked first; asked " + askedOf(zone));
+      }
+
+      // Without IPv6 there is no AAAA query, and a failed A query fails the
+      // lookup, as it always did.
+      {
+         ScriptedDns zone;
+         zone.ipv6Available = false;
+         zone.answers[QuestionKey_(a, _T("host.test"))].push_back(failed(servfail));
+
+         Installed installed(zone);
+         DNSResolver resolver;
+         std::vector<String> found;
+         expect(!resolver.GetIpAddresses(_T("host.test"), found, false), "no IPv6: a failed A query fails the lookup");
+         expect(askedOf(zone) == "1/host.test", "no IPv6: only A is asked; asked " + askedOf(zone));
+      }
+
+      // What the caller held is kept, and a failed lookup adds nothing to it.
+      {
+         ScriptedDns zone;
+         zone.answers[QuestionKey_(a, _T("host.test"))].push_back(failed(servfail));
+
+         Installed installed(zone);
+         DNSResolver resolver;
+         std::vector<String> found;
+         found.push_back(_T("198.51.100.1"));
+         resolver.GetIpAddresses(_T("host.test"), found, false);
+         expect(joined(found) == "198.51.100.1", "a failed lookup adds nothing to what the caller held: \"" + joined(found) + "\"");
+      }
+
+      // GetIpAddressesWithRetry: a lookup that did not complete is asked once
+      // more, past the cache; the second answer counts.
+      {
+         ScriptedDns zone;
+         zone.answers[QuestionKey_(a, _T("2.0.0.127.list.test"))].push_back(failed(servfail));
+         zone.answers[QuestionKey_(a, _T("2.0.0.127.list.test"))].push_back(withRecord(a, "127.0.0.2"));
+         zone.answers[QuestionKey_(aaaa, _T("2.0.0.127.list.test"))].push_back(noRecords(nxdomain));
+
+         Installed installed(zone);
+         DNSResolver resolver;
+         std::vector<String> found;
+         expect(resolver.GetIpAddressesWithRetry(_T("2.0.0.127.list.test"), found, false),
+                "a lookup that failed and then answered: true; asked " + askedOf(zone));
+         expect(joined(found) == "127.0.0.2", "a lookup that failed and then answered: the second answer, once: \"" + joined(found) + "\"");
+         expect(askedOf(zone) == "1/2.0.0.127.list.test, 28/2.0.0.127.list.test, "
+                                 "1/2.0.0.127.list.test bypassing the cache, 28/2.0.0.127.list.test bypassing the cache",
+                "the second attempt, and only it, goes past the cache; asked " + askedOf(zone));
+      }
+
+      // A lookup that answered - NXDOMAIN, the answer for an address no list
+      // holds - is not asked again.
+      {
+         ScriptedDns zone;
+         zone.answers[QuestionKey_(a, _T("3.0.0.127.list.test"))].push_back(noRecords(nxdomain));
+         zone.answers[QuestionKey_(aaaa, _T("3.0.0.127.list.test"))].push_back(noRecords(nxdomain));
+
+         Installed installed(zone);
+         DNSResolver resolver;
+         std::vector<String> found;
+         expect(resolver.GetIpAddressesWithRetry(_T("3.0.0.127.list.test"), found, false) && found.empty(),
+                "an answered lookup with no addresses: true, none");
+         expect(zone.asked.size() == 2, "an answered lookup is asked once; asked " + askedOf(zone));
+      }
+
+      // One that answered with an address is not asked again either.
+      {
+         ScriptedDns zone;
+         zone.answers[QuestionKey_(a, _T("4.0.0.127.list.test"))].push_back(withRecord(a, "127.0.0.4"));
+         zone.answers[QuestionKey_(aaaa, _T("4.0.0.127.list.test"))].push_back(failed(servfail));
+
+         Installed installed(zone);
+         DNSResolver resolver;
+         std::vector<String> found;
+         expect(resolver.GetIpAddressesWithRetry(_T("4.0.0.127.list.test"), found, false) && joined(found) == "127.0.0.4",
+                "an address and a failed AAAA query: the address, at once");
+         expect(zone.asked.size() == 2, "a lookup that found an address is asked once; asked " + askedOf(zone));
+      }
+
+      // A lookup that fails twice fails, after two attempts and no more.
+      {
+         ScriptedDns zone;
+         zone.answers[QuestionKey_(a, _T("5.0.0.127.list.test"))].push_back(failed(timedOut));
+         zone.answers[QuestionKey_(aaaa, _T("5.0.0.127.list.test"))].push_back(noRecords(nxdomain));
+
+         Installed installed(zone);
+         DNSResolver resolver;
+         std::vector<String> found;
+         expect(!resolver.GetIpAddressesWithRetry(_T("5.0.0.127.list.test"), found, false) && found.empty(),
+                "a lookup that fails twice: false, nothing found");
+         expect(zone.asked.size() == 4, "a lookup that fails is asked twice, no more; asked " + askedOf(zone));
+      }
+
+      // The record lookups that follow an alias: nothing of the type and a
+      // failed CNAME query is a lookup that did not complete, and not "no
+      // records" - a DKIM key, a DMARC policy or an SPF record not published.
+      // GetRecordsOfType is asked for MX here, which shares the path with TXT
+      // and has no DNSSEC gate in front of it.
+      {
+         ScriptedDns zone;
+         zone.answers[QuestionKey_(DNS_TYPE_MX, _T("alias.test"))].push_back(noRecords(nodata));
+         zone.answers[QuestionKey_(cname, _T("alias.test"))].push_back(failed(servfail));
+
+         Installed installed(zone);
+         DNSResolver resolver;
+         std::vector<AnsiString> values;
+         expect(!resolver.GetRecordsOfType("alias.test", DNS_TYPE_MX, values) && values.empty(),
+                "a record lookup that found nothing, with a failed CNAME query: false; asked " + askedOf(zone));
+
+         std::vector<String> names;
+         expect(!resolver.GetMXRecords(_T("alias.test"), names) && names.empty(),
+                "an MX lookup that found nothing, with a failed CNAME query: false; asked " + askedOf(zone));
+      }
+
+      {
+         ScriptedDns zone;
+         zone.answers[QuestionKey_(DNS_TYPE_MX, _T("plain.test"))].push_back(noRecords(nodata));
+         zone.answers[QuestionKey_(cname, _T("plain.test"))].push_back(noRecords(nodata));
+
+         Installed installed(zone);
+         DNSResolver resolver;
+         std::vector<AnsiString> values;
+         expect(resolver.GetRecordsOfType("plain.test", DNS_TYPE_MX, values) && values.empty(),
+                "a record lookup answered NODATA, and NODATA for the CNAME: true, none");
+
+         std::vector<String> names;
+         expect(resolver.GetMXRecords(_T("plain.test"), names) && names.empty(),
+                "an MX lookup answered NODATA, and NODATA for the CNAME: true, none");
+      }
+
+      {
+         ScriptedDns zone;
+         zone.answers[QuestionKey_(DNS_TYPE_MX, _T("alias.test"))].push_back(noRecords(nodata));
+         zone.answers[QuestionKey_(cname, _T("alias.test"))].push_back(withRecord(cname, "target.test"));
+         zone.answers[QuestionKey_(DNS_TYPE_MX, _T("target.test"))].push_back(withRecord(DNS_TYPE_MX, "mx.target.test"));
+
+         Installed installed(zone);
+         DNSResolver resolver;
+         std::vector<String> names;
+         expect(resolver.GetMXRecords(_T("alias.test"), names) && joined(names) == "mx.target.test",
+                "an MX lookup of an alias: the target's exchange; found \"" + joined(names) + "\"");
+      }
+
+      expect(scripted_dns == nullptr, "the tester's answers are taken off its thread when it is done.");
    }
 
 }
