@@ -73,6 +73,15 @@ SQL Server 2022 CU27 (`~/hmlab/aa/runs/sqlcheck-*.jsonl`):
 | UIDs as the server takes them today (counter raised, read back, row inserted: three statements), two writers and a reader, 800 rows | 140 and 157 numbers given twice; 9 and 5 rows the reader never saw | 288 and 300 given twice | 0 and 2 given twice; 0 and 1 never seen (its commit is slower; the race needs a wider window) | 396 given twice |
 | The same in one transaction | 0 and 0 | 0 and 0 | 0 and 0 | 0 and 0 |
 
+Two limits of these runs. They used each engine's default isolation, which for SQL
+Server is READ COMMITTED, where the server's own sessions run at READ UNCOMMITTED
+(`ADOConnection::Connect`); and the databases' clocks were in UTC, so the local
+time the server's `GETDATE()`, `NOW()` and `current_timestamp` give never crossed a
+daylight-saving change. Unit AA-01 of the build plan adds both: the SQL Server
+checks at READ UNCOMMITTED with writers that roll back, and a lease across a change
+on a database whose zone has one (libfaketime). It also adds named leases taken on
+rows that do not exist yet, where these runs inserted every row in advance.
+
 Scenario S0: what two nodes do today
 -----------------------------------
 
@@ -110,3 +119,19 @@ Scenarios the units add
 Each unit of Programme B adds its scenario here, as a command of `aa-lab.sh` or a
 script beside it, and records its result in its commit message. The scenarios, and
 what each must show, are listed in ActiveActive.md under "How it would be tested".
+
+What it cannot show yet
+-----------------------
+
+- **A node's host name changing.** `nodes` starts each node with `--hostname
+  node<i>`; the Compose file the project ships sets none, so a recreated container
+  there is a new host. Unit AA-05 adds a node recreated without one.
+- **`/readyz`.** The balancer's check is a TCP connect (`haproxy.cfg`), because the
+  nodes do not open the metrics listener that serves `/readyz`. Unit AA-05 opens it
+  and switches the check.
+- **Clock skew between nodes.** The containers share server2's clock; a faketime
+  offset per node is the nearest the lab can come.
+- **A database failover that loses its last commit**, unless a PostgreSQL replica
+  is added to promote.
+- **SQL Server through the server's own code.** The Linux server has no SQL Server
+  backend, so SQL Server takes part through `sqlcheck` alone.
