@@ -6044,6 +6044,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="IP address" xml:space="preserve">
     <value>Adresa IP</value>
   </data>
+  <data name="IP address: {0}" xml:space="preserve">
+    <value>Adresa IP: {0}</value>
+  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>Adresy IP vyjmuté ze zpoždění greylistingu, pro odesílatele, kteří to nezopakují.</value>
   </data>
@@ -6282,6 +6285,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Interface" xml:space="preserve">
     <value>Rozhraní</value>
+  </data>
+  <data name="Interface: {0}" xml:space="preserve">
+    <value>Rozhraní: {0}</value>
   </data>
   <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
     <value>Do této složky (_prázdné = do té, ve které byla)</value>

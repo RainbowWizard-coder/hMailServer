@@ -5962,6 +5962,9 @@ Ingen post røres - indekset er udledt af den - men indtil genopbygningen har in
   <data name="IP address" xml:space="preserve">
     <value>IP-adresse</value>
   </data>
+  <data name="IP address: {0}" xml:space="preserve">
+    <value>IP-adresse: {0}</value>
+  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>IP-adresser, der er fritaget for greylisting-forsinkelsen, til afsendere, der ikke vil forsøge igen.</value>
   </data>
@@ -6200,6 +6203,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="Interface" xml:space="preserve">
     <value>Grænseflade</value>
+  </data>
+  <data name="Interface: {0}" xml:space="preserve">
+    <value>Grænseflade: {0}</value>
   </data>
   <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
     <value>Ind i denne mappe (_tom = den, den lå i)</value>

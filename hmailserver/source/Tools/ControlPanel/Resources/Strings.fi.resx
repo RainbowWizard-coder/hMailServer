@@ -5962,6 +5962,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="IP address" xml:space="preserve">
     <value>IP-osoite</value>
   </data>
+  <data name="IP address: {0}" xml:space="preserve">
+    <value>IP-osoite: {0}</value>
+  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>IP-osoitteet, jotka on vapautettu harmaalistauksen viiveestä, lähettäjille, jotka eivät yritä uudelleen.</value>
   </data>
@@ -6200,6 +6203,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Interface" xml:space="preserve">
     <value>Rajapinta</value>
+  </data>
+  <data name="Interface: {0}" xml:space="preserve">
+    <value>Rajapinta: {0}</value>
   </data>
   <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
     <value>Tähän kansioon (_tyhjä = siihen, jossa se oli)</value>

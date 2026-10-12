@@ -5962,6 +5962,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="IP address" xml:space="preserve">
     <value>IP address</value>
   </data>
+  <data name="IP address: {0}" xml:space="preserve">
+    <value>IP address: {0}</value>
+  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>IP addresses exempt from the greylisting delay, for senders that will not retry.</value>
   </data>
@@ -6200,6 +6203,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   </data>
   <data name="Interface" xml:space="preserve">
     <value>Interface</value>
+  </data>
+  <data name="Interface: {0}" xml:space="preserve">
+    <value>Interface: {0}</value>
   </data>
   <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
     <value>Into this folder (empt_y = the one it was in)</value>

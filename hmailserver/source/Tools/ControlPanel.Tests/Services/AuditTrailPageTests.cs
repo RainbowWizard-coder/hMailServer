@@ -341,7 +341,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          // Every column of words floored at its words on the page shown, where they
          // were floored at 90 and cut at 1280 in every language; Detail keeps its floor.
-         foreach (string column in new[] { "Who", "Interface", "From", "Object", "Name", "Action" })
+         foreach (string column in new[] { "Who", "Object", "Name", "Action" })
             Assert.Contains("rows_.Columns.Add(Shared_(L(\"" + column + "\"), nameof(RowView." + column + "), row => row." + column, code, StringComparison.Ordinal);
          Assert.DoesNotContain("Math.Max(90,", code, StringComparison.Ordinal);
          Assert.Contains("column.MinWidth = AuditTrailReport.WordsFloor(header, rows.Select(row => GridStyles.CellWidth(value(row))), SharedFloorCap);", code, StringComparison.Ordinal);
@@ -351,6 +351,31 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(show.IndexOf("FloorShared_(shown);", StringComparison.Ordinal) < show.IndexOf("rows_.ItemsSource = shown;", StringComparison.Ordinal),
             "The columns are floored after the rows are in the grid.");
          Assert.Contains("detail.MinWidth = 200;", code, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The final check of Tier 2: with the interface and the address as columns, and
+      /// the columns of words floored up to 180 pixels, the grid was 1248 pixels wide
+      /// in a 877-pixel view at 1280 by 800, and Detail - what changed, the column a
+      /// reader comes for - was off the page in every language. The interface and the
+      /// address are the selected row's, in the strip under the list, and the four
+      /// columns of words are floored at 120 at most: the time, four floors and
+      /// Detail's 200 fit the view.
+      /// </summary>
+      [Fact]
+      public void TheGrid_FitsTheViewAt1280_TheInterfaceAndAddressInTheStrip()
+      {
+         string code = ReadControlPanelFile(Path.Join("Views", "AuditTrailView.cs"));
+         Assert.DoesNotContain("Shared_(L(\"Interface\")", code, StringComparison.Ordinal);
+         Assert.DoesNotContain("Shared_(L(\"From\")", code, StringComparison.Ordinal);
+         Assert.Contains("private const double SharedFloorCap = 120;", code, StringComparison.Ordinal);
+         Assert.Contains("public string Strip => AuditTrailReport.StripText(Detail, Interface, Row?.Address);", code, StringComparison.Ordinal);
+         Assert.Contains("RowDetailStrip.For(rows_, _ => L(\"Detail\"), row => ((RowView)row).Strip)", code, StringComparison.Ordinal);
+
+         Assert.Equal("60 \u2192 120\nInterface: Control Panel\nIP address: 10.1.0.42",
+            AuditTrailReport.StripText("60 \u2192 120", "Control Panel", "10.1.0.42"));
+         Assert.Equal("Interface: Server", AuditTrailReport.StripText("", "Server", " "));
+         Assert.Equal("", AuditTrailReport.StripText(null, null, null));
       }
 
       [Fact]

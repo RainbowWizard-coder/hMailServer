@@ -398,6 +398,25 @@ namespace hMailServer.ControlPanel.Services
          => (detail ?? "").Replace(ChangeArrow, " " + (char)0x2192 + " ", StringComparison.Ordinal);
 
       /// <summary>
+      /// The selected row's strip under the list: what changed, then the interface and
+      /// the address the change came over, each on a line of its own, a line left out
+      /// where there is nothing to say. The interface and the address were columns of
+      /// the grid, which then put what changed - the column a reader comes for - off
+      /// the page at 1280 by 800 in every language (final check of Tier 2).
+      /// </summary>
+      public static string StripText(string detail, string interfaceWord, string address)
+      {
+         var lines = new List<string>();
+         if (!string.IsNullOrWhiteSpace(detail))
+            lines.Add(detail.Trim());
+         if (!string.IsNullOrWhiteSpace(interfaceWord))
+            lines.Add(F("Interface: {0}", interfaceWord.Trim()));
+         if (!string.IsNullOrWhiteSpace(address))
+            lines.Add(F("IP address: {0}", address.Trim()));
+         return string.Join("\n", lines);
+      }
+
+      /// <summary>
       /// Whether a row is one a search finds: every word typed in is in who made the
       /// change, the interface, the address, what it was made to, its name, what was
       /// done or its detail - as the server wrote each and as the page shows it,

@@ -32,7 +32,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [Theory]
       [InlineData("QuarantineView.cs", "RowDetailStrip.For(list_, _ => L(\"Why it was held\"), row => row is QuarantineRow { IsMessage: true } held ? held.Message.Reason : null)")]
       [InlineData("SuppressionListView.cs", "row => ((EntryView)row).ByHand ? L(\"Note\") : L(\"What the receiving server answered\"),")]
-      [InlineData("AuditTrailView.cs", "RowDetailStrip.For(rows_, _ => L(\"Detail\"), row => ((RowView)row).Detail)")]
+      [InlineData("AuditTrailView.cs", "RowDetailStrip.For(rows_, _ => L(\"Detail\"), row => ((RowView)row).Strip)")]
       [InlineData("MessageTraceView.cs", "RowDetailStrip.For(list_, null, row => ((TraceRow)row).FollowHint)")]
       public void EachPage_PutsTheFactUnderItsList(string file, string strip)
       {

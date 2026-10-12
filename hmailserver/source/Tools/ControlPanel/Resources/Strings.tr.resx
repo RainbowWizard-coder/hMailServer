@@ -5962,6 +5962,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="IP address" xml:space="preserve">
     <value>IP adresi</value>
   </data>
+  <data name="IP address: {0}" xml:space="preserve">
+    <value>IP adresi: {0}</value>
+  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>Yeniden denemeyecek gönderenler için greylisting gecikmesinden muaf IP adresleri.</value>
   </data>
@@ -6200,6 +6203,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="Interface" xml:space="preserve">
     <value>Arayüz</value>
+  </data>
+  <data name="Interface: {0}" xml:space="preserve">
+    <value>Arayüz: {0}</value>
   </data>
   <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
     <value>Bu klasöre (_boş = bulunduğu klasöre)</value>

@@ -56,7 +56,7 @@ namespace hMailServer.ControlPanel.Views
       // row, floored at the widest of their rows on the page shown (FloorShared_), and
       // the most such a floor is.
       private readonly List<(DataGridTextColumn Column, double Header, Func<RowView, string> Value)> shared_ = new();
-      private const double SharedFloorCap = 180;
+      private const double SharedFloorCap = 120;
 
       private int offset_;
       private int total_;
@@ -372,6 +372,10 @@ namespace hMailServer.ControlPanel.Views
          public string Detail { get; init; }
          public bool CanPutBack { get; init; }
 
+         // The strip under the list for the selected row: what changed, then the
+         // interface and the address, which the grid has no room for at 1280.
+         public string Strip => AuditTrailReport.StripText(Detail, Interface, Row?.Address);
+
          // What a screen reader says for the row: when, who, and what was done to
          // what - not the name of this class, which is what a grid row is
          // announced as otherwise.
@@ -549,7 +553,10 @@ namespace hMailServer.ControlPanel.Views
          // comes for - takes twice a share and never under 200 pixels, where the
          // columns sized to their words left it about 60 ("60 -> 1…") (review
          // finding F254). Where the floors do not fit, the grid scrolls sideways
-         // rather than cut who made a change and what it was made to.
+         // rather than cut who made a change and what it was made to. The interface
+         // and the address a change came over are the selected row's, in the strip
+         // under the list: in the grid they put what changed off the page at 1280 by
+         // 800 in every language, the grid 1248 pixels wide in a 877-pixel view.
          whenColumn_ = Text_(WhenHeader(), nameof(RowView.When), DataGridLength.Auto);
          whenColumn_.SortMemberPath = nameof(RowView.Time);
          // Floored where they are fixed as well: below the floors of the shared
@@ -558,8 +565,6 @@ namespace hMailServer.ControlPanel.Views
          FloorWhen_();
          rows_.Columns.Add(whenColumn_);
          rows_.Columns.Add(Shared_(L("Who"), nameof(RowView.Who), row => row.Who));
-         rows_.Columns.Add(Shared_(L("Interface"), nameof(RowView.Interface), row => row.Interface));
-         rows_.Columns.Add(Shared_(L("From"), nameof(RowView.From), row => row.From, DataGridLength.Auto));
          rows_.Columns.Add(Shared_(L("Object"), nameof(RowView.Object), row => row.Object));
          rows_.Columns.Add(Shared_(L("Name"), nameof(RowView.Name), row => row.Name));
          rows_.Columns.Add(Shared_(L("Action"), nameof(RowView.Action), row => row.Action));
@@ -602,8 +607,9 @@ namespace hMailServer.ControlPanel.Views
          parts.Children.Add(pager_);
 
          // The selected row's whole detail, which a long value's column cuts and
-         // only the row's tool tip held (Views/RowDetailStrip).
-         parts.Children.Add(RowDetailStrip.For(rows_, _ => L("Detail"), row => ((RowView)row).Detail));
+         // only the row's tool tip held, and the interface and address it came over
+         // (Views/RowDetailStrip).
+         parts.Children.Add(RowDetailStrip.For(rows_, _ => L("Detail"), row => ((RowView)row).Strip));
 
          GatePutBack_();
          Content = root;

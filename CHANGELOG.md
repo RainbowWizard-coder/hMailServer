@@ -3842,6 +3842,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   classes' pills in the reader's language, measured as the pill draws it (`GridStyles.PillCellWidth`).
   `MessageTraceStatusTests` holds the floor and the pill's measure against its template.
 
+- **Fixed: the audit trail put what changed off the page at 1280 by 800.** With the interface and the address as
+  columns, and the columns of words floored at their widest word up to 180 pixels, the grid was 1248 pixels wide in a
+  view of 877 in English (1215 in German, 1223 in Japanese): it scrolled sideways on opening, the action was cut at the
+  view's edge ("Aktualis") and Detail - what changed, the column a reader comes for - was entirely off screen, where
+  after Tier 1 every column was on the page. The interface and the address the change came over are now the selected
+  row's, on lines of their own in the strip under the list beside what changed ("Interface: Control Panel", "IP address:
+  10.1.0.42"), and the four columns of words are floored at their widest word up to 120 pixels, a longer one ending in
+  an ellipsis and whole in its tool tip and the strip: the time, Who, Object, Name, Action and Detail's 200 fit the
+  view. `AuditTrailPageTests` holds the columns, the floor and the strip's lines.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

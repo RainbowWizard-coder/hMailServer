@@ -5962,6 +5962,9 @@
   <data name="IP address" xml:space="preserve">
     <value>IP 地址</value>
   </data>
+  <data name="IP address: {0}" xml:space="preserve">
+    <value>IP 地址：{0}</value>
+  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>免除灰名单延迟的 IP 地址，用于不会重试的发件方。</value>
   </data>
@@ -6200,6 +6203,9 @@
   </data>
   <data name="Interface" xml:space="preserve">
     <value>接口</value>
+  </data>
+  <data name="Interface: {0}" xml:space="preserve">
+    <value>接口：{0}</value>
   </data>
   <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
     <value>恢复到此文件夹 (留空 = 原来所在的文件夹)(_Y)</value>

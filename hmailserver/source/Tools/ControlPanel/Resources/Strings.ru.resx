@@ -6044,6 +6044,9 @@ Control Panel может читать файлы сообщений только
   <data name="IP address" xml:space="preserve">
     <value>IP-адрес</value>
   </data>
+  <data name="IP address: {0}" xml:space="preserve">
+    <value>IP-адрес: {0}</value>
+  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>IP-адреса, освобождённые от задержки серых списков, — для отправителей, которые не повторяют попытку.</value>
   </data>
@@ -6282,6 +6285,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Interface" xml:space="preserve">
     <value>Интерфейс</value>
+  </data>
+  <data name="Interface: {0}" xml:space="preserve">
+    <value>Интерфейс: {0}</value>
   </data>
   <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
     <value>В эту папку (_пусто = в ту, где оно было)</value>

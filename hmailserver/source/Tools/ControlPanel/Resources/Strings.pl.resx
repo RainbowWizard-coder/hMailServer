@@ -6044,6 +6044,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="IP address" xml:space="preserve">
     <value>Adres IP</value>
   </data>
+  <data name="IP address: {0}" xml:space="preserve">
+    <value>Adres IP: {0}</value>
+  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>Adresy IP zwolnione z opóźnienia greylistingu, dla nadawców, którzy nie ponowią próby.</value>
   </data>
@@ -6282,6 +6285,9 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   </data>
   <data name="Interface" xml:space="preserve">
     <value>Interfejs</value>
+  </data>
+  <data name="Interface: {0}" xml:space="preserve">
+    <value>Interfejs: {0}</value>
   </data>
   <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
     <value>Do tego folderu (_puste = do tego, w którym była)</value>

@@ -5962,6 +5962,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="IP address" xml:space="preserve">
     <value>Endereço IP</value>
   </data>
+  <data name="IP address: {0}" xml:space="preserve">
+    <value>Endereço IP: {0}</value>
+  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>Endereços IP isentos do atraso do greylisting, para remetentes que não tentarão de novo.</value>
   </data>
@@ -6200,6 +6203,9 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   </data>
   <data name="Interface" xml:space="preserve">
     <value>Interface</value>
+  </data>
+  <data name="Interface: {0}" xml:space="preserve">
+    <value>Interface: {0}</value>
   </data>
   <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
     <value>Nesta pasta (_vazio = na pasta em que estava)</value>

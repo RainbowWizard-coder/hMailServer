@@ -5962,6 +5962,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="IP address" xml:space="preserve">
     <value>Indirizzo IP</value>
   </data>
+  <data name="IP address: {0}" xml:space="preserve">
+    <value>Indirizzo IP: {0}</value>
+  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>Indirizzi IP esenti dal ritardo del greylisting, per i mittenti che non riprovano.</value>
   </data>
@@ -6200,6 +6203,9 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   </data>
   <data name="Interface" xml:space="preserve">
     <value>Interfaccia</value>
+  </data>
+  <data name="Interface: {0}" xml:space="preserve">
+    <value>Interfaccia: {0}</value>
   </data>
   <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
     <value>In questa cartella (_vuoto = quella in cui si trovava)</value>

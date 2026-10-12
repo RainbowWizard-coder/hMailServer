@@ -6044,6 +6044,9 @@
   <data name="IP address" xml:space="preserve">
     <value>IP-адреса</value>
   </data>
+  <data name="IP address: {0}" xml:space="preserve">
+    <value>IP-адреса: {0}</value>
+  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>IP-адреси, звільнені від затримки сірого списку, для відправників, які не повторюватимуть спробу.</value>
   </data>
@@ -6282,6 +6285,9 @@
   </data>
   <data name="Interface" xml:space="preserve">
     <value>Інтерфейс</value>
+  </data>
+  <data name="Interface: {0}" xml:space="preserve">
+    <value>Інтерфейс: {0}</value>
   </data>
   <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
     <value>У цю теку (_порожньо = у ту, де воно було)</value>

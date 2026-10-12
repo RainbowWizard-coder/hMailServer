@@ -5972,6 +5972,9 @@
   <data name="IP address" xml:space="preserve">
     <value>IP アドレス</value>
   </data>
+  <data name="IP address: {0}" xml:space="preserve">
+    <value>IP アドレス: {0}</value>
+  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>再試行しない送信者のために、グレイリスティングの遅延を免除する IP アドレス。</value>
   </data>
@@ -6210,6 +6213,9 @@
   </data>
   <data name="Interface" xml:space="preserve">
     <value>インターフェース</value>
+  </data>
+  <data name="Interface: {0}" xml:space="preserve">
+    <value>インターフェース: {0}</value>
   </data>
   <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
     <value>このフォルダーへ (空 = 元のフォルダー)(_Y)</value>

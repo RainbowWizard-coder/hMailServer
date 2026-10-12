@@ -5962,6 +5962,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="IP address" xml:space="preserve">
     <value>Dirección IP</value>
   </data>
+  <data name="IP address: {0}" xml:space="preserve">
+    <value>Dirección IP: {0}</value>
+  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>Direcciones IP exentas del retraso de greylisting, para remitentes que no reintentarán.</value>
   </data>
@@ -6200,6 +6203,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   </data>
   <data name="Interface" xml:space="preserve">
     <value>Interfaz</value>
+  </data>
+  <data name="Interface: {0}" xml:space="preserve">
+    <value>Interfaz: {0}</value>
   </data>
   <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
     <value>En esta carpeta (_vacío = en la que estaba)</value>

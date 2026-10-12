@@ -5962,6 +5962,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="IP address" xml:space="preserve">
     <value>IP-adress</value>
   </data>
+  <data name="IP address: {0}" xml:space="preserve">
+    <value>IP-adress: {0}</value>
+  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>IP-adresser undantagna från gråstlistningens fördröjning, för avsändare som inte försöker igen.</value>
   </data>
@@ -6200,6 +6203,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Interface" xml:space="preserve">
     <value>Gränssnitt</value>
+  </data>
+  <data name="Interface: {0}" xml:space="preserve">
+    <value>Gränssnitt: {0}</value>
   </data>
   <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
     <value>Till den här mappen (_tom = den där det låg)</value>

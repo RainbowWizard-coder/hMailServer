@@ -5962,6 +5962,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="IP address" xml:space="preserve">
     <value>IP-adres</value>
   </data>
+  <data name="IP address: {0}" xml:space="preserve">
+    <value>IP-adres: {0}</value>
+  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>IP-adressen die zijn vrijgesteld van de greylistingvertraging, voor afzenders die niet opnieuw zullen proberen.</value>
   </data>
@@ -6200,6 +6203,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Interface" xml:space="preserve">
     <value>Interface</value>
+  </data>
+  <data name="Interface: {0}" xml:space="preserve">
+    <value>Interface: {0}</value>
   </data>
   <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
     <value>In deze map (leeg = de map waarin het _stond)</value>

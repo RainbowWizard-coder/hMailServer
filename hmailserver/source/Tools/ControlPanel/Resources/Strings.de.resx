@@ -5962,6 +5962,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="IP address" xml:space="preserve">
     <value>IP-Adresse</value>
   </data>
+  <data name="IP address: {0}" xml:space="preserve">
+    <value>IP-Adresse: {0}</value>
+  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>IP-Adressen, die von der Greylisting-Verzögerung ausgenommen sind, für Absender, die nicht wiederholen.</value>
   </data>
@@ -6200,6 +6203,9 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   </data>
   <data name="Interface" xml:space="preserve">
     <value>Schnittstelle</value>
+  </data>
+  <data name="Interface: {0}" xml:space="preserve">
+    <value>Schnittstelle: {0}</value>
   </data>
   <data name="Into this folder (empt_y = the one it was in)" xml:space="preserve">
     <value>In diesen Ordner (leer = in den, in dem sie _war)</value>
