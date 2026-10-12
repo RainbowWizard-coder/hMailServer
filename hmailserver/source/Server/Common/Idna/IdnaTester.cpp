@@ -6,7 +6,6 @@
 #include "Idna.h"
 #include "IdnaTables.h"
 
-#include <cstdio>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -22,18 +21,29 @@ namespace HM
    {
       typedef Idna::CodePoints CodePoints;
 
+      // A number in upper-case hexadecimal, of at least so many digits.
+      std::string HexDigits_(unsigned int value, size_t digits)
+      {
+         const char *const hexDigits = "0123456789ABCDEF";
+         std::string text;
+         do
+         {
+            text.insert(text.begin(), hexDigits[value & 0xF]);
+            value >>= 4;
+         } while (value != 0);
+         while (text.size() < digits)
+            text.insert(text.begin(), '0');
+         return text;
+      }
+
       std::string Hex_(const CodePoints &text)
       {
          if (text.empty())
             return "(empty)";
 
          std::string hex;
-         char buffer[16];
          for (size_t i = 0; i < text.size(); i++)
-         {
-            snprintf(buffer, sizeof(buffer), i == 0 ? "U+%04X" : " U+%04X", text[i]);
-            hex += buffer;
-         }
+            hex += (i == 0 ? "U+" : " U+") + HexDigits_(text[i], 4);
          return hex;
       }
 
@@ -195,9 +205,7 @@ namespace HM
       {
          if (errors == 0)
             return "none";
-         char buffer[32];
-         snprintf(buffer, sizeof(buffer), "0x%X", errors);
-         return buffer;
+         return "0x" + HexDigits_(errors, 1);
       }
 
       void ExpectPunycode_(const CodePoints &unicode, const std::string &punycode, const char *what)
