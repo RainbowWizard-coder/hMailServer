@@ -174,7 +174,10 @@ namespace hMailServer.ControlPanel.Views
          DeleteNameProps = new[] { "Value" }, // no-loc: the properties that name an entry
          EmptyText = L("No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply."),
          GetCollection = () => AntiSpam.SenderList,
-         Fields = SenderListFields(260)
+         // The address at 256 so that the four columns fit the page's grid at 760, 619
+         // pixels (CollectionGridHeaderTests): at 260 they passed it by one, and a bar
+         // showed under the rows to scroll a pixel sideways.
+         Fields = SenderListFields(256)
       });
 
       /// <summary>

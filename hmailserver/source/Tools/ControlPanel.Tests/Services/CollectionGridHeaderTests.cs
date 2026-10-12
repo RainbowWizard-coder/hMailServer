@@ -103,6 +103,24 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(address >= 160, "The address column is narrower than its widest header, Address or domain in Japanese.");
       }
 
+      /// <summary>
+      /// The server's list fits its page at the narrowest window, 760 by 520: the grid has
+      /// 619 pixels there, inside the sidebar's rail, the page's padding and the list card's
+      /// inset, and an address column of 260 beside Action, Reason's floor and Expires passed
+      /// them by one, so that a bar showed under the rows to scroll a pixel sideways: the Wave
+      /// C fold's grid there is 4 pixels narrower than the Wave B fold's, where they fitted.
+      /// </summary>
+      [Fact]
+      public void TheServersAllowAndBlockList_FitsThePageAtItsNarrowest()
+      {
+         Match server = Regex.Match(Specs(), @"SenderList\(\) => new\(new CollectionSpec[\s\S]*?Fields = SenderListFields\((\d+)\)");
+         Assert.True(server.Success, "SenderList no longer builds its fields with SenderListFields.");
+         const double action = 90, reasonFloor = 120, expires = 150, pageGrid = 619;
+         double address = double.Parse(server.Groups[1].Value, CultureInfo.InvariantCulture);
+         Assert.True(address + action + reasonFloor + expires <= pageGrid,
+            "The allow and block list is " + (address + action + reasonFloor + expires - pageGrid) + " pixels wider than its page at 760, so the grid scrolls sideways.");
+      }
+
       [Fact]
       public void TheNamesTab_IsHeadedAliasDomain_AndTheExternalTab_KeepsTheServerColumn()
       {
