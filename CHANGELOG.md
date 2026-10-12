@@ -3948,6 +3948,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   line, and otherwise go on a row of their own under it, at the right edge, the Primary last. `ListPagePatternTests`
   holds the rule.
 
+- **Fixed: search placeholders cut at the box's edge.** A list's search box is at most 360 pixels, and its placeholder
+  is its accessible name as well; the live log's filter, a sentence with an example in it, was cut in German at 1280 at
+  "oder s" and by measure in fourteen more languages, and the French greylisting bypass list's and the Russian allow and
+  block list's passed their boxes. The live log's filter box takes up to 480 pixels (`Toolbar.SearchMaxWidth`), and the
+  French and Russian placeholders are shorter: "Rechercher dans la liste de contournement", "Поиск по списку разрешений
+  и блокировок". `SearchPlaceholderFitTests` holds every search placeholder in every language to its box.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

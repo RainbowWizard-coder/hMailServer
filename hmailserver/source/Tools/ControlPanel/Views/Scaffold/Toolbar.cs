@@ -36,6 +36,24 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       public static readonly DependencyProperty SearchPlaceholderProperty = DependencyProperty.Register(
          nameof(SearchPlaceholder), typeof(string), typeof(Toolbar), new PropertyMetadata(null, null, NullWhenEmpty));
 
+      /// <summary>
+      /// The search box's widest, 360 by default (docs/ControlPanelDesign.md, List pages).
+      /// The live log's filter box, whose placeholder is a sentence with an example in it,
+      /// takes more: at 360 the German "Zeilen filtern: eine Adresse, beliebige Wörter
+      /// oder session=42" was cut at "oder s", and fourteen more languages passed it.
+      /// </summary>
+      public static readonly DependencyProperty SearchMaxWidthProperty = DependencyProperty.Register(
+         nameof(SearchMaxWidth), typeof(double), typeof(Toolbar), new FrameworkPropertyMetadata(DefaultSearchMaxWidth, FrameworkPropertyMetadataOptions.AffectsMeasure));
+
+      /// <summary>The search box's widest unless a page says otherwise.</summary>
+      public const double DefaultSearchMaxWidth = 360;
+
+      public double SearchMaxWidth
+      {
+         get => (double)GetValue(SearchMaxWidthProperty);
+         set => SetValue(SearchMaxWidthProperty, value);
+      }
+
       public static readonly DependencyProperty ShowSearchProperty = DependencyProperty.Register(
          nameof(ShowSearch), typeof(bool), typeof(Toolbar), new PropertyMetadata(true));
 

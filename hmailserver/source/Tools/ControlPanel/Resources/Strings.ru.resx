@@ -11246,7 +11246,7 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
     <value>Поиск по исключениям антиспама</value>
   </data>
   <data name="Search the allow and block list" xml:space="preserve">
-    <value>Поиск по списку разрешённых и заблокированных</value>
+    <value>Поиск по списку разрешений и блокировок</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Поиск по очереди доставки</value>

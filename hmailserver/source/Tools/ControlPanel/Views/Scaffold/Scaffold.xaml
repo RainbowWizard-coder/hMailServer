@@ -185,7 +185,7 @@
                                     PlaceholderText="{TemplateBinding SearchPlaceholder}"
                                     AutomationProperties.Name="{TemplateBinding SearchPlaceholder}"
                                     ClearButtonEnabled="True"
-                                    MinWidth="220" MaxWidth="360" VerticalAlignment="Center" />
+                                    MinWidth="220" MaxWidth="{TemplateBinding SearchMaxWidth}" VerticalAlignment="Center" />
                         <ContentPresenter x:Name="PART_Filters" Grid.Column="1" Content="{TemplateBinding Filters}"
                                           Margin="12,0,0,0" VerticalAlignment="Center" />
                         <!-- The actions take the width that is left, not the width

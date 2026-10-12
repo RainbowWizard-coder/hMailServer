@@ -81,7 +81,9 @@
                       HorizontalScrollBarVisibility="Disabled" Focusable="False" Padding="0,0,12,0">
         <scaffold:FillPanel ViewportHeight="{Binding ViewportHeight, ElementName=PageScroll}">
 
-        <scaffold:Toolbar x:Name="LineFilter" Margin="{StaticResource AppCardGap}"
+        <!-- The filter box is wider than a list's search, 480: its placeholder is a
+             sentence with an example in it, and at 360 it was cut in fifteen languages. -->
+        <scaffold:Toolbar x:Name="LineFilter" Margin="{StaticResource AppCardGap}" SearchMaxWidth="480"
                           SearchPlaceholder="{loc:L 'Filter lines: an address, any words, or session=42'}"
                           SearchTextChanged="LineFilter_SearchTextChanged">
             <scaffold:Toolbar.Filters>

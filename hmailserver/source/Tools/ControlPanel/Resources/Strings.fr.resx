@@ -11104,7 +11104,7 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
     <value>Rechercher dans la file de livraison</value>
   </data>
   <data name="Search the greylisting bypass list" xml:space="preserve">
-    <value>Rechercher dans la liste de contournement de la liste grise</value>
+    <value>Rechercher dans la liste de contournement</value>
   </data>
   <data name="Search this document" xml:space="preserve">
     <value>Rechercher dans ce document</value>
