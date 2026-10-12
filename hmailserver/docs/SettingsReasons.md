@@ -63,6 +63,15 @@ the provider was told to send it is what tells a report from a forgery.
 *Account-number pattern.* Empty, the default, is an account-number detector that never fires. A pattern the
 server cannot compile is refused.
 
+*Classify bounces and keep a suppression list.* A database that cannot be read sends
+the mail as if the address were not listed, and says so in the error log once an hour.
+
+*What happens to a listed recipient.* Mail already queued to an address meets the list
+on its next delivery attempt.
+
+*Read delivery reports that arrive for this server's senders.* Turning this off stops
+reports being read at all; refusals met while delivering are still counted.
+
 ## SSL/TLS
 
 *Key exchange groups, in order of preference.* An empty list, or one OpenSSL rejects
@@ -208,6 +217,9 @@ there.
 *Log level.* There is only one step, at 2. Turning on Debug messages restores full
 detail whatever the level.
 
+*Send log entries to syslog.* Log files are unaffected: this sends a copy, it does not
+move anything.
+
 ## API & monitoring
 
 *REST administration API and the Control Deck.* The API is authenticated with the
@@ -220,6 +232,9 @@ which the administrator password can. Keys are managed on the REST API keys page
 history is about a hundred and forty thousand small rows.
 
 *Bearer token for /metrics.* Leading and trailing spaces are trimmed.
+
+*OpenTelemetry OTLP endpoint for traces.* Prometheus metrics are the port above, and are
+the same counters the metrics endpoint pushes rather than a second tally.
 
 *TLS private key file for the metrics listener.* If TLS is configured but cannot be
 prepared (an unreadable file, a key that does not match), the health probes stay on
@@ -272,6 +287,13 @@ first few attempts fail.
 
 *Seconds a single SQL statement may run.* The upgrade and maintenance scripts run
 under a 30-minute per-statement ceiling of their own regardless of this value.
+
+*Worker thread priority.* It is shown rather than removed so that an administrator who
+set it years ago can see it is still there and why nothing happened, and it is not
+editable because a box that accepts a value nothing acts on is worse than no box at all.
+
+*Domain, account, alias and distribution-list cache maximum sizes.* The TTLs and the
+enable switch on the Cache card are stored and do survive restarts.
 
 ## Advanced
 

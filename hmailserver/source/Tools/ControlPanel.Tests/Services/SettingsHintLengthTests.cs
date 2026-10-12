@@ -70,6 +70,24 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(offenders.Count == 0, "These hints run past two sentences:\n" + string.Join("\n", offenders));
       }
 
+      /// <summary>
+      /// The notes a setting's claim pins (Services/SettingClaims) are hints as well: the
+      /// settings pages show each under its setting - the bounce settings, syslog, the
+      /// worker thread priority, the caches' sizes, the OpenTelemetry endpoints - through
+      /// L(SettingClaims.NoteFor(key)), which the patterns above, reading literals, do not
+      /// see, and seven of them ran to three sentences after the final check's fixes.
+      /// </summary>
+      [Fact]
+      public void EveryClaimsNote_IsTwoSentencesAtMost()
+      {
+         string claims = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Services", "SettingClaims.cs"));
+         var notes = Regex.Matches(claims, @"(?:new SettingClaim\(""[^""]+"",\s*ClaimKind\.\w+,\s*|public static readonly string \w+ = )N\(\s*" + Literal + @"\)")
+            .Select(m => m.Groups[1].Value).ToList();
+         Assert.True(notes.Count >= 15, "Only " + notes.Count + " claim notes were read from SettingClaims.cs; the pattern no longer reads them.");
+         var offenders = notes.Where(note => Sentences(note) > 2).Select(note => Sentences(note) + " sentences: " + note).ToList();
+         Assert.True(offenders.Count == 0, "These claim notes run past two sentences; keep what the setting does and its safe value, and move the rest to docs/SettingsReasons.md:\n" + string.Join("\n", offenders));
+      }
+
       [Theory]
       [InlineData("Where the search starts, e.g. DC=example,DC=local. Required in search mode.", 2)]
       [InlineData("Off by default. Turn on only on a domain-joined host. A third.", 3)]
@@ -98,6 +116,10 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("Server limits & expert settings", "a proxy that does not send one will have its connections dropped")]
       [InlineData("Advanced", "is a security decision rather than a convenience")]
       [InlineData("Backup & restore", "so a failed backup never deletes anything")]
+      [InlineData("Delivery of e-mail", "says so in the error log once an hour")]
+      [InlineData("Logging", "this sends a copy, it does not move anything")]
+      [InlineData("API & monitoring", "rather than a second tally")]
+      [InlineData("Performance", "worse than no box at all")]
       public void TheSentencesTheHintsLost_AreUnderThePagesHeading(string heading, string reason)
       {
          string text = File.ReadAllText(Path.Combine(Docs(), "SettingsReasons.md")).Replace("\r\n", "\n");

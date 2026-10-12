@@ -33,8 +33,8 @@
   <data name="'Protect stored secrets with Windows DPAPI' on the Server limits &amp; expert settings page is off, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
     <value>«Beskytt lagrede hemmeligheter med Windows DPAPI» er av på siden Servergrenser og ekspertinnstillinger, så en kontos andre faktor og hemmelighetene i [Settings] lagres slik de er skrevet, og det trengs ingen nøkkel for lagrede hemmeligheter.</value>
   </data>
-  <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
-    <value>«Avvis den, med begrunnelsen» besvarer en innsending ved RCPT med begrunnelsen, og returnerer alt annet - et alias, en videresending, en planlagt sending - til avsenderen i en leveringsstatusmelding. E-post som allerede står i kø til en adresse, møter listen ved neste leveringsforsøk. «Lever den og bare registrer den» er den trygge måten å se hva listen ville gjort før den gjør det.</value>
+  <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
+    <value>«Avvis den, med begrunnelsen» besvarer en innsending ved RCPT med begrunnelsen, og returnerer alt annet - et alias, en videresending, en planlagt sending - til avsenderen i en leveringsstatusmelding. «Lever den og bare registrer den» er den trygge måten å se hva listen ville gjort før den gjør det.</value>
   </data>
   <data name="'{0}' is not a 24-hour HH:MM time. The server accepts values like 02:00 or 23:45 and refuses anything else rather than guess. Leave the box empty for no daily backup." xml:space="preserve">
     <value>'{0}' er ikke et klokkeslett på 24-timers formen HH:MM. Serveren godtar verdier som 02:00 eller 23:45 og avviser alt annet i stedet for å gjette. La feltet stå tomt for ingen daglig sikkerhetskopi.</value>
@@ -1750,14 +1750,14 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Applies after a restart" xml:space="preserve">
     <value>Gjelder etter en omstart</value>
   </data>
-  <data name="Applies at the next service restart or Reinitialise. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
-    <value>Trer i kraft ved neste omstart av tjenesten eller ved reinitialisering. Loggfilene påvirkes ikke: dette sender en kopi, det flytter ingenting. Uten en samlervert nedenfor skriver en server under systemd på Linux til journalen i stedet - på Linux er altså denne ene bryteren hele oppsettet.</value>
+  <data name="Applies at the next service restart or Reinitialise. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
+    <value>Trer i kraft ved neste omstart av tjenesten eller ved reinitialisering. Uten en samlervert nedenfor skriver en server under systemd på Linux til journalen i stedet - på Linux er altså denne ene bryteren hele oppsettet.</value>
   </data>
   <data name="Applies on save" xml:space="preserve">
     <value>Gjelder når det lagres</value>
   </data>
-  <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted." xml:space="preserve">
-    <value>Gjelder bare mens behandling av returmeldinger er på. En rapport telles bare når den nevner en melding denne serveren faktisk leverte til mottakeren, kom uautentisert utenfra og besto SPF og DMARC der de registreres - men alle som mottok samme melding, kan forfalske en for en annen synlig mottaker. Slått av leses rapporter ikke i det hele tatt; avvisninger under levering telles fortsatt.</value>
+  <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient." xml:space="preserve">
+    <value>Gjelder bare mens behandling av returmeldinger er på. En rapport telles bare når den nevner en melding denne serveren faktisk leverte til mottakeren, kom uautentisert utenfra og besto SPF og DMARC der de registreres - men alle som mottok samme melding, kan forfalske en for en annen synlig mottaker.</value>
   </data>
   <data name="Applies to the accounts made from now on; it changes no account that already exists." xml:space="preserve">
     <value>Gjelder kontoene som opprettes fra nå av; den endrer ingen konto som allerede finnes.</value>
@@ -6034,8 +6034,8 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="In effect: {0}, from the server" xml:space="preserve">
     <value>Gjelder: {0}, fra serveren</value>
   </data>
-  <data name="In force for the next message. Off, nothing is classified, counted or listed and the list is not applied; the entries already on it stay, and the hourly sweep still expires them. A database that cannot be read sends the mail as if the address were not listed, and says so in the error log once an hour." xml:space="preserve">
-    <value>Gjelder fra neste melding. Slått av klassifiseres, telles eller listes ingenting, og listen brukes ikke; oppføringene som allerede står der, blir, og den timevise opprydningen lar dem fortsatt utløpe. En database som ikke kan leses, sender e-posten som om adressen ikke var listet, og sier det i feilloggen én gang i timen.</value>
+  <data name="In force for the next message. Off, nothing is classified, counted or listed and the list is not applied; the entries already on it stay, and the hourly sweep still expires them." xml:space="preserve">
+    <value>Gjelder fra neste melding. Slått av klassifiseres, telles eller listes ingenting, og listen brukes ikke; oppføringene som allerede står der, blir, og den timevise opprydningen lar dem fortsatt utløpe.</value>
   </data>
   <data name="In queue" xml:space="preserve">
     <value>I kø</value>
@@ -12321,8 +12321,8 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Taken (server time)" xml:space="preserve">
     <value>Tatt (servertid)</value>
   </data>
-  <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10,240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
-    <value>Trer i kraft med en gang, men holdes bare i minnet: ingenting lagrer denne verdien, så hver omstart av tjenesten tilbakestiller den til de innebygde 10 240 KB (10 MB). For å beholde en annen grense må den settes på nytt etter hver omstart, for eksempel fra et oppstartsskript gjennom COM-API-et. TTL-ene og aktiveringsbryteren på dette kortet lagres og overlever omstarter.</value>
+  <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10,240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API." xml:space="preserve">
+    <value>Trer i kraft med en gang, men holdes bare i minnet: ingenting lagrer denne verdien, så hver omstart av tjenesten tilbakestiller den til de innebygde 10 240 KB (10 MB). For å beholde en annen grense må den settes på nytt etter hver omstart, for eksempel fra et oppstartsskript gjennom COM-API-et.</value>
   </data>
   <data name="Target SMTP _port" xml:space="preserve">
     <value>Mål-SMTP-_port</value>
@@ -13746,8 +13746,8 @@ Legg til likevel?</value>
   <data name="The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
     <value>Serveren laster det fortsatt, og portene starter fortsatt (den rapporterer serverfeil 5991 i applikasjonsloggen), men hver klient og postserver som sjekker datoen, nekter å koble til - som i dag er nesten alle. Bytt ut sertifikatet.</value>
   </data>
-  <data name="The server stores this value and never reads it - nothing sets a thread priority from it, so changing it has no effect. It is shown rather than removed so that an administrator who set it years ago can see it is still there and why nothing happened, and it is not editable because a box that accepts a value nothing acts on is worse than no box at all. The thread counts above are honoured." xml:space="preserve">
-    <value>Serveren lagrer denne verdien og leser den aldri - ingenting setter en trådprioritet ut fra den, så å endre den har ingen effekt. Den vises i stedet for å fjernes, slik at en administrator som satte den for år siden, kan se at den fortsatt er der og hvorfor ingenting skjedde, og den kan ikke redigeres, fordi et felt som godtar en verdi ingenting handler på, er verre enn ingen felt i det hele tatt. Trådantallene ovenfor respekteres.</value>
+  <data name="The server stores this value and never reads it - nothing sets a thread priority from it, so changing it has no effect. The thread counts above are honoured." xml:space="preserve">
+    <value>Serveren lagrer denne verdien og leser den aldri - ingenting setter en trådprioritet ut fra den, så å endre den har ingen effekt. Trådantallene ovenfor respekteres.</value>
   </data>
   <data name="The server to ask (empty = the domain's MX hosts)" xml:space="preserve">
     <value>Serveren som skal spørres (tomt = domenets MX-verter)</value>
@@ -14329,8 +14329,8 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="Trace one message" xml:space="preserve">
     <value>Spor én melding</value>
   </data>
-  <data name="Traces only. A collector configured here receives spans and nothing else - metrics and logs have their own endpoints below, each off until it is set. Prometheus metrics are the port above, and are the same counters the metrics endpoint pushes rather than a second tally." xml:space="preserve">
-    <value>Bare traces. En collector konfigurert her mottar spans og ingenting annet - metrikker og logger har sine egne endepunkter nedenfor, hvert av dem av til det settes. Prometheus-metrikker er porten ovenfor, og er de samme tellerne som metrikkendepunktet pusher, ikke en egen opptelling.</value>
+  <data name="Traces only. A collector configured here receives spans and nothing else - metrics and logs have their own endpoints below, each off until it is set." xml:space="preserve">
+    <value>Bare traces. En collector konfigurert her mottar spans og ingenting annet - metrikker og logger har sine egne endepunkter nedenfor, hvert av dem av til det settes.</value>
   </data>
   <data name="Transparency log's public key for a private Sigstore (PEM; empty = the public Rekor key)" xml:space="preserve">
     <value>Åpenhetsloggens offentlige nøkkel for en privat Sigstore (PEM; tom = den offentlige Rekor-nøkkelen)</value>

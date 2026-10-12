@@ -33,8 +33,8 @@
   <data name="'Protect stored secrets with Windows DPAPI' on the Server limits &amp; expert settings page is off, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
     <value>Volba „Chránit uložená tajemství pomocí Windows DPAPI“ je na stránce Limity serveru a expertní nastavení vypnutá, takže druhý faktor účtu a tajemství v [Settings] se ukládají tak, jak byly zapsány, a klíč uložených tajemství není potřeba.</value>
   </data>
-  <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
-    <value>„Odmítnout, s uvedením důvodu“ odpoví na odeslání u RCPT s důvodem a vše ostatní - alias, přeposlání, naplánované odeslání - vrátí odesílateli ve zprávě o stavu doručení. Pošta, která už na adresu čeká ve frontě, narazí na seznam při dalším pokusu o doručení. „Doručit a jen zaznamenat“ je bezpečný způsob, jak zjistit, co by seznam udělal, dřív než to udělá.</value>
+  <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
+    <value>„Odmítnout, s uvedením důvodu“ odpoví na odeslání u RCPT s důvodem a vše ostatní - alias, přeposlání, naplánované odeslání - vrátí odesílateli ve zprávě o stavu doručení. „Doručit a jen zaznamenat“ je bezpečný způsob, jak zjistit, co by seznam udělal, dřív než to udělá.</value>
   </data>
   <data name="'{0}' is not a 24-hour HH:MM time. The server accepts values like 02:00 or 23:45 and refuses anything else rather than guess. Leave the box empty for no daily backup." xml:space="preserve">
     <value>'{0}' není čas ve 24hodinovém formátu HH:MM. Server přijímá hodnoty jako 02:00 nebo 23:45 a cokoli jiného raději odmítne, než aby hádal. Chcete-li denní zálohu vypnout, nechte pole prázdné.</value>
@@ -1768,14 +1768,14 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Applies after a restart" xml:space="preserve">
     <value>Projeví se po restartu</value>
   </data>
-  <data name="Applies at the next service restart or Reinitialise. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
-    <value>Projeví se při příštím restartu služby nebo po Reinicializaci. Souborů protokolu se to nedotkne: odesílá se kopie, nic se nepřesouvá. Pokud níže není uveden hostitel sběrače, server běžící pod systemd na Linuxu zapisuje místo toho do journalu - na Linuxu tedy tento jediný přepínač představuje celé nastavení.</value>
+  <data name="Applies at the next service restart or Reinitialise. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
+    <value>Projeví se při příštím restartu služby nebo po Reinicializaci. Pokud níže není uveden hostitel sběrače, server běžící pod systemd na Linuxu zapisuje místo toho do journalu - na Linuxu tedy tento jediný přepínač představuje celé nastavení.</value>
   </data>
   <data name="Applies on save" xml:space="preserve">
     <value>Projeví se při uložení</value>
   </data>
-  <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted." xml:space="preserve">
-    <value>Platí jen při zapnutém zpracování nedoručenek. Zpráva se započítá jen tehdy, když uvádí zprávu, kterou tento server tomuto příjemci skutečně doručil, přišla zvenku bez ověření a prošla kontrolou SPF a DMARC, kde se zaznamenávají - kdokoli ale, kdo dostal tutéž zprávu, může padělat jinou pro dalšího viditelného příjemce. Po vypnutí se zprávy vůbec nečtou; odmítnutí při doručování se počítají dál.</value>
+  <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient." xml:space="preserve">
+    <value>Platí jen při zapnutém zpracování nedoručenek. Zpráva se započítá jen tehdy, když uvádí zprávu, kterou tento server tomuto příjemci skutečně doručil, přišla zvenku bez ověření a prošla kontrolou SPF a DMARC, kde se zaznamenávají - kdokoli ale, kdo dostal tutéž zprávu, může padělat jinou pro dalšího viditelného příjemce.</value>
   </data>
   <data name="Applies to the accounts made from now on; it changes no account that already exists." xml:space="preserve">
     <value>Platí pro účty vytvořené odteď; žádný existující účet nemění.</value>
@@ -6116,8 +6116,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="In effect: {0}, from the server" xml:space="preserve">
     <value>Platí: {0}, ze serveru</value>
   </data>
-  <data name="In force for the next message. Off, nothing is classified, counted or listed and the list is not applied; the entries already on it stay, and the hourly sweep still expires them. A database that cannot be read sends the mail as if the address were not listed, and says so in the error log once an hour." xml:space="preserve">
-    <value>Platí od příští zprávy. Po vypnutí se nic netřídí, nepočítá ani nepřidává na seznam a seznam se neuplatňuje; záznamy, které na něm už jsou, zůstanou a hodinové čištění je dál nechává vypršet. Databáze, kterou nelze přečíst, odešle poštu, jako by adresa na seznamu nebyla, a jednou za hodinu to uvede v protokolu chyb.</value>
+  <data name="In force for the next message. Off, nothing is classified, counted or listed and the list is not applied; the entries already on it stay, and the hourly sweep still expires them." xml:space="preserve">
+    <value>Platí od příští zprávy. Po vypnutí se nic netřídí, nepočítá ani nepřidává na seznam a seznam se neuplatňuje; záznamy, které na něm už jsou, zůstanou a hodinové čištění je dál nechává vypršet.</value>
   </data>
   <data name="In queue" xml:space="preserve">
     <value>Ve frontě</value>
@@ -12478,8 +12478,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Taken (server time)" xml:space="preserve">
     <value>Pořízeno (čas serveru)</value>
   </data>
-  <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10,240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
-    <value>Projeví se okamžitě, ale drží se pouze v paměti: tuto hodnotu nic neukládá, takže každý restart služby ji vrátí na vestavěných 10 240 KB (10 MB). Chcete-li zachovat jiný limit, je nutné jej po každém restartu nastavit znovu, například ze spouštěcího skriptu přes COM API. Hodnoty TTL a přepínač zapnutí na této kartě se ukládají a restart přežijí.</value>
+  <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10,240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API." xml:space="preserve">
+    <value>Projeví se okamžitě, ale drží se pouze v paměti: tuto hodnotu nic neukládá, takže každý restart služby ji vrátí na vestavěných 10 240 KB (10 MB). Chcete-li zachovat jiný limit, je nutné jej po každém restartu nastavit znovu, například ze spouštěcího skriptu přes COM API.</value>
   </data>
   <data name="Target SMTP _port" xml:space="preserve">
     <value>Cílový _port SMTP</value>
@@ -13930,8 +13930,8 @@ Přesto přidat?</value>
   <data name="The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
     <value>Server jej stále načítá a jeho porty se stále spouštějí (zapíše do logu aplikace chybu serveru 5991), ale každý klient a poštovní server, který kontroluje datum, se odmítne připojit – a to dnes dělají téměř všichni. Certifikát vyměňte.</value>
   </data>
-  <data name="The server stores this value and never reads it - nothing sets a thread priority from it, so changing it has no effect. It is shown rather than removed so that an administrator who set it years ago can see it is still there and why nothing happened, and it is not editable because a box that accepts a value nothing acts on is worse than no box at all. The thread counts above are honoured." xml:space="preserve">
-    <value>Server tuto hodnotu ukládá a nikdy ji nečte - nic z ní nenastavuje prioritu vláken, takže její změna nemá žádný účinek. Zobrazuje se místo odstranění proto, aby správce, který ji před lety nastavil, viděl, že tam pořád je a proč se nic nestalo, a není editovatelná, protože pole, které přijme hodnotu, na niž nic nereaguje, je horší než žádné pole. Počty vláken výše se respektují.</value>
+  <data name="The server stores this value and never reads it - nothing sets a thread priority from it, so changing it has no effect. The thread counts above are honoured." xml:space="preserve">
+    <value>Server tuto hodnotu ukládá a nikdy ji nečte - nic z ní nenastavuje prioritu vláken, takže její změna nemá žádný účinek. Počty vláken výše se respektují.</value>
   </data>
   <data name="The server to ask (empty = the domain's MX hosts)" xml:space="preserve">
     <value>Server, kterého se zeptat (prázdné = MX hostitelé domény)</value>
@@ -14516,8 +14516,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Trace one message" xml:space="preserve">
     <value>Sledovat jednu zprávu</value>
   </data>
-  <data name="Traces only. A collector configured here receives spans and nothing else - metrics and logs have their own endpoints below, each off until it is set. Prometheus metrics are the port above, and are the same counters the metrics endpoint pushes rather than a second tally." xml:space="preserve">
-    <value>Jen trasy. Kolektor nakonfigurovaný zde dostává spany a nic jiného - metriky a logy mají vlastní endpointy níže, každý vypnutý, dokud není nastaven. Metriky Prometheus jsou port výše a jsou to tytéž čítače, které endpoint metrik odesílá, ne druhé počítadlo.</value>
+  <data name="Traces only. A collector configured here receives spans and nothing else - metrics and logs have their own endpoints below, each off until it is set." xml:space="preserve">
+    <value>Jen trasy. Kolektor nakonfigurovaný zde dostává spany a nic jiného - metriky a logy mají vlastní endpointy níže, každý vypnutý, dokud není nastaven.</value>
   </data>
   <data name="Transparency log's public key for a private Sigstore (PEM; empty = the public Rekor key)" xml:space="preserve">
     <value>Veřejný klíč logu transparentnosti pro soukromý Sigstore (PEM; prázdné = veřejný klíč Rekor)</value>

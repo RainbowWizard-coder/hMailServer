@@ -44,8 +44,8 @@
   <data name="'Protect stored secrets with Windows DPAPI' on the Server limits &amp; expert settings page is off, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
     <value>[サーバーの制限と上級者向け設定] ページの「保存されたシークレットを Windows DPAPI で保護する」がオフのため、アカウントの第二要素と [Settings] のシークレットは書かれたまま保存され、保存シークレットのキーは必要ありません。</value>
   </data>
-  <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
-    <value>「理由を付けて拒否する」の場合、RCPT での送信には理由を付けて応答し、それ以外 (エイリアス、転送、予約送信) は配信状態通知で送信者に返します。すでにキューにあるアドレス宛てのメールは、次の配信試行時にリストと照合されます。「配信して記録だけする」は、リストが実際に動く前に何をするかを確かめる安全な方法です。</value>
+  <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
+    <value>「理由を付けて拒否する」の場合、RCPT での送信には理由を付けて応答し、それ以外 (エイリアス、転送、予約送信) は配信状態通知で送信者に返します。「配信して記録だけする」は、リストが実際に動く前に何をするかを確かめる安全な方法です。</value>
   </data>
   <data name="'{0}' is not a 24-hour HH:MM time. The server accepts values like 02:00 or 23:45 and refuses anything else rather than guess. Leave the box empty for no daily backup." xml:space="preserve">
     <value>'{0}' は 24 時間制の HH:MM 形式の時刻ではありません。サーバーは 02:00 や 23:45 のような値だけを受け付け、それ以外は推測せずに拒否します。毎日のバックアップを行わない場合は、この欄を空のままにしてください。</value>
@@ -1761,14 +1761,14 @@
   <data name="Applies after a restart" xml:space="preserve">
     <value>再起動後に適用</value>
   </data>
-  <data name="Applies at the next service restart or Reinitialise. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
-    <value>次回のサービス再起動または再初期化で有効になります。ログファイルには影響しません。コピーを送るだけで、何も移動しません。下にコレクターのホストを指定しない場合、Linux 上で systemd 配下のサーバーは代わりに journal に書き込みます。つまり Linux ではこのスイッチだけで設定は完了です。</value>
+  <data name="Applies at the next service restart or Reinitialise. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
+    <value>次回のサービス再起動または再初期化で有効になります。下にコレクターのホストを指定しない場合、Linux 上で systemd 配下のサーバーは代わりに journal に書き込みます。つまり Linux ではこのスイッチだけで設定は完了です。</value>
   </data>
   <data name="Applies on save" xml:space="preserve">
     <value>保存時に適用</value>
   </data>
-  <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted." xml:space="preserve">
-    <value>バウンス処理がオンのときだけ適用されます。レポートがカウントされるのは、このサーバーがその受信者に実際に配信したメッセージを示し、外部から認証なしで届き、記録されている場合は SPF と DMARC に合格したときだけです。ただし、同じメッセージを受け取った人なら、表示されている別の受信者についてのレポートを偽造できます。オフにすると、レポートはまったく読まれません。配信中に受けた拒否は引き続きカウントされます。</value>
+  <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient." xml:space="preserve">
+    <value>バウンス処理がオンのときだけ適用されます。レポートがカウントされるのは、このサーバーがその受信者に実際に配信したメッセージを示し、外部から認証なしで届き、記録されている場合は SPF と DMARC に合格したときだけです。ただし、同じメッセージを受け取った人なら、表示されている別の受信者についてのレポートを偽造できます。</value>
   </data>
   <data name="Applies to the accounts made from now on; it changes no account that already exists." xml:space="preserve">
     <value>今後作成されるアカウントに適用されます。既存のアカウントは変わりません。</value>
@@ -6045,8 +6045,8 @@
   <data name="In effect: {0}, from the server" xml:space="preserve">
     <value>有効: {0} (サーバーから)</value>
   </data>
-  <data name="In force for the next message. Off, nothing is classified, counted or listed and the list is not applied; the entries already on it stay, and the hourly sweep still expires them. A database that cannot be read sends the mail as if the address were not listed, and says so in the error log once an hour." xml:space="preserve">
-    <value>次のメッセージから有効です。オフにすると、分類もカウントもリスト登録も行われず、リストは適用されません。すでに登録されているエントリーは残り、1 時間ごとの整理で引き続き期限切れになります。データベースを読めない場合は、アドレスがリストにないものとしてメールを送信し、そのことをエラー ログに 1 時間に 1 回記録します。</value>
+  <data name="In force for the next message. Off, nothing is classified, counted or listed and the list is not applied; the entries already on it stay, and the hourly sweep still expires them." xml:space="preserve">
+    <value>次のメッセージから有効です。オフにすると、分類もカウントもリスト登録も行われず、リストは適用されません。すでに登録されているエントリーは残り、1 時間ごとの整理で引き続き期限切れになります。</value>
   </data>
   <data name="In queue" xml:space="preserve">
     <value>キュー内</value>
@@ -12332,8 +12332,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Taken (server time)" xml:space="preserve">
     <value>作成日時 (サーバー時刻)</value>
   </data>
-  <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10,240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
-    <value>直ちに有効になりますが、メモリ内にしか保持されません。この値を保存するものはないため、サービスを再起動するたびに組み込みの 10,240 KB (10 MB) にリセットされます。別の上限を維持するには、再起動のたびに、たとえば起動スクリプトから COM API 経由で再設定する必要があります。このカードの TTL と有効化スイッチは保存され、再起動後も維持されます。</value>
+  <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10,240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API." xml:space="preserve">
+    <value>直ちに有効になりますが、メモリ内にしか保持されません。この値を保存するものはないため、サービスを再起動するたびに組み込みの 10,240 KB (10 MB) にリセットされます。別の上限を維持するには、再起動のたびに、たとえば起動スクリプトから COM API 経由で再設定する必要があります。</value>
   </data>
   <data name="Target SMTP _port" xml:space="preserve">
     <value>送信先 SMTP ポート(_P)</value>
@@ -13757,8 +13757,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
     <value>サーバーはまだそれを読み込み、ポートも起動します (アプリケーション ログにサーバー エラー 5991 を報告します) が、日付を確認するすべてのクライアントとメール サーバーは接続を拒否します。今日ではほぼすべてがそうです。証明書を交換してください。</value>
   </data>
-  <data name="The server stores this value and never reads it - nothing sets a thread priority from it, so changing it has no effect. It is shown rather than removed so that an administrator who set it years ago can see it is still there and why nothing happened, and it is not editable because a box that accepts a value nothing acts on is worse than no box at all. The thread counts above are honoured." xml:space="preserve">
-    <value>サーバーはこの値を保存しますが、決して読み取りません。これからスレッド優先度を設定するものは何もないため、変更しても効果はありません。削除ではなく表示しているのは、何年も前にこれを設定した管理者が、まだ存在していること、そしてなぜ何も起きなかったのかを分かるようにするためです。編集できないのは、何も反応しない値を受け付けるボックスは、ボックスがまったくないよりも悪いからです。上のスレッド数は尊重されます。</value>
+  <data name="The server stores this value and never reads it - nothing sets a thread priority from it, so changing it has no effect. The thread counts above are honoured." xml:space="preserve">
+    <value>サーバーはこの値を保存しますが、決して読み取りません。これからスレッド優先度を設定するものは何もないため、変更しても効果はありません。上のスレッド数は尊重されます。</value>
   </data>
   <data name="The server to ask (empty = the domain's MX hosts)" xml:space="preserve">
     <value>問い合わせ先のサーバー (空 = ドメインの MX ホスト)</value>
@@ -14340,8 +14340,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Trace one message" xml:space="preserve">
     <value>1 通のメッセージを追跡</value>
   </data>
-  <data name="Traces only. A collector configured here receives spans and nothing else - metrics and logs have their own endpoints below, each off until it is set. Prometheus metrics are the port above, and are the same counters the metrics endpoint pushes rather than a second tally." xml:space="preserve">
-    <value>トレースのみ。ここで設定されたコレクターはスパンを受け取り、それ以外は受け取りません。メトリクスとログには下にそれぞれのエンドポイントがあり、設定されるまでオフです。Prometheus メトリクスは上のポートで、メトリクス エンドポイントがプッシュするのと同じカウンターであり、別の集計ではありません。</value>
+  <data name="Traces only. A collector configured here receives spans and nothing else - metrics and logs have their own endpoints below, each off until it is set." xml:space="preserve">
+    <value>トレースのみ。ここで設定されたコレクターはスパンを受け取り、それ以外は受け取りません。メトリクスとログには下にそれぞれのエンドポイントがあり、設定されるまでオフです。</value>
   </data>
   <data name="Transparency log's public key for a private Sigstore (PEM; empty = the public Rekor key)" xml:space="preserve">
     <value>プライベート Sigstore 用の透明性ログの公開キー (PEM、空 = 公開の Rekor キー)</value>

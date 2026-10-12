@@ -33,8 +33,8 @@
   <data name="'Protect stored secrets with Windows DPAPI' on the Server limits &amp; expert settings page is off, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
     <value>« Protéger les secrets stockés avec DPAPI Windows » est désactivé sur la page Limites du serveur et réglages experts : le second facteur d'un compte et les secrets de [Settings] sont donc stockés tels qu'écrits, et aucune clé des secrets stockés n'est nécessaire.</value>
   </data>
-  <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
-    <value>« Le refuser, avec la raison » répond à une soumission au RCPT avec la raison, et renvoie tout le reste - un alias, un transfert, un envoi programmé - à son expéditeur dans une notification d'état de remise. Le courrier déjà en file vers une adresse rencontre la liste à sa prochaine tentative de remise. « Le remettre, et seulement le consigner » est le moyen sûr de voir ce que la liste ferait avant qu'elle ne le fasse.</value>
+  <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
+    <value>« Le refuser, avec la raison » répond à une soumission au RCPT avec la raison, et renvoie tout le reste - un alias, un transfert, un envoi programmé - à son expéditeur dans une notification d'état de remise. « Le remettre, et seulement le consigner » est le moyen sûr de voir ce que la liste ferait avant qu'elle ne le fasse.</value>
   </data>
   <data name="'{0}' is not a 24-hour HH:MM time. The server accepts values like 02:00 or 23:45 and refuses anything else rather than guess. Leave the box empty for no daily backup." xml:space="preserve">
     <value>« {0} » n'est pas une heure HH:MM sur 24 heures. Le serveur accepte des valeurs comme 02:00 ou 23:45 et refuse tout le reste plutôt que de deviner. Laissez la case vide pour ne pas avoir de sauvegarde quotidienne.</value>
@@ -1750,14 +1750,14 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Applies after a restart" xml:space="preserve">
     <value>S'applique après un redémarrage</value>
   </data>
-  <data name="Applies at the next service restart or Reinitialise. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
-    <value>S'applique au prochain redémarrage du service ou lors de la réinitialisation. Les fichiers journaux ne changent pas : ceci envoie une copie, rien n'est déplacé. Sans hôte collecteur ci-dessous, un serveur sous systemd sur Linux écrit dans le journal - sous Linux, ce seul interrupteur constitue donc toute la configuration.</value>
+  <data name="Applies at the next service restart or Reinitialise. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
+    <value>S'applique au prochain redémarrage du service ou lors de la réinitialisation. Sans hôte collecteur ci-dessous, un serveur sous systemd sur Linux écrit dans le journal - sous Linux, ce seul interrupteur constitue donc toute la configuration.</value>
   </data>
   <data name="Applies on save" xml:space="preserve">
     <value>S'applique à l'enregistrement</value>
   </data>
-  <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted." xml:space="preserve">
-    <value>S'applique uniquement quand le traitement des rebonds est activé. Un rapport n'est compté que s'il nomme un message que ce serveur a réellement remis à ce destinataire, qu'il est arrivé de l'extérieur sans authentification et qu'il a passé SPF et DMARC là où ils sont consignés - mais quiconque a reçu le même message pourrait en forger un pour un autre destinataire visible. Désactivé, les rapports ne sont plus lus du tout ; les refus rencontrés lors de la remise sont toujours comptés.</value>
+  <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient." xml:space="preserve">
+    <value>S'applique uniquement quand le traitement des rebonds est activé. Un rapport n'est compté que s'il nomme un message que ce serveur a réellement remis à ce destinataire, qu'il est arrivé de l'extérieur sans authentification et qu'il a passé SPF et DMARC là où ils sont consignés - mais quiconque a reçu le même message pourrait en forger un pour un autre destinataire visible.</value>
   </data>
   <data name="Applies to the accounts made from now on; it changes no account that already exists." xml:space="preserve">
     <value>S'applique aux comptes créés à partir de maintenant ; ne modifie aucun compte existant.</value>
@@ -6034,8 +6034,8 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="In effect: {0}, from the server" xml:space="preserve">
     <value>En vigueur : {0}, venant du serveur</value>
   </data>
-  <data name="In force for the next message. Off, nothing is classified, counted or listed and the list is not applied; the entries already on it stay, and the hourly sweep still expires them. A database that cannot be read sends the mail as if the address were not listed, and says so in the error log once an hour." xml:space="preserve">
-    <value>En vigueur pour le prochain message. Désactivé, rien n'est classé, compté ni listé et la liste n'est pas appliquée ; les entrées déjà présentes restent, et le balayage horaire continue de les faire expirer. Une base de données illisible envoie le courrier comme si l'adresse n'était pas listée, et le signale une fois par heure dans le journal des erreurs.</value>
+  <data name="In force for the next message. Off, nothing is classified, counted or listed and the list is not applied; the entries already on it stay, and the hourly sweep still expires them." xml:space="preserve">
+    <value>En vigueur pour le prochain message. Désactivé, rien n'est classé, compté ni listé et la liste n'est pas appliquée ; les entrées déjà présentes restent, et le balayage horaire continue de les faire expirer.</value>
   </data>
   <data name="In queue" xml:space="preserve">
     <value>En file</value>
@@ -12321,8 +12321,8 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Taken (server time)" xml:space="preserve">
     <value>Effectuée (heure du serveur)</value>
   </data>
-  <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10,240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
-    <value>Prend effet immédiatement, mais n'est conservé qu'en mémoire : rien ne stocke cette valeur, chaque redémarrage du service la ramène donc à la valeur intégrée de 10 240 Ko (10 Mo). Pour garder une limite différente, il faut la redéfinir après chaque redémarrage, par exemple depuis un script de démarrage via l'API COM. Les TTL et le commutateur d'activation de cette carte sont stockés et survivent bien aux redémarrages.</value>
+  <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10,240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API." xml:space="preserve">
+    <value>Prend effet immédiatement, mais n'est conservé qu'en mémoire : rien ne stocke cette valeur, chaque redémarrage du service la ramène donc à la valeur intégrée de 10 240 Ko (10 Mo). Pour garder une limite différente, il faut la redéfinir après chaque redémarrage, par exemple depuis un script de démarrage via l'API COM.</value>
   </data>
   <data name="Target SMTP _port" xml:space="preserve">
     <value>_Port SMTP cible</value>
@@ -13746,8 +13746,8 @@ L'ajouter quand même ?</value>
   <data name="The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
     <value>Le serveur le charge encore et ses ports démarrent toujours (il signale l'erreur serveur 5991 dans le journal des applications), mais chaque client et chaque serveur de messagerie qui vérifie la date refuse de se connecter - ce qui, aujourd'hui, est presque le cas de tous. Remplacez le certificat.</value>
   </data>
-  <data name="The server stores this value and never reads it - nothing sets a thread priority from it, so changing it has no effect. It is shown rather than removed so that an administrator who set it years ago can see it is still there and why nothing happened, and it is not editable because a box that accepts a value nothing acts on is worse than no box at all. The thread counts above are honoured." xml:space="preserve">
-    <value>Le serveur stocke cette valeur et ne la lit jamais - rien n'en tire une priorité de thread, la modifier n'a donc aucun effet. Elle est affichée plutôt que supprimée pour qu'un administrateur qui l'a définie il y a des années puisse voir qu'elle est toujours là et pourquoi rien ne s'est passé, et elle n'est pas modifiable parce qu'une case qui accepte une valeur sur laquelle rien n'agit est pire que pas de case du tout. Les nombres de threads ci-dessus, eux, sont respectés.</value>
+  <data name="The server stores this value and never reads it - nothing sets a thread priority from it, so changing it has no effect. The thread counts above are honoured." xml:space="preserve">
+    <value>Le serveur stocke cette valeur et ne la lit jamais - rien n'en tire une priorité de thread, la modifier n'a donc aucun effet. Les nombres de threads ci-dessus, eux, sont respectés.</value>
   </data>
   <data name="The server to ask (empty = the domain's MX hosts)" xml:space="preserve">
     <value>Le serveur à interroger (vide = les hôtes MX du domaine)</value>
@@ -14329,8 +14329,8 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="Trace one message" xml:space="preserve">
     <value>Tracer un message</value>
   </data>
-  <data name="Traces only. A collector configured here receives spans and nothing else - metrics and logs have their own endpoints below, each off until it is set. Prometheus metrics are the port above, and are the same counters the metrics endpoint pushes rather than a second tally." xml:space="preserve">
-    <value>Traces uniquement. Un collecteur configuré ici reçoit des spans et rien d'autre - les métriques et les journaux ont leurs propres points d'accès ci-dessous, chacun inactif tant qu'il n'est pas défini. Les métriques Prometheus, ce sont le port ci-dessus, et ce sont les mêmes compteurs que ceux que pousse le point de métriques, pas un second décompte.</value>
+  <data name="Traces only. A collector configured here receives spans and nothing else - metrics and logs have their own endpoints below, each off until it is set." xml:space="preserve">
+    <value>Traces uniquement. Un collecteur configuré ici reçoit des spans et rien d'autre - les métriques et les journaux ont leurs propres points d'accès ci-dessous, chacun inactif tant qu'il n'est pas défini.</value>
   </data>
   <data name="Transparency log's public key for a private Sigstore (PEM; empty = the public Rekor key)" xml:space="preserve">
     <value>Clé publique du journal de transparence pour un Sigstore privé (PEM ; vide = la clé Rekor publique)</value>

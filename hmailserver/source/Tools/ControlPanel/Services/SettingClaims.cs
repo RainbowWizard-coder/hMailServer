@@ -236,7 +236,7 @@ namespace hMailServer.ControlPanel.Services
       /// "off" but "the journal" on a systemd machine.
       /// </summary>
       public static readonly string SyslogAppliesOnRestart = N(
-         "Applies at the next service restart or Reinitialise. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration.");
+         "Applies at the next service restart or Reinitialise. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration.");
 
       /// <summary>
       /// Shown under each of the four Cache.*MaxSizeKb editors on the Performance
@@ -258,7 +258,7 @@ namespace hMailServer.ControlPanel.Services
       /// as a persistent setting - that is this note's one job.
       /// </summary>
       public static readonly string CacheMaxSizeIsSessionOnly = N(
-         "Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10,240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts.");
+         "Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10,240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API.");
 
       /// <summary>
       /// Shown on the JSON-lines checkbox while NCSA is selected. Logger::Render_
@@ -275,7 +275,7 @@ namespace hMailServer.ControlPanel.Services
          // call anywhere in the tree. The value goes into the settings table and
          // is read back out again, and that is all that happens to it.
          new SettingClaim("WorkerThreadPriority", ClaimKind.Inert,
-            N("The server stores this value and never reads it - nothing sets a thread priority from it, so changing it has no effect. It is shown rather than removed so that an administrator who set it years ago can see it is still there and why nothing happened, and it is not editable because a box that accepts a value nothing acts on is worse than no box at all. The thread counts above are honoured.")),
+            N("The server stores this value and never reads it - nothing sets a thread priority from it, so changing it has no effect. The thread counts above are honoured.")),
 
          // IniFileSettings reads [Settings] UseLanguage and hands it back over
          // COM; nothing else in the server consults it. The classic Administrator
@@ -306,15 +306,15 @@ namespace hMailServer.ControlPanel.Services
          // the moment it acts, so a change applies to the next message, and with
          // the switch off every hook returns after reading it.
          new SettingClaim("BounceProcessingEnabled", ClaimKind.Honoured,
-            N("In force for the next message. Off, nothing is classified, counted or listed and the list is not applied; the entries already on it stay, and the hourly sweep still expires them. A database that cannot be read sends the mail as if the address were not listed, and says so in the error log once an hour.")),
+            N("In force for the next message. Off, nothing is classified, counted or listed and the list is not applied; the entries already on it stay, and the hourly sweep still expires them.")),
 
          new SettingClaim("BounceSuppressionAction", ClaimKind.Honoured,
-            N("'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it.")),
+            N("'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it.")),
 
          // Conditional: read only while bounce processing is on, and a report is
          // counted only when it matches a message this server sent.
          new SettingClaim("BounceReadDeliveryReports", ClaimKind.Conditional,
-            N("Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted.")),
+            N("Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient.")),
 
          new SettingClaim("Logging.SyslogHost", ClaimKind.Conditional,
             N("Empty means the systemd journal on Linux, and means nothing is sent on Windows. A collector that stops answering never delays mail: entries queue, the oldest are dropped once 4,096 are waiting, and the application log says so once when it starts and once when the collector comes back.")),
@@ -331,7 +331,7 @@ namespace hMailServer.ControlPanel.Services
          new SettingClaim("Cache.DistributionListCacheMaxSizeKb", ClaimKind.Honoured, CacheMaxSizeIsSessionOnly),
 
          new SettingClaim("OtelEndpoint", ClaimKind.Honoured,
-            N("Traces only. A collector configured here receives spans and nothing else - metrics and logs have their own endpoints below, each off until it is set. Prometheus metrics are the port above, and are the same counters the metrics endpoint pushes rather than a second tally.")),
+            N("Traces only. A collector configured here receives spans and nothing else - metrics and logs have their own endpoints below, each off until it is set.")),
          new SettingClaim("OtelMetricsEndpoint", ClaimKind.Honoured,
             N("Pushes the same counters the Prometheus endpoint serves, under the same names, on the interval below. Not everything on /metrics is exported: queue depth, database probes and certificate expiry are computed by the metrics listener from database and file reads, and a push exporter does not own those.")),
          new SettingClaim("OtelLogsEndpoint", ClaimKind.Honoured,

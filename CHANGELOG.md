@@ -3982,9 +3982,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   its hints with "Stored as [LDAP] Port." Each hint keeps the two of its sentences that say what the setting does and
   its safe value or consequence, the same two in every language; the sentences it loses are in the new
   docs/SettingsReasons.md, under the page and the setting's caption, which the help now opens for the nine pages no
-  other document was about; and Directory authentication names each key in the small line under its editor.
-  `SettingsHintLengthTests` holds every hint on those pages to two sentences, the keys to the small line, and the
-  reasons to the document.
+  other document was about; and Directory authentication names each key in the small line under its editor. Seven
+  hints the settings pages take from the notes pinned to their settings - bounce processing, what happens to a listed
+  recipient, reading delivery reports, syslog, the worker thread priority, the four cache sizes and the OpenTelemetry
+  traces endpoint - ran to three as well, and keep two the same way. `SettingsHintLengthTests` holds every hint on
+  those pages and every such note to two sentences, the keys to the small line, and the reasons to the document.
 
 ### Administration
 

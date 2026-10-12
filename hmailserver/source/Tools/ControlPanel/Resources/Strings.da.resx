@@ -33,8 +33,8 @@
   <data name="'Protect stored secrets with Windows DPAPI' on the Server limits &amp; expert settings page is off, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
     <value>'Beskyt gemte hemmeligheder med Windows DPAPI' er slået fra på siden Servergrænser og ekspertindstillinger, så en kontos anden faktor og hemmelighederne i [Settings] gemmes, som de er skrevet, og der er ikke brug for en nøgle til gemte hemmeligheder.</value>
   </data>
-  <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
-    <value>'Afvis den med begrundelsen' besvarer en indsendelse ved RCPT med begrundelsen og returnerer alt andet - et alias, en videresendelse, en planlagt afsendelse - til afsenderen i en leveringsstatusmeddelelse. Post, der allerede står i kø til en adresse, møder listen ved næste leveringsforsøg. 'Lever den og registrér den kun' er den sikre måde at se, hvad listen ville gøre, før den gør det.</value>
+  <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
+    <value>'Afvis den med begrundelsen' besvarer en indsendelse ved RCPT med begrundelsen og returnerer alt andet - et alias, en videresendelse, en planlagt afsendelse - til afsenderen i en leveringsstatusmeddelelse. 'Lever den og registrér den kun' er den sikre måde at se, hvad listen ville gøre, før den gør det.</value>
   </data>
   <data name="'{0}' is not a 24-hour HH:MM time. The server accepts values like 02:00 or 23:45 and refuses anything else rather than guess. Leave the box empty for no daily backup." xml:space="preserve">
     <value>'{0}' er ikke et klokkeslæt på 24-timers formen HH:MM. Serveren accepterer værdier som 02:00 eller 23:45 og afviser alt andet frem for at gætte. Lad feltet stå tomt, hvis der ikke skal tages en daglig sikkerhedskopi.</value>
@@ -1750,14 +1750,14 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Applies after a restart" xml:space="preserve">
     <value>Træder i kraft efter en genstart</value>
   </data>
-  <data name="Applies at the next service restart or Reinitialise. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
-    <value>Træder i kraft ved næste genstart af tjenesten eller ved Reinitialiser. Logfilerne påvirkes ikke: dette sender en kopi, det flytter ikke noget. Uden en samlervært nedenfor skriver en server under systemd på Linux i stedet til journalen - på Linux er denne ene kontakt altså hele opsætningen.</value>
+  <data name="Applies at the next service restart or Reinitialise. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
+    <value>Træder i kraft ved næste genstart af tjenesten eller ved Reinitialiser. Uden en samlervært nedenfor skriver en server under systemd på Linux i stedet til journalen - på Linux er denne ene kontakt altså hele opsætningen.</value>
   </data>
   <data name="Applies on save" xml:space="preserve">
     <value>Træder i kraft, når det gemmes</value>
   </data>
-  <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted." xml:space="preserve">
-    <value>Gælder kun, mens behandling af returmails er slået til. En rapport tælles kun, når den nævner en besked, som denne server faktisk leverede til modtageren, kom uautentificeret udefra og bestod SPF og DMARC, hvor de registreres - men enhver, der modtog den samme besked, kan forfalske en for en anden synlig modtager. Slået fra læses rapporter slet ikke; afvisninger under levering tælles stadig.</value>
+  <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient." xml:space="preserve">
+    <value>Gælder kun, mens behandling af returmails er slået til. En rapport tælles kun, når den nævner en besked, som denne server faktisk leverede til modtageren, kom uautentificeret udefra og bestod SPF og DMARC, hvor de registreres - men enhver, der modtog den samme besked, kan forfalske en for en anden synlig modtager.</value>
   </data>
   <data name="Applies to the accounts made from now on; it changes no account that already exists." xml:space="preserve">
     <value>Gælder de konti, der oprettes fra nu af; den ændrer ingen eksisterende konto.</value>
@@ -6034,8 +6034,8 @@ Ingen post røres - indekset er udledt af den - men indtil genopbygningen har in
   <data name="In effect: {0}, from the server" xml:space="preserve">
     <value>Gælder: {0}, fra serveren</value>
   </data>
-  <data name="In force for the next message. Off, nothing is classified, counted or listed and the list is not applied; the entries already on it stay, and the hourly sweep still expires them. A database that cannot be read sends the mail as if the address were not listed, and says so in the error log once an hour." xml:space="preserve">
-    <value>Gælder fra næste besked. Slået fra klassificeres, tælles eller listes intet, og listen anvendes ikke; posterne på den bliver, og den timevise oprydning lader dem stadig udløbe. En database, der ikke kan læses, sender posten, som om adressen ikke var listet, og siger det i fejlloggen én gang i timen.</value>
+  <data name="In force for the next message. Off, nothing is classified, counted or listed and the list is not applied; the entries already on it stay, and the hourly sweep still expires them." xml:space="preserve">
+    <value>Gælder fra næste besked. Slået fra klassificeres, tælles eller listes intet, og listen anvendes ikke; posterne på den bliver, og den timevise oprydning lader dem stadig udløbe.</value>
   </data>
   <data name="In queue" xml:space="preserve">
     <value>I kø</value>
@@ -12321,8 +12321,8 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Taken (server time)" xml:space="preserve">
     <value>Taget (servertid)</value>
   </data>
-  <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10,240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
-    <value>Får virkning med det samme, men holdes kun i hukommelsen: intet gemmer denne værdi, så hver genstart af tjenesten nulstiller den til de indbyggede 10.240 KB (10 MB). For at beholde en anden grænse skal den sættes igen efter hver genstart, for eksempel fra et opstartsscript gennem COM API'et. TTL'erne og aktiveringskontakten på dette kort gemmes og overlever genstarter.</value>
+  <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10,240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API." xml:space="preserve">
+    <value>Får virkning med det samme, men holdes kun i hukommelsen: intet gemmer denne værdi, så hver genstart af tjenesten nulstiller den til de indbyggede 10.240 KB (10 MB). For at beholde en anden grænse skal den sættes igen efter hver genstart, for eksempel fra et opstartsscript gennem COM API'et.</value>
   </data>
   <data name="Target SMTP _port" xml:space="preserve">
     <value>Mål-SMTP-_port</value>
@@ -13746,8 +13746,8 @@ Tilføj alligevel?</value>
   <data name="The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
     <value>Serveren indlæser det stadig, og dens porte starter stadig (den rapporterer serverfejl 5991 i applikationsloggen), men hver klient og postserver, der kontrollerer datoen, nægter at forbinde - hvilket i dag er næsten dem alle. Udskift certifikatet.</value>
   </data>
-  <data name="The server stores this value and never reads it - nothing sets a thread priority from it, so changing it has no effect. It is shown rather than removed so that an administrator who set it years ago can see it is still there and why nothing happened, and it is not editable because a box that accepts a value nothing acts on is worse than no box at all. The thread counts above are honoured." xml:space="preserve">
-    <value>Serveren gemmer denne værdi og læser den aldrig - intet sætter en trådprioritet ud fra den, så at ændre den har ingen effekt. Den vises i stedet for at blive fjernet, så en administrator, der satte den for år siden, kan se, at den stadig er der, og hvorfor intet skete, og den kan ikke redigeres, fordi et felt, der accepterer en værdi, intet handler på, er værre end intet felt overhovedet. Trådantallene ovenfor respekteres.</value>
+  <data name="The server stores this value and never reads it - nothing sets a thread priority from it, so changing it has no effect. The thread counts above are honoured." xml:space="preserve">
+    <value>Serveren gemmer denne værdi og læser den aldrig - intet sætter en trådprioritet ud fra den, så at ændre den har ingen effekt. Trådantallene ovenfor respekteres.</value>
   </data>
   <data name="The server to ask (empty = the domain's MX hosts)" xml:space="preserve">
     <value>Serveren der skal spørges (tomt = domænets MX-værter)</value>
@@ -14329,8 +14329,8 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="Trace one message" xml:space="preserve">
     <value>Spor én meddelelse</value>
   </data>
-  <data name="Traces only. A collector configured here receives spans and nothing else - metrics and logs have their own endpoints below, each off until it is set. Prometheus metrics are the port above, and are the same counters the metrics endpoint pushes rather than a second tally." xml:space="preserve">
-    <value>Kun traces. En collector konfigureret her modtager spans og intet andet - metrikker og logs har deres egne endpoints nedenfor, hver slået fra, indtil den sættes. Prometheus-metrikker er porten ovenfor og er de samme tællere, som metrik-endpointet pusher, ikke en anden opgørelse.</value>
+  <data name="Traces only. A collector configured here receives spans and nothing else - metrics and logs have their own endpoints below, each off until it is set." xml:space="preserve">
+    <value>Kun traces. En collector konfigureret her modtager spans og intet andet - metrikker og logs har deres egne endpoints nedenfor, hver slået fra, indtil den sættes.</value>
   </data>
   <data name="Transparency log's public key for a private Sigstore (PEM; empty = the public Rekor key)" xml:space="preserve">
     <value>Gennemsigtighedsloggens offentlige nøgle til en privat Sigstore (PEM; tom = den offentlige Rekor-nøgle)</value>
