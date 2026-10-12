@@ -180,8 +180,11 @@ namespace RegressionTests.IMAP
       }
 
       [Test]
-      [Description("Upstream #458, write side: COPY addressed by sequence number must never copy a " +
-                   "message the client was not told about.")]
+      [Description("Upstream #458, write side: COPY addressed by sequence number copies the message the " +
+                   "client named. An expunge made elsewhere is held back while COPY runs, since the client " +
+                   "sent its numbers before it was told of it, and reported by the next command. It was " +
+                   "reported first and the set read in the numbering it made, so COPY 2 copied the third " +
+                   "message (upstream #666).")]
       public void CopyMustNotCopyTheWrongMessage()
       {
          var account = CreateAccountWithThreeAttachmentMessages();
@@ -190,14 +193,13 @@ namespace RegressionTests.IMAP
          var sim1 = SelectInbox(account);
          ExpungeMessageInSeparateSession(account, 1);
 
-         // COPY is not one of the commands during which EXPUNGE is forbidden, so the server
-         // reports the expunge first and the numbering may change - but only because the
-         // client was told. Message 2 is the third message from that point on.
          var copy = sim1.SendSingleCommand("A44 COPY 2 \"Target\"");
          Assert.IsTrue(copy.Contains("A44 OK"), copy);
+         Assert.IsFalse(copy.Contains("EXPUNGE"), "COPY reported the expunge before it read the client's numbers. " + copy);
 
-         var expunge = copy.IndexOf("* 1 EXPUNGE", StringComparison.Ordinal);
-         Assert.IsTrue(expunge >= 0, "COPY renumbered the mailbox without reporting the expunge. " + copy);
+         // The next command reports it.
+         var noop = sim1.SendSingleCommand("A45 NOOP");
+         Assert.IsTrue(noop.Contains("* 1 EXPUNGE"), noop);
 
          sim1.Disconnect();
 
@@ -209,7 +211,42 @@ namespace RegressionTests.IMAP
          var copied = reader.Fetch("1 BODY[2]");
          reader.Disconnect();
 
-         AssertContainsAttachment(copied, MarkerThree);
+         AssertContainsAttachment(copied, MarkerTwo);
+      }
+
+      [Test]
+      [Description("MOVE addressed by sequence number moves the message the client named, and its own " +
+                   "EXPUNGE is numbered as the client numbers it; an expunge made elsewhere is held back " +
+                   "while MOVE runs and reported by the next command. It was reported first, so MOVE 2 " +
+                   "moved the third message (upstream #666).")]
+      public void MoveMustNotMoveTheWrongMessage()
+      {
+         var account = CreateAccountWithThreeAttachmentMessages();
+         account.IMAPFolders.Add("Target");
+
+         var sim1 = SelectInbox(account);
+         ExpungeMessageInSeparateSession(account, 1);
+
+         var move = sim1.SendSingleCommand("A46 MOVE 2 \"Target\"");
+         Assert.IsTrue(move.Contains("A46 OK"), move);
+         Assert.IsTrue(move.Contains("* 2 EXPUNGE"), "MOVE did not expunge the message it moved, as the client numbers it. " + move);
+         Assert.IsFalse(move.Contains("* 1 EXPUNGE"), "MOVE reported the other session's expunge before it read the client's numbers. " + move);
+
+         // The next command reports it.
+         var noop = sim1.SendSingleCommand("A47 NOOP");
+         Assert.IsTrue(noop.Contains("* 1 EXPUNGE"), noop);
+
+         sim1.Disconnect();
+
+         ImapClientSimulator.AssertMessageCount(account.Address, "test", "Target", 1);
+
+         var reader = new ImapClientSimulator();
+         Assert.IsTrue(reader.ConnectAndLogon(account.Address, "test"));
+         Assert.IsTrue(reader.SelectFolder("Target"));
+         var moved = reader.Fetch("1 BODY[2]");
+         reader.Disconnect();
+
+         AssertContainsAttachment(moved, MarkerTwo);
       }
 
       [Test]

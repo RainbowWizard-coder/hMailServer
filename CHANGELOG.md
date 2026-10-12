@@ -4618,6 +4618,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   refusal by the access control is now `NO [NOPERM]` (RFC 5530), as it is meant to be told from a malformed command.
   `IMAP/CopyAndAppendRules.cs` holds each. Found by upstream's UIDPLUS work (#650, #666), which met the same.
 
+- **Fixed: an IMAP `COPY` or `MOVE` by message number copied or moved the wrong message when another session had
+  just expunged one before it.** The server tells a session of another's expunge at the start of its next command
+  that may carry an untagged `EXPUNGE`, and `COPY` and `MOVE` were such commands; but their message numbers are the
+  ones the client had when it sent them, and the `EXPUNGE` renumbered the mailbox under them, so `COPY 2` copied the
+  message after the one meant - or found no message of that number. The expunge is held back while a `COPY` or a
+  `MOVE` runs, as it is for `FETCH`, `STORE` and `SEARCH`, and reported by the next command; `UID COPY` and
+  `UID MOVE` name UIDs and were never at risk. `IMAP/SessionMessageNumbering.cs` copies and moves message 2 after
+  another session expunged message 1, and finds the second message in the destination; its `COPY` test had asserted
+  the old order. Found by upstream's UIDPLUS work (#666).
+
 ### Operations
 
 - **Fixed: on Linux, a MySQL or PostgreSQL column the server reads as a `long` went through an `int` on its way

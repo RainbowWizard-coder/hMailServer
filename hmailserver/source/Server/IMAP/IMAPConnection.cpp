@@ -1005,11 +1005,21 @@ namespace HM
       // not permitted while responding to THREAD, but are permitted during a UID
       // THREAD - and active_command is IMAP_UID in the UID case, so the exclusion
       // below covers exactly the non-UID form, which is the required behaviour.
+      //
+      // COPY and MOVE are held to it too. This runs before the command does, and
+      // their message set is in the numbering the client had when it sent them: an
+      // EXPUNGE let out here renumbered the view under it, so "COPY 3" copied, and
+      // "MOVE 3" moved, the message after the one the client meant - or found no
+      // message 3 and refused. The EXPUNGE waits for the next command that may
+      // carry it, as it does for FETCH (upstream #666; UID COPY and UID MOVE name
+      // UIDs and are not held).
       bool send_expunge = active_command != IMAP_FETCH &&
                           active_command != IMAP_STORE &&
                           active_command != IMAP_SEARCH &&
                           active_command != IMAP_SORT &&
-                          active_command != IMAP_THREAD;
+                          active_command != IMAP_THREAD &&
+                          active_command != IMAP_COPY &&
+                          active_command != IMAP_MOVE;
 
       notification_client_->SendCachedNotifications(send_expunge);
    }
