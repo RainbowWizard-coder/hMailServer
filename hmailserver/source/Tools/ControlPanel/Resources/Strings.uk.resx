@@ -5328,10 +5328,10 @@
     <value>Не проходить, коли ім'я, яке клієнт назвав у HELO/EHLO, не розв'язується в адресу, з якої він підключається.</value>
   </data>
   <data name="Failures counted within (minutes)" xml:space="preserve">
-    <value>Невдачі підраховуються протягом (хвилин)</value>
+    <value>Невдачі підраховуються протягом (хвилини)</value>
   </data>
   <data name="Failures for a name counted within (minutes)" xml:space="preserve">
-    <value>Невдачі для імені підраховуються протягом (хвилин)</value>
+    <value>Невдачі для імені підраховуються протягом (хвилини)</value>
   </data>
   <data name="Fair password - consider adding {0}." xml:space="preserve">
     <value>Посередній пароль — додайте {0}.</value>

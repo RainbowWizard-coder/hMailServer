@@ -248,6 +248,36 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
+      /// A caption's unit is one word in a catalogue, as it is in the English: the Russian and the
+      /// Ukrainian write minutes "(минуты)" and "(хвилини)" in thirteen captions, and wrote "(минут)" and
+      /// "(хвилин)" in Auto-ban's two counting windows, which t32 re-keyed on a branch without t31b's
+      /// form (0ea243cb6, review finding F148).
+      /// </summary>
+      [Theory]
+      [InlineData("ru", "минуты")]
+      [InlineData("uk", "хвилини")]
+      public void EveryTranslation_WritesMinutesAsOneWord(string language, string minutes)
+      {
+         string folder = Path.GetDirectoryName(ConfirmationPatternTests.ControlPanelFile(Path.Join("Resources", "Strings.resx")));
+         var unit = new Regex(@"\(minutes[;,)]");
+         var offenders = new List<string>();
+         int read = 0;
+         foreach (XElement data in XDocument.Load(Path.Join(folder, "Strings." + language + ".resx")).Root.Elements("data"))
+         {
+            string key = (string)data.Attribute("name");
+            if (!unit.IsMatch(key))
+               continue;
+            read++;
+            string value = data.Element("value")?.Value ?? "";
+            if (!Regex.IsMatch(value, @"\(" + minutes + @"[;,)]"))
+               offenders.Add(key + " = " + value);
+         }
+
+         Assert.True(read >= 13, "Only " + read + " captions in minutes were read from the " + language + " catalogue.");
+         Assert.True(offenders.Count == 0, "Write the unit as the other captions do, \"(" + minutes + ")\":\n" + string.Join("\n", offenders));
+      }
+
+      /// <summary>
       /// A quantity of four digits or more is written with its thousands grouped in every English text,
       /// a hint as its caption is, so that a row does not show one number two ways: the MTA-STS
       /// policy's caption said "(seconds, 86,400 to 31,557,600)" over "From 86400, a day, to 31557600,

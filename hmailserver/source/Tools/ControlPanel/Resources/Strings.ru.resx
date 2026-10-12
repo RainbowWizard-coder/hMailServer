@@ -5328,10 +5328,10 @@ Control Panel может читать файлы сообщений только
     <value>Не проходит, когда имя, которое клиент назвал в HELO/EHLO, не разрешается в адрес, с которого он подключается.</value>
   </data>
   <data name="Failures counted within (minutes)" xml:space="preserve">
-    <value>Неудачи подсчитываются за (минут)</value>
+    <value>Неудачи подсчитываются за (минуты)</value>
   </data>
   <data name="Failures for a name counted within (minutes)" xml:space="preserve">
-    <value>Неудачи для имени подсчитываются за (минут)</value>
+    <value>Неудачи для имени подсчитываются за (минуты)</value>
   </data>
   <data name="Fair password - consider adding {0}." xml:space="preserve">
     <value>Пароль средней стойкости — стоит добавить {0}.</value>
