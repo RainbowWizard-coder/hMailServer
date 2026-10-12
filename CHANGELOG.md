@@ -732,11 +732,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   message exactly as it was received. `HM5509` (the message could not be read back after the scan) now says that
   SpamAssassin's verdict could not be read, since nothing is rewritten any more; and a message collected from an
   external account, saved straight after the scan, still takes the size of spamd's result, which the rewrite used to
-  set and a global rule on the size reads.
+  set and a global rule on the size reads. What SpamAssassin is given as the envelope sender of a collected message
+  changes too: such a message has none here, the server guessing one from its From field, but the other server's
+  final delivery recorded it in the message's topmost `Return-Path`, and spamd is now sent that field's path when it
+  reads as one, and the guess only when it does not. Until now spamd was sent the guess above the message's own
+  `Return-Path` fields, so SpamAssassin's SPF and envelope rules went by the From address, or - where one of those
+  fields stood under a `Received` field, as Gmail writes them - by none from a `Return-Path` at all, since
+  SpamAssassin trusts no `Return-Path` that a `Received` field stands above. The other spam tests still go by the
+  guess.
   `SpamAssassinReturnPathTester` (`public-suffix-tests` on Linux) holds the filter to its edges in every split of its
-  input, and `AntiSpam/SpamAssassinReturnPath.cs`, on Windows and on Linux, reads the stored file byte for byte after a
-  completed scan and after spamd refused the connection, reset it, cut its reply short and hung up mid-request. Found
-  by the project's own review.
+  input, and the reading of the topmost `Return-Path` to every form a path takes and the values that are none; and
+  `AntiSpam/SpamAssassinReturnPath.cs`, on Windows and on Linux, reads the stored file byte for byte after a completed
+  scan and after spamd refused the connection, reset it, cut its reply short and hung up mid-request, and collects a
+  message in Gmail's layout to see it scanned with the `Return-Path` the other server recorded. Found by the project's
+  own review.
 
 ### Downloads and the release
 

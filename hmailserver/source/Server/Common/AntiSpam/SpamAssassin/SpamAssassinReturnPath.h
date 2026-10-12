@@ -10,7 +10,11 @@
 // message being accepted has none yet: the Return-Path is written by the final
 // delivery (RFC 5321 section 4.4). So the scan sends one, built from the envelope
 // sender, as the first line of the message in the PROCESS request, with the
-// request's Content-length counting it, and nowhere else. The stored message is
+// request's Content-length counting it, and nowhere else. A message collected from
+// another server's mailbox has no envelope sender here - the server guesses one
+// from its From field - but that server's final delivery recorded the real one, in
+// the message's own topmost Return-Path; the scan of such a message sends that
+// field's path instead, when it reads as one (TopmostPath). The stored message is
 // never written for it:
 //
 //   - The message's own Return-Path fields, if it arrived with any, are left out
@@ -112,6 +116,28 @@ namespace HM
       // and CR LF. A CR or an LF in the value is left out - it would end the line
       // and make what follows a field of its own.
       static std::string RequestLine(const std::string &returnPath);
+
+      // The path of a message's topmost Return-Path field - the first of its header
+      // block, as ReturnPathFieldFilter takes one - written as RequestLine is given
+      // one: "<local-part@domain>", or "<>" for the null path. For a message
+      // collected from another server's mailbox, that is the field the other
+      // server's final delivery wrote, and its path the envelope sender the message
+      // was delivered with there - where that server wrote none, it is one the
+      // message carried when it arrived there, a path its sender chose no less
+      // freely than the From field the guess is read from; for any other message
+      // it is whatever the message arrived with, so only the collection asks for
+      // it. False, and path left as it was, when the header block has no
+      // Return-Path field, when its field runs past MaxPathField bytes, or when its
+      // value does not read as a path: RFC 5322's path (section 3.6.7), with an
+      // obsolete route (section 4.4) or as a bare address, white space and
+      // comments around it; the address a dot-atom or a quoted string, "@", and a
+      // dot-atom or a domain literal, with no white space or comment inside it; and
+      // no control character. Only the topmost field is read: a later one was
+      // written before it, further from the mailbox. message may be the whole
+      // message or its header block.
+      static bool TopmostPath(const std::string &message, std::string &path);
+
+      static const size_t MaxPathField = 4096;
    };
 
    // ReturnPathFieldFilter and RequestLine held to the edges: a Return-Path field
@@ -121,10 +147,13 @@ namespace HM
    // the header block's end, a Return-Path after it and in an attached message; a
    // message with no header block and one with no empty line; a line cut off by
    // the end of the stream; and every message fed in every split into two pieces
-   // and one byte at a time, which must pass exactly what one piece passes. Throws
-   // std::logic_error naming the first thing that is wrong. No file, network,
-   // configuration or database: ClassTester runs it inside the service, and
-   // public-suffix-tests on Linux.
+   // and one byte at a time, which must pass exactly what one piece passes. And
+   // TopmostPath: the paths a Return-Path holds in the field (a plain, null,
+   // obsolete-routed and bare address, comments, folding, a quoted local part, a
+   // domain literal, UTF-8), the topmost of two and below Received fields, and
+   // the values that are no path. Throws std::logic_error naming the first thing
+   // that is wrong. No file, network, configuration or database: ClassTester runs
+   // it inside the service, and public-suffix-tests on Linux.
    class SpamAssassinReturnPathTester
    {
    public:
@@ -132,5 +161,7 @@ namespace HM
 
    private:
       void Expect_(const std::string &what, const std::string &input, const std::string &expected, int expectedFields);
+      void ExpectPath_(const std::string &what, const std::string &message, const std::string &expected);
+      void TestTopmostPath_();
    };
 }

@@ -62,5 +62,11 @@ namespace HM
       std::shared_ptr<TransparentTransmissionBuffer> transmission_buffer_;
       std::map<String, std::shared_ptr<Result> > event_results_;
       std::shared_ptr<FetchAccountUIDList> fetch_account_uidlist_;
+
+      // The path of the current message's topmost Return-Path, which the other
+      // server's final delivery wrote - "<local-part@domain>" or "<>" - or empty
+      // when it has none that reads as a path. Read with the rest of the header
+      // (ParseMessageHeaders_) for the SpamAssassin scan (DoSpamProtection_).
+      AnsiString recorded_return_path_;
    };
 }

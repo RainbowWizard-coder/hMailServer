@@ -95,7 +95,8 @@ namespace HM
                                             const IPAddress & iOriginatingIP,
                                             const IPAddress & iConnectingIP,
                                             std::shared_ptr<Message> pMessage,
-                                            std::shared_ptr<AuthenticationResults> authenticationResults)
+                                            std::shared_ptr<AuthenticationResults> authenticationResults,
+                                            const AnsiString &recordedReturnPath)
    {
 
       const String fileName = MessageStore::WorkingFile(pMessage);
@@ -119,6 +120,7 @@ namespace HM
       pMessageData->LoadFromMessage(fileName, pMessage);
 
       pTestData->SetEnvelopeFrom(sFromAddress);
+      pTestData->SetRecordedReturnPath(recordedReturnPath);
       pTestData->SetOriginatingIP(iOriginatingIP);
       pTestData->SetConnectingIP(iConnectingIP);
       pTestData->SetMessageData(pMessageData);

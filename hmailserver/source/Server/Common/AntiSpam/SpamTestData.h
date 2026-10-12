@@ -22,6 +22,16 @@ namespace HM
       void SetEnvelopeFrom(const String &sEnvelopeFrom);
       String GetEnvelopeFrom() const;
 
+      // For a message collected from an external account: the path of its topmost
+      // Return-Path, the envelope sender the other server's final delivery recorded
+      // (SpamAssassinReturnPath::TopmostPath), as "<local-part@domain>" or "<>".
+      // Empty for any other message, and for a collected one whose topmost
+      // Return-Path is missing or no path. The SpamAssassin scan is sent it in place
+      // of the envelope sender, which for a collected message is only a guess from
+      // its From field; the other tests go by the envelope sender.
+      void SetRecordedReturnPath(const AnsiString &path);
+      const AnsiString &GetRecordedReturnPath() const;
+
       void SetHeloHost(const String &sHeloHost);
       String GetHeloHost() const;
 
@@ -52,6 +62,7 @@ namespace HM
    private:
 
       String envelope_from_;
+      AnsiString recorded_return_path_;
 
       IPAddress originatingAddress_;
       IPAddress connectingAddress_;

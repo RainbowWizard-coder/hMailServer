@@ -26,6 +26,232 @@ namespace HM
       {
          return (character >= 'A' && character <= 'Z') ? static_cast<char>(character - 'A' + 'a') : character;
       }
+
+      // RFC 5322's atext (section 3.2.3), and any byte of a UTF-8 sequence (RFC 6532).
+      bool IsAtext(char character)
+      {
+         const unsigned char value = static_cast<unsigned char>(character);
+
+         if (value >= 0x80)
+            return true;
+
+         if ((value >= 'a' && value <= 'z') || (value >= 'A' && value <= 'Z') || (value >= '0' && value <= '9'))
+            return true;
+
+         switch (value)
+         {
+         case '!': case '#': case '$': case '%': case '&': case '\'': case '*': case '+':
+         case '-': case '/': case '=': case '?': case '^': case '_': case '`': case '{':
+         case '|': case '}': case '~':
+            return true;
+         default:
+            return false;
+         }
+      }
+
+      // The path in the unfolded value of a Return-Path field, read from left to
+      // right (SpamAssassinReturnPath::TopmostPath). Every method that answers false
+      // has found something that is not a path; where it stopped does not matter
+      // then, since the whole value is given up.
+      class PathReader
+      {
+      public:
+         explicit PathReader(const std::string &value) :
+            value_(value),
+            position_(0)
+         {
+
+         }
+
+         bool AtEnd() const { return position_ >= value_.size(); }
+
+         bool Next(char character) const { return !AtEnd() && value_[position_] == character; }
+
+         bool Take(char character)
+         {
+            if (!Next(character))
+               return false;
+
+            position_++;
+            return true;
+         }
+
+         // White space and comments (RFC 5322 section 3.2.2): a comment may hold
+         // comments and quoted pairs. False for a comment that is never closed.
+         bool SkipCfws()
+         {
+            while (!AtEnd())
+            {
+               const char character = value_[position_];
+
+               if (character == ' ' || character == '\t')
+               {
+                  position_++;
+                  continue;
+               }
+
+               if (character != '(')
+                  return true;
+
+               int depth = 0;
+               while (!AtEnd())
+               {
+                  const char inComment = value_[position_++];
+
+                  if (inComment == '\\')
+                  {
+                     if (AtEnd())
+                        return false;
+
+                     position_++;
+                  }
+                  else if (inComment == '(')
+                     depth++;
+                  else if (inComment == ')' && --depth == 0)
+                     break;
+               }
+
+               if (depth != 0)
+                  return false;
+            }
+
+            return true;
+         }
+
+         // dot-atom-text: atext, and dots between, never first, last or twice.
+         bool DotAtom(std::string &address)
+         {
+            const size_t start = position_;
+
+            for (;;)
+            {
+               const size_t atom = position_;
+               while (!AtEnd() && IsAtext(value_[position_]))
+                  position_++;
+
+               if (position_ == atom)
+                  return false;
+
+               if (!Take('.'))
+                  break;
+            }
+
+            address.append(value_, start, position_ - start);
+            return true;
+         }
+
+         // A quoted string, its quotes and quoted pairs kept as they are.
+         bool QuotedString(std::string &address)
+         {
+            const size_t start = position_;
+
+            if (!Take('"'))
+               return false;
+
+            while (!AtEnd())
+            {
+               const char character = value_[position_++];
+
+               if (character == '"')
+               {
+                  address.append(value_, start, position_ - start);
+                  return true;
+               }
+
+               if (character == '\\')
+               {
+                  if (AtEnd())
+                     return false;
+
+                  position_++;
+               }
+            }
+
+            return false;
+         }
+
+         // A domain literal: "[", then no "[", "]", "\" or white space, then "]".
+         bool DomainLiteral(std::string &address)
+         {
+            const size_t start = position_;
+
+            if (!Take('['))
+               return false;
+
+            while (!AtEnd())
+            {
+               const char character = value_[position_++];
+
+               if (character == ']')
+               {
+                  address.append(value_, start, position_ - start);
+                  return true;
+               }
+
+               if (character == '[' || character == '\\' || character == ' ' || character == '\t')
+                  return false;
+            }
+
+            return false;
+         }
+
+         bool Domain(std::string &address)
+         {
+            return Next('[') ? DomainLiteral(address) : DotAtom(address);
+         }
+
+         // addr-spec, with nothing between its parts.
+         bool AddrSpec(std::string &address)
+         {
+            std::string read;
+
+            if (!(Next('"') ? QuotedString(read) : DotAtom(read)))
+               return false;
+
+            if (!Take('@'))
+               return false;
+
+            read.push_back('@');
+
+            if (!Domain(read))
+               return false;
+
+            address = read;
+            return true;
+         }
+
+         // An obsolete route ahead of the address (RFC 5322 section 4.4,
+         // obs-route): domains each after an "@", commas between, and a colon. The
+         // domains are not kept: the path is the address.
+         bool SkipRoute()
+         {
+            bool domains = false;
+
+            for (;;)
+            {
+               if (!SkipCfws())
+                  return false;
+
+               if (Take(','))
+                  continue;
+
+               if (!Take('@'))
+                  break;
+
+               std::string ignored;
+               if (!Domain(ignored))
+                  return false;
+
+               domains = true;
+            }
+
+            return domains && Take(':');
+         }
+
+      private:
+         const std::string &value_;
+         size_t position_;
+      };
    }
 
    ReturnPathFieldFilter::ReturnPathFieldFilter() :
@@ -200,6 +426,106 @@ namespace HM
 
       line.append("\r\n");
       return line;
+   }
+
+   bool
+   SpamAssassinReturnPath::TopmostPath(const std::string &message, std::string &path)
+   {
+      // The topmost field's bytes, taken as the filter leaves Return-Path fields out
+      // of a request: the message is fed to it a line at a time, every line is
+      // decided by its LF at the latest, and a line the filter leaves out belongs
+      // to a Return-Path field - the first one, until a line passes, a second field
+      // starts or the header block ends.
+      ReturnPathFieldFilter filter;
+      std::string field;
+      std::string passed;
+
+      size_t position = 0;
+      while (position < message.size() && !filter.GetHeaderEnded())
+      {
+         const size_t lineFeed = message.find('\n', position);
+         const size_t end = lineFeed == std::string::npos ? message.size() : lineFeed + 1;
+
+         const int fieldsBefore = filter.GetRemovedFields();
+         const size_t removedBefore = filter.GetRemovedBytes();
+
+         passed.clear();
+         filter.Feed(message.data() + position, end - position, passed);
+
+         if (filter.GetRemovedBytes() > removedBefore)
+         {
+            if (fieldsBefore > 0 && filter.GetRemovedFields() > fieldsBefore)
+               break;
+
+            field.append(message, position, end - position);
+
+            if (field.size() > MaxPathField)
+               return false;
+         }
+         else if (!field.empty())
+            break;
+
+         position = end;
+      }
+
+      if (field.empty())
+         return false;
+
+      // The value, unfolded (RFC 5322 section 2.2.3): what follows the colon, the
+      // line breaks taken out. Any other control character - a bare CR among them -
+      // is no part of a path.
+      std::string value;
+      for (size_t i = field.find(':') + 1; i < field.size(); i++)
+      {
+         const char character = field[i];
+
+         if (character == '\n')
+            continue;
+
+         if (character == '\r' && i + 1 < field.size() && field[i + 1] == '\n')
+            continue;
+
+         const unsigned char code = static_cast<unsigned char>(character);
+         if ((code < 0x20 && character != '\t') || code == 0x7f)
+            return false;
+
+         value.push_back(character);
+      }
+
+      // path = angle-addr / ([CFWS] "<" [CFWS] ">" [CFWS]), the obsolete route
+      // in an angle-addr, or a bare address.
+      PathReader reader(value);
+      std::string address;
+
+      if (!reader.SkipCfws())
+         return false;
+
+      if (reader.Take('<'))
+      {
+         if (!reader.SkipCfws())
+            return false;
+
+         const bool routed = reader.Next('@') || reader.Next(',');
+         if (routed && (!reader.SkipRoute() || !reader.SkipCfws()))
+            return false;
+
+         if (routed || !reader.Next('>'))
+         {
+            if (!reader.AddrSpec(address) || !reader.SkipCfws())
+               return false;
+         }
+
+         if (!reader.Take('>'))
+            return false;
+      }
+      else if (!reader.AddrSpec(address))
+         return false;
+
+      if (!reader.SkipCfws() || !reader.AtEnd())
+         return false;
+
+      path = "<" + address + ">";
+      return true;
    }
 
    void
@@ -377,5 +703,115 @@ namespace HM
          if (!response.GetHeaderEnded())
             throw std::logic_error("ReturnPathFieldFilter: the header block of the reply did not end at its empty line.");
       }
+
+      TestTopmostPath_();
+   }
+
+   void
+   SpamAssassinReturnPathTester::ExpectPath_(const std::string &what, const std::string &message, const std::string &expected)
+   {
+      // Empty expected: no path. path starts with something TopmostPath must
+      // either replace or leave alone.
+      std::string path = "unchanged";
+      const bool found = SpamAssassinReturnPath::TopmostPath(message, path);
+
+      if (expected.empty())
+      {
+         if (found || path != "unchanged")
+            throw std::logic_error("SpamAssassinReturnPath::TopmostPath, " + what + ": read [" + path + "], expected no path.");
+
+         return;
+      }
+
+      if (!found || path != expected)
+         throw std::logic_error("SpamAssassinReturnPath::TopmostPath, " + what + ": read " + (found ? "[" + path + "]" : std::string("no path")) +
+            ", expected [" + expected + "].");
+   }
+
+   void
+   SpamAssassinReturnPathTester::TestTopmostPath_()
+   {
+      const std::string rest = "From: a@example.com\r\nSubject: s\r\n\r\nBody.\r\n";
+
+      // None.
+      ExpectPath_("no Return-Path", rest, "");
+      ExpectPath_("an empty message", "", "");
+      ExpectPath_("a Return-Path in the body only", "From: a@example.com\r\n\r\nReturn-Path: <body@example.com>\r\n", "");
+      ExpectPath_("names that are not it", "X-Return-Path: <x@example.com>\r\nReturn-Paths: <y@example.com>\r\nReturn-Path-Id: 1\r\n" + rest, "");
+
+      // The forms a path takes.
+      ExpectPath_("first", "Return-Path: <x@example.com>\r\n" + rest, "<x@example.com>");
+      ExpectPath_("the null path", "Return-Path: <>\r\n" + rest, "<>");
+      ExpectPath_("the null path, with white space", "Return-Path:  < >  \r\n" + rest, "<>");
+      ExpectPath_("a bare address", "Return-Path: x@example.com\r\n" + rest, "<x@example.com>");
+      ExpectPath_("an obsolete route", "Return-Path: <@relay.example.net,@hop.example.net:x@example.com>\r\n" + rest, "<x@example.com>");
+      ExpectPath_("an obsolete route, white space after it", "Return-Path: <@relay.example.net: x@example.com >\r\n" + rest, "<x@example.com>");
+      ExpectPath_("comments", "Return-Path: (bounce (nested) \\) handler) <x@example.com> (via the list)\r\n" + rest, "<x@example.com>");
+      ExpectPath_("no space after the colon", "Return-Path:<x@example.com>\r\n" + rest, "<x@example.com>");
+      ExpectPath_("folded", "Return-Path:\r\n <x@example.com>\r\n\t(folded)\r\n" + rest, "<x@example.com>");
+      ExpectPath_("the name in lower case, white space before the colon", "return-path \t: <x@example.com>\r\n" + rest, "<x@example.com>");
+      ExpectPath_("bare LF lines", "Return-Path: <x@example.com>\nFrom: a\n\n", "<x@example.com>");
+      ExpectPath_("a quoted local part", "Return-Path: <\"x y\\\"z\"@example.com>\r\n" + rest, "<\"x y\\\"z\"@example.com>");
+      ExpectPath_("a domain literal", "Return-Path: <x@[192.0.2.1]>\r\n" + rest, "<x@[192.0.2.1]>");
+      ExpectPath_("UTF-8", "Return-Path: <j\xC3\xB8rn@\xC3\xA6x.example>\r\n" + rest, "<j\xC3\xB8rn@\xC3\xA6x.example>");
+      ExpectPath_("the stream ends after the value", "Return-Path: <x@example.com>", "<x@example.com>");
+
+      // The topmost one: in Gmail's layout, under its own Received fields and over
+      // the ones the message came in with; and the first of two.
+      ExpectPath_("under Received fields",
+         "X-hMailServer-ExternalAccount: collected\r\n"
+         "Delivered-To: someone@gmail.example\r\n"
+         "Received: by 2002:a05:6000:1a8c with SMTP id x1;\r\n"
+         "        Mon, 12 Oct 2026 10:00:00 -0700 (PDT)\r\n"
+         "X-Received: by 2002:a05:6000:1a8c with SMTP id y2; Mon, 12 Oct 2026 10:00:00 -0700 (PDT)\r\n"
+         "Return-Path: <bounce@lists.example.org>\r\n"
+         "Received: from mail.lists.example.org by mx.gmail.example with ESMTPS id z3\r\n"
+         "Return-Path: <upstream@example.net>\r\n" + rest,
+         "<bounce@lists.example.org>");
+      ExpectPath_("the first of two", "Return-Path: <x@example.com>\r\nReturn-Path: <y@example.com>\r\n" + rest, "<x@example.com>");
+      ExpectPath_("the first of two, folded", "Return-Path:\r\n <x@example.com>\r\nReturn-Path: <y@example.com>\r\n" + rest, "<x@example.com>");
+      ExpectPath_("the first of two, a continuation of another field first", " folded\r\nFrom: a\r\nReturn-Path: <x@example.com>\r\nReturn-Path: <y@example.com>\r\n" + rest,
+         "<x@example.com>");
+
+      // Values that are no path: not the topmost field's either, though a later
+      // one holds one.
+      ExpectPath_("a word", "Return-Path: bounce\r\n" + rest, "");
+      ExpectPath_("an empty value", "Return-Path: \r\n" + rest, "");
+      ExpectPath_("a display name", "Return-Path: Bounces <x@example.com>\r\n" + rest, "");
+      ExpectPath_("an angle bracket not closed", "Return-Path: <x@example.com\r\n" + rest, "");
+      ExpectPath_("a second angle bracket", "Return-Path: <<x@example.com>>\r\n" + rest, "");
+      ExpectPath_("something after it", "Return-Path: <x@example.com> x\r\n" + rest, "");
+      ExpectPath_("white space inside the address", "Return-Path: <x @example.com>\r\n" + rest, "");
+      ExpectPath_("no domain", "Return-Path: <x@>\r\n" + rest, "");
+      ExpectPath_("no local part", "Return-Path: <@example.com>\r\n" + rest, "");
+      ExpectPath_("a route and no address", "Return-Path: <@relay.example.net:>\r\n" + rest, "");
+      ExpectPath_("a route with no domain", "Return-Path: <,:x@example.com>\r\n" + rest, "");
+      ExpectPath_("white space in a domain literal", "Return-Path: <x@[192.0.2.1 ]>\r\n" + rest, "");
+      ExpectPath_("two at signs", "Return-Path: <x@@example.com>\r\n" + rest, "");
+      ExpectPath_("a dot last in the local part", "Return-Path: <x.@example.com>\r\n" + rest, "");
+      ExpectPath_("a comment not closed", "Return-Path: (bounce <x@example.com>\r\n" + rest, "");
+      ExpectPath_("a comment not closed after the path", "Return-Path: <x@example.com> (bounce\r\n" + rest, "");
+      ExpectPath_("a quoted string not closed", "Return-Path: <\"x@example.com>\r\n" + rest, "");
+      ExpectPath_("a bare CR in the value", "Return-Path: <x@example.com>\rX-Injected: 1\r\n" + rest, "");
+      ExpectPath_("a NUL in the value", std::string("Return-Path: <x@exa") + '\0' + "mple.com>\r\n" + rest, "");
+      ExpectPath_("a control character in a quoted local part", "Return-Path: <\"x\x01y\"@example.com>\r\n" + rest, "");
+      ExpectPath_("a bare CR in a comment", "Return-Path: (bounce\rX-Injected: 1) <x@example.com>\r\n" + rest, "");
+      ExpectPath_("the stream ends inside the value", "Return-Path: <x@exa", "");
+      ExpectPath_("the topmost no path, a later one a path", "Return-Path: bounce\r\nReturn-Path: <y@example.com>\r\n" + rest, "");
+
+      // Fields the filter does not take for a Return-Path field, and one too long.
+      {
+         const std::string spaces(ReturnPathFieldFilter::MaxHeldLine, ' ');
+         ExpectPath_("a line too long to judge", "Return-Path" + spaces + ": <x@example.com>\r\n" + rest, "");
+
+         const std::string comment(SpamAssassinReturnPath::MaxPathField, 'c');
+         ExpectPath_("a field too long", "Return-Path: (" + comment + ") <x@example.com>\r\n" + rest, "");
+      }
+
+      // What the scan of a collected message is sent.
+      std::string path;
+      if (!SpamAssassinReturnPath::TopmostPath("Return-Path: (list) <x@example.com>\r\n" + rest, path) ||
+          SpamAssassinReturnPath::RequestLine(path) != "Return-Path: <x@example.com>\r\n")
+         throw std::logic_error("SpamAssassinReturnPath: the line sent for a collected message's topmost Return-Path is not its path.");
    }
 }

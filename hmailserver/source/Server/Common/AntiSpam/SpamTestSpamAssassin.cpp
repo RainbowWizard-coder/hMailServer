@@ -69,8 +69,23 @@ namespace HM
       // comes back without it (SpamAssassinClient, SpamAssassinReturnPath.h). The
       // stored message is not written for it, so a scan that fails or never starts
       // leaves the message exactly as it was.
-      String sEnvelopeFrom = pTestData->GetEnvelopeFrom();
-      AnsiString sReturnPath = sEnvelopeFrom.IsEmpty() ? "<>" : "<" + sEnvelopeFrom + ">";
+      //
+      // A message collected from an external account has no envelope sender here:
+      // the one it is given is a guess from its From field. The other server's
+      // final delivery recorded the real one in the message's topmost Return-Path,
+      // and the collection hands its path over (SpamTestData::GetRecordedReturnPath),
+      // which is sent instead when there is one. Before 6.3.7 the guess was sent,
+      // above the message's own Return-Path fields, and where one of those stood
+      // under a Received field - Gmail's layout - SpamAssassin read the envelope
+      // sender from no Return-Path at all (it trusts none once a Received field
+      // stands above one).
+      AnsiString sReturnPath = pTestData->GetRecordedReturnPath();
+      if (sReturnPath.IsEmpty())
+      {
+         const String sEnvelopeFrom = pTestData->GetEnvelopeFrom();
+         const AnsiString envelopePath = sEnvelopeFrom.IsEmpty() ? "<>" : "<" + sEnvelopeFrom + ">";
+         sReturnPath = envelopePath;
+      }
 
       std::shared_ptr<IOService> pIOService = Application::Instance()->GetIOService();
 

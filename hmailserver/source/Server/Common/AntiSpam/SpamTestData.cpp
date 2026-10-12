@@ -35,6 +35,18 @@ namespace HM
       return envelope_from_;
    }
 
+   void
+   SpamTestData::SetRecordedReturnPath(const AnsiString &path)
+   {
+      recorded_return_path_ = path;
+   }
+
+   const AnsiString &
+   SpamTestData::GetRecordedReturnPath() const
+   {
+      return recorded_return_path_;
+   }
+
    void 
    SpamTestData::SetHeloHost(const String &sNewVal)
    {

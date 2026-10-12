@@ -35,6 +35,7 @@
 #include "../Common/Cache/CacheContainer.h"
 #include "../Common/AntiSpam/AntiSpamConfiguration.h"
 #include "../Common/AntiSpam/SpamProtection.h"
+#include "../Common/AntiSpam/SpamAssassin/SpamAssassinReturnPath.h"
 #include <boost/algorithm/string.hpp>
 
 #ifdef _DEBUG
@@ -232,8 +233,10 @@ namespace HM
       setSpamTestResults.insert(setResult.begin(), setResult.end());
 
       // Run PostTransmissionTests. These consists of more heavy stuff such as SURBL and SpamAssassin-
+      // SpamAssassin is sent the envelope sender the other server recorded, when
+      // the message holds one (ParseMessageHeaders_), in place of the guess.
       setResult =
-         SpamProtection::Instance()->RunPostTransmissionTests(senderAddress, ipAddress, ipAddress, current_message_);
+         SpamProtection::Instance()->RunPostTransmissionTests(senderAddress, ipAddress, ipAddress, current_message_, nullptr, recorded_return_path_);
 
       setSpamTestResults.insert(setResult.begin(), setResult.end());
       
@@ -281,6 +284,16 @@ namespace HM
       AnsiString sHeader = PersistentMessage::LoadHeader(fileName);
       std::shared_ptr<MimeHeader> pHeader = std::shared_ptr<MimeHeader>(new MimeHeader);
       pHeader->Load(sHeader, sHeader.GetLength());
+
+      // The envelope sender the other server's final delivery recorded, in the
+      // message's topmost Return-Path, for the SpamAssassin scan. The sender read
+      // from the From field below is the one every other test goes by, and it is
+      // only a guess.
+      std::string recordedPath;
+      if (SpamAssassinReturnPath::TopmostPath(sHeader, recordedPath))
+         recorded_return_path_ = recordedPath;
+      else
+         recorded_return_path_.Empty();
 
       {
          // Parse out the sender of the message. 

@@ -29,8 +29,13 @@ namespace HM
       // and DMARC are post-transmission, so a carrier scoped to one phase could only
       // ever describe part of the answer. The connection owns it for the length of the
       // message.
+      //
+      // recordedReturnPath is given for a message collected from an external
+      // account: the path of its topmost Return-Path, which the SpamAssassin scan is
+      // sent in place of sFromAddress (SpamTestData::GetRecordedReturnPath). Empty
+      // for every other message.
       std::set<std::shared_ptr<SpamTestResult> > RunPreTransmissionTests(const String &sFromAddress, const IPAddress & iOriginatingIP, const IPAddress &iConnectingIP, const String &sHeloHost, std::shared_ptr<AuthenticationResults> authenticationResults = nullptr);
-      std::set<std::shared_ptr<SpamTestResult> > RunPostTransmissionTests(const String &sFromAddress, const IPAddress & iOriginatingIP, const IPAddress &iConnectingIP, std::shared_ptr<Message> pMessage, std::shared_ptr<AuthenticationResults> authenticationResults = nullptr);
+      std::set<std::shared_ptr<SpamTestResult> > RunPostTransmissionTests(const String &sFromAddress, const IPAddress & iOriginatingIP, const IPAddress &iConnectingIP, std::shared_ptr<Message> pMessage, std::shared_ptr<AuthenticationResults> authenticationResults = nullptr, const AnsiString &recordedReturnPath = AnsiString());
 
       static std::shared_ptr<MessageData> AddSpamScoreHeaders(std::shared_ptr<Message> pMessage, std::set<std::shared_ptr<SpamTestResult> > setResult, bool classifiedAsSpam);
 

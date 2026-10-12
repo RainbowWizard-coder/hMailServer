@@ -211,8 +211,8 @@ namespace HM
          }
 
          if (requestFilter->GetRemovedFields() > 0)
-            LOG_DEBUG(Formatter::Format("SA: {0} Return-Path field(s) of the message ({1} bytes) left out of the request to SpamAssassin, which is sent the envelope sender's instead. Session {2}",
-               requestFilter->GetRemovedFields(), (__int64) requestFilter->GetRemovedBytes(), GetSessionID()));
+            LOG_DEBUG(Formatter::Format("SA: {0} Return-Path field(s) of the message ({1} bytes) left out of the request to SpamAssassin, which is sent Return-Path {2} ahead of the message instead. Session {3}",
+               requestFilter->GetRemovedFields(), (__int64) requestFilter->GetRemovedBytes(), String(return_path_), GetSessionID()));
       }
 
       bodySize = 0;
