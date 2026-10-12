@@ -762,6 +762,15 @@ def suffix_problems(resources=None):
     return problems
 
 
+def tally(captions):
+    """How many captions carry a key, how many are exempt and carry none, and how many
+    lack one: an exempt caption that carries a key is counted once, as keyed, where it
+    was counted in both and the summary said "-4 missing" (the final check of Tier 2)."""
+    covered = sum(1 for c in captions if c.key)
+    exempt = sum(1 for c in captions if c.text in EXEMPT and not c.key)
+    return covered, exempt, len(captions) - covered - exempt
+
+
 def self_test():
     """The rules against pages made to pass and to fail them, each a defect the
     Control Panel shipped (review findings F071 and F287): a field's caption with
@@ -911,6 +920,10 @@ def self_test():
         spaced = suffix_problems(resources)
         expect("a ja suffix with a space before it", [p for p in spaced if "サンプルドメインを作成" in p], True)
         expect("a ja suffix against its caption", [p for p in spaced if "サンプルドメインを削除" in p], False)
+        # an exempt caption that carries a key is counted once, and nothing is missing below zero
+        exempt_text = "Cancel"
+        counted = tally([Caption("A.xaml", 1, "A", "_" + exempt_text), Caption("A.xaml", 2, "A", exempt_text), Caption("A.xaml", 3, "A", "_Port")])
+        expect("a keyed exempt caption counted twice", [] if counted == (2, 1, 0) else [f"tally {counted}, wanted (2, 1, 0)"], False)
 
     print("self-test: " + ("FAIL" if failures else "OK"))
     return 1 if failures else 0
@@ -963,9 +976,8 @@ def main():
     if listing:
         for c in all_captions + placed:
             print(f"{location(c)}: [{c.scope}] {'Alt+' + c.key if c.key else '   -'}  {c.text}" + (f"  (from {os.path.relpath(c.file, ROOT)})" if c.via else ""))
-    covered = sum(1 for c in all_captions if c.key)
-    exempt = sum(1 for c in all_captions if c.text in EXEMPT)
-    print(f"{len(all_captions)} static captions: {covered} with a mnemonic, {exempt} exempt, {len(all_captions) - covered - exempt} missing")
+    covered, exempt, missing = tally(all_captions)
+    print(f"{len(all_captions)} static captions: {covered} with a mnemonic, {exempt} exempt, {missing} missing")
     if problems:
         # one line per problem, deduplicated, in file order
         for p in sorted(set(problems), key=lambda s: (s.split(":")[0], int(s.split(":")[1]))):
