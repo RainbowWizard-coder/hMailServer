@@ -4551,11 +4551,11 @@
   <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should." xml:space="preserve">
     <value>インデックスを空にし、インデクサーに再構築を依頼します。メールには触れません (インデックスは派生データです) が、再構築が追いつくまでは、IMAP SEARCH の検索結果が本来より少なくなります。</value>
   </data>
-  <data name="Empty means nobody, which is the safe default. Matched against the real TCP peer. An entry that does not parse matches nothing rather than everything, and is reported in the error log once per run." xml:space="preserve">
-    <value>空は「誰も許可しない」を意味し、これが安全な既定値です。実際の TCP ピアと照合されます。解析できないエントリは、すべてに一致するのではなく何にも一致せず、実行ごとに 1 回エラー ログに報告されます。</value>
+  <data name="Empty means nobody, which is the safe default." xml:space="preserve">
+    <value>空は「誰も許可しない」を意味し、これが安全な既定値です。</value>
   </data>
-  <data name="Empty means nobody. XCLIENT is not even advertised in EHLO to an upstream that is not listed here, so an attacker learns nothing about the deployment by asking." xml:space="preserve">
-    <value>空は「誰も許可しない」を意味します。ここに列挙されていない上流には XCLIENT は EHLO で告知すらされないため、攻撃者が問い合わせても、この構成について何も知ることはできません。</value>
+  <data name="Empty means nobody." xml:space="preserve">
+    <value>空は「誰も許可しない」を意味します。</value>
   </data>
   <data name="Empty means postmaster at this server's host name." xml:space="preserve">
     <value>空の場合は、このサーバーのホスト名の postmaster です。</value>
@@ -5409,9 +5409,6 @@
   <data name="For the members" xml:space="preserve">
     <value>メンバー向けに</value>
   </data>
-  <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
-    <value>このサーバーの外で取得したトークン用です。通常の使用では空のままにしてください。固定トークンは期限が切れ、ここにあるものは何も更新しません。</value>
-  </data>
   <data name="Forum" xml:space="preserve">
     <value>フォーラム</value>
   </data>
@@ -6132,8 +6129,8 @@
   <data name="Insert template…" xml:space="preserve">
     <value>テンプレートを挿入…</value>
   </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>この時間帯の中では、スケジュールされたタスクが、検証済みのインストーラーをクリックなしで適用します。サービスが停止し、ファイルとスキーマがアップグレードされ、サービスが開始され、その結果はログ、Windows イベント ログ、および上のカードに報告されます。サービスが戻ってこない場合は、以前のインストーラーへロールバックされます (新しいバージョンがすでにデータベースを変更している場合を除きます)。</value>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above." xml:space="preserve">
+    <value>この時間帯の中では、スケジュールされたタスクが、検証済みのインストーラーをクリックなしで適用します。サービスが停止し、ファイルとスキーマがアップグレードされ、サービスが開始され、その結果はログ、Windows イベント ログ、および上のカードに報告されます。</value>
   </data>
   <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>今すぐ更新プログラムをインストールしますか?
@@ -6446,8 +6443,14 @@
   <data name="Leave empty for any address" xml:space="preserve">
     <value>どのアドレスからも使えるようにするには空のままにします</value>
   </data>
+  <data name="Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
+    <value>通常の使用では空のままにしてください。固定トークンは期限が切れ、ここにあるものは何も更新しません。</value>
+  </data>
   <data name="Leave empty to keep the current password." xml:space="preserve">
     <value>現在のパスワードを維持するには空のままにします。</value>
+  </data>
+  <data name="Leave empty unless spamd has been set up for it: a spamd told to change to a user it cannot find may refuse the scan, and an unscanned message is delivered as if SpamAssassin were unreachable." xml:space="preserve">
+    <value>spamd がそのように設定されていない限り空のままにしてください。見つからないユーザーに切り替えるよう指示された spamd はスキャンを拒否することがあり、スキャンされなかったメッセージは SpamAssassin に到達できなかった場合と同じように配信されます。</value>
   </data>
   <data name="Leave the host empty and the domain has no opinion: the server-wide smart host applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination." xml:space="preserve">
     <value>ホストを空のままにすると、ドメインは何も指定しません: この設定が存在する前とまったく同じように、サーバー全体のスマート ホストが適用されます。ルートは依然としてどちらにも優先します。ルートは宛先についての宣言だからです。</value>
@@ -9119,8 +9122,8 @@
   <data name="Periodically cross-check message rows against files on disk" xml:space="preserve">
     <value>メッセージの行とディスク上のファイルを定期的に突き合わせる</value>
   </data>
-  <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters. Empty, the default, is an account-number detector that never fires. A pattern the server cannot compile is refused." xml:space="preserve">
-    <value>Perl の構文で、メッセージの本文とテキストの添付ファイルを検索します。最大 2000 文字。既定の空は、一致することのない口座番号の検出です。サーバーがコンパイルできないパターンは拒否されます。</value>
+  <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters." xml:space="preserve">
+    <value>Perl の構文で、メッセージの本文とテキストの添付ファイルを検索します。最大 2000 文字。</value>
   </data>
   <data name="Permissions" xml:space="preserve">
     <value>権限</value>
@@ -13364,9 +13367,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The metrics bind address is not a plain IPv4 address (host names and IPv6 are not accepted here), so the metrics listener will not start at all." xml:space="preserve">
     <value>メトリクスのバインド アドレスが通常の IPv4 アドレスではないため (ここではホスト名と IPv6 は受け付けられません)、メトリクス リスナーはまったく起動しません。</value>
-  </data>
-  <data name="The name spamd looks up its per-user preferences for - a user_prefs file or a row in its SQL preference store. Leave empty unless spamd has been set up for it: a spamd told to change to a user it cannot find may refuse the scan, and an unscanned message is delivered as if SpamAssassin were unreachable." xml:space="preserve">
-    <value>spamd がユーザーごとの設定を検索する名前です。user_prefs ファイル、または SQL 設定ストアの行です。spamd がそのように設定されていない限り空のままにしてください。見つからないユーザーに切り替えるよう指示された spamd はスキャンを拒否することがあり、スキャンされなかったメッセージは SpamAssassin に到達できなかった場合と同じように配信されます。</value>
   </data>
   <data name="The named domains are on the domain's dialog." xml:space="preserve">
     <value>指定ドメインはドメインのダイアログにあります。</value>

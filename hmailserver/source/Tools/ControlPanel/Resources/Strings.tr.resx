@@ -4540,11 +4540,11 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should." xml:space="preserve">
     <value>İndeksi boşaltır ve indeksleyiciden yeniden oluşturmasını ister. Postaya dokunulmaz - indeks türetilmiş veridir - ama yeniden oluşturma yetişene kadar IMAP SEARCH bulması gerekenden azını bulur.</value>
   </data>
-  <data name="Empty means nobody, which is the safe default. Matched against the real TCP peer. An entry that does not parse matches nothing rather than everything, and is reported in the error log once per run." xml:space="preserve">
-    <value>Boş, hiç kimse demektir; güvenli varsayılan budur. Gerçek TCP eşine karşı eşleştirilir. Ayrıştırılamayan bir girdi her şeyle değil hiçbir şeyle eşleşir ve her çalışmada bir kez hata günlüğüne bildirilir.</value>
+  <data name="Empty means nobody, which is the safe default." xml:space="preserve">
+    <value>Boş, hiç kimse demektir; güvenli varsayılan budur.</value>
   </data>
-  <data name="Empty means nobody. XCLIENT is not even advertised in EHLO to an upstream that is not listed here, so an attacker learns nothing about the deployment by asking." xml:space="preserve">
-    <value>Boş, hiç kimse demektir. Burada listelenmeyen bir üst sunucuya XCLIENT, EHLO'da duyurulmaz bile; bu yüzden bir saldırgan sorarak kurulum hakkında hiçbir şey öğrenemez.</value>
+  <data name="Empty means nobody." xml:space="preserve">
+    <value>Boş, hiç kimse demektir.</value>
   </data>
   <data name="Empty means postmaster at this server's host name." xml:space="preserve">
     <value>Boş, bu sunucunun ana bilgisayar adındaki postmaster anlamına gelir.</value>
@@ -5398,9 +5398,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="For the members" xml:space="preserve">
     <value>Üyeler için</value>
   </data>
-  <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
-    <value>Bu sunucunun dışında alınan belirteçler için. Olağan kullanımda boş bırakın - sabit belirteçlerin süresi dolar ve buradaki hiçbir şey onları yenilemez.</value>
-  </data>
   <data name="Forum" xml:space="preserve">
     <value>Forum</value>
   </data>
@@ -6121,8 +6118,8 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Insert template…" xml:space="preserve">
     <value>Şablon ekle…</value>
   </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>Pencerenin içinde, zamanlanmış görev doğrulanmış bir kurulum programını tıklamaya gerek kalmadan uygular: hizmet durur, dosyalar ve şema yükseltilir, hizmet başlar ve sonuç günlüğe, Windows olay günlüğüne ve yukarıdaki karta gider. Geri gelmeyen bir hizmet, önceki kurulum programına geri alınır; yeni sürüm veritabanını zaten değiştirdiyse alınmaz.</value>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above." xml:space="preserve">
+    <value>Pencerenin içinde, zamanlanmış görev doğrulanmış bir kurulum programını tıklamaya gerek kalmadan uygular: hizmet durur, dosyalar ve şema yükseltilir, hizmet başlar ve sonuç günlüğe, Windows olay günlüğüne ve yukarıdaki karta gider.</value>
   </data>
   <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>Güncelleştirme şimdi yüklensin mi?
@@ -6435,8 +6432,14 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Leave empty for any address" xml:space="preserve">
     <value>Herhangi bir adres için boş bırakın</value>
   </data>
+  <data name="Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
+    <value>Olağan kullanımda boş bırakın - sabit belirteçlerin süresi dolar ve buradaki hiçbir şey onları yenilemez.</value>
+  </data>
   <data name="Leave empty to keep the current password." xml:space="preserve">
     <value>Geçerli parolayı korumak için boş bırakın.</value>
+  </data>
+  <data name="Leave empty unless spamd has been set up for it: a spamd told to change to a user it cannot find may refuse the scan, and an unscanned message is delivered as if SpamAssassin were unreachable." xml:space="preserve">
+    <value>spamd bunun için ayarlanmadıysa boş bırakın: bulamadığı bir kullanıcıya geçmesi söylenen bir spamd taramayı reddedebilir ve taranmamış bir ileti, SpamAssassin'e ulaşılamıyormuş gibi teslim edilir.</value>
   </data>
   <data name="Leave the host empty and the domain has no opinion: the server-wide smart host applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination." xml:space="preserve">
     <value>Ana bilgisayarı boş bırakın; etki alanının bir görüşü olmaz: bu ayar var olmadan önce olduğu gibi, sunucu geneli akıllı ana bilgisayar uygulanır. Bir rota yine ikisine de üstün gelir, çünkü rota hedef hakkında bir ifadedir.</value>
@@ -9108,8 +9111,8 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="Periodically cross-check message rows against files on disk" xml:space="preserve">
     <value>İleti satırlarını diskteki dosyalarla düzenli aralıklarla çapraz denetle</value>
   </data>
-  <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters. Empty, the default, is an account-number detector that never fires. A pattern the server cannot compile is refused." xml:space="preserve">
-    <value>Perl söz dizimi; bir iletinin metninde ve metin eklerinde aranır, en fazla 2000 karakter. Boş, varsayılan, hiç eşleşmeyen bir hesap numarası algılayıcısıdır. Sunucunun derleyemediği bir desen reddedilir.</value>
+  <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters." xml:space="preserve">
+    <value>Perl söz dizimi; bir iletinin metninde ve metin eklerinde aranır, en fazla 2000 karakter.</value>
   </data>
   <data name="Permissions" xml:space="preserve">
     <value>İzinler</value>
@@ -13353,9 +13356,6 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   </data>
   <data name="The metrics bind address is not a plain IPv4 address (host names and IPv6 are not accepted here), so the metrics listener will not start at all." xml:space="preserve">
     <value>Ölçüm bağlama adresi düz bir IPv4 adresi değil (burada ana bilgisayar adları ve IPv6 kabul edilmez); bu yüzden ölçüm dinleyicisi hiç başlamaz.</value>
-  </data>
-  <data name="The name spamd looks up its per-user preferences for - a user_prefs file or a row in its SQL preference store. Leave empty unless spamd has been set up for it: a spamd told to change to a user it cannot find may refuse the scan, and an unscanned message is delivered as if SpamAssassin were unreachable." xml:space="preserve">
-    <value>spamd'nin kullanıcı başına tercihlerini aradığı ad - bir user_prefs dosyası veya SQL tercih deposundaki bir satır. spamd bunun için ayarlanmadıysa boş bırakın: bulamadığı bir kullanıcıya geçmesi söylenen bir spamd taramayı reddedebilir ve taranmamış bir ileti, SpamAssassin'e ulaşılamıyormuş gibi teslim edilir.</value>
   </data>
   <data name="The named domains are on the domain's dialog." xml:space="preserve">
     <value>Belirtilen etki alanları etki alanının iletişim kutusundadır.</value>

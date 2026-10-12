@@ -52,6 +52,24 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(offenders.Count == 0, "These hints run past two sentences; keep what the setting does and its safe value, and move the rest to docs/SettingsReasons.md:\n" + string.Join("\n", offenders));
       }
 
+      /// <summary>
+      /// A hint made of two texts, Sentences(L(a), L(b)), is the two together: the Updates
+      /// page's Unattended window, the PROXY and XCLIENT upstreams, the smart host's fixed
+      /// token, the account-number pattern and SpamAssassin's profile ran to three and four
+      /// though each of their texts passed alone.
+      /// </summary>
+      [Theory]
+      [InlineData("ServerSettingsView.xaml.cs", 4)]
+      [InlineData("FeatureSettingsView.xaml.cs", 4)]
+      public void EveryHintOfTwoTexts_IsTwoSentencesAtMost(string file, int fewest)
+      {
+         var hints = Regex.Matches(View(file), @"\b(?:Blurb|Hint)\s*=\s*Sentences\(L\(" + Literal + @"\),\s*L\(" + Literal + @"\)\)")
+            .Select(m => m.Groups[1].Value + " " + m.Groups[2].Value).ToList();
+         Assert.True(hints.Count >= fewest, "Only " + hints.Count + " hints of two texts were read from " + file + ".");
+         var offenders = hints.Where(hint => Sentences(hint) > 2).Select(hint => Sentences(hint) + " sentences: " + hint).ToList();
+         Assert.True(offenders.Count == 0, "These hints run past two sentences:\n" + string.Join("\n", offenders));
+      }
+
       [Theory]
       [InlineData("Where the search starts, e.g. DC=example,DC=local. Required in search mode.", 2)]
       [InlineData("Off by default. Turn on only on a domain-joined host. A third.", 3)]

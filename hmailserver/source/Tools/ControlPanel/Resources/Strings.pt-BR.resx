@@ -4540,11 +4540,11 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should." xml:space="preserve">
     <value>Esvazia o índice e pede ao indexador que o reconstrua. Nenhum e-mail é tocado - o índice é dado derivado - mas até a reconstrução alcançar, o IMAP SEARCH encontra menos do que deveria.</value>
   </data>
-  <data name="Empty means nobody, which is the safe default. Matched against the real TCP peer. An entry that does not parse matches nothing rather than everything, and is reported in the error log once per run." xml:space="preserve">
-    <value>Vazio significa ninguém, que é o padrão seguro. Comparado com o peer TCP real. Uma entrada que não é interpretável não corresponde a nada em vez de a tudo, e é informada no log de erros uma vez por execução.</value>
+  <data name="Empty means nobody, which is the safe default." xml:space="preserve">
+    <value>Vazio significa ninguém, que é o padrão seguro.</value>
   </data>
-  <data name="Empty means nobody. XCLIENT is not even advertised in EHLO to an upstream that is not listed here, so an attacker learns nothing about the deployment by asking." xml:space="preserve">
-    <value>Vazio significa ninguém. O XCLIENT nem sequer é anunciado no EHLO a um upstream que não esteja listado aqui, então um atacante não aprende nada sobre a instalação perguntando.</value>
+  <data name="Empty means nobody." xml:space="preserve">
+    <value>Vazio significa ninguém.</value>
   </data>
   <data name="Empty means postmaster at this server's host name." xml:space="preserve">
     <value>Vazio significa postmaster no nome de host deste servidor.</value>
@@ -5398,9 +5398,6 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="For the members" xml:space="preserve">
     <value>Para os membros</value>
   </data>
-  <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
-    <value>Para tokens obtidos fora deste servidor. Deixe vazio no uso normal - tokens fixos expiram e nada aqui os renovará.</value>
-  </data>
   <data name="Forum" xml:space="preserve">
     <value>Fórum</value>
   </data>
@@ -6121,8 +6118,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Insert template…" xml:space="preserve">
     <value>Inserir modelo…</value>
   </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>Dentro da janela, a tarefa agendada aplica um instalador validado sem um clique: o serviço para, os arquivos e o esquema são atualizados, o serviço inicia, e o resultado vai para o log, o log de eventos do Windows e o cartão acima. Um serviço que não volta é revertido para o instalador anterior, a menos que a nova versão já tenha alterado o banco de dados.</value>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above." xml:space="preserve">
+    <value>Dentro da janela, a tarefa agendada aplica um instalador validado sem um clique: o serviço para, os arquivos e o esquema são atualizados, o serviço inicia, e o resultado vai para o log, o log de eventos do Windows e o cartão acima.</value>
   </data>
   <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>Instalar a atualização agora?
@@ -6435,8 +6432,14 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="Leave empty for any address" xml:space="preserve">
     <value>Deixe em branco para qualquer endereço</value>
   </data>
+  <data name="Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
+    <value>Deixe vazio no uso normal - tokens fixos expiram e nada aqui os renovará.</value>
+  </data>
   <data name="Leave empty to keep the current password." xml:space="preserve">
     <value>Deixe em branco para manter a senha atual.</value>
+  </data>
+  <data name="Leave empty unless spamd has been set up for it: a spamd told to change to a user it cannot find may refuse the scan, and an unscanned message is delivered as if SpamAssassin were unreachable." xml:space="preserve">
+    <value>Deixe vazio a menos que o spamd tenha sido configurado para ele: um spamd instruído a mudar para um usuário que não encontra pode recusar a verificação, e uma mensagem não verificada é entregue como se o SpamAssassin estivesse inacessível.</value>
   </data>
   <data name="Leave the host empty and the domain has no opinion: the server-wide smart host applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination." xml:space="preserve">
     <value>Deixe o host vazio e o domínio não opina: vale o smart host de todo o servidor, exatamente como valia antes de esta configuração existir. Uma rota ainda vence os dois, porque uma rota é uma afirmação sobre o destino.</value>
@@ -9108,8 +9111,8 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="Periodically cross-check message rows against files on disk" xml:space="preserve">
     <value>Conferir periodicamente as linhas de mensagens contra os arquivos em disco</value>
   </data>
-  <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters. Empty, the default, is an account-number detector that never fires. A pattern the server cannot compile is refused." xml:space="preserve">
-    <value>Sintaxe Perl, procurada no texto de uma mensagem e nos anexos de texto dela, até 2000 caracteres. Vazio, o padrão, é um detector de número de conta que nunca dispara. Um padrão que o servidor não consegue compilar é recusado.</value>
+  <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters." xml:space="preserve">
+    <value>Sintaxe Perl, procurada no texto de uma mensagem e nos anexos de texto dela, até 2000 caracteres.</value>
   </data>
   <data name="Permissions" xml:space="preserve">
     <value>Permissões</value>
@@ -13353,9 +13356,6 @@ não pôde ser carregado. A mensagem provavelmente já foi entregue e não está
   </data>
   <data name="The metrics bind address is not a plain IPv4 address (host names and IPv6 are not accepted here), so the metrics listener will not start at all." xml:space="preserve">
     <value>O endereço de vínculo das métricas não é um endereço IPv4 simples (nomes de host e IPv6 não são aceitos aqui), então o ouvinte de métricas não iniciará de forma alguma.</value>
-  </data>
-  <data name="The name spamd looks up its per-user preferences for - a user_prefs file or a row in its SQL preference store. Leave empty unless spamd has been set up for it: a spamd told to change to a user it cannot find may refuse the scan, and an unscanned message is delivered as if SpamAssassin were unreachable." xml:space="preserve">
-    <value>O nome sob o qual o spamd busca suas preferências por usuário - um arquivo user_prefs ou uma linha em seu repositório SQL de preferências. Deixe vazio a menos que o spamd tenha sido configurado para ele: um spamd instruído a mudar para um usuário que não encontra pode recusar a verificação, e uma mensagem não verificada é entregue como se o SpamAssassin estivesse inacessível.</value>
   </data>
   <data name="The named domains are on the domain's dialog." xml:space="preserve">
     <value>Os domínios indicados estão no diálogo do domínio.</value>

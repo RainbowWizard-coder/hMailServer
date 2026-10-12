@@ -4540,11 +4540,11 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should." xml:space="preserve">
     <value>Tømmer indeksen og ber indeksereren bygge den på nytt. Ingen post røres - indeksen er utledede data - men til gjenoppbyggingen har tatt igjen, finner IMAP SEARCH mindre enn den burde.</value>
   </data>
-  <data name="Empty means nobody, which is the safe default. Matched against the real TCP peer. An entry that does not parse matches nothing rather than everything, and is reported in the error log once per run." xml:space="preserve">
-    <value>Tom betyr ingen, som er den trygge standarden. Sammenlignes med den ekte TCP-motparten. En oppføring som ikke kan tolkes, samsvarer med ingenting i stedet for alt, og rapporteres i feilloggen én gang per kjøring.</value>
+  <data name="Empty means nobody, which is the safe default." xml:space="preserve">
+    <value>Tom betyr ingen, som er den trygge standarden.</value>
   </data>
-  <data name="Empty means nobody. XCLIENT is not even advertised in EHLO to an upstream that is not listed here, so an attacker learns nothing about the deployment by asking." xml:space="preserve">
-    <value>Tom betyr ingen. XCLIENT annonseres ikke engang i EHLO til en oppstrømsserver som ikke er oppført her, så en angriper lærer ingenting om oppsettet ved å spørre.</value>
+  <data name="Empty means nobody." xml:space="preserve">
+    <value>Tom betyr ingen.</value>
   </data>
   <data name="Empty means postmaster at this server's host name." xml:space="preserve">
     <value>Tomt betyr postmaster på serverens vertsnavn.</value>
@@ -5398,9 +5398,6 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="For the members" xml:space="preserve">
     <value>For medlemmene</value>
   </data>
-  <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
-    <value>For token skaffet utenfor denne serveren. La stå tomt ved normal bruk - faste token utløper, og ingenting her vil fornye dem.</value>
-  </data>
   <data name="Forum" xml:space="preserve">
     <value>Forum</value>
   </data>
@@ -6121,8 +6118,8 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Insert template…" xml:space="preserve">
     <value>Sett inn mal…</value>
   </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>Innenfor vinduet installerer den planlagte oppgaven et verifisert installasjonsprogram uten et klikk: tjenesten stoppes, filer og skjema oppgraderes, tjenesten startes, og utfallet går til loggen, Windows-hendelsesloggen og kortet ovenfor. En tjeneste som ikke kommer tilbake, rulles tilbake til det forrige installasjonsprogrammet, med mindre den nye versjonen allerede har endret databasen.</value>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above." xml:space="preserve">
+    <value>Innenfor vinduet installerer den planlagte oppgaven et verifisert installasjonsprogram uten et klikk: tjenesten stoppes, filer og skjema oppgraderes, tjenesten startes, og utfallet går til loggen, Windows-hendelsesloggen og kortet ovenfor.</value>
   </data>
   <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>Installere oppdateringen nå?
@@ -6435,8 +6432,14 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Leave empty for any address" xml:space="preserve">
     <value>La stå tomt for enhver adresse</value>
   </data>
+  <data name="Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
+    <value>La stå tomt ved normal bruk - faste token utløper, og ingenting her vil fornye dem.</value>
+  </data>
   <data name="Leave empty to keep the current password." xml:space="preserve">
     <value>La feltet stå tomt for å beholde det nåværende passordet.</value>
+  </data>
+  <data name="Leave empty unless spamd has been set up for it: a spamd told to change to a user it cannot find may refuse the scan, and an unscanned message is delivered as if SpamAssassin were unreachable." xml:space="preserve">
+    <value>La stå tomt med mindre spamd er satt opp for det: en spamd som blir bedt om å bytte til en bruker den ikke finner, kan nekte skanningen, og en uskannet melding leveres som om SpamAssassin ikke kunne nås.</value>
   </data>
   <data name="Leave the host empty and the domain has no opinion: the server-wide smart host applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination." xml:space="preserve">
     <value>La verten stå tom, og domenet har ingen mening: den serveromfattende smart host-en gjelder, akkurat som før denne innstillingen fantes. En rute vinner fortsatt over begge, fordi en rute er en uttalelse om målet.</value>
@@ -9108,8 +9111,8 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   <data name="Periodically cross-check message rows against files on disk" xml:space="preserve">
     <value>Kryssjekk meldingsrader mot filer på disk med jevne mellomrom</value>
   </data>
-  <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters. Empty, the default, is an account-number detector that never fires. A pattern the server cannot compile is refused." xml:space="preserve">
-    <value>Perl-syntaks, søkt i en meldings tekst og tekstvedleggene, opptil 2000 tegn. Tomt, standard, er en kontonummerdetektor som aldri slår til. Et mønster serveren ikke kan kompilere, avvises.</value>
+  <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters." xml:space="preserve">
+    <value>Perl-syntaks, søkt i en meldings tekst og tekstvedleggene, opptil 2000 tegn.</value>
   </data>
   <data name="Permissions" xml:space="preserve">
     <value>Tillatelser</value>
@@ -13353,9 +13356,6 @@ kunne ikke lastes. Meldingen er sannsynligvis levert og ikke lenger i køen.</va
   </data>
   <data name="The metrics bind address is not a plain IPv4 address (host names and IPv6 are not accepted here), so the metrics listener will not start at all." xml:space="preserve">
     <value>Bindingsadressen for metrikker er ikke en vanlig IPv4-adresse (vertsnavn og IPv6 godtas ikke her), så metrikklytteren starter ikke i det hele tatt.</value>
-  </data>
-  <data name="The name spamd looks up its per-user preferences for - a user_prefs file or a row in its SQL preference store. Leave empty unless spamd has been set up for it: a spamd told to change to a user it cannot find may refuse the scan, and an unscanned message is delivered as if SpamAssassin were unreachable." xml:space="preserve">
-    <value>Navnet spamd slår opp per-bruker-innstillingene sine for - en user_prefs-fil eller en rad i SQL-innstillingslageret. La stå tomt med mindre spamd er satt opp for det: en spamd som blir bedt om å bytte til en bruker den ikke finner, kan nekte skanningen, og en uskannet melding leveres som om SpamAssassin ikke kunne nås.</value>
   </data>
   <data name="The named domains are on the domain's dialog." xml:space="preserve">
     <value>De navngitte domenene står i domenets dialog.</value>

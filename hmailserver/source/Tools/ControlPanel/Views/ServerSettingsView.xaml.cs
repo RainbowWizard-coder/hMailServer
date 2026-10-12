@@ -2533,7 +2533,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "OutboundOAuth2FixedToken",
             Label = L("Fixed token"),
-            Blurb = Sentences(L("Advanced: it is sent as it is, in place of a token the server fetches."), L("For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them.")),
+            Blurb = Sentences(L("Advanced: it is sent as it is, in place of a token the server fetches."), L("Leave empty in normal use - fixed tokens expire and nothing here will refresh them.")),
             IniStore = iniStore_
          });
          // The collecting half of the same Microsoft 365 story, and it was the one
@@ -2574,7 +2574,7 @@ namespace hMailServer.ControlPanel.Views
             Label = L("Account-number pattern (empty = none)"),
             Key = "dlp_account_number_pattern",
             Placeholder = "ACC-\\d{8}", // no-loc
-            Blurb = Sentences(L("A regular expression."), L("Perl syntax, searched in a message's text and its text attachments, up to 2000 characters. Empty, the default, is an account-number detector that never fires. A pattern the server cannot compile is refused."))
+            Blurb = Sentences(L("A regular expression."), L("Perl syntax, searched in a message's text and its text attachments, up to 2000 characters."))
          });
          Tab(L("Rules")).Cards.Add(sensitive);
 
@@ -3020,7 +3020,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "SpamAssassinUser",
             Label = L("Profile to scan as (empty = spamd's global configuration)"),
-            Blurb = Sentences(L("It is sent as spamd's User: header."), L("The name spamd looks up its per-user preferences for - a user_prefs file or a row in its SQL preference store. Leave empty unless spamd has been set up for it: a spamd told to change to a user it cannot find may refuse the scan, and an unscanned message is delivered as if SpamAssassin were unreachable.")),
+            Blurb = Sentences(L("It is sent as spamd's User: header."), L("Leave empty unless spamd has been set up for it: a spamd told to change to a user it cannot find may refuse the scan, and an unscanned message is delivered as if SpamAssassin were unreachable.")),
             IniStore = iniStore_
          });
          sa.Settings.Add(new IniBool

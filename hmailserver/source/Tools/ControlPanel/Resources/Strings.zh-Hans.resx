@@ -4540,11 +4540,11 @@
   <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should." xml:space="preserve">
     <value>清空索引并要求索引器重建。不会触及任何邮件 - 索引是派生数据 - 但在重建赶上进度之前，IMAP SEARCH 找到的结果会比应有的少。</value>
   </data>
-  <data name="Empty means nobody, which is the safe default. Matched against the real TCP peer. An entry that does not parse matches nothing rather than everything, and is reported in the error log once per run." xml:space="preserve">
-    <value>留空表示无人，这是安全的默认值。与真实的 TCP 对端进行匹配。无法解析的条目不会匹配任何东西，而不是匹配所有东西，并且每次运行会在错误日志中报告一次。</value>
+  <data name="Empty means nobody, which is the safe default." xml:space="preserve">
+    <value>留空表示无人，这是安全的默认值。</value>
   </data>
-  <data name="Empty means nobody. XCLIENT is not even advertised in EHLO to an upstream that is not listed here, so an attacker learns nothing about the deployment by asking." xml:space="preserve">
-    <value>留空表示无人。对于未列在此处的上游，甚至不会在 EHLO 中通告 XCLIENT，因此攻击者无法通过询问来了解部署情况。</value>
+  <data name="Empty means nobody." xml:space="preserve">
+    <value>留空表示无人。</value>
   </data>
   <data name="Empty means postmaster at this server's host name." xml:space="preserve">
     <value>空表示本服务器主机名上的 postmaster。</value>
@@ -5398,9 +5398,6 @@
   <data name="For the members" xml:space="preserve">
     <value>面向成员</value>
   </data>
-  <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
-    <value>用于在本服务器之外获取的令牌。正常使用时请留空 - 固定令牌会过期，而此处不会刷新它们。</value>
-  </data>
   <data name="Forum" xml:space="preserve">
     <value>论坛</value>
   </data>
@@ -6121,8 +6118,8 @@
   <data name="Insert template…" xml:space="preserve">
     <value>插入模板…</value>
   </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>在该窗口内，计划任务无需点击即可安装经过验证的安装程序：服务停止，文件和数据库架构升级，服务启动，结果写入日志、Windows 事件日志和上方的卡片。未能恢复运行的服务会回滚到上一个安装程序（除非新版本已更改了数据库）。</value>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above." xml:space="preserve">
+    <value>在该窗口内，计划任务无需点击即可安装经过验证的安装程序：服务停止，文件和数据库架构升级，服务启动，结果写入日志、Windows 事件日志和上方的卡片。</value>
   </data>
   <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>是否立即安装更新？
@@ -6435,8 +6432,14 @@
   <data name="Leave empty for any address" xml:space="preserve">
     <value>留空表示任意地址均可</value>
   </data>
+  <data name="Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
+    <value>正常使用时请留空 - 固定令牌会过期，而此处不会刷新它们。</value>
+  </data>
   <data name="Leave empty to keep the current password." xml:space="preserve">
     <value>留空以保留当前密码。</value>
+  </data>
+  <data name="Leave empty unless spamd has been set up for it: a spamd told to change to a user it cannot find may refuse the scan, and an unscanned message is delivered as if SpamAssassin were unreachable." xml:space="preserve">
+    <value>除非 spamd 已为此配置，否则请留空: 被要求切换到一个它找不到的用户的 spamd 可能会拒绝扫描，而未扫描的邮件会像 SpamAssassin 不可达时一样被投递。</value>
   </data>
   <data name="Leave the host empty and the domain has no opinion: the server-wide smart host applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination." xml:space="preserve">
     <value>主机留空则该域不表态：应用服务器范围的智能主机，与此设置出现之前完全一样。路由仍然优先于两者，因为路由是关于目标的声明。</value>
@@ -9108,8 +9111,8 @@
   <data name="Periodically cross-check message rows against files on disk" xml:space="preserve">
     <value>定期把邮件行与磁盘上的文件交叉核对</value>
   </data>
-  <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters. Empty, the default, is an account-number detector that never fires. A pattern the server cannot compile is refused." xml:space="preserve">
-    <value>Perl 语法，在邮件正文及其文本附件中搜索，最多 2000 个字符。默认为空，即一个永远不会匹配的账号检测器。服务器无法编译的模式会被拒绝。</value>
+  <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters." xml:space="preserve">
+    <value>Perl 语法，在邮件正文及其文本附件中搜索，最多 2000 个字符。</value>
   </data>
   <data name="Permissions" xml:space="preserve">
     <value>权限</value>
@@ -13353,9 +13356,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The metrics bind address is not a plain IPv4 address (host names and IPv6 are not accepted here), so the metrics listener will not start at all." xml:space="preserve">
     <value>指标绑定地址不是纯 IPv4 地址 (此处不接受主机名和 IPv6)，因此指标监听器根本不会启动。</value>
-  </data>
-  <data name="The name spamd looks up its per-user preferences for - a user_prefs file or a row in its SQL preference store. Leave empty unless spamd has been set up for it: a spamd told to change to a user it cannot find may refuse the scan, and an unscanned message is delivered as if SpamAssassin were unreachable." xml:space="preserve">
-    <value>spamd 用来查找其每用户首选项的名称 - user_prefs 文件或其 SQL 首选项存储中的一行。除非 spamd 已为此配置，否则请留空: 被要求切换到一个它找不到的用户的 spamd 可能会拒绝扫描，而未扫描的邮件会像 SpamAssassin 不可达时一样被投递。</value>
   </data>
   <data name="The named domains are on the domain's dialog." xml:space="preserve">
     <value>指定的域在域的对话框中设置。</value>

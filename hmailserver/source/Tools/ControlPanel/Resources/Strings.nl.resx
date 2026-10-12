@@ -4540,11 +4540,11 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should." xml:space="preserve">
     <value>Leegt de index en vraagt de indexer hem opnieuw op te bouwen. Er wordt geen mail aangeraakt - de index is afgeleide gegevens - maar totdat het opnieuw opbouwen is bijgewerkt, vindt IMAP SEARCH minder dan zou moeten.</value>
   </data>
-  <data name="Empty means nobody, which is the safe default. Matched against the real TCP peer. An entry that does not parse matches nothing rather than everything, and is reported in the error log once per run." xml:space="preserve">
-    <value>Leeg betekent niemand, wat de veilige standaard is. Wordt vergeleken met de echte TCP-peer. Een vermelding die niet kan worden ontleed komt met niets overeen in plaats van met alles, en wordt eenmaal per run in het foutenlogboek gemeld.</value>
+  <data name="Empty means nobody, which is the safe default." xml:space="preserve">
+    <value>Leeg betekent niemand, wat de veilige standaard is.</value>
   </data>
-  <data name="Empty means nobody. XCLIENT is not even advertised in EHLO to an upstream that is not listed here, so an attacker learns nothing about the deployment by asking." xml:space="preserve">
-    <value>Leeg betekent niemand. XCLIENT wordt niet eens in EHLO aangekondigd aan een upstream die hier niet is vermeld, zodat een aanvaller door ernaar te vragen niets over de opstelling te weten komt.</value>
+  <data name="Empty means nobody." xml:space="preserve">
+    <value>Leeg betekent niemand.</value>
   </data>
   <data name="Empty means postmaster at this server's host name." xml:space="preserve">
     <value>Leeg betekent postmaster op de hostnaam van deze server.</value>
@@ -5398,9 +5398,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="For the members" xml:space="preserve">
     <value>Voor de leden</value>
   </data>
-  <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
-    <value>Voor tokens die buiten deze server zijn verkregen. Laat dit bij normaal gebruik leeg - vaste tokens verlopen en niets hier vernieuwt ze.</value>
-  </data>
   <data name="Forum" xml:space="preserve">
     <value>Forum</value>
   </data>
@@ -6121,8 +6118,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Insert template…" xml:space="preserve">
     <value>Sjabloon invoegen…</value>
   </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>Binnen het venster installeert de geplande taak een geverifieerd installatieprogramma zonder een klik: de service stopt, de bestanden en het databaseschema worden bijgewerkt, de service start, en de uitkomst gaat naar het logboek, het Windows-gebeurtenislogboek en de kaart hierboven. Een service die niet terugkomt, wordt teruggedraaid naar het vorige installatieprogramma, tenzij de nieuwe versie de database al heeft gewijzigd.</value>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above." xml:space="preserve">
+    <value>Binnen het venster installeert de geplande taak een geverifieerd installatieprogramma zonder een klik: de service stopt, de bestanden en het databaseschema worden bijgewerkt, de service start, en de uitkomst gaat naar het logboek, het Windows-gebeurtenislogboek en de kaart hierboven.</value>
   </data>
   <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>De update nu installeren?
@@ -6435,8 +6432,14 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Leave empty for any address" xml:space="preserve">
     <value>Leeg laten voor elk adres</value>
   </data>
+  <data name="Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
+    <value>Laat dit bij normaal gebruik leeg - vaste tokens verlopen en niets hier vernieuwt ze.</value>
+  </data>
   <data name="Leave empty to keep the current password." xml:space="preserve">
     <value>Laat leeg om het huidige wachtwoord te behouden.</value>
+  </data>
+  <data name="Leave empty unless spamd has been set up for it: a spamd told to change to a user it cannot find may refuse the scan, and an unscanned message is delivered as if SpamAssassin were unreachable." xml:space="preserve">
+    <value>Laat leeg tenzij spamd daarvoor is ingericht: een spamd die naar een gebruiker moet overschakelen die hij niet kan vinden, kan de scan weigeren, en een ongescand bericht wordt bezorgd alsof SpamAssassin onbereikbaar was.</value>
   </data>
   <data name="Leave the host empty and the domain has no opinion: the server-wide smart host applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination." xml:space="preserve">
     <value>Laat de host leeg en het domein heeft geen mening: de serverbrede smart host geldt, precies zoals vóór het bestaan van deze instelling. Een route wint nog steeds van allebei, omdat een route een uitspraak over de bestemming is.</value>
@@ -9108,8 +9111,8 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Periodically cross-check message rows against files on disk" xml:space="preserve">
     <value>Berichtrijen periodiek vergelijken met de bestanden op schijf</value>
   </data>
-  <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters. Empty, the default, is an account-number detector that never fires. A pattern the server cannot compile is refused." xml:space="preserve">
-    <value>Perl-syntaxis, gezocht in de tekst van een bericht en in de tekstbijlagen, tot 2000 tekens. Leeg, de standaard, is een rekeningnummerdetector die nooit afgaat. Een patroon dat de server niet kan compileren, wordt geweigerd.</value>
+  <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters." xml:space="preserve">
+    <value>Perl-syntaxis, gezocht in de tekst van een bericht en in de tekstbijlagen, tot 2000 tekens.</value>
   </data>
   <data name="Permissions" xml:space="preserve">
     <value>Rechten</value>
@@ -13353,9 +13356,6 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   </data>
   <data name="The metrics bind address is not a plain IPv4 address (host names and IPv6 are not accepted here), so the metrics listener will not start at all." xml:space="preserve">
     <value>Het bindadres voor de meetpunten is geen gewoon IPv4-adres (hostnamen en IPv6 worden hier niet geaccepteerd), dus de meetpuntenlistener start helemaal niet.</value>
-  </data>
-  <data name="The name spamd looks up its per-user preferences for - a user_prefs file or a row in its SQL preference store. Leave empty unless spamd has been set up for it: a spamd told to change to a user it cannot find may refuse the scan, and an unscanned message is delivered as if SpamAssassin were unreachable." xml:space="preserve">
-    <value>De naam waarvoor spamd zijn voorkeuren per gebruiker opzoekt - een user_prefs-bestand of een rij in zijn SQL-voorkeurenopslag. Laat leeg tenzij spamd daarvoor is ingericht: een spamd die naar een gebruiker moet overschakelen die hij niet kan vinden, kan de scan weigeren, en een ongescand bericht wordt bezorgd alsof SpamAssassin onbereikbaar was.</value>
   </data>
   <data name="The named domains are on the domain's dialog." xml:space="preserve">
     <value>De genoemde domeinen staan in het venster van het domein.</value>

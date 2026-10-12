@@ -463,3 +463,6 @@ eventually bounces. Off is the recoverable failure, which is why it is the
 default. *Do not send messages larger than* (`FilterHookMaxMessageSizeKB`,
 10240) exists because posting a fifty-megabyte attachment across the network to
 be told it is not spam costs more than the answer is worth.
+
+*Profile to scan as* (SpamAssassin): the name spamd looks up its per-user preferences
+for - a user_prefs file or a row in its SQL preference store.

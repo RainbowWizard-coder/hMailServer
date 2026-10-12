@@ -2711,7 +2711,7 @@ namespace hMailServer.ControlPanel.Views
                         Key = "UpdateWindow",
                         Label = L("Unattended window (empty = never apply on its own)"),
                         Placeholder = "Sun 03:00", // no-loc
-                        Blurb = Sentences(L("For example 03:00, Sun 03:00 or Sat,Sun 02:00-05:00."), L("Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database."))
+                        Blurb = Sentences(L("For example 03:00, Sun 03:00 or Sat,Sun 02:00-05:00."), L("Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above."))
                      },
                      new BoolSetting { Key = "UpdateBackupBeforeApply", Default = true, Label = L("Back up to the configured destination before an unattended apply (no destination or a failed backup means no apply)") },
                      new BoolSetting
@@ -2811,7 +2811,7 @@ namespace hMailServer.ControlPanel.Views
                         Key = "SMTPProxyProtocolTrustedIPs",
                         Label = L("Proxies allowed to send a PROXY header (comma separated)"),
                         Placeholder = "10.0.0.5, 192.168.10.0/24",
-                        Blurb = Sentences(L("Addresses or CIDR blocks."), L("Empty means nobody, which is the safe default. Matched against the real TCP peer. An entry that does not parse matches nothing rather than everything, and is reported in the error log once per run."))
+                        Blurb = Sentences(L("Addresses or CIDR blocks."), L("Empty means nobody, which is the safe default."))
                      },
                      new BoolSetting { Key = "SMTPXClientEnabled", Default = false, Label = L("Accept the XCLIENT command (Postfix)") },
                      new TextSetting
@@ -2819,7 +2819,7 @@ namespace hMailServer.ControlPanel.Views
                         Key = "SMTPXClientTrustedIPs",
                         Label = L("Upstreams allowed to use XCLIENT (comma separated)"),
                         Placeholder = "10.0.0.6",
-                        Blurb = Sentences(L("Addresses or CIDR blocks."), L("Empty means nobody. XCLIENT is not even advertised in EHLO to an upstream that is not listed here, so an attacker learns nothing about the deployment by asking."))
+                        Blurb = Sentences(L("Addresses or CIDR blocks."), L("Empty means nobody."))
                      }
                   }
                });

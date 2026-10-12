@@ -4598,11 +4598,11 @@ Control Panel может читать файлы сообщений только
   <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should." xml:space="preserve">
     <value>Очищает индекс и просит индексатор перестроить его. Почта не затрагивается — индекс является производными данными, — но пока перестроение не нагонит, IMAP SEARCH находит меньше, чем должен.</value>
   </data>
-  <data name="Empty means nobody, which is the safe default. Matched against the real TCP peer. An entry that does not parse matches nothing rather than everything, and is reported in the error log once per run." xml:space="preserve">
-    <value>Пустое значение означает «никто», и это безопасное значение по умолчанию. Сопоставляется с настоящим TCP-узлом на другом конце соединения. Запись, которую не удалось разобрать, не соответствует ничему, а не всему, и один раз за запуск отмечается в журнале ошибок.</value>
+  <data name="Empty means nobody, which is the safe default." xml:space="preserve">
+    <value>Пустое значение означает «никто», и это безопасное значение по умолчанию.</value>
   </data>
-  <data name="Empty means nobody. XCLIENT is not even advertised in EHLO to an upstream that is not listed here, so an attacker learns nothing about the deployment by asking." xml:space="preserve">
-    <value>Пустое значение означает «никто». Вышестоящему узлу, которого здесь нет, XCLIENT даже не объявляется в EHLO, поэтому злоумышленник ничего не узнаёт об установке, просто спросив.</value>
+  <data name="Empty means nobody." xml:space="preserve">
+    <value>Пустое значение означает «никто».</value>
   </data>
   <data name="Empty means postmaster at this server's host name." xml:space="preserve">
     <value>Пусто означает postmaster на имени узла этого сервера.</value>
@@ -5480,9 +5480,6 @@ Control Panel может читать файлы сообщений только
   <data name="For the members" xml:space="preserve">
     <value>Для участников</value>
   </data>
-  <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
-    <value>Для токенов, полученных вне этого сервера. В обычной работе оставьте поле пустым — у фиксированных токенов истекает срок действия, и обновить их здесь некому.</value>
-  </data>
   <data name="Forum" xml:space="preserve">
     <value>Форум</value>
   </data>
@@ -6203,8 +6200,8 @@ Control Panel может читать файлы сообщений только
   <data name="Insert template…" xml:space="preserve">
     <value>Вставить шаблон…</value>
   </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>Внутри окна запланированная задача устанавливает проверенный установщик без единого нажатия: служба останавливается, файлы и схема обновляются, служба запускается, а результат попадает в журнал, в журнал событий Windows и на карточку выше. Служба, которая не вернулась, откатывается к предыдущему установщику, кроме случая, когда новая версия уже изменила базу данных.</value>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above." xml:space="preserve">
+    <value>Внутри окна запланированная задача устанавливает проверенный установщик без единого нажатия: служба останавливается, файлы и схема обновляются, служба запускается, а результат попадает в журнал, в журнал событий Windows и на карточку выше.</value>
   </data>
   <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>Установить обновление сейчас?
@@ -6517,8 +6514,14 @@ Control Panel может читать файлы сообщений только
   <data name="Leave empty for any address" xml:space="preserve">
     <value>Оставьте пустым для любого адреса</value>
   </data>
+  <data name="Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
+    <value>В обычной работе оставьте поле пустым — у фиксированных токенов истекает срок действия, и обновить их здесь некому.</value>
+  </data>
   <data name="Leave empty to keep the current password." xml:space="preserve">
     <value>Оставьте пустым, чтобы сохранить текущий пароль.</value>
+  </data>
+  <data name="Leave empty unless spamd has been set up for it: a spamd told to change to a user it cannot find may refuse the scan, and an unscanned message is delivered as if SpamAssassin were unreachable." xml:space="preserve">
+    <value>Оставьте пустым, если spamd под это не настроен: spamd, которому велено переключиться на пользователя, которого он не может найти, может отказаться сканировать, а непросканированное сообщение доставляется так, будто SpamAssassin недоступен.</value>
   </data>
   <data name="Leave the host empty and the domain has no opinion: the server-wide smart host applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination." xml:space="preserve">
     <value>Оставьте узел пустым — и у домена не будет собственного мнения: применяется общесерверный смарт-хост, ровно как это было до появления этого параметра. Маршрут по-прежнему имеет приоритет над обоими, потому что маршрут — это утверждение о месте назначения.</value>
@@ -9214,8 +9217,8 @@ Control Panel может читать файлы сообщений только
   <data name="Periodically cross-check message rows against files on disk" xml:space="preserve">
     <value>Периодически сверять записи сообщений с файлами на диске</value>
   </data>
-  <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters. Empty, the default, is an account-number detector that never fires. A pattern the server cannot compile is refused." xml:space="preserve">
-    <value>Синтаксис Perl, поиск по тексту сообщения и его текстовым вложениям, до 2000 символов. Пусто, по умолчанию, — детектор номеров счетов, который никогда не срабатывает. Шаблон, который сервер не может скомпилировать, отклоняется.</value>
+  <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters." xml:space="preserve">
+    <value>Синтаксис Perl, поиск по тексту сообщения и его текстовым вложениям, до 2000 символов.</value>
   </data>
   <data name="Permissions" xml:space="preserve">
     <value>Разрешения</value>
@@ -13537,9 +13540,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The metrics bind address is not a plain IPv4 address (host names and IPv6 are not accepted here), so the metrics listener will not start at all." xml:space="preserve">
     <value>Адрес привязки метрик - не простой адрес IPv4 (имена хостов и IPv6 здесь не принимаются), поэтому прослушиватель метрик не запустится вовсе.</value>
-  </data>
-  <data name="The name spamd looks up its per-user preferences for - a user_prefs file or a row in its SQL preference store. Leave empty unless spamd has been set up for it: a spamd told to change to a user it cannot find may refuse the scan, and an unscanned message is delivered as if SpamAssassin were unreachable." xml:space="preserve">
-    <value>Имя, по которому spamd ищет свои пользовательские настройки - файл user_prefs или строку в своём SQL-хранилище настроек. Оставьте пустым, если spamd под это не настроен: spamd, которому велено переключиться на пользователя, которого он не может найти, может отказаться сканировать, а непросканированное сообщение доставляется так, будто SpamAssassin недоступен.</value>
   </data>
   <data name="The named domains are on the domain's dialog." xml:space="preserve">
     <value>Указанные домены задаются в диалоге домена.</value>

@@ -58,6 +58,11 @@ the provider was told to send it is what tells a report from a forgery.
 
 *Base address of the list pages.* Empty, the default, sends mailto addresses only.
 
+*Fixed token* (the smart host's OAuth2). The setting is for tokens obtained outside this server.
+
+*Account-number pattern.* Empty, the default, is an account-number detector that never fires. A pattern the
+server cannot compile is refused.
+
 ## SSL/TLS
 
 *Key exchange groups, in order of preference.* An empty list, or one OpenSSL rejects
@@ -242,6 +247,9 @@ anything.
 
 ## Updates
 
+*Unattended window.* A service that does not come back is rolled back to the previous installer, unless the new
+version has already changed the database.
+
 *Repository the signing certificate must name, and the four settings after it.*
 Setting any of them narrows or replaces the trust in this project's two release
 workflows for both, and getting one wrong means either refusing genuine releases or
@@ -292,6 +300,12 @@ and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot 
 that from here - and once an address is listed as a PROXY protocol proxy the header
 becomes required from it, so a proxy that does not send one will have its connections
 dropped.
+
+*Proxies allowed to send a PROXY header.* Each is matched against the real TCP peer. An entry that does not
+parse matches nothing rather than everything, and is reported in the error log once per run.
+
+*Upstreams allowed to use XCLIENT.* XCLIENT is not even advertised in EHLO to an upstream that is not listed, so
+an attacker learns nothing about the deployment by asking.
 
 *Refused connections.* Locking out an address that keeps failing to sign in is a
 different mechanism entirely and is on the Auto-ban page.

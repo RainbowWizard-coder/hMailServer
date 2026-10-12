@@ -4598,11 +4598,11 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should." xml:space="preserve">
     <value>Vyprázdní index a požádá indexer, aby ho znovu sestavil. Pošty se to nedotkne - index jsou odvozená data - ale dokud přestavba nedožene, IMAP SEARCH nachází méně, než by měl.</value>
   </data>
-  <data name="Empty means nobody, which is the safe default. Matched against the real TCP peer. An entry that does not parse matches nothing rather than everything, and is reported in the error log once per run." xml:space="preserve">
-    <value>Prázdné znamená nikdo, což je bezpečný výchozí stav. Porovnává se se skutečným protějškem TCP. Položka, kterou nelze zpracovat, neodpovídá ničemu, ne všemu, a hlásí se v logu chyb jednou za běh.</value>
+  <data name="Empty means nobody, which is the safe default." xml:space="preserve">
+    <value>Prázdné znamená nikdo, což je bezpečný výchozí stav.</value>
   </data>
-  <data name="Empty means nobody. XCLIENT is not even advertised in EHLO to an upstream that is not listed here, so an attacker learns nothing about the deployment by asking." xml:space="preserve">
-    <value>Prázdné znamená nikdo. XCLIENT se předřazenému serveru, který zde není uveden, ani neinzeruje v EHLO, takže se útočník dotazováním o nasazení nic nedozví.</value>
+  <data name="Empty means nobody." xml:space="preserve">
+    <value>Prázdné znamená nikdo.</value>
   </data>
   <data name="Empty means postmaster at this server's host name." xml:space="preserve">
     <value>Prázdné znamená postmaster na názvu hostitele tohoto serveru.</value>
@@ -5480,9 +5480,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="For the members" xml:space="preserve">
     <value>Pro členy</value>
   </data>
-  <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
-    <value>Pro tokeny získané mimo tento server. Při běžném použití nechte prázdné - pevné tokeny vyprší a nic zde je neobnoví.</value>
-  </data>
   <data name="Forum" xml:space="preserve">
     <value>Fórum</value>
   </data>
@@ -6203,8 +6200,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Insert template…" xml:space="preserve">
     <value>Vložit šablonu…</value>
   </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>Uvnitř okna naplánovaná úloha bez jediného kliknutí použije ověřený instalační program: služba se zastaví, soubory a schéma se aktualizují, služba se spustí a výsledek jde do logu, do protokolu událostí systému Windows a na kartu výše. Pokud se služba nevrátí, provede se návrat k předchozímu instalačnímu programu, ledaže nová verze už změnila databázi.</value>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above." xml:space="preserve">
+    <value>Uvnitř okna naplánovaná úloha bez jediného kliknutí použije ověřený instalační program: služba se zastaví, soubory a schéma se aktualizují, služba se spustí a výsledek jde do logu, do protokolu událostí systému Windows a na kartu výše.</value>
   </data>
   <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>Nainstalovat aktualizaci teď?
@@ -6517,8 +6514,14 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Leave empty for any address" xml:space="preserve">
     <value>Ponechte prázdné pro libovolnou adresu</value>
   </data>
+  <data name="Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
+    <value>Při běžném použití nechte prázdné - pevné tokeny vyprší a nic zde je neobnoví.</value>
+  </data>
   <data name="Leave empty to keep the current password." xml:space="preserve">
     <value>Ponechte prázdné pro zachování stávajícího hesla.</value>
+  </data>
+  <data name="Leave empty unless spamd has been set up for it: a spamd told to change to a user it cannot find may refuse the scan, and an unscanned message is delivered as if SpamAssassin were unreachable." xml:space="preserve">
+    <value>Nechte prázdné, pokud na to spamd není nastaven: spamd, jemuž se řekne, aby se přepnul na uživatele, kterého nenajde, může kontrolu odmítnout, a nezkontrolovaná zpráva se doručí, jako by SpamAssassin byl nedostupný.</value>
   </data>
   <data name="Leave the host empty and the domain has no opinion: the server-wide smart host applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination." xml:space="preserve">
     <value>Nechte hostitele prázdného a doména nemá žádný názor: uplatní se smart host pro celý server, přesně jako předtím, než toto nastavení existovalo. Trasa má stále přednost před oběma, protože trasa je tvrzení o cíli.</value>
@@ -9214,8 +9217,8 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Periodically cross-check message rows against files on disk" xml:space="preserve">
     <value>Pravidelně porovnávat řádky zpráv se soubory na disku</value>
   </data>
-  <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters. Empty, the default, is an account-number detector that never fires. A pattern the server cannot compile is refused." xml:space="preserve">
-    <value>Syntaxe Perl, hledaná v textu zprávy a v jejích textových přílohách, nejvýše 2000 znaků. Prázdné, výchozí, je detektor čísel účtů, který se nikdy nespustí. Vzor, který server nedokáže zkompilovat, je odmítnut.</value>
+  <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters." xml:space="preserve">
+    <value>Syntaxe Perl, hledaná v textu zprávy a v jejích textových přílohách, nejvýše 2000 znaků.</value>
   </data>
   <data name="Permissions" xml:space="preserve">
     <value>Oprávnění</value>
@@ -13537,9 +13540,6 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   </data>
   <data name="The metrics bind address is not a plain IPv4 address (host names and IPv6 are not accepted here), so the metrics listener will not start at all." xml:space="preserve">
     <value>Adresa bind pro metriky není prostá adresa IPv4 (názvy hostitelů a IPv6 se zde nepřijímají), takže listener metrik se vůbec nespustí.</value>
-  </data>
-  <data name="The name spamd looks up its per-user preferences for - a user_prefs file or a row in its SQL preference store. Leave empty unless spamd has been set up for it: a spamd told to change to a user it cannot find may refuse the scan, and an unscanned message is delivered as if SpamAssassin were unreachable." xml:space="preserve">
-    <value>Jméno, pod kterým spamd hledá své uživatelské předvolby - soubor user_prefs nebo řádek ve svém SQL úložišti předvoleb. Nechte prázdné, pokud na to spamd není nastaven: spamd, jemuž se řekne, aby se přepnul na uživatele, kterého nenajde, může kontrolu odmítnout, a nezkontrolovaná zpráva se doručí, jako by SpamAssassin byl nedostupný.</value>
   </data>
   <data name="The named domains are on the domain's dialog." xml:space="preserve">
     <value>Vyjmenované domény jsou v dialogu domény.</value>
