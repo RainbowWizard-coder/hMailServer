@@ -5429,6 +5429,23 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   out waits 130 seconds before each run for the ports; and an empty folder of the load domain, which the bench's
   pre-flight takes for an orphan, is removed. Rule 5 says the generator's range now outranks *My computer*, and the
   Windows table says that its "fsync on" has a database that flushes every ten seconds.
+- **ActiveActive.md has been read again against the code, with what two nodes do today measured, its open questions
+  decided, and the work set out as twenty-five units in the order they are to be built.** Two nodes of today's build
+  on one database, each with its own data directory, failed to deliver 29 to 122 of 2,000 relayed messages and kept
+  only 82 to 226 of 1,000 sent into one mailbox, on PostgreSQL 17, MariaDB 11.8 and MySQL 8.4: a node that claims a
+  queued row whose file is on the other node's disk deletes the row, which for one local recipient is already the
+  delivered message, and it serves a placeholder for every message whose file is on the other disk. The corrections
+  to the first version: no backend returns a row count, and MySQL connects without `CLIENT_FOUND_ROWS`; the IMAP
+  message lists are read again only above the highest UID already read, so another node's flag changes and
+  expunges are never seen; the migration jobs have the queue's `UnlockAll` shape; the list of secrets sealed to the
+  machine is nearly three times as long; only the SMTP listener reads the PROXY header; a node of a newer build
+  upgrades the schema under a running older one; and the drain pauses the queue where it would have to hand it
+  over. The decisions: a claim is a conditional update judged by its matched-row count on all four engines; SQL
+  Server Compact is one node by definition; the queue stays on the accepting node's disk and is handed over
+  through the object store at a drain; active-active requires the object store, written through while other
+  nodes are live; and the database is the only bus between nodes. The lab the units will be proved in is
+  `build/lab/active-active/`, whose README has the measurements. Nothing in the server has changed: active-active
+  is still not built, and WarmStandby.md's one service per database still holds.
 
 ---
 
