@@ -495,8 +495,11 @@ namespace HM
 
       // The Return-Path a SpamAssassin scan is sent ahead of the message, and the
       // Return-Path fields left out of the request and of spamd's reply byte for
-      // byte, in whatever pieces they arrive. Functions of values only;
-      // platform/public_suffix_tests_main.cpp runs the same on Linux.
+      // byte, in whatever pieces they arrive; and the path read from the topmost
+      // Return-Path of a message collected from an external account, which the
+      // scan of such a message is sent in place of a sender guessed from its From
+      // field. Functions of values only; platform/public_suffix_tests_main.cpp
+      // runs the same on Linux.
       OutputDebugString(_T("hMailServer: Testing SpamAssassinReturnPath\n"));
       SpamAssassinReturnPathTester spamAssassinReturnPathTester;
       spamAssassinReturnPathTester.Test();

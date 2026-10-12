@@ -16,7 +16,9 @@
 // carve-outs of the refusal made with them (FqdnCheckTester), and before it what
 // an address is, which that refusal asks first (IPAddressTester). And the
 // Return-Path a SpamAssassin scan sends ahead of the message, with the
-// Return-Path fields left out of the request and of spamd's reply byte for byte
+// Return-Path fields left out of the request and of spamd's reply byte for byte,
+// and the path read from the topmost Return-Path of a message collected from an
+// external account, which the scan of such a message is sent
 // (SpamAssassinReturnPathTester).
 //
 // On Windows PublicSuffixListTester, SURBLTester, FqdnCheckTester and
@@ -126,6 +128,6 @@ main(int /*argc*/, char * /*argv*/[])
       return 1;
    }
 
-   printf("ok    the Return-Path a SpamAssassin scan is sent: the line ahead of the message, and the Return-Path fields of a header block left out byte for byte - first, last, twice, folded, in any case, with LF lines - and nothing after it, in every split and a byte at a time\n");
+   printf("ok    the Return-Path a SpamAssassin scan is sent: the line ahead of the message, and the Return-Path fields of a header block left out byte for byte - first, last, twice, folded, in any case, with LF lines - and nothing after it, in every split and a byte at a time; and the path of a collected message's topmost Return-Path, in every form a path takes, under Received fields and the first of two, and none for a value that is no path\n");
    return 0;
 }

@@ -651,9 +651,10 @@ set_target_properties(dane-tests PROPERTIES OUTPUT_NAME dane-tests)
 # that is not a fully qualified domain name by the same list, and the carve-outs
 # of the refusal made with it. And SpamAssassinReturnPathTester
 # (Common/AntiSpam/SpamAssassin/SpamAssassinReturnPath.h), the Return-Path a
-# SpamAssassin scan sends ahead of the message and the Return-Path fields left
-# out of the request and of spamd's reply byte for byte. No network, no
-# configuration, no database. Not installed; a bench tool.
+# SpamAssassin scan sends ahead of the message, the Return-Path fields left out
+# of the request and of spamd's reply byte for byte, and the path read from the
+# topmost Return-Path of a message collected from an external account. No
+# network, no configuration, no database. Not installed; a bench tool.
 add_executable(public-suffix-tests ${SERVER_DIR}/platform/public_suffix_tests_main.cpp)
 target_link_libraries(public-suffix-tests PRIVATE hmailserver_core)
 set_target_properties(public-suffix-tests PROPERTIES OUTPUT_NAME public-suffix-tests)
