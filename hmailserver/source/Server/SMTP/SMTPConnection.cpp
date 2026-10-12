@@ -5348,8 +5348,19 @@ namespace HM
       if (StringParser::SaslPrep(username_, sPreppedUser))
          username_ = sPreppedUser;
 
+      // RFC 4616 section 2: the client may act only as an identity its credentials
+      // permit, and here that is its own. An authzid naming anyone else was decoded
+      // and ignored, and the client signed in as the authcid all the same; it is
+      // refused now, before the password is looked at, and charged to nothing - it
+      // is not a guess at one (upstream #652/#656).
+      if (!AccountLogon::AuthorizationIdentityIsOwn(sAuthzid, username_))
+      {
+         RestartAuthentication_();
+         return;
+      }
+
       // Authenticate the user.
-      Authenticate_();      
+      Authenticate_();
    }
 
    void

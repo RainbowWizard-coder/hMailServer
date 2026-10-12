@@ -447,6 +447,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the in-process tests at fixed times (`ClassTester`, which `Infrastructure.MainOperations` runs). Found by upstream's
   review of its own SRS (#649).
 
+- **Fixed: a SASL PLAIN client that asked to act as another account was signed in as itself and told it had
+  succeeded.** RFC 4616 has a PLAIN message name the identity to act as (the authzid) beside the one to sign in as,
+  and the server verify that the credentials permit the first. SMTP, POP3 and ManageSieve read it and set it aside;
+  they refuse it now unless it names the account signing in (domain aliases and the default domain applied, case
+  aside), before the password is looked at and without counting it as a guess at one. IMAP, which lets the master
+  user act as another account, answered an authzid naming the client itself `BAD No master user defined.`; it takes
+  it as none. `Security/SaslPlainAuthorizationIdentity.cs` asks each of the four. Found by upstream's #652 (#656).
+
 ### Correctness
 
 - **Fixed: a ManageSieve refusal that quoted a script's text with a line break in it was split in two.** RFC 5804's

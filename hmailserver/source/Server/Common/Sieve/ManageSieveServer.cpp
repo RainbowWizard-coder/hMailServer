@@ -1727,10 +1727,23 @@ namespace HM
       if (!StringParser::SaslPrep(authcid, username))
          username = authcid;
 
-      // The authzid is intentionally ignored rather than passed on as a masquerade
-      // name: honouring it would let anyone holding one valid account's password
-      // manage a different account's scripts.
-      //
+      // The authzid is not passed on as a masquerade name: honouring it would let
+      // anyone holding one valid account's password manage a different account's
+      // scripts. Nor is one naming anybody else ignored any more, with the client
+      // signed in as the authcid all the same - RFC 4616 section 2 has the server
+      // verify that the credentials permit acting as it, and a password permits
+      // its own account alone. Refused before the password is looked at, counted
+      // against this connection like a response that will not decode, and not
+      // reported to the auto-ban: it is no guess at a password (upstream
+      // #652/#656).
+      if (!AccountLogon::AuthorizationIdentityIsOwn(authzid, username))
+      {
+         if (ApplyAuthenticationFailure_(connection, authentication_failures, false, "NO \"The authorization identity must be your own.\"\r\n"))
+            return AuthenticationAborted;
+
+         return AuthenticationFailed;
+      }
+
       // Going through AccountLogon rather than PasswordValidator directly is what
       // keeps this listener in step with SMTP/POP3/IMAP: it maintains the logon
       // statistics and, on failure, feeds the per-IP auto-ban accounting that the

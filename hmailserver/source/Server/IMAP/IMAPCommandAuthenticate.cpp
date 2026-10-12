@@ -359,6 +359,14 @@ namespace HM
          authcid = DefaultDomain::ApplyDefaultDomain(authcid);
       }
 
+      // An authzid that names the client's own account asks for nothing beyond the
+      // sign-in (RFC 4616 section 2), and is taken as none. It used to fall into the
+      // master-user path below, which answered BAD "No master user defined." - or,
+      // with one defined, "Invalid master user." - to a client that had only spelt
+      // out who it was (upstream #652/#656).
+      if (authzid.GetLength() && AccountLogon::AuthorizationIdentityIsOwn(authzid, authcid))
+         authzid.Empty();
+
       // if the client specified two usernames, the first is who we will be acting as,
       // the second is who we authenticate as.  make sure the client isn't trying to
       // pull a fast one (or is confused)

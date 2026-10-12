@@ -1096,6 +1096,16 @@ namespace HM
          return ResultNormalResponse;
       }
 
+      // RFC 4616 section 2: the client may act only as an identity its credentials
+      // permit, and here that is its own. An authzid naming anyone else was decoded
+      // and ignored; it is refused now, before the password is looked at, and
+      // charged to nothing - it is not a guess at one (upstream #652/#656).
+      if (!AccountLogon::AuthorizationIdentityIsOwn(sAuthzid, sPreppedUser))
+      {
+         EnqueueWrite_("-ERR [AUTH] Authentication failed: the authorization identity must be your own.");
+         return ResultNormalResponse;
+      }
+
       // Apply domain aliases to the user name (parity with the USER command).
       std::shared_ptr<DomainAliases> pDA = ObjectCache::Instance()->GetDomainAliases();
       username_ = pDA->ApplyAliasesOnAddress(sPreppedUser);

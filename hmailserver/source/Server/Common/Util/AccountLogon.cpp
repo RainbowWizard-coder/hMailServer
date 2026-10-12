@@ -19,6 +19,9 @@
 
 #include "../BO/SecurityRange.h"
 #include "../BO/Account.h"
+#include "../BO/DomainAliases.h"
+#include "../Application/ObjectCache.h"
+#include "../Application/DefaultDomain.h"
 #include "VariantDateTime.h"
 #include "Time.h"
 #include "GUIDCreator.h"
@@ -272,6 +275,20 @@ namespace HM
       const __int64 delay = static_cast<__int64>(perFailure) * failuresOnThisConnection;
 
       return delay > IniFileSettings::TARPIT_MAX_SECONDS ? IniFileSettings::TARPIT_MAX_SECONDS : static_cast<int>(delay);
+   }
+
+   bool
+   AccountLogon::AuthorizationIdentityIsOwn(const String &authzid, const String &authcid)
+   {
+      if (authzid.IsEmpty())
+         return true;
+
+      std::shared_ptr<DomainAliases> aliases = ObjectCache::Instance()->GetDomainAliases();
+
+      const String authorization = DefaultDomain::ApplyDefaultDomain(aliases->ApplyAliasesOnAddress(authzid));
+      const String authentication = DefaultDomain::ApplyDefaultDomain(aliases->ApplyAliasesOnAddress(authcid));
+
+      return authorization.CompareNoCase(authentication) == 0;
    }
 
    void

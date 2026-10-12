@@ -105,6 +105,18 @@ namespace HM
       // TCPConnection::EnqueueDelay; none of them sleeps.
       static int TarpitDelaySeconds(int failuresOnThisConnection);
 
+      // RFC 4616 section 2: a SASL PLAIN message names the identity to act as (the
+      // authzid) beside the one to sign in as (the authcid), and the server "will
+      // verify that the authentication credentials permit the client to act as" it.
+      // Where no master-user grant applies, the only identity a password permits is
+      // its own: true when authzid is empty or names the same address as authcid -
+      // domain aliases and the default domain applied to both, case aside. SMTP,
+      // POP3 and ManageSieve refuse the message otherwise (they had decoded the
+      // authzid and signed the client in as the authcid, whatever it asked to be);
+      // IMAP takes an authzid of the client's own as none, so that it does not fall
+      // into the master-user path (upstream #652/#656).
+      static bool AuthorizationIdentityIsOwn(const String &authzid, const String &authcid);
+
       // A spam trap was addressed: the same expiring IP range a run of failed
       // logons creates, under a name that says which trap it was, and the same
       // notification below the server. Returns whether the range was saved,
