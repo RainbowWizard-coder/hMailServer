@@ -3761,27 +3761,26 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   name, the pill, what each copies and the glyph.
 
 - **Fixed: timestamps came in several forms and never said whose clock they were read by.** The delivery queue showed
-  the server's raw "2026-10-08 02:36:53", the message trace and the suppression list the same form, the audit trail
-  and the eDiscovery page Unix times as this computer's local time in that fixed form, the REST API keys "7 January
-  2027 10:00", the SSL certificates page, the setting profiles and the DKIM key rotation yyyy-MM-dd whatever the
-  language, and the ACME card its day, month and year in one order in every language. Every date now goes through one
-  helper, `Services/ServerTimeText`, which the account dialog's last sign-in, Server status's start, the quarantine's
-  held times, the allowed and blocked domains' Added and the backup list's dates use as well: the reader's short date
-  and time, with "(server time)" in the column's header or after the value and the whole time in a cell's tool tip. In
-  a session on the server's own computer the queue says how long ago a message was created and how soon it is tried
-  again ("3 h ago", "in 12 min", and "As soon as possible" for the server's 1901 date and for a next try that has
-  come), and in one from another computer the dates under "Created (server time)" and "Next try (server time)"; both
-  columns sort by the time. The message trace's times are under "When (server time)", to the second, and the
-  suppression list's under "Since (server time)", "Expires (server time)", "Last bounce (server time)" and "Last
-  delivered (server time)", each column sorted by the time, and the server's and each domain's allow and block list
-  says when an entry expires in the reader's short date and time under "Expires (server time)", where it wrote the
-  general form with the seconds and named no clock. The audit trail's When and the eDiscovery page's Opened and When
-  are in this computer's time with the seconds, headed "(server time)" in a session on the server and "(this
-  computer's time)" in one from elsewhere, and sort by the time; the API keys say "Expires 07/01/2027 10:00 (server
-  time)." A day in a sentence - a certificate's "Valid until 09/12/2026", the day a profile was applied - is the
-  reader's short date, the key rotation's times and when the message store was measured the reader's short date and
-  time. `ServerTimeTextTests` holds every form, the pages' use of the helper and that none of them writes a date in a
-  form of its own again.
+  the server's raw "2026-10-08 02:36:53", the message trace and the suppression list the same form, the audit trail and
+  the eDiscovery page Unix times as this computer's local time in that fixed form, the REST API keys "7 January 2027
+  10:00", the SSL certificates page, the setting profiles and the DKIM key rotation yyyy-MM-dd whatever the language,
+  and the ACME card its day, month and year in one order in every language. Every date now goes through one helper,
+  `Services/ServerTimeText`, which the account dialog's last sign-in, Server status's start, the quarantine's held
+  times, the allowed and blocked domains' Added and the backup list's dates use as well: the reader's short date and
+  time, with "(server time)" in the column's header or after the value and the whole time in a cell's tool tip. In a
+  session on the server's own computer the queue says how long ago a message was created ("3 h ago"), and in one from
+  another computer the date under "Created (server time)", sorted by the time; when a message is tried again is its
+  State's, which took the place of the Next try column (the delivery queue's entry above). The message trace's times are
+  under "When (server time)", to the second, and the suppression list's under "Since (server time)", "Expires (server
+  time)", "Last bounce (server time)" and "Last delivered (server time)", each column sorted by the time, and the
+  server's and each domain's allow and block list says when an entry expires in the reader's short date and time under
+  "Expires (server time)", where it wrote the general form with the seconds and named no clock. The audit trail's When
+  and the eDiscovery page's Opened and When are in this computer's time with the seconds, headed "(server time)" in a
+  session on the server and "(this computer's time)" in one from elsewhere, and sort by the time; the API keys say
+  "Expires 07/01/2027 10:00 (server time)." A day in a sentence - a certificate's "Valid until 09/12/2026", the day a
+  profile was applied - is the reader's short date, the key rotation's times and when the message store was measured the
+  reader's short date and time. `ServerTimeTextTests` holds every form, the pages' use of the helper and that none of
+  them writes a date in a form of its own again.
 
 - **Fixed: the Windows Text size setting had no effect on the Control Panel.** Nothing read it, so raising Text size
   to 125 or 150 per cent changed nothing and only display scaling made the text larger. The Control Panel now reads it
