@@ -264,7 +264,8 @@
 # their own - a30c94ed7 (include paths and ClassTester lines) and 9f4f8aca5
 # (their VERSION file, 5.8.0) - and none carries code of its own.
 #
-#   PORTED in this triage, each with a test that fails with the fix taken out:
+#   PORTED in this triage, each with a test that fails with the fix taken out
+#   (save the two said below that no test can provoke):
 #   - 1ffcc7c77 (#649 SRS), the findings of upstream's review that our SRS
 #     (Util/SRS.cpp, SMTP/RecipientParser.cpp, SMTP/SMTPForwarding.cpp) shared:
 #     an SRS0 address this server handed out was followed back to the original
@@ -272,7 +273,7 @@
 #     not asked of mail that was not a bounce - only a bounce is taken so now
 #     (RecipientParser::CheckDeliveryPossibility); the hash was
 #     compared with a string comparison (HashCreator::HexDigestsMatch, constant
-#     time); an address 1023 days old read as one day ahead and was accepted as
+#     time - no test can time it); an address 1023 days old read as one day ahead and was accepted as
 #     clock skew (SRS::TimeSlotInRange_, an hour added to our clock instead); and
 #     a quoted or over-long sender was rewritten into an address no server takes
 #     (SRS::ForwardAt). BATV (Util/BATV.cpp, not upstream's) had the same
@@ -322,8 +323,10 @@
 #   - 4c03c0bb8 (#671), the literals: our JScript calls were escaped whole since 24
 #     September (ScriptServer::EscapeForJScriptLiteral, every caller), but two
 #     VBScript calls were quoted by hand - OnClientValidatePassword's password and
-#     OnDeliveryFailed's values - so a lone CR or LF left the literal open and the
-#     handler was not called (Events.cpp, EscapeForVBScriptLiteral now).
+#     OnDeliveryFailed's values - so a lone CR or LF in a password, or a lone LF
+#     in a remote server's answer (a CR ends the line it is read from), left the
+#     literal open and the handler was not called, and OnDeliveryFailed lost the
+#     answer's quotes (Events.cpp, EscapeForVBScriptLiteral now).
 #   - 099f3f3dd/85a89fb1a (#658/#659): hMailServer.Minidump.exe had no version
 #     resource, and nor had hMailServer.Updater.exe beside it; both take one from
 #     Version.h now (hMailServer.Minidump.rc, hMailServer.Updater.rc), and
@@ -365,6 +368,11 @@
 #     110). Not taken: #646's catch in BackupTask::DoWork that turns an exception
 #     into OnBackupFailed - our work queue contains it (WorkQueue::ExecuteTask) and
 #     ExceptionHandler reports it, but no BACKUP ERROR line and no event follow.
+#     What threw in upstream's (their FileUtilities copy) does not throw here, and
+#     nothing a test can do makes our backup throw, so the catch waits for a seam
+#     to provoke it: then a catch of std::exception there, as upstream's, reported
+#     through OnBackupFailed, which BackupManager::OutcomeHold now delivers after
+#     the run slot.
 #   - 15d4d55d7 (#618) the service with fewer privileges: ServiceAccount
 #     (docs/ServiceAccount.md, COM/InterfaceSettings, IniFileSettings), with
 #     /ProtectFolders and /GrantServiceAccess.
@@ -382,8 +390,8 @@
 #   - 5abbec695: our TestOnExternalAccountDownload waits for the delivery
 #     already.
 #   - a8b888a43 (#670) HashCreator through EVP_Digest (HashCreator.cpp); DKIM.cpp's
-#     EVP_MD_CTX_create/destroy are the macros of _new/_free. Not taken yet:
-#     OPENSSL_NO_DEPRECATED on our own code - a plan in batch50's rows.
+#     EVP_MD_CTX_create/destroy are the macros of _new/_free. Its build switch is a
+#     row below.
 #   - The rest of #666 that ours had: TRYCREATE (IMAPCommandCopy.cpp:59-68), a set
 #     naming a message twice acting once (IMAPCommandRangeAction::
 #     ResolveTargets_), a UIDVALIDITY for a folder made again within the second
@@ -405,8 +413,33 @@
 #     forward rule action and global rules rewriting the sender (RuleApplier::
 #     ApplyAction_Forward); no rewrite for a forward that stays here; SRS1
 #     chaining; an undeliverable SRS bounce reported.
+#     The plan, about two days with tests in SMTP/Srs.cs: in
+#     RecipientParser::CheckDeliveryPossibility (RecipientParser.cpp:112-134,
+#     ahead of every lookup, "unknown user" when it does not reverse) reverse an
+#     SRS0 address only once the account, alias and list lookups of the domain
+#     have found nothing, as upstream does (SenderRewriteScheme::TryReverse), so
+#     that an account of that name and the catch-all still answer; make RuleApplier::ApplyAction_Forward
+#     (RuleApplier.cpp:1042-1046, the naive RewriteEnvelopeFromWhenForwarding only)
+#     and a global rule's forward call SRS::Forward as SMTPForwarding does, for an
+#     external sender and an external target; skip the rewrite when every target
+#     is local; give SRS1 to an SRS0 sender forwarded again; and answer an SRS
+#     address that is ours but expired with that reason, not "unknown user".
 #   - a7b5b7c47 (#665): envelope-from and "for <recipient>" in our own Received
-#     header (upstream #663, a feature).
+#     header (upstream #663, a feature). The plan, half a day: in
+#     SMTPMessageHeaderCreator (Received: at SMTPMessageHeaderCreator.cpp:186) add
+#     " (envelope-from <x>)" for an unauthenticated client and " for <rcpt>" when
+#     the message has exactly one recipient - several would show a Bcc - as
+#     upstream's does; SMTP/ReceivedHeaders tests for one, two and an
+#     authenticated sender; the Received-header parsers already read both forms.
+#   - a8b888a43 (#670): OPENSSL_API_COMPAT and OPENSSL_NO_DEPRECATED on our own
+#     code, as upstream builds now (theirs: 30500 in hMailServer.vcxproj, and
+#     no-deprecated in their OpenSSL build). Among the APIs 3.0 deprecates, a grep
+#     of 74aed9ab8 finds DKIM.cpp's EVP_MD_CTX_create and _destroy (four each,
+#     the macros of _new and _free) and ERR_load_EVP_strings (a no-op since
+#     1.1.0); the plan, half a day: those three changed, the two defines in
+#     CMakeLists.txt's core target and in hMailServer.vcxproj's
+#     PreprocessorDefinitions (the integrator's file), and a clang, GCC and MSVC
+#     build to find any use the grep missed - the build is the test.
 #   - ControlPanel.Core.dll, the Control Panel's library, beside #658: no
 #     <Version> or <Product> in ControlPanel.Core.csproj, so it ships as 1.0.0.0
 #     with no product name. Give it the Control Panel's <Version> and <Product>
