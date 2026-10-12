@@ -284,6 +284,7 @@
     <Compile Include="..\RegressionTests\SMTP\DeliveryStatusNotification.cs" Link="SMTP\DeliveryStatusNotification.cs" />
     <Compile Include="..\RegressionTests\SMTP\ESmtpTests.cs" Link="SMTP\ESmtpTests.cs" />
     <Compile Include="..\RegressionTests\SMTP\EsmtpConformance.cs" Link="SMTP\EsmtpConformance.cs" />
+    <Compile Include="..\RegressionTests\SMTP\InvalidCommandLimit.cs" Link="SMTP\InvalidCommandLimit.cs" />
     <Compile Include="..\RegressionTests\SMTP\MailFromParsing.cs" Link="SMTP\MailFromParsing.cs" />
     <Compile Include="..\RegressionTests\SMTP\OutboundPipelining.cs" Link="SMTP\OutboundPipelining.cs" />
     <Compile Include="..\RegressionTests\SMTP\OutboundSize.cs" Link="SMTP\OutboundSize.cs" />

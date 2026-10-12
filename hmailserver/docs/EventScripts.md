@@ -132,6 +132,19 @@ and `Result` in `OnClientLogon`, `OnRecipientUnknown`, `OnTooManyInvalidCommands
 | `OnError(severity, code, source, description)` | the error, as the ERROR log has it | nothing |
 | a rule's "Run function" | the message | nothing; a function the file does not define is a Script Error |
 
+A `554` from `OnHELO`, `OnAcceptMessage` or `OnSMTPData` counts towards the session's
+limit of invalid commands (`MaxNumberOfInvalidCommands`), as the server's own refusal
+of a message for its size, its bare line feeds or its spam score does; until 6.3.7
+none of them did (upstream PR 664). With
+`DisconnectInvalidClients` on, the refusal that takes the count past the limit is
+answered `421 4.7.0 Too many invalid commands. Bye!` in its place, the session is
+closed and `OnTooManyInvalidCommands` fires. A `453` is not counted. The count is the
+connection's: RSET, a command that succeeds and a message accepted leave it as it is.
+`OnRecipientUnknown` fires when the server refuses a recipient it does not have -
+unless that refusal is the one past the limit, which fires `OnTooManyInvalidCommands`
+instead - and for nothing else: a script's `554` whose `Result.Message` reads
+`Unknown user` refuses no recipient and does not fire it.
+
 On JavaScript the values - a password, a recipient, an error's description - are
 handed to the handler as values, with `JS_Call`. VBScript and JScript are handed
 their call as source text built and quoted by the server; JavaScript's is not built

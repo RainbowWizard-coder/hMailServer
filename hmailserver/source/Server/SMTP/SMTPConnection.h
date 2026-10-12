@@ -351,7 +351,19 @@ namespace HM
 
       bool ReadDomainAddressFromHelo_(const String &sRequest);
 
+      // A reply that counts towards MaxNumberOfInvalidCommands when it is a 5xx
+      // (SendCountedResponse_ says which replies come this way and which do not).
+      // The first form takes the RFC 3463 code DeriveEnhancedStatusCode_ gives
+      // the reply code, and is the one the refusal of an unknown recipient is
+      // sent with; the second is given the code, for a reply whose enhanced code
+      // says more than its reply code does. What is sent is what SendResponse_
+      // sends - unless the reply passes the limit with DisconnectInvalidClients
+      // on, when the 421 that closes the session is sent instead.
       void SendErrorResponse_(int iErrorCode, const String &sResponse);
+      void SendErrorResponse_(int iErrorCode, const String &enhancedCode, const String &sResponse);
+      // The two forms' one body. recipientUnknown: the reply refuses a recipient
+      // the server does not have, which fires OnRecipientUnknown.
+      void SendCountedResponse_(int iErrorCode, const String &enhancedCode, const String &sResponse, bool recipientUnknown);
       // RFC 2034: enqueue a response, prefixing the RFC 3463 enhanced status code
       // when the session is ESMTP (the client greeted with EHLO).
       void SendResponse_(int code, const String &enhancedCode, const String &text);

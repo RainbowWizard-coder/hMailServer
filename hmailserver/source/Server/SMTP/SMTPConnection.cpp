@@ -540,8 +540,9 @@ namespace HM
 
       if (sRequest.GetLength() > maxLength)
       {
-         // This line is too long... is this an evil user?
-         SendResponse_(500, _T("5.5.2"), _T("Line too long."));
+         // This line is too long... is this an evil user? Counted, as the other
+         // syntax errors are (upstream #653).
+         SendErrorResponse_(500, _T("5.5.2"), _T("Line too long."));
          return;
       }
 
@@ -617,15 +618,17 @@ namespace HM
                   case SMTP_COMMAND_RCPT: ProtocolRCPT_(sRequest); break;
                   // TURN and VRFY are answered 502 in every case; the STARTTLS gate is
                   // applied to them anyway so that no command other than NOOP, EHLO,
-                  // STARTTLS and QUIT is answered before TLS on a required port.
+                  // STARTTLS and QUIT is answered before TLS on a required port. The
+                  // 502 is counted, as the 503 to a verb this server does not know at
+                  // all is (upstream #653).
                   case SMTP_COMMAND_TURN:
                      if (CheckStartTlsRequired_())
-                        SendResponse_(502, _T("5.5.1"), _T("TURN disallowed."));
+                        SendErrorResponse_(502, _T("5.5.1"), _T("TURN disallowed."));
                      break;
                   case SMTP_COMMAND_ETRN: ProtocolETRN_(sRequest); break;
                   case SMTP_COMMAND_VRFY:
                      if (CheckStartTlsRequired_())
-                        SendResponse_(502, _T("5.5.1"), _T("VRFY disallowed."));
+                        SendErrorResponse_(502, _T("5.5.1"), _T("VRFY disallowed."));
                      break;
                   case SMTP_COMMAND_DATA: ProtocolDATA_(); break;
                   case SMTP_COMMAND_BDAT: ProtocolBDAT_(sRequest); break;
@@ -743,7 +746,7 @@ namespace HM
 
       if (current_message_)
       {
-         SendResponse_(503, _T("5.5.1"), _T("Issue a reset if you want to start over"));
+         SendErrorResponse_(503, _T("5.5.1"), _T("Issue a reset if you want to start over"));
          return;
       }
 
@@ -1070,7 +1073,7 @@ namespace HM
          String sMessage;
          sMessage.Format(_T("Message size exceeds fixed maximum message size. Size: %I64u KB, Max size: %Iu KB"),
                iEstimatedMessageSize / 1024, max_message_size_kb_);
-         SendResponse_(552, _T("5.3.4"), sMessage);
+         SendErrorResponse_(552, _T("5.3.4"), sMessage);
          return ;
       }
       
@@ -1451,7 +1454,7 @@ namespace HM
 
       if (!current_message_) 
       {
-         SendResponse_(503, _T("5.5.1"), _T("Must have sender first."));
+         SendErrorResponse_(503, _T("5.5.1"), _T("Must have sender first."));
          return;
       }
 
@@ -2371,11 +2374,12 @@ namespace HM
             return false;
          }
 
-         // 5.7.1 = delivery not authorized, message refused (RFC 3463).
+         // 5.7.1 = delivery not authorized, message refused (RFC 3463). Counted,
+         // as upstream counts it (#653).
          if (spType == SPPreTransmission)
-            SendResponse_(550, _T("5.7.1"), messageText);
+            SendErrorResponse_(550, _T("5.7.1"), messageText);
          else
-            SendResponse_(554, _T("5.7.1"), messageText);
+            SendErrorResponse_(554, _T("5.7.1"), messageText);
 
          String sLogMessage;
          sLogMessage.Format(_T("hMailServer SpamProtection rejected RCPT (Sender: %s, IP:%s, Reason: %s)"), sFromAddress.c_str(), String(GetIPAddressString()).c_str(), messageText.c_str());
@@ -3043,6 +3047,16 @@ namespace HM
    {
       SetReceiveBinary(false);
 
+      // A refusal of this message that was the client's one invalid command too
+      // many has closed the session (SendErrorResponse_): there is no command
+      // mode to resume, and a read armed on a connection that is going away
+      // throws out of this accept task.
+      if (pending_disconnect_)
+      {
+         pipelined_input_after_data_.reset();
+         return;
+      }
+
       if (pipelined_input_after_data_ && pipelined_input_after_data_->GetSize() > 0)
       {
          // The injection happens between two reads - none is armed until the
@@ -3343,9 +3357,12 @@ namespace HM
    bool
    SMTPConnection::OnPreAcceptTransfer_()
    {
+      // The refusals of the message below - cancelled, over the maximum size,
+      // bare LFs, a script's 554 - are counted towards MaxNumberOfInvalidCommands,
+      // as upstream counts them (#653); the 453 is not.
       if (transmission_buffer_->GetCancelTransmission())
       {
-         SendResponse_(554, _T("5.7.1"), transmission_buffer_->GetCancelMessage());
+         SendErrorResponse_(554, _T("5.7.1"), transmission_buffer_->GetCancelMessage());
          LogAwstatsMessageRejected_();
          return false;
       }
@@ -3388,7 +3405,7 @@ namespace HM
          // condition was reported with two different codes depending on whether the
          // client had declared a size - and a sender looking at 554 5.3.4 cannot tell a
          // size refusal from any other transaction failure.
-         SendResponse_(552, _T("5.3.4"), sMessage);
+         SendErrorResponse_(552, _T("5.3.4"), sMessage);
          LogAwstatsMessageRejected_();
          return false;
       }
@@ -3409,7 +3426,7 @@ namespace HM
          if (!CheckLineEndings_())
          {
             // 5.6.0 = other or undefined media (message content) error (RFC 3463).
-            SendResponse_(554, _T("5.6.0"), _T("Rejected - Message containing bare LF's."));
+            SendErrorResponse_(554, _T("5.6.0"), _T("Rejected - Message containing bare LF's."));
             LogAwstatsMessageRejected_();
             return false;
          }
@@ -3450,13 +3467,13 @@ namespace HM
             {
                // 5.7.1 / 4.7.0: rejected by local policy (a script), permanently or
                // temporarily. The numeric codes are unchanged.
-               SendResponse_(554, _T("5.7.1"), _T("Rejected"));
+               SendErrorResponse_(554, _T("5.7.1"), _T("Rejected"));
                LogAwstatsMessageRejected_();
                return false;
             }
          case 2:
             {
-               SendResponse_(554, _T("5.7.1"), pResult->GetMessage());
+               SendErrorResponse_(554, _T("5.7.1"), pResult->GetMessage());
                LogAwstatsMessageRejected_();
                return false;
             }
@@ -3901,14 +3918,15 @@ namespace HM
          {
             // 5.7.1 / 4.7.0: rejected by local policy (a script). Note that
             // esmtp_session_ is not set until the EHLO reply has been sent, so a
-            // rejection here is still answered without an enhanced code.
-            SendResponse_(554, _T("5.7.1"), _T("Rejected"));
+            // rejection here is still answered without an enhanced code. The 554
+            // is counted (upstream #653); the 453 is not.
+            SendErrorResponse_(554, _T("5.7.1"), _T("Rejected"));
             LogAwstatsMessageRejected_();
             return;
          }
          case 2:
          {
-            SendResponse_(554, _T("5.7.1"), pResult->GetMessage());
+            SendErrorResponse_(554, _T("5.7.1"), pResult->GetMessage());
             LogAwstatsMessageRejected_();
             return;
          }
@@ -3975,14 +3993,15 @@ namespace HM
          {
          case 1:
          {
-            // 5.7.1 / 4.7.0: rejected by local policy (a script).
-            SendResponse_(554, _T("5.7.1"), _T("Rejected"));
+            // 5.7.1 / 4.7.0: rejected by local policy (a script). The 554 is
+            // counted (upstream #653); the 453 is not.
+            SendErrorResponse_(554, _T("5.7.1"), _T("Rejected"));
             LogAwstatsMessageRejected_();
             return;
          }
          case 2:
          {
-            SendResponse_(554, _T("5.7.1"), pResult->GetMessage());
+            SendErrorResponse_(554, _T("5.7.1"), pResult->GetMessage());
             LogAwstatsMessageRejected_();
             return;
          }
@@ -4035,10 +4054,13 @@ namespace HM
       // Authorisation first, before any syntax checking, so an untrusted peer
       // learns nothing but the refusal. The verb is not advertised to
       // untrusted peers either (see SendEHLOKeywords_), so reaching this is a
-      // probe or a misconfigured upstream. Postfix's wording.
+      // probe or a misconfigured upstream. Postfix's wording. Counted, as the 503
+      // to any other verb this peer may not use is: with XCLIENT off, the
+      // default, it is no command of this server's at all. So are the 503 and
+      // the 501s below (upstream #653).
       if (!XClientPermitted_())
       {
-         SendResponse_(550, _T("5.7.0"), _T("Error: insufficient authorization."));
+         SendErrorResponse_(550, _T("5.7.0"), _T("Error: insufficient authorization."));
          return;
       }
 
@@ -4049,7 +4071,7 @@ namespace HM
 
       if (current_message_)
       {
-         SendResponse_(503, _T("5.5.1"), _T("XCLIENT is not permitted inside a mail transaction."));
+         SendErrorResponse_(503, _T("5.5.1"), _T("XCLIENT is not permitted inside a mail transaction."));
          return;
       }
 
@@ -4057,7 +4079,7 @@ namespace HM
 
       if (sAttributes.IsEmpty())
       {
-         SendResponse_(501, _T("5.5.4"), _T("Bad command parameter syntax."));
+         SendErrorResponse_(501, _T("5.5.4"), _T("Bad command parameter syntax."));
          return;
       }
 
@@ -4087,7 +4109,7 @@ namespace HM
          int equalsIndex = attribute.Find(_T("="));
          if (equalsIndex <= 0 || equalsIndex == attribute.GetLength() - 1)
          {
-            SendResponse_(501, _T("5.5.4"), _T("Bad command parameter syntax."));
+            SendErrorResponse_(501, _T("5.5.4"), _T("Bad command parameter syntax."));
             return;
          }
 
@@ -4115,7 +4137,7 @@ namespace HM
 
             if (!newAddress.TryParse(addressValue, false))
             {
-               SendResponse_(501, _T("5.5.4"), _T("Bad ADDR syntax."));
+               SendErrorResponse_(501, _T("5.5.4"), _T("Bad ADDR syntax."));
                return;
             }
 
@@ -4145,7 +4167,7 @@ namespace HM
 
             if (!valid || parsedPort > 65535)
             {
-               SendResponse_(501, _T("5.5.4"), _T("Bad PORT syntax."));
+               SendErrorResponse_(501, _T("5.5.4"), _T("Bad PORT syntax."));
                return;
             }
 
@@ -4170,7 +4192,7 @@ namespace HM
                newEsmtp = true;
             else
             {
-               SendResponse_(501, _T("5.5.4"), _T("Bad PROTO syntax."));
+               SendErrorResponse_(501, _T("5.5.4"), _T("Bad PROTO syntax."));
                return;
             }
 
@@ -4184,7 +4206,7 @@ namespace HM
          else
          {
             // Only the attributes advertised in EHLO are within the contract.
-            SendResponse_(501, _T("5.5.4"), _T("Bad command parameter syntax."));
+            SendErrorResponse_(501, _T("5.5.4"), _T("Bad command parameter syntax."));
             return;
          }
       }
@@ -4359,17 +4381,18 @@ namespace HM
          return;
 
       // RFC 3030: once a transaction has started using BDAT it must be completed
-      // with BDAT; mixing in a DATA command is illegal.
+      // with BDAT; mixing in a DATA command is illegal. This 503 and the two below
+      // are counted, as every command out of sequence is (upstream #653).
       if (bdat_active_)
       {
-         SendResponse_(503, _T("5.5.1"), _T("Bad sequence of commands: BDAT already used in this transaction."));
+         SendErrorResponse_(503, _T("5.5.1"), _T("Bad sequence of commands: BDAT already used in this transaction."));
          return;
       }
 
       if (!current_message_ || current_message_->GetRecipients()->GetCount() == 0)
       {
          // User tried to send a mail without specifying a correct mail from or rcpt to.
-         SendResponse_(503, _T("5.5.1"), _T("Must have sender and recipient first."));
+         SendErrorResponse_(503, _T("5.5.1"), _T("Must have sender and recipient first."));
 
          return;
       }
@@ -4382,7 +4405,7 @@ namespace HM
       // intact: the client may continue with BDAT.
       if (binarymime_requested_)
       {
-         SendResponse_(503, _T("5.5.1"), _T("Bad sequence of commands: DATA is not permitted with BODY=BINARYMIME; use BDAT (RFC 3030)."));
+         SendErrorResponse_(503, _T("5.5.1"), _T("Bad sequence of commands: DATA is not permitted with BODY=BINARYMIME; use BDAT (RFC 3030)."));
          return;
       }
 
@@ -4431,14 +4454,15 @@ namespace HM
          {
          case 1:
             {
-               // 5.7.1 / 4.7.0: rejected by local policy (a script).
-               SendResponse_(554, _T("5.7.1"), _T("Rejected"));
+               // 5.7.1 / 4.7.0: rejected by local policy (a script). The 554 is
+               // counted (upstream #653); the 453 is not.
+               SendErrorResponse_(554, _T("5.7.1"), _T("Rejected"));
                LogAwstatsMessageRejected_();
                return;
             }
          case 2:
             {
-               SendResponse_(554, _T("5.7.1"), pResult->GetMessage());
+               SendErrorResponse_(554, _T("5.7.1"), pResult->GetMessage());
                LogAwstatsMessageRejected_();
                return;
             }
@@ -4547,8 +4571,9 @@ namespace HM
 
       if (!current_message_ || current_message_->GetRecipients()->GetCount() == 0)
       {
-         // BDAT issued without a sender and at least one recipient.
-         SendResponse_(503, _T("5.5.1"), _T("Must have sender and recipient first."));
+         // BDAT issued without a sender and at least one recipient: counted, as
+         // DATA's is (upstream #653).
+         SendErrorResponse_(503, _T("5.5.1"), _T("Must have sender and recipient first."));
          StartBdatDiscard_((size_t)chunkSize);
          return;
       }
@@ -4627,6 +4652,11 @@ namespace HM
          // Zero-length chunk: no payload follows; stay in command mode.
          return;
       }
+
+      // The refusal was the client's one invalid command too many and has closed
+      // the session (SendErrorResponse_): nothing is read from it again.
+      if (pending_disconnect_)
+         return;
 
       bdat_discard_ = true;
       bdat_chunk_remaining_ = chunkSize;
@@ -5296,7 +5326,7 @@ namespace HM
       else
       {
          // Send that we don't accept ETRN for that domain or invalid param
-         SendResponse_(501, _T("5.5.4"), _T("ETRN not supported for ") + sETRNDomain.ToLower());
+         SendErrorResponse_(501, _T("5.5.4"), _T("ETRN not supported for ") + sETRNDomain.ToLower());
          LOG_SMTP(GetSessionID(), GetIPAddressString(), "SMTPDeliverer - ETRN - Domain is not Route");      
          return;
       }
@@ -5930,8 +5960,59 @@ namespace HM
       return EffectiveSetting::ResolveIntHeldTo(_T("max_message_size_kb"), pDomain, pAccount, pSignedIn);
    }
 
-   void 
+   void
    SMTPConnection::SendErrorResponse_(int iErrorCode, const String &sResponse)
+   {
+      // The refusal of a recipient the server does not have is sent in this
+      // form, with CONST_UNKNOWN_USER for its text, and it is that refusal which
+      // fires OnRecipientUnknown.
+      SendCountedResponse_(iErrorCode, DeriveEnhancedStatusCode_(iErrorCode), sResponse,
+         !sResponse.compare(CONST_UNKNOWN_USER));
+   }
+
+   void
+   SMTPConnection::SendErrorResponse_(int iErrorCode, const String &enhancedCode, const String &sResponse)
+   {
+      // No recipient is refused in this form, so OnRecipientUnknown is not fired
+      // whatever the text says: a script's Result.Message or a spam test's
+      // message that reads "Unknown user" refuses no recipient.
+      SendCountedResponse_(iErrorCode, enhancedCode, sResponse, false);
+   }
+
+   void
+   SMTPConnection::SendCountedResponse_(int iErrorCode, const String &enhancedCode, const String &sResponse, bool recipientUnknown)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // The counting path for MaxNumberOfInvalidCommands. Every 5xx sent here adds
+   // one to the session's count, and with DisconnectInvalidClients on, the reply
+   // that takes the count past the limit is replaced by the 421 that closes the
+   // session; a 4xx sent here is sent and not counted. The count starts at zero
+   // on each connection, and nothing inside one resets it: not RSET, not a
+   // command that succeeds, not a message delivered, not XCLIENT.
+   //
+   // What comes here (upstream #653/#664): the replies to a command the client
+   // should not have sent - a syntax error, a command out of sequence, a line
+   // too long, TURN and VRFY, an unknown verb or parameter, XCLIENT from a peer
+   // not permitted to use it, ETRN for a domain that is not a route - and the
+   // refusals upstream hMailServer counts as well: a recipient the server does
+   // not have or will not relay to, authentication, a SIZE= or a message over
+   // the maximum, bare LFs, a cancelled transmission, the spam score, and a
+   // script's 554.
+   //
+   // The 5xx replies that are not counted go through SendResponse_: those that
+   // close the session themselves (SMTPDMaxSizeDrop, a BDAT whose chunk size
+   // cannot be read, an XCLIENT address an IP range blocks), where counting
+   // could only swap the reply for the 421; and the refusals this server's own
+   // policies make of a well-formed command - a remote domain's inbound TLS, the
+   // authenticated-sender check, the quota's send-stop, the suppression list,
+   // BINARYMIME relay, greylisting's abuse refusal, the backup-MX callout, the
+   // domain policy list, the FQDN checks, restricted delivery, a null sender's
+   // second recipient, a rule's rejection, an XCLIENT LOGIN that names a room.
+   // Those are outcomes of a transaction that is otherwise in order, a refused
+   // recipient among accepted ones above all (RFC 5321 section 3.3), and
+   // counting them would cut such a transaction off with a 421 that its
+   // sender's retry meets again in the same place.
+   //---------------------------------------------------------------------------()
    {
       if (iErrorCode >= 500 && iErrorCode <= 599)
       {
@@ -5984,7 +6065,7 @@ namespace HM
          }
          else
          {
-            if (!sResponse.compare(CONST_UNKNOWN_USER))
+            if (recipientUnknown)
             {
                if (Configuration::Instance()->GetUseScriptServer())
                {
@@ -6016,15 +6097,7 @@ namespace HM
          }
       }
 
-      String sData;
-      String enhancedCode = DeriveEnhancedStatusCode_(iErrorCode);
-      if (esmtp_session_ && !enhancedCode.IsEmpty())
-         sData.Format(_T("%d %s %s"), iErrorCode, enhancedCode.c_str(), sResponse.c_str());
-      else
-         sData.Format(_T("%d %s"), iErrorCode, sResponse.c_str());
-      
-      EnqueueWrite_(sData);
-     
+      SendResponse_(iErrorCode, enhancedCode, sResponse);
    }
 
    void

@@ -357,6 +357,7 @@
     <Compile Include="Infrastructure\ExceptionHandlerDiagnosticsTests.cs" />
     <Compile Include="Infrastructure\MessageStoreLayout.cs" />
     <Compile Include="SMTP\EsmtpConformance.cs" />
+    <Compile Include="SMTP\InvalidCommandLimit.cs" />
     <Compile Include="SMTP\StartTlsAlreadyActive.cs" />
     <Compile Include="Security\TlsAcmeRenewal.cs" />
     <Compile Include="Security\TlsAcmeDeployment.cs" />
