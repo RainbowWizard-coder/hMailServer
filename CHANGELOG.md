@@ -5610,9 +5610,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 - **ActiveActive.md has been read again against the code, with what two nodes do today measured, its open questions
   decided, and the work set out as thirty-one units in the order they are to be built.** Two nodes of today's build
   on one database, each with its own data directory, failed to deliver 29 to 122 of 2,000 relayed messages and kept
-  only 82 to 226 of 1,000 sent into one mailbox, on PostgreSQL 17, MariaDB 11.8 and MySQL 8.4: a node that claims a
-  queued row whose file is on the other node's disk deletes the row, which for one local recipient is already the
-  delivered message, and it serves a placeholder for every message whose file is on the other disk. The corrections
+  only 82 to 226 of 1,000 sent into one mailbox, on PostgreSQL 17, MariaDB 11.8 and MySQL 8.4, and on SQL Server 2022,
+  with two Windows nodes talking to it through ADO as an installation does, 314 and 316 never left, 218 and 260 were
+  kept, and 14 and 18 UIDs went to two messages each, in two runs: a node that claims a queued row whose file is on
+  the other node's disk deletes the row, which for one local recipient is already the delivered message, and it
+  serves a placeholder for every message whose file is on the other disk. The corrections
   to the first version: no backend returns a row count, and MySQL connects without `CLIENT_FOUND_ROWS`; the IMAP
   message lists are read again only above the highest UID already read, so another node's flag changes and
   expunges are never seen; the migration jobs have the queue's `UnlockAll` shape; the list of secrets sealed to the
@@ -5628,13 +5630,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   judged by its matched-row count on all four engines, and recognises itself when it is run twice; leases are on
   the database's clock in UTC; a node's identity is a file in its data directory, so that it follows the disk;
   while active-active is off one node is active and any other keeps its doors shut; SQL Server Compact is one
-  node by definition, and SQL Server waits for a run of two Windows nodes; the queue stays on the accepting node's
-  disk and is handed over through the object store at a drain; active-active requires the object store, written
+  node by definition, and SQL Server is proved with two Windows nodes and offered once its scenarios pass there; the
+  queue stays on the accepting node's disk and is handed over through the object store at a drain; active-active
+  requires the object store, written
   through while other nodes are live, and every other kind of local state moves into the database or the store;
   the reads the nodes rely on are at READ COMMITTED; and the database is the only bus between nodes. The lab the
-  units will be proved in is `build/lab/active-active/`, whose README has the measurements and what the lab cannot
-  show yet. Nothing in the server has changed: active-active is still not built, and WarmStandby.md's one service
-  per database still holds.
+  units will be proved in is `build/lab/active-active/`, with a Windows half for SQL Server (`windows/`), whose README
+  has the measurements and what the lab cannot show yet. There, through ADO, an update that matches a row and
+  changes nothing counts 1 as `RecordsAffected` with both OLE DB providers, and at READ UNCOMMITTED, where the
+  server's sessions run, a reader saw 109 rows that were then rolled back and missed 108 that were committed, where
+  one with the `READCOMMITTED` hint saw neither. On Windows the server finds `hMailServer.ini` through the machine's one
+  `InstallLocation`, so a second installation on a machine reads the first's configuration and runs on its database;
+  the Windows lab's node beside an installation runs in turns with it. Nothing in the server has changed:
+  active-active is still not built, and WarmStandby.md's one service per database still holds.
 
 ---
 

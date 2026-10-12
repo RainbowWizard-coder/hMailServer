@@ -20,7 +20,8 @@ they are to be built. What two nodes do to each other today was measured the sam
 day, in the lab that the units will be proved in
 ([build/lab/active-active/](../../build/lab/active-active/README.md)). A review of
 that reading, the same evening, found more that the server keeps to one process or
-one disk, and this version includes it.
+one disk, and this version includes it. On 13 October 2026 the lab gained two
+Windows nodes on SQL Server, and the same was measured there.
 
 What is meant here by *active-active* is two or more nodes that serve the same
 domains at the same time from one database, behind one address. Any node takes
@@ -91,13 +92,19 @@ database, each with its own data directory, 2,000 messages relayed to a sink tha
 records what it is given, and 1,000 into one mailbox, sent through both nodes
 (`aa-lab.sh baseline`).
 
-| | PostgreSQL 17 | MariaDB 11.8 | MySQL 8.4 |
-|---|---|---|---|
-| Relayed and never delivered | 106 of 2,000 | 122 | 29 |
-| Relayed twice | 0 | 0 | 0 |
-| Left in the mailbox, of 1,000 | 118 | 226 | 82 |
-| UIDs given to two messages | 0 | 5 | 0 |
-| Messages one of the two nodes served as a placeholder | all of them | all of them | all of them |
+| | PostgreSQL 17 | MariaDB 11.8 | MySQL 8.4 | SQL Server 2022, two runs |
+|---|---|---|---|---|
+| Relayed and never delivered | 106 of 2,000 | 122 | 29 | 314 and 316 |
+| Relayed twice | 0 | 0 | 0 | 0 and 0 |
+| Left in the mailbox, of 1,000 | 118 | 226 | 82 | 218 and 260 |
+| UIDs given to two messages | 0 | 5 | 0 | 14 and 18 |
+| Messages one of the two nodes served as a placeholder | all of them | all of them | all of them | all of them |
+
+The SQL Server runs, on 13 October 2026, were two Windows nodes of the same build,
+each a Windows service with a data directory of its own, talking to SQL Server
+through ADO and the Microsoft OLE DB Driver 18 as an installation does, at READ
+UNCOMMITTED (the Windows lab, [build/lab/active-active/windows/](../../build/lab/active-active/README.md)).
+There, `SELECT` showed 204 and 242 messages where `STATUS` said 218 and 260.
 
 With one data directory shared by both, which [WarmStandby.md](WarmStandby.md)
 forbids, nothing was lost but 1,489 of the 2,000 relayed messages went out twice.
@@ -186,7 +193,11 @@ exactly once. A claim also recognises itself: it sets an epoch drawn at random f
 that one attempt, and matches its own finished claim as well as a free row, so a
 claim that the database layer runs again after a reconnect, whose first run had
 committed, still counts as won, while a second attempt that read the same row does
-not.
+not. On 13 October 2026 the same counts were read on two Windows nodes through
+ADO's `Command.Execute`, as `RecordsAffected`, from SQL Server 2022 through both
+OLE DB providers the server uses (the Microsoft OLE DB Driver 18 and SQLOLEDB), in
+a session set to READ UNCOMMITTED as the server's are: 1 for a row matched and left
+as it was, and 1 for a claim that recognises itself, run twice.
 
 **SQL Server Compact is one node by definition.** It is a file the server's own
 process opens from its data directory, with no server for a second machine to
@@ -298,7 +309,12 @@ the folder counters, the message lists, the change log and the read-back of a
 claim. SQL Server's sessions stay at READ UNCOMMITTED for everything else, so on
 SQL Server these statements carry the `READCOMMITTED` table hint. Without it, a
 client could be shown a UID that a transaction then rolled back and a retry gave to
-another message.
+another message. Measured on 13 October 2026: two writers numbered 600 rows in
+transactions and rolled a third of them back, while two readers read "above the
+highest number seen" as an IMAP session does. The reader at READ UNCOMMITTED saw
+109 rows that were then rolled back, and never saw 108 rows that were committed,
+their numbers having been taken again below its mark. The reader with the hint saw
+neither.
 
 **Longer holds** go in a lease table, `hm_locks`: a unique name, the node that
 holds it, the time it expires and an epoch. A claim is the same conditional update
@@ -519,14 +535,20 @@ Nor is file replication, which gives no read-after-write across nodes.
 
 ### SQL Server
 
-The lab proves the design on PostgreSQL, MySQL and MariaDB with whole nodes. The
-Linux server has no SQL Server backend, and the Windows gate runs on SQL Server
-Compact, so the lab's checks on SQL Server are of the engine's own behaviour, not of
-the server's code that talks to it. Of that code, AA-02's transaction scope has
+The Linux server has no SQL Server backend, and the Windows gate runs on SQL Server
+Compact, so the lab proves SQL Server with Windows nodes: two Windows Server 2025
+machines, each running the server as a Windows service, on one SQL Server 2022
+([build/lab/active-active/windows/](../../build/lab/active-active/README.md)). The
+nodes talk to it as an installation does, through ADO and the Microsoft OLE DB
+Driver 18, at READ UNCOMMITTED, with the database password sealed for each machine
+with DPAPI. That is where the server's own code meets SQL Server: the row counts
+through `RecordsAffected`, the `READCOMMITTED` hint, a deadlock's 1205 through ADO's
+errors and the reseal of DPAPI secrets. Of that code, AA-02's transaction scope has
 been run on SQL Server: its checks and their controls, through the server's own ADO
 code (MSOLEDBSQL 18) on a Windows node against SQL Server 2022, on 13 October 2026.
-Active-active is not offered on SQL Server until two Windows nodes have been run on
-it; until then a SQL Server installation keeps the warm standby, with the guard.
+Each unit proves itself there as on the three Linux engines, and active-active is
+offered on SQL Server once the scenarios below have passed on those two nodes; until
+then a SQL Server installation keeps the warm standby, with the guard.
 
 ### Upgrades
 
@@ -606,13 +628,18 @@ in containers on a Linux host. It has:
 - a load that numbers what it sends.
 
 The Linux server has no SQL Server backend, so SQL Server takes part through the
-engine checks, run as the server's sessions run, at READ UNCOMMITTED. Testers that
-race two connection pools in one process run in the Windows gate, whose database
-is SQL Server Compact. The engine checks are also run through the server's own
-database layer: `database-claim-tests` against the Linux suite's PostgreSQL and the
-database matrix's MySQL and MariaDB before the server starts, and the same checks
-inside the Windows server on a SQL Server Compact database of their own
-(`DatabaseClaimTester`). Faults are made on purpose:
+Windows half of the bench (`windows/`): two Windows nodes, each the server's
+Windows service, on SQL Server 2022 in a container beside the Linux databases, with
+the same load, sink and checks, and the engine checks run as the server's sessions
+run, at READ UNCOMMITTED. One of the two machines has an installation of its own,
+and the server finds its configuration through the machine's one `InstallLocation`,
+so that node runs in turns with it. Testers that race two connection pools in one
+process run in the Windows gate, whose database is SQL Server Compact. The engine
+checks are also run through the server's own database layer: `database-claim-tests`
+against the Linux suite's PostgreSQL and the database matrix's MySQL and MariaDB
+before the server starts, and the same checks inside the Windows server on a SQL
+Server Compact database of their own (`DatabaseClaimTester`). Faults are made on
+purpose:
 - a node killed (`docker kill`);
 - a node frozen past its lease (`docker pause`, then `unpause`);
 - a node cut off from the database;
@@ -742,7 +769,8 @@ wins every claim, skips its own change-log rows and has no folder to watch.
    - AA-21, the drain that hands everything over;
    - AA-22, ACME across nodes.
 8. **Proof and switch-on:**
-   - AA-24, every scenario above, on PostgreSQL, MySQL and MariaDB;
+   - AA-24, every scenario above, on PostgreSQL, MySQL and MariaDB, and on SQL
+     Server with the Windows nodes;
    - AA-25, the switch (`ActiveActiveEnabled`) and its checks: an engine the lab
      has proved, InnoDB only, not SQL Server Compact, the object store, the
      stored-secrets key, every kind of local state moved, and the administrator's
