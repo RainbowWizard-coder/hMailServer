@@ -436,6 +436,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   any other. `SMTP/Srs.cs` holds both. Found by upstream's review of its own SRS (upstream PR 649), which shared the
   shape.
 
+- **Fixed: an SRS address or a BATV tag almost a whole cycle old was accepted as fresh, and a signature was compared
+  in a time that said how much of it was right.** Both carry their day as a number that wraps - every 1024 days for
+  SRS, every 1000 for BATV - and both accepted a day one ahead of today as clock skew, which modulo the cycle is also a
+  day 1023 (SRS) or 999 (BATV) days old (from 6.2.1 and 6.2.3, which brought them). The skew is now an hour added to
+  this server's clock, and a stamp older than the window - 21 days for SRS, 7 for BATV - is refused whatever its
+  number. The signature is compared in constant time (`HashCreator::HexDigestsMatch`), as password hashes are. And SRS
+  no longer rewrites a sender into an address no server would take - a quoted local part carried into the unquoted
+  SRS one, or a path past RFC 5321's 254 characters - but forwards the sender as it came. The README says so. Held by
+  the in-process tests at fixed times (`ClassTester`, which `Infrastructure.MainOperations` runs). Found by upstream's
+  review of its own SRS (#649).
+
 ### Correctness
 
 - **Fixed: a ManageSieve refusal that quoted a script's text with a line break in it was split in two.** RFC 5804's

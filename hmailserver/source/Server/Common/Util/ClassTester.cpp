@@ -1167,6 +1167,110 @@ namespace HM
             throw 0;
       }
 
+      // The windows the two schemes' timestamps are held to, at fixed times. A
+      // timestamp is a day number modulo a cycle - 1024 days for SRS, 1000 for BATV -
+      // so one day ahead of today and one day short of a whole cycle old read the
+      // same, and both schemes accepted "one day ahead" as clock skew: an SRS address
+      // 1023 days old, and a BATV tag 999 days old, passed as fresh (upstream #649).
+      // The skew is now an hour added to this server's clock.
+      OutputDebugString(_T("hMailServer: Testing the SRS timestamp window\n"));
+      {
+         const String secret = _T("srs-test-secret-key");
+         const String original = _T("alice@external-sender.com");
+         const String forwarder = _T("relay.example.com");
+         const time_t day = 86400;
+         const time_t t0 = 1760000000; // 9 October 2025, 08:53 UTC
+         String reversed;
+
+         const String made = SRS::ForwardAt(original, forwarder, secret, t0);
+         if (made.IsEmpty())
+            throw 0;
+         if (!SRS::ReverseAt(made, secret, t0, reversed) || reversed.CompareNoCase(original) != 0)
+            throw 0;
+
+         // Good for 21 days, and not on the 22nd.
+         if (!SRS::ReverseAt(made, secret, t0 + 21 * day, reversed))
+            throw 0;
+         if (SRS::ReverseAt(made, secret, t0 + 22 * day, reversed))
+            throw 0;
+
+         // 1023 days old reads one day ahead.
+         const String ancient = SRS::ForwardAt(original, forwarder, secret, t0 - 1023 * day);
+         if (ancient.IsEmpty() || SRS::ReverseAt(ancient, secret, t0, reversed))
+            throw 0;
+
+         // A node whose clock is half an hour ahead stamps tomorrow at 23:45 today.
+         const time_t lateEvening = (t0 / day) * day + day - 15 * 60;
+         const String ahead = SRS::ForwardAt(original, forwarder, secret, lateEvening + 30 * 60);
+         if (ahead.IsEmpty() || !SRS::ReverseAt(ahead, secret, lateEvening, reversed))
+            throw 0;
+
+         // Two days ahead is no clock skew.
+         const String farAhead = SRS::ForwardAt(original, forwarder, secret, t0 + 2 * day);
+         if (farAhead.IsEmpty() || SRS::ReverseAt(farAhead, secret, t0, reversed))
+            throw 0;
+
+         // The hash is hex in either case; one a digit short is refused. It is
+         // compared in constant time, which no assertion here can see.
+         String upperHash = made.Mid(5, 8);
+         upperHash.MakeUpper();
+         if (!SRS::ReverseAt(made.Mid(0, 5) + upperHash + made.Mid(13), secret, t0, reversed))
+            throw 0;
+         if (SRS::ReverseAt(made.Mid(0, 5) + made.Mid(6), secret, t0, reversed))
+            throw 0;
+
+         // An address no server would take is not made, and the sender is forwarded
+         // as it came: a quoted local part, and a path past RFC 5321's 254 characters
+         // (5 + 8 + 1 + 2 + 1 + 19 + 1 + 200 + 1 + 17 = 255) - but one inside it is.
+         if (!SRS::ForwardAt(_T("\"john doe\"@external-sender.com"), forwarder, secret, t0).IsEmpty())
+            throw 0;
+
+         String longLocal;
+         for (int i = 0; i < 200; i++)
+            longLocal += _T("a");
+         if (!SRS::ForwardAt(longLocal + _T("@external-sender.com"), forwarder, secret, t0).IsEmpty())
+            throw 0;
+         if (SRS::ForwardAt(longLocal.Mid(0, 150) + _T("@external-sender.com"), forwarder, secret, t0).IsEmpty())
+            throw 0;
+      }
+
+      OutputDebugString(_T("hMailServer: Testing the BATV day window\n"));
+      {
+         const String secret = _T("batv-test-secret-key");
+         const String mailbox = _T("alice@example.test");
+         const time_t day = 86400;
+         const time_t t0 = 1760000000;
+         String original;
+
+         // prvs=1DDDhhhhhh=alice@example.test
+         const String tagged = BATV::SignAt(mailbox, secret, t0);
+         if (tagged.IsEmpty() || !BATV::VerifyAt(tagged, secret, t0, original) || original.CompareNoCase(mailbox) != 0)
+            throw 0;
+
+         // Good for 7 days, and not on the 8th.
+         if (!BATV::VerifyAt(tagged, secret, t0 + 7 * day, original))
+            throw 0;
+         if (BATV::VerifyAt(tagged, secret, t0 + 8 * day, original))
+            throw 0;
+
+         // 999 days old reads one day ahead.
+         const String ancient = BATV::SignAt(mailbox, secret, t0 - 999 * day);
+         if (ancient.IsEmpty() || BATV::VerifyAt(ancient, secret, t0, original))
+            throw 0;
+
+         // Half an hour of clock skew across midnight is still taken.
+         const time_t lateEvening = (t0 / day) * day + day - 15 * 60;
+         const String ahead = BATV::SignAt(mailbox, secret, lateEvening + 30 * 60);
+         if (ahead.IsEmpty() || !BATV::VerifyAt(ahead, secret, lateEvening, original))
+            throw 0;
+
+         // The signature is hex in either case.
+         String upperSignature = tagged.Mid(9, 6);
+         upperSignature.MakeUpper();
+         if (!BATV::VerifyAt(tagged.Mid(0, 9) + upperSignature + tagged.Mid(15), secret, t0, original))
+            throw 0;
+      }
+
       // What a hash, a MAC or a key is made over: every character, as UTF-8
       // (Unicode::ToUtf8Exact), where AnsiString(String) stopped at the first
       // character above U+00FF on Windows and wrote NUL bytes for the rest, and

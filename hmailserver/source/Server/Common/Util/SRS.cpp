@@ -6,9 +6,8 @@
 #include "SRS.h"
 
 #include "Hashing/HashCreator.h"
+#include "Parsing/StringParser.h"
 #include "Unicode.h"
-
-#include <ctime>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -21,19 +20,24 @@ namespace HM
    // taken modulo 1024 always encodes to exactly two characters.
    static const wchar_t *kBase32Alphabet = L"ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
-   // How many days an SRS address remains valid for, plus one day of tolerance
-   // for clock skew between the bouncing host and this server.
+   // How many days an SRS address remains valid for.
    static const int kMaxAgeDays = 21;
-   static const int kFutureSkewSlot = 1023; // currentSlot + 1 (mod 1024)
+
+   // The tolerance for a clock - another node's sharing the secret - a little ahead
+   // of this one's, which stamps tomorrow's day in the last moments of today. It
+   // moves this server's clock forward by an hour when an address is checked,
+   // rather than accepting any address that reads one day ahead: modulo the cycle
+   // of 1024 days, one day ahead is also 1023 days old, and an address that old
+   // was let through as fresh (upstream #649).
+   static const int kClockSkewSeconds = 60 * 60;
 
    // Number of hex characters of the HMAC kept in the address (32 bits).
    static const int kHashHexLength = 8;
 
    int
-   SRS::CurrentTimeSlot_()
+   SRS::TimeSlotAt_(time_t when)
    {
-      time_t now = time(0);
-      __int64 days = (__int64) now / 86400;
+      __int64 days = (__int64) when / 86400;
       return (int) (days % 1024);
    }
 
@@ -73,16 +77,16 @@ namespace HM
    }
 
    bool
-   SRS::TimeSlotInRange_(int slot)
+   SRS::TimeSlotInRange_(int slot, time_t now)
    {
-      int currentSlot = CurrentTimeSlot_();
+      int currentSlot = TimeSlotAt_(now + kClockSkewSeconds);
       int age = currentSlot - slot;
       if (age < 0)
          age += 1024;
 
-      // Accept timestamps up to kMaxAgeDays old, plus one day in the future to
-      // tolerate clock skew (age wraps to 1023 when the slot is one day ahead).
-      return (age <= kMaxAgeDays) || (age >= kFutureSkewSlot);
+      // The slots wrap, so the age is taken modulo the cycle: a slot that looks
+      // ahead of today is one from before the wrap.
+      return age <= kMaxAgeDays;
    }
 
    String
@@ -122,6 +126,12 @@ namespace HM
    String
    SRS::Forward(const String &originalMailFrom, const String &forwarderDomain, const String &secret)
    {
+      return ForwardAt(originalMailFrom, forwarderDomain, secret, time(0));
+   }
+
+   String
+   SRS::ForwardAt(const String &originalMailFrom, const String &forwarderDomain, const String &secret, time_t now)
+   {
       if (originalMailFrom.IsEmpty() || forwarderDomain.IsEmpty() || secret.IsEmpty())
          return "";
 
@@ -132,7 +142,7 @@ namespace HM
       String sourceLocal = originalMailFrom.Mid(0, atPos);
       String sourceDomain = originalMailFrom.Mid(atPos + 1);
 
-      String timeSlot = EncodeTimeSlot_(CurrentTimeSlot_());
+      String timeSlot = EncodeTimeSlot_(TimeSlotAt_(now));
       String hash = ComputeHash_(secret, timeSlot, sourceDomain, sourceLocal);
       if (hash.IsEmpty())
          return "";
@@ -140,6 +150,16 @@ namespace HM
       String result;
       result.Format(_T("SRS0=%s=%s=%s=%s@%s"),
          hash.c_str(), timeSlot.c_str(), sourceDomain.c_str(), sourceLocal.c_str(), forwarderDomain.c_str());
+
+      // An address no server would take is not handed out (upstream #649): longer
+      // than RFC 5321 4.5.3.1.3's path allows, or a quoted local part - "john doe" -
+      // carried into the unquoted SRS one, where its quotes and its space make it no
+      // address at all. A bounce could never come back to either, and this server's
+      // own RCPT TO would refuse one that tried; the sender is forwarded as it came.
+      // Internationalized senders (RFC 6531) stay rewritable.
+      if (!StringParser::IsValidEmailAddress(result, true))
+         return "";
+
       return result;
    }
 
@@ -165,6 +185,12 @@ namespace HM
 
    bool
    SRS::Reverse(const String &address, const String &secret, String &originalMailFrom)
+   {
+      return ReverseAt(address, secret, time(0), originalMailFrom);
+   }
+
+   bool
+   SRS::ReverseAt(const String &address, const String &secret, time_t now, String &originalMailFrom)
    {
       originalMailFrom = "";
 
@@ -208,9 +234,11 @@ namespace HM
          return false;
       }
 
-      // Verify the HMAC signature (case-insensitive hex comparison).
+      // Verify the HMAC signature: case-insensitive hex, compared in constant time,
+      // so that how long a refusal takes does not tell a forger how much of the
+      // hash was right (upstream #649).
       String expected = ComputeHash_(secret, timeSlot, sourceDomain, sourceLocal);
-      if (expected.IsEmpty() || expected.CompareNoCase(hash) != 0)
+      if (expected.IsEmpty() || !HashCreator::HexDigestsMatch(AnsiString(expected), hash))
       {
          return false;
       }
@@ -221,7 +249,7 @@ namespace HM
       {
          return false;
       }
-      if (!TimeSlotInRange_(slot))
+      if (!TimeSlotInRange_(slot, now))
       {
          return false;
       }

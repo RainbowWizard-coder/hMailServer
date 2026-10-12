@@ -506,6 +506,33 @@ namespace HM
       return result;
    }
 
+   bool
+   HashCreator::HexDigestsMatch(const AnsiString &expected, const String &candidate)
+   {
+      const int length = expected.GetLength();
+
+      if (length == 0 || candidate.GetLength() != length)
+         return false;
+
+      AnsiString lowered;
+      lowered.reserve(length);
+
+      for (int i = 0; i < length; i++)
+      {
+         wchar_t character = candidate.GetAt(i);
+
+         if (character > 0x7F)
+            return false;
+
+         if (character >= L'A' && character <= L'Z')
+            character = character - L'A' + L'a';
+
+         lowered += (char) character;
+      }
+
+      return CRYPTO_memcmp(expected.c_str(), lowered.c_str(), (size_t) length) == 0;
+   }
+
    AnsiString HashCreator::GetSalt_(const AnsiString &inputString)
    {
       AnsiString result = inputString.Mid(0,SALT_LENGTH);

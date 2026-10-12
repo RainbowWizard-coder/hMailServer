@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <ctime>
+
 namespace HM
 {
    // BATV (Bounce Address Tag Validation), "prvs" Simple Private Signature
@@ -32,9 +34,14 @@ namespace HM
       // true only when the HMAC signature is valid and the day number is in range.
       static bool Verify(const String &address, const String &secret, String &originalMailbox);
 
+      // The two above at the time given rather than now: what they do, and what the
+      // in-process tests hold the day window to.
+      static String SignAt(const String &mailbox, const String &secret, time_t now);
+      static bool VerifyAt(const String &address, const String &secret, time_t now, String &originalMailbox);
+
    private:
-      static int CurrentDayNumber_();
-      static bool DayNumberInRange_(int dayNumber);
+      static int DayNumberAt_(time_t when);
+      static bool DayNumberInRange_(int dayNumber, time_t now);
       static String ComputeHash_(const String &secret, const String &keyAndDay, const String &mailbox);
    };
 }

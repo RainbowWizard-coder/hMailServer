@@ -8,8 +8,6 @@
 #include "Hashing/HashCreator.h"
 #include "Unicode.h"
 
-#include <ctime>
-
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -21,11 +19,17 @@ namespace HM
    // a fixed value keeps the prvs tag value a constant 10 characters.
    static const wchar_t kKeyNumber = L'1';
 
-   // How many days a prvs tag remains valid, plus one day of tolerance for clock
-   // skew between the bouncing host and this server. Bounces normally return
-   // within hours, so a short window keeps the backscatter rejection tight.
+   // How many days a prvs tag remains valid. Bounces normally return within
+   // hours, so a short window keeps the backscatter rejection tight.
    static const int kMaxAgeDays = 7;
    static const int kDayModulus = 1000;
+
+   // The tolerance for a clock - another node's sharing the secret - a little
+   // ahead of this one's: this server's clock is moved forward by an hour when a
+   // tag is checked, rather than any tag that reads one day ahead being accepted,
+   // which modulo the 1000-day cycle is also a tag 999 days old (the shape upstream
+   // #649 found in SRS's timestamps).
+   static const int kClockSkewSeconds = 60 * 60;
 
    // Number of hex characters of the HMAC kept in the tag (24 bits).
    static const int kHashHexLength = 6;
@@ -34,24 +38,23 @@ namespace HM
    static const int kTagValueLength = 1 + 3 + kHashHexLength; // = 10
 
    int
-   BATV::CurrentDayNumber_()
+   BATV::DayNumberAt_(time_t when)
    {
-      time_t now = time(0);
-      __int64 days = (__int64) now / 86400;
+      __int64 days = (__int64) when / 86400;
       return (int) (days % kDayModulus);
    }
 
    bool
-   BATV::DayNumberInRange_(int dayNumber)
+   BATV::DayNumberInRange_(int dayNumber, time_t now)
    {
-      int currentDay = CurrentDayNumber_();
+      int currentDay = DayNumberAt_(now + kClockSkewSeconds);
       int age = currentDay - dayNumber;
       if (age < 0)
          age += kDayModulus;
 
-      // Accept tags up to kMaxAgeDays old, plus one day in the future to tolerate
-      // clock skew (age wraps to kDayModulus-1 when the day is one ahead).
-      return (age <= kMaxAgeDays) || (age >= (kDayModulus - 1));
+      // The day numbers wrap, so the age is taken modulo the cycle: a day that
+      // looks ahead of today is one from before the wrap.
+      return age <= kMaxAgeDays;
    }
 
    String
@@ -91,6 +94,12 @@ namespace HM
    String
    BATV::Sign(const String &mailbox, const String &secret)
    {
+      return SignAt(mailbox, secret, time(0));
+   }
+
+   String
+   BATV::SignAt(const String &mailbox, const String &secret, time_t now)
+   {
       if (mailbox.IsEmpty() || secret.IsEmpty())
          return "";
 
@@ -106,7 +115,7 @@ namespace HM
       String domain = mailbox.Mid(atPos + 1);
 
       String dayDigits;
-      dayDigits.Format(_T("%03d"), CurrentDayNumber_());
+      dayDigits.Format(_T("%03d"), DayNumberAt_(now));
 
       String keyAndDay;
       keyAndDay += kKeyNumber;
@@ -145,6 +154,12 @@ namespace HM
    bool
    BATV::Verify(const String &address, const String &secret, String &originalMailbox)
    {
+      return VerifyAt(address, secret, time(0), originalMailbox);
+   }
+
+   bool
+   BATV::VerifyAt(const String &address, const String &secret, time_t now, String &originalMailbox)
+   {
       originalMailbox = "";
 
       if (secret.IsEmpty() || !IsPrvs(address))
@@ -175,15 +190,17 @@ namespace HM
 
       String candidateMailbox = originalLocal + _T("@") + domain;
 
-      // Verify the HMAC signature (case-insensitive hex comparison).
+      // Verify the HMAC signature: case-insensitive hex, compared in constant time,
+      // so that how long a refusal takes does not tell a forger how much of the
+      // signature was right.
       String expected = ComputeHash_(secret, keyAndDay, candidateMailbox);
-      if (expected.IsEmpty() || expected.CompareNoCase(hash) != 0)
+      if (expected.IsEmpty() || !HashCreator::HexDigestsMatch(AnsiString(expected), hash))
          return false;
 
       int dayNumber = (dayDigits.GetAt(0) - L'0') * 100 +
                       (dayDigits.GetAt(1) - L'0') * 10 +
                       (dayDigits.GetAt(2) - L'0');
-      if (!DayNumberInRange_(dayNumber))
+      if (!DayNumberInRange_(dayNumber, now))
          return false;
 
       originalMailbox = candidateMailbox;

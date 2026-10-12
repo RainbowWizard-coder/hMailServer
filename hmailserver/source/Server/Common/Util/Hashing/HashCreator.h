@@ -61,6 +61,14 @@ namespace HM
       // optional server-wide password pepper (Crypt::ApplyPepper_).
       static AnsiString ComputeHMACSHA256Hex(const AnsiString &key, const AnsiString &data);
 
+      // Whether candidate - a hexadecimal digest as an address or a header carries it,
+      // in either case - is expected, which is lower-case hex as ComputeHMACSHA256Hex
+      // gives it (or a prefix of it). Compared in constant time over the digits, so
+      // how long a refusal takes does not say how many of them a forger had right
+      // (SRS, BATV). A length that differs, an empty expected value, or a character
+      // outside ASCII is a refusal at once: none of those is the secret.
+      static bool HexDigestsMatch(const AnsiString &expected, const String &candidate);
+
       // The work factors new hashes are derived with: [Settings] PasswordHashIterations,
       // PasswordHashMemoryKB and PasswordHashTimeCost, or the defaults below where a
       // key is 0 or the ini has not been read. Bounds are enforced where the ini is
