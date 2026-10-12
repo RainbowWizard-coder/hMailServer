@@ -1,0 +1,91 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Tokens for the UTS 46 differential fuzz (idna_ada_fuzzer.cpp): what UTS 46
+# maps, deletes, refuses or checks, in UTF-8, and the shapes of a host. Without
+# them the mutator seldom writes a three-byte sequence it has not seen.
+
+dot="."
+hyphen="-"
+ace="xn--"
+ace_upper="XN--"
+label="example"
+tld=".test"
+www="www."
+percent="%"
+pct_soft_hyphen="%C2%AD"
+pct_u_umlaut="%C3%BC"
+pct_fullwidth_e="%EF%BD%85"
+digits="127.0.0.1"
+hex_ipv4="0x7f.1"
+
+# The other full stops UTS 46 maps to '.'
+ideographic_full_stop="\xe3\x80\x82"
+fullwidth_full_stop="\xef\xbc\x8e"
+halfwidth_ideographic_full_stop="\xef\xbd\xa1"
+
+# Fullwidth letters and digits, and other letters mapped to ASCII
+fullwidth_e="\xef\xbd\x85"
+fullwidth_E="\xef\xbc\xa5"
+fullwidth_x="\xef\xbd\x98"
+fullwidth_one="\xef\xbc\x91"
+fullwidth_hyphen="\xef\xbc\x8d"
+fullwidth_solidus="\xef\xbc\x8f"
+fullwidth_colon="\xef\xbc\x9a"
+fullwidth_percent="\xef\xbc\x85"
+mathematical_bold_a="\xf0\x9d\x90\x9a"
+circled_one="\xe2\x91\xa0"
+ligature_ffl="\xef\xac\x84"
+kelvin="\xe2\x84\xaa"
+
+# Ignored: deleted from a host
+soft_hyphen="\xc2\xad"
+zero_width_space="\xe2\x80\x8b"
+zero_width_no_break_space="\xef\xbb\xbf"
+variation_selector_16="\xef\xb8\x8f"
+variation_selector_17="\xf3\xa0\x84\x80"
+combining_grapheme_joiner="\xcd\x8f"
+
+# Deviations, and the joiner rules
+sharp_s="\xc3\x9f"
+capital_sharp_s="\xe1\xba\x9e"
+final_sigma="\xcf\x82"
+zwnj="\xe2\x80\x8c"
+zwj="\xe2\x80\x8d"
+devanagari_virama="\xe0\xa5\x8d"
+devanagari_ka="\xe0\xa4\x95"
+arabic_beh="\xd8\xa8"
+arabic_tatweel="\xd9\x80"
+arabic_fatha="\xd9\x8e"
+
+# Bidi: R, AL, AN, EN, NSM
+hebrew_alef="\xd7\x90"
+hebrew_bet="\xd7\x91"
+arabic_alef="\xd8\xa7"
+arabic_indic_one="\xd9\xa1"
+extended_arabic_indic_one="\xdb\xb1"
+nko_letter="\xdf\x8b"
+
+# NFC: composing and combining marks, Hangul jamo
+u_umlaut="\xc3\xbc"
+combining_diaeresis="\xcc\x88"
+combining_acute="\xcc\x81"
+combining_dot_below="\xcc\xa3"
+angstrom_sign="\xe2\x84\xab"
+devanagari_qa="\xe0\xa5\x98"
+hangul_l="\xe1\x84\x80"
+hangul_v="\xe1\x85\xa1"
+hangul_t="\xe1\x86\xa8"
+hangul_syllable="\xea\xb0\x80"
+
+# Disallowed and other troublemakers
+replacement_character="\xef\xbf\xbd"
+digit_one_full_stop="\xe2\x92\x88"
+right_to_left_override="\xe2\x80\xae"
+ideographic_space="\xe3\x80\x80"
+no_break_space="\xc2\xa0"
+cjk="\xe4\xb8\x80"
+cyrillic_a="\xd0\xb0"
+greek_omicron="\xce\xbf"
+emoji_coffee="\xe2\x98\x95"

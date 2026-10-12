@@ -482,6 +482,7 @@ file differs from what it would write. After changing the input, run it without 
 | `python build/generate-portal-languages.py` | `Common/Util/PortalLanguagesData.cpp` | `PortalLanguages/*.json`; `check-portal-languages.py` is its check |
 | `python build/generate-settings-defaults.py [--check]` | `Common/Application/SettingsDefaults.h` | The create scripts and `EnsureSettingDefaults_` |
 | `python build/generate-profiles.py [--check]` | `Common/Application/ProfilesData.cpp`, and the tables in `hmailserver/docs/Profiles.md` | `Common/Application/Profiles/*.json` |
+| `python build/generate-idna-tables.py [--check]` | `Common/Idna/IdnaTables.cpp` and `Common/Idna/IdnaTestData.cpp` | Unicode's data files under `Common/Idna/ucd`, each held to the SHA-256 and Unicode version the generator pins |
 | `build/generate-settings-index.ps1` (either PowerShell) | `ControlPanel/Services/SettingsSearchIndex.g.cs` | The Control Panel's settings pages; check with `git diff` afterwards |
 | `python build/add-license-headers.py [--check]` | The licence header on every source file | See [below](#code-style-and-licence-headers) |
 

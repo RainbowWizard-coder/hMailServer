@@ -10,7 +10,9 @@ the whole reason this harness exists.
 This document covers the MIME parser, which is done. HTML, iCalendar and vCard
 are the same shape of problem and are **not** done; see [What is not covered
 yet](#what-is-not-covered-yet) so nobody mistakes a clean MIME run for a clean
-parser story.
+parser story. It also covers a differential fuzz of another kind: the server's
+reading of a link's host against a browser's ([UTS 46 against
+ada](#uts-46-against-ada)).
 
 The harness lives in [`fuzz\`](../../fuzz/) at the repository root.
 
@@ -406,6 +408,113 @@ made `Charset::ToWideChar` read an unterminated heap buffer on Linux, where
 iconv refuses a byte sequence the named character set does not have and the
 Windows conversion substitutes instead. The buffer is zeroed now, as
 `ToMultiByte`'s always was, and a failed conversion gives an empty string.
+
+UTS 46 against ada
+------------------
+
+A second kind of harness, which looks for a different answer rather than a
+crash. The SURBL test and the sender lists' URL entries read a link's host as a
+browser does - the WHATWG URL standard's host parser, whose domain parser is
+Unicode's UTS 46 (`Common/Idna`, from 6.3.7) - and a host read otherwise than a
+browser reads it is a listed name nobody asks the lists about. So
+`fuzz/harness/idna_ada_fuzzer.cpp` puts every input to the server's code and to
+[ada](https://www.ada-url.com/), the URL parser of Node.js, and stops at the
+first input on which they differ, printing both answers:
+
+1. **The domain parser**: `Idna::DomainToAscii` and ada's `to_ascii` with the
+   URL standard's two checks after it both fail, or give one name.
+2. **The host of a link's authority**: where the input holds nothing that ends
+   an authority, `SURBL::HostOfAuthority` of it is what `HostOfAuthority` makes
+   of the host ada's URL parser gives for `http://<input>/`, and empty where ada
+   fails the URL.
+3. **The link reader in running text**: when that host is one a list can be
+   asked about, `SURBL::FindLinkHosts` hands it over for
+   `see http://<input>/ now` - unless the input holds white space or an angle
+   bracket, where a mail program ends the link before any browser is given it.
+4. **The link reader in HTML**: the same for `<a href="http://<input>/">`,
+   unless the input holds the `"` that ends the value or the `&` that begins a
+   character reference.
+
+It runs on Linux only, with clang's libFuzzer and AddressSanitizer, in the CI
+image, as a CMake project of its own (`fuzz/idna/`) that builds the server's
+core library and links ada beside it:
+
+```bash
+bash build/ci/idna-differential-fuzz.sh          # build, check ada, fuzz 30 minutes
+bash build/ci/idna-differential-fuzz.sh check    # build and check ada only
+HM_FUZZ_MINUTES=5 HM_FUZZ_JOBS=8 bash build/ci/idna-differential-fuzz.sh
+```
+
+**Nothing comes from GitHub.** ada is the amalgamation (`ada.h`, `ada.cpp`) in
+its Python package's source distribution on PyPI, `ada_url-4.0.0.tar.gz` from
+files.pythonhosted.org, held to the SHA-256 PyPI publishes for it; the Unicode
+17.0.0 data its IDNA tables are of, and Unicode 18.0.0's
+`NormalizationTest.txt`, come from unicode.org, each held to its SHA-256. A file
+that is not the pinned one ends the run before anything is built. ada is only
+ever built into the harness, never into the server or a package. The build
+directory (`HM_BUILD_DIR`, `/tmp/hm-idna-fuzz`) is kept from
+one run to the next: a pinned file already there is not fetched again and only
+what changed is rebuilt. It is not a CI job: it is run by hand, on server2,
+which built it from nothing in five and a half minutes on 12 October 2026.
+
+### What it sets aside, and why each is ada's
+
+ada is not UTS 46 everywhere, and a differential fuzz that stops at ada's own
+departures stops at once, so before it fuzzes the script runs
+`idna_ada_conformance.cpp`, which holds the oracle to Unicode's own files:
+
+* the server's NFC to the whole of `NormalizationTest.txt` 18.0.0 (20,171
+  lines, and every code point it does not list normalising to itself);
+* ada's domain parser to the server's over the source column of every line of
+  `IdnaTestV2.txt` 18.0.0 - the file the server's `IdnaTester` passes whole -
+  where every difference must be one of the classes below, and on a line the
+  file itself fails for that rule; any other difference fails the run.
+
+The classes, each a rule in `fuzz/harness/idna_ada_common.h`:
+
+| Set aside | Why it is ada's | Shown by |
+|---|---|---|
+| A code point, of the input or of a label as UTS 46 decodes it, whose UTS 46 data differ between Unicode 17.0.0 and 18.0.0 (13,010 code points) | ada's mapping table is of 17.0.0, the server's of 18.0.0 | `generate-idna-tables.py --differences` over the two versions' files |
+| A code point whose direction, or whether it is a mark, ada reads otherwise (7,605 code points, 1,441 of them ones a label may hold; most of those - at least 815 - added in Unicode 16.0 or later, 712 in U+1CC00..U+1CEFF alone) | ada's direction and mark data are not of its mapping table's Unicode version: it reads GARAY DIGIT EIGHT (U+10D48, Unicode 16.0, Bidi_Class AN) as left-to-right | six labels put to ada's own `is_label_valid` for every code point, against what they give with the server's data |
+| A domain holding U+200C or U+200D | ada's CONTEXTJ looks for a joining character anywhere before and after a ZERO WIDTH NON-JOINER, from lists of its own, where RFC 5892 allows only Joining_Type T between, and once it has taken a joiner it checks nothing more of the label - its bidi rule neither | 3 lines of `IdnaTestV2.txt` that the file fails and ada takes |
+| A domain the server refuses only for RFC 5893's rule on labels with no R, AL or AN | UTS 46 applies the rule to every label of a bidi domain name; ada only to a label that holds such a character itself | 63 lines the file fails by a B code and ada takes |
+| An answer of ada's with a label that is not in NFC | ada skips normalising a name its quick check passes, and the check passes a precomposed character followed by a mark its own decomposition must be reordered with: `U+212B U+0323` comes out `U+00E5 U+0323`, whose NFC is `U+1EA1 U+030A` | the server's NFC held to `NormalizationTest.txt` first |
+| A domain the server refuses only for an `xn--` label whose Punycode begins with its only delimiter (`xn---ssm4ef`) | RFC 3492 (section 6.2 and its sample code) consumes the delimiter only after basic code points, so the `-` is read as a digit, which it is not; ICU and the Rust `idna` crate refuse the label too; ada, like Python's codec, skips it | RFC 3492's text and sample code |
+
+Two more limits of the comparison, which are the server's on purpose: a link in
+running text ends at white space and the angle brackets, as a mail program ends
+it (check 3 leaves those inputs out), and a refused label still hands over the
+name before it and the labels after it, where a browser goes nowhere - the link
+reader looks for every name a list might know.
+
+### What it found
+
+One defect of the server's, on 12 October 2026, before 6.3.7 shipped the code:
+`0x1.0x000000000000` followed by two parts of over a hundred digits, all zeros
+but a final 1, each after a fullwidth full stop, was `1.0.0.1` to ada and
+nothing to the server, whose limit on a label's length - there for Punycode's
+cost - refused the long ASCII labels of a host that is not ASCII. The limit now
+applies only to a label that needs Punycode. Every other stop of the early runs
+was one of the classes above, found by the fuzz and confirmed against Unicode's
+files or RFC 3492 before a rule was written for it; all the inputs were kept,
+and each replays without a difference.
+
+That the comparison has teeth was shown the same day by a negative control,
+never committed: with 6.3.6's reading of a host put back in `SURBL.cpp`
+(percent-decoded, the ignored code points deleted, nothing mapped, no Punycode)
+a three-minute run stopped at its first difference, having found 388 inputs
+the old reading read otherwise than ada - 380 of its 6,401 seed inputs and 8 of
+its first mutations. The one it stopped at, `xn--0ca88g.ßxn--4db`, ada sends to
+`xn--0ca88g.xn--xn--4db-zva` and the old reading nowhere; each of the 388
+replays without a difference against the code as it is.
+
+The run after those, from a fresh build of the code as it is, on server2, 30
+minutes with eight processes: no difference in 1,819 seconds, about 47.9 million
+inputs in 157 jobs, none of them a crash or a timeout under AddressSanitizer,
+and 9,263 inputs in the corpus at the end. A difference a run reports now is
+either a defect of the server's - its UTS 46 or its link reader - or a further
+departure of ada's, and is not to be set aside until it is shown to be ada's
+against Unicode's own data or the RFC it departs from.
 
 What is not covered yet
 -----------------------

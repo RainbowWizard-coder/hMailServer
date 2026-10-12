@@ -3,7 +3,8 @@ Fuzzing harnesses
 
 Coverage-guided fuzz targets for the parsers that read untrusted input. Today
 that means MIME; HTML, iCalendar and vCard are the same shape of problem and are
-not done yet.
+not done yet. Beside them, a differential target: the server's reading of a
+link's host (UTS 46) against ada, the URL parser of Node.js, on Linux.
 
 The operator- and developer-facing documentation is
 [hmailserver/docs/Fuzzing.md](../hmailserver/docs/Fuzzing.md): how long to run,
@@ -40,6 +41,12 @@ What is here
 | `run-fuzz.ps1` | Runs a target, replays a corpus, or reproduces a crash artifact. |
 | `Find-ClangCl.ps1` | Locates clang-cl and imports the MSVC environment. Same shape as `build\Find-MsBuild.ps1`. |
 | `dict\mime.dict` | MIME token dictionary. Without it the mutator never produces a matching multipart boundary. |
+| `harness\idna_ada_fuzzer.cpp` | Differential target: `Idna::DomainToAscii`, `SURBL::HostOfAuthority` and `SURBL::FindLinkHosts` (in text and in HTML) against what ada makes of the same host. Linux only, built and run by `build/ci/idna-differential-fuzz.sh` ([Fuzzing.md](../hmailserver/docs/Fuzzing.md), "UTS 46 against ada"). |
+| `harness\idna_ada_side.cpp` | ada's half: its domain parser, its URL parser's host, and six probes of its own label check that tell how it reads a code point's direction. Compiled against ada alone. |
+| `harness\idna_ada_common.h` | What the target and the check share: UTF-8, the code points whose tables differ, and ada's four departures from UTS 46, each a rule the target sets aside. |
+| `harness\idna_ada_conformance.cpp` | Run before the fuzz: the server's NFC held to `NormalizationTest.txt`, and ada held to `IdnaTestV2.txt` beside the server, every difference one of the rules above. |
+| `idna\CMakeLists.txt` | The CMake project the two are built by: the server's core library with libFuzzer coverage and AddressSanitizer, and ada from PyPI. |
+| `dict\idna.dict` | Tokens for the UTS 46 target: the characters UTS 46 maps, deletes or refuses, in UTF-8, and the shapes of a host. |
 | `regression\` | Inputs for findings that have been fixed. Committed, byte-exact, replayed on every run. |
 
 Generated, not committed: `build\`, `bin\`, `corpus\`, `artifacts\`.
