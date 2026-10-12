@@ -3930,6 +3930,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   file's now "Policy file the server serves itself", its box read-only as before; and the rule reads every caption a
   page builds with its Label helper. `SmallCopyTests` holds it.
 
+- **Fixed: six Japanese texts wrote a full-width colon.** The Japanese catalogue writes a colon half-width with a space
+  after it, as 515 of its texts do, but six that the virus scanning overview added wrote the full-width ：, which the
+  overview showed as "スキャンされます：ClamAV。", the half- and full-width mixing review finding F302 removed. They write ": ",
+  and the catalogue's style note and `JapaneseStyleTests` say so.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

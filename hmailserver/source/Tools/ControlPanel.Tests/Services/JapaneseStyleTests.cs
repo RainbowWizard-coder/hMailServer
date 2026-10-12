@@ -42,6 +42,20 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(found.Count == 0, "Full-width parentheses:" + Environment.NewLine + string.Join(Environment.NewLine, found));
       }
 
+      /// <summary>
+      /// A colon is half-width with a space after it, as 515 values write it: six that
+      /// Wave C added for the virus scanning overview wrote the full-width ：, which the
+      /// overview showed as "スキャンされます：ClamAV。" (the final check of Tier 2, g4
+      /// defect 8).
+      /// </summary>
+      [Fact]
+      public void ColonsAreHalfWidth()
+      {
+         List<string> found = Japanese.Where(pair => pair.Value.Contains('\uFF1A', StringComparison.Ordinal)).Select(Show).ToList();
+         Assert.True(found.Count == 0, "Full-width colons:" + Environment.NewLine + string.Join(Environment.NewLine, found));
+         Assert.Equal("すべてのメッセージは 1 件のスキャナーでスキャンされます: {0}。", Japanese["Every message is scanned by one scanner: {0}."]);
+      }
+
       [Fact]
       public void AnAutoBanIsJidouBan()
       {
