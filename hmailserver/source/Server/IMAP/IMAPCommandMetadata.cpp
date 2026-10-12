@@ -42,7 +42,7 @@ namespace HM
 
       if (!pConnection->CheckPermission(folder, ACLPermission::PermissionRead))
       {
-         error = "ACL: Read permission denied (Required for METADATA commands).";
+         error = "[NOPERM] ACL: Read permission denied (Required for METADATA commands).";
          return false;
       }
 
@@ -453,7 +453,7 @@ namespace HM
             }
 
             if (folder && !pConnection->CheckPermission(folder, ACLPermission::PermissionWriteOthers))
-               return IMAPResult(IMAPResult::ResultNo, "ACL: Write permission denied (Required to set shared metadata).");
+               return IMAPResult(IMAPResult::ResultNo, "[NOPERM] ACL: Write permission denied (Required to set shared metadata).");
          }
       }
 

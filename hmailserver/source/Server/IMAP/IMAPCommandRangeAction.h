@@ -9,6 +9,9 @@
 
 namespace HM
 {
+   class IMAPFolder;
+   class Message;
+
    // What to do when a message set names a message another session has expunged and
    // this one has not been told about yet.
    enum class MissingMessagePolicy
@@ -55,6 +58,18 @@ namespace HM
 
       // Records a source->destination UID mapping for the UIDPLUS COPYUID response.
       void RecordCopyUid(unsigned int sourceUid, unsigned int destUid, unsigned int destUidValidity);
+
+      // The same, for a copy or a move into folder, made only when the user may read
+      // the folder: COPYUID tells its UIDVALIDITY and UIDs, and RFC 4315 section 6
+      // has it not given to a user who may not SELECT or EXAMINE it - a folder one
+      // may only drop mail into (upstream #650).
+      void RecordCopyUidIfReadable(std::shared_ptr<IMAPConnection> pConnection, std::shared_ptr<IMAPFolder> folder, unsigned int sourceUid, unsigned int destUid);
+
+      // What a copy or a move into folder carries (RFC 4314 section 4): the flags the
+      // user may set there - \Seen with the 's' right, \Deleted with 't', and \Draft,
+      // \Answered, \Flagged and the keywords with 'w' - and not the others, which
+      // were copied whatever the rights but for \Seen (upstream #666).
+      static void KeepOnlySettableFlags(std::shared_ptr<IMAPConnection> pConnection, std::shared_ptr<IMAPFolder> folder, std::shared_ptr<Message> message);
 
    private:
 

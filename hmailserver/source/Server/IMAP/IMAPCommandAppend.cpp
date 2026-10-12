@@ -457,7 +457,7 @@ namespace HM
          // NO, not BAD: the command is well formed and the server declines it
          // (RFC 4314 - a missing right is refused NO).
          if (!pConnection->CheckPermission(pCurrentFolder, ACLPermission::PermissionExpunge))
-            return RefuseWithLiteral_(pConnection, IMAPResult(IMAPResult::ResultNo, "ACL: Expunge permission denied (Required for REPLACE command)."), nonSynchronizingLiteral, declaredSize);
+            return RefuseWithLiteral_(pConnection, IMAPResult(IMAPResult::ResultNo, "[NOPERM] ACL: Expunge permission denied (Required for REPLACE command)."), nonSynchronizingLiteral, declaredSize);
 
          String sTarget = pParser->Word(1)->Value();
 
@@ -527,7 +527,7 @@ namespace HM
       // NO, not BAD: a missing right is a refusal of a well-formed command
       // (RFC 4314 section 4), and BAD tells the client its command was broken.
       if (!pConnection->CheckPermission(destination_folder_, ACLPermission::PermissionInsert))
-         return RefuseWithLiteral_(pConnection, IMAPResult(IMAPResult::ResultNo, "ACL: Insert permission denied (Required for APPEND command)."), nonSynchronizingLiteral, declaredSize);
+         return RefuseWithLiteral_(pConnection, IMAPResult(IMAPResult::ResultNo, "[NOPERM] ACL: Insert permission denied (Required for APPEND command)."), nonSynchronizingLiteral, declaredSize);
 
       IMAPResult prepareResult = ValidateAndPrepareMessage_(pConnection, declaredSize);
       if (prepareResult.GetResult() != IMAPResult::ResultOK)
@@ -981,14 +981,21 @@ namespace HM
       bool bAnswered = (flags_to_set_.FindNoCase(_T("\\Answered")) >= 0);
       bool bFlagged = (flags_to_set_.FindNoCase(_T("\\Flagged")) >= 0);
 
-      if (bSeen)
+      // RFC 4314 section 4: the flags the user may not set in the folder are left
+      // out - \Seen without the 's' right, \Deleted without 't', and \Draft,
+      // \Answered and \Flagged without 'w', as the keywords below are. Only \Seen
+      // was (upstream #666).
+      if (bSeen && !pConnection->CheckPermission(destination_folder_, ACLPermission::PermissionWriteSeen))
+         bSeen = false;
+
+      if (bDeleted && !pConnection->CheckPermission(destination_folder_, ACLPermission::PermissionWriteDeleted))
+         bDeleted = false;
+
+      if (!pConnection->CheckPermission(destination_folder_, ACLPermission::PermissionWriteOthers))
       {
-         // ACL: If user tries to set the Seen flag, check that he has permission to do so.
-         if (!pConnection->CheckPermission(destination_folder_, ACLPermission::PermissionWriteSeen))
-         {
-            // User does not have permission to set the Seen flag.
-            bSeen = false;
-         }
+         bDraft = false;
+         bAnswered = false;
+         bFlagged = false;
       }
 
       current_message_->SetFlagDeleted(bDeleted);
@@ -1465,11 +1472,16 @@ namespace HM
       // RFC 4315 (UIDPLUS): report the destination folder's UIDVALIDITY and the
       // UIDs assigned, so the client can reference the messages without a
       // search. With several messages (RFC 3502) the response carries the
-      // uid-set, in the order the messages were appended.
+      // uid-set, in the order the messages were appended. Not to a user who may
+      // not SELECT or EXAMINE the folder - one it may only drop mail into - whom
+      // RFC 4315 section 6 has it not told (upstream #650).
       String sAppendUid;
-      sAppendUid.Format(_T("[APPENDUID %d %s] "),
-         destination_folder_->GetCreationTime().ToInt(),
-         IMAPConnection::CompactUidSet(savedUids).c_str());
+      if (pConnection->CheckPermission(destination_folder_, ACLPermission::PermissionRead))
+      {
+         sAppendUid.Format(_T("[APPENDUID %d %s] "),
+            destination_folder_->GetCreationTime().ToInt(),
+            IMAPConnection::CompactUidSet(savedUids).c_str());
+      }
 
       // Send the OK response to the client.
       sResponse += current_tag_ + " OK " + sAppendUid + "APPEND completed\r\n";

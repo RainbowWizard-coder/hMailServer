@@ -119,7 +119,7 @@ namespace HM
          // fails with NO. The folder's existence is not a secret at this point -
          // the lookup right already made it visible in LIST. A public folder is
          // refused the same way; it was refused BAD.
-         return IMAPResult(IMAPResult::ResultNo, "ACL: Read permission denied (Required for SELECT command).");
+         return IMAPResult(IMAPResult::ResultNo, "[NOPERM] ACL: Read permission denied (Required for SELECT command).");
       }
 
       // Close the previously selected folder before loading this one, so that

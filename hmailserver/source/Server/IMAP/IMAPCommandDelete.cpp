@@ -60,7 +60,7 @@ namespace HM
 
       // Check if the user has access to rename this folder
       if (!pConnection->CheckPermission(pFolder, ACLPermission::PermissionDeleteMailbox))
-         return IMAPResult(IMAPResult::ResultNo, "ACL: DeleteMailbox permission denied (required for DELETE).");
+         return IMAPResult(IMAPResult::ResultNo, "[NOPERM] ACL: DeleteMailbox permission denied (required for DELETE).");
       
       // Unchecked, and RemoveFolder_ below then took the folder out of the session's
       // view of the mailbox regardless - so a delete the database refused looked like

@@ -9,6 +9,7 @@
 #include "../Common/BO/Messages.h"
 #include "../Common/BO/Message.h"
 #include "../Common/BO/IMAPFolder.h"
+#include "../Common/BO/ACLPermission.h"
 
 #include "IMAPStore.h"
 #include "IMAPListLookup.h"
@@ -350,6 +351,33 @@ namespace HM
       uidplus_source_uids_.push_back(sourceUid);
       uidplus_dest_uids_.push_back(destUid);
       uidplus_dest_uidvalidity_ = destUidValidity;
+   }
+
+   void
+   IMAPCommandRangeAction::RecordCopyUidIfReadable(std::shared_ptr<IMAPConnection> pConnection, std::shared_ptr<IMAPFolder> folder, unsigned int sourceUid, unsigned int destUid)
+   {
+      if (!pConnection->CheckPermission(folder, ACLPermission::PermissionRead))
+         return;
+
+      RecordCopyUid(sourceUid, destUid, (unsigned int) folder->GetCreationTime().ToInt());
+   }
+
+   void
+   IMAPCommandRangeAction::KeepOnlySettableFlags(std::shared_ptr<IMAPConnection> pConnection, std::shared_ptr<IMAPFolder> folder, std::shared_ptr<Message> message)
+   {
+      if (!pConnection->CheckPermission(folder, ACLPermission::PermissionWriteSeen))
+         message->SetFlagSeen(false);
+
+      if (!pConnection->CheckPermission(folder, ACLPermission::PermissionWriteDeleted))
+         message->SetFlagDeleted(false);
+
+      if (!pConnection->CheckPermission(folder, ACLPermission::PermissionWriteOthers))
+      {
+         message->SetFlagDraft(false);
+         message->SetFlagAnswered(false);
+         message->SetFlagFlagged(false);
+         message->SetKeywords(String());
+      }
    }
 
    String

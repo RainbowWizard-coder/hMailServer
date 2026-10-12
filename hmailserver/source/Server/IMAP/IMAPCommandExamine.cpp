@@ -99,7 +99,7 @@ namespace HM
          // Delegated folders only resolve at all with the lookup right, so their
          // existence is not a secret on this branch. A public folder is refused
          // the same way; it was refused BAD.
-         return IMAPResult(IMAPResult::ResultNo, "ACL: Read permission denied (Required for EXAMINE command).");
+         return IMAPResult(IMAPResult::ResultNo, "[NOPERM] ACL: Read permission denied (Required for EXAMINE command).");
       }
 
       // Close the previously selected folder before loading this one, so that

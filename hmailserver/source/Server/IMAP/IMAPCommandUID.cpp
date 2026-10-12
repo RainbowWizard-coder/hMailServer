@@ -158,7 +158,7 @@ namespace HM
             return IMAPResult(IMAPResult::ResultNo, "MOVE command on read-only folder.");
 
          if (!pConnection->CheckPermission(pConnection->GetCurrentFolder(), ACLPermission::PermissionExpunge))
-            return IMAPResult(IMAPResult::ResultNo, "ACL: Expunge permission denied (Required for MOVE command).");
+            return IMAPResult(IMAPResult::ResultNo, "[NOPERM] ACL: Expunge permission denied (Required for MOVE command).");
 
          std::shared_ptr<IMAPMove> pMove = std::shared_ptr<IMAPMove>(new IMAPMove());
          pMove->SetIsUID(true);
@@ -271,7 +271,7 @@ namespace HM
             return IMAPResult(IMAPResult::ResultNo, "No folder selected.");
 
          if (!pConnection->CheckPermission(pCurFolder, ACLPermission::PermissionExpunge))
-            return IMAPResult(IMAPResult::ResultNo, "ACL: Expunge permission denied (Required for UID EXPUNGE command).");
+            return IMAPResult(IMAPResult::ResultNo, "[NOPERM] ACL: Expunge permission denied (Required for UID EXPUNGE command).");
 
          String sUidSet = pParser->Word(2)->Value();
 
@@ -492,6 +492,11 @@ namespace HM
       // Execute the command. If we have gotten this far, it means that the syntax
       // of the command is correct. If we fail now, we should return NO.
       IMAPResult result = command_->DoForMails(pConnection, sMailNo, pArgument);
+
+      // RFC 3501 6.4.7: a UID COPY that fails leaves the destination as it was.
+      std::shared_ptr<IMAPCopy> copy = std::dynamic_pointer_cast<IMAPCopy>(command_);
+      if (copy && result.GetResult() != IMAPResult::ResultOK)
+         copy->RollBack(pConnection);
 
       // A FETCH that left out messages the object store has lost, or damaged
       // ones, fetched the others, and ends NO (docs/ObjectStorage.md).

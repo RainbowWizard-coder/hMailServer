@@ -13,6 +13,8 @@
 #include "IMAPSimpleCommandParser.h"
 #include "../Common/BO/ACLPermission.h"
 #include "../Common/Tracking/ChangeNotification.h"
+#include "../Common/Tracking/NotificationServer.h"
+#include "../Common/BO/Messages.h"
 
 
 #include "MessagesContainer.h"
@@ -77,26 +79,30 @@ namespace HM
 
       // Check if the user has permission to copy to this destination folder
       if (!pConnection->CheckPermission(pFolder, ACLPermission::PermissionInsert))
-         return IMAPResult(IMAPResult::ResultNo, "ACL: Insert permission denied (Required for COPY command).");
+         return IMAPResult(IMAPResult::ResultNo, "[NOPERM] ACL: Insert permission denied (Required for COPY command).");
 
       std::shared_ptr<Message> pNewMessage = PersistentMessage::CopyToIMAPFolder(pOldMessage, pFolder);
 
       if (!pNewMessage)
          return IMAPResult(IMAPResult::ResultNo, "Failed to copy message");
 
-      // Check if the user has access to set the Seen flag, otherwise 
-      if (!pConnection->CheckPermission(pFolder, ACLPermission::PermissionWriteSeen))
-         pNewMessage->SetFlagSeen(false);  
+      // Only the flags the user may set in the destination (RFC 4314 section 4).
+      KeepOnlySettableFlags(pConnection, pFolder, pNewMessage);
 
       if (!PersistentMessage::SaveObject(pNewMessage))
          return IMAPResult(IMAPResult::ResultNo, "Failed to save copy of message.");
+
+      // Kept, so that a later message that cannot be copied takes this one out again.
+      destination_folder_ = pFolder;
+      copied_message_ids_.insert(pNewMessage->GetID());
 
       // A move into or out of the user's own Junk folder is a lesson for spamd
       // (SpamAssassinLearnOnMove): decided here, delivered off this thread.
       SpamAssassinLearner::LearnFromMove(pConnection->GetCurrentFolder(), pFolder, pNewMessage, pDestinationOwner);
 
-      // RFC 4315 (UIDPLUS): remember the source/destination UIDs for the COPYUID response.
-      RecordCopyUid(pOldMessage->GetUID(), pNewMessage->GetUID(), (unsigned int) pFolder->GetCreationTime().ToInt());
+      // RFC 4315 (UIDPLUS): remember the source/destination UIDs for the COPYUID
+      // response - for a destination the user may read (RFC 4315 section 6).
+      RecordCopyUidIfReadable(pConnection, pFolder, pOldMessage->GetUID(), pNewMessage->GetUID());
 
       MessagesContainer::Instance()->SetFolderNeedsRefresh(pFolder->GetID());
 
@@ -108,5 +114,30 @@ namespace HM
       pConnection->SetDelayedChangeNotification(pNotification);
 
       return IMAPResult();
+   }
+
+   void
+   IMAPCopy::RollBack(std::shared_ptr<IMAPConnection> pConnection)
+   {
+      if (copied_message_ids_.empty() || !destination_folder_)
+         return;
+
+      // Nobody is told of copies that are not there any more.
+      pConnection->SetDelayedChangeNotification(std::shared_ptr<ChangeNotification>());
+
+      std::shared_ptr<Messages> messages = MessagesContainer::Instance()->GetMessages(destination_folder_->GetAccountID(), destination_folder_->GetID());
+
+      std::vector<__int64> deleted = messages->DeleteMessagesById(copied_message_ids_);
+
+      // A session that has the destination open may have read them already.
+      if (!deleted.empty())
+      {
+         std::shared_ptr<ChangeNotification> pNotification =
+            std::shared_ptr<ChangeNotification>(new ChangeNotification(destination_folder_->GetAccountID(), destination_folder_->GetID(), ChangeNotification::NotificationMessageDeleted, deleted));
+
+         Application::Instance()->GetNotificationServer()->SendNotification(pConnection->GetNotificationClient(), pNotification);
+      }
+
+      copied_message_ids_.clear();
    }
 }

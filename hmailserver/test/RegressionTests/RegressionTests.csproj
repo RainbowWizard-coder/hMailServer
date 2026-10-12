@@ -325,6 +325,7 @@
     <Compile Include="API\RestApiHelp.cs" />
     <Compile Include="IMAP\CapabilityAuthAdvertisement.cs" />
     <Compile Include="IMAP\Utf8Append.cs" />
+    <Compile Include="IMAP\CopyAndAppendRules.cs" />
     <Compile Include="IMAP\MasterUserImpersonation.cs" />
     <Compile Include="Infrastructure\SqlLayerErrorHandling.cs" />
     <Compile Include="Infrastructure\WorkQueueLifecycle.cs" />

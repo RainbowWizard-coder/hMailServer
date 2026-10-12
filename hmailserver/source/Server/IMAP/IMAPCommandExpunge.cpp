@@ -46,7 +46,7 @@ namespace HM
 
       // NO: a missing right refuses a well-formed command (RFC 4314 section 4).
       if (!pConnection->CheckPermission(pCurFolder, ACLPermission::PermissionExpunge))
-         return IMAPResult(IMAPResult::ResultNo, "ACL: Expunge permission denied (Required for EXPUNGE command).");
+         return IMAPResult(IMAPResult::ResultNo, "[NOPERM] ACL: Expunge permission denied (Required for EXPUNGE command).");
 
       std::shared_ptr<IMAPFolderView> view = pConnection->GetCurrentFolderView();
 

@@ -69,6 +69,10 @@ namespace HM
 
       IMAPResult result = pCopy->DoForMails(pConnection, sMailNo, pArgument);
 
+      // RFC 3501 6.4.7: a COPY that fails leaves the destination as it was.
+      if (result.GetResult() != IMAPResult::ResultOK)
+         pCopy->RollBack(pConnection);
+
       if (result.GetResult() == IMAPResult::ResultOK)
       {
          // The other sessions are told before the OK, so that one asked next

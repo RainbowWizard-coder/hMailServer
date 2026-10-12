@@ -81,15 +81,15 @@ namespace HM
 
       // Check if the user has permission to insert into the destination folder.
       if (!pConnection->CheckPermission(pFolder, ACLPermission::PermissionInsert))
-         return IMAPResult(IMAPResult::ResultNo, "ACL: Insert permission denied (Required for MOVE command).");
+         return IMAPResult(IMAPResult::ResultNo, "[NOPERM] ACL: Insert permission denied (Required for MOVE command).");
 
       std::shared_ptr<Message> pNewMessage = PersistentMessage::CopyToIMAPFolder(pOldMessage, pFolder);
 
       if (!pNewMessage)
          return IMAPResult(IMAPResult::ResultNo, "Failed to move message");
 
-      if (!pConnection->CheckPermission(pFolder, ACLPermission::PermissionWriteSeen))
-         pNewMessage->SetFlagSeen(false);
+      // Only the flags the user may set in the destination (RFC 4314 section 4).
+      KeepOnlySettableFlags(pConnection, pFolder, pNewMessage);
 
       if (!PersistentMessage::SaveObject(pNewMessage))
          return IMAPResult(IMAPResult::ResultNo, "Failed to save moved message.");
@@ -98,8 +98,9 @@ namespace HM
       // (SpamAssassinLearnOnMove): decided here, delivered off this thread.
       SpamAssassinLearner::LearnFromMove(pConnection->GetCurrentFolder(), pFolder, pNewMessage, pDestinationOwner);
 
-      // RFC 4315/6851 (UIDPLUS): remember the source/destination UIDs for the COPYUID response.
-      RecordCopyUid(pOldMessage->GetUID(), pNewMessage->GetUID(), (unsigned int) pFolder->GetCreationTime().ToInt());
+      // RFC 4315/6851 (UIDPLUS): remember the source/destination UIDs for the COPYUID
+      // response - for a destination the user may read (RFC 4315 section 6).
+      RecordCopyUidIfReadable(pConnection, pFolder, pOldMessage->GetUID(), pNewMessage->GetUID());
 
       MessagesContainer::Instance()->SetFolderNeedsRefresh(pFolder->GetID());
 

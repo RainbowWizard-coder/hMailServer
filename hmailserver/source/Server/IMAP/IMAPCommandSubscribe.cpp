@@ -52,7 +52,7 @@ namespace HM
       
       // Check if ther user has access to see this folder.
       if (!pConnection->CheckPermission(pFolder, ACLPermission::PermissionLookup))
-         return IMAPResult(IMAPResult::ResultNo, "ACL: Lookup permission denied (required for SUBSCRIBE).");
+         return IMAPResult(IMAPResult::ResultNo, "[NOPERM] ACL: Lookup permission denied (required for SUBSCRIBE).");
 
       if (!pFolder)
          return IMAPResult(IMAPResult::ResultNo, "That mailbox does not exist.");

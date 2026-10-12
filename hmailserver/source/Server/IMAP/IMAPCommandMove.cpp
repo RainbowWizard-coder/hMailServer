@@ -44,7 +44,7 @@ namespace HM
 
       // NO: a missing right refuses a well-formed command (RFC 4314 section 4).
       if (!pConnection->CheckPermission(pConnection->GetCurrentFolder(), ACLPermission::PermissionExpunge))
-         return IMAPResult(IMAPResult::ResultNo, "ACL: Expunge permission denied (Required for MOVE command).");
+         return IMAPResult(IMAPResult::ResultNo, "[NOPERM] ACL: Expunge permission denied (Required for MOVE command).");
 
       std::shared_ptr<IMAPMove> pMove = std::shared_ptr<IMAPMove>(new IMAPMove());
       pMove->SetIsUID(false);

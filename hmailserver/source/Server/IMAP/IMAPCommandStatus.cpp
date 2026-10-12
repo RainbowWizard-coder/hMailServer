@@ -46,7 +46,7 @@ namespace HM
 
       // Check if ther user has access to read this folder.
       if (!pConnection->CheckPermission(pTheFolder, ACLPermission::PermissionRead))
-         return IMAPResult(IMAPResult::ResultNo, "ACL: Read permission denied (Required for STATUS command).");
+         return IMAPResult(IMAPResult::ResultNo, "[NOPERM] ACL: Read permission denied (Required for STATUS command).");
 
       // RFC 7162 section 3.1: STATUS (HIGHESTMODSEQ) is a CONDSTORE-enabling
       // command; with a mailbox selected, that mailbox's HIGHESTMODSEQ is due.
