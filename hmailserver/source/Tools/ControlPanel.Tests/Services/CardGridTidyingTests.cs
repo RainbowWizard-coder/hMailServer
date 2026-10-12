@@ -235,7 +235,14 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(diff != null, "ProfilesView.ShowDiff_ is gone.");
          Assert.Contains("ShowNothingToCompare_(listUnread_);", diff, StringComparison.Ordinal);
          Assert.Contains("ShowNothingToCompare_(true);", diff, StringComparison.Ordinal);
-         Assert.Contains("englishNote_.Visibility = Loc.Translated ? Visibility.Visible : Visibility.Collapsed;", diff, StringComparison.Ordinal);
+         // With steps, the note ends the steps' heading line in the caption's size, where
+         // on a line of its own under the steps it still took one of the table's five rows
+         // at 1280 by 800 in Japanese (the final check of Tier 2's renders); without
+         // steps it is the caption under them.
+         Assert.Contains("bool noteOnHeading = stepLines.Count > 0 && Loc.Translated;", diff, StringComparison.Ordinal);
+         Assert.Contains("var note = new System.Windows.Documents.Run(englishNote_.Text);", diff, StringComparison.Ordinal);
+         Assert.Contains("note.SetResourceReference(System.Windows.Documents.TextElement.FontSizeProperty, \"AppFontSizeCaption\");", diff, StringComparison.Ordinal);
+         Assert.Contains("englishNote_.Visibility = Loc.Translated && !noteOnHeading ? Visibility.Visible : Visibility.Collapsed;", diff, StringComparison.Ordinal);
       }
    }
 }

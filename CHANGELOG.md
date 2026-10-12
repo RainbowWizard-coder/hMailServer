@@ -3909,8 +3909,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   profile could not be applied, in full or at all, and that a way back is held and cannot be read, was drawn at
   Information like every other state of what is applied; it is a Warning now, and the rest stay Information. And the
   caption that the profiles' own words come from the server in English sat above the comparison table, taking one of the
-  five rows it showed at 1280 by 800; it is under the table and the steps it speaks of. `ProfilesPageFlowTests` and
-  `CardGridTidyingTests` hold both.
+  five rows it showed at 1280 by 800 in Japanese; it ends the line of the steps' heading, "What it cannot do for you",
+  in the caption's size, and is a caption of its own under the table only for a profile with no steps.
+  `ProfilesPageFlowTests` and `CardGridTidyingTests` hold both.
 
 - **Fixed: the delivery queue's ID column was right-aligned as a count.** Review finding F248 asked for the ID narrow
   and left-aligned, and the page's own comment said so, but the column carried the number styles - given to it so that

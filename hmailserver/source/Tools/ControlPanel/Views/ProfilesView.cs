@@ -410,7 +410,28 @@ namespace hMailServer.ControlPanel.Views
                foreach (JsonElement step in steps.EnumerateArray())
                   stepLines.Add("• " + (step.GetString() ?? "")); // no-loc
             }
-            steps_.Text = stepLines.Count > 0 ? L("What it cannot do for you") + "\n" + string.Join("\n", stepLines) : "";
+            // The steps under their heading, and in a language other than English the
+            // note that the profiles' own words are English at the end of the heading's
+            // line, in the caption's size and colour: on a line of its own, above the
+            // table or under the steps, it took one of the rows the table shows at 1280
+            // by 800 in Japanese (the final check of Tier 2, g4 defect 11).
+            steps_.Inlines.Clear();
+            bool noteOnHeading = stepLines.Count > 0 && Loc.Translated;
+            if (stepLines.Count > 0)
+            {
+               steps_.Inlines.Add(new System.Windows.Documents.Run(L("What it cannot do for you")));
+               if (noteOnHeading)
+               {
+                  steps_.Inlines.Add(new System.Windows.Documents.Run("   ")); // no-loc: the gap before the note
+                  var note = new System.Windows.Documents.Run(englishNote_.Text);
+                  note.SetResourceReference(System.Windows.Documents.TextElement.FontSizeProperty, "AppFontSizeCaption");
+                  note.SetResourceReference(System.Windows.Documents.TextElement.ForegroundProperty, "TextFillColorSecondaryBrush");
+                  steps_.Inlines.Add(note);
+               }
+
+               steps_.Inlines.Add(new System.Windows.Documents.LineBreak());
+               steps_.Inlines.Add(new System.Windows.Documents.Run(string.Join("\n", stepLines)));
+            }
 
             changes_ = Number_(root, "changes");
             diffToken_ = Text_(root, "diff_token");
@@ -426,7 +447,7 @@ namespace hMailServer.ControlPanel.Views
                Status_(StatusLevel.Information, blocked);
 
             empty_.Visibility = Visibility.Collapsed;
-            englishNote_.Visibility = Loc.Translated ? Visibility.Visible : Visibility.Collapsed;
+            englishNote_.Visibility = Loc.Translated && !noteOnHeading ? Visibility.Visible : Visibility.Collapsed;
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -709,8 +730,10 @@ namespace hMailServer.ControlPanel.Views
          AutomationProperties.SetHelpText(confirm_, confirmNote_.Text);
          bottom.Children.Add(steps_);
          // That the profiles' words are English, under the table and the steps it
-         // speaks of, as a caption: above the table it took a row of the five the
-         // table shows at 1280 by 800 (the final check of Tier 2, g4 defect 11).
+         // speaks of, as a caption, where a profile has no steps: with steps it ends
+         // the steps' heading line instead (ShowDiff_), since on a line of its own it
+         // took a row of the five the table shows at 1280 by 800 (the final check of
+         // Tier 2, g4 defect 11).
          englishNote_.Text = L("The profiles' own words - their summaries, reasons, notes and steps - come from the server, in English.");
          englishNote_.SetResourceReference(FrameworkElement.StyleProperty, "TextCaption");
          bottom.Children.Add(englishNote_);
