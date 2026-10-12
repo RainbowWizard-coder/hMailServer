@@ -4155,8 +4155,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   its answer: the answer is written a piece at a time, each piece given the request deadline to be taken, as a
   download already was; the deadline is for a peer that stalls, not for an answer slow to make. A connection whose own
   deadline (five minutes after it was opened) would come first is given the time its answer needs and closed after it.
-  An answer the server does end part way - a reader that stopped reading for the request deadline, the server stopping
-  - now ends with a reset rather than an orderly close, which a client that does not count the bytes against
+  An answer the server does end part way - a reader that stopped reading for the request deadline, the server
+  stopping - now ends with a reset rather than an orderly close, which a client that does not count the bytes against
   `Content-Length` could take for the end of the answer.
 - **Fixed: with the full-text index on, a webmail search on SQL Server Compact took minutes, held the database
   throughout and stalled the indexer.** Both searches - `q` on a folder's listing and `GET /api/v1/me/search` - asked
