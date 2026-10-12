@@ -3537,7 +3537,7 @@
     <value>公開フォルダーを作成してから、アカウントまたはグループにその権限を付与します。</value>
   </data>
   <data name="Created" xml:space="preserve">
-    <value>作成日時</value>
+    <value>作成</value>
   </data>
   <data name="Created &quot;{0}&quot;. Enter it in the client as that account's password." xml:space="preserve">
     <value>"{0}" を作成しました。クライアントでそのアカウントのパスワードとして入力してください。</value>

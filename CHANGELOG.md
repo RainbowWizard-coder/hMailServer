@@ -3997,6 +3997,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   at the save names the setting the same way. `SettingLevelsTests` holds a name for every setting the server has
   levels for.
 
+- **Fixed: the Japanese and Chinese audit trail said "time of creation" for an object made.** "Created" is the audit
+  trail's Action for a new object and an eDiscovery case's state, and the two catalogues wrote it as the time of
+  creation, 作成日時 and 创建时间, beside 更新 and 削除. They say 作成 and 已创建 now; `JapaneseStyleTests` holds both.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -56,6 +56,23 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("すべてのメッセージは 1 件のスキャナーでスキャンされます: {0}。", Japanese["Every message is scanned by one scanner: {0}."]);
       }
 
+      /// <summary>
+      /// "Created" is what was done - the audit trail's Action and an eDiscovery case's
+      /// state, beside 更新 and 削除 - and it was 作成日時, "the time of creation": the
+      /// audit trail said 作成日時 in its Action column for every object made (the final
+      /// check of Tier 2's renders). The Chinese catalogue said 创建时间 the same way.
+      /// </summary>
+      [Fact]
+      public void CreatedIsWhatWasDone_NotATime()
+      {
+         Assert.Equal("作成", Japanese["Created"]);
+         Assert.Equal("更新", Japanese["Updated"]);
+         Assert.Equal("削除", Japanese["Deleted"]);
+         Dictionary<string, string> chinese = ReadResx("Strings.zh-Hans.resx");
+         Assert.Equal("已创建", chinese["Created"]);
+         Assert.Equal("已更新", chinese["Updated"]);
+      }
+
       [Fact]
       public void AnAutoBanIsJidouBan()
       {

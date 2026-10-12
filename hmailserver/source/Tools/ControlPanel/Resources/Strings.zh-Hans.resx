@@ -3526,7 +3526,7 @@
     <value>创建公用文件夹，然后授予账户或组对它的权限。</value>
   </data>
   <data name="Created" xml:space="preserve">
-    <value>创建时间</value>
+    <value>已创建</value>
   </data>
   <data name="Created &quot;{0}&quot;. Enter it in the client as that account's password." xml:space="preserve">
     <value>已创建 "{0}"。请在客户端中把它作为该账户的密码输入。</value>
