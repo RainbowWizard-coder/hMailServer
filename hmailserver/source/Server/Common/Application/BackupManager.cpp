@@ -78,6 +78,10 @@ namespace HM
       }
       catch (...)
       {
+         // The logger refused the line. Nothing may leave a destructor, and the
+         // outcome goes with the line: let go, so that no later report on this
+         // thread carries it.
+         held_outcome.held = false;
       }
    }
 

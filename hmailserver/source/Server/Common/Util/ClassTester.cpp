@@ -1178,6 +1178,7 @@ namespace HM
          const String secret = _T("srs-test-secret-key");
          const String original = _T("alice@external-sender.com");
          const String forwarder = _T("relay.example.com");
+         const time_t minute = 60;
          const time_t day = 86400;
          const time_t t0 = 1760000000; // 9 October 2025, 08:53 UTC
          String reversed;
@@ -1200,8 +1201,8 @@ namespace HM
             throw 0;
 
          // A node whose clock is half an hour ahead stamps tomorrow at 23:45 today.
-         const time_t lateEvening = (t0 / day) * day + day - 15 * 60;
-         const String ahead = SRS::ForwardAt(original, forwarder, secret, lateEvening + 30 * 60);
+         const time_t lateEvening = (t0 / day) * day + day - 15 * minute;
+         const String ahead = SRS::ForwardAt(original, forwarder, secret, lateEvening + 30 * minute);
          if (ahead.IsEmpty() || !SRS::ReverseAt(ahead, secret, lateEvening, reversed))
             throw 0;
 
@@ -1238,6 +1239,7 @@ namespace HM
       {
          const String secret = _T("batv-test-secret-key");
          const String mailbox = _T("alice@example.test");
+         const time_t minute = 60;
          const time_t day = 86400;
          const time_t t0 = 1760000000;
          String original;
@@ -1259,8 +1261,8 @@ namespace HM
             throw 0;
 
          // Half an hour of clock skew across midnight is still taken.
-         const time_t lateEvening = (t0 / day) * day + day - 15 * 60;
-         const String ahead = BATV::SignAt(mailbox, secret, lateEvening + 30 * 60);
+         const time_t lateEvening = (t0 / day) * day + day - 15 * minute;
+         const String ahead = BATV::SignAt(mailbox, secret, lateEvening + 30 * minute);
          if (ahead.IsEmpty() || !BATV::VerifyAt(ahead, secret, lateEvening, original))
             throw 0;
 
