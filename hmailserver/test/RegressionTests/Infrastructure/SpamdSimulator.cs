@@ -13,6 +13,36 @@ using System.Threading;
 namespace RegressionTests.Infrastructure
 {
    /// <summary>
+   ///    How the simulator answers a PROCESS request.
+   /// </summary>
+   public enum SpamdSimulatorMode
+   {
+      /// <summary>
+      ///    As spamd does for a clean message: SPAMD/1.1 0 EX_OK, a Content-length, and
+      ///    the message back (through <see cref="SpamdSimulator.Reply" />).
+      /// </summary>
+      Answer,
+
+      /// <summary>
+      ///    The whole request read, then a reply whose Content-length promises more than
+      ///    is sent: half the message, and the connection closed in good order.
+      /// </summary>
+      CutShort,
+
+      /// <summary>
+      ///    The whole request read, then no reply: the connection is reset.
+      /// </summary>
+      ResetAfterRequest,
+
+      /// <summary>
+      ///    The request's header and the first <see cref="SpamdSimulator.HangUpAfterBytes" />
+      ///    bytes of its message read, then the connection reset while the server is still
+      ///    sending.
+      /// </summary>
+      HangUpMidRequest
+   }
+
+   /// <summary>
    ///    A stand-in for spamd that records what the server sends it.
    ///
    ///    The SpamAssassin fixtures run against the real spamd on port 783, which is the
@@ -20,16 +50,18 @@ namespace RegressionTests.Infrastructure
    ///    would score. It is the wrong thing for the request, because the real one keeps
    ///    no record of the headers it was sent, and a test that wants to know whether a
    ///    User: header went out has nothing to read. This listens on an ephemeral port,
-   ///    accepts one PROCESS request per connection, keeps the request headers, and
-   ///    answers as spamd would for a clean message: SPAMD/1.1 0 EX_OK, a
-   ///    Content-length, and the message handed back unchanged. The server then treats
-   ///    the exchange as a completed scan.
+   ///    accepts one PROCESS request per connection, keeps the request headers and the
+   ///    message bytes, and by default answers as spamd would for a clean message:
+   ///    SPAMD/1.1 0 EX_OK, a Content-length, and the message handed back unchanged. The
+   ///    server then treats the exchange as a completed scan. <see cref="Mode" /> makes it
+   ///    fail instead, part-way, and <see cref="Reply" /> changes the message it returns.
    /// </summary>
    public sealed class SpamdSimulator : IDisposable
    {
       private readonly TcpListener _listener;
       private readonly Thread _thread;
       private readonly List<Dictionary<string, string>> _requests = new List<Dictionary<string, string>>();
+      private readonly List<byte[]> _messages = new List<byte[]>();
       private readonly object _lock = new object();
       private volatile bool _stopping;
 
@@ -45,6 +77,23 @@ namespace RegressionTests.Infrastructure
       {
          get { return ((IPEndPoint) _listener.LocalEndpoint).Port; }
       }
+
+      /// <summary>
+      ///    How a PROCESS request is answered. Set before the server connects.
+      /// </summary>
+      public SpamdSimulatorMode Mode { get; set; } = SpamdSimulatorMode.Answer;
+
+      /// <summary>
+      ///    The message sent back for the message received, as spamd sends the message as
+      ///    SpamAssassin left it. Null sends it back unchanged.
+      /// </summary>
+      public Func<byte[], byte[]> Reply { get; set; }
+
+      /// <summary>
+      ///    For <see cref="SpamdSimulatorMode.HangUpMidRequest" />: the bytes of the message
+      ///    read before the connection is reset.
+      /// </summary>
+      public int HangUpAfterBytes { get; set; } = 100;
 
       /// <summary>
       ///    The headers of every PROCESS request received so far, oldest first, keyed by
@@ -79,6 +128,19 @@ namespace RegressionTests.Infrastructure
          throw new TimeoutException("spamd simulator received " + Requests.Count + " request(s); waited for " + (index + 1) + ".");
       }
 
+      /// <summary>
+      ///    The bytes of the message of the given request, exactly as they arrived after
+      ///    the request's empty line - as many as its Content-length counted, or as the
+      ///    simulator read before it hung up.
+      /// </summary>
+      public byte[] WaitForMessage(int index, int timeoutSeconds = 30)
+      {
+         WaitForRequest(index, timeoutSeconds);
+
+         lock (_lock)
+            return _messages[index];
+      }
+
       public void Dispose()
       {
          _stopping = true;
@@ -111,7 +173,12 @@ namespace RegressionTests.Infrastructure
                using (var stream = client.GetStream())
                {
                   stream.ReadTimeout = 30000;
-                  HandleRequest(stream);
+                  if (!HandleRequest(stream))
+                  {
+                     // A reset rather than an orderly close: no FIN, and whatever the
+                     // server is still sending is refused.
+                     client.Client.LingerState = new LingerOption(true, 0);
+                  }
                }
             }
             catch (Exception ex) when (ex is IOException || ex is SocketException || ex is ObjectDisposedException)
@@ -122,7 +189,8 @@ namespace RegressionTests.Infrastructure
          }
       }
 
-      private void HandleRequest(NetworkStream stream)
+      // False when the connection is to be reset rather than closed.
+      private bool HandleRequest(NetworkStream stream)
       {
          // Request line and headers, terminated by an empty line.
          string headerText;
@@ -133,7 +201,7 @@ namespace RegressionTests.Infrastructure
             {
                int b = stream.ReadByte();
                if (b < 0)
-                  return;
+                  return true;
                headerBytes.WriteByte((byte) b);
                window[0] = window[1]; window[1] = window[2]; window[2] = window[3]; window[3] = (byte) b;
                if (window[0] == '\r' && window[1] == '\n' && window[2] == '\r' && window[3] == '\n')
@@ -157,36 +225,62 @@ namespace RegressionTests.Infrastructure
          if (headers.TryGetValue("Content-length", out lengthText))
             long.TryParse(lengthText, out contentLength);
 
-         var body = new byte[contentLength];
+         bool isTell = headers["Request"].StartsWith("TELL", StringComparison.OrdinalIgnoreCase);
+         bool hangUp = !isTell && Mode == SpamdSimulatorMode.HangUpMidRequest;
+
+         long toRead = hangUp ? Math.Min(contentLength, HangUpAfterBytes) : contentLength;
+         var body = new byte[toRead];
          int read = 0;
-         while (read < contentLength)
+         while (read < toRead)
          {
-            int n = stream.Read(body, read, (int) (contentLength - read));
+            int n = stream.Read(body, read, (int) (toRead - read));
             if (n <= 0)
                break;
             read += n;
          }
 
+         var message = new byte[read];
+         Array.Copy(body, message, read);
+
          lock (_lock)
+         {
+            _messages.Add(message);
             _requests.Add(headers);
+         }
 
          // TELL is acknowledged the way spamd acknowledges it: headers only, no
          // message back, DidSet naming the store that changed.
-         if (headers["Request"].StartsWith("TELL", StringComparison.OrdinalIgnoreCase))
+         if (isTell)
          {
             var acknowledgement = Encoding.ASCII.GetBytes("SPAMD/1.1 0 EX_OK\r\nDidSet: local\r\n\r\n");
             stream.Write(acknowledgement, 0, acknowledgement.Length);
             stream.Flush();
-            return;
+            return true;
          }
 
+         if (hangUp || Mode == SpamdSimulatorMode.ResetAfterRequest)
+            return false;
+
          // The reply spamd gives for PROCESS on a message it did not tag: the message
-         // back, unchanged, behind the headers the server parses.
-         var reply = "SPAMD/1.1 0 EX_OK\r\nContent-length: " + read + "\r\nSpam: False ; 0.0 / 5.0\r\n\r\n";
+         // back, behind the headers the server parses.
+         var replyMessage = Reply != null ? Reply(message) : message;
+
+         if (Mode == SpamdSimulatorMode.CutShort)
+         {
+            // Promised whole, sent in half, and the connection closed in good order.
+            var promise = Encoding.ASCII.GetBytes("SPAMD/1.1 0 EX_OK\r\nContent-length: " + (replyMessage.Length + 100) + "\r\nSpam: False ; 0.0 / 5.0\r\n\r\n");
+            stream.Write(promise, 0, promise.Length);
+            stream.Write(replyMessage, 0, replyMessage.Length / 2);
+            stream.Flush();
+            return true;
+         }
+
+         var reply = "SPAMD/1.1 0 EX_OK\r\nContent-length: " + replyMessage.Length + "\r\nSpam: False ; 0.0 / 5.0\r\n\r\n";
          var replyBytes = Encoding.ASCII.GetBytes(reply);
          stream.Write(replyBytes, 0, replyBytes.Length);
-         stream.Write(body, 0, read);
+         stream.Write(replyMessage, 0, replyMessage.Length);
          stream.Flush();
+         return true;
       }
    }
 }

@@ -147,6 +147,7 @@ namespace
 #include "NeverBanNameList.h"
 #include "AutoBanWidener.h"
 #include "../AntiSpam/SURBL.h"
+#include "../AntiSpam/SpamAssassin/SpamAssassinReturnPath.h"
 #include "RateLimiter.h"
 #include "TransparentTransmissionBuffer.h"
 #include "../Cache/Cache.h"
@@ -491,6 +492,14 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing DNSResolver\n"));
       DNSResolverTester dnsResolverTester;
       dnsResolverTester.Test();
+
+      // The Return-Path a SpamAssassin scan is sent ahead of the message, and the
+      // Return-Path fields left out of the request and of spamd's reply byte for
+      // byte, in whatever pieces they arrive. Functions of values only;
+      // platform/public_suffix_tests_main.cpp runs the same on Linux.
+      OutputDebugString(_T("hMailServer: Testing SpamAssassinReturnPath\n"));
+      SpamAssassinReturnPathTester spamAssassinReturnPathTester;
+      spamAssassinReturnPathTester.Test();
 
       // The command lines of the custom virus scanner and ClamWin: the file's
       // path one argument wherever %FILE% stands, quoted or not, and ClamWin's

@@ -4,6 +4,7 @@
 
 #include "StdAfx.h"
 #include "./SpamAssassinClient.h"
+#include "./SpamAssassinReturnPath.h"
 
 #include "../../Util/ByteBuffer.h"
 #include "../../Util/File.h"
@@ -24,6 +25,7 @@ namespace HM
                                           std::shared_ptr<Event> disconnected,
                                           std::shared_ptr<bool> testCompleted) :
                TCPConnection(CSNone, io_context, context, disconnected, ""),
+               total_result_bytes_received_(0),
                test_completed_(testCompleted),
                total_result_bytes_written_(0)
    {
@@ -39,7 +41,6 @@ namespace HM
             
       message_file_ = sFile;
       spam_dsize_ = -1;
-      message_size_ = -1;
 
       *test_completed_ = false;
    }
@@ -62,7 +63,21 @@ namespace HM
    {
       // We'll handle all incoming data as binary.
       SetReceiveBinary(true);
-      message_size_ = FileUtilities::FileSize(message_file_);
+
+      // The message is read before the request is written, because its
+      // Content-length is the length of what is sent, and with a Return-Path that
+      // is not the file's size: the line ahead of the message adds to it, and the
+      // message's own Return-Path fields, left out, take from it. A file that
+      // cannot be read sends nothing; the connection winds down and the caller
+      // reports the scan as not completed.
+      std::vector<std::shared_ptr<ByteBuffer> > body;
+      __int64 bodySize = 0;
+      if (!ReadRequestBody_(body, bodySize))
+         return;
+
+      String contentLength;
+      contentLength.Format(_T("Content-length: %I64d\r\n"), bodySize);
+
       if (learning_)
       {
          // spamc's TELL: the message and its class, into the local Bayes store
@@ -70,32 +85,27 @@ namespace HM
          // when the store changed; it refuses the command unless started with
          // --allow-tell, which is why the setting behind this is off by default.
          EnqueueWrite("TELL SPAMC/1.4\r\n");
-         String learnLength;
-         learnLength.Format(_T("Content-length: %I64d\r\n"), message_size_);
-         EnqueueWrite(learnLength);
+         EnqueueWrite(contentLength);
          EnqueueWrite(learn_spam_ ? "Message-class: spam\r\n" : "Message-class: ham\r\n");
          EnqueueWrite("Set: local\r\n");
          if (!user_.IsEmpty())
             EnqueueWrite("User: " + user_ + "\r\n");
          EnqueueWrite("\r\n");
-         SendFileContents_(message_file_);
+         SendRequestBody_(body);
          return;
       }
 
       EnqueueWrite("PROCESS SPAMC/1.2\r\n");
-     //LOG_DEBUG("SENT: PROCESS SPAMC/1.2");
-     String sConLen;
-     sConLen.Format(_T("Content-length: %I64d\r\n"), message_size_);
-     EnqueueWrite(sConLen);
+      EnqueueWrite(contentLength);
 
-     // RFC-less but documented in spamd's protocol notes: "User: <name>" selects the
-     // preferences the scan runs under. Only sent when configured, so a spamd that was
-     // never told about users keeps seeing the request it always saw.
-     if (!user_.IsEmpty())
-        EnqueueWrite("User: " + user_ + "\r\n");
+      // RFC-less but documented in spamd's protocol notes: "User: <name>" selects the
+      // preferences the scan runs under. Only sent when configured, so a spamd that was
+      // never told about users keeps seeing the request it always saw.
+      if (!user_.IsEmpty())
+         EnqueueWrite("User: " + user_ + "\r\n");
 
-     EnqueueWrite("\r\n");
-     SendFileContents_(message_file_);
+      EnqueueWrite("\r\n");
+      SendRequestBody_(body);
    }
 
    AnsiString 
@@ -113,22 +123,47 @@ namespace HM
    }
 
    bool
-   SpamAssassinClient::SendFileContents_(const String &sFilename)
+   SpamAssassinClient::ReadRequestBody_(std::vector<std::shared_ptr<ByteBuffer> > &body, __int64 &bodySize)
    {
       String logMessage;
-      logMessage.Format(_T("Sending message to SpamAssassin. Session %d, File: %s"), GetSessionID(), sFilename.c_str());
+      logMessage.Format(_T("Sending message to SpamAssassin. Session %d, File: %s"), GetSessionID(), message_file_.c_str());
       LOG_DEBUG(logMessage);
 
       File oFile;
-      if (!oFile.Open(sFilename, File::OTReadOnly))
+      if (!oFile.Open(message_file_, File::OTReadOnly))
       {
          String sErrorMsg;
-         sErrorMsg.Format(_T("Could not send file %s via socket since it does not exist."), sFilename.c_str());
+         sErrorMsg.Format(_T("Could not send file %s via socket since it does not exist."), message_file_.c_str());
 
-         ErrorManager::Instance()->ReportError(ErrorManager::High, 5019, "SMTPClientConnection::SendFileContents_", sErrorMsg);
+         ErrorManager::Instance()->ReportError(ErrorManager::High, 5019, "SpamAssassinClient::ReadRequestBody_", sErrorMsg);
 
          return false;
       }
+
+      // With a Return-Path (a scan, never a lesson): the line first, then the
+      // message without the Return-Path fields of its own header block, so that
+      // spamd is given one envelope sender and it is the server's. The file is
+      // only read (SpamAssassinReturnPath.h).
+      std::shared_ptr<ReturnPathFieldFilter> requestFilter;
+      if (!return_path_.IsEmpty())
+      {
+         requestFilter = std::make_shared<ReturnPathFieldFilter>();
+
+         const std::string line = SpamAssassinReturnPath::RequestLine(return_path_);
+         std::shared_ptr<ByteBuffer> lineBuffer = std::make_shared<ByteBuffer>();
+         lineBuffer->Add(reinterpret_cast<const BYTE *>(line.data()), line.size());
+         body.push_back(lineBuffer);
+
+         // The reply goes through a filter of its own on its way to the disk.
+         response_filter_ = std::make_shared<ReturnPathFieldFilter>();
+      }
+
+      // The request's Content-length is what is read here, so a file that is not
+      // read to its end would be sent - and scanned, and its result put in the
+      // message's place - short. It is not sent at all: the scan does not
+      // complete, which the caller reports, and the message is left as it is.
+      const __int64 fileSize = (__int64) FileUtilities::FileSize(message_file_);
+      __int64 fileBytesRead = 0;
 
       const int maxIterations = 100000;
       for (int i = 0; i < maxIterations; i++)
@@ -138,18 +173,65 @@ namespace HM
          if (pBuf->GetSize() == 0)
             break;
 
-         BYTE *pSendBuffer = (BYTE*) pBuf->GetBuffer();
-         size_t iSendBufferSize = pBuf->GetSize();
+         fileBytesRead += (__int64) pBuf->GetSize();
 
-         EnqueueWrite(pBuf);
+         // Past the header block every byte passes, so the chunk is sent as read.
+         if (requestFilter && !requestFilter->GetHeaderEnded())
+         {
+            std::string passed;
+            requestFilter->Feed(pBuf->GetCharBuffer(), pBuf->GetSize(), passed);
+
+            if (passed.empty())
+               continue;
+
+            pBuf = std::make_shared<ByteBuffer>();
+            pBuf->Add(reinterpret_cast<const BYTE *>(passed.data()), passed.size());
+         }
+
+         body.push_back(pBuf);
       }
+
+      if (fileBytesRead != fileSize)
+      {
+         LOG_DEBUG(Formatter::Format("SA: {0} of the {1} bytes of {2} were read; the message was not sent to SpamAssassin and is kept as it is. Session {3}",
+            fileBytesRead, fileSize, message_file_, GetSessionID()));
+         body.clear();
+         return false;
+      }
+
+      if (requestFilter)
+      {
+         std::string rest;
+         requestFilter->Finish(rest);
+         if (!rest.empty())
+         {
+            std::shared_ptr<ByteBuffer> restBuffer = std::make_shared<ByteBuffer>();
+            restBuffer->Add(reinterpret_cast<const BYTE *>(rest.data()), rest.size());
+            body.push_back(restBuffer);
+         }
+
+         if (requestFilter->GetRemovedFields() > 0)
+            LOG_DEBUG(Formatter::Format("SA: {0} Return-Path field(s) of the message ({1} bytes) left out of the request to SpamAssassin, which is sent the envelope sender's instead. Session {2}",
+               requestFilter->GetRemovedFields(), (__int64) requestFilter->GetRemovedBytes(), GetSessionID()));
+      }
+
+      bodySize = 0;
+      for (const std::shared_ptr<ByteBuffer> &buffer : body)
+         bodySize += (__int64) buffer->GetSize();
+
+      return true;
+   }
+
+   void
+   SpamAssassinClient::SendRequestBody_(const std::vector<std::shared_ptr<ByteBuffer> > &body)
+   {
+      for (const std::shared_ptr<ByteBuffer> &buffer : body)
+         EnqueueWrite(buffer);
 
       EnqueueShutdownSend();
 
       // Request the response...
       EnqueueRead("");
-      
-      return true;
    }
 
    void
@@ -233,9 +315,30 @@ namespace HM
       // SpamAssassin's rewritten message would replace the original minus whatever did
       // not get written. Aborting keeps the original message, which is what the two
       // other failure paths in this function already do.
+      //
+      // What spamd sends of the message is counted against its Content-length as it
+      // arrives. With a Return-Path sent ahead of the message, the Return-Path
+      // fields of the reply's own header block are left out on the way to the disk
+      // (SpamAssassinReturnPath.h): the result becomes the message, and the line was
+      // never the message's. Nothing else is changed, and nothing is parsed.
+      total_result_bytes_received_ += (__int64) pBuf->GetSize();
+      const bool complete = total_result_bytes_received_ >= spam_dsize_;
+
+      std::shared_ptr<ByteBuffer> toWrite = pBuf;
+      if (response_filter_ && !response_filter_->GetHeaderEnded())
+      {
+         std::string passed;
+         response_filter_->Feed(pBuf->GetCharBuffer(), pBuf->GetSize(), passed);
+         if (complete)
+            response_filter_->Finish(passed);
+
+         toWrite = std::make_shared<ByteBuffer>();
+         toWrite->Add(reinterpret_cast<const BYTE *>(passed.data()), passed.size());
+      }
+
       size_t written_bytes = 0;
 
-      if (!result_->Write(pBuf, written_bytes))
+      if (toWrite->GetSize() > 0 && !result_->Write(toWrite, written_bytes))
       {
          LOG_DEBUG("SA: the response could not be written to disk; keeping the original message.");
          AbortResponse_();
@@ -244,7 +347,7 @@ namespace HM
 
       total_result_bytes_written_ += written_bytes;
 
-      if (total_result_bytes_written_ >= spam_dsize_)
+      if (complete)
       {
          FinishTesting_();
          return;
@@ -291,10 +394,17 @@ namespace HM
 
       String sTempFile = result_->GetName();
 
-      // new way: check the result from spamd. Require a positive length so an
-      // empty response (Content-length: 0, or a lookup that returned 0) can never
-      // overwrite the live message with a zero-byte file.
-      if (closed && bTestsRun && spam_dsize_ > 0 && (FileUtilities::FileSize(sTempFile) == spam_dsize_))
+      // new way: check the result from spamd. Its length on disk is what spamd
+      // announced less the Return-Path fields left out of it (the line sent ahead of
+      // the message, SpamAssassinReturnPath.h). Require a positive length so an
+      // empty response (Content-length: 0, a lookup that returned 0, or a reply of
+      // nothing but that line) can never overwrite the live message with a
+      // zero-byte file.
+      const __int64 leftOut = response_filter_ ? (__int64) response_filter_->GetRemovedBytes() : 0;
+      const __int64 expectedSize = spam_dsize_ - leftOut;
+      const __int64 resultSize = (__int64) FileUtilities::FileSize(sTempFile);
+
+      if (closed && bTestsRun && spam_dsize_ > 0 && expectedSize > 0 && resultSize == expectedSize)
       {
          // Both results are checked. The message has already been accepted, so the
          // sender has been given a 250 and there is nobody left to tell - a failure
@@ -339,7 +449,7 @@ namespace HM
       else 
       {
          String logMessage;
-         logMessage.Format(_T("SA: Temp file size did not match what Spamd reported! (temp: %d, spamd: %I64d). Reverting to original message file."),FileUtilities::FileSize(sTempFile),spam_dsize_);
+         logMessage.Format(_T("SA: Temp file size did not match what Spamd reported! (temp: %I64d, spamd: %I64d, Return-Path bytes left out: %I64d). Reverting to original message file."), resultSize, spam_dsize_, leftOut);
          LOG_DEBUG(logMessage);
       }
      

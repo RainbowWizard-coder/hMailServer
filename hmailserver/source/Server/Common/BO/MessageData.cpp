@@ -1202,8 +1202,9 @@ namespace HM
       // cap and for one that threw while being parsed, and most callers ignore that
       // answer and write anyway - RuleApplier (a set-header rule on a large message),
       // VirusScanner's attachment stripping, SMTPForwarding, EmailAllUsers.
-      // SpamTestSpamAssassin already guards its own call site for precisely this
-      // reason; the guard belongs here, where it covers all of them.
+      // SpamTestSpamAssassin guarded its own call site for precisely this reason
+      // until 6.3.7, when it stopped writing the message at all; the guard belongs
+      // here, where it covers all of them.
       if (load_failed_)
       {
          ErrorManager::Instance()->ReportError(ErrorManager::High, 6010, "MessageData::Write",

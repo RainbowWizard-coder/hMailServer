@@ -24,7 +24,6 @@
 #include "../Application/IniFileSettings.h"
 #include "../Util/Unicode.h"
 #include "../Util/Event.h"
-#include "../Util/TraceHeaderWriter.h"
 #include "../Persistence/PersistentMessage.h"
 #include "../Persistence/MessageStore.h"
 
@@ -62,23 +61,17 @@ namespace HM
       std::shared_ptr<Message> pMessage = pTestData->GetMessageData()->GetMessage();
       const String sFilename = MessageStore::WorkingFile(pMessage);
 
-      // SMTP servers making final delivery MAY/SHOULD remove Return-path header fields before adding their own. See: rfc2821 and rfc5321
-      while (!pTestData->GetMessageData()->GetReturnPath().IsEmpty())
-      {
-         pTestData->GetMessageData()->DeleteField("Return-Path");
-      }
-
-      // Add Return-Path as topmost header to help SpamAssassin with its SPF checks.
-      // SpamAssassin default rules and custom rules also rely on Return-Path header being present
-      // We delete this header again after SpamAssassin checking has completed
-      std::vector<std::pair<AnsiString, AnsiString>> fieldsToWrite;
+      // The envelope sender, as the Return-Path a final delivery writes (RFC 5321
+      // section 4.4): SpamAssassin's SPF checks and a number of its stock and
+      // custom rules read the envelope sender from it. It is sent to spamd as the
+      // first line of the message and nowhere else - in place of any Return-Path the
+      // message arrived with, which a final delivery may remove - and spamd's reply
+      // comes back without it (SpamAssassinClient, SpamAssassinReturnPath.h). The
+      // stored message is not written for it, so a scan that fails or never starts
+      // leaves the message exactly as it was.
       String sEnvelopeFrom = pTestData->GetEnvelopeFrom();
       AnsiString sReturnPath = sEnvelopeFrom.IsEmpty() ? "<>" : "<" + sEnvelopeFrom + ">";
-      fieldsToWrite.push_back(std::make_pair("Return-Path", sReturnPath));
-         
-      TraceHeaderWriter writer;
-      writer.Write(sFilename, pMessage, fieldsToWrite);
-      
+
       std::shared_ptr<IOService> pIOService = Application::Instance()->GetIOService();
 
       // Shared with the client (not a reference to this stack frame) so the bounded
@@ -122,6 +115,7 @@ namespace HM
             spamd_user = recipients[0]->GetAddress();
       }
       pSAClient->SetUser(Unicode::ToANSI(spamd_user));
+      pSAClient->SetReturnPath(sReturnPath);
 
       // Here we handle of the ownership to the TCPIP-connection layer.
       if (pSAClient->Connect(ip_address, iPort, IPAddress()))
@@ -151,21 +145,17 @@ namespace HM
       // Check if the message is tagged as spam.
       std::shared_ptr<MessageData> pMessageData = pTestData->GetMessageData();
 
-      // Only rewrite the message if it reloaded successfully. If RefreshFromMessage
-      // fails (message too large for the MIME parser, or unparseable), the in-memory
-      // body is empty and writing it back would truncate the message to a couple of
-      // bytes - so leave the file exactly as SpamAssassin left it.
-      if (pMessageData->RefreshFromMessage())
-      {
-         // The Return-Path header was added above to help SpamAssassin with its SPF checks.
-         // We should remove it again to restore the headers to original state (except for any added by SA).
-         pMessageData->DeleteField("Return-Path");
-         pMessageData->WriteReported(sFilename, "The removal of the Return-Path header added for SpamAssassin's SPF checks");
-      }
-      else
+      // The message file is now spamd's result - the message as SpamAssassin left
+      // it, without the Return-Path it was sent - or, where the result could not be
+      // applied, the message as it was. Nothing here writes it: it is read back for
+      // SpamAssassin's verdict, and for the tests that run after this one. Until
+      // 6.3.7 the Return-Path was written into the file before the scan and taken
+      // out here by parsing the message and writing it again, which changed bytes
+      // SpamAssassin never touched.
+      if (!pMessageData->RefreshFromMessage())
       {
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5509, "SpamTestSpamAssassin::RunTest",
-            "The message could not be reloaded after SpamAssassin processing; leaving it unchanged. It may be too large for the MIME parser (80 MB) or malformed.");
+            "The message could not be reloaded after SpamAssassin processing, so SpamAssassin's verdict could not be read; the message is delivered as SpamAssassin returned it, without a SpamAssassin score. It may be too large for the MIME parser (80 MB) or malformed.");
       }
 
       bool bIsSpam = false;

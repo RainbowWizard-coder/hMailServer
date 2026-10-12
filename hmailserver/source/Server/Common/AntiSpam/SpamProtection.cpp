@@ -135,10 +135,11 @@ namespace HM
    SpamProtection::MaxSizeToScanKB()
    {
       // The hard ceiling is the MIME parser's own limit (MessageData::LoadFromMessage
-      // ignores messages over 80 MB): scanning above it cannot load the message, and
-      // the post-scan rewrite would then write an empty MIME body over the original -
-      // i.e. destroy the message. Messages this large are very unlikely to be spam
-      // anyway.
+      // ignores messages over 80 MB): the tests that read the message parse it, and
+      // above it there is nothing to read - SpamAssassin's verdict is read from the
+      // message it returns. (Until 6.3.7 the SpamAssassin test also rewrote the
+      // message after the scan, and above the limit that wrote an empty MIME body
+      // over the original.) Messages this large are very unlikely to be spam anyway.
       const int maxParserSizeKB = 1024 * 80;
 
       const int configured = Configuration::Instance()->GetAntiSpamConfiguration().GetAntiSpamMaxSizeKB();

@@ -716,6 +716,23 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   address, and moves a stored name up and a stored reply down as the Control Panel moves an action, with a delivery
   after the moves; `ControlPanel.Tests`' `RuleActionMoveTests` holds the Control Panel's Move up and Move down to the
   rule's save alone.
+- **Fixed: the `Return-Path` a SpamAssassin scan is sent was left in the message when the scan failed, and taken out
+  of it by rewriting the whole message when the scan completed.** SpamAssassin reads the envelope sender from a
+  `Return-Path` at the top of the message, and a message being accepted has none yet, so the server wrote one into
+  the stored message before the scan and took it out afterwards. Every way the scan could fail - spamd's host not
+  resolving (`HM5507`), the connection refused, a timeout, a reply reset or cut short (`HM5508`) - left the line in
+  the message, under the one local delivery then wrote, so the mailbox received two; a `Return-Path` the message
+  arrived with was sent to spamd beside the server's; and a completed scan's result was parsed and written again to
+  take the line out, which dropped a multipart message's epilogue and changed bytes SpamAssassin never touched, in
+  every version up to 6.3.6. The line is now sent to spamd ahead of the message, in the request alone and counted in
+  its `Content-length`, with the message's own `Return-Path` fields left out of what spamd is sent; spamd's reply is
+  stored without it, byte for byte, every other byte as SpamAssassin returned it, and nothing is parsed or rewritten.
+  The stored message is never written for it, so a scan that fails leaves the message exactly as it was received.
+  `HM5509` (the message could not be read back after the scan) now says that SpamAssassin's verdict could not be
+  read, since nothing is rewritten any more. `SpamAssassinReturnPathTester` (`public-suffix-tests` on Linux) holds the
+  filter to its edges in every split of its input, and `AntiSpam/SpamAssassinReturnPath.cs` reads the stored file
+  byte for byte after a completed scan and after spamd refused the connection, reset it, cut its reply short and hung
+  up mid-request. Found by the project's own review.
 
 ### Downloads and the release
 

@@ -63,8 +63,8 @@ namespace HM
       written = temporaryFile.Close() && written;
 
       // Every failure here leaves a rewritten copy of the message on disk that
-      // nothing refers to. This runs for every DKIM signature, ARC seal, local
-      // delivery and SpamAssassin result, so a full disk or a message file locked
+      // nothing refers to. This runs for every DKIM signature, ARC seal, sandbox
+      // verdict and local delivery, so a full disk or a message file locked
       // by a scanner would otherwise drop one orphan per message into the
       // account's folder, where the consistency check would never notice it (it
       // looks for database rows with no file, not files with no row).

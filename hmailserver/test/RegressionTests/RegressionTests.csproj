@@ -382,6 +382,7 @@
     <Compile Include="AntiSpam\SpamAssassin.cs" />
     <Compile Include="AntiSpam\SpamAssassinUserHeader.cs" />
     <Compile Include="AntiSpam\SpamAssassinLearning.cs" />
+    <Compile Include="AntiSpam\SpamAssassinReturnPath.cs" />
     <Compile Include="API\Basics.cs" />
     <Compile Include="API\ComCallingProcess.cs" />
     <Compile Include="API\ComWithoutCredential.cs" />

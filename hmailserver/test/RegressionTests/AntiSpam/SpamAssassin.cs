@@ -5,9 +5,12 @@
 using System;
 using System.Net.Sockets;
 using System.ServiceProcess;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using hMailServer;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using RegressionTests.Infrastructure;
 using RegressionTests.Shared;
 
@@ -290,6 +293,53 @@ namespace RegressionTests.AntiSpam
          Assert.IsTrue(messageHeader.Contains("Return-Path:"));
          Assert.IsTrue(messageHeader.Contains("From:"));
          Assert.IsTrue(messageHeader.Contains("Subject: ThisIsSpam"));
+      }
+
+      /// <summary>
+      ///    The real spamd's side of AntiSpam.SpamAssassinReturnPath: the Return-Path the
+      ///    scan sends ahead of the message comes back in SpamAssassin's reply, above its
+      ///    X-Spam fields, and is left out of the stored message byte for byte, so the
+      ///    message keeps exactly one Return-Path - the delivery's - and every byte
+      ///    SpamAssassin did not change. Until 6.3.7 the line was taken out by parsing the
+      ///    whole message and writing it again, which dropped this message's epilogue.
+      /// </summary>
+      [Test]
+      [Description("A message SpamAssassin scanned and did not tag keeps one Return-Path, the delivery's, and its body byte for byte, the multipart epilogue included")]
+      public void AScannedMessageKeepsTheBytesSpamAssassinLeftAlone()
+      {
+         const string body =
+            "\r\n" +
+            "This is the preamble.\r\n" +
+            "--sa-byte-boundary\r\n" +
+            "Content-Type: text/plain; charset=us-ascii\r\n" +
+            "\r\n" +
+            "The minutes of the meeting are attached to the calendar entry.\r\n" +
+            "--sa-byte-boundary--\r\n" +
+            "This is the epilogue, which a rewrite of the whole message drops.\r\n";
+
+         var message =
+            "From: " + account.Address + "\r\n" +
+            "To: " + account.Address + "\r\n" +
+            "Subject: Minutes of the meeting\r\n" +
+            "Date: " + DateTime.UtcNow.ToString("r").Replace("GMT", "+0000") + "\r\n" +
+            "Message-ID: <sa-byte-test-" + Guid.NewGuid().ToString("N") + "@example.test>\r\n" +
+            "MIME-Version: 1.0\r\n" +
+            "Content-Type: multipart/mixed; boundary=\"sa-byte-boundary\"\r\n" +
+            body;
+
+         new SmtpClientSimulator().SendRaw(account.Address, account.Address, message);
+
+         var stored = System.IO.File.ReadAllText(CustomAsserts.AssertGetFirstMessage(account, "INBOX").Filename, Encoding.GetEncoding(28591));
+
+         var headerEnd = stored.IndexOf("\r\n\r\n", StringComparison.Ordinal);
+         ClassicAssert.GreaterOrEqual(headerEnd, 0, stored);
+         var header = stored.Substring(0, headerEnd + 2);
+
+         StringAssert.Contains("X-Spam-Status: No", header, "SpamAssassin did not run, or tagged the message: " + header);
+         ClassicAssert.AreEqual(1, Regex.Matches(header, "^Return-Path[ \\t]*:", RegexOptions.Multiline | RegexOptions.IgnoreCase).Count,
+            "The stored message does not have exactly one Return-Path: " + header);
+         StringAssert.StartsWith("Return-Path: <" + account.Address + ">\r\n", stored);
+         StringAssert.EndsWith(body, stored, "The body SpamAssassin did not change was not stored byte for byte.");
       }
 
       [Test]

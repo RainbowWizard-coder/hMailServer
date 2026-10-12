@@ -14,11 +14,15 @@
 // that are not names of GitLab issue 51 - a HELO name or a sender's domain that
 // is an address, one label or a public suffix by the same list - with the
 // carve-outs of the refusal made with them (FqdnCheckTester), and before it what
-// an address is, which that refusal asks first (IPAddressTester).
+// an address is, which that refusal asks first (IPAddressTester). And the
+// Return-Path a SpamAssassin scan sends ahead of the message, with the
+// Return-Path fields left out of the request and of spamd's reply byte for byte
+// (SpamAssassinReturnPathTester).
 //
-// On Windows PublicSuffixListTester, SURBLTester and FqdnCheckTester run inside
-// the service with the other class tests: ClassTester::DoTests calls them and the
-// regression suite reaches them through Utilities.RunTestSuite. That route does
+// On Windows PublicSuffixListTester, SURBLTester, FqdnCheckTester and
+// SpamAssassinReturnPathTester run inside the service with the other class
+// tests: ClassTester::DoTests calls them and the regression suite reaches them
+// through Utilities.RunTestSuite. That route does
 // not exist here - it is a COM method, and the Linux suite's shim skips it - so
 // the CMake build makes this, and linux-build.sh runs it with every other *-tests
 // program. It needs no database, no configuration, no file and no network: the
@@ -34,6 +38,7 @@
 #include "../Common/AntiSpam/SURBL.h"
 #include "../Common/AntiSpam/FqdnCheck.h"
 #include "../Common/TCPIP/DNSResolver.h"
+#include "../Common/AntiSpam/SpamAssassin/SpamAssassinReturnPath.h"
 #include "../Common/TCPIP/IPAddress.h"
 
 int
@@ -109,5 +114,18 @@ main(int /*argc*/, char * /*argv*/[])
    }
 
    printf("ok    the session names that are not names: addresses with and without brackets, one label, the root, public suffixes by the same list, characters no host name holds, an all-digit top label, and the refusal's switches and carve-outs one at a time\n");
+
+   try
+   {
+      HM::SpamAssassinReturnPathTester tester;
+      tester.Test();
+   }
+   catch (const std::exception &failure)
+   {
+      printf("FAIL  the Return-Path a SpamAssassin scan is sent: %s\n", failure.what());
+      return 1;
+   }
+
+   printf("ok    the Return-Path a SpamAssassin scan is sent: the line ahead of the message, and the Return-Path fields of a header block left out byte for byte - first, last, twice, folded, in any case, with LF lines - and nothing after it, in every split and a byte at a time\n");
    return 0;
 }
