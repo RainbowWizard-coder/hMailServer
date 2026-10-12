@@ -1015,7 +1015,7 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
     <value>Legg til en SURBL-server</value>
   </data>
   <data name="Add a _domain" xml:space="preserve">
-    <value>Legg til et _domene</value>
+    <value>Legg til et dome_ne</value>
   </data>
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>Legg til en _header som leseren viser som et banner</value>
@@ -1137,7 +1137,7 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Add from A_D…" xml:space="preserve">
     <value>Legg til fra A_D…</value>
   </data>
-  <data name="Add li_st" xml:space="preserve">
+  <data name="Add lis_t" xml:space="preserve">
     <value>Legg til li_ste</value>
   </data>
   <data name="Add port" xml:space="preserve">
@@ -1185,9 +1185,6 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>Legg til i sperrelisten for {0}</value>
   </data>
-  <data name="Add_ress" xml:space="preserve">
-    <value>_Adresse</value>
-  </data>
   <data name="Added" xml:space="preserve">
     <value>Lagt til</value>
   </data>
@@ -1220,6 +1217,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   </data>
   <data name="Added {0} block entry." xml:space="preserve">
     <value>La til {0} blokkeringsoppføring.</value>
+  </data>
+  <data name="Addre_ss" xml:space="preserve">
+    <value>_Adresse</value>
   </data>
   <data name="Address" xml:space="preserve">
     <value>Adresse</value>
@@ -4449,9 +4449,6 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>Rediger handl_ing…</value>
-  </data>
-  <data name="Edit" xml:space="preserve">
-    <value>Rediger</value>
   </data>
   <data name="Edit a domain on the list" xml:space="preserve">
     <value>Rediger et domene i listen</value>

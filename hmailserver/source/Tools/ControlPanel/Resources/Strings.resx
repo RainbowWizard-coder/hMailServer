@@ -1137,8 +1137,8 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Add from A_D…" xml:space="preserve">
     <value>Add from A_D…</value>
   </data>
-  <data name="Add li_st" xml:space="preserve">
-    <value>Add li_st</value>
+  <data name="Add lis_t" xml:space="preserve">
+    <value>Add lis_t</value>
   </data>
   <data name="Add port" xml:space="preserve">
     <value>Add port</value>
@@ -1185,9 +1185,6 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>Add to the suppression list of {0}</value>
   </data>
-  <data name="Add_ress" xml:space="preserve">
-    <value>Add_ress</value>
-  </data>
   <data name="Added" xml:space="preserve">
     <value>Added</value>
   </data>
@@ -1220,6 +1217,9 @@ The Control Panel can only read message files when it runs on the same machine a
   </data>
   <data name="Added {0} block entry." xml:space="preserve">
     <value>Added {0} block entry.</value>
+  </data>
+  <data name="Addre_ss" xml:space="preserve">
+    <value>Addre_ss</value>
   </data>
   <data name="Address" xml:space="preserve">
     <value>Address</value>
@@ -4449,9 +4449,6 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>Ed_it action…</value>
-  </data>
-  <data name="Edit" xml:space="preserve">
-    <value>Edit</value>
   </data>
   <data name="Edit a domain on the list" xml:space="preserve">
     <value>Edit a domain on the list</value>

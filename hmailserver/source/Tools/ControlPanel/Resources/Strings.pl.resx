@@ -1143,7 +1143,7 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   <data name="Add from A_D…" xml:space="preserve">
     <value>Dodaj _z AD…</value>
   </data>
-  <data name="Add li_st" xml:space="preserve">
+  <data name="Add lis_t" xml:space="preserve">
     <value>Dodaj li_stę</value>
   </data>
   <data name="Add port" xml:space="preserve">
@@ -1191,9 +1191,6 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>Dodaj do listy blokowanych domeny {0}</value>
   </data>
-  <data name="Add_ress" xml:space="preserve">
-    <value>_Adres</value>
-  </data>
   <data name="Added" xml:space="preserve">
     <value>Dodano</value>
   </data>
@@ -1232,6 +1229,9 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   </data>
   <data name="Added {0} block entry." xml:space="preserve">
     <value>Dodano {0} wpis blokujący.</value>
+  </data>
+  <data name="Addre_ss" xml:space="preserve">
+    <value>_Adres</value>
   </data>
   <data name="Address" xml:space="preserve">
     <value>Adres</value>
@@ -4507,9 +4507,6 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>Ed_ytuj akcję…</value>
-  </data>
-  <data name="Edit" xml:space="preserve">
-    <value>Edytuj</value>
   </data>
   <data name="Edit a domain on the list" xml:space="preserve">
     <value>Edytuj domenę na liście</value>

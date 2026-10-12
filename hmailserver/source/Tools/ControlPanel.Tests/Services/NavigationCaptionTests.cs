@@ -96,14 +96,13 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// methods of its file that it calls, three calls deep. Not held to it: a dialog
       /// that asks nothing (the message viewer of View source) or that is a step of
       /// another act (the code the sign-in asks for when the server wants a second
-      /// factor), and the domains page's row buttons, which are to become 24-pixel
-      /// icon buttons named for their row (the owner's decision 15 of 9 October 2026).
+      /// factor). The domains page's row buttons are 24-pixel icon buttons named for
+      /// their row (the owner's decision 15 of 9 October 2026), with no caption.
       /// </summary>
       [Fact]
       public void EveryXamlButtonThatOpensADialogForInputEndsInAnEllipsis()
       {
          var asksNothing = new HashSet<string>(StringComparer.Ordinal) { "MessageViewerDialog", "TotpPromptDialog" };
-         var rowButtons = new HashSet<string>(StringComparer.Ordinal) { "DomainsView.xaml EditDomain_Click", "DomainsView.xaml EditAccount_Click" };
          var button = new Regex(@"<ui:(?:Button|HyperlinkButton)\b[^>]*>", RegexOptions.Singleline);
          var offending = new List<string>();
          int opening = 0;
@@ -121,7 +120,7 @@ namespace hMailServer.ControlPanel.Tests.Services
                   continue;
                var dialogs = DialogsOpenedBy(code, MethodBody(code, click.Groups[1].Value), 0, new HashSet<string>(StringComparer.Ordinal));
                dialogs.ExceptWith(asksNothing);
-               if (dialogs.Count == 0 || rowButtons.Contains(Path.GetFileName(xaml) + " " + click.Groups[1].Value))
+               if (dialogs.Count == 0)
                   continue;
                opening++;
                if (!EndsInEllipsis(caption.Groups[1].Value))

@@ -1137,7 +1137,7 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="Add from A_D…" xml:space="preserve">
     <value>_Adicionar do AD…</value>
   </data>
-  <data name="Add li_st" xml:space="preserve">
+  <data name="Add lis_t" xml:space="preserve">
     <value>Adicionar li_sta</value>
   </data>
   <data name="Add port" xml:space="preserve">
@@ -1185,9 +1185,6 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>Adicionar à lista de supressão de {0}</value>
   </data>
-  <data name="Add_ress" xml:space="preserve">
-    <value>E_ndereço</value>
-  </data>
   <data name="Added" xml:space="preserve">
     <value>Adicionado</value>
   </data>
@@ -1220,6 +1217,9 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   </data>
   <data name="Added {0} block entry." xml:space="preserve">
     <value>Adicionada {0} entrada de bloqueio.</value>
+  </data>
+  <data name="Addre_ss" xml:space="preserve">
+    <value>E_ndereço</value>
   </data>
   <data name="Address" xml:space="preserve">
     <value>Endereço</value>
@@ -4449,9 +4449,6 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>Ed_itar ação…</value>
-  </data>
-  <data name="Edit" xml:space="preserve">
-    <value>Editar</value>
   </data>
   <data name="Edit a domain on the list" xml:space="preserve">
     <value>Editar um domínio da lista</value>

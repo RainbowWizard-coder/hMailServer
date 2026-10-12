@@ -1137,7 +1137,7 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Add from A_D…" xml:space="preserve">
     <value>Lägg till från A_D…</value>
   </data>
-  <data name="Add li_st" xml:space="preserve">
+  <data name="Add lis_t" xml:space="preserve">
     <value>Lägg till li_sta</value>
   </data>
   <data name="Add port" xml:space="preserve">
@@ -1185,9 +1185,6 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>Lägg till i spärrlistan för {0}</value>
   </data>
-  <data name="Add_ress" xml:space="preserve">
-    <value>Ad_ress</value>
-  </data>
   <data name="Added" xml:space="preserve">
     <value>Tillagd</value>
   </data>
@@ -1220,6 +1217,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   </data>
   <data name="Added {0} block entry." xml:space="preserve">
     <value>Lade till {0} blockerande post.</value>
+  </data>
+  <data name="Addre_ss" xml:space="preserve">
+    <value>Ad_ress</value>
   </data>
   <data name="Address" xml:space="preserve">
     <value>Adress</value>
@@ -4449,9 +4449,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>Red_igera åtgärd…</value>
-  </data>
-  <data name="Edit" xml:space="preserve">
-    <value>Redigera</value>
   </data>
   <data name="Edit a domain on the list" xml:space="preserve">
     <value>Redigera en domän i listan</value>
@@ -15380,7 +15377,7 @@ Den fortsätter försöka medan du använder programmet.</value>
     <value>_Lägg till ändå</value>
   </data>
   <data name="_Add domain" xml:space="preserve">
-    <value>Lägg till _domän</value>
+    <value>Lägg till do_män</value>
   </data>
   <data name="_Add folder" xml:space="preserve">
     <value>_Lägg till mapp</value>

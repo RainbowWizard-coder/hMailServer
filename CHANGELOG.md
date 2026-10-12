@@ -3823,6 +3823,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the domain's dialog, are the same editor. `ListExpiryDialogTests` holds the box's text in four languages, what is
   sent with the switch off and on, and the dialog's use of both.
 
+- **Fixed: the Domains page's rows said Edit and Delete in words beside the lists' glyphs, and the page had no
+  Refresh.** The domain rows showed a text Edit beside a glyph delete and the account rows a text Edit and Delete, while
+  the alias and distribution-list rows used 24-pixel glyphs - three button styles on one page, against the owner's
+  decision 15 (row actions are 24-pixel icon buttons named for their row). Every row action on the page is now a glyph
+  in a 24-pixel box (Edit24, Delete24 in the danger text colour), its tool tip and accessible name the act and the row -
+  "Edit domain example.com", "Delete account user01@example.com". The page now has Refresh in its header, as every list
+  page does (review finding F062), where only F5 read it again; Alt+R is Refresh's here as on every list page (decision
+  3), so the account form's Address takes Alt+S and Add list Alt+T, and the captions that met Refresh's key in Swedish,
+  Norwegian, Spanish, Finnish, Danish, Ukrainian, French, Italian and Japanese and Chinese take another.
+  `DomainsRowTests` holds that every row action is a named 24-pixel glyph, and `NoRowButton_CarriesACaption` and
+  `AccessKeysTests` the rest.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

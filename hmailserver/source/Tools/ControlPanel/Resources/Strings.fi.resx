@@ -1137,7 +1137,7 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Add from A_D…" xml:space="preserve">
     <value>Lisää A_D:stä…</value>
   </data>
-  <data name="Add li_st" xml:space="preserve">
+  <data name="Add lis_t" xml:space="preserve">
     <value>Lis_ää lista</value>
   </data>
   <data name="Add port" xml:space="preserve">
@@ -1185,9 +1185,6 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>Lisää verkkotunnuksen {0} estolistalle</value>
   </data>
-  <data name="Add_ress" xml:space="preserve">
-    <value>_Osoite</value>
-  </data>
   <data name="Added" xml:space="preserve">
     <value>Lisätty</value>
   </data>
@@ -1220,6 +1217,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   </data>
   <data name="Added {0} block entry." xml:space="preserve">
     <value>Lisättiin {0} estomerkintä.</value>
+  </data>
+  <data name="Addre_ss" xml:space="preserve">
+    <value>_Osoite</value>
   </data>
   <data name="Address" xml:space="preserve">
     <value>Osoite</value>
@@ -1369,7 +1369,7 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
     <value>Yksitellen lähetettäviä hälytyksiä tunnissa enintään</value>
   </data>
   <data name="Alias addr_ess" xml:space="preserve">
-    <value>Al_iasosoite</value>
+    <value>Aliasosoit_e</value>
   </data>
   <data name="Alias address" xml:space="preserve">
     <value>Aliasosoite</value>
@@ -4316,7 +4316,7 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
     <value>Älä lähetä viestejä, jotka ovat suurempia kuin (kt; 0 = ei rajaa)</value>
   </data>
   <data name="Do_main" xml:space="preserve">
-    <value>V_erkkotunnus</value>
+    <value>Verkkotu_nnus</value>
   </data>
   <data name="Does not match the certificate" xml:space="preserve">
     <value>Ei vastaa varmennetta</value>
@@ -4449,9 +4449,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>Muo_kkaa toimintoa…</value>
-  </data>
-  <data name="Edit" xml:space="preserve">
-    <value>Muokkaa</value>
   </data>
   <data name="Edit a domain on the list" xml:space="preserve">
     <value>Muokkaa luettelon verkkotunnusta</value>

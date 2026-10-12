@@ -1137,7 +1137,7 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   <data name="Add from A_D…" xml:space="preserve">
     <value>Añadir desde A_D…</value>
   </data>
-  <data name="Add li_st" xml:space="preserve">
+  <data name="Add lis_t" xml:space="preserve">
     <value>Añadir li_sta</value>
   </data>
   <data name="Add port" xml:space="preserve">
@@ -1185,9 +1185,6 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>Añadir a la lista de supresión de {0}</value>
   </data>
-  <data name="Add_ress" xml:space="preserve">
-    <value>D_irección</value>
-  </data>
   <data name="Added" xml:space="preserve">
     <value>Añadido</value>
   </data>
@@ -1220,6 +1217,9 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   </data>
   <data name="Added {0} block entry." xml:space="preserve">
     <value>Se añadió {0} entrada de bloqueo.</value>
+  </data>
+  <data name="Addre_ss" xml:space="preserve">
+    <value>D_irección</value>
   </data>
   <data name="Address" xml:space="preserve">
     <value>Dirección</value>
@@ -4449,9 +4449,6 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>E_ditar acción…</value>
-  </data>
-  <data name="Edit" xml:space="preserve">
-    <value>Editar</value>
   </data>
   <data name="Edit a domain on the list" xml:space="preserve">
     <value>Editar un dominio de la lista</value>
@@ -15878,7 +15875,7 @@ Seguirá intentándolo mientras usa la aplicación.</value>
     <value>_Propietario (vacío = el moderador)</value>
   </data>
   <data name="_Password" xml:space="preserve">
-    <value>Con_traseña</value>
+    <value>C_ontraseña</value>
   </data>
   <data name="_Pause the mail server" xml:space="preserve">
     <value>_Pausar el servidor de correo</value>

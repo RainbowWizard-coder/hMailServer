@@ -30,7 +30,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// <summary>The page forms the finding names: every caption has a key, none a button's.</summary>
       [Theory]
       [InlineData("DomainsView.xaml", "{loc:L 'Do_main'}")]
-      [InlineData("DomainsView.xaml", "{loc:L 'Add_ress'}")]
+      [InlineData("DomainsView.xaml", "{loc:L 'Addre_ss'}")]
       [InlineData("DomainsView.xaml", "{loc:L '_Password'}")]
       [InlineData("DomainsView.xaml", "{loc:L 'Alias addr_ess'}")]
       [InlineData("DomainsView.xaml", "{loc:L 'Deli_vers to'}")]

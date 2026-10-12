@@ -1137,7 +1137,7 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Add from A_D…" xml:space="preserve">
     <value>Aggiungi da A_D…</value>
   </data>
-  <data name="Add li_st" xml:space="preserve">
+  <data name="Add lis_t" xml:space="preserve">
     <value>Aggiungi li_sta</value>
   </data>
   <data name="Add port" xml:space="preserve">
@@ -1185,9 +1185,6 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>Aggiungi alla lista di soppressione di {0}</value>
   </data>
-  <data name="Add_ress" xml:space="preserve">
-    <value>_Indirizzo</value>
-  </data>
   <data name="Added" xml:space="preserve">
     <value>Aggiunto</value>
   </data>
@@ -1220,6 +1217,9 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   </data>
   <data name="Added {0} block entry." xml:space="preserve">
     <value>Aggiunta {0} voce di blocco.</value>
+  </data>
+  <data name="Addre_ss" xml:space="preserve">
+    <value>_Indirizzo</value>
   </data>
   <data name="Address" xml:space="preserve">
     <value>Indirizzo</value>
@@ -4450,9 +4450,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Ed_it action…" xml:space="preserve">
     <value>Mo_difica azione…</value>
   </data>
-  <data name="Edit" xml:space="preserve">
-    <value>Modifica</value>
-  </data>
   <data name="Edit a domain on the list" xml:space="preserve">
     <value>Modifica un dominio dell’elenco</value>
   </data>
@@ -6394,7 +6391,7 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
     <value>LDAPS è l'impostazione predefinita. Un numero nell'INI che non sia uno di questi tre viene letto come LDAPS, così un errore di battitura non può indebolire silenziosamente il trasporto - e qualunque sia il valore impostato qui, una password non viene mai inviata su una connessione non protetta a meno che ciò non sia esplicitamente consentito qui sotto.</value>
   </data>
   <data name="L_ist address" xml:space="preserve">
-    <value>Indi_rizzo della lista</value>
+    <value>Indirizzo della lis_ta</value>
   </data>
   <data name="Language" xml:space="preserve">
     <value>Lingua</value>

@@ -63,8 +63,17 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <!-- Refresh in the header, as every list page has it (docs/ControlPanelDesign.md,
+             List pages; review finding F062): the page read again only with F5. Alt+R
+             is Refresh's here as on every list page (the owner's decision 3), so the
+             account's Address takes S and Add list T. -->
         <scaffold:PageHeader PageKey="domains"
-                             Subtitle="{loc:L 'The domains this server hosts, with their accounts, aliases and distribution lists.'}" />
+                             Subtitle="{loc:L 'The domains this server hosts, with their accounts, aliases and distribution lists.'}">
+            <scaffold:PageHeader.Actions>
+                <ui:Button x:Name="RefreshButton" Content="{loc:L '_Refresh'}" Click="Refresh_Click"
+                           AutomationProperties.AutomationId="domains-refresh" />
+            </scaffold:PageHeader.Actions>
+        </scaffold:PageHeader>
 
         <!-- A read that failed: Critical, with Try again, in place of the empty
              state, which would say there are no domains, or no accounts
@@ -197,17 +206,20 @@
                                                  where the domain and list rows said Properties (review
                                                  finding F083); each row button is named for its row (review
                                                  finding F102): read through the rows, a screen reader heard
-                                                 "Properties" and "Delete domain" on every one. The name starts
-                                                 with the visible caption, which voice control says. -->
-                                            <ui:Button Grid.Column="1" Content="{loc:L 'Edit'}" FontSize="{DynamicResource AppFontSizeCaption}" Padding="8,3" Margin="6,0,6,0"
-                                                       AutomationProperties.Name="{Binding EditName}"
+                                                 "Properties" and "Delete domain" on every one. Every row
+                                                 action on the page is a glyph in a 24-pixel box, named for
+                                                 its row in its tool tip and to a screen reader (the owner's
+                                                 decision 15), where the domain and account rows said Edit
+                                                 and Delete in words beside the lists' glyphs. -->
+                                            <ui:Button Grid.Column="1" Icon="{ui:SymbolIcon Edit24}" Padding="4" MinWidth="24" MinHeight="24" Margin="6,0,4,0"
+                                                       ToolTip="{Binding EditName}" AutomationProperties.Name="{Binding EditName}"
                                                        Tag="{Binding Name}" Click="EditDomain_Click" />
                                             <!-- Every row delete on the page is a DangerTextButton: the
                                                  style's danger fill-text shade clears 4.5:1 on the button
                                                  in both themes and greys when the button is disabled, where
                                                  a local AppDangerBrush measured 3.3:1 in the dark theme and
                                                  outranked the disabled state. -->
-                                            <ui:Button Grid.Column="2" Icon="{ui:SymbolIcon Delete24}" Padding="6,3"
+                                            <ui:Button Grid.Column="2" Icon="{ui:SymbolIcon Delete24}" Padding="4" MinWidth="24" MinHeight="24"
                                                        Style="{StaticResource DangerTextButton}"
                                                        ToolTip="{Binding DeleteName}" AutomationProperties.Name="{Binding DeleteName}"
                                                        Tag="{Binding Name}" Click="DeleteDomain_Click" />
@@ -265,7 +277,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <scaffold:FieldRow x:Name="NewAccountRow" Grid.ColumnSpan="2" Label="{loc:L 'Add_ress'}">
+                        <scaffold:FieldRow x:Name="NewAccountRow" Grid.ColumnSpan="2" Label="{loc:L 'Addre_ss'}">
                             <ui:TextBox x:Name="NewAccountBox" />
                         </scaffold:FieldRow>
                         <scaffold:FieldRow x:Name="PasswordRow" Grid.Row="1" Label="{loc:L '_Password'}" Margin="0,0,8,0" LabelGroup="PasswordLine">
@@ -321,12 +333,13 @@
                                                 <TextBlock Text="{Binding Address}" Style="{StaticResource RowName}" Margin="10,0,0,0" FontSize="{DynamicResource AppFontSizeBody}"
                                                            VerticalAlignment="Center" />
                                             </DockPanel>
-                                            <ui:Button Grid.Column="1" Content="{loc:L 'Edit'}" FontSize="{DynamicResource AppFontSizeCaption}" Padding="8,3" Margin="6,0,6,0"
-                                                       AutomationProperties.Name="{Binding EditName}"
+                                            <ui:Button Grid.Column="1" Icon="{ui:SymbolIcon Edit24}" Padding="4" MinWidth="24" MinHeight="24" Margin="6,0,4,0"
+                                                       ToolTip="{Binding EditName}" AutomationProperties.Name="{Binding EditName}"
                                                        Tag="{Binding Address}" Click="EditAccount_Click" />
-                                            <ui:Button Grid.Column="2" Content="{loc:L 'Delete'}" Style="{StaticResource DangerTextButton}" FontSize="{DynamicResource AppFontSizeCaption}"
-                                                       AutomationProperties.Name="{Binding DeleteName}"
-                                                       Padding="8,3" Tag="{Binding Address}" Click="DeleteAccount_Click" />
+                                            <ui:Button Grid.Column="2" Icon="{ui:SymbolIcon Delete24}" Padding="4" MinWidth="24" MinHeight="24"
+                                                       Style="{StaticResource DangerTextButton}"
+                                                       ToolTip="{Binding DeleteName}" AutomationProperties.Name="{Binding DeleteName}"
+                                                       Tag="{Binding Address}" Click="DeleteAccount_Click" />
                                         </Grid>
                                     </DataTemplate>
                                 </ListView.ItemTemplate>
@@ -440,7 +453,7 @@
                                     <RowDefinition Height="Auto" SharedSizeGroup="ListLine" />
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
-                                <ui:Button x:Name="AddListButton" Grid.Row="1" Content="{loc:L 'Add li_st'}" FontSize="{DynamicResource AppFontSizeCaption}" Click="AddDistList_Click"
+                                <ui:Button x:Name="AddListButton" Grid.Row="1" Content="{loc:L 'Add lis_t'}" FontSize="{DynamicResource AppFontSizeCaption}" Click="AddDistList_Click"
                                            VerticalAlignment="Top" Margin="0"
                                            AutomationProperties.HelpText="{loc:L 'Add distribution list'}" ToolTip="{loc:L 'Add distribution list'}" />
                             </Grid>

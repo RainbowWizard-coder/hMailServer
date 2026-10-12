@@ -1137,7 +1137,7 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Add from A_D…" xml:space="preserve">
     <value>Tilføj fra A_D…</value>
   </data>
-  <data name="Add li_st" xml:space="preserve">
+  <data name="Add lis_t" xml:space="preserve">
     <value>Tilføj li_ste</value>
   </data>
   <data name="Add port" xml:space="preserve">
@@ -1185,9 +1185,6 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>Føj til spærrelisten for {0}</value>
   </data>
-  <data name="Add_ress" xml:space="preserve">
-    <value>Ad_resse</value>
-  </data>
   <data name="Added" xml:space="preserve">
     <value>Tilføjet</value>
   </data>
@@ -1220,6 +1217,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   </data>
   <data name="Added {0} block entry." xml:space="preserve">
     <value>Tilføjede {0} blokeringspost.</value>
+  </data>
+  <data name="Addre_ss" xml:space="preserve">
+    <value>Ad_resse</value>
   </data>
   <data name="Address" xml:space="preserve">
     <value>Adresse</value>
@@ -1369,7 +1369,7 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
     <value>Advarsler sendt én ad gangen i timen, højst</value>
   </data>
   <data name="Alias addr_ess" xml:space="preserve">
-    <value>_Aliasadresse</value>
+    <value>Aliasadress_e</value>
   </data>
   <data name="Alias address" xml:space="preserve">
     <value>Aliasadresse</value>
@@ -4086,7 +4086,7 @@ Afsenderen fik at vide, at den var accepteret, så intet forsøger igen, og der 
     <value>Sletning af et domæne sletter kontiene i det. Kontrollér først, om der er aliasser og lister, der peger på det.</value>
   </data>
   <data name="Deli_vers to" xml:space="preserve">
-    <value>L_everer til</value>
+    <value>Le_verer til</value>
   </data>
   <data name="Deliver _all now" xml:space="preserve">
     <value>Levér alle _nu</value>
@@ -4449,9 +4449,6 @@ Ingen post røres - indekset er udledt af den - men indtil genopbygningen har in
   </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>Red_igér handling…</value>
-  </data>
-  <data name="Edit" xml:space="preserve">
-    <value>Redigér</value>
   </data>
   <data name="Edit a domain on the list" xml:space="preserve">
     <value>Redigér et domæne på listen</value>

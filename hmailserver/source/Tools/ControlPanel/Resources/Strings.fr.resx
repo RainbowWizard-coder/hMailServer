@@ -1137,7 +1137,7 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="Add from A_D…" xml:space="preserve">
     <value>Ajouter depuis A_D…</value>
   </data>
-  <data name="Add li_st" xml:space="preserve">
+  <data name="Add lis_t" xml:space="preserve">
     <value>Ajouter une li_ste</value>
   </data>
   <data name="Add port" xml:space="preserve">
@@ -1185,9 +1185,6 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>Ajouter à la liste de suppression de {0}</value>
   </data>
-  <data name="Add_ress" xml:space="preserve">
-    <value>Adr_esse</value>
-  </data>
   <data name="Added" xml:space="preserve">
     <value>Ajouté</value>
   </data>
@@ -1220,6 +1217,9 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   </data>
   <data name="Added {0} block entry." xml:space="preserve">
     <value>{0} entrée de blocage ajoutée.</value>
+  </data>
+  <data name="Addre_ss" xml:space="preserve">
+    <value>Adr_esse</value>
   </data>
   <data name="Address" xml:space="preserve">
     <value>Adresse</value>
@@ -4086,7 +4086,7 @@ L'expéditeur a été informé qu'il était accepté, donc rien ne réessaiera e
     <value>Supprimer un domaine supprime les comptes qu'il contient. Vérifiez d'abord les alias et les listes qui pointent dessus.</value>
   </data>
   <data name="Deli_vers to" xml:space="preserve">
-    <value>_Remet à</value>
+    <value>Re_met à</value>
   </data>
   <data name="Deliver _all now" xml:space="preserve">
     <value>Livrer t_out maintenant</value>
@@ -4449,9 +4449,6 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>Mod_ifier l'action…</value>
-  </data>
-  <data name="Edit" xml:space="preserve">
-    <value>Modifier</value>
   </data>
   <data name="Edit a domain on the list" xml:space="preserve">
     <value>Modifier un domaine de la liste</value>
@@ -15878,7 +15875,7 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
     <value>_Propriétaire (vide = le modérateur)</value>
   </data>
   <data name="_Password" xml:space="preserve">
-    <value>_Mot de passe</value>
+    <value>Mot de _passe</value>
   </data>
   <data name="_Pause the mail server" xml:space="preserve">
     <value>_Suspendre le serveur de messagerie</value>

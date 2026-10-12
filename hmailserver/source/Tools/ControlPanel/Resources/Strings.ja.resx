@@ -1147,8 +1147,8 @@
   <data name="Add from A_D…" xml:space="preserve">
     <value>AD から追加(_D)…</value>
   </data>
-  <data name="Add li_st" xml:space="preserve">
-    <value>リストを追加(_S)</value>
+  <data name="Add lis_t" xml:space="preserve">
+    <value>リストを追加(_T)</value>
   </data>
   <data name="Add port" xml:space="preserve">
     <value>ポートを追加</value>
@@ -1195,9 +1195,6 @@
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>{0} の抑止リストに追加</value>
   </data>
-  <data name="Add_ress" xml:space="preserve">
-    <value>アドレス(_R)</value>
-  </data>
   <data name="Added" xml:space="preserve">
     <value>追加日時</value>
   </data>
@@ -1230,6 +1227,9 @@
   </data>
   <data name="Added {0} block entry." xml:space="preserve">
     <value>ブロック エントリを {0} 件追加しました。</value>
+  </data>
+  <data name="Addre_ss" xml:space="preserve">
+    <value>アドレス(_S)</value>
   </data>
   <data name="Address" xml:space="preserve">
     <value>アドレス</value>
@@ -4459,9 +4459,6 @@
   </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>アクションを編集(_I)…</value>
-  </data>
-  <data name="Edit" xml:space="preserve">
-    <value>編集</value>
   </data>
   <data name="Edit a domain on the list" xml:space="preserve">
     <value>リストのドメインを編集</value>

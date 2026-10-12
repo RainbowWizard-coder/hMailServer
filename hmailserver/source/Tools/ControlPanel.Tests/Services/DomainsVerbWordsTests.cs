@@ -37,14 +37,11 @@ namespace hMailServer.ControlPanel.Tests.Services
          {
             XElement button = page.Descendants(Ui + "Button").Single(b => (string)b.Attribute("Click") == handler);
             Assert.Equal("{Binding EditName}", (string)button.Attribute("AutomationProperties.Name"));
-            if (handler == "EditDistList_Click")
-            {
-               // The list row's glyph, the pencil of Edit where it was Properties' cog.
-               Assert.Equal("{ui:SymbolIcon Edit24}", (string)button.Attribute("Icon"));
-               Assert.Equal("{Binding EditName}", (string)button.Attribute("ToolTip"));
-            }
-            else
-               Assert.Equal("{loc:L 'Edit'}", (string)button.Attribute("Content"));
+            // Every row's glyph is the pencil of Edit, where the list row's was
+            // Properties' cog and the domain and account rows said Edit in words.
+            Assert.Equal("{ui:SymbolIcon Edit24}", (string)button.Attribute("Icon"));
+            Assert.Equal("{Binding EditName}", (string)button.Attribute("ToolTip"));
+            Assert.Null(button.Attribute("Content"));
          }
 
          string code = ReadControlPanelFile(Path.Join("Views", "DomainsView.xaml.cs"));
@@ -58,24 +55,25 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// A text button's accessible name starts with its words in every language
-      /// (WCAG 2.5.3, Label in Name): "Edit domain example.com" under the button
-      /// Edit, "Bearbeiten: Domain example.com" under Bearbeiten, so that voice
-      /// control's "click Bearbeiten" reaches it.
+      /// A row's glyph says nothing in words, so its name - its tool tip and what a
+      /// screen reader and voice control say - is the act and the row in every
+      /// language: "Edit domain example.com", "Bearbeiten: Domain example.com". The
+      /// domain and account rows' Edit was a word, and the name started with it
+      /// (WCAG 2.5.3, Label in Name); they are glyphs now, as the list rows' are (the
+      /// owner's decision 15).
       /// </summary>
       [Fact]
-      public void InEveryLanguage_TheRowsName_StartsWithTheButtonsWord()
+      public void InEveryLanguage_TheRowsName_SaysTheActAndTheRow()
       {
          var failures = new List<string>();
          foreach (string path in Directory.GetFiles(ResourcesDirectory(), "Strings.*.resx"))
          {
             Dictionary<string, string> catalogue = ReadResx(path);
             string tag = Path.GetFileNameWithoutExtension(path).Substring("Strings.".Length);
-            string edit = LabelInName.Shown(catalogue["Edit"]);
-            foreach (string key in new[] { "Edit domain {0}", "Edit account {0}" })
+            foreach (string key in new[] { "Edit domain {0}", "Edit account {0}", "Delete domain {0}", "Delete account {0}" })
             {
-               if (!catalogue.TryGetValue(key, out string name) || !name.StartsWith(edit, StringComparison.CurrentCultureIgnoreCase))
-                  failures.Add(tag + ": " + key + " = " + (name ?? "<missing>") + ", under " + edit);
+               if (!catalogue.TryGetValue(key, out string name) || !name.Contains("{0}", StringComparison.Ordinal) || name.Trim() == "{0}")
+                  failures.Add(tag + ": " + key + " = " + (name ?? "<missing>"));
             }
          }
 

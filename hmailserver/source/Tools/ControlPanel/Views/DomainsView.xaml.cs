@@ -64,6 +64,9 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>F5: the domains again, the selected one kept, and with it its accounts, aliases and lists.</summary>
       void IRefreshablePage.Refresh() => ReloadDomains();
 
+      /// <summary>Refresh in the header: what F5 does.</summary>
+      private void Refresh_Click(object sender, RoutedEventArgs e) => ReloadDomains();
+
       // A domain's row: its 40 pixels, which the list's floor of three rows (123,
       // DomainsView.xaml) is built on.
       private const double DomainRowHeight = 40;

@@ -1137,7 +1137,7 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Add from A_D…" xml:space="preserve">
     <value>A_D'den ekle…</value>
   </data>
-  <data name="Add li_st" xml:space="preserve">
+  <data name="Add lis_t" xml:space="preserve">
     <value>Li_ste ekle</value>
   </data>
   <data name="Add port" xml:space="preserve">
@@ -1185,9 +1185,6 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>{0} engelleme listesine ekle</value>
   </data>
-  <data name="Add_ress" xml:space="preserve">
-    <value>A_dres</value>
-  </data>
   <data name="Added" xml:space="preserve">
     <value>Eklendi</value>
   </data>
@@ -1220,6 +1217,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="Added {0} block entry." xml:space="preserve">
     <value>{0} engelleme kaydı eklendi.</value>
+  </data>
+  <data name="Addre_ss" xml:space="preserve">
+    <value>A_dres</value>
   </data>
   <data name="Address" xml:space="preserve">
     <value>Adres</value>
@@ -4449,9 +4449,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>Eylem_i düzenle…</value>
-  </data>
-  <data name="Edit" xml:space="preserve">
-    <value>Düzenle</value>
   </data>
   <data name="Edit a domain on the list" xml:space="preserve">
     <value>Listedeki bir alan adını düzenle</value>

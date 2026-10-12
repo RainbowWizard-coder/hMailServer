@@ -200,7 +200,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("Re-check the external prerequisites", "_Refresh", false)]
       [InlineData("Show what a synchronisation would do, changing nothing", "_Preview", false)]
       [InlineData("Why it is listed", "N_ote", false)]
-      [InlineData("Add distribution list", "Add li_st", false)]
+      [InlineData("Add distribution list", "Add lis_t", false)]
       [InlineData("SSL/TLS: Open SSL/TLS, which owns the protocol versions and cipher lists", "SSL/TLS →", true)]
       public void TheRule(string name, string caption, bool keeps)
       {

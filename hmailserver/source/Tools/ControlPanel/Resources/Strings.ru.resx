@@ -1143,7 +1143,7 @@ Control Panel может читать файлы сообщений только
   <data name="Add from A_D…" xml:space="preserve">
     <value>Добавить из A_D…</value>
   </data>
-  <data name="Add li_st" xml:space="preserve">
+  <data name="Add lis_t" xml:space="preserve">
     <value>Д_обавить список</value>
   </data>
   <data name="Add port" xml:space="preserve">
@@ -1191,9 +1191,6 @@ Control Panel может читать файлы сообщений только
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>Добавить в список подавления домена {0}</value>
   </data>
-  <data name="Add_ress" xml:space="preserve">
-    <value>Ад_рес</value>
-  </data>
   <data name="Added" xml:space="preserve">
     <value>Добавлено</value>
   </data>
@@ -1232,6 +1229,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Added {0} block entry." xml:space="preserve">
     <value>Добавлена {0} блокирующая запись.</value>
+  </data>
+  <data name="Addre_ss" xml:space="preserve">
+    <value>Ад_рес</value>
   </data>
   <data name="Address" xml:space="preserve">
     <value>Адрес</value>
@@ -4507,9 +4507,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>И_зменить действие…</value>
-  </data>
-  <data name="Edit" xml:space="preserve">
-    <value>Изменить</value>
   </data>
   <data name="Edit a domain on the list" xml:space="preserve">
     <value>Изменить домен в списке</value>

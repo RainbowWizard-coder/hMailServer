@@ -1137,8 +1137,8 @@
   <data name="Add from A_D…" xml:space="preserve">
     <value>从 A_D 添加…</value>
   </data>
-  <data name="Add li_st" xml:space="preserve">
-    <value>添加列表(_S)</value>
+  <data name="Add lis_t" xml:space="preserve">
+    <value>添加列表(_T)</value>
   </data>
   <data name="Add port" xml:space="preserve">
     <value>添加端口</value>
@@ -1185,9 +1185,6 @@
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>添加到 {0} 的抑制列表</value>
   </data>
-  <data name="Add_ress" xml:space="preserve">
-    <value>地址(_R)</value>
-  </data>
   <data name="Added" xml:space="preserve">
     <value>添加时间</value>
   </data>
@@ -1220,6 +1217,9 @@
   </data>
   <data name="Added {0} block entry." xml:space="preserve">
     <value>已添加 {0} 个阻止条目。</value>
+  </data>
+  <data name="Addre_ss" xml:space="preserve">
+    <value>地址(_S)</value>
   </data>
   <data name="Address" xml:space="preserve">
     <value>地址</value>
@@ -4449,9 +4449,6 @@
   </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>编辑操作(_I)…</value>
-  </data>
-  <data name="Edit" xml:space="preserve">
-    <value>编辑</value>
   </data>
   <data name="Edit a domain on the list" xml:space="preserve">
     <value>编辑列表中的域</value>

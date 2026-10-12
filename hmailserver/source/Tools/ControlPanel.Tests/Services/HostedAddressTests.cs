@@ -181,30 +181,20 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// The names of the row buttons that carry words start with those words in every
-      /// language, as LabelInNameTests holds for the names a page writes as text: a
-      /// voice-control user says the caption on the screen.
+      /// No row button on the page carries words: the domain and account rows' Edit
+      /// and Delete were captions, whose names had to start with them in every
+      /// language (WCAG 2.5.3); they are glyphs named for their row, as the alias and
+      /// list rows' are (the owner's decision 15; DomainsRowTests holds their names).
       /// </summary>
-      [Theory]
-      [InlineData("Edit", "Edit domain {0}")]
-      [InlineData("Edit", "Edit account {0}")]
-      [InlineData("Delete", "Delete account {0}")]
-      public void ACaptionedRowButtonsName_StartsWithItsCaption_InEveryLanguage(string caption, string name)
+      [Fact]
+      public void NoRowButton_CarriesACaption()
       {
-         Assert.True(LabelInName.StartsWithCaption(name, caption, System.Globalization.CultureInfo.InvariantCulture));
-         int catalogues = 0;
-         string resources = Path.GetDirectoryName(FindControlPanelFile(Path.Join("Resources", "Strings.resx")));
-         foreach (string file in Directory.EnumerateFiles(resources, "Strings.*.resx"))
+         XElement page = Page();
+         foreach (string list in new[] { "DomainList", "AccountList", "AliasList", "DistList" })
          {
-            string tag = Path.GetFileName(file)["Strings.".Length..^".resx".Length];
-            var values = XDocument.Load(file).Root.Elements("data").ToDictionary(d => (string)d.Attribute("name"), d => (string)d.Element("value") ?? "");
-            Assert.True(values.ContainsKey(caption) && values.ContainsKey(name), tag + " lacks \"" + caption + "\" or \"" + name + "\".");
-            Assert.True(LabelInName.StartsWithCaption(values[name], values[caption], System.Globalization.CultureInfo.GetCultureInfo(tag)),
-               tag + ": \"" + values[name] + "\" does not start with \"" + values[caption] + "\".");
-            catalogues++;
+            foreach (XElement button in Named(page, list).Descendants(Ui + "Button"))
+               Assert.True(button.Attribute("Content") == null, list + " " + (string)button.Attribute("Click") + " carries a caption.");
          }
-
-         Assert.Equal(17, catalogues);
       }
 
       private static int CountOf(string text, string part)

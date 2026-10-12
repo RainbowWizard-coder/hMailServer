@@ -50,6 +50,37 @@ namespace hMailServer.ControlPanel.Tests.Services
          }
       }
 
+      /// <summary>
+      /// The owner's decision 15 (9 October 2026): row actions are 24-pixel icon
+      /// buttons named for their row. The domain rows said Edit in words beside a
+      /// glyph delete and the account rows Edit and Delete in words, beside the alias
+      /// and list rows' glyphs - three button styles on one page.
+      /// </summary>
+      [Fact]
+      public void EveryRowAction_IsA24PixelGlyph_NamedForItsRow()
+      {
+         XElement page = Page();
+         int actions = 0;
+         foreach (string list in new[] { "DomainList", "AccountList", "AliasList", "DistList" })
+         {
+            foreach (XElement button in ItemTemplate(page, list).Descendants(Ui + "Button"))
+            {
+               actions++;
+               string click = (string)button.Attribute("Click");
+               Assert.True(button.Attribute("Content") == null, list + " " + click + " says its act in words.");
+               Assert.StartsWith("{ui:SymbolIcon ", (string)button.Attribute("Icon"), StringComparison.Ordinal);
+               Assert.Equal("4", (string)button.Attribute("Padding"));
+               Assert.Equal("24", (string)button.Attribute("MinWidth"));
+               Assert.Equal("24", (string)button.Attribute("MinHeight"));
+               string name = (string)button.Attribute("AutomationProperties.Name");
+               Assert.StartsWith("{Binding ", name, StringComparison.Ordinal);
+               Assert.Equal(name, (string)button.Attribute("ToolTip"));
+            }
+         }
+
+         Assert.Equal(8, actions);
+      }
+
       [Fact]
       public void NothingOnThePage_PaintsTheDangerColourItself()
       {

@@ -1137,7 +1137,7 @@ Das Control Panel kann Nachrichtendateien nur lesen, wenn es auf demselben Rechn
   <data name="Add from A_D…" xml:space="preserve">
     <value>Aus A_D hinzufügen…</value>
   </data>
-  <data name="Add li_st" xml:space="preserve">
+  <data name="Add lis_t" xml:space="preserve">
     <value>Li_ste hinzufügen</value>
   </data>
   <data name="Add port" xml:space="preserve">
@@ -1185,9 +1185,6 @@ Das Control Panel kann Nachrichtendateien nur lesen, wenn es auf demselben Rechn
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>Zur Unterdrückungsliste von {0} hinzufügen</value>
   </data>
-  <data name="Add_ress" xml:space="preserve">
-    <value>Ad_resse</value>
-  </data>
   <data name="Added" xml:space="preserve">
     <value>Hinzugefügt</value>
   </data>
@@ -1220,6 +1217,9 @@ Das Control Panel kann Nachrichtendateien nur lesen, wenn es auf demselben Rechn
   </data>
   <data name="Added {0} block entry." xml:space="preserve">
     <value>{0} Sperreintrag hinzugefügt.</value>
+  </data>
+  <data name="Addre_ss" xml:space="preserve">
+    <value>Ad_resse</value>
   </data>
   <data name="Address" xml:space="preserve">
     <value>Adresse</value>
@@ -4449,9 +4449,6 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>Aktion bearbe_iten…</value>
-  </data>
-  <data name="Edit" xml:space="preserve">
-    <value>Bearbeiten</value>
   </data>
   <data name="Edit a domain on the list" xml:space="preserve">
     <value>Domain in der Liste bearbeiten</value>

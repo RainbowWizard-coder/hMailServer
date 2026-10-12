@@ -1143,7 +1143,7 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Add from A_D…" xml:space="preserve">
     <value>Přidat z A_D…</value>
   </data>
-  <data name="Add li_st" xml:space="preserve">
+  <data name="Add lis_t" xml:space="preserve">
     <value>Přidat _seznam</value>
   </data>
   <data name="Add port" xml:space="preserve">
@@ -1191,9 +1191,6 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>Přidat na seznam blokovaných domény {0}</value>
   </data>
-  <data name="Add_ress" xml:space="preserve">
-    <value>_Adresa</value>
-  </data>
   <data name="Added" xml:space="preserve">
     <value>Přidáno</value>
   </data>
@@ -1232,6 +1229,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   </data>
   <data name="Added {0} block entry." xml:space="preserve">
     <value>Přidán {0} blokující záznam.</value>
+  </data>
+  <data name="Addre_ss" xml:space="preserve">
+    <value>_Adresa</value>
   </data>
   <data name="Address" xml:space="preserve">
     <value>Adresa</value>
@@ -4507,9 +4507,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>Uprav_it akci…</value>
-  </data>
-  <data name="Edit" xml:space="preserve">
-    <value>Upravit</value>
   </data>
   <data name="Edit a domain on the list" xml:space="preserve">
     <value>Upravit doménu v seznamu</value>

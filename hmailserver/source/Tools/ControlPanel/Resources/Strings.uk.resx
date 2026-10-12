@@ -1143,7 +1143,7 @@
   <data name="Add from A_D…" xml:space="preserve">
     <value>Додати з _AD…</value>
   </data>
-  <data name="Add li_st" xml:space="preserve">
+  <data name="Add lis_t" xml:space="preserve">
     <value>Д_одати список</value>
   </data>
   <data name="Add port" xml:space="preserve">
@@ -1191,9 +1191,6 @@
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>Додати до списку придушення домену {0}</value>
   </data>
-  <data name="Add_ress" xml:space="preserve">
-    <value>_Адреса</value>
-  </data>
   <data name="Added" xml:space="preserve">
     <value>Додано</value>
   </data>
@@ -1232,6 +1229,9 @@
   </data>
   <data name="Added {0} block entry." xml:space="preserve">
     <value>Додано {0} блокувальний запис.</value>
+  </data>
+  <data name="Addre_ss" xml:space="preserve">
+    <value>_Адреса</value>
   </data>
   <data name="Address" xml:space="preserve">
     <value>Адреса</value>
@@ -4144,7 +4144,7 @@
     <value>Видалення домену видаляє облікові записи в ньому. Спершу перевірте псевдоніми та списки, що на нього вказують.</value>
   </data>
   <data name="Deli_vers to" xml:space="preserve">
-    <value>Доставляє _на</value>
+    <value>Дос_тавляє на</value>
   </data>
   <data name="Deliver _all now" xml:space="preserve">
     <value>Доставити всі _зараз</value>
@@ -4507,9 +4507,6 @@
   </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>Редагувати д_ію…</value>
-  </data>
-  <data name="Edit" xml:space="preserve">
-    <value>Редагувати</value>
   </data>
   <data name="Edit a domain on the list" xml:space="preserve">
     <value>Змінити домен у списку</value>
