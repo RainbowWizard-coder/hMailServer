@@ -4194,15 +4194,6 @@ Odesílateli bylo řečeno, že byla přijata, takže nic ji nezopakuje a jiná 
   <data name="Delivery queue" xml:space="preserve">
     <value>Doručovací fronta</value>
   </data>
-  <data name="Delivery retriggered for {0} message." xml:space="preserve">
-    <value>Doručení znovu spuštěno pro {0} zprávu.</value>
-  </data>
-  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
-    <value>Doručení znovu spuštěno pro {0} zpráv.</value>
-  </data>
-  <data name="Delivery retriggered for {0} messages.|few" xml:space="preserve">
-    <value>Doručení znovu spuštěno pro {0} zprávy.</value>
-  </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>Doručování běží na samostatném, menším poolu. Obvyklé příčiny, v pořadí, v jakém nastávají:</value>
   </data>
@@ -17967,6 +17958,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} message removed." xml:space="preserve">
     <value>Odebrána {0} zpráva.</value>
   </data>
+  <data name="{0} message will be tried again now." xml:space="preserve">
+    <value>Doručení {0} zprávy se nyní zkusí znovu.</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} zpráv</value>
   </data>
@@ -17999,6 +17993,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} messages removed.|few" xml:space="preserve">
     <value>Odebrány {0} zprávy.</value>
+  </data>
+  <data name="{0} messages will be tried again now." xml:space="preserve">
+    <value>Doručení {0} zpráv se nyní zkusí znovu.</value>
+  </data>
+  <data name="{0} messages will be tried again now.|few" xml:space="preserve">
+    <value>Doručení {0} zpráv se nyní zkusí znovu.</value>
   </data>
   <data name="{0} messages|few" xml:space="preserve">
     <value>{0} zprávy</value>

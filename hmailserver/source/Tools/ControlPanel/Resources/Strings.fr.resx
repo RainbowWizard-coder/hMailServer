@@ -4136,12 +4136,6 @@ L'expéditeur a été informé qu'il était accepté, donc rien ne réessaiera e
   <data name="Delivery queue" xml:space="preserve">
     <value>File de livraison</value>
   </data>
-  <data name="Delivery retriggered for {0} message." xml:space="preserve">
-    <value>Livraison relancée pour {0} message.</value>
-  </data>
-  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
-    <value>Livraison relancée pour {0} messages.</value>
-  </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>La livraison s'exécute sur un pool séparé, plus petit. Les causes habituelles, dans l'ordre où elles surviennent :</value>
   </data>
@@ -17639,6 +17633,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="{0} message removed." xml:space="preserve">
     <value>{0} message retiré.</value>
   </data>
+  <data name="{0} message will be tried again now." xml:space="preserve">
+    <value>{0} message va être réessayé maintenant.</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} messages</value>
   </data>
@@ -17656,6 +17653,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="{0} messages removed." xml:space="preserve">
     <value>{0} messages retirés.</value>
+  </data>
+  <data name="{0} messages will be tried again now." xml:space="preserve">
+    <value>{0} messages vont être réessayés maintenant.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>

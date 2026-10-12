@@ -4136,12 +4136,6 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   <data name="Delivery queue" xml:space="preserve">
     <value>Bezorgwachtrij</value>
   </data>
-  <data name="Delivery retriggered for {0} message." xml:space="preserve">
-    <value>Bezorging opnieuw gestart voor {0} bericht.</value>
-  </data>
-  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
-    <value>Bezorging opnieuw gestart voor {0} berichten.</value>
-  </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>Bezorging draait op een aparte, kleinere pool. De gebruikelijke oorzaken, in de volgorde waarin ze voorkomen:</value>
   </data>
@@ -17639,6 +17633,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} message removed." xml:space="preserve">
     <value>{0} bericht verwijderd.</value>
   </data>
+  <data name="{0} message will be tried again now." xml:space="preserve">
+    <value>{0} bericht wordt nu opnieuw geprobeerd.</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} berichten</value>
   </data>
@@ -17656,6 +17653,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} messages removed." xml:space="preserve">
     <value>{0} berichten verwijderd.</value>
+  </data>
+  <data name="{0} messages will be tried again now." xml:space="preserve">
+    <value>{0} berichten worden nu opnieuw geprobeerd.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>

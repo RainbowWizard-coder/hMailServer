@@ -4136,12 +4136,6 @@ Avsändaren fick veta att det accepterades, så inget kommer att försöka igen 
   <data name="Delivery queue" xml:space="preserve">
     <value>Leveranskö</value>
   </data>
-  <data name="Delivery retriggered for {0} message." xml:space="preserve">
-    <value>Leveransen startades om för {0} meddelande.</value>
-  </data>
-  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
-    <value>Leveransen startades om för {0} meddelanden.</value>
-  </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>Leveransen körs på en separat, mindre pool. De vanliga orsakerna, i den ordning de inträffar:</value>
   </data>
@@ -17639,6 +17633,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} message removed." xml:space="preserve">
     <value>{0} meddelande borttaget.</value>
   </data>
+  <data name="{0} message will be tried again now." xml:space="preserve">
+    <value>Ett nytt leveransförsök görs nu för {0} meddelande.</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} meddelanden</value>
   </data>
@@ -17656,6 +17653,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} messages removed." xml:space="preserve">
     <value>{0} meddelanden borttagna.</value>
+  </data>
+  <data name="{0} messages will be tried again now." xml:space="preserve">
+    <value>Ett nytt leveransförsök görs nu för {0} meddelanden.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>

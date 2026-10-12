@@ -4136,12 +4136,6 @@ Afsenderen fik at vide, at den var accepteret, så intet forsøger igen, og der 
   <data name="Delivery queue" xml:space="preserve">
     <value>Leveringskø</value>
   </data>
-  <data name="Delivery retriggered for {0} message." xml:space="preserve">
-    <value>Levering sat i gang igen for {0} meddelelse.</value>
-  </data>
-  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
-    <value>Levering sat i gang igen for {0} meddelelser.</value>
-  </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>Levering kører på en separat, mindre pulje. De sædvanlige årsager, i den rækkefølge de optræder:</value>
   </data>
@@ -17639,6 +17633,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0} message removed." xml:space="preserve">
     <value>{0} meddelelse fjernet.</value>
   </data>
+  <data name="{0} message will be tried again now." xml:space="preserve">
+    <value>{0} meddelelse forsøges leveret igen nu.</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} meddelelser</value>
   </data>
@@ -17656,6 +17653,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="{0} messages removed." xml:space="preserve">
     <value>{0} meddelelser fjernet.</value>
+  </data>
+  <data name="{0} messages will be tried again now." xml:space="preserve">
+    <value>{0} meddelelser forsøges leveret igen nu.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min.</value>

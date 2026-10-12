@@ -4146,12 +4146,6 @@
   <data name="Delivery queue" xml:space="preserve">
     <value>配信キュー</value>
   </data>
-  <data name="Delivery retriggered for {0} message." xml:space="preserve">
-    <value>{0} 件のメッセージの配信を再トリガーしました。</value>
-  </data>
-  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
-    <value>{0} 件のメッセージの配信を再トリガーしました。</value>
-  </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>配信は別の、より小さなプールで実行されます。よくある原因を、発生する順に挙げます:</value>
   </data>
@@ -17649,6 +17643,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} message removed." xml:space="preserve">
     <value>{0} 件のメッセージを削除しました。</value>
   </data>
+  <data name="{0} message will be tried again now." xml:space="preserve">
+    <value>{0} 件のメッセージの配信を今すぐ再試行します。</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} 件のメッセージ</value>
   </data>
@@ -17666,6 +17663,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} messages removed." xml:space="preserve">
     <value>{0} 件のメッセージを削除しました。</value>
+  </data>
+  <data name="{0} messages will be tried again now." xml:space="preserve">
+    <value>{0} 件のメッセージの配信を今すぐ再試行します。</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} 分</value>

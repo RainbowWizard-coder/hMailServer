@@ -4136,12 +4136,6 @@
   <data name="Delivery queue" xml:space="preserve">
     <value>投递队列</value>
   </data>
-  <data name="Delivery retriggered for {0} message." xml:space="preserve">
-    <value>已重新触发 {0} 封邮件的投递。</value>
-  </data>
-  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
-    <value>已重新触发 {0} 封邮件的投递。</value>
-  </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>投递在一个独立的、较小的线程池上运行。常见原因，按发生顺序：</value>
   </data>
@@ -17639,6 +17633,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} message removed." xml:space="preserve">
     <value>已移除 {0} 封邮件。</value>
   </data>
+  <data name="{0} message will be tried again now." xml:space="preserve">
+    <value>{0} 封邮件将立即重新尝试投递。</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} 封邮件</value>
   </data>
@@ -17656,6 +17653,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} messages removed." xml:space="preserve">
     <value>已移除 {0} 封邮件。</value>
+  </data>
+  <data name="{0} messages will be tried again now." xml:space="preserve">
+    <value>{0} 封邮件将立即重新尝试投递。</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} 分钟</value>

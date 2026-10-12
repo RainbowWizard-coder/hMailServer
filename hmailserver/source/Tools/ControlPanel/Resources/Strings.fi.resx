@@ -4136,12 +4136,6 @@ Lähettäjälle kerrottiin, että se hyväksyttiin, joten mikään ei yritä uud
   <data name="Delivery queue" xml:space="preserve">
     <value>Toimitusjono</value>
   </data>
-  <data name="Delivery retriggered for {0} message." xml:space="preserve">
-    <value>Toimitus käynnistetty uudelleen {0} viestille.</value>
-  </data>
-  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
-    <value>Toimitus käynnistetty uudelleen {0} viestille.</value>
-  </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>Toimitus toimii erillisessä, pienemmässä varannossa. Tavalliset syyt siinä järjestyksessä, jossa ne esiintyvät:</value>
   </data>
@@ -17639,6 +17633,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} message removed." xml:space="preserve">
     <value>{0} viesti poistettu.</value>
   </data>
+  <data name="{0} message will be tried again now." xml:space="preserve">
+    <value>{0} viestin toimitusta yritetään nyt uudelleen.</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} viestiä</value>
   </data>
@@ -17656,6 +17653,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} messages removed." xml:space="preserve">
     <value>{0} viestiä poistettu.</value>
+  </data>
+  <data name="{0} messages will be tried again now." xml:space="preserve">
+    <value>{0} viestin toimitusta yritetään nyt uudelleen.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>

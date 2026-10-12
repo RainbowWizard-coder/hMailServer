@@ -89,13 +89,17 @@ namespace hMailServer.ControlPanel.Services
          return TimeUntilText.Parse(nextTry) ?? DateTime.MaxValue;
       }
 
-      /// <summary>What Deliver now did to the messages chosen: the one by its id, more by their number.</summary>
+      /// <summary>
+      /// What Deliver now did to the messages chosen: the one by its id, more by their
+      /// number, both as a retry in words (review finding F313), where more than one
+      /// were "Delivery retriggered for 3 messages.".
+      /// </summary>
       public static string Retried(IReadOnlyList<string> ids)
       {
          if (ids.Count == 1)
             return F("Message {0} will be tried again now.", ids[0]);
 
-         return Plural(ids.Count, "Delivery retriggered for {0} message.", "Delivery retriggered for {0} messages.");
+         return Plural(ids.Count, "{0} message will be tried again now.", "{0} messages will be tried again now.");
       }
 
       /// <summary>What Remove did to the messages chosen: the one by its id, more by their number.</summary>

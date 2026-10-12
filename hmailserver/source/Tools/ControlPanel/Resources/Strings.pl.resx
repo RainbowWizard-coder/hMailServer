@@ -4194,15 +4194,6 @@ Nadawca otrzymał informację, że została przyjęta, więc nic nie ponowi pró
   <data name="Delivery queue" xml:space="preserve">
     <value>Kolejka dostarczania</value>
   </data>
-  <data name="Delivery retriggered for {0} message." xml:space="preserve">
-    <value>Ponownie wyzwolono dostarczanie {0} wiadomości.</value>
-  </data>
-  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
-    <value>Ponownie wyzwolono dostarczanie {0} wiadomości.</value>
-  </data>
-  <data name="Delivery retriggered for {0} messages.|few" xml:space="preserve">
-    <value>Ponownie wyzwolono dostarczanie {0} wiadomości.</value>
-  </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>Dostarczanie działa na osobnej, mniejszej puli. Zwykłe przyczyny, w kolejności ich występowania:</value>
   </data>
@@ -17967,6 +17958,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} message removed." xml:space="preserve">
     <value>Usunięto {0} wiadomość.</value>
   </data>
+  <data name="{0} message will be tried again now." xml:space="preserve">
+    <value>Próba dostarczenia {0} wiadomości zostanie teraz ponowiona.</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} wiadomości</value>
   </data>
@@ -17999,6 +17993,12 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} messages removed.|few" xml:space="preserve">
     <value>Usunięto {0} wiadomości.</value>
+  </data>
+  <data name="{0} messages will be tried again now." xml:space="preserve">
+    <value>Próba dostarczenia {0} wiadomości zostanie teraz ponowiona.</value>
+  </data>
+  <data name="{0} messages will be tried again now.|few" xml:space="preserve">
+    <value>Próba dostarczenia {0} wiadomości zostanie teraz ponowiona.</value>
   </data>
   <data name="{0} messages|few" xml:space="preserve">
     <value>{0} wiadomości</value>

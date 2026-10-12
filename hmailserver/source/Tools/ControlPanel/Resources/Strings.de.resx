@@ -4136,12 +4136,6 @@ Dem Absender wurde gesagt, sie sei angenommen, es wird also nichts wiederholt un
   <data name="Delivery queue" xml:space="preserve">
     <value>Zustellwarteschlange</value>
   </data>
-  <data name="Delivery retriggered for {0} message." xml:space="preserve">
-    <value>Zustellung für {0} Nachricht erneut angestoßen.</value>
-  </data>
-  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
-    <value>Zustellung für {0} Nachrichten erneut angestoßen.</value>
-  </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>Die Zustellung läuft auf einem eigenen, kleineren Pool. Die üblichen Ursachen, in der Reihenfolge ihres Auftretens:</value>
   </data>
@@ -17639,6 +17633,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="{0} message removed." xml:space="preserve">
     <value>{0} Nachricht entfernt.</value>
   </data>
+  <data name="{0} message will be tried again now." xml:space="preserve">
+    <value>Die Zustellung von {0} Nachricht wird jetzt erneut versucht.</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} Nachrichten</value>
   </data>
@@ -17656,6 +17653,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="{0} messages removed." xml:space="preserve">
     <value>{0} Nachrichten entfernt.</value>
+  </data>
+  <data name="{0} messages will be tried again now." xml:space="preserve">
+    <value>Die Zustellung von {0} Nachrichten wird jetzt erneut versucht.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} Min.</value>

@@ -4136,12 +4136,6 @@ The sender was told it was accepted, so nothing will retry and there is no other
   <data name="Delivery queue" xml:space="preserve">
     <value>Delivery queue</value>
   </data>
-  <data name="Delivery retriggered for {0} message." xml:space="preserve">
-    <value>Delivery retriggered for {0} message.</value>
-  </data>
-  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
-    <value>Delivery retriggered for {0} messages.</value>
-  </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:</value>
   </data>
@@ -17639,6 +17633,9 @@ It will keep trying as you use the application.</value>
   <data name="{0} message removed." xml:space="preserve">
     <value>{0} message removed.</value>
   </data>
+  <data name="{0} message will be tried again now." xml:space="preserve">
+    <value>{0} message will be tried again now.</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} messages</value>
   </data>
@@ -17656,6 +17653,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="{0} messages removed." xml:space="preserve">
     <value>{0} messages removed.</value>
+  </data>
+  <data name="{0} messages will be tried again now." xml:space="preserve">
+    <value>{0} messages will be tried again now.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>

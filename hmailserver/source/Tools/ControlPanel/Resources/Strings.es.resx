@@ -4136,12 +4136,6 @@ Al remitente se le dijo que fue aceptado, así que nada lo reintentará y no hay
   <data name="Delivery queue" xml:space="preserve">
     <value>Cola de entrega</value>
   </data>
-  <data name="Delivery retriggered for {0} message." xml:space="preserve">
-    <value>Entrega relanzada para {0} mensaje.</value>
-  </data>
-  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
-    <value>Entrega relanzada para {0} mensajes.</value>
-  </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>La entrega se ejecuta en un grupo aparte, más pequeño. Las causas habituales, en el orden en que ocurren:</value>
   </data>
@@ -17639,6 +17633,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="{0} message removed." xml:space="preserve">
     <value>Se quitó {0} mensaje.</value>
   </data>
+  <data name="{0} message will be tried again now." xml:space="preserve">
+    <value>{0} mensaje se volverá a intentar ahora.</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} mensajes</value>
   </data>
@@ -17656,6 +17653,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0} messages removed." xml:space="preserve">
     <value>Se quitaron {0} mensajes.</value>
+  </data>
+  <data name="{0} messages will be tried again now." xml:space="preserve">
+    <value>{0} mensajes se volverán a intentar ahora.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>

@@ -4194,15 +4194,6 @@ Control Panel может читать файлы сообщений только
   <data name="Delivery queue" xml:space="preserve">
     <value>Очередь доставки</value>
   </data>
-  <data name="Delivery retriggered for {0} message." xml:space="preserve">
-    <value>Доставка запущена повторно для {0} сообщения.</value>
-  </data>
-  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
-    <value>Доставка запущена повторно для {0} сообщений.</value>
-  </data>
-  <data name="Delivery retriggered for {0} messages.|few" xml:space="preserve">
-    <value>Доставка запущена повторно для {0} сообщений.</value>
-  </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>Доставка выполняется в отдельном, меньшем пуле. Обычные причины, в порядке их появления:</value>
   </data>
@@ -17967,6 +17958,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} message removed." xml:space="preserve">
     <value>Удалено {0} сообщение.</value>
   </data>
+  <data name="{0} message will be tried again now." xml:space="preserve">
+    <value>Доставка {0} сообщения будет повторена сейчас.</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} сообщений</value>
   </data>
@@ -17999,6 +17993,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} messages removed.|few" xml:space="preserve">
     <value>Удалено {0} сообщения.</value>
+  </data>
+  <data name="{0} messages will be tried again now." xml:space="preserve">
+    <value>Доставка {0} сообщений будет повторена сейчас.</value>
+  </data>
+  <data name="{0} messages will be tried again now.|few" xml:space="preserve">
+    <value>Доставка {0} сообщений будет повторена сейчас.</value>
   </data>
   <data name="{0} messages|few" xml:space="preserve">
     <value>{0} сообщения</value>

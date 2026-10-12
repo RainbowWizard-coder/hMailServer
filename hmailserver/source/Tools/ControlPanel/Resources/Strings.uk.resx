@@ -4194,15 +4194,6 @@
   <data name="Delivery queue" xml:space="preserve">
     <value>Черга доставки</value>
   </data>
-  <data name="Delivery retriggered for {0} message." xml:space="preserve">
-    <value>Доставку перезапущено для {0} повідомлення.</value>
-  </data>
-  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
-    <value>Доставку перезапущено для {0} повідомлень.</value>
-  </data>
-  <data name="Delivery retriggered for {0} messages.|few" xml:space="preserve">
-    <value>Доставку перезапущено для {0} повідомлень.</value>
-  </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>Доставка виконується в окремому, меншому пулі. Звичайні причини, у порядку виникнення:</value>
   </data>
@@ -17967,6 +17958,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} message removed." xml:space="preserve">
     <value>Вилучено {0} повідомлення.</value>
   </data>
+  <data name="{0} message will be tried again now." xml:space="preserve">
+    <value>Доставку {0} повідомлення буде повторено зараз.</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} повідомлень</value>
   </data>
@@ -17999,6 +17993,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} messages removed.|few" xml:space="preserve">
     <value>Вилучено {0} повідомлення.</value>
+  </data>
+  <data name="{0} messages will be tried again now." xml:space="preserve">
+    <value>Доставку {0} повідомлень буде повторено зараз.</value>
+  </data>
+  <data name="{0} messages will be tried again now.|few" xml:space="preserve">
+    <value>Доставку {0} повідомлень буде повторено зараз.</value>
   </data>
   <data name="{0} messages|few" xml:space="preserve">
     <value>{0} повідомлення</value>

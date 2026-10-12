@@ -4136,12 +4136,6 @@ Gönderene kabul edildiği söylendi; bu nedenle hiçbir şey yeniden denemeyece
   <data name="Delivery queue" xml:space="preserve">
     <value>Teslim kuyruğu</value>
   </data>
-  <data name="Delivery retriggered for {0} message." xml:space="preserve">
-    <value>{0} ileti için teslim yeniden tetiklendi.</value>
-  </data>
-  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
-    <value>{0} ileti için teslim yeniden tetiklendi.</value>
-  </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>Teslim, ayrı ve daha küçük bir havuzda çalışır. Olağan nedenler, ortaya çıkış sırasıyla:</value>
   </data>
@@ -17639,6 +17633,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} message removed." xml:space="preserve">
     <value>{0} ileti kaldırıldı.</value>
   </data>
+  <data name="{0} message will be tried again now." xml:space="preserve">
+    <value>{0} ileti şimdi yeniden denenecek.</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} ileti</value>
   </data>
@@ -17656,6 +17653,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} messages removed." xml:space="preserve">
     <value>{0} ileti kaldırıldı.</value>
+  </data>
+  <data name="{0} messages will be tried again now." xml:space="preserve">
+    <value>{0} ileti şimdi yeniden denenecek.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} dk</value>

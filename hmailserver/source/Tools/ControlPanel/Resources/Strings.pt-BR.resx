@@ -4136,12 +4136,6 @@ O remetente foi informado de que ela foi aceita, então nada tentará de novo e 
   <data name="Delivery queue" xml:space="preserve">
     <value>Fila de entrega</value>
   </data>
-  <data name="Delivery retriggered for {0} message." xml:space="preserve">
-    <value>Entrega disparada novamente para {0} mensagem.</value>
-  </data>
-  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
-    <value>Entrega disparada novamente para {0} mensagens.</value>
-  </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>A entrega roda em um pool separado e menor. As causas habituais, na ordem em que ocorrem:</value>
   </data>
@@ -17639,6 +17633,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="{0} message removed." xml:space="preserve">
     <value>{0} mensagem removida.</value>
   </data>
+  <data name="{0} message will be tried again now." xml:space="preserve">
+    <value>{0} mensagem será tentada de novo agora.</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} mensagens</value>
   </data>
@@ -17656,6 +17653,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="{0} messages removed." xml:space="preserve">
     <value>{0} mensagens removidas.</value>
+  </data>
+  <data name="{0} messages will be tried again now." xml:space="preserve">
+    <value>{0} mensagens serão tentadas de novo agora.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>

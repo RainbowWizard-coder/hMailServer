@@ -130,7 +130,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void WhatTheButtonsDid_NamesOneMessage_AndCountsMore()
       {
          Assert.Equal("Message 1042 will be tried again now.", QueueWords.Retried(new List<string> { "1042" }));
-         Assert.Equal("Delivery retriggered for 3 messages.", QueueWords.Retried(new List<string> { "1042", "1043", "1044" }));
+         Assert.Equal("3 messages will be tried again now.", QueueWords.Retried(new List<string> { "1042", "1043", "1044" }));
          Assert.Equal("Message 1042 removed.", QueueWords.Removed(new List<string> { "1042" }));
          Assert.Equal("5 messages removed.", QueueWords.Removed(new List<string> { "1", "2", "3", "4", "5" }));
          Assert.Equal("Remove 5 messages from the queue? They are deleted without a bounce, so their senders are not told.", Confirmations.RemoveQueuedMessages(5));
