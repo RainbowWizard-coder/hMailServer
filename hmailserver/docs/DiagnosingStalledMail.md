@@ -156,7 +156,10 @@ them, the notice to the sender now says
 an address made it `No mail servers appear to exists for the recipient's
 address` (`4.1.2`), which asks the sender to check the address - or, through a
 route or the relay server, `The host specified as SMTP relay server could not
-be found` (`4.3.5`).
+be found` (`4.3.5`). The Control Panel's MX query asks the same way, and for
+such a domain now says `The DNS lookup failed, so where mail for this domain
+would go could not be determined.` where it said that the server found no mail
+servers.
 
 What the log says:
 
@@ -364,6 +367,7 @@ lookup, and the second attempt), `DNSResolverWinApi::Query` (the cache bypass),
 `SpamTestPTR::CheckPTR_`, `SpamTestMXRecords::HasAnyMXRecords_`, `DKIM.cpp`'s key
 lookup, `DMARC.cpp` and `SPFEvaluator` (the table and every line quoted),
 `DNSResolver::GetEmailServersRecursive_`, `ExternalDelivery::ResolveRecipientServers_`
-(a route's host and the relay server) and `ExternalDelivery::HandleNoRecipientServers_`
-(the delivery notice), and `AntiSpamDiagnostics` (the fifteen minutes). If you change one of
+(a route's host and the relay server), `ExternalDelivery::HandleNoRecipientServers_`
+(the delivery notice) and `InterfaceUtilities::ResolveMXRecords` (the MX query), and
+`AntiSpamDiagnostics` (the fifteen minutes). If you change one of
 those, this page is the second place to look.

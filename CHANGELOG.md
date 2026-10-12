@@ -657,16 +657,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   is answered is one query where it was two. The same shape is gone from two more places: the PTR test scored a
   reverse name whose address lookup failed, and a TXT, MX or other record lookup that found nothing and whose CNAME
   query failed read as "no records" - a DKIM key not published, which is a `PermFail`, no DMARC policy, no SPF
-  record, no MX for the MX-record test - where it is now a temporary error, as any other lookup that fails is.
+  record, no MX for the MX-record test - where it is now a temporary error, as any other lookup that fails is; and
+  the never-ban list read such a forward lookup of a banned address's reverse name as a name that does not resolve
+  back to it, and announced the ban, where it now asks again a minute later, as for any lookup not answered.
   Delivery makes the same address lookup of a recipient's mail servers, and of a route's host or the SMTP relay
   server: when it failed so for every one of them, the notice to the sender said `No mail servers appear to exists`
   and to check the address (`4.1.2`) - through a route or the relay server, `The host specified as SMTP relay server
   could not be found` (`4.3.5`) - where it now says that the DNS query failed (`4.4.4`); the message is retried
-  either way. `DNSResolverTester`
-  (`public-suffix-tests` on Linux) holds the rules to answers scripted on its own thread, `SURBLTester` the passing
-  over, and `AntiSpam/DnsLookupFailures.cs` the HELO, PTR, MX-record, DNS blacklist and SURBL tests and the delivery
-  notice against the suite's zone answering SERVFAIL, timing out, NXDOMAIN and NODATA;
-  DiagnosingStalledMail.md, "When a spam test cannot look a name up", has the table. Found by upstream.
+  either way. The Control Panel's MX query asks the server's resolver the same way (`Utilities.ResolveMXRecords`),
+  and said for such a domain that the server found no mail servers, where it now says that the lookup failed.
+  `DNSResolverTester` (`public-suffix-tests` on Linux) holds the rules to answers scripted on its own thread,
+  `SURBLTester` the passing over, and `AntiSpam/DnsLookupFailures.cs` the HELO, PTR, MX-record, DNS blacklist and
+  SURBL tests, the delivery notice and the MX query against the suite's zone answering SERVFAIL, timing out,
+  NXDOMAIN and NODATA; DiagnosingStalledMail.md, "When a spam test cannot look a name up", has the table. Found by
+  upstream.
 
 ### Downloads and the release
 

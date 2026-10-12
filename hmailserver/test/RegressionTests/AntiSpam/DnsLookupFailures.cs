@@ -30,7 +30,8 @@ namespace RegressionTests.AntiSpam
    ///    ask a query that failed once more, past the DNS cache; SURBL passes over a
    ///    name it could not look up and asks the rest, where one failure used to end
    ///    the list for the message; and a blacklist says in the log that it could
-   ///    not check the client.
+   ///    not check the client. Delivery and the Control Panel's MX query make the
+   ///    same address lookup of a domain's mail servers, and say that it failed.
    ///
    ///    The suite's own zone (SuiteDns) serves every name, so each case is the
    ///    answer it describes - a SERVFAIL, a timeout, NXDOMAIN, NODATA - and not
@@ -506,6 +507,55 @@ namespace RegressionTests.AntiSpam
 
          StringAssert.Contains("Status: 4.3.5", notice,
             "A route's host that answered NODATA for A and AAAA was not reported as a relay server that could not be found.");
+      }
+
+      // ------------------------------------------------------------------ the MX query
+
+      [Test]
+      [Description("The Control Panel's MX query (Utilities.ResolveMXRecords) of a domain whose exchange's A query fails beside an AAAA query answered NODATA says that the lookup failed, rather than that the domain has no mail servers.")]
+      public void MxQueryOfAnExchangeWhoseLookupFailsSaysTheLookupFailed()
+      {
+         // The lookup delivery makes (DNSResolver::GetEmailServers): a lookup that
+         // failed with no server found is an error, "The DNS lookup failed", and
+         // one that answered with none an empty answer, which the Control Panel
+         // shows as "The server found no mail servers". The Linux suite's shim
+         // has no route for this method and skips both cases - which is why the
+         // call is not made inside Assert.Throws, which would take the skip for
+         // the wrong exception.
+         string domain = "mxtool-a-servfail." + Zone;
+         string exchange = "mx." + domain;
+         SuiteDns.Zone.WithMx(domain, 10, exchange)
+            .WithServFail(exchange, FakeDnsServer.TypeA);
+
+         string servers = null;
+         System.Runtime.InteropServices.COMException failure = null;
+         try
+         {
+            servers = _application.Utilities.ResolveMXRecords(domain);
+         }
+         catch (System.Runtime.InteropServices.COMException lookupFailure)
+         {
+            failure = lookupFailure;
+         }
+
+         ClassicAssert.IsNotNull(failure,
+            "An exchange whose A query failed was reported as a domain with no mail servers - the AAAA query's NODATA was read as the exchange's whole answer. The lookup answered: \"" + servers + "\"");
+         StringAssert.Contains("The DNS lookup failed", failure.Message,
+            "The lookup failed, but not as a DNS lookup failure: " + failure.Message);
+         AssertAsked_(exchange, FakeDnsServer.TypeA, FakeDnsServer.TypeAaaa);
+      }
+
+      [Test]
+      [Description("The MX query of a domain whose exchange has no address at all - NODATA for A and AAAA - still answers with no mail servers, as before.")]
+      public void MxQueryOfAnExchangeWithNoAddressFindsNoMailServers()
+      {
+         string domain = "mxtool-nodata." + Zone;
+         SuiteDns.Zone.WithMx(domain, 10, "mx." + domain);
+
+         string servers = _application.Utilities.ResolveMXRecords(domain);
+
+         ClassicAssert.IsTrue(string.IsNullOrEmpty(servers),
+            "An exchange that answered NODATA for A and AAAA was not reported as a domain with no mail servers: " + servers);
       }
 
       // ------------------------------------------------------------------ helpers
