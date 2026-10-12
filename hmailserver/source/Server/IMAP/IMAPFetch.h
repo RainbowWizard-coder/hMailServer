@@ -21,6 +21,7 @@ namespace HM
    {
       friend class IMAPFetchHeaderFieldsTester;
       friend class IMAPFetchSectionsTester;
+      friend class IMAPFetchPartBytesTester;
 
    public:
       IMAPFetch();
@@ -63,6 +64,11 @@ namespace HM
       String GetPartStructure_(std::shared_ptr<MimeBody> oPart, bool includeExtensionData, int iRecursion);
       String IteratePartRecursive_(std::shared_ptr<MimeBody> oPart, bool includeExtensionData, int iRecursion);
 
+      // How deep a BODYSTRUCTURE's bodies nest at most: a message/rfc822 part
+      // is described with its message only while every part that message can
+      // hold stays within it (GetPartStructure_).
+      static const int MaxStructureDepth_ = 100;
+
       // RFC 3501 7.4.2: an ENVELOPE address list - "(" 1*address ")" - for one
       // header field, or NIL when the field is absent or holds no address.
       String CreateAddressListStructure_(MimeHeader& oHeader, const char *fieldName);
@@ -87,6 +93,32 @@ namespace HM
       // A section of raw bytes - the whole, the header or the text - with the
       // client's <start.count> applied, into a buffer.
       std::shared_ptr<ByteBuffer> RawSection_(const char *data, size_t size, bool header, bool text, IMAPFetchParser::BodyPart &oPart);
+
+      // A part's body and its MIME header as the stored message holds them,
+      // where the parse placed the part in it (MimeBody::GetStoredBounds): the
+      // body is the part's content when that is all of it - a part that is not
+      // a multipart always - and is otherwise cut from the stored message, as
+      // the MIME header always is. data points into the part's content or the
+      // stored message, which outlive the section. False when the part was not
+      // placed or the stored message cannot be had; the caller then answers
+      // from the parsed part, as every section did before.
+      bool BodyAsStored_(const String &messageFileName, const std::shared_ptr<MimeBody> &part, const char *&data, size_t &size);
+      bool MimeHeaderAsStored_(const String &messageFileName, const std::shared_ptr<MimeBody> &part, const char *&data, size_t &size);
+
+      // The stored message the bodies are of, as the parse read it: the bytes
+      // it was parsed from where the body holds them (MimeBody::GetSourceBytes,
+      // a body LoadFromMemory parsed - the testers'), and otherwise the stored
+      // message read once for the message's sections through the store
+      // (MessageStore::ReadAll, which answers a container's original from the
+      // store's cache of decodes) and counted to their ceiling. IMAP's own parse,
+      // MessageStore::LoadMime, keeps no bytes, so in the server it is always
+      // the read. Null when it cannot be read, or what is read is not as long as
+      // what was parsed - not the bytes the parts were placed in.
+      const std::string *StoredMessage_(const String &messageFileName);
+
+      // Bytes of the stored message with the client's <start.count> applied,
+      // into a buffer.
+      std::shared_ptr<ByteBuffer> StoredSection_(const char *data, size_t size, IMAPFetchParser::BodyPart &oPart);
 
       // The FLAGS data item for a message; includeSeen adds \Seen where this
       // FETCH is about to set it.
@@ -170,6 +202,15 @@ namespace HM
       std::shared_ptr<MimeBody> navigated_message_;
       std::map<const MimeBody *, NavigatedBody_> navigated_bodies_;
 
+      // The stored message of navigated_message_ (StoredMessage_), asked for
+      // once for its sections and let go of with the bodies.
+      bool stored_message_asked_ = false;
+      std::shared_ptr<const std::string> stored_message_;
+
+      // The bodies, the stored message and what was kept of them belong to
+      // message; let go of them if they are another's.
+      void NavigateMessage_(const std::shared_ptr<MimeBody> &message);
+
       // What the latest section cost to make, beyond what it holds: the bytes it
       // read, looked through or made before its partial range was cut from it -
       // a message file read whole for its HEADER or TEXT, a header passed field
@@ -217,6 +258,25 @@ namespace HM
    {
    public:
       void Test(int cases = 20000);
+   };
+
+   // The bytes a FETCH answers for the parts of a message, held to the bytes
+   // the message was written with, over generated messages: nested multiparts
+   // with preambles, epilogues and closing boundaries there, bare or missing,
+   // messages encapsulated in messages, folded and unusually spaced header
+   // fields, 8-bit bytes and bare line feeds. Each part's BODY[N.MIME] and
+   // BODY[N] are its header and its body as written - so that the two are the
+   // part, and are where BODY[] has them - BINARY[N] of a multipart is its body,
+   // HEADER and TEXT of a message/rfc822 part are the header and the body of
+   // the message it holds, and of any other part its MIME header and its body;
+   // partial ranges are cut from the same bytes. And a BODYSTRUCTURE of a
+   // message nested past the depth a structure describes, or of a multipart
+   // with no parts, is one a client can read, and BODY carries no extension
+   // data. ClassTester runs it on Windows, imap-parse-tests on Linux.
+   class IMAPFetchPartBytesTester
+   {
+   public:
+      void Test(int cases = 2000);
    };
 
 }

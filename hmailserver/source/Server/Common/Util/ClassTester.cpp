@@ -2611,6 +2611,16 @@ namespace HM
       IMAPSearchParserTester imapSearchParserTester;
       imapSearchParserTester.Test();
 
+      // The bytes a FETCH answers for a message's parts - each part's MIME
+      // header and body, a multipart's with its preamble, boundaries and
+      // epilogue - held to the bytes generated messages were written with; and
+      // a BODYSTRUCTURE of messages nested past its depth or of a multipart with
+      // no parts, and a BODY, that a client can read. imap-parse-tests runs the
+      // same on Linux.
+      OutputDebugString(_T("hMailServer: Testing the bytes of a FETCH's parts\n"));
+      IMAPFetchPartBytesTester imapFetchPartBytesTester;
+      imapFetchPartBytesTester.Test();
+
       // A message's keywords, changed and read by several threads at once. A
       // message in an IMAP folder is one object every session on the mailbox
       // shares, and STORE is handed that live object, so two STOREs, or a

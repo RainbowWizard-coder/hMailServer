@@ -247,6 +247,53 @@ namespace RegressionTests.Infrastructure
       }
 
       [Test]
+      [Description("The parts of a message stored as a container are handed out as they were appended - a part's BODY[N.MIME] its header as written, folds and all, and BODY[N] of a multipart its body with its preamble and epilogue - cut from the container's original as from a plain file (IMAP/FetchPartBytes). Negative control: the same message appended with compression off is a plain file, and hands out the same octets.")]
+      public void ThePartsOfAContainerAreFetchedAsTheyWereAppended()
+      {
+         Account account = AddAccount("containerparts");
+
+         // Text that the stages make smaller, so the message is stored as a
+         // container; ASCII, as Append counts characters.
+         var text = new StringBuilder();
+         for (int line = 0; line < 200; line++)
+            text.Append("The first part's text, the same line again and again.\r\n");
+
+         const string firstHeader = "Content-Type: text/plain;\r\n charset=us-ascii\r\nX-Folded: one\r\n\ttwo\r\n\r\n";
+         const string secondHeader = "Content-Type: multipart/alternative;\r\n\tboundary=\"in\"\r\n\r\n";
+         const string secondBody =
+            "inner preamble\r\n" +
+            "--in\r\nContent-Type: text/plain\r\n\r\nplain\r\n" +
+            "--in\r\nContent-Type: text/html\r\n\r\n<p>html</p>\r\n" +
+            "--in--\r\ninner epilogue\r\n";
+
+         string raw =
+            "From: sender@example.test\r\nTo: " + account.Address + "\r\nSubject: Parts of a container\r\n" +
+            "Content-Type: multipart/mixed; boundary=\"out\"\r\n\r\n" +
+            "--out\r\n" + firstHeader + text +
+            "\r\n--out\r\n" + secondHeader + secondBody +
+            "\r\n--out--\r\nouter epilogue\r\n";
+
+         SetCompression(false, 256);
+         Append(account.Address, raw);
+         SetCompression(true, 256);
+         Append(account.Address, raw);
+
+         ClassicAssert.IsFalse(HasMagic(File.ReadAllBytes(Inbox(account).Messages[0].Filename)), "With compression off the message was stored as a container.");
+         ClassicAssert.IsTrue(HasMagic(File.ReadAllBytes(Inbox(account).Messages[1].Filename)), "With compression on the message was not stored as a container.");
+
+         for (int index = 1; index <= 2; index++)
+         {
+            string stored = index == 1 ? "the plain file" : "the container";
+
+            ClassicAssert.AreEqual(raw, FetchLiteral(account.Address, "INBOX", index, "BODY.PEEK[]"), "BODY[] of " + stored);
+            ClassicAssert.AreEqual(firstHeader, FetchLiteral(account.Address, "INBOX", index, "BODY.PEEK[1.MIME]"), "BODY[1.MIME] of " + stored);
+            ClassicAssert.AreEqual(text.ToString(), FetchLiteral(account.Address, "INBOX", index, "BODY.PEEK[1]"), "BODY[1] of " + stored);
+            ClassicAssert.AreEqual(secondHeader, FetchLiteral(account.Address, "INBOX", index, "BODY.PEEK[2.MIME]"), "BODY[2.MIME] of " + stored);
+            ClassicAssert.AreEqual(secondBody, FetchLiteral(account.Address, "INBOX", index, "BODY.PEEK[2]"), "BODY[2] of " + stored);
+         }
+      }
+
+      [Test]
       [Description("A literal that begins with the container's magic and carries a header naming another account's blob - twice - is the client's bytes and nothing else: it is stored wrapped, FETCH and RFC822.SIZE answer the literal as it was sent, and an EXPUNGE of it lets go of nothing, so the other account's message keeps its part. Negative control: the blob's own message, expunged, takes the blob with it, so the count was one name and no more.")]
       public void AnAppendedContainerIsTheClientsBytesAndNeverTakenForOne()
       {

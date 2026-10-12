@@ -642,11 +642,7 @@ namespace HM
       }
 
       // The bodies kept are the message's (NavigatedBody_).
-      if (navigated_message_ != pBody)
-      {
-         navigated_bodies_.clear();
-         navigated_message_ = pBody;
-      }
+      NavigateMessage_(pBody);
 
       String sTempName = sName;
 
@@ -811,12 +807,148 @@ namespace HM
    {
       navigated_bodies_.clear();
       navigated_message_.reset();
+      stored_message_asked_ = false;
+      stored_message_.reset();
 
       ceiling_set_ = false;
       ceiling_largest_ = 0;
       ceiling_used_ = 0;
       ceiling_file_.Empty();
       ceiling_file_sized_ = false;
+   }
+
+   void
+   IMAPFetch::NavigateMessage_(const std::shared_ptr<MimeBody> &message)
+   {
+      if (navigated_message_ == message)
+         return;
+
+      navigated_bodies_.clear();
+      navigated_message_ = message;
+      stored_message_asked_ = false;
+      stored_message_.reset();
+   }
+
+   const std::string *
+   IMAPFetch::StoredMessage_(const String &messageFileName)
+   {
+      if (stored_message_asked_)
+         return stored_message_.get();
+
+      stored_message_asked_ = true;
+
+      // What the parse read: the top-level body is placed from the first byte
+      // to the last of what it was handed.
+      size_t start = 0;
+      size_t headerEnd = 0;
+      size_t parsed = 0;
+      if (!navigated_message_ || !navigated_message_->GetStoredBounds(start, headerEnd, parsed) || start != 0)
+         return nullptr;
+
+      std::shared_ptr<const std::string> stored = navigated_message_->GetSourceBytes();
+
+      if (!stored)
+      {
+         // Read once for the message's sections, as an encapsulated message is
+         // parsed once for them, and counted to their ceiling the same way.
+         if (!WithinCeiling_(section_cost_ + parsed))
+         {
+            section_refused_ = true;
+            return nullptr;
+         }
+
+         section_cost_ += parsed;
+
+         // Through the store's door, which answers a container's original and
+         // says so when the store is not there (MessageStore::Unavailable) or
+         // the file is damaged (Unreadable) - which DoAction asks after every
+         // section. A file that is simply gone - the message expunged by
+         // another session in the moment between - leaves the sections to be
+         // answered from the parsed message, as they were before.
+         AnsiString bytes;
+         if (!MessageStore::ReadAll(messageFileName, bytes))
+            return nullptr;
+
+         stored = std::shared_ptr<const std::string>(new std::string(std::move(static_cast<std::string &>(bytes))));
+      }
+
+      // The parts were placed in bytes of this length; bytes of another are not
+      // what was parsed.
+      if (stored->size() != parsed)
+         return nullptr;
+
+      stored_message_ = stored;
+      return stored_message_.get();
+   }
+
+   bool
+   IMAPFetch::BodyAsStored_(const String &messageFileName, const std::shared_ptr<MimeBody> &part, const char *&data, size_t &size)
+   {
+      data = nullptr;
+      size = 0;
+
+      size_t entityStart = 0;
+      size_t bodyStart = 0;
+      size_t entityEnd = 0;
+      if (!part || !part->GetStoredBounds(entityStart, bodyStart, entityEnd))
+         return false;
+
+      // MimeBody::Load takes a part's content from the first byte of its body
+      // and keeps going, so content as long as the body is the body. It is all
+      // of it unless the part is a multipart whose parts were read out of it,
+      // when it is the preamble alone: the parts, their boundaries and the
+      // epilogue are only in the stored message.
+      const AnsiString &content = part->GetContent();
+      if (content.size() == entityEnd - bodyStart)
+      {
+         data = content.c_str();
+         size = content.size();
+         return true;
+      }
+
+      const std::string *stored = StoredMessage_(messageFileName);
+      if (!stored || entityEnd > stored->size() || bodyStart > entityEnd)
+         return false;
+
+      data = stored->data() + bodyStart;
+      size = entityEnd - bodyStart;
+      return true;
+   }
+
+   bool
+   IMAPFetch::MimeHeaderAsStored_(const String &messageFileName, const std::shared_ptr<MimeBody> &part, const char *&data, size_t &size)
+   {
+      data = nullptr;
+      size = 0;
+
+      size_t entityStart = 0;
+      size_t bodyStart = 0;
+      size_t entityEnd = 0;
+      if (!part || !part->GetStoredBounds(entityStart, bodyStart, entityEnd))
+         return false;
+
+      const std::string *stored = StoredMessage_(messageFileName);
+      if (!stored || bodyStart > stored->size() || entityStart > bodyStart)
+         return false;
+
+      data = stored->data() + entityStart;
+      size = bodyStart - entityStart;
+      return true;
+   }
+
+   std::shared_ptr<ByteBuffer>
+   IMAPFetch::StoredSection_(const char *data, size_t size, IMAPFetchParser::BodyPart &oPart)
+   {
+      std::shared_ptr<ByteBuffer> pOutBuf = std::shared_ptr<ByteBuffer>(new ByteBuffer);
+
+      int iStart = 0;
+      int iCount = 0;
+      GetBytesToSend_((int) size, oPart, iStart, iCount);
+
+      if (iCount > 0)
+         pOutBuf->Add((const BYTE*) data + iStart, iCount);
+
+      return pOutBuf;
    }
 
 
@@ -916,11 +1048,7 @@ namespace HM
       }
 
       // The bodies kept are the message's (NavigatedBody_), and pBodyPart is it.
-      if (navigated_message_ != pBodyPart)
-      {
-         navigated_bodies_.clear();
-         navigated_message_ = pBodyPart;
-      }
+      NavigateMessage_(pBodyPart);
 
       // RFC 3516 (BINARY): the section's content with its transfer encoding
       // decoded - what an attachment save has always done, applied to FETCH.
@@ -991,8 +1119,18 @@ namespace HM
          }
          else if (kind.multipart)
          {
-            // A multipart's content is its sub-parts, raw and undecoded.
-            pBinaryPart->Store(content, false);
+            // A multipart's content is its sub-parts, raw and undecoded: its
+            // body as it is stored, preamble and epilogue and all, as BODY[N]
+            // serves it. It was the parts written out again, with boundary
+            // lines spelt afresh and the epilogue gone.
+            const char *stored = nullptr;
+            size_t storedSize = 0;
+            if (BodyAsStored_(messageFileName, pBinaryPart, stored, storedSize))
+               content.assign(stored, storedSize);
+            else if (section_refused_)
+               return pOutBuf;
+            else
+               pBinaryPart->Store(content, false);
          }
          else
          {
@@ -1029,6 +1167,19 @@ namespace HM
          if (!pBodyPart)
             return pOutBuf;
 
+         // The part's MIME header as it is stored - the lines from the part's
+         // first byte to its blank line, folds, spacing and 8-bit bytes as the
+         // sender wrote them (RFC 3501 6.4.5) - so that it and BODY[N] are the
+         // part, byte for byte. It was each field written out again as "Name:
+         // value" with the value unfolded, which no client could put back.
+         const char *stored = nullptr;
+         size_t storedSize = 0;
+         if (MimeHeaderAsStored_(messageFileName, pBodyPart, stored, storedSize))
+            return StoredSection_(stored, storedSize, oPart);
+
+         if (section_refused_)
+            return pOutBuf;
+
          int iByteStart = 0;
          int iByteCount = 0;
          AnsiString sHeaderContents = pBodyPart->GetHeaderContents();
@@ -1040,7 +1191,7 @@ namespace HM
       }
 
       // For BODY[N] with no sub-specifier: navigate without loading the encapsulated
-      // message, then serialize based on content type. Must run before the default
+      // message, then answer with the part's body. Must run before the default
       // navigation below, which loads the encapsulated message unconditionally.
       if (oPart.GetShowBodyContent())
       {
@@ -1050,22 +1201,29 @@ namespace HM
          if (!pBodyPart)
             return pOutBuf;
 
+         // The part's body as it is stored (BodyAsStored_). For a part that is
+         // not a multipart that is its content, as it always was - and for a
+         // message/rfc822 part the whole inner message, headers included. For a
+         // multipart it is the stored bytes from the end of its MIME header to
+         // its end, preamble, boundary lines and epilogue as they are: it was
+         // the parts written out again, the boundaries spelt afresh, the
+         // epilogue dropped and a missing closing boundary added, so the
+         // section was not the part and its length was not the stored one.
+         const char *stored = nullptr;
+         size_t storedSize = 0;
+         if (BodyAsStored_(messageFileName, pBodyPart, stored, storedSize))
+            return StoredSection_(stored, storedSize, oPart);
+
+         if (section_refused_)
+            return pOutBuf;
+
          int iByteStart = 0;
          int iByteCount = 0;
          AnsiString body;
          if (KindOf_(pBodyPart).encapsulated_message)
-         {
-            // BODY[2] on message/rfc822: the "body" of this MIME entity is the full
-            // inner RFC2822 message, headers included - which is exactly the
-            // part's content, byte for byte. It used to be the inner message
-            // loaded and stored again, so a multipart inside lost its epilogue
-            // and the section came back shorter than BODYSTRUCTURE said it was.
             body = pBodyPart->GetContent();
-         }
          else
-         {
             pBodyPart->Store(body, false);
-         }
 
          section_cost_ += body.size();
 
@@ -1123,6 +1281,25 @@ namespace HM
 
       int iByteStart = 0;
       int iByteCount = 0;
+
+      // HEADER and TEXT of a numbered part that is not a message/rfc822 - which
+      // RFC 3501 6.4.5 does not give a meaning, and which have always answered
+      // as the part's MIME header and its body - are those as they are stored,
+      // the same bytes as BODY[N.MIME] and BODY[N].
+      if (!oPart.GetName().IsEmpty() && (oPart.GetShowBodyHeader() || oPart.GetShowBodyText()))
+      {
+         const char *stored = nullptr;
+         size_t storedSize = 0;
+         const bool asStored = oPart.GetShowBodyHeader() ?
+            MimeHeaderAsStored_(messageFileName, pBodyPart, stored, storedSize) :
+            BodyAsStored_(messageFileName, pBodyPart, stored, storedSize);
+
+         if (asStored)
+            return StoredSection_(stored, storedSize, oPart);
+
+         if (section_refused_)
+            return pOutBuf;
+      }
 
       if (oPart.GetShowBodyHeader())
       {
@@ -1667,10 +1844,21 @@ namespace HM
    {
       iRecursion++;
 
-      if (iRecursion > 100)
-         return "";
+      // Not reached: GetPartStructure_ describes no message whose parts could
+      // pass the depth. Were it, a body of nothing - valid wherever a body is,
+      // which "" was not.
+      if (iRecursion > MaxStructureDepth_)
+         return _T("(\"TEXT\" \"PLAIN\" (\"CHARSET\" \"US-ASCII\") NIL NIL \"7BIT\" 0 0)");
 
-      if (oPart->IsMultiPart())
+      // A multipart is described as one while it has parts. One with none - no
+      // boundary parameter, a boundary its body never holds, or one nested past
+      // MimeBody::MaxNestingDepth, which the parse takes whole - is a single
+      // part to every section (GetMessagePartByPartNo_: its part 1 is itself,
+      // BODY[N] its whole body), and is described as one by GetPartStructure_.
+      // It was "(" and its subtype with no body before it, which RFC 3501's
+      // body-type-mpart ("1*body SP media-subtype") does not allow and no
+      // client could read.
+      if (oPart->IsMultiPart() && oPart->GetNumberOfParts() > 0)
       {
          // This part has many parts. Iterate those.
 
@@ -1709,13 +1897,85 @@ namespace HM
       }
    }
 
-   String 
-   IMAPFetch::GetPartStructure_(std::shared_ptr<MimeBody> oPart, bool includeExtensionData, int iRecursion)   
+   String
+   IMAPFetch::GetPartStructure_(std::shared_ptr<MimeBody> oPart, bool includeExtensionData, int iRecursion)
    {
       String sMainType = oPart->GetMainType();
       sMainType.ToUpper();
       String sSubType = oPart->GetSubType();
       sSubType.ToUpper();
+
+      /*
+         A body type of type MESSAGE and subtype RFC822 contains,
+         immediately after the basic fields, the envelope structure,
+         body structure, and size in text lines of the encapsulated
+         message.
+
+         Made first, because a message/rfc822 part whose message cannot be
+         described is described as what it then is to the client, a part of
+         bytes - "APPLICATION" "OCTET-STREAM", as Dovecot answers - rather than
+         as a message with no envelope or body, which no client can read. It
+         was "" - the part left out of its multipart, or a BODYSTRUCTURE of
+         nothing - when the message did not parse, and a message/rfc822 with
+         nothing where its body goes when messages were nested past 100, which
+         a message of a few kilobytes can do: every client met a structure it
+         could not parse. A message is described while every part it can hold
+         stays under that depth - its multiparts nest at most
+         MimeBody::MaxNestingDepth deep below it - and past that as a part of
+         bytes; the size, its stored length, is the same either way.
+      */
+      String sEncapsulated;
+      if (oPart->IsEncapsulatedRFC822Message())
+      {
+         bool described = false;
+
+         if (iRecursion + (int) MimeBody::MaxNestingDepth + 1 <= MaxStructureDepth_)
+         {
+            try
+            {
+               std::shared_ptr<MimeBody> pBody = oPart->LoadEncapsulatedMessage();
+
+               AnsiString sMessageHeader = pBody->GetHeaderContents();
+               MimeHeader oHeader;
+               oHeader.Load(sMessageHeader, sMessageHeader.GetLength());
+
+               String sEnvelope = CreateEnvelopeStructure_(oHeader);
+               String sBodyStructure = IteratePartRecursive_(pBody, includeExtensionData, iRecursion);
+
+               // The lines of the encapsulated message - header and body, which is
+               // this part's own content - not of the inner message's body alone.
+               long lLines = CountTextLines_(oPart->GetContent());
+
+               String sLines;
+               sLines.Format(_T("%d"), lLines);
+
+               if (!sBodyStructure.IsEmpty())
+               {
+                  sEncapsulated = " " + sEnvelope + " " + sBodyStructure + " " + sLines;
+                  described = true;
+               }
+            }
+            catch (...)
+            {
+               String sErrorMessage = "Error when creating ENVELOPE structure for encapsulated message.";
+
+               ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5061, "IMAPFetch::GetPartStructure_", sErrorMessage);
+            }
+         }
+
+         if (!described)
+         {
+            sMainType = _T("APPLICATION");
+            sSubType = _T("OCTET-STREAM");
+         }
+      }
+      else if (oPart->IsMultiPart())
+      {
+         // A multipart with no parts (IteratePartRecursive_): to the client a
+         // part of bytes, its whole body, as a message past the depth is.
+         sMainType = _T("APPLICATION");
+         sSubType = _T("OCTET-STREAM");
+      }
 
       String sBodyParams;
 
@@ -1777,47 +2037,7 @@ namespace HM
 
       sResult += " " + sSize;
 
-      if (oPart->IsEncapsulatedRFC822Message())
-      {
-         /*
-            A body type of type MESSAGE and subtype RFC822 contains,
-            immediately after the basic fields, the envelope structure,
-            body structure, and size in text lines of the encapsulated
-            message.
-         */
-      
-         try
-         {
-            std::shared_ptr<MimeBody> pBody = oPart->LoadEncapsulatedMessage();
-
-            AnsiString sMessageHeader = pBody->GetHeaderContents();
-            MimeHeader oHeader;
-            oHeader.Load(sMessageHeader, sMessageHeader.GetLength());
-            
-            String sEnvelope = CreateEnvelopeStructure_(oHeader);
-            String sBodyStructure = IteratePartRecursive_(pBody, includeExtensionData, iRecursion);
-
-            // The lines of the encapsulated message - header and body, which is
-            // this part's own content - not of the inner message's body alone.
-            long lLines = CountTextLines_(oPart->GetContent());
-
-            String sLines;
-            sLines.Format(_T("%d"), lLines);
-
-            sResult += " " + sEnvelope;
-            sResult += " " + sBodyStructure;
-            sResult += " " + sLines;
-         }
-         catch (...)
-         {
-            String sErrorMessage = "Error when creating ENVELOPE structure for encapsulated message.";
-
-            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5061, "IMAPFetch::GetPartStructure_", sErrorMessage);
-            
-            return "";
-         }
-
-      }
+      sResult += sEncapsulated;
 
       if (sMainType.CompareNoCase(_T("TEXT")) == 0)
       {
@@ -1838,7 +2058,11 @@ namespace HM
       }
 
 
-      if (oPart->IsAttachment())
+      // body-ext-1part - the MD5, NIL, and the disposition - is extension data,
+      // which BODY leaves out (RFC 3501 7.4.2: "A form of BODYSTRUCTURE without
+      // extension data"), as it always left out a multipart's. BODY carried an
+      // attachment's disposition and file name all the same.
+      if (includeExtensionData && oPart->IsAttachment())
       {
          String sDisposition = oPart->GetDisposition();
          int iSemiPos = sDisposition.Find(_T(";"));
@@ -2540,14 +2764,14 @@ namespace HM
          return pBody;
       }
 
-      // A message's text parsed as an encapsulated one is.
+      // A message's text parsed as the message store parses a message it holds
+      // in memory (MessageStore::LoadMime of a container), which keeps the
+      // bytes: a section a FETCH serves as stored is cut from them, as it is
+      // from the file of a message on the disk.
       std::shared_ptr<MimeBody> ParsedMessage_(const std::string &text)
       {
          std::shared_ptr<MimeBody> body(new MimeBody);
-
-         size_t index = 0;
-         bool loaded = false;
-         body->Load(text.c_str(), text.size(), index, loaded);
+         body->LoadFromMemory(std::shared_ptr<const std::string>(new std::string(text)), _T("generated"), false);
 
          return body;
       }
@@ -2951,6 +3175,510 @@ namespace HM
             throw std::logic_error("A part number through 5,000 encapsulated messages took " + std::to_string((long long) milliseconds) + " ms to refuse");
 
          nested.ForgetMessageSections_();
+      }
+   }
+
+   namespace
+   {
+      // A part of a generated message as it was written: its IMAP part number,
+      // its MIME header - its lines up to and with the blank line, or every line
+      // of a part that has no blank line and no body - and its body; for a
+      // message/rfc822 part, the header and the body of the message it holds.
+      class WrittenPart_
+      {
+      public:
+         std::string number;
+         std::string header;
+         std::string body;
+         bool multipart = false;
+         bool message = false;
+         std::string inner_header;
+         std::string inner_body;
+
+         // A part that is a header alone; a multipart with no closing boundary.
+         bool header_alone = false;
+         bool unclosed = false;
+      };
+
+      // Writes messages as senders write them, and says what each part is.
+      class PartWriter_
+      {
+      public:
+         explicit PartWriter_(unsigned long long seed) : state_(seed) {}
+
+         std::string Message(std::vector<WrittenPart_> &parts)
+         {
+            parts.clear();
+
+            std::string header;
+            std::string body;
+            Entity_(0, true, std::string(), std::string(), "Subject: s\r\n", header, body, parts);
+            return header + body;
+         }
+
+      private:
+         unsigned long long Next_(unsigned long long below) { return NextHeaderFieldsRandom_(state_) % below; }
+
+         static std::string Number_(const std::string &prefix, int index)
+         {
+            return prefix.empty() ? std::to_string(index) : prefix + "." + std::to_string(index);
+         }
+
+         // A field: folded with a space or a tab, without a space after the
+         // colon or with one before it, with a tab, 8-bit, a bare line feed in
+         // it, empty, in lower case.
+         std::string Field_()
+         {
+            static const char *fields[] =
+            {
+               "X-A: v\r\n",
+               "X-Folded: one\r\n two\r\n",
+               "X-Folded-Twice: one\r\n\ttwo\r\n  three\r\n",
+               "X-No-Space:value\r\n",
+               "X-Tab:\tvalue\r\n",
+               "X-Before-Colon : v\r\n",
+               "X-Eight: caf\xE9 cr\xC3\xA8" "me\r\n",
+               "X-Bare-LF: a\nb\r\n",
+               "X-Empty:\r\n",
+               "x-lower: v\r\n"
+            };
+            return fields[Next_(sizeof(fields) / sizeof(fields[0]))];
+         }
+
+         std::string Fields_()
+         {
+            std::string fields;
+            const int count = (int) Next_(3);
+            for (int i = 0; i < count; i++)
+               fields += Field_();
+            return fields;
+         }
+
+         // The body of a part that is not a multipart or a message.
+         std::string LeafBody_()
+         {
+            static const char *bodies[] =
+            {
+               "line\r\n",
+               "",
+               "8-bit caf\xE9 cr\xC3\xA8" "me\r\nmore\r\n",
+               "bare\nline\nfeeds\n",
+               "mixed\r\nline\nends\r\n",
+               "no final line break",
+               "blank lines after\r\n\r\n\r\n",
+               "  indented\r\n\tand tabbed\r\n",
+               "-- \r\nsignature\r\n",
+               "aGVsbG8gd29ybGQ=\r\n"
+            };
+            return bodies[Next_(sizeof(bodies) / sizeof(bodies[0]))];
+         }
+
+         std::string LeafType_()
+         {
+            static const char *types[] =
+            {
+               "Content-Type: text/plain\r\n",
+               "Content-Type: text/plain; charset=\"iso-8859-1\"\r\nContent-Transfer-Encoding: 8bit\r\n",
+               "content-type:text/html\r\n",
+               "Content-Type: text/plain;\r\n charset=us-ascii\r\n",
+               "Content-Type: application/octet-stream\r\nContent-Transfer-Encoding: base64\r\nContent-Disposition: attachment; filename=\"a.bin\"\r\n",
+               ""
+            };
+            return types[Next_(sizeof(types) / sizeof(types[0]))];
+         }
+
+         // An entity: a root - the message, or the one a message/rfc822 part
+         // holds, whose header begins with rootFields - or a part of a
+         // multipart, numbered number. A root answers to the part number a
+         // client names it by: a multipart root to none, its parts to
+         // prefix.1, prefix.2 ... (1, 2 ... for the message); any other root to
+         // prefix.1 (1).
+         void Entity_(int depth, bool root, const std::string &prefix, const std::string &number, const std::string &rootFields,
+                      std::string &header, std::string &body, std::vector<WrittenPart_> &parts)
+         {
+            // A leaf, a multipart or a message; leaves only, four deep.
+            static const int kinds[] = { 0, 0, 0, 1, 1, 1, 2, 2 };
+            const int kind = depth >= 4 ? 0 : kinds[Next_(sizeof(kinds) / sizeof(kinds[0]))];
+
+            WrittenPart_ written;
+            written.number = root ? (kind == 1 ? std::string() : Number_(prefix, 1)) : number;
+
+            header = rootFields + Fields_();
+            body.clear();
+
+            if (kind == 0)
+            {
+               header += LeafType_() + Fields_();
+
+               // Now and then a part that is a header alone, with no blank line
+               // and no body - or, with no fields either, a part of no bytes.
+               if (root || Next_(10) != 0)
+               {
+                  header += "\r\n";
+                  body = LeafBody_();
+               }
+               else
+                  written.header_alone = true;
+            }
+            else if (kind == 1)
+            {
+               const std::string boundary = "B" + std::to_string(++boundaries_) + "Z";
+               header += Next_(2) == 0 ?
+                  "Content-Type: multipart/mixed; boundary=\"" + boundary + "\"\r\n" :
+                  "Content-Type: multipart/alternative;\r\n\tboundary=" + boundary + "\r\n";
+               header += Fields_() + "\r\n";
+
+               static const char *preambles[] = { "", "preamble\r\n", "This is a multi-part message.\r\n\r\n" };
+               body = preambles[Next_(sizeof(preambles) / sizeof(preambles[0]))];
+
+               const std::string under = root ? prefix : number;
+               const int count = 1 + (int) Next_(depth >= 2 ? 2 : 3);
+               for (int i = 1; i <= count; i++)
+               {
+                  std::string partHeader;
+                  std::string partBody;
+                  Entity_(depth + 1, false, std::string(), Number_(under, i), std::string(), partHeader, partBody, parts);
+
+                  body += (i == 1 ? "--" : "\r\n--") + boundary + "\r\n" + partHeader + partBody;
+               }
+
+               // The closing boundary and an epilogue, ending in a line break or
+               // not; the boundary and nothing after it; or none, the last part
+               // running to the end of the multipart.
+               switch (Next_(5))
+               {
+               case 0: body += "\r\n--" + boundary + "--\r\n"; break;
+               case 1: body += "\r\n--" + boundary + "--\r\nepilogue\r\n"; break;
+               case 2: body += "\r\n--" + boundary + "--\r\nan epilogue with no line break"; break;
+               case 3: body += "\r\n--" + boundary + "--"; break;
+               default: written.unclosed = true; break;
+               }
+
+               written.multipart = true;
+            }
+            else
+            {
+               header += "Content-Type: message/rfc822\r\n";
+               if (Next_(2) == 0)
+                  header += "Content-Disposition: attachment\r\n";
+               header += Fields_() + "\r\n";
+
+               Entity_(depth + 1, true, written.number, std::string(), "Subject: inner\r\n", written.inner_header, written.inner_body, parts);
+               body = written.inner_header + written.inner_body;
+
+               written.message = true;
+            }
+
+            written.header = header;
+            written.body = body;
+
+            if (!written.number.empty())
+               parts.push_back(written);
+         }
+
+         unsigned long long state_;
+         int boundaries_ = 0;
+      };
+
+      // Where a body differs from what it should be, readable in a failure.
+      std::string Difference_(const std::string &got, const std::string &expected)
+      {
+         size_t at = 0;
+         while (at < got.size() && at < expected.size() && got[at] == expected[at])
+            at++;
+
+         return std::to_string(got.size()) + " bytes where " + std::to_string(expected.size()) + " were written, differing from byte " +
+            std::to_string(at) + ": \"" + got.substr(at, 40) + "\" where \"" + expected.substr(at, 40) + "\"";
+      }
+
+      // A structure's parentheses balance outside its quoted strings, and no
+      // item of it is empty: two spaces, or a space before a closing
+      // parenthesis, mean something was left out.
+      bool StructureReadable_(const std::string &structure)
+      {
+         int depth = 0;
+         bool quoted = false;
+         char previous = 0;
+
+         for (size_t i = 0; i < structure.size(); i++)
+         {
+            const char c = structure[i];
+
+            if (quoted)
+            {
+               if (c == '\\')
+                  i++;
+               else if (c == '"')
+                  quoted = false;
+               previous = '"';
+               continue;
+            }
+
+            if (c == '"')
+               quoted = true;
+            else if (c == '(')
+               depth++;
+            else if (c == ')')
+            {
+               if (--depth < 0 || previous == ' ' || previous == '(')
+                  return false;
+            }
+            else if (c == ' ' && (previous == ' ' || previous == '('))
+               return false;
+
+            previous = c;
+         }
+
+         return depth == 0 && !quoted && !structure.empty();
+      }
+   }
+
+   void
+   IMAPFetchPartBytesTester::Test(int cases)
+   {
+      PartWriter_ writer(0x2545F4914F6CDD1DULL);
+
+      // A section's bytes, through the IMAPFetch that keeps the bodies of one
+      // message's sections, as DoAction asks for them.
+      auto sectionBytes = [](IMAPFetch &fetch, const std::shared_ptr<MimeBody> &message, const std::string &item)
+      {
+         IMAPFetchParser parser;
+         if (parser.ParseCommand(String(("(" + item + ")").c_str())).GetResult() != IMAPResult::ResultOK || parser.GetPartsToLookAt().size() != 1)
+            throw std::logic_error(item + " did not parse");
+
+         std::shared_ptr<ByteBuffer> got = fetch.GetByteBufferByBodyPart_(_T(""), message, parser.GetPartsToLookAt()[0]);
+         if (got->GetSize() == 0)
+            return std::string();
+
+         return std::string(got->GetCharBuffer(), got->GetSize());
+      };
+
+      int parts = 0;
+      int multiparts = 0;
+      int messages = 0;
+      int headersAlone = 0;
+      int multipartsUnclosed = 0;
+
+      for (int number = 0; number < cases; number++)
+      {
+         std::vector<WrittenPart_> written;
+         const std::string text = writer.Message(written);
+         std::shared_ptr<MimeBody> message = ParsedMessage_(text);
+
+         IMAPFetch fetch;
+
+         for (const WrittenPart_ &part : written)
+         {
+            struct Expected
+            {
+               std::string item;
+               const std::string *bytes;
+            };
+
+            const std::string &body = part.body;
+
+            std::vector<Expected> expected;
+            expected.push_back(Expected{ "BODY.PEEK[" + part.number + ".MIME]", &part.header });
+            expected.push_back(Expected{ "BODY.PEEK[" + part.number + "]", &body });
+
+            if (part.multipart)
+            {
+               // A multipart's content is identity: BINARY is its body.
+               expected.push_back(Expected{ "BINARY.PEEK[" + part.number + "]", &body });
+               expected.push_back(Expected{ "BINARY.SIZE[" + part.number + "]", &body });
+            }
+
+            if (part.message)
+            {
+               expected.push_back(Expected{ "BODY.PEEK[" + part.number + ".HEADER]", &part.inner_header });
+               expected.push_back(Expected{ "BODY.PEEK[" + part.number + ".TEXT]", &part.inner_body });
+            }
+            else
+            {
+               expected.push_back(Expected{ "BODY.PEEK[" + part.number + ".HEADER]", &part.header });
+               expected.push_back(Expected{ "BODY.PEEK[" + part.number + ".TEXT]", &body });
+            }
+
+            for (const Expected &one : expected)
+            {
+               const std::string got = sectionBytes(fetch, message, one.item);
+               if (got != *one.bytes)
+                  throw std::logic_error("Case " + std::to_string(number) + ", " + one.item + ": " + Difference_(got, *one.bytes));
+            }
+
+            // Partial ranges, cut from the same bytes.
+            const size_t start = body.size() < 3 ? body.size() : 3;
+            const std::string partial = body.substr(start, 5);
+            const std::string gotPartial = sectionBytes(fetch, message, "BODY.PEEK[" + part.number + "]<3.5>");
+            if (gotPartial != partial)
+               throw std::logic_error("Case " + std::to_string(number) + ", BODY.PEEK[" + part.number + "]<3.5>: " + Difference_(gotPartial, partial));
+
+            const std::string headerPartial = part.header.substr(0, 7);
+            const std::string gotHeaderPartial = sectionBytes(fetch, message, "BODY.PEEK[" + part.number + ".MIME]<0.7>");
+            if (gotHeaderPartial != headerPartial)
+               throw std::logic_error("Case " + std::to_string(number) + ", BODY.PEEK[" + part.number + ".MIME]<0.7>: " + Difference_(gotHeaderPartial, headerPartial));
+
+            parts++;
+            if (part.multipart)
+               multiparts++;
+            if (part.unclosed)
+               multipartsUnclosed++;
+            if (part.message)
+               messages++;
+            if (part.header_alone)
+               headersAlone++;
+         }
+      }
+
+      // What was compared is something: every kind of part, many times.
+      if (parts < cases * 2 || multiparts < cases / 4 || multipartsUnclosed < cases / 20 || messages < cases / 4 || headersAlone < cases / 50)
+         throw std::logic_error("Parts compared: " + std::to_string(parts) + ", of them " + std::to_string(multiparts) + " multiparts (" +
+            std::to_string(multipartsUnclosed) + " not closed), " + std::to_string(messages) + " messages and " + std::to_string(headersAlone) +
+            " headers alone");
+
+      // A BODYSTRUCTURE of messages nested in messages 150 deep, which a client
+      // can read: it was a message/rfc822 with nothing where its body goes past
+      // the hundredth. And at every depth, a message is described with its
+      // message or as a part of bytes, with its size, its stored length.
+      {
+         std::string text;
+         for (int i = 0; i < 150; i++)
+            text += "Content-Type: message/rfc822\r\n\r\n";
+         text += "Subject: innermost\r\n\r\ninnermost\r\n";
+
+         std::shared_ptr<MimeBody> message = ParsedMessage_(text);
+
+         IMAPFetch fetch;
+         const AnsiString structure = fetch.IteratePartRecursive_(message, true, 0);
+         const std::string bytes = structure;
+
+         if (!StructureReadable_(bytes))
+            throw std::logic_error("The BODYSTRUCTURE of messages nested 150 deep is not one a client can read: " + bytes.substr(bytes.size() > 400 ? bytes.size() - 400 : 0));
+
+         const AnsiString body = fetch.IteratePartRecursive_(message, false, 0);
+         if (!StructureReadable_(body))
+            throw std::logic_error("The BODY of messages nested 150 deep is not one a client can read");
+
+         if (bytes.find("\"APPLICATION\" \"OCTET-STREAM\"") == std::string::npos)
+            throw std::logic_error("The BODYSTRUCTURE of messages nested 150 deep describes every one of them as a message");
+      }
+
+      // BODY leaves out extension data - an attachment's disposition among it -
+      // which BODYSTRUCTURE carries.
+      {
+         const std::string text =
+            "Subject: s\r\nContent-Type: multipart/mixed; boundary=\"b\"\r\n\r\n"
+            "--b\r\nContent-Type: text/plain\r\n\r\ntext\r\n"
+            "--b\r\nContent-Type: application/octet-stream\r\nContent-Disposition: attachment; filename=\"a.bin\"\r\n\r\nAAAA\r\n"
+            "--b\r\nContent-Type: message/rfc822\r\nContent-Disposition: attachment\r\n\r\nSubject: inner\r\n\r\ninner\r\n"
+            "--b--\r\n";
+
+         std::shared_ptr<MimeBody> message = ParsedMessage_(text);
+
+         IMAPFetch fetch;
+         const std::string extensible = AnsiString(fetch.IteratePartRecursive_(message, true, 0));
+         const std::string plain = AnsiString(fetch.IteratePartRecursive_(message, false, 0));
+
+         if (extensible.find("(\"attachment\" (\"FILENAME\" \"a.bin\"))") == std::string::npos)
+            throw std::logic_error("BODYSTRUCTURE left out an attachment's disposition: " + extensible);
+
+         if (plain.find("FILENAME") != std::string::npos || plain.find("\"attachment\"") != std::string::npos || plain.find("BOUNDARY") != std::string::npos)
+            throw std::logic_error("BODY carried extension data: " + plain);
+
+         if (!StructureReadable_(extensible) || !StructureReadable_(plain))
+            throw std::logic_error("A structure of an attachment is not one a client can read");
+      }
+
+      // A multipart with no parts - no boundary parameter, a boundary its body
+      // never holds, one nested past MimeBody::MaxNestingDepth, which the parse
+      // takes whole - is described as the single part every section takes it
+      // for: a structure a client can read, where it was "(" and a subtype with
+      // no body. Its BODY[N] and BODY[N.MIME] are its body and header as written.
+      {
+         // Multiparts in multiparts, each holding the next as its one part, and
+         // a text part in the innermost: entities[k] is the entity k levels
+         // above the text part, its header and its body.
+         const int levels = (int) MimeBody::MaxNestingDepth + 5;
+         std::vector<std::pair<std::string, std::string> > entities;
+         entities.push_back(std::make_pair(std::string("Content-Type: text/plain\r\n\r\n"), std::string("innermost\r\n")));
+         for (int k = 1; k <= levels; k++)
+         {
+            const std::string boundary = "N" + std::to_string(k);
+            const std::string innerEntity = entities.back().first + entities.back().second;
+
+            entities.push_back(std::make_pair(
+               std::string(k == levels ? "Subject: nested\r\n" : "") + "Content-Type: multipart/mixed; boundary=\"" + boundary + "\"\r\n\r\n",
+               "--" + boundary + "\r\n" + innerEntity + "\r\n--" + boundary + "--\r\n"));
+         }
+
+         struct Childless
+         {
+            std::string text;
+            std::string header;
+            std::string body;
+         };
+
+         std::vector<Childless> messages;
+         messages.push_back(Childless{ "", "Subject: s\r\nContent-Type: multipart/mixed\r\n\r\n", "no boundary is named\r\n--x\r\n" });
+         messages.push_back(Childless{ "", "Subject: s\r\nContent-Type: multipart/alternative; boundary=\"absent\"\r\n\r\n", "a body without it\r\n" });
+         for (Childless &one : messages)
+            one.text = one.header + one.body;
+
+         // The nested message, and what each of its parts down to the one the
+         // parse took whole was written as.
+         const std::string nested = entities.back().first + entities.back().second;
+
+         for (size_t which = 0; which <= messages.size(); which++)
+         {
+            const bool isNested = which == messages.size();
+            const std::string text = isNested ? nested : messages[which].text;
+
+            std::shared_ptr<MimeBody> message = ParsedMessage_(text);
+
+            IMAPFetch fetch;
+            const std::string extensible = AnsiString(fetch.IteratePartRecursive_(message, true, 0));
+            const std::string plain = AnsiString(fetch.IteratePartRecursive_(message, false, 0));
+
+            if (!StructureReadable_(extensible) || !StructureReadable_(plain))
+               throw std::logic_error("The structure of a multipart with no parts is not one a client can read: " + extensible.substr(extensible.size() > 400 ? extensible.size() - 400 : 0));
+
+            if (extensible.find("\"APPLICATION\" \"OCTET-STREAM\"") == std::string::npos)
+               throw std::logic_error("A multipart with no parts is not described as a part of bytes: " + extensible.substr(extensible.size() > 400 ? extensible.size() - 400 : 0));
+
+            if (!isNested)
+            {
+               const std::string body = sectionBytes(fetch, message, "BODY.PEEK[1]");
+               if (body != messages[which].body)
+                  throw std::logic_error("BODY.PEEK[1] of a multipart with no parts: " + Difference_(body, messages[which].body));
+
+               const std::string mime = sectionBytes(fetch, message, "BODY.PEEK[1.MIME]");
+               if (mime != messages[which].header)
+                  throw std::logic_error("BODY.PEEK[1.MIME] of a multipart with no parts: " + Difference_(mime, messages[which].header));
+
+               // The size it is described with is that of its body.
+               const std::string size = "\"7bit\" " + std::to_string(messages[which].body.size());
+               if (extensible.find(size) == std::string::npos)
+                  throw std::logic_error("A multipart with no parts is not described with the size of its body, " + size + ": " + extensible);
+
+               continue;
+            }
+
+            // Each multipart down to the one taken whole, by its part number.
+            std::string number;
+            for (int depth = 1; depth <= (int) MimeBody::MaxNestingDepth; depth++)
+            {
+               number += number.empty() ? "1" : ".1";
+               const std::pair<std::string, std::string> &written = entities[(size_t) (levels - depth)];
+
+               const std::string body = sectionBytes(fetch, message, "BODY.PEEK[" + number + "]");
+               if (body != written.second)
+                  throw std::logic_error("BODY.PEEK[" + number + "] of multiparts nested " + std::to_string(levels) + " deep: " + Difference_(body, written.second));
+
+               const std::string mime = sectionBytes(fetch, message, "BODY.PEEK[" + number + ".MIME]");
+               if (mime != written.first)
+                  throw std::logic_error("BODY.PEEK[" + number + ".MIME] of multiparts nested " + std::to_string(levels) + " deep: " + Difference_(mime, written.first));
+            }
+         }
       }
    }
 }

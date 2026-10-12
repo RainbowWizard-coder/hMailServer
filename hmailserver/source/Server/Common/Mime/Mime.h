@@ -596,6 +596,32 @@ namespace HM
       bool IsEncapsulatedRFC822Message() const;
       std::shared_ptr<MimeBody> LoadEncapsulatedMessage() const;
 
+      // Where this part is in the bytes the message was parsed from, as Load
+      // found it there: its MIME header's first byte, its body's first byte,
+      // and one past its last byte - which is where the CRLF in front of the
+      // next boundary of the multipart holding it begins, or the end of the
+      // bytes. The header runs from entityStart to bodyStart, blank line and
+      // all; the body from bodyStart to entityEnd, a multipart's preamble,
+      // boundaries, parts and epilogue all. A part of a message that
+      // LoadEncapsulatedMessage parsed from a message/rfc822 part is placed in
+      // the same bytes, inside that part's body, so that every part of a
+      // message parsed from a stored file or held message is placed in those
+      // bytes, however deep. The top-level body's entityEnd is how many bytes
+      // were parsed.
+      //
+      // False where nothing true can be said: a part made rather than read
+      // (CreatePart, SetRawText and the like), one whose header did not parse,
+      // one of a message encapsulated in a part that was itself not placed, and
+      // one changed since it was read. IMAP's FETCH serves a part's MIME header
+      // and a multipart's body from these, so that they are the stored bytes
+      // rather than the part written out again.
+      bool GetStoredBounds(size_t &entityStart, size_t &bodyStart, size_t &entityEnd) const;
+
+      // The bytes this body was parsed from, when LoadFromMemory parsed it and
+      // holds them; null otherwise - a file's (LoadFromFile), or bytes handed to
+      // Load, which keeps none.
+      std::shared_ptr<const std::string> GetSourceBytes() const { return source_bytes_; }
+
    public:
       // overrides
       virtual void Clear();
@@ -650,6 +676,17 @@ namespace HM
       size_t last_header_size_ = 0;    // Header size captured from last Load() call
       size_t last_multipart_end_ = 0;  // Position right after "--boundary--" closing marker, or 0 if not multipart
       bool header_only_ = false;       // Only the header was read (LoadHeaderFromFile): the body is unread in the source
+
+      // GetStoredBounds. stored_start_ is set by whoever calls Load - the
+      // multipart holding the part, LoadEncapsulatedMessage - before it does,
+      // as parse_depth_ is, and Load records the rest. stored_placed_ is false
+      // for a message encapsulated in a part that was not placed, and for every
+      // part of it.
+      size_t stored_start_ = 0;
+      size_t stored_body_start_ = 0;
+      size_t stored_end_ = 0;
+      bool stored_bounds_ = false;
+      bool stored_placed_ = true;
 
    protected:
       bool AllocateBuffer(size_t nBufSize);

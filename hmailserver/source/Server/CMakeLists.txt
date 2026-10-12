@@ -1049,15 +1049,17 @@ set_target_properties(profiles-tests PROPERTIES OUTPUT_NAME profiles-tests)
 #
 # StringNoCaseTester (Common/Util/Parsing/StringParser.h), IMAPFetchParserTester,
 # IMAPThreadSubjectTester, IMAPSequenceSetTester, IMAPStoreKeywordsTester,
-# IMAPFetchHeaderFieldsTester and IMAPFetchSectionsTester (IMAP/) as a program of
-# their own, for the reason spf-tests is one: on Windows they run inside the
-# server through ClassTester, which nothing reaches here. What String's
-# case-ignoring search and replace, the items of a FETCH, the base subject, a
-# message set, a STORE's keywords, a FETCH's HEADER.FIELDS sections and the
-# bodies its part numbers name make, held to what 6.3.5's code - kept in the
-# testers - made of the same generated cases, and the time each takes held to a
-# pass over what it reads. No network, configuration or database. Not installed;
-# a bench tool.
+# IMAPFetchHeaderFieldsTester, IMAPFetchSectionsTester and
+# IMAPFetchPartBytesTester (IMAP/) as a program of their own, for the reason
+# spf-tests is one: on Windows they run inside the server through ClassTester,
+# which nothing reaches here. What String's case-ignoring search and replace, the
+# items of a FETCH, the base subject, a message set, a STORE's keywords, a
+# FETCH's HEADER.FIELDS sections and the bodies its part numbers name make, held
+# to what 6.3.5's code - kept in the testers - made of the same generated cases,
+# and the time each takes held to a pass over what it reads; and the bytes a
+# FETCH answers for a message's parts, held to the bytes generated messages were
+# written with. No network, configuration or database. Not installed; a bench
+# tool.
 add_executable(imap-parse-tests ${SERVER_DIR}/platform/imap_parse_tests_main.cpp)
 target_link_libraries(imap-parse-tests PRIVATE hmailserver_core)
 set_target_properties(imap-parse-tests PROPERTIES OUTPUT_NAME imap-parse-tests)

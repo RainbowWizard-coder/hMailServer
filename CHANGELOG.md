@@ -4407,6 +4407,25 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   650,000 different `OR`s of two keys, is parsed in 1.2 seconds on server2 where it took 0.67 without the pass, with a
   tenth more memory at its peak. README.md's line for `IMAPSearchTimeout` said that a search which reaches it returns
   the matches found so far; it is answered `NO [LIMIT]`, with none of them.
+- **Fixed: IMAP `FETCH` handed out a part's MIME header and a multipart's body written out again, not as the message
+  holds them.** `BODY[N.MIME]` - and `BODY[N.HEADER]` of a part that is not a message - was each field of the part's
+  header as `Name: value` with its folds undone, and `BODY[N]` of a multipart - with its `BINARY[N]` and
+  `BODY[N.TEXT]` - was its parts written out again: the boundary lines spelt afresh, the epilogue dropped, and a
+  closing boundary added where the message has none. So the two together were not the part `BODY[]` holds, and `BODY[N]` of a multipart
+  was not as long as the part. Both are now the stored octets, folds, spacing, 8-bit bytes, preamble and epilogue as
+  they are: the parse records where each part lies in the stored message, inside an encapsulated message too, and the
+  sections are cut from it, read once for a message's sections and counted to their ceiling - from a container's
+  original too, when the store compresses. Every other section already was. And `BODYSTRUCTURE` is one a client can
+  read where it was not: a message/rfc822 part whose message could take the structure past the hundred levels it
+  describes - messages nested in messages, which a message of a few kilobytes can do - or whose message does not parse
+  is described as `"APPLICATION" "OCTET-STREAM"` of its size, where it was a message with nothing where its body goes,
+  or left out; a multipart with no parts - no
+  boundary named, or one its body never holds - as the one part `FETCH` serves it as, where it was a multipart with no
+  body. `BODY`, "a form of BODYSTRUCTURE without extension data" (RFC 3501 7.4.2), no longer carries an attachment's
+  disposition and file name. `IMAP/FetchPartBytes` holds `RFC822.SIZE`, `BODY[]`, `HEADER` with `TEXT`, every
+  `BODYSTRUCTURE` size and line count and the octets fetched to agree, and each part to the octets appended, over
+  nested multiparts, a missing closing boundary, bare line feeds and 8-bit bytes; `IMAPFetchPartBytesTester` does the
+  same over generated messages on Windows and Linux.
 
 ### Operations
 

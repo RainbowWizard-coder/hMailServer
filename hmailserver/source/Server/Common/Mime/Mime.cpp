@@ -1545,11 +1545,39 @@ namespace HM
       // real length rather than a length the copy may not have reached.
       const AnsiString &content = GetContent();
 
+      // The encapsulated message is this part's body, so its parts are placed in
+      // the bytes this part is placed in (GetStoredBounds) - where its body is
+      // the whole of its content, which a part read by Load always is. Where
+      // it is not, nothing inside is placed.
+      size_t entityStart = 0;
+      size_t bodyStart = 0;
+      size_t entityEnd = 0;
+      if (GetStoredBounds(entityStart, bodyStart, entityEnd) && entityEnd - bodyStart == content.size())
+         pEncapsulatedMessage->stored_start_ = bodyStart;
+      else
+         pEncapsulatedMessage->stored_placed_ = false;
+
       size_t index = 0;
       bool part_loaded;
       pEncapsulatedMessage->Load(content.c_str(), content.size(), index, part_loaded);
 
       return pEncapsulatedMessage;
+   }
+
+   bool
+      MimeBody::GetStoredBounds(size_t &entityStart, size_t &bodyStart, size_t &entityEnd) const
+   {
+      entityStart = 0;
+      bodyStart = 0;
+      entityEnd = 0;
+
+      if (!stored_bounds_ || !stored_placed_ || body_modified_ || headers_modified_)
+         return false;
+
+      entityStart = stored_start_;
+      bodyStart = stored_body_start_;
+      entityEnd = stored_end_;
+      return true;
    }
 
    String 
@@ -2393,6 +2421,11 @@ namespace HM
       last_header_size_ = 0;
       last_multipart_end_ = 0;
       header_only_ = false;
+      stored_start_ = 0;
+      stored_body_start_ = 0;
+      stored_end_ = 0;
+      stored_bounds_ = false;
+      stored_placed_ = true;
    }
 
    // return the length needed to store this body part 
@@ -2519,12 +2552,28 @@ namespace HM
       index++;
       part_index_ = index;
 
+      // Placed below, once the header has parsed (GetStoredBounds). A part of
+      // no bytes at all - a boundary straight after another - is placed as it
+      // is, empty; one whose header did not parse is not placed.
+      stored_bounds_ = nDataSize == 0;
+      stored_body_start_ = stored_start_;
+      stored_end_ = stored_start_;
+
       // load header fields
       size_t nSize = MimeHeader::Load(pszData, nDataSize, true);
       if (nSize == 0)
          return nSize;
 
       last_header_size_ = nSize;  // record for body offset calculation in LoadFromFile
+
+      // The part is the nDataSize bytes it was handed - a multipart's part runs
+      // up to the CRLF in front of the next boundary - and its header is the
+      // nSize of them MimeHeader::Load took, which is never more than that.
+      // Recorded here, before any of the returns below: whatever the body turns
+      // out to be, it is what follows the header up to the part's end.
+      stored_body_start_ = stored_start_ + nSize;
+      stored_end_ = stored_start_ + nDataSize;
+      stored_bounds_ = true;
 
       const char* pszDataBegin = pszData; // preserve start position
       pszData += nSize;
@@ -2707,6 +2756,11 @@ namespace HM
          // only place a MimeBody's depth is ever set, and it has to be set before Load
          // rather than after, because Load is where the descent happens.
          pBP->parse_depth_ = parse_depth_ + 1;
+
+         // Where the part begins, for GetStoredBounds: pszDataBegin is where this
+         // part's own bytes begin, which is stored_start_.
+         pBP->stored_start_ = stored_start_ + static_cast<size_t>(pszStart - pszDataBegin);
+         pBP->stored_placed_ = stored_placed_;
 
          bodies_.push_back(pBP);
 

@@ -693,6 +693,7 @@
     <Compile Include="IMAP\Binary.cs" />
     <Compile Include="IMAP\Examine.cs" />
     <Compile Include="IMAP\Fetch.cs" />
+    <Compile Include="IMAP\FetchPartBytes.cs" />
     <Compile Include="IMAP\ClientTextCost.cs" />
     <Compile Include="IMAP\FetchParsingTime.cs" />
     <Compile Include="IMAP\PartialFetchChunking.cs" />
