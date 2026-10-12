@@ -75,11 +75,38 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       [Theory]
       [InlineData("AddDomainForm", "NewDomainRow", "AddDomainButton")]
-      [InlineData("AddAliasForm", "NewAliasValueRow", "AddAliasButton")]
-      [InlineData("AddListForm", "NewDistAddressRow", "AddListButton")]
       public void EachFormsButton_StaysBesideItsBox_WhenAMessageAppearsUnderIt(string form, string row, string button)
       {
          FormLineAssert.ButtonLinesUpWithItsRow(Page(), form, row, button, "DomainsView.xaml");
+      }
+
+      /// <summary>
+      /// The alias and list forms, in half a card: each box as wide as the card and the
+      /// button on a row of its own under the boxes at the card's right edge, where beside
+      /// the button the box was about 120 pixels at 1280 and its example read
+      /// "person@examp" and "team@example." (the final check of Tier 2, g3 defect 5). A
+      /// message under a box moves the button down with it.
+      /// </summary>
+      [Theory]
+      [InlineData("AddAliasForm", "AddAliasButton", 2, "NewAliasNameRow", "NewAliasValueRow")]
+      [InlineData("AddListForm", "AddListButton", 1, "NewDistAddressRow")]
+      public void TheHalfCardForms_GiveEachBoxTheCardsWidth_TheButtonUnderThem(string form, string button, int buttonRow, params string[] rows)
+      {
+         XElement page = Page();
+         XElement grid = FormLineAssert.Named(page, form, "DomainsView.xaml");
+         Assert.Null(grid.Element(XName.Get("Grid.ColumnDefinitions", "http://schemas.microsoft.com/winfx/2006/xaml/presentation")));
+         for (int i = 0; i < rows.Length; i++)
+         {
+            XElement row = FormLineAssert.Named(page, rows[i], "DomainsView.xaml");
+            Assert.Equal(i == 0 ? null : i.ToString(System.Globalization.CultureInfo.InvariantCulture), (string)row.Attribute("Grid.Row"));
+            Assert.Null(row.Attribute("Grid.Column"));
+            Assert.Null(row.Attribute("LabelGroup"));
+         }
+
+         XElement add = FormLineAssert.Named(page, button, "DomainsView.xaml");
+         Assert.Equal(buttonRow.ToString(System.Globalization.CultureInfo.InvariantCulture), (string)add.Attribute("Grid.Row"));
+         Assert.Equal("Right", (string)add.Attribute("HorizontalAlignment"));
+         Assert.Same(grid, add.Parent);
       }
 
       [Fact]

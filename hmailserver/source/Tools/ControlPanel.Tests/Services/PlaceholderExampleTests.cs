@@ -49,8 +49,11 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheExamplesAreMarkedAsExamples()
       {
          string feature = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "FeatureSettingsView.xaml.cs"));
-         Assert.Contains("Label = L(\"Override DNS server (empty = the name servers Windows uses)\"), Placeholder = F(\"e.g. {0}\", \"1.1.1.1\")", feature, StringComparison.Ordinal);
-         Assert.Equal(3, Regex.Matches(feature, Regex.Escape("Placeholder = F(\"e.g. {0}\", \"http://localhost:4318\")")).Count);
+         // The settings rows hold the bare example and their boxes mark it
+         // (ExamplePlaceholder.Shown; PlaceholderExamplesTests).
+         Assert.Contains("Label = L(\"Override DNS server (empty = the name servers Windows uses)\"), Placeholder = \"1.1.1.1\"", feature, StringComparison.Ordinal);
+         Assert.Equal(3, Regex.Matches(feature, Regex.Escape("Placeholder = \"http://localhost:4318\"")).Count);
+         Assert.Contains("PlaceholderText = ExamplePlaceholder.Shown(Placeholder)", feature, StringComparison.Ordinal);
          // A placeholder written as English in every language, "e.g. 127.0.0.1", is gone.
          Assert.DoesNotContain("Placeholder = \"e.g.", feature, StringComparison.Ordinal);
 

@@ -429,9 +429,6 @@
   <data name="A domain - the server needs one before it can receive mail" xml:space="preserve">
     <value>Домен - серверу потрібен домен, перш ніж він зможе приймати пошту</value>
   </data>
-  <data name="A domain hosted on this server" xml:space="preserve">
-    <value>Домен, який обслуговує цей сервер</value>
-  </data>
   <data name="A domain is required." xml:space="preserve">
     <value>Потрібен домен.</value>
   </data>
@@ -2019,9 +2016,6 @@
   </data>
   <data name="Autodiscover and autoconfig are served by the built-in HTTP listener." xml:space="preserve">
     <value>Autodiscover і autoconfig надає вбудований слухач HTTP.</value>
-  </data>
-  <data name="Automatic - 636 for LDAPS, 389 otherwise" xml:space="preserve">
-    <value>Автоматично — 636 для LDAPS, інакше 389</value>
   </data>
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>Автоматичні сертифікати (ACME)</value>
@@ -5333,12 +5327,6 @@
   <data name="Fair password." xml:space="preserve">
     <value>Посередній пароль.</value>
   </data>
-  <data name="Falls back to Data\ACME" xml:space="preserve">
-    <value>Відкочується до Data\ACME</value>
-  </data>
-  <data name="Falls back to the ACME certificate" xml:space="preserve">
-    <value>Відкочується до сертифіката ACME</value>
-  </data>
   <data name="Feedback" xml:space="preserve">
     <value>Зворотний зв'язок</value>
   </data>
@@ -5476,9 +5464,6 @@
   </data>
   <data name="For example 03:00, Sun 03:00 or Sat,Sun 02:00-05:00." xml:space="preserve">
     <value>Наприклад, 03:00, Sun 03:00 або Sat,Sun 02:00-05:00.</value>
-  </data>
-  <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
-    <value>Наприклад, 10.0.0.5 або 10.0.0.0/24</value>
   </data>
   <data name="For example a command-line virus scanner." xml:space="preserve">
     <value>Наприклад, антивірусний сканер з командного рядка.</value>
@@ -6535,9 +6520,6 @@
   <data name="Latest {0}; peak {1}" xml:space="preserve">
     <value>Останнє {0}; пік {1}</value>
   </data>
-  <data name="Leave both empty for plain HTTP" xml:space="preserve">
-    <value>Залиште обидва порожніми для звичайного HTTP</value>
-  </data>
   <data name="Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem." xml:space="preserve">
     <value>Залиште порожнім (або 0) для автоматичного вибору: 636, коли захист підключення — LDAPS, інакше 389. Порт виводиться з параметра захисту, щоб вибір LDAPS із забутим портом не спробував TLS на порту відкритого тексту — це завершується помилкою, схожою на проблему з сертифікатом.</value>
   </data>
@@ -6546,9 +6528,6 @@
   </data>
   <data name="Leave empty to keep the current password." xml:space="preserve">
     <value>Залиште порожнім, щоб зберегти поточний пароль.</value>
-  </data>
-  <data name="Leave empty to test only the infrastructure" xml:space="preserve">
-    <value>Залиште порожнім, щоб перевірити лише інфраструктуру</value>
   </data>
   <data name="Leave the host empty and the domain has no opinion: the server-wide smart host applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination." xml:space="preserve">
     <value>Залиште вузол порожнім — і домен не матиме власної думки: застосовується загальносерверний смарт-хост, точнісінько як до появи цього параметра. Маршрут усе одно переважає обох, бо маршрут — це твердження про призначення.</value>
@@ -6561,6 +6540,12 @@
   </data>
   <data name="Left empty, HTML messages carry the plain text with its line breaks." xml:space="preserve">
     <value>Якщо поле порожнє, HTML-повідомлення несуть звичайний текст з його розривами рядків.</value>
+  </data>
+  <data name="Left empty, the ACME certificate is used." xml:space="preserve">
+    <value>Якщо залишити порожнім, використовується сертифікат ACME.</value>
+  </data>
+  <data name="Left empty, the key may act on every domain." xml:space="preserve">
+    <value>Якщо залишити порожнім, ключ може діяти в усіх доменах.</value>
   </data>
   <data name="Left empty, the server uses the shipped filter, {0} - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile sign-in name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>Якщо залишити порожнім, сервер використовує фільтр із постачання {0}: спершу objectCategory, бо він індексований в Active Directory, і sAMAccountName, бо саме його зберігає вкладка «Каталог Windows» облікового запису. %u — ім’я користувача облікового запису в Active Directory, %d — його домен AD, %m — його повна поштова адреса; усі три екрануються перед підстановкою, тому зловмисне ім’я входу не зможе переписати фільтр. Фільтр, якому відповідає більше ніж один запис, навмисно не автентифікує нікого.</value>
@@ -8942,9 +8927,6 @@
   <data name="Opportunistic" xml:space="preserve">
     <value>Опортуністичний</value>
   </data>
-  <data name="Optional" xml:space="preserve">
-    <value>Необов'язково</value>
-  </data>
   <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
     <value>Необов'язковий інший текст для колег — відправників, чия адреса належить цьому серверу. Він ніколи не залишає сервер, тому може сказати більше, ніж повідомлення вище. Порожнє означає повідомлення вище.</value>
   </data>
@@ -9190,9 +9172,6 @@
   </data>
   <data name="Paste the certificate, or two while the provider rolls its key over. It is never shown again: the line below says what is held." xml:space="preserve">
     <value>Вставте сертифікат або два, поки постачальник змінює ключ. Він більше ніколи не показується: рядок нижче повідомляє, що збережено.</value>
-  </data>
-  <data name="Path to the issuer's public key" xml:space="preserve">
-    <value>Шлях до відкритого ключа видавця</value>
   </data>
   <data name="Path: https://endpoint/bucket/key" xml:space="preserve">
     <value>Шлях: https://endpoint/bucket/key</value>
@@ -11595,9 +11574,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Server" xml:space="preserve">
     <value>Сервер</value>
-  </data>
-  <data name="Server (localhost)" xml:space="preserve">
-    <value>Сервер (localhost)</value>
   </data>
   <data name="Server administrator" xml:space="preserve">
     <value>Адміністратор сервера</value>
@@ -14834,6 +14810,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="User search _filter" xml:space="preserve">
     <value>_Фільтр пошуку користувачів</value>
   </data>
+  <data name="Usually the client ID of this server's registration with the identity provider." xml:space="preserve">
+    <value>Зазвичай це ідентифікатор клієнта, під яким цей сервер зареєстровано в постачальника ідентичності.</value>
+  </data>
   <data name="VAPID private key, to bring the pair from another server (leave empty to keep current)" xml:space="preserve">
     <value>Закритий ключ VAPID, щоб перенести пару з іншого сервера (залиште порожнім, щоб зберегти поточний)</value>
   </data>
@@ -16565,9 +16544,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="example.com is that domain alone; .example.com is the domain and everything beneath it." xml:space="preserve">
     <value>example.com - лише цей домен; .example.com - домен і все, що під ним.</value>
   </data>
-  <data name="example.com, example.net - empty means every domain" xml:space="preserve">
-    <value>example.com, example.net — порожньо означає всі домени</value>
-  </data>
   <data name="external account" xml:space="preserve">
     <value>зовнішній обліковий запис</value>
   </data>
@@ -17309,9 +17285,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>записувати журнал до бази даних</value>
-  </data>
-  <data name="your application / client ID" xml:space="preserve">
-    <value>ідентифікатор вашої програми / клієнта</value>
   </data>
   <data name="{0} (a value this Control Panel does not know)" xml:space="preserve">
     <value>{0} (значення, невідоме цій Панелі керування)</value>

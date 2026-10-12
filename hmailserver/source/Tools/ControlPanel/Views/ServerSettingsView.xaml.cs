@@ -632,7 +632,7 @@ namespace hMailServer.ControlPanel.Views
             if (Numeric)
                return number_ = NumberEditor(shown, Minimum, Minimum, Maximum);
 
-            box_ = TextEditor(Convert.ToString(shown), Placeholder);
+            box_ = TextEditor(Convert.ToString(shown), ExamplePlaceholder.Shown(Placeholder));
             return BrowseFile || BrowseFolder ? WithBrowse(box_, BrowseFolder, FileFilter) : box_;
          }
 
@@ -868,7 +868,7 @@ namespace hMailServer.ControlPanel.Views
                current = IniStore.Read(Path, Default);
 
             loaded_ = (current ?? "").Trim();
-            box_ = TextEditor(current, Placeholder);
+            box_ = TextEditor(current, ExamplePlaceholder.Shown(Placeholder));
             return BrowseFolder ? WithBrowse(box_, folder: true, null) : box_;
          }
 
@@ -2500,7 +2500,6 @@ namespace hMailServer.ControlPanel.Views
             Path = "OutboundOAuth2Hosts",
             Label = L("Hosts that use OAuth2 (comma separated; empty = none)"),
             Default = "smtp.office365.com",
-            Placeholder = "smtp.office365.com",
             Blurb = Sentences(L("Only the hosts named here get a bearer token, whether the smart host, a route's host or a domain's relay host; every other host keeps password authentication."), L("A token presented to the wrong host is a leaked token.")),
             IniStore = iniStore_
          });
@@ -2528,7 +2527,6 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "OutboundOAuth2Scope",
             Label = L("Scope (empty = the Microsoft default)"),
-            Placeholder = "https://outlook.office365.com/.default",
             IniStore = iniStore_
          });
          oauth.Settings.Add(new IniText
@@ -2548,7 +2546,6 @@ namespace hMailServer.ControlPanel.Views
             Path = "FetchOAuth2Hosts",
             Label = L("External-account hosts to fetch from with OAuth2 (comma separated; empty = none)"),
             Default = "outlook.office365.com",
-            Placeholder = "outlook.office365.com",
             Blurb = L("External accounts whose server is named here sign in with a bearer token from the same token endpoint above; every other external account keeps USER/PASS. Collecting from Microsoft 365 with a password has not been possible since 2022."),
             IniStore = iniStore_
          });
@@ -3360,7 +3357,6 @@ namespace hMailServer.ControlPanel.Views
             Path = "TlsCipherSuites13",
             Label = L("TLS 1.3 cipher suites (empty = OpenSSL defaults)"),
             Monospaced = true,
-            Placeholder = "TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256",
             Blurb = L("TLS 1.3 has its own suite list, its own names and its own setter, so the cipher list above does not restrict it. Colon separated, most preferred first, using the RFC 8446 names (TLS_AES_256_GCM_SHA384, TLS_CHACHA20_POLY1305_SHA256, TLS_AES_128_GCM_SHA256, TLS_AES_128_CCM_SHA256, TLS_AES_128_CCM_8_SHA256) - not the OpenSSL cipher-list names. Leave empty to keep OpenSSL's defaults; a name this build does not recognise is skipped and reported rather than failing the whole list."),
             IniStore = iniStore_
          });
@@ -5931,12 +5927,12 @@ namespace hMailServer.ControlPanel.Views
          // variable: a field is marked where this program can tie it to its setting,
          // and this sentence names them all, so none of them is a surprise at save.
          // It goes before the read's sentence, whose reason is last and may end in
-         // With Try again, which reads the page again as Reload does, as every list
-         // page's failed read has (review finding F179); nothing is unsaved yet.
          // the runtime's text in brackets with no full stop, which a sentence after
          // it ran on from.
          string readSentence = ServerSettingsPageStatus.ReadSentence(failedReads_, diag_);
          string environmentSentence = EnvironmentSettings.Notice(IniFeatureStore.EnvironmentManaged());
+         // With Try again, which reads the page again as Reload does, as every list
+         // page's failed read has (review finding F179); nothing is unsaved yet.
          if (!string.IsNullOrEmpty(readSentence))
             ShowNotice_(Sentences(environmentSentence, readSentence), ComErrorText.LevelFor(linkLost_), () => Reload_Click(this, null));
          else
@@ -6050,12 +6046,12 @@ namespace hMailServer.ControlPanel.Views
       /// The page's notice, above the first card of the tab on screen (PlaceNotice_),
       /// or nothing when there is nothing to say - which is the ordinary case, and is
       /// why a page that read cleanly shows no notice at all rather than a line
-         // Try again goes with a sentence about a read that failed, and with no other.
-         ReadFailure.TryAgainOn(StatusNotice, string.IsNullOrEmpty(sentence) ? null : tryAgain);
       /// confirming that nothing went wrong.
       /// </summary>
       private void ShowNotice_(string sentence, StatusLevel level, Action tryAgain = null)
       {
+         // Try again goes with a sentence about a read that failed, and with no other.
+         ReadFailure.TryAgainOn(StatusNotice, string.IsNullOrEmpty(sentence) ? null : tryAgain);
          if (string.IsNullOrEmpty(sentence))
          {
             StatusNotice.Visibility = Visibility.Collapsed;

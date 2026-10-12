@@ -50,7 +50,7 @@
                            Style="{StaticResource TextCaption}" Margin="0,4,0,20" />
 
                 <scaffold:FieldRow Label="{loc:L '_Server'}">
-                    <ui:TextBox x:Name="HostBox" PlaceholderText="{loc:L 'Server (localhost)'}" Text="localhost">
+                    <ui:TextBox x:Name="HostBox" Text="localhost">
                         <ui:TextBox.Icon><ui:SymbolIcon Symbol="Server24" /></ui:TextBox.Icon>
                     </ui:TextBox>
                 </scaffold:FieldRow>

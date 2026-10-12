@@ -429,9 +429,6 @@
   <data name="A domain - the server needs one before it can receive mail" xml:space="preserve">
     <value>Doména - server nějakou potřebuje, než může přijímat poštu</value>
   </data>
-  <data name="A domain hosted on this server" xml:space="preserve">
-    <value>Doména hostovaná na tomto serveru</value>
-  </data>
   <data name="A domain is required." xml:space="preserve">
     <value>Doména je povinná.</value>
   </data>
@@ -2019,9 +2016,6 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Autodiscover and autoconfig are served by the built-in HTTP listener." xml:space="preserve">
     <value>Autodiscover a autoconfig poskytuje vestavěný HTTP listener.</value>
-  </data>
-  <data name="Automatic - 636 for LDAPS, 389 otherwise" xml:space="preserve">
-    <value>Automaticky – 636 pro LDAPS, jinak 389</value>
   </data>
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>Automatické certifikáty (ACME)</value>
@@ -5333,12 +5327,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Fair password." xml:space="preserve">
     <value>Ucházející heslo.</value>
   </data>
-  <data name="Falls back to Data\ACME" xml:space="preserve">
-    <value>Záložně Data\ACME</value>
-  </data>
-  <data name="Falls back to the ACME certificate" xml:space="preserve">
-    <value>Záložně certifikát ACME</value>
-  </data>
   <data name="Feedback" xml:space="preserve">
     <value>Zpětná vazba</value>
   </data>
@@ -5476,9 +5464,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="For example 03:00, Sun 03:00 or Sat,Sun 02:00-05:00." xml:space="preserve">
     <value>Například 03:00, Sun 03:00 nebo Sat,Sun 02:00-05:00.</value>
-  </data>
-  <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
-    <value>Například 10.0.0.5 nebo 10.0.0.0/24</value>
   </data>
   <data name="For example a command-line virus scanner." xml:space="preserve">
     <value>Například antivirový skener z příkazového řádku.</value>
@@ -6535,9 +6520,6 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Latest {0}; peak {1}" xml:space="preserve">
     <value>Poslední {0}; špička {1}</value>
   </data>
-  <data name="Leave both empty for plain HTTP" xml:space="preserve">
-    <value>Pro prostý protokol HTTP nechte obě pole prázdná</value>
-  </data>
   <data name="Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem." xml:space="preserve">
     <value>Nechte prázdné (nebo 0) pro automatickou volbu: 636, když je zabezpečení připojení LDAPS, jinak 389. Port se odvozuje z nastavení zabezpečení, aby volba LDAPS a zapomenutý port nevedly k pokusu o TLS proti portu pro otevřený text, což selhává způsobem, který vypadá jako problém s certifikátem.</value>
   </data>
@@ -6546,9 +6528,6 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Leave empty to keep the current password." xml:space="preserve">
     <value>Ponechte prázdné pro zachování stávajícího hesla.</value>
-  </data>
-  <data name="Leave empty to test only the infrastructure" xml:space="preserve">
-    <value>Chcete-li otestovat pouze infrastrukturu, nechte prázdné</value>
   </data>
   <data name="Leave the host empty and the domain has no opinion: the server-wide smart host applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination." xml:space="preserve">
     <value>Nechte hostitele prázdného a doména nemá žádný názor: uplatní se smart host pro celý server, přesně jako předtím, než toto nastavení existovalo. Trasa má stále přednost před oběma, protože trasa je tvrzení o cíli.</value>
@@ -6561,6 +6540,12 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Left empty, HTML messages carry the plain text with its line breaks." xml:space="preserve">
     <value>Když zůstane prázdné, zprávy HTML nesou prostý text i s konci řádků.</value>
+  </data>
+  <data name="Left empty, the ACME certificate is used." xml:space="preserve">
+    <value>Když zůstane prázdné, použije se certifikát ACME.</value>
+  </data>
+  <data name="Left empty, the key may act on every domain." xml:space="preserve">
+    <value>Když zůstane prázdné, smí klíč působit na každou doménu.</value>
   </data>
   <data name="Left empty, the server uses the shipped filter, {0} - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile sign-in name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>Když zůstane prázdné, použije server dodávaný filtr {0} – objectCategory na prvním místě, protože je v Active Directory indexován, a sAMAccountName proto, že právě to ukládá karta Adresář Windows u účtu. %u je uživatelské jméno účtu v Active Directory, %d jeho AD doména a %m jeho celá poštovní adresa; všechny tři se před dosazením escapují, takže nepřátelské přihlašovací jméno nemůže filtr přepsat. Filtr, který odpovídá více než jedné položce, záměrně neověří nikoho.</value>
@@ -8942,9 +8927,6 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Opportunistic" xml:space="preserve">
     <value>Oportunistické</value>
   </data>
-  <data name="Optional" xml:space="preserve">
-    <value>Volitelné</value>
-  </data>
   <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
     <value>Volitelný jiný text pro kolegy - odesílatele, jejichž adresa patří tomuto serveru. Nikdy neopustí server, takže může říct více než zpráva výše. Prázdné znamená zprávu výše.</value>
   </data>
@@ -9190,9 +9172,6 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Paste the certificate, or two while the provider rolls its key over. It is never shown again: the line below says what is held." xml:space="preserve">
     <value>Vložte certifikát, nebo dva, když poskytovatel mění klíč. Už nikdy se nezobrazí: řádek níže říká, co je uloženo.</value>
-  </data>
-  <data name="Path to the issuer's public key" xml:space="preserve">
-    <value>Cesta k veřejnému klíči vydavatele</value>
   </data>
   <data name="Path: https://endpoint/bucket/key" xml:space="preserve">
     <value>Cesta: https://endpoint/bucket/key</value>
@@ -11595,9 +11574,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Server" xml:space="preserve">
     <value>Server</value>
-  </data>
-  <data name="Server (localhost)" xml:space="preserve">
-    <value>Server (localhost)</value>
   </data>
   <data name="Server administrator" xml:space="preserve">
     <value>Správce serveru</value>
@@ -14834,6 +14810,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="User search _filter" xml:space="preserve">
     <value>_Filtr hledání uživatelů</value>
   </data>
+  <data name="Usually the client ID of this server's registration with the identity provider." xml:space="preserve">
+    <value>Obvykle ID klienta, pod kterým je tento server registrován u poskytovatele identity.</value>
+  </data>
   <data name="VAPID private key, to bring the pair from another server (leave empty to keep current)" xml:space="preserve">
     <value>Soukromý klíč VAPID pro přenesení páru z jiného serveru (nechte prázdné, aby zůstal současný)</value>
   </data>
@@ -16565,9 +16544,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="example.com is that domain alone; .example.com is the domain and everything beneath it." xml:space="preserve">
     <value>example.com je jen tato doména; .example.com je doména a vše pod ní.</value>
   </data>
-  <data name="example.com, example.net - empty means every domain" xml:space="preserve">
-    <value>example.com, example.net – prázdné znamená každou doménu</value>
-  </data>
   <data name="external account" xml:space="preserve">
     <value>externí účet</value>
   </data>
@@ -17309,9 +17285,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>zapisovat log do databáze</value>
-  </data>
-  <data name="your application / client ID" xml:space="preserve">
-    <value>ID vaší aplikace / klienta</value>
   </data>
   <data name="{0} (a value this Control Panel does not know)" xml:space="preserve">
     <value>{0} (hodnota, kterou tento Control Panel nezná)</value>

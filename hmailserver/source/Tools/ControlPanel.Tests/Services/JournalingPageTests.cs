@@ -44,7 +44,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("user@example.com", JournalRuleText.TargetExample(true));
 
          string page = Page();
-         Assert.Contains("scope_.SelectionChanged += (s, e) => target_.PlaceholderText = JournalRuleText.TargetExample(scope_.SelectedIndex == 1);", page, StringComparison.Ordinal);
+         Assert.Contains("scope_.SelectionChanged += (s, e) => target_.PlaceholderText = ExamplePlaceholder.Of(JournalRuleText.TargetExample(scope_.SelectedIndex == 1));", page, StringComparison.Ordinal);
          Assert.DoesNotContain("A domain, or an account address", page, StringComparison.Ordinal);
          Assert.DoesNotContain("Where the copy goes", page, StringComparison.Ordinal);
       }

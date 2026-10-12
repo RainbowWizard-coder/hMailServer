@@ -426,9 +426,6 @@
   <data name="A domain - the server needs one before it can receive mail" xml:space="preserve">
     <value>En domän - servern behöver en innan den kan ta emot post</value>
   </data>
-  <data name="A domain hosted on this server" xml:space="preserve">
-    <value>En domän som hyses på den här servern</value>
-  </data>
   <data name="A domain is required." xml:space="preserve">
     <value>En domän krävs.</value>
   </data>
@@ -1992,9 +1989,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Autodiscover and autoconfig are served by the built-in HTTP listener." xml:space="preserve">
     <value>Autodiscover och autoconfig serveras av den inbyggda HTTP-lyssnaren.</value>
-  </data>
-  <data name="Automatic - 636 for LDAPS, 389 otherwise" xml:space="preserve">
-    <value>Automatiskt - 636 för LDAPS, annars 389</value>
   </data>
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>Automatiska certifikat (ACME)</value>
@@ -5251,12 +5245,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Fair password." xml:space="preserve">
     <value>Hyfsat lösenord.</value>
   </data>
-  <data name="Falls back to Data\ACME" xml:space="preserve">
-    <value>Faller tillbaka på Data\ACME</value>
-  </data>
-  <data name="Falls back to the ACME certificate" xml:space="preserve">
-    <value>Faller tillbaka på ACME-certifikatet</value>
-  </data>
   <data name="Feedback" xml:space="preserve">
     <value>Återkoppling</value>
   </data>
@@ -5394,9 +5382,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="For example 03:00, Sun 03:00 or Sat,Sun 02:00-05:00." xml:space="preserve">
     <value>Till exempel 03:00, Sun 03:00 eller Sat,Sun 02:00-05:00.</value>
-  </data>
-  <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
-    <value>Till exempel 10.0.0.5 eller 10.0.0.0/24</value>
   </data>
   <data name="For example a command-line virus scanner." xml:space="preserve">
     <value>Till exempel en kommandoradsvirusskanner.</value>
@@ -6453,9 +6438,6 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Latest {0}; peak {1}" xml:space="preserve">
     <value>Senaste {0}; topp {1}</value>
   </data>
-  <data name="Leave both empty for plain HTTP" xml:space="preserve">
-    <value>Lämna båda tomma för vanlig HTTP</value>
-  </data>
   <data name="Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem." xml:space="preserve">
     <value>Lämna tomt (eller 0) för automatiskt: 636 när anslutningssäkerheten är LDAPS, annars 389. Porten härleds från säkerhetsinställningen så att den som väljer LDAPS och glömmer porten inte kan försöka TLS mot klartextporten, vilket misslyckas på ett sätt som ser ut som ett certifikatproblem.</value>
   </data>
@@ -6464,9 +6446,6 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Leave empty to keep the current password." xml:space="preserve">
     <value>Lämna tomt för att behålla det nuvarande lösenordet.</value>
-  </data>
-  <data name="Leave empty to test only the infrastructure" xml:space="preserve">
-    <value>Lämna tomt för att bara testa infrastrukturen</value>
   </data>
   <data name="Leave the host empty and the domain has no opinion: the server-wide smart host applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination." xml:space="preserve">
     <value>Lämna värden tom så har domänen ingen åsikt: den serverövergripande smarta värden gäller, exakt som innan den här inställningen fanns. En rutt vinner fortfarande över båda, eftersom en rutt är ett uttalande om målet.</value>
@@ -6479,6 +6458,12 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Left empty, HTML messages carry the plain text with its line breaks." xml:space="preserve">
     <value>Lämnas fältet tomt får HTML-meddelanden den rena texten med radbrytningarna.</value>
+  </data>
+  <data name="Left empty, the ACME certificate is used." xml:space="preserve">
+    <value>Lämnas det tomt används ACME-certifikatet.</value>
+  </data>
+  <data name="Left empty, the key may act on every domain." xml:space="preserve">
+    <value>Lämnas det tomt får nyckeln agera på varje domän.</value>
   </data>
   <data name="Left empty, the server uses the shipped filter, {0} - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile sign-in name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>Lämnat tomt använder servern det levererade filtret, {0} - objectCategory först eftersom det är indexerat i Active Directory, och sAMAccountName eftersom det är vad kontots flik Windows-katalog lagrar. %u är kontots Active Directory-användarnamn, %d dess AD-domän, %m dess fullständiga e-postadress; alla tre escapas innan de sätts in, så ett fientligt inloggningsnamn kan inte skriva om filtret. Ett filter som matchar mer än en post autentiserar ingen, med avsikt.</value>
@@ -8836,9 +8821,6 @@ Inget som redan finns där tas bort.</value>
   <data name="Opportunistic" xml:space="preserve">
     <value>Opportunistisk</value>
   </data>
-  <data name="Optional" xml:space="preserve">
-    <value>Valfritt</value>
-  </data>
   <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
     <value>Valfri annan text till kollegor - avsändare vars adress hör till den här servern. Den lämnar aldrig servern och kan därför säga mer än meddelandet ovan. Tomt betyder meddelandet ovan.</value>
   </data>
@@ -9084,9 +9066,6 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="Paste the certificate, or two while the provider rolls its key over. It is never shown again: the line below says what is held." xml:space="preserve">
     <value>Klistra in certifikatet, eller två medan leverantören byter nyckel. Det visas aldrig igen: raden nedan säger vad som lagras.</value>
-  </data>
-  <data name="Path to the issuer's public key" xml:space="preserve">
-    <value>Sökväg till utfärdarens publika nyckel</value>
   </data>
   <data name="Path: https://endpoint/bucket/key" xml:space="preserve">
     <value>Sökväg: https://endpoint/bucket/key</value>
@@ -11444,9 +11423,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Server" xml:space="preserve">
     <value>Server</value>
-  </data>
-  <data name="Server (localhost)" xml:space="preserve">
-    <value>Server (localhost)</value>
   </data>
   <data name="Server administrator" xml:space="preserve">
     <value>Serveradministratör</value>
@@ -14647,6 +14623,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="User search _filter" xml:space="preserve">
     <value>Sök_filter för användare</value>
   </data>
+  <data name="Usually the client ID of this server's registration with the identity provider." xml:space="preserve">
+    <value>Vanligtvis klient-ID:t för den här serverns registrering hos identitetsleverantören.</value>
+  </data>
   <data name="VAPID private key, to bring the pair from another server (leave empty to keep current)" xml:space="preserve">
     <value>Privat VAPID-nyckel, för att ta med paret från en annan server (lämna tomt för att behålla nuvarande)</value>
   </data>
@@ -16372,9 +16351,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="example.com is that domain alone; .example.com is the domain and everything beneath it." xml:space="preserve">
     <value>example.com är bara den domänen; .example.com är domänen och allt under den.</value>
   </data>
-  <data name="example.com, example.net - empty means every domain" xml:space="preserve">
-    <value>example.com, example.net - tomt betyder varje domän</value>
-  </data>
   <data name="external account" xml:space="preserve">
     <value>externt konto</value>
   </data>
@@ -17107,9 +17083,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>skriv loggen till en databas</value>
-  </data>
-  <data name="your application / client ID" xml:space="preserve">
-    <value>ditt program- / klient-ID</value>
   </data>
   <data name="{0} (a value this Control Panel does not know)" xml:space="preserve">
     <value>{0} (ett värde som den här Kontrollpanelen inte känner till)</value>

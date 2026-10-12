@@ -3888,6 +3888,23 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   administrator's user name and password. Only a page with no session at all says "Sign in to a server first.".
   `FailureStateTests` holds it.
 
+- **Fixed: placeholders that read as values already set.** A placeholder is an example of what the box takes, marked as
+  one - "e.g. mail.example.com" - and never the field's name, its default or what an empty box means (review findings
+  F138 and F303), but some forty boxes showed a bare example or their default: the Updates page's Unattended window "Sun
+  03:00" under "empty = never apply on its own", which read as a schedule in force, and its feed URL box the real feed's
+  address; Directory authentication's Port "Automatic - 636 for LDAPS, 389 otherwise", cut at its box's edge, and its
+  Timeout "10"; Directory synchronisation's five attribute and number boxes their defaults; the settings pages' hosts,
+  addresses, folders and URLs bare; and sentences - "Falls back to the ACME certificate", "Leave both empty for plain
+  HTTP", "Optional", "your application / client ID" - in boxes whose caption or hint should say them. Every example is
+  now marked, by the box where a settings row holds it (`ExamplePlaceholder.Shown`); a default or what an empty box
+  means is the caption's or the hint's, two of them new hints in all 17 languages ("Left empty, the ACME certificate is
+  used.", "Left empty, the key may act on every domain.") and the OAuth2 audience a hint of its own; and the sign-in
+  card's server box, whose placeholder repeated its caption, shows an example. On the Domains page the alias form's
+  Delivers to and the list form's address are as wide as their half card, their button under them at the right edge,
+  where beside the button the boxes were about 120 pixels at 1280 and their examples read "person@examp" and
+  "team@example.". `PlaceholderExamplesTests` holds every placeholder a view writes to a marked example or one of a few
+  kinds named with their reason.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -426,9 +426,6 @@
   <data name="A domain - the server needs one before it can receive mail" xml:space="preserve">
     <value>Un domaine - le serveur en a besoin d'un avant de pouvoir recevoir du courrier</value>
   </data>
-  <data name="A domain hosted on this server" xml:space="preserve">
-    <value>Un domaine hébergé sur ce serveur</value>
-  </data>
   <data name="A domain is required." xml:space="preserve">
     <value>Un domaine est requis.</value>
   </data>
@@ -1992,9 +1989,6 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   </data>
   <data name="Autodiscover and autoconfig are served by the built-in HTTP listener." xml:space="preserve">
     <value>Autodiscover et autoconfig sont servis par l'écouteur HTTP intégré.</value>
-  </data>
-  <data name="Automatic - 636 for LDAPS, 389 otherwise" xml:space="preserve">
-    <value>Automatique - 636 pour LDAPS, 389 sinon</value>
   </data>
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>Certificats automatiques (ACME)</value>
@@ -5251,12 +5245,6 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Fair password." xml:space="preserve">
     <value>Mot de passe moyen.</value>
   </data>
-  <data name="Falls back to Data\ACME" xml:space="preserve">
-    <value>Se rabat sur Data\ACME</value>
-  </data>
-  <data name="Falls back to the ACME certificate" xml:space="preserve">
-    <value>Se rabat sur le certificat ACME</value>
-  </data>
   <data name="Feedback" xml:space="preserve">
     <value>Retours</value>
   </data>
@@ -5394,9 +5382,6 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   </data>
   <data name="For example 03:00, Sun 03:00 or Sat,Sun 02:00-05:00." xml:space="preserve">
     <value>Par exemple 03:00, Sun 03:00 ou Sat,Sun 02:00-05:00.</value>
-  </data>
-  <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
-    <value>Par exemple 10.0.0.5 ou 10.0.0.0/24</value>
   </data>
   <data name="For example a command-line virus scanner." xml:space="preserve">
     <value>Par exemple un antivirus en ligne de commande.</value>
@@ -6453,9 +6438,6 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Latest {0}; peak {1}" xml:space="preserve">
     <value>Dernier {0} ; pic {1}</value>
   </data>
-  <data name="Leave both empty for plain HTTP" xml:space="preserve">
-    <value>Laissez les deux vides pour du HTTP simple</value>
-  </data>
   <data name="Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem." xml:space="preserve">
     <value>Laissez vide (ou 0) pour le mode automatique : 636 quand la sécurité de connexion est LDAPS, 389 sinon. Le port est déduit du réglage de sécurité, pour que choisir LDAPS en oubliant le port ne puisse pas tenter du TLS contre le port en clair - ce qui échoue d'une façon qui ressemble à un problème de certificat.</value>
   </data>
@@ -6464,9 +6446,6 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   </data>
   <data name="Leave empty to keep the current password." xml:space="preserve">
     <value>Laissez vide pour conserver le mot de passe actuel.</value>
-  </data>
-  <data name="Leave empty to test only the infrastructure" xml:space="preserve">
-    <value>Laissez vide pour ne tester que l'infrastructure</value>
   </data>
   <data name="Leave the host empty and the domain has no opinion: the server-wide smart host applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination." xml:space="preserve">
     <value>Laissez l'hôte vide et le domaine n'exprime aucun avis : le smart host global du serveur s'applique, exactement comme avant l'existence de ce réglage. Une route l'emporte toujours sur les deux, parce qu'une route est une affirmation sur la destination.</value>
@@ -6479,6 +6458,12 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   </data>
   <data name="Left empty, HTML messages carry the plain text with its line breaks." xml:space="preserve">
     <value>Laissé vide, les messages HTML portent le texte brut avec ses sauts de ligne.</value>
+  </data>
+  <data name="Left empty, the ACME certificate is used." xml:space="preserve">
+    <value>Laissé vide, le certificat ACME est utilisé.</value>
+  </data>
+  <data name="Left empty, the key may act on every domain." xml:space="preserve">
+    <value>Laissé vide, la clé peut agir sur tous les domaines.</value>
   </data>
   <data name="Left empty, the server uses the shipped filter, {0} - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile sign-in name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>Laissé vide, le serveur utilise le filtre livré, {0} - objectCategory d'abord parce qu'il est indexé dans Active Directory, et sAMAccountName parce que c'est ce que stocke l'onglet Annuaire Windows du compte. %u est le nom d'utilisateur Active Directory du compte, %d son domaine AD, %m son adresse de messagerie complète ; les trois sont échappés avant substitution, si bien qu'un nom de connexion hostile ne peut pas réécrire le filtre. Un filtre qui correspond à plus d'une entrée n'authentifie personne, par conception.</value>
@@ -8836,9 +8821,6 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Opportunistic" xml:space="preserve">
     <value>Opportuniste</value>
   </data>
-  <data name="Optional" xml:space="preserve">
-    <value>Facultatif</value>
-  </data>
   <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
     <value>Texte différent facultatif pour les collègues - les expéditeurs dont l'adresse appartient à ce serveur. Il ne quitte jamais le serveur et peut donc en dire plus que le message ci-dessus. Vide signifie le message ci-dessus.</value>
   </data>
@@ -9084,9 +9066,6 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="Paste the certificate, or two while the provider rolls its key over. It is never shown again: the line below says what is held." xml:space="preserve">
     <value>Collez le certificat, ou deux pendant que le fournisseur renouvelle sa clé. Il n'est plus jamais affiché : la ligne ci-dessous indique ce qui est détenu.</value>
-  </data>
-  <data name="Path to the issuer's public key" xml:space="preserve">
-    <value>Chemin vers la clé publique de l'émetteur</value>
   </data>
   <data name="Path: https://endpoint/bucket/key" xml:space="preserve">
     <value>Chemin : https://endpoint/bucket/key</value>
@@ -11444,9 +11423,6 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="Server" xml:space="preserve">
     <value>Serveur</value>
-  </data>
-  <data name="Server (localhost)" xml:space="preserve">
-    <value>Serveur (localhost)</value>
   </data>
   <data name="Server administrator" xml:space="preserve">
     <value>Administrateur du serveur</value>
@@ -14647,6 +14623,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="User search _filter" xml:space="preserve">
     <value>_Filtre de recherche d'utilisateur</value>
   </data>
+  <data name="Usually the client ID of this server's registration with the identity provider." xml:space="preserve">
+    <value>En général, l'ID client de l'inscription de ce serveur chez le fournisseur d'identité.</value>
+  </data>
   <data name="VAPID private key, to bring the pair from another server (leave empty to keep current)" xml:space="preserve">
     <value>Clé privée VAPID, pour apporter la paire d'un autre serveur (laisser vide pour conserver l'actuelle)</value>
   </data>
@@ -16372,9 +16351,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="example.com is that domain alone; .example.com is the domain and everything beneath it." xml:space="preserve">
     <value>example.com n'est que ce domaine ; .example.com est le domaine et tout ce qui est en dessous.</value>
   </data>
-  <data name="example.com, example.net - empty means every domain" xml:space="preserve">
-    <value>example.com, example.net - vide signifie tous les domaines</value>
-  </data>
   <data name="external account" xml:space="preserve">
     <value>compte externe</value>
   </data>
@@ -17107,9 +17083,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>écrire le journal dans une base de données</value>
-  </data>
-  <data name="your application / client ID" xml:space="preserve">
-    <value>votre identifiant d'application / client</value>
   </data>
   <data name="{0} (a value this Control Panel does not know)" xml:space="preserve">
     <value>{0} (une valeur que ce Control Panel ne connaît pas)</value>

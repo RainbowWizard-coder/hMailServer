@@ -141,7 +141,7 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <scaffold:FieldRow x:Name="NewDomainRow" Label="{loc:L 'Do_main'}" Margin="0,0,8,0" LabelGroup="DomainLine">
-                            <ui:TextBox x:Name="NewDomainBox" PlaceholderText="example.org" />
+                            <ui:TextBox x:Name="NewDomainBox" />
                         </scaffold:FieldRow>
                         <Grid Grid.Column="1">
                             <Grid.RowDefinitions>
@@ -366,33 +366,26 @@
                              and half a card is too narrow for them: they read
                              "alias@domai" and "target@anyw", and at 1000 pixels
                              "alia" and "targ", with nothing to name either box.
-                             One above the other, so that each box has the card's
-                             width however narrow the window. Above the list: at
-                             the foot of the card the form was below the fold in a
-                             1280 by 800 window. -->
-                        <Grid x:Name="AddAliasForm" Margin="0,0,0,8" Grid.IsSharedSizeScope="True">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
+                             One above the other, each as wide as the card, and
+                             the button under them at the card's right edge: beside
+                             the button, Delivers to was about 120 pixels at 1280 and
+                             its example read "person@examp". Above the list: at the
+                             foot of the card the form was below the fold in a 1280
+                             by 800 window. -->
+                        <Grid x:Name="AddAliasForm" Margin="0,0,0,8">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
-                            <scaffold:FieldRow x:Name="NewAliasNameRow" Grid.ColumnSpan="2" Label="{loc:L 'Alias addr_ess'}" Margin="0,0,0,8">
+                            <scaffold:FieldRow x:Name="NewAliasNameRow" Label="{loc:L 'Alias addr_ess'}" Margin="0,0,0,8">
                                 <ui:TextBox x:Name="NewAliasName" FontSize="{DynamicResource AppFontSizeCaption}" />
                             </scaffold:FieldRow>
-                            <scaffold:FieldRow x:Name="NewAliasValueRow" Grid.Row="1" Label="{loc:L 'Deli_vers to'}" Margin="0,0,6,0" LabelGroup="AliasLine">
-                                <ui:TextBox x:Name="NewAliasValue" PlaceholderText="person@example.net" FontSize="{DynamicResource AppFontSizeCaption}" />
+                            <scaffold:FieldRow x:Name="NewAliasValueRow" Grid.Row="1" Label="{loc:L 'Deli_vers to'}" Margin="0,0,0,8">
+                                <ui:TextBox x:Name="NewAliasValue" FontSize="{DynamicResource AppFontSizeCaption}" />
                             </scaffold:FieldRow>
-                            <Grid Grid.Row="1" Grid.Column="1">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" SharedSizeGroup="AliasLine" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-                                <ui:Button x:Name="AddAliasButton" Grid.Row="1" Content="{loc:L 'Add a_lias'}" FontSize="{DynamicResource AppFontSizeCaption}" Click="AddAlias_Click"
-                                           VerticalAlignment="Top" Margin="0" />
-                            </Grid>
+                            <ui:Button x:Name="AddAliasButton" Grid.Row="2" Content="{loc:L 'Add a_lias'}" FontSize="{DynamicResource AppFontSizeCaption}" Click="AddAlias_Click"
+                                       HorizontalAlignment="Right" Margin="0" />
                         </Grid>
                         <!-- The floor: three rows of two lines, 36 pixels each (the
                              alias and its target at 16 pixels a line and the
@@ -439,24 +432,21 @@
 
                 <scaffold:Card x:Name="DistCard" Title="{loc:L 'Distribution lists'}" Padding="12" Margin="6,0,0,0">
                     <scaffold:FillPanel>
-                        <!-- Above the list, as the alias form is. -->
-                        <Grid x:Name="AddListForm" Margin="0,0,0,8" Grid.IsSharedSizeScope="True">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <scaffold:FieldRow x:Name="NewDistAddressRow" Label="{loc:L 'L_ist address'}" Margin="0,0,6,0" LabelGroup="ListLine">
+                        <!-- Above the list, as the alias form is, and shaped as it is:
+                             the box as wide as the card, the button under it at the
+                             right edge, where beside the button the box was about 120
+                             pixels at 1280 and its example read "team@example.". -->
+                        <Grid x:Name="AddListForm" Margin="0,0,0,8">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <scaffold:FieldRow x:Name="NewDistAddressRow" Label="{loc:L 'L_ist address'}" Margin="0,0,0,8">
                                 <ui:TextBox x:Name="NewDistAddress" FontSize="{DynamicResource AppFontSizeCaption}" />
                             </scaffold:FieldRow>
-                            <Grid Grid.Column="1">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" SharedSizeGroup="ListLine" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-                                <ui:Button x:Name="AddListButton" Grid.Row="1" Content="{loc:L 'Add lis_t'}" FontSize="{DynamicResource AppFontSizeCaption}" Click="AddDistList_Click"
-                                           VerticalAlignment="Top" Margin="0"
-                                           AutomationProperties.HelpText="{loc:L 'Add distribution list'}" ToolTip="{loc:L 'Add distribution list'}" />
-                            </Grid>
+                            <ui:Button x:Name="AddListButton" Grid.Row="1" Content="{loc:L 'Add lis_t'}" FontSize="{DynamicResource AppFontSizeCaption}" Click="AddDistList_Click"
+                                       HorizontalAlignment="Right" Margin="0"
+                                       AutomationProperties.HelpText="{loc:L 'Add distribution list'}" ToolTip="{loc:L 'Add distribution list'}" />
                         </Grid>
                         <!-- The floor: three rows of 34 pixels, the list's own pixel
                              above and below them, and one for layout rounding. -->

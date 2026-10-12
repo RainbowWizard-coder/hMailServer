@@ -426,9 +426,6 @@
   <data name="A domain - the server needs one before it can receive mail" xml:space="preserve">
     <value>Een domein - de server heeft er een nodig voordat hij mail kan ontvangen</value>
   </data>
-  <data name="A domain hosted on this server" xml:space="preserve">
-    <value>Een domein dat op deze server wordt gehost</value>
-  </data>
   <data name="A domain is required." xml:space="preserve">
     <value>Een domein is vereist.</value>
   </data>
@@ -1992,9 +1989,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Autodiscover and autoconfig are served by the built-in HTTP listener." xml:space="preserve">
     <value>Autodiscover en autoconfig worden geserveerd door de ingebouwde HTTP-listener.</value>
-  </data>
-  <data name="Automatic - 636 for LDAPS, 389 otherwise" xml:space="preserve">
-    <value>Automatisch - 636 voor LDAPS, anders 389</value>
   </data>
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>Automatische certificaten (ACME)</value>
@@ -5251,12 +5245,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Fair password." xml:space="preserve">
     <value>Redelijk wachtwoord.</value>
   </data>
-  <data name="Falls back to Data\ACME" xml:space="preserve">
-    <value>Valt terug op Data\ACME</value>
-  </data>
-  <data name="Falls back to the ACME certificate" xml:space="preserve">
-    <value>Valt terug op het ACME-certificaat</value>
-  </data>
   <data name="Feedback" xml:space="preserve">
     <value>Terugkoppeling</value>
   </data>
@@ -5394,9 +5382,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="For example 03:00, Sun 03:00 or Sat,Sun 02:00-05:00." xml:space="preserve">
     <value>Bijvoorbeeld 03:00, Sun 03:00 of Sat,Sun 02:00-05:00.</value>
-  </data>
-  <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
-    <value>Bijvoorbeeld 10.0.0.5 of 10.0.0.0/24</value>
   </data>
   <data name="For example a command-line virus scanner." xml:space="preserve">
     <value>Bijvoorbeeld een virusscanner op de opdrachtregel.</value>
@@ -6453,9 +6438,6 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Latest {0}; peak {1}" xml:space="preserve">
     <value>Laatste {0}; piek {1}</value>
   </data>
-  <data name="Leave both empty for plain HTTP" xml:space="preserve">
-    <value>Laat beide leeg voor gewone HTTP</value>
-  </data>
   <data name="Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem." xml:space="preserve">
     <value>Laat leeg (of 0) voor automatisch: 636 wanneer de verbindingsbeveiliging LDAPS is, anders 389. De poort wordt afgeleid van de beveiligingsinstelling, zodat LDAPS kiezen en de poort vergeten geen TLS kan proberen tegen de poort voor klare tekst, wat mislukt op een manier die op een certificaatprobleem lijkt.</value>
   </data>
@@ -6464,9 +6446,6 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Leave empty to keep the current password." xml:space="preserve">
     <value>Laat leeg om het huidige wachtwoord te behouden.</value>
-  </data>
-  <data name="Leave empty to test only the infrastructure" xml:space="preserve">
-    <value>Laat leeg om alleen de infrastructuur te testen</value>
   </data>
   <data name="Leave the host empty and the domain has no opinion: the server-wide smart host applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination." xml:space="preserve">
     <value>Laat de host leeg en het domein heeft geen mening: de serverbrede smart host geldt, precies zoals vóór het bestaan van deze instelling. Een route wint nog steeds van allebei, omdat een route een uitspraak over de bestemming is.</value>
@@ -6479,6 +6458,12 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Left empty, HTML messages carry the plain text with its line breaks." xml:space="preserve">
     <value>Leeg gelaten krijgen HTML-berichten de platte tekst, met de regeleinden.</value>
+  </data>
+  <data name="Left empty, the ACME certificate is used." xml:space="preserve">
+    <value>Leeg gelaten wordt het ACME-certificaat gebruikt.</value>
+  </data>
+  <data name="Left empty, the key may act on every domain." xml:space="preserve">
+    <value>Leeg gelaten mag de sleutel op elk domein werken.</value>
   </data>
   <data name="Left empty, the server uses the shipped filter, {0} - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile sign-in name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>Leeg gelaten gebruikt de server het meegeleverde filter, {0} - objectCategory eerst omdat dat in Active Directory geïndexeerd is, en sAMAccountName omdat dat is wat het tabblad Windows-directory van het account opslaat. %u is de Active Directory-gebruikersnaam van het account, %d zijn AD-domein, %m zijn volledige e-mailadres; alle drie worden vóór de substitutie geëscapet, zodat een vijandige aanmeldnaam het filter niet kan herschrijven. Een filter dat op meer dan één vermelding past, authenticeert niemand - met opzet.</value>
@@ -8836,9 +8821,6 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Opportunistic" xml:space="preserve">
     <value>Opportunistisch</value>
   </data>
-  <data name="Optional" xml:space="preserve">
-    <value>Optioneel</value>
-  </data>
   <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
     <value>Optioneel een andere tekst voor collega's - afzenders van wie het adres bij deze server hoort. Hij verlaat de server nooit en mag dus meer zeggen dan het bericht hierboven. Leeg betekent het bericht hierboven.</value>
   </data>
@@ -9084,9 +9066,6 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Paste the certificate, or two while the provider rolls its key over. It is never shown again: the line below says what is held." xml:space="preserve">
     <value>Plak het certificaat, of twee terwijl de provider zijn sleutel vervangt. Het wordt nooit meer getoond: de regel hieronder zegt wat er is opgeslagen.</value>
-  </data>
-  <data name="Path to the issuer's public key" xml:space="preserve">
-    <value>Pad naar de publieke sleutel van de uitgever</value>
   </data>
   <data name="Path: https://endpoint/bucket/key" xml:space="preserve">
     <value>Pad: https://endpoint/bucket/key</value>
@@ -11444,9 +11423,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Server" xml:space="preserve">
     <value>Server</value>
-  </data>
-  <data name="Server (localhost)" xml:space="preserve">
-    <value>Server (localhost)</value>
   </data>
   <data name="Server administrator" xml:space="preserve">
     <value>Serverbeheerder</value>
@@ -14647,6 +14623,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="User search _filter" xml:space="preserve">
     <value>Zoek_filter voor gebruikers</value>
   </data>
+  <data name="Usually the client ID of this server's registration with the identity provider." xml:space="preserve">
+    <value>Meestal de client-id van de registratie van deze server bij de identiteitsprovider.</value>
+  </data>
   <data name="VAPID private key, to bring the pair from another server (leave empty to keep current)" xml:space="preserve">
     <value>Privé VAPID-sleutel, om het paar van een andere server mee te nemen (leeg laten om de huidige te behouden)</value>
   </data>
@@ -16372,9 +16351,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="example.com is that domain alone; .example.com is the domain and everything beneath it." xml:space="preserve">
     <value>example.com is alleen dat domein; .example.com is het domein en alles eronder.</value>
   </data>
-  <data name="example.com, example.net - empty means every domain" xml:space="preserve">
-    <value>example.com, example.net - leeg betekent elk domein</value>
-  </data>
   <data name="external account" xml:space="preserve">
     <value>extern account</value>
   </data>
@@ -17107,9 +17083,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>het logboek naar een database schrijven</value>
-  </data>
-  <data name="your application / client ID" xml:space="preserve">
-    <value>uw toepassings- / client-id</value>
   </data>
   <data name="{0} (a value this Control Panel does not know)" xml:space="preserve">
     <value>{0} (een waarde die dit Control Panel niet kent)</value>

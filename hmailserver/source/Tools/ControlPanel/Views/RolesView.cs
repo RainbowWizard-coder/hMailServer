@@ -198,8 +198,8 @@ namespace hMailServer.ControlPanel.Views
          // box into a Chinese word in issue 156. The placeholders are examples,
          // where they said the captions above them again (review finding F087),
          // and are the same in every language: example.com is a name, not a word.
-         address_.PlaceholderText = "helpdesk@example.com"; // no-loc: an example address
-         domains_.PlaceholderText = "example.com, example.net"; // no-loc: example domains
+         address_.PlaceholderText = ExamplePlaceholder.Of("helpdesk@example.com"); // no-loc: an example address
+         domains_.PlaceholderText = ExamplePlaceholder.Of("example.com, example.net"); // no-loc: example domains
          address_.Margin = roleChoice_.Margin = domains_.Margin = new Thickness(0);
          accountRow_ = FormField_(L("_Account"), address_);
          form.Children.Add(accountRow_);

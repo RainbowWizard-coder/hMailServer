@@ -632,15 +632,17 @@ namespace hMailServer.ControlPanel.Views
             F("Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no \"never\" option.", ApiKeyStore.DefaultLifetimeDays));
          panel.Children.Add(expiresRow);
 
-         var domainsBox = new Wpf.Ui.Controls.TextBox { PlaceholderText = L("example.com, example.net - empty means every domain") };
+         // An example in the box, what an empty box means in the hint (docs/ControlPanelDesign.md).
+         var domainsBox = new Wpf.Ui.Controls.TextBox { PlaceholderText = ExamplePlaceholder.Of("example.com, example.net") }; // no-loc: example domains
          System.Windows.Automation.AutomationProperties.SetAutomationId(domainsBox, "apikeys-dialog-domains");
          FieldRow domainsRow = DialogFields.Field(L("_Domains it may act on (optional)"), domainsBox,
-            L("A key with a domain list is also refused the delivery-queue endpoints, because the queue is server-wide and cannot be filtered by domain."));
+            Sentences(L("Left empty, the key may act on every domain."),
+               L("A key with a domain list is also refused the delivery-queue endpoints, because the queue is server-wide and cannot be filtered by domain.")));
          panel.Children.Add(domainsRow);
 
          // One address or one range: the store takes a single value, so the
-         // caption is singular, and the example's "or" is the language's own.
-         var sourceBox = new Wpf.Ui.Controls.TextBox { PlaceholderText = L("For example 10.0.0.5 or 10.0.0.0/24") };
+         // caption is singular, and the example is one range.
+         var sourceBox = new Wpf.Ui.Controls.TextBox { PlaceholderText = ExamplePlaceholder.Of("10.0.0.0/24") }; // no-loc: an example range
          System.Windows.Automation.AutomationProperties.SetAutomationId(sourceBox, "apikeys-dialog-source");
          FieldRow sourceRow = DialogFields.Field(L("_Source address or range it may be used from (optional)"), sourceBox, L("Leave empty for any address"));
          sourceRow.Margin = new Thickness(0);

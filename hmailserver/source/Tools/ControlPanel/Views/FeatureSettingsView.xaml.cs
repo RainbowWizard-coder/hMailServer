@@ -364,7 +364,7 @@ namespace hMailServer.ControlPanel.Views
             box_ = new Wpf.Ui.Controls.TextBox
             {
                Text = current,
-               PlaceholderText = Placeholder,
+               PlaceholderText = ExamplePlaceholder.Shown(Placeholder),
                HorizontalAlignment = Address ? HorizontalAlignment.Left : HorizontalAlignment.Stretch
             };
             if (Address)
@@ -446,7 +446,7 @@ namespace hMailServer.ControlPanel.Views
                Text = raw,
                Width = NumberWidth,
                HorizontalAlignment = HorizontalAlignment.Left,
-               PlaceholderText = Placeholder
+               PlaceholderText = ExamplePlaceholder.Shown(Placeholder)
             };
 
             // No input method: with a Japanese or Chinese one on, a digit typed arrives
@@ -591,7 +591,7 @@ namespace hMailServer.ControlPanel.Views
             box_ = new Wpf.Ui.Controls.TextBox
             {
                Text = current,
-               PlaceholderText = Placeholder,
+               PlaceholderText = ExamplePlaceholder.Shown(Placeholder),
                HorizontalAlignment = HorizontalAlignment.Stretch
             };
             Describe(box_, Key);
@@ -1005,7 +1005,7 @@ namespace hMailServer.ControlPanel.Views
             box_ = new Wpf.Ui.Controls.TextBox
             {
                Text = loaded_,
-               PlaceholderText = Placeholder,
+               PlaceholderText = ExamplePlaceholder.Shown(Placeholder),
                MinHeight = 88,
                AcceptsReturn = true,
                TextWrapping = TextWrapping.NoWrap,
@@ -2178,7 +2178,6 @@ namespace hMailServer.ControlPanel.Views
                      {
                         Key = "DKIMExpiryClockSkewSeconds", Minimum = 0,
                         Default = "300",
-                        Placeholder = "300",
                         Label = L("Clock-drift tolerance when checking an expiry (seconds)"),
                         Blurb = L("Allows for this server's clock differing from the signer's. Without it, a clock running a few minutes fast turns other people's valid mail into DKIM failures.")
                      }
@@ -2231,7 +2230,7 @@ namespace hMailServer.ControlPanel.Views
                      {
                         Key = "AuthenticationResultsIdentity",
                         Label = L("Identity the results are written under (empty = this computer's name)"),
-                        Placeholder = F("e.g. {0}", "mail.example.com"),
+                        Placeholder = "mail.example.com",
                         Blurb = L("The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched.")
                      }
                   }
@@ -2308,7 +2307,7 @@ namespace hMailServer.ControlPanel.Views
                      // reporting joined this page: two identically-labelled fields
                      // on one page are ambiguous to anyone who cannot see which
                      // card they are in, and AccessibleNamesTests fails on it.
-                     new TextSetting { Key = "TlsRptFromAddress", Label = L("TLS report sender address (empty = off)"), Placeholder = F("e.g. {0}", "tlsrpt@example.com") },
+                     new TextSetting { Key = "TlsRptFromAddress", Label = L("TLS report sender address (empty = off)"), Placeholder = "tlsrpt@example.com" },
                      new TextSetting { Key = "TlsRptOrganizationName", Default = "hMailServer", Label = L("Organisation name in TLS reports") }
                   }
                });
@@ -2324,7 +2323,7 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Sends the daily aggregate reports that domains ask for with a rua= tag in their DMARC record (RFC 7489) - who sent mail claiming to be them, and whether it passed. Reports only go to an address outside the policy domain when that address's own DNS says it wants them, so a domain cannot use its DMARC record to aim this server's reports at somebody else."),
                   Settings =
                   {
-                     new TextSetting { Key = "DmarcRptFromAddress", Label = L("DMARC report sender address (empty = off)"), Placeholder = F("e.g. {0}", "dmarc@example.com") },
+                     new TextSetting { Key = "DmarcRptFromAddress", Label = L("DMARC report sender address (empty = off)"), Placeholder = "dmarc@example.com" },
                      new TextSetting { Key = "DmarcRptOrganizationName", Default = "hMailServer", Label = L("Organisation name in DMARC reports") }
                   }
                });
@@ -2340,11 +2339,11 @@ namespace hMailServer.ControlPanel.Views
                   Settings =
                   {
                      new BoolSetting { Key = "AcmeEnabled", Default = false, Label = L("Issue and renew certificates automatically") },
-                     new TextSetting { Key = "AcmeContactEmail", DependsOn = AcmeSwitch, Label = L("Contact email address (CA expiry notices)"), Placeholder = F("e.g. {0}", "admin@example.com") },
-                     new TextSetting { Key = "AcmeDomains", DependsOn = AcmeSwitch, Label = L("Host names for the certificate (comma separated)"), Placeholder = F("e.g. {0}", "mail.example.com, mta-sts.example.com") }, // no-loc
-                     new TextSetting { Key = "AcmeDirectoryUrl", DependsOn = AcmeSwitch, Default = "https://acme-v02.api.letsencrypt.org/directory", Placeholder = "https://acme-v02.api.letsencrypt.org/directory", Label = L("ACME directory URL") }, // no-loc: a URL
+                     new TextSetting { Key = "AcmeContactEmail", DependsOn = AcmeSwitch, Label = L("Contact email address (CA expiry notices)"), Placeholder = "admin@example.com" },
+                     new TextSetting { Key = "AcmeDomains", DependsOn = AcmeSwitch, Label = L("Host names for the certificate (comma separated)"), Placeholder = "mail.example.com, mta-sts.example.com" }, // no-loc
+                     new TextSetting { Key = "AcmeDirectoryUrl", DependsOn = AcmeSwitch, Default = "https://acme-v02.api.letsencrypt.org/directory", Label = L("ACME directory URL") }, // no-loc: a URL
                      new NumberSetting { Key = "AcmeHttpPort", DependsOn = AcmeSwitch, Minimum = 1, Maximum = 65535, Default = "80", Label = L("Port for http-01 challenges") },
-                     new PathSetting { Key = "AcmeCertificateDirectory", PickFolder = true, Label = L("Certificate output folder (empty = Data\\ACME)"), Placeholder = L("Falls back to Data\\ACME") },
+                     new PathSetting { Key = "AcmeCertificateDirectory", PickFolder = true, Label = L("Certificate output folder (empty = Data\\ACME)") },
                      new BoolSetting { Key = "AcmeReuseKey", DependsOn = AcmeSwitch, Default = true, Label = L("Reuse the private key across renewals (keeps DANE TLSA records valid)") }
                   },
                   Warnings =
@@ -2375,9 +2374,9 @@ namespace hMailServer.ControlPanel.Views
                   {
                      new DeckLinkSetting(),
                      new ElsewhereSetting("apikeys", L("Creating and revoking API keys")),
-                     new NumberSetting { Key = "RestApiPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("Port (0 = off)"), Placeholder = F("e.g. {0}", "8045") },
+                     new NumberSetting { Key = "RestApiPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("Port (0 = off)"), Placeholder = "8045" },
                      new TextSetting { Key = "RestApiBindAddress", Address = true, Default = "127.0.0.1", Label = L("Bind address") },
-                     new PathSetting { Key = "RestApiCertificateFile", FileFilter = L("PEM/certificate files (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|All files (*.*)|*.*"), Label = L("TLS certificate file (PEM, optional)"), Placeholder = L("Falls back to the ACME certificate") },
+                     new PathSetting { Key = "RestApiCertificateFile", FileFilter = L("PEM/certificate files (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|All files (*.*)|*.*"), Label = L("TLS certificate file (PEM, optional)"), Blurb = L("Left empty, the ACME certificate is used.") },
                      new PathSetting { Key = "RestApiPrivateKeyFile", FileFilter = L("PEM/key files (*.pem;*.key)|*.pem;*.key|All files (*.*)|*.*"), Label = L("TLS private key file (PEM, optional)") }
                   }
                });
@@ -2396,13 +2395,12 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Prometheus metrics (/metrics), OpenTelemetry export of traces, metrics and logs (one endpoint per signal, each off until set), a slow-query log, and JSON-structured log output for log aggregators (on the Logging page)."),
                   Settings =
                   {
-                     new NumberSetting { Key = "MetricsServerPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("Metrics port (0 = off)"), Placeholder = F("e.g. {0}", "9090") },
+                     new NumberSetting { Key = "MetricsServerPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("Metrics port (0 = off)"), Placeholder = "9090" },
                      new NumberSetting
                      {
                         Key = "MetricsHistoryDays", Minimum = 0, Maximum = 36500,
                         Default = "7",
                         Label = L("Keep metric history for (days; 0 = do not record)"),
-                        Placeholder = "7",
                         Blurb = L("Once a minute the server writes one row per metric - sessions, messages processed, delivered, deferred and bounced, spam and viruses, authentication and TLS outcomes, missing message files - to hm_metricsamples, and keeps them this many days. It is what the dashboard's 24 hours, 7 days and 30 days views and GET /api/v1/metrics/history read. A week of minute-resolution history is about a hundred and forty thousand small rows. 0 turns the sampler off.")
                      },
                      new TextSetting
@@ -2442,8 +2440,7 @@ namespace hMailServer.ControlPanel.Views
                      {
                         Key = "MetricsServerCertificateFile",
                         FileFilter = L("PEM/certificate files (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|All files (*.*)|*.*"),
-                        Label = L("TLS certificate file for the metrics listener (PEM)"),
-                        Placeholder = L("Leave both empty for plain HTTP")
+                        Label = L("TLS certificate file for the metrics listener (PEM)")
                      },
                      new PathSetting
                      {
@@ -2457,21 +2454,21 @@ namespace hMailServer.ControlPanel.Views
                      {
                         Key = "OtelEndpoint",
                         Label = L("OpenTelemetry OTLP endpoint for traces (empty = off)"),
-                        Placeholder = F("e.g. {0}", "http://localhost:4318"),
+                        Placeholder = "http://localhost:4318",
                         Blurb = L(SettingClaims.NoteFor("OtelEndpoint"))
                      },
                      new TextSetting
                      {
                         Key = "OtelMetricsEndpoint",
                         Label = L("OpenTelemetry OTLP endpoint for metrics (empty = off)"),
-                        Placeholder = F("e.g. {0}", "http://localhost:4318"),
+                        Placeholder = "http://localhost:4318",
                         Blurb = L(SettingClaims.NoteFor("OtelMetricsEndpoint"))
                      },
                      new TextSetting
                      {
                         Key = "OtelLogsEndpoint",
                         Label = L("OpenTelemetry OTLP endpoint for logs (empty = off)"),
-                        Placeholder = F("e.g. {0}", "http://localhost:4318"),
+                        Placeholder = "http://localhost:4318",
                         Blurb = L(SettingClaims.NoteFor("OtelLogsEndpoint"))
                      },
                      new NumberSetting
@@ -2479,7 +2476,6 @@ namespace hMailServer.ControlPanel.Views
                         Key = "OtelMetricsInterval", Minimum = 5, Maximum = 3600,
                         Default = "60",
                         Label = L("Seconds between metric pushes"),
-                        Placeholder = "60",
                         Blurb = L("From 5 to 3,600. Only used when the metrics endpoint above is set.")
                      },
                      new TextSetting { Key = "OtelServiceName", Default = "hmailserver", Label = L("OpenTelemetry service name") },
@@ -2639,7 +2635,7 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Lets mail clients upload and manage per-account Sieve filter scripts over TCP. Authentication is SASL PLAIN against the account database, so the mailbox password crosses this connection. STARTTLS is offered only when a TLS-capable mailbox port has a certificate to borrow - the status below says whether it will be."),
                   Settings =
                   {
-                     new NumberSetting { Key = "ManageSieveServerPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("ManageSieve port (0 = off)"), Placeholder = F("e.g. {0}", "4190") },
+                     new NumberSetting { Key = "ManageSieveServerPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("ManageSieve port (0 = off)"), Placeholder = "4190" },
                      new TextSetting { Key = "ManageSieveServerBindAddress", Address = true, Default = "127.0.0.1", Label = L("ManageSieve bind address") }
                   },
                   Warnings =
@@ -2705,9 +2701,9 @@ namespace hMailServer.ControlPanel.Views
                   Settings =
                   {
                      new BoolSetting { Key = "UpdateCheckEnabled", Default = false, Label = L("Check for a new release once a day") },
-                     new NumberSetting { Key = "UpdateCheckHours", Minimum = 1, Maximum = 168, Default = "24", Label = L("Hours between checks (1 to 168)"), Placeholder = "24" },
-                     new TextSetting { Key = "UpdateChannel", Default = "stable", Label = L("Channel: stable, or prerelease to run ahead on a test machine"), Placeholder = "stable" },
-                     new TextSetting { Key = "UpdateFeedUrl", Label = L("Update feed URL (empty = the built-in feed)"), Blurb = L("Set it to use a mirror."), Placeholder = "https://updates.progressiverobot.com/releases.json" },
+                     new NumberSetting { Key = "UpdateCheckHours", Minimum = 1, Maximum = 168, Default = "24", Label = L("Hours between checks (1 to 168)") },
+                     new TextSetting { Key = "UpdateChannel", Default = "stable", Label = L("Channel: stable, or prerelease to run ahead on a test machine") },
+                     new TextSetting { Key = "UpdateFeedUrl", Label = L("Update feed URL (empty = the built-in feed)"), Blurb = L("Set it to use a mirror.") },
                      new TextSetting { Key = "HttpProxy", Label = L("Forward proxy for this server's web requests (host:port; empty = direct)"), Blurb = L("The update feed and its downloads, JWKS and token introspection all go through it. Proxy credentials are not supported."), Placeholder = "proxy.example.net:3128" },
                      new BoolSetting { Key = "UpdateAutoDownload", Default = false, Label = L("Download and verify the installer as soon as a release is found") },
                      new TextSetting
@@ -2725,7 +2721,7 @@ namespace hMailServer.ControlPanel.Views
                         Label = L("Also require a valid Authenticode signature on the installer"),
                         Blurb = L("This project's installers have been Authenticode-signed since 6.3.1, by Progressive Robot Ltd through Azure Artifact Signing; the releases before 6.3.1 carry no signature, and this refuses them. It checks, when an installer is downloaded, that Windows trusts the signature - WinVerifyTrust against this machine's trusted roots, with no revocation check - and not who made it: that is the job of the Sigstore signature, which every release carries and which is checked either way.")
                      },
-                     new NumberSetting { Key = "UpdateServiceWaitSeconds", Minimum = 5, Maximum = 86400, Default = "180", Label = L("Seconds to wait for the service after an apply before rolling back"), Placeholder = "180" },
+                     new NumberSetting { Key = "UpdateServiceWaitSeconds", Minimum = 5, Maximum = 86400, Default = "180", Label = L("Seconds to wait for the service after an apply before rolling back") },
                      new TextSetting
                      {
                         Key = "UpdateSourceRepository",
@@ -2833,7 +2829,7 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Submission identity handling and the diagnostic headers added to received mail. (Where SMTP AUTH is offered is on the Authentication page.)"),
                   Settings =
                   {
-                     new TextSetting { Key = "AuthUserReplacementIP", Address = true, Label = L("Replace the client IP for authenticated users (empty = keep the real IP)"), Placeholder = F("e.g. {0}", "127.0.0.1") },
+                     new TextSetting { Key = "AuthUserReplacementIP", Address = true, Label = L("Replace the client IP for authenticated users (empty = keep the real IP)"), Placeholder = "127.0.0.1" },
                      new BoolSetting { Key = "AddXAuthUserHeader", Default = false, Label = L("Add an X-AuthUser header with the authenticated account") },
                      new BoolSetting { Key = "AddXAuthUserIP", Default = true, Label = L("Include the client IP in the X-AuthUser header") },
                      new BoolSetting { Key = "AddXOriginalRcptTo", Default = false, Label = L("Add an X-OriginalRcptTo header") }
@@ -2945,7 +2941,7 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Bounces and virus notifications are sent from mailer-daemon@<domain>. This overrides the <domain> part. Left empty, the server uses its own host name, then the local domain the message involves, then this computer's name. It is not a delivery setting and does not change where mail is routed."),
                   Settings =
                   {
-                     new TextSetting { Key = "DaemonAddressDomain", Label = L("Domain for the mailer-daemon sender address (empty = the host name)"), Blurb = L("Without a host name, the message's local domain is used, and without that, the machine name."), Placeholder = F("e.g. {0}", "example.com") }
+                     new TextSetting { Key = "DaemonAddressDomain", Label = L("Domain for the mailer-daemon sender address (empty = the host name)"), Blurb = L("Without a host name, the message's local domain is used, and without that, the machine name."), Placeholder = "example.com" }
                   }
                });
                cards_.Add(new CardDef
@@ -3113,18 +3109,18 @@ namespace hMailServer.ControlPanel.Views
                   {
                      new BoolSetting { Key = "OAuth2Enabled", Default = false, Label = L("Accept OAuth2 bearer tokens (XOAUTH2)"), Blurb = L("While this is off the server uses none of the settings below, so they cannot be changed until it is on.") },
                      new BoolSetting { Key = "OAuth2RequireTLS", DependsOn = OAuth2Switch, Default = true, Label = L("Require TLS for token authentication") },
-                     new TextSetting { Key = "OAuth2Issuer", DependsOn = OAuth2Switch, Label = L("Expected token issuer (iss)"), Placeholder = ExamplePlaceholder.Of("https://login.microsoftonline.com/<tenant>/v2.0") }, // no-loc: an example issuer, the same in every language
-                     new TextSetting { Key = "OAuth2Audience", DependsOn = OAuth2Switch, Label = L("Expected audience (aud)"), Placeholder = L("your application / client ID") },
+                     new TextSetting { Key = "OAuth2Issuer", DependsOn = OAuth2Switch, Label = L("Expected token issuer (iss)"), Placeholder = "https://login.microsoftonline.com/<tenant>/v2.0" }, // no-loc: an example issuer, the same in every language
+                     new TextSetting { Key = "OAuth2Audience", DependsOn = OAuth2Switch, Label = L("Expected audience (aud)"), Blurb = L("Usually the client ID of this server's registration with the identity provider.") },
                      new TextSetting { Key = "OAuth2AllowedAlgorithms", DependsOn = OAuth2Switch, Default = "RS256", Label = L("Allowed signing algorithms (comma separated)"), Placeholder = "RS256, ES256" }, // no-loc
-                     new TextSetting { Key = "OAuth2UsernameClaim", DependsOn = OAuth2Switch, Default = "email", Label = L("Claim that holds the mailbox address"), Placeholder = "email" },
-                     new PathSetting { Key = "OAuth2PublicKeyFile", DependsOn = OAuth2Switch, FileFilter = L("PEM/key files (*.pem;*.crt;*.cer;*.key;*.pub)|*.pem;*.crt;*.cer;*.key;*.pub|All files (*.*)|*.*"), Label = L("RSA/EC public key file (PEM, for RS*/ES* tokens)"), Placeholder = L("Path to the issuer's public key") },
+                     new TextSetting { Key = "OAuth2UsernameClaim", DependsOn = OAuth2Switch, Default = "email", Label = L("Claim that holds the mailbox address") },
+                     new PathSetting { Key = "OAuth2PublicKeyFile", DependsOn = OAuth2Switch, FileFilter = L("PEM/key files (*.pem;*.crt;*.cer;*.key;*.pub)|*.pem;*.crt;*.cer;*.key;*.pub|All files (*.*)|*.*"), Label = L("RSA/EC public key file (PEM, for RS*/ES* tokens)") },
                      new SecretSetting { Key = "OAuth2HmacSecret", DependsOn = OAuth2Switch, Label = L("Shared HMAC secret (only for HS256/384/512 tokens)"), Hint = L("Only needed for HS* algorithms") },
                      // The two round trips to the provider, both off unless set: its
                      // published keys instead of a hand-copied PEM file, and a live
                      // revocation check after a token verifies.
-                     new TextSetting { Key = "OAuth2JwksUrl", DependsOn = OAuth2Switch, Label = L("JWK Set URL (empty = the key file only)"), Blurb = L("Where the provider publishes its signing keys."), Placeholder = ExamplePlaceholder.Of("https://login.microsoftonline.com/<tenant>/discovery/v2.0/keys") }, // no-loc: an example URL, the same in every language
+                     new TextSetting { Key = "OAuth2JwksUrl", DependsOn = OAuth2Switch, Label = L("JWK Set URL (empty = the key file only)"), Blurb = L("Where the provider publishes its signing keys."), Placeholder = "https://login.microsoftonline.com/<tenant>/discovery/v2.0/keys" }, // no-loc: an example URL, the same in every language
                      new NumberSetting { Key = "OAuth2JwksCacheSeconds", DependsOn = OAuth2Switch, Minimum = 10, Default = "3600", Label = L("Seconds to keep the JWK Set before re-fetching (a token naming an unknown key ID re-fetches at once)") },
-                     new TextSetting { Key = "OAuth2IntrospectionUrl", DependsOn = OAuth2Switch, Label = L("Token introspection endpoint (empty = no revocation check)"), Blurb = L("The provider's RFC 7662 endpoint, which says whether a token is still valid."), Placeholder = ExamplePlaceholder.Of("https://idp.example.com/oauth2/introspect") }, // no-loc: an example URL, the same in every language
+                     new TextSetting { Key = "OAuth2IntrospectionUrl", DependsOn = OAuth2Switch, Label = L("Token introspection endpoint (empty = no revocation check)"), Blurb = L("The provider's RFC 7662 endpoint, which says whether a token is still valid."), Placeholder = "https://idp.example.com/oauth2/introspect" }, // no-loc: an example URL, the same in every language
                      new TextSetting { Key = "OAuth2IntrospectionClientId", DependsOn = OAuth2Switch, Label = L("Client ID this server introspects as") },
                      new SecretSetting { Key = "OAuth2IntrospectionClientSecret", DependsOn = OAuth2Switch, Label = L("Client secret for introspection"), Hint = L("Issued by the provider together with the client ID") },
                      new NumberSetting { Key = "OAuth2IntrospectionCacheSeconds", DependsOn = OAuth2Switch, Minimum = 0, Default = "300", Label = L("Seconds an introspection verdict is reused (never past the token's own expiry)") },
@@ -3183,9 +3179,9 @@ namespace hMailServer.ControlPanel.Views
                      // change does, and a question at Save (PepperChange): the caption
                      // that shouted about it was the only safeguard (review finding F169).
                      new SecretSetting { Key = "PasswordPepper", Label = L("Password pepper"), Hint = L("Server-wide secret mixed into password hashes"), Warning = PepperChange.Warning },
-                     new NumberSetting { Key = "PasswordHashIterations", Minimum = 10000, Maximum = 10000000, ZeroIsBuiltIn = true, Default = "0", Placeholder = "0 = 210,000", Label = L("PBKDF2 iterations for new hashes (10,000 to 10,000,000; 0 = the built-in 210,000)") },
-                     new NumberSetting { Key = "PasswordHashMemoryKB", Minimum = 4096, Maximum = 1048576, ZeroIsBuiltIn = true, Default = "0", Placeholder = "0 = 19,456", Label = L("Argon2id memory for new hashes (KiB, 4,096 to 1,048,576; 0 = the built-in 19,456)") },
-                     new NumberSetting { Key = "PasswordHashTimeCost", Minimum = 1, Maximum = 20, ZeroIsBuiltIn = true, Default = "0", Placeholder = "0 = 2", Label = L("Argon2id passes for new hashes (1 to 20; 0 = the built-in 2)") }
+                     new NumberSetting { Key = "PasswordHashIterations", Minimum = 10000, Maximum = 10000000, ZeroIsBuiltIn = true, Default = "0", Label = L("PBKDF2 iterations for new hashes (10,000 to 10,000,000; 0 = the built-in 210,000)") },
+                     new NumberSetting { Key = "PasswordHashMemoryKB", Minimum = 4096, Maximum = 1048576, ZeroIsBuiltIn = true, Default = "0", Label = L("Argon2id memory for new hashes (KiB, 4,096 to 1,048,576; 0 = the built-in 19,456)") },
+                     new NumberSetting { Key = "PasswordHashTimeCost", Minimum = 1, Maximum = 20, ZeroIsBuiltIn = true, Default = "0", Label = L("Argon2id passes for new hashes (1 to 20; 0 = the built-in 2)") }
                   }
                });
                cards_.Add(new CardDef
@@ -3219,7 +3215,7 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Which resolver hMailServer queries. Leave empty to use the name servers Windows is configured with. The override takes a single IPv4 address and is used on port 53; DNSSEC validation and its trust anchors are on the Transport security page."),
                   Settings =
                   {
-                     new TextSetting { Key = "DNSServer", Address = true, Rule = SettingAddressRule.DnsOverride, Label = L("Override DNS server (empty = the name servers Windows uses)"), Placeholder = F("e.g. {0}", "1.1.1.1") }
+                     new TextSetting { Key = "DNSServer", Address = true, Rule = SettingAddressRule.DnsOverride, Label = L("Override DNS server (empty = the name servers Windows uses)"), Placeholder = "1.1.1.1" }
                   }
                });
                cards_.Add(new CardDef
@@ -3261,7 +3257,7 @@ namespace hMailServer.ControlPanel.Views
                      new NumberSetting { Key = "WebServicesHttpsPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("HTTPS port (0 = off)"), Blurb = L("443 is the port clients expect.") },
                      new TextSetting { Key = "WebServicesBindAddress", Address = true, Default = "0.0.0.0", Label = L("Bind address") },
                      new TextSetting { Key = "WebServicesTrustedProxies", Label = L("Trusted proxies whose X-Forwarded-Proto: https is believed (comma separated)"), Blurb = L("Addresses; the loopback address is always trusted.") },
-                     new PathSetting { Key = "WebServicesCertificateFile", FileFilter = L("PEM/certificate files (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|All files (*.*)|*.*"), Label = L("TLS certificate file (PEM, optional)"), Placeholder = L("Falls back to the ACME certificate") },
+                     new PathSetting { Key = "WebServicesCertificateFile", FileFilter = L("PEM/certificate files (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|All files (*.*)|*.*"), Label = L("TLS certificate file (PEM, optional)"), Blurb = L("Left empty, the ACME certificate is used.") },
                      new PathSetting { Key = "WebServicesPrivateKeyFile", FileFilter = L("PEM/key files (*.pem;*.key)|*.pem;*.key|All files (*.*)|*.*"), Label = L("TLS private key file (PEM, optional)") }
                   }
                });
@@ -3295,7 +3291,7 @@ namespace hMailServer.ControlPanel.Views
                         }
                      },
                      new NumberSetting { Key = "MtaStsPolicyMaxAge", Minimum = 86400, Maximum = 31557600, Default = "604800", Label = L("Policy max age (seconds, 86,400 to 31,557,600)"), Blurb = L("The default, 604,800, is a week; 86,400 is a day and 31,557,600 a year, the longest RFC 8461 allows.") },
-                     new TextSetting { Key = "MtaStsPolicyMx", Label = L("Policy MX host patterns (empty = derive from each domain's MX)"), Placeholder = F("e.g. {0}", "mail.example.com, *.example.com") } // no-loc
+                     new TextSetting { Key = "MtaStsPolicyMx", Label = L("Policy MX host patterns (empty = derive from each domain's MX)"), Placeholder = "mail.example.com, *.example.com" } // no-loc
                   }
                });
                cards_.Add(new CardDef
@@ -3308,14 +3304,14 @@ namespace hMailServer.ControlPanel.Views
                      {
                         Key = "CalDavRedirectUrl",
                         Label = L("Redirect /.well-known/caldav to (empty = answer 404)"),
-                        Placeholder = F("e.g. {0}", "https://calendar.example.com/dav/"),
+                        Placeholder = "https://calendar.example.com/dav/",
                         Blurb = L("Must be an absolute URL. A relative one is refused and the discovery URL answers 404 instead, with the reason reported once in the error log.")
                      },
                      new TextSetting
                      {
                         Key = "CardDavRedirectUrl",
                         Label = L("Redirect /.well-known/carddav to (empty = answer 404)"),
-                        Placeholder = F("e.g. {0}", "https://contacts.example.com/dav/"),
+                        Placeholder = "https://contacts.example.com/dav/",
                         Blurb = L("Must be an absolute URL, as above.")
                      }
                   }

@@ -305,7 +305,7 @@ namespace hMailServer.ControlPanel.Views
          {
             var dialog = new FramedDialog { Owner = owner, Title = L("Add an address to the never-ban list") };
 
-            var entry = new Wpf.Ui.Controls.TextBox { PlaceholderText = "192.0.2.10" }; // no-loc: an example address
+            var entry = new Wpf.Ui.Controls.TextBox { PlaceholderText = ExamplePlaceholder.Of("192.0.2.10") }; // no-loc: an example address
 
             var body = new StackPanel();
             var entryRow = DialogFields.Field(L("A_ddress or block"), entry,

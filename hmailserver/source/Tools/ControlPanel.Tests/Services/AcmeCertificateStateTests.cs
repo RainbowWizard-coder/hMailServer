@@ -84,7 +84,10 @@ namespace hMailServer.ControlPanel.Tests.Services
          if (code == null)
             return;
 
-         Assert.Matches(new Regex(@"Key = ""AcmeDirectoryUrl"",[^}]*Placeholder = ""https://acme-v02\.api\.letsencrypt\.org/directory"""), code);
+         // The box holds Let's Encrypt's URL as its default value; a placeholder of the
+         // same URL showed it again as an example (the final check of Tier 2).
+         Assert.Matches(new Regex(@"Key = ""AcmeDirectoryUrl"",[^}]*Default = ""https://acme-v02\.api\.letsencrypt\.org/directory"""), code);
+         Assert.DoesNotMatch(new Regex(@"Key = ""AcmeDirectoryUrl"",[^}]*Placeholder ="), code);
       }
 
       private static string Source()

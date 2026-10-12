@@ -367,20 +367,16 @@ namespace hMailServer.ControlPanel.Views
          LdapFilterField.ShowWhole(filter_);
 
          content.Children.Add(LabelledBox_(L("Address attri_bute"), mailAttribute_, "dirsync-mail-attribute",
-            L("Which attribute holds the mailbox address - mail when left empty. proxyAddresses is understood: its scheme prefix is removed and the primary SMTP: value is preferred over the lower-case aliases."),
-            placeholder: "mail"));
+            L("Which attribute holds the mailbox address - mail when left empty. proxyAddresses is understood: its scheme prefix is removed and the primary SMTP: value is preferred over the lower-case aliases.")));
 
          content.Children.Add(LabelledBox_(L("Sign-in _name attribute"), usernameAttribute_, "dirsync-username-attribute",
-            L("Which attribute holds the name the person signs in with - sAMAccountName when left empty. This is what is stored against the account and what the directory is asked about at every sign-in afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned."),
-            placeholder: "sAMAccountName"));
+            L("Which attribute holds the name the person signs in with - sAMAccountName when left empty. This is what is stored against the account and what the directory is asked about at every sign-in afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned.")));
 
          content.Children.Add(LabelledBox_(L("_Display name attribute"), displayNameAttribute_, "dirsync-displayname-attribute",
-            L("Which attribute holds the person's name - displayName when left empty. It is split into first and last name and only ever written to an account that has neither, so a name an administrator typed is never overwritten by the directory."),
-            placeholder: "displayName"));
+            L("Which attribute holds the person's name - displayName when left empty. It is split into first and last name and only ever written to an account that has neither, so a name an administrator typed is never overwritten by the directory.")));
 
          content.Children.Add(LabelledBox_(L("_Maximum entries to read"), maxUsers_, "dirsync-max-users",
-            L("A ceiling on one pass - 5,000 when left empty - so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted."),
-            placeholder: "5000"));
+            L("A ceiling on one pass - 5,000 when left empty - so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted.")));
 
          return card;
       }
@@ -488,8 +484,7 @@ namespace hMailServer.ControlPanel.Views
             out StackPanel content);
 
          content.Children.Add(LabelledBox_(L("Run _every (minutes)"), scheduleMinutes_, "dirsync-schedule",
-            L("0 switches the schedule off, which is the default and is what every existing installation stays at. Values between 1 and 14 are treated as 15, and anything over a week as a week. This one needs a service restart: the task is registered when the server starts."),
-            placeholder: "0"));
+            L("0 switches the schedule off, which is the default and is what every existing installation stays at. Values between 1 and 14 are treated as 15, and anything over a week as a week. This one needs a service restart: the task is registered when the server starts.")));
 
          return card;
       }

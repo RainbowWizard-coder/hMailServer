@@ -426,9 +426,6 @@
   <data name="A domain - the server needs one before it can receive mail" xml:space="preserve">
     <value>一个域 - 服务器需要先有一个域才能接收邮件</value>
   </data>
-  <data name="A domain hosted on this server" xml:space="preserve">
-    <value>本服务器上托管的一个域</value>
-  </data>
   <data name="A domain is required." xml:space="preserve">
     <value>需要一个域。</value>
   </data>
@@ -1992,9 +1989,6 @@
   </data>
   <data name="Autodiscover and autoconfig are served by the built-in HTTP listener." xml:space="preserve">
     <value>Autodiscover 和 autoconfig 由内置的 HTTP 监听器提供。</value>
-  </data>
-  <data name="Automatic - 636 for LDAPS, 389 otherwise" xml:space="preserve">
-    <value>自动 - LDAPS 使用 636，否则使用 389</value>
   </data>
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>自动证书（ACME）</value>
@@ -5251,12 +5245,6 @@
   <data name="Fair password." xml:space="preserve">
     <value>密码强度一般。</value>
   </data>
-  <data name="Falls back to Data\ACME" xml:space="preserve">
-    <value>回退到 Data\ACME</value>
-  </data>
-  <data name="Falls back to the ACME certificate" xml:space="preserve">
-    <value>回退到 ACME 证书</value>
-  </data>
   <data name="Feedback" xml:space="preserve">
     <value>反馈</value>
   </data>
@@ -5394,9 +5382,6 @@
   </data>
   <data name="For example 03:00, Sun 03:00 or Sat,Sun 02:00-05:00." xml:space="preserve">
     <value>例如 03:00、Sun 03:00 或 Sat,Sun 02:00-05:00。</value>
-  </data>
-  <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
-    <value>例如 10.0.0.5 或 10.0.0.0/24</value>
   </data>
   <data name="For example a command-line virus scanner." xml:space="preserve">
     <value>例如命令行病毒扫描器。</value>
@@ -6453,9 +6438,6 @@
   <data name="Latest {0}; peak {1}" xml:space="preserve">
     <value>最新 {0}；峰值 {1}</value>
   </data>
-  <data name="Leave both empty for plain HTTP" xml:space="preserve">
-    <value>两者都留空则使用纯 HTTP</value>
-  </data>
   <data name="Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem." xml:space="preserve">
     <value>留空（或 0）表示自动：连接安全为 LDAPS 时使用 636，否则使用 389。端口由安全设置推导，这样选择了 LDAPS 却忘记设置端口时，不会对明文端口尝试 TLS - 那种失败看起来像证书问题。</value>
   </data>
@@ -6464,9 +6446,6 @@
   </data>
   <data name="Leave empty to keep the current password." xml:space="preserve">
     <value>留空以保留当前密码。</value>
-  </data>
-  <data name="Leave empty to test only the infrastructure" xml:space="preserve">
-    <value>留空则只测试基础设施</value>
   </data>
   <data name="Leave the host empty and the domain has no opinion: the server-wide smart host applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination." xml:space="preserve">
     <value>主机留空则该域不表态：应用服务器范围的智能主机，与此设置出现之前完全一样。路由仍然优先于两者，因为路由是关于目标的声明。</value>
@@ -6479,6 +6458,12 @@
   </data>
   <data name="Left empty, HTML messages carry the plain text with its line breaks." xml:space="preserve">
     <value>留空时，HTML 邮件使用纯文本及其换行。</value>
+  </data>
+  <data name="Left empty, the ACME certificate is used." xml:space="preserve">
+    <value>留空时使用 ACME 证书。</value>
+  </data>
+  <data name="Left empty, the key may act on every domain." xml:space="preserve">
+    <value>留空时，该密钥可以操作每个域。</value>
   </data>
   <data name="Left empty, the server uses the shipped filter, {0} - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile sign-in name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>留空时，服务器使用出厂过滤器 {0} - 先用 objectCategory，因为它在 Active Directory 中有索引；再用 sAMAccountName，因为账户的“Windows 目录”选项卡存储的正是它。%u 是账户的 Active Directory 用户名，%d 是其 AD 域，%m 是其完整邮件地址；三者在替换前都会被转义，因此恶意的登录名无法改写过滤器。匹配到多个条目的过滤器不会验证任何人，这是有意为之。</value>
@@ -8836,9 +8821,6 @@
   <data name="Opportunistic" xml:space="preserve">
     <value>机会性</value>
   </data>
-  <data name="Optional" xml:space="preserve">
-    <value>可选</value>
-  </data>
   <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
     <value>可选的发给同事（地址属于本服务器的发件人）的不同正文。它永远不会离开服务器，因此可以比上面的正文多说一些。为空表示使用上面的正文。</value>
   </data>
@@ -9084,9 +9066,6 @@
   </data>
   <data name="Paste the certificate, or two while the provider rolls its key over. It is never shown again: the line below says what is held." xml:space="preserve">
     <value>粘贴证书；提供商轮换密钥期间可粘贴两个。它不会再次显示：下面一行说明已保存的内容。</value>
-  </data>
-  <data name="Path to the issuer's public key" xml:space="preserve">
-    <value>颁发者公钥的路径</value>
   </data>
   <data name="Path: https://endpoint/bucket/key" xml:space="preserve">
     <value>路径：https://endpoint/bucket/key</value>
@@ -11444,9 +11423,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Server" xml:space="preserve">
     <value>服务器</value>
-  </data>
-  <data name="Server (localhost)" xml:space="preserve">
-    <value>服务器 (localhost)</value>
   </data>
   <data name="Server administrator" xml:space="preserve">
     <value>服务器管理员</value>
@@ -14647,6 +14623,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="User search _filter" xml:space="preserve">
     <value>用户搜索过滤器(_F)</value>
   </data>
+  <data name="Usually the client ID of this server's registration with the identity provider." xml:space="preserve">
+    <value>通常是此服务器在身份提供商处注册所得的客户端 ID。</value>
+  </data>
   <data name="VAPID private key, to bring the pair from another server (leave empty to keep current)" xml:space="preserve">
     <value>VAPID 私钥，用于从其他服务器迁移密钥对（留空则保持当前值）</value>
   </data>
@@ -16372,9 +16351,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="example.com is that domain alone; .example.com is the domain and everything beneath it." xml:space="preserve">
     <value>example.com 只是该域；.example.com 是该域及其下的一切。</value>
   </data>
-  <data name="example.com, example.net - empty means every domain" xml:space="preserve">
-    <value>example.com, example.net - 留空表示每个域</value>
-  </data>
   <data name="external account" xml:space="preserve">
     <value>外部账户</value>
   </data>
@@ -17107,9 +17083,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>把日志写入数据库</value>
-  </data>
-  <data name="your application / client ID" xml:space="preserve">
-    <value>您的应用程序 / 客户端 ID</value>
   </data>
   <data name="{0} (a value this Control Panel does not know)" xml:space="preserve">
     <value>{0}（此控制面板不认识的值）</value>

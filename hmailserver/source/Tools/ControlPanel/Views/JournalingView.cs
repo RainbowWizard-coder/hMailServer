@@ -203,10 +203,9 @@ namespace hMailServer.ControlPanel.Views
          // a Chinese word in issue 156. Each placeholder is an example of what the
          // box takes, where it repeated the caption above it ("Where the copy
          // goes" under Where it goes); Whose mail's follows the choice beside it.
-         target_.PlaceholderText = JournalRuleText.TargetExample(false);
-         scope_.SelectionChanged += (s, e) => target_.PlaceholderText = JournalRuleText.TargetExample(scope_.SelectedIndex == 1);
-         address_.PlaceholderText = "journal@archive.example"; // no-loc: an example address, the same in every language
-         note_.PlaceholderText = L("Optional");
+         target_.PlaceholderText = ExamplePlaceholder.Of(JournalRuleText.TargetExample(false));
+         scope_.SelectionChanged += (s, e) => target_.PlaceholderText = ExamplePlaceholder.Of(JournalRuleText.TargetExample(scope_.SelectedIndex == 1));
+         address_.PlaceholderText = ExamplePlaceholder.Of("journal@archive.example"); // no-loc: an example address, the same in every language
          // Each box has its caption above it - the grid's own column names - as
          // the Domains page's forms do: a placeholder was the only name the boxes
          // had, gone once something is typed, and the three lists had none. The

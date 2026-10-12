@@ -119,8 +119,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("RoleWords.DomainsText(parts[2])", page, StringComparison.Ordinal);
 
          // F087: examples, what empty means, and the typed domains trimmed.
-         Assert.Contains("address_.PlaceholderText = \"helpdesk@example.com\";", page, StringComparison.Ordinal);
-         Assert.Contains("domains_.PlaceholderText = \"example.com, example.net\";", page, StringComparison.Ordinal);
+         Assert.Contains("address_.PlaceholderText = ExamplePlaceholder.Of(\"helpdesk@example.com\");", page, StringComparison.Ordinal);
+         Assert.Contains("domains_.PlaceholderText = ExamplePlaceholder.Of(\"example.com, example.net\");", page, StringComparison.Ordinal);
          Assert.Contains("domainsRow.Hint = L(\"Empty: the account's own domain, or every domain for serveradmin and auditor. * is every domain for any role.\");", page, StringComparison.Ordinal);
          Assert.Contains("Write_(address, role, RoleWords.DomainsToSend(domains_.Text), ", page, StringComparison.Ordinal);
 

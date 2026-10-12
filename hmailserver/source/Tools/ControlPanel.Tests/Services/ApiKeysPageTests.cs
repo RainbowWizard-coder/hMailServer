@@ -138,7 +138,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string code = Source();
          Assert.Contains("L(\"Full authority\") : L(\"Read-only\")", code, StringComparison.Ordinal);
          Assert.DoesNotContain(": \"read-only\"", code, StringComparison.Ordinal);
-         Assert.Contains("PlaceholderText = L(\"For example 10.0.0.5 or 10.0.0.0/24\")", code, StringComparison.Ordinal);
+         Assert.Contains("PlaceholderText = ExamplePlaceholder.Of(\"10.0.0.0/24\")", code, StringComparison.Ordinal);
          Assert.Contains("L(\"_Source address or range it may be used from (optional)\")", code, StringComparison.Ordinal);
          Assert.DoesNotContain("10.0.0.5, or 10.0.0.0/24", code, StringComparison.Ordinal);
       }

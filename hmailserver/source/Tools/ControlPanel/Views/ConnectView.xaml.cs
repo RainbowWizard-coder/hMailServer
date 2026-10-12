@@ -47,6 +47,10 @@ namespace hMailServer.ControlPanel.Views
       public ConnectView(Action onConnected, string notice, StatusLevel level)
       {
          InitializeComponent();
+         // An example of what the box takes, marked as one, where the placeholder was
+         // the box's caption again with the default, "Server (localhost)"
+         // (docs/ControlPanelDesign.md: a placeholder is never the field's name).
+         HostBox.PlaceholderText = ExamplePlaceholder.Of("mail.example.com"); // no-loc: an example host
          onConnected_ = onConnected;
          BuildLanguageBox_();
          LanguageBox.KeyDown += Language_KeyDown;

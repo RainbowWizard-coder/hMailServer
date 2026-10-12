@@ -70,12 +70,12 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void NoBoxHoldsTextItWasNotGiven_AndThePlaceholdersAreReservedExamples()
       {
          XElement page = Page();
-         Assert.Equal("example.org", (string)Named(page, "NewDomainBox").Attribute("PlaceholderText"));
-         Assert.Equal("person@example.net", (string)Named(page, "NewAliasValue").Attribute("PlaceholderText"));
-         foreach (string box in new[] { "NewAccountBox", "NewAliasName", "NewDistAddress" })
-            Assert.Null(Named(page, box).Attribute("PlaceholderText")); // set from the selected domain
+         foreach (string box in new[] { "NewDomainBox", "NewAliasValue", "NewAccountBox", "NewAliasName", "NewDistAddress" })
+            Assert.Null(Named(page, box).Attribute("PlaceholderText")); // set in code, each example marked
 
          string code = CodeBehind();
+         Assert.Contains("NewDomainBox.PlaceholderText = ExamplePlaceholder.Of(\"example.org\");", code, StringComparison.Ordinal);
+         Assert.Contains("NewAliasValue.PlaceholderText = ExamplePlaceholder.Of(\"person@example.net\");", code, StringComparison.Ordinal);
          Assert.DoesNotContain("NewAccountBox.Text = \"user@\"", code, StringComparison.Ordinal);
          string xaml = ReadControlPanelFile(Path.Join("Views", "DomainsView.xaml"));
          foreach (string old in new[] { "newdomain.com", "user@domain", "alias@domain", "target@anywhere", "list@domain" })
@@ -83,9 +83,9 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          string placeholders = WithheldRowTests.MemberText(code, "private void ShowAddressPlaceholders_(string domainName)");
          Assert.True(placeholders != null, "DomainsView.ShowAddressPlaceholders_ is gone.");
-         Assert.Contains("NewAccountBox.PlaceholderText = HostedAddress.Placeholder(\"name\", domainName);", placeholders, StringComparison.Ordinal);
-         Assert.Contains("NewAliasName.PlaceholderText = HostedAddress.Placeholder(\"sales\", domainName);", placeholders, StringComparison.Ordinal);
-         Assert.Contains("NewDistAddress.PlaceholderText = HostedAddress.Placeholder(\"team\", domainName);", placeholders, StringComparison.Ordinal);
+         Assert.Contains("NewAccountBox.PlaceholderText = ExamplePlaceholder.Shown(HostedAddress.Placeholder(\"name\", domainName));", placeholders, StringComparison.Ordinal);
+         Assert.Contains("NewAliasName.PlaceholderText = ExamplePlaceholder.Shown(HostedAddress.Placeholder(\"sales\", domainName));", placeholders, StringComparison.Ordinal);
+         Assert.Contains("NewDistAddress.PlaceholderText = ExamplePlaceholder.Shown(HostedAddress.Placeholder(\"team\", domainName));", placeholders, StringComparison.Ordinal);
 
          string reload = WithheldRowTests.MemberText(code, "private void ReloadAccounts()");
          Assert.Equal(2, CountOf(reload, "ShowAddressPlaceholders_("));

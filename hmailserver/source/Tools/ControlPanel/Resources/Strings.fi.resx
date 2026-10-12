@@ -426,9 +426,6 @@
   <data name="A domain - the server needs one before it can receive mail" xml:space="preserve">
     <value>Verkkotunnus - palvelin tarvitsee sellaisen ennen kuin se voi vastaanottaa postia</value>
   </data>
-  <data name="A domain hosted on this server" xml:space="preserve">
-    <value>Tällä palvelimella isännöity verkkotunnus</value>
-  </data>
   <data name="A domain is required." xml:space="preserve">
     <value>Verkkotunnus vaaditaan.</value>
   </data>
@@ -1992,9 +1989,6 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Autodiscover and autoconfig are served by the built-in HTTP listener." xml:space="preserve">
     <value>Autodiscover ja autoconfig tarjotaan sisäänrakennetusta HTTP-kuuntelijasta.</value>
-  </data>
-  <data name="Automatic - 636 for LDAPS, 389 otherwise" xml:space="preserve">
-    <value>Automaattinen - 636 LDAPS:lle, muuten 389</value>
   </data>
   <data name="Automatic certificates (ACME)" xml:space="preserve">
     <value>Automaattiset varmenteet (ACME)</value>
@@ -5251,12 +5245,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Fair password." xml:space="preserve">
     <value>Kohtalainen salasana.</value>
   </data>
-  <data name="Falls back to Data\ACME" xml:space="preserve">
-    <value>Turvautuu kansioon Data\ACME</value>
-  </data>
-  <data name="Falls back to the ACME certificate" xml:space="preserve">
-    <value>Turvautuu ACME-varmenteeseen</value>
-  </data>
   <data name="Feedback" xml:space="preserve">
     <value>Palaute</value>
   </data>
@@ -5394,9 +5382,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="For example 03:00, Sun 03:00 or Sat,Sun 02:00-05:00." xml:space="preserve">
     <value>Esimerkiksi 03:00, Sun 03:00 tai Sat,Sun 02:00-05:00.</value>
-  </data>
-  <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
-    <value>Esimerkiksi 10.0.0.5 tai 10.0.0.0/24</value>
   </data>
   <data name="For example a command-line virus scanner." xml:space="preserve">
     <value>Esimerkiksi komentorivin virustarkistin.</value>
@@ -6453,9 +6438,6 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Latest {0}; peak {1}" xml:space="preserve">
     <value>Viimeisin {0}; huippu {1}</value>
   </data>
-  <data name="Leave both empty for plain HTTP" xml:space="preserve">
-    <value>Jätä molemmat tyhjiksi tavalliselle HTTP:lle</value>
-  </data>
   <data name="Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem." xml:space="preserve">
     <value>Jätä tyhjäksi (tai 0) automaattista varten: 636, kun yhteyden suojaus on LDAPS, muuten 389. Portti johdetaan suojausasetuksesta, jotta LDAPS:n valitseminen ja portin unohtaminen ei voi yrittää TLS:ää selväkieliseen porttiin, mikä epäonnistuu tavalla, joka näyttää varmenneongelmalta.</value>
   </data>
@@ -6464,9 +6446,6 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Leave empty to keep the current password." xml:space="preserve">
     <value>Jätä tyhjäksi, jos haluat säilyttää nykyisen salasanan.</value>
-  </data>
-  <data name="Leave empty to test only the infrastructure" xml:space="preserve">
-    <value>Jätä tyhjäksi testataksesi vain infrastruktuurin</value>
   </data>
   <data name="Leave the host empty and the domain has no opinion: the server-wide smart host applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination." xml:space="preserve">
     <value>Jätä kone tyhjäksi, niin verkkotunnuksella ei ole mielipidettä: palvelimenlaajuinen smart host pätee täsmälleen kuten ennen tämän asetuksen olemassaoloa. Reitti voittaa silti molemmat, koska reitti on lausuma kohteesta.</value>
@@ -6479,6 +6458,12 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Left empty, HTML messages carry the plain text with its line breaks." xml:space="preserve">
     <value>Tyhjänä HTML-viesteissä on pelkkä teksti rivinvaihtoineen.</value>
+  </data>
+  <data name="Left empty, the ACME certificate is used." xml:space="preserve">
+    <value>Tyhjänä käytetään ACME-varmennetta.</value>
+  </data>
+  <data name="Left empty, the key may act on every domain." xml:space="preserve">
+    <value>Tyhjänä avain saa vaikuttaa jokaiseen verkkotunnukseen.</value>
   </data>
   <data name="Left empty, the server uses the shipped filter, {0} - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile sign-in name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>Tyhjänä palvelin käyttää mukana toimitettua suodatinta {0} - objectCategory ensin, koska se on indeksoitu Active Directoryssa, ja sAMAccountName, koska sitä tilin Windows-hakemisto-välilehti tallentaa. %u on tilin Active Directory -käyttäjänimi, %d sen AD-toimialue, %m sen koko sähköpostiosoite; kaikki kolme koodataan ennen sijoitusta, joten vihamielinen kirjautumisnimi ei voi kirjoittaa suodatinta uusiksi. Suodatin, joka täsmää useampaan kuin yhteen merkintään, ei todenna ketään, tarkoituksella.</value>
@@ -8836,9 +8821,6 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Opportunistic" xml:space="preserve">
     <value>Opportunistinen</value>
   </data>
-  <data name="Optional" xml:space="preserve">
-    <value>Valinnainen</value>
-  </data>
   <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
     <value>Valinnainen eri teksti kollegoille - lähettäjille, joiden osoite kuuluu tälle palvelimelle. Se ei koskaan lähde palvelimelta, joten se voi kertoa enemmän kuin yllä oleva viesti. Tyhjä tarkoittaa yllä olevaa viestiä.</value>
   </data>
@@ -9084,9 +9066,6 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Paste the certificate, or two while the provider rolls its key over. It is never shown again: the line below says what is held." xml:space="preserve">
     <value>Liitä varmenne, tai kaksi, kun palveluntarjoaja vaihtaa avaintaan. Sitä ei näytetä enää koskaan: alla oleva rivi kertoo, mitä on tallennettu.</value>
-  </data>
-  <data name="Path to the issuer's public key" xml:space="preserve">
-    <value>Myöntäjän julkisen avaimen polku</value>
   </data>
   <data name="Path: https://endpoint/bucket/key" xml:space="preserve">
     <value>Polku: https://endpoint/bucket/key</value>
@@ -11444,9 +11423,6 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Server" xml:space="preserve">
     <value>Palvelin</value>
-  </data>
-  <data name="Server (localhost)" xml:space="preserve">
-    <value>Palvelin (localhost)</value>
   </data>
   <data name="Server administrator" xml:space="preserve">
     <value>Palvelimen järjestelmänvalvoja</value>
@@ -14647,6 +14623,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="User search _filter" xml:space="preserve">
     <value>_Käyttäjähaun suodatin</value>
   </data>
+  <data name="Usually the client ID of this server's registration with the identity provider." xml:space="preserve">
+    <value>Yleensä tämän palvelimen rekisteröinnin asiakastunnus identiteetintarjoajalla.</value>
+  </data>
   <data name="VAPID private key, to bring the pair from another server (leave empty to keep current)" xml:space="preserve">
     <value>Yksityinen VAPID-avain avainparin tuomiseksi toiselta palvelimelta (jätä tyhjäksi säilyttääksesi nykyisen)</value>
   </data>
@@ -16372,9 +16351,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="example.com is that domain alone; .example.com is the domain and everything beneath it." xml:space="preserve">
     <value>example.com on vain se verkkotunnus; .example.com on verkkotunnus ja kaikki sen alla.</value>
   </data>
-  <data name="example.com, example.net - empty means every domain" xml:space="preserve">
-    <value>example.com, example.net - tyhjä tarkoittaa jokaista verkkotunnusta</value>
-  </data>
   <data name="external account" xml:space="preserve">
     <value>ulkoinen tili</value>
   </data>
@@ -17107,9 +17083,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>kirjoita loki tietokantaan</value>
-  </data>
-  <data name="your application / client ID" xml:space="preserve">
-    <value>sovelluksesi / asiakastunnuksesi</value>
   </data>
   <data name="{0} (a value this Control Panel does not know)" xml:space="preserve">
     <value>{0} (arvo, jota tämä Control Panel ei tunne)</value>

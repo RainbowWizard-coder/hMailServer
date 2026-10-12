@@ -129,41 +129,38 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          Assert.Contains("public static string Of(string example) => F(\"e.g. {0}\", example);", helper, StringComparison.Ordinal);
 
-         // Directory authentication: every placeholder is an example said to be one, the
-         // default filter (named in its hint), the port's "Automatic - ..." or the timeout's
-         // default, 10, which its hint's first words state.
+         // Directory authentication: every placeholder is an example said to be one, or the
+         // default filter, named as the default in its hint (review finding F131). The
+         // port's "Automatic - 636 for LDAPS, 389 otherwise", cut at its box's edge, and the
+         // timeout's 10 are gone: a default is its hint's, never its box's (the final check
+         // of Tier 2, g1 defect 1 and g4 defect 7).
          foreach (Match placeholder in Regex.Matches(ldap, @"^\s*placeholder:\s*([^)\r\n]+\)?)", RegexOptions.Multiline))
          {
             string value = placeholder.Groups[1].Value;
             Assert.True(value.StartsWith("ExamplePlaceholder.Of(", StringComparison.Ordinal)
-                        || value.StartsWith("DefaultUserSearchFilter", StringComparison.Ordinal)
-                        || value.StartsWith("L(\"Automatic", StringComparison.Ordinal)
-                        || value.StartsWith("\"10\"", StringComparison.Ordinal),
+                        || value.StartsWith("DefaultUserSearchFilter", StringComparison.Ordinal),
                "A placeholder on the Directory authentication page reads as a value: " + value);
          }
+         Assert.DoesNotContain("Automatic - 636 for LDAPS, 389 otherwise", ldap, StringComparison.Ordinal);
+         Assert.Contains("L(\"Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise.", ldap, StringComparison.Ordinal);
          Assert.Contains("ExamplePlaceholder.Of(\"dc01.example.local\")", ldap, StringComparison.Ordinal);
          Assert.Contains("ExamplePlaceholder.Of(\"DC=example,DC=local\")", ldap, StringComparison.Ordinal);
          Assert.Contains("ExamplePlaceholder.Of(\"svc-mail@example.local\")", ldap, StringComparison.Ordinal);
          Assert.Contains("L(\"Default 10. The server reads values below 1 as 10", ldap, StringComparison.Ordinal);
 
          // Authentication: the OAuth2 card's three URLs - the token issuer, the provider's
-         // published keys and its introspection endpoint - are examples.
-         Assert.Contains("Placeholder = ExamplePlaceholder.Of(\"https://login.microsoftonline.com/<tenant>/v2.0\")", features, StringComparison.Ordinal);
-         Assert.Contains("Placeholder = ExamplePlaceholder.Of(\"https://login.microsoftonline.com/<tenant>/discovery/v2.0/keys\")", features, StringComparison.Ordinal);
-         Assert.Contains("Placeholder = ExamplePlaceholder.Of(\"https://idp.example.com/oauth2/introspect\")", features, StringComparison.Ordinal);
+         // published keys and its introspection endpoint - are examples, which the page's
+         // boxes mark as such (ExamplePlaceholder.Shown).
+         Assert.Contains("Placeholder = \"https://login.microsoftonline.com/<tenant>/v2.0\"", features, StringComparison.Ordinal);
+         Assert.Contains("Placeholder = \"https://login.microsoftonline.com/<tenant>/discovery/v2.0/keys\"", features, StringComparison.Ordinal);
+         Assert.Contains("Placeholder = \"https://idp.example.com/oauth2/introspect\"", features, StringComparison.Ordinal);
 
-         // Directory synchronisation: a box whose placeholder is the default its emptiness
-         // stands for names that default in its hint too.
-         var boxes = Regex.Matches(sync, @"LabelledBox_\(L\(""[^""]*""\), \w+, ""[\w-]+"",\s*(?://[^\n]*\n\s*)*L\(""((?:[^""\\]|\\.)*)""\),\s*placeholder: ""([^""]*)""\)");
-         Assert.True(boxes.Count >= 5, "Only " + boxes.Count + " of Directory synchronisation's boxes were read.");
-         foreach (Match box in boxes)
-         {
-            string hint = box.Groups[1].Value;
-            string fallback = box.Groups[2].Value;
-            // the hint groups a number's thousands, "5,000", and the box takes it as typed, "5000"
-            Assert.True(Regex.Replace(hint, @"(?<=\d),(?=\d{3})", "").Contains(fallback, StringComparison.Ordinal),
-               "The hint of the box whose empty value is " + fallback + " does not say so: " + hint);
-         }
+         // Directory synchronisation: no box shows the default its emptiness stands for -
+         // mail, sAMAccountName, displayName, 5000 and 0 read as values set - and each hint
+         // names that default.
+         Assert.DoesNotMatch(new Regex(@"placeholder: ""(?:mail|sAMAccountName|displayName|5000|0)"""), sync);
+         foreach (string said in new[] { "mail when left empty", "sAMAccountName when left empty", "displayName when left empty", "5,000 when left empty", "0 switches the schedule off, which is the default" })
+            Assert.Contains(said, sync, StringComparison.Ordinal);
       }
    }
 }

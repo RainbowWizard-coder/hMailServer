@@ -21,5 +21,12 @@ namespace hMailServer.ControlPanel.Views
    {
       /// <summary>The example, marked as one in the reader's language.</summary>
       public static string Of(string example) => F("e.g. {0}", example);
+
+      /// <summary>
+      /// A settings row's example as its box shows it, marked, or nothing where the row
+      /// has none: the rows of the settings pages hold the bare example and their boxes
+      /// mark it, so that none of them shows a value that reads as one set.
+      /// </summary>
+      public static string Shown(string example) => string.IsNullOrEmpty(example) ? "" : Of(example);
    }
 }

@@ -433,8 +433,7 @@ namespace hMailServer.ControlPanel.Views
             placeholder: ExamplePlaceholder.Of("dc01.example.local")));
 
          content.Children.Add(portRow_ = LabelledBox_(L("_Port"), port_, "ldap-port",
-            StoredAs_(L("Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem."), "Port"), // no-loc: the key
-            placeholder: L("Automatic - 636 for LDAPS, 389 otherwise")));
+            StoredAs_(L("Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem."), "Port"))); // no-loc: the key
 
          content.Children.Add(LabelledCombo_(L("_Connection security"), security_, "ldap-security",
             StoredAs_(L("LDAPS is the default. A number in the INI that is not one of these three is read as LDAPS, so a typo cannot silently weaken the transport - and whatever this is set to, a password is never sent over an unprotected connection unless that is explicitly allowed below."), "Security"), // no-loc: the key
@@ -448,8 +447,7 @@ namespace hMailServer.ControlPanel.Views
             StoredAs_(L("On by default, and only an explicit 0 in the INI turns it off. Turned off, the encrypted connection no longer proves it reaches your directory: anyone who can intercept it can present any certificate and collect every password sent over it. The server notes the disabling in its application log once per service start. Only meaningful for LDAPS and StartTLS."), "VerifyCertificate")));
 
          content.Children.Add(timeoutRow_ = LabelledBox_(L("Time_out (seconds, 1 to 90)"), timeout_, "ldap-timeout",
-            StoredAs_(L("Default 10. The server reads values below 1 as 10 and clamps values above 90, because \"wait forever\" for an unreachable directory is how connection threads get exhausted."), "TimeoutSeconds"),
-            placeholder: "10"));
+            StoredAs_(L("Default 10. The server reads values below 1 as 10 and clamps values above 90, because \"wait forever\" for an unreachable directory is how connection threads get exhausted."), "TimeoutSeconds")));
 
          return card;
       }
@@ -619,7 +617,6 @@ namespace hMailServer.ControlPanel.Views
             placeholder: ExamplePlaceholder.Of("EXAMPLE"))); // no-loc: an example domain, the same in every language
 
          testPassword_.HorizontalAlignment = HorizontalAlignment.Stretch;
-         testPassword_.PlaceholderText = L("Leave empty to test only the infrastructure");
          System.Windows.Automation.AutomationProperties.SetAutomationId(testPassword_, "ldap-test-password");
          content.Children.Add(new FieldRow
          {

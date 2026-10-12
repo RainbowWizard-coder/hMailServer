@@ -794,7 +794,7 @@ namespace hMailServer.ControlPanel.Views
    /// <summary>Server diagnostics (classic Utilities > Diagnostics).</summary>
    public class DiagnosticsView : UserControl, IPageLifecycle
    {
-      private readonly Wpf.Ui.Controls.TextBox localDomain_ = new() { PlaceholderText = L("A domain hosted on this server") };
+      private readonly Wpf.Ui.Controls.TextBox localDomain_ = new() { PlaceholderText = ExamplePlaceholder.Of("example.com") }; // no-loc: an example domain
       private readonly Wpf.Ui.Controls.TextBox testDomain_ = new() { Text = "gmail.com" };
 
       // The checks' results as rows, each its pill (Passed, Failed), its name and

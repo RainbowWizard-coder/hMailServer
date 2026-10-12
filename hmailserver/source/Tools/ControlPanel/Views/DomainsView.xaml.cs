@@ -39,6 +39,11 @@ namespace hMailServer.ControlPanel.Views
          WireRows_();
          WireForms_();
 
+         // Each example marked as one (docs/ControlPanelDesign.md): a bare
+         // "example.org" in an empty box reads as a value already there.
+         NewDomainBox.PlaceholderText = ExamplePlaceholder.Of("example.org"); // no-loc: an example domain
+         NewAliasValue.PlaceholderText = ExamplePlaceholder.Of("person@example.net"); // no-loc: an example address
+
          // Every row of the four lists ends in buttons, and a list's bar is drawn
          // over its rows: while a list scrolls, its rows keep clear of the bar
          // (review finding F101).
@@ -772,9 +777,9 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private void ShowAddressPlaceholders_(string domainName)
       {
-         NewAccountBox.PlaceholderText = HostedAddress.Placeholder("name", domainName); // no-loc: an example address
-         NewAliasName.PlaceholderText = HostedAddress.Placeholder("sales", domainName); // no-loc: an example address
-         NewDistAddress.PlaceholderText = HostedAddress.Placeholder("team", domainName); // no-loc: an example address
+         NewAccountBox.PlaceholderText = ExamplePlaceholder.Shown(HostedAddress.Placeholder("name", domainName)); // no-loc: an example address
+         NewAliasName.PlaceholderText = ExamplePlaceholder.Shown(HostedAddress.Placeholder("sales", domainName)); // no-loc: an example address
+         NewDistAddress.PlaceholderText = ExamplePlaceholder.Shown(HostedAddress.Placeholder("team", domainName)); // no-loc: an example address
          AddAccountButton.Appearance = domainName == null ? Wpf.Ui.Controls.ControlAppearance.Secondary : Wpf.Ui.Controls.ControlAppearance.Primary;
       }
 
