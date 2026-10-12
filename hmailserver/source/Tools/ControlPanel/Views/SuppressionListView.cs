@@ -656,7 +656,7 @@ namespace hMailServer.ControlPanel.Views
          rowStyle.Setters.Add(new Setter(ToolTipProperty, new System.Windows.Data.Binding(nameof(EntryView.Detail))));
          entries_.RowStyle = rowStyle;
 
-         counts_.Columns.Add(Trimmed_(L("Address"), nameof(CountView.Address), new DataGridLength(1, DataGridLengthUnitType.Star), 180));
+         counts_.Columns.Add(Trimmed_(L("Address"), nameof(CountView.Address), new DataGridLength(1, DataGridLengthUnitType.Star), 170));
          // Each count under its category's name in the list's Reason column, the name
          // on two lines where it is two words (Number_). The last status code, bounce
          // and delivery are the selected row's, in the strip under the card

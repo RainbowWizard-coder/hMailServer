@@ -106,7 +106,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          string code = Source();
          string columns = WithheldRowTests.MemberText(code, "private void BuildColumns_()");
-         Assert.Contains("Trimmed_(L(\"Address\"), nameof(CountView.Address), new DataGridLength(1, DataGridLengthUnitType.Star), 180)", columns, StringComparison.Ordinal);
+         Assert.Contains("Trimmed_(L(\"Address\"), nameof(CountView.Address), new DataGridLength(1, DataGridLengthUnitType.Star), 170)", columns, StringComparison.Ordinal);
          Assert.Contains("Fitted_(L(\"Listed\"), nameof(CountView.Listed), GridStyles.WholeDevicePixels(GridStyles.CellWidth(L(\"Listed\"))))", columns, StringComparison.Ordinal);
 
          // The six counts: 64 pixels, or the widest word of the header where that is
