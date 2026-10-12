@@ -354,7 +354,7 @@
                             <scaffold:BreadcrumbTrailPanel x:Name="BreadcrumbHost" Grid.Column="1"
                                        VerticalAlignment="Center"
                                        AutomationProperties.AutomationId="breadcrumb" />
-                            <!-- Twelve pixels (AppSpaceMd) from the trail, which ran into
+                            <!-- Twelve pixels (DesignTokens.Space.Md) from the trail, which ran into
                                  "Related:" on Transport security at 760. -->
                             <WrapPanel x:Name="RelatedHost" Grid.Column="2" Orientation="Horizontal" Margin="12,0,0,0"
                                        VerticalAlignment="Center" HorizontalAlignment="Right"
