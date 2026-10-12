@@ -59,7 +59,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("FieldRow searchRow = DialogFields.Field(L(\"_Name or account\"), searchBox_);", dialog, StringComparison.Ordinal);
          Assert.Equal(2, Regex.Matches(dialog, @"Row\.LabelGroup = ""AdQueryLine"";").Count);
          Assert.Contains("SharedSizeGroup = \"AdQueryLine\"", dialog, StringComparison.Ordinal);
-         Assert.Contains("PlaceholderText = L(\"Part of a name (empty lists everyone)\")", dialog, StringComparison.Ordinal);
+         // What an empty box does, in the caption form's words for it (review finding F148).
+         Assert.Contains("PlaceholderText = L(\"Part of a name (empty = everyone)\")", dialog, StringComparison.Ordinal);
          // The caption names the box now, not a sentence put in its place.
          Assert.DoesNotContain("AutomationProperties.SetName(searchBox_", dialog, StringComparison.Ordinal);
       }
