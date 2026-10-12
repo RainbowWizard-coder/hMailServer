@@ -28,6 +28,7 @@ The files
 | `kuma/setup.js` | Uptime Kuma's administrator and monitors, through Kuma's own socket API |
 | `publish-packages.sh` | A .deb or .rpm to Forgejo's package registries, the token read from a file |
 | `push-source.sh` | Run where you work: puts a commit on linix as `~/hmlab/src/<commit>` |
+| `active-active/` | A lab of its own, on server2 rather than linix: two or more nodes of the server on one database, for [ActiveActive.md](../../hmailserver/docs/ActiveActive.md); its README says how to run it and what it has measured |
 
 Where things are on linix
 -------------------------
