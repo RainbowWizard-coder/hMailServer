@@ -167,5 +167,108 @@ namespace RegressionTests.Security
          StringAssert.Contains("NOOP", log);
          StringAssert.Contains("QUIT", log);
       }
+
+      // SMTP. The SMTP connection masked AUTH PLAIN alone, and only after EHLO and in
+      // one strict form, and never called the scrubber's SMTP arm - so every other
+      // mechanism's credential, and PLAIN's sent at any other moment, reached the log
+      // (upstream #654/#661). Each session ends with a NOOP naming a marker of its
+      // own, so the log read back is known to hold this session's lines.
+
+      private static TcpConnection ConnectSmtp()
+      {
+         var connection = new TcpConnection();
+         Assert.IsTrue(connection.Connect(25));
+         Assert.IsTrue(connection.Receive().StartsWith("220"));
+         return connection;
+      }
+
+      private static string EndSmtpSession(TcpConnection connection)
+      {
+         string marker = "marker-" + Guid.NewGuid().ToString("N");
+
+         connection.SendAndReceive("NOOP " + marker + "\r\n");
+         connection.Send("QUIT\r\n");
+         connection.Disconnect();
+
+         return ReadLogAfter(marker);
+      }
+
+      [Test]
+      [Description("An SMTP AUTH PLAIN sent before EHLO - refused, with the credential already in it - " +
+                   "must not reach the log; the mechanism and the authentication identity must.")]
+      public void SmtpAuthPlainBeforeEhloIsMasked()
+      {
+         string initialResponse = Base64("\0" + Username + "\0" + Password);
+
+         var connection = ConnectSmtp();
+         connection.SendAndReceive("AUTH PLAIN " + initialResponse + "\r\n");
+         string log = EndSmtpSession(connection);
+
+         Assert.IsFalse(log.Contains(initialResponse),
+            "The base64 SASL PLAIN initial response was written to the log: " + log);
+         StringAssert.Contains("AUTH PLAIN " + Base64(Username) + " ***", log);
+      }
+
+      [Test]
+      [Description("An SMTP AUTH XOAUTH2 initial response carries a bearer token and must not reach the log; " +
+                   "the mechanism name must.")]
+      public void SmtpXoauth2InitialResponseIsMasked()
+      {
+         string initialResponse = Base64("user=" + Username + "\u0001auth=Bearer eyJhbGciOiJSUzI1NiJ9.secret-token-body.signature\u0001\u0001");
+
+         var connection = ConnectSmtp();
+         connection.Send("EHLO example.test\r\n");
+         connection.ReadUntil("250 ");
+         connection.SendAndReceive("AUTH XOAUTH2 " + initialResponse + "\r\n");
+         string log = EndSmtpSession(connection);
+
+         Assert.IsFalse(log.Contains(initialResponse),
+            "The base64 XOAUTH2 initial response was written to the log: " + log);
+         StringAssert.Contains("AUTH XOAUTH2 ***", log);
+      }
+
+      [Test]
+      [Description("The continuation lines of an SMTP SCRAM-SHA-256 exchange - the client-first message, and " +
+                   "the client-final one with the client proof - must not reach the log.")]
+      public void SmtpScramContinuationIsMasked()
+      {
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, Username, Password);
+
+         string clientFirst = Base64("n,,n=" + Username + ",r=rOprNGfwEbeRWgbNEkqO");
+         string clientFinal = Base64("c=biws,r=rOprNGfwEbeRWgbNEkqO-not-the-server-nonce,p=dHzbZapWIk4jUhN+Ute9ytag9zjfMHgsqmmiz7AndVQ=");
+
+         var connection = ConnectSmtp();
+         connection.Send("EHLO example.test\r\n");
+         connection.ReadUntil("250 ");
+
+         StringAssert.StartsWith("334", connection.SendAndReceive("AUTH SCRAM-SHA-256\r\n"),
+            "Expected an empty SCRAM continuation.");
+
+         // The server-first message, or a refusal; the proof is sent only to a challenge.
+         if (connection.SendAndReceive(clientFirst + "\r\n").StartsWith("334"))
+            connection.SendAndReceive(clientFinal + "\r\n");
+
+         string log = EndSmtpSession(connection);
+
+         Assert.IsFalse(log.Contains(clientFirst),
+            "The base64 SCRAM client-first message was written to the log: " + log);
+         Assert.IsFalse(log.Contains(clientFinal),
+            "The base64 SCRAM client-final message was written to the log: " + log);
+         StringAssert.Contains("AUTH SCRAM-SHA-256", log);
+      }
+
+      [Test]
+      [Description("Guard: ordinary SMTP commands are still logged verbatim.")]
+      public void OrdinarySmtpCommandsAreNotMasked()
+      {
+         var connection = ConnectSmtp();
+         connection.Send("EHLO masking-guard.example.test\r\n");
+         connection.ReadUntil("250 ");
+         connection.SendAndReceive("MAIL FROM:<guard-sender@example.test>\r\n");
+         string log = EndSmtpSession(connection);
+
+         StringAssert.Contains("EHLO masking-guard.example.test", log);
+         StringAssert.Contains("MAIL FROM:<guard-sender@example.test>", log);
+      }
    }
 }

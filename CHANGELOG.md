@@ -455,6 +455,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   user act as another account, answered an authzid naming the client itself `BAD No master user defined.`; it takes
   it as none. `Security/SaslPlainAuthorizationIdentity.cs` asks each of the four. Found by upstream's #652 (#656).
 
+- **Fixed: the SMTP log wrote some credentials in the clear.** The server hid the credential of `AUTH PLAIN` only when
+  it came after `EHLO` and in one exact form, and the password line of `AUTH LOGIN`. An `AUTH PLAIN` sent before
+  `EHLO`, or with a space too many, the initial response of `AUTH XOAUTH2` and `AUTH OAUTHBEARER` - a bearer token -
+  and the continuation lines of SCRAM-SHA-256, OAUTHBEARER and GSSAPI went into the log as the client sent them, base64
+  and readable to anyone who could read the log. The scrubber the POP3 and IMAP logs go through had an SMTP part that
+  nothing called. Every line of a SASL exchange is hidden now but the user name of `AUTH LOGIN`, and `AUTH PLAIN` keeps
+  its authentication identity, as before. `Security/SaslCredentialMasking.cs` sends each and reads the log; the
+  evidence pack says what the logs hold. Found by upstream's #654 (#656, #661).
+
 ### Correctness
 
 - **Fixed: a ManageSieve refusal that quoted a script's text with a line break in it was split in two.** RFC 5804's

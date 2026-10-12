@@ -716,8 +716,9 @@ the administrator password, and what a restore replaces
 
 What the protocol logs contain, once switched on: each session's commands and
 replies with the client's address - so mail addresses, host names and user
-names. Passwords are masked in the logon lines (`SMTPConnection.cpp`,
-`IMAPConnection.cpp`, `POP3Connection.cpp`). An address's lines can be
+names. Passwords are masked in the logon lines, and in the SMTP log every line
+of a SASL exchange but the user name (`SMTPConnection.cpp`, `IMAPConnection.cpp`,
+`POP3Connection.cpp`, `PasswordRemover.cpp`). An address's lines can be
 rewritten to `[erased]` on request ([PersonalData.md](PersonalData.md)). JSON
 logging, per-service files and a slow-query log with SQL literals redacted are
 options ([README.md](../../README.md), *Operations and observability*).

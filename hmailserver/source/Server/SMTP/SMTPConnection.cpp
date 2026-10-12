@@ -17,6 +17,7 @@
 #include "RuleApplier.h"
 #include "../Common/Util/PasswordValidator.h"
 #include "../Common/Util/AccountLogon.h"
+#include "../Common/Util/PasswordRemover.h"
 #include "../Common/Util/SignInStore.h"
 #include "../Common/Util/SessionFollow.h"
 #include "../Common/Util/AccountLockout.h"
@@ -411,82 +412,117 @@ namespace HM
    }
 
 
-   void 
+   void
    SMTPConnection::LogClientCommand_(const String &sClientData)
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
-   // Logs one client command.
+   // Logs one client command, with any credential in it hidden.
+   //
+   // Until 12 October 2026 this hid only AUTH PLAIN, and only in two forms: its
+   // initial response when the session had greeted (the HEADER state) and the
+   // line matched one strict pattern, and the response line of a PLAIN exchange.
+   // Everything else went into the log as the client sent it - AUTH PLAIN sent
+   // before EHLO or with a trailing space, the initial response of XOAUTH2,
+   // OAUTHBEARER, SCRAM-SHA-256 or GSSAPI, and the continuation lines carrying a
+   // bearer token, a SCRAM client proof or a Kerberos ticket - although
+   // PasswordRemover has an SMTP arm written for exactly these and nothing here
+   // called it (upstream #654/#661). A log goes further than a credential should:
+   // to whoever keeps the server, and into support threads.
    //---------------------------------------------------------------------------()
    {
-      if (Logger::Instance()->GetLogSMTP())
+      if (!Logger::Instance()->GetLogSMTP())
+         return;
+
+      String sLogData = sClientData;
+
+      switch (current_state_)
       {
-
-         String sLogData = sClientData;
-
-         String sRegex = "^(?>AUTH PLAIN )((?:[A-Z\\d+/]{4})*(?:[A-Z\\d+/]{3}=|[A-Z\\d+/]{2}==)?)$";
-         boost::wregex expression(sRegex, boost::wregex::icase);
-         boost::wsmatch matches;
-         // AUTH PLAIN command and both user name and password in line. 
-         if (current_state_ == HEADER && boost::regex_match(sLogData, matches, expression))
+      case SMTPUSERNAME:
+         // The response to AUTH PLAIN, or the user name of AUTH LOGIN, which is not
+         // secret and is what tells an administrator which account was tried.
+         if (requestedAuthenticationType_ == AUTH_PLAIN)
+            sLogData = MaskPlainResponse_(sClientData);
+         break;
+      case SMTPUPASSWORD:
+      case SMTPSCRAMFIRST:
+      case SMTPSCRAMFINAL:
+      case SMTPSCRAMACK:
+      case SMTPBEARERRESPONSE:
+      case SMTPEXTERNALRESPONSE:
+      case SMTPGSSAPIRESPONSE:
+         // Every other line of a SASL exchange is a credential or as good as one: a
+         // password, a client proof, a bearer token, a ticket.
+         sLogData = "***";
+         break;
+      default:
          {
-            if (matches.size() > 0)
-            {
-               // Both user name and password in line.
-               String sAuthentication;
-               // matches[1] is a sub_match, and reaching String from one takes two
-               // user-defined conversions - sub_match to std::wstring, std::wstring
-               // to String. Only MSVC chains those on its own; str() spends the
-               // first here so a conforming compiler has only the second to make.
-               String sBase64Encoded = matches[1].str();
-               StringParser::Base64Decode(sBase64Encoded, sAuthentication);
+            // AUTH <mechanism> [initial response], in whatever state it arrives - a
+            // client may send it before EHLO, where it is refused, with the
+            // credential already in it. AUTH PLAIN keeps its authentication
+            // identity, as its response line does; every other mechanism is hidden
+            // after its name but AUTH LOGIN, whose initial response is the user
+            // name. A lone base64 word - credentials sent after an AUTH that was
+            // refused - is hidden too (PasswordRemover).
+            std::vector<String> words = StringParser::SplitString(sClientData, _T(" "));
 
-               // Extract the username from the decoded string.
-               int iSecondTab = sAuthentication.Find(_T("\t"), 1);
-               if (iSecondTab > 0)
-               {
-                  String username = sAuthentication.Mid(1, iSecondTab - 1);
-                  //sLogData = "AUTH PLAIN " + username + " ***";
-                  String usernameBase64Encoded;
-                  StringParser::Base64Encode(username, usernameBase64Encoded);
-                  sLogData = "AUTH PLAIN " + usernameBase64Encoded + " ***";
-               }
-               else
-               {
-                  sLogData = "AUTH PLAIN ***";
-               }
+            std::vector<String> nonEmpty;
+            for (const String &word : words)
+            {
+               String trimmed = word;
+               trimmed.Trim();
+
+               if (!trimmed.IsEmpty())
+                  nonEmpty.push_back(trimmed);
             }
+
+            if (nonEmpty.size() >= 3 &&
+                nonEmpty[0].CompareNoCase(_T("AUTH")) == 0 &&
+                nonEmpty[1].CompareNoCase(_T("PLAIN")) == 0)
+            {
+               sLogData = "AUTH PLAIN " + MaskPlainResponse_(nonEmpty[2]);
+            }
+            else
+            {
+               PasswordRemover::Remove(PasswordRemover::PRSMTP, sLogData);
+            }
+
+            break;
          }
-         else if (current_state_ == SMTPUSERNAME && requestedAuthenticationType_ == AUTH_PLAIN)
-         {
-            // Both user name and password in line.
-            String sAuthentication;
-            StringParser::Base64Decode(sClientData, sAuthentication);
-
-            // Extract the username from the decoded string.
-            int iSecondTab = sAuthentication.Find(_T("\t"), 1);
-            if (iSecondTab > 0)
-            {
-               String username = sAuthentication.Mid(1, iSecondTab - 1);
-               //sLogData = username + " ***";
-               String usernameBase64Encoded;
-               StringParser::Base64Encode(username, usernameBase64Encoded);
-               sLogData = usernameBase64Encoded + " ***";
-            }
-            else 
-            {
-               sLogData = "***";
-            }
-         }
-         else if (current_state_ == SMTPUPASSWORD)
-         {
-            sLogData = "***";
-         }         
-         
-         // Append
-         sLogData = "RECEIVED: " + sLogData;
-
-         LOG_SMTP(GetSessionID(), GetIPAddressString(), sLogData);      
       }
+
+      // Append
+      sLogData = "RECEIVED: " + sLogData;
+
+      LOG_SMTP(GetSessionID(), GetIPAddressString(), sLogData);
+   }
+
+   String
+   SMTPConnection::MaskPlainResponse_(const String &base64)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // A SASL PLAIN response as the log may show it: the authentication identity,
+   // base64 encoded as the client sent it, and a mask. The message is
+   // [authzid] NUL authcid NUL passwd (RFC 4616), and StringParser::Base64Decode
+   // gives the NULs as tabs. Anything else is a mask alone.
+   //---------------------------------------------------------------------------()
+   {
+      String decoded;
+      StringParser::Base64Decode(base64, decoded);
+
+      int firstTab = decoded.Find(_T("\t"));
+      int secondTab = firstTab < 0 ? -1 : decoded.Find(_T("\t"), firstTab + 1);
+
+      if (secondTab < 0)
+         return "***";
+
+      String authcid = decoded.Mid(firstTab + 1, secondTab - firstTab - 1);
+      if (authcid.IsEmpty())
+         return "***";
+
+      String encoded;
+      StringParser::Base64Encode(authcid, encoded);
+
+      return encoded + " ***";
    }
 
    void

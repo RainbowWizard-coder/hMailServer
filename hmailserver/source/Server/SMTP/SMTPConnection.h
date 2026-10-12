@@ -163,6 +163,9 @@ namespace HM
 
       void LogClientCommand_(const String &sClientData);
 
+      static String MaskPlainResponse_(const String &base64);
+      // A SASL PLAIN response as the log may show it: the authcid and a mask.
+
       void LogAwstatsMessageRejected_();
       
       bool DoSpamProtection_(SpamProtectionType spType, const String &sFromAddress, const String &hostName, const IPAddress &lIPAddress);
