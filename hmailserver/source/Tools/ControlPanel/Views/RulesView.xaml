@@ -195,8 +195,8 @@
                                AutomationProperties.AutomationId="rules-outcome" />
 
         <!-- The selected rule's criteria and actions: side by side, or one above
-             the other where either would be narrower than 340 pixels
-             (RulesView.RuleParts_SizeChanged). Side by side in the narrowest
+             the other where either would be narrower than 340 pixels or than its
+             footer's buttons on one line (RulesView.RuleParts_SizeChanged). Side by side in the narrowest
              window they were 250 pixels wide, and the match list ran off the
              right edge of its card. -->
         <UniformGrid x:Name="RuleParts" scaffold:FillPanel.Fill="True" scaffold:FillPanel.Weight="1.3"
@@ -248,7 +248,7 @@
                     </Grid>
                 </scaffold:FillPanel>
                 <scaffold:Card.Footer>
-                    <WrapPanel Orientation="Horizontal">
+                    <WrapPanel x:Name="CriteriaFooter" Orientation="Horizontal">
                         <!-- The selected criterion's Edit and Remove, then Add, the
                              Primary, last (review finding F289). -->
                         <ui:Button x:Name="EditCriterionButton" Content="{loc:L '_Edit criterion…'}" Click="EditCriterion_Click" Margin="0,0,8,4" />
@@ -264,7 +264,17 @@
                     <!-- The floor: three rows of 34 pixels and a pixel for layout
                          rounding. One column, as the
                          criteria's, so no sideways scrolling either. -->
+                    <!-- Up and Down beside the list they reorder, a column of two glyphs
+                         at its top right, named for what they move (review finding F178);
+                         Alt+Up and Alt+Down in the list do the same. In the footer they
+                         took 76 pixels of the half-width card's line, and at 1280 Add
+                         action, the Primary, wrapped alone onto a second line in English,
+                         German and Japanese (the final check of Tier 2, g2 defect 1). -->
                     <Grid scaffold:FillPanel.Fill="True">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
                         <scaffold:FillPanel>
                             <DataGrid x:Name="ActionsGrid" scaffold:FillPanel.Fill="True" MinHeight="103"
                                       ScrollViewer.HorizontalScrollBarVisibility="Disabled"
@@ -279,35 +289,23 @@
                         </scaffold:FillPanel>
                         <scaffold:EmptyState x:Name="ActionsEmpty" Padding="12" Visibility="Collapsed"
                                              AutomationProperties.AutomationId="rules-actions-empty" />
+                        <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="8,0,0,0">
+                            <ui:Button x:Name="ActionUpButton" Icon="{ui:SymbolIcon ChevronUp24}" Padding="8,7" MinWidth="34" Click="ActionUp_Click" Margin="0,0,0,4"
+                                       ToolTip="{loc:L 'Move the selected action up (Alt+Up)'}" AutomationProperties.Name="{loc:L 'Move action up'}" />
+                            <ui:Button x:Name="ActionDownButton" Icon="{ui:SymbolIcon ChevronDown24}" Padding="8,7" MinWidth="34" Click="ActionDown_Click"
+                                       ToolTip="{loc:L 'Move the selected action down (Alt+Down)'}" AutomationProperties.Name="{loc:L 'Move action down'}" />
+                        </StackPanel>
                     </Grid>
                 </scaffold:FillPanel>
                 <scaffold:Card.Footer>
                     <!-- The captioned buttons in a WrapPanel, not a StackPanel, which clips
-                         the last one rather than wrapping it; Up and Down as a pair of
-                         glyphs in the right-hand column, which never wraps apart and never
-                         leaves one of them on a line of its own (review finding F178): as
-                         words, Up was the one caption on the card never translated, and
-                         Down wrapped alone below the rest at 1280. Named for what they
-                         move; Alt+Up and Alt+Down in the list do the same. The WrapPanel
-                         is the grid's first column. -->
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                    <WrapPanel Orientation="Horizontal">
-                        <!-- As the criteria's: Edit and Remove, then Add last. -->
+                         the last one rather than wrapping it. As the criteria's: Edit and
+                         Remove, then Add last. -->
+                    <WrapPanel x:Name="ActionsFooter" Orientation="Horizontal">
                         <ui:Button x:Name="EditActionButton" Content="{loc:L 'Ed_it action…'}" Click="EditAction_Click" Margin="0,0,8,4" />
                         <ui:Button x:Name="RemoveActionButton" Content="{loc:L 'Re_move action'}" Style="{StaticResource DangerTextButton}" Click="RemoveAction_Click" Margin="0,0,8,4" />
-                        <ui:Button x:Name="AddActionButton" Content="{loc:L 'Add ac_tion…'}" Appearance="Primary" Click="AddAction_Click" Margin="0,0,8,4" />
+                        <ui:Button x:Name="AddActionButton" Content="{loc:L 'Add ac_tion…'}" Appearance="Primary" Click="AddAction_Click" Margin="0,0,0,4" />
                     </WrapPanel>
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top" Margin="4,0,0,0">
-                            <ui:Button x:Name="ActionUpButton" Icon="{ui:SymbolIcon ChevronUp24}" Padding="8,7" MinWidth="34" Click="ActionUp_Click" Margin="0,0,4,4"
-                                       ToolTip="{loc:L 'Move the selected action up (Alt+Up)'}" AutomationProperties.Name="{loc:L 'Move action up'}" />
-                            <ui:Button x:Name="ActionDownButton" Icon="{ui:SymbolIcon ChevronDown24}" Padding="8,7" MinWidth="34" Click="ActionDown_Click" Margin="0,0,0,4"
-                                       ToolTip="{loc:L 'Move the selected action down (Alt+Down)'}" AutomationProperties.Name="{loc:L 'Move action down'}" />
-                        </StackPanel>
-                    </Grid>
                 </scaffold:Card.Footer>
             </scaffold:Card>
         </UniformGrid>

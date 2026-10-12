@@ -143,16 +143,41 @@ namespace hMailServer.ControlPanel.Views
       // and one above the other where they would not: side by side in the
       // narrowest window (760 by 520) and in the account dialog's Rules tab they
       // were 250 and 266 pixels wide, and the match list ran off its card.
+      // And where either card's footer would not hold its buttons on one line: in German
+      // the criteria's Edit, Remove and Add wrapped at 1280, Add alone on a second line.
       private const double RulePartMinWidth = 340;
       private static readonly double[] RulePartWeights = { 1, 1 };
-      private static readonly double[] RulePartMinWidths = { RulePartMinWidth, RulePartMinWidth };
 
       private void RuleParts_SizeChanged(object sender, SizeChangedEventArgs e)
       {
-         bool sideBySide = SideBySide.Fits(e.NewSize.Width, RulePartWeights, RulePartMinWidths);
+         double[] minWidths =
+         {
+            Math.Max(RulePartMinWidth, FooterOnOneLine_(CriteriaFooter, CriteriaCard)),
+            Math.Max(RulePartMinWidth, FooterOnOneLine_(ActionsFooter, ActionsCard)),
+         };
+         bool sideBySide = SideBySide.Fits(e.NewSize.Width, RulePartWeights, minWidths);
          RuleParts.Columns = sideBySide ? 2 : 1;
          CriteriaCard.Margin = sideBySide ? new Thickness(0, 0, 6, 0) : new Thickness(0, 0, 0, 6);
          ActionsCard.Margin = sideBySide ? new Thickness(6, 0, 0, 0) : new Thickness(0, 6, 0, 0);
+      }
+
+      /// <summary>
+      /// The width a card needs to hold its footer's buttons on one line: the buttons
+      /// side by side with their margins, the card's padding on both sides, its border,
+      /// and the six pixels between the two cards.
+      /// </summary>
+      private static double FooterOnOneLine_(Panel footer, Control card)
+      {
+         double line = 0;
+         foreach (UIElement button in footer.Children)
+         {
+            if (button.Visibility == Visibility.Collapsed)
+               continue;
+            button.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            line += button.DesiredSize.Width;
+         }
+
+         return Math.Ceiling(line + card.Padding.Left + card.Padding.Right + 2 + 6);
       }
 
       public void OnEnter()

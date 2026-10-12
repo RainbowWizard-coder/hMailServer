@@ -3955,6 +3955,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   French and Russian placeholders are shorter: "Rechercher dans la liste de contournement", "Поиск по списку разрешений
   и блокировок". `SearchPlaceholderFitTests` holds every search placeholder in every language to its box.
 
+- **Fixed: the Rules page's THEN footer wrapped its Primary onto a second line at 1280.** With Up and Down beside its
+  three captioned buttons the half-width card's footer needed more than the card had once the sidebar was wider, and Add
+  action, the Primary, sat alone on a second line in English, German and Japanese; in German the IF footer wrapped its
+  Add criterion the same way. Up and Down are a column of two glyphs beside the list of actions they reorder, named for
+  what they move, Alt+Up and Alt+Down as before; and the two cards go one above the other wherever either footer's
+  buttons would not fit their card on one line, not only below 340 pixels. `RulesPageTests` and `RulesActionOrderTests`
+  hold both.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

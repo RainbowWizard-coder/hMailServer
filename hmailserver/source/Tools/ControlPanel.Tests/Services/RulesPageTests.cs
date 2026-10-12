@@ -140,8 +140,17 @@ namespace hMailServer.ControlPanel.Tests.Services
          string code = ReadControlPanelFile(Path.Join("Views", "RulesView.xaml.cs"));
          string arrange = WithheldRowTests.MemberText(code, "private void RuleParts_SizeChanged(object sender, SizeChangedEventArgs e)");
          Assert.True(arrange != null, "RulesView.RuleParts_SizeChanged is gone.");
-         Assert.Contains("SideBySide.Fits(e.NewSize.Width, RulePartWeights, RulePartMinWidths)", arrange, StringComparison.Ordinal);
+         Assert.Contains("SideBySide.Fits(e.NewSize.Width, RulePartWeights, minWidths)", arrange, StringComparison.Ordinal);
          Assert.Contains("RuleParts.Columns = sideBySide ? 2 : 1;", arrange, StringComparison.Ordinal);
+         // And where a footer's buttons would not fit on one line: Add action, the
+         // Primary, wrapped alone at 1280 (the final check of Tier 2, g2 defect 1).
+         Assert.Contains("Math.Max(RulePartMinWidth, FooterOnOneLine_(CriteriaFooter, CriteriaCard))", arrange, StringComparison.Ordinal);
+         Assert.Contains("Math.Max(RulePartMinWidth, FooterOnOneLine_(ActionsFooter, ActionsCard))", arrange, StringComparison.Ordinal);
+         string footer = WithheldRowTests.MemberText(code, "private static double FooterOnOneLine_(Panel footer, Control card)");
+         Assert.True(footer != null, "RulesView.FooterOnOneLine_ is gone.");
+         Assert.Contains("line += button.DesiredSize.Width;", footer, StringComparison.Ordinal);
+         Assert.Equal(Wpf + "WrapPanel", Named(page, "CriteriaFooter").Name);
+         Assert.Equal(Wpf + "WrapPanel", Named(page, "ActionsFooter").Name);
 
          // Room for the IF caption and the 230-pixel match list inside the card's padding.
          Assert.Contains("private const double RulePartMinWidth = 340;", code, StringComparison.Ordinal);

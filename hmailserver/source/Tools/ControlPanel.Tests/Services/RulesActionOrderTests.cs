@@ -37,6 +37,13 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("Content=", down);
 
          Assert.DoesNotContain("Content=\"U_p\"", xaml);
+
+         // Beside the list they reorder, not in the footer, whose line they took from
+         // the captioned buttons (the final check of Tier 2).
+         int grid = xaml.IndexOf("x:Name=\"ActionsGrid\"", StringComparison.Ordinal);
+         int footer = xaml.IndexOf("x:Name=\"ActionsFooter\"", StringComparison.Ordinal);
+         int upAt = xaml.IndexOf("x:Name=\"ActionUpButton\"", StringComparison.Ordinal);
+         Assert.True(grid >= 0 && upAt > grid && upAt < footer, "Up and Down are not beside the actions' list.");
       }
 
       [Fact]
