@@ -1041,6 +1041,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Add a greylisting exemption" xml:space="preserve">
     <value>Lisää harmaalistauksen poikkeus</value>
   </data>
+  <data name="Add a header the reader shows as a banner" xml:space="preserve">
+    <value>Lisää otsake, jonka lukija näyttää palkkina</value>
+  </data>
   <data name="Add a journaling rule" xml:space="preserve">
     <value>Lisää journalointisääntö</value>
   </data>
@@ -1259,6 +1262,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   </data>
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>Osoitteet ja kokonaiset verkkotunnukset, jotka verkkotunnuksen {0} tilit haluavat tai eivät halua. Katsotaan tilin oman luettelon jälkeen ja ennen palvelimen luetteloa.</value>
+  </data>
+  <data name="Addresses at other providers a person may send as" xml:space="preserve">
+    <value>Muiden palveluntarjoajien osoitteet, joina henkilö saa lähettää</value>
   </data>
   <data name="Addresses at other providers a person may send as (up to 20; 0 = none)" xml:space="preserve">
     <value>Muiden palveluntarjoajien osoitteet, joina henkilö saa lähettää (enintään 20; 0 = ei yhtään)</value>
@@ -3474,6 +3480,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Country blocking" xml:space="preserve">
     <value>Maakohtainen esto</value>
   </data>
+  <data name="Country policy at sign-in" xml:space="preserve">
+    <value>Maakäytäntö kirjautuessa</value>
+  </data>
   <data name="Covers" xml:space="preserve">
     <value>Kattaa</value>
   </data>
@@ -3723,6 +3732,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Days after sending that a delivery report is still matched (1 to 30)" xml:space="preserve">
     <value>Päivät lähetyksen jälkeen, joiden aikana toimitusraportti vielä yhdistetään (1-30)</value>
   </data>
+  <data name="Days after sending that mail to this server's accounts may be recalled" xml:space="preserve">
+    <value>Päivät lähettämisen jälkeen, joiden aikana tämän palvelimen tileille lähetetty posti voidaan perua</value>
+  </data>
   <data name="Days after sending that mail to this server's accounts may be recalled (1 to 365)" xml:space="preserve">
     <value>Päivät lähettämisen jälkeen, joiden aikana tämän palvelimen tileille lähetetty posti voidaan perua (1-365)</value>
   </data>
@@ -3741,6 +3753,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Days bounce counts are kept (0 = for ever)" xml:space="preserve">
     <value>Päivät, jotka palautusten määrät säilytetään (0 = ikuisesti)</value>
   </data>
+  <data name="Days deleted messages are kept for the person to put back" xml:space="preserve">
+    <value>Päivät, jotka poistetut viestit säilytetään henkilön palautettaviksi</value>
+  </data>
   <data name="Days deleted messages are kept for the person to put back (up to 365; 0 = none)" xml:space="preserve">
     <value>Päivät, jotka poistetut viestit säilytetään henkilön palautettaviksi (enintään 365; 0 = ei yhtään)</value>
   </data>
@@ -3749,6 +3764,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Days of audit trail to keep (0 = for ever)" xml:space="preserve">
     <value>Säilytettävät tarkastuslokin päivät (0 = ikuisesti)</value>
+  </data>
+  <data name="Days of mail a person may keep in the browser to read offline" xml:space="preserve">
+    <value>Päivät postia, jotka henkilö saa säilyttää selaimessa offline-lukemista varten</value>
   </data>
   <data name="Days of mail a person may keep in the browser to read offline (up to 365; 0 = none)" xml:space="preserve">
     <value>Päivät postia, jotka henkilö saa säilyttää selaimessa offline-lukemista varten (enintään 365; 0 = ei yhtään)</value>
@@ -4608,6 +4626,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Enable or disable the protocol servers. Changes apply when you press Save changes. ManageSieve (for managing Sieve scripts) is enabled on the API &amp; monitoring page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>Ota protokollapalvelimet käyttöön tai poista ne käytöstä. Muutokset tulevat voimaan, kun painat Tallenna muutokset. ManageSieve (Sieve-komentosarjojen hallintaan) otetaan käyttöön API ja valvonta -sivulla; OAuth2-token-todennus on Todennus-sivulla.</value>
+  </data>
+  <data name="Enable plus addressing" xml:space="preserve">
+    <value>Ota plus-osoitteet käyttöön</value>
   </data>
   <data name="Enable server-side event scripts" xml:space="preserve">
     <value>Ota palvelinpuolen tapahtumakomentosarjat käyttöön</value>
@@ -6956,6 +6977,9 @@ Jokainen nykyisellä parilla tehty Web Push -tilaus lakkaa toimimasta heti, ja j
   <data name="Marked inactive" xml:space="preserve">
     <value>Merkitty ei-aktiiviseksi</value>
   </data>
+  <data name="Masked addresses a person may make" xml:space="preserve">
+    <value>Peiteosoitteet, joita henkilö saa tehdä</value>
+  </data>
   <data name="Masked addresses a person may make (up to 200; 0 = none)" xml:space="preserve">
     <value>Peiteosoitteet, joita henkilö saa tehdä (enintään 200; 0 = ei yhtään)</value>
   </data>
@@ -7046,6 +7070,9 @@ Jokainen nykyisellä parilla tehty Web Push -tilaus lakkaa toimimasta heti, ja j
   <data name="Maximum message size (KB; 0 = no limit)" xml:space="preserve">
     <value>Viestin enimmäiskoko (kt; 0 = ei rajaa)</value>
   </data>
+  <data name="Maximum messages per account per period" xml:space="preserve">
+    <value>Viestien enimmäismäärä tiliä kohden jaksossa</value>
+  </data>
   <data name="Maximum messages per account per period (0 = no limit)" xml:space="preserve">
     <value>Viestien enimmäismäärä tiliä kohden jaksossa (0 = ei rajaa)</value>
   </data>
@@ -7063,6 +7090,9 @@ Jokainen nykyisellä parilla tehty Web Push -tilaus lakkaa toimimasta heti, ja j
   </data>
   <data name="Maximum parallel external POP3 fetch threads" xml:space="preserve">
     <value>Rinnakkaisten ulkoisten POP3-noutosäikeiden enimmäismäärä</value>
+  </data>
+  <data name="Maximum recipients per account per period" xml:space="preserve">
+    <value>Vastaanottajien enimmäismäärä tiliä kohden jaksossa</value>
   </data>
   <data name="Maximum recipients per account per period (0 = no limit)" xml:space="preserve">
     <value>Vastaanottajien enimmäismäärä tiliä kohden jaksossa (0 = ei rajaa)</value>
@@ -8832,6 +8862,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Other" xml:space="preserve">
     <value>Muut</value>
+  </data>
+  <data name="Other POP3 or IMAP accounts a person may collect from" xml:space="preserve">
+    <value>Muut POP3- tai IMAP-tilit, joilta henkilö saa noutaa postia</value>
   </data>
   <data name="Other POP3 or IMAP accounts a person may collect from (up to 20; 0 = none)" xml:space="preserve">
     <value>Muut POP3- tai IMAP-tilit, joilta henkilö saa noutaa postia (enintään 20; 0 = ei yhtään)</value>
@@ -11124,8 +11157,14 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Seconds a push service holds a notification for a device that is offline (0 to 2,419,200)" xml:space="preserve">
     <value>Sekunnit, jotka push-palvelu pitää ilmoitusta offline-tilassa olevalle laitteelle (0-2 419 200)</value>
   </data>
+  <data name="Seconds a session may go unused" xml:space="preserve">
+    <value>Sekunnit, jotka istunto saa olla käyttämättä</value>
+  </data>
   <data name="Seconds a session may go unused (0 = the server's own 1,800)" xml:space="preserve">
     <value>Sekunnit, jotka istunto saa olla käyttämättä (0 = palvelimen oma 1 800)</value>
+  </data>
+  <data name="Seconds a session may last at all" xml:space="preserve">
+    <value>Sekunnit, jotka istunto saa ylipäätään kestää</value>
   </data>
   <data name="Seconds a session may last at all (0 = the server's own 43,200)" xml:space="preserve">
     <value>Sekunnit, jotka istunto saa ylipäätään kestää (0 = palvelimen oma 43 200)</value>
@@ -12021,6 +12060,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>Vaihe {0}/{1}</value>
   </data>
+  <data name="Still accept incoming mail past a mailbox's limit by (% of the limit)" xml:space="preserve">
+    <value>Ota saapuvaa postia yhä vastaan postilaatikon rajan yli (% rajasta)</value>
+  </data>
   <data name="Still accept incoming mail past a mailbox's limit by (% of the limit; 0 = not at all)" xml:space="preserve">
     <value>Ota saapuvaa postia yhä vastaan postilaatikon rajan yli (% rajasta; 0 = ei lainkaan)</value>
   </data>
@@ -12029,6 +12071,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Still accept incoming mail past the limit by (%)" xml:space="preserve">
     <value>Ota saapuvaa postia vastaan rajan yli (%)</value>
+  </data>
+  <data name="Stop an account sending at (% of its limit)" xml:space="preserve">
+    <value>Lopeta tilin lähetys kohdassa (% sen rajasta)</value>
   </data>
   <data name="Stop an account sending at (% of its limit; 0 = never)" xml:space="preserve">
     <value>Lopeta tilin lähetys kohdassa (% sen rajasta; 0 = ei koskaan)</value>
@@ -12311,6 +12356,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Tag te_xt (up to 100 characters; empty = [EXTERNAL])" xml:space="preserve">
     <value>Merkintäte_ksti (enintään 100 merkkiä; tyhjä = [EXTERNAL])</value>
+  </data>
+  <data name="Tag the subject of mail from outside" xml:space="preserve">
+    <value>Merkitse ulkopuolelta tulevan postin aihe</value>
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Merkintä ja vastuuvapauslauseke</value>
@@ -14727,6 +14775,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="Warn in the application log and Windows event log below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Varoita sovelluslokissa ja Windowsin tapahtumalokissa, kun vapaata tilaa on alle tämän (Mt; 0 = ei koskaan)</value>
+  </data>
+  <data name="Warn the mailbox owner at this percentage of their quota" xml:space="preserve">
+    <value>Varoita postilaatikon omistajaa tässä prosentissa hänen kiintiöstään</value>
   </data>
   <data name="Warn the mailbox owner at this percentage of their quota (0 = never)" xml:space="preserve">
     <value>Varoita postilaatikon omistajaa tässä prosentissa hänen kiintiöstään (0 = ei koskaan)</value>

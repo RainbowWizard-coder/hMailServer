@@ -1041,6 +1041,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Add a greylisting exemption" xml:space="preserve">
     <value>Een greylisting-uitzondering toevoegen</value>
   </data>
+  <data name="Add a header the reader shows as a banner" xml:space="preserve">
+    <value>Een kopregel toevoegen die de lezer als balk toont</value>
+  </data>
   <data name="Add a journaling rule" xml:space="preserve">
     <value>Een journalingregel toevoegen</value>
   </data>
@@ -1259,6 +1262,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   </data>
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>Adressen en hele domeinen die de accounts van {0} willen, of niet. Geldt na de eigen lijst van een account en voor die van de server.</value>
+  </data>
+  <data name="Addresses at other providers a person may send as" xml:space="preserve">
+    <value>Adressen bij andere providers waarmee iemand mag verzenden</value>
   </data>
   <data name="Addresses at other providers a person may send as (up to 20; 0 = none)" xml:space="preserve">
     <value>Adressen bij andere providers waarmee iemand mag verzenden (tot 20; 0 = geen)</value>
@@ -3474,6 +3480,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Country blocking" xml:space="preserve">
     <value>Blokkeren per land</value>
   </data>
+  <data name="Country policy at sign-in" xml:space="preserve">
+    <value>Landenbeleid bij aanmelden</value>
+  </data>
   <data name="Covers" xml:space="preserve">
     <value>Omvat</value>
   </data>
@@ -3723,6 +3732,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Days after sending that a delivery report is still matched (1 to 30)" xml:space="preserve">
     <value>Dagen na verzending dat een afleverrapport nog wordt gekoppeld (1 tot 30)</value>
   </data>
+  <data name="Days after sending that mail to this server's accounts may be recalled" xml:space="preserve">
+    <value>Dagen na verzending dat mail aan accounts van deze server kan worden teruggehaald</value>
+  </data>
   <data name="Days after sending that mail to this server's accounts may be recalled (1 to 365)" xml:space="preserve">
     <value>Dagen na verzending dat mail aan accounts van deze server kan worden teruggehaald (1 tot 365)</value>
   </data>
@@ -3741,6 +3753,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Days bounce counts are kept (0 = for ever)" xml:space="preserve">
     <value>Dagen dat bouncetellingen worden bewaard (0 = voor altijd)</value>
   </data>
+  <data name="Days deleted messages are kept for the person to put back" xml:space="preserve">
+    <value>Dagen dat verwijderde berichten worden bewaard zodat iemand ze terug kan zetten</value>
+  </data>
   <data name="Days deleted messages are kept for the person to put back (up to 365; 0 = none)" xml:space="preserve">
     <value>Dagen dat verwijderde berichten worden bewaard zodat iemand ze terug kan zetten (tot 365; 0 = geen)</value>
   </data>
@@ -3749,6 +3764,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Days of audit trail to keep (0 = for ever)" xml:space="preserve">
     <value>Dagen auditlogboek om te bewaren (0 = voor altijd)</value>
+  </data>
+  <data name="Days of mail a person may keep in the browser to read offline" xml:space="preserve">
+    <value>Dagen mail die iemand in de browser mag bewaren om offline te lezen</value>
   </data>
   <data name="Days of mail a person may keep in the browser to read offline (up to 365; 0 = none)" xml:space="preserve">
     <value>Dagen mail die iemand in de browser mag bewaren om offline te lezen (tot 365; 0 = geen)</value>
@@ -4608,6 +4626,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Enable or disable the protocol servers. Changes apply when you press Save changes. ManageSieve (for managing Sieve scripts) is enabled on the API &amp; monitoring page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>Schakel de protocolservers in of uit. Wijzigingen gelden zodra u op Wijzigingen opslaan drukt. ManageSieve (voor het beheren van Sieve-scripts) wordt ingeschakeld op de pagina API en monitoring; OAuth2-tokenauthenticatie staat op de pagina Authenticatie.</value>
+  </data>
+  <data name="Enable plus addressing" xml:space="preserve">
+    <value>Plusadressering inschakelen</value>
   </data>
   <data name="Enable server-side event scripts" xml:space="preserve">
     <value>Gebeurtenisscripts op de server inschakelen</value>
@@ -6956,6 +6977,9 @@ Elk Web Push-abonnement onder het huidige paar werkt meteen niet meer, en iedere
   <data name="Marked inactive" xml:space="preserve">
     <value>Als inactief gemarkeerd</value>
   </data>
+  <data name="Masked addresses a person may make" xml:space="preserve">
+    <value>Gemaskeerde adressen die iemand mag maken</value>
+  </data>
   <data name="Masked addresses a person may make (up to 200; 0 = none)" xml:space="preserve">
     <value>Gemaskeerde adressen die iemand mag maken (tot 200; 0 = geen)</value>
   </data>
@@ -7046,6 +7070,9 @@ Elk Web Push-abonnement onder het huidige paar werkt meteen niet meer, en iedere
   <data name="Maximum message size (KB; 0 = no limit)" xml:space="preserve">
     <value>Maximale berichtgrootte (KB; 0 = geen limiet)</value>
   </data>
+  <data name="Maximum messages per account per period" xml:space="preserve">
+    <value>Maximumaantal berichten per account per periode</value>
+  </data>
   <data name="Maximum messages per account per period (0 = no limit)" xml:space="preserve">
     <value>Maximumaantal berichten per account per periode (0 = geen limiet)</value>
   </data>
@@ -7063,6 +7090,9 @@ Elk Web Push-abonnement onder het huidige paar werkt meteen niet meer, en iedere
   </data>
   <data name="Maximum parallel external POP3 fetch threads" xml:space="preserve">
     <value>Maximumaantal parallelle threads voor externe POP3-ophaling</value>
+  </data>
+  <data name="Maximum recipients per account per period" xml:space="preserve">
+    <value>Maximumaantal ontvangers per account per periode</value>
   </data>
   <data name="Maximum recipients per account per period (0 = no limit)" xml:space="preserve">
     <value>Maximumaantal ontvangers per account per periode (0 = geen limiet)</value>
@@ -8832,6 +8862,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Other" xml:space="preserve">
     <value>Overig</value>
+  </data>
+  <data name="Other POP3 or IMAP accounts a person may collect from" xml:space="preserve">
+    <value>Andere POP3- of IMAP-accounts waarvan iemand mag ophalen</value>
   </data>
   <data name="Other POP3 or IMAP accounts a person may collect from (up to 20; 0 = none)" xml:space="preserve">
     <value>Andere POP3- of IMAP-accounts waarvan iemand mag ophalen (tot 20; 0 = geen)</value>
@@ -11124,8 +11157,14 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Seconds a push service holds a notification for a device that is offline (0 to 2,419,200)" xml:space="preserve">
     <value>Seconden dat een pushdienst een melding bewaart voor een apparaat dat offline is (0 tot 2.419.200)</value>
   </data>
+  <data name="Seconds a session may go unused" xml:space="preserve">
+    <value>Seconden dat een sessie ongebruikt mag blijven</value>
+  </data>
   <data name="Seconds a session may go unused (0 = the server's own 1,800)" xml:space="preserve">
     <value>Seconden dat een sessie ongebruikt mag blijven (0 = de eigen 1.800 van de server)</value>
+  </data>
+  <data name="Seconds a session may last at all" xml:space="preserve">
+    <value>Seconden dat een sessie in totaal mag duren</value>
   </data>
   <data name="Seconds a session may last at all (0 = the server's own 43,200)" xml:space="preserve">
     <value>Seconden dat een sessie in totaal mag duren (0 = de eigen 43.200 van de server)</value>
@@ -12021,6 +12060,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>Stap {0} van {1}</value>
   </data>
+  <data name="Still accept incoming mail past a mailbox's limit by (% of the limit)" xml:space="preserve">
+    <value>Inkomende mail voorbij de limiet van een mailbox nog aannemen tot (% van de limiet)</value>
+  </data>
   <data name="Still accept incoming mail past a mailbox's limit by (% of the limit; 0 = not at all)" xml:space="preserve">
     <value>Inkomende mail voorbij de limiet van een mailbox nog aannemen tot (% van de limiet; 0 = helemaal niet)</value>
   </data>
@@ -12029,6 +12071,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Still accept incoming mail past the limit by (%)" xml:space="preserve">
     <value>Inkomende mail voorbij de limiet nog aannemen tot (%)</value>
+  </data>
+  <data name="Stop an account sending at (% of its limit)" xml:space="preserve">
+    <value>Verzenden van een account stoppen bij (% van zijn limiet)</value>
   </data>
   <data name="Stop an account sending at (% of its limit; 0 = never)" xml:space="preserve">
     <value>Verzenden van een account stoppen bij (% van zijn limiet; 0 = nooit)</value>
@@ -12311,6 +12356,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Tag te_xt (up to 100 characters; empty = [EXTERNAL])" xml:space="preserve">
     <value>Marker_tekst (hoogstens 100 tekens; leeg = [EXTERNAL])</value>
+  </data>
+  <data name="Tag the subject of mail from outside" xml:space="preserve">
+    <value>Het onderwerp van post van buiten markeren</value>
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Markering en disclaimer</value>
@@ -14727,6 +14775,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="Warn in the application log and Windows event log below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Waarschuwen in het toepassingslogboek en het Windows-gebeurtenislogboek onder deze hoeveelheid vrije ruimte (MB; 0 = nooit)</value>
+  </data>
+  <data name="Warn the mailbox owner at this percentage of their quota" xml:space="preserve">
+    <value>De eigenaar van het postvak waarschuwen bij dit percentage van zijn quotum</value>
   </data>
   <data name="Warn the mailbox owner at this percentage of their quota (0 = never)" xml:space="preserve">
     <value>De eigenaar van het postvak waarschuwen bij dit percentage van zijn quotum (0 = nooit)</value>

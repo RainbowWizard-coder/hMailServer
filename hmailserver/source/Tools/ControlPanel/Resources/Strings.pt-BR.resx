@@ -1041,6 +1041,9 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="Add a greylisting exemption" xml:space="preserve">
     <value>Adicionar uma exceção do greylisting</value>
   </data>
+  <data name="Add a header the reader shows as a banner" xml:space="preserve">
+    <value>Adicionar um cabeçalho que o leitor mostra como faixa</value>
+  </data>
   <data name="Add a journaling rule" xml:space="preserve">
     <value>Adicionar uma regra de registro de correio</value>
   </data>
@@ -1259,6 +1262,9 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   </data>
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>Endereços e domínios inteiros que as contas de {0} querem, ou não. Consultada depois da lista própria de uma conta e antes da do servidor.</value>
+  </data>
+  <data name="Addresses at other providers a person may send as" xml:space="preserve">
+    <value>Endereços em outros provedores com os quais uma pessoa pode enviar</value>
   </data>
   <data name="Addresses at other providers a person may send as (up to 20; 0 = none)" xml:space="preserve">
     <value>Endereços em outros provedores com os quais uma pessoa pode enviar (até 20; 0 = nenhum)</value>
@@ -3474,6 +3480,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Country blocking" xml:space="preserve">
     <value>Bloqueio por país</value>
   </data>
+  <data name="Country policy at sign-in" xml:space="preserve">
+    <value>Política de país no login</value>
+  </data>
   <data name="Covers" xml:space="preserve">
     <value>Abrange</value>
   </data>
@@ -3723,6 +3732,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Days after sending that a delivery report is still matched (1 to 30)" xml:space="preserve">
     <value>Dias após o envio em que um relatório de entrega ainda é associado (1 a 30)</value>
   </data>
+  <data name="Days after sending that mail to this server's accounts may be recalled" xml:space="preserve">
+    <value>Dias após o envio em que o e-mail para as contas deste servidor pode ser recolhido</value>
+  </data>
   <data name="Days after sending that mail to this server's accounts may be recalled (1 to 365)" xml:space="preserve">
     <value>Dias após o envio em que o e-mail para as contas deste servidor pode ser recolhido (1 a 365)</value>
   </data>
@@ -3741,6 +3753,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Days bounce counts are kept (0 = for ever)" xml:space="preserve">
     <value>Dias em que as contagens de retornos são mantidas (0 = para sempre)</value>
   </data>
+  <data name="Days deleted messages are kept for the person to put back" xml:space="preserve">
+    <value>Dias que as mensagens excluídas são mantidas para a pessoa recuperá-las</value>
+  </data>
   <data name="Days deleted messages are kept for the person to put back (up to 365; 0 = none)" xml:space="preserve">
     <value>Dias que as mensagens excluídas são mantidas para a pessoa recuperá-las (até 365; 0 = nenhum)</value>
   </data>
@@ -3749,6 +3764,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   </data>
   <data name="Days of audit trail to keep (0 = for ever)" xml:space="preserve">
     <value>Dias de trilha de auditoria a manter (0 = para sempre)</value>
+  </data>
+  <data name="Days of mail a person may keep in the browser to read offline" xml:space="preserve">
+    <value>Dias de e-mail que uma pessoa pode guardar no navegador para ler offline</value>
   </data>
   <data name="Days of mail a person may keep in the browser to read offline (up to 365; 0 = none)" xml:space="preserve">
     <value>Dias de e-mail que uma pessoa pode guardar no navegador para ler offline (até 365; 0 = nenhum)</value>
@@ -4608,6 +4626,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   </data>
   <data name="Enable or disable the protocol servers. Changes apply when you press Save changes. ManageSieve (for managing Sieve scripts) is enabled on the API &amp; monitoring page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>Ative ou desative os servidores de protocolo. As alterações valem quando você pressiona Salvar alterações. O ManageSieve (para gerenciar scripts Sieve) é ativado na página API e monitoramento; a autenticação por token OAuth2 fica na página Autenticação.</value>
+  </data>
+  <data name="Enable plus addressing" xml:space="preserve">
+    <value>Ativar o endereçamento com sinal de mais</value>
   </data>
   <data name="Enable server-side event scripts" xml:space="preserve">
     <value>Ativar os scripts de eventos no servidor</value>
@@ -6956,6 +6977,9 @@ Cada inscrição Web Push feita com o par atual para de funcionar na hora, e cad
   <data name="Marked inactive" xml:space="preserve">
     <value>Marcada como inativa</value>
   </data>
+  <data name="Masked addresses a person may make" xml:space="preserve">
+    <value>Endereços mascarados que uma pessoa pode criar</value>
+  </data>
   <data name="Masked addresses a person may make (up to 200; 0 = none)" xml:space="preserve">
     <value>Endereços mascarados que uma pessoa pode criar (até 200; 0 = nenhum)</value>
   </data>
@@ -7046,6 +7070,9 @@ Cada inscrição Web Push feita com o par atual para de funcionar na hora, e cad
   <data name="Maximum message size (KB; 0 = no limit)" xml:space="preserve">
     <value>Tamanho máximo da mensagem (KB; 0 = sem limite)</value>
   </data>
+  <data name="Maximum messages per account per period" xml:space="preserve">
+    <value>Máximo de mensagens por conta por período</value>
+  </data>
   <data name="Maximum messages per account per period (0 = no limit)" xml:space="preserve">
     <value>Máximo de mensagens por conta por período (0 = sem limite)</value>
   </data>
@@ -7063,6 +7090,9 @@ Cada inscrição Web Push feita com o par atual para de funcionar na hora, e cad
   </data>
   <data name="Maximum parallel external POP3 fetch threads" xml:space="preserve">
     <value>Máximo de threads paralelas de coleta POP3 externa</value>
+  </data>
+  <data name="Maximum recipients per account per period" xml:space="preserve">
+    <value>Máximo de destinatários por conta por período</value>
   </data>
   <data name="Maximum recipients per account per period (0 = no limit)" xml:space="preserve">
     <value>Máximo de destinatários por conta por período (0 = sem limite)</value>
@@ -8832,6 +8862,9 @@ Nada do que já está lá é removido.</value>
   </data>
   <data name="Other" xml:space="preserve">
     <value>Outros</value>
+  </data>
+  <data name="Other POP3 or IMAP accounts a person may collect from" xml:space="preserve">
+    <value>Outras contas POP3 ou IMAP de onde uma pessoa pode buscar e-mail</value>
   </data>
   <data name="Other POP3 or IMAP accounts a person may collect from (up to 20; 0 = none)" xml:space="preserve">
     <value>Outras contas POP3 ou IMAP de onde uma pessoa pode buscar e-mail (até 20; 0 = nenhuma)</value>
@@ -11124,8 +11157,14 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Seconds a push service holds a notification for a device that is offline (0 to 2,419,200)" xml:space="preserve">
     <value>Segundos em que um serviço de push guarda uma notificação para um dispositivo offline (0 a 2.419.200)</value>
   </data>
+  <data name="Seconds a session may go unused" xml:space="preserve">
+    <value>Segundos em que uma sessão pode ficar sem uso</value>
+  </data>
   <data name="Seconds a session may go unused (0 = the server's own 1,800)" xml:space="preserve">
     <value>Segundos em que uma sessão pode ficar sem uso (0 = os 1.800 do próprio servidor)</value>
+  </data>
+  <data name="Seconds a session may last at all" xml:space="preserve">
+    <value>Segundos que uma sessão pode durar ao todo</value>
   </data>
   <data name="Seconds a session may last at all (0 = the server's own 43,200)" xml:space="preserve">
     <value>Segundos que uma sessão pode durar ao todo (0 = os 43.200 do próprio servidor)</value>
@@ -12021,6 +12060,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>Etapa {0} de {1}</value>
   </data>
+  <data name="Still accept incoming mail past a mailbox's limit by (% of the limit)" xml:space="preserve">
+    <value>Continuar aceitando e-mail recebido além do limite de uma caixa até (% do limite)</value>
+  </data>
   <data name="Still accept incoming mail past a mailbox's limit by (% of the limit; 0 = not at all)" xml:space="preserve">
     <value>Continuar aceitando e-mail recebido além do limite de uma caixa até (% do limite; 0 = nada)</value>
   </data>
@@ -12029,6 +12071,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="Still accept incoming mail past the limit by (%)" xml:space="preserve">
     <value>Continuar aceitando e-mail recebido além do limite até (%)</value>
+  </data>
+  <data name="Stop an account sending at (% of its limit)" xml:space="preserve">
+    <value>Parar o envio de uma conta em (% do seu limite)</value>
   </data>
   <data name="Stop an account sending at (% of its limit; 0 = never)" xml:space="preserve">
     <value>Parar o envio de uma conta em (% do seu limite; 0 = nunca)</value>
@@ -12311,6 +12356,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="Tag te_xt (up to 100 characters; empty = [EXTERNAL])" xml:space="preserve">
     <value>Te_xto da marca (no máximo 100 caracteres; vazio = [EXTERNAL])</value>
+  </data>
+  <data name="Tag the subject of mail from outside" xml:space="preserve">
+    <value>Marcar o assunto das mensagens de fora</value>
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Marcação e aviso legal</value>
@@ -14727,6 +14775,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="Warn in the application log and Windows event log below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Avisar no log do aplicativo e no log de eventos do Windows abaixo desta quantidade de espaço livre (MB; 0 = nunca)</value>
+  </data>
+  <data name="Warn the mailbox owner at this percentage of their quota" xml:space="preserve">
+    <value>Avisar o dono da caixa nesta porcentagem da cota dele</value>
   </data>
   <data name="Warn the mailbox owner at this percentage of their quota (0 = never)" xml:space="preserve">
     <value>Avisar o dono da caixa nesta porcentagem da cota dele (0 = nunca)</value>

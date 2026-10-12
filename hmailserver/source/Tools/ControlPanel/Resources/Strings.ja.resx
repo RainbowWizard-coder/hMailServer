@@ -1052,6 +1052,9 @@
   <data name="Add a greylisting exemption" xml:space="preserve">
     <value>グレイリスティングの除外を追加</value>
   </data>
+  <data name="Add a header the reader shows as a banner" xml:space="preserve">
+    <value>読み手が帯として表示するヘッダーを付ける</value>
+  </data>
   <data name="Add a journaling rule" xml:space="preserve">
     <value>ジャーナリング ルールを追加</value>
   </data>
@@ -1270,6 +1273,9 @@
   </data>
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>{0} のアカウントが望む、または望まないアドレスとドメイン全体。アカウント自身の一覧の後、サーバーの一覧の前に参照されます。</value>
+  </data>
+  <data name="Addresses at other providers a person may send as" xml:space="preserve">
+    <value>利用者が送信者として使える他のプロバイダーのアドレス</value>
   </data>
   <data name="Addresses at other providers a person may send as (up to 20; 0 = none)" xml:space="preserve">
     <value>利用者が送信者として使える他のプロバイダーのアドレス (最大 20、0 = なし)</value>
@@ -3485,6 +3491,9 @@
   <data name="Country blocking" xml:space="preserve">
     <value>国によるブロック</value>
   </data>
+  <data name="Country policy at sign-in" xml:space="preserve">
+    <value>サインイン時の国ポリシー</value>
+  </data>
   <data name="Covers" xml:space="preserve">
     <value>対象範囲</value>
   </data>
@@ -3734,6 +3743,9 @@
   <data name="Days after sending that a delivery report is still matched (1 to 30)" xml:space="preserve">
     <value>送信後、配信レポートを照合する日数 (1 ～ 30)</value>
   </data>
+  <data name="Days after sending that mail to this server's accounts may be recalled" xml:space="preserve">
+    <value>このサーバーのアカウント宛てのメールを、送信後に取り消せる日数</value>
+  </data>
   <data name="Days after sending that mail to this server's accounts may be recalled (1 to 365)" xml:space="preserve">
     <value>このサーバーのアカウント宛てのメールを、送信後に取り消せる日数 (1 から 365)</value>
   </data>
@@ -3752,6 +3764,9 @@
   <data name="Days bounce counts are kept (0 = for ever)" xml:space="preserve">
     <value>バウンスの件数を保持する日数 (0 = 無期限)</value>
   </data>
+  <data name="Days deleted messages are kept for the person to put back" xml:space="preserve">
+    <value>削除されたメッセージを本人が戻せるように保持する日数</value>
+  </data>
   <data name="Days deleted messages are kept for the person to put back (up to 365; 0 = none)" xml:space="preserve">
     <value>削除されたメッセージを本人が戻せるように保持する日数 (最大 365、0 = なし)</value>
   </data>
@@ -3760,6 +3775,9 @@
   </data>
   <data name="Days of audit trail to keep (0 = for ever)" xml:space="preserve">
     <value>保持する監査ログの日数 (0 = 無期限)</value>
+  </data>
+  <data name="Days of mail a person may keep in the browser to read offline" xml:space="preserve">
+    <value>オフラインで読むためにブラウザーに保存できるメールの日数</value>
   </data>
   <data name="Days of mail a person may keep in the browser to read offline (up to 365; 0 = none)" xml:space="preserve">
     <value>オフラインで読むためにブラウザーに保存できるメールの日数 (最大 365、0 = なし)</value>
@@ -4619,6 +4637,9 @@
   </data>
   <data name="Enable or disable the protocol servers. Changes apply when you press Save changes. ManageSieve (for managing Sieve scripts) is enabled on the API &amp; monitoring page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>プロトコル サーバーを有効または無効にします。変更は「変更を保存」を押すと適用されます。ManageSieve (Sieve スクリプトの管理用) は API と監視ページで有効にします。OAuth2 トークン認証は認証ページにあります。</value>
+  </data>
+  <data name="Enable plus addressing" xml:space="preserve">
+    <value>プラス アドレッシングを有効にする</value>
   </data>
   <data name="Enable server-side event scripts" xml:space="preserve">
     <value>サーバー側イベント スクリプトを有効にする</value>
@@ -6967,6 +6988,9 @@
   <data name="Marked inactive" xml:space="preserve">
     <value>無効としてマーク済み</value>
   </data>
+  <data name="Masked addresses a person may make" xml:space="preserve">
+    <value>利用者が作成できるマスク アドレスの数</value>
+  </data>
   <data name="Masked addresses a person may make (up to 200; 0 = none)" xml:space="preserve">
     <value>利用者が作成できるマスク アドレスの数 (最大 200、0 = なし)</value>
   </data>
@@ -7057,6 +7081,9 @@
   <data name="Maximum message size (KB; 0 = no limit)" xml:space="preserve">
     <value>メッセージの最大サイズ (KB、0 = 無制限)</value>
   </data>
+  <data name="Maximum messages per account per period" xml:space="preserve">
+    <value>アカウントごとの期間あたりの最大メッセージ数</value>
+  </data>
   <data name="Maximum messages per account per period (0 = no limit)" xml:space="preserve">
     <value>アカウントごとの期間あたりの最大メッセージ数 (0 = 無制限)</value>
   </data>
@@ -7074,6 +7101,9 @@
   </data>
   <data name="Maximum parallel external POP3 fetch threads" xml:space="preserve">
     <value>外部 POP3 取り込みの最大並列スレッド数</value>
+  </data>
+  <data name="Maximum recipients per account per period" xml:space="preserve">
+    <value>アカウントごとの期間あたりの最大受信者数</value>
   </data>
   <data name="Maximum recipients per account per period (0 = no limit)" xml:space="preserve">
     <value>アカウントごとの期間あたりの最大受信者数 (0 = 無制限)</value>
@@ -8843,6 +8873,9 @@
   </data>
   <data name="Other" xml:space="preserve">
     <value>その他</value>
+  </data>
+  <data name="Other POP3 or IMAP accounts a person may collect from" xml:space="preserve">
+    <value>利用者がメールを収集できる他の POP3 または IMAP アカウントの数</value>
   </data>
   <data name="Other POP3 or IMAP accounts a person may collect from (up to 20; 0 = none)" xml:space="preserve">
     <value>利用者がメールを収集できる他の POP3 または IMAP アカウントの数 (最大 20、0 = なし)</value>
@@ -11135,8 +11168,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Seconds a push service holds a notification for a device that is offline (0 to 2,419,200)" xml:space="preserve">
     <value>プッシュ サービスがオフラインのデバイス向けに通知を保持する秒数 (0 から 2,419,200)</value>
   </data>
+  <data name="Seconds a session may go unused" xml:space="preserve">
+    <value>セッションがアイドル状態でいられる秒数</value>
+  </data>
   <data name="Seconds a session may go unused (0 = the server's own 1,800)" xml:space="preserve">
     <value>セッションがアイドル状態でいられる秒数 (0 = サーバー自身の 1,800)</value>
+  </data>
+  <data name="Seconds a session may last at all" xml:space="preserve">
+    <value>セッションが全体で続く秒数</value>
   </data>
   <data name="Seconds a session may last at all (0 = the server's own 43,200)" xml:space="preserve">
     <value>セッションが全体で続く秒数 (0 = サーバー自身の 43,200)</value>
@@ -12032,6 +12071,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>ステップ {0}/{1}</value>
   </data>
+  <data name="Still accept incoming mail past a mailbox's limit by (% of the limit)" xml:space="preserve">
+    <value>メールボックスの上限を超えても受信メールを受け付ける範囲 (上限の %)</value>
+  </data>
   <data name="Still accept incoming mail past a mailbox's limit by (% of the limit; 0 = not at all)" xml:space="preserve">
     <value>メールボックスの上限を超えても受信メールを受け付ける範囲 (上限の %、0 = 受け付けない)</value>
   </data>
@@ -12040,6 +12082,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Still accept incoming mail past the limit by (%)" xml:space="preserve">
     <value>上限を超えて受信メールを受け付ける範囲 (%)</value>
+  </data>
+  <data name="Stop an account sending at (% of its limit)" xml:space="preserve">
+    <value>アカウントの送信を停止する時点 (上限の %)</value>
   </data>
   <data name="Stop an account sending at (% of its limit; 0 = never)" xml:space="preserve">
     <value>アカウントの送信を停止する時点 (上限の %、0 = 停止しない)</value>
@@ -12322,6 +12367,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Tag te_xt (up to 100 characters; empty = [EXTERNAL])" xml:space="preserve">
     <value>タグの文字列 (最大 100 文字、空欄 = [EXTERNAL])(_X)</value>
+  </data>
+  <data name="Tag the subject of mail from outside" xml:space="preserve">
+    <value>外部からのメールの件名にタグを付ける</value>
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>タグ付けと免責事項</value>
@@ -14738,6 +14786,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Warn in the application log and Windows event log below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>空き容量がこれを下回ったらアプリケーション ログと Windows イベント ログに警告する (MB。0 = しない)</value>
+  </data>
+  <data name="Warn the mailbox owner at this percentage of their quota" xml:space="preserve">
+    <value>クォータのこのパーセンテージでメールボックスの所有者に警告する</value>
   </data>
   <data name="Warn the mailbox owner at this percentage of their quota (0 = never)" xml:space="preserve">
     <value>クォータのこのパーセンテージでメールボックスの所有者に警告する (0 = しない)</value>

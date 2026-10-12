@@ -1041,6 +1041,9 @@
   <data name="Add a greylisting exemption" xml:space="preserve">
     <value>添加灰名单豁免</value>
   </data>
+  <data name="Add a header the reader shows as a banner" xml:space="preserve">
+    <value>添加读者显示为横幅的邮件头</value>
+  </data>
   <data name="Add a journaling rule" xml:space="preserve">
     <value>添加日志归档规则</value>
   </data>
@@ -1259,6 +1262,9 @@
   </data>
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>{0} 的账户想要或不想要的地址和整个域名。在账户自己的名单之后、服务器的名单之前参考。</value>
+  </data>
+  <data name="Addresses at other providers a person may send as" xml:space="preserve">
+    <value>用户可用作发件地址的其他提供商的地址</value>
   </data>
   <data name="Addresses at other providers a person may send as (up to 20; 0 = none)" xml:space="preserve">
     <value>用户可用作发件地址的其他提供商的地址（最多 20；0 = 无）</value>
@@ -3474,6 +3480,9 @@
   <data name="Country blocking" xml:space="preserve">
     <value>国家阻止</value>
   </data>
+  <data name="Country policy at sign-in" xml:space="preserve">
+    <value>登录时的国家策略</value>
+  </data>
   <data name="Covers" xml:space="preserve">
     <value>覆盖范围</value>
   </data>
@@ -3723,6 +3732,9 @@
   <data name="Days after sending that a delivery report is still matched (1 to 30)" xml:space="preserve">
     <value>发送后仍会匹配投递报告的天数（1 到 30）</value>
   </data>
+  <data name="Days after sending that mail to this server's accounts may be recalled" xml:space="preserve">
+    <value>发给本服务器账户的邮件在发送后可以撤回的天数</value>
+  </data>
   <data name="Days after sending that mail to this server's accounts may be recalled (1 to 365)" xml:space="preserve">
     <value>发给本服务器账户的邮件在发送后可以撤回的天数（1 到 365）</value>
   </data>
@@ -3741,6 +3753,9 @@
   <data name="Days bounce counts are kept (0 = for ever)" xml:space="preserve">
     <value>退信计数保留的天数（0 = 永久）</value>
   </data>
+  <data name="Days deleted messages are kept for the person to put back" xml:space="preserve">
+    <value>已删除的邮件为便于用户找回而保留的天数</value>
+  </data>
   <data name="Days deleted messages are kept for the person to put back (up to 365; 0 = none)" xml:space="preserve">
     <value>已删除的邮件为便于用户找回而保留的天数（最多 365；0 = 无）</value>
   </data>
@@ -3749,6 +3764,9 @@
   </data>
   <data name="Days of audit trail to keep (0 = for ever)" xml:space="preserve">
     <value>审计记录保留的天数（0 = 永久）</value>
+  </data>
+  <data name="Days of mail a person may keep in the browser to read offline" xml:space="preserve">
+    <value>用户可在浏览器中保留以供离线阅读的邮件天数</value>
   </data>
   <data name="Days of mail a person may keep in the browser to read offline (up to 365; 0 = none)" xml:space="preserve">
     <value>用户可在浏览器中保留以供离线阅读的邮件天数（最多 365；0 = 无）</value>
@@ -4608,6 +4626,9 @@
   </data>
   <data name="Enable or disable the protocol servers. Changes apply when you press Save changes. ManageSieve (for managing Sieve scripts) is enabled on the API &amp; monitoring page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>启用或禁用协议服务器。按“保存更改”后，更改生效。ManageSieve（用于管理 Sieve 脚本）在“API 与监控”页启用；OAuth2 令牌身份验证在“身份验证”页。</value>
+  </data>
+  <data name="Enable plus addressing" xml:space="preserve">
+    <value>启用加号寻址</value>
   </data>
   <data name="Enable server-side event scripts" xml:space="preserve">
     <value>启用服务器端事件脚本</value>
@@ -6956,6 +6977,9 @@
   <data name="Marked inactive" xml:space="preserve">
     <value>已标记为非活动</value>
   </data>
+  <data name="Masked addresses a person may make" xml:space="preserve">
+    <value>用户可以创建的掩码地址数</value>
+  </data>
   <data name="Masked addresses a person may make (up to 200; 0 = none)" xml:space="preserve">
     <value>用户可以创建的掩码地址数（最多 200；0 = 无）</value>
   </data>
@@ -7046,6 +7070,9 @@
   <data name="Maximum message size (KB; 0 = no limit)" xml:space="preserve">
     <value>最大邮件大小（KB；0 = 不限制）</value>
   </data>
+  <data name="Maximum messages per account per period" xml:space="preserve">
+    <value>每个账户每周期最大邮件数</value>
+  </data>
   <data name="Maximum messages per account per period (0 = no limit)" xml:space="preserve">
     <value>每个账户每周期最大邮件数（0 = 不限制）</value>
   </data>
@@ -7063,6 +7090,9 @@
   </data>
   <data name="Maximum parallel external POP3 fetch threads" xml:space="preserve">
     <value>最大并行外部 POP3 收取线程数</value>
+  </data>
+  <data name="Maximum recipients per account per period" xml:space="preserve">
+    <value>每个账户每周期最大收件人数</value>
   </data>
   <data name="Maximum recipients per account per period (0 = no limit)" xml:space="preserve">
     <value>每个账户每周期最大收件人数（0 = 不限制）</value>
@@ -8832,6 +8862,9 @@
   </data>
   <data name="Other" xml:space="preserve">
     <value>其他</value>
+  </data>
+  <data name="Other POP3 or IMAP accounts a person may collect from" xml:space="preserve">
+    <value>用户可以从中收取邮件的其他 POP3 或 IMAP 账户数</value>
   </data>
   <data name="Other POP3 or IMAP accounts a person may collect from (up to 20; 0 = none)" xml:space="preserve">
     <value>用户可以从中收取邮件的其他 POP3 或 IMAP 账户数（最多 20；0 = 无）</value>
@@ -11124,8 +11157,14 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Seconds a push service holds a notification for a device that is offline (0 to 2,419,200)" xml:space="preserve">
     <value>推送服务为离线设备保留通知的秒数（0 到 2,419,200）</value>
   </data>
+  <data name="Seconds a session may go unused" xml:space="preserve">
+    <value>会话可以空闲的秒数</value>
+  </data>
   <data name="Seconds a session may go unused (0 = the server's own 1,800)" xml:space="preserve">
     <value>会话可以空闲的秒数（0 = 服务器自己的 1,800）</value>
+  </data>
+  <data name="Seconds a session may last at all" xml:space="preserve">
+    <value>会话总共可以持续的秒数</value>
   </data>
   <data name="Seconds a session may last at all (0 = the server's own 43,200)" xml:space="preserve">
     <value>会话总共可以持续的秒数（0 = 服务器自己的 43,200）</value>
@@ -12021,6 +12060,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>第 {0} 步，共 {1} 步</value>
   </data>
+  <data name="Still accept incoming mail past a mailbox's limit by (% of the limit)" xml:space="preserve">
+    <value>邮箱超出限额后仍接收来信的幅度 (限额的 %)</value>
+  </data>
   <data name="Still accept incoming mail past a mailbox's limit by (% of the limit; 0 = not at all)" xml:space="preserve">
     <value>邮箱超出限额后仍接收来信的幅度 (限额的 %；0 = 不接收)</value>
   </data>
@@ -12029,6 +12071,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Still accept incoming mail past the limit by (%)" xml:space="preserve">
     <value>超出限额后仍接收来信的幅度 (%)</value>
+  </data>
+  <data name="Stop an account sending at (% of its limit)" xml:space="preserve">
+    <value>账户停止发送的时点 (其限额的 %)</value>
   </data>
   <data name="Stop an account sending at (% of its limit; 0 = never)" xml:space="preserve">
     <value>账户停止发送的时点 (其限额的 %；0 = 从不)</value>
@@ -12311,6 +12356,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Tag te_xt (up to 100 characters; empty = [EXTERNAL])" xml:space="preserve">
     <value>标记文字(_X)（最多 100 个字符；留空 = [EXTERNAL]）</value>
+  </data>
+  <data name="Tag the subject of mail from outside" xml:space="preserve">
+    <value>标记来自外部的邮件主题</value>
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>标记与免责声明</value>
@@ -14727,6 +14775,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Warn in the application log and Windows event log below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>可用空间低于此值时在应用程序日志和 Windows 事件日志中发出警告 (MB；0 = 从不)</value>
+  </data>
+  <data name="Warn the mailbox owner at this percentage of their quota" xml:space="preserve">
+    <value>邮箱使用量达到其配额的此百分比时警告邮箱所有者</value>
   </data>
   <data name="Warn the mailbox owner at this percentage of their quota (0 = never)" xml:space="preserve">
     <value>邮箱使用量达到其配额的此百分比时警告邮箱所有者 (0 = 从不)</value>

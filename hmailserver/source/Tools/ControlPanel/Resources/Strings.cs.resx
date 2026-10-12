@@ -1047,6 +1047,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Add a greylisting exemption" xml:space="preserve">
     <value>Přidat výjimku z greylistingu</value>
   </data>
+  <data name="Add a header the reader shows as a banner" xml:space="preserve">
+    <value>Přidat hlavičku, kterou čtenář zobrazí jako pruh</value>
+  </data>
   <data name="Add a journaling rule" xml:space="preserve">
     <value>Přidat pravidlo žurnálování</value>
   </data>
@@ -1271,6 +1274,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   </data>
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>Adresy a celé domény, které účty domény {0} chtějí, nebo nechtějí. Použije se po vlastním seznamu účtu a před seznamem serveru.</value>
+  </data>
+  <data name="Addresses at other providers a person may send as" xml:space="preserve">
+    <value>Adresy u jiných poskytovatelů, za které smí člověk odesílat</value>
   </data>
   <data name="Addresses at other providers a person may send as (up to 20; 0 = none)" xml:space="preserve">
     <value>Adresy u jiných poskytovatelů, za které smí člověk odesílat (nejvýše 20; 0 = žádné)</value>
@@ -3507,6 +3513,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Country blocking" xml:space="preserve">
     <value>Blokování podle země</value>
   </data>
+  <data name="Country policy at sign-in" xml:space="preserve">
+    <value>Zásada zemí při přihlášení</value>
+  </data>
   <data name="Covers" xml:space="preserve">
     <value>Pokrývá</value>
   </data>
@@ -3756,6 +3765,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Days after sending that a delivery report is still matched (1 to 30)" xml:space="preserve">
     <value>Počet dní po odeslání, kdy se zpráva o doručení ještě přiřadí (1 až 30)</value>
   </data>
+  <data name="Days after sending that mail to this server's accounts may be recalled" xml:space="preserve">
+    <value>Dny po odeslání, kdy lze poštu účtům tohoto serveru odvolat</value>
+  </data>
   <data name="Days after sending that mail to this server's accounts may be recalled (1 to 365)" xml:space="preserve">
     <value>Dny po odeslání, kdy lze poštu účtům tohoto serveru odvolat (1 až 365)</value>
   </data>
@@ -3774,6 +3786,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Days bounce counts are kept (0 = for ever)" xml:space="preserve">
     <value>Počet dní, po které se uchovávají počty nedoručenek (0 = navždy)</value>
   </data>
+  <data name="Days deleted messages are kept for the person to put back" xml:space="preserve">
+    <value>Dny uchování smazaných zpráv, aby je člověk mohl vrátit</value>
+  </data>
   <data name="Days deleted messages are kept for the person to put back (up to 365; 0 = none)" xml:space="preserve">
     <value>Dny uchování smazaných zpráv, aby je člověk mohl vrátit (nejvýše 365; 0 = žádné)</value>
   </data>
@@ -3782,6 +3797,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Days of audit trail to keep (0 = for ever)" xml:space="preserve">
     <value>Dny auditního záznamu k uchování (0 = navždy)</value>
+  </data>
+  <data name="Days of mail a person may keep in the browser to read offline" xml:space="preserve">
+    <value>Dny pošty, které smí člověk uchovat v prohlížeči ke čtení offline</value>
   </data>
   <data name="Days of mail a person may keep in the browser to read offline (up to 365; 0 = none)" xml:space="preserve">
     <value>Dny pošty, které smí člověk uchovat v prohlížeči ke čtení offline (nejvýše 365; 0 = žádné)</value>
@@ -4666,6 +4684,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Enable or disable the protocol servers. Changes apply when you press Save changes. ManageSieve (for managing Sieve scripts) is enabled on the API &amp; monitoring page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>Povolte nebo zakažte protokolové servery. Změny se projeví po stisknutí tlačítka Uložit změny. ManageSieve (pro správu skriptů Sieve) se povoluje na stránce API a monitorování; ověřování tokenem OAuth2 je na stránce Ověřování.</value>
+  </data>
+  <data name="Enable plus addressing" xml:space="preserve">
+    <value>Povolit plus adresování</value>
   </data>
   <data name="Enable server-side event scripts" xml:space="preserve">
     <value>Povolit serverové skripty událostí</value>
@@ -7041,6 +7062,9 @@ Každý odběr Web Push vytvořený se současným párem okamžitě přestane f
   <data name="Marked inactive" xml:space="preserve">
     <value>Označen jako neaktivní</value>
   </data>
+  <data name="Masked addresses a person may make" xml:space="preserve">
+    <value>Maskované adresy, které smí člověk vytvořit</value>
+  </data>
   <data name="Masked addresses a person may make (up to 200; 0 = none)" xml:space="preserve">
     <value>Maskované adresy, které smí člověk vytvořit (nejvýše 200; 0 = žádné)</value>
   </data>
@@ -7134,6 +7158,9 @@ Každý odběr Web Push vytvořený se současným párem okamžitě přestane f
   <data name="Maximum message size (KB; 0 = no limit)" xml:space="preserve">
     <value>Maximální velikost zprávy (KB; 0 = bez limitu)</value>
   </data>
+  <data name="Maximum messages per account per period" xml:space="preserve">
+    <value>Maximální počet zpráv na účet za období</value>
+  </data>
   <data name="Maximum messages per account per period (0 = no limit)" xml:space="preserve">
     <value>Maximální počet zpráv na účet za období (0 = bez limitu)</value>
   </data>
@@ -7151,6 +7178,9 @@ Každý odběr Web Push vytvořený se současným párem okamžitě přestane f
   </data>
   <data name="Maximum parallel external POP3 fetch threads" xml:space="preserve">
     <value>Maximální počet paralelních vláken pro externí vyzvedávání POP3</value>
+  </data>
+  <data name="Maximum recipients per account per period" xml:space="preserve">
+    <value>Maximální počet příjemců na účet za období</value>
   </data>
   <data name="Maximum recipients per account per period (0 = no limit)" xml:space="preserve">
     <value>Maximální počet příjemců na účet za období (0 = bez limitu)</value>
@@ -8938,6 +8968,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Other" xml:space="preserve">
     <value>Ostatní</value>
+  </data>
+  <data name="Other POP3 or IMAP accounts a person may collect from" xml:space="preserve">
+    <value>Jiné účty POP3 nebo IMAP, ze kterých smí člověk stahovat poštu</value>
   </data>
   <data name="Other POP3 or IMAP accounts a person may collect from (up to 20; 0 = none)" xml:space="preserve">
     <value>Jiné účty POP3 nebo IMAP, ze kterých smí člověk stahovat poštu (nejvýše 20; 0 = žádné)</value>
@@ -11272,8 +11305,14 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Seconds a push service holds a notification for a device that is offline (0 to 2,419,200)" xml:space="preserve">
     <value>Sekundy, po které služba push drží oznámení pro zařízení offline (0 až 2 419 200)</value>
   </data>
+  <data name="Seconds a session may go unused" xml:space="preserve">
+    <value>Sekundy, po které smí být relace nepoužívaná</value>
+  </data>
   <data name="Seconds a session may go unused (0 = the server's own 1,800)" xml:space="preserve">
     <value>Sekundy, po které smí být relace nepoužívaná (0 = vlastních 1 800 serveru)</value>
+  </data>
+  <data name="Seconds a session may last at all" xml:space="preserve">
+    <value>Sekundy, které smí relace trvat celkem</value>
   </data>
   <data name="Seconds a session may last at all (0 = the server's own 43,200)" xml:space="preserve">
     <value>Sekundy, které smí relace trvat celkem (0 = vlastních 43 200 serveru)</value>
@@ -12175,6 +12214,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>Krok {0} z {1}</value>
   </data>
+  <data name="Still accept incoming mail past a mailbox's limit by (% of the limit)" xml:space="preserve">
+    <value>Stále přijímat příchozí poštu za limitem schránky do (% limitu)</value>
+  </data>
   <data name="Still accept incoming mail past a mailbox's limit by (% of the limit; 0 = not at all)" xml:space="preserve">
     <value>Stále přijímat příchozí poštu za limitem schránky do (% limitu; 0 = vůbec)</value>
   </data>
@@ -12183,6 +12225,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Still accept incoming mail past the limit by (%)" xml:space="preserve">
     <value>Přijímat příchozí poštu za limitem do (%)</value>
+  </data>
+  <data name="Stop an account sending at (% of its limit)" xml:space="preserve">
+    <value>Zastavit odesílání účtu při (% jeho limitu)</value>
   </data>
   <data name="Stop an account sending at (% of its limit; 0 = never)" xml:space="preserve">
     <value>Zastavit odesílání účtu při (% jeho limitu; 0 = nikdy)</value>
@@ -12468,6 +12513,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Tag te_xt (up to 100 characters; empty = [EXTERNAL])" xml:space="preserve">
     <value>Te_xt značky (nejvýše 100 znaků; prázdné = [EXTERNAL])</value>
+  </data>
+  <data name="Tag the subject of mail from outside" xml:space="preserve">
+    <value>Označit předmět pošty zvenčí</value>
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Označování a doložka</value>
@@ -14917,6 +14965,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Warn in the application log and Windows event log below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Varovat v logu aplikace a logu událostí Windows pod tímto množstvím volného místa (MB; 0 = nikdy)</value>
+  </data>
+  <data name="Warn the mailbox owner at this percentage of their quota" xml:space="preserve">
+    <value>Varovat vlastníka schránky při tomto procentu jeho kvóty</value>
   </data>
   <data name="Warn the mailbox owner at this percentage of their quota (0 = never)" xml:space="preserve">
     <value>Varovat vlastníka schránky při tomto procentu jeho kvóty (0 = nikdy)</value>

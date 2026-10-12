@@ -1041,6 +1041,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Add a greylisting exemption" xml:space="preserve">
     <value>Greylisting istisnası ekle</value>
   </data>
+  <data name="Add a header the reader shows as a banner" xml:space="preserve">
+    <value>Okuyucunun şerit olarak gösterdiği bir başlık ekle</value>
+  </data>
   <data name="Add a journaling rule" xml:space="preserve">
     <value>Günlükleme kuralı ekle</value>
   </data>
@@ -1259,6 +1262,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>{0} hesaplarının istediği ya da istemediği adresler ve alan adlarının tamamı. Hesabın kendi listesinden sonra, sunucunun listesinden önce bakılır.</value>
+  </data>
+  <data name="Addresses at other providers a person may send as" xml:space="preserve">
+    <value>Bir kişinin adına gönderebileceği başka sağlayıcılardaki adresler</value>
   </data>
   <data name="Addresses at other providers a person may send as (up to 20; 0 = none)" xml:space="preserve">
     <value>Bir kişinin adına gönderebileceği başka sağlayıcılardaki adresler (en fazla 20; 0 = yok)</value>
@@ -3474,6 +3480,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Country blocking" xml:space="preserve">
     <value>Ülke engelleme</value>
   </data>
+  <data name="Country policy at sign-in" xml:space="preserve">
+    <value>Oturum açmada ülke ilkesi</value>
+  </data>
   <data name="Covers" xml:space="preserve">
     <value>Kapsam</value>
   </data>
@@ -3723,6 +3732,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Days after sending that a delivery report is still matched (1 to 30)" xml:space="preserve">
     <value>Gönderimden sonra bir teslim raporunun hâlâ eşleştirildiği gün sayısı (1 ile 30 arası)</value>
   </data>
+  <data name="Days after sending that mail to this server's accounts may be recalled" xml:space="preserve">
+    <value>Bu sunucudaki hesaplara gönderilen postanın, gönderimden sonra geri çağrılabileceği gün</value>
+  </data>
   <data name="Days after sending that mail to this server's accounts may be recalled (1 to 365)" xml:space="preserve">
     <value>Bu sunucudaki hesaplara gönderilen postanın, gönderimden sonra geri çağrılabileceği gün (1 ile 365 arası)</value>
   </data>
@@ -3741,6 +3753,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Days bounce counts are kept (0 = for ever)" xml:space="preserve">
     <value>Geri dönüş sayılarının tutulduğu gün sayısı (0 = sonsuza dek)</value>
   </data>
+  <data name="Days deleted messages are kept for the person to put back" xml:space="preserve">
+    <value>Silinen iletilerin, kişi geri alabilsin diye saklandığı gün</value>
+  </data>
   <data name="Days deleted messages are kept for the person to put back (up to 365; 0 = none)" xml:space="preserve">
     <value>Silinen iletilerin, kişi geri alabilsin diye saklandığı gün (en fazla 365; 0 = yok)</value>
   </data>
@@ -3749,6 +3764,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Days of audit trail to keep (0 = for ever)" xml:space="preserve">
     <value>Saklanacak denetim izi günü (0 = sonsuza dek)</value>
+  </data>
+  <data name="Days of mail a person may keep in the browser to read offline" xml:space="preserve">
+    <value>Bir kişinin çevrimdışı okumak için tarayıcıda tutabileceği posta günü</value>
   </data>
   <data name="Days of mail a person may keep in the browser to read offline (up to 365; 0 = none)" xml:space="preserve">
     <value>Bir kişinin çevrimdışı okumak için tarayıcıda tutabileceği posta günü (en fazla 365; 0 = yok)</value>
@@ -4608,6 +4626,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Enable or disable the protocol servers. Changes apply when you press Save changes. ManageSieve (for managing Sieve scripts) is enabled on the API &amp; monitoring page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>Protokol sunucularını etkinleştirin veya devre dışı bırakın. Değişiklikler, Değişiklikleri kaydet'e bastığınızda uygulanır. ManageSieve (Sieve betiklerini yönetmek için) API ve izleme sayfasında etkinleştirilir; OAuth2 belirteç kimlik doğrulaması Kimlik doğrulama sayfasındadır.</value>
+  </data>
+  <data name="Enable plus addressing" xml:space="preserve">
+    <value>Artı adreslemeyi etkinleştir</value>
   </data>
   <data name="Enable server-side event scripts" xml:space="preserve">
     <value>Sunucu tarafı olay betiklerini etkinleştir</value>
@@ -6956,6 +6977,9 @@ Geçerli çiftle yapılan her Web Push aboneliği hemen çalışmayı bırakır 
   <data name="Marked inactive" xml:space="preserve">
     <value>Etkin değil olarak işaretlendi</value>
   </data>
+  <data name="Masked addresses a person may make" xml:space="preserve">
+    <value>Bir kişinin oluşturabileceği maskeli adresler</value>
+  </data>
   <data name="Masked addresses a person may make (up to 200; 0 = none)" xml:space="preserve">
     <value>Bir kişinin oluşturabileceği maskeli adresler (en fazla 200; 0 = yok)</value>
   </data>
@@ -7046,6 +7070,9 @@ Geçerli çiftle yapılan her Web Push aboneliği hemen çalışmayı bırakır 
   <data name="Maximum message size (KB; 0 = no limit)" xml:space="preserve">
     <value>En büyük ileti boyutu (KB; 0 = sınır yok)</value>
   </data>
+  <data name="Maximum messages per account per period" xml:space="preserve">
+    <value>Dönem başına hesap başına en fazla ileti</value>
+  </data>
   <data name="Maximum messages per account per period (0 = no limit)" xml:space="preserve">
     <value>Dönem başına hesap başına en fazla ileti (0 = sınır yok)</value>
   </data>
@@ -7063,6 +7090,9 @@ Geçerli çiftle yapılan her Web Push aboneliği hemen çalışmayı bırakır 
   </data>
   <data name="Maximum parallel external POP3 fetch threads" xml:space="preserve">
     <value>En fazla paralel dış POP3 toplama iş parçacığı</value>
+  </data>
+  <data name="Maximum recipients per account per period" xml:space="preserve">
+    <value>Dönem başına hesap başına en fazla alıcı</value>
   </data>
   <data name="Maximum recipients per account per period (0 = no limit)" xml:space="preserve">
     <value>Dönem başına hesap başına en fazla alıcı (0 = sınır yok)</value>
@@ -8832,6 +8862,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Other" xml:space="preserve">
     <value>Diğer</value>
+  </data>
+  <data name="Other POP3 or IMAP accounts a person may collect from" xml:space="preserve">
+    <value>Bir kişinin posta toplayabileceği diğer POP3 veya IMAP hesapları</value>
   </data>
   <data name="Other POP3 or IMAP accounts a person may collect from (up to 20; 0 = none)" xml:space="preserve">
     <value>Bir kişinin posta toplayabileceği diğer POP3 veya IMAP hesapları (en fazla 20; 0 = yok)</value>
@@ -11124,8 +11157,14 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Seconds a push service holds a notification for a device that is offline (0 to 2,419,200)" xml:space="preserve">
     <value>Anında iletme hizmetinin çevrimdışı bir cihaz için bildirimi tuttuğu saniye (0 ile 2.419.200 arası)</value>
   </data>
+  <data name="Seconds a session may go unused" xml:space="preserve">
+    <value>Bir oturumun boşta kalabileceği saniye</value>
+  </data>
   <data name="Seconds a session may go unused (0 = the server's own 1,800)" xml:space="preserve">
     <value>Bir oturumun boşta kalabileceği saniye (0 = sunucunun kendi 1.800'ü)</value>
+  </data>
+  <data name="Seconds a session may last at all" xml:space="preserve">
+    <value>Bir oturumun toplamda sürebileceği saniye</value>
   </data>
   <data name="Seconds a session may last at all (0 = the server's own 43,200)" xml:space="preserve">
     <value>Bir oturumun toplamda sürebileceği saniye (0 = sunucunun kendi 43.200'ü)</value>
@@ -12021,6 +12060,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>Adım {0}/{1}</value>
   </data>
+  <data name="Still accept incoming mail past a mailbox's limit by (% of the limit)" xml:space="preserve">
+    <value>Bir posta kutusunun sınırını aşan gelen postayı şu paya kadar kabul etmeye devam et (sınırın %'si)</value>
+  </data>
   <data name="Still accept incoming mail past a mailbox's limit by (% of the limit; 0 = not at all)" xml:space="preserve">
     <value>Bir posta kutusunun sınırını aşan gelen postayı şu paya kadar kabul etmeye devam et (sınırın %'si; 0 = hiç)</value>
   </data>
@@ -12029,6 +12071,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Still accept incoming mail past the limit by (%)" xml:space="preserve">
     <value>Sınırı aşan gelen postayı şu paya kadar kabul et (%)</value>
+  </data>
+  <data name="Stop an account sending at (% of its limit)" xml:space="preserve">
+    <value>Bir hesabın göndermesini şurada durdur (sınırının %'si)</value>
   </data>
   <data name="Stop an account sending at (% of its limit; 0 = never)" xml:space="preserve">
     <value>Bir hesabın göndermesini şurada durdur (sınırının %'si; 0 = asla)</value>
@@ -12311,6 +12356,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Tag te_xt (up to 100 characters; empty = [EXTERNAL])" xml:space="preserve">
     <value>Etiket me_tni (en çok 100 karakter; boş = [EXTERNAL])</value>
+  </data>
+  <data name="Tag the subject of mail from outside" xml:space="preserve">
+    <value>Dışarıdan gelen postanın konusunu etiketle</value>
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Etiketleme ve yasal uyarı</value>
@@ -14727,6 +14775,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="Warn in the application log and Windows event log below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Boş alan bu miktarın altına düştüğünde uygulama günlüğünde ve Windows olay günlüğünde uyar (MB; 0 = hiçbir zaman)</value>
+  </data>
+  <data name="Warn the mailbox owner at this percentage of their quota" xml:space="preserve">
+    <value>Posta kutusu sahibini kotasının bu yüzdesinde uyar</value>
   </data>
   <data name="Warn the mailbox owner at this percentage of their quota (0 = never)" xml:space="preserve">
     <value>Posta kutusu sahibini kotasının bu yüzdesinde uyar (0 = hiçbir zaman)</value>

@@ -1047,6 +1047,9 @@
   <data name="Add a greylisting exemption" xml:space="preserve">
     <value>Додати виняток сірого списку</value>
   </data>
+  <data name="Add a header the reader shows as a banner" xml:space="preserve">
+    <value>Додавати заголовок, який читач показує смужкою</value>
+  </data>
   <data name="Add a journaling rule" xml:space="preserve">
     <value>Додати правило журналювання</value>
   </data>
@@ -1271,6 +1274,9 @@
   </data>
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>Адреси й цілі домени, які облікові записи {0} хочуть або не хочуть отримувати. Діє після власного списку облікового запису та перед списком сервера.</value>
+  </data>
+  <data name="Addresses at other providers a person may send as" xml:space="preserve">
+    <value>Адреси в інших провайдерів, від імені яких можна надсилати</value>
   </data>
   <data name="Addresses at other providers a person may send as (up to 20; 0 = none)" xml:space="preserve">
     <value>Адреси в інших провайдерів, від імені яких можна надсилати (до 20; 0 = немає)</value>
@@ -3507,6 +3513,9 @@
   <data name="Country blocking" xml:space="preserve">
     <value>Блокування за країнами</value>
   </data>
+  <data name="Country policy at sign-in" xml:space="preserve">
+    <value>Політика країн під час входу</value>
+  </data>
   <data name="Covers" xml:space="preserve">
     <value>Охоплює</value>
   </data>
@@ -3756,6 +3765,9 @@
   <data name="Days after sending that a delivery report is still matched (1 to 30)" xml:space="preserve">
     <value>Днів після надсилання, протягом яких звіт про доставку ще зіставляється (від 1 до 30)</value>
   </data>
+  <data name="Days after sending that mail to this server's accounts may be recalled" xml:space="preserve">
+    <value>Днів після надсилання, протягом яких пошту обліковим записам цього сервера можна відкликати</value>
+  </data>
   <data name="Days after sending that mail to this server's accounts may be recalled (1 to 365)" xml:space="preserve">
     <value>Днів після надсилання, протягом яких пошту обліковим записам цього сервера можна відкликати (від 1 до 365)</value>
   </data>
@@ -3774,6 +3786,9 @@
   <data name="Days bounce counts are kept (0 = for ever)" xml:space="preserve">
     <value>Днів зберігання лічильників відмов (0 = назавжди)</value>
   </data>
+  <data name="Days deleted messages are kept for the person to put back" xml:space="preserve">
+    <value>Днів зберігання видалених повідомлень, щоб людина могла їх повернути</value>
+  </data>
   <data name="Days deleted messages are kept for the person to put back (up to 365; 0 = none)" xml:space="preserve">
     <value>Днів зберігання видалених повідомлень, щоб людина могла їх повернути (до 365; 0 = немає)</value>
   </data>
@@ -3782,6 +3797,9 @@
   </data>
   <data name="Days of audit trail to keep (0 = for ever)" xml:space="preserve">
     <value>Днів журналу аудиту для зберігання (0 = назавжди)</value>
+  </data>
+  <data name="Days of mail a person may keep in the browser to read offline" xml:space="preserve">
+    <value>Днів пошти, які людина може зберігати в браузері для читання без підключення</value>
   </data>
   <data name="Days of mail a person may keep in the browser to read offline (up to 365; 0 = none)" xml:space="preserve">
     <value>Днів пошти, які людина може зберігати в браузері для читання без підключення (до 365; 0 = немає)</value>
@@ -4666,6 +4684,9 @@
   </data>
   <data name="Enable or disable the protocol servers. Changes apply when you press Save changes. ManageSieve (for managing Sieve scripts) is enabled on the API &amp; monitoring page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>Увімкнути або вимкнути сервери протоколів. Зміни застосовуються, коли ви натискаєте «Зберегти зміни». ManageSieve (для керування скриптами Sieve) вмикається на сторінці «API та моніторинг»; автентифікація токеном OAuth2 - на сторінці «Автентифікація».</value>
+  </data>
+  <data name="Enable plus addressing" xml:space="preserve">
+    <value>Увімкнути плюс-адресацію</value>
   </data>
   <data name="Enable server-side event scripts" xml:space="preserve">
     <value>Увімкнути серверні скрипти подій</value>
@@ -7041,6 +7062,9 @@
   <data name="Marked inactive" xml:space="preserve">
     <value>Позначено неактивним</value>
   </data>
+  <data name="Masked addresses a person may make" xml:space="preserve">
+    <value>Масковані адреси, які може створити людина</value>
+  </data>
   <data name="Masked addresses a person may make (up to 200; 0 = none)" xml:space="preserve">
     <value>Масковані адреси, які може створити людина (до 200; 0 = немає)</value>
   </data>
@@ -7134,6 +7158,9 @@
   <data name="Maximum message size (KB; 0 = no limit)" xml:space="preserve">
     <value>Максимальний розмір повідомлення (КБ; 0 = без обмеження)</value>
   </data>
+  <data name="Maximum messages per account per period" xml:space="preserve">
+    <value>Максимальна кількість повідомлень на обліковий запис за період</value>
+  </data>
   <data name="Maximum messages per account per period (0 = no limit)" xml:space="preserve">
     <value>Максимальна кількість повідомлень на обліковий запис за період (0 = без обмеження)</value>
   </data>
@@ -7151,6 +7178,9 @@
   </data>
   <data name="Maximum parallel external POP3 fetch threads" xml:space="preserve">
     <value>Максимальна кількість паралельних потоків збирання із зовнішніх POP3</value>
+  </data>
+  <data name="Maximum recipients per account per period" xml:space="preserve">
+    <value>Максимальна кількість отримувачів на обліковий запис за період</value>
   </data>
   <data name="Maximum recipients per account per period (0 = no limit)" xml:space="preserve">
     <value>Максимальна кількість отримувачів на обліковий запис за період (0 = без обмеження)</value>
@@ -8938,6 +8968,9 @@
   </data>
   <data name="Other" xml:space="preserve">
     <value>Інше</value>
+  </data>
+  <data name="Other POP3 or IMAP accounts a person may collect from" xml:space="preserve">
+    <value>Інші облікові записи POP3 чи IMAP, з яких людина може забирати пошту</value>
   </data>
   <data name="Other POP3 or IMAP accounts a person may collect from (up to 20; 0 = none)" xml:space="preserve">
     <value>Інші облікові записи POP3 чи IMAP, з яких людина може забирати пошту (до 20; 0 = немає)</value>
@@ -11272,8 +11305,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Seconds a push service holds a notification for a device that is offline (0 to 2,419,200)" xml:space="preserve">
     <value>Секунд, протягом яких push-служба тримає сповіщення для пристрою без підключення (від 0 до 2 419 200)</value>
   </data>
+  <data name="Seconds a session may go unused" xml:space="preserve">
+    <value>Секунд, які сеанс може простоювати</value>
+  </data>
   <data name="Seconds a session may go unused (0 = the server's own 1,800)" xml:space="preserve">
     <value>Секунд, які сеанс може простоювати (0 = власні 1 800 сервера)</value>
+  </data>
+  <data name="Seconds a session may last at all" xml:space="preserve">
+    <value>Секунд, які сеанс може тривати взагалі</value>
   </data>
   <data name="Seconds a session may last at all (0 = the server's own 43,200)" xml:space="preserve">
     <value>Секунд, які сеанс може тривати взагалі (0 = власні 43 200 сервера)</value>
@@ -12175,6 +12214,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>Крок {0} з {1}</value>
   </data>
+  <data name="Still accept incoming mail past a mailbox's limit by (% of the limit)" xml:space="preserve">
+    <value>Приймати вхідну пошту понад ліміт скриньки ще на (% ліміту)</value>
+  </data>
   <data name="Still accept incoming mail past a mailbox's limit by (% of the limit; 0 = not at all)" xml:space="preserve">
     <value>Приймати вхідну пошту понад ліміт скриньки ще на (% ліміту; 0 = не приймати)</value>
   </data>
@@ -12183,6 +12225,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Still accept incoming mail past the limit by (%)" xml:space="preserve">
     <value>Приймати вхідну пошту понад ліміт на (%)</value>
+  </data>
+  <data name="Stop an account sending at (% of its limit)" xml:space="preserve">
+    <value>Зупинити надсилання з облікового запису при (% його ліміту)</value>
   </data>
   <data name="Stop an account sending at (% of its limit; 0 = never)" xml:space="preserve">
     <value>Зупинити надсилання з облікового запису при (% його ліміту; 0 = ніколи)</value>
@@ -12468,6 +12513,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Tag te_xt (up to 100 characters; empty = [EXTERNAL])" xml:space="preserve">
     <value>Те_кст позначки (не більше 100 символів; порожньо = [EXTERNAL])</value>
+  </data>
+  <data name="Tag the subject of mail from outside" xml:space="preserve">
+    <value>Позначати тему пошти ззовні</value>
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Позначення та застереження</value>
@@ -14917,6 +14965,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Warn in the application log and Windows event log below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Попереджати в журналі застосунку та журналі подій Windows, коли вільного місця менше за це (МБ; 0 = ніколи)</value>
+  </data>
+  <data name="Warn the mailbox owner at this percentage of their quota" xml:space="preserve">
+    <value>Попереджати власника скриньки на цьому відсотку його квоти</value>
   </data>
   <data name="Warn the mailbox owner at this percentage of their quota (0 = never)" xml:space="preserve">
     <value>Попереджати власника скриньки на цьому відсотку його квоти (0 = ніколи)</value>

@@ -1041,6 +1041,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Add a greylisting exemption" xml:space="preserve">
     <value>Tilføj en greylisting-undtagelse</value>
   </data>
+  <data name="Add a header the reader shows as a banner" xml:space="preserve">
+    <value>Tilføj en header, som læseren viser som et banner</value>
+  </data>
   <data name="Add a journaling rule" xml:space="preserve">
     <value>Tilføj en journaliseringsregel</value>
   </data>
@@ -1259,6 +1262,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   </data>
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>Adresser og hele domæner, som kontiene i {0} ønsker, eller ikke ønsker. Bruges efter en kontos egen liste og før serverens.</value>
+  </data>
+  <data name="Addresses at other providers a person may send as" xml:space="preserve">
+    <value>Adresser hos andre udbydere, som en person må sende som</value>
   </data>
   <data name="Addresses at other providers a person may send as (up to 20; 0 = none)" xml:space="preserve">
     <value>Adresser hos andre udbydere, som en person må sende som (op til 20; 0 = ingen)</value>
@@ -3474,6 +3480,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Country blocking" xml:space="preserve">
     <value>Blokering efter land</value>
   </data>
+  <data name="Country policy at sign-in" xml:space="preserve">
+    <value>Landepolitik ved log på</value>
+  </data>
   <data name="Covers" xml:space="preserve">
     <value>Dækker</value>
   </data>
@@ -3723,6 +3732,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Days after sending that a delivery report is still matched (1 to 30)" xml:space="preserve">
     <value>Dage efter afsendelse, hvor en leveringsrapport stadig matches (1 til 30)</value>
   </data>
+  <data name="Days after sending that mail to this server's accounts may be recalled" xml:space="preserve">
+    <value>Dage efter afsendelse, hvor post til serverens konti kan kaldes tilbage</value>
+  </data>
   <data name="Days after sending that mail to this server's accounts may be recalled (1 to 365)" xml:space="preserve">
     <value>Dage efter afsendelse, hvor post til serverens konti kan kaldes tilbage (1 til 365)</value>
   </data>
@@ -3741,6 +3753,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Days bounce counts are kept (0 = for ever)" xml:space="preserve">
     <value>Dage, antal returmails gemmes (0 = for altid)</value>
   </data>
+  <data name="Days deleted messages are kept for the person to put back" xml:space="preserve">
+    <value>Dage slettede meddelelser gemmes, så personen kan hente dem tilbage</value>
+  </data>
   <data name="Days deleted messages are kept for the person to put back (up to 365; 0 = none)" xml:space="preserve">
     <value>Dage slettede meddelelser gemmes, så personen kan hente dem tilbage (op til 365; 0 = ingen)</value>
   </data>
@@ -3749,6 +3764,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   </data>
   <data name="Days of audit trail to keep (0 = for ever)" xml:space="preserve">
     <value>Dage med revisionslog, der gemmes (0 = for altid)</value>
+  </data>
+  <data name="Days of mail a person may keep in the browser to read offline" xml:space="preserve">
+    <value>Dage med post, som en person må gemme i browseren til offlinelæsning</value>
   </data>
   <data name="Days of mail a person may keep in the browser to read offline (up to 365; 0 = none)" xml:space="preserve">
     <value>Dage med post, som en person må gemme i browseren til offlinelæsning (op til 365; 0 = ingen)</value>
@@ -4608,6 +4626,9 @@ Ingen post røres - indekset er udledt af den - men indtil genopbygningen har in
   </data>
   <data name="Enable or disable the protocol servers. Changes apply when you press Save changes. ManageSieve (for managing Sieve scripts) is enabled on the API &amp; monitoring page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>Aktivér eller deaktivér protokolserverne. Ændringer træder i kraft, når du trykker på Gem ændringer. ManageSieve (til administration af Sieve-scripts) aktiveres på siden API og overvågning; OAuth2-tokengodkendelse findes på siden Godkendelse.</value>
+  </data>
+  <data name="Enable plus addressing" xml:space="preserve">
+    <value>Aktivér plus-adressering</value>
   </data>
   <data name="Enable server-side event scripts" xml:space="preserve">
     <value>Aktivér hændelsesscripts på serversiden</value>
@@ -6956,6 +6977,9 @@ Hvert Web Push-abonnement under det nuværende par holder straks op med at virke
   <data name="Marked inactive" xml:space="preserve">
     <value>Markeret inaktiv</value>
   </data>
+  <data name="Masked addresses a person may make" xml:space="preserve">
+    <value>Maskerede adresser, som en person må lave</value>
+  </data>
   <data name="Masked addresses a person may make (up to 200; 0 = none)" xml:space="preserve">
     <value>Maskerede adresser, som en person må lave (op til 200; 0 = ingen)</value>
   </data>
@@ -7046,6 +7070,9 @@ Hvert Web Push-abonnement under det nuværende par holder straks op med at virke
   <data name="Maximum message size (KB; 0 = no limit)" xml:space="preserve">
     <value>Største meddelelsesstørrelse (KB; 0 = ingen grænse)</value>
   </data>
+  <data name="Maximum messages per account per period" xml:space="preserve">
+    <value>Største antal meddelelser pr. konto pr. periode</value>
+  </data>
   <data name="Maximum messages per account per period (0 = no limit)" xml:space="preserve">
     <value>Største antal meddelelser pr. konto pr. periode (0 = ingen grænse)</value>
   </data>
@@ -7063,6 +7090,9 @@ Hvert Web Push-abonnement under det nuværende par holder straks op med at virke
   </data>
   <data name="Maximum parallel external POP3 fetch threads" xml:space="preserve">
     <value>Største antal parallelle tråde til ekstern POP3-afhentning</value>
+  </data>
+  <data name="Maximum recipients per account per period" xml:space="preserve">
+    <value>Største antal modtagere pr. konto pr. periode</value>
   </data>
   <data name="Maximum recipients per account per period (0 = no limit)" xml:space="preserve">
     <value>Største antal modtagere pr. konto pr. periode (0 = ingen grænse)</value>
@@ -8832,6 +8862,9 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="Other" xml:space="preserve">
     <value>Andet</value>
+  </data>
+  <data name="Other POP3 or IMAP accounts a person may collect from" xml:space="preserve">
+    <value>Andre POP3- eller IMAP-konti, en person må hente fra</value>
   </data>
   <data name="Other POP3 or IMAP accounts a person may collect from (up to 20; 0 = none)" xml:space="preserve">
     <value>Andre POP3- eller IMAP-konti, en person må hente fra (op til 20; 0 = ingen)</value>
@@ -11124,8 +11157,14 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Seconds a push service holds a notification for a device that is offline (0 to 2,419,200)" xml:space="preserve">
     <value>Sekunder en push-tjeneste gemmer en meddelelse til en enhed, der er offline (0 til 2.419.200)</value>
   </data>
+  <data name="Seconds a session may go unused" xml:space="preserve">
+    <value>Sekunder en session må være ubrugt</value>
+  </data>
   <data name="Seconds a session may go unused (0 = the server's own 1,800)" xml:space="preserve">
     <value>Sekunder en session må være ubrugt (0 = serverens egne 1.800)</value>
+  </data>
+  <data name="Seconds a session may last at all" xml:space="preserve">
+    <value>Sekunder en session overhovedet må vare</value>
   </data>
   <data name="Seconds a session may last at all (0 = the server's own 43,200)" xml:space="preserve">
     <value>Sekunder en session overhovedet må vare (0 = serverens egne 43.200)</value>
@@ -12021,6 +12060,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>Trin {0} af {1}</value>
   </data>
+  <data name="Still accept incoming mail past a mailbox's limit by (% of the limit)" xml:space="preserve">
+    <value>Modtag stadig indgående post forbi en postkasses grænse med (% af grænsen)</value>
+  </data>
   <data name="Still accept incoming mail past a mailbox's limit by (% of the limit; 0 = not at all)" xml:space="preserve">
     <value>Modtag stadig indgående post forbi en postkasses grænse med (% af grænsen; 0 = slet ikke)</value>
   </data>
@@ -12029,6 +12071,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   </data>
   <data name="Still accept incoming mail past the limit by (%)" xml:space="preserve">
     <value>Modtag indgående post forbi grænsen med (%)</value>
+  </data>
+  <data name="Stop an account sending at (% of its limit)" xml:space="preserve">
+    <value>Stop en kontos afsendelse ved (% af dens grænse)</value>
   </data>
   <data name="Stop an account sending at (% of its limit; 0 = never)" xml:space="preserve">
     <value>Stop en kontos afsendelse ved (% af dens grænse; 0 = aldrig)</value>
@@ -12311,6 +12356,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   </data>
   <data name="Tag te_xt (up to 100 characters; empty = [EXTERNAL])" xml:space="preserve">
     <value>Mærkete_kst (højst 100 tegn; tom = [EXTERNAL])</value>
+  </data>
+  <data name="Tag the subject of mail from outside" xml:space="preserve">
+    <value>Mærk emnet på post udefra</value>
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Mærkning og ansvarsfraskrivelse</value>
@@ -14727,6 +14775,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="Warn in the application log and Windows event log below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Advar i applikationsloggen og Windows' hændelseslog under så meget ledig plads (MB; 0 = aldrig)</value>
+  </data>
+  <data name="Warn the mailbox owner at this percentage of their quota" xml:space="preserve">
+    <value>Advar postkassens ejer ved denne procent af dennes kvote</value>
   </data>
   <data name="Warn the mailbox owner at this percentage of their quota (0 = never)" xml:space="preserve">
     <value>Advar postkassens ejer ved denne procent af dennes kvote (0 = aldrig)</value>

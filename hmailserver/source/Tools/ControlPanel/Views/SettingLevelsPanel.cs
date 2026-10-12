@@ -177,12 +177,17 @@ namespace hMailServer.ControlPanel.Views
          var effect = new TextBlock { TextWrapping = TextWrapping.Wrap, Text = SettingLevels.InEffect(effective, source, level.Type) ?? "" };
          effect.SetResourceReference(FrameworkElement.StyleProperty, "TextCaption");
 
+         // The setting's name as a person reads it, and its key - the server's word,
+         // which the REST API sets a level by - beside it as a small caption: the
+         // tab's headings were the keys themselves, "max_message_size_kb", in mono
+         // type in every language (the owner's decision 11: a key name only as a
+         // small caption).
+         string caption = SettingLevels.Caption(level.Name);
+
          if (field)
          {
-            // The name, from data: a setting's name is the server's word and
-            // carries no access key.
-            var name = new TextBlock { Text = level.Name, FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily), FontSize = Typography.Mono };
-            panel.Children.Add(name);
+            var name = new TextBlock { Text = caption, TextWrapping = TextWrapping.Wrap };
+            panel.Children.Add(Named_(name, level.Name));
             panel.Children.Add(effect);
             var where = new TextBlock { Text = L("Edited on this dialog's other tabs."), TextWrapping = TextWrapping.Wrap };
             where.SetResourceReference(FrameworkElement.StyleProperty, "TextCaption");
@@ -192,10 +197,10 @@ namespace hMailServer.ControlPanel.Views
 
          bool has = !string.IsNullOrEmpty(own);
 
-         // The name is the box's caption, from data, and a CheckBox reads the first
-         // underscore of a caption as its access key: "max_message_size_kb" showed as
-         // "maxmessage_size_kb", with Alt+M on it, and every setting's name has one.
-         var check = new CheckBox { Content = MnemonicText.Escape(level.Name), IsChecked = has };
+         // The name is the box's caption, and a CheckBox reads the first underscore
+         // of a caption as its access key: "max_message_size_kb" showed as
+         // "maxmessage_size_kb", with Alt+M on it, when the key was the caption.
+         var check = new CheckBox { Content = MnemonicText.Escape(caption), IsChecked = has };
          var value = new TextBox
          {
             Text = has ? own : "",
@@ -206,17 +211,43 @@ namespace hMailServer.ControlPanel.Views
             // The box's own value and what it does, under its caption (review finding F294).
             Margin = new Thickness(DesignTokens.CheckBoxCaptionInset, 2, 0, 2)
          };
-         AutomationProperties.SetName(value, F("Own value of {0}", level.Name));
+         AutomationProperties.SetName(value, F("Own value of {0}", caption));
          check.Checked += (_, _) => value.IsEnabled = true;
          check.Unchecked += (_, _) => value.IsEnabled = false;
 
-         panel.Children.Add(check);
+         panel.Children.Add(Named_(check, level.Name));
          panel.Children.Add(value);
          effect.Margin = new Thickness(DesignTokens.CheckBoxCaptionInset, 0, 0, 0);
          panel.Children.Add(effect);
 
          rows_.Add(new Row { Level = level, Own = check, Value = value, Effect = effect, LoadedOwn = has, LoadedValue = has ? own : "" });
          return panel;
+      }
+
+      /// <summary>
+      /// A setting's name - its heading or its box - with its key after it as a small
+      /// caption in the tertiary colour, in mono type at the mono size as the server
+      /// spells it, wrapping under the name where the line has no room; the key is the
+      /// name's tool tip as well, and its help text, so that a screen reader can hear it.
+      /// </summary>
+      private static FrameworkElement Named_(FrameworkElement name, string key)
+      {
+         var keyText = new TextBlock
+         {
+            Text = key,
+            FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily),
+            FontSize = Typography.Mono,
+            Margin = new Thickness(8, 0, 0, 0),
+            VerticalAlignment = VerticalAlignment.Center
+         };
+         keyText.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorTertiaryBrush");
+         name.ToolTip = key;
+         AutomationProperties.SetHelpText(name, key);
+         name.VerticalAlignment = VerticalAlignment.Center;
+         var line = new WrapPanel { Orientation = Orientation.Horizontal };
+         line.Children.Add(name);
+         line.Children.Add(keyText);
+         return line;
       }
 
       private void SaveLevels()
@@ -239,7 +270,7 @@ namespace hMailServer.ControlPanel.Views
 
                if (own && string.IsNullOrEmpty(typed))
                {
-                  refused.Add(F("{0}: {1}", row.Level.Name, L("a value of its own is needed, or untick it to take the level above.")));
+                  refused.Add(F("{0}: {1}", SettingLevels.Caption(row.Level.Name), L("a value of its own is needed, or untick it to take the level above.")));
                   continue;
                }
 
@@ -249,7 +280,7 @@ namespace hMailServer.ControlPanel.Views
                }
                catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
                {
-                  refused.Add(F("{0}: {1}", row.Level.Name, ServerSession.DescribeComError(ex)));
+                  refused.Add(F("{0}: {1}", SettingLevels.Caption(row.Level.Name), ServerSession.DescribeComError(ex)));
                }
             }
          }

@@ -1041,6 +1041,9 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Add a greylisting exemption" xml:space="preserve">
     <value>Add a greylisting exemption</value>
   </data>
+  <data name="Add a header the reader shows as a banner" xml:space="preserve">
+    <value>Add a header the reader shows as a banner</value>
+  </data>
   <data name="Add a journaling rule" xml:space="preserve">
     <value>Add a journaling rule</value>
   </data>
@@ -1259,6 +1262,9 @@ The Control Panel can only read message files when it runs on the same machine a
   </data>
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's.</value>
+  </data>
+  <data name="Addresses at other providers a person may send as" xml:space="preserve">
+    <value>Addresses at other providers a person may send as</value>
   </data>
   <data name="Addresses at other providers a person may send as (up to 20; 0 = none)" xml:space="preserve">
     <value>Addresses at other providers a person may send as (up to 20; 0 = none)</value>
@@ -3474,6 +3480,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Country blocking" xml:space="preserve">
     <value>Country blocking</value>
   </data>
+  <data name="Country policy at sign-in" xml:space="preserve">
+    <value>Country policy at sign-in</value>
+  </data>
   <data name="Covers" xml:space="preserve">
     <value>Covers</value>
   </data>
@@ -3723,6 +3732,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Days after sending that a delivery report is still matched (1 to 30)" xml:space="preserve">
     <value>Days after sending that a delivery report is still matched (1 to 30)</value>
   </data>
+  <data name="Days after sending that mail to this server's accounts may be recalled" xml:space="preserve">
+    <value>Days after sending that mail to this server's accounts may be recalled</value>
+  </data>
   <data name="Days after sending that mail to this server's accounts may be recalled (1 to 365)" xml:space="preserve">
     <value>Days after sending that mail to this server's accounts may be recalled (1 to 365)</value>
   </data>
@@ -3741,6 +3753,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Days bounce counts are kept (0 = for ever)" xml:space="preserve">
     <value>Days bounce counts are kept (0 = for ever)</value>
   </data>
+  <data name="Days deleted messages are kept for the person to put back" xml:space="preserve">
+    <value>Days deleted messages are kept for the person to put back</value>
+  </data>
   <data name="Days deleted messages are kept for the person to put back (up to 365; 0 = none)" xml:space="preserve">
     <value>Days deleted messages are kept for the person to put back (up to 365; 0 = none)</value>
   </data>
@@ -3749,6 +3764,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Days of audit trail to keep (0 = for ever)" xml:space="preserve">
     <value>Days of audit trail to keep (0 = for ever)</value>
+  </data>
+  <data name="Days of mail a person may keep in the browser to read offline" xml:space="preserve">
+    <value>Days of mail a person may keep in the browser to read offline</value>
   </data>
   <data name="Days of mail a person may keep in the browser to read offline (up to 365; 0 = none)" xml:space="preserve">
     <value>Days of mail a person may keep in the browser to read offline (up to 365; 0 = none)</value>
@@ -4608,6 +4626,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Enable or disable the protocol servers. Changes apply when you press Save changes. ManageSieve (for managing Sieve scripts) is enabled on the API &amp; monitoring page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>Enable or disable the protocol servers. Changes apply when you press Save changes. ManageSieve (for managing Sieve scripts) is enabled on the API &amp; monitoring page; OAuth2 token authentication is on the Authentication page.</value>
+  </data>
+  <data name="Enable plus addressing" xml:space="preserve">
+    <value>Enable plus addressing</value>
   </data>
   <data name="Enable server-side event scripts" xml:space="preserve">
     <value>Enable server-side event scripts</value>
@@ -6956,6 +6977,9 @@ Every Web Push subscription made under the present pair stops working at once, a
   <data name="Marked inactive" xml:space="preserve">
     <value>Marked inactive</value>
   </data>
+  <data name="Masked addresses a person may make" xml:space="preserve">
+    <value>Masked addresses a person may make</value>
+  </data>
   <data name="Masked addresses a person may make (up to 200; 0 = none)" xml:space="preserve">
     <value>Masked addresses a person may make (up to 200; 0 = none)</value>
   </data>
@@ -7046,6 +7070,9 @@ Every Web Push subscription made under the present pair stops working at once, a
   <data name="Maximum message size (KB; 0 = no limit)" xml:space="preserve">
     <value>Maximum message size (KB; 0 = no limit)</value>
   </data>
+  <data name="Maximum messages per account per period" xml:space="preserve">
+    <value>Maximum messages per account per period</value>
+  </data>
   <data name="Maximum messages per account per period (0 = no limit)" xml:space="preserve">
     <value>Maximum messages per account per period (0 = no limit)</value>
   </data>
@@ -7063,6 +7090,9 @@ Every Web Push subscription made under the present pair stops working at once, a
   </data>
   <data name="Maximum parallel external POP3 fetch threads" xml:space="preserve">
     <value>Maximum parallel external POP3 fetch threads</value>
+  </data>
+  <data name="Maximum recipients per account per period" xml:space="preserve">
+    <value>Maximum recipients per account per period</value>
   </data>
   <data name="Maximum recipients per account per period (0 = no limit)" xml:space="preserve">
     <value>Maximum recipients per account per period (0 = no limit)</value>
@@ -8832,6 +8862,9 @@ Nothing already there is removed.</value>
   </data>
   <data name="Other" xml:space="preserve">
     <value>Other</value>
+  </data>
+  <data name="Other POP3 or IMAP accounts a person may collect from" xml:space="preserve">
+    <value>Other POP3 or IMAP accounts a person may collect from</value>
   </data>
   <data name="Other POP3 or IMAP accounts a person may collect from (up to 20; 0 = none)" xml:space="preserve">
     <value>Other POP3 or IMAP accounts a person may collect from (up to 20; 0 = none)</value>
@@ -11124,8 +11157,14 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Seconds a push service holds a notification for a device that is offline (0 to 2,419,200)" xml:space="preserve">
     <value>Seconds a push service holds a notification for a device that is offline (0 to 2,419,200)</value>
   </data>
+  <data name="Seconds a session may go unused" xml:space="preserve">
+    <value>Seconds a session may go unused</value>
+  </data>
   <data name="Seconds a session may go unused (0 = the server's own 1,800)" xml:space="preserve">
     <value>Seconds a session may go unused (0 = the server's own 1,800)</value>
+  </data>
+  <data name="Seconds a session may last at all" xml:space="preserve">
+    <value>Seconds a session may last at all</value>
   </data>
   <data name="Seconds a session may last at all (0 = the server's own 43,200)" xml:space="preserve">
     <value>Seconds a session may last at all (0 = the server's own 43,200)</value>
@@ -12021,6 +12060,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>Step {0} of {1}</value>
   </data>
+  <data name="Still accept incoming mail past a mailbox's limit by (% of the limit)" xml:space="preserve">
+    <value>Still accept incoming mail past a mailbox's limit by (% of the limit)</value>
+  </data>
   <data name="Still accept incoming mail past a mailbox's limit by (% of the limit; 0 = not at all)" xml:space="preserve">
     <value>Still accept incoming mail past a mailbox's limit by (% of the limit; 0 = not at all)</value>
   </data>
@@ -12029,6 +12071,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="Still accept incoming mail past the limit by (%)" xml:space="preserve">
     <value>Still accept incoming mail past the limit by (%)</value>
+  </data>
+  <data name="Stop an account sending at (% of its limit)" xml:space="preserve">
+    <value>Stop an account sending at (% of its limit)</value>
   </data>
   <data name="Stop an account sending at (% of its limit; 0 = never)" xml:space="preserve">
     <value>Stop an account sending at (% of its limit; 0 = never)</value>
@@ -12311,6 +12356,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="Tag te_xt (up to 100 characters; empty = [EXTERNAL])" xml:space="preserve">
     <value>Tag te_xt (up to 100 characters; empty = [EXTERNAL])</value>
+  </data>
+  <data name="Tag the subject of mail from outside" xml:space="preserve">
+    <value>Tag the subject of mail from outside</value>
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Tagging and disclaimer</value>
@@ -14727,6 +14775,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="Warn in the application log and Windows event log below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Warn in the application log and Windows event log below this much free space (MB; 0 = never)</value>
+  </data>
+  <data name="Warn the mailbox owner at this percentage of their quota" xml:space="preserve">
+    <value>Warn the mailbox owner at this percentage of their quota</value>
   </data>
   <data name="Warn the mailbox owner at this percentage of their quota (0 = never)" xml:space="preserve">
     <value>Warn the mailbox owner at this percentage of their quota (0 = never)</value>

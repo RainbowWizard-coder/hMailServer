@@ -3988,6 +3988,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   traces endpoint - ran to three as well, and keep two the same way. `SettingsHintLengthTests` holds every hint on
   those pages and every such note to two sentences, the keys to the small line, and the reasons to the document.
 
+- **Fixed: the Levels tab of the domain and account dialogs was headed by the server's own keys.** Each setting a
+  domain or an account may hold its own value of was headed "max_message_size_kb", "session_idle_seconds",
+  "quota_grace_percent" and so on, in mono type and in every language, against the owner's decision 11 (a key name
+  only as a small caption). Each is headed by its name as the page or tab that edits it for the server or the domain
+  says it - "Maximum message size (KB)", "Seconds a session may go unused" - in every language, with the key beside it
+  as a small caption in the tertiary colour, and in its tool tip, for the REST API that sets a level by it; a refusal
+  at the save names the setting the same way. `SettingLevelsTests` holds a name for every setting the server has
+  levels for.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

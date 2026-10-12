@@ -19,24 +19,40 @@ namespace hMailServer.ControlPanel.Tests.Services
    public class SettingLevelsTests
    {
       /// <summary>
-      /// A setting's name is its box's caption as the server spells it: a CheckBox reads
-      /// the first underscore of a caption as its access key, and every name has one, so
-      /// that "max_message_size_kb" showed as "maxmessage_size_kb" with Alt+M on it.
+      /// A setting is headed by its name as a person reads it, and its key - the server's
+      /// word, which the REST API sets a level by - is a small caption beside it: the
+      /// tab's headings were the keys themselves, "max_message_size_kb", in mono type in
+      /// every language, against the owner's decision 11 (a key name only as a small
+      /// caption; the final check of Tier 2). The box's caption is still escaped: a
+      /// CheckBox reads the first underscore of a caption as its access key, which made
+      /// "max_message_size_kb" "maxmessage_size_kb" with Alt+M on it when the key was the
+      /// caption, and a translation could carry one.
       /// </summary>
       [Fact]
-      public void ASettingsNameIsItsBoxsCaptionWithEveryUnderscore_AndNoAccessKey()
+      public void ASettingIsHeadedByItsName_AndItsKeyIsASmallCaptionBesideIt()
       {
          string panel = SaveStateModelTests.ReadControlPanelFile("Views/SettingLevelsPanel.cs");
-         Assert.Contains("new CheckBox { Content = MnemonicText.Escape(level.Name),", panel, StringComparison.Ordinal);
+         Assert.Contains("string caption = SettingLevels.Caption(level.Name);", panel, StringComparison.Ordinal);
+         Assert.Contains("new CheckBox { Content = MnemonicText.Escape(caption),", panel, StringComparison.Ordinal);
+         Assert.Contains("panel.Children.Add(Named_(check, level.Name));", panel, StringComparison.Ordinal);
+         Assert.Contains("panel.Children.Add(Named_(name, level.Name));", panel, StringComparison.Ordinal);
          Assert.DoesNotContain("Content = level.Name", panel, StringComparison.Ordinal);
+         Assert.DoesNotContain("Text = level.Name", panel, StringComparison.Ordinal);
+         Assert.DoesNotContain("MnemonicText.Escape(level.Name)", panel, StringComparison.Ordinal);
 
          foreach (SettingLevel level in SettingLevels.All)
          {
-            Assert.Contains("_", level.Name, StringComparison.Ordinal);
-            Assert.NotEqual(level.Name, MnemonicText.AccessTextShown(level.Name));
-            Assert.Equal(level.Name, MnemonicText.AccessTextShown(MnemonicText.Escape(level.Name)));
-            Assert.Null(MnemonicText.Key(MnemonicText.Escape(level.Name)));
+            Assert.True(SettingLevels.HasCaption(level.Name), level.Name + " has no name of its own on the Levels tab.");
+            string caption = SettingLevels.Caption(level.Name);
+            Assert.NotEqual(level.Name, caption);
+            Assert.DoesNotContain("_", caption, StringComparison.Ordinal);
+            Assert.Equal(caption, MnemonicText.AccessTextShown(MnemonicText.Escape(caption)));
+            Assert.Null(MnemonicText.Key(MnemonicText.Escape(caption)));
          }
+
+         Assert.Equal(SettingLevels.All.Count, SettingLevels.All.Select(level => SettingLevels.Caption(level.Name)).Distinct().Count());
+         // A key a newer server adds is shown as it is spelt, rather than not at all.
+         Assert.Equal("a_newer_key", SettingLevels.Caption("a_newer_key"));
       }
 
       [Fact]

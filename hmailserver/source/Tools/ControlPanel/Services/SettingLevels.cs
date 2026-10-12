@@ -108,6 +108,53 @@ namespace hMailServer.ControlPanel.Services
          new SettingLevel("directory_user_editable", SettingLevelType.Boolean, false, false, SettingLevelClass.Gate),   // no-loc
       };
 
+      /// <summary>
+      /// Each setting's name as a person reads it, from the caption the setting has on
+      /// the page or tab that edits it for the whole server or the domain, less the
+      /// bracket that says what its values mean there: the Levels tab showed the
+      /// server's own keys as its headings - "max_message_size_kb", "session_idle_seconds"
+      /// - in every language, against the owner's decision 11 of 9 October 2026 (a key
+      /// name only as a small caption). The key stays in reach as that small caption
+      /// beside the name, for the REST API that sets a level by it.
+      /// </summary>
+      private static readonly Dictionary<string, string> Captions = new(StringComparer.Ordinal)
+      {
+         ["max_message_size_kb"] = N("Maximum message size (KB)"),
+         ["quarantine_digest"] = N("Quarantine digest"),
+         ["quarantine_digest_hour"] = N("Digest hour"),
+         ["external_tag_subject"] = N("Tag the subject of mail from outside"),
+         ["external_tag_header"] = N("Add a header the reader shows as a banner"),
+         ["impersonation_action"] = N("Impersonation protection"),
+         ["session_idle_seconds"] = N("Seconds a session may go unused"),
+         ["session_lifetime_seconds"] = N("Seconds a session may last at all"),
+         ["session_one_per_device"] = N("Signing in again from the same device ends the earlier session"),
+         ["session_bind_to_address"] = N("Refuse a session from any address but the one it began on"),
+         ["quota_warning_percent"] = N("Warn the mailbox owner at this percentage of their quota"),
+         ["quota_grace_percent"] = N("Still accept incoming mail past a mailbox's limit by (% of the limit)"),
+         ["quota_send_stop_percent"] = N("Stop an account sending at (% of its limit)"),
+         ["plus_addressing_enabled"] = N("Enable plus addressing"),
+         ["country_policy"] = N("Country policy at sign-in"),
+         ["message_retention_days"] = N("Delete messages older than (days)"),
+         ["recall_days"] = N("Days after sending that mail to this server's accounts may be recalled"),
+         ["recover_deleted_days"] = N("Days deleted messages are kept for the person to put back"),
+         ["sending_max_messages"] = N("Maximum messages per account per period"),
+         ["sending_max_recipients"] = N("Maximum recipients per account per period"),
+         ["openpgp_portal_enabled"] = N("Offer OpenPGP in the webmail"),
+         ["zero_access_allowed"] = N("Let people make their mailbox zero-access"),
+         ["reader_fetch_accounts_max"] = N("Other POP3 or IMAP accounts a person may collect from"),
+         ["reader_sender_addresses_max"] = N("Addresses at other providers a person may send as"),
+         ["reader_masked_addresses_max"] = N("Masked addresses a person may make"),
+         ["reader_offline_days_max"] = N("Days of mail a person may keep in the browser to read offline"),
+         ["directory_user_editable"] = N("Let people edit their own directory entry"),
+      };
+
+      /// <summary>A setting's name as a person reads it, in the reader's language; the key itself for one this list does not know.</summary>
+      public static string Caption(string name)
+         => Captions.TryGetValue(name ?? "", out string caption) ? L(caption) : name;
+
+      /// <summary>Whether a setting has a name of its own on the Levels tab (SettingLevelsTests holds every one).</summary>
+      public static bool HasCaption(string name) => Captions.ContainsKey(name ?? "");
+
       /// <summary>A value in its text form (1 or 0, digits, text), as a person reads it.</summary>
       public static string Shown(string value, SettingLevelType type)
       {

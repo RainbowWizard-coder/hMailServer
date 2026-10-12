@@ -1047,6 +1047,9 @@ Control Panel может читать файлы сообщений только
   <data name="Add a greylisting exemption" xml:space="preserve">
     <value>Добавить исключение серых списков</value>
   </data>
+  <data name="Add a header the reader shows as a banner" xml:space="preserve">
+    <value>Добавлять заголовок, который читатель показывает полосой</value>
+  </data>
   <data name="Add a journaling rule" xml:space="preserve">
     <value>Добавить правило журналирования</value>
   </data>
@@ -1271,6 +1274,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>Адреса и целые домены, которые учётные записи {0} хотят или не хотят получать. Действует после собственного списка учётной записи и перед списком сервера.</value>
+  </data>
+  <data name="Addresses at other providers a person may send as" xml:space="preserve">
+    <value>Адреса у других провайдеров, от имени которых можно отправлять</value>
   </data>
   <data name="Addresses at other providers a person may send as (up to 20; 0 = none)" xml:space="preserve">
     <value>Адреса у других провайдеров, от имени которых можно отправлять (до 20; 0 = нет)</value>
@@ -3507,6 +3513,9 @@ Control Panel может читать файлы сообщений только
   <data name="Country blocking" xml:space="preserve">
     <value>Блокировка по странам</value>
   </data>
+  <data name="Country policy at sign-in" xml:space="preserve">
+    <value>Политика стран при входе</value>
+  </data>
   <data name="Covers" xml:space="preserve">
     <value>Охватывает</value>
   </data>
@@ -3756,6 +3765,9 @@ Control Panel может читать файлы сообщений только
   <data name="Days after sending that a delivery report is still matched (1 to 30)" xml:space="preserve">
     <value>Дней после отправки, в течение которых отчёт о доставке ещё сопоставляется (от 1 до 30)</value>
   </data>
+  <data name="Days after sending that mail to this server's accounts may be recalled" xml:space="preserve">
+    <value>Дней после отправки, в течение которых почту учётным записям этого сервера можно отозвать</value>
+  </data>
   <data name="Days after sending that mail to this server's accounts may be recalled (1 to 365)" xml:space="preserve">
     <value>Дней после отправки, в течение которых почту учётным записям этого сервера можно отозвать (от 1 до 365)</value>
   </data>
@@ -3774,6 +3786,9 @@ Control Panel может читать файлы сообщений только
   <data name="Days bounce counts are kept (0 = for ever)" xml:space="preserve">
     <value>Дней хранения счётчиков отказов (0 = вечно)</value>
   </data>
+  <data name="Days deleted messages are kept for the person to put back" xml:space="preserve">
+    <value>Дней хранения удалённых сообщений, чтобы человек мог их вернуть</value>
+  </data>
   <data name="Days deleted messages are kept for the person to put back (up to 365; 0 = none)" xml:space="preserve">
     <value>Дней хранения удалённых сообщений, чтобы человек мог их вернуть (до 365; 0 = нет)</value>
   </data>
@@ -3782,6 +3797,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Days of audit trail to keep (0 = for ever)" xml:space="preserve">
     <value>Дней журнала аудита для хранения (0 = вечно)</value>
+  </data>
+  <data name="Days of mail a person may keep in the browser to read offline" xml:space="preserve">
+    <value>Дней почты, которые человек может хранить в браузере для чтения без подключения</value>
   </data>
   <data name="Days of mail a person may keep in the browser to read offline (up to 365; 0 = none)" xml:space="preserve">
     <value>Дней почты, которые человек может хранить в браузере для чтения без подключения (до 365; 0 = нет)</value>
@@ -4666,6 +4684,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Enable or disable the protocol servers. Changes apply when you press Save changes. ManageSieve (for managing Sieve scripts) is enabled on the API &amp; monitoring page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>Включайте и отключайте серверы протоколов. Изменения применяются, когда вы нажимаете «Сохранить изменения». ManageSieve (для управления сценариями Sieve) включается на странице «API и мониторинг»; аутентификация по токенам OAuth2 — на странице «Аутентификация».</value>
+  </data>
+  <data name="Enable plus addressing" xml:space="preserve">
+    <value>Включить плюс-адресацию</value>
   </data>
   <data name="Enable server-side event scripts" xml:space="preserve">
     <value>Включить серверные сценарии событий</value>
@@ -7041,6 +7062,9 @@ Control Panel может читать файлы сообщений только
   <data name="Marked inactive" xml:space="preserve">
     <value>Помечен неактивным</value>
   </data>
+  <data name="Masked addresses a person may make" xml:space="preserve">
+    <value>Маскированные адреса, которые может создать человек</value>
+  </data>
   <data name="Masked addresses a person may make (up to 200; 0 = none)" xml:space="preserve">
     <value>Маскированные адреса, которые может создать человек (до 200; 0 = нет)</value>
   </data>
@@ -7134,6 +7158,9 @@ Control Panel может читать файлы сообщений только
   <data name="Maximum message size (KB; 0 = no limit)" xml:space="preserve">
     <value>Максимальный размер сообщения (КБ; 0 = без ограничения)</value>
   </data>
+  <data name="Maximum messages per account per period" xml:space="preserve">
+    <value>Максимум сообщений на учётную запись за период</value>
+  </data>
   <data name="Maximum messages per account per period (0 = no limit)" xml:space="preserve">
     <value>Максимум сообщений на учётную запись за период (0 = без ограничения)</value>
   </data>
@@ -7151,6 +7178,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Maximum parallel external POP3 fetch threads" xml:space="preserve">
     <value>Максимум параллельных потоков сбора внешней почты POP3</value>
+  </data>
+  <data name="Maximum recipients per account per period" xml:space="preserve">
+    <value>Максимум получателей на учётную запись за период</value>
   </data>
   <data name="Maximum recipients per account per period (0 = no limit)" xml:space="preserve">
     <value>Максимум получателей на учётную запись за период (0 = без ограничения)</value>
@@ -8938,6 +8968,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Other" xml:space="preserve">
     <value>Прочее</value>
+  </data>
+  <data name="Other POP3 or IMAP accounts a person may collect from" xml:space="preserve">
+    <value>Другие учётные записи POP3 или IMAP, из которых человек может забирать почту</value>
   </data>
   <data name="Other POP3 or IMAP accounts a person may collect from (up to 20; 0 = none)" xml:space="preserve">
     <value>Другие учётные записи POP3 или IMAP, из которых человек может забирать почту (до 20; 0 = нет)</value>
@@ -11272,8 +11305,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Seconds a push service holds a notification for a device that is offline (0 to 2,419,200)" xml:space="preserve">
     <value>Секунд, в течение которых push-служба хранит уведомление для устройства без подключения (от 0 до 2 419 200)</value>
   </data>
+  <data name="Seconds a session may go unused" xml:space="preserve">
+    <value>Секунд, которые сеанс может простаивать</value>
+  </data>
   <data name="Seconds a session may go unused (0 = the server's own 1,800)" xml:space="preserve">
     <value>Секунд, которые сеанс может простаивать (0 = собственные 1 800 сервера)</value>
+  </data>
+  <data name="Seconds a session may last at all" xml:space="preserve">
+    <value>Секунд, которые сеанс может длиться вообще</value>
   </data>
   <data name="Seconds a session may last at all (0 = the server's own 43,200)" xml:space="preserve">
     <value>Секунд, которые сеанс может длиться вообще (0 = собственные 43 200 сервера)</value>
@@ -12175,6 +12214,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>Шаг {0} из {1}</value>
   </data>
+  <data name="Still accept incoming mail past a mailbox's limit by (% of the limit)" xml:space="preserve">
+    <value>Принимать входящую почту сверх лимита ящика ещё на (% лимита)</value>
+  </data>
   <data name="Still accept incoming mail past a mailbox's limit by (% of the limit; 0 = not at all)" xml:space="preserve">
     <value>Принимать входящую почту сверх лимита ящика ещё на (% лимита; 0 = не принимать)</value>
   </data>
@@ -12183,6 +12225,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Still accept incoming mail past the limit by (%)" xml:space="preserve">
     <value>Принимать входящую почту сверх лимита на (%)</value>
+  </data>
+  <data name="Stop an account sending at (% of its limit)" xml:space="preserve">
+    <value>Остановить отправку с учётной записи при (% её лимита)</value>
   </data>
   <data name="Stop an account sending at (% of its limit; 0 = never)" xml:space="preserve">
     <value>Остановить отправку с учётной записи при (% её лимита; 0 = никогда)</value>
@@ -12468,6 +12513,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Tag te_xt (up to 100 characters; empty = [EXTERNAL])" xml:space="preserve">
     <value>Те_кст метки (не более 100 символов; пусто = [EXTERNAL])</value>
+  </data>
+  <data name="Tag the subject of mail from outside" xml:space="preserve">
+    <value>Помечать тему почты извне</value>
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Пометка и оговорка</value>
@@ -14917,6 +14965,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Warn in the application log and Windows event log below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Предупреждать в журнале приложения и журнале событий Windows, когда свободного места меньше этого (МБ; 0 = никогда)</value>
+  </data>
+  <data name="Warn the mailbox owner at this percentage of their quota" xml:space="preserve">
+    <value>Предупреждать владельца ящика при этом проценте его квоты</value>
   </data>
   <data name="Warn the mailbox owner at this percentage of their quota (0 = never)" xml:space="preserve">
     <value>Предупреждать владельца ящика при этом проценте его квоты (0 = никогда)</value>
