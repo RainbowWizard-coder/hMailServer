@@ -461,7 +461,7 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   they refuse it now unless it names the account signing in (domain aliases and the default domain applied, case
   aside), before the password is looked at and without counting it as a guess at one. IMAP, which lets the master
   user act as another account, answered an authzid naming the client itself `BAD No master user defined.`; it takes
-  it as none. `Security/SaslPlainAuthorizationIdentity.cs` asks each of the four. Found by upstream's #652 (#656).
+  it as none. `Security/SaslPlainAuthorizationIdentity.cs` asks each of the four. Found by upstream issue 652 (upstream PR 656).
 
 - **Fixed: the SMTP log wrote some credentials in the clear.** The server hid the credential of `AUTH PLAIN` only when
   it came after `EHLO` and in one exact form, and the password line of `AUTH LOGIN`. An `AUTH PLAIN` sent before
@@ -470,7 +470,7 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   and readable to anyone who could read the log. The scrubber the POP3 and IMAP logs go through had an SMTP part that
   nothing called. Every line of a SASL exchange is hidden now but the user name of `AUTH LOGIN`, and `AUTH PLAIN` keeps
   its authentication identity, as before. `Security/SaslCredentialMasking.cs` sends each and reads the log; the
-  evidence pack says what the logs hold. Found by upstream's #654 (#656, #661).
+  evidence pack says what the logs hold. Found by upstream issue 654 (upstream PRs 656 and 661).
 
 ### Correctness
 
@@ -800,12 +800,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   is free now, `LastBackupSucceeded` - which an unattended update reads the moment the backup is no longer running -
   set before it, and a restore's "Restore completed successfully." the same. `EventScripts.md` says when the two
   events come. `Infrastructure/BackupRestore.cs` fails a backup whose `OnBackupFailed` takes three seconds and starts
-  the next as soon as the log says so. Found by upstream's #668, which met it in its own regression suite.
+  the next as soon as the log says so. Found by upstream PR 668, which met it in its own regression suite.
 
 - **Fixed: an external account set to deliver each message to the accounts its headers name found no recipient in a
   `Received` header that had a comment after its `for` address** - Gmail's `for <someone@example.com> (Google Transport
   Security);`, or TLS details on a line of their own - because the comment was run into the address. The address
-  alone is read now (`UtilitiesTester`, run by `Infrastructure.MainOperations`). Found by upstream's #665.
+  alone is read now (`UtilitiesTester`, run by `Infrastructure.MainOperations`). Found by upstream PR 665.
 
 - **Fixed: a VBScript `OnClientValidatePassword` handler was not called when the password held a line break on its
   own, nor an `OnExternalAccountDownload` handler when the unique-id a remote POP3 server listed held one, nor an
@@ -850,7 +850,7 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   version resource, so Explorer's Details page, an inventory tool or a crash report showed neither a product name nor
   a version for them. Each now has one, taken from `Common/Application/Version.h` as `hMailServer.exe`'s is, so a
   release stamped there reaches all three; `build/check-version-resources.py`, which the `checkers` job runs, holds
-  every C++ program of the server to it. Found by upstream's #658.
+  every C++ program of the server to it. Found by upstream PR 658.
 
 ### Delivery and SMTP
 
@@ -4645,7 +4645,7 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `MOVE` runs, as it is for `FETCH`, `STORE` and `SEARCH`, and reported by the next command; `UID COPY` and
   `UID MOVE` name UIDs and were never at risk. `IMAP/SessionMessageNumbering.cs` copies and moves message 2 after
   another session expunged message 1, and finds the second message in the destination; its `COPY` test had asserted
-  the old order. Found by upstream's UIDPLUS work (#666).
+  the old order. Found by upstream's UIDPLUS work (upstream PR 666).
 
 - **Fixed: an IMAP session that copied messages into the folder it had selected was never told of the copies, and a
   flag change on a message another session had just added was reported before the message itself.** The server
@@ -4658,7 +4658,7 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   message past the end of the mailbox it knew; the `EXISTS` comes first now. `EXPUNGE` and `UID EXPUNGE`, which
   take into the session's view any message it has not been told of yet, say so with an `EXISTS` before an `EXPUNGE`
   can give one of their numbers. `IMAP/SelectedFolderReports.cs` holds the first two. Found by upstream's UIDPLUS
-  work (#666).
+  work (upstream PR 666).
 
 ### Operations
 
