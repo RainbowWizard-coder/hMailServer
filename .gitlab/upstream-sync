@@ -325,12 +325,15 @@
 #     309) - the one change of the four no test can provoke once COPY reports its
 #     copies (its trigger is a delivery between its save and its notification).
 #   - 4c03c0bb8 (#671), the literals: our JScript calls were escaped whole since 24
-#     September (ScriptServer::EscapeForJScriptLiteral, every caller), but two
-#     VBScript calls were quoted by hand - OnClientValidatePassword's password and
-#     OnDeliveryFailed's values - so a lone CR or LF in a password, or a lone LF
-#     in a remote server's answer (a CR ends the line it is read from), left the
-#     literal open and the handler was not called, and OnDeliveryFailed lost the
-#     answer's quotes (Events.cpp, EscapeForVBScriptLiteral now).
+#     September (ScriptServer::EscapeForJScriptLiteral, every caller), but three
+#     VBScript calls were quoted by hand - OnClientValidatePassword's password,
+#     OnExternalAccountDownload's remote unique-id and OnDeliveryFailed's values -
+#     so a lone CR or LF in a password or in a unique-id a POP3 server lists (the
+#     listing is split at CR LF pairs only), or a lone LF in a remote server's
+#     answer (a CR ends the line it is read from), left the literal open and the
+#     handler was not called, and OnDeliveryFailed lost the answer's quotes
+#     (Events.cpp, EscapeForVBScriptLiteral now, as upstream's ToStringLiteral
+#     took all three).
 #   - 099f3f3dd/85a89fb1a (#658/#659): hMailServer.Minidump.exe had no version
 #     resource, and nor had hMailServer.Updater.exe beside it; both take one from
 #     Version.h now (hMailServer.Minidump.rc, hMailServer.Updater.rc), and

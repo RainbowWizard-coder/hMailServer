@@ -808,13 +808,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   alone is read now (`UtilitiesTester`, run by `Infrastructure.MainOperations`). Found by upstream's #665.
 
 - **Fixed: a VBScript `OnClientValidatePassword` handler was not called when the password held a line break on its
-  own, nor an `OnDeliveryFailed` handler when the remote server's answer held a line feed on its own, and
-  `OnDeliveryFailed` was handed the answer with its quotes taken out.** Those two calls were quoted by hand: the
-  password had its quotes doubled and nothing else, and `OnDeliveryFailed` took the quotes out of the recipient and
-  the error and joined in only a CR LF pair, so a lone CR or LF left the string open and the call did not compile.
-  They are quoted as every other VBScript call is now (`ScriptServer::EscapeForVBScriptLiteral`). `API/Events.cs`
-  sends both and reads what the handler was given; [EventScripts.md](hmailserver/docs/EventScripts.md) says how the
-  calls are quoted. Found reading upstream's #671.
+  own, nor an `OnExternalAccountDownload` handler when the unique-id a remote POP3 server listed held one, nor an
+  `OnDeliveryFailed` handler when the remote server's answer held a line feed on its own, and `OnDeliveryFailed` was
+  handed the answer with its quotes taken out.** Those three calls were quoted by hand: the password and the
+  unique-id had their quotes doubled and nothing else, and `OnDeliveryFailed` took the quotes out of the recipient
+  and the error and joined in only a CR LF pair, so a lone CR or LF left the string open and the call did not
+  compile. They are quoted as every other VBScript call is now (`ScriptServer::EscapeForVBScriptLiteral`).
+  `API/Events.cs` sends all three and reads what the handler was given;
+  [EventScripts.md](hmailserver/docs/EventScripts.md) says how the calls are quoted. Found reading upstream issue 671.
 
 ### Downloads and the release
 

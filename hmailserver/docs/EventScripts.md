@@ -161,11 +161,13 @@ quoting is one pair of helpers (`ScriptServer::EscapeForJScriptLiteral` and
 U+2028, U+2029 and NUL are escaped, the backslash first - before 24 September 2026
 only the apostrophe was, and a password ending its string with `\'` ran the code
 after it; for VBScript the quote is doubled and CR, LF and NUL are joined in from
-outside the literal (`" & vbCr & "`). Before 12 October 2026 two VBScript calls were
-quoted by hand instead - `OnClientValidatePassword`'s password had its quotes doubled
-and nothing else, and `OnDeliveryFailed` took the quotes out of the recipient and the
-error and joined in only a CR LF pair - so a lone CR or LF in a password, or a lone
-LF in a remote server's answer (a CR ends the line the answer is read from), left the
+outside the literal (`" & vbCr & "`). Before 12 October 2026 three VBScript calls were
+quoted by hand instead - `OnClientValidatePassword`'s password and
+`OnExternalAccountDownload`'s remote unique-id had their quotes doubled and nothing
+else, and `OnDeliveryFailed` took the quotes out of the recipient and the error and
+joined in only a CR LF pair - so a lone CR or LF in a password or in the unique-id a
+remote POP3 server lists (its listing is split at CR LF pairs only), or a lone LF in
+a remote server's answer (a CR ends the line the answer is read from), left the
 literal open, the call did not compile and the handler was not asked;
 `OnDeliveryFailed` is now handed its two values with their quotes.
 A rule's "Run function" name is written

@@ -1429,6 +1429,71 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A remote POP3 server's unique-id holding a quote and a lone LF reaches a VBScript OnExternalAccountDownload as the value it is. The call doubled the id's quotes and nothing else, so a line break left the literal open: the call did not compile and the handler was not asked (upstream #671). The listing is split at CR LF pairs only, so a lone LF stays in the id.")]
+      public void ARemoteUniqueIdWithALineFeedReachesTheVBScriptHandler()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "test@example.test", "test");
+
+         const string uniqueId = "id\"with\nbreak";
+
+         // From the ports set aside for this file's unit (47100-47119).
+         const int port = 47102;
+
+         var scripting = _settings.Scripting;
+
+         try
+         {
+            scripting.Language = "VBScript";
+            File.WriteAllText(scripting.CurrentScriptFile,
+               VBScriptWritingCodes("OnExternalAccountDownload", "fetchAccount, message, sRemoteUID", "sRemoteUID", "uid codes="));
+            scripting.Enabled = true;
+            scripting.Reload();
+
+            LogHandler.DeleteEventLog();
+
+            var messages = new List<string>
+            {
+               "From: Martin@example1.com\r\n" +
+               "To: Martin@example.com\r\n" +
+               "Subject: Message 1\r\n" +
+               "\r\n" +
+               "Message 1!"
+            };
+
+            using (var pop3Server = new Pop3ServerSimulator(1, port, messages))
+            {
+               pop3Server.UniqueIds[1] = uniqueId;
+               pop3Server.StartListen();
+
+               var fetchAccount = account.FetchAccounts.Add();
+
+               fetchAccount.Enabled = true;
+               fetchAccount.MinutesBetweenFetch = 10;
+               fetchAccount.Name = "UniqueIdFA";
+               fetchAccount.Username = "test@example.com";
+               fetchAccount.Password = "test";
+               fetchAccount.UseSSL = false;
+               fetchAccount.ServerAddress = "localhost";
+               fetchAccount.Port = port;
+               fetchAccount.ProcessMIMERecipients = false;
+               fetchAccount.DaysToKeepMessages = -1;
+               fetchAccount.Save();
+               fetchAccount.DownloadNow();
+
+               pop3Server.WaitForCompletion();
+            }
+
+            string log = ReadEventLogContaining("uid codes=");
+            StringAssert.Contains("uid codes=," + CharacterCodes(uniqueId) + ",", log,
+               "The VBScript handler was not handed the remote server's unique-id whole: " + log);
+         }
+         finally
+         {
+            LeaveAnEmptyVBScriptScriptLoaded();
+         }
+      }
+
+      [Test]
       [Description("A rule's Run function action is refused unless it names a plain function, so its name cannot carry statements into the script engine - when the rule is saved, and, for a name stored before that, when the rule fires; a plain name runs the function (the negative control). The name was written into the call as it was, and domain and account rules are written by a domain's administrator too.")]
       public void ARuleFunctionNameCannotCarryCodeIntoTheScript()
       {

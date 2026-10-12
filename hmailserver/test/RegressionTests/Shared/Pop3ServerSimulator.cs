@@ -50,6 +50,10 @@ namespace RegressionTests.Shared
       public bool DisconnectAfterRetrCompletion { get; set; }
       public BufferMode SendBufferMode { get; set; }
 
+      // A unique-id to list for a message, by its number (from 1), in place of
+      // UniqueID-<hash>: for a test of what a remote server's unique-id may hold.
+      public Dictionary<int, string> UniqueIds { get; } = new Dictionary<int, string>();
+
       public bool DisconnectImmediate { get; set; }
 
       protected override void HandleClient()
@@ -140,7 +144,13 @@ namespace RegressionTests.Shared
             var builder = new StringBuilder();
 
             for (var i = 0; i < _messages.Count; i++)
-               builder.Append(string.Format("{0} UniqueID-{1}\r\n", i + 1, _messages[i].GetHashCode()));
+            {
+               string uniqueId;
+               if (!UniqueIds.TryGetValue(i + 1, out uniqueId))
+                  uniqueId = "UniqueID-" + _messages[i].GetHashCode();
+
+               builder.Append(string.Format("{0} {1}\r\n", i + 1, uniqueId));
+            }
 
             Send(builder.ToString());
 

@@ -253,7 +253,13 @@ namespace HM
 
       if (sScriptLanguage == _T("VBScript"))
       {
-         sRemoteUIDCopy.Replace(_T("\""), _T("\"\""));
+         // ScriptServer::EscapeForVBScriptLiteral, as the other VBScript calls are
+         // made. The UID is whatever the remote server answered to UIDL, read up to
+         // a CR LF pair and trimmed of spaces and tabs only, so a lone CR or LF in it
+         // comes this far; with the quote doubled and nothing else, it left the
+         // literal open, the call did not compile and the handler was not asked
+         // (upstream #671).
+         sRemoteUIDCopy = ScriptServer::EscapeForVBScriptLiteral(sRemoteUID);
 
          if (pMessage)
             sEventCaller.Format(_T("OnExternalAccountDownload(HMAILSERVER_FETCHACCOUNT, HMAILSERVER_MESSAGE, \"%s\")"), sRemoteUIDCopy.c_str());
