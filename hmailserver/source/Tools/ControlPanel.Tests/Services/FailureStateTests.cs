@@ -472,7 +472,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Matches(new Regex(@"failedReads_ = 0;\s*linkLost_ = false;"), build);
 
          // The page's sentence at the cause's level, never at a fixed Critical.
-         Assert.Contains("ShowNotice_(Sentences(environmentSentence, readSentence), ComErrorText.LevelFor(linkLost_));", build, StringComparison.Ordinal);
+         Assert.Contains("ShowNotice_(Sentences(environmentSentence, readSentence), ComErrorText.LevelFor(linkLost_), () => Reload_Click(this, null));", build, StringComparison.Ordinal);
          Assert.DoesNotContain("readSentence, StatusLevel.", build, StringComparison.Ordinal);
 
          // The cards' counts are said after every card has been read, and only when
@@ -493,6 +493,34 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(figure != null, "ComStat no longer has NotReadFigure_.");
          Assert.Contains("Level = StatusLevel.Normal", figure, StringComparison.Ordinal);
          Assert.Contains("Text = L(\"Not read\")", figure, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// Review finding F179, found unfinished by the final check of Tier 2 (g2 defect 5):
+      /// a settings page whose read failed said so at Critical with no Try again, where
+      /// every list page's failed read has one. The server settings pages' notice and the
+      /// feature pages' "the values are the file's" notice carry ReadFailure's Try again,
+      /// kept from one failure to the next, which reads the page again as Reload does.
+      /// </summary>
+      [Fact]
+      public void ASettingsPagesFailedRead_OffersTryAgain()
+      {
+         string failure = ReadControlPanelFile(Path.Join("Services", "ReadFailure.cs"));
+         string on = WithheldRowTests.MemberText(failure, "public static void TryAgainOn(InlineNotice notice, Action tryAgain)");
+         Assert.True(on != null, "ReadFailure.TryAgainOn is gone.");
+         Assert.Contains("retry.Run = tryAgain;", on, StringComparison.Ordinal);
+         Assert.Contains("notice.Content = TryAgainButton(tryAgain);", on, StringComparison.Ordinal);
+
+         string server = ReadView("ServerSettingsView.xaml.cs");
+         string notice = WithheldRowTests.MemberText(server, "private void ShowNotice_(string sentence, StatusLevel level, Action tryAgain = null)");
+         Assert.True(notice != null, "ServerSettingsView.ShowNotice_ takes no Try again.");
+         Assert.Contains("ReadFailure.TryAgainOn(StatusNotice, string.IsNullOrEmpty(sentence) ? null : tryAgain);", notice, StringComparison.Ordinal);
+
+         string feature = ReadView("FeatureSettingsView.xaml.cs");
+         string file = WithheldRowTests.MemberText(feature, "private void SayReadFromFile_()");
+         Assert.True(file != null, "FeatureSettingsView.SayReadFromFile_ is gone.");
+         Assert.Contains("tryAgain_ ??= ReadFailure.TryAgainButton(() => Reload_Click(this, null));", file, StringComparison.Ordinal);
+         Assert.Contains("SetState_(SettingsPageStatus.ForFallback(readFromFile_), readFromFileNotice_, null, tryAgain_);", file, StringComparison.Ordinal);
       }
 
       /// <summary>

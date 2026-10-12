@@ -179,6 +179,31 @@ namespace hMailServer.ControlPanel.Services
          return button;
       }
 
+      /// <summary>
+      /// Try again on a notice a page writes itself - a settings page's sentence that
+      /// some of its settings could not be read - kept from one failure to the next as
+      /// Show keeps it, so that the keyboard stays on it when the read fails again; a
+      /// null <paramref name="tryAgain"/> takes it away. The settings pages' read notice
+      /// had no Try again where every list page's has one (review finding F179).
+      /// </summary>
+      public static void TryAgainOn(InlineNotice notice, Action tryAgain)
+      {
+         if (notice == null)
+            return;
+
+         if (tryAgain == null)
+         {
+            if (notice.Content is Wpf.Ui.Controls.Button { Tag: Retry })
+               notice.Content = null;
+            return;
+         }
+
+         if (notice.Content is Wpf.Ui.Controls.Button kept && kept.Tag is Retry retry)
+            retry.Run = tryAgain;
+         else
+            notice.Content = TryAgainButton(tryAgain);
+      }
+
       private static void Enable(bool enabled, UIElement[] writes)
       {
          if (writes == null)

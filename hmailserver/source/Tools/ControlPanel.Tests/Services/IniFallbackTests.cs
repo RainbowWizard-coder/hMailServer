@@ -105,7 +105,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          // both places on this one - no level of the notice's own beside the pill's.
          string say = WithheldRowTests.MemberText(source, "private void SayReadFromFile_()");
          Assert.True(say != null, "FeatureSettingsView.xaml.cs no longer has SayReadFromFile_.");
-         Assert.Matches(new Regex(@"SaveButton\.IsEnabled = false;\s*SetState_\(SettingsPageStatus\.ForFallback\(readFromFile_\), readFromFileNotice_\);"), say);
+         Assert.Matches(new Regex(@"SaveButton\.IsEnabled = false;\s*tryAgain_ \?\?= ReadFailure\.TryAgainButton\(\(\) => Reload_Click\(this, null\)\);\s*SetState_\(SettingsPageStatus\.ForFallback\(readFromFile_\), readFromFileNotice_, null, tryAgain_\);"), say);
          Assert.DoesNotContain("StatusLevel.", say + fallBack.Value, StringComparison.Ordinal);
          Assert.DoesNotContain("SettingsPageState.NotConnected", say + fallBack.Value, StringComparison.Ordinal);
          Assert.Contains("L(\"Stored in the server's settings database.\")", build, StringComparison.Ordinal);

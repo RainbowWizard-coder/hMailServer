@@ -1392,6 +1392,11 @@ namespace hMailServer.ControlPanel.Views
       private Exception readFromFile_;
       private string readFromFileNotice_;
 
+      // The notice's Try again while the values are the file's: one button, kept from
+      // one build to the next, so that the keyboard stays on it when the server still
+      // does not answer (review finding F179).
+      private Wpf.Ui.Controls.Button tryAgain_;
+
       /// <summary>One built warning: the definition and the notice it drives.</summary>
       private class WarningRow
       {
@@ -3692,7 +3697,8 @@ namespace hMailServer.ControlPanel.Views
       {
          PathText.Text = F("Read from {0} on this computer.", store_.IniPath);
          SaveButton.IsEnabled = false;
-         SetState_(SettingsPageStatus.ForFallback(readFromFile_), readFromFileNotice_);
+         tryAgain_ ??= ReadFailure.TryAgainButton(() => Reload_Click(this, null));
+         SetState_(SettingsPageStatus.ForFallback(readFromFile_), readFromFileNotice_, null, tryAgain_);
       }
 
       /// <summary>
@@ -3723,8 +3729,8 @@ namespace hMailServer.ControlPanel.Views
       /// in progress is a warning on the pill (what is on screen is not yet what
       /// runs) and information in the sentence.
       /// </summary>
-      private void SetState_(SettingsPageState state, string message, StatusLevel? noticeLevel = null)
-         => saveState_.Settle(state, message, noticeLevel);
+      private void SetState_(SettingsPageState state, string message, StatusLevel? noticeLevel = null, object action = null)
+         => saveState_.Settle(state, message, noticeLevel, action);
 
       /// <summary>
       /// Re-evaluates every computed warning on the page against the editors as

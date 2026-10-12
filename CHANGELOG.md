@@ -3874,6 +3874,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   never-ban names' column "Added (server time)", sorted by the time. A text in another form is shown as it came.
   `ServerTimeTextTests` holds each; `FirstHourDays` says which first-hour texts carry a day.
 
+- **Fixed: a settings page that could not read its settings offered no Try again.** Every list page's failed read says
+  so at Critical with a Try again button (review finding F179), but the server settings pages' notice that settings
+  could not be read, and the feature pages' notice that their values are hMailServer.ini's because the server did not
+  answer, had none: the reader had to find Reload in the header. Both notices now carry the same Try again, which reads
+  the page again as Reload does, kept from one failure to the next so that the keyboard stays on it
+  (`ReadFailure.TryAgainOn`). `FailureStateTests` holds both pages.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

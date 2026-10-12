@@ -5931,12 +5931,14 @@ namespace hMailServer.ControlPanel.Views
          // variable: a field is marked where this program can tie it to its setting,
          // and this sentence names them all, so none of them is a surprise at save.
          // It goes before the read's sentence, whose reason is last and may end in
+         // With Try again, which reads the page again as Reload does, as every list
+         // page's failed read has (review finding F179); nothing is unsaved yet.
          // the runtime's text in brackets with no full stop, which a sentence after
          // it ran on from.
          string readSentence = ServerSettingsPageStatus.ReadSentence(failedReads_, diag_);
          string environmentSentence = EnvironmentSettings.Notice(IniFeatureStore.EnvironmentManaged());
          if (!string.IsNullOrEmpty(readSentence))
-            ShowNotice_(Sentences(environmentSentence, readSentence), ComErrorText.LevelFor(linkLost_));
+            ShowNotice_(Sentences(environmentSentence, readSentence), ComErrorText.LevelFor(linkLost_), () => Reload_Click(this, null));
          else
             ShowNotice_(environmentSentence, StatusLevel.Information);
 
@@ -6048,9 +6050,11 @@ namespace hMailServer.ControlPanel.Views
       /// The page's notice, above the first card of the tab on screen (PlaceNotice_),
       /// or nothing when there is nothing to say - which is the ordinary case, and is
       /// why a page that read cleanly shows no notice at all rather than a line
+         // Try again goes with a sentence about a read that failed, and with no other.
+         ReadFailure.TryAgainOn(StatusNotice, string.IsNullOrEmpty(sentence) ? null : tryAgain);
       /// confirming that nothing went wrong.
       /// </summary>
-      private void ShowNotice_(string sentence, StatusLevel level)
+      private void ShowNotice_(string sentence, StatusLevel level, Action tryAgain = null)
       {
          if (string.IsNullOrEmpty(sentence))
          {
