@@ -143,6 +143,32 @@ namespace hMailServer.ControlPanel.Tests.Services
          foreach (string reader in CaptionHelpers.Concat(new[] { "Label =", "prompt", "XAML" }))
             Assert.True(read.GetValueOrDefault(reader) > 0, "No caption read through " + reader + "; the rule's pattern for it no longer matches the source.");
 
+         // A caption a page builds as a TextBlock of its own - the DNS records page's
+         // Label(...) over each value box, and its report mailbox's - ends in no colon
+         // either: five did, two of them the very examples review finding F301 gave
+         // ("Report mailbox:", "TXT value:"), which the rule above did not read (the
+         // final check of Tier 2, g4 defect 4).
+         var label = new Regex(@"(?<![\w.])Label\((?<args>[^;]*?)\)\)?;");
+         var literal = new Regex(@"\bL\(\s*(?<text>""(?:[^""\\]|\\.)*"")\s*\)");
+         var labelled = new List<string>();
+         int labels = 0;
+         foreach (string path in Directory.EnumerateFiles(Path.Join(root, "Views"), "*.cs", SearchOption.AllDirectories))
+         {
+            foreach (Match call in label.Matches(File.ReadAllText(path)))
+            {
+               foreach (Match text in literal.Matches(call.Groups["args"].Value))
+               {
+                  labels++;
+                  if (text.Groups["text"].Value.TrimEnd('"').TrimEnd().EndsWith(':'))
+                     labelled.Add(Path.GetFileName(path) + ": " + text.Groups["text"].Value);
+               }
+            }
+         }
+         Assert.True(labels > 0, "No caption read through Label(...); the pattern no longer matches the source.");
+         Assert.True(labelled.Count == 0, "Captions that end in a colon:" + Environment.NewLine + string.Join(Environment.NewLine, labelled));
+         Assert.DoesNotMatch(new Regex(@"\bL\(""(?:Report mailbox|TXT value|Policy file the server will serve[^""]*|Host name this server announces[^""]*|MX value[^""]*):""\)"),
+            ReadControlPanelFile(Path.Join("Views", "DnsRecordsView.cs")));
+
          // t213b's dialog asks for the public folder's name (review finding F206).
          string folders = ReadControlPanelFile(Path.Join("Views", "PublicFolderNameDialog.cs"));
          Assert.Contains("nameRow_ = DialogFields.Field(L(\"_Folder name\"), name_, PublicFolderTree.Hint(delimiter));", folders, StringComparison.Ordinal);

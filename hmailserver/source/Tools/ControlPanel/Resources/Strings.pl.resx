@@ -5852,8 +5852,8 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Host name clients connect to (empty = server host name)" xml:space="preserve">
     <value>Nazwa hosta, z którą łączą się klienty (puste = nazwa hosta serwera)</value>
   </data>
-  <data name="Host name this server announces (give this to the IP's owner for the PTR):" xml:space="preserve">
-    <value>Nazwa hosta ogłaszana przez ten serwer (należy ją przekazać właścicielowi adresu IP na potrzeby rekordu PTR):</value>
+  <data name="Host name this server announces (give this to the IP's owner for the PTR)" xml:space="preserve">
+    <value>Nazwa hosta ogłaszana przez ten serwer (należy ją przekazać właścicielowi adresu IP na potrzeby rekordu PTR)</value>
   </data>
   <data name="Host name this server announces in HELO" xml:space="preserve">
     <value>Nazwa hosta ogłaszana przez ten serwer w HELO</value>
@@ -6841,8 +6841,8 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   <data name="MX query" xml:space="preserve">
     <value>Zapytanie MX</value>
   </data>
-  <data name="MX value - the priority, then the name of the server that takes the mail:" xml:space="preserve">
-    <value>Wartość MX - priorytet, a następnie nazwa serwera, który przyjmuje pocztę:</value>
+  <data name="MX value - the priority, then the name of the server that takes the mail" xml:space="preserve">
+    <value>Wartość MX - priorytet, a następnie nazwa serwera, który przyjmuje pocztę</value>
   </data>
   <data name="Ma_naged by the list manager" xml:space="preserve">
     <value>Zarządzane przez menedżera l_isty</value>
@@ -9256,8 +9256,8 @@ Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poc
   <data name="Policy MX host patterns (empty = derive from each domain's MX)" xml:space="preserve">
     <value>Wzorce hostów MX w polityce (puste = wyprowadzane z rekordów MX każdej domeny)</value>
   </data>
-  <data name="Policy file the server will serve (read-only; served by the server itself):" xml:space="preserve">
-    <value>Plik polityki, który serwer będzie udostępniał (tylko do odczytu; udostępnia go sam serwer):</value>
+  <data name="Policy file the server serves itself" xml:space="preserve">
+    <value>Plik polityki udostępniany przez sam serwer</value>
   </data>
   <data name="Policy for a remote domain" xml:space="preserve">
     <value>Zasada dla domeny zdalnej</value>
@@ -10273,8 +10273,8 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Report _mailbox (empty = none)" xml:space="preserve">
     <value>_Skrzynka raportów (pusta = brak)</value>
   </data>
-  <data name="Report mailbox:" xml:space="preserve">
-    <value>Skrzynka pocztowa raportów:</value>
+  <data name="Report mailbox" xml:space="preserve">
+    <value>Skrzynka pocztowa raportów</value>
   </data>
   <data name="Report the async work queue as stalled after (120)" xml:space="preserve">
     <value>Zgłaszaj asynchroniczną kolejkę zadań jako zablokowaną po (120)</value>
@@ -12475,8 +12475,8 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="TXT record value for {0}" xml:space="preserve">
     <value>Wartość rekordu TXT dla {0}</value>
   </data>
-  <data name="TXT value:" xml:space="preserve">
-    <value>Wartość TXT:</value>
+  <data name="TXT value" xml:space="preserve">
+    <value>Wartość TXT</value>
   </data>
   <data name="Tab indents. Use Ctrl+Tab to move focus out of the editor." xml:space="preserve">
     <value>Tabulator wstawia wcięcie. Aby przenieść fokus poza edytor, użyj Ctrl+Tab.</value>

@@ -5852,8 +5852,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Host name clients connect to (empty = server host name)" xml:space="preserve">
     <value>Název hostitele, ke kterému se klienti připojují (prázdné = název hostitele serveru)</value>
   </data>
-  <data name="Host name this server announces (give this to the IP's owner for the PTR):" xml:space="preserve">
-    <value>Název hostitele, který tento server oznamuje (dejte ho vlastníkovi IP pro PTR):</value>
+  <data name="Host name this server announces (give this to the IP's owner for the PTR)" xml:space="preserve">
+    <value>Název hostitele, který tento server oznamuje (dejte ho vlastníkovi IP pro PTR)</value>
   </data>
   <data name="Host name this server announces in HELO" xml:space="preserve">
     <value>Název hostitele, který tento server oznamuje v HELO</value>
@@ -6841,8 +6841,8 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="MX query" xml:space="preserve">
     <value>MX dotaz</value>
   </data>
-  <data name="MX value - the priority, then the name of the server that takes the mail:" xml:space="preserve">
-    <value>Hodnota MX – priorita, pak název serveru, který poštu přijímá:</value>
+  <data name="MX value - the priority, then the name of the server that takes the mail" xml:space="preserve">
+    <value>Hodnota MX – priorita, pak název serveru, který poštu přijímá</value>
   </data>
   <data name="Ma_naged by the list manager" xml:space="preserve">
     <value>Sp_ravováno správcem seznamu</value>
@@ -9256,8 +9256,8 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Policy MX host patterns (empty = derive from each domain's MX)" xml:space="preserve">
     <value>Vzory MX hostitelů v politice (prázdné = odvodit z MX každé domény)</value>
   </data>
-  <data name="Policy file the server will serve (read-only; served by the server itself):" xml:space="preserve">
-    <value>Soubor politiky, který bude server poskytovat (pouze pro čtení; poskytuje jej server sám):</value>
+  <data name="Policy file the server serves itself" xml:space="preserve">
+    <value>Soubor politiky, který server poskytuje sám</value>
   </data>
   <data name="Policy for a remote domain" xml:space="preserve">
     <value>Pravidlo pro vzdálenou doménu</value>
@@ -10273,8 +10273,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Report _mailbox (empty = none)" xml:space="preserve">
     <value>Schránka pro _zprávy (prázdná = žádná)</value>
   </data>
-  <data name="Report mailbox:" xml:space="preserve">
-    <value>Schránka pro hlášení:</value>
+  <data name="Report mailbox" xml:space="preserve">
+    <value>Schránka pro hlášení</value>
   </data>
   <data name="Report the async work queue as stalled after (120)" xml:space="preserve">
     <value>Hlásit asynchronní pracovní frontu jako zaseknutou po (120)</value>
@@ -12475,8 +12475,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="TXT record value for {0}" xml:space="preserve">
     <value>Hodnota záznamu TXT pro {0}</value>
   </data>
-  <data name="TXT value:" xml:space="preserve">
-    <value>Hodnota TXT:</value>
+  <data name="TXT value" xml:space="preserve">
+    <value>Hodnota TXT</value>
   </data>
   <data name="Tab indents. Use Ctrl+Tab to move focus out of the editor." xml:space="preserve">
     <value>Tabulátor odsazuje. Fokus z editoru přesunete pomocí Ctrl+Tab.</value>

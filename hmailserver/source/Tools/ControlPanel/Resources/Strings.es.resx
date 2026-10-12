@@ -5770,8 +5770,8 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Host name clients connect to (empty = server host name)" xml:space="preserve">
     <value>Nombre de host al que se conectan los clientes (vacío = nombre de host del servidor)</value>
   </data>
-  <data name="Host name this server announces (give this to the IP's owner for the PTR):" xml:space="preserve">
-    <value>Nombre de host que anuncia este servidor (déselo al propietario de la IP para el PTR):</value>
+  <data name="Host name this server announces (give this to the IP's owner for the PTR)" xml:space="preserve">
+    <value>Nombre de host que anuncia este servidor (déselo al propietario de la IP para el PTR)</value>
   </data>
   <data name="Host name this server announces in HELO" xml:space="preserve">
     <value>Nombre de host que este servidor anuncia en HELO</value>
@@ -6759,8 +6759,8 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   <data name="MX query" xml:space="preserve">
     <value>Consulta MX</value>
   </data>
-  <data name="MX value - the priority, then the name of the server that takes the mail:" xml:space="preserve">
-    <value>Valor MX - la prioridad y después el nombre del servidor que recibe el correo:</value>
+  <data name="MX value - the priority, then the name of the server that takes the mail" xml:space="preserve">
+    <value>Valor MX - la prioridad y después el nombre del servidor que recibe el correo</value>
   </data>
   <data name="Ma_naged by the list manager" xml:space="preserve">
     <value>Gest_ionado por el gestor de la lista</value>
@@ -9150,8 +9150,8 @@ No se aceptarán conexiones nuevas ni se entregará correo hasta que se reanude.
   <data name="Policy MX host patterns (empty = derive from each domain's MX)" xml:space="preserve">
     <value>Patrones de hosts MX de la política (vacío = derivarlos del MX de cada dominio)</value>
   </data>
-  <data name="Policy file the server will serve (read-only; served by the server itself):" xml:space="preserve">
-    <value>Archivo de política que servirá el servidor (solo lectura; lo sirve el propio servidor):</value>
+  <data name="Policy file the server serves itself" xml:space="preserve">
+    <value>Archivo de política que sirve el propio servidor</value>
   </data>
   <data name="Policy for a remote domain" xml:space="preserve">
     <value>Política de dominio remoto</value>
@@ -10152,8 +10152,8 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Report _mailbox (empty = none)" xml:space="preserve">
     <value>_Buzón de informes (vacío = ninguno)</value>
   </data>
-  <data name="Report mailbox:" xml:space="preserve">
-    <value>Buzón de informes:</value>
+  <data name="Report mailbox" xml:space="preserve">
+    <value>Buzón de informes</value>
   </data>
   <data name="Report the async work queue as stalled after (120)" xml:space="preserve">
     <value>Informar de la cola de trabajo asíncrona como atascada después de (120)</value>
@@ -12318,8 +12318,8 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="TXT record value for {0}" xml:space="preserve">
     <value>Valor del registro TXT para {0}</value>
   </data>
-  <data name="TXT value:" xml:space="preserve">
-    <value>Valor TXT:</value>
+  <data name="TXT value" xml:space="preserve">
+    <value>Valor TXT</value>
   </data>
   <data name="Tab indents. Use Ctrl+Tab to move focus out of the editor." xml:space="preserve">
     <value>El tabulador indenta. Use Ctrl+Tab para sacar el foco del editor.</value>

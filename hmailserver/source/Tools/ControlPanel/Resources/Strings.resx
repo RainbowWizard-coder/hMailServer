@@ -5770,8 +5770,8 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Host name clients connect to (empty = server host name)" xml:space="preserve">
     <value>Host name clients connect to (empty = server host name)</value>
   </data>
-  <data name="Host name this server announces (give this to the IP's owner for the PTR):" xml:space="preserve">
-    <value>Host name this server announces (give this to the IP's owner for the PTR):</value>
+  <data name="Host name this server announces (give this to the IP's owner for the PTR)" xml:space="preserve">
+    <value>Host name this server announces (give this to the IP's owner for the PTR)</value>
   </data>
   <data name="Host name this server announces in HELO" xml:space="preserve">
     <value>Host name this server announces in HELO</value>
@@ -6759,8 +6759,8 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="MX query" xml:space="preserve">
     <value>MX query</value>
   </data>
-  <data name="MX value - the priority, then the name of the server that takes the mail:" xml:space="preserve">
-    <value>MX value - the priority, then the name of the server that takes the mail:</value>
+  <data name="MX value - the priority, then the name of the server that takes the mail" xml:space="preserve">
+    <value>MX value - the priority, then the name of the server that takes the mail</value>
   </data>
   <data name="Ma_naged by the list manager" xml:space="preserve">
     <value>Ma_naged by the list manager</value>
@@ -9150,8 +9150,8 @@ No new connections will be accepted and no mail will be delivered until it is re
   <data name="Policy MX host patterns (empty = derive from each domain's MX)" xml:space="preserve">
     <value>Policy MX host patterns (empty = derive from each domain's MX)</value>
   </data>
-  <data name="Policy file the server will serve (read-only; served by the server itself):" xml:space="preserve">
-    <value>Policy file the server will serve (read-only; served by the server itself):</value>
+  <data name="Policy file the server serves itself" xml:space="preserve">
+    <value>Policy file the server serves itself</value>
   </data>
   <data name="Policy for a remote domain" xml:space="preserve">
     <value>Policy for a remote domain</value>
@@ -10152,8 +10152,8 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Report _mailbox (empty = none)" xml:space="preserve">
     <value>Report _mailbox (empty = none)</value>
   </data>
-  <data name="Report mailbox:" xml:space="preserve">
-    <value>Report mailbox:</value>
+  <data name="Report mailbox" xml:space="preserve">
+    <value>Report mailbox</value>
   </data>
   <data name="Report the async work queue as stalled after (120)" xml:space="preserve">
     <value>Report the async work queue as stalled after (120)</value>
@@ -12318,8 +12318,8 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="TXT record value for {0}" xml:space="preserve">
     <value>TXT record value for {0}</value>
   </data>
-  <data name="TXT value:" xml:space="preserve">
-    <value>TXT value:</value>
+  <data name="TXT value" xml:space="preserve">
+    <value>TXT value</value>
   </data>
   <data name="Tab indents. Use Ctrl+Tab to move focus out of the editor." xml:space="preserve">
     <value>Tab indents. Use Ctrl+Tab to move focus out of the editor.</value>

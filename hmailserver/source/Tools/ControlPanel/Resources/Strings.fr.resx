@@ -5770,8 +5770,8 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Host name clients connect to (empty = server host name)" xml:space="preserve">
     <value>Nom d'hôte auquel les clients se connectent (vide = nom d'hôte du serveur)</value>
   </data>
-  <data name="Host name this server announces (give this to the IP's owner for the PTR):" xml:space="preserve">
-    <value>Nom d'hôte que ce serveur annonce (donnez-le au propriétaire de l'IP pour le PTR) :</value>
+  <data name="Host name this server announces (give this to the IP's owner for the PTR)" xml:space="preserve">
+    <value>Nom d'hôte que ce serveur annonce (donnez-le au propriétaire de l'IP pour le PTR)</value>
   </data>
   <data name="Host name this server announces in HELO" xml:space="preserve">
     <value>Nom d'hôte que ce serveur annonce dans HELO</value>
@@ -6759,8 +6759,8 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="MX query" xml:space="preserve">
     <value>Requête MX</value>
   </data>
-  <data name="MX value - the priority, then the name of the server that takes the mail:" xml:space="preserve">
-    <value>Valeur MX - la priorité, puis le nom du serveur qui reçoit le courrier :</value>
+  <data name="MX value - the priority, then the name of the server that takes the mail" xml:space="preserve">
+    <value>Valeur MX - la priorité, puis le nom du serveur qui reçoit le courrier</value>
   </data>
   <data name="Ma_naged by the list manager" xml:space="preserve">
     <value>_Gérée par le gestionnaire de liste</value>
@@ -9150,8 +9150,8 @@ Aucune nouvelle connexion ne sera acceptée et aucun courrier ne sera livré jus
   <data name="Policy MX host patterns (empty = derive from each domain's MX)" xml:space="preserve">
     <value>Motifs d'hôtes MX de la politique (vide = dériver des MX de chaque domaine)</value>
   </data>
-  <data name="Policy file the server will serve (read-only; served by the server itself):" xml:space="preserve">
-    <value>Fichier de politique que le serveur servira (lecture seule ; servi par le serveur lui-même) :</value>
+  <data name="Policy file the server serves itself" xml:space="preserve">
+    <value>Fichier de politique que le serveur sert lui-même</value>
   </data>
   <data name="Policy for a remote domain" xml:space="preserve">
     <value>Règle de domaine distant</value>
@@ -10152,8 +10152,8 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Report _mailbox (empty = none)" xml:space="preserve">
     <value>_Boîte de rapports (vide = aucune)</value>
   </data>
-  <data name="Report mailbox:" xml:space="preserve">
-    <value>Boîte de rapports :</value>
+  <data name="Report mailbox" xml:space="preserve">
+    <value>Boîte de rapports</value>
   </data>
   <data name="Report the async work queue as stalled after (120)" xml:space="preserve">
     <value>Signaler la file de travail asynchrone comme bloquée après (120)</value>
@@ -12318,8 +12318,8 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="TXT record value for {0}" xml:space="preserve">
     <value>Valeur de l'enregistrement TXT pour {0}</value>
   </data>
-  <data name="TXT value:" xml:space="preserve">
-    <value>Valeur TXT :</value>
+  <data name="TXT value" xml:space="preserve">
+    <value>Valeur TXT</value>
   </data>
   <data name="Tab indents. Use Ctrl+Tab to move focus out of the editor." xml:space="preserve">
     <value>La tabulation indente. Utilisez Ctrl+Tab pour sortir le focus de l'éditeur.</value>

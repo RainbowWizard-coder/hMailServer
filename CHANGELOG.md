@@ -3923,6 +3923,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   width, 640 pixels, where both options are whole in every language. `DomainPolicyEditTests` holds the width and each
   option's length in every catalogue.
 
+- **Fixed: DNS records' captions ended in colons.** A caption names its field and ends in no colon (review findings F043
+  and F301), but five on the DNS records page still did - "Report mailbox:" and "TXT value:" the very examples F301
+  gave, and the MX value's, the PTR host name's and the MTA-STS policy file's - because the rule read only the captions
+  of fields and not the page's own captions over its value boxes. They end in no colon in any language, the policy
+  file's now "Policy file the server serves itself", its box read-only as before; and the rule reads every caption a
+  page builds with its Label helper. `SmallCopyTests` holds it.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

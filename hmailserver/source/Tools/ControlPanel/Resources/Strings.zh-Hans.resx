@@ -5770,8 +5770,8 @@
   <data name="Host name clients connect to (empty = server host name)" xml:space="preserve">
     <value>客户端连接的主机名（留空 = 服务器主机名）</value>
   </data>
-  <data name="Host name this server announces (give this to the IP's owner for the PTR):" xml:space="preserve">
-    <value>本服务器通告的主机名（把它交给 IP 的所有者用于 PTR）：</value>
+  <data name="Host name this server announces (give this to the IP's owner for the PTR)" xml:space="preserve">
+    <value>本服务器通告的主机名（把它交给 IP 的所有者用于 PTR）</value>
   </data>
   <data name="Host name this server announces in HELO" xml:space="preserve">
     <value>本服务器在 HELO 中通告的主机名</value>
@@ -6759,8 +6759,8 @@
   <data name="MX query" xml:space="preserve">
     <value>MX 查询</value>
   </data>
-  <data name="MX value - the priority, then the name of the server that takes the mail:" xml:space="preserve">
-    <value>MX 值 - 优先级，然后是接收邮件的服务器名称:</value>
+  <data name="MX value - the priority, then the name of the server that takes the mail" xml:space="preserve">
+    <value>MX 值 - 优先级，然后是接收邮件的服务器名称</value>
   </data>
   <data name="Ma_naged by the list manager" xml:space="preserve">
     <value>由列表管理器管理(_N)</value>
@@ -9150,8 +9150,8 @@
   <data name="Policy MX host patterns (empty = derive from each domain's MX)" xml:space="preserve">
     <value>策略 MX 主机模式（留空 = 从每个域的 MX 推导）</value>
   </data>
-  <data name="Policy file the server will serve (read-only; served by the server itself):" xml:space="preserve">
-    <value>服务器将提供的策略文件（只读；由服务器自身提供）：</value>
+  <data name="Policy file the server serves itself" xml:space="preserve">
+    <value>由服务器自身提供的策略文件</value>
   </data>
   <data name="Policy for a remote domain" xml:space="preserve">
     <value>远程域策略</value>
@@ -10152,8 +10152,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Report _mailbox (empty = none)" xml:space="preserve">
     <value>报告邮箱（留空 = 无）(_M)</value>
   </data>
-  <data name="Report mailbox:" xml:space="preserve">
-    <value>报告邮箱：</value>
+  <data name="Report mailbox" xml:space="preserve">
+    <value>报告邮箱</value>
   </data>
   <data name="Report the async work queue as stalled after (120)" xml:space="preserve">
     <value>在多长时间后把异步工作队列报告为已停滞（120）</value>
@@ -12318,8 +12318,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="TXT record value for {0}" xml:space="preserve">
     <value>{0} 的 TXT 记录值</value>
   </data>
-  <data name="TXT value:" xml:space="preserve">
-    <value>TXT 值:</value>
+  <data name="TXT value" xml:space="preserve">
+    <value>TXT 值</value>
   </data>
   <data name="Tab indents. Use Ctrl+Tab to move focus out of the editor." xml:space="preserve">
     <value>Tab 键缩进。使用 Ctrl+Tab 将焦点移出编辑器。</value>

@@ -5770,8 +5770,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Host name clients connect to (empty = server host name)" xml:space="preserve">
     <value>Värdnamn klienter ansluter till (tomt = serverns värdnamn)</value>
   </data>
-  <data name="Host name this server announces (give this to the IP's owner for the PTR):" xml:space="preserve">
-    <value>Värdnamnet den här servern annonserar (ge detta till IP-adressens ägare för PTR-posten):</value>
+  <data name="Host name this server announces (give this to the IP's owner for the PTR)" xml:space="preserve">
+    <value>Värdnamnet den här servern annonserar (ge detta till IP-adressens ägare för PTR-posten)</value>
   </data>
   <data name="Host name this server announces in HELO" xml:space="preserve">
     <value>Värdnamnet den här servern annonserar i HELO</value>
@@ -6759,8 +6759,8 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="MX query" xml:space="preserve">
     <value>MX-uppslagning</value>
   </data>
-  <data name="MX value - the priority, then the name of the server that takes the mail:" xml:space="preserve">
-    <value>MX-värde - prioriteten, sedan namnet på servern som tar emot e-posten:</value>
+  <data name="MX value - the priority, then the name of the server that takes the mail" xml:space="preserve">
+    <value>MX-värde - prioriteten, sedan namnet på servern som tar emot e-posten</value>
   </data>
   <data name="Ma_naged by the list manager" xml:space="preserve">
     <value>_Hanterad av listhanteraren</value>
@@ -9150,8 +9150,8 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Policy MX host patterns (empty = derive from each domain's MX)" xml:space="preserve">
     <value>MX-värdmönster i policyn (tomt = härled från varje domäns MX)</value>
   </data>
-  <data name="Policy file the server will serve (read-only; served by the server itself):" xml:space="preserve">
-    <value>Policyfilen servern serverar (skrivskyddad; serveras av servern själv):</value>
+  <data name="Policy file the server serves itself" xml:space="preserve">
+    <value>Policyfilen som servern själv serverar</value>
   </data>
   <data name="Policy for a remote domain" xml:space="preserve">
     <value>Regel för extern domän</value>
@@ -10152,8 +10152,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Report _mailbox (empty = none)" xml:space="preserve">
     <value>Rapport_brevlåda (tom = ingen)</value>
   </data>
-  <data name="Report mailbox:" xml:space="preserve">
-    <value>Rapportbrevlåda:</value>
+  <data name="Report mailbox" xml:space="preserve">
+    <value>Rapportbrevlåda</value>
   </data>
   <data name="Report the async work queue as stalled after (120)" xml:space="preserve">
     <value>Rapportera den asynkrona arbetskön som stannad efter (120)</value>
@@ -12318,8 +12318,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="TXT record value for {0}" xml:space="preserve">
     <value>Värde för TXT-posten för {0}</value>
   </data>
-  <data name="TXT value:" xml:space="preserve">
-    <value>TXT-värde:</value>
+  <data name="TXT value" xml:space="preserve">
+    <value>TXT-värde</value>
   </data>
   <data name="Tab indents. Use Ctrl+Tab to move focus out of the editor." xml:space="preserve">
     <value>Tabb gör indrag. Använd Ctrl+Tabb för att flytta fokus ut ur redigeraren.</value>

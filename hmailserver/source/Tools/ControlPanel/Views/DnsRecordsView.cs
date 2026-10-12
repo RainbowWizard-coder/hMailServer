@@ -1079,7 +1079,7 @@ namespace hMailServer.ControlPanel.Views
          checks_.Add(new RecordCheck(L("MTA-STS"), block.Mark, () => CheckMtaStsTxt(block, domain.Name)));
 
          // ---- the policy the server will serve ----
-         content.Children.Add(Label(L("Policy file the server will serve (read-only; served by the server itself):")));
+         content.Children.Add(Label(L("Policy file the server serves itself")));
 
          var policyBox = ReadOnlyBox(70);
          policyBox.SetResourceReference(Control.ForegroundProperty, "TextFillColorPrimaryBrush");
@@ -1356,7 +1356,7 @@ namespace hMailServer.ControlPanel.Views
          var addressRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 0, 4) };
          addressRow.Children.Add(new TextBlock
          {
-            Text = L("Report mailbox:"),
+            Text = L("Report mailbox"),
             FontSize = Typography.Label,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 8, 0)
@@ -1532,7 +1532,7 @@ namespace hMailServer.ControlPanel.Views
                : L("The Host name on the Protocols page is empty, so the server falls back to its Windows computer name, which cannot be read from this machine. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first.");
          }
 
-         content.Children.Add(Label(L("Host name this server announces (give this to the IP's owner for the PTR):")));
+         content.Children.Add(Label(L("Host name this server announces (give this to the IP's owner for the PTR)")));
          TextBox heloBox = ReadOnlyBox(0);
          heloBox.Text = heloName;
          heloBox.SetResourceReference(Control.ForegroundProperty, "TextFillColorPrimaryBrush");
@@ -1607,7 +1607,7 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetAutomationId(block.HostBox, idPrefix + "-host");
          parent.Children.Add(block.HostBox);
 
-         parent.Children.Add(Label(mx ? L("MX value - the priority, then the name of the server that takes the mail:") : L("TXT value:")));
+         parent.Children.Add(Label(mx ? L("MX value - the priority, then the name of the server that takes the mail") : L("TXT value")));
 
          // One line for an MX value, which is one line: its box was 46 pixels for
          // it below a 28-pixel name (review finding F306). A TXT value wraps.

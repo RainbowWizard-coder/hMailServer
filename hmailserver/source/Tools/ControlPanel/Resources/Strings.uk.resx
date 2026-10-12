@@ -5852,8 +5852,8 @@
   <data name="Host name clients connect to (empty = server host name)" xml:space="preserve">
     <value>Ім'я вузла, до якого підключаються клієнти (порожньо = ім'я вузла сервера)</value>
   </data>
-  <data name="Host name this server announces (give this to the IP's owner for the PTR):" xml:space="preserve">
-    <value>Ім'я вузла, яке оголошує цей сервер (передайте його власнику IP для PTR):</value>
+  <data name="Host name this server announces (give this to the IP's owner for the PTR)" xml:space="preserve">
+    <value>Ім'я вузла, яке оголошує цей сервер (передайте його власнику IP для PTR)</value>
   </data>
   <data name="Host name this server announces in HELO" xml:space="preserve">
     <value>Ім'я вузла, яке цей сервер оголошує в HELO</value>
@@ -6841,8 +6841,8 @@
   <data name="MX query" xml:space="preserve">
     <value>Запит MX</value>
   </data>
-  <data name="MX value - the priority, then the name of the server that takes the mail:" xml:space="preserve">
-    <value>Значення MX — пріоритет, потім ім'я сервера, який приймає пошту:</value>
+  <data name="MX value - the priority, then the name of the server that takes the mail" xml:space="preserve">
+    <value>Значення MX — пріоритет, потім ім'я сервера, який приймає пошту</value>
   </data>
   <data name="Ma_naged by the list manager" xml:space="preserve">
     <value>К_ерується менеджером списку</value>
@@ -9256,8 +9256,8 @@
   <data name="Policy MX host patterns (empty = derive from each domain's MX)" xml:space="preserve">
     <value>Шаблони вузлів MX політики (порожньо = вивести з MX кожного домену)</value>
   </data>
-  <data name="Policy file the server will serve (read-only; served by the server itself):" xml:space="preserve">
-    <value>Файл політики, який надаватиме сервер (лише читання; надається самим сервером):</value>
+  <data name="Policy file the server serves itself" xml:space="preserve">
+    <value>Файл політики, який надає сам сервер</value>
   </data>
   <data name="Policy for a remote domain" xml:space="preserve">
     <value>Правило для зовнішнього домену</value>
@@ -10273,8 +10273,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Report _mailbox (empty = none)" xml:space="preserve">
     <value>Поштова скринька для звітів (порожньо = немає) (_M)</value>
   </data>
-  <data name="Report mailbox:" xml:space="preserve">
-    <value>Поштова скринька для звітів:</value>
+  <data name="Report mailbox" xml:space="preserve">
+    <value>Поштова скринька для звітів</value>
   </data>
   <data name="Report the async work queue as stalled after (120)" xml:space="preserve">
     <value>Повідомляти про зависання асинхронної робочої черги через (120)</value>
@@ -12475,8 +12475,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="TXT record value for {0}" xml:space="preserve">
     <value>Значення запису TXT для {0}</value>
   </data>
-  <data name="TXT value:" xml:space="preserve">
-    <value>Значення TXT:</value>
+  <data name="TXT value" xml:space="preserve">
+    <value>Значення TXT</value>
   </data>
   <data name="Tab indents. Use Ctrl+Tab to move focus out of the editor." xml:space="preserve">
     <value>Tab робить відступ. Використовуйте Ctrl+Tab, щоб перемістити фокус з редактора.</value>

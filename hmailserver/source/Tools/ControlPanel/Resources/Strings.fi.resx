@@ -5770,8 +5770,8 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Host name clients connect to (empty = server host name)" xml:space="preserve">
     <value>Konenimi, johon asiakkaat yhdistävät (tyhjä = palvelimen konenimi)</value>
   </data>
-  <data name="Host name this server announces (give this to the IP's owner for the PTR):" xml:space="preserve">
-    <value>Konenimi, jonka tämä palvelin ilmoittaa (anna tämä IP:n omistajalle PTR-tietuetta varten):</value>
+  <data name="Host name this server announces (give this to the IP's owner for the PTR)" xml:space="preserve">
+    <value>Konenimi, jonka tämä palvelin ilmoittaa (anna tämä IP:n omistajalle PTR-tietuetta varten)</value>
   </data>
   <data name="Host name this server announces in HELO" xml:space="preserve">
     <value>Konenimi, jonka tämä palvelin ilmoittaa HELO:ssa</value>
@@ -6759,8 +6759,8 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="MX query" xml:space="preserve">
     <value>MX-kysely</value>
   </data>
-  <data name="MX value - the priority, then the name of the server that takes the mail:" xml:space="preserve">
-    <value>MX-arvo - prioriteetti ja sen jälkeen postin vastaanottavan palvelimen nimi:</value>
+  <data name="MX value - the priority, then the name of the server that takes the mail" xml:space="preserve">
+    <value>MX-arvo - prioriteetti ja sen jälkeen postin vastaanottavan palvelimen nimi</value>
   </data>
   <data name="Ma_naged by the list manager" xml:space="preserve">
     <value>Listanhallinnan _hoitama</value>
@@ -9150,8 +9150,8 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Policy MX host patterns (empty = derive from each domain's MX)" xml:space="preserve">
     <value>Käytännön MX-konekuviot (tyhjä = johda kunkin verkkotunnuksen MX:stä)</value>
   </data>
-  <data name="Policy file the server will serve (read-only; served by the server itself):" xml:space="preserve">
-    <value>Käytäntötiedosto, jonka palvelin tarjoaa (vain luku; palvelin itse tarjoaa sen):</value>
+  <data name="Policy file the server serves itself" xml:space="preserve">
+    <value>Käytäntötiedosto, jonka palvelin itse tarjoaa</value>
   </data>
   <data name="Policy for a remote domain" xml:space="preserve">
     <value>Etäverkkotunnuksen käytäntö</value>
@@ -10152,8 +10152,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Report _mailbox (empty = none)" xml:space="preserve">
     <value>_Raporttipostilaatikko (tyhjä = ei mitään)</value>
   </data>
-  <data name="Report mailbox:" xml:space="preserve">
-    <value>Raporttipostilaatikko:</value>
+  <data name="Report mailbox" xml:space="preserve">
+    <value>Raporttipostilaatikko</value>
   </data>
   <data name="Report the async work queue as stalled after (120)" xml:space="preserve">
     <value>Raportoi asynkroninen työjono jumiutuneeksi (120)</value>
@@ -12318,8 +12318,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="TXT record value for {0}" xml:space="preserve">
     <value>TXT-tietueen arvo nimelle {0}</value>
   </data>
-  <data name="TXT value:" xml:space="preserve">
-    <value>TXT-arvo:</value>
+  <data name="TXT value" xml:space="preserve">
+    <value>TXT-arvo</value>
   </data>
   <data name="Tab indents. Use Ctrl+Tab to move focus out of the editor." xml:space="preserve">
     <value>Sarkain sisentää. Käytä Ctrl+Sarkain siirtääksesi kohdistuksen pois editorista.</value>

@@ -5770,8 +5770,8 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Host name clients connect to (empty = server host name)" xml:space="preserve">
     <value>İstemcilerin bağlandığı ana bilgisayar adı (boş = sunucu ana bilgisayar adı)</value>
   </data>
-  <data name="Host name this server announces (give this to the IP's owner for the PTR):" xml:space="preserve">
-    <value>Bu sunucunun duyurduğu ana bilgisayar adı (PTR için IP'nin sahibine bunu verin):</value>
+  <data name="Host name this server announces (give this to the IP's owner for the PTR)" xml:space="preserve">
+    <value>Bu sunucunun duyurduğu ana bilgisayar adı (PTR için IP'nin sahibine bunu verin)</value>
   </data>
   <data name="Host name this server announces in HELO" xml:space="preserve">
     <value>Bu sunucunun HELO'da duyurduğu ana bilgisayar adı</value>
@@ -6759,8 +6759,8 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="MX query" xml:space="preserve">
     <value>MX sorgusu</value>
   </data>
-  <data name="MX value - the priority, then the name of the server that takes the mail:" xml:space="preserve">
-    <value>MX değeri - öncelik, ardından postayı alan sunucunun adı:</value>
+  <data name="MX value - the priority, then the name of the server that takes the mail" xml:space="preserve">
+    <value>MX değeri - öncelik, ardından postayı alan sunucunun adı</value>
   </data>
   <data name="Ma_naged by the list manager" xml:space="preserve">
     <value>Liste yöneti_cisi tarafından yönetilir</value>
@@ -9150,8 +9150,8 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="Policy MX host patterns (empty = derive from each domain's MX)" xml:space="preserve">
     <value>İlke MX ana bilgisayar desenleri (boş = her etki alanının MX'inden türet)</value>
   </data>
-  <data name="Policy file the server will serve (read-only; served by the server itself):" xml:space="preserve">
-    <value>Sunucunun sunacağı ilke dosyası (salt okunur; sunucunun kendisi tarafından sunulur):</value>
+  <data name="Policy file the server serves itself" xml:space="preserve">
+    <value>Sunucunun kendisinin sunduğu ilke dosyası</value>
   </data>
   <data name="Policy for a remote domain" xml:space="preserve">
     <value>Uzak alan adı ilkesi</value>
@@ -10152,8 +10152,8 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Report _mailbox (empty = none)" xml:space="preserve">
     <value>_Rapor posta kutusu (boş = yok)</value>
   </data>
-  <data name="Report mailbox:" xml:space="preserve">
-    <value>Rapor posta kutusu:</value>
+  <data name="Report mailbox" xml:space="preserve">
+    <value>Rapor posta kutusu</value>
   </data>
   <data name="Report the async work queue as stalled after (120)" xml:space="preserve">
     <value>Eşzamansız iş kuyruğunu şu süre sonra takılmış olarak bildir (120)</value>
@@ -12318,8 +12318,8 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="TXT record value for {0}" xml:space="preserve">
     <value>{0} için TXT kaydı değeri</value>
   </data>
-  <data name="TXT value:" xml:space="preserve">
-    <value>TXT değeri:</value>
+  <data name="TXT value" xml:space="preserve">
+    <value>TXT değeri</value>
   </data>
   <data name="Tab indents. Use Ctrl+Tab to move focus out of the editor." xml:space="preserve">
     <value>Sekme girinti ekler. Odağı düzenleyiciden çıkarmak için Ctrl+Sekme kullanın.</value>

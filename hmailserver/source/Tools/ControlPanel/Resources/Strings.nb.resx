@@ -5770,8 +5770,8 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Host name clients connect to (empty = server host name)" xml:space="preserve">
     <value>Vertsnavn klienter kobler til (tom = serverens vertsnavn)</value>
   </data>
-  <data name="Host name this server announces (give this to the IP's owner for the PTR):" xml:space="preserve">
-    <value>Vertsnavn denne serveren annonserer (gi dette til IP-ens eier for PTR-en):</value>
+  <data name="Host name this server announces (give this to the IP's owner for the PTR)" xml:space="preserve">
+    <value>Vertsnavn denne serveren annonserer (gi dette til IP-ens eier for PTR-en)</value>
   </data>
   <data name="Host name this server announces in HELO" xml:space="preserve">
     <value>Vertsnavn denne serveren annonserer i HELO</value>
@@ -6759,8 +6759,8 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="MX query" xml:space="preserve">
     <value>MX-spørring</value>
   </data>
-  <data name="MX value - the priority, then the name of the server that takes the mail:" xml:space="preserve">
-    <value>MX-verdi - prioriteten, deretter navnet på serveren som tar imot e-posten:</value>
+  <data name="MX value - the priority, then the name of the server that takes the mail" xml:space="preserve">
+    <value>MX-verdi - prioriteten, deretter navnet på serveren som tar imot e-posten</value>
   </data>
   <data name="Ma_naged by the list manager" xml:space="preserve">
     <value>A_dministrert av listeadministratoren</value>
@@ -9150,8 +9150,8 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   <data name="Policy MX host patterns (empty = derive from each domain's MX)" xml:space="preserve">
     <value>MX-vertsmønstre for policyen (tom = utled fra hvert domenes MX)</value>
   </data>
-  <data name="Policy file the server will serve (read-only; served by the server itself):" xml:space="preserve">
-    <value>Policyfilen serveren vil servere (skrivebeskyttet; serveres av selve serveren):</value>
+  <data name="Policy file the server serves itself" xml:space="preserve">
+    <value>Policyfilen som serveren selv serverer</value>
   </data>
   <data name="Policy for a remote domain" xml:space="preserve">
     <value>Regel for eksternt domene</value>
@@ -10152,8 +10152,8 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Report _mailbox (empty = none)" xml:space="preserve">
     <value>Rapport_postkasse (tom = ingen)</value>
   </data>
-  <data name="Report mailbox:" xml:space="preserve">
-    <value>Rapportpostboks:</value>
+  <data name="Report mailbox" xml:space="preserve">
+    <value>Rapportpostboks</value>
   </data>
   <data name="Report the async work queue as stalled after (120)" xml:space="preserve">
     <value>Rapporter den asynkrone arbeidskøen som stoppet etter (120)</value>
@@ -12318,8 +12318,8 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="TXT record value for {0}" xml:space="preserve">
     <value>Verdien til TXT-oppføringen for {0}</value>
   </data>
-  <data name="TXT value:" xml:space="preserve">
-    <value>TXT-verdi:</value>
+  <data name="TXT value" xml:space="preserve">
+    <value>TXT-verdi</value>
   </data>
   <data name="Tab indents. Use Ctrl+Tab to move focus out of the editor." xml:space="preserve">
     <value>Tab rykker inn. Bruk Ctrl+Tab for å flytte fokus ut av redigeringsprogrammet.</value>

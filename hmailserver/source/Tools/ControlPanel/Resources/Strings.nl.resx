@@ -5770,8 +5770,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Host name clients connect to (empty = server host name)" xml:space="preserve">
     <value>Hostnaam waarmee clients verbinding maken (leeg = hostnaam van de server)</value>
   </data>
-  <data name="Host name this server announces (give this to the IP's owner for the PTR):" xml:space="preserve">
-    <value>Hostnaam die deze server aankondigt (geef deze aan de eigenaar van het IP-adres voor de PTR):</value>
+  <data name="Host name this server announces (give this to the IP's owner for the PTR)" xml:space="preserve">
+    <value>Hostnaam die deze server aankondigt (geef deze aan de eigenaar van het IP-adres voor de PTR)</value>
   </data>
   <data name="Host name this server announces in HELO" xml:space="preserve">
     <value>Hostnaam die deze server aankondigt in HELO</value>
@@ -6759,8 +6759,8 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="MX query" xml:space="preserve">
     <value>MX-query</value>
   </data>
-  <data name="MX value - the priority, then the name of the server that takes the mail:" xml:space="preserve">
-    <value>MX-waarde - de prioriteit, dan de naam van de server die de mail ontvangt:</value>
+  <data name="MX value - the priority, then the name of the server that takes the mail" xml:space="preserve">
+    <value>MX-waarde - de prioriteit, dan de naam van de server die de mail ontvangt</value>
   </data>
   <data name="Ma_naged by the list manager" xml:space="preserve">
     <value>Be_heerd door de lijstbeheerder</value>
@@ -9150,8 +9150,8 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Policy MX host patterns (empty = derive from each domain's MX)" xml:space="preserve">
     <value>MX-hostpatronen voor het beleid (leeg = afleiden uit de MX van elk domein)</value>
   </data>
-  <data name="Policy file the server will serve (read-only; served by the server itself):" xml:space="preserve">
-    <value>Beleidsbestand dat de server zal serveren (alleen-lezen; door de server zelf geserveerd):</value>
+  <data name="Policy file the server serves itself" xml:space="preserve">
+    <value>Beleidsbestand dat de server zelf serveert</value>
   </data>
   <data name="Policy for a remote domain" xml:space="preserve">
     <value>Regel voor een extern domein</value>
@@ -10152,8 +10152,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Report _mailbox (empty = none)" xml:space="preserve">
     <value>_Rapportpostvak (leeg = geen)</value>
   </data>
-  <data name="Report mailbox:" xml:space="preserve">
-    <value>Rapportpostvak:</value>
+  <data name="Report mailbox" xml:space="preserve">
+    <value>Rapportpostvak</value>
   </data>
   <data name="Report the async work queue as stalled after (120)" xml:space="preserve">
     <value>De asynchrone werkwachtrij als vastgelopen melden na (120)</value>
@@ -12318,8 +12318,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="TXT record value for {0}" xml:space="preserve">
     <value>Waarde van het TXT-record voor {0}</value>
   </data>
-  <data name="TXT value:" xml:space="preserve">
-    <value>TXT-waarde:</value>
+  <data name="TXT value" xml:space="preserve">
+    <value>TXT-waarde</value>
   </data>
   <data name="Tab indents. Use Ctrl+Tab to move focus out of the editor." xml:space="preserve">
     <value>Tab springt in. Gebruik Ctrl+Tab om de focus uit de editor te halen.</value>

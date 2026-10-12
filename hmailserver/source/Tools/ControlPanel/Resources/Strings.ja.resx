@@ -5780,8 +5780,8 @@
   <data name="Host name clients connect to (empty = server host name)" xml:space="preserve">
     <value>クライアントが接続するホスト名 (空 = サーバーのホスト名)</value>
   </data>
-  <data name="Host name this server announces (give this to the IP's owner for the PTR):" xml:space="preserve">
-    <value>このサーバーが名乗るホスト名 (PTR 用に IP の所有者に伝えてください):</value>
+  <data name="Host name this server announces (give this to the IP's owner for the PTR)" xml:space="preserve">
+    <value>このサーバーが名乗るホスト名 (PTR 用に IP の所有者に伝えてください)</value>
   </data>
   <data name="Host name this server announces in HELO" xml:space="preserve">
     <value>このサーバーが HELO で名乗るホスト名</value>
@@ -6769,8 +6769,8 @@
   <data name="MX query" xml:space="preserve">
     <value>MX クエリ</value>
   </data>
-  <data name="MX value - the priority, then the name of the server that takes the mail:" xml:space="preserve">
-    <value>MX 値 - 優先度、続いてメールを受け取るサーバーの名前:</value>
+  <data name="MX value - the priority, then the name of the server that takes the mail" xml:space="preserve">
+    <value>MX 値 - 優先度、続いてメールを受け取るサーバーの名前</value>
   </data>
   <data name="Ma_naged by the list manager" xml:space="preserve">
     <value>リストマネージャーによる管理(_N)</value>
@@ -9160,8 +9160,8 @@
   <data name="Policy MX host patterns (empty = derive from each domain's MX)" xml:space="preserve">
     <value>ポリシーの MX ホスト パターン (空 = 各ドメインの MX から導出)</value>
   </data>
-  <data name="Policy file the server will serve (read-only; served by the server itself):" xml:space="preserve">
-    <value>サーバーが配信するポリシー ファイル (読み取り専用。サーバー自身が配信します):</value>
+  <data name="Policy file the server serves itself" xml:space="preserve">
+    <value>サーバー自身が配信するポリシー ファイル</value>
   </data>
   <data name="Policy for a remote domain" xml:space="preserve">
     <value>リモートドメインのポリシー</value>
@@ -10162,8 +10162,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Report _mailbox (empty = none)" xml:space="preserve">
     <value>レポート用メールボックス (空欄 = なし)(_M)</value>
   </data>
-  <data name="Report mailbox:" xml:space="preserve">
-    <value>レポートのメールボックス:</value>
+  <data name="Report mailbox" xml:space="preserve">
+    <value>レポートのメールボックス</value>
   </data>
   <data name="Report the async work queue as stalled after (120)" xml:space="preserve">
     <value>非同期ワーク キューを停滞と報告するまでの時間 (120)</value>
@@ -12328,8 +12328,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="TXT record value for {0}" xml:space="preserve">
     <value>{0} の TXT レコードの値</value>
   </data>
-  <data name="TXT value:" xml:space="preserve">
-    <value>TXT 値:</value>
+  <data name="TXT value" xml:space="preserve">
+    <value>TXT 値</value>
   </data>
   <data name="Tab indents. Use Ctrl+Tab to move focus out of the editor." xml:space="preserve">
     <value>Tab はインデントを挿入します。エディターからフォーカスを移すには Ctrl+Tab を使ってください。</value>
