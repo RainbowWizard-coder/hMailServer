@@ -736,6 +736,31 @@ namespace hMailServer
          set { SettingsApi.Put(SettingsApi.Server, "imap_acl_enabled", value); }
       }
 
+      // The PROXY protocol on the IMAP and POP3 listeners (6.3.7).
+      public bool IMAPProxyProtocolEnabled
+      {
+         get { return Flag("imap_proxy_protocol_enabled"); }
+         set { SettingsApi.Put(SettingsApi.Server, "imap_proxy_protocol_enabled", value); }
+      }
+
+      public string IMAPProxyProtocolTrustedIPs
+      {
+         get { return Str("imap_proxy_protocol_trusted_ips"); }
+         set { SettingsApi.Put(SettingsApi.Server, "imap_proxy_protocol_trusted_ips", value, true); }
+      }
+
+      public bool POP3ProxyProtocolEnabled
+      {
+         get { return Flag("pop3_proxy_protocol_enabled"); }
+         set { SettingsApi.Put(SettingsApi.Server, "pop3_proxy_protocol_enabled", value); }
+      }
+
+      public string POP3ProxyProtocolTrustedIPs
+      {
+         get { return Str("pop3_proxy_protocol_trusted_ips"); }
+         set { SettingsApi.Put(SettingsApi.Server, "pop3_proxy_protocol_trusted_ips", value, true); }
+      }
+
       public bool AutoBanOnLogonFailure
       {
          get { return Flag("auto_ban_on_logon_failure"); }

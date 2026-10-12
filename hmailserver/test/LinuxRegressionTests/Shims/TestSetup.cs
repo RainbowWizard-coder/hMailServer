@@ -400,6 +400,12 @@ namespace RegressionTests.Shared
          ("/api/v1/settings", "welcome_smtp", "\"\""),
          ("/api/v1/settings", "welcome_pop3", "\"\""),
          ("/api/v1/settings", "welcome_imap", "\"\""),
+         // Left on with this machine trusted, the IMAP or POP3 listener would wait for a
+         // PROXY header before greeting every later connection (IMAP\ProxyProtocol.cs).
+         ("/api/v1/settings", "imap_proxy_protocol_enabled", "false"),
+         ("/api/v1/settings", "imap_proxy_protocol_trusted_ips", "\"\""),
+         ("/api/v1/settings", "pop3_proxy_protocol_enabled", "false"),
+         ("/api/v1/settings", "pop3_proxy_protocol_trusted_ips", "\"\""),
          // The password breach check sends a request for every password set while it is
          // on, and the suite sets one for every account it makes: a run interrupted inside
          // its fixtures would leave it on, pointed at a fake corpus nobody serves, in the

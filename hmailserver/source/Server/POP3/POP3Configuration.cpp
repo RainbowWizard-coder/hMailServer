@@ -52,4 +52,28 @@ namespace HM
    {
       GetSettings_()->SetString(PROPERTY_WELCOMEPOP3, sMessage);
    }
+
+   bool
+   POP3Configuration::GetPOP3ProxyProtocolEnabled() const
+   {
+      return GetSettings_()->GetBool(PROPERTY_POP3_PROXY_PROTOCOL_ENABLED);
+   }
+
+   void
+   POP3Configuration::SetPOP3ProxyProtocolEnabled(bool newVal)
+   {
+      GetSettings_()->SetBool(PROPERTY_POP3_PROXY_PROTOCOL_ENABLED, newVal);
+   }
+
+   String
+   POP3Configuration::GetPOP3ProxyProtocolTrustedIPs() const
+   {
+      return GetSettings_()->GetString(PROPERTY_POP3_PROXY_PROTOCOL_TRUSTED_IPS);
+   }
+
+   void
+   POP3Configuration::SetPOP3ProxyProtocolTrustedIPs(const String &newVal)
+   {
+      GetSettings_()->SetString(PROPERTY_POP3_PROXY_PROTOCOL_TRUSTED_IPS, newVal);
+   }
 }

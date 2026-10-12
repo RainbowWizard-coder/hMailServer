@@ -72,6 +72,18 @@ namespace HM
       return StatusInvalid;
    }
 
+   bool
+   ProxyProtocolParser::IsVersion1HeaderLine(const AnsiString &line)
+   {
+      // Compared with case: the specification's tokens are upper case, and a
+      // line such as "proxy tcp4 ..." is a tag and a command like any other.
+      // (AnsiString's StartsWith ignores case, so it is not used here.)
+      return line.compare(0, 11, "PROXY TCP4 ") == 0 ||
+             line.compare(0, 11, "PROXY TCP6 ") == 0 ||
+             line.compare("PROXY UNKNOWN") == 0 ||
+             line.compare(0, 14, "PROXY UNKNOWN ") == 0;
+   }
+
    ProxyProtocolParser::Status
    ProxyProtocolParser::ParseVersion1_(const unsigned char *buffer, size_t available, size_t &bytes_needed, Result &result)
    {

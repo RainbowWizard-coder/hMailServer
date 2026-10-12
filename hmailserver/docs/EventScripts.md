@@ -152,6 +152,13 @@ next backup at once. Before 12 October 2026 they were called from inside the run
 and a backup started from one was refused as already started for as long as the
 handler took.
 
+`OnClientConnect` is called as the connection is accepted, before anything is read
+from it. Behind a load balancer whose PROXY protocol header the SMTP, IMAP or POP3
+listener reads (`SMTPProxyProtocolEnabled`, `IMAPProxyProtocolEnabled`,
+`POP3ProxyProtocolEnabled` and their lists of trusted peers), its `client.IPAddress`
+is therefore the balancer's; `OnHELO`, `OnClientLogon` and the events after them
+are given the client the header named.
+
 On JavaScript the values - a password, a recipient, an error's description - are
 handed to the handler as values, with `JS_Call`. VBScript and JScript are handed
 their call as source text built and quoted by the server; JavaScript's is not built

@@ -8,8 +8,10 @@
 # it is given, and a load generator - for docs/ActiveActive.md and the units of its
 # build plan. Run it ON server2 (10.0.0.19), as a member of the docker group, from a
 # copy of the tree. Nothing needs sudo, nothing listens on the host, and everything
-# it makes is named hmlab-p-aa-*. README.md beside this file says what each command
-# is for and what was measured with it.
+# it makes is named hmlab-p-aa-* - or $AA_PREFIX-*, so that two lab instances (a
+# unit's beside the planner's) never share a container, a network or a volume;
+# give each its own AA_HOME as well. README.md beside this file says what each
+# command is for and what was measured with it.
 #
 #   bash build/lab/active-active/aa-lab.sh <command> [arguments]
 #
@@ -55,6 +57,14 @@
 #                           scenario S0: two nodes, 2,000 messages relayed to the
 #                           sink and 1,000 into one mailbox, then check, queue,
 #                           imap and errors (README.md has what it measured)
+#   proxy                   unit AA-23's scenario, on the nodes and the balancer
+#                           that run: through the balancer, three failed IMAP
+#                           logons from one client, then three failed POP3 ones,
+#                           with the auto-ban on - which address is banned, and
+#                           whether another client behind the balancer is still
+#                           served. With AA_PROXY_MAIL=0 when the nodes and the
+#                           balancer were started (no PROXY header to IMAP and
+#                           POP3, as before AA-23) it is the negative control
 #   status                  what runs, and its memory
 #   down [all]              stop the nodes, the sink, the balancer and the load
 #                           (all: the databases and the store too; the volumes stay)
@@ -142,6 +152,15 @@ networks() {
 
 front_subnet() {
   docker network inspect -f '{{range .IPAM.Config}}{{.Subnet}}{{end}}' "$FRONT"
+}
+
+# Whether the IMAP and POP3 listeners are given the client's address with the PROXY
+# protocol, as SMTP always is here: 1 (the default) from unit AA-23 on - the nodes
+# trust the front network for it (node.sh) and the balancer sends version 2 to all
+# three listeners - and 0 for a tree before AA-23, whose IMAP and POP3 listeners do
+# not read the header, or for the negative control of the proxy scenario.
+proxy_mail() {
+  case "${AA_PROXY_MAIL:-1}" in 0) echo 0 ;; *) echo 1 ;; esac
 }
 
 # ---------------------------------------------------------------- init, image, build
@@ -500,7 +519,7 @@ cmd_nodes() {
     docker run -d --init --name "$P-node$i" --hostname "node$i" --network "$BACK" --memory 2g --cpus 4 \
       -e AA_NODE="node$i" -e AA_DB="$db" -e AA_DB_HOST="$P-$db" -e AA_DB_PORT="$(db_port "$db")" -e AA_DB_USER=hmlab \
       -e AA_DB_NAME="$DB_NAME" -e AA_DB_PASSWORD -e AA_ADMIN_PASSWORD -e AA_ACCOUNT_PASSWORD -e AA_LAYOUT="$layout" \
-      -e AA_FRONT_SUBNET="$(front_subnet)" -e AA_SINK_HOST=sink -e FAKETIME="${AA_FAKETIME:-}" \
+      -e AA_FRONT_SUBNET="$(front_subnet)" -e AA_PROXY_MAIL="$(proxy_mail)" -e AA_SINK_HOST=sink -e FAKETIME="${AA_FAKETIME:-}" \
       "${data_args[@]}" -v "$TREE:/src:ro" -v "$bin:/build:ro" -v "$run/run:/aa/run" -v "$AA_DIR:/aa/lab:ro" \
       "$image" bash /aa/lab/node.sh > /dev/null || die "starting node$i failed"
     docker network connect --alias "node$i" "$FRONT" "$P-node$i" || die "connecting node$i to the front network failed"
@@ -533,15 +552,20 @@ cmd_balancer() {
   [ -n "$nodes" ] || die "no nodes - run: bash $0 nodes <db>"
   cfg="$AA_HOME/runs/current/haproxy.cfg"
   cp "$AA_DIR/haproxy.cfg" "$cfg"
+  local mail=" send-proxy-v2" said="(PROXY v2 to all three)"
+  if [ "$(proxy_mail)" = 0 ]; then
+    mail=""
+    said="(PROXY v2 to SMTP only: AA_PROXY_MAIL=0)"
+  fi
   for node in $nodes; do
     sed -i "s|^    # NODES smtp 2525 send-proxy-v2 check|&\n    server $node $node:2525 send-proxy-v2 check|" "$cfg"
-    sed -i "s|^    # NODES imap 1143 check|&\n    server $node $node:1143 check|" "$cfg"
-    sed -i "s|^    # NODES pop3 1110 check|&\n    server $node $node:1110 check|" "$cfg"
+    sed -i "s|^    # NODES imap 1143 send-proxy-v2 check|&\n    server $node $node:1143$mail check|" "$cfg"
+    sed -i "s|^    # NODES pop3 1110 send-proxy-v2 check|&\n    server $node $node:1110$mail check|" "$cfg"
   done
   docker rm -f "$P-balancer" > /dev/null 2>&1 || true
   docker run -d --name "$P-balancer" --network "$FRONT" --network-alias balancer --memory 256m \
     -v "$cfg:/usr/local/etc/haproxy/haproxy.cfg:ro" "${AA_HAPROXY_IMAGE:-haproxy:3.2}" > /dev/null || die "starting HAProxy failed"
-  say "balancer: SMTP balancer:25 (PROXY v2), IMAP balancer:143, POP3 balancer:110, over: ${nodes//$'\n'/ }"
+  say "balancer: SMTP balancer:25, IMAP balancer:143, POP3 balancer:110 $said, over: ${nodes//$'\n'/ }"
 }
 
 cmd_load() {
@@ -578,8 +602,119 @@ cmd_imap() {
   for node in $(running_nodes); do hosts="${hosts:+$hosts,}$node:1143"; done
   local expect_args=()
   [ -n "$expect" ] && expect_args=(--expect "$expect")
+  # Straight to a node, which from unit AA-23 on wants a PROXY header on IMAP from
+  # the front network as well.
+  local proxy=()
+  [ "$(proxy_mail)" = 1 ] && proxy=(--proxy)
   docker run --rm --network "$FRONT" -e AA_ACCOUNT_PASSWORD -v "$AA_DIR:/aa:ro" "$(node_image)" \
-    python3 /aa/aa-load.py imap --hosts "$hosts" --user "$account" "${expect_args[@]}"
+    python3 /aa/aa-load.py imap --hosts "$hosts" --user "$account" "${expect_args[@]}" "${proxy[@]}"
+}
+
+# node_rest <node> <METHOD> <path> [body]: the node's REST API from inside its own
+# container, with the administrator's credentials from its netrc file, as node.sh
+# calls it. The answer's body goes to standard output.
+node_rest() {
+  local node="$1" method="$2" path="$3" body="${4:-}"
+  if [ -n "$body" ]; then
+    printf '%s' "$body" | docker exec -i "$P-$node" curl -s --netrc-file /aa/tree/netrc -X "$method" \
+      -H 'Content-Type: application/json' --data-binary @- "http://127.0.0.1:8045$path"
+  else
+    docker exec "$P-$node" curl -s --netrc-file /aa/tree/netrc -X "$method" "http://127.0.0.1:8045$path"
+  fi
+}
+
+# The auto-ban ranges, one line each: id, lower address, upper address, name.
+auto_bans() {
+  node_rest node1 GET /api/v1/ipranges | python3 -c '
+import json, sys
+answer = json.load(sys.stdin)
+ranges = answer if isinstance(answer, list) else answer.get("items", answer.get("ranges", []))
+for r in ranges:
+    if str(r.get("name", "")).startswith("Auto-ban"):
+        print("%s %s %s %s" % (r.get("id"), r.get("lower"), r.get("upper"), r.get("name")))'
+}
+
+container_address() {
+  docker inspect -f "{{(index .NetworkSettings.Networks \"$FRONT\").IPAddress}}" "$1"
+}
+
+# Unit AA-23's scenario. Two clients on the front network, A and B, each a container
+# of its own so that each has its own address, sign in through the balancer. With the
+# auto-ban on (three failures) on every node, A fails three IMAP logons; then which
+# address the auto-ban range names is read, and B and A each sign in once. Then the
+# same over POP3, the ban and the failures cleared first. Behind the balancer, with
+# the IMAP and POP3 listeners reading the PROXY protocol, the ban must name A alone,
+# B must be served and A refused; with AA_PROXY_MAIL=0 (as before AA-23) the ban
+# names the balancer, and B is shut out with A. The auto-ban is switched off again
+# and the bans removed at the end.
+cmd_proxy() {
+  load_secrets
+  local nodes node
+  nodes=$(running_nodes)
+  [ -n "$nodes" ] || die "no nodes - run: bash $0 nodes <db>"
+  docker ps -q --filter "name=^$P-balancer\$" | grep -q . || die "no balancer - run: bash $0 balancer"
+  local image client
+  image=$(node_image)
+  for client in client-a client-b; do
+    docker rm -f "$P-$client" > /dev/null 2>&1 || true
+    docker run -d --init --name "$P-$client" --network "$FRONT" -e AA_ACCOUNT_PASSWORD -v "$AA_DIR:/aa:ro" \
+      "$image" sleep infinity > /dev/null || die "starting $client failed"
+  done
+  local balancer_ip a_ip b_ip
+  balancer_ip=$(container_address "$P-balancer")
+  a_ip=$(container_address "$P-client-a")
+  b_ip=$(container_address "$P-client-b")
+  say "== proxy scenario at $(date -u +%T): AA_PROXY_MAIL=$(proxy_mail); balancer $balancer_ip, client A $a_ip, client B $b_ip"
+  for node in $nodes; do
+    # On every node: a setting saved on one is read by another only at its next
+    # reload (unit AA-16).
+    node_rest "$node" PUT /api/v1/settings \
+      '{"auto_ban_on_logon_failure":true,"max_invalid_logon_attempts":3,"minutes_before_reset":30,"minutes_to_ban":60}' > /dev/null
+  done
+  local verdict=PASS protocol port ban bans account
+  for protocol in imap pop3; do
+    # A fails as an account of its own in each phase, so that the second phase owes
+    # nothing to the first (an account lockout, were AccountLockoutThreshold set).
+    port=143
+    account=account2@example.test
+    if [ "$protocol" = pop3 ]; then
+      port=110
+      account=account4@example.test
+    fi
+    while read -r ban _; do
+      [ -n "$ban" ] && node_rest node1 DELETE "/api/v1/ipranges/$ban" > /dev/null
+    done < <(auto_bans)
+    node_rest node1 POST /api/v1/settings/logon-failures/clear '{}' > /dev/null
+    say "-- $protocol: client A fails three logons through balancer:$port"
+    docker exec "$P-client-a" python3 /aa/aa-load.py logon --host "balancer:$port" --protocol "$protocol" \
+      --user "$account" --tries 3 --wrong
+    bans=$(auto_bans)
+    say "auto-ban ranges: ${bans:-none}"
+    say "-- $protocol: client B, then client A, sign in with the right password"
+    docker exec "$P-client-b" python3 /aa/aa-load.py logon --host "balancer:$port" --protocol "$protocol" \
+      --user account3@example.test
+    local b_served=$?
+    docker exec "$P-client-a" python3 /aa/aa-load.py logon --host "balancer:$port" --protocol "$protocol" \
+      --user "$account"
+    local a_served=$?
+    if printf '%s\n' "$bans" | grep -q " $a_ip $a_ip " && ! printf '%s\n' "$bans" | grep -q " $balancer_ip " &&
+       [ "$b_served" = 0 ] && [ "$a_served" != 0 ]; then
+      say "$protocol: the ban names client A ($a_ip) and not the balancer; B is served, A is refused"
+    else
+      say "$protocol: NOT the client - ban: ${bans:-none}; B served: $([ "$b_served" = 0 ] && echo yes || echo no); A served: $([ "$a_served" = 0 ] && echo yes || echo no)"
+      verdict=FAIL
+    fi
+  done
+  while read -r ban _; do
+    [ -n "$ban" ] && node_rest node1 DELETE "/api/v1/ipranges/$ban" > /dev/null
+  done < <(auto_bans)
+  node_rest node1 POST /api/v1/settings/logon-failures/clear '{}' > /dev/null
+  for node in $nodes; do
+    node_rest "$node" PUT /api/v1/settings '{"auto_ban_on_logon_failure":false}' > /dev/null
+  done
+  docker rm -f "$P-client-a" "$P-client-b" > /dev/null 2>&1 || true
+  say "== proxy scenario: $verdict (the client behind the balancer is the one the auto-ban acts on)"
+  [ "$verdict" = PASS ]
 }
 
 db_of_run() {
@@ -672,7 +807,7 @@ cmd_status() {
 
 cmd_down_nodes() {
   local c
-  for c in $(docker ps -a --format '{{.Names}}' --filter "name=^$P-(node[0-9]+|sink|balancer|load)\$"); do
+  for c in $(docker ps -a --format '{{.Names}}' --filter "name=^$P-(node[0-9]+|sink|balancer|load|client-a|client-b)\$"); do
     docker rm -f "$c" > /dev/null 2>&1 || true
   done
 }
@@ -709,6 +844,7 @@ case "$command" in
   errors) cmd_errors "$@" ;;
   fault) cmd_fault "$@" ;;
   baseline) cmd_baseline "$@" ;;
+  proxy) cmd_proxy "$@" ;;
   status) cmd_status "$@" ;;
   down) cmd_down "$@" ;;
   *) sed -n '6,65p' "$0"; exit 2 ;;

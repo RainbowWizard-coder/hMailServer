@@ -153,6 +153,30 @@ namespace HM
       GetSettings_()->SetString(PROPERTY_IMAPMASTERUSER, newVal);
    }
 
+   bool
+   IMAPConfiguration::GetIMAPProxyProtocolEnabled() const
+   {
+      return GetSettings_()->GetBool(PROPERTY_IMAP_PROXY_PROTOCOL_ENABLED);
+   }
+
+   void
+   IMAPConfiguration::SetIMAPProxyProtocolEnabled(bool newVal)
+   {
+      GetSettings_()->SetBool(PROPERTY_IMAP_PROXY_PROTOCOL_ENABLED, newVal);
+   }
+
+   String
+   IMAPConfiguration::GetIMAPProxyProtocolTrustedIPs() const
+   {
+      return GetSettings_()->GetString(PROPERTY_IMAP_PROXY_PROTOCOL_TRUSTED_IPS);
+   }
+
+   void
+   IMAPConfiguration::SetIMAPProxyProtocolTrustedIPs(const String &newVal)
+   {
+      GetSettings_()->SetString(PROPERTY_IMAP_PROXY_PROTOCOL_TRUSTED_IPS, newVal);
+   }
+
    void
    IMAPConfiguration::SetUseIMAPSASLPlain(bool newVal)
    {

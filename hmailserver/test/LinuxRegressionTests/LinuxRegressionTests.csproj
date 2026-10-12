@@ -78,6 +78,7 @@
     <Compile Include="..\RegressionTests\Shared\OneTimeCodesStep.cs" Link="Shared\OneTimeCodesStep.cs" />
     <Compile Include="..\RegressionTests\Shared\TcpServerLifetime.cs" Link="Shared\TcpServerLifetime.cs" />
     <Compile Include="..\RegressionTests\Shared\POP3ClientSimulator.cs" Link="Shared\POP3ClientSimulator.cs" />
+    <Compile Include="..\RegressionTests\Shared\ProxyProtocolClient.cs" Link="Shared\ProxyProtocolClient.cs" />
     <Compile Include="..\RegressionTests\Shared\Paths.cs" Link="Shared\Paths.cs" />
     <Compile Include="..\RegressionTests\Shared\MiniJson.cs" Link="Shared\MiniJson.cs" />
     <Compile Include="..\RegressionTests\Shared\Pop3ServerSimulator.cs" Link="Shared\Pop3ServerSimulator.cs" />
@@ -203,6 +204,7 @@
     <Compile Include="..\RegressionTests\IMAP\NonSynchronizingLiterals.cs" Link="IMAP\NonSynchronizingLiterals.cs" />
     <Compile Include="..\RegressionTests\IMAP\ObjectId.cs" Link="IMAP\ObjectId.cs" />
     <Compile Include="..\RegressionTests\IMAP\PartialFetchChunking.cs" Link="IMAP\PartialFetchChunking.cs" />
+    <Compile Include="..\RegressionTests\IMAP\ProxyProtocol.cs" Link="IMAP\ProxyProtocol.cs" />
     <Compile Include="..\RegressionTests\IMAP\Preview.cs" Link="IMAP\Preview.cs" />
     <Compile Include="..\RegressionTests\IMAP\QuotaResourceTypes.cs" Link="IMAP\QuotaResourceTypes.cs" />
     <Compile Include="..\RegressionTests\IMAP\Replace.cs" Link="IMAP\Replace.cs" />
@@ -277,6 +279,7 @@
     <Compile Include="..\RegressionTests\POP3\LoginDelay.cs" Link="POP3\LoginDelay.cs" />
     <Compile Include="..\RegressionTests\POP3\Pipelining.cs" Link="POP3\Pipelining.cs" />
     <Compile Include="..\RegressionTests\POP3\ProtocolConformance.cs" Link="POP3\ProtocolConformance.cs" />
+    <Compile Include="..\RegressionTests\POP3\ProxyProtocol.cs" Link="POP3\ProxyProtocol.cs" />
     <Compile Include="..\RegressionTests\POP3\RfcConformance.cs" Link="POP3\RfcConformance.cs" />
     <Compile Include="..\RegressionTests\POP3\Utf8Command.cs" Link="POP3\Utf8Command.cs" />
     <Compile Include="..\RegressionTests\SMTP\AWStatsLoggingTests.cs" Link="SMTP\AWStatsLoggingTests.cs" />

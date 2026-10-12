@@ -53,6 +53,16 @@ namespace HM
       String GetIMAPMasterUser() const;
       void SetIMAPMasterUser(const String &newVal);
 
+      // The PROXY protocol on the IMAP listeners (IMAPProxyProtocolEnabled and
+      // IMAPProxyProtocolTrustedIPs): when it is on and the connection's real peer
+      // is on the list, the connection must open with a PROXY v1 or v2 header,
+      // whose client address the session then has (TCPServer::HandleAccept).
+      bool GetIMAPProxyProtocolEnabled() const;
+      void SetIMAPProxyProtocolEnabled(bool newVal);
+
+      String GetIMAPProxyProtocolTrustedIPs() const;
+      void SetIMAPProxyProtocolTrustedIPs(const String &newVal);
+
       static String GetPublicFolderDiskName();
       std::shared_ptr<IMAPFolders> GetPublicFolders();
       std::shared_ptr<Groups> GetGroups();

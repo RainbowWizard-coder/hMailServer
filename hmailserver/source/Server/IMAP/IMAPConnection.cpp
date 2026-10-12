@@ -52,6 +52,7 @@
 #include "../Common/Scripting/ScriptServer.h"
 #include "../Common/Scripting/ScriptObjectContainer.h"
 #include "../Common/TCPIP/CipherInfo.h"
+#include "../Common/TCPIP/ProxyProtocol.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -222,6 +223,34 @@ namespace HM
    IMAPConnection::InternalParseData(const AnsiString &Request)
    {
       LogClientCommand_(Request);
+
+      // A PROXY protocol header arriving as a command line means a peer that was
+      // NOT trusted to name a client is trying to: a trusted proxy's header is
+      // read before the greeting (TCPServer::HandleAccept) and never reaches this
+      // parser. As on the SMTP listener (SMTPConnection::InternalParseData), the
+      // connection is closed without an answer, because carrying on would read
+      // the real client's commands as the proxy's, and the IP ranges and the
+      // auto-ban would act on the proxy. Only the first line of a command is
+      // looked at - never a literal's octets or a SASL response, which go into
+      // the command buffer - and only in the header's own form, since the first
+      // word here is a tag the client chooses. Only while the switch is on:
+      // off, the line is the unknown command it always was.
+      if (command_buffer_.IsEmpty() && literal_data_to_receive_ == 0 &&
+          ProxyProtocolParser::IsVersion1HeaderLine(Request))
+      {
+         std::shared_ptr<IMAPConfiguration> imapConfiguration = Configuration::Instance()->GetIMAPConfiguration();
+
+         if (imapConfiguration && imapConfiguration->GetIMAPProxyProtocolEnabled())
+         {
+            String message;
+            message.Format(_T("IMAP - A PROXY protocol header was received from the untrusted peer %s. The connection has been closed. Session: %d"),
+               String(GetTrueRemoteEndpointAddress().ToString()).c_str(), GetSessionID());
+            LOG_APPLICATION(message);
+
+            EnqueueDisconnect();
+            return false;
+         }
+      }
 
       bool bHasLiterals = false;
       if (!command_buffer_.IsEmpty())

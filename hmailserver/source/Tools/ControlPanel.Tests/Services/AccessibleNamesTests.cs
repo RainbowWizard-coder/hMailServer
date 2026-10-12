@@ -196,7 +196,9 @@ namespace hMailServer.ControlPanel.Tests.Services
       ///
       /// Two things depend on this. It keeps the tests above from being about a
       /// hypothetical - the Protocols page really does carry the same two labels
-      /// three times each - and it fails when a new in-page duplicate appears, which
+      /// three times each, on the SMTP, IMAP and POP3 cards, and since 6.3.7 the
+      /// list of PROXY protocol peers twice, on the IMAP and POP3 cards, where the
+      /// card title tells them apart - and it fails when a new in-page duplicate appears, which
       /// is the moment somebody has to decide whether the two settings should be
       /// worded differently or the card title is doing the distinguishing. Either
       /// answer is fine; not noticing is not.
@@ -215,6 +217,7 @@ namespace hMailServer.ControlPanel.Tests.Services
             new[]
             {
                "protocols: Maximum simultaneous connections (0 = no limit) (x3)",
+               "protocols: Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges) (x2)",
                "protocols: Welcome banner (empty = default) (x3)"
             },
             duplicated);

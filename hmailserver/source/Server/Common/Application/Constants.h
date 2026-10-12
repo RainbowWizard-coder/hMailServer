@@ -196,6 +196,18 @@
 #define PROPERTY_ENABLEIMAPSASLPLAIN           _T("EnableImapSASLPlain")
 #define PROPERTY_ENABLEIMAPSASLINTIALRESPONSE  _T("EnableImapSASLInitialResponse")
 
+// The PROXY protocol (HAProxy, v1 and v2) on the IMAP and POP3 listeners, each
+// with a switch and a list of the peers allowed to send the header of its own -
+// SMTP's pair is SMTPProxyProtocolEnabled and SMTPProxyProtocolTrustedIPs in the
+// [Settings] store. In hm_settings with rows created by EnsureSettingDefaults_:
+// off, and nobody trusted, which is the server as it was; no schema step. A list
+// of its own per listener, so that a peer trusted to name the clients of one
+// protocol is not trusted to name those of another.
+#define PROPERTY_IMAP_PROXY_PROTOCOL_ENABLED     _T("IMAPProxyProtocolEnabled")
+#define PROPERTY_IMAP_PROXY_PROTOCOL_TRUSTED_IPS _T("IMAPProxyProtocolTrustedIPs")
+#define PROPERTY_POP3_PROXY_PROTOCOL_ENABLED     _T("POP3ProxyProtocolEnabled")
+#define PROPERTY_POP3_PROXY_PROTOCOL_TRUSTED_IPS _T("POP3ProxyProtocolTrustedIPs")
+
 #define PROPERTY_IPV6_PREFERRED  _T("IPv6Preferred")
 
 // Create Drafts, Sent, Trash and Junk, each designated for RFC 6154, when an

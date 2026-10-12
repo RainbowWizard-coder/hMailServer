@@ -61,6 +61,14 @@ namespace HM
       // status. Never inspects more than the header itself.
       static Status Parse(const unsigned char *buffer, size_t available, size_t &bytes_needed, Result &result);
 
+      // Whether a command line, its CRLF removed, has the form of a version 1
+      // header: "PROXY TCP4 ...", "PROXY TCP6 ..." or "PROXY UNKNOWN", in the
+      // specification's own upper case. For a listener that finds one where a
+      // command should be - a peer that is not trusted sending what only a
+      // trusted proxy may - and whose first word can be the client's own choice
+      // (an IMAP tag), so that the word PROXY alone cannot be taken for a header.
+      static bool IsVersion1HeaderLine(const AnsiString &line);
+
    private:
       static Status ParseVersion1_(const unsigned char *buffer, size_t available, size_t &bytes_needed, Result &result);
       static Status ParseVersion2_(const unsigned char *buffer, size_t available, size_t &bytes_needed, Result &result);

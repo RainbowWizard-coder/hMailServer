@@ -77,6 +77,19 @@ message-store directory.
 * Only ever direct traffic to one node at a time. If you use a load balancer that
   can see both nodes, gate routing strictly on the readiness probe so the passive
   node (service stopped → probe fails/refused) never receives traffic.
+* A TCP load balancer hides each client's address from the node: every
+  connection comes from the balancer, and the IP ranges, the auto-ban and an
+  account's list of devices act on it. Each of the SMTP, IMAP and POP3 listeners
+  can take the client's address from a PROXY protocol header (HAProxy:
+  `send-proxy` or `send-proxy-v2` on the server line) sent by a peer on a list of
+  its own: `SMTPProxyProtocolEnabled` and `SMTPProxyProtocolTrustedIPs`,
+  `IMAPProxyProtocolEnabled` and `IMAPProxyProtocolTrustedIPs`,
+  `POP3ProxyProtocolEnabled` and `POP3ProxyProtocolTrustedIPs` (the Control
+  Panel's Protocols page has the IMAP and POP3 pairs). A listed peer must then
+  send the header on every connection: a health check that speaks the protocol
+  needs HAProxy's `check-send-proxy`, or every check is an invalid header
+  (`HM6280` in the error log); a plain TCP check closes before the header is due
+  and is only noted in the TCP/IP log.
 
 ---
 

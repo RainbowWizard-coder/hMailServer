@@ -768,7 +768,12 @@ Administration and monitoring:
                                  ; peer, never an address a header supplied, so chained proxies cannot bootstrap
                                  ; trust. An entry that does not parse matches nothing and is logged once per run.
                                  ; NOTE: once an address is listed the header becomes REQUIRED from it - configure
-                                 ; the proxy to send it (HAProxy: send-proxy or send-proxy-v2) or it will be dropped
+                                 ; the proxy to send it (HAProxy: send-proxy or send-proxy-v2) or it will be dropped.
+                                 ; The IMAP and POP3 listeners have a switch and a list of their own, as database
+                                 ; settings rather than keys here (Settings > Protocols, COM's Settings object,
+                                 ; PUT /api/v1/settings): IMAPProxyProtocolEnabled/IMAPProxyProtocolTrustedIPs and
+                                 ; POP3ProxyProtocolEnabled/POP3ProxyProtocolTrustedIPs, off and empty by default.
+                                 ; A peer listed for one listener is not trusted by another
    SMTPXClientEnabled=0          ; accept the Postfix XCLIENT command. Off by default
    SMTPXClientTrustedIPs=        ; comma-separated addresses or CIDR ranges allowed to use XCLIENT. Empty means
                                  ; nobody. XCLIENT is not advertised in EHLO to an upstream that is not listed, so

@@ -6739,3 +6739,148 @@ STDMETHODIMP InterfaceSettings::put_AutoBanWidenByReverseName(VARIANT_BOOL newVa
       return COMError::GenerateGenericMessage();
    }
 }
+
+// The PROXY protocol on the IMAP and POP3 listeners: each listener's switch and its
+// list of the peers allowed to send the header, read by TCPServer at every accept.
+// SMTP's pair is in the [Settings] store (GetIniSetting / SetIniSetting).
+STDMETHODIMP InterfaceSettings::get_IMAPProxyProtocolEnabled(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetIMAPConfiguration()->GetIMAPProxyProtocolEnabled() ? VARIANT_TRUE : VARIANT_FALSE;
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_IMAPProxyProtocolEnabled(VARIANT_BOOL newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      config_->GetIMAPConfiguration()->SetIMAPProxyProtocolEnabled(newVal == VARIANT_TRUE);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_IMAPProxyProtocolTrustedIPs(BSTR *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetIMAPConfiguration()->GetIMAPProxyProtocolTrustedIPs().AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_IMAPProxyProtocolTrustedIPs(BSTR newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      HM::String list = newVal;
+      list.Trim();
+
+      config_->GetIMAPConfiguration()->SetIMAPProxyProtocolTrustedIPs(list);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_POP3ProxyProtocolEnabled(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetPOP3Configuration()->GetPOP3ProxyProtocolEnabled() ? VARIANT_TRUE : VARIANT_FALSE;
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_POP3ProxyProtocolEnabled(VARIANT_BOOL newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      config_->GetPOP3Configuration()->SetPOP3ProxyProtocolEnabled(newVal == VARIANT_TRUE);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_POP3ProxyProtocolTrustedIPs(BSTR *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetPOP3Configuration()->GetPOP3ProxyProtocolTrustedIPs().AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_POP3ProxyProtocolTrustedIPs(BSTR newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      HM::String list = newVal;
+      list.Trim();
+
+      config_->GetPOP3Configuration()->SetPOP3ProxyProtocolTrustedIPs(list);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}

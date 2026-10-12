@@ -165,10 +165,12 @@ WEAKENED_WHEN_ON = {("database", "authallowplaintext")}
 # A switch that, on, takes a peer's word for who is connecting or what a
 # message is.
 TRUST_SWITCHES = {("ini", "smtpxclientenabled"), ("ini", "smtpproxyprotocolenabled"),
+                  ("database", "imapproxyprotocolenabled"), ("database", "pop3proxyprotocolenabled"),
                   ("database", "asarcfilteringenabled"), ("database", "readerfetchprivatehosts")}
 
 # A list of addresses, ranges or sealers that, filled, is trusted.
 TRUST_LISTS = {("ini", "smtpxclienttrustedips"), ("ini", "smtpproxyprotocoltrustedips"),
+               ("database", "imapproxyprotocoltrustedips"), ("database", "pop3proxyprotocoltrustedips"),
                ("ini", "webservicestrustedproxies"), ("ini", "autobanneverban"), ("ini", "authuserreplacementip"),
                ("database", "asarctrustedsealers"), ("database", "countryblockingexemptranges")}
 
@@ -215,6 +217,8 @@ SUBJECTS = {
     ("ini", "smtpxclientenabled"): ["XCLIENT"], ("ini", "smtpproxyprotocolenabled"): ["PROXY"],
     ("database", "asarcfilteringenabled"): ["ARC"], ("database", "readerfetchprivatehosts"): ["private"],
     ("ini", "smtpxclienttrustedips"): ["XCLIENT"], ("ini", "smtpproxyprotocoltrustedips"): ["PROXY"],
+    ("database", "imapproxyprotocolenabled"): ["PROXY"], ("database", "imapproxyprotocoltrustedips"): ["PROXY"],
+    ("database", "pop3proxyprotocolenabled"): ["PROXY"], ("database", "pop3proxyprotocoltrustedips"): ["PROXY"],
     ("ini", "webservicestrustedproxies"): ["proxy", "proxies"], ("ini", "autobanneverban"): ["auto-ban"],
     ("ini", "authuserreplacementip"): ["replacement"], ("database", "asarctrustedsealers"): ["ARC"],
     ("database", "countryblockingexemptranges"): ["country"],

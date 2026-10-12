@@ -4679,6 +4679,29 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 
 ### IMAP, POP3 and the webmail
 
+- **The IMAP and POP3 listeners take the client's address from a PROXY protocol header, as the SMTP listener does,
+  each from the peers on a list of its own.** Behind a TCP load balancer every IMAP and POP3 client had the balancer's
+  address: the IP ranges, the auto-ban and an account's list of devices acted on the balancer, so that one client
+  guessing passwords banned every client behind it, and a range written for one network governed all of them. Only the
+  SMTP listener read the header (`TCPServer::HandleAccept`), which [ActiveActive.md](hmailserver/docs/ActiveActive.md)
+  had taken for all three (unit AA-23 of its build plan). With `IMAPProxyProtocolEnabled` or `POP3ProxyProtocolEnabled`
+  on and the connection's real peer on `IMAPProxyProtocolTrustedIPs` or `POP3ProxyProtocolTrustedIPs`, the connection
+  must open with a version 1 or 2 header, read before an IMAPS or POP3S port's TLS handshake and before the greeting,
+  and the session is the client the header names: the client's IP range is asked again, and closes the connection
+  before the greeting where it would have refused the client itself; `LOGIN`, `USER`, `AUTHENTICATE`, the auto-ban,
+  the devices, the logs and every event after `OnClientConnect` see the client. While a switch is on, a PROXY line
+  from a peer that is not on its list closes the connection without an answer, as on SMTP - on IMAP only a line in
+  the header's own form (`PROXY TCP4 `, `PROXY TCP6 `, `PROXY UNKNOWN`), since a tag is the client's to choose.
+  Switched off, the default, nothing changes. The four are database settings whose rows are made at the first start
+  (no schema step), on COM's `Settings` object, on `PUT /api/v1/settings` (`imap_proxy_protocol_enabled` and the
+  three others) and on the IMAP and POP3 cards of the Control Panel's Protocols page. Each listener has a list of its
+  own rather than SMTP's, so that a peer trusted to name SMTP clients, whom the IP ranges' relay and authentication
+  rules judge, is not thereby trusted to name IMAP and POP3 ones, nor the reverse. The country policy and
+  `OnClientConnect` are still asked at the accept, before the header, about the balancer, as on SMTP
+  ([CountryBlocking.md](hmailserver/docs/CountryBlocking.md), [EventScripts.md](hmailserver/docs/EventScripts.md)).
+  The fixtures `IMAP.ProxyProtocol` and `POP3.ProxyProtocol` (10 and 9 tests) each assert a refusal that only the
+  named client's range or ban can give; the active-active lab's balancer sends `send-proxy-v2` to all three
+  listeners, and its `proxy` scenario shows the auto-ban banning the client behind the balancer and not the balancer.
 - **Fixed: an answer of the HTTP listeners that its handler returned after the listener's request deadline was cut off
   after its first 64 KB.** The REST API, the webmail, the Control Deck, CalDAV and CardDAV, and the web services all
   answer through one HTTP server, whose request deadline - 30 seconds on the REST listener, 15 on the web services' -

@@ -70,7 +70,7 @@ each goes wrong with two.
 | Browser sessions ([DevicesAndSessions.md](DevicesAndSessions.md)) | Kept in the server's memory (`RestApiServer`) | A request that reaches the other node is not signed in. Ending a session ends it on its own node only |
 | The account lockout (`AccountLockout`), the second-factor guard (`SecondFactorGuard`), the sign-in states (`SignInState`, `PasskeyStore`), POP3's login delay, the rate limits and the per-destination limits | Counted in memory, "like the sibling stores": the lockout's failures, the step of the last TOTP code taken and the budget of wrong codes, the key the OIDC, SAML and passkey sign-ins are sealed with and the states already spent. The compromised-account holds are in `hm_accountreview`, but loaded only at start (`CompromiseDetector::LoadLocks`) | Each node counts on its own, so two nodes allow twice the attempts. A TOTP code taken on one node is taken again on the other. A sign-in whose callback reaches the other node fails. A hold made on one node is not in force on the other until it restarts |
 | Secrets sealed to the machine ([WarmStandby.md](WarmStandby.md), "The DPAPI constraint") | `Crypt::ProtectSecret` seals with DPAPI on Windows and the `LINUX1` key file on Linux: route, per-domain relay and fetch-account passwords, fetch accounts' OAuth tokens, TLS key passphrases, every setting saved encrypted, the inbound and outbound webhooks' secrets, migration jobs' source secrets, the SNMP secrets and the sandbox's token. Only second factors and the `[Settings]` secrets are under the installation's stored-secrets key | A secret entered on one node cannot be read on the other |
-| The listeners | Rows of `hm_tcpipports`, which every node reads. Only the SMTP listener reads a PROXY protocol header (`TCPServer`: `sessionType_ == STSMTP`) | Each node binds every port, as the rehearsal in [WarmStandby.md](WarmStandby.md) saw, which is what a balancer in front wants. Behind a balancer, IMAP and POP3 see the balancer's address, so auto-ban, the IP ranges and the device list act on the balancer |
+| The listeners | Rows of `hm_tcpipports`, which every node reads. The SMTP, IMAP and POP3 listeners each read a PROXY protocol header from the peers on a list of their own, off by default (`TCPServer::HandleAccept`); IMAP and POP3 since unit AA-23, before which only SMTP did | Each node binds every port, as the rehearsal in [WarmStandby.md](WarmStandby.md) saw, which is what a balancer in front wants. Behind a balancer that sends the header to a listener whose switch is on and whose list names it, auto-ban, the IP ranges and the device list act on the client; otherwise on the balancer. The country policy and `OnClientConnect` are asked at the accept, before the header, and judge the balancer |
 | The drain (`Application::EnterDrain`) | Closes the SMTP, IMAP, POP3 and ManageSieve listeners and **pauses** the delivery queue while what is in flight finishes. The web server stays open | A drained node keeps its queued messages, deferred and held ones included, on its own disk, and its webmail goes on adding to them: it cannot be stopped for maintenance without a failover |
 | A schema upgrade (`SchemaUpgrader`, `Application::OnDatabaseConnected`) | Two walkers on one database are serialised on the version row, or on a named lock on MySQL. A node refuses a database newer than its build when it connects | Two walkers are safe. But a node of a newer build with `[Database] UpgradeOnStart`, `hmailserver --upgrade-database` (which the container image runs at every start), the Windows installer's DBUpdater and the live update's apply all upgrade the schema under a node of the older build that is running, which refuses the database only when it next connects |
 | A node's name | There is none. The nearest is the host name, which a container recreated from the shipped Compose file changes every time | Anything keyed to it would lose its queue at a recreate, and at a warm-standby failover onto another machine |
@@ -478,8 +478,13 @@ may not join.
 ### In front of the nodes
 
 A TCP load balancer passes the client's address with the PROXY protocol,
-versions 1 or 2 (`ProxyProtocol.h`). Today only the SMTP listener reads it, so
-IMAP and POP3 are taught to as well. The balancer's health check is `/readyz`
+versions 1 or 2 (`ProxyProtocol.h`). The SMTP, IMAP and POP3 listeners each read
+it from the peers on a list of their own: `SMTPProxyProtocolTrustedIPs`, and
+since unit AA-23 `IMAPProxyProtocolTrustedIPs` and `POP3ProxyProtocolTrustedIPs`,
+each with its switch. The country policy and `OnClientConnect` are asked at the
+accept, before the header, so they see the balancer; in this topology the
+geographic policy belongs on the balancer ([CountryBlocking.md](CountryBlocking.md)).
+The balancer's health check is `/readyz`
 ([HighAvailabilityRunbook.md](HighAvailabilityRunbook.md)), which a drained or
 standby node answers with 503.
 
@@ -660,6 +665,9 @@ What it must show:
 13. **Regressions.** The Linux regression suite passes against one node of a set
     of two, on PostgreSQL, MySQL and MariaDB - the database matrix - and a single
     node passes the Windows and Linux gates unchanged at every step.
+14. **The client behind the balancer.** Failed logons over IMAP, and over POP3,
+    from one client through the balancer ban that client and not the balancer,
+    and another client behind it is still served (`aa-lab.sh proxy`, unit AA-23).
 
 The warm-standby rehearsal of 9 September 2026 ([WarmStandby.md](WarmStandby.md),
 "The rehearsal") showed the problem this design solves: a second service's start

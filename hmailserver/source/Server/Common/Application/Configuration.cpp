@@ -555,6 +555,16 @@ namespace HM
       settings.EnsureLong(PROPERTY_SAML_AUTO_PROVISION, 0);
       settings.EnsureString(PROPERTY_SAML_ADMINISTRATORS, _T(""));
       settings.EnsureString(PROPERTY_SAML_BUTTON_LABEL, _T("Sign in with SAML"));
+
+      // The PROXY protocol on the IMAP and POP3 listeners: off, and no peer
+      // trusted to send a header, which is the server as it has always been - a
+      // connection is the client it comes from. TCPServer reads all four at every
+      // accept on those listeners, and a read of a property no row holds reports
+      // HM5015 every time.
+      settings.EnsureLong(PROPERTY_IMAP_PROXY_PROTOCOL_ENABLED, 0);
+      settings.EnsureString(PROPERTY_IMAP_PROXY_PROTOCOL_TRUSTED_IPS, _T(""));
+      settings.EnsureLong(PROPERTY_POP3_PROXY_PROTOCOL_ENABLED, 0);
+      settings.EnsureString(PROPERTY_POP3_PROXY_PROTOCOL_TRUSTED_IPS, _T(""));
    }
 
    void

@@ -369,6 +369,30 @@ namespace HM
       else
          sCommand = Request;
 
+      // A PROXY protocol header arriving as a command means a peer that was NOT
+      // trusted to name a client is trying to: a trusted proxy's header is read
+      // before the greeting (TCPServer::HandleAccept) and never reaches this
+      // parser. As on the SMTP listener (SMTPConnection::InternalParseData), the
+      // connection is closed without an answer, because carrying on would read
+      // the real client's commands as the proxy's, and the IP ranges and the
+      // auto-ban would act on the proxy. A SASL response, taken above, is never
+      // looked at. Only while the switch is on: off, PROXY is the unknown command
+      // it always was.
+      if (sCommand.CompareNoCase(_T("PROXY")) == 0)
+      {
+         std::shared_ptr<POP3Configuration> pop3Configuration = Configuration::Instance()->GetPOP3Configuration();
+
+         if (pop3Configuration && pop3Configuration->GetPOP3ProxyProtocolEnabled())
+         {
+            String message;
+            message.Format(_T("POP3 - A PROXY protocol header was received from the untrusted peer %s. The connection has been closed. Session: %d"),
+               String(GetTrueRemoteEndpointAddress().ToString()).c_str(), GetSessionID());
+            LOG_APPLICATION(message);
+
+            return ResultDisconnect;
+         }
+      }
+
       POP3Command command = GetCommand(current_state_, sCommand);
 
       // A session signed in before its mailbox was encrypted at rest holds no

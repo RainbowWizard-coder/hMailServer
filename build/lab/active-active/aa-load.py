@@ -21,7 +21,14 @@ the sink. Python's standard library only.
   imap        for an account, on every host named: the UIDs of a folder - unique,
               ascending, as many as expected - whether each one can be fetched,
               and whether what comes back is the message the load sent (its
-              X-AA-Seq field) and not a placeholder
+              X-AA-Seq field) and not a placeholder. --proxy opens each
+              connection with a PROXY v1 header, as send's does: from unit AA-23
+              on, a node wants one on IMAP from the front network too
+  logon       one IMAP or POP3 logon to a host (the balancer, in the proxy
+              scenario), with the account's password or, with --wrong, a wrong
+              one, --tries times, a connection each: what each attempt was
+              answered, and this client's own address, which is the address the
+              auto-ban should name when the balancer passes it on
 
 The account's password comes from the environment, AA_ACCOUNT_PASSWORD, never from
 the command line. Exit 0 when the check found nothing wrong, 1 when it did.
@@ -30,7 +37,9 @@ the command line. Exit 0 when the check found nothing wrong, 1 when it did.
 import argparse
 import imaplib
 import json
+import poplib
 import smtplib
+import socket
 import sys
 import threading
 import time
@@ -57,9 +66,23 @@ class ProxySMTP(smtplib.SMTP):
 
     def _get_socket(self, host, port, timeout):
         sock = super()._get_socket(host, port, timeout)
-        source, source_port = sock.getsockname()[:2]
-        target, target_port = sock.getpeername()[:2]
-        sock.sendall(("PROXY TCP4 %s %s %d %d\r\n" % (source, target, source_port, target_port)).encode())
+        send_proxy_header(sock)
+        return sock
+
+
+def send_proxy_header(sock):
+    """A PROXY protocol v1 line naming this end of the connection as the client."""
+    source, source_port = sock.getsockname()[:2]
+    target, target_port = sock.getpeername()[:2]
+    sock.sendall(("PROXY TCP4 %s %s %d %d\r\n" % (source, target, source_port, target_port)).encode())
+
+
+class ProxyIMAP4(imaplib.IMAP4):
+    """IMAP that opens with a PROXY protocol v1 header (ProxySMTP's reason, for IMAP)."""
+
+    def _create_socket(self, timeout):
+        sock = super()._create_socket(timeout)
+        send_proxy_header(sock)
         return sock
 
 
@@ -167,7 +190,7 @@ def cmd_imap(args):
     for host, port in parse_hosts(args.hosts):
         report = {"check": "imap", "host": "%s:%d" % (host, port), "account": args.user}
         try:
-            imap = imaplib.IMAP4(host, port, timeout=60)
+            imap = (ProxyIMAP4 if args.proxy else imaplib.IMAP4)(host, port, timeout=60)
             imap.login(args.user, password)
             typ, data = imap.select(args.folder, readonly=True)
             report["exists"] = int(data[0]) if typ == "OK" else None
@@ -208,6 +231,67 @@ def cmd_imap(args):
     return 1 if failed else 0
 
 
+def own_address(host, port):
+    """The address this container reaches host:port from: the client the balancer sees."""
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
+        probe.connect((socket.gethostbyname(host), port))
+        return probe.getsockname()[0]
+
+
+def logon_once(protocol, host, port, user, password):
+    """One connection and one logon. Answers (greeted, signed in, what was said)."""
+    if protocol == "imap":
+        try:
+            imap = imaplib.IMAP4(host, port, timeout=30)
+        except (imaplib.IMAP4.error, OSError, EOFError) as e:
+            return False, False, "no greeting: %s" % str(e)[:160]
+        try:
+            typ, data = imap.login(user, password)
+            answer = "%s %s" % (typ, b" ".join(d for d in data if isinstance(d, bytes)).decode(errors="replace"))
+            try:
+                imap.logout()
+            except (imaplib.IMAP4.error, OSError, EOFError):
+                pass
+            return True, typ == "OK", answer[:160]
+        except (imaplib.IMAP4.error, imaplib.IMAP4.abort, OSError, EOFError) as e:
+            return True, False, str(e)[:160]
+    try:
+        pop = poplib.POP3(host, port, timeout=30)
+    except (poplib.error_proto, OSError, EOFError) as e:
+        return False, False, "no greeting: %s" % str(e)[:160]
+    try:
+        pop.user(user)
+        answer = pop.pass_(password)
+        try:
+            pop.quit()
+        except (poplib.error_proto, OSError, EOFError):
+            pass
+        return True, True, answer.decode(errors="replace")[:160]
+    except (poplib.error_proto, OSError, EOFError) as e:
+        return True, False, str(e)[:160]
+
+
+def cmd_logon(args):
+    import os
+    password = os.environ.get("AA_ACCOUNT_PASSWORD", "")
+    if args.wrong:
+        password = "not-" + password + "-at-all"
+    host, port = parse_hosts(args.host)[0]
+    report = {"logon": args.protocol, "host": "%s:%d" % (host, port), "account": args.user,
+              "client": own_address(host, port), "wrong_password": args.wrong, "attempts": []}
+    signed_in = 0
+    for attempt in range(1, args.tries + 1):
+        greeted, ok, answer = logon_once(args.protocol, host, port, args.user, password)
+        signed_in += 1 if ok else 0
+        report["attempts"].append({"attempt": attempt, "greeted": greeted, "signed_in": ok, "answer": answer})
+        time.sleep(0.3)
+    report["signed_in"] = signed_in
+    print(json.dumps(report))
+    if args.wrong:
+        return 0 if signed_in == 0 else 1
+    return 0 if signed_in == args.tries else 1
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -229,8 +313,16 @@ def main():
     imap.add_argument("--user", required=True)
     imap.add_argument("--folder", default="INBOX")
     imap.add_argument("--expect", type=int)
+    imap.add_argument("--proxy", action="store_true",
+                      help="open each connection with a PROXY v1 header (straight to a node; not through the balancer)")
+    logon = sub.add_parser("logon")
+    logon.add_argument("--host", required=True, help="host:port")
+    logon.add_argument("--protocol", choices=("imap", "pop3"), required=True)
+    logon.add_argument("--user", required=True)
+    logon.add_argument("--tries", type=int, default=1)
+    logon.add_argument("--wrong", action="store_true", help="a wrong password, for the auto-ban")
     args = parser.parse_args()
-    return {"send": cmd_send, "check-sink": cmd_check_sink, "imap": cmd_imap}[args.command](args)
+    return {"send": cmd_send, "check-sink": cmd_check_sink, "imap": cmd_imap, "logon": cmd_logon}[args.command](args)
 
 
 if __name__ == "__main__":

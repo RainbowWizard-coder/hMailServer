@@ -28,7 +28,10 @@
 #   AA_DATA              the data directory: the node's own (the default,
 #                        /aa/tree/Data) or a volume every node mounts (the shared
 #                        variant, which docs/WarmStandby.md says not to build)
-#   AA_FRONT_SUBNET      the front network, trusted for the PROXY protocol on SMTP
+#   AA_FRONT_SUBNET      the front network, trusted for the PROXY protocol on SMTP,
+#                        and on IMAP and POP3 unless AA_PROXY_MAIL is 0
+#   AA_PROXY_MAIL        1 (the default): the IMAP and POP3 listeners read the PROXY
+#                        protocol too (unit AA-23); 0 for a tree before it
 #   AA_SINK_HOST         the sink's name on the front network
 #   AA_ACCOUNTS          how many accountN@example.test to make (default 4)
 set -uo pipefail
@@ -112,6 +115,19 @@ update hm_tcpipports set portnumber = 1110 where portnumber = 110;
 update hm_tcpipports set portnumber = 1143 where portnumber = 143;
 update hm_settings set settinginteger = 0 where settingname = 'AutoBanOnLogonFailureEnabled';
 SQL
+  if [ "${AA_PROXY_MAIL:-1}" != 0 ]; then
+    # The IMAP and POP3 listeners read the PROXY protocol from the front network too,
+    # as SMTP does from the [Settings] keys above: database settings, whose rows a
+    # server makes at its first start when they are not there - so written here, before
+    # any node starts, which every node then reads.
+    sql "$AA_DB_NAME" <<SQL || { echo "LAYOUT FAILED: the IMAP and POP3 PROXY protocol settings"; exit 3; }
+delete from hm_settings where settingname in ('IMAPProxyProtocolEnabled', 'IMAPProxyProtocolTrustedIPs', 'POP3ProxyProtocolEnabled', 'POP3ProxyProtocolTrustedIPs');
+insert into hm_settings (settingname, settingstring, settinginteger) values ('IMAPProxyProtocolEnabled', '', 1);
+insert into hm_settings (settingname, settingstring, settinginteger) values ('IMAPProxyProtocolTrustedIPs', '${AA_FRONT_SUBNET:-}', 0);
+insert into hm_settings (settingname, settingstring, settinginteger) values ('POP3ProxyProtocolEnabled', '', 1);
+insert into hm_settings (settingname, settingstring, settinginteger) values ('POP3ProxyProtocolTrustedIPs', '${AA_FRONT_SUBNET:-}', 0);
+SQL
+  fi
 else
   echo "== $NODE: waiting for the database the first node lays out"
   ready=""

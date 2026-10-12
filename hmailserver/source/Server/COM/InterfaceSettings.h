@@ -398,6 +398,16 @@ END_COM_MAP()
    STDMETHOD(get_AutoBanWidenByReverseName)(/*[out, retval]*/ VARIANT_BOOL *pVal);
    STDMETHOD(put_AutoBanWidenByReverseName)(/*[in]*/ VARIANT_BOOL newVal);
 
+   // The PROXY protocol on the IMAP and POP3 listeners (Common/TCPIP/TCPServer.cpp).
+   STDMETHOD(get_IMAPProxyProtocolEnabled)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_IMAPProxyProtocolEnabled)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_IMAPProxyProtocolTrustedIPs)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_IMAPProxyProtocolTrustedIPs)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_POP3ProxyProtocolEnabled)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_POP3ProxyProtocolEnabled)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_POP3ProxyProtocolTrustedIPs)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_POP3ProxyProtocolTrustedIPs)(/*[in]*/ BSTR newVal);
+
    // The [Settings] section of hMailServer.INI. See the IDL for why these exist and
    // for the two things they deliberately do not do.
    STDMETHOD(GetIniSetting)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *pVal);

@@ -328,10 +328,12 @@ What this does not do
   SMTP listener's policy or not at all.
 * **It says nothing about a proxy.** The address judged is the one the TCP
   connection actually came from. On a listener behind HAProxy with the PROXY
-  protocol enabled, that is the proxy — which will be in your exempt ranges —
-  and the real client's address, which arrives in the PROXY header after the
-  connection has been accepted, is not judged. Put the geographic policy on the
-  proxy in that topology.
+  protocol enabled — SMTP, and since 6.3.7 IMAP and POP3, each with a switch and
+  a list of trusted proxies of its own — that is the proxy, which will be in your
+  exempt ranges, and the real client's address, which arrives in the PROXY header
+  after the connection has been accepted, is not judged. Put the geographic policy
+  on the proxy in that topology. The IP ranges and the auto-ban, which are asked
+  again once the header has been read, do act on the client.
 * **It is only as true as the database.** A VPN, a relay or a mobile carrier's
   exit point puts a person in a country they are not in, and a new allocation may
   not be in a file that is a month old. Country blocking narrows the noise; it is

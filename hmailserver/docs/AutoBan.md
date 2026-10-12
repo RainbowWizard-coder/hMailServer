@@ -6,8 +6,20 @@ widened, when `AutoBanWidenByReverseName` is on, to its reverse-name neighbours
 on its own.
 The listeners consult it when a connection is accepted, so a banned address is
 refused by the server itself; with `AutoBanFirewall` or `AutoBanCommand` set it
-is also blocked below the server (`Common/Util/AutoBanFirewall.h`). Four
-things write one:
+is also blocked below the server (`Common/Util/AutoBanFirewall.h`).
+
+Behind a load balancer every connection comes from the balancer, and without
+more one client's failed logons ban every client behind it. A listener that
+reads the PROXY protocol header the balancer sends (SMTP, and since 6.3.7 IMAP
+and POP3, each from the peers on its own list: `SMTPProxyProtocolTrustedIPs`,
+`IMAPProxyProtocolTrustedIPs`, `POP3ProxyProtocolTrustedIPs`) counts a failure
+against the client the header names, the ban names that client, and the
+listener consults the ranges again once the header is read: a banned client is
+turned away before the greeting, and the balancer's other clients are not. A
+block below the server names the client as well, whose packets reach this
+machine from the balancer, so it stops nothing there; the IP range does.
+
+Four things write one:
 
 | Writer | When | Setting |
 |---|---|---|

@@ -2231,6 +2231,23 @@ namespace hMailServer.ControlPanel.Views
          imap.Settings.Add(new ComText { Path = "IMAPPublicFolderName", Label = L("Public folder name") });
          imap.Settings.Add(new ComText { Path = "IMAPMasterUser", Label = L("Master user (empty = off)") });
          imap.Settings.Add(new ComText { Path = "IMAPHierarchyDelimiter", Label = L("Folder hierarchy delimiter") });
+         // The PROXY protocol on this listener: a switch and a list of its own, as
+         // the SMTP listener has on the front-end proxies card (TCPServer.cpp,
+         // ProxyProtocolExpectedFrom_). The list's label and note are that card's,
+         // word for word, because they say the same thing of the same grammar.
+         imap.Settings.Add(new ComBool
+         {
+            Path = "IMAPProxyProtocolEnabled",
+            Label = L("Accept the PROXY protocol (v1 and v2) on the IMAP listener"),
+            Blurb = L("Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client. The header is then required from a named proxy, and a PROXY line from anyone else closes the connection.")
+         });
+         imap.Settings.Add(new ComText
+         {
+            Path = "IMAPProxyProtocolTrustedIPs",
+            Label = L("Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)"),
+            Placeholder = "10.0.0.5, 192.168.10.0/24", // no-loc
+            Blurb = L("Empty means nobody, which is the safe default. Matched against the real TCP peer. An entry that does not parse matches nothing rather than everything, and is reported in the error log once per run.")
+         });
          Tab(L("IMAP")).Cards.Add(imap);
 
          // These two are INI values rather than COM ones, and they used to be on
@@ -2277,6 +2294,20 @@ namespace hMailServer.ControlPanel.Views
          var pop3 = Card(L("POP3"));
          pop3.Settings.Add(new ComText { Path = "MaxPOP3Connections", Label = L("Maximum simultaneous connections (0 = no limit)"), Numeric = true });
          pop3.Settings.Add(new ComText { Path = "WelcomePOP3", Label = L("Welcome banner (empty = default)") });
+         // The PROXY protocol on this listener, as on the IMAP card above.
+         pop3.Settings.Add(new ComBool
+         {
+            Path = "POP3ProxyProtocolEnabled",
+            Label = L("Accept the PROXY protocol (v1 and v2) on the POP3 listener"),
+            Blurb = L("Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client. The header is then required from a named proxy, and a PROXY line from anyone else closes the connection.")
+         });
+         pop3.Settings.Add(new ComText
+         {
+            Path = "POP3ProxyProtocolTrustedIPs",
+            Label = L("Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)"),
+            Placeholder = "10.0.0.5, 192.168.10.0/24", // no-loc
+            Blurb = L("Empty means nobody, which is the safe default. Matched against the real TCP peer. An entry that does not parse matches nothing rather than everything, and is reported in the error log once per run.")
+         });
          Tab(L("POP3")).Cards.Add(pop3);
 
          // RFC 2449 LOGIN-DELAY. On the POP3 page rather than the ini page because

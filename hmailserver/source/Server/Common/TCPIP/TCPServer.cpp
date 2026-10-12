@@ -22,6 +22,9 @@
 
 #include "../Util/CountryBlocking.h"
 
+#include "../../IMAP/IMAPConfiguration.h"
+#include "../../POP3/POP3Configuration.h"
+
 #include "../Util/Encoding/Base64.h"
 
 #include "SslContextInitializer.h"
@@ -115,6 +118,49 @@ namespace HM
          default:
             return CountryBlocking::SurfaceHttp;
          }
+      }
+
+      // Whether a connection of this session type from this peer must open with
+      // a PROXY protocol header: the listener's own switch is on, and the peer is
+      // on the listener's own trusted list. SMTP's pair is in the [Settings] store
+      // (SMTPProxyProtocolEnabled, SMTPProxyProtocolTrustedIPs); IMAP's and POP3's
+      // are database settings of their own (IMAPProxyProtocolEnabled and the rest,
+      // Constants.h), so that a peer trusted to name the clients of one protocol
+      // is not thereby trusted to name those of another. The list is read only
+      // when the switch is on, and an empty one trusts nobody.
+      bool ProxyProtocolExpectedFrom_(SessionType sessionType, const IPAddress &peer)
+      {
+         bool enabled = false;
+         String trusted;
+
+         switch (sessionType)
+         {
+         case STSMTP:
+            enabled = IniFileSettings::Instance()->GetSMTPProxyProtocolEnabled();
+            if (enabled)
+               trusted = IniFileSettings::Instance()->GetSMTPProxyProtocolTrustedIPs();
+            break;
+         case STIMAP:
+            {
+               std::shared_ptr<IMAPConfiguration> imap = Configuration::Instance()->GetIMAPConfiguration();
+               enabled = imap && imap->GetIMAPProxyProtocolEnabled();
+               if (enabled)
+                  trusted = imap->GetIMAPProxyProtocolTrustedIPs();
+            }
+            break;
+         case STPOP3:
+            {
+               std::shared_ptr<POP3Configuration> pop3 = Configuration::Instance()->GetPOP3Configuration();
+               enabled = pop3 && pop3->GetPOP3ProxyProtocolEnabled();
+               if (enabled)
+                  trusted = pop3->GetPOP3ProxyProtocolTrustedIPs();
+            }
+            break;
+         default:
+            return false;
+         }
+
+         return enabled && TrustedProxyList::Matches(trusted, peer);
       }
    }
 
@@ -558,21 +604,20 @@ namespace HM
 
          connection->SetSecurityRange(securityRange);
 
-         // PROXY protocol (HAProxy) for the SMTP listener: when enabled and
-         // the peer - the address this TCP connection ACTUALLY comes from,
-         // never one any header supplied - is on the administrator's trusted
-         // proxy list, the connection must begin with a PROXY protocol v1/v2
-         // header, which Start() consumes before the TLS handshake and before
-         // any greeting and uses to install the real client's address. Off by
-         // default, and the trusted list defaults to empty: a peer that may
-         // rewrite its own source address has defeated every IP-based control
-         // on this server, so nothing is trusted until it is named here.
-         if (sessionType_ == STSMTP &&
-             IniFileSettings::Instance()->GetSMTPProxyProtocolEnabled() &&
-             TrustedProxyList::Matches(IniFileSettings::Instance()->GetSMTPProxyProtocolTrustedIPs(), remoteAddress))
-         {
+         // PROXY protocol (HAProxy) for the SMTP, IMAP and POP3 listeners:
+         // when the listener's switch is on and the peer - the address this
+         // TCP connection ACTUALLY comes from, never one any header supplied -
+         // is on that listener's trusted proxy list, the connection must begin
+         // with a PROXY protocol v1/v2 header, which Start() consumes before the
+         // TLS handshake and before any greeting and uses to install the real
+         // client's address. Off by default, and every trusted list defaults to
+         // empty: a peer that may rewrite its own source address has defeated
+         // every IP-based control on this server, so nothing is trusted until it
+         // is named here. Until 6.3.7 only the SMTP listener read the header, and
+         // behind a balancer every IMAP and POP3 client had the balancer's
+         // address - for the IP ranges, the auto-ban and the account's devices.
+         if (ProxyProtocolExpectedFrom_(sessionType_, remoteAddress))
             connection->SetProxyProtocolExpected(sessionType_);
-         }
 
          // Now TCPConnection is responsible for decreasing the session count when the connection ends:
          // its destructor releases a slot for every connection past StatePendingConnect, which Start()

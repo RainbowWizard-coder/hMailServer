@@ -10,8 +10,9 @@ two nodes do to each other today.
 Run it **on server2**, as a member of the docker group, from a copy of the tree
 (`/home/chris/hmlab/agent/<name>/src`, with a `.commit` file naming what it is).
 Nothing needs sudo, nothing listens on the host, and everything it makes is named
-`hmlab-p-aa-*`: the owner's own containers and `hmlab-runner` (the GitLab runner) are
-never touched. `aa-lab.sh` with no command prints its usage.
+`hmlab-p-aa-*`, or `$AA_PREFIX-*` for a lab of a unit's own beside the planner's (with
+an `AA_HOME` of its own too): the owner's own containers and `hmlab-runner` (the
+GitLab runner) are never touched. `aa-lab.sh` with no command prints its usage.
 
 What it is made of
 ------------------
@@ -22,8 +23,9 @@ What it is made of
 | `hmlab-p-aa-minio` | The object store, behind the lab's own CA, with the bucket `hmlab-aa` | back |
 | `hmlab-p-aa-node1` ... `-nodeN` | The Linux server built from the tree (`aa-lab.sh build`, clang, in the CI image), one per container, on database `hmlab_aa`. node1 lays the database out with the server's own `--create-database`; the others join it as it is | back and front |
 | `hmlab-p-aa-sink` | A remote mail server that takes every message and remembers it (`sink.py`): the route for `sink.test` sends there. It can be slow (`AA_SINK_DATA_DELAY_MS`) or answer every Nth message 451 (`AA_SINK_TEMPFAIL_EVERY`) | front |
-| `hmlab-p-aa-balancer` | HAProxy, round robin, with the PROXY protocol v2 to SMTP (`haproxy.cfg`) | front |
+| `hmlab-p-aa-balancer` | HAProxy, round robin, with the PROXY protocol v2 to SMTP, IMAP and POP3 (`haproxy.cfg`); to SMTP alone with `AA_PROXY_MAIL=0`, for a tree before unit AA-23 | front |
 | `hmlab-p-aa-load` | The load (`aa-load.py send`): numbered messages, each with `X-AA-Seq`, straight to the nodes (with a PROXY v1 header, which a node wants from the front network) or through the balancer | front |
+| `hmlab-p-aa-client-a`, `-client-b` | Two clients behind the balancer, each with an address of its own, for the `proxy` scenario (`aa-load.py logon`) | front |
 
 The databases are reached only on the back network; no port is published on the
 host. The credentials are generated once into `~/hmlab/aa/secrets.env` (mode 600)
@@ -48,6 +50,7 @@ bash build/lab/active-active/aa-lab.sh nodes <db> [n] [--shared-data]
 bash build/lab/active-active/aa-lab.sh load <tag> <count> <to> [hosts]
 bash build/lab/active-active/aa-lab.sh check <tag> | queue | imap <account> | errors
 bash build/lab/active-active/aa-lab.sh fault kill|freeze|thaw|cutdb|heal|restart <node>
+bash build/lab/active-active/aa-lab.sh proxy                # unit AA-23: whom the auto-ban bans behind the balancer
 bash build/lab/active-active/aa-lab.sh down [all]           # 'all' takes the databases and the networks too
 ```
 
@@ -216,6 +219,33 @@ Scenarios the units add
 Each unit of Programme B adds its scenario here, as a command of `aa-lab.sh` or a
 script beside it, and records its result in its commit message. The scenarios, and
 what each must show, are listed in ActiveActive.md under "How it would be tested".
+
+### Unit AA-23: the client behind the balancer (`proxy`)
+
+`aa-lab.sh proxy`, on the nodes and the balancer that run. Since unit AA-23 the
+IMAP and POP3 listeners read the PROXY protocol as SMTP's does, from the peers on
+lists of their own; the nodes trust the front network for all three (node.sh
+writes the four `hm_settings` rows when it lays the database out, before any node
+starts), and the balancer sends version 2 to all three. Two clients behind the
+balancer, A and B, are containers with addresses of their own. With the auto-ban on
+every node at three failures, A fails three IMAP logons through the balancer; the
+auto-ban ranges are read, and B and then A sign in once each. The same follows over
+POP3, as other accounts, after the bans and the failures are cleared.
+
+Measured on 13 October 2026 with two nodes of the unit's build
+(`~/hmlab/aa/results/aa23-lab-*.log` on server2):
+
+| | PostgreSQL 17.11 | MariaDB 11.8.9 | MySQL 8.4.11 | PostgreSQL and MySQL, `AA_PROXY_MAIL=0` (IMAP and POP3 as before AA-23) |
+|---|---|---|---|---|
+| IMAP: the address the auto-ban range names | client A alone | client A alone | client A alone | **the balancer** |
+| IMAP: client B, who failed nothing, signs in | yes | yes | yes | **no** |
+| IMAP: client A signs in with the right password | no, closed at its header | no | no | no |
+| POP3: the same three | A alone; B yes; A no | A alone; B yes; A no | A alone; B yes; A no | **the balancer; B no**; A no |
+
+Without the header every client behind the balancer is the balancer, so one
+client's three wrong passwords shut out every other client for the length of the
+ban. The country policy and `OnClientConnect` are still asked about the balancer,
+at the accept; this scenario does not cover them.
 
 What it cannot show yet
 -----------------------

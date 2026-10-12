@@ -137,6 +137,8 @@ HelpWikiBaseUrl server
 hostname server
 IMAPHierarchyDelimiter server
 ImapMasterUser server
+IMAPProxyProtocolEnabled server
+IMAPProxyProtocolTrustedIPs server
 imappublicfoldername server
 ImportOAuthGoogleAuthorizeUrl server
 ImportOAuthGoogleClientId server
@@ -207,6 +209,8 @@ OutboundBackoffMinutes server
 PasskeyAllowedOrigins server
 PasskeyRelyingParty server
 PasskeysEnabled server
+POP3ProxyProtocolEnabled server
+POP3ProxyProtocolTrustedIPs server
 ProtectedMessageDays server
 protocolimap server
 protocolpop3 server

@@ -298,6 +298,11 @@ namespace RegressionTests.Shared
          if (!string.IsNullOrEmpty(_settings.IMAPMasterUser))
             _settings.IMAPMasterUser = string.Empty;
 
+         // The PROXY protocol on the IMAP and POP3 listeners off, with nobody trusted:
+         // left on with this machine trusted, every later IMAP or POP3 connection would
+         // wait for a header before the greeting (IMAP\ProxyProtocol.cs).
+         ProxyProtocolClient.TurnOffImapAndPop3(_settings);
+
          if (!string.IsNullOrEmpty(_settings.SslCipherList))
          {
             restartRequired = true;

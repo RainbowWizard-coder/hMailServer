@@ -837,6 +837,23 @@ namespace
         "Whether the ACL extension is offered.",
         ROW_FLAG(Imap()->GetUseIMAPACL()), ROW_SET(Imap()->SetUseIMAPACL(v.flag)), ROW_NO_CHECK },
 
+      // The PROXY protocol on the IMAP and POP3 listeners. SMTP's switch and list
+      // are [Settings] keys, SMTPProxyProtocolEnabled and SMTPProxyProtocolTrustedIPs.
+      { "imap_proxy_protocol_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether the IMAP listeners take the client address from a PROXY protocol header, version 1 or 2, sent by a peer on imap_proxy_protocol_trusted_ips. Off by default. While it is on, a listed peer must open every connection with the header, and a PROXY line from any other peer closes its connection.",
+        ROW_FLAG(Imap()->GetIMAPProxyProtocolEnabled()), ROW_SET(Imap()->SetIMAPProxyProtocolEnabled(v.flag)), ROW_NO_CHECK },
+      { "imap_proxy_protocol_trusted_ips", KindString, ReadWrite, EffectNow, nullptr,
+        "The peers allowed to send the IMAP listeners a PROXY protocol header: addresses and CIDR ranges, comma separated, matched against the connection's real peer. Empty trusts nobody. An entry that does not parse matches nothing, and is reported in the error log once per run.",
+        ROW_TEXT(Imap()->GetIMAPProxyProtocolTrustedIPs()),
+        [] (const Value &v) { String list = v.text; list.Trim(); Imap()->SetIMAPProxyProtocolTrustedIPs(list); return Applied(); }, ROW_NO_CHECK },
+      { "pop3_proxy_protocol_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether the POP3 listeners take the client address from a PROXY protocol header, version 1 or 2, sent by a peer on pop3_proxy_protocol_trusted_ips. Off by default. While it is on, a listed peer must open every connection with the header, and a PROXY line from any other peer closes its connection.",
+        ROW_FLAG(Pop3()->GetPOP3ProxyProtocolEnabled()), ROW_SET(Pop3()->SetPOP3ProxyProtocolEnabled(v.flag)), ROW_NO_CHECK },
+      { "pop3_proxy_protocol_trusted_ips", KindString, ReadWrite, EffectNow, nullptr,
+        "The peers allowed to send the POP3 listeners a PROXY protocol header: addresses and CIDR ranges, comma separated, matched against the connection's real peer. Empty trusts nobody. An entry that does not parse matches nothing, and is reported in the error log once per run.",
+        ROW_TEXT(Pop3()->GetPOP3ProxyProtocolTrustedIPs()),
+        [] (const Value &v) { String list = v.text; list.Trim(); Pop3()->SetPOP3ProxyProtocolTrustedIPs(list); return Applied(); }, ROW_NO_CHECK },
+
       // The auto-ban.
       { "auto_ban_on_logon_failure", KindBoolean, ReadWrite, EffectNow, nullptr,
         "Whether an address is banned after repeated failed logons.",
