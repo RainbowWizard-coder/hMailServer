@@ -4651,7 +4651,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   flag change on a message another session had just added was reported before the message itself.** The server
   tells every session of a change but the one that made it, and `COPY` and `UID COPY` - unlike `APPEND` and `MOVE` -
   said nothing of their own, so the client saw neither the copies nor a count that held them until it selected the
-  folder again; they are now reported with `EXISTS` and `RECENT` before the `OK`, and are the session's `\Recent`.
+  folder again; they are now reported with `EXISTS` and `RECENT` before the `OK`, and are the session's `\Recent` -
+  but for a session that has the folder open with `EXAMINE`, which takes no message's `\Recent` (RFC 3501 6.3.2), so
+  that the copies stay `\Recent` for the next session to select the folder.
   And what other sessions did was reported with the flag changes first, so a `FETCH` gave the client the number of a
   message past the end of the mailbox it knew; the `EXISTS` comes first now. `EXPUNGE` and `UID EXPUNGE`, which
   take into the session's view any message it has not been told of yet, say so with an `EXISTS` before an `EXPUNGE`

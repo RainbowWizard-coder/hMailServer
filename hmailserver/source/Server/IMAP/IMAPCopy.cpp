@@ -160,15 +160,22 @@ namespace HM
       // At the end of the view, so the numbers the session knows are unchanged.
       view->AppendNewMessages(messages);
 
-      for (__int64 copyId : copied_message_ids_)
+      // A read-only session (EXAMINE) claims nothing, as a notification of new mail
+      // does not make it claim (IMAPNotificationClient::ClaimRecentMessages_): the
+      // copies keep their \Recent for the first session to select the folder for
+      // writing, which RFC 3501 6.3.2 says an EXAMINE must leave them.
+      if (!pConnection->GetCurrentFolderReadOnly())
       {
-         pConnection->AddRecentMessage(copyId);
+         for (__int64 copyId : copied_message_ids_)
+         {
+            pConnection->AddRecentMessage(copyId);
 
-         // Claimed here, so off the shared collection: another session with the
-         // folder open must not report the same message as \Recent too.
-         std::shared_ptr<Message> copy = messages->GetItemByDBID((unsigned __int64) copyId);
-         if (copy)
-            copy->SetFlagRecent(false);
+            // Claimed here, so off the shared collection: another session with the
+            // folder open must not report the same message as \Recent too.
+            std::shared_ptr<Message> copy = messages->GetItemByDBID((unsigned __int64) copyId);
+            if (copy)
+               copy->SetFlagRecent(false);
+         }
       }
 
       return IMAPNotificationClient::GenerateExistsString(view->GetMessageCount()) +

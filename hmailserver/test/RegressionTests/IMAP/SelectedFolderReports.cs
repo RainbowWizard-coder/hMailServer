@@ -89,6 +89,36 @@ namespace RegressionTests.IMAP
       }
 
       [Test]
+      [Description("COPY into a folder the session has open with EXAMINE is reported to it as well, and leaves " +
+                   "the copy's \\Recent for the first session to select the folder for writing: an EXAMINE must " +
+                   "not take \\Recent away (RFC 3501 6.3.2), and a notification of new mail does not make a " +
+                   "read-only session claim it. The read-only session claimed the copy, and no session that " +
+                   "selected the folder was ever told it was recent.")]
+      public void CopyIntoAFolderOpenWithExamineLeavesItsRecent()
+      {
+         var examiner = new ImapClientSimulator();
+         Assert.IsTrue(examiner.ConnectAndLogon(_account.Address, "test"));
+         StringAssert.Contains("A20 OK", examiner.ExamineFolder("INBOX"));
+
+         string copy = examiner.SendSingleCommand("A01 COPY 1 INBOX");
+         AssertExistsBeforeTheTaggedOk(copy, "* 2 EXISTS", "A01");
+
+         string examinerRecent = examiner.SendSingleCommand("A02 SEARCH RECENT");
+         CollectionAssert.DoesNotContain(SearchResult(examinerRecent), "2",
+            "The read-only session took the copy's \\Recent: " + examinerRecent);
+
+         examiner.Disconnect();
+
+         var selector = SelectInbox();
+
+         string recent = selector.SendSingleCommand("A03 SEARCH RECENT");
+         CollectionAssert.Contains(SearchResult(recent), "2",
+            "The copy made in a read-only session is not \\Recent to the first session to select the folder: " + recent);
+
+         selector.Disconnect();
+      }
+
+      [Test]
       [Description("UID COPY into the selected folder answers \"* 2 EXISTS\" before its OK, as COPY does.")]
       public void UidCopyIntoTheSelectedFolderIsReportedToTheSessionThatMadeIt()
       {

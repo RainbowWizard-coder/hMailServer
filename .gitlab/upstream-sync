@@ -317,7 +317,9 @@
 #     NotifyFolderChange, IMAPConnection.cpp:1008-1012, now holds it back for both;
 #     upstream held COPY alone); a COPY or UID COPY into the selected folder never
 #     reported to the session that made it (IMAPCopy::
-#     ReportCopiesInTheSelectedFolder, as APPEND and MOVE report theirs); the
+#     ReportCopiesInTheSelectedFolder, as APPEND and MOVE report theirs, and
+#     claiming no \Recent in a session that has the folder open with EXAMINE,
+#     as IMAPNotificationClient::ClaimRecentMessages_ claims none there); the
 #     flag changes of other sessions sent before the EXISTS of the messages they
 #     were for (IMAPNotificationClient::SendCachedNotifications); and EXPUNGE and
 #     UID EXPUNGE taking new messages into the view with no EXISTS before an
