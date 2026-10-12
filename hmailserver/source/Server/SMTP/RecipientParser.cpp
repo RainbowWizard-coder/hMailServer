@@ -112,7 +112,7 @@ namespace HM
          // SRS reverse at RCPT time: a signed SRS0 bounce address at a local
          // domain is decoded to the original sender so the bounce can be relayed
          // back. The HMAC signature ensures only addresses this server generated
-         // are reversible, so this does not create an open relay.
+         // are reversible.
          if (pDomain && pDomain->GetIsActive() &&
              IniFileSettings::Instance()->GetSRSEnabled() &&
              SRS::IsSRS0(primaryAddressWithoutPlusaddressing))
@@ -120,10 +120,13 @@ namespace HM
             String originalSender;
             if (SRS::Reverse(primaryAddressWithoutPlusaddressing, IniFileSettings::Instance()->GetSRSSecret(), originalSender))
             {
-               // The valid SRS signature authorizes relaying this bounce back to
-               // the original sender, so treat it like inbound local delivery
-               // (no SMTP authentication / relay restriction is imposed).
-               bTreatSecurityAsLocal = true;
+               // A bounce - a null reverse-path (RFC 5321 4.5.5) - is passed back
+               // to the original sender as inbound local delivery is, with no SMTP
+               // authentication or relay restriction, because that is the one thing
+               // the address was handed out for. Anything else sent to it is mail
+               // for an outside address and is held to the relay rules like any
+               // other (upstream PR 649).
+               bTreatSecurityAsLocal = sSender.IsEmpty();
                recipientAddress = originalSender;
                continue;
             }

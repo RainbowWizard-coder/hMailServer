@@ -427,6 +427,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   64 KiB of blanks after it. Found by the project's own review. [SecretsAtRest.md](hmailserver/docs/SecretsAtRest.md),
   "Carrying it to another node".
 
+- **Fixed: with SRS on, mail to an SRS address this server had handed out was not held to the relay rules.** The
+  Sender Rewriting Scheme (`SRSEnabled`, off by default) gives a message forwarded to the outside a Return-Path
+  `SRS0=...@` one of this server's domains, signed so that no one can make one up, and a bounce to that address is
+  passed back to the original sender. Every message to a valid address was taken as delivery to a local recipient, not
+  only a bounce (from 6.2.1, which brought SRS). Only a bounce, with a null reverse-path (RFC 5321 4.5.5), is taken so
+  now; anything else sent to the address is mail for the original sender's domain and is held to the relay rules like
+  any other. `SMTP/Srs.cs` holds both. Found by upstream's review of its own SRS (upstream PR 649), which shared the
+  shape.
+
 ### Correctness
 
 - **Fixed: a ManageSieve refusal that quoted a script's text with a line break in it was split in two.** RFC 5804's

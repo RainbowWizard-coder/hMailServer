@@ -100,6 +100,75 @@ namespace RegressionTests.SMTP
          }
       }
 
+      [Test]
+      [Description("An SRS0 address this server handed out is followed back to the original sender, as local " +
+                   "delivery, for a bounce only. Mail to it with a reverse-path of its own is mail for an outside " +
+                   "address and is held to the relay rules (upstream PR 649). It was taken as local delivery " +
+                   "whatever the sender.")]
+      public void TestSrsAddressRelaysOnlyBounces()
+      {
+         var range = _application.Settings.SecurityRanges.get_ItemByName("My computer");
+         bool requiredExternalToExternal = range.RequireSMTPAuthExternalToExternal;
+
+         try
+         {
+            WriteSetting("SRSEnabled", "1");
+            WriteSetting("SRSSecret", "regression-srs-secret");
+            _application.Reinitialize();
+
+            var forwarder = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "srsrelayfwd@example.test", "test");
+            var destination = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "srsrelaydest@example.test", "test");
+
+            forwarder.ForwardAddress = destination.Address;
+            forwarder.ForwardEnabled = true;
+            forwarder.Save();
+
+            // The Return-Path of a forwarded message is the address in question.
+            SmtpClientSimulator.StaticSend("alice@external-sender.example", forwarder.Address, "SRS relay test", "Body");
+            _application.SubmitEMail();
+
+            string returnPath = ExtractReturnPath(Pop3ClientSimulator.AssertGetFirstMessageText(destination.Address, "test"));
+            Assert.IsNotNull(returnPath);
+            Assert.IsTrue(returnPath.StartsWith("SRS0="), "The forwarded message's sender was not rewritten: " + returnPath);
+
+            // The client is this machine, sending as nobody hosted here to an address that
+            // reverses to one outside: external to external, which now needs a sign-in.
+            range.RequireSMTPAuthExternalToExternal = true;
+            range.Save();
+
+            var socket = new TcpConnection();
+            Assert.IsTrue(socket.Connect(25));
+            Assert.IsTrue(socket.Receive().StartsWith("220"));
+            socket.Send("HELO example.com\r\n");
+            Assert.IsTrue(socket.Receive().StartsWith("250"));
+
+            Assert.IsTrue(socket.SendAndReceive("MAIL FROM:<mallory@attacker.example>\r\n").StartsWith("250"));
+            var relayRcpt = socket.SendAndReceive("RCPT TO:<" + returnPath + ">\r\n");
+            // 530 asks for the sign-in; 550 would be a range that refuses the relay outright.
+            Assert.IsTrue(relayRcpt.StartsWith("530") || relayRcpt.StartsWith("550"),
+               "Mail with a sender of its own to an SRS address must be held to the relay rules. Got: " + relayRcpt);
+
+            // A bounce to the same address is still taken, unauthenticated, as before.
+            Assert.IsTrue(socket.SendAndReceive("RSET\r\n").StartsWith("250"));
+            Assert.IsTrue(socket.SendAndReceive("MAIL FROM:<>\r\n").StartsWith("250"));
+            var bounceRcpt = socket.SendAndReceive("RCPT TO:<" + returnPath + ">\r\n");
+            Assert.IsTrue(bounceRcpt.StartsWith("250"),
+               "A bounce to a valid SRS address must still be accepted. Got: " + bounceRcpt);
+
+            socket.Send("QUIT\r\n");
+            socket.Disconnect();
+         }
+         finally
+         {
+            range.RequireSMTPAuthExternalToExternal = requiredExternalToExternal;
+            range.Save();
+
+            WriteSetting("SRSEnabled", "0");
+            WriteSetting("SRSSecret", "");
+            _application.Reinitialize();
+         }
+      }
+
       private static string TamperSrsHash(string srsAddress)
       {
          // The hash is the first field after the "SRS0=" prefix; flip its first char.
