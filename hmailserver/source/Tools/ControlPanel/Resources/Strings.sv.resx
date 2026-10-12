@@ -111,8 +111,8 @@
   <data name="0 disables auto-ban entirely, even with the box above ticked." xml:space="preserve">
     <value>0 stänger av automatisk spärr helt, även med rutan ovan ikryssad.</value>
   </data>
-  <data name="0 emits no expiry at all, which is the safe default: an expiry is a promise about mail already in flight, and a window shorter than the delay a retry, a greylist or a mailing list adds costs the message its DKIM pass and its DMARC alignment at the far end. 604,800 is a week, the usual choice for a sender who wants one. A signing timestamp is always sent regardless of this value." xml:space="preserve">
-    <value>0 skickar ingen utgångstid alls, vilket är det säkra standardvärdet: en utgångstid är ett löfte om post som redan är på väg, och ett fönster kortare än den fördröjning ett omförsök, en gråstlista eller en sändlista lägger till kostar meddelandet dess DKIM-godkännande och dess DMARC-justering i andra änden. 604 800 är en vecka, det vanliga valet för en avsändare som vill ha en. En signeringstidsstämpel skickas alltid oavsett det här värdet.</value>
+  <data name="0 emits no expiry at all, which is the safe default: an expiry is a promise about mail already in flight, and a window shorter than the delay a retry, a greylist or a mailing list adds costs the message its DKIM pass and its DMARC alignment at the far end. 604,800 is a week, the usual choice for a sender who wants one." xml:space="preserve">
+    <value>0 skickar ingen utgångstid alls, vilket är det säkra standardvärdet: en utgångstid är ett löfte om post som redan är på väg, och ett fönster kortare än den fördröjning ett omförsök, en gråstlista eller en sändlista lägger till kostar meddelandet dess DKIM-godkännande och dess DMARC-justering i andra änden. 604 800 är en vecka, det vanliga valet för en avsändare som vill ha en.</value>
   </data>
   <data name="0 is the shipped default and disables the whole mechanism." xml:space="preserve">
     <value>0 är standardvärdet vid leverans och stänger av hela mekanismen.</value>
@@ -129,14 +129,14 @@
   <data name="0 keeps the entry until it is removed." xml:space="preserve">
     <value>0 behåller posten tills den tas bort.</value>
   </data>
-  <data name="0 means archives are never deleted. Retention runs on the server after every backup into this folder - scheduled or started by hand with Start backup now - and only once the new archive has been written and verified readable, so a failed backup never deletes anything. The newest archive is never deleted, the age limit always leaves the two newest alone, and only this server's own HMBackup archives are counted - other files in the folder are never touched." xml:space="preserve">
-    <value>0 betyder att arkiv aldrig tas bort. Gallringen körs på servern efter varje säkerhetskopiering till den här mappen - schemalagd eller startad för hand med Starta säkerhetskopiering nu - och först när det nya arkivet har skrivits och verifierats läsbart, så en misslyckad säkerhetskopiering tar aldrig bort något. Det nyaste arkivet tas aldrig bort, åldersgränsen lämnar alltid de två nyaste i fred, och bara den här serverns egna HMBackup-arkiv räknas - andra filer i mappen rörs aldrig.</value>
+  <data name="0 means archives are never deleted. The newest archive is never deleted, the age limit always leaves the two newest alone, and only this server's own HMBackup archives are counted - other files in the folder are never touched." xml:space="preserve">
+    <value>0 betyder att arkiv aldrig tas bort. Det nyaste arkivet tas aldrig bort, åldersgränsen lämnar alltid de två nyaste i fred, och bara den här serverns egna HMBackup-arkiv räknas - andra filer i mappen rörs aldrig.</value>
   </data>
   <data name="0 means the connection is dropped but no range is created, so the address is not actually banned." xml:space="preserve">
     <value>0 betyder att anslutningen bryts men inget intervall skapas, så adressen spärras egentligen inte.</value>
   </data>
-  <data name="0 switches the schedule off, which is the default and is what every existing installation stays at. Values between 1 and 14 are treated as 15, and anything over a week as a week. This one needs a service restart: the task is registered when the server starts." xml:space="preserve">
-    <value>0 stänger av schemat, vilket är standard och vad varje befintlig installation stannar vid. Värden mellan 1 och 14 behandlas som 15, och allt över en vecka som en vecka. Den här kräver en omstart av tjänsten: uppgiften registreras när servern startar.</value>
+  <data name="0 switches the schedule off, which is the default and is what every existing installation stays at. This one needs a service restart: the task is registered when the server starts." xml:space="preserve">
+    <value>0 stänger av schemat, vilket är standard och vad varje befintlig installation stannar vid. Den här kräver en omstart av tjänsten: uppgiften registreras när servern startar.</value>
   </data>
   <data name="0, keep everything, by default. Removing the oldest rows starts the chain again at the oldest row kept." xml:space="preserve">
     <value>0, behåll allt, som standard. När de äldsta raderna tas bort börjar kedjan om vid den äldsta rad som finns kvar.</value>
@@ -228,8 +228,8 @@
   <data name="180 by default. A suppression list entry a complaint made keeps its own expiry, set with the bounces." xml:space="preserve">
     <value>180 som standard. En post på spärrlistan som ett klagomål skapade behåller sin egen utgångstid, som ställs in med studsarna.</value>
   </data>
-  <data name="2 is mail, which is where a mail server's lines belong and what a collector's mail.* rule already matches. 16 to 23 are local0 to local7, for a site that files its own applications there. 0 is kernel and should not be used." xml:space="preserve">
-    <value>2 är mail, dit en e-postservers rader hör hemma och vad en insamlares mail.*-regel redan matchar. 16 till 23 är local0 till local7, för en plats som sorterar sina egna program där. 0 är kernel och bör inte användas.</value>
+  <data name="2 is mail, which is where a mail server's lines belong and what a collector's mail.* rule already matches. 0 is kernel and should not be used." xml:space="preserve">
+    <value>2 är mail, dit en e-postservers rader hör hemma och vad en insamlares mail.*-regel redan matchar. 0 är kernel och bör inte användas.</value>
   </data>
   <data name="2.  Or enter the setup key shown below by hand." xml:space="preserve">
     <value>2.  Eller ange inställningsnyckeln nedan för hand.</value>
@@ -456,8 +456,8 @@
   <data name="A folder's name can be at most {0} characters long." xml:space="preserve">
     <value>Ett mappnamn kan vara högst {0} tecken långt.</value>
   </data>
-  <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
-    <value>En marginal för inkommande post: en brevlåda som är över sin gräns med mindre än detta tar fortfarande emot, så att den som är borta en vecka inte förlorar post för att en stor bilaga kom på måndagen. Ägarens egna sparningar och kopior stannar vid själva gränsen. Varje domän kan sätta sin egen. Gäller genast.</value>
+  <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. Each domain may set its own." xml:space="preserve">
+    <value>En marginal för inkommande post: en brevlåda som är över sin gräns med mindre än detta tar fortfarande emot, så att den som är borta en vecka inte förlorar post för att en stor bilaga kom på måndagen. Varje domän kan sätta sin egen.</value>
   </data>
   <data name="A group exists so that several accounts can be given the same rights at once - grant the group access to a public folder under Public folders, and every account listed here gets that access. An empty group grants nothing to anyone." xml:space="preserve">
     <value>En grupp finns för att flera konton ska kunna ges samma rättigheter på en gång - ge gruppen åtkomst till en publik mapp under Publika mappar, så får varje konto som listas här den åtkomsten. En tom grupp ger ingen något.</value>
@@ -494,9 +494,6 @@
   </data>
   <data name="A mail client signs in with a password, and from any address but this computer's the password should cross the network only inside TLS." xml:space="preserve">
     <value>Ett e-postprogram loggar in med ett lösenord, och från alla adresser utom den här datorns bör lösenordet bara färdas över nätverket inuti TLS.</value>
-  </data>
-  <data name="A mail server usually starts with the rest of the machine, and on a machine where the database service starts second, the first few attempts fail. Together with the delay below this is the whole window: six attempts five seconds apart is half a minute. Lengthen it rather than delaying the service if the database is on another host that is slower to come up." xml:space="preserve">
-    <value>En e-postserver startar oftast med resten av datorn, och på en dator där databastjänsten startar efteråt misslyckas de första försöken. Tillsammans med fördröjningen nedan är detta hela fönstret: sex försök med fem sekunders mellanrum är en halv minut. Förläng det hellre än att fördröja tjänsten om databasen ligger på en annan värd som är långsammare att komma upp.</value>
   </data>
   <data name="A marked message is changed in no visible way: no X-hMailServer-Spam header, no reason header and no subject prefix, so a mail client has nothing to file on. The internal spam flag is still set, which suppresses auto-replies and forwarding for accounts configured that way." xml:space="preserve">
     <value>Ett markerat meddelande ändras inte på något synligt sätt: inget X-hMailServer-Spam-huvud, inget orsakshuvud och inget ämnesprefix, så en e-postklient har inget att sortera på. Den interna skräppostflaggan sätts ändå, vilket undertrycker autosvar och vidarebefordran för konton som konfigurerats så.</value>
@@ -734,6 +731,9 @@
   </data>
   <data name="A way back from a profile is held and cannot be read, so it cannot be put back. Discard it to apply a profile; the audit trail names each value the profile replaced." xml:space="preserve">
     <value>En väg tillbaka från en profil är sparad men kan inte läsas, så den kan inte återställas. Kassera den för att tillämpa en profil; granskningsloggen nämner varje värde som profilen ersatte.</value>
+  </data>
+  <data name="A zero-access mailbox is encrypted to the person's own key: this server can no longer read, search, export or recover its mail, and a forgotten password without the recovery key loses it. Allowing it switches nobody on." xml:space="preserve">
+    <value>En nollåtkomstbrevlåda krypteras till personens egen nyckel: den här servern kan inte längre läsa, söka i, exportera eller återställa dess post, och ett glömt lösenord utan återställningsnyckeln förlorar den. Att tillåta det slår inte på det för någon.</value>
   </data>
   <data name="ACL (shared folder permissions)" xml:space="preserve">
     <value>ACL (behörigheter för delade mappar)</value>
@@ -1281,8 +1281,8 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Adds" xml:space="preserve">
     <value>Lägger till</value>
   </data>
-  <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
-    <value>Lägger till ARC-sigill på vidarebefordrad post så att servrar längre fram kan lita på de ursprungliga autentiseringsresultaten (RFC 8617). Förseglingen lånar den vidarebefordrande domänens DKIM-selektor och privata nyckel, så den kräver minst en hyst domän med DKIM-signering konfigurerad - utan det står strömbrytaren som aktiverad och förseglar ingenting, med bara en felsökningsrad i loggen som säger det. Sidan Konfigurationschecklista kontrollerar dina domäner för detta.</value>
+  <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so." xml:space="preserve">
+    <value>Lägger till ARC-sigill på vidarebefordrad post så att servrar längre fram kan lita på de ursprungliga autentiseringsresultaten (RFC 8617). Förseglingen lånar den vidarebefordrande domänens DKIM-selektor och privata nyckel, så den kräver minst en hyst domän med DKIM-signering konfigurerad - utan det står strömbrytaren som aktiverad och förseglar ingenting, med bara en felsökningsrad i loggen som säger det.</value>
   </data>
   <data name="Adds the entry's score; the default of 100 refuses the message." xml:space="preserve">
     <value>Lägger till postens poäng; standardvärdet 100 avvisar meddelandet.</value>
@@ -1590,9 +1590,6 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="An allowed domain still runs every test and still marks at the mark threshold; a blocked one is refused before a single test runs." xml:space="preserve">
     <value>En tillåten domän går fortfarande igenom varje test och markeras fortfarande vid markeringströskeln; en blockerad avvisas innan ett enda test körs.</value>
   </data>
-  <data name="An archive is usually kept for a legal or contractual reason, and that reason usually applies to particular domains rather than to every domain this server hosts. With a list here a message is archived only when its local sender or one of its recipients belongs to a listed domain, and only the copies for listed domains are made - a listed recipient still gets their copy when the sender's domain is not listed. Matched without regard to case." xml:space="preserve">
-    <value>Ett arkiv hålls oftast av juridiska eller avtalsmässiga skäl, och det skälet gäller oftast vissa domäner snarare än varje domän den här servern hyser. Med en lista här arkiveras ett meddelande bara när dess lokala avsändare eller någon av dess mottagare hör till en listad domän, och bara kopiorna för listade domäner görs - en listad mottagare får fortfarande sin kopia när avsändarens domän inte är listad. Matchas utan hänsyn till skiftläge.</value>
-  </data>
   <data name="An authenticated session may only send as an address its account owns or has been granted" xml:space="preserve">
     <value>En autentiserad session får bara skicka som en adress dess konto äger eller har tilldelats</value>
   </data>
@@ -1623,8 +1620,8 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="An older, weaker option: a one-time code asked for after the password when signing in to this Control Panel, checked by the tool itself after the server has already accepted the password. The secret is stored per machine under HKLM, so enabling or disabling it needs local administrator rights, and it does nothing for the REST API or for scripts using the COM API. Prefer the server-enforced factor above; this one remains for existing setups." xml:space="preserve">
     <value>Ett äldre, svagare alternativ: en engångskod som efterfrågas efter lösenordet vid inloggning i den här Kontrollpanelen, kontrollerad av verktyget självt efter att servern redan har godtagit lösenordet. Hemligheten lagras per dator under HKLM, så att aktivera eller inaktivera den kräver lokala administratörsrättigheter, och den gör inget för REST API:et eller för skript som använder COM API:et. Föredra den serverkontrollerade faktorn ovan; den här finns kvar för befintliga installationer.</value>
   </data>
-  <data name="An override replaces the global ceilings for that address; 0:0 exempts it entirely. Without the optional :hours the override uses the global period. A malformed line is ignored with a log entry and the global limit still applies to that account. Comment lines in this INI section are not shown here and are dropped if the list is saved." xml:space="preserve">
-    <value>En åsidosättning ersätter de globala taken för den adressen; 0:0 undantar den helt. Utan det valfria :hours använder åsidosättningen den globala perioden. En felformad rad ignoreras med en loggpost och den globala gränsen gäller fortfarande för det kontot. Kommentarsrader i den här INI-sektionen visas inte här och tas bort om listan sparas.</value>
+  <data name="An override replaces the global ceilings for that address; 0:0 exempts it entirely. Without the optional :hours the override uses the global period." xml:space="preserve">
+    <value>En åsidosättning ersätter de globala taken för den adressen; 0:0 undantar den helt. Utan det valfria :hours använder åsidosättningen den globala perioden.</value>
   </data>
   <data name="An unexpected error occurred:&#10;&#10;{0}&#10;&#10;The full details were written to:&#10;{1}&#10;&#10;Restart the Control Panel now? Without a restart it may carry on, or meet the same error again." xml:space="preserve">
     <value>Ett oväntat fel inträffade:
@@ -1863,9 +1860,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="At delivery, recipient by recipient, after the account's own list and its domain's" xml:space="preserve">
     <value>Vid leverans, mottagare för mottagare, efter kontots egen lista och domänens</value>
-  </data>
-  <data name="At least 12 printable ASCII characters. Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
-    <value>Minst 12 skrivbara ASCII-tecken. Lämna båda fälten tomma för att behålla lösenfrasen som redan är satt. Servern lämnar aldrig tillbaka den - varken till det här programmet eller till någon annan - så förvara den någon annanstans än bredvid säkerhetskopiorna: en återställning frågar efter den, och ur ett arkiv vars lösenfras är borta får ingen ut någonting.</value>
   </data>
   <data name="At least one external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page. There are more accounts on this server than this page walks, so there may be others." xml:space="preserve">
     <value>Minst ett externt POP3-hämtningskonto har antivirus avstängt, så post som hämtas av det levereras oskannad oavsett vad som är satt här. Brytaren finns på hämtningskontot, inte på den här sidan. Det finns fler konton på den här servern än den här sidan går igenom, så det kan finnas fler.</value>
@@ -2281,8 +2275,8 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Bounces and the suppression list" xml:space="preserve">
     <value>Studsar och spärrlistan</value>
   </data>
-  <data name="Bounces and virus notifications are sent from mailer-daemon@&lt;domain&gt;. This overrides the &lt;domain&gt; part. Left empty, the server uses its own host name, then the local domain the message involves, then this computer's name. It is not a delivery setting and does not change where mail is routed." xml:space="preserve">
-    <value>Studsar och virusaviseringar skickas från mailer-daemon@&lt;domain&gt;. Detta åsidosätter delen &lt;domain&gt;. Lämnat tomt använder servern sitt eget värdnamn, sedan den lokala domän meddelandet gäller, sedan den här datorns namn. Det är inte en leveransinställning och ändrar inte vart post dirigeras.</value>
+  <data name="Bounces and virus notifications are sent from mailer-daemon@&lt;domain&gt;. This overrides the &lt;domain&gt; part." xml:space="preserve">
+    <value>Studsar och virusaviseringar skickas från mailer-daemon@&lt;domain&gt;. Detta åsidosätter delen &lt;domain&gt;.</value>
   </data>
   <data name="Browse Active Directory" xml:space="preserve">
     <value>Bläddra i Active Directory</value>
@@ -2443,8 +2437,8 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Ceilings on a single IMAP SEARCH or SORT, measured from the start of the search, so that one client searching a very large mailbox cannot occupy a connection indefinitely. If users with big mailboxes report searches failing or returning nothing, these are the two to raise. Either half can be turned off on its own by setting it to 0." xml:space="preserve">
     <value>Tak för en enskild IMAP SEARCH eller SORT, mätt från sökningens start, så att en klient som söker i en mycket stor brevlåda inte kan uppta en anslutning i all oändlighet. Om användare med stora brevlådor rapporterar att sökningar misslyckas eller inte ger något är det de här två som ska höjas. Vardera halvan kan stängas av för sig genom att sättas till 0.</value>
   </data>
-  <data name="Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these are re-read within a couple of seconds of a change - saving here applies them without a service restart. Counters survive a restart via a state file in the data directory." xml:space="preserve">
-    <value>Tak för vad ett autentiserat konto får lämna in under en rullande period - bromsen mot att ett komprometterat konto används för skräppost. Räknas per konto vid SMTP-inlämning: meddelanden och kuvertmottagare var för sig, och ett meddelande som avvisas av gränsen får ett tillfälligt fel så att en riktig klient försöker igen senare. Till skillnad från resten av den här sidan läses de om inom ett par sekunder efter en ändring - att spara här tillämpar dem utan omstart av tjänsten. Räknarna överlever en omstart via en tillståndsfil i datakatalogen.</value>
+  <data name="Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later." xml:space="preserve">
+    <value>Tak för vad ett autentiserat konto får lämna in under en rullande period - bromsen mot att ett komprometterat konto används för skräppost. Räknas per konto vid SMTP-inlämning: meddelanden och kuvertmottagare var för sig, och ett meddelande som avvisas av gränsen får ett tillfälligt fel så att en riktig klient försöker igen senare.</value>
   </data>
   <data name="Cert_ificate" xml:space="preserve">
     <value>_Certifikat</value>
@@ -2698,8 +2692,8 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Choose what to include and where to write it." xml:space="preserve">
     <value>Välj vad som ska ingå och var det ska skrivas.</value>
   </data>
-  <data name="Chooses the envelope hMailServer puts around the secrets it stores for its own use: machine-scoped Windows DPAPI, which cannot be decrypted on any other machine, or the legacy Blowfish scheme, which can. Leave it on. It does not affect backup and restore - nothing in a backup archive is DPAPI-protected, and a restore re-protects each secret under the destination machine's own setting - so a backup taken here restores onto another machine with this switched on." xml:space="preserve">
-    <value>Väljer det kuvert hMailServer lägger runt de hemligheter den lagrar för eget bruk: maskinbunden Windows DPAPI, som inte kan dekrypteras på någon annan dator, eller det föråldrade Blowfish-schemat, som kan det. Låt den vara på. Det påverkar inte säkerhetskopiering och återställning - inget i ett säkerhetskopiearkiv är DPAPI-skyddat, och en återställning skyddar om varje hemlighet enligt måldatorns egen inställning - så en säkerhetskopia tagen här återställs på en annan dator med detta påslaget.</value>
+  <data name="Chooses the envelope hMailServer puts around the secrets it stores for its own use: machine-scoped Windows DPAPI, which cannot be decrypted on any other machine, or the legacy Blowfish scheme, which can. Leave it on." xml:space="preserve">
+    <value>Väljer det kuvert hMailServer lägger runt de hemligheter den lagrar för eget bruk: maskinbunden Windows DPAPI, som inte kan dekrypteras på någon annan dator, eller det föråldrade Blowfish-schemat, som kan det. Låt den vara på.</value>
   </data>
   <data name="Cipher list for TLS 1.2 and below (OpenSSL format)" xml:space="preserve">
     <value>Chifferlista för TLS 1.2 och äldre (OpenSSL-format)</value>
@@ -4399,11 +4393,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="E_xternal to local" xml:space="preserve">
     <value>Exte_rnt till lokalt</value>
   </data>
-  <data name="Each IMAP folder keeps a counter for the next message UID it will issue. If that counter falls behind the messages already in the folder - which a restored or hand-edited database can do - the folder issues a UID it has already used, and a client that caches by UID shows one message where another should be. This moves every counter up to the highest UID its folder actually holds. It never moves one down, so it cannot cause the fault it repairs." xml:space="preserve">
-    <value>Varje IMAP-mapp har en räknare för nästa meddelande-UID den ska dela ut. Om den räknaren hamnar efter meddelandena som redan finns i mappen - vilket en återställd eller handredigerad databas kan orsaka - delar mappen ut ett UID den redan har använt, och en klient som cachar per UID visar ett meddelande där ett annat borde vara. Detta flyttar varje räknare upp till det högsta UID dess mapp faktiskt innehåller. Det flyttar aldrig en nedåt, så det kan inte orsaka felet det reparerar.</value>
-  </data>
-  <data name="Each accepted inbound message gets one Authentication-Results header (RFC 8601) carrying the SPF, DKIM and DMARC verdicts this server reached about it. Only checks that actually ran are reported - which checks run is configured on the Anti-spam settings page - and a message on which no check ran gets no header. An arriving message that already carries an Authentication-Results header claiming this server's own identity has that header removed first, so a sender cannot have a verdict written in this server's name believed downstream (RFC 8601 section 5)." xml:space="preserve">
-    <value>Varje godtaget inkommande meddelande får en Authentication-Results-rubrik (RFC 8601) som bär de SPF-, DKIM- och DMARC-domar den här servern nådde om det. Bara kontroller som faktiskt kördes rapporteras - vilka kontroller som körs konfigureras på sidan Skräppostinställningar - och ett meddelande där ingen kontroll kördes får ingen rubrik. Ett inkommande meddelande som redan bär en Authentication-Results-rubrik som utger sig för att vara den här serverns egen identitet får den rubriken borttagen först, så att en avsändare inte kan få en dom skriven i den här serverns namn trodd längre fram (RFC 8601 avsnitt 5).</value>
+  <data name="Each accepted inbound message gets one Authentication-Results header (RFC 8601) carrying the SPF, DKIM and DMARC verdicts this server reached about it. Only checks that actually ran are reported - which checks run is configured on the Anti-spam settings page - and a message on which no check ran gets no header." xml:space="preserve">
+    <value>Varje godtaget inkommande meddelande får en Authentication-Results-rubrik (RFC 8601) som bär de SPF-, DKIM- och DMARC-domar den här servern nådde om det. Bara kontroller som faktiskt kördes rapporteras - vilka kontroller som körs konfigureras på sidan Skräppostinställningar - och ett meddelande där ingen kontroll kördes får ingen rubrik.</value>
   </data>
   <data name="Each as [ipv4:|ipv6:]zone[=codes], separated by commas or spaces, such as ipv4:zen.spamhaus.org. By default four lists, asked for IPv4: Spamhaus ZEN, SpamCop, PSBL and Mailspike." xml:space="preserve">
     <value>Var och en som [ipv4:|ipv6:]zone[=codes], separerade med kommatecken eller mellanslag, till exempel ipv4:zen.spamhaus.org. Som standard fyra listor, tillfrågade för IPv4: Spamhaus ZEN, SpamCop, PSBL och Mailspike.</value>
@@ -4411,8 +4402,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Each as the browser writes it: https, the host and any port. Empty, the default, is right while the relying party is empty; once a relying party is set, no passkey is registered or taken until this names the origins." xml:space="preserve">
     <value>Var och en så som webbläsaren skriver den: https, värden och eventuell port. Tomt, standard, är rätt så länge den förlitande parten är tom; när en förlitande part är angiven registreras eller godtas ingen passnyckel förrän detta anger ursprungen.</value>
   </data>
-  <data name="Each cached session costs server memory, and a client that churns handshakes grows the cache - this cap is the defence. A positive value replaces OpenSSL's default cap of 20,480 sessions. -1 turns the server-side cache off entirely, which stops session-ID resumption but leaves tickets - which cost the server no memory - unaffected. 0 leaves OpenSSL alone." xml:space="preserve">
-    <value>Varje cachad session kostar serverminne, och en klient som maler handskakningar får cachen att växa - det här taket är försvaret. Ett positivt värde ersätter OpenSSL:s standardtak på 20 480 sessioner. -1 stänger av cachen på serversidan helt, vilket stoppar återupptagning via sessions-ID men lämnar biljetter - som inte kostar servern något minne - opåverkade. 0 lämnar OpenSSL i fred.</value>
+  <data name="Each cached session costs server memory, and a client that churns handshakes grows the cache - this cap is the defence." xml:space="preserve">
+    <value>Varje cachad session kostar serverminne, och en klient som maler handskakningar får cachen att växa - det här taket är försvaret.</value>
   </data>
   <data name="Each check can be enabled separately and given its own score." xml:space="preserve">
     <value>Varje kontroll kan aktiveras separat och ges sin egen poäng.</value>
@@ -4425,6 +4416,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Each message is scanned twice over: once as the whole file on disk, and then once per attachment, each written out to the temporary folder and handed to the scanner on its own. The second pass is what catches an attachment inside a structure the scanner does not decode for itself. If the message cannot be parsed as MIME the per-attachment pass is skipped and an error is logged." xml:space="preserve">
     <value>Varje meddelande skannas två gånger om: en gång som hela filen på disk, och sedan en gång per bilaga, var och en utskriven till den tillfälliga mappen och överlämnad till skannern för sig. Det andra passet är det som fångar en bilaga inuti en struktur skannern inte avkodar på egen hand. Om meddelandet inte kan tolkas som MIME hoppas passet per bilaga över och ett fel loggas.</value>
+  </data>
+  <data name="Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on." xml:space="preserve">
+    <value>Vart och ett av dessa sitter nu med resten av sin egen funktion. Inget togs bort och inget värde ändrades; bara sidan det redigeras på.</value>
   </data>
   <data name="Each profile sets the settings one kind of server needs. Showing one lists every setting beside the value this server holds now; nothing changes until it is applied." xml:space="preserve">
     <value>Varje profil ställer in de inställningar som en sorts server behöver. Visas en listas varje inställning bredvid det värde den här servern har nu; ingenting ändras förrän den tillämpas.</value>
@@ -4543,8 +4537,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Email address" xml:space="preserve">
     <value>E-postadress</value>
   </data>
-  <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should. Worth doing when the index has more entries than the server has messages, which means entries for mail that no longer exists." xml:space="preserve">
-    <value>Tömmer indexet och ber indexeraren bygga om det. Ingen post rörs - indexet är härledd data - men tills ombyggnaden kommer ikapp hittar IMAP SEARCH mindre än det borde. Värt att göra när indexet har fler poster än servern har meddelanden, vilket betyder poster för post som inte längre finns.</value>
+  <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should." xml:space="preserve">
+    <value>Tömmer indexet och ber indexeraren bygga om det. Ingen post rörs - indexet är härledd data - men tills ombyggnaden kommer ikapp hittar IMAP SEARCH mindre än det borde.</value>
   </data>
   <data name="Empty means nobody, which is the safe default. Matched against the real TCP peer. An entry that does not parse matches nothing rather than everything, and is reported in the error log once per run." xml:space="preserve">
     <value>Tomt betyder ingen, vilket är det säkra standardvärdet. Matchas mot den verkliga TCP-motparten. En post som inte går att tolka matchar ingenting snarare än allt, och rapporteras i felloggen en gång per körning.</value>
@@ -5302,8 +5296,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Finds the organisational domain for DMARC relaxed alignment by asking DNS (RFC 9989) rather than the compiled Public Suffix List; the list is still used when DNS cannot answer. Up to eight queries per domain, cached for five minutes." xml:space="preserve">
     <value>Hittar organisationsdomänen för DMARC:s avslappnade justering genom att fråga DNS (RFC 9989) i stället för den inkompilerade Public Suffix List; listan används fortfarande när DNS inte kan svara. Upp till åtta frågor per domän, cachade i fem minuter.</value>
   </data>
-  <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
-    <value>Hittar övriga medlemmar bland serverns konton varje gång ett meddelande skickas till listan, så att ingen behöver underhålla listan för hand. Lämna tomt för en lista vars medlemmar bara är dess mottagare; domain för varje aktivt konto i den här domänen; domain:other.example för en annan domän som den här servern har; pattern:sales-*@example.com för de adresser som matchar ett jokertecken, där * är vilken teckenföljd som helst och ? ett tecken; everyone för varje aktivt konto på servern. Avstängda konton tas aldrig med.</value>
+  <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server." xml:space="preserve">
+    <value>Hittar övriga medlemmar bland serverns konton varje gång ett meddelande skickas till listan, så att ingen behöver underhålla listan för hand. Lämna tomt för en lista vars medlemmar bara är dess mottagare; domain för varje aktivt konto i den här domänen; domain:other.example för en annan domän som den här servern har; pattern:sales-*@example.com för de adresser som matchar ett jokertecken, där * är vilken teckenföljd som helst och ? ett tecken; everyone för varje aktivt konto på servern.</value>
   </data>
   <data name="Finish" xml:space="preserve">
     <value>Slutför</value>
@@ -5431,9 +5425,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Forwarding" xml:space="preserve">
     <value>Vidarebefordran</value>
   </data>
-  <data name="Forwarding a message keeps the original envelope sender, so the next hop checks SPF for a domain that never authorised this server and the message fails. These are the two answers. SRS rewrites the envelope sender into one this server can vouch for and can undo on the way back, so bounces still reach the original sender; BATV tags the envelope sender of outbound mail so a forged bounce - one for a message this server never sent - can be told apart from a real one. Both use a server-wide secret and do nothing at all until one is set." xml:space="preserve">
-    <value>Att vidarebefordra ett meddelande behåller den ursprungliga kuvertavsändaren, så nästa hopp kontrollerar SPF för en domän som aldrig auktoriserade den här servern och meddelandet underkänns. Det här är de två svaren. SRS skriver om kuvertavsändaren till en som den här servern kan gå i god för och kan ångra på vägen tillbaka, så studsar når fortfarande den ursprungliga avsändaren; BATV märker kuvertavsändaren på utgående post så att en förfalskad studs - en för ett meddelande den här servern aldrig skickade - kan skiljas från en riktig. Båda använder en serverövergripande hemlighet och gör ingenting alls tills en är satt.</value>
-  </data>
   <data name="Found ClamWin at {0}" xml:space="preserve">
     <value>Hittade ClamWin på {0}</value>
   </data>
@@ -5454,6 +5445,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="From (a_ddress)" xml:space="preserve">
     <value>Från (a_dress)</value>
+  </data>
+  <data name="From 3 upwards (the default is 9) every enabled category is logged in full. At 2 or lower the server drops IMAP FETCH and STATUS responses from the log and shortens lines longer than the limit below to their first and last characters." xml:space="preserve">
+    <value>Från 3 och uppåt (standard är 9) loggas varje aktiverad kategori i sin helhet. Vid 2 eller lägre utelämnar servern IMAP FETCH- och STATUS-svar från loggen och förkortar rader längre än gränsen nedan till deras första och sista tecken.</value>
   </data>
   <data name="From 5 to 3,600. Only used when the metrics endpoint above is set." xml:space="preserve">
     <value>Från 5 till 3 600. Används bara när mätvärdesslutpunkten ovan är satt.</value>
@@ -5935,9 +5929,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="IMAP sessions" xml:space="preserve">
     <value>IMAP-sessioner</value>
   </data>
-  <data name="IMAP, POP3 and SMTP have no way to change a password, and the self-service portal refuses an expired one at sign-in like every other surface. An expired password is therefore renewed by an administrator - or by the person themselves only if they hold an app password, which still signs them in to the portal, where the expired password is accepted as the current one when setting a new one. Turning this on means someone has to be available for everybody else. Existing app passwords keep working, which is also the one way an affected person can still collect mail; Active Directory accounts are exempt, because their password lives in the directory and expires by its policy, not this one. The clock started when this server was upgraded, so nobody is expired the moment you set this." xml:space="preserve">
-    <value>IMAP, POP3 och SMTP har inget sätt att byta ett lösenord, och självbetjäningsportalen avvisar ett utgånget lösenord vid inloggning precis som alla andra ingångar. Ett utgånget lösenord förnyas därför av en administratör - eller av personen själv, men bara om denne har ett applösenord, som fortfarande ger inloggning på portalen, där det utgångna lösenordet godtas som det nuvarande när ett nytt sätts. Att slå på detta betyder att någon måste finnas tillgänglig för alla andra. Befintliga applösenord fortsätter att fungera, vilket också är det enda sättet en drabbad person fortfarande kan hämta post; Active Directory-konton är undantagna, eftersom deras lösenord finns i katalogen och går ut enligt dess policy, inte den här. Klockan började gå när den här servern uppgraderades, så ingen är utgången i samma stund du sätter detta.</value>
-  </data>
   <data name="IP address" xml:space="preserve">
     <value>IP-adress</value>
   </data>
@@ -6228,8 +6219,8 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Issues and renews certificates automatically, but only if the certificate authority can fetch the http-01 challenge from this server." xml:space="preserve">
     <value>Utfärdar och förnyar certifikat automatiskt, men bara om certifikatutfärdaren kan hämta http-01-utmaningen från den här servern.</value>
   </data>
-  <data name="It governs two kinds of stored secret. Those bound to this machine - the database password in hMailServer.ini, the smart host's password, and the passwords, tokens and passphrases of routes, external fetch accounts, SSL certificates and the rest kept in the database - are put in a Windows DPAPI envelope when they are next saved, or in the legacy Blowfish scheme while this is switched off. The secrets in the [Settings] section - the SRS and BATV secrets, the OAuth2 secrets, the metrics bearer token and HTTP Basic password, the Windows service account password and the GSSAPI service password - and each account's second factor are sealed under the installation's stored-secrets key once it has one, at the next start and at every save; switched off, the next start stores them as written again. Only the password pepper is always stored as you typed it, so hMailServer.ini should still be readable only by Administrators and by the account the service runs as." xml:space="preserve">
-    <value>Den styr två slags lagrade hemligheter. De som är bundna till den här datorn - databaslösenordet i hMailServer.ini, den smarta värdens lösenord, och lösenord, token och lösenfraser för rutter, externa hämtkonton, SSL-certifikat och resten som finns i databasen - läggs i ett Windows DPAPI-kuvert när de sparas nästa gång, eller i det äldre Blowfish-schemat medan detta är avstängt. Hemligheterna i avsnittet [Settings] - SRS- och BATV-hemligheterna, OAuth2-hemligheterna, mätvärdenas bearer-token och HTTP Basic-lösenord, Windows-tjänstekontots lösenord och GSSAPI-tjänstens lösenord - och varje kontos andra faktor förseglas under installationens nyckel för lagrade hemligheter när den har en, vid nästa start och vid varje sparning; avstängt lagrar nästa start dem som de skrevs igen. Bara lösenordspepparn lagras alltid som du skrev den, så hMailServer.ini bör fortfarande bara vara läsbar för Administratörer och för kontot tjänsten körs som.</value>
+  <data name="It governs two kinds of stored secret. Only the password pepper is always stored as you typed it, so hMailServer.ini should still be readable only by Administrators and by the account the service runs as." xml:space="preserve">
+    <value>Den styr två slags lagrade hemligheter. Bara lösenordspepparn lagras alltid som du skrev den, så hMailServer.ini bör fortfarande bara vara läsbar för Administratörer och för kontot tjänsten körs som.</value>
   </data>
   <data name="It has no rua= tag, so nobody sends you reports - fine, but you learn nothing; add one when you have a mailbox for it." xml:space="preserve">
     <value>Den har ingen rua=-tagg, så ingen skickar dig rapporter - helt okej, men du lär dig ingenting; lägg till en när du har en brevlåda för den.</value>
@@ -6258,8 +6249,8 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Its discovery document is read from the issuer followed by /.well-known/openid-configuration." xml:space="preserve">
     <value>Dess discovery-dokument läses från utfärdaren följd av /.well-known/openid-configuration.</value>
   </data>
-  <data name="JSON API under /api/v1 plus the browser-based Control Deck at the listener root. Authenticated with the administrator password, or with a scoped API key - a key can be read-only, limited to named domains and source addresses, given an expiry and revoked on its own, none of which the administrator password can. Keys are managed on the REST API keys page. TLS is required unless the listener is bound to 127.0.0.1." xml:space="preserve">
-    <value>JSON-API under /api/v1 plus den webbläsarbaserade Control Deck vid lyssnarens rot. Autentiseras med administratörslösenordet, eller med en avgränsad API-nyckel - en nyckel kan vara skrivskyddad, begränsad till namngivna domäner och källadresser, ges en utgångstid och återkallas för sig, inget av vilket administratörslösenordet kan. Nycklar hanteras på sidan REST API-nycklar. TLS krävs om inte lyssnaren är bunden till 127.0.0.1.</value>
+  <data name="JSON API under /api/v1 plus the browser-based Control Deck at the listener root. TLS is required unless the listener is bound to 127.0.0.1." xml:space="preserve">
+    <value>JSON-API under /api/v1 plus den webbläsarbaserade Control Deck vid lyssnarens rot. TLS krävs om inte lyssnaren är bunden till 127.0.0.1.</value>
   </data>
   <data name="JWK Set URL (empty = the key file only)" xml:space="preserve">
     <value>JWK Set-URL (tomt = bara nyckelfilen)</value>
@@ -6435,6 +6426,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Latest {0}; peak {1}" xml:space="preserve">
     <value>Senaste {0}; topp {1}</value>
   </data>
+  <data name="Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
+    <value>Lämna båda fälten tomma för att behålla lösenfrasen som redan är satt. Servern lämnar aldrig tillbaka den - varken till det här programmet eller till någon annan - så förvara den någon annanstans än bredvid säkerhetskopiorna: en återställning frågar efter den, och ur ett arkiv vars lösenfras är borta får ingen ut någonting.</value>
+  </data>
   <data name="Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem." xml:space="preserve">
     <value>Lämna tomt (eller 0) för automatiskt: 636 när anslutningssäkerheten är LDAPS, annars 389. Porten härleds från säkerhetsinställningen så att den som väljer LDAPS och glömmer porten inte kan försöka TLS mot klartextporten, vilket misslyckas på ett sätt som ser ut som ett certifikatproblem.</value>
   </data>
@@ -6513,8 +6507,8 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Lets it through" xml:space="preserve">
     <value>Släpper igenom den</value>
   </data>
-  <data name="Lets mail clients upload and manage per-account Sieve filter scripts over TCP. Authentication is SASL PLAIN against the account database, so the mailbox password crosses this connection. STARTTLS is offered only when a TLS-capable mailbox port has a certificate to borrow - the status below says whether it will be." xml:space="preserve">
-    <value>Låter e-postklienter ladda upp och hantera Sieve-filterskript per konto över TCP. Autentiseringen är SASL PLAIN mot kontodatabasen, så brevlådans lösenord går över den här anslutningen. STARTTLS erbjuds bara när en TLS-kapabel brevlådeport har ett certifikat att låna - statusen nedan säger om det blir så.</value>
+  <data name="Lets mail clients upload and manage per-account Sieve filter scripts over TCP. Authentication is SASL PLAIN against the account database, so the mailbox password crosses this connection." xml:space="preserve">
+    <value>Låter e-postklienter ladda upp och hantera Sieve-filterskript per konto över TCP. Autentiseringen är SASL PLAIN mot kontodatabasen, så brevlådans lösenord går över den här anslutningen.</value>
   </data>
   <data name="Lets one bucket hold more than one server's store. Change it only with the store copied under the new prefix: what is under the old one is not looked for." xml:space="preserve">
     <value>Låter en bucket rymma mer än en servers lagring. Ändra det bara med lagringen kopierad under det nya prefixet: det som ligger under det gamla söks inte.</value>
@@ -8350,26 +8344,20 @@ Inget som redan finns där tas bort.</value>
   <data name="Off and Honeypot refuse AUTH and ban the address that sends it, Honeypot going on offering it as bait; mail clients sign in on 587, not on port 25." xml:space="preserve">
     <value>Av och Honungsfälla avvisar AUTH och spärrar adressen som skickar det, och Honungsfälla fortsätter att erbjuda det som bete; e-postklienter loggar in på 587, inte på port 25.</value>
   </data>
-  <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
-    <value>Av som standard eftersom det kostar en termtabell på några kilobyte per meddelande och en ifyllnadskörning över varje redan levererat meddelande - en administratörs beslut, aldrig en uppgraderings. Resultaten är identiska på och av: indexet begränsar bara vilka meddelanden delsträngsskanningen behöver läsa. Kräver att meddelandeindexering (ovan) är aktiverad; på egen hand indexerar detta ingenting.</value>
+  <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
+    <value>Av som standard eftersom det kostar en termtabell på några kilobyte per meddelande och en ifyllnadskörning över varje redan levererat meddelande - en administratörs beslut, aldrig en uppgraderings. Kräver att meddelandeindexering (ovan) är aktiverad; på egen hand indexerar detta ingenting.</value>
   </data>
-  <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Windows directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
-    <value>Av som standard, och overksamt när det är av: katalogkopplade konton valideras då på det gamla sättet, genom Windows-inloggning. När det är på valideras samma konton - de med fliken Windows-katalog ifylld - genom en LDAP-bindning mot servern nedan i stället. Konton utan katalog påverkas aldrig i något av fallen.</value>
+  <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Windows directory tab filled in - are validated by an LDAP bind against the server below instead." xml:space="preserve">
+    <value>Av som standard, och overksamt när det är av: katalogkopplade konton valideras då på det gamla sättet, genom Windows-inloggning. När det är på valideras samma konton - de med fliken Windows-katalog ifylld - genom en LDAP-bindning mot servern nedan i stället.</value>
   </data>
   <data name="Off by default." xml:space="preserve">
     <value>Av som standard.</value>
   </data>
+  <data name="Off by default. A hosting net whose customers all carry one reverse domain is widened whole: list it above, or leave this off." xml:space="preserve">
+    <value>Av som standard. Ett värdnät vars kunder alla bär samma omvända domän vidgas helt: lista det ovan, eller låt detta vara av.</value>
+  </data>
   <data name="Off by default. A phone moving between wi-fi and a mobile network loses its session while this is on." xml:space="preserve">
     <value>Av som standard. En telefon som växlar mellan wifi och mobilnät förlorar sin session så länge detta är på.</value>
-  </data>
-  <data name="Off by default. A zero-access mailbox is encrypted to the person's own key: this server can no longer read, search, export or recover its mail, and a forgotten password without the recovery key loses it. Allowing it switches nobody on." xml:space="preserve">
-    <value>Av som standard. En nollåtkomstbrevlåda krypteras till personens egen nyckel: den här servern kan inte längre läsa, söka i, exportera eller återställa dess post, och ett glömt lösenord utan återställningsnyckeln förlorar den. Att tillåta det slår inte på det för någon.</value>
-  </data>
-  <data name="Off by default. An account that stops being visible in the directory is far more often a search that changed than a person who left, and the two mistakes do not cost the same. Nothing is disabled at all when the enumeration was cut short or came back empty." xml:space="preserve">
-    <value>Av som standard. Ett konto som slutar synas i katalogen är mycket oftare en sökning som ändrats än en person som slutat, och de två misstagen kostar inte lika mycket. Inget inaktiveras alls när uppräkningen avbröts eller kom tillbaka tom.</value>
-  </data>
-  <data name="Off by default. An account that stops being visible is far more often a filter that changed than a person who left, and the two mistakes do not cost the same. No message is ever deleted and no account is removed - re-enabling one restores everything." xml:space="preserve">
-    <value>Av som standard. Ett konto som slutar synas är mycket oftare ett filter som ändrats än en person som slutat, och de två misstagen kostar inte lika mycket. Inget meddelande tas någonsin bort och inget konto avlägsnas - att återaktivera ett återställer allt.</value>
   </data>
   <data name="Off by default. Does nothing unless SpamAssassin is enabled and its spamd allows TELL." xml:space="preserve">
     <value>Av som standard. Gör ingenting om inte SpamAssassin är på och dess spamd tillåter TELL.</value>
@@ -8380,29 +8368,32 @@ Inget som redan finns där tas bort.</value>
   <data name="Off by default. MAIL FROM:&lt;&gt; is no excuse: a delivery report from a server that greets with an address is refused like any other mail from it." xml:space="preserve">
     <value>Av som standard. MAIL FROM:&lt;&gt; är ingen ursäkt: en leveransrapport från en server som hälsar med en adress avvisas som all annan post från den.</value>
   </data>
-  <data name="Off by default. Only when the banned address's own reverse name resolves back to it; at most 32 addresses each way; never into another /24, across an address either never-ban list above spares, or across an IP range of yours that covers one address and not the other; never for IPv6, nor for a private, shared, loopback or link-local address, whose neighbours are your own network's machines. A reverse lookup that is not answered leaves the single address. A hosting net whose customers all carry one reverse domain is widened whole: list it above, or leave this off." xml:space="preserve">
-    <value>Av som standard. Bara när den spärrade adressens eget omvända namn pekar tillbaka på den; högst 32 adresser åt varje håll; aldrig in i ett annat /24, förbi en adress som någon av de två listorna ovan undantar, eller förbi ett av dina IP-intervall som omfattar den ena adressen men inte den andra; aldrig för IPv6 eller för en privat, delad, loopback- eller länklokal adress, vars grannar är maskiner i ditt eget nät. En omvänd uppslagning som inte besvaras lämnar den enda adressen som den är. Ett värdnät vars kunder alla bär samma omvända domän vidgas helt: lista det ovan, eller låt detta vara av.</value>
+  <data name="Off by default. No message is ever deleted and no account is removed - re-enabling one restores everything." xml:space="preserve">
+    <value>Av som standard. Inget meddelande tas någonsin bort och inget konto avlägsnas - att återaktivera ett återställer allt.</value>
+  </data>
+  <data name="Off by default. Nothing is disabled at all when the enumeration was cut short or came back empty." xml:space="preserve">
+    <value>Av som standard. Inget inaktiveras alls när uppräkningen avbröts eller kom tillbaka tom.</value>
   </data>
   <data name="Off by default. Served under /.well-known/openpgpkey by the web services listener; a domain and the account have to allow it too, in their dialogs." xml:space="preserve">
     <value>Av som standard. Tillhandahålls under /.well-known/openpgpkey av webbtjänstlyssnaren; en domän och kontot måste också tillåta det, i sina dialogrutor.</value>
   </data>
+  <data name="Off by default. Turn on only on a domain-joined host that wants LDAP as its first choice." xml:space="preserve">
+    <value>Av som standard. Slå bara på det på en domänansluten värd som vill ha LDAP som förstahandsval.</value>
+  </data>
   <data name="Off by default. Turning it on means the server starts storing mail it considers spam, so watch the retention window below." xml:space="preserve">
     <value>Av som standard. Att slå på det betyder att servern börjar lagra post den anser vara skräppost, så håll koll på lagringsfönstret nedan.</value>
   </data>
+  <data name="Off by default. Turning this on sends passwords in the clear and should only ever happen on a network you control end to end." xml:space="preserve">
+    <value>Av som standard. Att slå på detta skickar lösenord i klartext och bör bara någonsin ske på ett nätverk du kontrollerar från ände till ände.</value>
+  </data>
   <data name="Off by default. Useful on shared machines." xml:space="preserve">
     <value>Av som standard. Användbart på delade datorer.</value>
-  </data>
-  <data name="Off by default. When off, an unreachable directory refuses the sign-in and the server reports the real reason (throttled to once per minute per distinct problem) instead of retrying through Windows logon - which cannot succeed on a host that is not domain-joined, and whose failure would bury a precise diagnostic under an indistinguishable one. Turn on only on a domain-joined host that wants LDAP as its first choice. A password the directory rejected never falls back either way: retrying it would double every failed attempt and let one wrong password trigger a directory lockout policy." xml:space="preserve">
-    <value>Av som standard. När det är av avvisar en onåbar katalog inloggningen och servern rapporterar den verkliga orsaken (begränsat till en gång i minuten per distinkt problem) i stället för att försöka igen genom Windows-inloggning - som inte kan lyckas på en värd som inte är domänansluten, och vars misslyckande skulle begrava en precis diagnos under en oskiljbar. Slå bara på det på en domänansluten värd som vill ha LDAP som förstahandsval. Ett lösenord katalogen avvisade faller aldrig tillbaka i något av fallen: att försöka igen skulle fördubbla varje misslyckat försök och låta ett felaktigt lösenord utlösa en utestängningspolicy i katalogen.</value>
   </data>
   <data name="Off by default. With it off nothing is queued and no push service is reached." xml:space="preserve">
     <value>Av som standard. Avslaget köas ingenting och ingen push-tjänst kontaktas.</value>
   </data>
   <data name="Off by default. With it off nothing is read, counted or written." xml:space="preserve">
     <value>Av som standard. Avslaget läses, räknas eller skrivs ingenting.</value>
-  </data>
-  <data name="Off by default. With unprotected LDAP and a simple bind, the server does not send the password and does not guess what you meant: it refuses the sign-in and reports the contradiction, once per minute. Turning this on sends passwords in the clear and should only ever happen on a network you control end to end." xml:space="preserve">
-    <value>Av som standard. Med oskyddad LDAP och en enkel bindning skickar servern inte lösenordet och gissar inte vad du menade: den avvisar inloggningen och rapporterar motsägelsen, en gång i minuten. Att slå på detta skickar lösenord i klartext och bör bara någonsin ske på ett nätverk du kontrollerar från ände till ände.</value>
   </data>
   <data name="Off by default. user@[192.0.2.7], user@localhost and user@co.uk are refused; MAIL FROM:&lt;&gt; has no domain and is not judged by this switch." xml:space="preserve">
     <value>Av som standard. user@[192.0.2.7], user@localhost och user@co.uk avvisas; MAIL FROM:&lt;&gt; har ingen domän och bedöms inte av den här brytaren.</value>
@@ -8455,9 +8446,6 @@ Inget som redan finns där tas bort.</value>
   <data name="On by default, and inert until somebody sets a recovery address." xml:space="preserve">
     <value>På som standard, och verkningslöst tills någon anger en återställningsadress.</value>
   </data>
-  <data name="On by default, and only an explicit 0 in the INI turns it off. Turned off, the encrypted connection no longer proves it reaches your directory: anyone who can intercept it can present any certificate and collect every password sent over it. The server notes the disabling in its application log once per service start. Only meaningful for LDAPS and StartTLS." xml:space="preserve">
-    <value>På som standard, och bara ett uttryckligt 0 i INI-filen stänger av det. Avstängt bevisar den krypterade anslutningen inte längre att den når din katalog: vem som helst som kan avlyssna den kan visa upp vilket certifikat som helst och samla in varje lösenord som skickas över den. Servern noterar avstängningen i sin programlogg en gång per start av tjänsten. Bara meningsfullt för LDAPS och StartTLS.</value>
-  </data>
   <data name="On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged." xml:space="preserve">
     <value>På som standard, och den enda strömbrytaren här vars standard inte är den försiktiga. Med den av godtas ett meddelande till en brevlåda som redan är över kvoten och besvaras sedan med en leveransrapport adresserad till kuvertavsändaren - som den trafik som fyller brevlådor snabbast har förfalskat.</value>
   </data>
@@ -8466,9 +8454,6 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="On by default." xml:space="preserve">
     <value>På som standard.</value>
-  </data>
-  <data name="On by default. After the archive is written its message store is extracted to the temp folder through the same code a restore uses, held to exactly the files the backup staged, and every message row is checked for its file; the result is in the backup log. The store exists twice while it runs, so turn it off for a store the temp volume cannot hold." xml:space="preserve">
-    <value>På som standard. När arkivet har skrivits packas dess meddelandelager upp till temp-mappen med samma kod som en återställning använder, hålls till exakt de filer säkerhetskopian samlade, och varje meddelanderad kontrolleras mot sin fil; resultatet finns i säkerhetskopieringsloggen. Lagret finns två gånger medan det körs, så stäng av det för ett lager som temp-volymen inte rymmer.</value>
   </data>
   <data name="On by default. Off leaves the keys people already have in the database untouched." xml:space="preserve">
     <value>På som standard. Av lämnar nycklarna som folk redan har i databasen orörda.</value>
@@ -8481,6 +8466,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="On by default. Only for mail that passed DMARC from a domain whose policy is quarantine or reject, which needs Authentication-Results headers on inbound mail, on the Transport security page." xml:space="preserve">
     <value>På som standard. Bara för post som klarade DMARC från en domän vars policy är quarantine eller reject, vilket kräver Authentication-Results-rubriker på inkommande post, på sidan Transportsäkerhet.</value>
+  </data>
+  <data name="On by default. The store exists twice while it runs, so turn it off for a store the temp volume cannot hold." xml:space="preserve">
+    <value>På som standard. Lagret finns två gånger medan det körs, så stäng av det för ett lager som temp-volymen inte rymmer.</value>
   </data>
   <data name="On by default. Turn it off where one domain holds people who are not one organisation." xml:space="preserve">
     <value>På som standard. Stäng av det där en domän rymmer folk som inte är en organisation.</value>
@@ -8548,8 +8536,8 @@ Inget som redan finns där tas bort.</value>
   <data name="Once a day the server asks the DNS block lists below whether an address it sends from is listed, and raises the alert 'reputation.listed' when one is. It checks the delivery bind address and the addresses the global rules bind; a server behind NAT has to be told its public address here, because nothing on the machine can find it." xml:space="preserve">
     <value>En gång om dagen frågar servern DNS-spärrlistorna nedan om någon adress som den skickar från är listad, och utlöser larmet 'reputation.listed' när en är det. Den kontrollerar leveransens bindningsadress och de adresser som de globala reglerna binder till; en server bakom NAT måste få veta sin publika adress här, eftersom inget på datorn kan hitta den.</value>
   </data>
-  <data name="Once a minute the server writes one row per metric - sessions, messages processed, delivered, deferred and bounced, spam and viruses, authentication and TLS outcomes, missing message files - to hm_metricsamples, and keeps them this many days. It is what the dashboard's 24 hours, 7 days and 30 days views and GET /api/v1/metrics/history read. A week of minute-resolution history is about a hundred and forty thousand small rows. 0 turns the sampler off." xml:space="preserve">
-    <value>En gång i minuten skriver servern en rad per mätvärde - sessioner, behandlade, levererade, uppskjutna och studsade meddelanden, skräppost och virus, autentiserings- och TLS-utfall, saknade meddelandefiler - till hm_metricsamples, och behåller dem så här många dagar. Det är vad översiktens vyer 24 timmar, 7 dagar och 30 dagar och GET /api/v1/metrics/history läser. En veckas historik med minutupplösning är ungefär hundrafyrtiotusen små rader. 0 stänger av provtagaren.</value>
+  <data name="Once a minute the server writes one row per metric - sessions, messages processed, delivered, deferred and bounced, spam and viruses, authentication and TLS outcomes, missing message files - to hm_metricsamples, and keeps them this many days. 0 turns the sampler off." xml:space="preserve">
+    <value>En gång i minuten skriver servern en rad per mätvärde - sessioner, behandlade, levererade, uppskjutna och studsade meddelanden, skräppost och virus, autentiserings- och TLS-utfall, saknade meddelandefiler - till hm_metricsamples, och behåller dem så här många dagar. 0 stänger av provtagaren.</value>
   </data>
   <data name="One address" xml:space="preserve">
     <value>En adress</value>
@@ -9231,8 +9219,8 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Prepend text to subject" xml:space="preserve">
     <value>Lägg till text före ämnet</value>
   </data>
-  <data name="Presented as &quot;Authorization: Bearer ...&quot; - in Prometheus, the scrape config's bearer_token. Leading and trailing spaces are trimmed. The health probes /livez, /readyz and /healthz never require it, so load balancers keep working." xml:space="preserve">
-    <value>Visas som "Authorization: Bearer ..." - i Prometheus, skrapkonfigurationens bearer_token. Inledande och avslutande mellanslag tas bort. Hälsokontrollerna /livez, /readyz och /healthz kräver den aldrig, så lastbalanserare fortsätter fungera.</value>
+  <data name="Presented as &quot;Authorization: Bearer ...&quot; - in Prometheus, the scrape config's bearer_token. The health probes /livez, /readyz and /healthz never require it, so load balancers keep working." xml:space="preserve">
+    <value>Visas som "Authorization: Bearer ..." - i Prometheus, skrapkonfigurationens bearer_token. Hälsokontrollerna /livez, /readyz och /healthz kräver den aldrig, så lastbalanserare fortsätter fungera.</value>
   </data>
   <data name="Preset engine (fills the command line and return value below - adjust the path/exit code for your version)" xml:space="preserve">
     <value>Förinställd motor (fyller i kommandoraden och returvärdet nedan - justera sökvägen/utgångskoden för din version)</value>
@@ -9297,8 +9285,8 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Profile to scan as (empty = spamd's global configuration)" xml:space="preserve">
     <value>Profil att skanna som (tomt = spamds globala konfiguration)</value>
   </data>
-  <data name="ProgIDs or CLSIDs, separated by commas. An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
-    <value>ProgID:n eller CLSID:n åtskilda med kommatecken. Ett händelseskript körs inne i servern med tjänstekontots rättigheter, så vad det får instansiera är ett säkerhetsbeslut snarare än en bekvämlighet. Som levererat är detta *, vilket tillåter alla objekt, så att en uppgradering aldrig förstör ett skript som en installation redan kör - det är inställningen att snäva in, inte det säkra tillståndet. Namnge bara det som ett av dina skript faktiskt behöver - ett filsystemsobjekt för skript, en HTTP-klient - så avvisas allt annat med objektets namn i felloggen; tomt avvisar allt utöver hMailServers egna objekt.</value>
+  <data name="ProgIDs or CLSIDs, separated by commas. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state." xml:space="preserve">
+    <value>ProgID:n eller CLSID:n åtskilda med kommatecken. Som levererat är detta *, vilket tillåter alla objekt, så att en uppgradering aldrig förstör ett skript som en installation redan kör - det är inställningen att snäva in, inte det säkra tillståndet.</value>
   </data>
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>Program som körs när en adress stängs av eller släpps (tomt = inget)</value>
@@ -9422,9 +9410,6 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   </data>
   <data name="Put &quot;{0}&quot; ({1}, {2}) back into the mailbox of {3}?" xml:space="preserve">
     <value>Lägga tillbaka "{0}" ({1}, {2}) i brevlådan för {3}?</value>
-  </data>
-  <data name="Put a load balancer, a TLS terminator or a Postfix relay in front of the SMTP listener and every connection appears to come from that device - which silently breaks DNSBL checks, SPF, greylisting, auto-ban and the IP range rules all at once, while everything still reports success. These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server. The upstream has to be configured to send it or nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server line, and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check that from here - and note that once an address is listed as a PROXY protocol proxy the header becomes required from it, so a proxy that does not send one will have its connections dropped." xml:space="preserve">
-    <value>Sätt en lastbalanserare, en TLS-terminator eller ett Postfix-relä framför SMTP-lyssnaren och varje anslutning ser ut att komma från den - vilket tyst bryter DNSBL-kontroller, SPF, gråstlistning, automatisk spärr och IP-intervallreglerna på en gång, medan allt fortfarande rapporterar framgång. De här låter en namngiven uppströmsvärd lämna vidare den verkliga klientadressen. Båda är av som standard och litar inte på någon förrän en adress listas, eftersom en motpart som kan skriva om sin egen källadress har besegrat varje IP-baserad kontroll på den här servern. Uppströmsvärden måste konfigureras att skicka den, annars ändras inget här: HAProxy behöver send-proxy eller send-proxy-v2 på sin serverrad, och ett Postfix-relä behöver XCLIENT aktiverat mot den här värden. hMailServer kan inte kontrollera det härifrån - och observera att när en adress väl listas som PROXY-protokollproxy blir rubriken obligatorisk från den, så en proxy som inte skickar en får sina anslutningar släppta.</value>
   </data>
   <data name="Put a setting back" xml:space="preserve">
     <value>Sätt tillbaka en inställning</value>
@@ -10125,9 +10110,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Replaces every range with the standard two: 'My computer' (127.0.0.1) and 'Internet' (everything else)." xml:space="preserve">
     <value>Ersätter varje intervall med de två standardintervallen: 'Min dator' (127.0.0.1) och 'Internet' (allt annat).</value>
   </data>
-  <data name="Replaces the envelope sender with the forwarding account's own address. That makes SPF pass at the next hop, at the cost of the original sender's address: a bounce comes back to the forwarding mailbox instead of to whoever wrote the message. SRS below does the same job without losing the return path, and while SRS is enabled this setting is not consulted at all." xml:space="preserve">
-    <value>Ersätter kuvertavsändaren med det vidarebefordrande kontots egen adress. Det gör att SPF godkänns vid nästa hopp, på bekostnad av den ursprungliga avsändarens adress: en studs kommer tillbaka till den vidarebefordrande brevlådan i stället för till den som skrev meddelandet. SRS nedan gör samma jobb utan att förlora returvägen, och medan SRS är aktiverat konsulteras den här inställningen inte alls.</value>
-  </data>
   <data name="Replies go to th_e list" xml:space="preserve">
     <value>Svar _går till listen</value>
   </data>
@@ -10217,9 +10199,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Required for SSL/TLS and STARTTLS." xml:space="preserve">
     <value>Krävs för SSL/TLS och STARTTLS.</value>
-  </data>
-  <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
-    <value>Krävs. Active Directory-domänkontrollanten eller annan LDAP-server att binda mot. För LDAPS måste namnet matcha serverns certifikat, så använd DNS-namnet, inte en IP-adress.</value>
   </data>
   <data name="Required: while this is empty, ARC never offsets anything, because anyone can seal a valid chain with their own key. Name the exact domains whose seals you trust (the d= of their ARC-Seal), separated by commas, semicolons or spaces." xml:space="preserve">
     <value>Krävs: så länge detta är tomt kvittar ARC aldrig något, eftersom vem som helst kan försegla en giltig kedja med sin egen nyckel. Namnge exakt de domäner vars sigill du litar på (d= i deras ARC-Seal), separerade med kommatecken, semikolon eller mellanslag.</value>
@@ -10500,8 +10479,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Run anti-virus on downloaded mail" xml:space="preserve">
     <value>Kör antivirus på hämtad post</value>
   </data>
-  <data name="Run as &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; when a ban is created and &lt;command&gt; unban &lt;address&gt; when the range goes, on Windows and on Linux alike - for a cloud firewall, a router or a SIEM. Quote the program's path if it contains spaces; the server appends the arguments. A non-zero exit or a program that cannot start is reported once in the error log." xml:space="preserve">
-    <value>Körs som &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; när en avstängning skapas och som &lt;command&gt; unban &lt;address&gt; när intervallet försvinner, på Windows som på Linux - för en molnbrandvägg, en router eller ett SIEM. Sätt programmets sökväg inom citattecken om den innehåller mellanslag; servern lägger till argumenten. En avslutningskod skild från noll eller ett program som inte startar rapporteras en gång i felloggen.</value>
+  <data name="Run as &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; when a ban is created and &lt;command&gt; unban &lt;address&gt; when the range goes, on Windows and on Linux alike - for a cloud firewall, a router or a SIEM. Quote the program's path if it contains spaces; the server appends the arguments." xml:space="preserve">
+    <value>Körs som &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; när en avstängning skapas och som &lt;command&gt; unban &lt;address&gt; när intervallet försvinner, på Windows som på Linux - för en molnbrandvägg, en router eller ett SIEM. Sätt programmets sökväg inom citattecken om den innehåller mellanslag; servern lägger till argumenten.</value>
   </data>
   <data name="Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus settings page's Sandbox tab, and turn it on." xml:space="preserve">
     <value>Driv eller prenumerera på en sandlåda som talar det lilla HTTP-kontraktet i docs/Sandbox.md, ange dess inskicknings- och domsadress på fliken Sandlåda på sidan Antivirusinställningar och slå på den.</value>
@@ -10539,8 +10518,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Runs event scripts (OnAcceptMessage, OnDeliveryStart and others) from the Events folder; the script itself is edited on the Event scripts page. The engine reloads when you save." xml:space="preserve">
     <value>Kör händelseskript (OnAcceptMessage, OnDeliveryStart med flera) från mappen Events; själva skriptet redigeras på sidan Händelseskript. Motorn laddas om när du sparar.</value>
   </data>
-  <data name="Runs hMailServer.exe /GrantServiceAccess as an administrator, after Windows asks: NT SERVICE\hMailServer is given Modify on the program folder's own Data, Logs, Temp and Database folders and on the folders an administrator has approved, and Read on the program folder - never hMailServer.ini. A folder the configuration names elsewhere, such as a backup or archive folder set later, is approved only after a question that names it; key files outside those folders are listed. It can be run again at any time, and removes nobody else's permission." xml:space="preserve">
-    <value>Kör hMailServer.exe /GrantServiceAccess som administratör, efter att Windows har frågat: NT SERVICE\hMailServer får Ändra på programmappens egna mappar Data, Logs, Temp och Database och på de mappar en administratör har godkänt, och Läsa på programmappen - aldrig på hMailServer.ini. En mapp som konfigurationen nämner någon annanstans, till exempel en säkerhetskopierings- eller arkivmapp som anges senare, godkänns först efter en fråga som nämner den; nyckelfiler utanför dessa mappar listas. Den kan köras igen när som helst och tar inte bort någons behörighet.</value>
+  <data name="Runs hMailServer.exe /GrantServiceAccess as an administrator, after Windows asks: NT SERVICE\hMailServer is given Modify on the program folder's own Data, Logs, Temp and Database folders and on the folders an administrator has approved, and Read on the program folder - never hMailServer.ini. It can be run again at any time, and removes nobody else's permission." xml:space="preserve">
+    <value>Kör hMailServer.exe /GrantServiceAccess som administratör, efter att Windows har frågat: NT SERVICE\hMailServer får Ändra på programmappens egna mappar Data, Logs, Temp och Database och på de mappar en administratör har godkänt, och Läsa på programmappen - aldrig på hMailServer.ini. Den kan köras igen när som helst och tar inte bort någons behörighet.</value>
   </data>
   <data name="Runs the same steps the server runs, in the same order, using the values in the editors above as they stand: connect, protect the transport, bind the service credential, search for the user - and, only if a password is typed below, bind as that user to prove it. The password is used once and never stored, and the test refuses to run any configuration that would put a password on the network unprotected. Note: the test runs from this computer, so a firewall that treats this machine and the hMailServer service differently can make the two disagree." xml:space="preserve">
     <value>Kör samma steg som servern kör, i samma ordning, med värdena i redigerarna ovan som de står: anslut, skydda transporten, bind tjänsteuppgiften, sök efter användaren - och, bara om ett lösenord skrivs in nedan, bind som den användaren för att bevisa det. Lösenordet används en gång och lagras aldrig, och testet vägrar köra en konfiguration som skulle lägga ett lösenord oskyddat på nätverket. Observera: testet körs från den här datorn, så en brandvägg som behandlar den här datorn och hMailServer-tjänsten olika kan få de två att vara oense.</value>
@@ -10652,6 +10631,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="SRS is switched on but no secret is set, so no envelope sender is rewritten - and while SRS is on, the plain rewrite fallback at the top of this card is skipped as well. This is strictly worse than switching SRS off. Generate or enter a secret." xml:space="preserve">
     <value>SRS är på men ingen hemlighet är satt, så ingen kuvertavsändare skrivs om - och medan SRS är på hoppas den enkla omskrivningsreserven högst upp på det här kortet också över. Det är strikt sämre än att stänga av SRS. Generera eller ange en hemlighet.</value>
+  </data>
+  <data name="SRS rewrites the envelope sender into one this server can vouch for and can undo on the way back, so bounces still reach the original sender; BATV tags the envelope sender of outbound mail so a forged bounce - one for a message this server never sent - can be told apart from a real one. Both use a server-wide secret and do nothing at all until one is set." xml:space="preserve">
+    <value>SRS skriver om kuvertavsändaren till en som den här servern kan gå i god för och kan ångra på vägen tillbaka, så studsar når fortfarande den ursprungliga avsändaren; BATV märker kuvertavsändaren på utgående post så att en förfalskad studs - en för ett meddelande den här servern aldrig skickade - kan skiljas från en riktig. Båda använder en serverövergripande hemlighet och gör ingenting alls tills en är satt.</value>
   </data>
   <data name="SRS signing secret" xml:space="preserve">
     <value>SRS-signeringshemlighet</value>
@@ -11472,8 +11454,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Server-side session cache size (0 = OpenSSL's default of 20,480, -1 = no cache)" xml:space="preserve">
     <value>Storlek på sessionscachen på serversidan (0 = OpenSSL:s standard på 20 480, -1 = ingen cache)</value>
   </data>
-  <data name="Server-wide ceilings that keep one slow operation from holding a resource forever. The defaults are deliberate; each one is here because there is a diagnosable situation in which it is the right thing to change. Note that 0 does not mean the same thing for all of them - each label says." xml:space="preserve">
-    <value>Serverövergripande tak som hindrar en långsam operation från att hålla en resurs för evigt. Standardvärdena är avsiktliga; vart och ett finns här för att det finns en diagnostiserbar situation där det är rätt sak att ändra. Observera att 0 inte betyder samma sak för alla - varje etikett säger vad.</value>
+  <data name="Server-wide ceilings that keep one slow operation from holding a resource forever. Note that 0 does not mean the same thing for all of them - each label says." xml:space="preserve">
+    <value>Serverövergripande tak som hindrar en långsam operation från att hålla en resurs för evigt. Observera att 0 inte betyder samma sak för alla - varje etikett säger vad.</value>
   </data>
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single feature are edited here." xml:space="preserve">
     <value>Serverövergripande tak, hållbarhet och missbrukskontroller som inte hör till någon enskild funktion redigeras här.</value>
@@ -12261,8 +12243,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="TLS 1.3 cipher suites (empty = OpenSSL defaults)" xml:space="preserve">
     <value>TLS 1.3-chiffersviter (tomt = OpenSSL:s standard)</value>
   </data>
-  <data name="TLS 1.3 has its own suite list, its own names and its own setter, so the cipher list above does not restrict it. Colon separated, most preferred first, using the RFC 8446 names (TLS_AES_256_GCM_SHA384, TLS_CHACHA20_POLY1305_SHA256, TLS_AES_128_GCM_SHA256, TLS_AES_128_CCM_SHA256, TLS_AES_128_CCM_8_SHA256) - not the OpenSSL cipher-list names. Leave empty to keep OpenSSL's defaults; a name this build does not recognise is skipped and reported rather than failing the whole list." xml:space="preserve">
-    <value>TLS 1.3 har sin egen svitlista, sina egna namn och sin egen sättare, så chifferlistan ovan begränsar den inte. Kolonseparerad, mest föredragen först, med RFC 8446-namnen (TLS_AES_256_GCM_SHA384, TLS_CHACHA20_POLY1305_SHA256, TLS_AES_128_GCM_SHA256, TLS_AES_128_CCM_SHA256, TLS_AES_128_CCM_8_SHA256) - inte OpenSSL:s chifferlistenamn. Lämna tomt för att behålla OpenSSL:s standard; ett namn det här bygget inte känner igen hoppas över och rapporteras i stället för att hela listan underkänns.</value>
+  <data name="TLS 1.3 has its own suite list, its own names and its own setter, so the cipher list above does not restrict it. Colon separated, most preferred first, using the RFC 8446 names (TLS_AES_256_GCM_SHA384, TLS_CHACHA20_POLY1305_SHA256, TLS_AES_128_GCM_SHA256, TLS_AES_128_CCM_SHA256, TLS_AES_128_CCM_8_SHA256) - not the OpenSSL cipher-list names." xml:space="preserve">
+    <value>TLS 1.3 har sin egen svitlista, sina egna namn och sin egen sättare, så chifferlistan ovan begränsar den inte. Kolonseparerad, mest föredragen först, med RFC 8446-namnen (TLS_AES_256_GCM_SHA384, TLS_CHACHA20_POLY1305_SHA256, TLS_AES_128_GCM_SHA256, TLS_AES_128_CCM_SHA256, TLS_AES_128_CCM_8_SHA256) - inte OpenSSL:s chifferlistenamn.</value>
   </data>
   <data name="TLS 1.3 is off. It is faster to negotiate than 1.2 and removes the older key exchanges outright; there is rarely a reason to leave it off." xml:space="preserve">
     <value>TLS 1.3 är av. Det är snabbare att förhandla än 1.2 och tar bort de äldre nyckelutbytena helt; det finns sällan skäl att låta det vara av.</value>
@@ -12438,6 +12420,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="That key's id is not in the form this store uses, so its section cannot be identified. Remove it by hand from {0}." xml:space="preserve">
     <value>Den nyckelns id är inte i den form det här lagret använder, så dess sektion kan inte identifieras. Ta bort den för hand från {0}.</value>
   </data>
+  <data name="That makes SPF pass at the next hop, at the cost of the original sender's address: a bounce comes back to the forwarding mailbox instead of to whoever wrote the message. SRS below does the same job without losing the return path, and while SRS is enabled this setting is not consulted at all." xml:space="preserve">
+    <value>Det gör att SPF godkänns vid nästa hopp, på bekostnad av den ursprungliga avsändarens adress: en studs kommer tillbaka till den vidarebefordrande brevlådan i stället för till den som skrev meddelandet. SRS nedan gör samma jobb utan att förlora returvägen, och medan SRS är aktiverat konsulteras den här inställningen inte alls.</value>
+  </data>
   <data name="That scan was {0}, although the check runs hourly: the server has not scanned since, so the store may have changed." xml:space="preserve">
     <value>Den genomsökningen var {0}, fast kontrollen körs varje timme: servern har inte sökt igenom sedan dess, så lagret kan ha ändrats.</value>
   </data>
@@ -12449,6 +12434,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="The ARC filtering settings could not be read from the server, so this page cannot say whether the feature is configured." xml:space="preserve">
     <value>Inställningarna för ARC-filtrering kunde inte läsas från servern, så den här sidan kan inte säga om funktionen är konfigurerad.</value>
+  </data>
+  <data name="The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
+    <value>Active Directory-domänkontrollanten eller annan LDAP-server att binda mot. För LDAPS måste namnet matcha serverns certifikat, så använd DNS-namnet, inte en IP-adress.</value>
   </data>
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Active Directory-användarnamnet (sAMAccountName) - samma värde som kontots flik Windows-katalog innehåller. Valfritt: lämnat tomt stoppar testet efter anslutnings- och tjänsteuppgiftsstegen.</value>
@@ -12621,8 +12609,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="The account could not be removed from the group: {0}" xml:space="preserve">
     <value>Kontot kunde inte tas bort från gruppen: {0}</value>
   </data>
-  <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
-    <value>Kontot slutar skicka innan det slutar ta emot: ägaren ser avslaget i sitt eget program, med orsaken, medan post till denne fortfarande kommer fram upp till gränsen och marginalen förbi den. Varje domän kan sätta sin egen. Gäller genast.</value>
+  <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own." xml:space="preserve">
+    <value>Kontot slutar skicka innan det slutar ta emot: ägaren ser avslaget i sitt eget program, med orsaken, medan post till denne fortfarande kommer fram upp till gränsen och marginalen förbi den. Varje domän kan sätta sin egen.</value>
   </data>
   <data name="The accounts chosen are members of this group already." xml:space="preserve">
     <value>De valda kontona är redan medlemmar i den här gruppen.</value>
@@ -12639,14 +12627,14 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="The address must be a name followed by @{0}." xml:space="preserve">
     <value>Adressen måste vara ett namn följt av @{0}.</value>
   </data>
-  <data name="The address the REST API is reached at from outside; the subscribe, confirm, unsubscribe and archive pages are under it. Only an https address gives one-click unsubscribe (RFC 8058). Empty, the default, sends mailto addresses only." xml:space="preserve">
-    <value>Adressen som REST-API:t nås på utifrån; sidorna för prenumeration, bekräftelse, avregistrering och arkiv ligger under den. Bara en https-adress ger avregistrering med ett klick (RFC 8058). Tomt, standard, skickar bara mailto-adresser.</value>
+  <data name="The address the REST API is reached at from outside; the subscribe, confirm, unsubscribe and archive pages are under it. Only an https address gives one-click unsubscribe (RFC 8058)." xml:space="preserve">
+    <value>Adressen som REST-API:t nås på utifrån; sidorna för prenumeration, bekräftelse, avregistrering och arkiv ligger under den. Bara en https-adress ger avregistrering med ett klick (RFC 8058).</value>
   </data>
   <data name="The address the copy goes to is required." xml:space="preserve">
     <value>Adressen som kopian går till krävs.</value>
   </data>
-  <data name="The address the feedback loops are registered against, which must be one this server hosts. Only a report delivered here is read, because arriving where the provider was told to send it is what tells a report from a forgery. Empty, the default, reads nothing." xml:space="preserve">
-    <value>Adressen som återkopplingsslingorna är registrerade mot, som måste vara en som servern har. Bara en rapport som levereras hit läses, eftersom att komma fram dit leverantören ombads skicka den är det som skiljer en rapport från en förfalskning. Tomt, standard, läser ingenting.</value>
+  <data name="The address the feedback loops are registered against, which must be one this server hosts. Empty, the default, reads nothing." xml:space="preserve">
+    <value>Adressen som återkopplingsslingorna är registrerade mot, som måste vara en som servern har. Tomt, standard, läser ingenting.</value>
   </data>
   <data name="The address the webmail is reached at from outside. Empty uses the quarantine digest's base address, then the import sign-in's; with none set, the webmail does not offer an expiry." xml:space="preserve">
     <value>Adressen som webbmejlen nås på utifrån. Tomt använder karantänsammanfattningens basadress och sedan importinloggningens; är ingen angiven erbjuder webbmejlen ingen utgångstid.</value>
@@ -12831,8 +12819,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="The certificate &quot;{0}&quot; is not valid yet. It is not assigned to any listener." xml:space="preserve">
     <value>Certifikatet "{0}" är inte giltigt än. Det är inte tilldelat någon lyssnare.</value>
   </data>
-  <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
-    <value>Certifikat och nyckel måste båda vara satta för att servera HTTPS; med bara ett av dem är TLS inte aktiverat och servern loggar det. Till skillnad från REST API-lyssnaren finns här ingen reserv i ACME-certifikatet. Om TLS är konfigurerat men inte kan förberedas (en oläsbar fil, en nyckel som inte matchar) stannar hälsokontrollerna på vanlig HTTP och /metrics svarar 503 i stället för att servera utdata i klartext.</value>
+  <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here." xml:space="preserve">
+    <value>Certifikat och nyckel måste båda vara satta för att servera HTTPS; med bara ett av dem är TLS inte aktiverat och servern loggar det. Till skillnad från REST API-lyssnaren finns här ingen reserv i ACME-certifikatet.</value>
   </data>
   <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
     <value>Certifikatfilen finns inte på den här datorn ({0}). Varje TLS-port konfigurerad att använda det här certifikatet kommer att misslyckas att starta (serverfel 5113) - post på de portarna stannar.</value>
@@ -12929,8 +12917,8 @@ Markera nyckeln ovan och kopiera den för hand - den visas inte igen.</value>
   <data name="The consistency check is switched off, so no scan has run. Turn on 'Periodically cross-check message rows against files on disk' on the {0} page; the server then scans at start-up and hourly and writes {1}." xml:space="preserve">
     <value>Konsistenskontrollen är avstängd, så ingen genomsökning har körts. Slå på 'Stäm regelbundet av meddelanderader mot filer på disk' på sidan {0}; servern genomsöker då vid start och varje timme och skriver {1}.</value>
   </data>
-  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.ini. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
-    <value>Motsvarigheten till ARC-försegling: på inkommande post kan en giltig ARC-kedja från en betrodd förseglare kvitta DMARC-felpoängen för ett meddelande vars DMARC-godkännande förstördes av vidarebefordran (RFC 8617). Det konfigureras på fliken Avsändaraut. på sidan Skräppostinställningar, eftersom det lagras med de andra skräppostinställningarna snarare än i hMailServer.ini. Med listan över betrodda förseglare tom gör funktionen ingenting alls, med avsikt: vem som helst kan fabricera en hel ARC-kedja och försegla den med nycklar publicerade i sin egen DNS, och den valideras, så en godkänd kedja bevisar ingenting om du inte redan litar på förseglaren. Listan är inte ett alternativ till funktionen - den är funktionen. Kvittningen överstiger aldrig DMARC-felpoängen, och gäller bara medan DMARC-poängsättning är aktiverad på sidan Skräppostinställningar.</value>
+  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.ini." xml:space="preserve">
+    <value>Motsvarigheten till ARC-försegling: på inkommande post kan en giltig ARC-kedja från en betrodd förseglare kvitta DMARC-felpoängen för ett meddelande vars DMARC-godkännande förstördes av vidarebefordran (RFC 8617). Det konfigureras på fliken Avsändaraut. på sidan Skräppostinställningar, eftersom det lagras med de andra skräppostinställningarna snarare än i hMailServer.ini.</value>
   </data>
   <data name="The current password counts as the most recent one, so setting a password to itself is refused too - the repeat somebody is most likely to try." xml:space="preserve">
     <value>Det nuvarande lösenordet räknas som det senaste, så att sätta ett lösenord till sig självt avvisas också - den upprepning någon mest troligt provar.</value>
@@ -12977,8 +12965,8 @@ Markera nyckeln ovan och kopiera den för hand - den visas inte igen.</value>
   <data name="The delivery queue lists what is waiting and why." xml:space="preserve">
     <value>Leveranskön listar vad som väntar och varför.</value>
   </data>
-  <data name="The delivery that takes a mailbox past this percentage produces one notice to the person whose mailbox it is, from their own domain's postmaster. One notice, not one per message: the server treats the threshold as something the mailbox crosses rather than a state it is in, so a mailbox sitting at 95% is not warned about again on every delivery - which would fill it faster than the mail does. Emptying the mailbox and filling it again warns again. On by default; with it off, nothing is said until mail starts being refused." xml:space="preserve">
-    <value>Den leverans som tar en brevlåda förbi den här procentsatsen ger ett meddelande till den person vars brevlåda det är, från den egna domänens postmaster. En varning, inte en per meddelande: servern behandlar tröskeln som något brevlådan passerar snarare än ett tillstånd den befinner sig i, så en brevlåda som ligger på 95 % varnas inte om igen vid varje leverans - vilket skulle fylla den snabbare än posten gör. Att tömma brevlådan och fylla den igen varnar igen. På som standard; av sägs ingenting förrän post börjar avvisas.</value>
+  <data name="The delivery that takes a mailbox past this percentage produces one notice to the person whose mailbox it is, from their own domain's postmaster. On by default; with it off, nothing is said until mail starts being refused." xml:space="preserve">
+    <value>Den leverans som tar en brevlåda förbi den här procentsatsen ger ett meddelande till den person vars brevlåda det är, från den egna domänens postmaster. På som standard; av sägs ingenting förrän post börjar avvisas.</value>
   </data>
   <data name="The directory accepted the credentials: bound as {0}. This account would sign in." xml:space="preserve">
     <value>Katalogen godtog inloggningsuppgifterna: bunden som {0}. Det här kontot skulle logga in.</value>
@@ -13156,8 +13144,8 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The group members could not be read: {0}" xml:space="preserve">
     <value>Gruppmedlemmarna kunde inte läsas: {0}</value>
   </data>
-  <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark." xml:space="preserve">
-    <value>De grupper som den här servern kommer överens om en TLS-nyckel med, i OpenSSL:s listform. Som levererat erbjuder den de två postkvanthybriderna först och faller tillbaka på X25519 och NIST-kurvorna för en motpart som inte har någon av dem, så inget ändras för en äldre klient. En tom lista, eller en som OpenSSL avvisar eller som inte skulle lämna någon grupp aktiverad, tillämpas inte: servern loggar den och använder den klassiska reservlistan, så ett misstag här kan inte slå ut TLS - men den ger tyst upp hybriderna, och det är därför den levererade listan visas i stället för ett tomt fält. Ändra den mot en skanning snarare än i blindo.</value>
+  <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client." xml:space="preserve">
+    <value>De grupper som den här servern kommer överens om en TLS-nyckel med, i OpenSSL:s listform. Som levererat erbjuder den de två postkvanthybriderna först och faller tillbaka på X25519 och NIST-kurvorna för en motpart som inte har någon av dem, så inget ändras för en äldre klient.</value>
   </data>
   <data name="The guided path: which half, which log lines, and the setting that bounds each stage." xml:space="preserve">
     <value>Den guidade vägen: vilken halva, vilka loggrader, och inställningen som begränsar varje steg.</value>
@@ -13285,8 +13273,8 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
     <value>Det senaste försöket misslyckades {0}: {1}</value>
   </data>
-  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts only an installer signed by one of this project's two release workflows - the GitHub one for the releases up to 6.3.3, the GitLab one for the releases after - and recorded in the public transparency log. Setting any of them narrows or replaces that for both, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
-    <value>De fem sista inställningarna på det här kortet är för en organisation som bygger sina egna utgåvor och signerar dem med sin egen Sigstore, eller som speglar det här projektets. Lämna var och en av dem tom och servern litar bara på ett installationsprogram signerat av ett av det här projektets två utgivningsarbetsflöden - det på GitHub för utgåvorna till och med 6.3.3, det på GitLab för de senare - och registrerat i den publika transparensloggen. Att sätta någon av dem inskränker eller ersätter det för båda, och att få en av dem fel betyder antingen att äkta utgåvor avvisas eller att någon annans blir betrodda.</value>
+  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts only an installer signed by one of this project's two release workflows - the GitHub one for the releases up to 6.3.3, the GitLab one for the releases after - and recorded in the public transparency log." xml:space="preserve">
+    <value>De fem sista inställningarna på det här kortet är för en organisation som bygger sina egna utgåvor och signerar dem med sin egen Sigstore, eller som speglar det här projektets. Lämna var och en av dem tom och servern litar bara på ett installationsprogram signerat av ett av det här projektets två utgivningsarbetsflöden - det på GitHub för utgåvorna till och med 6.3.3, det på GitLab för de senare - och registrerat i den publika transparensloggen.</value>
   </data>
   <data name="The last update step failed: {0}" xml:space="preserve">
     <value>Det senaste uppdateringssteget misslyckades: {0}</value>
@@ -13402,8 +13390,8 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The old selector was retired." xml:space="preserve">
     <value>Den gamla selektorn avvecklades.</value>
   </data>
-  <data name="The other way to reach a DN: set this and the server skips the search - and with it the need for a search base and a service account. A UPN works against Active Directory. Same %u, %d, %m placeholders, escaped for a distinguished name." xml:space="preserve">
-    <value>Det andra sättet att nå ett DN: sätt detta så hoppar servern över sökningen - och med den behovet av en sökbas och ett tjänstekonto. Ett UPN fungerar mot Active Directory. Samma platshållare %u, %d, %m, escapade för ett distinguished name.</value>
+  <data name="The other way to reach a DN: set this and the server skips the search - and with it the need for a search base and a service account. A UPN works against Active Directory." xml:space="preserve">
+    <value>Det andra sättet att nå ett DN: sätt detta så hoppar servern över sökningen - och med den behovet av en sökbas och ett tjänstekonto. Ett UPN fungerar mot Active Directory.</value>
   </data>
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>Översikten namnger de arrangemang som tyst gör ingenting - en nolltröskel, en tröskel ingen aktiverad kontroll kan nå, en kontroll som ger noll poäng.</value>
@@ -13491,8 +13479,8 @@ Lägg till det ändå?</value>
   <data name="The public address other servers see, when it is not an address of this machine." xml:space="preserve">
     <value>Den publika adress andra servrar ser, när det inte är en adress på den här datorn.</value>
   </data>
-  <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1." xml:space="preserve">
-    <value>Den offentliga samlingen finns på https://api.pwnedpasswords.com/range/. En organisation som har en egen spegel anger den här: de fem tecknen läggs till sökvägen, eller sätts in där {prefix} står. Okrypterad http godtas bara till localhost, 127.0.0.1 eller ::1.</value>
+  <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written." xml:space="preserve">
+    <value>Den offentliga samlingen finns på https://api.pwnedpasswords.com/range/. En organisation som har en egen spegel anger den här: de fem tecknen läggs till sökvägen, eller sätts in där {prefix} står.</value>
   </data>
   <data name="The published record does not carry the new key. Correct it." xml:space="preserve">
     <value>Den publicerade posten innehåller inte den nya nyckeln. Rätta den.</value>
@@ -13843,8 +13831,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="The shipped settings are kept; no profile is applied." xml:space="preserve">
     <value>De levererade inställningarna behålls; ingen profil är tillämpad.</value>
   </data>
-  <data name="The single value AEAD-ONLY (case-insensitive) is a named preset rather than an OpenSSL cipher string: forward-secret AEAD suites only (ECDHE or DHE with AES-GCM or ChaCha20-Poly1305), excluding every CBC-mode suite - the Lucky13 padding-oracle family - and static-RSA key exchange. The cost: TLS 1.2 clients that only speak CBC suites cannot connect, and TLS 1.0/1.1 are left with no usable cipher at all, so do not enable those protocols alongside it. TLS 1.3 is unaffected - its suites are AEAD by construction and are configured separately below. A misspelled preset name is rejected and reported, not silently ignored." xml:space="preserve">
-    <value>Det enskilda värdet AEAD-ONLY (oberoende av skiftläge) är en namngiven förinställning snarare än en OpenSSL-chiffersträng: bara AEAD-sviter med forward secrecy (ECDHE eller DHE med AES-GCM eller ChaCha20-Poly1305), exklusive varje CBC-lägessvit - Lucky13-familjen av padding-orakel - och statiskt RSA-nyckelutbyte. Kostnaden: TLS 1.2-klienter som bara talar CBC-sviter kan inte ansluta, och TLS 1.0/1.1 lämnas utan något användbart chiffer alls, så aktivera inte de protokollen tillsammans med det. TLS 1.3 påverkas inte - dess sviter är AEAD per konstruktion och konfigureras separat nedan. Ett felstavat förinställningsnamn avvisas och rapporteras, ignoreras inte tyst.</value>
+  <data name="The single value AEAD-ONLY (case-insensitive) is a named preset rather than an OpenSSL cipher string: forward-secret AEAD suites only (ECDHE or DHE with AES-GCM or ChaCha20-Poly1305), excluding every CBC-mode suite - the Lucky13 padding-oracle family - and static-RSA key exchange. The cost: TLS 1.2 clients that only speak CBC suites cannot connect, and TLS 1.0/1.1 are left with no usable cipher at all, so do not enable those protocols alongside it." xml:space="preserve">
+    <value>Det enskilda värdet AEAD-ONLY (oberoende av skiftläge) är en namngiven förinställning snarare än en OpenSSL-chiffersträng: bara AEAD-sviter med forward secrecy (ECDHE eller DHE med AES-GCM eller ChaCha20-Poly1305), exklusive varje CBC-lägessvit - Lucky13-familjen av padding-orakel - och statiskt RSA-nyckelutbyte. Kostnaden: TLS 1.2-klienter som bara talar CBC-sviter kan inte ansluta, och TLS 1.0/1.1 lämnas utan något användbart chiffer alls, så aktivera inte de protokollen tillsammans med det.</value>
   </data>
   <data name="The size limit could not be read." xml:space="preserve">
     <value>Storleksgränsen kunde inte läsas.</value>
@@ -14017,9 +14005,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="There is no scan size limit, but messages over {0} MB still skip the body checks: the MIME parser cannot load them, and scanning without loading them would write an empty body over the message." xml:space="preserve">
     <value>Det finns ingen storleksgräns för skanning, men meddelanden över {0} MB hoppar ändå över kroppskontrollerna: MIME-tolken kan inte läsa in dem, och att skanna utan att läsa in dem skulle skriva en tom kropp över meddelandet.</value>
   </data>
-  <data name="There is only one step, at 2. From 3 upwards (the default is 9) every enabled category is logged in full. At 2 or lower the server drops IMAP FETCH and STATUS responses from the log and shortens lines longer than the limit below to their first and last characters. Turning on Debug messages above restores full detail whatever the level." xml:space="preserve">
-    <value>Det finns bara ett steg, vid 2. Från 3 och uppåt (standard är 9) loggas varje aktiverad kategori i sin helhet. Vid 2 eller lägre utelämnar servern IMAP FETCH- och STATUS-svar från loggen och förkortar rader längre än gränsen nedan till deras första och sista tecken. Att slå på Felsökningsmeddelanden ovan återställer full detalj oavsett nivå.</value>
-  </data>
   <data name="These TCP/IP ports present this certificate to the clients that connect to them." xml:space="preserve">
     <value>De här TCP/IP-portarna presenterar det här certifikatet för klienterna som ansluter till dem.</value>
   </data>
@@ -14034,6 +14019,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a change, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a sign-in - read its description before turning it on." xml:space="preserve">
     <value>De här hör ihop: utgång utan historik lär människor att växla mellan två lösenord, vilket är värre än att inte gå ut alls. Historik avvisar bara någonsin ett byte, i den stund någon kan välja något annat, så ingen låses ute av den. Utgång avvisar en inloggning - läs dess beskrivning innan du slår på den.</value>
+  </data>
+  <data name="These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server." xml:space="preserve">
+    <value>De här låter en namngiven uppströmsvärd lämna vidare den verkliga klientadressen. Båda är av som standard och litar inte på någon förrän en adress listas, eftersom en motpart som kan skriva om sin egen källadress har besegrat varje IP-baserad kontroll på den här servern.</value>
   </data>
   <data name="These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page." xml:space="preserve">
     <value>Dessa begränsar vad varje regel får göra. Själva reglerna - vad var och en matchar och vad den gör - finns på sidan Regler.</value>
@@ -14137,11 +14125,11 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="This mailbox cannot be moved at the moment: {0}" xml:space="preserve">
     <value>Den här brevlådan kan inte flyttas just nu: {0}</value>
   </data>
+  <data name="This moves every counter up to the highest UID its folder actually holds. It never moves one down, so it cannot cause the fault it repairs." xml:space="preserve">
+    <value>Detta flyttar varje räknare upp till det högsta UID dess mapp faktiskt innehåller. Det flyttar aldrig en nedåt, så det kan inte orsaka felet det reparerar.</value>
+  </data>
   <data name="This page reads an expiry only in the form YYYY-MM-DD HH:MM:SS, so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>Den här sidan läser en utgångstid bara i formen YYYY-MM-DD HH:MM:SS, så om servern fortfarande godtar den här nyckeln kan inte avgöras härifrån. Om raden redigerats för hand, rätta den; annars, återkalla nyckeln och skapa en ersättning.</value>
-  </data>
-  <data name="This page used to collect every hMailServer.ini value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on." xml:space="preserve">
-    <value>Den här sidan brukade samla varje värde i hMailServer.ini utan hem, vilket betydde att det sorterades efter var värdet lagras snarare än efter vad det gör - och var ett värde lagras är det enda du aldrig behöver veta. Vart och ett av dessa sitter nu med resten av sin egen funktion. Inget togs bort och inget värde ändrades; bara sidan det redigeras på.</value>
   </data>
   <data name="This panel can compare RSA and ECDSA keys; this key parses as neither, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>Den här panelen kan jämföra RSA- och ECDSA-nycklar; den här nyckeln tolkas som ingendera, så om den matchar certifikatet bevisas först när servern läser in paret.</value>
@@ -14251,8 +14239,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Thresholds &amp; actions" xml:space="preserve">
     <value>Trösklar &amp; åtgärder</value>
   </data>
-  <data name="Throttle abusive senders submitting to this server. Limits are per minute; 0 disables the limit. (Throttling your own outbound rate to a destination is on the Delivery of e-mail page.)" xml:space="preserve">
-    <value>Strypa missbrukande avsändare som lämnar in till den här servern. Gränserna är per minut; 0 stänger av gränsen. (Strypning av din egen utgående takt till ett mål finns på sidan Leverans av e-post.)</value>
+  <data name="Throttle abusive senders submitting to this server. Limits are per minute; 0 disables the limit." xml:space="preserve">
+    <value>Strypa missbrukande avsändare som lämnar in till den här servern. Gränserna är per minut; 0 stänger av gränsen.</value>
   </data>
   <data name="Throttling your own outbound rate to a domain that rate-limits you. A deferred message is retried a minute later without spending the retry budget above." xml:space="preserve">
     <value>Stryper din egen utgående hastighet till en domän som begränsar dig. Ett uppskjutet meddelande försöks igen en minut senare utan att förbruka försöksbudgeten ovan.</value>
@@ -14307,6 +14295,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="To update" xml:space="preserve">
     <value>Uppdateras</value>
+  </data>
+  <data name="Together with the delay below this is the whole window: six attempts five seconds apart is half a minute. Lengthen it rather than delaying the service if the database is on another host that is slower to come up." xml:space="preserve">
+    <value>Tillsammans med fördröjningen nedan är detta hela fönstret: sex försök med fem sekunders mellanrum är en halv minut. Förläng det hellre än att fördröja tjänsten om databasen ligger på en annan värd som är långsammare att komma upp.</value>
   </data>
   <data name="Token endpoint (https)" xml:space="preserve">
     <value>Tokenslutpunkt (https)</value>
@@ -14416,8 +14407,14 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Turned off" xml:space="preserve">
     <value>Avstängt</value>
   </data>
-  <data name="Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. For an administrator whose policy is that nothing derived from a long-lived key ever goes on the wire. The only cost is resumption efficiency - every client can still connect with a full handshake." xml:space="preserve">
-    <value>Att stänga av detta stoppar sessionsbiljetter på varje TLS-version: TLS 1.2 och äldre klienter faller tillbaka på sessionscachen på serversidan, som aldrig lämnar den här processen, och TLS 1.3-klienter skickas ingen biljett alls. För en administratör vars policy är att inget härlett från en långlivad nyckel någonsin går ut på kabeln. Den enda kostnaden är återupptagningens effektivitet - varje klient kan fortfarande ansluta med en fullständig handskakning.</value>
+  <data name="Turned off, the encrypted connection no longer proves it reaches your directory: anyone who can intercept it can present any certificate and collect every password sent over it. Only meaningful for LDAPS and StartTLS." xml:space="preserve">
+    <value>Avstängt bevisar den krypterade anslutningen inte längre att den når din katalog: vem som helst som kan avlyssna den kan visa upp vilket certifikat som helst och samla in varje lösenord som skickas över den. Bara meningsfullt för LDAPS och StartTLS.</value>
+  </data>
+  <data name="Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. The only cost is resumption efficiency - every client can still connect with a full handshake." xml:space="preserve">
+    <value>Att stänga av detta stoppar sessionsbiljetter på varje TLS-version: TLS 1.2 och äldre klienter faller tillbaka på sessionscachen på serversidan, som aldrig lämnar den här processen, och TLS 1.3-klienter skickas ingen biljett alls. Den enda kostnaden är återupptagningens effektivitet - varje klient kan fortfarande ansluta med en fullständig handskakning.</value>
+  </data>
+  <data name="Turning this on means someone has to be available for everybody else. The clock started when this server was upgraded, so nobody is expired the moment you set this." xml:space="preserve">
+    <value>Att slå på detta betyder att någon måste finnas tillgänglig för alla andra. Klockan började gå när den här servern uppgraderades, så ingen är utgången i samma stund du sätter detta.</value>
   </data>
   <data name="Turns a filter or a check off" xml:space="preserve">
     <value>Stänger av ett filter eller en kontroll</value>
@@ -14722,8 +14719,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Waiting for you to allow hMailServer to make changes, in the Windows prompt." xml:space="preserve">
     <value>Väntar på att du i Windows-frågan tillåter hMailServer att göra ändringar.</value>
   </data>
-  <data name="Wakes the indexer instead of waiting for its next pass, and reports how many of this server's messages are currently indexed. The pass itself runs in the background and is bounded by the limits above, so on a large backlog it makes progress rather than finishing. With indexing switched off there is no indexer to wake, and this says so rather than reporting success." xml:space="preserve">
-    <value>Väcker indexeraren i stället för att vänta på dess nästa körning, och rapporterar hur många av den här serverns meddelanden som just nu är indexerade. Själva körningen sker i bakgrunden och begränsas av gränserna ovan, så på en stor eftersläpning gör den framsteg snarare än blir klar. Med indexering avstängd finns ingen indexerare att väcka, och detta säger det i stället för att rapportera framgång.</value>
+  <data name="Wakes the indexer instead of waiting for its next pass, and reports how many of this server's messages are currently indexed. The pass itself runs in the background and is bounded by the limits above, so on a large backlog it makes progress rather than finishing." xml:space="preserve">
+    <value>Väcker indexeraren i stället för att vänta på dess nästa körning, och rapporterar hur många av den här serverns meddelanden som just nu är indexerade. Själva körningen sker i bakgrunden och begränsas av gränserna ovan, så på en stor eftersläpning gör den framsteg snarare än blir klar.</value>
   </data>
   <data name="Warm-up schedule" xml:space="preserve">
     <value>Uppvärmningsschema</value>
@@ -14842,8 +14839,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="What happened to a particular message. Search by any address - it matches senders and recipients - then follow one row to see every event for that message in order." xml:space="preserve">
     <value>Vad som hände med ett visst meddelande. Sök på vilken adress som helst - den matchar avsändare och mottagare - och följ sedan en rad för att se varje händelse för det meddelandet i ordning.</value>
   </data>
-  <data name="What happens to a TCP connection this server refuses before any protocol conversation starts: one from an address no IP range allows, or one over that range's connection limit. Both of those are configured on the IP ranges page. Locking out an address that keeps failing to sign in is a different mechanism entirely and is on the Auto-ban page." xml:space="preserve">
-    <value>Vad som händer med en TCP-anslutning den här servern avvisar innan någon protokollkonversation börjar: en från en adress inget IP-intervall tillåter, eller en över det intervallets anslutningsgräns. Båda konfigureras på sidan IP-intervall. Att stänga ute en adress som gång på gång misslyckas med att logga in är en helt annan mekanism och finns på sidan Automatisk spärr.</value>
+  <data name="What happens to a TCP connection this server refuses before any protocol conversation starts: one from an address no IP range allows, or one over that range's connection limit. Both of those are configured on the IP ranges page." xml:space="preserve">
+    <value>Vad som händer med en TCP-anslutning den här servern avvisar innan någon protokollkonversation börjar: en från en adress inget IP-intervall tillåter, eller en över det intervallets anslutningsgräns. Båda konfigureras på sidan IP-intervall.</value>
   </data>
   <data name="What happens to a listed recipient" xml:space="preserve">
     <value>Vad som händer med en listad mottagare</value>
@@ -14890,11 +14887,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="What people may do in the webmail" xml:space="preserve">
     <value>Vad folk får göra i webbmejlen</value>
   </data>
-  <data name="What rotation defends: OpenSSL's default ticket key is generated once, when the listener starts, and is never rotated, so every ticket that listener issues for the life of the process is sealed under the same key - and that key, recovered later, decrypts every ticket ever recorded. With an interval set, a captured ticket is useless after at most two intervals. 86,400 is a day. Only meaningful while session tickets are enabled above." xml:space="preserve">
-    <value>Vad rotation försvarar: OpenSSL:s standardbiljettnyckel genereras en gång, när lyssnaren startar, och roteras aldrig, så varje biljett den lyssnaren utfärdar under processens livstid förseglas under samma nyckel - och den nyckeln, återvunnen senare, dekrypterar varje biljett som någonsin spelats in. Med ett intervall satt är en infångad biljett värdelös efter högst två intervall. 86 400 är ett dygn. Bara meningsfullt medan sessionsbiljetter är aktiverade ovan.</value>
-  </data>
-  <data name="What stops one statement blocked on a lock from holding a worker thread for ever. Honoured at connect time by MySQL/MariaDB and PostgreSQL; MS SQL and SQL CE start at ADO's own 30 seconds and pick this value up on any connection that has run an upgrade or maintenance script. Those scripts run under a 30-minute per-statement ceiling of their own regardless of this value." xml:space="preserve">
-    <value>Det som hindrar en sats blockerad på ett lås från att hålla en arbetstråd för evigt. Respekteras vid anslutning av MySQL/MariaDB och PostgreSQL; MS SQL och SQL CE börjar på ADO:s egna 30 sekunder och tar upp det här värdet på varje anslutning som har kört ett uppgraderings- eller underhållsskript. De skripten körs under ett eget tak på 30 minuter per sats oavsett det här värdet.</value>
+  <data name="What stops one statement blocked on a lock from holding a worker thread for ever. Honoured at connect time by MySQL/MariaDB and PostgreSQL; MS SQL and SQL CE start at ADO's own 30 seconds and pick this value up on any connection that has run an upgrade or maintenance script." xml:space="preserve">
+    <value>Det som hindrar en sats blockerad på ett lås från att hålla en arbetstråd för evigt. Respekteras vid anslutning av MySQL/MariaDB och PostgreSQL; MS SQL och SQL CE börjar på ADO:s egna 30 sekunder och tar upp det här värdet på varje anslutning som har kört ett uppgraderings- eller underhållsskript.</value>
   </data>
   <data name="What the 550 reply says to the sender." xml:space="preserve">
     <value>Vad 550-svaret säger till avsändaren.</value>
@@ -14986,8 +14980,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS before authentication for each range named below. This computer's own clients are not affected." xml:space="preserve">
     <value>Där en port som nämns nedan saknar TLS ger du den först ett certifikat och STARTTLS på sidan TCP/IP-portar; slå sedan på Kräv TLS före autentisering på sidan IP-intervall för varje intervall som nämns nedan. Den här datorns egna klienter påverkas inte.</value>
   </data>
-  <data name="Where clients reach the web services listener; each certificate names its revocation list and its root under it. Empty, the default, names neither, so a client that insists on checking revocation cannot. A certificate already issued keeps what it was issued with." xml:space="preserve">
-    <value>Där klienter når webbtjänstlyssnaren; varje certifikat anger sin spärrlista och sin rot under den. Tomt, standard, anger ingetdera, så att en klient som insisterar på att kontrollera återkallelse inte kan det. Ett redan utfärdat certifikat behåller det som det utfärdades med.</value>
+  <data name="Where clients reach the web services listener; each certificate names its revocation list and its root under it. Empty, the default, names neither, so a client that insists on checking revocation cannot." xml:space="preserve">
+    <value>Där klienter når webbtjänstlyssnaren; varje certifikat anger sin spärrlista och sin rot under den. Tomt, standard, anger ingetdera, så att en klient som insisterar på att kontrollera återkallelse inte kan det.</value>
   </data>
   <data name="Where it _goes" xml:space="preserve">
     <value>Vart det _går</value>
@@ -15058,8 +15052,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Whether it is on could not be read from the server." xml:space="preserve">
     <value>Om den är på kunde inte läsas från servern.</value>
   </data>
-  <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above - those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
-    <value>Om uppslagningar får besvaras från Windows DNS-resolvercache. Av: varje uppslagning går till nätverket. Ignoreras när en åsidosättande DNS-server är satt ovan - de uppslagningarna kringgår alltid systemcachen, eftersom dess svar skulle komma från fel resolver.</value>
+  <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network." xml:space="preserve">
+    <value>Om uppslagningar får besvaras från Windows DNS-resolvercache. Av: varje uppslagning går till nätverket.</value>
   </data>
   <data name="Whether new mail is stored compressed, with the large attachments it shares with other messages kept once. Clients see every message exactly as it arrived. Turning it off stores new mail as it comes and leaves the stored messages readable; hmailserver --compress-store rewrites the messages already there, and --decompress puts them back." xml:space="preserve">
     <value>Om ny e-post lagras komprimerad, med de stora bilagor den delar med andra meddelanden lagrade en gång. Klienterna ser varje meddelande exakt som det kom. Avstängt lagras ny e-post som den kommer och de lagrade meddelandena förblir läsbara; hmailserver --compress-store skriver om meddelandena som redan finns där, och --decompress återställer dem.</value>
@@ -15109,8 +15103,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Which name servers the server asks, and whether answers are DNSSEC validated." xml:space="preserve">
     <value>Vilka namnservrar servern frågar, och om svaren DNSSEC-valideras.</value>
   </data>
-  <data name="Which resolver hMailServer queries. Leave empty to use the name servers Windows is configured with. The override takes a single IPv4 address and is used on port 53; DNSSEC validation and its trust anchors are on the Transport security page." xml:space="preserve">
-    <value>Vilken resolver hMailServer frågar. Lämna tomt för att använda de namnservrar Windows är konfigurerat med. Åsidosättningen tar en enda IPv4-adress och används på port 53; DNSSEC-validering och dess förtroendeankare finns på sidan Transportsäkerhet.</value>
+  <data name="Which resolver hMailServer queries. The override takes a single IPv4 address and is used on port 53; DNSSEC validation and its trust anchors are on the Transport security page." xml:space="preserve">
+    <value>Vilken resolver hMailServer frågar. Åsidosättningen tar en enda IPv4-adress och används på port 53; DNSSEC-validering och dess förtroendeankare finns på sidan Transportsäkerhet.</value>
   </data>
   <data name="Which scanners can actually run, what size of message is scanned, and what happens to one that is found to be infected." xml:space="preserve">
     <value>Vilka skannrar som faktiskt kan köras, hur stora meddelanden som skannas, och vad som händer med ett som visar sig vara infekterat.</value>
@@ -15220,14 +15214,20 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Windows' permission" xml:space="preserve">
     <value>Windows tillåtelse</value>
   </data>
-  <data name="Windows: an inbound block rule per banned address in Windows Defender Firewall, TCP only and scoped to the ports this server listens on, in a rule group named hMailServer auto-ban; removed when the ban expires or the IP range is deleted. Linux: the packaged autoban-hook keeps an nftables set with a timeout, and the service needs CAP_NET_ADMIN for it - the hook says exactly how to grant it. List the addresses you administer from under never-ban first." xml:space="preserve">
-    <value>Windows: en inkommande blockeringsregel per avstängd adress i Windows Defender Firewall, endast TCP och bara för de portar den här servern lyssnar på, i en regelgrupp med namnet hMailServer auto-ban; tas bort när avstängningen löper ut eller IP-intervallet raderas. Linux: den medföljande autoban-hook underhåller en nftables-mängd med timeout, och tjänsten behöver CAP_NET_ADMIN för det - hooken förklarar exakt hur det beviljas. Skriv först in adresserna du administrerar från under ”stäng aldrig av”.</value>
+  <data name="Windows: an inbound block rule per banned address in Windows Defender Firewall, TCP only and scoped to the ports this server listens on, in a rule group named hMailServer auto-ban; removed when the ban expires or the IP range is deleted. List the addresses you administer from under never-ban first." xml:space="preserve">
+    <value>Windows: en inkommande blockeringsregel per avstängd adress i Windows Defender Firewall, endast TCP och bara för de portar den här servern lyssnar på, i en regelgrupp med namnet hMailServer auto-ban; tas bort när avstängningen löper ut eller IP-intervallet raderas. Skriv först in adresserna du administrerar från under ”stäng aldrig av”.</value>
+  </data>
+  <data name="With a list here a message is archived only when its local sender or one of its recipients belongs to a listed domain, and only the copies for listed domains are made - a listed recipient still gets their copy when the sender's domain is not listed. Matched without regard to case." xml:space="preserve">
+    <value>Med en lista här arkiveras ett meddelande bara när dess lokala avsändare eller någon av dess mottagare hör till en listad domän, och bara kopiorna för listade domäner görs - en listad mottagare får fortfarande sin kopia när avsändarens domän inte är listad. Matchas utan hänsyn till skiftläge.</value>
   </data>
   <data name="With a moderator set, a sender the rules above refuse is forwarded to the moderator instead of being rejected. The moderator approves by resending the message to the list from an authenticated session." xml:space="preserve">
     <value>Med en moderator satt vidarebefordras en avsändare reglerna ovan avvisar till moderatorn i stället för att avvisas. Moderatorn godkänner genom att skicka om meddelandet till listan från en autentiserad session.</value>
   </data>
   <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
     <value>Med en lösenfras satt och komprimering avstängd kopieras meddelandefilerna bredvid arkivet i stället för in i det, där ingenting krypterar dem - och säkerhetskopieringen vägrar att köra. Slå på komprimering, eller töm lösenfrasen.</value>
+  </data>
+  <data name="With an interval set, a captured ticket is useless after at most two intervals. Only meaningful while session tickets are enabled above." xml:space="preserve">
+    <value>Med ett intervall satt är en infångad biljett värdelös efter högst två intervall. Bara meningsfullt medan sessionsbiljetter är aktiverade ovan.</value>
   </data>
   <data name="With no schedule configured, nothing will take the next one." xml:space="preserve">
     <value>Utan något schema kommer ingen att ta nästa.</value>
@@ -15292,11 +15292,11 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Write the message first: an empty one is not sent." xml:space="preserve">
     <value>Skriv meddelandet först: ett tomt meddelande skickas inte.</value>
   </data>
-  <data name="Write-only: a stored password is never shown here again - leave the box blank to keep it. It is stored as plain text in hMailServer.ini on the server, because the server has to present it to the directory verbatim and so cannot hash it; restrict file access to the INI accordingly. It only ever leaves the server over the transport configured above." xml:space="preserve">
-    <value>Bara skrivbart: ett sparat lösenord visas aldrig här igen - lämna rutan tom för att behålla det. Det lagras i klartext i hMailServer.ini på servern, eftersom servern måste visa upp det ordagrant för katalogen och därför inte kan hasha det; begränsa filåtkomsten till INI-filen därefter. Det lämnar bara någonsin servern över transporten som konfigurerats ovan.</value>
+  <data name="Write-only: a stored password is never shown here again - leave the box blank to keep it. It is stored as plain text in hMailServer.ini on the server, because the server has to present it to the directory verbatim and so cannot hash it; restrict file access to the INI accordingly." xml:space="preserve">
+    <value>Bara skrivbart: ett sparat lösenord visas aldrig här igen - lämna rutan tom för att behålla det. Det lagras i klartext i hMailServer.ini på servern, eftersom servern måste visa upp det ordagrant för katalogen och därför inte kan hasha det; begränsa filåtkomsten till INI-filen därefter.</value>
   </data>
-  <data name="Writes the conditions an operator alerts on - database unavailable, a listener that would not start, a crash, a failed backup, the disk floor - to the Windows Application log, where Event Viewer, monitoring agents and SIEM collectors can see them. Each condition has an event id of its own that does not change, so an alert can match on it; a healthy server writes nothing at all. Protocol traffic and routine logging never go here - a mail server that logs every session to the Application log gets itself uninstalled." xml:space="preserve">
-    <value>Skriver de tillstånd en operatör larmar på - databasen otillgänglig, en lyssnare som inte startade, en krasch, en misslyckad säkerhetskopiering, diskgolvet - till Windows programlogg, där Loggboken, övervakningsagenter och SIEM-insamlare kan se dem. Varje tillstånd har ett eget händelse-ID som inte ändras, så att ett larm kan matcha på det; en frisk server skriver ingenting alls. Protokolltrafik och rutinloggning går aldrig hit - en e-postserver som loggar varje session till programloggen får sig själv avinstallerad.</value>
+  <data name="Writes the conditions an operator alerts on - database unavailable, a listener that would not start, a crash, a failed backup, the disk floor - to the Windows Application log, where Event Viewer, monitoring agents and SIEM collectors can see them. Each condition has an event id of its own that does not change, so an alert can match on it; a healthy server writes nothing at all." xml:space="preserve">
+    <value>Skriver de tillstånd en operatör larmar på - databasen otillgänglig, en lyssnare som inte startade, en krasch, en misslyckad säkerhetskopiering, diskgolvet - till Windows programlogg, där Loggboken, övervakningsagenter och SIEM-insamlare kan se dem. Varje tillstånd har ett eget händelse-ID som inte ändras, så att ett larm kan matcha på det; en frisk server skriver ingenting alls.</value>
   </data>
   <data name="Yes" xml:space="preserve">
     <value>Ja</value>
@@ -16384,8 +16384,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="hMailServer does not create or manage client certificates. The certificate authority and the client certificates themselves must be produced outside hMailServer (for example with OpenSSL or an internal PKI) - the server only trusts the CA bundle it is given here." xml:space="preserve">
     <value>hMailServer skapar eller hanterar inte klientcertifikat. Certifikatutfärdaren och själva klientcertifikaten måste tas fram utanför hMailServer (till exempel med OpenSSL eller en intern PKI) - servern litar bara på det CA-paket den får här.</value>
   </data>
-  <data name="hMailServer does not implement CalDAV or CardDAV. These settings only answer the well-known discovery URLs (RFC 6764) with a redirect to the server that does, so a client configured with a user's mail address finds their calendar without being told a second address. Leave both empty unless you run such a server: empty means the discovery URLs answer 404, which is the right response when there is nothing to point at. They need the web services listener above to be running, like everything else on this page." xml:space="preserve">
-    <value>hMailServer implementerar inte CalDAV eller CardDAV. De här inställningarna svarar bara på de välkända upptäckts-URL:erna (RFC 6764) med en omdirigering till servern som gör det, så att en klient konfigurerad med en användares e-postadress hittar deras kalender utan att få en andra adress. Lämna båda tomma om du inte kör en sådan server: tomt betyder att upptäckts-URL:erna svarar 404, vilket är det rätta svaret när det inte finns något att peka på. De kräver att webbtjänstlyssnaren ovan körs, som allt annat på den här sidan.</value>
+  <data name="hMailServer does not implement CalDAV or CardDAV. These settings only answer the well-known discovery URLs (RFC 6764) with a redirect to the server that does, so a client configured with a user's mail address finds their calendar without being told a second address." xml:space="preserve">
+    <value>hMailServer implementerar inte CalDAV eller CardDAV. De här inställningarna svarar bara på de välkända upptäckts-URL:erna (RFC 6764) med en omdirigering till servern som gör det, så att en klient konfigurerad med en användares e-postadress hittar deras kalender utan att få en andra adress.</value>
   </data>
   <data name="hMailServer has been updated from {0} to {1}, and the service is running. Installed by {2} at {3}." xml:space="preserve">
     <value>hMailServer har uppdaterats från {0} till {1}, och tjänsten körs. Installerat av {2} {3}.</value>
@@ -16637,11 +16637,11 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="mail is stuck" xml:space="preserve">
     <value>post har fastnat</value>
   </data>
+  <data name="mail.example.net is that name alone; .example.net is the name and every name beneath it. A net with no reverse name, or one you do not trust, still belongs in the address list above." xml:space="preserve">
+    <value>mail.example.net är just det namnet; .example.net är namnet och varje namn under det. Ett nät utan omvänt namn, eller med ett du inte litar på, hör fortfarande hemma i adresslistan ovan.</value>
+  </data>
   <data name="mail.example.net is that name alone; .example.net is the name and every name beneath it. Never a public suffix such as .com, and never a cloud whose customers' machines carry the provider's name." xml:space="preserve">
     <value>mail.example.net är just det namnet; .example.net är namnet och varje namn under det. Aldrig ett publikt suffix som .com, och aldrig ett moln vars kunders maskiner bär leverantörens namn.</value>
-  </data>
-  <data name="mail.example.net is that name alone; .example.net is the name and every name beneath it. The reverse lookup is never waited for on a connection: a ban placed before the answer is in is lifted once it is, before the firewall or fail2ban is told. A net with no reverse name, or one you do not trust, still belongs in the address list above." xml:space="preserve">
-    <value>mail.example.net är just det namnet; .example.net är namnet och varje namn under det. Den omvända uppslagningen väntas aldrig in för en anslutning: en spärr som lagts innan svaret kommit hävs när det kommer, innan brandväggen eller fail2ban får veta. Ett nät utan omvänt namn, eller med ett du inte litar på, hör fortfarande hemma i adresslistan ovan.</value>
   </data>
   <data name="make awstats work" xml:space="preserve">
     <value>få awstats att fungera</value>

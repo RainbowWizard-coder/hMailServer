@@ -110,7 +110,7 @@ namespace hMailServer.ControlPanel.Views
          // whose query is set still delivers to the addresses under Recipients,
          // and an address that is both is delivered to once.
          body.Children.Add(Label(L("Membership _query (empty = the recipients alone)"), membership_)
-            .WithHint(L("Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included.")));
+            .WithHint(L("Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server.")));
 
          // The list manager. Off, the rest of this group does nothing and the
          // list is the distribution list it always was.

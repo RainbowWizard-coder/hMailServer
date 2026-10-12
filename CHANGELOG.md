@@ -3971,6 +3971,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   run of their own, "Store:" and "What to do:", are whole labels. `check-localisation` and `WholeTextsTests` refuse a
   text with white space at either edge.
 
+- **Fixed: hints of three to five sentences on the settings pages, and INI keys inside hints.** The owner's decision 11
+  asks for two sentences of hint on the page - what a setting does, and its safe value or what follows from it - with
+  the rest in the help, and an INI key name only as a small caption; it was carried out on the Anti-spam and Anti-virus
+  settings pages alone. Seventy hints on Protocols, Delivery of e-mail, SSL/TLS, Auto-ban, Logging, Performance,
+  Advanced, Webmail, Administrative access, Transport security, API & monitoring, Updates, Server limits & expert
+  settings, DNS resolver, Web services & autoconfiguration, Backup & restore, a distribution list's dialog, Directory
+  authentication and Directory synchronisation ran to three, four and five, and Directory authentication ended each of
+  its hints with "Stored as [LDAP] Port." Each hint keeps the two of its sentences that say what the setting does and
+  its safe value or consequence, the same two in every language; the sentences it loses are in the new
+  docs/SettingsReasons.md, under the page and the setting's caption, which the help now opens for the nine pages no
+  other document was about; and Directory authentication names each key in the small line under its editor.
+  `SettingsHintLengthTests` holds every hint on those pages to two sentences, the keys to the small line, and the
+  reasons to the document.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -355,14 +355,19 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// A field's hint with the key it is stored under as its last sentence - "Stored as
-      /// [LDAP] Server." - the small tertiary line the owner's decision on hints allows on
-      /// an expert page, where the key stood in the caption, "Directory server host name
-      /// (Server)", and in Japanese and Chinese put the Alt key after the bracket (review
-      /// finding F137). Directory synchronisation, which edits the same section, names no key.
+      /// The row's small tertiary caption, under its editor, names the [LDAP] key it is
+      /// stored as - "Stored as [LDAP] Server." - the line the owner's decision on hints
+      /// allows on an expert page. The key stood in the caption, "Directory server host
+      /// name (Server)", and in Japanese and Chinese put the Alt key after the bracket
+      /// (review finding F137); then it ended the hint as a sentence of its own, past the
+      /// decision's two (the final check of Tier 2). Directory synchronisation, which edits
+      /// the same section, names no key.
       /// </summary>
-      private static string StoredAs_(string hint, string key)
-         => Sentences(hint, F("Stored as [LDAP] {0}.", key));
+      private static FieldRow Keyed_(FieldRow row, string key)
+      {
+         row.Applies = F("Stored as [LDAP] {0}.", key);
+         return row;
+      }
 
       private static FieldRow LabelledCombo_(string label, ComboBox combo,
          string automationId, string caption, params (int Value, string Text)[] options)
@@ -423,31 +428,31 @@ namespace hMailServer.ControlPanel.Views
       {
          Card card = Section_(L("Directory server"), null, out StackPanel content);
 
-         content.Children.Add(LabelledCheck_(enabled_,
+         content.Children.Add(Keyed_(LabelledCheck_(enabled_,
             L("_Use LDAP directory authentication"),
             "ldap-enabled",
-            StoredAs_(L("Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Windows directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way."), "Enabled"))); // no-loc: the key
+            L("Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Windows directory tab filled in - are validated by an LDAP bind against the server below instead.")), "Enabled")); // no-loc: the key
 
-         content.Children.Add(LabelledBox_(L("Directory server _host name"), server_, "ldap-server",
-            StoredAs_(L("Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address."), "Server"), // no-loc: the key
-            placeholder: ExamplePlaceholder.Of("dc01.example.local")));
+         content.Children.Add(Keyed_(LabelledBox_(L("Directory server _host name"), server_, "ldap-server",
+            L("The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address."),
+            placeholder: ExamplePlaceholder.Of("dc01.example.local")), "Server")); // no-loc: the [LDAP] key
 
-         content.Children.Add(portRow_ = LabelledBox_(L("_Port"), port_, "ldap-port",
-            StoredAs_(L("Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem."), "Port"))); // no-loc: the key
+         content.Children.Add(portRow_ = Keyed_(LabelledBox_(L("_Port"), port_, "ldap-port",
+            L("Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem.")), "Port")); // no-loc: the key
 
-         content.Children.Add(LabelledCombo_(L("_Connection security"), security_, "ldap-security",
-            StoredAs_(L("LDAPS is the default. A number in the INI that is not one of these three is read as LDAPS, so a typo cannot silently weaken the transport - and whatever this is set to, a password is never sent over an unprotected connection unless that is explicitly allowed below."), "Security"), // no-loc: the key
+         content.Children.Add(Keyed_(LabelledCombo_(L("_Connection security"), security_, "ldap-security",
+            L("LDAPS is the default. A number in the INI that is not one of these three is read as LDAPS, so a typo cannot silently weaken the transport - and whatever this is set to, a password is never sent over an unprotected connection unless that is explicitly allowed below."),
             (2, L("LDAPS - TLS from the first byte (default, port 636)")),
             (1, L("StartTLS - connect on 389, upgrade to TLS before anything is sent")),
-            (0, L("Unprotected LDAP - cleartext (lab networks only)"))));
+            (0, L("Unprotected LDAP - cleartext (lab networks only)"))), "Security")); // no-loc: the [LDAP] key
 
-         content.Children.Add(LabelledCheck_(verifyCertificate_,
+         content.Children.Add(Keyed_(LabelledCheck_(verifyCertificate_,
             L("_Verify the directory server's certificate"),
             "ldap-verify-certificate",
-            StoredAs_(L("On by default, and only an explicit 0 in the INI turns it off. Turned off, the encrypted connection no longer proves it reaches your directory: anyone who can intercept it can present any certificate and collect every password sent over it. The server notes the disabling in its application log once per service start. Only meaningful for LDAPS and StartTLS."), "VerifyCertificate")));
+            L("Turned off, the encrypted connection no longer proves it reaches your directory: anyone who can intercept it can present any certificate and collect every password sent over it. Only meaningful for LDAPS and StartTLS.")), "VerifyCertificate")); // no-loc: the [LDAP] key
 
-         content.Children.Add(timeoutRow_ = LabelledBox_(L("Time_out (seconds, 1 to 90)"), timeout_, "ldap-timeout",
-            StoredAs_(L("Default 10. The server reads values below 1 as 10 and clamps values above 90, because \"wait forever\" for an unreachable directory is how connection threads get exhausted."), "TimeoutSeconds")));
+         content.Children.Add(timeoutRow_ = Keyed_(LabelledBox_(L("Time_out (seconds, 1 to 90)"), timeout_, "ldap-timeout",
+            L("Default 10. The server reads values below 1 as 10 and clamps values above 90, because \"wait forever\" for an unreachable directory is how connection threads get exhausted.")), "TimeoutSeconds")); // no-loc: the [LDAP] key
 
          return card;
       }
@@ -457,15 +462,15 @@ namespace hMailServer.ControlPanel.Views
          Card card = Section_(L("How the password is proved"),
             L("Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all."), out StackPanel content);
 
-         content.Children.Add(LabelledCombo_(L("_Bind method"), bindMethod_, "ldap-bind-method",
-            StoredAs_(L("Simple is the default. Negotiate runs an SSPI exchange (Kerberos, falling back to NTLM) that never transmits the password and signs the connection - it is the only method a default-configured modern domain controller accepts when it has no certificate installed, it needs no search, no search base and no service account, and it works from a host that is not domain-joined."), "BindMethod"),
+         content.Children.Add(Keyed_(LabelledCombo_(L("_Bind method"), bindMethod_, "ldap-bind-method",
+            L("Simple is the default. Negotiate runs an SSPI exchange (Kerberos, falling back to NTLM) that never transmits the password and signs the connection - it is the only method a default-configured modern domain controller accepts when it has no certificate installed, it needs no search, no search base and no service account, and it works from a host that is not domain-joined."),
             (0, L("Simple bind - the password is sent to the directory (use with TLS)")),
-            (1, L("Negotiate (Kerberos/NTLM) - the password never crosses the network"))));
+            (1, L("Negotiate (Kerberos/NTLM) - the password never crosses the network"))), "BindMethod")); // no-loc: the [LDAP] key
 
-         content.Children.Add(LabelledCheck_(allowUnprotected_,
+         content.Children.Add(Keyed_(LabelledCheck_(allowUnprotected_,
             L("_Allow sending the password over an unprotected connection"),
             "ldap-allow-unprotected",
-            StoredAs_(L("Off by default. With unprotected LDAP and a simple bind, the server does not send the password and does not guess what you meant: it refuses the sign-in and reports the contradiction, once per minute. Turning this on sends passwords in the clear and should only ever happen on a network you control end to end."), "AllowUnprotectedPassword")));
+            L("Off by default. Turning this on sends passwords in the clear and should only ever happen on a network you control end to end.")), "AllowUnprotectedPassword")); // no-loc: the [LDAP] key
 
          return card;
       }
@@ -475,20 +480,20 @@ namespace hMailServer.ControlPanel.Views
          Card card = Section_(L("Finding the user's directory entry"),
             L("A simple bind needs the user's distinguished name. There are two ways to get one - search for it, or compute it from a template - and Negotiate needs neither, because SSPI authenticates by user name and domain, which the account already carries."), out StackPanel content);
 
-         content.Children.Add(LabelledBox_(L("Search bas_e"), searchBase_, "ldap-search-base",
-            StoredAs_(L("Where the search starts, e.g. DC=example,DC=local. Required in search mode - that is, when the bind method is Simple and no DN template is set."), "SearchBase"),
-            placeholder: ExamplePlaceholder.Of("DC=example,DC=local")));
+         content.Children.Add(Keyed_(LabelledBox_(L("Search bas_e"), searchBase_, "ldap-search-base",
+            L("Where the search starts, e.g. DC=example,DC=local. Required in search mode - that is, when the bind method is Simple and no DN template is set."),
+            placeholder: ExamplePlaceholder.Of("DC=example,DC=local")), "SearchBase")); // no-loc: the [LDAP] key
 
-         content.Children.Add(LabelledBox_(L("User search _filter"), userSearchFilter_, "ldap-user-search-filter",
-            StoredAs_(F("Left empty, the server uses the shipped filter, {0} - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile sign-in name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design.", DefaultUserSearchFilter), "UserSearchFilter"),
-            placeholder: DefaultUserSearchFilter));
+         content.Children.Add(Keyed_(LabelledBox_(L("User search _filter"), userSearchFilter_, "ldap-user-search-filter",
+            F("Left empty, the server uses the shipped filter, {0} - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile sign-in name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design.", DefaultUserSearchFilter),
+            placeholder: DefaultUserSearchFilter), "UserSearchFilter")); // no-loc: the [LDAP] key
          // Wide, wrapping and monospaced, with the default named in the hint's
          // first sentence, as Directory synchronisation's filter is (F131).
          LdapFilterField.ShowWhole(userSearchFilter_);
 
-         content.Children.Add(LabelledBox_(L("User _DN template"), userDnTemplate_, "ldap-user-dn-template",
-            StoredAs_(L("The other way to reach a DN: set this and the server skips the search - and with it the need for a search base and a service account. A UPN works against Active Directory. Same %u, %d, %m placeholders, escaped for a distinguished name."), "UserDnTemplate"),
-            placeholder: ExamplePlaceholder.Of(JoinOr(new[] { "%u@example.local", "CN=%u,OU=Staff,DC=example,DC=local" })))); // no-loc: two templates, the same in every language
+         content.Children.Add(Keyed_(LabelledBox_(L("User _DN template"), userDnTemplate_, "ldap-user-dn-template",
+            L("The other way to reach a DN: set this and the server skips the search - and with it the need for a search base and a service account. A UPN works against Active Directory."),
+            placeholder: ExamplePlaceholder.Of(JoinOr(new[] { "%u@example.local", "CN=%u,OU=Staff,DC=example,DC=local" }))), "UserDnTemplate")); // no-loc: two templates, the same in every language
 
          // A distinguished name is data, as the filter is: the search base and the DN
          // template in the monospaced face at its size (review finding F135).
@@ -507,21 +512,21 @@ namespace hMailServer.ControlPanel.Views
             L("Active Directory refuses anonymous searches by default, so search mode normally needs a credential that may read the directory. Negotiate and DN-template configurations need none of this."),
             out StackPanel content);
 
-         content.Children.Add(LabelledBox_(L("Service account user _name"), serviceUsername_, "ldap-service-username",
-            StoredAs_(L("Whatever your directory accepts for a simple bind: a UPN (svc-mail@example.local), DOMAIN\\name, or a full DN. Left empty, the server searches anonymously - which usually fails against Active Directory, with a reported reason that names this setting."), "ServiceUsername"),
-            placeholder: ExamplePlaceholder.Of("svc-mail@example.local")));
+         content.Children.Add(Keyed_(LabelledBox_(L("Service account user _name"), serviceUsername_, "ldap-service-username",
+            L("Whatever your directory accepts for a simple bind: a UPN (svc-mail@example.local), DOMAIN\\name, or a full DN. Left empty, the server searches anonymously - which usually fails against Active Directory, with a reported reason that names this setting."),
+            placeholder: ExamplePlaceholder.Of("svc-mail@example.local")), "ServiceUsername")); // no-loc: the [LDAP] key
 
          servicePassword_.HorizontalAlignment = HorizontalAlignment.Stretch;
          System.Windows.Automation.AutomationProperties.SetAutomationId(servicePassword_, "ldap-service-password");
 
-         string passwordCaption = StoredAs_(
-            L("Write-only: a stored password is never shown here again - leave the box blank to keep it. It is stored as plain text in hMailServer.ini on the server, because the server has to present it to the directory verbatim and so cannot hash it; restrict file access to the INI accordingly. It only ever leaves the server over the transport configured above."), "ServicePassword");
+         string passwordCaption = L("Write-only: a stored password is never shown here again - leave the box blank to keep it. It is stored as plain text in hMailServer.ini on the server, because the server has to present it to the directory verbatim and so cannot hash it; restrict file access to the INI accordingly.");
          System.Windows.Automation.AutomationProperties.SetHelpText(servicePassword_, passwordCaption);
          content.Children.Add(new FieldRow
          {
             Label = L("Serv_ice account password"),
             Content = servicePassword_,
-            Hint = passwordCaption
+            Hint = passwordCaption,
+            Applies = F("Stored as [LDAP] {0}.", "ServicePassword")
          });
 
          content.Children.Add(LabelledCheck_(clearServicePassword_,
@@ -551,10 +556,10 @@ namespace hMailServer.ControlPanel.Views
       {
          Card card = Section_(L("If the directory cannot answer"), null, out StackPanel content);
 
-         content.Children.Add(LabelledCheck_(fallback_,
+         content.Children.Add(Keyed_(LabelledCheck_(fallback_,
             L("Retr_y through Windows logon when the directory is unavailable"),
             "ldap-fallback",
-            StoredAs_(L("Off by default. When off, an unreachable directory refuses the sign-in and the server reports the real reason (throttled to once per minute per distinct problem) instead of retrying through Windows logon - which cannot succeed on a host that is not domain-joined, and whose failure would bury a precise diagnostic under an indistinguishable one. Turn on only on a domain-joined host that wants LDAP as its first choice. A password the directory rejected never falls back either way: retrying it would double every failed attempt and let one wrong password trigger a directory lockout policy."), "FallbackToWindowsLogon")));
+            L("Off by default. Turn on only on a domain-joined host that wants LDAP as its first choice.")), "FallbackToWindowsLogon")); // no-loc: the [LDAP] key
 
          return card;
       }

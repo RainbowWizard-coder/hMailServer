@@ -75,7 +75,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       [Fact]
-      public void DirectoryAuthentication_CaptionsNoKey_AndEachHintEndsWithTheKeyItIsStoredAs()
+      public void DirectoryAuthentication_CaptionsNoKey_AndEachRowSaysTheKeyItIsStoredAs()
       {
          string page = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "LdapSettingsView.cs"));
 
@@ -92,11 +92,14 @@ namespace hMailServer.ControlPanel.Tests.Services
                Assert.DoesNotContain("(" + key + ")", caption, StringComparison.Ordinal);
          }
 
-         // Each key the page writes is named once, as the last sentence of its field's hint.
-         var stored = Regex.Matches(page, @"\), ""(\w+)""\)").Select(m => m.Groups[1].Value).ToList();
+         // Each key the page writes is named once, as its row's small caption under the
+         // editor (Keyed_ sets FieldRow.Applies), not as a sentence of the hint.
+         var stored = Regex.Matches(page, @"\), ""(\w+)""\)\);").Select(m => m.Groups[1].Value)
+            .Concat(Regex.Matches(page, @"Applies = F\(""Stored as \[LDAP\] \{0\}\."", ""(\w+)""\)").Select(m => m.Groups[1].Value)).ToList();
          foreach (string key in written)
-            Assert.True(stored.Count(k => k == key) == 1, key + " is not the key of exactly one field's StoredAs_ hint.");
-         Assert.Contains("=> Sentences(hint, F(\"Stored as [LDAP] {0}.\", key));", page, StringComparison.Ordinal);
+            Assert.True(stored.Count(k => k == key) == 1, key + " is not the key of exactly one field's row.");
+         Assert.Contains("row.Applies = F(\"Stored as [LDAP] {0}.\", key);", page, StringComparison.Ordinal);
+         Assert.DoesNotContain("StoredAs_(", page, StringComparison.Ordinal);
       }
 
       [Fact]

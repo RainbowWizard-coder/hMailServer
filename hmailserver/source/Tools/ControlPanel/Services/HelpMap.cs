@@ -105,7 +105,7 @@ namespace hMailServer.ControlPanel.Services
             ["roles"] = new HelpTarget("Roles.md", "Giving somebody a role"),
 
             // Mail flow. The delivery page's own guides are by tab (Tabs).
-            ["delivery"] = HelpTarget.NoGuide,
+            ["delivery"] = new HelpTarget("SettingsReasons.md", "Delivery of e-mail"),
             ["routes"] = new HelpTarget("RemoteDomains.md", "A policy is not a route"),
             ["remotedomains"] = new HelpTarget("RemoteDomains.md"),
             ["relays"] = HelpTarget.NoGuide,
@@ -144,21 +144,21 @@ namespace hMailServer.ControlPanel.Services
             // they gave at length are its document's (review finding F310).
             ["protocols"] = new HelpTarget("Protocols.md"),
             ["ports"] = new HelpTarget("SecureDefaults.md", "What a new installation starts with"),
-            ["webservices"] = HelpTarget.NoGuide,
+            ["webservices"] = new HelpTarget("SettingsReasons.md", "Web services & autoconfiguration"),
             ["webmail"] = new HelpTarget("PasskeysAndSingleSignOn.md"),
-            ["dns"] = HelpTarget.NoGuide,
+            ["dns"] = new HelpTarget("SettingsReasons.md", "DNS resolver"),
             ["certs"] = new HelpTarget("SecureDefaults.md", "The certificate"),
             ["acme"] = new HelpTarget("SecureDefaults.md", "The certificate"),
             ["tlsoverview"] = new HelpTarget("SecureDefaults.md", "What a new installation starts with"),
-            ["tls"] = HelpTarget.NoGuide,
-            ["security"] = HelpTarget.NoGuide,
+            ["tls"] = new HelpTarget("SettingsReasons.md", "SSL/TLS"),
+            ["security"] = new HelpTarget("SettingsReasons.md", "Transport security"),
 
             // Authentication and access. Directory.md is the organisation's
             // address list, not LDAP; CountryBlocking.md is the auto-ban page's
             // Countries tab, not the IP ranges.
             ["authentication"] = new HelpTarget("PasskeysAndSingleSignOn.md"),
-            ["ldap"] = HelpTarget.NoGuide,
-            ["directorysync"] = HelpTarget.NoGuide,
+            ["ldap"] = new HelpTarget("SettingsReasons.md", "Directory authentication (LDAP)"),
+            ["directorysync"] = new HelpTarget("SettingsReasons.md", "Directory synchronisation"),
             ["adminaccess"] = new HelpTarget("SecretsAtRest.md", "The administrator password"),
             ["autoban"] = new HelpTarget("AutoBan.md"),
             ["ipranges"] = HelpTarget.NoGuide,
@@ -168,8 +168,8 @@ namespace hMailServer.ControlPanel.Services
             ["profiles"] = new HelpTarget("Profiles.md"),
             ["backup"] = new HelpTarget("Backup.md"),
             ["updates"] = new HelpTarget("UpdateFeed.md"),
-            ["performance"] = HelpTarget.NoGuide,
-            ["advanced"] = HelpTarget.NoGuide,
+            ["performance"] = new HelpTarget("SettingsReasons.md", "Performance"),
+            ["advanced"] = new HelpTarget("SettingsReasons.md", "Advanced"),
             ["scripts"] = new HelpTarget("EventScripts.md", "Which language, where"),
             ["hardening"] = new HelpTarget("DiagnosingStalledMail.md", "Settings that bound each stage"),
             ["about"] = new HelpTarget("Upgrading.md"),

@@ -317,7 +317,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          Assert.Contains("Label = L(\"Policy max age (seconds, 86,400 to 31,557,600)\"), Blurb = L(\"The default, 604,800, is a week; 86,400 is a day and 31,557,600 a year, the longest RFC 8461 allows.\")", feature, StringComparison.Ordinal);
          Assert.Contains("Blurb = Sentences(L(\"How much sending history a crash can forget.\"), L(\"The default is 10.\"))", feature, StringComparison.Ordinal);
-         Assert.Contains("StoredAs_(L(\"Default 10. The server reads values below 1 as 10 and clamps values above 90", ldap, StringComparison.Ordinal);
+         Assert.Contains("L(\"Default 10. The server reads values below 1 as 10 and clamps values above 90", ldap, StringComparison.Ordinal);
          Assert.DoesNotContain("allowed range 1 to 90", ldap, StringComparison.Ordinal);
       }
 

@@ -401,14 +401,14 @@ namespace hMailServer.ControlPanel.Views
          disableMissing_.Margin = new Thickness(0, 0, 0, 4);
          System.Windows.Automation.AutomationProperties.SetAutomationId(disableMissing_, "dirsync-disable-missing");
          System.Windows.Automation.AutomationProperties.SetHelpText(disableMissing_,
-            L("Off by default. An account that stops being visible is far more often a filter that changed than a person who left, and the two mistakes do not cost the same. No message is ever deleted and no account is removed - re-enabling one restores everything."));
+            L("Off by default. No message is ever deleted and no account is removed - re-enabling one restores everything."));
          disableMissing_.Checked += (s, e) => InvalidatePreview_();
          disableMissing_.Unchecked += (s, e) => InvalidatePreview_();
          content.Children.Add(disableMissing_);
 
          var disableHint = new TextBlock
          {
-            Text = L("Off by default. An account that stops being visible in the directory is far more often a search that changed than a person who left, and the two mistakes do not cost the same. Nothing is disabled at all when the enumeration was cut short or came back empty."),
+            Text = L("Off by default. Nothing is disabled at all when the enumeration was cut short or came back empty."),
             TextWrapping = TextWrapping.Wrap,
             // Under the box's caption (review finding F294).
             Margin = new Thickness(DesignTokens.CheckBoxCaptionInset, 0, 0, 16)
@@ -484,7 +484,7 @@ namespace hMailServer.ControlPanel.Views
             out StackPanel content);
 
          content.Children.Add(LabelledBox_(L("Run _every (minutes)"), scheduleMinutes_, "dirsync-schedule",
-            L("0 switches the schedule off, which is the default and is what every existing installation stays at. Values between 1 and 14 are treated as 15, and anything over a week as a week. This one needs a service restart: the task is registered when the server starts.")));
+            L("0 switches the schedule off, which is the default and is what every existing installation stays at. This one needs a service restart: the task is registered when the server starts.")));
 
          return card;
       }

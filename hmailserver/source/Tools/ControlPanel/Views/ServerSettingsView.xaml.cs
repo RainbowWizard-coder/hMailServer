@@ -2172,7 +2172,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "QuotaWarningPercent",
             Label = L("Warn the mailbox owner at this percentage of their quota (0 = never)"),
             Default = 90,
-            Blurb = L("The delivery that takes a mailbox past this percentage produces one notice to the person whose mailbox it is, from their own domain's postmaster. One notice, not one per message: the server treats the threshold as something the mailbox crosses rather than a state it is in, so a mailbox sitting at 95% is not warned about again on every delivery - which would fill it faster than the mail does. Emptying the mailbox and filling it again warns again. On by default; with it off, nothing is said until mail starts being refused."),
+            Blurb = L("The delivery that takes a mailbox past this percentage produces one notice to the person whose mailbox it is, from their own domain's postmaster. On by default; with it off, nothing is said until mail starts being refused."),
             IniStore = iniStore_
          });
          smtp.Settings.Add(new ComText
@@ -2180,14 +2180,14 @@ namespace hMailServer.ControlPanel.Views
             Path = "QuotaGracePercent",
             Label = L("Still accept incoming mail past a mailbox's limit by (% of the limit; 0 = not at all)"),
             Numeric = true,
-            Blurb = L("A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once.")
+            Blurb = L("A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. Each domain may set its own.")
          });
          smtp.Settings.Add(new ComText
          {
             Path = "QuotaSendStopPercent",
             Label = L("Stop an account sending at (% of its limit; 0 = never)"),
             Numeric = true,
-            Blurb = L("The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once.")
+            Blurb = L("The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own.")
          });
          smtp.Settings.Add(new IniNumber
          {
@@ -2325,7 +2325,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "ServiceIMAP",
             ButtonText = L("Recalculate folder UID counters"),
-            Blurb = L("Each IMAP folder keeps a counter for the next message UID it will issue. If that counter falls behind the messages already in the folder - which a restored or hand-edited database can do - the folder issues a UID it has already used, and a client that caches by UID shows one message where another should be. This moves every counter up to the highest UID its folder actually holds. It never moves one down, so it cannot cause the fault it repairs."),
+            Blurb = L("This moves every counter up to the highest UID its folder actually holds. It never moves one down, so it cannot cause the fault it repairs."),
             Action = () => RecalculateFolderUids_()
          });
          Tab(L("IMAP")).Cards.Add(repair);
@@ -2593,7 +2593,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "ComplaintMailbox",
             Label = L("Complaint mailbox (comma separated for several)"),
             Placeholder = "fbl@example.com", // no-loc
-            Blurb = L("The address the feedback loops are registered against, which must be one this server hosts. Only a report delivered here is read, because arriving where the provider was told to send it is what tells a report from a forgery. Empty, the default, reads nothing.")
+            Blurb = L("The address the feedback loops are registered against, which must be one this server hosts. Empty, the default, reads nothing.")
          });
          complaints.Settings.Add(new ComText
          {
@@ -2660,7 +2660,7 @@ namespace hMailServer.ControlPanel.Views
             Label = L("Base address of the list pages (empty = no links)"),
             Key = "list_base_url",
             Placeholder = "https://lists.example.com", // no-loc
-            Blurb = L("The address the REST API is reached at from outside; the subscribe, confirm, unsubscribe and archive pages are under it. Only an https address gives one-click unsubscribe (RFC 8058). Empty, the default, sends mailto addresses only.")
+            Blurb = L("The address the REST API is reached at from outside; the subscribe, confirm, unsubscribe and archive pages are under it. Only an https address gives one-click unsubscribe (RFC 8058).")
          });
          lists.Settings.Add(new RestNumber
          {
@@ -3331,7 +3331,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "TlsKeyExchangeGroups",
             Label = L("Key exchange groups, in order of preference (empty = the classical fallback secp384r1:x25519:secp256r1)"),
             Monospaced = true,
-            Blurb = L("The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark."),
+            Blurb = L("The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client."),
             // What the server uses when the key is absent - shown, so that saving
             // the page writes the truth back rather than a blank that would drop
             // the post-quantum hybrids to the classical fallback.
@@ -3350,14 +3350,14 @@ namespace hMailServer.ControlPanel.Views
             Path = "SslCipherList",
             Label = L("Cipher list for TLS 1.2 and below (OpenSSL format)"),
             Monospaced = true,
-            Blurb = L("The single value AEAD-ONLY (case-insensitive) is a named preset rather than an OpenSSL cipher string: forward-secret AEAD suites only (ECDHE or DHE with AES-GCM or ChaCha20-Poly1305), excluding every CBC-mode suite - the Lucky13 padding-oracle family - and static-RSA key exchange. The cost: TLS 1.2 clients that only speak CBC suites cannot connect, and TLS 1.0/1.1 are left with no usable cipher at all, so do not enable those protocols alongside it. TLS 1.3 is unaffected - its suites are AEAD by construction and are configured separately below. A misspelled preset name is rejected and reported, not silently ignored.")
+            Blurb = L("The single value AEAD-ONLY (case-insensitive) is a named preset rather than an OpenSSL cipher string: forward-secret AEAD suites only (ECDHE or DHE with AES-GCM or ChaCha20-Poly1305), excluding every CBC-mode suite - the Lucky13 padding-oracle family - and static-RSA key exchange. The cost: TLS 1.2 clients that only speak CBC suites cannot connect, and TLS 1.0/1.1 are left with no usable cipher at all, so do not enable those protocols alongside it.")
          });
          ciph.Settings.Add(new IniText
          {
             Path = "TlsCipherSuites13",
             Label = L("TLS 1.3 cipher suites (empty = OpenSSL defaults)"),
             Monospaced = true,
-            Blurb = L("TLS 1.3 has its own suite list, its own names and its own setter, so the cipher list above does not restrict it. Colon separated, most preferred first, using the RFC 8446 names (TLS_AES_256_GCM_SHA384, TLS_CHACHA20_POLY1305_SHA256, TLS_AES_128_GCM_SHA256, TLS_AES_128_CCM_SHA256, TLS_AES_128_CCM_8_SHA256) - not the OpenSSL cipher-list names. Leave empty to keep OpenSSL's defaults; a name this build does not recognise is skipped and reported rather than failing the whole list."),
+            Blurb = L("TLS 1.3 has its own suite list, its own names and its own setter, so the cipher list above does not restrict it. Colon separated, most preferred first, using the RFC 8446 names (TLS_AES_256_GCM_SHA384, TLS_CHACHA20_POLY1305_SHA256, TLS_AES_128_GCM_SHA256, TLS_AES_128_CCM_SHA256, TLS_AES_128_CCM_8_SHA256) - not the OpenSSL cipher-list names."),
             IniStore = iniStore_
          });
          ciph.Settings.Add(preferServer);
@@ -3380,7 +3380,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "TlsSessionTicketsEnabled",
             Label = L("Issue TLS session tickets so clients can resume sessions"),
             Default = true,
-            Blurb = L("Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. For an administrator whose policy is that nothing derived from a long-lived key ever goes on the wire. The only cost is resumption efficiency - every client can still connect with a full handshake."),
+            Blurb = L("Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. The only cost is resumption efficiency - every client can still connect with a full handshake."),
             IniStore = iniStore_
          });
          resume.Settings.Add(new IniNumber
@@ -3392,7 +3392,7 @@ namespace hMailServer.ControlPanel.Views
             // meaningful rather than a mistake, which is why IniNumber grew a
             // minimum at all.
             MinimumValue = -1,
-            Blurb = L("Each cached session costs server memory, and a client that churns handshakes grows the cache - this cap is the defence. A positive value replaces OpenSSL's default cap of 20,480 sessions. -1 turns the server-side cache off entirely, which stops session-ID resumption but leaves tickets - which cost the server no memory - unaffected. 0 leaves OpenSSL alone."),
+            Blurb = L("Each cached session costs server memory, and a client that churns handshakes grows the cache - this cap is the defence."),
             IniStore = iniStore_
          });
          resume.Settings.Add(new IniNumber
@@ -3408,7 +3408,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "TlsTicketKeyRotationSeconds",
             Label = L("Rotate the session-ticket key every (seconds; 0 = OpenSSL's single key)"),
             Default = 0,
-            Blurb = L("What rotation defends: OpenSSL's default ticket key is generated once, when the listener starts, and is never rotated, so every ticket that listener issues for the life of the process is sealed under the same key - and that key, recovered later, decrypts every ticket ever recorded. With an interval set, a captured ticket is useless after at most two intervals. 86,400 is a day. Only meaningful while session tickets are enabled above."),
+            Blurb = L("With an interval set, a captured ticket is useless after at most two intervals. Only meaningful while session tickets are enabled above."),
             IniStore = iniStore_
          });
          Tab(L("Session resumption")).Cards.Add(resume);
@@ -3495,14 +3495,14 @@ namespace hMailServer.ControlPanel.Views
             Path = "AutoBanFirewall",
             Label = L("Also block a banned address in the operating system's firewall"),
             Default = false,
-            Blurb = L("Windows: an inbound block rule per banned address in Windows Defender Firewall, TCP only and scoped to the ports this server listens on, in a rule group named hMailServer auto-ban; removed when the ban expires or the IP range is deleted. Linux: the packaged autoban-hook keeps an nftables set with a timeout, and the service needs CAP_NET_ADMIN for it - the hook says exactly how to grant it. List the addresses you administer from under never-ban first."),
+            Blurb = L("Windows: an inbound block rule per banned address in Windows Defender Firewall, TCP only and scoped to the ports this server listens on, in a rule group named hMailServer auto-ban; removed when the ban expires or the IP range is deleted. List the addresses you administer from under never-ban first."),
             IniStore = iniStore_
          });
          below.Settings.Add(new IniText
          {
             Path = "AutoBanCommand",
             Label = L("Program to run when an address is banned or unbanned (empty = none)"),
-            Blurb = L("Run as <command> ban <address> <minutes> <ports> when a ban is created and <command> unban <address> when the range goes, on Windows and on Linux alike - for a cloud firewall, a router or a SIEM. Quote the program's path if it contains spaces; the server appends the arguments. A non-zero exit or a program that cannot start is reported once in the error log."),
+            Blurb = L("Run as <command> ban <address> <minutes> <ports> when a ban is created and <command> unban <address> when the range goes, on Windows and on Linux alike - for a cloud firewall, a router or a SIEM. Quote the program's path if it contains spaces; the server appends the arguments."),
             IniStore = iniStore_
          });
          // The never-ban list by address, a table like the list by reverse name
@@ -3549,7 +3549,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "AutoBanNeverBanNames",
             Label = L("Names that are never auto-banned"),
-            Blurb = L("mail.example.net is that name alone; .example.net is the name and every name beneath it. The reverse lookup is never waited for on a connection: a ban placed before the answer is in is lifted once it is, before the firewall or fail2ban is told. A net with no reverse name, or one you do not trust, still belongs in the address list above.")
+            Blurb = L("mail.example.net is that name alone; .example.net is the name and every name beneath it. A net with no reverse name, or one you do not trust, still belongs in the address list above.")
          });
          Tab(L("Auto-ban")).Cards.Add(byName);
 
@@ -3562,7 +3562,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "AutoBanWidenByReverseName",
             Label = L("Widen an auto-ban to the neighbouring addresses whose reverse names share its domain"),
-            Blurb = L("Off by default. Only when the banned address's own reverse name resolves back to it; at most 32 addresses each way; never into another /24, across an address either never-ban list above spares, or across an IP range of yours that covers one address and not the other; never for IPv6, nor for a private, shared, loopback or link-local address, whose neighbours are your own network's machines. A reverse lookup that is not answered leaves the single address. A hosting net whose customers all carry one reverse domain is widened whole: list it above, or leave this off.")
+            Blurb = L("Off by default. A hosting net whose customers all carry one reverse domain is widened whole: list it above, or leave this off.")
          });
          Tab(L("Auto-ban")).Cards.Add(widen);
 
@@ -3862,7 +3862,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "Logging.SyslogFacility",
             Label = L("Facility (0 to 23)"),
             Numeric = true,
-            Blurb = L("2 is mail, which is where a mail server's lines belong and what a collector's mail.* rule already matches. 16 to 23 are local0 to local7, for a site that files its own applications there. 0 is kernel and should not be used.")
+            Blurb = L("2 is mail, which is where a mail server's lines belong and what a collector's mail.* rule already matches. 0 is kernel and should not be used.")
          });
          syslog.Settings.Add(new ComCombo
          {
@@ -3910,7 +3910,7 @@ namespace hMailServer.ControlPanel.Views
             Label = L("Log level"),
             Default = 9,
             Options = new[] { (9, L("Full detail")), (2, L("Quieter")) },
-            Blurb = L("There is only one step, at 2. From 3 upwards (the default is 9) every enabled category is logged in full. At 2 or lower the server drops IMAP FETCH and STATUS responses from the log and shortens lines longer than the limit below to their first and last characters. Turning on Debug messages above restores full detail whatever the level."),
+            Blurb = L("From 3 upwards (the default is 9) every enabled category is logged in full. At 2 or lower the server drops IMAP FETCH and STATUS responses from the log and shortens lines longer than the limit below to their first and last characters."),
             IniStore = iniStore_
          });
          detail.Settings.Add(new IniNumber
@@ -4362,7 +4362,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "IndexerFullText",
             Label = L("Full-text term index for IMAP SEARCH BODY and TEXT"),
             Default = false,
-            Blurb = L("Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing."),
+            Blurb = L("Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Requires message indexing (above) to be enabled; on its own this indexes nothing."),
             IniStore = iniStore_
          });
          index.Settings.Add(new IniNumber
@@ -4400,7 +4400,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "MessageIndexing.Enabled",
             ButtonText = L("Index now, and show how far behind it is"),
-            Blurb = L("Wakes the indexer instead of waiting for its next pass, and reports how many of this server's messages are currently indexed. The pass itself runs in the background and is bounded by the limits above, so on a large backlog it makes progress rather than finishing. With indexing switched off there is no indexer to wake, and this says so rather than reporting success."),
+            Blurb = L("Wakes the indexer instead of waiting for its next pass, and reports how many of this server's messages are currently indexed. The pass itself runs in the background and is bounded by the limits above, so on a large backlog it makes progress rather than finishing."),
             Outcome = () => WhenIndexingIsOn_(RunIndexNow_)
          });
          index.Settings.Add(new ComAction
@@ -4408,7 +4408,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "MessageIndexing.Enabled",
             ButtonText = L("Discard the index and rebuild it"),
             Destructive = true,
-            Blurb = L("Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should. Worth doing when the index has more entries than the server has messages, which means entries for mail that no longer exists."),
+            Blurb = L("Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should."),
             Outcome = () => WhenIndexingIsOn_(RebuildIndex_)
          });
          Tab(L("Indexing")).Cards.Add(index);
@@ -4625,7 +4625,7 @@ namespace hMailServer.ControlPanel.Views
             Label = L("Attempts to reach the database at start-up"),
             Default = 6,
             MinimumValue = 1,
-            Blurb = L("A mail server usually starts with the rest of the machine, and on a machine where the database service starts second, the first few attempts fail. Together with the delay below this is the whole window: six attempts five seconds apart is half a minute. Lengthen it rather than delaying the service if the database is on another host that is slower to come up."),
+            Blurb = L("Together with the delay below this is the whole window: six attempts five seconds apart is half a minute. Lengthen it rather than delaying the service if the database is on another host that is slower to come up."),
             IniStore = iniStore_
          });
 
@@ -4644,7 +4644,7 @@ namespace hMailServer.ControlPanel.Views
             Label = L("Seconds a single SQL statement may run (0 = no limit)"),
             Default = 30,
             MinimumValue = 0,
-            Blurb = L("What stops one statement blocked on a lock from holding a worker thread for ever. Honoured at connect time by MySQL/MariaDB and PostgreSQL; MS SQL and SQL CE start at ADO's own 30 seconds and pick this value up on any connection that has run an upgrade or maintenance script. Those scripts run under a 30-minute per-statement ceiling of their own regardless of this value."),
+            Blurb = L("What stops one statement blocked on a lock from holding a worker thread for ever. Honoured at connect time by MySQL/MariaDB and PostgreSQL; MS SQL and SQL CE start at ADO's own 30 seconds and pick this value up on any connection that has run an upgrade or maintenance script."),
             IniStore = iniStore_
          });
 
@@ -4710,7 +4710,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "ArchiveDomains",
             Label = L("Only archive mail for these domains (comma separated; empty = every message)"),
             Placeholder = "example.com, example.org", // no-loc
-            Blurb = L("An archive is usually kept for a legal or contractual reason, and that reason usually applies to particular domains rather than to every domain this server hosts. With a list here a message is archived only when its local sender or one of its recipients belongs to a listed domain, and only the copies for listed domains are made - a listed recipient still gets their copy when the sender's domain is not listed. Matched without regard to case."),
+            Blurb = L("With a list here a message is archived only when its local sender or one of its recipients belongs to a listed domain, and only the copies for listed domains are made - a listed recipient still gets their copy when the sender's domain is not listed. Matched without regard to case."),
             IniStore = iniStore_
          });
          archive.Settings.Add(new IniBool
@@ -4754,7 +4754,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "ScriptAllowedObjects",
             Label = L("COM objects a script may create"),
-            Blurb = L("ProgIDs or CLSIDs, separated by commas. An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects."),
+            Blurb = L("ProgIDs or CLSIDs, separated by commas. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state."),
             // Absent means "*", so that a key appearing in an upgrade cannot break
             // scripts an installation already runs; the editor shows that, because
             // a blank here saved back would mean "none" and break them itself.
@@ -5214,7 +5214,7 @@ namespace hMailServer.ControlPanel.Views
             Label = L("Let people make their mailbox zero-access"),
             Key = "zero_access_allowed",
             Group = RestSettings.OpenPgpGroup,
-            Blurb = L("Off by default. A zero-access mailbox is encrypted to the person's own key: this server can no longer read, search, export or recover its mail, and a forgotten password without the recovery key loses it. Allowing it switches nobody on.")
+            Blurb = L("A zero-access mailbox is encrypted to the person's own key: this server can no longer read, search, export or recover its mail, and a forgotten password without the recovery key loses it. Allowing it switches nobody on.")
          });
          Tab(L("Encryption")).Cards.Add(pgp);
 
@@ -5226,7 +5226,7 @@ namespace hMailServer.ControlPanel.Views
             Label = L("Base address new certificates name for revocation"),
             Key = "smime_authority_base_url",
             Placeholder = "http://pki.example.com", // no-loc
-            Blurb = L("Where clients reach the web services listener; each certificate names its revocation list and its root under it. Empty, the default, names neither, so a client that insists on checking revocation cannot. A certificate already issued keeps what it was issued with.")
+            Blurb = L("Where clients reach the web services listener; each certificate names its revocation list and its root under it. Empty, the default, names neither, so a client that insists on checking revocation cannot.")
          });
          Tab(L("Encryption")).Cards.Add(smime);
 
@@ -5503,7 +5503,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "BreachCheckUrl",
             Label = L("Range endpoint (https, or http to this machine)"),
-            Blurb = L("The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1.")
+            Blurb = L("The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written.")
          };
          breach.Settings.Add(breachUrl);
          breach.Settings.Add(new ComText
@@ -5544,7 +5544,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "PasswordPolicyMaximumAgeDays",
             Label = L("Expire passwords after (days; 0 = never)"),
             Default = 0,
-            Blurb = L("IMAP, POP3 and SMTP have no way to change a password, and the self-service portal refuses an expired one at sign-in like every other surface. An expired password is therefore renewed by an administrator - or by the person themselves only if they hold an app password, which still signs them in to the portal, where the expired password is accepted as the current one when setting a new one. Turning this on means someone has to be available for everybody else. Existing app passwords keep working, which is also the one way an affected person can still collect mail; Active Directory accounts are exempt, because their password lives in the directory and expires by its policy, not this one. The clock started when this server was upgraded, so nobody is expired the moment you set this."),
+            Blurb = L("Turning this on means someone has to be available for everybody else. The clock started when this server was upgraded, so nobody is expired the moment you set this."),
             IniStore = iniStore_
          });
          Tab(L("Password")).Cards.Add(ageing);

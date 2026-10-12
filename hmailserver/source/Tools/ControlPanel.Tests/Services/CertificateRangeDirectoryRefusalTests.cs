@@ -100,8 +100,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void DirectoryAuthentication_SaysAPortOrATimeoutItRefuses_OnTheBoxToo()
       {
          string page = Read("LdapSettingsView.cs");
-         Assert.Contains("content.Children.Add(portRow_ = LabelledBox_(L(\"_Port\"), port_, \"ldap-port\",", page, StringComparison.Ordinal);
-         Assert.Contains("content.Children.Add(timeoutRow_ = LabelledBox_(L(\"Time_out (seconds, 1 to 90)\"), timeout_, \"ldap-timeout\",", page, StringComparison.Ordinal);
+         Assert.Contains("content.Children.Add(portRow_ = Keyed_(LabelledBox_(L(\"_Port\"), port_, \"ldap-port\",", page, StringComparison.Ordinal);
+         Assert.Contains("content.Children.Add(timeoutRow_ = Keyed_(LabelledBox_(L(\"Time_out (seconds, 1 to 90)\"), timeout_, \"ldap-timeout\",", page, StringComparison.Ordinal);
 
          // In the notice under the header, as every refused save on the settings
          // pages is (T2.5), and on the box, with the keyboard put in it.
