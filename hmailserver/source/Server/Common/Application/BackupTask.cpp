@@ -28,6 +28,14 @@ namespace HM
    void
    BackupTask::DoWork()
    {
+      // The run's outcome is reported once the run slot is free, so that whatever
+      // acts on it - a backup started on the strength of the log line, or from the
+      // event's own script - is not refused as "already started" (upstream #668;
+      // BackupManager::OutcomeHold says how).
+      BackupManager::OutcomeHold outcome;
+
+      bool restored = false;
+
       if (mailbox_restore_)
       {
          mailbox_restore_->Run();
@@ -41,11 +49,18 @@ namespace HM
          }
          else
          {
-            oBE.StartRestore(backup_);
+            restored = oBE.StartRestore(backup_);
          }
       }
 
       Application::Instance()->GetBackupManager()->OnThreadStopped();
+
+      // A restore's success is a line in the backup log and no event; it waits for
+      // the slot as the others do.
+      if (restored)
+         Logger::Instance()->LogBackup("Restore completed successfully.");
+
+      outcome.Release();
    }
 
 

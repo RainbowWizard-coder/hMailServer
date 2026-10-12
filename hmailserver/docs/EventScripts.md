@@ -145,6 +145,13 @@ unless that refusal is the one past the limit, which fires `OnTooManyInvalidComm
 instead - and for nothing else: a script's `554` whose `Result.Message` reads
 `Unknown user` refuses no recipient and does not fire it.
 
+`OnBackupCompleted` and `OnBackupFailed` are called once the backup has ended and
+given up the run slot that lets one backup or restore run at a time, after the
+backup log's line, so a handler - or anything that reads the log - may start the
+next backup at once. Before 12 October 2026 they were called from inside the run,
+and a backup started from one was refused as already started for as long as the
+handler took.
+
 On JavaScript the values - a password, a recipient, an error's description - are
 handed to the handler as values, with `JS_Call`. VBScript and JScript are handed
 their call as source text built and quoted by the server; JavaScript's is not built

@@ -784,6 +784,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   message in Gmail's layout to see it scanned with the `Return-Path` the other server recorded. Found by the project's
   own review.
 
+- **Fixed: a backup started the moment the backup log said the last one had ended was refused as already started.**
+  A backup or restore reported its outcome - the backup log's "Backup completed successfully" or "BACKUP ERROR"
+  line, the error, the alert and the `OnBackupCompleted` or `OnBackupFailed` script - from inside its task, and only
+  then gave up the run slot that allows one at a time; for as long as the script ran, a backup started on the
+  strength of the line, or from the event's own script, met a slot still held. The outcome is reported once the slot
+  is free now, `LastBackupSucceeded` - which an unattended update reads the moment the backup is no longer running -
+  set before it, and a restore's "Restore completed successfully." the same. `EventScripts.md` says when the two
+  events come. `Infrastructure/BackupRestore.cs` fails a backup whose `OnBackupFailed` takes three seconds and starts
+  the next as soon as the log says so. Found by upstream's #668, which met it in its own regression suite.
+
 ### Downloads and the release
 
 - **The Helm chart's and the container image's repositories are on Artifact Hub, and the tree holds the IDs Artifact

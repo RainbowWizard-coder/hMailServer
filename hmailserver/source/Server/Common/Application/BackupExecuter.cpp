@@ -2894,8 +2894,8 @@ namespace HM
 
       Reinitializator::Instance()->ReInitialize();
 
-      Logger::Instance()->LogBackup("Restore completed successfully.");
-
+      // "Restore completed successfully." is written by BackupTask, once the run
+      // slot is free (BackupManager::OutcomeHold).
       return true;
    }
 

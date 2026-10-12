@@ -36,6 +36,102 @@ namespace HM
    std::weak_ptr<Task> BackupManager::run_slot_owner_;
    bool BackupManager::run_slot_is_restore_ = false;
 
+   namespace
+   {
+      // A run's held outcome (BackupManager::OutcomeHold), one per thread: a run is
+      // one task on one thread from start to end, and it reports its outcome on it.
+      struct HeldOutcome
+      {
+         bool holding = false;
+         bool held = false;
+         bool failed = false;
+         String reason;
+      };
+
+      thread_local HeldOutcome held_outcome;
+   }
+
+   BackupManager::OutcomeHold::OutcomeHold() :
+      released_(false)
+   {
+      held_outcome.holding = true;
+      held_outcome.held = false;
+      held_outcome.failed = false;
+      held_outcome.reason.Empty();
+   }
+
+   BackupManager::OutcomeHold::~OutcomeHold()
+   {
+      if (released_)
+         return;
+
+      // Unwinding: the line the run would have ended on, and nothing else.
+      try
+      {
+         held_outcome.holding = false;
+
+         if (held_outcome.held)
+            Logger::Instance()->LogBackup(held_outcome.failed ? String("BACKUP ERROR: " + held_outcome.reason) : String("Backup completed successfully"));
+
+         held_outcome.held = false;
+         held_outcome.reason.Empty();
+      }
+      catch (...)
+      {
+      }
+   }
+
+   void
+   BackupManager::OutcomeHold::Release()
+   {
+      if (released_)
+         return;
+
+      released_ = true;
+      held_outcome.holding = false;
+
+      if (!held_outcome.held)
+         return;
+
+      const bool failed = held_outcome.failed;
+      const String reason = held_outcome.reason;
+
+      held_outcome.held = false;
+      held_outcome.reason.Empty();
+
+      // The manager there is now, as OnThreadStopped is reached: a restore
+      // reinitializes the server, and with it this object.
+      std::shared_ptr<BackupManager> manager = Application::Instance()->GetBackupManager();
+
+      if (!manager)
+      {
+         Logger::Instance()->LogBackup(failed ? String("BACKUP ERROR: " + reason) : String("Backup completed successfully"));
+         return;
+      }
+
+      if (failed)
+         manager->OnBackupFailed(reason);
+      else
+         manager->OnBackupCompleted();
+   }
+
+   bool
+   BackupManager::HoldOutcome_(bool failed, const String &reason)
+   {
+      if (!held_outcome.holding)
+         return false;
+
+      // The first failure a run reports is the one it ends on.
+      if (held_outcome.held && held_outcome.failed)
+         return true;
+
+      held_outcome.held = true;
+      held_outcome.failed = failed;
+      held_outcome.reason = reason;
+
+      return true;
+   }
+
    BackupManager::BackupManager(void)
    {
    }
@@ -444,6 +540,14 @@ namespace HM
    void
    BackupManager::OnBackupCompleted()
    {
+      // Made by a running task: recorded now, reported once the run slot is free
+      // (OutcomeHold, in the header). A failure the run reported first stands.
+      if (HoldOutcome_(false, String()))
+      {
+         last_backup_succeeded_ = !held_outcome.failed;
+         return;
+      }
+
       LOG_DEBUG("BackupManager::OnBackupCompleted()");
       Logger::Instance()->LogBackup("Backup completed successfully");
       last_backup_succeeded_ = true;
@@ -462,6 +566,14 @@ namespace HM
    void
    BackupManager::OnBackupFailed(const String &sReason)
    {
+      // Made by a running task: recorded now, reported once the run slot is free
+      // (OutcomeHold, in the header).
+      if (HoldOutcome_(true, sReason))
+      {
+         last_backup_succeeded_ = false;
+         return;
+      }
+
       LOG_DEBUG("BackupManager::OnBackupFailed()");
       String sErrorMsg = "BACKUP ERROR: " + sReason;
       Logger::Instance()->LogBackup(sErrorMsg);

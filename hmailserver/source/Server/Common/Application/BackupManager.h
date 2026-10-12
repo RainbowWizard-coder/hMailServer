@@ -101,7 +101,38 @@ namespace HM
       void OnBackupCompleted();
       void OnBackupFailed(const String &sReason);
 
+      // THE OUTCOME IS REPORTED ONCE THE RUN SLOT IS FREE (upstream #668)
+      //
+      // A run ended by reporting its outcome from inside the task - the backup
+      // log's "Backup completed successfully" or "BACKUP ERROR:" line, the error,
+      // the alert and the OnBackupCompleted or OnBackupFailed script - and only
+      // then did BackupTask::DoWork release the run slot. Anything that acted on
+      // the outcome found the slot still held: a backup started on the strength of
+      // the log line, or from the event's own script, was refused as "already
+      // started", for as long as the script ran.
+      //
+      // BackupTask holds the outcome for the length of the run: an OnBackupCompleted
+      // or OnBackupFailed made on its thread while a hold is open records it -
+      // LastBackupSucceeded included, which an unattended update reads the moment
+      // IsRunning turns false - and Release reports it, after the slot has gone.
+      // The first failure a run reports is the one it ends on. A hold destroyed
+      // unreleased - an exception through the task - writes the held line to the
+      // backup log alone, and runs no script.
+      class OutcomeHold
+      {
+      public:
+         OutcomeHold();
+         ~OutcomeHold();
+
+         void Release();
+
+      private:
+         bool released_;
+      };
+
    private:
+
+      static bool HoldOutcome_(bool failed, const String &reason);
 
       enum RunKind
       {

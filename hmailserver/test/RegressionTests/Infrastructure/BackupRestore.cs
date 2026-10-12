@@ -1134,6 +1134,48 @@ namespace RegressionTests.Infrastructure
       }
 
       [Test]
+      [Description("A backup started the moment the backup log says the last one failed is accepted. The " +
+                   "failure was reported - the log line, the error, the alert and the OnBackupFailed script - " +
+                   "before the run slot was released, so a backup started at that point was refused as " +
+                   "already started for as long as the script ran (upstream #668).")]
+      public void ABackupCanBeStartedOnceTheFailureIsLogged()
+      {
+         _backupMessages = false;
+
+         // OnBackupFailed takes three seconds, so the failed run is still reporting when
+         // the log says it failed.
+         var scripting = _settings.Scripting;
+         File.WriteAllText(scripting.CurrentScriptFile,
+            "Sub OnBackupFailed(reason)\r\n" +
+            "   Dim started : started = Timer\r\n" +
+            "   Do While Timer < started + 3 : Loop\r\n" +
+            "End Sub\r\n");
+         scripting.Enabled = true;
+         scripting.Reload();
+
+         try
+         {
+            var backupSettings = _application.Settings.Backup;
+            backupSettings.Destination = Path.Combine(_backupDir, "Missing");
+            CustomAsserts.AssertDeleteFile(backupSettings.LogFile);
+
+            _application.BackupManager.StartBackup();
+            Assert.IsFalse(WaitForBackupCompletion());
+
+            CustomAsserts.AssertReportedError("HM5014", "The specified backup directory is not accessible");
+            CustomAsserts.AssertDeleteFile(backupSettings.LogFile);
+
+            Assert.IsTrue(BackupEnvironment(), TestSetup.ReadExistingTextFile(backupSettings.LogFile));
+         }
+         finally
+         {
+            scripting.Enabled = false;
+            File.WriteAllText(scripting.CurrentScriptFile, string.Empty);
+            scripting.Reload();
+         }
+      }
+
+      [Test]
       [Description("A destination inside the data directory is left out of the copy, so the backup completes and verifies; and a restore from it puts the mail back and keeps the destination and the archive")]
       public void ADestinationInsideTheDataDirectoryIsBackedUpToAndRestoredFrom()
       {
