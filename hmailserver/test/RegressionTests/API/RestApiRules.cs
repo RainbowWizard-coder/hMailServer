@@ -636,6 +636,76 @@ namespace RegressionTests.API
          Assert.AreEqual(200, Http("DELETE", accountRoute + "/" + accountRuleId).status);
       }
 
+      /// <summary>
+      /// A script_function action's name was stored whenever it was not empty, and looked
+      /// at only when the rule fired, where a name that is not a plain function name is
+      /// not run (HM5018 on Windows; the JavaScript engine of the Linux builds looks no
+      /// such name up): a rule saved here naming "OnRule()" ran nothing on any message it
+      /// matched. It is refused when it is saved, under the server's, a domain's and an
+      /// account's routes alike, by POST and by PUT, given as script_function or as the
+      /// value standing for it, with the reason; a refused PUT leaves the rule as it was,
+      /// and a plain name is saved.
+      ///
+      /// Against the unfixed server every POST and PUT below answers 201 or 200.
+      /// </summary>
+      [Test]
+      [Description("A script_function action naming a function that is not a plain function name is refused, with the reason, by POST and PUT under the server's, a domain's and an account's rule routes; a refused PUT changes nothing, and a plain name is saved.")]
+      public void AScriptFunctionNameTheServerWouldNotRunIsRefused()
+      {
+         Account owner = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "restrulefunction@example.test", "test");
+         string simple = "{\"field\":\"subject\",\"match\":\"contains\",\"value\":\"x\"}";
+         string name = RulePrefix + "function";
+
+         string[] routes =
+         {
+            "/api/v1/rules",
+            "/api/v1/domains/" + _domain.Name + "/rules",
+            "/api/v1/accounts/" + owner.Address + "/rules",
+         };
+
+         // Each action with the words its refusal must hold; the names as JSON writes them.
+         var refusals = new[]
+         {
+            new[] { "{\"type\":\"script_function\",\"script_function\":\"OnRule()\"}", "actions[0]: script_function: A Run function action names 'OnRule()', which is not a plain function name" },
+            new[] { "{\"type\":\"script_function\",\"value\":\"OnRule()\"}", "which is not a plain function name" },
+            new[] { "{\"type\":\"script_function\",\"script_function\":\"On Rule\"}", "which is not a plain function name" },
+            new[] { "{\"type\":\"script_function\",\"script_function\":\"1OnRule\"}", "which is not a plain function name" },
+            new[] { "{\"type\":\"script_function\",\"script_function\":\"OnRule(HMAILSERVER_MESSAGE); EventLog.Write(\\\"INJ\\\" + \\\"ECTED\\\"); //\"}", "which is not a plain function name" },
+            new[] { "{\"type\":\"script_function\",\"script_function\":\"" + new string('f', 256) + "\"}", "names a function of 256 characters" },
+         };
+
+         foreach (string route in routes)
+         {
+            foreach (string[] refusal in refusals)
+            {
+               (int status, string body) = Http("POST", route, RuleBody(name, simple, refusal[0], active: false));
+               Assert.AreEqual(400, status, route + " " + refusal[0] + ": " + body);
+               StringAssert.Contains(refusal[1], body, body);
+            }
+
+            // The control: a plain name is saved, the longest a name may be included.
+            (int savedStatus, string savedBody) = Http("POST", route,
+               RuleBody(name, simple, "{\"type\":\"script_function\",\"script_function\":\"OnRule\"}," +
+                                      "{\"type\":\"script_function\",\"script_function\":\"" + new string('f', 255) + "\"}", active: false));
+            Assert.AreEqual(201, savedStatus, route + ": " + savedBody);
+            int id = ExtractId(savedBody);
+            StringAssert.Contains("\"script_function\":\"OnRule\"", savedBody, savedBody);
+
+            // A refused PUT leaves the rule as it was.
+            (int putStatus, string putBody) = Http("PUT", route + "/" + id,
+               RuleBody(name, simple, "{\"type\":\"script_function\",\"script_function\":\"OnRule()\"}", active: false));
+            Assert.AreEqual(400, putStatus, route + " PUT: " + putBody);
+            StringAssert.Contains("which is not a plain function name", putBody, putBody);
+
+            (int listStatus, string listBody) = Http("GET", route);
+            Assert.AreEqual(200, listStatus, listBody);
+            StringAssert.Contains("\"script_function\":\"OnRule\"", listBody, route + " after the refused PUT: " + listBody);
+            StringAssert.DoesNotContain("OnRule()", listBody, route + " after the refused PUT: " + listBody);
+
+            Assert.AreEqual(200, Http("DELETE", route + "/" + id).status);
+         }
+      }
+
       [Test]
       [Description("A key restricted to named domains cannot write a global rule whatever its scope; a read-only key cannot; an unrestricted full key can; no credential is 401.")]
       public void ScopedAndReadOnlyKeysAreRefused()

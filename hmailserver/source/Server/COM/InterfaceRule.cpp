@@ -295,7 +295,9 @@ STDMETHODIMP InterfaceRule::Save()
       // after RuleAction.Save, or one added before the rule had an owner it was saved
       // under, is held here to the rule's owner as it is now: a Set header value
       // action to the headers a rule of this owner may set, and a Reply action to the
-      // addresses it may send from (RuleGuard::WhyActionMayNotBeStored).
+      // addresses it may send from (RuleGuard::WhyActionMayNotBeStored). A Run
+      // function action is held here too, whoever owns the rule, to a name the server
+      // runs (RuleGuard::WhyScriptFunctionMayNotBeStored).
       for (std::shared_ptr<HM::RuleAction> action : object_->GetActions()->GetSnapshot())
       {
          const HM::String refusal = HM::RuleGuard::WhyActionMayNotBeStored(object_->GetAccountID(), object_->GetDomainID(), *action);

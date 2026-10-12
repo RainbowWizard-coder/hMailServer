@@ -19,6 +19,10 @@
 #include "../Persistence/PersistentMessage.h"
 #include "../Persistence/MessageStore.h"
 
+// The test a rule's Run function name is held to when the rule fires, which is the one
+// it is held to when the rule is saved (WhyScriptFunctionMayNotBeStored).
+#include "../Scripting/ScriptServer.h"
+
 #include "../Util/FileUtilities.h"
 #include "../Util/Parsing/AddresslistParser.h"
 #include "../Util/Strings/Formatter.h"
@@ -575,6 +579,30 @@ namespace HM
    }
 
    String
+   RuleGuard::WhyScriptFunctionMayNotBeStored(const String &functionName)
+   {
+      if (ScriptServer::IsPlainProcedureName(functionName))
+         return String();
+
+      if (functionName.IsEmpty())
+         return _T("A Run function action must name the function of the event script it runs.");
+
+      // A name too long to be one is not written back whole: it is the caller's own
+      // text, and a COM error or a REST answer is no place for all of it.
+      if (functionName.GetLength() > 255)
+      {
+         return Formatter::Format("A Run function action names a function of {0} characters, and a function name is at most 255, "
+            "so the function would never be run. Name the function in the rule as the event script declares it.", functionName.GetLength());
+      }
+
+      // Shown as a refused header name is, so that a line break or a character outside
+      // ASCII in it is seen for what it is.
+      return _T("A Run function action names '") + HeaderNameForMessage(functionName) + _T("', which is not a plain function name - ")
+         _T("ASCII letters, digits, _ and $, not starting with a digit - so the function would never be run. Name the function in ")
+         _T("the rule as the event script declares it, without brackets or arguments.");
+   }
+
+   String
    RuleGuard::WhyActionMayNotBeStored(__int64 ruleAccountId, __int64 ruleDomainId, const RuleAction &action)
    {
       switch (action.GetType())
@@ -583,6 +611,8 @@ namespace HM
          return WhyHeaderMayNotBeSet(action.GetHeaderName(), ruleAccountId, ruleDomainId);
       case RuleAction::Reply:
          return WhyReplyFromMayNotBeUsed(ruleAccountId, ruleDomainId, action.GetFromAddress());
+      case RuleAction::ScriptFunction:
+         return WhyScriptFunctionMayNotBeStored(action.GetScriptFunction());
       default:
          return String();
       }
@@ -2019,6 +2049,102 @@ namespace HM
             fail("a name that is an address, with no address, is not left out of the From");
          if (RuleGuard::ReplyFromHeader(L"Support", String()).Compare(L"\"Support\" <>") != 0)
             fail("a plain name with no address is not written as a quoted string before <>");
+      }
+
+      // A Run function action's name, held when it is saved to the test the firing path
+      // holds it to (ScriptServer::IsPlainProcedureName), for a rule of every owner
+      // alike: a plain name stored, every other refused with the reason - and the two
+      // tests never disagree, so that what is saved is what runs.
+      {
+         String longest;
+         for (int i = 0; i < 255; i++)
+            longest += L'a';
+         const String tooLong = longest + L"a";
+
+         String withNul(L"Mark");
+         withNul += static_cast<wchar_t>(0);
+         withNul += L"Subject";
+
+         const String plain[] =
+         {
+            L"MarkTheSubject", L"OnRule", L"_x$1", L"$", L"_", L"a1", longest,
+         };
+
+         const String notPlain[] =
+         {
+            L"", L"MarkTheSubject()", L"Mark The Subject", L" MarkTheSubject", L"MarkTheSubject ", L"1Mark", L"Mark-Subject",
+            L"MarkTheSubject(HMAILSERVER_MESSAGE); EventLog.Write(\"INJ\" + \"ECTED\"); //",
+            L"X(HMAILSERVER_MESSAGE): CreateObject(\"WScript.Shell\").Run \"calc\" '", L"Marqu\u00E9", L"\u00C9t\u00E9",
+            L"Line\r\nBreak", L"Tab\tName", withNul, tooLong,
+         };
+
+         struct Owner { __int64 account; __int64 domain; const char *what; };
+         const Owner owners[] = { { 0, 0, "a global rule" }, { 0, 7, "a domain's rule" }, { 5, 0, "an account's rule" } };
+
+         for (const String &name : plain)
+         {
+            if (!ScriptServer::IsPlainProcedureName(name))
+               fail("IsPlainProcedureName refused the plain name \"" + shown(name) + "\"");
+
+            const String refusal = RuleGuard::WhyScriptFunctionMayNotBeStored(name);
+            if (!refusal.IsEmpty())
+               fail("WhyScriptFunctionMayNotBeStored refused the plain name \"" + shown(name) + "\": " + shown(refusal));
+
+            for (const Owner &owner : owners)
+            {
+               RuleAction run;
+               run.SetType(RuleAction::ScriptFunction);
+               run.SetScriptFunction(name);
+               if (!RuleGuard::WhyActionMayNotBeStored(owner.account, owner.domain, run).IsEmpty())
+                  fail(std::string("WhyActionMayNotBeStored refused ") + owner.what + "'s Run function action naming \"" + shown(name) + "\"");
+            }
+         }
+
+         for (const String &name : notPlain)
+         {
+            if (ScriptServer::IsPlainProcedureName(name))
+               fail("IsPlainProcedureName let through \"" + shown(name) + "\", which is not a plain name");
+
+            const String refusal = RuleGuard::WhyScriptFunctionMayNotBeStored(name);
+            if (refusal.IsEmpty())
+               fail("WhyScriptFunctionMayNotBeStored let \"" + shown(name) + "\" be stored, which the firing path refuses to run");
+            else if (refusal.Find(L"Run function action") < 0)
+               fail("the refusal of \"" + shown(name) + "\" does not say it is the Run function action's: " + shown(refusal));
+
+            // The refusal is one line, whatever the name holds.
+            if (refusal.Find(L"\r") >= 0 || refusal.Find(L"\n") >= 0 || refusal.Find(static_cast<wchar_t>(0)) >= 0)
+               fail("the refusal of \"" + shown(name) + "\" has a line break or a NUL in it");
+
+            for (const Owner &owner : owners)
+            {
+               RuleAction run;
+               run.SetType(RuleAction::ScriptFunction);
+               run.SetScriptFunction(name);
+               if (RuleGuard::WhyActionMayNotBeStored(owner.account, owner.domain, run).IsEmpty())
+                  fail(std::string("WhyActionMayNotBeStored let ") + owner.what + " store a Run function action naming \"" + shown(name) + "\"");
+            }
+         }
+
+         // What the refusals say: that a name is needed, the length rather than all of a
+         // name too long to be one, and a name that is not plain as it is.
+         if (RuleGuard::WhyScriptFunctionMayNotBeStored(L"").Find(L"must name the function") < 0)
+            fail("the refusal of no name does not say a name is needed");
+
+         const String longRefusal = RuleGuard::WhyScriptFunctionMayNotBeStored(tooLong);
+         if (longRefusal.Find(L"256 characters") < 0 || longRefusal.Find(longest.c_str()) >= 0)
+            fail("the refusal of a name of 256 characters does not give the length, or gives the name: " + shown(longRefusal));
+
+         if (RuleGuard::WhyScriptFunctionMayNotBeStored(L"MarkTheSubject()").Find(L"'MarkTheSubject()', which is not a plain function name") < 0)
+            fail("the refusal of MarkTheSubject() does not name it as not a plain function name");
+
+         // An action of another type is not held to a function name it may still carry -
+         // one the Control Panel leaves behind when it changes an action's type.
+         RuleAction forward;
+         forward.SetType(RuleAction::Forward);
+         forward.SetTo(L"someone@example.net");
+         forward.SetScriptFunction(L"MarkTheSubject()");
+         if (!RuleGuard::WhyActionMayNotBeStored(5, 0, forward).IsEmpty())
+            fail("WhyActionMayNotBeStored refused a forward over the function name it carries from another type");
       }
 
       if (!wrong.empty())

@@ -680,6 +680,22 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the HELO, PTR, MX-record, DKIM key, DNS blacklist and SURBL tests, the delivery notice and the MX query against
   the suite's zone answering SERVFAIL, timing out, NXDOMAIN, NODATA and an alias whose CNAME query fails;
   DiagnosingStalledMail.md, "When a spam test cannot look a name up", has the table. Found by upstream.
+- **Fixed: a rule's *Run function* action was saved naming a function the server would never run.** The name was
+  stored as it was given - by COM's `RuleAction.Save` and `Rule.Save` whatever it was, by the REST API's rule routes
+  whenever it was not empty - and looked at only when the rule fired, where since 6.3.4 a name that is not a plain
+  function name (ASCII letters, digits, `_` and `$`, not starting with a digit, at most 255 characters) is refused,
+  `HM5018` on Windows, and on Linux finds no function: a rule saved naming `MarkTheSubject()`, `Mark The Subject` or
+  nothing ran no function on any message it matched, and whoever saved it - in the Control Panel, as a domain's
+  administrator, or as an account changing its own rules - was told nothing. Such a name is now refused when it is
+  saved, for a rule of every owner, with the reason: a COM error, or a 400 naming the action. It is held to the firing
+  path's own test (`RuleGuard::WhyScriptFunctionMayNotBeStored` asks `ScriptServer::IsPlainProcedureName`), so what
+  is saved is what runs; one stored before, or restored from a backup, is still refused when the rule fires, and a
+  rule holding one is saved again over COM once its name is corrected. Upstream PR 671's save-time half, adapted:
+  upstream's test also refuses `$`, which a JavaScript handler may be named with, and is not taken. `RuleOwnerTester`
+  (`business-object-tests` on Linux) holds the check to examples; `Rules/Rules.cs` saves such names and plain ones
+  through `RuleAction.Save` and `Rule.Save` for a server's, a domain's and an account's rule, saved and not yet
+  saved; `API/RestApiRules.cs` and `API/RestApiAccountRules.cs` (both benches) post and put them under the three
+  routes; and `API/Events.cs` has the firing path still refuse one written to the database.
 
 ### Downloads and the release
 

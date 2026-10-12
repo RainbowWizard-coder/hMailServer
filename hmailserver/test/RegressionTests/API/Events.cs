@@ -1319,7 +1319,7 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("A rule's Run function action is refused unless it names a plain function, so its name cannot carry statements into the script engine; a plain name runs the function (the negative control). The name was written into the call as it was, and domain and account rules are written by a domain's administrator too.")]
+      [Description("A rule's Run function action is refused unless it names a plain function, so its name cannot carry statements into the script engine - when the rule is saved, and, for a name stored before that, when the rule fires; a plain name runs the function (the negative control). The name was written into the call as it was, and domain and account rules are written by a domain's administrator too.")]
       public void ARuleFunctionNameCannotCarryCodeIntoTheScript()
       {
          var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "test@example.test", "test");
@@ -1346,8 +1346,21 @@ namespace RegressionTests.API
             plain.Delete();
 
             // A name that is a call, then a statement, then a comment: written into
-            // the call as it was, all three ran.
-            AddScriptFunctionRule(_application.Rules, "MarkTheSubject(HMAILSERVER_MESSAGE); EventLog.Write(\"INJ\" + \"ECTED\"); //");
+            // the call as it was, all three ran. Since 12 October 2026 such a name is
+            // refused when the rule is saved, and says why (Rules/Rules.cs has every
+            // save path)...
+            const string injection = "MarkTheSubject(HMAILSERVER_MESSAGE); EventLog.Write(\"INJ\" + \"ECTED\"); //";
+            var refusedAtSave = Assert.Throws<System.Runtime.InteropServices.COMException>(
+               () => AddScriptFunctionRule(_application.Rules, injection), "The rule was saved naming a call and a statement.");
+            StringAssert.Contains("not a plain function name", refusedAtSave.Message, refusedAtSave.Message);
+
+            // ...and one stored before that - or restored from a backup, or written to
+            // the table - is refused when the rule fires: saved here with a plain name,
+            // then given the injection in the table. The save asked for the server's
+            // rules to be read again at the next delivery, which reads the table's name.
+            var stored = AddScriptFunctionRule(_application.Rules, "MarkTheSubject");
+            _application.Database.ExecuteSQL(
+               "update hm_rule_actions set actionscriptfunction = '" + injection + "' where actionruleid = " + stored.ID);
 
             LogHandler.DeleteEventLog();
 

@@ -270,8 +270,9 @@ namespace HM
 
       // A rule's actions held to who owns the rule: no From, Sender, Resent- pair or
       // DKIM-Signature set by a domain's or an account's rule, a reply sent only from an
-      // address the rule's owner may send as, and a reply's From one mailbox whatever
-      // its name says (RuleGuard.h, RuleOwnerTester).
+      // address the rule's owner may send as, a reply's From one mailbox whatever
+      // its name says, and a Run function action stored only naming a function the
+      // server would run (RuleGuard.h, RuleOwnerTester).
       OutputDebugString(_T("hMailServer: Testing a rule's actions against its owner\n"));
       RuleOwnerTester ruleOwnerTester;
       ruleOwnerTester.Test();

@@ -144,6 +144,52 @@ namespace RegressionTests.API
          ClassicAssert.AreEqual(0, owner.Rules.Count, "A refused rule is not saved.");
       }
 
+      /// <summary>
+      /// A script_function action's name was stored whenever it was not empty, and the
+      /// server refused it only when the rule fired - on Linux the JavaScript engine
+      /// looks no name up that is not a plain function name, on Windows FireEvent
+      /// refuses it (HM5018) - so an account's rule saved naming "OnRule()" ran nothing.
+      /// It is refused when it is saved, by POST and by PUT, with the reason, and a
+      /// refused PUT leaves the rule as it was; a plain name is saved.
+      ///
+      /// Against the unfixed server the POST answers 201 and the PUT 200.
+      /// </summary>
+      [Test]
+      [Description("An account's rule naming a script function that is not a plain function name is refused by POST and PUT, with the reason, and a refused PUT changes nothing; a plain name is saved.")]
+      public void AScriptFunctionNameTheServerWouldNotRunIsRefused()
+      {
+         Account owner = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "rules-function@example.test", "test");
+         string criterion = "{\"field\":\"subject\",\"match\":\"contains\",\"value\":\"x\"}";
+
+         foreach (string function in new[] { "OnRule()", "On Rule", "1OnRule", "OnRule(HMAILSERVER_MESSAGE); x = 1; //" })
+         {
+            (int status, string body) refused = Http("POST", Path(owner),
+               RuleBody("function", criterion, "{\"type\":\"script_function\",\"script_function\":\"" + function + "\"}"));
+            ClassicAssert.AreEqual(400, refused.status, function + ": " + refused.body);
+            StringAssert.Contains("which is not a plain function name", refused.body, refused.body);
+         }
+
+         ClassicAssert.AreEqual(0, owner.Rules.Count, "A refused rule is not saved.");
+
+         // The control: a plain name is saved.
+         (int status, string body) created = Http("POST", Path(owner),
+            RuleBody("function", criterion, "{\"type\":\"script_function\",\"script_function\":\"OnRule\"}", active: false));
+         ClassicAssert.AreEqual(201, created.status, created.body);
+         long id;
+         using (JsonDocument document = JsonDocument.Parse(created.body))
+            id = document.RootElement.GetProperty("id").GetInt64();
+
+         (int status, string body) put = Http("PUT", Path(owner) + "/" + id,
+            RuleBody("function", criterion, "{\"type\":\"script_function\",\"script_function\":\"OnRule()\"}", active: false));
+         ClassicAssert.AreEqual(400, put.status, put.body);
+         StringAssert.Contains("which is not a plain function name", put.body, put.body);
+
+         Rule kept = owner.Rules.get_ItemByDBID((int) id);
+         ClassicAssert.AreEqual(1, kept.Actions.Count);
+         ClassicAssert.AreEqual(eRuleActionType.eRARunScriptFunction, kept.Actions[0].Type);
+         ClassicAssert.AreEqual("OnRule", kept.Actions[0].ScriptFunction);
+      }
+
       private static (int status, string body) Http(string method, string path, string requestBody = null)
       {
          string credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes("Administrator:" + AdminPassword));

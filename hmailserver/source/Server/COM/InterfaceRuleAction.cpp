@@ -48,11 +48,14 @@ STDMETHODIMP InterfaceRuleAction::Save()
 
       // A rule may not set X-hMailServer-LoopCount, which ends a mail loop, nor write
       // a field under a name that is not one; a domain's or an account's rule may not
-      // set who the message is from or the signature it came with; and a reply goes
-      // only from an address the rule's owner may send as. Refused here with the
-      // reason, as the REST API refuses it; RuleApplier skips such an action stored
-      // before. An action of a rule not yet saved is held to it by Rule.Save, which
-      // saves it then (RuleGuard::WhyActionMayNotBeStored).
+      // set who the message is from or the signature it came with; a reply goes only
+      // from an address the rule's owner may send as; and a Run function action names
+      // a plain function, the only name the server runs. Refused here with the reason,
+      // as the REST API refuses it; such an action stored before is skipped when the
+      // rule fires. An action of a rule not yet saved is held by Rule.Save, which saves
+      // it then, to what depends on the rule's owner (RuleGuard::WhyActionMayNotBeStored);
+      // what does not - a header name no rule may set, and the function's name
+      // (RuleGuard::WhyScriptFunctionMayNotBeStored) - is refused here at once.
       {
          __int64 ruleId = object_->GetRuleID();
          if (ruleId <= 0 && parent_collection_)
@@ -70,6 +73,8 @@ STDMETHODIMP InterfaceRuleAction::Save()
          }
          else if (object_->GetType() == HM::RuleAction::SetHeaderValue)
             refusal = HM::RuleGuard::WhyHeaderMayNotBeSet(object_->GetHeaderName());
+         else if (object_->GetType() == HM::RuleAction::ScriptFunction)
+            refusal = HM::RuleGuard::WhyScriptFunctionMayNotBeStored(object_->GetScriptFunction());
 
          if (!refusal.IsEmpty())
             return COMError::GenerateError(refusal);

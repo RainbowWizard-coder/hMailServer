@@ -240,10 +240,34 @@ namespace HM
                                              const std::function<bool(const String &address)> &addressOfDomain);
       static String WhyReplyFromMayNotBeUsed(__int64 ruleAccountId, __int64 ruleDomainId, const String &fromAddress);
 
+      // Why a Run function action may not be stored naming this function, or nothing
+      // when it may.
+      //
+      // THE DEFECT (upstream PR 671's save-time half). The name was stored as it was
+      // given - by COM's RuleAction.Save and Rule.Save whatever it was, by the REST
+      // API's rule routes whenever it was not empty - and looked at only when the rule
+      // fired, where ScriptServer::FireEvent refuses a name that is not a plain
+      // function name before a Windows engine sees it (HM5018, each time), and the
+      // JavaScript engine of the Linux builds looks no such name up (ScriptBinding's
+      // IsIdentifier_). So a rule saved naming "MarkTheSubject()", "Mark The Subject"
+      // or nothing ran no function, on every message it matched, and the one who
+      // saved it was told nothing.
+      //
+      // The name is held at save to the firing path's own test,
+      // ScriptServer::IsPlainProcedureName - ASCII letters, digits, _ and $, not
+      // starting with a digit, at most 255 characters - and not to a test of its own,
+      // so that what is saved is what runs: upstream's test, which refuses $, is not
+      // taken, since a JavaScript handler may be named with it. Whoever owns the rule:
+      // the function is the event script's, and a name is plain or not for every rule
+      // alike. The firing path keeps its refusal, for a name stored before this, or
+      // restored from a backup, which holds no rule to RuleGuard.
+      static String WhyScriptFunctionMayNotBeStored(const String &functionName);
+
       // Why this action may not be stored under a rule of this owner, or nothing: a
-      // Set header value action held to WhyHeaderMayNotBeSet, and a Reply action to
-      // WhyReplyFromMayNotBeUsed. The one question COM's Rule.Save and RuleAction.Save
-      // and the REST API's rule routes ask of every action.
+      // Set header value action held to WhyHeaderMayNotBeSet, a Reply action to
+      // WhyReplyFromMayNotBeUsed, and a Run function action to
+      // WhyScriptFunctionMayNotBeStored. The one question COM's Rule.Save and
+      // RuleAction.Save and the REST API's rule routes ask of every action.
       static String WhyActionMayNotBeStored(__int64 ruleAccountId, __int64 ruleDomainId, const RuleAction &action);
 
       // The From a rule's reply is written with: the action's name as an RFC 5322
@@ -422,11 +446,15 @@ namespace HM
    // global rule's may; the address a Reply action may send from, for an account's
    // rule (what the account may send as, given as an example answer), a domain's (an
    // address of the domain, given) and a global rule (any); WhyActionMayNotBeStored
-   // asking both; and the From a reply is written with (ReplyFromHeader), read back by
+   // asking both; the From a reply is written with (ReplyFromHeader), read back by
    // the address-list parser as one mailbox - the action's address - whatever its name
-   // says. No configuration, database or network. ClassTester runs it on Windows,
-   // business-object-tests on Linux. Throws std::logic_error naming every case that
-   // went wrong.
+   // says; and a Run function action's name, plain names stored for a rule of every
+   // owner and every other refused with a one-line reason
+   // (WhyScriptFunctionMayNotBeStored), in agreement with the firing path's
+   // ScriptServer::IsPlainProcedureName on every example, and no action of another
+   // type held to a name it carries. No configuration, database or network.
+   // ClassTester runs it on Windows, business-object-tests on Linux. Throws
+   // std::logic_error naming every case that went wrong.
    class RuleOwnerTester
    {
    public:

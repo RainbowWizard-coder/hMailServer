@@ -155,11 +155,18 @@ U+2028, U+2029 and NUL are escaped, the backslash first - before 24 September 20
 only the apostrophe was, and a password ending its string with `\'` ran the code
 after it; for VBScript the quote is doubled. A rule's "Run function" name is written
 into the call as it is, so a name that is not a plain identifier - ASCII letters,
-digits, `_` and `$`, not starting with a digit - is refused (HM5018) and nothing is
-run. On Linux the JavaScript engine never puts the name into source text: it looks the
-handler up by name, only when the name is a plain identifier (`ScriptBinding.cpp`,
-`IsIdentifier_`), so such a name finds no function, nothing is run, and the ERROR log
-has a Script Error line saying it is not a function defined in the event script.
+digits, `_` and `$`, not starting with a digit, at most 255 characters - is refused
+(HM5018) and nothing is run. On Linux the JavaScript engine never puts the name into
+source text: it looks the handler up by name, only when the name is a plain
+identifier (`ScriptBinding.cpp`, `IsIdentifier_`), so such a name finds no function,
+nothing is run, and the ERROR log has a Script Error line saying it is not a function
+defined in the event script.
+Since 12 October 2026 such a name, or none, is refused before that, when the rule is
+saved, on both platforms and for a rule of every owner: COM's `RuleAction.Save` and
+`Rule.Save` and the REST API's rule routes answer with the reason
+(`RuleGuard::WhyScriptFunctionMayNotBeStored`, which asks the firing path's own test,
+`ScriptServer::IsPlainProcedureName`). What the firing path does is then for a name
+stored before that, restored from a backup or written to the database.
 
 ---
 
@@ -429,8 +436,9 @@ is that the script cannot reach past the objects it is given.
 | The engine could not be started (memory) | HM7340 |
 | An event that reaches a script loaded while scripting was off and never compiled since - the load that switched scripting on refused it, in a language this build does not run or one that does not compile - in practice a rule's "Run function" | HM5018, once per load |
 | On Windows, an event whose call was built for VBScript while a reload installed JScript, or the reverse | HM5018, once per load; that one event is skipped rather than run in the other language |
-| On Windows, a rule's "Run function" whose name is not a plain identifier | HM5018, each time the rule matches; the function is not run |
-| On Linux, a rule's "Run function" whose name is not a plain identifier | a `Script Error: ... ReferenceError - Description: <name> is not a function defined in the event script` line in the ERROR log, each time the rule matches; the name is never evaluated and nothing is run |
+| A rule's "Run function" saved naming no function, or a name that is not a plain identifier | refused by the save, with the reason - a COM error from `RuleAction.Save` or `Rule.Save`, a 400 from the REST API's rule routes; nothing is stored or logged |
+| On Windows, a rule's "Run function" whose name is not a plain identifier - stored before the save refused it, restored from a backup or written to the database | HM5018, each time the rule matches; the function is not run |
+| On Linux, a rule's "Run function" whose name is not a plain identifier - stored before the save refused it, restored from a backup or written to the database | a `Script Error: ... ReferenceError - Description: <name> is not a function defined in the event script` line in the ERROR log, each time the rule matches; the name is never evaluated and nothing is run |
 
 The load is all or nothing on every engine: a script that does not compile installs
 nothing, and whatever was loaded before stays in force - so a typo in a reload never

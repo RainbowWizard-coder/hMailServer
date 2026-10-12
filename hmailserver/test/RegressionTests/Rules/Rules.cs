@@ -2466,6 +2466,124 @@ namespace RegressionTests.Rules
       }
 
       /// <summary>
+      /// A Run function action's name was stored as it was given, and looked at only when
+      /// the rule fired, where a name that is not a plain function name is refused before
+      /// a script engine sees it (HM5018, API/Events.cs): a rule saved naming
+      /// "MarkTheSubject()", "Mark The Subject" or nothing ran no function on any message
+      /// it matched, and whoever saved it was told nothing. It is refused now when it is
+      /// saved - by RuleAction.Save, for a rule saved and for one not saved yet, and by
+      /// Rule.Save, for an action changed after its own Save - for a rule of every owner,
+      /// with the reason; a plain name, the longest included, is saved. Upstream PR 671's
+      /// save-time half, held to the firing path's own test.
+      ///
+      /// Against the unfixed server every Save below succeeds.
+      /// </summary>
+      [Test]
+      [Description("A Run function action naming no function, or a name that is not a plain function name, is refused when it is saved over COM, for a rule of every owner, saved or not yet saved, and says why; a plain name is saved.")]
+      public void ARunFunctionActionIsSavedOnlyNamingAFunctionTheServerRuns()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "runfunction@example.test", "test");
+
+         // Each name with the words its refusal must hold. A name too long to be one is
+         // described by its length, and a line break is shown as an escape, so that the
+         // refusal is one line.
+         var refusals = new Dictionary<string, string>
+         {
+            { "", "must name the function of the event script" },
+            { "MarkTheSubject()", "names 'MarkTheSubject()', which is not a plain function name" },
+            { "Mark The Subject", "which is not a plain function name" },
+            { " MarkTheSubject", "which is not a plain function name" },
+            { "1Mark", "which is not a plain function name" },
+            { "Mark-Subject", "which is not a plain function name" },
+            { "Marqu" + (char) 0xE9, "which is not a plain function name" },
+            { "Line\r\nBreak", "names 'Line\\u000D\\u000ABreak', which is not a plain function name" },
+            { "MarkTheSubject(HMAILSERVER_MESSAGE); EventLog.Write(\"INJ\" + \"ECTED\"); //", "which is not a plain function name" },
+            { new string('a', 256), "names a function of 256 characters" },
+         };
+
+         var accountRule = NewRuleMatchingEverything(account, "Runs a function");
+         accountRule.Save();
+
+         var domainRule = _domain.Rules.Add();
+         domainRule.Name = "Domain runs a function";
+         domainRule.Active = false;
+         domainRule.Save();
+
+         var globalRule = _application.Rules.Add();
+         globalRule.Name = "Global runs a function";
+         globalRule.Active = false;
+         globalRule.Save();
+
+         // Not saved yet: RuleAction.Save adds the action to the rule, which stores it
+         // when it is saved, and refuses a name no owner of the rule would make good.
+         var unsavedRule = _application.Rules.Add();
+         unsavedRule.Name = "Global not saved yet";
+         unsavedRule.Active = false;
+
+         var plainNames = new[] { "MarkTheSubject", "_x$1", new string('a', 255) };
+
+         foreach (var rule in new[] { accountRule, domainRule, globalRule, unsavedRule })
+         {
+            foreach (var refusal in refusals)
+            {
+               var action = rule.Actions.Add();
+               action.Type = eRuleActionType.eRARunScriptFunction;
+               action.ScriptFunction = refusal.Key;
+
+               var refused = Assert.Throws<System.Runtime.InteropServices.COMException>(() => action.Save(),
+                  "A Run function action naming '" + refusal.Key + "' was saved for " + rule.Name + ".");
+               StringAssert.Contains(refusal.Value, refused.Message, refused.Message);
+               StringAssert.DoesNotContain("\n", refused.Message, "The refusal is not one line.");
+            }
+
+            Assert.AreEqual(0, rule.Actions.Count, "A refused action is among the actions of " + rule.Name + ".");
+
+            // The control: plain names are saved.
+            RuleAction first = null;
+            foreach (var name in plainNames)
+            {
+               var action = rule.Actions.Add();
+               action.Type = eRuleActionType.eRARunScriptFunction;
+               action.ScriptFunction = name;
+               action.Save();
+               first = first ?? action;
+            }
+
+            rule.Save();
+
+            // Changed after its own Save, the action is saved with the rule, which refuses
+            // it; put back, the rule is saved.
+            first.ScriptFunction = "MarkTheSubject()";
+            var refusedWithTheRule = Assert.Throws<System.Runtime.InteropServices.COMException>(() => rule.Save(),
+               rule.Name + " was saved with a Run function action changed to name MarkTheSubject().");
+            StringAssert.Contains("which is not a plain function name", refusedWithTheRule.Message, refusedWithTheRule.Message);
+
+            first.ScriptFunction = "MarkTheSubject";
+            rule.Save();
+         }
+
+         // What the server holds, read through collections of their own: the plain names
+         // of each rule, and nothing refused.
+         var domainNow = _application.Domains.get_ItemByName(_domain.Name);
+         var stored = new[]
+         {
+            domainNow.Accounts.get_ItemByAddress(account.Address).Rules.get_ItemByDBID(accountRule.ID),
+            domainNow.Rules.get_ItemByDBID(domainRule.ID),
+            _application.Rules.get_ItemByDBID(globalRule.ID),
+            _application.Rules.get_ItemByDBID(unsavedRule.ID),
+         };
+
+         foreach (var rule in stored)
+         {
+            var names = new List<string>();
+            for (int i = 0; i < rule.Actions.Count; i++)
+               names.Add(rule.Actions[i].ScriptFunction);
+
+            CollectionAssert.AreEqual(plainNames, names, "The Run function actions stored for " + rule.Name + ".");
+         }
+      }
+
+      /// <summary>
       /// A new rule's criteria and actions were bound to rule id 0 when they were first
       /// read before its first save - and Rule.Save reads the actions itself, to hold them
       /// to the rule's owner, so that every rule saved over COM had its actions bound so.

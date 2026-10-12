@@ -113,7 +113,10 @@
 //     DKIM-Signature, a reply goes only from an address the rule's owner may send as,
 //     and a reply's From reads as the one address whatever its name says - until 7
 //     October 2026 an account's rule could send its reply, or forward a message, as
-//     anyone, signed with the DKIM key of the domain it named.
+//     anyone, signed with the DKIM key of the domain it named. And a Run function
+//     action is stored only naming a function the server would run - a plain name,
+//     the firing path's own test - where until 12 October 2026 any name was stored
+//     and refused only each time the rule fired.
 //   - DKIM signs a message as the domain its From names only when the server is
 //     entitled to (SigningOriginTester, Common/AntiSpam/DKIM/DKIMSigner.cpp): not mail
 //     from outside, nor a forward, a redirect or a rule's copy of it, nor a signed-in
