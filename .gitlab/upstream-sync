@@ -433,13 +433,17 @@
 #     authenticated sender; the Received-header parsers already read both forms.
 #   - a8b888a43 (#670): OPENSSL_API_COMPAT and OPENSSL_NO_DEPRECATED on our own
 #     code, as upstream builds now (theirs: 30500 in hMailServer.vcxproj, and
-#     no-deprecated in their OpenSSL build). Among the APIs 3.0 deprecates, a grep
-#     of 74aed9ab8 finds DKIM.cpp's EVP_MD_CTX_create and _destroy (four each,
-#     the macros of _new and _free) and ERR_load_EVP_strings (a no-op since
-#     1.1.0); the plan, half a day: those three changed, the two defines in
-#     CMakeLists.txt's core target and in hMailServer.vcxproj's
-#     PreprocessorDefinitions (the integrator's file), and a clang, GCC and MSVC
-#     build to find any use the grep missed - the build is the test.
+#     no-deprecated in their OpenSSL build). Measured on 12 October 2026: the
+#     core and the server built with OPENSSL_NO_DEPRECATED and
+#     OPENSSL_API_COMPAT=30000 (GCC 15.2 against OpenSSL 3.5.5, the CI image)
+#     fail at one call alone - TCPConnection.cpp:875's SSL_get_peer_certificate,
+#     whose successor is SSL_get1_peer_certificate, the same reference count -
+#     while DKIM.cpp's EVP_MD_CTX_create and _destroy (four each) still compile,
+#     macros of _new and _free that are worth renaming with it. The plan, half a
+#     day: those calls changed, the two defines in CMakeLists.txt's core target
+#     and in hMailServer.vcxproj's PreprocessorDefinitions (the integrator's
+#     file), and a clang, GCC and MSVC build (OpenSSL 4.0 on Windows) - the build
+#     is the test. Not a defect: the server works as it is.
 #   - ControlPanel.Core.dll, the Control Panel's library, beside #658: no
 #     <Version> or <Product> in ControlPanel.Core.csproj, so it ships as 1.0.0.0
 #     with no product name. Give it the Control Panel's <Version> and <Product>
