@@ -2266,7 +2266,8 @@ namespace hMailServer.ControlPanel.Views
          history.Settings.Add(new IniNumber
          {
             Path = "IMAPExpungeRetentionRecords",
-            Label = L("Expunge records to keep (0 = keep everything)"), Blurb = L("Keeping everything also skips the prune at start-up."),
+            Label = L("Expunge records to keep (0 = keep everything)"),
+            Blurb = L("Keeping everything also skips the prune at start-up."),
             Default = 5000,
             MinimumValue = 0,
             IniStore = iniStore_
@@ -3919,7 +3920,8 @@ namespace hMailServer.ControlPanel.Views
          detail.Settings.Add(new IniNumber
          {
             Path = "MaxLogLineLen",
-            Label = L("Maximum characters per log line (at least 100)"), Blurb = L("Only applied at log level 2 or lower."),
+            Label = L("Maximum characters per log line (at least 100)"),
+            Blurb = L("Only applied at log level 2 or lower."),
             Default = 500,
             IniStore = iniStore_
          });
@@ -4378,7 +4380,8 @@ namespace hMailServer.ControlPanel.Views
          index.Settings.Add(new IniNumber
          {
             Path = "IndexerFullTextMinTokenLength",
-            Label = L("Shortest search string the index answers for (3 to 64)"), Blurb = L("Shorter strings fall back to the scan."),
+            Label = L("Shortest search string the index answers for (3 to 64)"),
+            Blurb = L("Shorter strings fall back to the scan."),
             Default = 3,
             MinimumValue = 3,
             IniStore = iniStore_

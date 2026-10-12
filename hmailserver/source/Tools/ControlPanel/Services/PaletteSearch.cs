@@ -492,7 +492,8 @@ namespace hMailServer.ControlPanel.Services
                continue;
 
             best[intent.Page] = new PaletteRow(PaletteRowKind.Task, TaskSection, L(intent.Phrase),
-               NavigationMap.LocationOf(intent.Page), L(intent.Answer), intent.Page, score) { Tab = intent.Tab };
+               NavigationMap.LocationOf(intent.Page), L(intent.Answer), intent.Page, score)
+            { Tab = intent.Tab };
          }
 
          return best.Values.ToList();

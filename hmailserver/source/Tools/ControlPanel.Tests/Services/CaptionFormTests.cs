@@ -343,11 +343,16 @@ namespace hMailServer.ControlPanel.Tests.Services
             Assert.Contains("L(\"" + caption + "\")", feature, StringComparison.Ordinal);
          }
 
-         Assert.Contains("Label = L(\"External process timeout (seconds; 0 = no time limit)\"), Blurb = L(\"For example a command-line virus scanner.\")", feature, StringComparison.Ordinal);
-         Assert.Contains("Label = L(\"Update feed URL (empty = the built-in feed)\"), Blurb = L(\"Set it to use a mirror.\")", feature, StringComparison.Ordinal);
-         Assert.Contains("Label = L(\"Expunge records to keep (0 = keep everything)\"), Blurb = L(\"Keeping everything also skips the prune at start-up.\")", server, StringComparison.Ordinal);
-         Assert.Contains("Label = L(\"Maximum characters per log line (at least 100)\"), Blurb = L(\"Only applied at log level 2 or lower.\")", server, StringComparison.Ordinal);
+         // A caption and its hint, on one line or two: dotnet format puts each
+         // property of an object initializer that spans lines on its own line.
+         AssertCaptionAndHint(feature, "External process timeout (seconds; 0 = no time limit)", "For example a command-line virus scanner.");
+         AssertCaptionAndHint(feature, "Update feed URL (empty = the built-in feed)", "Set it to use a mirror.");
+         AssertCaptionAndHint(server, "Expunge records to keep (0 = keep everything)", "Keeping everything also skips the prune at start-up.");
+         AssertCaptionAndHint(server, "Maximum characters per log line (at least 100)", "Only applied at log level 2 or lower.");
       }
+
+      private static void AssertCaptionAndHint(string code, string caption, string hint)
+         => Assert.Matches(new Regex(Regex.Escape("Label = L(\"" + caption + "\"),") + @"\s+" + Regex.Escape("Blurb = L(\"" + hint + "\")")), code);
 
       /// <summary>
       /// MXTriesFactor bounds how many of a domain's MX hosts each delivery attempt tries - the
