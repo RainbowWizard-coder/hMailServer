@@ -1172,7 +1172,8 @@ namespace HM
       // so one day ahead of today and one day short of a whole cycle old read the
       // same, and both schemes accepted "one day ahead" as clock skew: an SRS address
       // 1023 days old, and a BATV tag 999 days old, passed as fresh (upstream #649).
-      // The skew is now an hour added to this server's clock.
+      // Tomorrow's stamp is now taken in the last hour of today only, and an
+      // address's last day still ends at midnight by this server's clock.
       OutputDebugString(_T("hMailServer: Testing the SRS timestamp window\n"));
       {
          const String secret = _T("srs-test-secret-key");
@@ -1193,6 +1194,12 @@ namespace HM
          if (!SRS::ReverseAt(made, secret, t0 + 21 * day, reversed))
             throw 0;
          if (SRS::ReverseAt(made, secret, t0 + 22 * day, reversed))
+            throw 0;
+
+         // To the end of the 21st day by this server's clock - 23:30 UTC on it - as
+         // before: the hour of skew is for tomorrow's stamp, and does not take the
+         // last hour off an address's last day.
+         if (!SRS::ReverseAt(made, secret, (t0 / day) * day + 22 * day - 30 * minute, reversed))
             throw 0;
 
          // 1023 days old reads one day ahead.
@@ -1253,6 +1260,11 @@ namespace HM
          if (!BATV::VerifyAt(tagged, secret, t0 + 7 * day, original))
             throw 0;
          if (BATV::VerifyAt(tagged, secret, t0 + 8 * day, original))
+            throw 0;
+
+         // To the end of the 7th day by this server's clock - 23:30 UTC on it - as
+         // before.
+         if (!BATV::VerifyAt(tagged, secret, (t0 / day) * day + 8 * day - 30 * minute, original))
             throw 0;
 
          // 999 days old reads one day ahead.

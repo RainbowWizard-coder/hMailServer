@@ -439,13 +439,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 - **Fixed: an SRS address or a BATV tag almost a whole cycle old was accepted as fresh, and a signature was compared
   in a time that said how much of it was right.** Both carry their day as a number that wraps - every 1024 days for
   SRS, every 1000 for BATV - and both accepted a day one ahead of today as clock skew, which modulo the cycle is also a
-  day 1023 (SRS) or 999 (BATV) days old (from 6.2.1 and 6.2.3, which brought them). The skew is now an hour added to
-  this server's clock, and a stamp older than the window - 21 days for SRS, 7 for BATV - is refused whatever its
+  day 1023 (SRS) or 999 (BATV) days old (from 6.2.1 and 6.2.3, which brought them). Tomorrow's stamp is taken now
+  only in the last hour of today, for a clock a little ahead of this one, and a stamp older than the window - 21 days
+  for SRS, 7 for BATV, to the end of the last day by this server's clock as before - is refused whatever its
   number. The signature is compared in constant time (`HashCreator::HexDigestsMatch`), as password hashes are. And SRS
   no longer rewrites a sender into an address no server would take - a quoted local part carried into the unquoted
   SRS one, or a path past RFC 5321's 254 characters - but forwards the sender as it came. The README says so. Held by
   the in-process tests at fixed times (`ClassTester`, which `Infrastructure.MainOperations` runs). Found by upstream's
-  review of its own SRS (#649).
+  review of its own SRS (upstream PR 649), whose clock it moves an hour forward for the whole test, which would have
+  ended every address's last day an hour early here.
 
 - **Fixed: a SASL PLAIN client that asked to act as another account was signed in as itself and told it had
   succeeded.** RFC 4616 has a PLAIN message name the identity to act as (the authzid) beside the one to sign in as,

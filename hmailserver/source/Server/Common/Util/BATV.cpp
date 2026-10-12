@@ -25,10 +25,10 @@ namespace HM
    static const int kDayModulus = 1000;
 
    // The tolerance for a clock - another node's sharing the secret - a little
-   // ahead of this one's: this server's clock is moved forward by an hour when a
-   // tag is checked, rather than any tag that reads one day ahead being accepted,
-   // which modulo the 1000-day cycle is also a tag 999 days old (the shape upstream
-   // #649 found in SRS's timestamps).
+   // ahead of this one's: tomorrow's day is taken in the last hour of today, and
+   // at no other time, where any tag that read one day ahead was taken - which
+   // modulo the 1000-day cycle is also a tag 999 days old (the shape upstream #649
+   // found in SRS's timestamps).
    static const int kClockSkewSeconds = 60 * 60;
 
    // Number of hex characters of the HMAC kept in the tag (24 bits).
@@ -47,14 +47,19 @@ namespace HM
    bool
    BATV::DayNumberInRange_(int dayNumber, time_t now)
    {
-      int currentDay = DayNumberAt_(now + kClockSkewSeconds);
+      int currentDay = DayNumberAt_(now);
       int age = currentDay - dayNumber;
       if (age < 0)
          age += kDayModulus;
 
       // The day numbers wrap, so the age is taken modulo the cycle: a day that
-      // looks ahead of today is one from before the wrap.
-      return age <= kMaxAgeDays;
+      // looks ahead of today is one from before the wrap. Valid to the end of its
+      // kMaxAgeDays-th day, by this server's clock, as it always was.
+      if (age <= kMaxAgeDays)
+         return true;
+
+      // Tomorrow's, in the last hour of today; see SRS::TimeSlotInRange_.
+      return dayNumber == DayNumberAt_(now + kClockSkewSeconds);
    }
 
    String

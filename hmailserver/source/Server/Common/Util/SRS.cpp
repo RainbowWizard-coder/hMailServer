@@ -24,11 +24,11 @@ namespace HM
    static const int kMaxAgeDays = 21;
 
    // The tolerance for a clock - another node's sharing the secret - a little ahead
-   // of this one's, which stamps tomorrow's day in the last moments of today. It
-   // moves this server's clock forward by an hour when an address is checked,
-   // rather than accepting any address that reads one day ahead: modulo the cycle
-   // of 1024 days, one day ahead is also 1023 days old, and an address that old
-   // was let through as fresh (upstream #649).
+   // of this one's, which stamps tomorrow's day in the last moments of today:
+   // tomorrow's stamp is taken in the last hour of today, and at no other time,
+   // where any address that read one day ahead was taken - and modulo the cycle of
+   // 1024 days one day ahead is also 1023 days old, so an address that old was let
+   // through as fresh (upstream #649).
    static const int kClockSkewSeconds = 60 * 60;
 
    // Number of hex characters of the HMAC kept in the address (32 bits).
@@ -79,14 +79,21 @@ namespace HM
    bool
    SRS::TimeSlotInRange_(int slot, time_t now)
    {
-      int currentSlot = TimeSlotAt_(now + kClockSkewSeconds);
+      int currentSlot = TimeSlotAt_(now);
       int age = currentSlot - slot;
       if (age < 0)
          age += 1024;
 
       // The slots wrap, so the age is taken modulo the cycle: a slot that looks
-      // ahead of today is one from before the wrap.
-      return age <= kMaxAgeDays;
+      // ahead of today is one from before the wrap. Valid to the end of its
+      // kMaxAgeDays-th day, by this server's clock, as it always was.
+      if (age <= kMaxAgeDays)
+         return true;
+
+      // Tomorrow's, in the last hour of today. Upstream's moves the clock an hour
+      // forward for the whole test, which ends every address's last day an hour
+      // early; this one keeps the days as they were.
+      return slot == TimeSlotAt_(now + kClockSkewSeconds);
    }
 
    String

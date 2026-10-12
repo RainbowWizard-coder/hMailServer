@@ -271,10 +271,11 @@
 #     an SRS0 address this server handed out was followed back to the original
 #     sender as local delivery whatever the MAIL FROM, so the relay rules were
 #     not asked of mail that was not a bounce - only a bounce is taken so now
-#     (RecipientParser::CheckDeliveryPossibility); the hash was
-#     compared with a string comparison (HashCreator::HexDigestsMatch, constant
-#     time - no test can time it); an address 1023 days old read as one day ahead and was accepted as
-#     clock skew (SRS::TimeSlotInRange_, an hour added to our clock instead); and
+#     (RecipientParser::CheckDeliveryPossibility); the hash was compared with a
+#     string comparison (HashCreator::HexDigestsMatch, constant time - no test
+#     can time it); an address 1023 days old read as one day ahead and was
+#     accepted as clock skew (SRS::TimeSlotInRange_ takes tomorrow's stamp in the
+#     last hour of today only, and keeps the 21st day to its midnight); and
 #     a quoted or over-long sender was rewritten into an address no server takes
 #     (SRS::ForwardAt). BATV (Util/BATV.cpp, not upstream's) had the same
 #     comparison and the same 999-day wrap, and is fixed with it. #649's
@@ -485,6 +486,11 @@
 #   - 36aabce67 their obsolete tools; ours are their own question.
 #
 #   DELIBERATELY NOT TAKEN:
+#   - 1ffcc7c77 (#649), its clock skew as written: SRS::ValidateTimestamp_ moves
+#     the clock an hour forward for the whole test, which ends every address's
+#     last day an hour early. Ours keeps the 21 days (BATV's 7) to midnight by our
+#     clock, as before, and takes tomorrow's stamp in the last hour of today only
+#     (SRS::TimeSlotInRange_, BATV::DayNumberInRange_).
 #   - 2ffa859af (#667): one domain pattern for the three address checks, a
 #     refactor with no change of behaviour; PreSaveLimitationsCheck::
 #     IsValidAccountAddress_ and StringParser carry the same pattern here.
