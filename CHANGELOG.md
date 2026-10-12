@@ -726,11 +726,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   take the line out, which dropped a multipart message's epilogue and changed bytes SpamAssassin never touched, in
   every version up to 6.3.6. The line is now sent to spamd ahead of the message, in the request alone and counted in
   its `Content-length`, with the message's own `Return-Path` fields left out of what spamd is sent; spamd's reply is
-  stored without it, byte for byte, every other byte as SpamAssassin returned it, and nothing is parsed or rewritten.
-  The stored message is never written for it, so a scan that fails leaves the message exactly as it was received.
-  `HM5509` (the message could not be read back after the scan) now says that SpamAssassin's verdict could not be
-  read, since nothing is rewritten any more; and a message collected from an external account, saved straight after
-  the scan, still takes the size of spamd's result, which the rewrite used to set and a global rule on the size reads.
+  stored without the line, every other byte as SpamAssassin returned it: the line is taken out without parsing the
+  message, and nothing is rewritten. The stored result is still parsed afterwards, as before, to read SpamAssassin's
+  verdict (`X-Spam-Status`). The stored message is never written for the line, so a scan that fails leaves the
+  message exactly as it was received. `HM5509` (the message could not be read back after the scan) now says that
+  SpamAssassin's verdict could not be read, since nothing is rewritten any more; and a message collected from an
+  external account, saved straight after the scan, still takes the size of spamd's result, which the rewrite used to
+  set and a global rule on the size reads.
   `SpamAssassinReturnPathTester` (`public-suffix-tests` on Linux) holds the filter to its edges in every split of its
   input, and `AntiSpam/SpamAssassinReturnPath.cs`, on Windows and on Linux, reads the stored file byte for byte after a
   completed scan and after spamd refused the connection, reset it, cut its reply short and hung up mid-request. Found

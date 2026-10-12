@@ -320,7 +320,9 @@ namespace HM
       // arrives. With a Return-Path sent ahead of the message, the Return-Path
       // fields of the reply's own header block are left out on the way to the disk
       // (SpamAssassinReturnPath.h): the result becomes the message, and the line was
-      // never the message's. Nothing else is changed, and nothing is parsed.
+      // never the message's. Nothing else is changed, and the message is not
+      // parsed here (the caller parses the stored result afterwards, to read
+      // SpamAssassin's verdict).
       total_result_bytes_received_ += (__int64) pBuf->GetSize();
       const bool complete = total_result_bytes_received_ >= spam_dsize_;
 
