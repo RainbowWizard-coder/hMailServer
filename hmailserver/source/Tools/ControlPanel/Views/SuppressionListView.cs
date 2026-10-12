@@ -659,7 +659,7 @@ namespace hMailServer.ControlPanel.Views
          lastDeliveredColumn_ = Dated_(L("Last delivered (server time)"), nameof(CountView.LastDelivered), nameof(CountView.LastDeliveredAt));
          counts_.Columns.Add(lastBounceColumn_);
          counts_.Columns.Add(lastDeliveredColumn_);
-         counts_.Columns.Add(Fitted_(L("Listed"), nameof(CountView.Listed), GridStyles.UpToDevicePixels(GridStyles.CellWidth(L("Listed")))));
+         counts_.Columns.Add(Fitted_(L("Listed"), nameof(CountView.Listed), GridStyles.WholeDevicePixels(GridStyles.CellWidth(L("Listed")))));
       }
 
       /// <summary>
@@ -681,7 +681,7 @@ namespace hMailServer.ControlPanel.Views
          double floor = Floor_((string)column.Header, 0);
          foreach (T row in rows)
             floor = Math.Max(floor, GridStyles.CellWidth(cell(row)));
-         column.MinWidth = GridStyles.UpToDevicePixels(floor);
+         column.MinWidth = GridStyles.WholeDevicePixels(floor);
       }
 
       /// <summary>The widest of the words the Why column says, measured in the grid's font at the Windows text size.</summary>
@@ -690,7 +690,7 @@ namespace hMailServer.ControlPanel.Views
          double widest = 0;
          foreach (string category in new[] { "hard", "mailbox_full", "policy", "soft", "other", "" })
             widest = Math.Max(widest, GridStyles.CellWidth(CategoryText_(category)));
-         return GridStyles.UpToDevicePixels(widest);
+         return GridStyles.WholeDevicePixels(widest);
       }
 
       /// <summary>A column of names: a star's share of the width over a floor, each cut short with an ellipsis and whole in its tool tip.</summary>

@@ -845,7 +845,7 @@ namespace hMailServer.ControlPanel.Views
                }
             }
 
-            column.MinWidth = GridStyles.UpToDevicePixels(Math.Max(TextScaleFactor.Scaled(double.IsNaN(f.GridWidth) ? StarColumnFloor : f.GridWidth), floor));
+            column.MinWidth = GridStyles.WholeDevicePixels(Math.Max(TextScaleFactor.Scaled(double.IsNaN(f.GridWidth) ? StarColumnFloor : f.GridWidth), floor));
          }
       }
 

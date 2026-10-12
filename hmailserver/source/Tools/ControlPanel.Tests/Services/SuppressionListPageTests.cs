@@ -109,7 +109,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("Trimmed_(L(\"Address\"), nameof(CountView.Address), new DataGridLength(1, DataGridLengthUnitType.Star), 180)", columns, StringComparison.Ordinal);
          Assert.Contains("lastBounceColumn_ = Dated_(L(\"Last bounce (server time)\"), nameof(CountView.LastBounce), nameof(CountView.LastBounceAt));", columns, StringComparison.Ordinal);
          Assert.Contains("lastDeliveredColumn_ = Dated_(L(\"Last delivered (server time)\"), nameof(CountView.LastDelivered), nameof(CountView.LastDeliveredAt));", columns, StringComparison.Ordinal);
-         Assert.Contains("Fitted_(L(\"Listed\"), nameof(CountView.Listed), GridStyles.UpToDevicePixels(GridStyles.CellWidth(L(\"Listed\"))))", columns, StringComparison.Ordinal);
+         Assert.Contains("Fitted_(L(\"Listed\"), nameof(CountView.Listed), GridStyles.WholeDevicePixels(GridStyles.CellWidth(L(\"Listed\"))))", columns, StringComparison.Ordinal);
 
          // The six counts: 64 pixels, or the header's width where that is more, so
          // that "Mailbox full" is not cut to "Mailb…".

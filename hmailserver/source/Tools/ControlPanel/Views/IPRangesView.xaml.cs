@@ -398,7 +398,7 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>Raises a column's floor to <paramref name="width"/>, a whole pixel, where that is more.</summary>
-      private static void Floor_(DataGridColumn column, double width) => column.MinWidth = Math.Max(column.MinWidth, GridStyles.UpToDevicePixels(width));
+      private static void Floor_(DataGridColumn column, double width) => column.MinWidth = Math.Max(column.MinWidth, GridStyles.WholeDevicePixels(width));
 
       private void Search_TextChanged(object sender, EventArgs e) => ShowListState_();
 

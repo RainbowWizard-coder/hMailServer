@@ -251,7 +251,7 @@ namespace hMailServer.ControlPanel.Views
             // Tries keep their pixels as numbers, but at 150 per cent German cut "Versuche"
             // to "Vers…" (review finding F317).
             foreach (DataGridColumn column in QueueGrid.Columns)
-               column.MinWidth = Math.Max(column.MinWidth, GridStyles.UpToDevicePixels(GridStyles.HeaderWidth(column.Header as string)));
+               column.MinWidth = Math.Max(column.MinWidth, GridStyles.WholeDevicePixels(GridStyles.HeaderWidth(column.Header as string)));
 
             // Tab-separated: id, created, from, recipients, next try, file, locked, tries
             foreach (string[] columns in snap.QueueRows
