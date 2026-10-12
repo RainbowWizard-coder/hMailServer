@@ -5980,6 +5980,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>L'intervallo IP '{0}' consente la consegna da esterno a esterno senza autenticazione (rischio di open relay).</value>
   </data>
+  <data name="IP range '{0}' allows local-to-external delivery without authentication, so anyone in it who gives one of this server's domains as the sender can relay mail through this server (open relay risk)." xml:space="preserve">
+    <value>L'intervallo IP '{0}' consente la consegna da locale a esterno senza autenticazione, quindi chiunque al suo interno indichi come mittente uno dei domini di questo server può inoltrare posta tramite questo server (rischio di open relay).</value>
+  </data>
   <data name="IP range - {0}" xml:space="preserve">
     <value>Intervallo IP - {0}</value>
   </data>

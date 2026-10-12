@@ -5980,6 +5980,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>IP-intervallet '{0}' tillåter leverans från extern till extern utan autentisering (risk för öppet relä).</value>
   </data>
+  <data name="IP range '{0}' allows local-to-external delivery without authentication, so anyone in it who gives one of this server's domains as the sender can relay mail through this server (open relay risk)." xml:space="preserve">
+    <value>IP-intervallet '{0}' tillåter leverans från lokal till extern utan autentisering, så vem som helst i det som anger en av den här serverns domäner som avsändare kan vidarebefordra e-post via den här servern (risk för öppet relä).</value>
+  </data>
   <data name="IP range - {0}" xml:space="preserve">
     <value>IP-intervall - {0}</value>
   </data>

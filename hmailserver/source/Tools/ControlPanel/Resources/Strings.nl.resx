@@ -5980,6 +5980,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>IP-bereik '{0}' staat bezorging van extern naar extern toe zonder authenticatie (risico op open relay).</value>
   </data>
+  <data name="IP range '{0}' allows local-to-external delivery without authentication, so anyone in it who gives one of this server's domains as the sender can relay mail through this server (open relay risk)." xml:space="preserve">
+    <value>IP-bereik '{0}' staat bezorging van lokaal naar extern toe zonder authenticatie, zodat iedereen erin die een van de domeinen van deze server als afzender opgeeft, mail via deze server kan doorsturen (risico op open relay).</value>
+  </data>
   <data name="IP range - {0}" xml:space="preserve">
     <value>IP-bereik - {0}</value>
   </data>

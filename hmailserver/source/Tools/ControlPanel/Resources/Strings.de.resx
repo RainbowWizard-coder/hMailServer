@@ -5980,6 +5980,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>Der IP-Bereich '{0}' erlaubt Zustellung von extern nach extern ohne Authentifizierung (Risiko eines offenen Relays).</value>
   </data>
+  <data name="IP range '{0}' allows local-to-external delivery without authentication, so anyone in it who gives one of this server's domains as the sender can relay mail through this server (open relay risk)." xml:space="preserve">
+    <value>Der IP-Bereich '{0}' erlaubt Zustellung von lokal nach extern ohne Authentifizierung, sodass jeder darin, der eine der Domains dieses Servers als Absender angibt, Mail über diesen Server weiterleiten kann (Risiko eines offenen Relays).</value>
+  </data>
   <data name="IP range - {0}" xml:space="preserve">
     <value>IP-Bereich - {0}</value>
   </data>

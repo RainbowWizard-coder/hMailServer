@@ -339,9 +339,11 @@
   </ItemGroup>
 
   <!-- How far an IP range lets mail be relayed without signing in, and the words for it
-       (review finding F229). -->
+       (review finding F229), and the IP ranges page's Expires and Relay cells, which mark a
+       relay as RelayExposure does (F231). -->
   <ItemGroup>
     <Compile Include="..\ControlPanel\Services\RelayExposure.cs" />
+    <Compile Include="..\ControlPanel\Services\IpRangeCells.cs" />
   </ItemGroup>
 
   <!-- The SSL certificates page's rows: which ports present each certificate and the

@@ -50,8 +50,20 @@ namespace hMailServer.ControlPanel.Services
                dynamic range = ranges.Item[i];
                try
                {
-                  if ((bool)range.AllowDeliveryFromRemoteToRemote && !(bool)range.RequireSMTPAuthExternalToExternal)
-                     found.AddWarning(StatusLevel.Critical, F("IP range '{0}' allows external-to-external delivery without authentication (open relay risk).", (string)range.Name), "ipranges");
+                  // An open relay as the IP ranges page counts one (Services/RelayExposure,
+                  // review finding F229): either direction to an external address open
+                  // without authentication, on a range that reaches the Internet. One
+                  // address - My computer relays without it as shipped - and a private
+                  // network's range are the page's to mark, not a warning here.
+                  bool localToExternal = (bool)range.AllowDeliveryFromLocalToRemote, localNeedsAuth = (bool)range.RequireSMTPAuthLocalToExternal;
+                  bool externalToExternal = (bool)range.AllowDeliveryFromRemoteToRemote, externalNeedsAuth = (bool)range.RequireSMTPAuthExternalToExternal;
+                  if (RelayExposure.Of((string)range.LowerIP, (string)range.UpperIP, localToExternal, localNeedsAuth, externalToExternal, externalNeedsAuth) == RelayExposure.Reach.Internet)
+                  {
+                     if ((RelayExposure.OpenDirections(localToExternal, localNeedsAuth, externalToExternal, externalNeedsAuth) & RelayExposure.Open.ExternalToExternal) != 0)
+                        found.AddWarning(StatusLevel.Critical, F("IP range '{0}' allows external-to-external delivery without authentication (open relay risk).", (string)range.Name), "ipranges");
+                     else
+                        found.AddWarning(StatusLevel.Critical, F("IP range '{0}' allows local-to-external delivery without authentication, so anyone in it who gives one of this server's domains as the sender can relay mail through this server (open relay risk).", (string)range.Name), "ipranges");
+                  }
 
                   if ((string)range.LowerIP == "127.0.0.1" && (string)range.UpperIP == "127.0.0.1" && (bool)range.Expires)
                      found.AddWarning(StatusLevel.Warning, L("Localhost is currently banned in the IP ranges."), "ipranges");

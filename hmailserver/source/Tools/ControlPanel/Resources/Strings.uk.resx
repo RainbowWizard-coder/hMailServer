@@ -6065,6 +6065,9 @@
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>Діапазон IP '{0}' дозволяє доставку із зовнішніх до зовнішніх без автентифікації (ризик відкритого ретранслятора).</value>
   </data>
+  <data name="IP range '{0}' allows local-to-external delivery without authentication, so anyone in it who gives one of this server's domains as the sender can relay mail through this server (open relay risk)." xml:space="preserve">
+    <value>Діапазон IP '{0}' дозволяє доставку з локальних до зовнішніх без автентифікації, тож будь-хто в ньому, хто вкаже відправником один із доменів цього сервера, може пересилати пошту через цей сервер (ризик відкритого ретранслятора).</value>
+  </data>
   <data name="IP range - {0}" xml:space="preserve">
     <value>Діапазон IP — {0}</value>
   </data>

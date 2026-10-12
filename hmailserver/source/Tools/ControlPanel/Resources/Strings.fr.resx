@@ -5980,6 +5980,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>La plage IP « {0} » autorise la livraison externe-vers-externe sans authentification (risque de relais ouvert).</value>
   </data>
+  <data name="IP range '{0}' allows local-to-external delivery without authentication, so anyone in it who gives one of this server's domains as the sender can relay mail through this server (open relay risk)." xml:space="preserve">
+    <value>La plage IP « {0} » autorise la livraison local-vers-externe sans authentification, si bien que quiconque s'y trouve et indique comme expéditeur l'un des domaines de ce serveur peut relayer du courrier par ce serveur (risque de relais ouvert).</value>
+  </data>
   <data name="IP range - {0}" xml:space="preserve">
     <value>Plage IP - {0}</value>
   </data>

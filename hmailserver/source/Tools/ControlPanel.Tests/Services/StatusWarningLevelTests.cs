@@ -78,6 +78,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// </summary>
       [Theory]
       [InlineData("open relay risk", "StatusLevel.Critical", "ipranges")]
+      [InlineData("allows local-to-external delivery without authentication", "StatusLevel.Critical", "ipranges")]
       [InlineData("No host name is set", "StatusLevel.Warning", "protocols")]
       [InlineData("Mail from an empty sender address is denied", "StatusLevel.Warning", "protocols")]
       [InlineData("Localhost is currently banned", "StatusLevel.Warning", "ipranges")]

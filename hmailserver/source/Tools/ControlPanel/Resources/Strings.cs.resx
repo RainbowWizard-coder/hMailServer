@@ -6065,6 +6065,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>Rozsah IP '{0}' povoluje doručování z externí do externí bez ověření (riziko otevřeného relaye).</value>
   </data>
+  <data name="IP range '{0}' allows local-to-external delivery without authentication, so anyone in it who gives one of this server's domains as the sender can relay mail through this server (open relay risk)." xml:space="preserve">
+    <value>Rozsah IP '{0}' povoluje doručování z místní do externí bez ověření, takže kdokoli v něm, kdo jako odesílatele uvede jednu z domén tohoto serveru, může přes tento server předávat poštu (riziko otevřeného relaye).</value>
+  </data>
   <data name="IP range - {0}" xml:space="preserve">
     <value>Rozsah IP – {0}</value>
   </data>

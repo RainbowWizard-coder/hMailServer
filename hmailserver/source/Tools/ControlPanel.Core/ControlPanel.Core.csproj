@@ -175,13 +175,13 @@
     <Compile Include="..\ControlPanel\Services\LdapReread.cs" />
   </ItemGroup>
 
-  <!-- T2.13's task flows, part 3: the bans in force on the Auto-ban page and the IP
-       ranges page's Expires and Relay cells (review finding F231), and how long until
-       a time the server keeps, in its own clock's terms. -->
+  <!-- T2.13's task flows, part 3: the bans in force on the Auto-ban page (review
+       finding F231), and how long until a time the server keeps, in its own clock's
+       terms. The IP ranges page's cells speak in StatusLevel and are linked into the
+       tests beside RelayExposure. -->
   <ItemGroup>
     <Compile Include="..\ControlPanel\Services\TimeUntilText.cs" />
     <Compile Include="..\ControlPanel\Services\AutoBanList.cs" />
-    <Compile Include="..\ControlPanel\Services\IpRangeCells.cs" />
     <!-- Whether AcmeDomains names a host, as the server reads it (review finding F237). -->
     <Compile Include="..\ControlPanel\Services\AcmeHostNames.cs" />
     <!-- Where a queued message stands, and what the queue's buttons did to the rows

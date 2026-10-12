@@ -5990,6 +5990,9 @@
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>IP 範囲 '{0}' は、認証なしの外部から外部への配信を許可しています (オープン リレーの危険)。</value>
   </data>
+  <data name="IP range '{0}' allows local-to-external delivery without authentication, so anyone in it who gives one of this server's domains as the sender can relay mail through this server (open relay risk)." xml:space="preserve">
+    <value>IP 範囲 '{0}' は、認証なしのローカルから外部への配信を許可しているため、この範囲の誰もが、このサーバーのドメインのいずれかを送信者として指定すれば、このサーバー経由でメールを中継できます (オープン リレーの危険)。</value>
+  </data>
   <data name="IP range - {0}" xml:space="preserve">
     <value>IP 範囲 - {0}</value>
   </data>

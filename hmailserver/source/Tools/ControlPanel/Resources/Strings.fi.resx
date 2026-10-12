@@ -5980,6 +5980,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>IP-alue '{0}' sallii toimituksen ulkoisesta ulkoiseen ilman todennusta (avoimen välityksen riski).</value>
   </data>
+  <data name="IP range '{0}' allows local-to-external delivery without authentication, so anyone in it who gives one of this server's domains as the sender can relay mail through this server (open relay risk)." xml:space="preserve">
+    <value>IP-alue '{0}' sallii toimituksen paikallisesta ulkoiseen ilman todennusta, joten kuka tahansa sen alueella, joka antaa lähettäjäksi jonkin tämän palvelimen verkkotunnuksista, voi välittää postia tämän palvelimen kautta (avoimen välityksen riski).</value>
+  </data>
   <data name="IP range - {0}" xml:space="preserve">
     <value>IP-alue - {0}</value>
   </data>

@@ -5980,6 +5980,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>'{0}' IP aralığı, kimlik doğrulaması olmadan dıştan dışa teslime izin veriyor (açık aktarma riski).</value>
   </data>
+  <data name="IP range '{0}' allows local-to-external delivery without authentication, so anyone in it who gives one of this server's domains as the sender can relay mail through this server (open relay risk)." xml:space="preserve">
+    <value>'{0}' IP aralığı, kimlik doğrulaması olmadan yerelden dışa teslime izin veriyor; bu nedenle bu aralıkta gönderen olarak bu sunucunun etki alanlarından birini belirten herkes bu sunucu üzerinden posta aktarabilir (açık aktarma riski).</value>
+  </data>
   <data name="IP range - {0}" xml:space="preserve">
     <value>IP aralığı - {0}</value>
   </data>

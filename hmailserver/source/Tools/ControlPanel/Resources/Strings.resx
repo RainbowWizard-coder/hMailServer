@@ -5980,6 +5980,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>IP range '{0}' allows external-to-external delivery without authentication (open relay risk).</value>
   </data>
+  <data name="IP range '{0}' allows local-to-external delivery without authentication, so anyone in it who gives one of this server's domains as the sender can relay mail through this server (open relay risk)." xml:space="preserve">
+    <value>IP range '{0}' allows local-to-external delivery without authentication, so anyone in it who gives one of this server's domains as the sender can relay mail through this server (open relay risk).</value>
+  </data>
   <data name="IP range - {0}" xml:space="preserve">
     <value>IP range - {0}</value>
   </data>

@@ -107,17 +107,32 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("23 min from now", IpRangeCells.Expires(true, Now.AddMinutes(23).AddSeconds(1), Now, sameClock: true));
       }
 
+      /// <summary>
+      /// The Relay cell counts a relay as the range's permissions card does
+      /// (RelayExposure, review finding F229): either direction to an external
+      /// address, an open relay Critical, a private network's a Warning, one
+      /// address unmarked - so that the grid and the card say one thing of a range.
+      /// </summary>
       [Theory]
-      [InlineData(false, false, "0.0.0.0", "255.255.255.255", "No", false)]
-      [InlineData(true, true, "0.0.0.0", "255.255.255.255", "After sign-in", false)]
+      [InlineData("0.0.0.0", "255.255.255.255", false, false, false, false, "No", StatusLevel.Normal)]
+      // The shipped Internet range: both directions, each after authentication.
+      [InlineData("0.0.0.0", "255.255.255.255", true, true, true, true, "After sign-in", StatusLevel.Normal)]
       // The shipped "My computer" relays without a sign-in, and only that machine can.
-      [InlineData(true, false, "127.0.0.1", "127.0.0.1", "Without sign-in", false)]
-      [InlineData(true, false, "10.1.0.0", "10.1.0.255", "Open relay", true)]
-      public void TheRelayCell_MarksTheOpenRelay_AndNoSingleAddress(bool relays, bool auth, string lower, string upper, string word, bool open)
+      [InlineData("127.0.0.1", "127.0.0.1", true, false, false, false, "Without sign-in", StatusLevel.Normal)]
+      [InlineData("127.0.0.1", "127.0.0.1", true, false, true, false, "Without sign-in", StatusLevel.Normal)]
+      // A private network's range: every machine of it, a Warning, as on the card.
+      [InlineData("10.1.0.0", "10.1.0.255", false, false, true, false, "Without sign-in", StatusLevel.Warning)]
+      [InlineData("192.168.1.0", "192.168.1.255", true, false, false, false, "Without sign-in", StatusLevel.Warning)]
+      // Anyone on the Internet: by any sender, or by one that gives a local domain.
+      [InlineData("0.0.0.0", "255.255.255.255", true, true, true, false, "Open relay", StatusLevel.Critical)]
+      [InlineData("0.0.0.0", "255.255.255.255", true, false, true, true, "Open relay", StatusLevel.Critical)]
+      [InlineData("8.8.0.0", "8.8.255.255", false, false, true, false, "Open relay", StatusLevel.Critical)]
+      public void TheRelayCell_MarksARelay_AsThePermissionsCardDoes(string lower, string upper, bool localToExternal, bool localNeedsAuth,
+                                                                     bool externalToExternal, bool externalNeedsAuth, string word, StatusLevel level)
       {
-         (string w, bool o) = IpRangeCells.Relay(relays, auth, lower, upper);
+         (string w, StatusLevel l) = IpRangeCells.Relay(lower, upper, localToExternal, localNeedsAuth, externalToExternal, externalNeedsAuth);
          Assert.Equal(word, w);
-         Assert.Equal(open, o);
+         Assert.Equal(level, l);
       }
 
       /// <summary>Banned now is the Auto-ban page's first card, its rows the bans, each with Lift ban.</summary>
@@ -158,8 +173,8 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          Assert.Contains("Header=\"{loc:L 'Expires'}\" Binding=\"{Binding Expires}\"", xaml, StringComparison.Ordinal);
          Assert.Contains("Header=\"{loc:L 'Relay'}\"", xaml, StringComparison.Ordinal);
-         Assert.Matches(new Regex(@"StatusPill x:Name=""RelayPill"" Level=""Critical"""), xaml);
-         Assert.Contains("<DataTrigger Binding=\"{Binding OpenRelay}\" Value=\"True\">", xaml, StringComparison.Ordinal);
+         Assert.Matches(new Regex(@"StatusPill x:Name=""RelayPill"" Level=""\{Binding RelayLevel\}"""), xaml);
+         Assert.Contains("<DataTrigger Binding=\"{Binding RelayMarked}\" Value=\"True\">", xaml, StringComparison.Ordinal);
          Assert.Contains("x:Name=\"BansOnlyBox\"", xaml, StringComparison.Ordinal);
 
          Assert.Contains("IsBan = AutoBanList.IsBan(name, expires)", code, StringComparison.Ordinal);

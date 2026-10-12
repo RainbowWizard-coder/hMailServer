@@ -5980,6 +5980,9 @@ Ingen post røres - indekset er udledt af den - men indtil genopbygningen har in
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>IP-intervallet '{0}' tillader levering fra ekstern til ekstern uden godkendelse (risiko for åbent relay).</value>
   </data>
+  <data name="IP range '{0}' allows local-to-external delivery without authentication, so anyone in it who gives one of this server's domains as the sender can relay mail through this server (open relay risk)." xml:space="preserve">
+    <value>IP-intervallet '{0}' tillader levering fra lokal til ekstern uden godkendelse, så alle i det, der angiver et af denne servers domæner som afsender, kan videresende post gennem denne server (risiko for åbent relay).</value>
+  </data>
   <data name="IP range - {0}" xml:space="preserve">
     <value>IP-interval - {0}</value>
   </data>

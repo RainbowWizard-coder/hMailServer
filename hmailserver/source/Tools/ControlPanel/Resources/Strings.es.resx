@@ -5980,6 +5980,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>El rango de IP '{0}' permite la entrega de externo a externo sin autenticación (riesgo de relé abierto).</value>
   </data>
+  <data name="IP range '{0}' allows local-to-external delivery without authentication, so anyone in it who gives one of this server's domains as the sender can relay mail through this server (open relay risk)." xml:space="preserve">
+    <value>El rango de IP '{0}' permite la entrega de local a externo sin autenticación, de modo que cualquiera en él que indique como remitente uno de los dominios de este servidor puede retransmitir correo a través de este servidor (riesgo de relé abierto).</value>
+  </data>
   <data name="IP range - {0}" xml:space="preserve">
     <value>Rango de IP - {0}</value>
   </data>

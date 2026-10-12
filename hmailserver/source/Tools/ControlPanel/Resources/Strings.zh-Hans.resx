@@ -5980,6 +5980,9 @@
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>IP 范围 '{0}' 允许无需身份验证的外部到外部投递（开放中继风险）。</value>
   </data>
+  <data name="IP range '{0}' allows local-to-external delivery without authentication, so anyone in it who gives one of this server's domains as the sender can relay mail through this server (open relay risk)." xml:space="preserve">
+    <value>IP 范围 '{0}' 允许无需身份验证的本地到外部投递，因此该范围内任何以此服务器的某个域作为发件人的人都可以通过此服务器中继邮件（开放中继风险）。</value>
+  </data>
   <data name="IP range - {0}" xml:space="preserve">
     <value>IP 范围 - {0}</value>
   </data>

@@ -6065,6 +6065,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>Zakres adresów IP „{0}” pozwala na dostarczanie zewnętrzne do zewnętrznych bez uwierzytelnienia (ryzyko otwartego przekaźnika).</value>
   </data>
+  <data name="IP range '{0}' allows local-to-external delivery without authentication, so anyone in it who gives one of this server's domains as the sender can relay mail through this server (open relay risk)." xml:space="preserve">
+    <value>Zakres adresów IP „{0}” pozwala na dostarczanie lokalne do zewnętrznych bez uwierzytelnienia, więc każdy w nim, kto poda jako nadawcę jedną z domen tego serwera, może przekazywać pocztę przez ten serwer (ryzyko otwartego przekaźnika).</value>
+  </data>
   <data name="IP range - {0}" xml:space="preserve">
     <value>Zakres adresów IP - {0}</value>
   </data>

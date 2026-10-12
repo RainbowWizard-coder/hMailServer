@@ -6065,6 +6065,9 @@ Control Panel может читать файлы сообщений только
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>Диапазон IP «{0}» разрешает доставку с внешнего на внешний без аутентификации (риск открытой ретрансляции).</value>
   </data>
+  <data name="IP range '{0}' allows local-to-external delivery without authentication, so anyone in it who gives one of this server's domains as the sender can relay mail through this server (open relay risk)." xml:space="preserve">
+    <value>Диапазон IP «{0}» разрешает доставку с локального на внешний без аутентификации, поэтому любой в нём, кто укажет отправителем один из доменов этого сервера, может пересылать почту через этот сервер (риск открытой ретрансляции).</value>
+  </data>
   <data name="IP range - {0}" xml:space="preserve">
     <value>Диапазон IP — {0}</value>
   </data>

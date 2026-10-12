@@ -2748,8 +2748,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   permissions are asked about before they are saved, on the page and in the dialog, whose tabs are as tall as the
   Delivery tab with the longest of its notices, which a shorter tab cut off. The setup checklist, the steps of the
   office, gateway and relay setting profiles (shown on the Setting profiles page) and the help page the TCP/IP ports
-  page opens (SecureDefaults.md) name the box by its new caption. `RelayExposureTests` holds the reach of a range, the
-  words, the card, the dialog and the question.
+  page opens (SecureDefaults.md) name the box by its new caption. Server status's configuration check, which the
+  Dashboard's attention card shares, counts an open relay the same way: either direction without authentication on a
+  range that reaches the Internet is Critical, Local to external alone as "IP range 'Office' allows local-to-external
+  delivery without authentication, so anyone in it who gives one of this server's domains as the sender can relay mail
+  through this server (open relay risk).", where only External to external was, on any range; a single address and a
+  private network's range, whose External to external it marked Critical as well, are the page's to mark.
+  `RelayExposureTests` holds the reach of a range, the words, the card, the dialog and the question.
 
 - **Fixed: a range added on the IP ranges page was not selected and said nothing of what it could do, and the list was
   not in priority order.** A new range may connect but delivers in no direction, so it can send no mail until its
@@ -2766,19 +2771,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 - **Fixed: the Auto-ban page listed no ban, and lifting one took four steps across two pages.** "Clear logon-failure
   list" said outright that it lifted no ban; the IP ranges page drew the server's bans - the expiring ranges named
   "Auto-ban: ..." - among the permanent ranges with no column to tell them apart and no filter, so lifting one meant
-  opening IP ranges, searching, picking the row by its address and deleting it. The Auto-ban page now opens on
-  Banned now: each ban's address, why it was banned - the user name a run of failed sign-ins was guessing at, the
-  spam trap, the null sender or the sign-in attempt on a delivery port, without the counter the server adds to the
-  name of a second ban for the same user name or trap, "(1)" - and when it ends, "23 min from now" from a
-  Control Panel on the server itself and the server's time from one elsewhere, with Lift ban on its row (a 24-pixel
-  button named for the row) and under the list (Delete on the row presses it); Lift ban asks first, Cancel taking
-  Enter, deletes the range by its id as IP ranges does, and says "The ban on 198.51.100.77 is lifted." The IP ranges
-  page has an Expires column - Never, or when an expiring range ends - a Relay column that says No, After sign-in,
-  Without sign-in for one address such as My computer, or Open relay as a Critical pill for a range of more than one
-  address that relays without a sign-in, and Show auto-bans only, which narrows the list to the bans and counts them
-  as a search does ("Shown: 1 of 5"). Server status's ban count opens Banned now. `BannedNowTests` holds the words,
-  the order of the page, the question, the columns and the filter; docs/AutoBan.md says where the bans are and what
-  Lift ban does.
+  opening IP ranges, searching, picking the row by its address and deleting it. The Auto-ban page now opens on Banned
+  now: each ban's address, why it was banned - the user name a run of failed sign-ins was guessing at, the spam trap,
+  the null sender or the sign-in attempt on a delivery port, without the counter the server adds to the name of a second
+  ban for the same user name or trap, "(1)" - and when it ends, "23 min from now" from a Control Panel on the server
+  itself and the server's time from one elsewhere, with Lift ban on its row (a 24-pixel button named for the row) and
+  under the list (Delete on the row presses it); Lift ban asks first, Cancel taking Enter, deletes the range by its id
+  as IP ranges does, and says "The ban on 198.51.100.77 is lifted." The IP ranges page has an Expires column - Never, or
+  when an expiring range ends - a Relay column that counts a relay in either direction to an external address, as the
+  range's permissions card does, and says No, After sign-in, Without sign-in for one address such as My computer and, as
+  a Warning pill, for a private network's range, or Open relay as a Critical pill for a range that reaches the Internet,
+  and Show auto-bans only, which narrows the list to the bans and counts them as a search does ("Shown: 1 of 5"). Server
+  status's ban count opens Banned now. `BannedNowTests` holds the words, the order of the page, the question, the
+  columns and the filter; docs/AutoBan.md says where the bans are and what Lift ban does.
 
 - **Fixed: the SSL certificates page could not change a certificate, never said which ports use one, and sorted its
   Certificate column by the status word.** A certificate whose file had moved - "File missing" - could be put right

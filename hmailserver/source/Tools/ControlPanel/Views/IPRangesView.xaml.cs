@@ -35,7 +35,8 @@ namespace hMailServer.ControlPanel.Views
          /// <summary>When the range ends, and whether and how it relays (Services/IpRangeCells).</summary>
          public string Expires { get; set; }
          public string Relay { get; set; }
-         public bool OpenRelay { get; set; }
+         public StatusLevel RelayLevel { get; set; }
+         public bool RelayMarked => RelayLevel != StatusLevel.Normal;
 
          /// <summary>Whether the range is one of the server's bans (Services/AutoBanList), for Show auto-bans only.</summary>
          public bool IsBan { get; set; }
@@ -190,7 +191,9 @@ namespace hMailServer.ControlPanel.Views
                   dynamic range = ranges.Item[i];
                   string name = (string)range.Name, lower = (string)range.LowerIP, upper = (string)range.UpperIP;
                   bool expires = (bool)range.Expires;
-                  (string relay, bool open) = IpRangeCells.Relay((bool)range.AllowDeliveryFromRemoteToRemote, (bool)range.RequireSMTPAuthExternalToExternal, lower, upper);
+                  (string relay, StatusLevel relayLevel) = IpRangeCells.Relay(lower, upper,
+                     (bool)range.AllowDeliveryFromLocalToRemote, (bool)range.RequireSMTPAuthLocalToExternal,
+                     (bool)range.AllowDeliveryFromRemoteToRemote, (bool)range.RequireSMTPAuthExternalToExternal);
                   rows.Add(new RangeRow
                   {
                      Id = (int)range.ID,
@@ -203,7 +206,7 @@ namespace hMailServer.ControlPanel.Views
                      Pop3 = (bool)range.AllowPOP3Connections ? L("Yes") : L("No"),
                      Expires = IpRangeCells.Expires(expires, expires ? ExpiresAt_(range) : DateTime.MinValue, now, sameClock),
                      Relay = relay,
-                     OpenRelay = open,
+                     RelayLevel = relayLevel,
                      IsBan = AutoBanList.IsBan(name, expires)
                   });
                   ServerSession.Release(range);

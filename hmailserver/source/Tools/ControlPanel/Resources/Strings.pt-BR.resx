@@ -5980,6 +5980,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="IP range '{0}' allows external-to-external delivery without authentication (open relay risk)." xml:space="preserve">
     <value>A faixa de IP '{0}' permite entrega de externo para externo sem autenticação (risco de open relay).</value>
   </data>
+  <data name="IP range '{0}' allows local-to-external delivery without authentication, so anyone in it who gives one of this server's domains as the sender can relay mail through this server (open relay risk)." xml:space="preserve">
+    <value>A faixa de IP '{0}' permite entrega de local para externo sem autenticação, de modo que qualquer pessoa nela que informe como remetente um dos domínios deste servidor pode retransmitir e-mail por este servidor (risco de open relay).</value>
+  </data>
   <data name="IP range - {0}" xml:space="preserve">
     <value>Faixa de IP - {0}</value>
   </data>
