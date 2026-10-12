@@ -721,9 +721,13 @@ namespace hMailServer.ControlPanel.Views
          foreach (ConfigurationWarning warning in warnings)
             AttentionItems.Children.Add(WarningLine_(warning, line++));
 
+         // The first is the next step, as on the checklist - but not while values could
+         // not be read: the first that needs doing may then be one the checklist could not
+         // tell, and the checklist names none (review finding F040).
          int shown = DashboardAttention.StepsToShow(steps.Count);
+         bool partial = checks.FailedReads > 0;
          for (int index = 0; index < shown; index++)
-            AttentionItems.Children.Add(AttentionLine_(steps[index], index));
+            AttentionItems.Children.Add(AttentionLine_(steps[index], index, isNext: index == 0 && !partial));
 
          int more = DashboardAttention.StepsLeftToTheChecklist(steps.Count);
          if (more > 0)
@@ -772,9 +776,10 @@ namespace hMailServer.ControlPanel.Views
       /// One action item as one line: the warning mark plus the item's title as a
       /// link that opens the page owning its settings - see it AND do it, without
       /// hunting. The state is carried by shape, colour and the words "Action
-      /// needed" in the accessible name, never by colour alone.
+      /// needed" in the accessible name, never by colour alone. The next step, when
+      /// there is one, has a "Next step" pill and says so first in its name.
       /// </summary>
-      private FrameworkElement AttentionLine_(SetupItem item, int index)
+      private FrameworkElement AttentionLine_(SetupItem item, int index, bool isNext)
       {
          var row = new Grid { Margin = new Thickness(0, 2, 0, 0) };
          row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -783,7 +788,8 @@ namespace hMailServer.ControlPanel.Views
 
          // Numbered, in the checklist's own order - the order a new
          // installation meets them - so the list reads as steps and the first
-         // one is where to start; it carries a "Next step" box as well.
+         // one is where to start; it carries a "Next step" pill as well, while
+         // every value the checklist judges could be read.
          var number = new TextBlock
          {
             Text = (index + 1).ToString(System.Globalization.CultureInfo.CurrentCulture) + ".",
@@ -832,14 +838,14 @@ namespace hMailServer.ControlPanel.Views
             Content = caption,
             ToolTip = F("Open {0}, which owns the settings for: {1}", pageTitle, item.Title)
          };
-         AutomationProperties.SetName(link, (index == 0 ? L("Next step") + ". " : "") + F("Action needed: {0}. Opens {1}.", item.Title, pageTitle));
+         AutomationProperties.SetName(link, (isNext ? L("Next step") + ". " : "") + F("Action needed: {0}. Opens {1}.", item.Title, pageTitle));
          AutomationProperties.SetAutomationId(link, "dashboard-attention-" + index);
          // On the item's tab, as the checklist's own button opens it (SetupItem.Tab).
          link.Click += (s, e) => (Application.Current?.MainWindow as MainWindow)?.NavigateToTab(page, item.Tab);
 
          var linkRow = new WrapPanel { Orientation = Orientation.Horizontal };
          linkRow.Children.Add(link);
-         if (index == 0)
+         if (isNext)
             linkRow.Children.Add(new Scaffold.StatusPill { Level = StatusLevel.Information, Text = L("Next step"), Margin = new Thickness(6, 0, 0, 0) });
          Grid.SetColumn(linkRow, 2);
          row.Children.Add(linkRow);

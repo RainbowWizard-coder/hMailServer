@@ -3665,25 +3665,26 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   them.
 
 - **Fixed: with values it could not read, the setup checklist drew a tally and a next step counted from them above the
-  notice that said so, and that notice spoke of "the items above"; and nothing on the tour's card said that F6
-  reaches it.** With the link lost the checklist began "4 need action, 7 cannot be told from here, 0 done, 4 not
-  needed. Next step: MTA-STS policy hosting..." and only then "11 values could not be read: ... The items above may be
-  incomplete." The notice is now first and says it in the DNS records page's words, "Some values could not be read,
-  so the cards below may be incomplete." with the reason last; and while values could not be read the tally begins
-  "An item that depends on a value that could not be read is counted as one that cannot be told, unless what was read
-  already shows that it needs action.", and neither the tally nor a card names a next step - no card carries the Next
-  step pill or the page's primary button - since the step it would name is the first of the items that could be told,
-  not the first that needs doing. An item that judges a value the checklist could not read says Cannot tell: with the
-  domain list unread, DKIM signing said "No domains are configured" as Not needed, ARC sealing, where it is on, that
-  no domain could seal, and MTA-STS policy hosting was Done with no domain's record looked up; ARC filtering, on with
-  its sealers named and its DMARC failure score unread, was Done; and a server checklist that could not be parsed in
-  full lost the items after the fault, where it is now one item that cannot be told, as one that could not be read at
-  all is. The tour never takes the keyboard - F6 moves into its card and Escape ends the tour from inside it - and
-  neither the card, its accessible name nor its first announcement said so: the card's help text says "Press F6 to
-  reach the tour's buttons; while one of them has the keyboard, Escape ends the tour.", and the first step of a run
-  shows the sentence as a tertiary line under its buttons and adds it to what is announced; and the card's buttons
-  wrap, where from the second step "Rundgang überspringen" ran off the card's right edge in German.
-  `SetupChecklistReadFailureTests`, `TourKeysHintTests` and `TourCardButtonsTests` hold them.
+  notice that said so, and that notice spoke of "the items above"; and nothing on the tour's card said that F6 reaches
+  it.** With the link lost the checklist began "4 need action, 7 cannot be told from here, 0 done, 4 not needed. Next
+  step: MTA-STS policy hosting..." and only then "11 values could not be read: ... The items above may be incomplete."
+  The notice is now first and says it in the DNS records page's words, "Some values could not be read, so the sections
+  below may be incomplete." with the reason last; and while values could not be read the tally begins "An item that
+  depends on a value that could not be read is counted as one that cannot be told, unless what was read already shows
+  that it needs action.", and neither the tally nor a card names a next step - no card carries the Next step pill or the
+  page's primary button, and the Dashboard's attention card, which lists the same steps, marks none of them Next step
+  either - since the step it would name is the first of the items that could be told, not the first that needs doing. An
+  item that judges a value the checklist could not read says Cannot tell: with the domain list unread, DKIM signing said
+  "No domains are configured" as Not needed, ARC sealing, where it is on, that no domain could seal, and MTA-STS policy
+  hosting was Done with no domain's record looked up; ARC filtering, on with its sealers named and its DMARC failure
+  score unread, was Done; and a server checklist that could not be parsed in full lost the items after the fault, where
+  it is now one item that cannot be told, as one that could not be read at all is. The tour never takes the keyboard -
+  F6 moves into its card and Escape ends the tour from inside it - and neither the card, its accessible name nor its
+  first announcement said so: the card's help text says "Press F6 to reach the tour's buttons; while one of them has the
+  keyboard, Escape ends the tour.", and the first step of a run shows the sentence as a tertiary line under its buttons
+  and adds it to what is announced; and the card's buttons wrap, where from the second step "Rundgang überspringen" ran
+  off the card's right edge in German. `SetupChecklistReadFailureTests`, `TourKeysHintTests` and `TourCardButtonsTests`
+  hold them.
 
 - **Fixed: a scanner test that failed without the server's words said only "Connection failed." or "Scanner test
   failed."** Where the server gives no detail, the Anti-spam page's SpamAssassin test now says "SpamAssassin did not

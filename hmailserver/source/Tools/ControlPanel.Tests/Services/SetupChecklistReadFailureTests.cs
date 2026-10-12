@@ -80,6 +80,29 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("!partial", render, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// The Dashboard's attention card lists the checklist's open steps, and it marked
+      /// the first "Next step" - the pill, and the words first in its name - while
+      /// values could not be read, which the checklist no longer does: a server that
+      /// answered without some values put the pill on a step the checklist would not
+      /// name.
+      /// </summary>
+      [Fact]
+      public void WhileReadsFail_TheDashboardNamesNoNextStep()
+      {
+         string dashboard = DashboardSource();
+         string render = WithheldRowTests.MemberText(dashboard, "private void RenderAttention_(ExternalSetupChecks checks, int pendingDnsLookups)");
+         Assert.True(render != null, "DashboardView.RenderAttention_ is gone.");
+         Assert.Contains("bool partial = checks.FailedReads > 0;", render, StringComparison.Ordinal);
+         Assert.Contains("AttentionItems.Children.Add(AttentionLine_(steps[index], index, isNext: index == 0 && !partial));", render, StringComparison.Ordinal);
+
+         string line = WithheldRowTests.MemberText(dashboard, "private FrameworkElement AttentionLine_(SetupItem item, int index, bool isNext)");
+         Assert.True(line != null, "DashboardView.AttentionLine_ is gone, or no longer told whether its step is the next.");
+         Assert.Contains("AutomationProperties.SetName(link, (isNext ? L(\"Next step\") + \". \" : \"\") +", line, StringComparison.Ordinal);
+         Assert.Contains("if (isNext)\n", line, StringComparison.Ordinal);
+         Assert.DoesNotContain("index == 0", line, StringComparison.Ordinal);
+      }
+
       [Fact]
       public void AnUnreadDomainList_CannotBeTold_WhereDkimSaidNoDomainsAreConfigured()
       {
@@ -144,6 +167,19 @@ namespace hMailServer.ControlPanel.Tests.Services
          }
 
          Assert.Fail("ControlPanel/Services/ExternalSetupChecks.cs could not be found from the test binaries.");
+         return null;
+      }
+
+      private static string DashboardSource()
+      {
+         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory != null; directory = directory.Parent)
+         {
+            string candidate = Path.Join(directory.FullName, "ControlPanel", "Views", "DashboardView.xaml.cs");
+            if (File.Exists(candidate))
+               return File.ReadAllText(candidate).Replace("\r\n", "\n");
+         }
+
+         Assert.Fail("ControlPanel/Views/DashboardView.xaml.cs could not be found from the test binaries.");
          return null;
       }
 

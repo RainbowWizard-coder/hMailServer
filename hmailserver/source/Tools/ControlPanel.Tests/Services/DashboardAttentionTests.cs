@@ -130,7 +130,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string render = WithheldRowTests.MemberText(dashboard, "private void RenderAttention_(ExternalSetupChecks checks, int pendingDnsLookups)");
          Assert.True(render != null, "DashboardView.RenderAttention_ is gone.");
          int warnings = render.IndexOf("WarningLine_(warning", StringComparison.Ordinal);
-         int steps = render.IndexOf("AttentionLine_(steps[index], index)", StringComparison.Ordinal);
+         int steps = render.IndexOf("AttentionLine_(steps[index], index, isNext:", StringComparison.Ordinal);
          int more = render.IndexOf("MoreStepsLine_(more)", StringComparison.Ordinal);
          Assert.True(warnings > 0 && steps > warnings && more > steps,
             "The card does not list the warnings, then the steps it shows, then the line for the rest.");
