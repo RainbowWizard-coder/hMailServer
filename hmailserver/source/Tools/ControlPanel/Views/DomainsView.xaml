@@ -211,7 +211,7 @@
                                                  its row in its tool tip and to a screen reader (the owner's
                                                  decision 15), where the domain and account rows said Edit
                                                  and Delete in words beside the lists' glyphs. -->
-                                            <ui:Button Grid.Column="1" Icon="{ui:SymbolIcon Edit24}" Padding="4" MinWidth="24" MinHeight="24" Margin="6,0,4,0"
+                                            <ui:Button Grid.Column="1" Icon="{ui:SymbolIcon Edit24}" Padding="4" MinWidth="24" MinHeight="24" Margin="8,0,4,0"
                                                        ToolTip="{Binding EditName}" AutomationProperties.Name="{Binding EditName}"
                                                        Tag="{Binding Name}" Click="EditDomain_Click" />
                                             <!-- Every row delete on the page is a DangerTextButton: the
@@ -333,7 +333,7 @@
                                                 <TextBlock Text="{Binding Address}" Style="{StaticResource RowName}" Margin="10,0,0,0" FontSize="{DynamicResource AppFontSizeBody}"
                                                            VerticalAlignment="Center" />
                                             </DockPanel>
-                                            <ui:Button Grid.Column="1" Icon="{ui:SymbolIcon Edit24}" Padding="4" MinWidth="24" MinHeight="24" Margin="6,0,4,0"
+                                            <ui:Button Grid.Column="1" Icon="{ui:SymbolIcon Edit24}" Padding="4" MinWidth="24" MinHeight="24" Margin="8,0,4,0"
                                                        ToolTip="{Binding EditName}" AutomationProperties.Name="{Binding EditName}"
                                                        Tag="{Binding Address}" Click="EditAccount_Click" />
                                             <ui:Button Grid.Column="2" Icon="{ui:SymbolIcon Delete24}" Padding="4" MinWidth="24" MinHeight="24"
@@ -474,7 +474,7 @@
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock Text="{Binding Address}" Style="{StaticResource GridTrimmedText}" FontSize="{DynamicResource AppFontSizeCaption}" VerticalAlignment="Center"
                                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                                                <ui:Button Grid.Column="1" Icon="{ui:SymbolIcon Edit24}" Padding="4" MinWidth="24" MinHeight="24" Margin="6,0,4,0"
+                                                <ui:Button Grid.Column="1" Icon="{ui:SymbolIcon Edit24}" Padding="4" MinWidth="24" MinHeight="24" Margin="8,0,4,0"
                                                            ToolTip="{Binding EditName}" AutomationProperties.Name="{Binding EditName}"
                                                            Tag="{Binding Address}" Click="EditDistList_Click" />
                                                 <ui:Button Grid.Column="2" Icon="{ui:SymbolIcon People24}" Padding="4" MinWidth="24" MinHeight="24" Margin="0,0,4,0"
