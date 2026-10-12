@@ -5304,9 +5304,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 - **Upstream is triaged to a843921bb (11 October 2026).** The 85 commits after the previous baseline, read from a
   clone of upstream against the functions in this tree; `.gitlab/upstream-sync` holds the verdict for each and has
   advanced its baseline from d5e087066, and Roadmap.md's row on them says what was ported, what was already here and
-  what is still to do - the rest of SRS, the envelope in this server's own `Received` header, a version for the
-  Control Panel's library, `OPENSSL_NO_DEPRECATED`, and a new UIDVALIDITY for the folders a restore puts back, which
-  needs a schema change.
+  what is still to do, each a row of its own under Planned work - the rest of SRS, the envelope in this server's own
+  `Received` header, `OPENSSL_NO_DEPRECATED`, and a new UIDVALIDITY for the folders a restore puts back, which needs a
+  schema change.
 
 ### Documentation
 

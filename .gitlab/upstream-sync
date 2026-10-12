@@ -343,6 +343,10 @@
 #     Interop.hMailServer.dll's version, TlbImp's from the type library's
 #     version(1.0) (build/generate-com-wrapper.ps1:192) - the version .NET programs
 #     bind to, not to be moved for a label; the C# tools carry <Version> already.
+#     ControlPanel.Core.csproj (hMailCP.Core.dll) has none, and needs none: it is
+#     the Control Panel tests' library, which ControlPanel.Tests.csproj alone
+#     references; the installer ships ControlPanel\publish, the dotnet publish
+#     of ControlPanel.csproj (build/ci/windows-installer.ps1), which does not.
 #   - 1cf0bcd63's test fix: SessionLimitingTests.AssertMaxSessionCount asserted
 #     "at least" (RetryableAssert.GreaterOrEqual), so a session count that had not
 #     come down passed; and the OnClientConnect test asked the wrong protocol's
@@ -415,8 +419,9 @@
 #     ToRuns) - upstream's had read them through an older IMAPListLookup
 #     parse.
 #
-#   NOT YET PORTED - larger than this triage took on; each goes to the plan as a
-#   row of its own, with the plan the triage wrote for it:
+#   NOT YET PORTED - larger than this triage took on; each is a row of its own
+#   under Planned work in Roadmap.md, which points here for the plan the triage
+#   wrote for it:
 #   - 1ffcc7c77 (#649): the SRS reversal below the account, alias and list lookups
 #     (an account named srs0-x@ is unreachable, the catch-all is passed over); the
 #     forward rule action and global rules rewriting the sender (RuleApplier::
@@ -453,11 +458,6 @@
 #     and in hMailServer.vcxproj's PreprocessorDefinitions (the integrator's
 #     file), and a clang, GCC and MSVC build (OpenSSL 4.0 on Windows) - the build
 #     is the test. Not a defect: the server works as it is.
-#   - ControlPanel.Core.dll, the Control Panel's library, beside #658: no
-#     <Version> or <Product> in ControlPanel.Core.csproj, so it ships as 1.0.0.0
-#     with no product name. Give it the Control Panel's <Version> and <Product>
-#     and make RELEASE.md's version stamp eight .csproj files, once the Control
-#     Panel units working in that project now (cp-tier2) have landed.
 #   - 6ac3c58fd (#666), the UIDVALIDITY a whole restore gives back: IMAPFolder::
 #     XMLLoad (IMAPFolder.cpp:205-206) puts back the folder's CreateTime, which is
 #     its UIDVALIDITY here, and its CurrentUID, so the UIDs given after the backup
