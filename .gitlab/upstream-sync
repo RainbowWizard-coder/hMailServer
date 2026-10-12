@@ -255,5 +255,202 @@
 #     moved to another account - and leaves one stored as it is to the firing
 #     path, which refuses it.
 #
+# Triaged 2026-10-12: the 85 commits from the previous baseline to a843921bb (11
+# October 2026), from a clone of upstream - 44 to 607dcc648, upstream's head when
+# the SPF port read them on 15 September (Roadmap.md's row on them; this SHA was
+# never advanced past them), and 41 after it. Content-first, each verdict against
+# the function in our tree that does the job, at 74aed9ab8 (the line numbers
+# below are that commit's). 14 of the 85 are merges; two hold a resolution of
+# their own - a30c94ed7 (include paths and ClassTester lines) and 9f4f8aca5
+# (their VERSION file, 5.8.0) - and none carries code of its own.
+#
+#   PORTED in this triage, each with a test that fails with the fix taken out:
+#   - 1ffcc7c77 (#649 SRS), the findings of upstream's review that our SRS
+#     (Util/SRS.cpp, SMTP/RecipientParser.cpp, SMTP/SMTPForwarding.cpp) shared:
+#     an SRS0 address this server handed out was followed back to the original
+#     sender as local delivery whatever the MAIL FROM, so the relay rules were
+#     not asked of mail that was not a bounce - only a bounce is taken so now
+#     (RecipientParser::CheckDeliveryPossibility); the hash was
+#     compared with a string comparison (HashCreator::HexDigestsMatch, constant
+#     time); an address 1023 days old read as one day ahead and was accepted as
+#     clock skew (SRS::TimeSlotInRange_, an hour added to our clock instead); and
+#     a quoted or over-long sender was rewritten into an address no server takes
+#     (SRS::ForwardAt). BATV (Util/BATV.cpp, not upstream's) had the same
+#     comparison and the same 999-day wrap, and is fixed with it. #649's
+#     BlowFishEncryptor buffer fix is ALREADY PRESENT: Util/LegacyBlowfish.cpp
+#     sizes both halves from the input and bounds the text (HM7277).
+#   - 013bf4b41 (#656) the RFC 4616 authzid: decoded and ignored by SMTP, POP3 and
+#     ManageSieve, so a client asking to act as another account was signed in as
+#     itself and told it had succeeded; refused now (AccountLogon::
+#     AuthorizationIdentityIsOwn). IMAP, which uses it for the master user, took an
+#     authzid naming the client itself as a masquerade and answered BAD "No master
+#     user defined."; it is taken as none. #656's parse (tabs in the password, the
+#     split on NUL) was already here: StringParser::DecodeSaslPlain.
+#   - b64edb5f1 (#654/#661) and #656's masking: SMTPConnection::LogClientCommand_
+#     hid AUTH PLAIN only after EHLO and in one strict form, and never called
+#     PasswordRemover's SMTP arm, so an XOAUTH2 or OAUTHBEARER token, a SCRAM
+#     client proof or a PLAIN credential sent at another moment reached the SMTP
+#     log. Every SASL line is masked now.
+#   - 1db53268e (#668) a backup's outcome - the backup log's line, the error, the
+#     alert, the OnBackupCompleted or OnBackupFailed script - was reported before
+#     BackupTask released the run slot, so a backup started on the strength of it
+#     was refused as already started: BackupManager::OutcomeHold.
+#   - a7b5b7c47 (#665), the parser half: Utilities::GetRecipientFromReceivedHeader
+#     ran a comment after the address - Gmail's "for <x@y> (Google Transport
+#     Security)" - into it, and the external fetcher found no recipient.
+#   - 5cf83a9fe/6ac3c58fd (#650/#666), the findings our IMAP shared: APPENDUID and
+#     COPYUID given to a user who may not read the folder (RFC 4315 section 6;
+#     IMAPCommandRangeAction::RecordCopyUidIfReadable, IMAPCommandAppend); a copy
+#     or an append into a folder carrying \Deleted, \Draft, \Answered, \Flagged
+#     and keywords the user may not set there (RFC 4314 section 4;
+#     IMAPCommandRangeAction::KeepOnlySettableFlags); ACL refusals NO without
+#     [NOPERM] (RFC 5530); and a COPY that failed part way leaving the copies it
+#     had made (RFC 3501 6.4.7; IMAPCopy::RollBack).
+#   - 6ac3c58fd (#666), the session's view: an expunge from another session let
+#     out at the start of a COPY or a MOVE by number, which renumbered the set the
+#     client had sent - "COPY 2" copied message 3 (IMAPConnection::
+#     NotifyFolderChange, IMAPConnection.cpp:1008-1012, now holds it back for both;
+#     upstream held COPY alone); a COPY or UID COPY into the selected folder never
+#     reported to the session that made it (IMAPCopy::
+#     ReportCopiesInTheSelectedFolder, as APPEND and MOVE report theirs); the
+#     flag changes of other sessions sent before the EXISTS of the messages they
+#     were for (IMAPNotificationClient::SendCachedNotifications); and EXPUNGE and
+#     UID EXPUNGE taking new messages into the view with no EXISTS before an
+#     EXPUNGE could number one (IMAPCommandExpunge.cpp:59, IMAPCommandUID.cpp:
+#     309) - the one change of the four no test can provoke once COPY reports its
+#     copies (its trigger is a delivery between its save and its notification).
+#   - 4c03c0bb8 (#671), the literals: our JScript calls were escaped whole since 24
+#     September (ScriptServer::EscapeForJScriptLiteral, every caller), but two
+#     VBScript calls were quoted by hand - OnClientValidatePassword's password and
+#     OnDeliveryFailed's values - so a lone CR or LF left the literal open and the
+#     handler was not called (Events.cpp, EscapeForVBScriptLiteral now).
+#   - 1cf0bcd63's test fix: SessionLimitingTests.AssertMaxSessionCount asserted
+#     "at least" (RetryableAssert.GreaterOrEqual), so a session count that had not
+#     come down passed; and the OnClientConnect test asked the wrong protocol's
+#     count, as did the IMAP test beside it, which upstream did not touch. Its
+#     Events.cs line waits in a test of theirs this tree does not have (the
+#     OnExternalAccountDownload UID through JScript; ours escapes it,
+#     ScriptServer::EscapeForJScriptLiteral).
+#
+#   PORTED by the other units of the same wave (PLAN.md batch48 and batch50):
+#   - 8141d66af (#640) a failed DNS lookup read as "no records": dns-failed-lookup.
+#   - 86a5ce3b8 (#653/#664) more 5xx replies counted as invalid commands:
+#     smtp-invalid-command-count.
+#   - 5841e577e (#683/#686) messages over 80 MB: large-message-headers.
+#   - 4c03c0bb8 (#671), a bad script function name refused when the rule is saved
+#     (ScriptServer.cpp refuses it when the rule fires): script-function-name-at-save.
+#   - 9f6d0a8a1 (#621) the backup's 7-Zip thread count: backup-7zip-threads.
+#   - acb4d4ea7 (#647) DDS import into public folders: dds-public-folder-import.
+#   - 3506329b2/d34fd6fa2 (#535/#622) In-Reply-To and References on DSNs,
+#     auto-replies and virus notices: auto-reply-threading.
+#   - 5d1d343fa (#620) ValidLanguages overwritten by an upgrade: batch55 (the
+#     installer).
+#
+#   PORTED 15 September 2026: e304ce904, 9f539a48c, d173b0768, 36297f054 and
+#   1beaeab9c (#642-#645) the SPF evaluator, SMTP/SPF/.
+#
+#   ALREADY PRESENT:
+#   - 607dcc648 (#646) a backup that cannot be restarted: the run slot is a weak
+#     reference to the task, so it is free when the task dies however it ends
+#     (BackupManager.cpp:49-80); the second backup to a directory without
+#     compression copies over what the first left (#234), and a file deleted
+#     during the copy is skipped, by the backup's own copy (BackupExecuter.cpp:70-
+#     110). Not taken: #646's catch in BackupTask::DoWork that turns an exception
+#     into OnBackupFailed - our work queue contains it (WorkQueue::ExecuteTask) and
+#     ExceptionHandler reports it, but no BACKUP ERROR line and no event follow.
+#   - 15d4d55d7 (#618) the service with fewer privileges: ServiceAccount
+#     (docs/ServiceAccount.md, COM/InterfaceSettings, IniFileSettings), with
+#     /ProtectFolders and /GrantServiceAccess.
+#   - 922ddfff8 (#626) Interop.hMailServer.dll for the server component:
+#     section_files_64.iss:53 ("server admintools"), and the synchronizer is
+#     published with its own (:56).
+#   - cfb763f54 (#613) each connection's socket operations in a strand
+#     (TCPConnection.h:365-375, since 5 September). Not taken: its IMAP log line
+#     written when the write completes rather than when it is queued (cosmetic).
+#   - ff24290db (#611) a PTR answer's trailing dot (DNSResolverWinApi.cpp:543-552,
+#     ported with #609); the pSrvList half is NOT APPLICABLE (DnsQueryEx). Not
+#     taken: the dot stripped from every record type's name, which nothing has
+#     shown Windows to return.
+#   - 44b4c0b3a (#617) a newer 7-Zip: ours is 26.03 (third-party-binaries.json).
+#   - 5abbec695: our TestOnExternalAccountDownload waits for the delivery
+#     already.
+#   - a8b888a43 (#670) HashCreator through EVP_Digest (HashCreator.cpp); DKIM.cpp's
+#     EVP_MD_CTX_create/destroy are the macros of _new/_free. Not taken yet:
+#     OPENSSL_NO_DEPRECATED on our own code - a plan in batch50's rows.
+#   - The rest of #666 that ours had: TRYCREATE (IMAPCommandCopy.cpp:59-68), a set
+#     naming a message twice acting once (IMAPCommandRangeAction::
+#     ResolveTargets_), a UIDVALIDITY for a folder made again within the second
+#     (PersistentIMAPFolder::NextFolderCreationTime_, within one process), EXPUNGE
+#     refused NO without the right, [OVERQUOTA] on APPEND, COPY and MOVE
+#     (IMAPCommandAppend.cpp:670, IMAPCopy.cpp:75, IMAPMove.cpp:79), a COPY naming
+#     a message expunged elsewhere refused before anything is copied
+#     (MissingMessagePolicy::FailBeforeActing, IMAPCopy.h:19) and taken back when
+#     a file will not copy (IMAPCopy::RollBack, above), and SEARCH's sets read
+#     against the session's own numbers with "*" its largest (IMAPCommandSEARCH::
+#     MatchesUIDCriteria_ and MatchesSequenceSetCriteria_, IMAPListLookup::
+#     ToRuns) - upstream's had read them through an older IMAPListLookup
+#     parse.
+#
+#   NOT YET PORTED - larger than this triage took on; each goes to the plan as a
+#   row of its own, with the plan the triage wrote for it:
+#   - 1ffcc7c77 (#649): the SRS reversal below the account, alias and list lookups
+#     (an account named srs0-x@ is unreachable, the catch-all is passed over); the
+#     forward rule action and global rules rewriting the sender (RuleApplier::
+#     ApplyAction_Forward); no rewrite for a forward that stays here; SRS1
+#     chaining; an undeliverable SRS bounce reported.
+#   - a7b5b7c47 (#665): envelope-from and "for <recipient>" in our own Received
+#     header (upstream #663, a feature).
+#   - 099f3f3dd/85a89fb1a (#658/#659): version resources for
+#     hMailServer.Minidump.exe and hMailServer.Updater.exe, and Interop's version.
+#   - 6ac3c58fd (#666), the UIDVALIDITY a whole restore gives back: IMAPFolder::
+#     XMLLoad (IMAPFolder.cpp:205-206) puts back the folder's CreateTime, which is
+#     its UIDVALIDITY here, and its CurrentUID, so the UIDs given after the backup
+#     are given again under the same UIDVALIDITY and a client's cache shows the
+#     wrong messages. Not without a schema change, which the integrator owns:
+#     upstream's design - hm_imapfolders.folderuidvalidity and a per-account
+#     counter table (hm_uidvalidity, UIDValidityGenerator::GetNext, seeded from
+#     the newest folder creation time so values only grow) - with IMAPFolder::
+#     GetUIDValidity reading the stored value (the creation time while it is 0),
+#     XMLLoad setting it to 0 so that the restored folder is given a new one, and
+#     the across-restart half of NextFolderCreationTime_ coming with it;
+#     BackupRestore.ConfirmAccountObject then asserts the creation time kept and
+#     SELECT's [UIDVALIDITY] changed. A schema bump of one column and one table,
+#     on the five engines; a day with the upgrade scripts and the test.
+#
+#   NOT APPLICABLE:
+#   - The classic Administrator, the PHP WebAdmin and their strings, which the
+#     Control Panel and the webmail replaced: 68033314f (#628), fe624592a (#630),
+#     f3cf217c2, aa3d84e30, a86bc693e, d7d7b106c, 81bd13914 (#631-#635), 3b2971041
+#     (#636), 002481f9d (#637), 6a415fe36 (#638), f1d679d5e (#627), 56b25b5fc
+#     (#639), e39d31a8a, a699306a5.
+#   - Their build, CI and release machinery, which GitLab CI replaced:
+#     a7b309221 (#619), fa47a13d3, 2185fbd1a (#655 SignPath; we sign with Azure
+#     Artifact Signing), c4deee51c, 0f47e728c, 5ad442724, 190289626 (#614; our
+#     stamping is Version.h and RELEASE.md), 08d09003c (#615), 3b4538871,
+#     083dd5b7f, 93758a217 (#641, the portable build; the Linux port replaced it),
+#     e3fa7d7b1, 36de66daf, 5bf82f937 (their COM pages), 29e0e16aa and 95404afd9
+#     (#657/#662, a signing policy their signing service asks for).
+#   - Versions and dependencies behind ours: b04c6552c, 1959c5fd4, ef2ee2c89,
+#     cc4441f5e, 1cf0bcd63's version lines (5.7.x and 5.8); eb8e5e24d/12bb534c6
+#     (#679 OpenSSL 3.5.9; ours is 4.0.x).
+#   - bd9a3ab42 (#625) and faabc8282 (#624, Inno Setup 6.2.2) for Windows Vista:
+#     our floor is Windows 10 1607 (section_setup.iss MinVersion=10.0.14393).
+#   - 36aabce67 their obsolete tools; ours are their own question.
+#
+#   DELIBERATELY NOT TAKEN:
+#   - 2ffa859af (#667): one domain pattern for the three address checks, a
+#     refactor with no change of behaviour; PreSaveLimitationsCheck::
+#     IsValidAccountAddress_ and StringParser carry the same pattern here.
+#   - 6ac3c58fd (#666), BAD for a set holding 0 or a parenthesised set: ours reads
+#     a number it cannot use as one no message has (IMAPCommandRangeAction.cpp:38-
+#     49, ParseSetUid_) and answers OK with nothing done. A lenient parse that has
+#     never acted on a message it should not; refusing what clients send today is
+#     not worth a client broken by it.
+#   - ff24290db (#611), and our own line beside it: DNSResolverWinApi.cpp:536's
+#     debug line compares a record's name with its dot, so the PTR record the
+#     filter keeps is logged "[FILTERED OUT]" (server1's bench, 12 October 2026). A
+#     debug line; computing the compared name once for the line and the filter
+#     would mend it.
+#
 # Update this SHA (and only this SHA) when a batch has been triaged.
-d5e087066fa8ba5382787739ba61a9abc8975d99
+a843921bbc8d974dc9e456e9d3c21778a1857979

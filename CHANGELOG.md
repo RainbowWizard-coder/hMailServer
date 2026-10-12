@@ -5280,6 +5280,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   counted SMTP. Each now asks that the count it read has not grown. Found by upstream's 1cf0bcd63, which
   corrected the first and the last.
 
+- **Upstream is triaged to a843921bb (11 October 2026).** The 85 commits after the previous baseline, read from a
+  clone of upstream against the functions in this tree; `.gitlab/upstream-sync` holds the verdict for each and has
+  advanced its baseline from d5e087066, and Roadmap.md's row on them says what was ported, what was already here and
+  what is still to do - the rest of SRS, the envelope in this server's own `Received` header, version resources for
+  the minidump writer and the updater, `OPENSSL_NO_DEPRECATED`, and a new UIDVALIDITY for the folders a restore puts
+  back, which needs a schema change.
+
 ### Documentation
 
 - **SmtpPolicy.md, RestrictedDelivery.md and ImpersonationProtection.md say what the server's IDNA conversion reads
