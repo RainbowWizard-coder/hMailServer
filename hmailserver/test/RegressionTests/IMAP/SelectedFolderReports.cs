@@ -5,6 +5,7 @@
 using System;
 using hMailServer;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using RegressionTests.Infrastructure;
 using RegressionTests.Shared;
 
@@ -56,7 +57,7 @@ namespace RegressionTests.IMAP
 
       [Test]
       [Description("COPY into the selected folder answers \"* 2 EXISTS\" before its OK, and the copy is then " +
-                   "message 2 to the session, with \\Recent, as an APPEND or a MOVE into it is. Nothing was " +
+                   "message 2 to the session, and its \\Recent (SEARCH RECENT), as an APPEND or a MOVE into it is. Nothing was " +
                    "said and the session had no message 2 (upstream #666).")]
       public void CopyIntoTheSelectedFolderIsReportedToTheSessionThatMadeIt()
       {
@@ -67,9 +68,24 @@ namespace RegressionTests.IMAP
 
          string fetch = simulator.SendSingleCommand("A02 FETCH 2 (FLAGS)");
          StringAssert.Contains("* 2 FETCH (FLAGS (", fetch, "The copy is not message 2 of the session: " + fetch);
-         StringAssert.Contains("\\Recent", fetch, "The copy is not the session's \\Recent: " + fetch);
+
+         // \Recent is this session's to report, which FETCH FLAGS does not: SEARCH RECENT
+         // reads it (IMAPConnection::IsRecentMessage).
+         string recent = simulator.SendSingleCommand("A03 SEARCH RECENT");
+         CollectionAssert.Contains(SearchResult(recent), "2", "The copy is not the session's \\Recent: " + recent);
 
          simulator.Disconnect();
+      }
+
+      private static string[] SearchResult(string response)
+      {
+         foreach (var line in response.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries))
+         {
+            if (line.StartsWith("* SEARCH", StringComparison.Ordinal))
+               return line.Substring("* SEARCH".Length).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+         }
+
+         return new string[0];
       }
 
       [Test]
