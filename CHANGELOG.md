@@ -3937,8 +3937,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 
 - **Fixed: the sidebar's rows ran under its scroll bar.** The scroll bar is drawn over the rows, and since the
   keyboard's ring shows on a row after sign-in its right edge was cut under the bar, as were the hover and selection
-  fills. The rows keep clear of the bar while it shows, as the Domains page's lists do (review finding F101).
-  `SidebarShellTests` holds it.
+  fills. The rows keep clear of the bar while it shows, as the Domains page's lists do (review finding F101): the inset
+  is given when the sidebar is first shown, after sign-in, where given when the window loaded it found the sidebar not
+  yet drawn, as it is hidden before sign-in, and did nothing. `SidebarShellTests` holds it.
 
 - **Fixed: list toolbars wrapped their actions a word at a time beside the search.** A list page's actions stayed beside
   its search and filters while the widest of them fitted there, and wrapped there: at 760 pixels the IP ranges'

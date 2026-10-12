@@ -80,6 +80,13 @@ namespace hMailServer.ControlPanel.Services
       /// Domains page's rows' delete buttons (review finding F101) - and, kept
       /// clear for good, the rows of a list that fits would end twelve pixels
       /// short of the form above them. Applied once the list has its template.
+      ///
+      /// A list in a part that is not shown when it loads has no template then, and
+      /// so no viewer to find: the sidebar's tree is in a pane collapsed until sign-in
+      /// (the owner's decision 9), and the inset given it at load found nothing, so
+      /// its rows still ran under the bar and the keyboard's ring on a row was cut on
+      /// the right. The template is made here, and the list is tried again each time
+      /// it is shown.
       /// </summary>
       public static void ForList(Control list)
       {
@@ -88,11 +95,17 @@ namespace hMailServer.ControlPanel.Services
 
          void Enable(object sender, RoutedEventArgs args)
          {
+            list.ApplyTemplate();
             if (ViewerOf_(list) is ScrollViewer viewer && !GetIsEnabled(viewer))
                SetIsEnabled(viewer, true);
          }
 
          list.Loaded += Enable;
+         list.IsVisibleChanged += (sender, args) =>
+         {
+            if (list.IsVisible)
+               Enable(list, null);
+         };
          if (list.IsLoaded)
             Enable(list, null);
       }

@@ -123,6 +123,16 @@ namespace hMailServer.ControlPanel.Tests.Services
             return;
 
          Assert.Contains("ScrollBarInset.ForList(NavTree);", code, StringComparison.Ordinal);
+
+         // The tree is in a pane collapsed until sign-in, so it has no template when it
+         // loads: the inset makes the template and tries again whenever the list is
+         // shown, where it looked once at load, found no viewer, and the rows still ran
+         // under the bar in the renders after the fix.
+         string inset = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Services", "ScrollBarInset.cs"));
+         string forList = WithheldRowTests.MemberText(inset, "public static void ForList(Control list)");
+         Assert.True(forList != null, "ScrollBarInset.ForList is gone.");
+         Assert.Contains("list.ApplyTemplate();", forList, StringComparison.Ordinal);
+         Assert.Contains("list.IsVisibleChanged +=", forList, StringComparison.Ordinal);
       }
    }
 }
