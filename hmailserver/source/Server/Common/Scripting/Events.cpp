@@ -79,10 +79,13 @@ namespace HM
       // literal and run the code; see ScriptServer::EscapeForJScriptLiteral.
       if (sScriptLanguage == _T("VBScript"))
       {
-         String sEscapedPassword = sPassword;
-         sEscapedPassword.Replace(_T("\""), _T("\"\""));
-
-         sEventCaller.Format(_T("OnClientValidatePassword(HMAILSERVER_ACCOUNT, \"%s\")"), sEscapedPassword.c_str());
+         // ScriptServer::EscapeForVBScriptLiteral, as every other VBScript call is
+         // made: the quote doubled, and a line break or a NUL joined in from outside
+         // the literal. The quote was doubled here and nothing else, so a password
+         // holding a line break - an AUTH PLAIN or AUTH LOGIN response decodes to
+         // whatever bytes the client chose - left the literal unterminated: the call
+         // did not compile and the handler was not asked (upstream #671).
+         sEventCaller.Format(_T("OnClientValidatePassword(HMAILSERVER_ACCOUNT, \"%s\")"), ScriptServer::EscapeForVBScriptLiteral(sPassword).c_str());
       }
       else if (sScriptLanguage == _T("JScript"))
       {
@@ -181,15 +184,18 @@ namespace HM
 
          if (sScriptLanguage == _T("VBScript"))
          {
-            sRecipientCopy.Replace(_T("\""), _T(""));
-            sErrorMessageCopy.Replace(_T("\""), _T(""));
-
-            sErrorMessageCopy.Replace(_T("\r\n"), _T("\" + vbCRLF + \""));
-
+            // ScriptServer::EscapeForVBScriptLiteral, as the JScript branch below uses
+            // its own: the quote doubled and every line break joined in. The quotes
+            // were taken out of both values, and only a CR LF pair joined in, so a lone
+            // CR or LF in the remote server's answer - which its sender chooses - left
+            // the literal unterminated: the call did not compile and the handler was
+            // not told of the failure at all (upstream #671). Trimmed first, as before.
             sErrorMessageCopy.TrimLeft();
             sErrorMessageCopy.TrimRight();
 
-            sEventCaller.Format(_T("OnDeliveryFailed(HMAILSERVER_MESSAGE, \"%s\", \"%s\")"), sRecipientCopy.c_str(), sErrorMessageCopy.c_str());
+            sEventCaller.Format(_T("OnDeliveryFailed(HMAILSERVER_MESSAGE, \"%s\", \"%s\")"),
+               ScriptServer::EscapeForVBScriptLiteral(sRecipientCopy).c_str(),
+               ScriptServer::EscapeForVBScriptLiteral(sErrorMessageCopy).c_str());
          }
          else if (sScriptLanguage == _T("JScript"))
          {

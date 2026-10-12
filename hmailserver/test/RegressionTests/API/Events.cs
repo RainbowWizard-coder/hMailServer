@@ -1318,6 +1318,116 @@ namespace RegressionTests.API
          }
       }
 
+      // A VBScript handler that writes the character codes of one of its values to the
+      // event log, comma-separated with a comma at each end, so that a run of codes is
+      // found whole and never inside a longer number.
+      private static string VBScriptWritingCodes(string handler, string parameters, string value, string marker)
+      {
+         return "Sub " + handler + "(" + parameters + ")\r\n" +
+                "   Dim codes, i\r\n" +
+                "   codes = \",\"\r\n" +
+                "   For i = 1 To Len(" + value + ")\r\n" +
+                "      codes = codes & AscW(Mid(" + value + ", i, 1)) & \",\"\r\n" +
+                "   Next\r\n" +
+                "   EventLog.Write(\"" + marker + "\" & codes)\r\n" +
+                "End Sub\r\n";
+      }
+
+      private static string ReadEventLogContaining(string marker)
+      {
+         for (int attempt = 0; attempt < 40; attempt++)
+         {
+            string log = LogHandler.ReadEventLog();
+            if (log.Contains(marker))
+               return log;
+
+            System.Threading.Thread.Sleep(250);
+         }
+
+         return LogHandler.ReadEventLog();
+      }
+
+      [Test]
+      [Description("A password holding a quote, a lone LF and a lone CR reaches a VBScript OnClientValidatePassword as the value it is. The call doubled the password's quotes and nothing else, so a line break left the literal open: the call did not compile and the handler was never asked (upstream #671).")]
+      public void APasswordWithALineBreakReachesTheVBScriptHandler()
+      {
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "test@example.test", "test");
+
+         var scripting = _settings.Scripting;
+
+         try
+         {
+            scripting.Language = "VBScript";
+            File.WriteAllText(scripting.CurrentScriptFile,
+               VBScriptWritingCodes("OnClientValidatePassword", "account, password", "password", "password codes=").Replace(
+                  "End Sub", "   Result.Value = 1\r\nEnd Sub"));
+            scripting.Enabled = true;
+            scripting.Reload();
+
+            const string password = "a\"b\nc\rd";
+
+            LogHandler.DeleteEventLog();
+            ClassicAssert.IsFalse(LogsOnOverSmtp("test@example.test", password), "The handler refuses every password.");
+
+            string log = ReadEventLogContaining("password codes=");
+            StringAssert.Contains("password codes=," + CharacterCodes(password) + ",", log,
+               "The VBScript handler was not handed the password it was sent: " + log);
+         }
+         finally
+         {
+            LeaveAnEmptyVBScriptScriptLoaded();
+         }
+      }
+
+      [Test]
+      [Description("A remote server's answer holding a quote and a lone LF reaches a VBScript OnDeliveryFailed whole. The call took the quotes out of the error and joined in only a CR LF pair, so a lone LF left the literal open: the call did not compile and the handler was not told of the failure (upstream #671). A lone CR cannot come this way: a reply is read up to its first CR, which ends the line.")]
+      public void ARemoteAnswerWithAQuoteAndALoneLineFeedReachesTheVBScriptHandler()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "test@example.test", "test");
+
+         const string ghost = "ghost@dummy-example.com";
+         const string remoteWords = "User \"ghost\" is unknown\nhere";
+
+         // From the ports set aside for this file's unit (47100-47119).
+         const int port = 47101;
+
+         var scripting = _settings.Scripting;
+
+         try
+         {
+            scripting.Language = "VBScript";
+            File.WriteAllText(scripting.CurrentScriptFile,
+               VBScriptWritingCodes("OnDeliveryFailed", "message, sRecipient, sErrorMessage", "sErrorMessage", "error codes="));
+            scripting.Enabled = true;
+            scripting.Reload();
+
+            LogHandler.DeleteEventLog();
+
+            using (var server = new SmtpServerSimulator(1, port))
+            {
+               server.AddRecipientResult(new Dictionary<string, int> { { ghost, 550 } });
+               server.RecipientReplyTexts[ghost] = "5.1.1 " + remoteWords;
+               server.StartListen();
+
+               TestSetup.AddRoutePointingAtLocalhost(1, port, false);
+
+               SmtpClientSimulator.StaticSend(account.Address, ghost, "Refused", "Body");
+
+               server.WaitForCompletion();
+            }
+
+            CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+            string log = ReadEventLogContaining("error codes=");
+            StringAssert.Contains("," + CharacterCodes(remoteWords) + ",", log,
+               "The VBScript handler was not handed the remote server's answer whole: " + log);
+         }
+         finally
+         {
+            LeaveAnEmptyVBScriptScriptLoaded();
+         }
+      }
+
       [Test]
       [Description("A rule's Run function action is refused unless it names a plain function, so its name cannot carry statements into the script engine - when the rule is saved, and, for a name stored before that, when the rule fires; a plain name runs the function (the negative control). The name was written into the call as it was, and domain and account rules are written by a domain's administrator too.")]
       public void ARuleFunctionNameCannotCarryCodeIntoTheScript()

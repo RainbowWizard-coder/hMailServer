@@ -799,6 +799,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Security);`, or TLS details on a line of their own - because the comment was run into the address. The address
   alone is read now (`UtilitiesTester`, run by `Infrastructure.MainOperations`). Found by upstream's #665.
 
+- **Fixed: a VBScript `OnClientValidatePassword` handler was not called when the password held a line break on its
+  own, nor an `OnDeliveryFailed` handler when the remote server's answer held a line feed on its own, and
+  `OnDeliveryFailed` was handed the answer with its quotes taken out.** Those two calls were quoted by hand: the
+  password had its quotes doubled and nothing else, and `OnDeliveryFailed` took the quotes out of the recipient and
+  the error and joined in only a CR LF pair, so a lone CR or LF left the string open and the call did not compile.
+  They are quoted as every other VBScript call is now (`ScriptServer::EscapeForVBScriptLiteral`). `API/Events.cs`
+  sends both and reads what the handler was given; [EventScripts.md](hmailserver/docs/EventScripts.md) says how the
+  calls are quoted. Found reading upstream's #671.
+
 ### Downloads and the release
 
 - **The Helm chart's and the container image's repositories are on Artifact Hub, and the tree holds the IDs Artifact

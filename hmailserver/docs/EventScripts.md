@@ -160,7 +160,15 @@ quoting is one pair of helpers (`ScriptServer::EscapeForJScriptLiteral` and
 `EscapeForVBScriptLiteral`): for JScript every backslash, both quotes, CR, LF,
 U+2028, U+2029 and NUL are escaped, the backslash first - before 24 September 2026
 only the apostrophe was, and a password ending its string with `\'` ran the code
-after it; for VBScript the quote is doubled. A rule's "Run function" name is written
+after it; for VBScript the quote is doubled and CR, LF and NUL are joined in from
+outside the literal (`" & vbCr & "`). Before 12 October 2026 two VBScript calls were
+quoted by hand instead - `OnClientValidatePassword`'s password had its quotes doubled
+and nothing else, and `OnDeliveryFailed` took the quotes out of the recipient and the
+error and joined in only a CR LF pair - so a lone CR or LF in a password, or a lone
+LF in a remote server's answer (a CR ends the line the answer is read from), left the
+literal open, the call did not compile and the handler was not asked;
+`OnDeliveryFailed` is now handed its two values with their quotes.
+A rule's "Run function" name is written
 into the call as it is, so a name that is not a plain identifier - ASCII letters,
 digits, `_` and `$`, not starting with a digit, at most 255 characters - is refused
 (HM5018) and nothing is run. On Linux no call text is built, but the handler is
