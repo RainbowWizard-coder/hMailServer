@@ -165,6 +165,7 @@
     <Compile Include="..\RegressionTests\AntiSpam\SurblEveryDomain.cs" Link="AntiSpam\SurblEveryDomain.cs" />
     <Compile Include="..\RegressionTests\AntiSpam\SpamAssassinLearning.cs" Link="AntiSpam\SpamAssassinLearning.cs" />
     <Compile Include="..\RegressionTests\AntiSpam\SpamAssassinUserHeader.cs" Link="AntiSpam\SpamAssassinUserHeader.cs" />
+    <Compile Include="..\RegressionTests\AntiSpam\SpamAssassinReturnPath.cs" Link="AntiSpam\SpamAssassinReturnPath.cs" />
     <Compile Include="..\RegressionTests\Domains\DomainDeleteCascade.cs" Link="Domains\DomainDeleteCascade.cs" />
     <Compile Include="..\RegressionTests\Domains\DomainLimitEnableFlags.cs" Link="Domains\DomainLimitEnableFlags.cs" />
     <Compile Include="..\RegressionTests\Domains\DomainRenameCascade.cs" Link="Domains\DomainRenameCascade.cs" />
