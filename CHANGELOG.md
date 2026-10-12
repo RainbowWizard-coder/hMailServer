@@ -4618,8 +4618,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   an append set flags the user may not set there, and left the copies a failed COPY had made.** RFC 4315 section 6
   has `APPENDUID` and `COPYUID` not given to a user who may not `SELECT` or `EXAMINE` the folder; they were given to
   anyone with the insert right. RFC 4314 section 4 has the flags a message arrives with be those the user may set in
-  the folder; a copy, a move or an append into another account's or a public folder kept `\Deleted`, `\Draft`,
-  `\Answered`, `\Flagged` and the keywords whatever the rights, and only `\Seen` without the 's' right was left out.
+  the folder; a copy or a move into another account's or a public folder kept `\Deleted`, `\Draft`, `\Answered`,
+  `\Flagged` and the keywords whatever the rights, and an append the same but the keywords - only `\Seen` without the
+  's' right was left out.
   RFC 3501 section 6.4.7 has a COPY that fails leave the destination as it was; a COPY over the quota or with a file
   that would not copy, part way through a set, left the copies already made in the destination and answered `NO`. A
   refusal by the access control is now `NO [NOPERM]` (RFC 5530), as it is meant to be told from a malformed command.
