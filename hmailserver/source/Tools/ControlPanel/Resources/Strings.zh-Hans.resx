@@ -1185,9 +1185,6 @@
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>添加到 {0} 的抑制列表</value>
   </data>
-  <data name="Added" xml:space="preserve">
-    <value>添加时间</value>
-  </data>
   <data name="Added (server time)" xml:space="preserve">
     <value>添加时间（服务器时间）</value>
   </data>
@@ -17227,6 +17224,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} TXT records exist at {1}, but none begins &quot;v=spf1&quot;, so receivers see no SPF policy at all." xml:space="preserve">
     <value>在 {1} 存在 {0} 条 TXT 记录，但没有一条以 "v=spf1" 开头，因此接收方根本看不到任何 SPF 策略。</value>
+  </data>
+  <data name="{0} UTC" xml:space="preserve">
+    <value>{0} UTC</value>
   </data>
   <data name="{0} Until {1}." xml:space="preserve">
     <value>{0} 直到 {1}。</value>

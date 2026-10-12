@@ -1195,9 +1195,6 @@
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>{0} の抑止リストに追加</value>
   </data>
-  <data name="Added" xml:space="preserve">
-    <value>追加日時</value>
-  </data>
   <data name="Added (server time)" xml:space="preserve">
     <value>追加日時 (サーバー時刻)</value>
   </data>
@@ -17237,6 +17234,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} TXT records exist at {1}, but none begins &quot;v=spf1&quot;, so receivers see no SPF policy at all." xml:space="preserve">
     <value>{1} に TXT レコードが {0} 件ありますが、"v=spf1" で始まるものが 1 つもないため、受信側には SPF ポリシーがまったく見えません。</value>
+  </data>
+  <data name="{0} UTC" xml:space="preserve">
+    <value>{0} UTC</value>
   </data>
   <data name="{0} Until {1}." xml:space="preserve">
     <value>{0} {1} まで。</value>

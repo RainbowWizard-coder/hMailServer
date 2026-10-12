@@ -72,7 +72,9 @@ namespace hMailServer.ControlPanel.Views
 
             grid_.Columns.Add(Column_(L("Name or suffix"), nameof(NeverBanNameRow.Pattern), new DataGridLength(2, DataGridLengthUnitType.Star)));
             grid_.Columns.Add(Column_(L("Note"), nameof(NeverBanNameRow.Note), new DataGridLength(2, DataGridLengthUnitType.Star)));
-            grid_.Columns.Add(Column_(L("Added"), nameof(NeverBanNameRow.Created), DataGridLength.Auto));
+            DataGridTextColumn added = Column_(L("Added (server time)"), nameof(NeverBanNameRow.AddedCell), DataGridLength.Auto);
+            added.SortMemberPath = nameof(NeverBanNameRow.AddedAt);
+            grid_.Columns.Add(added);
             Describe(grid_, "never-ban-names");
 
             // The status is a notice at the level of what it says: an address

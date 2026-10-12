@@ -18,11 +18,13 @@ namespace hMailServer.ControlPanel.Tests.Services
    {
       public void Dispose() => Loc.Reset();
 
+      // The feed's day and the last check's time are the reader's (ServerTimeText);
+      // the test's culture is the machine's, so the expected text is built the same way.
       [Theory]
       [InlineData(0, "Not checked yet")]
-      [InlineData(1, "This is the latest release, checked 2026-10-20 10:00")]
-      [InlineData(2, "6.3.7 is available (published 2026-10-19)")]
-      [InlineData(3, "6.3.7 is downloaded and verified (published 2026-10-19); Install update applies it")]
+      [InlineData(1, "This is the latest release, checked {checked}")]
+      [InlineData(2, "6.3.7 is available (published {published})")]
+      [InlineData(3, "6.3.7 is downloaded and verified (published {published}); Install update applies it")]
       [InlineData(4, "Installing 6.3.7: the service will stop and start")]
       [InlineData(5, "The last update step failed: the feed is down")]
       [InlineData(6, "Preparing the install of 6.3.7: taking the backup")]
@@ -30,6 +32,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void EachStateHasItsLine(int state, string expected)
       {
          string text = UpdateStatusText.For(state, "6.3.7", "2026-10-19", "2026-10-20 10:00", "the feed is down", null, "backup");
+         expected = expected.Replace("{checked}", ServerTimeText.Marked(new DateTime(2026, 10, 20, 10, 0, 0)), StringComparison.Ordinal)
+            .Replace("{published}", ServerTimeText.Date(new DateTime(2026, 10, 19)), StringComparison.Ordinal);
          Assert.StartsWith(expected, text);
       }
 

@@ -1191,9 +1191,6 @@ Control Panel может читать файлы сообщений только
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>Добавить в список подавления домена {0}</value>
   </data>
-  <data name="Added" xml:space="preserve">
-    <value>Добавлено</value>
-  </data>
   <data name="Added (server time)" xml:space="preserve">
     <value>Добавлено (время сервера)</value>
   </data>
@@ -17453,6 +17450,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} TXT records exist at {1}, but none begins &quot;v=spf1&quot;, so receivers see no SPF policy at all.|few" xml:space="preserve">
     <value>Записей TXT по адресу {1}: {0}, но ни одна не начинается с «v=spf1», поэтому получатели не видят вообще никакой политики SPF.</value>
+  </data>
+  <data name="{0} UTC" xml:space="preserve">
+    <value>{0} UTC</value>
   </data>
   <data name="{0} Until {1}." xml:space="preserve">
     <value>{0} До {1}.</value>

@@ -1333,7 +1333,10 @@ namespace hMailServer.ControlPanel.Views
          }
 
          Services.MessageStoreConsistencyReport report = Services.MessageStoreConsistencyReport.Parse(text);
-         string when = string.IsNullOrEmpty(report.Generated) ? null : F("Last scan: {0}.", report.Generated);
+         // The scan's time in the reader's short date and time, marked as the server's
+         // (the owner's decision 13), where it was the report's own "2026-10-05 21:39:37".
+         string when = string.IsNullOrEmpty(report.Generated) ? null
+            : F("Last scan: {0}.", ServerTimeText.Parse(report.Generated) is DateTime scanned ? ServerTimeText.Marked(scanned) : report.Generated);
          int? reportedMissing = report.ReportedMissingCount;
          string truncated = report.IsTruncated && reportedMissing.HasValue
             ? F("The report header says {0} but lists {1} - it was probably read while the server was rewriting it, so refresh.", reportedMissing.Value, report.Entries.Count)

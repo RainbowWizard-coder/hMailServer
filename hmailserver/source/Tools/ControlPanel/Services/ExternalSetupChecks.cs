@@ -857,6 +857,9 @@ namespace hMailServer.ControlPanel.Services
                args.Add(arg.GetString() ?? "");
          }
 
+         // A day the server gives in its own form, in the reader's short date.
+         args = FirstHourDays.ReaderArguments(code, args);
+
          // The server was asked not to look the records up, so that this panel's
          // window thread is not held for the resolver's timeout; the lookup is
          // scheduled here and lands when the background pass completes.

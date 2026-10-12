@@ -70,7 +70,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Loc.Use((text, culture) => japanese.TryGetValue(text, out string value) ? value : null, CultureInfo.GetCultureInfo("ja-JP"));
 
          string available = UpdateStatusText.For(2, "6.3.7", "2026-10-19", "", "");
-         Assert.Equal(string.Format(CultureInfo.InvariantCulture, japanese["{0} is available (published {1})"], "6.3.7", "2026-10-19"), available);
+         Assert.Equal(string.Format(CultureInfo.InvariantCulture, japanese["{0} is available (published {1})"], "6.3.7", ServerTimeText.Date(new DateTime(2026, 10, 19))), available);
 
          // The last outcome is a sentence of its own: no space after its 。.
          string latest = UpdateStatusText.For(1, "", "", "", "", "ok");

@@ -1191,9 +1191,6 @@
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>Додати до списку придушення домену {0}</value>
   </data>
-  <data name="Added" xml:space="preserve">
-    <value>Додано</value>
-  </data>
   <data name="Added (server time)" xml:space="preserve">
     <value>Додано (час сервера)</value>
   </data>
@@ -17453,6 +17450,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} TXT records exist at {1}, but none begins &quot;v=spf1&quot;, so receivers see no SPF policy at all.|few" xml:space="preserve">
     <value>За адресою {1} існують {0} TXT-записи, але жоден не починається з "v=spf1", тому отримувачі взагалі не бачать політики SPF.</value>
+  </data>
+  <data name="{0} UTC" xml:space="preserve">
+    <value>{0} UTC</value>
   </data>
   <data name="{0} Until {1}." xml:space="preserve">
     <value>{0} До {1}.</value>

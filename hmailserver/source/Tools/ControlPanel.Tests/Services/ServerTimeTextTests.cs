@@ -252,6 +252,48 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("F(\"{0} (server time)\"", source, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// The final check of Tier 2 found five more dates in the server's own form, against
+      /// the owner's decision 13: the Updates page's "6.3.7 is available (published
+      /// 2026-10-01)" and "checked 2026-10-12 08:00:00", Diagnostics' "Last scan:
+      /// 2026-10-05 21:39:37.", the setup checklist's "applied on 2026-10-01", the update
+      /// install's "recorded in the Sigstore log at 2026-10-10T09:12:00Z", and the
+      /// Auto-ban never-ban names' Added cells under a header that named no clock.
+      /// </summary>
+      [Fact]
+      public void TheUpdatesDiagnosticsChecklistInstallAndNeverBanDates_AreTheReaders()
+      {
+         Assert.Equal("6.3.7 is available (published 01/10/2026)", UpdateStatusText.For(2, "6.3.7", "2026-10-01", "", ""));
+         Assert.Equal("This is the latest release, checked 12/10/2026 08:00 (server time)", UpdateStatusText.For(1, "", "", "2026-10-12 08:00:00", ""));
+         // A text in another form is shown as it came.
+         Assert.Equal("6.3.7 is available (published next week)", UpdateStatusText.For(2, "6.3.7", "next week", "", ""));
+
+         Assert.Equal(new[] { "Small office", "01/10/2026" }, FirstHourDays.ReaderArguments("profile_applied", new[] { "Small office", "2026-10-01" }));
+         Assert.Equal(new[] { "05/10/2026" }, FirstHourDays.ReaderArguments("profile_declined", new[] { "2026-10-05" }));
+         Assert.Equal(new[] { "k1", "03/10/2026" }, FirstHourDays.ReaderArguments("stored_secrets_key_exported", new[] { "k1", "2026-10-03" }));
+         Assert.Equal(new[] { "12", "2026-10-01" }, FirstHourDays.ReaderArguments("profile_in_service", new[] { "12", "2026-10-01" }));
+         Assert.Empty(FirstHourDays.ReaderArguments("profile_applied", null));
+
+         Assert.Equal("10/10/2026 09:12 UTC", ServerTimeText.Utc("2026-10-10T09:12:00Z"));
+         Assert.Equal("10/10/2026 07:12 UTC", ServerTimeText.Utc("2026-10-10T09:12:00+02:00"));
+         Assert.Equal("not a time", ServerTimeText.Utc(" not a time "));
+
+         var row = new NeverBanNameRow { Pattern = ".example.net", Created = "2026-09-01 10:12:00" };
+         Assert.Equal("01/09/2026 10:12", row.AddedCell);
+         Assert.Equal(new DateTime(2026, 9, 1, 10, 12, 0), row.AddedAt);
+
+         string diagnostics = HostedAddressTests.ReadControlPanelFile(Path.Join("Views", "UtilityViews.cs"));
+         Assert.Contains("F(\"Last scan: {0}.\", ServerTimeText.Parse(report.Generated) is DateTime scanned ? ServerTimeText.Marked(scanned) : report.Generated)", diagnostics, StringComparison.Ordinal);
+         string install = HostedAddressTests.ReadControlPanelFile(Path.Join("Views", "UpdateInstallWindow.cs"));
+         Assert.Contains("ServerTimeText.Utc(Value_(\"log-time\"))", install, StringComparison.Ordinal);
+         string checks = HostedAddressTests.ReadControlPanelFile(Path.Join("Services", "ExternalSetupChecks.cs"));
+         Assert.Contains("args = FirstHourDays.ReaderArguments(code, args);", checks, StringComparison.Ordinal);
+         string names = HostedAddressTests.ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.NeverBanNames.cs"));
+         Assert.Contains("Column_(L(\"Added (server time)\"), nameof(NeverBanNameRow.AddedCell), DataGridLength.Auto);", names, StringComparison.Ordinal);
+         Assert.Contains("added.SortMemberPath = nameof(NeverBanNameRow.AddedAt);", names, StringComparison.Ordinal);
+         Assert.DoesNotContain("L(\"Added\")", names, StringComparison.Ordinal);
+      }
+
       private static string Read(string file) => HostedAddressTests.ReadControlPanelFile(Path.Join("Views", file));
    }
 }

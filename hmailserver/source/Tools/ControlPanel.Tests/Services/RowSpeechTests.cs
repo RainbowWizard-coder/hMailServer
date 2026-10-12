@@ -98,7 +98,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [Fact]
       public void TheServicesRows_SayThemselves()
       {
-         Assert.Equal("mail.example.net, our partner's relay, Added: 2026-10-01",
+         Assert.Equal("mail.example.net, our partner's relay, Added (server time): " + ServerTimeText.Cell("2026-10-01"),
             new NeverBanNameRow { Pattern = "mail.example.net", Note = "our partner's relay", Created = "2026-10-01" }.ToString());
          Assert.Equal("D:/Data/example.com/ada/1A.eml, ada@example.com",
             new MessageStoreConsistencyEntry { ExpectedPath = "D:/Data/example.com/ada/1A.eml", Account = "ada@example.com" }.ToString());

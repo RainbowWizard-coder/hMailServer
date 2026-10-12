@@ -1191,9 +1191,6 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>Přidat na seznam blokovaných domény {0}</value>
   </data>
-  <data name="Added" xml:space="preserve">
-    <value>Přidáno</value>
-  </data>
   <data name="Added (server time)" xml:space="preserve">
     <value>Přidáno (čas serveru)</value>
   </data>
@@ -17453,6 +17450,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} TXT records exist at {1}, but none begins &quot;v=spf1&quot;, so receivers see no SPF policy at all.|few" xml:space="preserve">
     <value>Na {1} existují {0} TXT záznamy, ale žádný nezačíná „v=spf1“, takže příjemci nevidí vůbec žádnou politiku SPF.</value>
+  </data>
+  <data name="{0} UTC" xml:space="preserve">
+    <value>{0} UTC</value>
   </data>
   <data name="{0} Until {1}." xml:space="preserve">
     <value>{0} Do {1}.</value>

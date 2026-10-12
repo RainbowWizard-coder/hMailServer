@@ -24,10 +24,16 @@ namespace hMailServer.ControlPanel.Services
       }
 
       // The state's line, each with and without the date it was published or
-      // checked as a whole text, so that a translation can place the date.
+      // checked as a whole text, so that a translation can place the date. The
+      // feed's day of publication is the reader's short date, and the time of the
+      // last check the reader's short date and time marked as the server's (the
+      // owner's decision 13), where both were the server's own "2026-10-01" and
+      // "2026-10-12 08:00:00"; a text in another form is shown as it came.
       private static string Line_(int state, string version, string published, string checkedAt, string error, string preparationStep)
       {
          bool dated = !string.IsNullOrEmpty(published);
+         published = ServerTimeText.Parse(published) is DateTime day ? ServerTimeText.Date(day) : published;
+         checkedAt = ServerTimeText.Parse(checkedAt) is DateTime when ? ServerTimeText.Marked(when) : checkedAt;
          switch (state)
          {
             case 1: return string.IsNullOrEmpty(checkedAt) ? L("This is the latest release") : F("This is the latest release, checked {0}", checkedAt);

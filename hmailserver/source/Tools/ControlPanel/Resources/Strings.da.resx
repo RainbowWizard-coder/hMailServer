@@ -1185,9 +1185,6 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>Føj til spærrelisten for {0}</value>
   </data>
-  <data name="Added" xml:space="preserve">
-    <value>Tilføjet</value>
-  </data>
   <data name="Added (server time)" xml:space="preserve">
     <value>Tilføjet (servertid)</value>
   </data>
@@ -17227,6 +17224,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="{0} TXT records exist at {1}, but none begins &quot;v=spf1&quot;, so receivers see no SPF policy at all." xml:space="preserve">
     <value>Der findes {0} TXT-poster på {1}, men ingen begynder med "v=spf1", så modtagere ser slet ingen SPF-politik.</value>
+  </data>
+  <data name="{0} UTC" xml:space="preserve">
+    <value>{0} UTC</value>
   </data>
   <data name="{0} Until {1}." xml:space="preserve">
     <value>{0} Indtil {1}.</value>

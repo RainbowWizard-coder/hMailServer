@@ -1185,9 +1185,6 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>Ajouter à la liste de suppression de {0}</value>
   </data>
-  <data name="Added" xml:space="preserve">
-    <value>Ajouté</value>
-  </data>
   <data name="Added (server time)" xml:space="preserve">
     <value>Ajouté (heure du serveur)</value>
   </data>
@@ -17227,6 +17224,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="{0} TXT records exist at {1}, but none begins &quot;v=spf1&quot;, so receivers see no SPF policy at all." xml:space="preserve">
     <value>{0} enregistrements TXT existent à {1}, mais aucun ne commence par « v=spf1 », si bien que les destinataires ne voient aucune politique SPF du tout.</value>
+  </data>
+  <data name="{0} UTC" xml:space="preserve">
+    <value>{0} UTC</value>
   </data>
   <data name="{0} Until {1}." xml:space="preserve">
     <value>{0} Jusqu'au {1}.</value>

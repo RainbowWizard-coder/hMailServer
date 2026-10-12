@@ -18,8 +18,14 @@ namespace hMailServer.ControlPanel.Services
       public string Note { get; init; } = "";
       public string Created { get; init; } = "";
 
+      // When it was added, in the reader's short date and time under a header that
+      // names the server's clock (the owner's decision 13), where the cell was the
+      // server's "2026-09-01 10:12:00" under "Added"; sorted by the time itself.
+      public string AddedCell => ServerTimeText.Cell(Created);
+      public DateTime? AddedAt => ServerTimeText.Parse(Created);
+
       /// <summary>What a screen reader says for the row on the Auto-ban page's grid.</summary>
-      public override string ToString() => RowSpeech.Of(Pattern, Note, RowSpeech.Labelled(L("Added"), Created));
+      public override string ToString() => RowSpeech.Of(Pattern, Note, RowSpeech.Labelled(L("Added (server time)"), AddedCell));
    }
 
    /// <summary>One reverse name of a checked address, as the server judged it.</summary>

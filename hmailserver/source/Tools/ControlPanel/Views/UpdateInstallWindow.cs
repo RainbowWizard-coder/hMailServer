@@ -260,7 +260,7 @@ namespace hMailServer.ControlPanel.Views
          {
             if (check_.State != StepState.Done)
                Set_(check_, StepState.Done, F("Signed by {0} and recorded in the Sigstore log at {1}; version {2}, {3}.",
-                  AdministratorUpdate.CommonNameOf(Value_("signer")), Value_("log-time"), version_, Value_("architecture")));
+                  AdministratorUpdate.CommonNameOf(Value_("signer")), ServerTimeText.Utc(Value_("log-time")), version_, Value_("architecture")));
             if (!prepareAsked_)
                Prepare_(false);
          }

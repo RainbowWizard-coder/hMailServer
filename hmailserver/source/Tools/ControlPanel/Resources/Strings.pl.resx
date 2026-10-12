@@ -1191,9 +1191,6 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>Dodaj do listy blokowanych domeny {0}</value>
   </data>
-  <data name="Added" xml:space="preserve">
-    <value>Dodano</value>
-  </data>
   <data name="Added (server time)" xml:space="preserve">
     <value>Dodano (czas serwera)</value>
   </data>
@@ -17453,6 +17450,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} TXT records exist at {1}, but none begins &quot;v=spf1&quot;, so receivers see no SPF policy at all.|few" xml:space="preserve">
     <value>Pod adresem {1} istnieją {0} rekordy TXT, ale żaden nie zaczyna się od „v=spf1”, więc odbiorcy nie widzą żadnej polityki SPF.</value>
+  </data>
+  <data name="{0} UTC" xml:space="preserve">
+    <value>{0} UTC</value>
   </data>
   <data name="{0} Until {1}." xml:space="preserve">
     <value>{0} Do {1}.</value>

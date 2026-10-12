@@ -3863,6 +3863,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   keep the categories' one name in both grids (review finding F318). `SuppressionListPageTests` holds the columns, the
   wrapping headers and the strip.
 
+- **Fixed: five dates were still the server's own text, against the reader's culture.** The Updates page said "6.3.7 is
+  available (published 2026-10-01)" and "This is the latest release, checked 2026-10-12 08:00:00"; Diagnostics' message
+  store card "Last scan: 2026-10-05 21:39:37."; the setup checklist "The Small office profile was applied on
+  2026-10-01."; the update install "recorded in the Sigstore log at 2026-10-10T09:12:00Z"; and the Auto-ban page's
+  never-ban names an Added column of "2026-09-01 10:12:00" under a header that named no clock - where the owner's
+  decision 13 asks for the reader's culture and "(server time)", and ISO only in text that describes a format. The
+  feed's day and the checklist's days are the reader's short date, the last check and the last scan the reader's short
+  date and time marked as the server's, the Sigstore log's time the reader's short date and time marked UTC, and the
+  never-ban names' column "Added (server time)", sorted by the time. A text in another form is shown as it came.
+  `ServerTimeTextTests` holds each; `FirstHourDays` says which first-hour texts carry a day.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

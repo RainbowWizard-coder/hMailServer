@@ -1185,9 +1185,6 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>Aan de onderdrukkingslijst van {0} toevoegen</value>
   </data>
-  <data name="Added" xml:space="preserve">
-    <value>Toegevoegd</value>
-  </data>
   <data name="Added (server time)" xml:space="preserve">
     <value>Toegevoegd (servertijd)</value>
   </data>
@@ -17227,6 +17224,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} TXT records exist at {1}, but none begins &quot;v=spf1&quot;, so receivers see no SPF policy at all." xml:space="preserve">
     <value>Er bestaan {0} TXT-records op {1}, maar geen ervan begint met "v=spf1", dus ontvangers zien helemaal geen SPF-beleid.</value>
+  </data>
+  <data name="{0} UTC" xml:space="preserve">
+    <value>{0} UTC</value>
   </data>
   <data name="{0} Until {1}." xml:space="preserve">
     <value>{0} Tot {1}.</value>

@@ -74,6 +74,23 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>The short date and time marked as the server's, for a value outside a column whose header names the clock.</summary>
       public static string Marked(DateTime when) => F("{0} (server time)", Cell(when));
 
+      /// <summary>
+      /// An instant a log gives in UTC - the Sigstore transparency log's integrated time,
+      /// "2026-10-10T09:12:00Z" - in the reader's short date and time, marked UTC; the
+      /// text as it came where it is no such time.
+      /// </summary>
+      public static string Utc(string iso)
+         => DateTime.TryParseExact((iso ?? "").Trim(), UtcForms, CultureInfo.InvariantCulture,
+               DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out DateTime utc)
+            ? F("{0} UTC", Cell(utc))
+            : (iso ?? "").Trim();
+
+      // The forms an instant in UTC comes in: with the zone's Z, an offset, or none.
+      private static readonly string[] UtcForms =
+      {
+         "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'T'HH:mm:ssK", "yyyy-MM-dd'T'HH:mm:ss.FFFFFFF'Z'", "yyyy-MM-dd'T'HH:mm:ss" // no-loc
+      };
+
       /// <summary>The whole time, marked as the server's: a cell's tool tip.</summary>
       public static string Full(DateTime when) => F("{0} (server time)", CellWithSeconds(when));
 

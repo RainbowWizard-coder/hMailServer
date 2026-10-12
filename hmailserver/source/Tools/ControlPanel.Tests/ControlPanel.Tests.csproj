@@ -284,6 +284,9 @@
     <Compile Include="..\ControlPanel\Services\InstallationPermissions.cs" />
     <Compile Include="..\ControlPanel\Services\AfterUpdateHandoff.cs" />
     <Compile Include="..\ControlPanel\Services\UpdateStatusText.cs" />
+    <!-- The days the setup checklist gives in the server's own form, in the reader's
+         short date (the owner's decision 13). -->
+    <Compile Include="..\ControlPanel\Services\FirstHourDays.cs" />
     <!-- What the Backup & restore page reads and says about archives and restore
          jobs: the archives in the destination, a job's outcome as a level and a
          sentence, an account's messages in an archive as rows (review finding
