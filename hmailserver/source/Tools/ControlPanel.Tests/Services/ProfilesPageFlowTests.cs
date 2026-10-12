@@ -133,6 +133,26 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain(discard, None, StringComparison.OrdinalIgnoreCase);
       }
 
+      /// <summary>
+      /// A profile that could not be applied, in full or at all, and a way back that
+      /// cannot be read, are said at Warning; every other state of what is applied at
+      /// Information. The notice was fixed at Information, a failure read as a fact (the
+      /// final check of Tier 2, g3 defect 8).
+      /// </summary>
+      [Fact]
+      public void AFailure_IsAWarning_AndAFactInformation()
+      {
+         string source = ReadView();
+         Assert.Contains("private readonly InlineNotice applied_ = new() { Level = StatusLevel.Information,", source, StringComparison.Ordinal);
+         string applied = WithheldRowTests.MemberText(source, "private void ShowApplied_(JsonElement root)");
+         string flat = Regex.Replace(applied, @"\s+", " ");
+         Assert.Contains("StatusLevel level = StatusLevel.Information;", flat, StringComparison.Ordinal);
+         Assert.Contains("the profile replaced.\"); level = StatusLevel.Warning; }", flat, StringComparison.Ordinal);
+         Assert.Contains("Apply it again, or keep the shipped settings.\", name, Date_(applied, \"applied\")); level = StatusLevel.Warning; }", flat, StringComparison.Ordinal);
+         Assert.Equal(2, Regex.Matches(applied, @"level = StatusLevel\.Warning;").Count);
+         Assert.Contains("applied_.Level = level;", applied, StringComparison.Ordinal);
+      }
+
       private static string ReadView()
       {
          var directory = new DirectoryInfo(AppContext.BaseDirectory);

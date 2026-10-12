@@ -202,7 +202,11 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("var card = new Card { Content = body };", build, StringComparison.Ordinal);
          Assert.DoesNotContain("Padding = new Thickness(8)", build, StringComparison.Ordinal);
          Assert.Contains("EmptyStateUnderHeaders.Keep(empty_, rows_);", build, StringComparison.Ordinal);
-         Assert.Contains("body.Children.Add(englishNote_);", build, StringComparison.Ordinal);
+         // Under the table and its steps, where above it the note took one of the five rows.
+         Assert.Contains("bottom.Children.Add(englishNote_);", build, StringComparison.Ordinal);
+         Assert.DoesNotContain("body.Children.Add(englishNote_);", build, StringComparison.Ordinal);
+         Assert.True(build.IndexOf("bottom.Children.Add(steps_);", StringComparison.Ordinal) < build.IndexOf("bottom.Children.Add(englishNote_);", StringComparison.Ordinal),
+            "The English words' note is above the steps it speaks of.");
          // Every column floored at its header, the two star columns among them, after
          // the columns are added: German cut "Verlangt eine Bestätigung" at 1280.
          int floor = build.IndexOf("foreach (DataGridColumn column in rows_.Columns)", StringComparison.Ordinal);

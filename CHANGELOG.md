@@ -3905,6 +3905,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   "team@example.". `PlaceholderExamplesTests` holds every placeholder a view writes to a marked example or one of a few
   kinds named with their reason.
 
+- **Fixed: Setting profiles said a failure as a fact, and its table showed four of its five rows.** The notice that a
+  profile could not be applied, in full or at all, and that a way back is held and cannot be read, was drawn at
+  Information like every other state of what is applied; it is a Warning now, and the rest stay Information. And the
+  caption that the profiles' own words come from the server in English sat above the comparison table, taking one of the
+  five rows it showed at 1280 by 800; it is under the table and the steps it speaks of. `ProfilesPageFlowTests` and
+  `CardGridTidyingTests` hold both.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

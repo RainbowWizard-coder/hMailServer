@@ -66,7 +66,7 @@ namespace hMailServer.ControlPanel.Views
       // The profiles' own words are the server's, in English: in another language
       // the page's translated heading "What it cannot do for you" stood over the
       // server's English steps, summary and reasons with nothing to say why.
-      private readonly TextBlock englishNote_ = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 8), Visibility = Visibility.Collapsed };
+      private readonly TextBlock englishNote_ = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0), Visibility = Visibility.Collapsed };
 
       // The profiles could not be read, so there is nothing to choose either.
       private bool listUnread_;
@@ -264,10 +264,17 @@ namespace hMailServer.ControlPanel.Views
       private void ShowApplied_(JsonElement root)
       {
          string text;
+         // A failure is said at Warning, a fact at Information: a profile that could
+         // not be applied, and a way back that cannot be read, were drawn at
+         // Information, as if they were facts (the final check of Tier 2, g3 defect 8).
+         StatusLevel level = StatusLevel.Information;
          bool hasRecord = root.TryGetProperty("applied", out JsonElement applied) && applied.ValueKind == JsonValueKind.Object;
          string state = hasRecord ? Text_(applied, "state") : "";
          if (snapshotHeld_ && !snapshotReadable_)
+         {
             text = L("A way back from a profile is held and cannot be read, so it cannot be put back. Discard it to apply a profile; the audit trail names each value the profile replaced.");
+            level = StatusLevel.Warning;
+         }
          else if (!hasRecord)
             text = L("No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made.");
          else
@@ -288,6 +295,7 @@ namespace hMailServer.ControlPanel.Views
                text = snapshotHeld_
                   ? F("The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it changed, or discard the previous settings to keep what it wrote, then apply it again.", name, Date_(applied, "applied"))
                   : F("The {0} profile could not be applied on {1}: none of the settings it would change could be written, so there is nothing to put back. Apply it again, or keep the shipped settings.", name, Date_(applied, "applied"));
+               level = StatusLevel.Warning;
             }
             else if (state == "reverted")
                text = F("The {0} profile was applied and then reverted on {1}; the settings are the ones it replaced.", name, Date_(applied, "changed"));
@@ -297,6 +305,7 @@ namespace hMailServer.ControlPanel.Views
                text = F("The {0} profile was applied on {1}.", name, Date_(applied, "applied"));
          }
 
+         applied_.Level = level;
          applied_.Text = text;
          applied_.Visibility = Visibility.Visible;
 
@@ -681,9 +690,6 @@ namespace hMailServer.ControlPanel.Views
          // above it and the confirmation and steps under it keep their heights,
          // so the card asks for all three and the table takes the rest.
          var body = new FillPanel();
-         englishNote_.Text = L("The profiles' own words - their summaries, reasons, notes and steps - come from the server, in English.");
-         englishNote_.SetResourceReference(FrameworkElement.StyleProperty, "TextCaption");
-         body.Children.Add(englishNote_);
          body.Children.Add(summary_);
          // The table on a FillPanel of its own at its three rows, and the empty state
          // laid over it under its column headers, as a list card's is.
@@ -702,6 +708,12 @@ namespace hMailServer.ControlPanel.Views
          // the box hears what confirming does, as it heard it when the caption said it.
          AutomationProperties.SetHelpText(confirm_, confirmNote_.Text);
          bottom.Children.Add(steps_);
+         // That the profiles' words are English, under the table and the steps it
+         // speaks of, as a caption: above the table it took a row of the five the
+         // table shows at 1280 by 800 (the final check of Tier 2, g4 defect 11).
+         englishNote_.Text = L("The profiles' own words - their summaries, reasons, notes and steps - come from the server, in English.");
+         englishNote_.SetResourceReference(FrameworkElement.StyleProperty, "TextCaption");
+         bottom.Children.Add(englishNote_);
          body.Children.Add(bottom);
 
          // The Card's own inset, AppCardPadding, where it was eight pixels: it holds
