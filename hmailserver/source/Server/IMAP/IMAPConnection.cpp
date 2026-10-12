@@ -1006,13 +1006,15 @@ namespace HM
       // THREAD - and active_command is IMAP_UID in the UID case, so the exclusion
       // below covers exactly the non-UID form, which is the required behaviour.
       //
-      // COPY and MOVE are held to it too. This runs before the command does, and
-      // their message set is in the numbering the client had when it sent them: an
-      // EXPUNGE let out here renumbered the view under it, so "COPY 3" copied, and
-      // "MOVE 3" moved, the message after the one the client meant - or found no
-      // message 3 and refused. The EXPUNGE waits for the next command that may
-      // carry it, as it does for FETCH (upstream #666; UID COPY and UID MOVE name
-      // UIDs and are not held).
+      // COPY and MOVE are held to it too, but only while they read their set. This
+      // runs before the command does, and their message set is in the numbering the
+      // client had when it sent them: an EXPUNGE let out here renumbered the view
+      // under it, so "COPY 3" copied, and "MOVE 3" moved, the message after the one
+      // the client meant - or found no message 3 and refused. The EXPUNGE goes out
+      // in the command's own response once its messages are identified, before its
+      // tagged reply (ReportExpungesHeldForCommand), as RFC 2180 4.4 has it and as
+      // COPY's response always carried it here; upstream #666 holds it for the next
+      // command. UID COPY and UID MOVE name UIDs and are not held.
       bool send_expunge = active_command != IMAP_FETCH &&
                           active_command != IMAP_STORE &&
                           active_command != IMAP_SEARCH &&
@@ -1022,6 +1024,24 @@ namespace HM
                           active_command != IMAP_MOVE;
 
       notification_client_->SendCachedNotifications(send_expunge);
+   }
+
+   void
+   IMAPConnection::ReportExpungesHeldForCommand()
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // Sends what NotifyFolderChange held back from a COPY or a MOVE by sequence
+   // number - the EXPUNGE responses for what other sessions expunged meanwhile,
+   // and for what the command found gone from the folder - once the command has
+   // read its set in the numbering the client sent it in, and before its tagged
+   // response. RFC 2180 4.4: "Pending EXPUNGE response(s) MUST be returned to the
+   // COPY command", and they "can't take place until after the messages from the
+   // COPY command are identified". The numbers are the view's as the command left
+   // it, so they follow MOVE's own EXPUNGE responses.
+   //---------------------------------------------------------------------------()
+   {
+      if (current_folder_)
+         notification_client_->SendCachedNotifications(true);
    }
 
    void

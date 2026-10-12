@@ -73,6 +73,12 @@ namespace HM
       if (result.GetResult() != IMAPResult::ResultOK)
          pCopy->RollBack(pConnection);
 
+      // The set has been read in the numbering the client sent it in, so what other
+      // sessions expunged meanwhile, held back from this command, is this command's
+      // to report now, OK or NO, before its tagged response (RFC 2180 4.4) - and
+      // before the copies' EXISTS below, which counts the view it leaves.
+      pConnection->ReportExpungesHeldForCommand();
+
       if (result.GetResult() == IMAPResult::ResultOK)
       {
          // A copy into the selected folder is this session's to report, before the

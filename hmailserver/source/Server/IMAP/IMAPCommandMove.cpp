@@ -76,8 +76,19 @@ namespace HM
          // be told a message is gone before it learns where it went.
          pMove->SendUIDPlusResponse(pConnection);
          pMove->ExpungeMovedMessages(pConnection);
+
+         // After MOVE's own EXPUNGE responses, which number what it moved as the
+         // client numbers it: what other sessions expunged meanwhile, held back
+         // while the set was read (RFC 2180 4.4, as for COPY).
+         pConnection->ReportExpungesHeldForCommand();
+
          pConnection->SubmitDelayedChangeNotification();
          pConnection->SendAsciiData(pArgument->Tag() + " OK MOVE completed\r\n");
+      }
+      else
+      {
+         // A MOVE refused after its set was read reports them before its NO.
+         pConnection->ReportExpungesHeldForCommand();
       }
 
       return result;

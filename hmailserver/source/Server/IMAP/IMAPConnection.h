@@ -124,6 +124,11 @@ namespace HM
       void RefreshIMAPFolders();
       void NotifyFolderChange(eIMAPCommandType active_command);
 
+      // The EXPUNGE responses NotifyFolderChange held back from a COPY or a MOVE by
+      // sequence number, sent once the command has read its set and acted on it and
+      // before its tagged response (RFC 2180 4.4).
+      void ReportExpungesHeldForCommand();
+
       std::shared_ptr<IMAPFolders> GetAccountFolders() const { return imap_folders_;}
       std::shared_ptr<IMAPFolders> GetPublicFolders() const { return public_imap_folders_;}
 

@@ -181,10 +181,10 @@ namespace RegressionTests.IMAP
 
       [Test]
       [Description("Upstream #458, write side: COPY addressed by sequence number copies the message the " +
-                   "client named. An expunge made elsewhere is held back while COPY runs, since the client " +
-                   "sent its numbers before it was told of it, and reported by the next command. It was " +
-                   "reported first and the set read in the numbering it made, so COPY 2 copied the third " +
-                   "message (upstream #666).")]
+                   "client named. An expunge made elsewhere is held back while COPY reads its set, since the " +
+                   "client sent its numbers before it was told of it, and is reported in COPY's own response " +
+                   "before the OK (RFC 2180 4.4). It was reported first and the set read in the numbering it " +
+                   "made, so COPY 2 copied the third message (upstream #666).")]
       public void CopyMustNotCopyTheWrongMessage()
       {
          var account = CreateAccountWithThreeAttachmentMessages();
@@ -194,12 +194,14 @@ namespace RegressionTests.IMAP
          ExpungeMessageInSeparateSession(account, 1);
 
          var copy = sim1.SendSingleCommand("A44 COPY 2 \"Target\"");
-         Assert.IsTrue(copy.Contains("A44 OK"), copy);
-         Assert.IsFalse(copy.Contains("EXPUNGE"), "COPY reported the expunge before it read the client's numbers. " + copy);
+         int ok = copy.IndexOf("A44 OK", StringComparison.Ordinal);
+         int expunge = copy.IndexOf("* 1 EXPUNGE", StringComparison.Ordinal);
+         Assert.IsTrue(ok >= 0, copy);
+         Assert.IsTrue(expunge >= 0 && expunge < ok, "COPY did not report the expunge made elsewhere before its OK. " + copy);
 
-         // The next command reports it.
+         // Reported once: the next command has nothing more to say of it.
          var noop = sim1.SendSingleCommand("A45 NOOP");
-         Assert.IsTrue(noop.Contains("* 1 EXPUNGE"), noop);
+         AssertNoUntaggedExpunge(noop, "the NOOP after COPY");
 
          sim1.Disconnect();
 
@@ -217,8 +219,8 @@ namespace RegressionTests.IMAP
       [Test]
       [Description("MOVE addressed by sequence number moves the message the client named, and its own " +
                    "EXPUNGE is numbered as the client numbers it; an expunge made elsewhere is held back " +
-                   "while MOVE runs and reported by the next command. It was reported first, so MOVE 2 " +
-                   "moved the third message (upstream #666).")]
+                   "while MOVE reads its set and reported after MOVE's own, before the OK (RFC 2180 4.4). It " +
+                   "was reported first, so MOVE 2 moved the third message (upstream #666).")]
       public void MoveMustNotMoveTheWrongMessage()
       {
          var account = CreateAccountWithThreeAttachmentMessages();
@@ -228,13 +230,17 @@ namespace RegressionTests.IMAP
          ExpungeMessageInSeparateSession(account, 1);
 
          var move = sim1.SendSingleCommand("A46 MOVE 2 \"Target\"");
-         Assert.IsTrue(move.Contains("A46 OK"), move);
-         Assert.IsTrue(move.Contains("* 2 EXPUNGE"), "MOVE did not expunge the message it moved, as the client numbers it. " + move);
-         Assert.IsFalse(move.Contains("* 1 EXPUNGE"), "MOVE reported the other session's expunge before it read the client's numbers. " + move);
+         int ok = move.IndexOf("A46 OK", StringComparison.Ordinal);
+         int own = move.IndexOf("* 2 EXPUNGE", StringComparison.Ordinal);
+         int other = move.IndexOf("* 1 EXPUNGE", StringComparison.Ordinal);
+         Assert.IsTrue(ok >= 0, move);
+         Assert.IsTrue(own >= 0 && own < ok, "MOVE did not expunge the message it moved, as the client numbers it. " + move);
+         Assert.IsTrue(other > own && other < ok,
+            "MOVE did not report the expunge made elsewhere after its own and before its OK. " + move);
 
-         // The next command reports it.
+         // Reported once: the next command has nothing more to say of it.
          var noop = sim1.SendSingleCommand("A47 NOOP");
-         Assert.IsTrue(noop.Contains("* 1 EXPUNGE"), noop);
+         AssertNoUntaggedExpunge(noop, "the NOOP after MOVE");
 
          sim1.Disconnect();
 
@@ -247,6 +253,35 @@ namespace RegressionTests.IMAP
          reader.Disconnect();
 
          AssertContainsAttachment(moved, MarkerTwo);
+      }
+
+      [Test]
+      [Description("COPY whose set names a message another session has expunged, and this one has not been " +
+                   "told of, copies nothing and is refused NO [EXPUNGEISSUED] with the EXPUNGE before it " +
+                   "(RFC 2180 4.4.1; COPY is all or nothing, RFC 3501 6.4.7), so that the client can send the " +
+                   "set again in the numbering it then has, and the same set then copies what is left. The " +
+                   "EXPUNGE used to come first and the set was read in the numbering it made (upstream #666).")]
+      public void CopyOfASetNamingAMessageExpungedElsewhereIsRefusedWithTheExpunge()
+      {
+         var account = CreateAccountWithThreeAttachmentMessages();
+         account.IMAPFolders.Add("Target");
+
+         var sim1 = SelectInbox(account);
+         ExpungeMessageInSeparateSession(account, 1);
+
+         var copy = sim1.SendSingleCommand("A48 COPY 1:* \"Target\"");
+         int no = copy.IndexOf("A48 NO [EXPUNGEISSUED]", StringComparison.Ordinal);
+         int expunge = copy.IndexOf("* 1 EXPUNGE", StringComparison.Ordinal);
+         Assert.IsTrue(no >= 0, "A COPY naming a message expunged elsewhere must be refused. " + copy);
+         Assert.IsTrue(expunge >= 0 && expunge < no, "The refused COPY did not report the expunge before its NO. " + copy);
+
+         // In the numbering the client has now, the same set copies the two that are left.
+         var again = sim1.SendSingleCommand("A49 COPY 1:* \"Target\"");
+         Assert.IsTrue(again.Contains("A49 OK"), again);
+
+         sim1.Disconnect();
+
+         ImapClientSimulator.AssertMessageCount(account.Address, "test", "Target", 2);
       }
 
       [Test]
