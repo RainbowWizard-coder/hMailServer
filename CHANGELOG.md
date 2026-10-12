@@ -836,6 +836,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   image row while the variable is not `1`, each SHA-256 the file's), the summary to the notes without the table, and
   the order of the links. 6.3.6's release page was given the table and the order by hand on 6 October 2026.
 
+- **`hMailServer.Minidump.exe` and `hMailServer.Updater.exe` say which product and which release they are.** The two
+  programs shipped beside the server in `Bin` - the crash-dump writer, and the helper that applies an update - had no
+  version resource, so Explorer's Details page, an inventory tool or a crash report showed neither a product name nor
+  a version for them. Each now has one, taken from `Common/Application/Version.h` as `hMailServer.exe`'s is, so a
+  release stamped there reaches all three; `build/check-version-resources.py`, which the `checkers` job runs, holds
+  every C++ program of the server to it. Found by upstream's #658.
+
 ### Delivery and SMTP
 
 - **Fixed: with DANE enforcement on, mail to a DNSSEC-signed domain whose MX answer arrived with its exchange
@@ -5283,9 +5290,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 - **Upstream is triaged to a843921bb (11 October 2026).** The 85 commits after the previous baseline, read from a
   clone of upstream against the functions in this tree; `.gitlab/upstream-sync` holds the verdict for each and has
   advanced its baseline from d5e087066, and Roadmap.md's row on them says what was ported, what was already here and
-  what is still to do - the rest of SRS, the envelope in this server's own `Received` header, version resources for
-  the minidump writer and the updater, `OPENSSL_NO_DEPRECATED`, and a new UIDVALIDITY for the folders a restore puts
-  back, which needs a schema change.
+  what is still to do - the rest of SRS, the envelope in this server's own `Received` header, a version for the
+  Control Panel's library, `OPENSSL_NO_DEPRECATED`, and a new UIDVALIDITY for the folders a restore puts back, which
+  needs a schema change.
 
 ### Documentation
 

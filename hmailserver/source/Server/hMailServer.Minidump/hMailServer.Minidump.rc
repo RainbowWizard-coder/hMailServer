@@ -1,0 +1,47 @@
+// https://www.progressiverobot.com
+// Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+// The minidump writer's version resource: the product's name and version, from the
+// one place every release stamps them (Common/Application/Version.h), as
+// hMailServer.exe's own (hMailServer.rc). Without it the program shipped beside the
+// server in Bin said nothing of what it was or which release it came from - to
+// Explorer's Details page, to an inventory tool, or to anyone matching a crash
+// report to a build (upstream #658). build/check-version-resources.py holds every
+// C++ program of the server to having one.
+
+#include <winver.h>
+
+#include "../Common/Application/Version.h"
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION HMAILSERVER_VERSION_NUMERIC
+ PRODUCTVERSION HMAILSERVER_VERSION_NUMERIC
+ FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
+#ifdef _DEBUG
+ FILEFLAGS VS_FF_DEBUG
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS VOS_NT_WINDOWS32
+ FILETYPE VFT_APP
+ FILESUBTYPE VFT2_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904e4"
+        BEGIN
+            VALUE "CompanyName", "hMailServer"
+            VALUE "FileDescription", "hMailServer minidump writer"
+            VALUE "FileVersion", HMAILSERVER_VERSION
+            VALUE "InternalName", "hMailServer.Minidump.exe"
+            VALUE "OriginalFilename", "hMailServer.Minidump.exe"
+            VALUE "ProductName", "hMailServer"
+            VALUE "ProductVersion", HMAILSERVER_VERSION
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1252
+    END
+END

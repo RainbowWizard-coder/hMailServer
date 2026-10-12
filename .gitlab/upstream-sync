@@ -324,6 +324,13 @@
 #     VBScript calls were quoted by hand - OnClientValidatePassword's password and
 #     OnDeliveryFailed's values - so a lone CR or LF left the literal open and the
 #     handler was not called (Events.cpp, EscapeForVBScriptLiteral now).
+#   - 099f3f3dd/85a89fb1a (#658/#659): hMailServer.Minidump.exe had no version
+#     resource, and nor had hMailServer.Updater.exe beside it; both take one from
+#     Version.h now (hMailServer.Minidump.rc, hMailServer.Updater.rc), and
+#     build/check-version-resources.py holds every C++ program to it. Not taken:
+#     Interop.hMailServer.dll's version, TlbImp's from the type library's
+#     version(1.0) (build/generate-com-wrapper.ps1:192) - the version .NET programs
+#     bind to, not to be moved for a label; the C# tools carry <Version> already.
 #   - 1cf0bcd63's test fix: SessionLimitingTests.AssertMaxSessionCount asserted
 #     "at least" (RetryableAssert.GreaterOrEqual), so a session count that had not
 #     come down passed; and the OnClientConnect test asked the wrong protocol's
@@ -400,8 +407,11 @@
 #     chaining; an undeliverable SRS bounce reported.
 #   - a7b5b7c47 (#665): envelope-from and "for <recipient>" in our own Received
 #     header (upstream #663, a feature).
-#   - 099f3f3dd/85a89fb1a (#658/#659): version resources for
-#     hMailServer.Minidump.exe and hMailServer.Updater.exe, and Interop's version.
+#   - ControlPanel.Core.dll, the Control Panel's library, beside #658: no
+#     <Version> or <Product> in ControlPanel.Core.csproj, so it ships as 1.0.0.0
+#     with no product name. Give it the Control Panel's <Version> and <Product>
+#     and make RELEASE.md's version stamp eight .csproj files, once the Control
+#     Panel units working in that project now (cp-tier2) have landed.
 #   - 6ac3c58fd (#666), the UIDVALIDITY a whole restore gives back: IMAPFolder::
 #     XMLLoad (IMAPFolder.cpp:205-206) puts back the folder's CreateTime, which is
 #     its UIDVALIDITY here, and its CurrentUID, so the UIDs given after the backup
