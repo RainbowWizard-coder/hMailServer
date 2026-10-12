@@ -14,7 +14,9 @@
 #
 #   bash build/ci/idna-differential-fuzz.sh          build, check ada, fuzz
 #   bash build/ci/idna-differential-fuzz.sh build    build only
-#   bash build/ci/idna-differential-fuzz.sh check    build and check ada
+#   bash build/ci/idna-differential-fuzz.sh check    build, check ada, and replay the
+#                                                    findings kept in
+#                                                    fuzz/regression/idna_ada_fuzzer
 #
 # Nothing comes from GitHub. ada is the amalgamation (ada.h and ada.cpp) of
 # ada 4.0.0 out of its Python package's source distribution on PyPI
@@ -41,8 +43,9 @@
 #   HM_BUILD_JOBS     ninja's -j (8)
 #
 # Exit 0: no difference. Exit 1: a difference (or a crash), its input in
-# HM_FUZZ_OUT, or ada differs from the server on a conformance line in a way
-# the fuzz would not set aside. Exit 2: it could not be built or run.
+# HM_FUZZ_OUT, a kept finding that differs again, or ada differs from the
+# server on a conformance line in a way the fuzz would not set aside. Exit 2: it
+# could not be built or run.
 set -uo pipefail
 
 mode="${1:-all}"
@@ -157,6 +160,21 @@ if [ "${PIPESTATUS[0]}" -ne 0 ]; then
   echo "The server's NFC failed NormalizationTest.txt, or ada differs from the server on a conformance line in a way the fuzz would not set aside."
   exit 1
 fi
+
+# Every input a run stopped at that was a defect of the server's, kept byte for
+# byte in fuzz/regression/idna_ada_fuzzer (fuzz/regression/README.md), put to
+# the target again: a fixed defect that comes back ends the run here.
+echo ""
+echo "== the findings kept in fuzz/regression/idna_ada_fuzzer, replayed"
+mapfile -t kept < <(find fuzz/regression/idna_ada_fuzzer -type f ! -name '*.md' | sort)
+if [ "${#kept[@]}" -gt 0 ]; then
+  if ! "$fuzzer" "${kept[@]}" > "$out/replay.log" 2>&1; then
+    grep -A4 'DIFFERENCE (' "$out/replay.log" | head -n 20
+    echo "A finding kept in fuzz/regression/idna_ada_fuzzer differs again: $out/replay.log has the run."
+    exit 1
+  fi
+fi
+echo "replayed ${#kept[@]} kept finding(s) without a difference"
 
 [ "$mode" = "check" ] && exit 0
 

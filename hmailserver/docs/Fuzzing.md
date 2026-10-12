@@ -440,8 +440,8 @@ image, as a CMake project of its own (`fuzz/idna/`) that builds the server's
 core library and links ada beside it:
 
 ```bash
-bash build/ci/idna-differential-fuzz.sh          # build, check ada, fuzz 30 minutes
-bash build/ci/idna-differential-fuzz.sh check    # build and check ada only
+bash build/ci/idna-differential-fuzz.sh          # what check does, then fuzz 30 minutes
+bash build/ci/idna-differential-fuzz.sh check    # build, check ada, replay the kept findings
 HM_FUZZ_MINUTES=5 HM_FUZZ_JOBS=8 bash build/ci/idna-differential-fuzz.sh
 ```
 
@@ -494,10 +494,12 @@ One defect of the server's, on 12 October 2026, before 6.3.7 shipped the code:
 but a final 1, each after a fullwidth full stop, was `1.0.0.1` to ada and
 nothing to the server, whose limit on a label's length - there for Punycode's
 cost - refused the long ASCII labels of a host that is not ASCII. The limit now
-applies only to a label that needs Punycode. Every other stop of the early runs
-was one of the classes above, found by the fuzz and confirmed against Unicode's
-files or RFC 3492 before a rule was written for it; all the inputs were kept,
-and each replays without a difference.
+applies only to a label that needs Punycode, and the input is kept in
+`fuzz/regression/idna_ada_fuzzer/`, which every run replays before it fuzzes.
+Every other stop of the early runs was one of the classes above, found by the
+fuzz and confirmed against Unicode's files or RFC 3492 before a rule was written
+for it, and each of those inputs replays without a difference against the code
+as it is.
 
 That the comparison has teeth was shown the same day by a negative control,
 never committed: with 6.3.6's reading of a host put back in `SURBL.cpp`

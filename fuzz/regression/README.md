@@ -2,11 +2,15 @@ Fixed-finding reproducers
 =========================
 
 One directory per target (`mime_message_fuzzer`, `mime_header_fuzzer`,
-`mime_decode_fuzzer`). Each file in them is a libFuzzer input that **used to
-crash, hang or trip AddressSanitizer** and no longer does.
+`mime_decode_fuzzer`, and the differential `idna_ada_fuzzer`). Each file in them
+is a libFuzzer input that **used to crash, hang or trip AddressSanitizer** - or,
+for `idna_ada_fuzzer`, made the server read a host otherwise than a browser
+reads it - and no longer does.
 
-`run-fuzz.ps1` passes these directories to libFuzzer as read-only seeds, so
-every run — including the seconds-long `-Replay` mode — re-executes all of them.
+`run-fuzz.ps1` passes the MIME directories to libFuzzer as read-only seeds, so
+every run — including the seconds-long `-Replay` mode — re-executes all of them;
+`build/ci/idna-differential-fuzz.sh` replays `idna_ada_fuzzer`'s before it
+fuzzes, and in its `check` mode.
 That is what stops a fixed parser bug from coming back unnoticed.
 
 Rules

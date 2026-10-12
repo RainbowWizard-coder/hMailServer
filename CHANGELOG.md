@@ -4573,10 +4573,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   server's NFC to `NormalizationTest.txt` and ada to `IdnaTestV2.txt`, so that what it sets aside - the code points
   whose Unicode tables differ between the two, and ada's four departures from UTS 46 (its joiner and bidi rules, a
   name it leaves out of NFC, and Punycode that begins with its delimiter) - is shown to be the tables' or ada's,
-  against Unicode's own files, RFC 3492 and ada's own label check. Its 30-minute run on server2 on the night of 12
-  October 2026, from a fresh build of the code as it is: no difference in 1,819 seconds, about 47.9 million inputs in
-  157 jobs, none of them a crash or a timeout under AddressSanitizer, and 9,263 inputs in the corpus at the end
-  ([Fuzzing.md](hmailserver/docs/Fuzzing.md), "UTS 46 against ada").
+  against Unicode's own files, RFC 3492 and ada's own label check. The one defect of the server's it found before
+  release is kept in `fuzz/regression/idna_ada_fuzzer` and replayed before every run fuzzes. Its 30-minute run on
+  server2 on the night of 12 October 2026, from a fresh build of the code as it is: no difference in 1,819 seconds,
+  about 47.9 million inputs in 157 jobs, none of them a crash or a timeout under AddressSanitizer, and 9,263 inputs in
+  the corpus at the end ([Fuzzing.md](hmailserver/docs/Fuzzing.md), "UTS 46 against ada").
 - **Every change is checked before it lands, a maintainer's batch as well as a merge request** (OpenSSF Baseline
   OSPS-VM-05.03 and OSPS-VM-06.02). `semgrep-sast`, `semgrep-sast-gate` and `mr-dependency-check` ran in a merge
   request's pipeline alone, and a maintainer's `batch*` branch, whose merge request runs no pipeline of its own, landed
