@@ -28,6 +28,16 @@ namespace HM
       // COPY and UID COPY call this when DoForMails has failed.
       void RollBack(std::shared_ptr<IMAPConnection> pConnection);
 
+      // A COPY into the folder the session has selected: the copies are taken into its
+      // view and claimed as its \Recent, as an APPEND or a MOVE into it are, and the
+      // untagged EXISTS and RECENT that say so are returned, to go before the tagged OK.
+      // Empty for a copy into any other folder. Called before the other sessions are
+      // told, so that none of them claims the copies' \Recent first. The copying
+      // session was never told of them - NotificationServer tells every session but the
+      // one that made the change - so its client saw neither the copies nor a count
+      // that included them until it selected the folder again (upstream #666).
+      String ReportCopiesInTheSelectedFolder(std::shared_ptr<IMAPConnection> pConnection);
+
    private:
 
       std::shared_ptr<IMAPFolder> destination_folder_;

@@ -75,10 +75,14 @@ namespace HM
 
       if (result.GetResult() == IMAPResult::ResultOK)
       {
+         // A copy into the selected folder is this session's to report, before the
+         // others are told and claim the copies' \Recent.
+         String untagged = pCopy->ReportCopiesInTheSelectedFolder(pConnection);
+
          // The other sessions are told before the OK, so that one asked next
          // already knows of the copies (SubmitDelayedChangeNotification).
          pConnection->SubmitDelayedChangeNotification();
-         pConnection->SendAsciiData(pArgument->Tag() + " OK " + pCopy->GetUIDPlusResponseCode() + "COPY completed\r\n");
+         pConnection->SendAsciiData(untagged + pArgument->Tag() + " OK " + pCopy->GetUIDPlusResponseCode() + "COPY completed\r\n");
       }
 
       return result;

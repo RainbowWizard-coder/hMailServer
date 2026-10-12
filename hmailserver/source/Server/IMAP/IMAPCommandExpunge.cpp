@@ -55,8 +55,15 @@ namespace HM
 
       auto messages = MessagesContainer::Instance()->GetMessages(pCurFolder->GetAccountID(), pCurFolder->GetID());
 
-      // EXPUNGE may report new messages as well, so take them into the view first.
-      view->AppendNewMessages(messages);
+      // EXPUNGE may report new messages as well, so take them into the view first -
+      // and say so before any EXPUNGE below gives a number of theirs, which the client
+      // would otherwise not know (upstream #666). A message no session was told of
+      // yet: one a delivery has saved and not yet announced.
+      if (view->AppendNewMessages(messages) > 0)
+      {
+         pConnection->SendAsciiData(IMAPNotificationClient::GenerateExistsString(view->GetMessageCount()) +
+                                    IMAPNotificationClient::GenerateRecentString((int) pConnection->GetRecentMessageCount()));
+      }
 
       // Only messages this session knows about are expunged here: the client has not
       // been told about the others, so their sequence numbers would mean nothing to it.

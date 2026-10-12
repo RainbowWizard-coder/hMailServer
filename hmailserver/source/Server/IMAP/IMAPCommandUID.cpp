@@ -306,7 +306,14 @@ namespace HM
             return IMAPResult(IMAPResult::ResultNo, "No folder selected.");
 
          auto messages = MessagesContainer::Instance()->GetMessages(pCurFolder->GetAccountID(), pCurFolder->GetID());
-         view->AppendNewMessages(messages);
+
+         // New messages are taken into the view, and the client told of them before
+         // any EXPUNGE below gives a number of theirs, as EXPUNGE does.
+         if (view->AppendNewMessages(messages) > 0)
+         {
+            pConnection->SendAsciiData(IMAPNotificationClient::GenerateExistsString(view->GetMessageCount()) +
+                                       IMAPNotificationClient::GenerateRecentString((int) pConnection->GetRecentMessageCount()));
+         }
 
          // "*" is the largest UID this session knows about - see IMAPCommandRangeAction.
          // Sorted and merged, each message's UID found by halving: every range was
@@ -506,10 +513,14 @@ namespace HM
 
       if (result.GetResult() == IMAPResult::ResultOK)
       {
+         // A UID COPY into the selected folder reports its copies to this session
+         // first, as COPY does.
+         String untagged = copy ? copy->ReportCopiesInTheSelectedFolder(pConnection) : String();
+
          // UID COPY's notification goes to the other sessions before the OK,
          // as COPY's does.
          pConnection->SubmitDelayedChangeNotification();
-         pConnection->SendAsciiData(pArgument->Tag() + " OK " + command_->GetUIDPlusResponseCode() + command_->GetConditionalStoreResponseCode() + "UID completed\r\n");
+         pConnection->SendAsciiData(untagged + pArgument->Tag() + " OK " + command_->GetUIDPlusResponseCode() + command_->GetConditionalStoreResponseCode() + "UID completed\r\n");
       }
 
       return result;

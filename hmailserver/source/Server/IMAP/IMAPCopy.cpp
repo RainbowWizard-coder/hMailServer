@@ -18,6 +18,8 @@
 
 
 #include "MessagesContainer.h"
+#include "IMAPFolderView.h"
+#include "IMAPNotificationClient.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -139,5 +141,37 @@ namespace HM
       }
 
       copied_message_ids_.clear();
+   }
+
+   String
+   IMAPCopy::ReportCopiesInTheSelectedFolder(std::shared_ptr<IMAPConnection> pConnection)
+   {
+      std::shared_ptr<IMAPFolder> selected = pConnection->GetCurrentFolder();
+
+      if (copied_message_ids_.empty() || !destination_folder_ || !selected || selected->GetID() != destination_folder_->GetID())
+         return String();
+
+      std::shared_ptr<IMAPFolderView> view = pConnection->GetCurrentFolderView();
+      if (!view)
+         return String();
+
+      std::shared_ptr<Messages> messages = MessagesContainer::Instance()->GetMessages(destination_folder_->GetAccountID(), destination_folder_->GetID());
+
+      // At the end of the view, so the numbers the session knows are unchanged.
+      view->AppendNewMessages(messages);
+
+      for (__int64 copyId : copied_message_ids_)
+      {
+         pConnection->AddRecentMessage(copyId);
+
+         // Claimed here, so off the shared collection: another session with the
+         // folder open must not report the same message as \Recent too.
+         std::shared_ptr<Message> copy = messages->GetItemByDBID((unsigned __int64) copyId);
+         if (copy)
+            copy->SetFlagRecent(false);
+      }
+
+      return IMAPNotificationClient::GenerateExistsString(view->GetMessageCount()) +
+             IMAPNotificationClient::GenerateRecentString((int) pConnection->GetRecentMessageCount());
    }
 }

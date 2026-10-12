@@ -4628,6 +4628,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   another session expunged message 1, and finds the second message in the destination; its `COPY` test had asserted
   the old order. Found by upstream's UIDPLUS work (#666).
 
+- **Fixed: an IMAP session that copied messages into the folder it had selected was never told of the copies, and a
+  flag change on a message another session had just added was reported before the message itself.** The server
+  tells every session of a change but the one that made it, and `COPY` and `UID COPY` - unlike `APPEND` and `MOVE` -
+  said nothing of their own, so the client saw neither the copies nor a count that held them until it selected the
+  folder again; they are now reported with `EXISTS` and `RECENT` before the `OK`, and are the session's `\Recent`.
+  And what other sessions did was reported with the flag changes first, so a `FETCH` gave the client the number of a
+  message past the end of the mailbox it knew; the `EXISTS` comes first now. `EXPUNGE` and `UID EXPUNGE`, which
+  take into the session's view any message it has not been told of yet, say so with an `EXISTS` before an `EXPUNGE`
+  can give one of their numbers. `IMAP/SelectedFolderReports.cs` holds the first two. Found by upstream's UIDPLUS
+  work (#666).
+
 ### Operations
 
 - **Fixed: on Linux, a MySQL or PostgreSQL column the server reads as a `long` went through an `int` on its way

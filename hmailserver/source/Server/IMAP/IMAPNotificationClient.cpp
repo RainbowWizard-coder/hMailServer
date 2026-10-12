@@ -233,14 +233,17 @@ namespace HM
          }
       }
 
-      if (flagMessages.size() > 0)
-         SendFLAGS_(flagMessages);
-
       if (lastExists >= 0)
          SendEXISTS_(lastExists);
 
       if (lastRecent >= 0)
          SendRECENT_(lastRecent);
+
+      // After EXISTS: a flag change can be for a message taken into the view above,
+      // whose number the client learns from the EXISTS. FETCH went first, and gave
+      // the client a number past the end of the mailbox it knew (upstream #666).
+      if (flagMessages.size() > 0)
+         SendFLAGS_(flagMessages);
 
       std::vector<std::shared_ptr<ChangeNotification> >::iterator iter = cached_changes_.begin();
 
