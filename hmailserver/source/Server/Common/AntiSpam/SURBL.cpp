@@ -2299,10 +2299,11 @@ namespace HM
    {
       return Run(pSURBLServer, vecUrls, [](const String &name, std::vector<String> &answers) -> bool
       {
-         // Asked once more when the lookup did not complete, past the DNS
-         // cache: a lookup that fails is a name the list was not asked about.
+         // The list's A records, the only records it answers with (RFC 5782),
+         // asked once more, past the DNS cache, when the query fails: a lookup
+         // that fails is a name the list was not asked about.
          DNSResolver resolver;
-         return resolver.GetIpAddressesWithRetry(name, answers, false);
+         return resolver.GetDnsListAnswers(name, answers);
       });
    }
 
@@ -2570,19 +2571,29 @@ namespace HM
 
       if (!progress.failedName.IsEmpty())
       {
-         // The names whose lookups did not complete were not asked about; the
-         // others were, and listed none. Accepting the message without the
-         // list's verdict on those names is the safe direction to fail, but a
-         // silent one would make a resolver that has stopped answering look
-         // like a list that never matches anything, so it is said - once in a
-         // while (AntiSpamDiagnostics), not once a message.
+         // The names whose lookups did not complete were not asked about, nor -
+         // when the ten seconds ran out or a lookup ended in an error first -
+         // were the names not yet begun; the others were, and listed none.
+         // Accepting the message without the list's verdict on those names is
+         // the safe direction to fail, but a silent one would make a resolver
+         // that has stopped answering look like a list that never matches
+         // anything, so it is said - once in a while (AntiSpamDiagnostics), not
+         // once a message - and as it happened: a list whose every lookup times
+         // out is the one that runs into the ten seconds.
          const String others = progress.failed > 1
             ? Formatter::Format(_T(", nor did {0} other lookups of the same message"), progress.failed - 1)
             : String();
 
+         String rest;
+         if (progress.timedOut)
+            rest = _T(", and the ten seconds a message is given ran out before its other names were all asked about. It is accepted without the list's verdict on the names whose lookups did not complete or that were not asked about.");
+         else if (progress.broke.load())
+            rest = Formatter::Format(_T(", and a lookup in {0} ended in an error before the message's other names were all asked about. It is accepted without the list's verdict on the names whose lookups did not complete or that were not asked about."), zone);
+         else
+            rest = _T(". The message's other names were asked about, and it is accepted without the list's verdict on the names whose lookups did not complete.");
+
          AntiSpamDiagnostics::ReportCheckIncomplete(AntiSpamDiagnostics::CheckSurbl,
-            Formatter::Format("SURBL: The lookup of {0} did not complete{1}. The message's other names were asked about, and it is accepted without the list's verdict on the names whose lookups did not complete.",
-               progress.failedName, others));
+            Formatter::Format("SURBL: The lookup of {0} did not complete{1}{2}", progress.failedName, others, rest));
 
          return true;
       }

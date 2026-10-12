@@ -9,12 +9,12 @@
 // the host after a link's userinfo, the forms of an address, the code points a
 // browser deletes from a host, links with no scheme, HTML's character references,
 // and the answers the lists publish as errors; and what the lookup SURBL and the
-// DNS blacklists make answers when one of its queries fails (DNSResolverTester,
-// upstream PR 640). And the session names that are not
-// names of GitLab issue 51 - a HELO name or a sender's domain that is an address,
-// one label or a public suffix by the same list - with the carve-outs of the
-// refusal made with them (FqdnCheckTester), and before it what an address is,
-// which that refusal asks first (IPAddressTester).
+// DNS blacklists make - of the A record alone - and the address lookup answer
+// when a query fails (DNSResolverTester, upstream PR 640). And the session names
+// that are not names of GitLab issue 51 - a HELO name or a sender's domain that
+// is an address, one label or a public suffix by the same list - with the
+// carve-outs of the refusal made with them (FqdnCheckTester), and before it what
+// an address is, which that refusal asks first (IPAddressTester).
 //
 // On Windows PublicSuffixListTester, SURBLTester and FqdnCheckTester run inside
 // the service with the other class tests: ClassTester::DoTests calls them and the
@@ -65,9 +65,10 @@ main(int /*argc*/, char * /*argv*/[])
 
    printf("ok    the SURBL test's links: the host after the userinfo, ports, IPv6 and the IPv4 addresses it carries, percent-encoding as UTF-8, the code points UTS 46 ignores, the forms of an address, links with no scheme, HTML's references and quotes, the names asked about, a lookup that fails passed over and one that throws ending the list, the lists' error codes, and the sender lists' URL entries read the same way and matched against every link\n");
 
-   // What an address lookup answers when one of its queries fails, which the
-   // SURBL lookups above and the DNS blacklists read: the same answer here as
-   // on Windows, where DNSResolverTester runs in ClassTester.
+   // What an address lookup answers when one of its queries fails, and the
+   // lookup the SURBL lookups above and the DNS blacklists make - of the A
+   // record alone, asked once more when it fails: the same answers here as on
+   // Windows, where DNSResolverTester runs in ClassTester.
    try
    {
       HM::DNSResolverTester tester;
@@ -79,7 +80,7 @@ main(int /*argc*/, char * /*argv*/[])
       return 1;
    }
 
-   printf("ok    a lookup with a failed query: a failure and not \"no addresses\" unless addresses were found, whichever of A, AAAA and CNAME failed and whatever the others answered; NXDOMAIN and NODATA still no addresses; an alias followed; one more attempt past the DNS cache for a lookup that did not complete, and only for one; a record lookup whose CNAME query failed\n");
+   printf("ok    a lookup with a failed query: a failure and not \"no addresses\" unless addresses were found, whichever of A, AAAA and CNAME failed and whatever the others answered; NXDOMAIN and NODATA still no addresses; an alias followed; a DNS list asked for A alone, and once more past the DNS cache when that query fails, and only then; a record lookup whose CNAME query failed\n");
 
    // What is an address, which the refusal below asks first: the same answer
    // here as on Windows, where IPAddressTester runs in ClassTester.

@@ -32,13 +32,18 @@ namespace HM
       // server), because then whether the name has addresses is not known.
       // Until upstream PR 640 a failed A query beside an AAAA query answered "no
       // AAAA records" - the answer of every IPv4-only host - was true with none.
-      // bypassCache: every query goes past the Windows DNS cache.
-      bool GetIpAddresses(const String &sDomain, std::vector<String> &saFoundNames, bool followCnameRecords, bool bypassCache = false);
+      bool GetIpAddresses(const String &sDomain, std::vector<String> &saFoundNames, bool followCnameRecords);
 
-      // GetIpAddresses, and once more past the DNS cache when it did not
-      // complete. For the lookups whose answer is a verdict - a DNS blacklist's,
-      // SURBL's - where one failed query would otherwise stand for "not listed".
-      bool GetIpAddressesWithRetry(const String &sDomain, std::vector<String> &saFoundNames, bool followCnameRecords);
+      // What a DNS list - a DNS blacklist, SURBL - answers for one name: its A
+      // records, the only records a list answers with, for an IPv6 address as
+      // for an IPv4 one (RFC 5782 sections 2.1 and 2.4), so no AAAA query is
+      // made. Asked once more, past the DNS cache, when the query fails, because
+      // the answer is a verdict and one failed query would otherwise stand for
+      // "not listed" (upstream PR 640). True with the answers added, or with none
+      // when the list answered that it holds nothing for the name (NXDOMAIN,
+      // NODATA): not listed. False when both attempts failed - a SERVFAIL, a
+      // timeout - and then nothing is added.
+      bool GetDnsListAnswers(const String &name, std::vector<String> &answers);
 
       bool GetTXTRecords(const String &sDomain, std::vector<String> &foundResult);
       bool GetPTRRecords(const String &sIP, std::vector<String> &vecFoundNames);
@@ -73,7 +78,7 @@ namespace HM
    private:
 
       bool GetEmailServersRecursive_(const String &sDomainName, std::vector<HostNameAndIpAddress> &saFoundNames, int recursionLevel);
-      bool GetIpAddressesRecursive_(const String &hostName, std::vector<String> &addresses, int recursionLevel, bool followCnameRecords, bool bypassCache);
+      bool GetIpAddressesRecursive_(const String &hostName, std::vector<String> &addresses, int recursionLevel, bool followCnameRecords);
       bool GetTXTRecordsRecursive_(const String &sDomain, std::vector<String> &foundResult, int recursionLevel);
 
       // The records of one type, following a CNAME where the name holds none of that
@@ -97,10 +102,10 @@ namespace HM
    // found or every query - A, AAAA and, when one is made, the CNAME query -
    // was answered, whichever of A and AAAA failed and whatever the other
    // answered; NXDOMAIN and NODATA stay "no addresses"; an alias is followed;
-   // GetIpAddressesWithRetry asks a lookup that did not complete once more,
-   // and only that one, past the DNS cache; and a TXT, MX or other record
-   // lookup that found nothing fails when the query asking whether the name is
-   // an alias failed (upstream PR 640). It runs inside the service with the
+   // GetDnsListAnswers asks A alone, and a query that failed once more, and
+   // only that one, past the DNS cache; and a TXT, MX or other record lookup
+   // that found nothing fails when the query asking whether the name is an
+   // alias failed (upstream PR 640). It runs inside the service with the
    // other class tests (ClassTester), and on Linux in public-suffix-tests. No
    // DNS, database or setting. It throws std::logic_error naming the first
    // thing that is wrong.

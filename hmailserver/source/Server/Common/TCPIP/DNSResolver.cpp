@@ -201,7 +201,7 @@ namespace HM
    }
    
    bool
-   DNSResolver::GetIpAddresses(const String &sDomain, std::vector<String> &vecFoundNames, bool followCnameRecords, bool bypassCache)
+   DNSResolver::GetIpAddresses(const String &sDomain, std::vector<String> &vecFoundNames, bool followCnameRecords)
    {
       // An address is not a name, so it is not asked about in DNS.
       //
@@ -234,34 +234,52 @@ namespace HM
          return true;
       }
 
-      return GetIpAddressesRecursive_(sDomain, vecFoundNames, 0, followCnameRecords, bypassCache);
+      return GetIpAddressesRecursive_(sDomain, vecFoundNames, 0, followCnameRecords);
    }
 
    bool
-   DNSResolver::GetIpAddressesWithRetry(const String &sDomain, std::vector<String> &saFoundNames, bool followCnameRecords)
+   DNSResolver::GetDnsListAnswers(const String &name, std::vector<String> &answers)
    {
-      // A lookup whose answer is a verdict - a DNS blacklist's, SURBL's - is asked
-      // once more when it did not complete, because a single failed query would
-      // otherwise stand for "not listed" (upstream PR 640). Past the DNS cache: the
-      // Windows DNS client would otherwise answer the second attempt from what it
-      // kept of the first. A lookup that answered, with addresses or without, is
-      // not asked again, and nothing a failed attempt left behind is in
-      // saFoundNames - a lookup that fails adds no address.
+      // A DNS list answers with A records - 127.0.0.2 and the like, and TXT for
+      // the reason - for an IPv6 address as for an IPv4 one (RFC 5782 sections
+      // 2.1 and 2.4), so the A query is the whole of the verdict, as it is for
+      // ReputationWatch. GetIpAddresses, which these lookups made until upstream
+      // PR 640, asks AAAA as well: an AAAA query that failed beside the list's
+      // A answer would fail the lookup now that a failed query is not taken
+      // for "no addresses", and against a list that does not answer the second
+      // attempt below would wait out four timeouts where two were waited out
+      // before.
       //
-      // A lookup that timed out is asked again too, and so waits for the DNS
-      // twice: on Linux the resolver sends one packet to each server and waits
-      // for it, so a timeout there is as often one lost packet as a server that
-      // is down.
-      if (GetIpAddresses(sDomain, saFoundNames, followCnameRecords))
-         return true;
+      // Asked once more when the query failed, because a single failed query
+      // would otherwise stand for "not listed" (upstream PR 640). Past the DNS
+      // cache: the Windows DNS client would otherwise answer the second attempt
+      // from what it kept of the first. A query that answered - with records or
+      // without - is not asked again, and a failed attempt adds nothing.
+      //
+      // A query that timed out is asked again too, and so waited for twice: on
+      // Linux the resolver sends one packet to each server and waits for it, so
+      // a timeout there is as often one lost packet as a server that is down.
+      for (int attempt = 1; attempt <= 2; attempt++)
+      {
+         std::vector<DNSRecord> records;
+         int status = 0;
 
-      LOG_DEBUG(Formatter::Format(_T("DNS - The lookup of {0} did not complete. Asking once more, past the DNS cache."), sDomain));
+         if (Ask_(name, DNS_TYPE_A, records, status, attempt > 1))
+         {
+            std::vector<String> values = GetDnsRecordsValues_(records);
+            answers.insert(answers.end(), values.begin(), values.end());
+            return true;
+         }
 
-      return GetIpAddresses(sDomain, saFoundNames, followCnameRecords, true);
+         if (attempt == 1)
+            LOG_DEBUG(Formatter::Format(_T("DNS - The lookup of {0} did not complete. Asking once more, past the DNS cache."), name));
+      }
+
+      return false;
    }
 
    bool
-   DNSResolver::GetIpAddressesRecursive_(const String &hostName, std::vector<String> &addresses, int recursionLevel, bool followCnameRecords, bool bypassCache)
+   DNSResolver::GetIpAddressesRecursive_(const String &hostName, std::vector<String> &addresses, int recursionLevel, bool followCnameRecords)
    {
       if (hostName.IsEmpty())
       {
@@ -294,18 +312,18 @@ namespace HM
       const bool ipv6Available = IPv6Available_();
       if (ipv6Available && IPv6Preferred_())
       {
-         if (!Ask_(hostName, DNS_TYPE_AAAA, foundRecords, status, bypassCache))
+         if (!Ask_(hostName, DNS_TYPE_AAAA, foundRecords, status, false))
             everyQueryAnswered = false;
 
-         if (!Ask_(hostName, DNS_TYPE_A, foundRecords, status, bypassCache))
+         if (!Ask_(hostName, DNS_TYPE_A, foundRecords, status, false))
             everyQueryAnswered = false;
       }
       else // Standard
       {
-         if (!Ask_(hostName, DNS_TYPE_A, foundRecords, status, bypassCache))
+         if (!Ask_(hostName, DNS_TYPE_A, foundRecords, status, false))
             everyQueryAnswered = false;
 
-         if (ipv6Available && !Ask_(hostName, DNS_TYPE_AAAA, foundRecords, status, bypassCache))
+         if (ipv6Available && !Ask_(hostName, DNS_TYPE_AAAA, foundRecords, status, false))
             everyQueryAnswered = false;
       }
 
@@ -313,13 +331,13 @@ namespace HM
       {
          // The queries for A/AAAA didn't return any records. Attempt to look up via CNAME
          std::vector<DNSRecord> foundCNames;
-         bool cnameQueryResult = Ask_(hostName, DNS_TYPE_CNAME, foundCNames, status, bypassCache);
+         bool cnameQueryResult = Ask_(hostName, DNS_TYPE_CNAME, foundCNames, status, false);
 
          // A CNAME should only point at a single host name.
          if (cnameQueryResult && foundCNames.size() == 1)
          {
             auto cnameHostName = foundCNames[0].GetValue();
-            return GetIpAddressesRecursive_(cnameHostName, addresses, recursionLevel + 1, followCnameRecords, bypassCache);
+            return GetIpAddressesRecursive_(cnameHostName, addresses, recursionLevel + 1, followCnameRecords);
          }
 
          // Whether the name is an alias of one that has addresses is not known
@@ -992,66 +1010,71 @@ namespace HM
          expect(joined(found) == "198.51.100.1", "a failed lookup adds nothing to what the caller held: \"" + joined(found) + "\"");
       }
 
-      // GetIpAddressesWithRetry: a lookup that did not complete is asked once
-      // more, past the cache; the second answer counts.
+      // GetDnsListAnswers: the A query alone - a DNS list answers with A
+      // records for IPv4 and IPv6 addresses alike (RFC 5782) - and a query that
+      // failed is asked once more, past the cache; the second answer counts.
+      // Every zone below scripts a failed AAAA query, which is never asked.
       {
          ScriptedDns zone;
          zone.answers[QuestionKey_(a, _T("2.0.0.127.list.test"))].push_back(failed(servfail));
          zone.answers[QuestionKey_(a, _T("2.0.0.127.list.test"))].push_back(withRecord(a, "127.0.0.2"));
-         zone.answers[QuestionKey_(aaaa, _T("2.0.0.127.list.test"))].push_back(noRecords(nxdomain));
+         zone.answers[QuestionKey_(aaaa, _T("2.0.0.127.list.test"))].push_back(failed(servfail));
 
          Installed installed(zone);
          DNSResolver resolver;
          std::vector<String> found;
-         expect(resolver.GetIpAddressesWithRetry(_T("2.0.0.127.list.test"), found, false),
-                "a lookup that failed and then answered: true; asked " + askedOf(zone));
-         expect(joined(found) == "127.0.0.2", "a lookup that failed and then answered: the second answer, once: \"" + joined(found) + "\"");
-         expect(askedOf(zone) == "1/2.0.0.127.list.test, 28/2.0.0.127.list.test, "
-                                 "1/2.0.0.127.list.test bypassing the cache, 28/2.0.0.127.list.test bypassing the cache",
-                "the second attempt, and only it, goes past the cache; asked " + askedOf(zone));
+         expect(resolver.GetDnsListAnswers(_T("2.0.0.127.list.test"), found),
+                "a list lookup that failed and then answered: true; asked " + askedOf(zone));
+         expect(joined(found) == "127.0.0.2", "a list lookup that failed and then answered: the second answer, once: \"" + joined(found) + "\"");
+         expect(askedOf(zone) == "1/2.0.0.127.list.test, 1/2.0.0.127.list.test bypassing the cache",
+                "a list lookup asks A alone, and the second attempt, and only it, goes past the cache; asked " + askedOf(zone));
       }
 
-      // A lookup that answered - NXDOMAIN, the answer for an address no list
-      // holds - is not asked again.
+      // A list that answered NXDOMAIN - its answer for an address it does not
+      // list - has answered, whatever an AAAA query would have met, and is not
+      // asked again. Through GetIpAddresses this was a lookup that failed.
       {
          ScriptedDns zone;
          zone.answers[QuestionKey_(a, _T("3.0.0.127.list.test"))].push_back(noRecords(nxdomain));
-         zone.answers[QuestionKey_(aaaa, _T("3.0.0.127.list.test"))].push_back(noRecords(nxdomain));
+         zone.answers[QuestionKey_(aaaa, _T("3.0.0.127.list.test"))].push_back(failed(servfail));
 
          Installed installed(zone);
          DNSResolver resolver;
          std::vector<String> found;
-         expect(resolver.GetIpAddressesWithRetry(_T("3.0.0.127.list.test"), found, false) && found.empty(),
-                "an answered lookup with no addresses: true, none");
-         expect(zone.asked.size() == 2, "an answered lookup is asked once; asked " + askedOf(zone));
+         expect(resolver.GetDnsListAnswers(_T("3.0.0.127.list.test"), found) && found.empty(),
+                "a list that answered NXDOMAIN, with a failing AAAA query scripted: true, none; asked " + askedOf(zone));
+         expect(askedOf(zone) == "1/3.0.0.127.list.test", "a list that answered is asked once, and for A alone; asked " + askedOf(zone));
       }
 
-      // One that answered with an address is not asked again either.
+      // One that answered with an address is not asked again either, and IPv6
+      // preferred for connections does not bring an AAAA query in.
       {
          ScriptedDns zone;
+         zone.ipv6Preferred = true;
          zone.answers[QuestionKey_(a, _T("4.0.0.127.list.test"))].push_back(withRecord(a, "127.0.0.4"));
          zone.answers[QuestionKey_(aaaa, _T("4.0.0.127.list.test"))].push_back(failed(servfail));
 
          Installed installed(zone);
          DNSResolver resolver;
          std::vector<String> found;
-         expect(resolver.GetIpAddressesWithRetry(_T("4.0.0.127.list.test"), found, false) && joined(found) == "127.0.0.4",
-                "an address and a failed AAAA query: the address, at once");
-         expect(zone.asked.size() == 2, "a lookup that found an address is asked once; asked " + askedOf(zone));
+         expect(resolver.GetDnsListAnswers(_T("4.0.0.127.list.test"), found) && joined(found) == "127.0.0.4",
+                "a list's address: the address, at once");
+         expect(askedOf(zone) == "1/4.0.0.127.list.test", "a list lookup that found an address is asked once, for A alone; asked " + askedOf(zone));
       }
 
-      // A lookup that fails twice fails, after two attempts and no more.
+      // A list lookup that fails twice fails, after two attempts and no more.
       {
          ScriptedDns zone;
          zone.answers[QuestionKey_(a, _T("5.0.0.127.list.test"))].push_back(failed(timedOut));
-         zone.answers[QuestionKey_(aaaa, _T("5.0.0.127.list.test"))].push_back(noRecords(nxdomain));
+         zone.answers[QuestionKey_(aaaa, _T("5.0.0.127.list.test"))].push_back(failed(servfail));
 
          Installed installed(zone);
          DNSResolver resolver;
          std::vector<String> found;
-         expect(!resolver.GetIpAddressesWithRetry(_T("5.0.0.127.list.test"), found, false) && found.empty(),
-                "a lookup that fails twice: false, nothing found");
-         expect(zone.asked.size() == 4, "a lookup that fails is asked twice, no more; asked " + askedOf(zone));
+         expect(!resolver.GetDnsListAnswers(_T("5.0.0.127.list.test"), found) && found.empty(),
+                "a list lookup that fails twice: false, nothing found");
+         expect(askedOf(zone) == "1/5.0.0.127.list.test, 1/5.0.0.127.list.test bypassing the cache",
+                "a list lookup that fails is asked twice, no more; asked " + askedOf(zone));
       }
 
       // The record lookups that follow an alias: nothing of the type and a

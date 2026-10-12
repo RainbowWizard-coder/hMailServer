@@ -648,21 +648,25 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   as "not listed", and SURBL's first failed lookup ended the list for the message, so a listed link after it was
   never asked about. A lookup now fails unless addresses were found or every query - A, AAAA, and the CNAME query
   made when neither found anything - was answered; NXDOMAIN and NODATA still mean no addresses. The DNS blacklists
-  and SURBL ask a lookup that failed once more, past the Windows DNS cache; SURBL then passes over the name and asks
-  the others; a blacklist writes `DNS lookup failed: <name>. The client could not be checked against this
-  blacklist.` to the TCP/IP log in place of `0 addresses found`, and says so in the application log at most every
-  15 minutes, as SURBL does. The same shape is gone from two more places: the PTR test scored a reverse name whose
-  address lookup failed, and a TXT, MX or other record lookup that found nothing and whose CNAME query failed read
-  as "no records" - a DKIM key not published, which is a `PermFail`, no DMARC policy, no SPF record, no MX for the
-  MX-record test - where it is now a temporary error, as any other lookup that fails is. Delivery makes the same
-  address lookup of a recipient's mail servers: when it failed so for every one of them, the notice to the sender
-  said `No mail servers appear to exists` and to check the address (`4.1.2`), where it now says that the DNS query
-  failed (`4.4.4`); the message is retried either way. A DNS blacklist or SURBL lookup that times out is now waited
-  for twice. `DNSResolverTester` (`public-suffix-tests` on Linux) holds the rules to answers scripted on its own
-  thread, `SURBLTester` the passing over, and `AntiSpam/DnsLookupFailures.cs` the HELO, PTR, MX-record, DNS
-  blacklist and SURBL tests and the delivery notice against the suite's zone answering SERVFAIL, timing out,
-  NXDOMAIN and NODATA; DiagnosingStalledMail.md, "When a spam test cannot look a name up", has the table. Found by
-  upstream.
+  and SURBL ask the A record alone, the only record a list answers with, for an IPv6 address as for an IPv4 one
+  (RFC 5782), where they asked AAAA too, and ask it once more, past the Windows DNS cache, when it fails; SURBL then
+  passes over the name and asks the others; a blacklist writes `DNS lookup failed: <name>. The client could not be
+  checked against this blacklist.` to the TCP/IP log in place of `0 addresses found`, and says so in the
+  application log at most every 15 minutes, as SURBL does. So a lookup the list answered does not fail on an AAAA
+  query, one that times out waits for the DNS twice, as its A and AAAA queries made it wait before, and one that
+  is answered is one query where it was two. The same shape is gone from two more places: the PTR test scored a
+  reverse name whose address lookup failed, and a TXT, MX or other record lookup that found nothing and whose CNAME
+  query failed read as "no records" - a DKIM key not published, which is a `PermFail`, no DMARC policy, no SPF
+  record, no MX for the MX-record test - where it is now a temporary error, as any other lookup that fails is.
+  Delivery makes the same address lookup of a recipient's mail servers, and of a route's host or the SMTP relay
+  server: when it failed so for every one of them, the notice to the sender said `No mail servers appear to exists`
+  and to check the address (`4.1.2`) - through a route or the relay server, `The host specified as SMTP relay server
+  could not be found` (`4.3.5`) - where it now says that the DNS query failed (`4.4.4`); the message is retried
+  either way. `DNSResolverTester`
+  (`public-suffix-tests` on Linux) holds the rules to answers scripted on its own thread, `SURBLTester` the passing
+  over, and `AntiSpam/DnsLookupFailures.cs` the HELO, PTR, MX-record, DNS blacklist and SURBL tests and the delivery
+  notice against the suite's zone answering SERVFAIL, timing out, NXDOMAIN and NODATA;
+  DiagnosingStalledMail.md, "When a spam test cannot look a name up", has the table. Found by upstream.
 
 ### Downloads and the release
 

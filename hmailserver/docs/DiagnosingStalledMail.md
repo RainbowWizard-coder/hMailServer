@@ -73,7 +73,7 @@ Common causes, in the order they actually occur:
 | What the log shows | Cause |
 |---|---|
 | `SpamTestSpamAssassin` with a large `Time:` | spamd is unreachable, overloaded, or accepting connections without answering |
-| `SpamTestDNSBlackLists`, `SpamTestSURBL` or `SpamTestSPF` slow | the resolver is not answering. Look in the TCP/IP log for `DNS - Query timed out` and `DNS - Query failure`. A DNS blacklist or SURBL lookup that fails is asked once more (below), so one that times out waits for `DNSQueryTimeout` twice for each of its A and AAAA queries; and SURBL, which stopped at the first lookup that failed, goes on to the message's other names until its ten seconds for beginning lookups are up, the ones begun then waited for. **Do not reach for `DNSServer` as the fix** — see the warning below |
+| `SpamTestDNSBlackLists`, `SpamTestSURBL` or `SpamTestSPF` slow | the resolver is not answering. Look in the TCP/IP log for `DNS - Query timed out` and `DNS - Query failure`. A DNS blacklist or SURBL lookup asks the A record alone, and asks once more when that query fails (below), so one that times out waits for `DNSQueryTimeout` twice - as long as its A and AAAA queries waited before 6.3.7; and SURBL, which stopped at the first lookup that failed, goes on to the message's other names until its ten seconds for beginning lookups are up, the ones begun then waited for. **Do not reach for `DNSServer` as the fix** — see the warning below |
 | `done spam-protection`, then silence | message modifications: the spam headers, the signature, the List-\* headers, or the write of the modified message back to disk |
 | `script/save` slow | an `OnAcceptMessage` event script, or the database |
 | Nothing between `354` and silence | you are on a version older than 6.2.17; upgrade, because that is the version that added these lines |
@@ -125,18 +125,20 @@ its verdict: it does not score, refuse or reject for a lookup that failed. From
 a SERVFAIL, a timeout, no DNS server answering - and not only when all of them
 did (upstream PR 640). An address lookup asks A and AAAA (AAAA where IPv6 is
 available, which is everywhere in practice), and the name's CNAME when neither
-found anything. Before 6.3.7 an A query that failed beside an AAAA query
-answered "no AAAA records" - the answer of every IPv4-only host, and of every
-address a DNS blacklist does not list - was read as "this name has no
-addresses". NXDOMAIN and NODATA are answers, and still mean "no addresses".
+found anything. The DNS blacklists and SURBL ask the A record alone: a list
+answers with A records, for an IPv6 address as for an IPv4 one (RFC 5782), and
+until 6.3.7 they asked AAAA as well. Before 6.3.7 an A query that failed beside
+an AAAA query answered "no AAAA records" - the answer of every IPv4-only host,
+and of every address a DNS blacklist does not list - was read as "this name has
+no addresses". NXDOMAIN and NODATA are answers, and still mean "no addresses".
 
 | Test | When its lookup fails | Before 6.3.7 |
 |---|---|---|
 | The HELO host (`CheckHostInHelo`) | not scored | scored when one of A and AAAA failed and the other was answered without an address, or when both were and the CNAME query failed |
 | PTR (`CheckPTR`) | not scored, whether the PTR lookup or the address lookup of the name it gives failed | a failed address lookup of the reverse name was scored |
 | MX records (`UseMXChecks`) | not scored | scored when the MX query found nothing and the CNAME query failed |
-| A DNS blacklist | asked once more, past the DNS cache; when that fails too, the client is not checked against that list, and the log says so | asked once; a lookup that failed was "not listed", logged as `0 addresses found` like a list's answer |
-| SURBL | asked once more, past the DNS cache; when that fails too, the name is passed over and the message's other names are asked | the first lookup that failed ended the list for the message, so a listed link after it was never asked about |
+| A DNS blacklist | asked for the A record alone, and once more, past the DNS cache, when that query fails; when it fails twice, the client is not checked against that list, and the log says so | asked once, for A and AAAA; a lookup that failed was "not listed", logged as `0 addresses found` like a list's answer |
+| SURBL | asked for the A record alone, and once more, past the DNS cache, when that query fails; when it fails twice, the name is passed over and the message's other names are asked | asked once, for A and AAAA; the first lookup that failed ended the list for the message, so a listed link after it was never asked about |
 | DKIM keys, DMARC policies, SPF records | a temporary error, as for any lookup that fails: DKIM `TempFail`, DMARC and SPF `temperror` | a lookup that found no record and whose CNAME query failed read as "not published" - for a DKIM key, a `PermFail` |
 
 The second attempt of a DNS blacklist or SURBL lookup bypasses the Windows DNS
@@ -146,12 +148,15 @@ no cache, and the second attempt is asked of the DNS server again. Setting
 A lookup that answered - with addresses or without - is not asked again.
 
 Delivery makes the same address lookup of each of a recipient's mail servers,
-and retries a message whose servers it cannot reach either way. When the lookup
-failed for every one of them, the notice to the sender now says
+and of a route's host or the SMTP relay server, and retries a message whose
+servers it cannot reach either way. When the lookup failed for every one of
+them, the notice to the sender now says
 `Unable to find the recipient's email server. The DNS query has failed.`
 (`4.4.4`); before 6.3.7 a failed A query beside an AAAA query answered without
 an address made it `No mail servers appear to exists for the recipient's
-address` (`4.1.2`), which asks the sender to check the address.
+address` (`4.1.2`), which asks the sender to check the address - or, through a
+route or the relay server, `The host specified as SMTP relay server could not
+be found` (`4.3.5`).
 
 What the log says:
 
@@ -160,6 +165,7 @@ What the log says:
 | `DNS lookup failed: <address reversed>.<list>. The client could not be checked against this blacklist.` | TCP/IP | A DNS blacklist lookup failed twice. In place of the `DNS lookup: ..., 0 addresses found: (none), Match: False` line an answered lookup writes |
 | `DNSBL: The lookup of <name> did not complete, asked twice. The client could not be checked against <list>, and its messages are accepted without that list's verdict.` | application | The same, at most once every 15 minutes |
 | `SURBL: The lookup of <name> did not complete[, nor did <n> other lookups of the same message]. The message's other names were asked about, and it is accepted without the list's verdict on the names whose lookups did not complete.` | application | A SURBL lookup failed twice and no other name of the message was listed, at most once every 15 minutes |
+| `SURBL: The lookup of <name> did not complete[, nor did <n> other lookups of the same message], and the ten seconds a message is given ran out before its other names were all asked about. It is accepted without the list's verdict on the names whose lookups did not complete or that were not asked about.` - or `and a lookup in <list> ended in an error before the message's other names were all asked about` | application | The same, when SURBL's ten seconds for beginning lookups ran out - a list whose every lookup times out does that - or a lookup ended in an error before every name was asked |
 | `DNS - The lookup of <name> did not complete. Asking once more, past the DNS cache.` | debug | A DNS blacklist or SURBL lookup is asked a second time |
 | `SpamTestHeloHost: The lookup of <host> did not complete. The HELO host is not scored.` and `SpamTestPTR: The lookup of <name>, the reverse name of <address>, did not complete. The address is not scored.` | debug | The HELO or PTR test passed over a lookup that failed |
 
@@ -351,12 +357,13 @@ lines were checked on 7 October 2026 against `ExternalDelivery::DeliverToSingleD
 (`QueryValidatedRrset_`, `ValidateRrset`, `ValidateZoneKeys`, `FetchDsRecords`,
 `WhereUnproven` and `DescribeCheck`, which word every reason). The lookups a spam
 test cannot complete were checked on 12 October 2026 against
-`DNSResolver::GetIpAddressesRecursive_`, `GetIpAddressesWithRetry`,
+`DNSResolver::GetIpAddressesRecursive_`, `GetDnsListAnswers`,
 `GetRecordsOfTypeRecursive_` and `GetMXRecordsRecursive_` (what counts as a failed
 lookup, and the second attempt), `DNSResolverWinApi::Query` (the cache bypass),
 `BLCheck::ClientExistsInDNSBL`, `SURBL::Run`, `SpamTestHeloHost::CheckHostInHelo_`,
 `SpamTestPTR::CheckPTR_`, `SpamTestMXRecords::HasAnyMXRecords_`, `DKIM.cpp`'s key
 lookup, `DMARC.cpp` and `SPFEvaluator` (the table and every line quoted),
-`DNSResolver::GetEmailServersRecursive_` and `ExternalDelivery::HandleNoRecipientServers_`
+`DNSResolver::GetEmailServersRecursive_`, `ExternalDelivery::ResolveRecipientServers_`
+(a route's host and the relay server) and `ExternalDelivery::HandleNoRecipientServers_`
 (the delivery notice), and `AntiSpamDiagnostics` (the fifteen minutes). If you change one of
 those, this page is the second place to look.

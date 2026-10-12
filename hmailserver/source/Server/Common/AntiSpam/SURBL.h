@@ -136,7 +136,7 @@ namespace HM
       // seconds, or once the list has listed a name or refused a query; those
       // already begun are waited for, and a listing among them counts. A name
       // whose lookup did not complete, asked twice
-      // (DNSResolver::GetIpAddressesWithRetry), is passed over and the rest are
+      // (DNSResolver::GetDnsListAnswers), is passed over and the rest are
       // asked (upstream PR 640): before 6.3.7 it ended the list for the
       // message, and a listed link after it was never asked about.
       bool Run(std::shared_ptr<SURBLServer> pSURBLServer, const std::vector<String> &vecUrls);

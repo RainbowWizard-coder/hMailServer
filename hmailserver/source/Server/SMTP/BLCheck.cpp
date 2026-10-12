@@ -33,13 +33,15 @@ namespace HM
 
       String sCheckHost = sReverted + "." + sDNSBLHost;
 
-      // Asked once more when the lookup did not complete, past the DNS cache
-      // (upstream PR 640). Its answer is a verdict, and before 6.3.7 a failed A
-      // query beside an AAAA query the list answered NXDOMAIN - which it
-      // answers every address it does not list - was read as "not listed".
+      // The list's A records - the only records a list answers with, for an
+      // IPv6 client as for an IPv4 one (RFC 5782) - asked once more, past the
+      // DNS cache, when the query fails (upstream PR 640). The answer is a
+      // verdict, and before 6.3.7 an A query that failed beside an AAAA query
+      // the list answered NXDOMAIN - which it answers for every address it does
+      // not list - was read as "not listed".
       std::vector<String> foundAddresses;
       DNSResolver resolver;
-      const bool lookupCompleted = resolver.GetIpAddressesWithRetry(sCheckHost, foundAddresses, false);
+      const bool lookupCompleted = resolver.GetDnsListAnswers(sCheckHost, foundAddresses);
 
       if (!lookupCompleted)
       {

@@ -480,9 +480,10 @@ namespace HM
 
       // What an address lookup answers when one of its queries fails - a
       // failure, not "no addresses", unless addresses were found - which the
-      // HELO test, the DNS blacklists and SURBL read; the second attempt the
-      // last two make past the DNS cache; and a record lookup whose CNAME
-      // query failed. Against answers scripted on this thread (upstream PR 640).
+      // HELO and PTR tests read; the lookup the DNS blacklists and SURBL make,
+      // of the A record alone and once more past the DNS cache when it fails;
+      // and a record lookup whose CNAME query failed. Against answers scripted
+      // on this thread (upstream PR 640).
       OutputDebugString(_T("hMailServer: Testing DNSResolver\n"));
       DNSResolverTester dnsResolverTester;
       dnsResolverTester.Test();

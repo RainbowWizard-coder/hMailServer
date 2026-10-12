@@ -25,10 +25,12 @@ namespace RegressionTests.AntiSpam
    ///    as "not listed", and the PTR and MX-record tests scored what they could
    ///    not look up as well. A lookup now fails unless addresses were found or
    ///    every query was answered; a failure is not scored; the DNS blacklists and
-   ///    SURBL ask a lookup that failed once more, past the DNS cache; SURBL passes
-   ///    over a name it could not look up and asks the rest, where one failure used
-   ///    to end the list for the message; and a blacklist says in the log that it
-   ///    could not check the client.
+   ///    SURBL ask the A record alone - the only record a list answers with (RFC
+   ///    5782), so that an AAAA query cannot fail a lookup the list answered - and
+   ///    ask a query that failed once more, past the DNS cache; SURBL passes over a
+   ///    name it could not look up and asks the rest, where one failure used to end
+   ///    the list for the message; and a blacklist says in the log that it could
+   ///    not check the client.
    ///
    ///    The suite's own zone (SuiteDns) serves every name, so each case is the
    ///    answer it describes - a SERVFAIL, a timeout, NXDOMAIN, NODATA - and not
@@ -320,6 +322,29 @@ namespace RegressionTests.AntiSpam
             "An answered lookup was asked again. Asked: " + string.Join(", ", SuiteDns.Zone.Queries));
       }
 
+      [Test]
+      [Description("A DNS blacklist is asked for the A record alone, the only record a list answers with (RFC 5782): no AAAA query is made, so one that would have timed out neither fails the lookup nor delays it, and the list's NXDOMAIN is its answer.")]
+      public void BlacklistIsAskedForTheARecordAlone()
+      {
+         string checkHost = ArmBlacklist_("dnsbl-aonly." + Zone);
+         SuiteDns.Zone.WithNxDomain(checkHost)
+            .WithSilence(checkHost, FakeDnsServer.TypeAaaa);
+
+         string message = SendFromLoopback_("dnsbl-aonly");
+
+         AssertNotScored_(message, "Listed by dnsbl-aonly", "a blacklist that answered NXDOMAIN");
+
+         string log = LogHandler.ReadCurrentDefaultLog();
+         StringAssert.Contains(checkHost + ", 0 addresses found: (none), Match: False", log,
+            "The list's NXDOMAIN was not read as its answer.");
+         StringAssert.DoesNotContain("DNS lookup failed: " + checkHost, log,
+            "A lookup the list answered failed on an AAAA query, which holds no verdict.");
+         ClassicAssert.AreEqual(1, AskedOf_(checkHost, FakeDnsServer.TypeA),
+            "The A query was not asked exactly once. Asked: " + string.Join(", ", SuiteDns.Zone.Queries));
+         ClassicAssert.AreEqual(0, AskedOf_(checkHost, FakeDnsServer.TypeAaaa),
+            "A DNS blacklist was asked for AAAA records, which no list answers with. Asked: " + string.Join(", ", SuiteDns.Zone.Queries));
+      }
+
       // ------------------------------------------------------------------ SURBL
 
       [Test]
@@ -380,6 +405,33 @@ namespace RegressionTests.AntiSpam
          }
       }
 
+      [Test]
+      [Description("SURBL is asked for the A record alone, the only record a list answers with (RFC 5782): no AAAA query is made, so one that would have failed does not make the list's NXDOMAIN a lookup to ask again.")]
+      public void SurblIsAskedForTheARecordAlone()
+      {
+         var surblServer = ArmSurbl_();
+         try
+         {
+            string lookupName = "surbl-aonly.test." + SurblZone;
+            SuiteDns.Zone.WithNxDomain(lookupName)
+               .WithServFail(lookupName, FakeDnsServer.TypeAaaa);
+
+            string message = SendFromLoopback_("surbl-aonly", "A link: http://surbl-aonly.test/ here");
+
+            AssertNotScored_(message, "X-hMailServer-Spam", "a link the list answered NXDOMAIN for");
+            ClassicAssert.AreEqual(1, AskedOf_(lookupName, FakeDnsServer.TypeA),
+               "The A query was not asked exactly once: the list's answer was taken for a lookup that failed. Asked: " +
+               string.Join(", ", SuiteDns.Zone.Queries));
+            ClassicAssert.AreEqual(0, AskedOf_(lookupName, FakeDnsServer.TypeAaaa),
+               "SURBL was asked for AAAA records, which no list answers with. Asked: " + string.Join(", ", SuiteDns.Zone.Queries));
+         }
+         finally
+         {
+            surblServer.Active = false;
+            surblServer.Save();
+         }
+      }
+
       // ------------------------------------------------------------------ delivery
 
       [Test]
@@ -420,6 +472,42 @@ namespace RegressionTests.AntiSpam
             "An exchange that answered NODATA for A and AAAA was not reported as a domain with no mail servers.");
       }
 
+      [Test]
+      [Description("A route's host whose A query fails beside an AAAA query answered NODATA is a DNS query that failed, and the notice says so, rather than that the relay server could not be found.")]
+      public void DeliveryThroughARouteWhoseHostLookupFailsSaysTheLookupFailed()
+      {
+         // A route's host, as the SMTP relay server's, is looked up as an address
+         // (ExternalDelivery::ResolveRecipientServers_'s fixed hosts), and the
+         // notice for a host with no address is "The host specified as SMTP relay
+         // server could not be found" (4.3.5), for a lookup that failed "The DNS
+         // query has failed" (4.4.4). Retried either way.
+         string domain = "deliver-route-a-servfail." + Zone;
+         string relayHost = "relay." + domain;
+         SuiteDns.Zone.WithServFail(relayHost, FakeDnsServer.TypeA);
+         AddRoute_(domain, relayHost);
+
+         string notice = DeliverToAndReadTheNotice_("deliver-route-a-servfail", "someone@" + domain);
+
+         StringAssert.Contains("Status: 4.4.4", notice,
+            "A route's host whose A query failed was not reported as a DNS query that failed.");
+         StringAssert.DoesNotContain("Status: 4.3.5", notice,
+            "A route's host whose A query failed was reported as a relay server that could not be found - the AAAA query's NODATA was read as the host's whole answer.");
+         AssertAsked_(relayHost, FakeDnsServer.TypeA, FakeDnsServer.TypeAaaa);
+      }
+
+      [Test]
+      [Description("A route's host with no address at all - NODATA for A and AAAA - is still a relay server that could not be found, as before.")]
+      public void DeliveryThroughARouteWhoseHostHasNoAddressSaysItCouldNotBeFound()
+      {
+         string domain = "deliver-route-nodata." + Zone;
+         AddRoute_(domain, "relay." + domain);
+
+         string notice = DeliverToAndReadTheNotice_("deliver-route-nodata", "someone@" + domain);
+
+         StringAssert.Contains("Status: 4.3.5", notice,
+            "A route's host that answered NODATA for A and AAAA was not reported as a relay server that could not be found.");
+      }
+
       // ------------------------------------------------------------------ helpers
 
       // Sends from a new local account to recipient, waits for the queue to empty,
@@ -430,6 +518,19 @@ namespace RegressionTests.AntiSpam
          SmtpClientSimulator.StaticSend(sender.Address, recipient, "DNS lookup failures", "A message.");
          CustomAsserts.AssertRecipientsInDeliveryQueue(0);
          return Pop3ClientSimulator.AssertGetFirstMessageText(sender.Address, "test");
+      }
+
+      // A route for domain to relayHost, tried once: the notice comes at once.
+      // PerformBasicSetup removes every route before the next test.
+      private void AddRoute_(string domain, string relayHost)
+      {
+         var route = _settings.Routes.Add();
+         route.DomainName = domain;
+         route.TargetSMTPHost = relayHost;
+         route.TargetSMTPPort = 25;
+         route.NumberOfTries = 0;
+         route.MinutesBetweenTry = 5;
+         route.Save();
       }
 
       private void ArmHelo_()
