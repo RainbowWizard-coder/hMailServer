@@ -215,7 +215,14 @@ namespace hMailServer.ControlPanel.Tests.Services
          string xaml = Read("QueueView.xaml");
          Assert.Contains("Header=\"{loc:L 'From'}\" Binding=\"{Binding From}\" Width=\"*\" MinWidth=\"160\"", xaml, StringComparison.Ordinal);
          Assert.Contains("Header=\"{loc:L 'Recipients'}\" Binding=\"{Binding Recipients}\" Width=\"*\" MinWidth=\"160\"", xaml, StringComparison.Ordinal);
-         Assert.Contains("<DataGridTextColumn Header=\"ID\" Binding=\"{Binding Id}\" Width=\"64\" MinWidth=\"56\"", xaml, StringComparison.Ordinal);
+         // Left-aligned, as review finding F248 asks and the comment says: the fold's
+         // 660fe6262 gave it the number styles to pass the fixed-width rule, which
+         // right-aligned it (the final check of Tier 2, g3 defect 9); Auto over 56 passes it.
+         Assert.Contains("<DataGridTextColumn Header=\"ID\" Binding=\"{Binding Id}\" Width=\"Auto\" MinWidth=\"56\" />", xaml, StringComparison.Ordinal);
+         string id = xaml.Substring(xaml.IndexOf("<DataGridTextColumn Header=\"ID\"", StringComparison.Ordinal));
+         id = id.Substring(0, id.IndexOf("/>", StringComparison.Ordinal));
+         Assert.DoesNotContain("GridNumberText", id, StringComparison.Ordinal);
+         Assert.DoesNotContain("GridNumberHeader", id, StringComparison.Ordinal);
       }
 
       private static string Read(string file) => FormLineAssert.ReadControlPanelFile(Path.Join("Views", file));

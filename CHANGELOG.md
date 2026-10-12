@@ -3912,6 +3912,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   five rows it showed at 1280 by 800; it is under the table and the steps it speaks of. `ProfilesPageFlowTests` and
   `CardGridTidyingTests` hold both.
 
+- **Fixed: the delivery queue's ID column was right-aligned as a count.** Review finding F248 asked for the ID narrow
+  and left-aligned, and the page's own comment said so, but the column carried the number styles - given to it so that
+  it passed the rule against columns of words at a fixed width - and its IDs and header sat at the right. It is as wide
+  as its widest ID over a floor of 56 pixels, left-aligned. `DeliveryQueueTests` holds it.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
