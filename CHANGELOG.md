@@ -484,12 +484,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   (`[Database] NumberOfConnections` below 1) is refused as one that could not connect, where the first connection
   was read from the empty pool. SQL Server Compact, the database of a default Windows installation, runs in the
   server's process and writes what was committed to its file every ten seconds, or when any of its connections to
-  the file closes, and
-  what a process that ends before either had not yet written is lost: its one connection, when still in use, is
-  waited for twelve seconds before the process ends. On Linux, with another session's lock holding the external
-  fetch manager's first statement and the indexer idle, a SIGTERM closed the database under the statement 16 seconds
-  later on PostgreSQL 18 and MariaDB 13; now that connection is left open and the process ends then. A reinitialise still closes the database
-  whatever is left running, as it always has, and opens it again. A start after a stop begins a new
+  the file closes, and what a process that ends before either had not yet written is lost: its one connection, when
+  still in use, is waited for up to twelve seconds, or until it is handed back, before the process ends. On Linux,
+  with another session's lock holding the external fetch manager's first statement and the indexer idle, a SIGTERM
+  closed the database under the statement 16 seconds later on PostgreSQL 18 and MariaDB 13; now that connection is
+  left open and the process ends then. A reinitialise still closes the database whatever is left running, as it
+  always has, and opens it again. A start after a stop begins a new
   thread, and no indexer is started while the servers are stopped, from a reinitialise's stop to its start, the
   start of the servers starting it from its setting - which is now saved before the indexer is started or stopped,
   where a save that came after the start of the servers had read it left the indexer stopped with the setting on,
