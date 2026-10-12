@@ -31,8 +31,9 @@ The databases are reached only on the back network; no port is published on the
 host. The credentials are generated once into `~/hmlab/aa/secrets.env` (mode 600)
 and reach the containers through the environment by name, never as an argument.
 
-The Linux server has no SQL Server backend (HM6390), so SQL Server takes part through
-the engine checks (`sqlcheck.py`, over TDS) and not with whole nodes.
+The Linux server has no SQL Server backend (HM6390), so here SQL Server takes part
+through the engine checks (`sqlcheck.py`, over TDS) alone. Whole nodes on SQL Server
+are the Windows lab's, below.
 
 The commands
 ------------
@@ -247,6 +248,120 @@ client's three wrong passwords shut out every other client for the length of the
 ban. The country policy and `OnClientConnect` are still asked about the balancer,
 at the accept; this scenario does not cover them.
 
+The Windows lab (`windows/`): SQL Server through the server's own code
+---------------------------------------------------------------------
+
+Two Windows nodes of the server on one SQL Server 2022, so that SQL Server is proved
+the way a Windows installation uses it: the server as a Windows service, ADO and the
+Microsoft OLE DB Driver 18, sessions at READ UNCOMMITTED, the database password
+sealed for each machine with DPAPI. Set up on 13 October 2026 on two VMs the owner
+gave the lab, both with other roles. It is driven from the machine that hosts them
+(the owner's laptop), over SSH:
+
+| Machine | What it is | What the lab put there |
+|---|---|---|
+| W1 | The installer smoke VM, Windows Server 2025 (4 vCPU, 8 GB), its address by DHCP (`aa-win.py` asks `vmrun`) | The server as a real installation has it: `C:\hmlab-aa` (Bin, DBScripts, Languages, Events, WebAdmin, Data, Logs, Temp), `/RegisterTypeLib` and `/Register` (service `hMailServer`, LocalSystem, the COM server), `InstallLocation`; the service set to Manual; MSOLEDBSQL 18.7.6; a firewall rule `hmlab-aa: hMailServer lab ports` (TCP 2525, 2587, 1110, 1143 to `hMailServer.exe`, local subnet) |
+| W2 | The AD lab's domain controller, Windows Server 2025 (6 vCPU, 5 GB), 192.168.11.149, which runs an hMailServer of its own (`C:\Program Files\hMailServer`, on SQL Server Compact) | The same `C:\hmlab-aa`, as a second service `hMailServerAA` (made as `/Register` makes one: own process, `"<exe>" RunAsService`, after RPCSS, LocalSystem; Manual), not registered with COM; MSOLEDBSQL 18.7.6. Its firewall is off, and stays as it was |
+| server2 | 10.0.0.19 | `hmlab-aa-mssql`: SQL Server 2022 CU27 Developer edition (the image `build/lab/docker-compose.yml` pins), long-lived (`--restart unless-stopped`, 4 GB, volume `hmlab-aa-mssql-data`), published on `10.0.0.19:14330`, in `TZ=Europe/London`, the zone of the nodes. During a run, `hmlab-aa-sink` (`sink.py`) on `10.0.0.19:14325`. `~/hmlab/aa-win` holds the scripts, the runs and python-tds for the checks |
+
+**One installation per machine.** On Windows the server finds `hMailServer.ini`
+through `HKLM\SOFTWARE\hMailServer\InstallLocation` (the 32-bit view the installer
+writes) before its own folder (`Utilities::GetBinDirectory`). A second installation
+on a machine that has one reads the first's configuration, and runs on the first's
+database; the first run on W2 did exactly that, and W2 was reverted to its snapshot.
+So the node on W2 runs in **turns**: while its service runs, and for the server's own
+verbs (`--set-admin-password`, `--upgrade-database`), the AD lab's service is stopped
+and Disabled and `InstallLocation` names `C:\hmlab-aa`; when it stops, both are put
+back and the AD lab's service is started again. `node.ps1` keeps what a turn changed
+in `C:\hmlab-aa\lab\turn.json` before it changes it, and `node.ps1 release` puts it
+back after any failure. Disabled, not Manual: during a turn a COM activation of
+`hMailServer.Application` would otherwise start the AD lab's service, which would read
+the lab's INI. The AD lab's hMailServer is down for as long as the W2 node runs.
+
+The lab database, `hmlab_aa`, is **made by the server itself**: `aa-win.py provision`
+has W1's server create it over COM, as DBSetup does (`Database.CreateExternalDatabase`,
+which runs `CREATE DATABASE` with the instance's collation, SQL_Latin1_General_CP1_CI_AS,
+and `CreateTablesMSSQL.sql`, then `Reinitialize`), and configures it over COM: the
+listeners moved to 2525, 2587, 1110 and 1143 (W2's own hMailServer has 25, 110, 143
+and 587), auto-ban off, `example.test` with `account1@` to `account4@`, and the route
+that sends `sink.test` to the sink. The nodes' login, `hmlab_aa_node`, holds dbcreator
+only until then, and owns the database and nothing else; the engine checks have a
+login and a database of their own. A golden backup of the database as provisioning
+left it is what `reset` restores. The new-installation defaults are not applied, as in
+the Linux lab: the listeners have no TLS.
+
+**Secrets** are in `~/.config/hmailserver/aa-lab-mssql` on the driving machine
+(owner-only), made by `aa-win.py secrets`, and in each node's INI as the server keeps
+them: the database password sealed with DPAPI for that machine
+(`PasswordEncryption=6`; W1's written by `CreateExternalDatabase`, W2's by `node.ps1
+set-database` in the same format, and both checked to open to the same password), the
+administrator's as a PBKDF2 hash written by `--set-admin-password`. Each reaches the
+machine that needs it on standard input, never as an argument; server2 is given only
+the database's. sa's first password, which the container's environment shows, is a
+throwaway replaced at the first start.
+
+```
+python build/lab/active-active/windows/aa-win.py secrets
+python build/lab/active-active/windows/aa-win.py kit --server1 <commit>      # make-kit.ps1 on server1
+python build/lab/active-active/windows/aa-win.py provision --kit <zip> --msi <msoledbsql.msi>
+python build/lab/active-active/windows/aa-win.py deploy-build --kit <zip> [--node W1|W2|all] [--upgrade-database] [--start]
+python build/lab/active-active/windows/aa-win.py start W1|W2 | stop W1|W2|all | status
+python build/lab/active-active/windows/aa-win.py reset [--recreate]
+python build/lab/active-active/windows/aa-win.py smoke W1|W2
+python build/lab/active-active/windows/aa-win.py baseline
+python build/lab/active-active/windows/aa-win.py sqlcheck
+python build/lab/active-active/windows/aa-win.py ado-probe W1|W2
+```
+
+`start` refuses a node while the other runs or holds a session on the database:
+until the units land, WarmStandby.md holds. `start all --both` and `baseline` are the
+controlled measurements that break that rule on purpose; `baseline` ends with W2
+stopped and W1 alone. A kit is a build of the Windows server laid out as the installer
+lays out an installation (`make-kit.ps1`: `build\build.ps1 -Configuration Release`,
+post-build events off, on the build machine; the C++ runtime app-local, OpenSSL,
+libpq, the MariaDB client, `SHA256SUMS.txt`, which the nodes check). `deploy-build`
+keeps each node's INI, and with `--upgrade-database` stops both nodes and moves the
+schema through `hMailServer.exe --upgrade-database` on W1. The VMs have snapshots
+`before-aa-lab` (each as it was) and `aa-lab-base` (the lab provisioned, both services
+stopped, the database at its golden backup); after a revert to `aa-lab-base`, run
+`aa-win.py reset`, since the database is on server2 and not in the snapshot. W1's
+`firstsnapshot` is the installer smoke test's and is not the lab's.
+
+Measured on 13 October 2026 (master 74aed9ab8, schema 6108; results in
+`~/.cache/hmlab-aa-win/runs/` on the driving machine and `~/hmlab/aa-win/runs/` on
+server2):
+
+- **Each node alone** (`smoke`): the service starts, 5 sessions from its host, a
+  message delivered over SMTP to `account2@` and read back over IMAP from the
+  driving machine, one relayed to the sink. On W2 the other node's message in the
+  same mailbox logged HM4403 (its file is on W1's disk), and HM5080 is logged at
+  every start there (`CoResumeClassObjects`: `CO_E_WRONG_SERVER_IDENTITY`, the COM
+  classes being the AD lab's service's).
+- **`RecordsAffected` through ADO** (`ado-probe`), on both nodes, through
+  MSOLEDBSQL and SQLOLEDB, at READ UNCOMMITTED: 0, 1, 1 for a row matched and left
+  unchanged, 2, 1 for an insert, 1 for a delete; a claim that recognises itself 1
+  and 1 again, a plain one run again 0.
+- **The engine checks at READ UNCOMMITTED** (`sqlcheck`: `windows/sqlcheck-mssql.py`
+  runs `sqlcheck.py`'s checks in sessions set up as `ADOConnection::Connect` sets the
+  server's): counts, claims (300, each won once) and the lease as above; UIDs in three
+  statements 302 numbers given twice in 800 rows, in one transaction none; and with
+  writers that roll back every third number, the reader at READ UNCOMMITTED saw 109
+  rows that were rolled back and never saw 108 committed ones, the reader with the
+  `READCOMMITTED` hint neither.
+- **Scenario S0** (`baseline`), two runs: of 2,000 relayed, 314 and 316 never
+  delivered and none twice; of 1,000 into one mailbox, 218 and 260 left (`UIDNEXT`
+  863 and 839), 14 and 18 UIDs given to two messages each (`SELECT` showed 204 and
+  242 where `STATUS` said 218 and 260), and every message a placeholder on one of the
+  two nodes; HM5006 logged 2,273 and 2,240 times. Worse than any Linux engine.
+
+What the Windows lab cannot show yet: the faults (a node killed or frozen, cut off
+from the database: `Stop-Process`, a debugger's suspend and a firewall rule would
+make them, and AA-24 adds them), a balancer in front of the Windows nodes, the
+object store (MinIO is on the Linux lab's own network), clock skew (both VMs keep
+the laptop's time) and a machine renamed. The laptop has little memory to spare with
+four VMs running, so the Windows nodes are for runs like these, not for the long
+suites.
+
 What it cannot show yet
 -----------------------
 
@@ -263,8 +378,8 @@ What it cannot show yet
   offset per node is the nearest the lab can come.
 - **A database failover that loses its last commit**, unless a PostgreSQL replica
   is added to promote.
-- **SQL Server through the server's own code.** The Linux server has no SQL Server
-  backend, so SQL Server takes part through `sqlcheck` alone here.
-  `DatabaseClaimTester` runs inside a Windows server (ClassTester): on SQL Server
-  Compact in the Windows gate, and on the server's own database when that is SQL
-  Server.
+- **SQL Server through the server's own code**, here: the Linux server has no SQL
+  Server backend, so SQL Server takes part through `sqlcheck` alone. The Windows lab
+  (above) runs it, and `DatabaseClaimTester` runs inside a Windows server
+  (ClassTester): on SQL Server Compact in the Windows gate, and on the server's own
+  database when that is SQL Server.
