@@ -173,6 +173,12 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          Assert.Contains("Header=\"{loc:L 'Expires'}\" Binding=\"{Binding Expires}\"", xaml, StringComparison.Ordinal);
          Assert.Contains("Header=\"{loc:L 'Relay'}\"", xaml, StringComparison.Ordinal);
+         // The Relay column is the grid's last: the columns before it keep no floor in the markup wider than
+         // their words need - the name's 120 pixels, the permissions' 48 - so that at 1280 beside the sidebar
+         // the grid fits and the Critical pill is whole, where it scrolled sideways and cut it to "Open rela".
+         Assert.Contains("Header=\"{loc:L 'Name'}\" Binding=\"{Binding Name}\" Width=\"*\" MinWidth=\"120\"", xaml, StringComparison.Ordinal);
+         foreach (string protocol in new[] { "Smtp", "Imap", "Pop3" })
+            Assert.Matches(new Regex("x:Name=\"" + protocol + "Column\" Header=\"[A-Z0-9]+\" Binding=\"\\{Binding " + protocol + "\\}\" Width=\"Auto\" MinWidth=\"48\" />"), xaml);
          Assert.Matches(new Regex(@"StatusPill x:Name=""RelayPill"" Level=""\{Binding RelayLevel\}"""), xaml);
          Assert.Contains("<DataTrigger Binding=\"{Binding RelayMarked}\" Value=\"True\">", xaml, StringComparison.Ordinal);
          Assert.Contains("x:Name=\"BansOnlyBox\"", xaml, StringComparison.Ordinal);
