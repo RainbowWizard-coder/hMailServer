@@ -90,6 +90,33 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("ClipboardContentBinding = new System.Windows.Data.Binding(nameof(TraceRow.StatusText)),", code, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// The final check of Tier 2: the Status column was Auto with no floor, and the
+      /// delivery queue's Trace message, which fills the grid before the page's first
+      /// layout, left it at its header's width - every pill cut to its mark and a dot,
+      /// "■ .", in every language, until a search drew them again. The column is floored
+      /// at its header and at the widest class's pill, measured as the pill draws it.
+      /// </summary>
+      [Fact]
+      public void TheStatusColumn_IsFlooredAtItsWidestPill()
+      {
+         string code = ReadControlPanelFile(Path.Join("Views", "MessageTraceView.cs"));
+         Assert.Contains("MinWidth = StatusFloor_()", code, StringComparison.Ordinal);
+         string floor = WithheldRowTests.MemberText(code, "private static double StatusFloor_()");
+         Assert.True(floor != null, "MessageTraceView.StatusFloor_ is gone.");
+         Assert.Contains("GridStyles.HeaderWidth(L(\"Status\"))", floor, StringComparison.Ordinal);
+         Assert.Contains("new[] { 250, 451, 550 }", floor, StringComparison.Ordinal);
+         Assert.Contains("GridStyles.PillCellWidth(MessageTraceStatus.TextOf(code))", floor, StringComparison.Ordinal);
+
+         // The pill's own room is the template's: padding 8 and 10, an 8-pixel mark, a 6-pixel gap.
+         string styles = ReadControlPanelFile(Path.Join("Services", "GridStyles.cs"));
+         Assert.Contains("private const double PillChrome = 8 + 10 + 8 + 6;", styles, StringComparison.Ordinal);
+         string scaffold = ReadControlPanelFile(Path.Join("Views", "Scaffold", "Scaffold.xaml"));
+         Assert.Contains("Padding=\"8,3,10,4\" SnapsToDevicePixels=\"True\"", scaffold, StringComparison.Ordinal);
+         Assert.Contains("<Path x:Name=\"PART_Mark\" Width=\"8\" Height=\"8\" Stretch=\"Fill\"", scaffold, StringComparison.Ordinal);
+         Assert.Contains("Margin=\"0,0,6,0\" VerticalAlignment=\"Center\" />", scaffold, StringComparison.Ordinal);
+      }
+
       private static string ReadControlPanelFile(string relative)
       {
          var directory = new DirectoryInfo(AppContext.BaseDirectory);

@@ -3835,6 +3835,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `DomainsRowTests` holds that every row action is a named 24-pixel glyph, and `NoRowButton_CarriesACaption` and
   `AccessKeysTests` the rest.
 
+- **Fixed: Message trace cut every Status pill to its mark when the delivery queue's Trace message opened it.** The
+  Status column was Auto with no floor, and the queue's Trace message fills the grid before the page's first layout, so
+  the column kept its header's width and every pill read "■ ." - "OK 250", "Deferred 451" and "Refused 550" gone in
+  every language - until a search drew them again. The column is floored at its header and at the widest of the three
+  classes' pills in the reader's language, measured as the pill draws it (`GridStyles.PillCellWidth`).
+  `MessageTraceStatusTests` holds the floor and the pill's measure against its template.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

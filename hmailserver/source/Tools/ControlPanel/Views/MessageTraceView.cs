@@ -649,7 +649,8 @@ namespace hMailServer.ControlPanel.Views
             CellTemplate = new DataTemplate { VisualTree = pill },
             SortMemberPath = nameof(TraceRow.StatusCode),
             ClipboardContentBinding = new System.Windows.Data.Binding(nameof(TraceRow.StatusText)),
-            Width = DataGridLength.Auto
+            Width = DataGridLength.Auto,
+            MinWidth = StatusFloor_()
          });
 
          // The tip that used to live on each ListBoxItem. It says whether a row can
@@ -667,6 +668,20 @@ namespace hMailServer.ControlPanel.Views
          rowStyle.Setters.Add(new Setter(ToolTipProperty,
             new System.Windows.Data.Binding(nameof(TraceRow.FollowHint))));
          list_.RowStyle = rowStyle;
+      }
+
+      /// <summary>
+      /// The Status column's floor: its header, and the widest of the three classes'
+      /// pills with a three-digit code in the reader's language. Width Auto alone kept
+      /// the header's width when the delivery queue's Trace message filled the grid
+      /// before the page's first layout, and every pill read as its mark and a dot.
+      /// </summary>
+      private static double StatusFloor_()
+      {
+         double floor = GridStyles.HeaderWidth(L("Status"));
+         foreach (int code in new[] { 250, 451, 550 })
+            floor = Math.Max(floor, GridStyles.PillCellWidth(MessageTraceStatus.TextOf(code)));
+         return floor;
       }
 
       private static Button MakeButton(string text, Wpf.Ui.Controls.ControlAppearance appearance, RoutedEventHandler onClick)

@@ -160,6 +160,32 @@ namespace hMailServer.ControlPanel.Services
          return Math.Ceiling(words.WidthIncludingTrailingWhitespace) + CellTextMargin.Left + CellTextMargin.Right + CellPadding.Left + CellPadding.Right + before;
       }
 
+      /// <summary>
+      /// The width a status pill in a cell takes (Scaffold.xaml's StatusPill: its word
+      /// in the caption size, semibold, after an 8-pixel mark and a 6-pixel gap, in a
+      /// box padded 8 and 10), with the cell's padding, in whole device pixels - for a
+      /// column of pills floored at its widest word. Auto alone is no floor: Message
+      /// trace's Status column, filled by the delivery queue's Trace message before the
+      /// page's first layout, kept its header's width and cut every pill to its mark.
+      /// </summary>
+      public static double PillCellWidth(string text)
+      {
+         if (string.IsNullOrEmpty(text))
+            return 0;
+
+         double size = Application.Current?.TryFindResource("AppFontSizeCaption") is double caption ? caption : TextScaleFactor.Scaled(12.0);
+         Window window = Application.Current?.MainWindow;
+         FontFamily family = window?.FontFamily ?? new FontFamily("Segoe UI Variable Text, Segoe UI"); // no-loc
+         TextFormattingMode mode = window != null ? TextOptions.GetTextFormattingMode(window) : TextFormattingMode.Ideal;
+         double pixelsPerDip = window != null ? VisualTreeHelper.GetDpi(window).PixelsPerDip : 1.0;
+         var words = new FormattedText(text, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
+            new Typeface(family, FontStyles.Normal, FontWeights.SemiBold, FontStretches.Normal), size, Brushes.Black, null, mode, pixelsPerDip);
+         return WholeDevicePixels(Math.Ceiling(words.WidthIncludingTrailingWhitespace) + PillChrome + CellPadding.Left + CellPadding.Right);
+      }
+
+      /// <summary>A status pill's own room beside its word: the padding (8 and 10), the mark (8) and the gap after it (6).</summary>
+      private const double PillChrome = 8 + 10 + 8 + 6;
+
       /// <summary>The cell template's padding (App.xaml, the DataGridCell style's Border): 10 pixels each side.</summary>
       private static readonly Thickness CellPadding = new(10, 0, 10, 0);
 
