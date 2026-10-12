@@ -6426,11 +6426,14 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Last backup: {0} ({1}).</value>
   </data>
-  <data name="Last bounce (server time)" xml:space="preserve">
-    <value>Last bounce (server time)</value>
+  <data name="Last bounce: {0}" xml:space="preserve">
+    <value>Last bounce: {0}</value>
   </data>
   <data name="Last delivered (server time)" xml:space="preserve">
     <value>Last delivered (server time)</value>
+  </data>
+  <data name="Last delivered: {0}" xml:space="preserve">
+    <value>Last delivered: {0}</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Last scan: {0}.</value>
@@ -6440,6 +6443,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   </data>
   <data name="Last status code" xml:space="preserve">
     <value>Last status code</value>
+  </data>
+  <data name="Last status code: {0}" xml:space="preserve">
+    <value>Last status code: {0}</value>
   </data>
   <data name="Last update: {0}." xml:space="preserve">
     <value>Last update: {0}.</value>

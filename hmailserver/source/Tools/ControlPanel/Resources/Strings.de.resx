@@ -6426,11 +6426,14 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Letzte Sicherung: {0} ({1}).</value>
   </data>
-  <data name="Last bounce (server time)" xml:space="preserve">
-    <value>Letzte Unzustellbarkeit (Serverzeit)</value>
+  <data name="Last bounce: {0}" xml:space="preserve">
+    <value>Letzte Unzustellbarkeit: {0}</value>
   </data>
   <data name="Last delivered (server time)" xml:space="preserve">
     <value>Zuletzt zugestellt (Serverzeit)</value>
+  </data>
+  <data name="Last delivered: {0}" xml:space="preserve">
+    <value>Zuletzt zugestellt: {0}</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Letzter Scan: {0}.</value>
@@ -6440,6 +6443,9 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   </data>
   <data name="Last status code" xml:space="preserve">
     <value>Letzter Statuscode</value>
+  </data>
+  <data name="Last status code: {0}" xml:space="preserve">
+    <value>Letzter Statuscode: {0}</value>
   </data>
   <data name="Last update: {0}." xml:space="preserve">
     <value>Letzte Aktualisierung: {0}.</value>

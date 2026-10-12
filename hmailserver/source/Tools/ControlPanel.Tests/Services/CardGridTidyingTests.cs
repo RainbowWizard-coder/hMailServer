@@ -63,13 +63,15 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(columns != null, "SuppressionListView.BuildColumns_ is gone.");
          foreach (string category in new[] { "hard", "soft", "mailbox_full", "policy", "other" })
             Assert.Contains("Number_(CategoryText_(\"" + category + "\")", columns, StringComparison.Ordinal);
-         foreach (string header in new[] { "L(\"Reason\")", "L(\"Status code\")", "L(\"Last status code\")" })
+         foreach (string header in new[] { "L(\"Reason\")", "L(\"Status code\")" })
             Assert.Contains(header, columns, StringComparison.Ordinal);
+         // The last status code is the selected address's, in the strip under the counts.
+         Assert.Contains("F(\"Last status code: {0}\", LastStatus)", code, StringComparison.Ordinal);
          foreach (string old in new[] { "L(\"Why\")", "L(\"Status\")", "L(\"Hard\")", "L(\"Soft\")", "L(\"Policy\")", "L(\"Last status\")" })
             Assert.DoesNotContain(old, code, StringComparison.Ordinal);
 
-         // Under those names the counts need more than a window of 1280 gives them, so
-         // the grid scrolls sideways, and its address stays in view as it does.
+         // Under those names the counts can need more than a narrow window gives them,
+         // so the grid scrolls sideways there, and its address stays in view as it does.
          int counts = code.IndexOf("private readonly DataGrid counts_ = new()", StringComparison.Ordinal);
          Assert.True(counts >= 0, "SuppressionListView.counts_ is gone.");
          string countsInit = code.Substring(counts, code.IndexOf("};", counts, StringComparison.Ordinal) - counts);

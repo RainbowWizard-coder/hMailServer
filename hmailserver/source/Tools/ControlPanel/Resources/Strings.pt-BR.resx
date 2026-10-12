@@ -6426,11 +6426,14 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Último backup: {0} ({1}).</value>
   </data>
-  <data name="Last bounce (server time)" xml:space="preserve">
-    <value>Último retorno (horário do servidor)</value>
+  <data name="Last bounce: {0}" xml:space="preserve">
+    <value>Último retorno: {0}</value>
   </data>
   <data name="Last delivered (server time)" xml:space="preserve">
     <value>Última entrega (horário do servidor)</value>
+  </data>
+  <data name="Last delivered: {0}" xml:space="preserve">
+    <value>Última entrega: {0}</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Última verificação: {0}.</value>
@@ -6440,6 +6443,9 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   </data>
   <data name="Last status code" xml:space="preserve">
     <value>Último código de status</value>
+  </data>
+  <data name="Last status code: {0}" xml:space="preserve">
+    <value>Último código de status: {0}</value>
   </data>
   <data name="Last update: {0}." xml:space="preserve">
     <value>Última atualização: {0}.</value>

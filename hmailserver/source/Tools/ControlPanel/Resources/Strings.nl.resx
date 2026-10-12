@@ -6426,11 +6426,14 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Laatste back-up: {0} ({1}).</value>
   </data>
-  <data name="Last bounce (server time)" xml:space="preserve">
-    <value>Laatste bounce (servertijd)</value>
+  <data name="Last bounce: {0}" xml:space="preserve">
+    <value>Laatste bounce: {0}</value>
   </data>
   <data name="Last delivered (server time)" xml:space="preserve">
     <value>Laatst afgeleverd (servertijd)</value>
+  </data>
+  <data name="Last delivered: {0}" xml:space="preserve">
+    <value>Laatst afgeleverd: {0}</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Laatste scan: {0}.</value>
@@ -6440,6 +6443,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Last status code" xml:space="preserve">
     <value>Laatste statuscode</value>
+  </data>
+  <data name="Last status code: {0}" xml:space="preserve">
+    <value>Laatste statuscode: {0}</value>
   </data>
   <data name="Last update: {0}." xml:space="preserve">
     <value>Laatste update: {0}.</value>

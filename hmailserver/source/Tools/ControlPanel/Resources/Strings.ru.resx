@@ -6508,11 +6508,14 @@ Control Panel может читать файлы сообщений только
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Последняя резервная копия: {0} ({1}).</value>
   </data>
-  <data name="Last bounce (server time)" xml:space="preserve">
-    <value>Последний отказ (время сервера)</value>
+  <data name="Last bounce: {0}" xml:space="preserve">
+    <value>Последний отказ: {0}</value>
   </data>
   <data name="Last delivered (server time)" xml:space="preserve">
     <value>Последняя доставка (время сервера)</value>
+  </data>
+  <data name="Last delivered: {0}" xml:space="preserve">
+    <value>Последняя доставка: {0}</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Последняя проверка: {0}.</value>
@@ -6522,6 +6525,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Last status code" xml:space="preserve">
     <value>Последний код состояния</value>
+  </data>
+  <data name="Last status code: {0}" xml:space="preserve">
+    <value>Последний код состояния: {0}</value>
   </data>
   <data name="Last update: {0}." xml:space="preserve">
     <value>Последнее обновление: {0}.</value>

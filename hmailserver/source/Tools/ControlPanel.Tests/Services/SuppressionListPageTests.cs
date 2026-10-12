@@ -107,14 +107,16 @@ namespace hMailServer.ControlPanel.Tests.Services
          string code = Source();
          string columns = WithheldRowTests.MemberText(code, "private void BuildColumns_()");
          Assert.Contains("Trimmed_(L(\"Address\"), nameof(CountView.Address), new DataGridLength(1, DataGridLengthUnitType.Star), 180)", columns, StringComparison.Ordinal);
-         Assert.Contains("lastBounceColumn_ = Dated_(L(\"Last bounce (server time)\"), nameof(CountView.LastBounce), nameof(CountView.LastBounceAt));", columns, StringComparison.Ordinal);
-         Assert.Contains("lastDeliveredColumn_ = Dated_(L(\"Last delivered (server time)\"), nameof(CountView.LastDelivered), nameof(CountView.LastDeliveredAt));", columns, StringComparison.Ordinal);
          Assert.Contains("Fitted_(L(\"Listed\"), nameof(CountView.Listed), GridStyles.WholeDevicePixels(GridStyles.CellWidth(L(\"Listed\"))))", columns, StringComparison.Ordinal);
 
-         // The six counts: 64 pixels, or the header's width where that is more, so
-         // that "Mailbox full" is not cut to "Mailb…".
+         // The six counts: 64 pixels, or the widest word of the header where that is
+         // more, the header wrapping onto two lines, so that "Mailbox full" is not cut
+         // to "Mailb…" and "Harte Unzustellbarkeit" does not make a column of one digit
+         // 160 pixels wide.
          string number = WithheldRowTests.MemberText(code, "private static DataGridTextColumn Number_(string header, string path)");
          Assert.True(number != null && number.Contains("Fitted_(header, path, 64)", StringComparison.Ordinal), "A count column has no floor of 64 pixels.");
+         Assert.Contains("double width = Math.Max(64, GridStyles.WidestHeaderWord(header));", number, StringComparison.Ordinal);
+         Assert.Contains("GridStyles.WrappedHeader(column);", number, StringComparison.Ordinal);
 
          // A column of dates is floored at its header and, once the rows are read,
          // at its widest date, so a narrow window scrolls the grid sideways rather
@@ -124,8 +126,43 @@ namespace hMailServer.ControlPanel.Tests.Services
          string floor = WithheldRowTests.MemberText(code, "private static void FloorAtCells_<T>(DataGridTextColumn column, IEnumerable<T> rows, Func<T, string> cell)");
          Assert.True(floor != null && floor.Contains("floor = Math.Max(floor, GridStyles.CellWidth(cell(row)));", StringComparison.Ordinal), "A column of dates is not floored at its widest date.");
          string reload = WithheldRowTests.MemberText(code, "private void Reload()");
-         foreach (string column in new[] { "sinceColumn_, entries, e => e.Since", "expiresColumn_, entries, e => e.Expires", "lastBounceColumn_, countRows, c => c.LastBounce", "lastDeliveredColumn_, countRows, c => c.LastDelivered" })
+         foreach (string column in new[] { "sinceColumn_, entries, e => e.Since", "expiresColumn_, entries, e => e.Expires" })
             Assert.Contains("FloorAtCells_(" + column + ");", reload, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The final check of Tier 2: the bounce counts' grid scrolled 317 pixels past its
+      /// card at 1280 by 800 in English (559 in German, 332 in Japanese), its last
+      /// bounce and last delivery off screen on opening, under the longer category
+      /// names and the "(server time)" headers. The last status code, bounce and
+      /// delivery are the selected address's, in a strip under the counts, the dates in
+      /// the reader's form marked as the server's; the counts' headers wrap, each column
+      /// as wide as its header's widest word.
+      /// </summary>
+      [Fact]
+      public void TheCounts_FitTheirCard_TheLastCodeAndDatesInTheStrip()
+      {
+         string code = Source();
+         string columns = WithheldRowTests.MemberText(code, "private void BuildColumns_()");
+         foreach (string gone in new[] { "L(\"Last status code\")", "L(\"Last bounce (server time)\")", "L(\"Last delivered (server time)\")" })
+            Assert.DoesNotContain(gone, columns, StringComparison.Ordinal);
+         Assert.DoesNotContain("lastBounceColumn_", code, StringComparison.Ordinal);
+         Assert.DoesNotContain("lastDeliveredColumn_", code, StringComparison.Ordinal);
+
+         Assert.Contains("parts.Children.Add(RowDetailStrip.For(counts_, row => ((CountView)row).Address, row => ((CountView)row).Strip));", code, StringComparison.Ordinal);
+         Assert.Contains("F(\"Last bounce: {0}\", LastBounceAt is DateTime bounced ? ServerTimeText.Marked(bounced) : LastBounce)", code, StringComparison.Ordinal);
+         Assert.Contains("F(\"Last delivered: {0}\", LastDeliveredAt is DateTime delivered ? ServerTimeText.Marked(delivered) : LastDelivered)", code, StringComparison.Ordinal);
+         int counts = code.IndexOf("FillPanel.Filling(countsCard", StringComparison.Ordinal);
+         int strip = code.IndexOf("RowDetailStrip.For(counts_", StringComparison.Ordinal);
+         Assert.True(counts >= 0 && strip > counts, "The counts' strip is not under the counts' card.");
+
+         string styles = ReadControlPanelFile(Path.Join("Services", "GridStyles.cs"));
+         string widest = WithheldRowTests.MemberText(styles, "public static double WidestHeaderWord(string header)");
+         Assert.True(widest != null && widest.Contains("widest = Math.Max(widest, HeaderWidth(word));", StringComparison.Ordinal), "A header's widest word is not measured as the header is.");
+         string wrapped = WithheldRowTests.MemberText(styles, "public static void WrappedHeader(DataGridColumn column)");
+         Assert.True(wrapped != null, "GridStyles.WrappedHeader is gone.");
+         Assert.Contains("words.SetValue(TextBlock.TextWrappingProperty, TextWrapping.Wrap);", wrapped, StringComparison.Ordinal);
+         Assert.Contains("words.SetValue(TextBlock.TextAlignmentProperty, right ? TextAlignment.Right : TextAlignment.Left);", wrapped, StringComparison.Ordinal);
       }
 
       /// <summary>

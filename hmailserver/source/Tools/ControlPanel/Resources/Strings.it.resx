@@ -6426,11 +6426,14 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Ultimo backup: {0} ({1}).</value>
   </data>
-  <data name="Last bounce (server time)" xml:space="preserve">
-    <value>Ultimo rimbalzo (ora del server)</value>
+  <data name="Last bounce: {0}" xml:space="preserve">
+    <value>Ultimo rimbalzo: {0}</value>
   </data>
   <data name="Last delivered (server time)" xml:space="preserve">
     <value>Ultima consegna (ora del server)</value>
+  </data>
+  <data name="Last delivered: {0}" xml:space="preserve">
+    <value>Ultima consegna: {0}</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Ultima scansione: {0}.</value>
@@ -6440,6 +6443,9 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   </data>
   <data name="Last status code" xml:space="preserve">
     <value>Ultimo codice di stato</value>
+  </data>
+  <data name="Last status code: {0}" xml:space="preserve">
+    <value>Ultimo codice di stato: {0}</value>
   </data>
   <data name="Last update: {0}." xml:space="preserve">
     <value>Ultimo aggiornamento: {0}.</value>

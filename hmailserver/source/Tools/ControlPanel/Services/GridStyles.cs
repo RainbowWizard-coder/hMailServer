@@ -237,6 +237,47 @@ namespace hMailServer.ControlPanel.Services
       }
 
       /// <summary>
+      /// The widest word of a header, measured as HeaderWidth measures the whole, for a
+      /// column whose header wraps (WrappedHeader): a column of counts need be no wider
+      /// than that, where floored at its whole header "Harte Unzustellbarkeit" made a
+      /// column of one digit 160 pixels wide.
+      /// </summary>
+      public static double WidestHeaderWord(string header)
+      {
+         double widest = 0;
+         foreach (string word in (header ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries))
+            widest = Math.Max(widest, HeaderWidth(word));
+         return widest;
+      }
+
+      /// <summary>
+      /// A header whose words wrap onto as many lines as its column's width needs, in
+      /// the alignment of the column's own header style (a number column's is right),
+      /// whole in its tool tip as every header is. The style builds on the column's
+      /// own header style or the application's.
+      /// </summary>
+      public static void WrappedHeader(DataGridColumn column)
+      {
+         if (column == null)
+            return;
+
+         Style basis = column.HeaderStyle
+            ?? (Application.Current?.TryFindResource(typeof(System.Windows.Controls.Primitives.DataGridColumnHeader)) as Style);
+         bool right = Setting(basis, Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Left) == HorizontalAlignment.Right;
+
+         var words = new FrameworkElementFactory(typeof(TextBlock));
+         words.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding());
+         words.SetBinding(FrameworkElement.ToolTipProperty, new System.Windows.Data.Binding());
+         words.SetValue(TextBlock.TextWrappingProperty, TextWrapping.Wrap);
+         words.SetValue(TextBlock.TextAlignmentProperty, right ? TextAlignment.Right : TextAlignment.Left);
+
+         var style = new Style(typeof(System.Windows.Controls.Primitives.DataGridColumnHeader), basis);
+         style.Setters.Add(new Setter(ContentControl.ContentTemplateProperty, new DataTemplate { VisualTree = words }));
+         style.Setters.Add(new Setter(Control.VerticalContentAlignmentProperty, VerticalAlignment.Bottom));
+         column.HeaderStyle = style;
+      }
+
+      /// <summary>
       /// A header of a few words standing for a caption that is a sentence: the
       /// caption is the header's tool tip and its help text. The header's words
       /// are drawn by a template of this column's own, trimmed as the shared

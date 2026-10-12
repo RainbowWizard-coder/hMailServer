@@ -6508,11 +6508,14 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Ostatnia kopia zapasowa: {0} ({1}).</value>
   </data>
-  <data name="Last bounce (server time)" xml:space="preserve">
-    <value>Ostatni zwrot (czas serwera)</value>
+  <data name="Last bounce: {0}" xml:space="preserve">
+    <value>Ostatni zwrot: {0}</value>
   </data>
   <data name="Last delivered (server time)" xml:space="preserve">
     <value>Ostatnie doręczenie (czas serwera)</value>
+  </data>
+  <data name="Last delivered: {0}" xml:space="preserve">
+    <value>Ostatnie doręczenie: {0}</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Ostatnie skanowanie: {0}.</value>
@@ -6522,6 +6525,9 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   </data>
   <data name="Last status code" xml:space="preserve">
     <value>Ostatni kod stanu</value>
+  </data>
+  <data name="Last status code: {0}" xml:space="preserve">
+    <value>Ostatni kod stanu: {0}</value>
   </data>
   <data name="Last update: {0}." xml:space="preserve">
     <value>Ostatnia aktualizacja: {0}.</value>

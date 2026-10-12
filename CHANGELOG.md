@@ -3852,6 +3852,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   an ellipsis and whole in its tool tip and the strip: the time, Who, Object, Name, Action and Detail's 200 fit the
   view. `AuditTrailPageTests` holds the columns, the floor and the strip's lines.
 
+- **Fixed: the Suppression list's bounce counts scrolled 317 pixels past their card at 1280 by 800.** Under the category
+  names the list's Reason column uses and the "(server time)" headers of its two dates, the counts' grid was 1208 pixels
+  wide in a view of 891 in English (559 pixels too wide in German, 332 in Japanese), its last bounce and last delivery
+  off screen on opening, where after Tier 1 it scrolled 125. The last status code, the last bounce and the last delivery
+  are now the selected address's, in a strip under the counts titled by the address, the dates in the reader's form and
+  marked as the server's ("Last bounce: 10/12/2026 9:11 PM (server time)"); and each count's header wraps onto two lines
+  where it is two words, the column as wide as the header's widest word, so that "Harte Unzustellbarkeit" no longer
+  makes a column of one digit 160 pixels wide. The counts fit their card at 1280 in English, German and Japanese and
+  keep the categories' one name in both grids (review finding F318). `SuppressionListPageTests` holds the columns, the
+  wrapping headers and the strip.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

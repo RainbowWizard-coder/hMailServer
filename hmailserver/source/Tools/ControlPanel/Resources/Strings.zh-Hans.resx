@@ -6426,11 +6426,14 @@
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>上次备份：{0}（{1}）。</value>
   </data>
-  <data name="Last bounce (server time)" xml:space="preserve">
-    <value>最近退信（服务器时间）</value>
+  <data name="Last bounce: {0}" xml:space="preserve">
+    <value>最近退信：{0}</value>
   </data>
   <data name="Last delivered (server time)" xml:space="preserve">
     <value>最近投递（服务器时间）</value>
+  </data>
+  <data name="Last delivered: {0}" xml:space="preserve">
+    <value>最近投递：{0}</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>上次扫描：{0}。</value>
@@ -6440,6 +6443,9 @@
   </data>
   <data name="Last status code" xml:space="preserve">
     <value>最近状态码</value>
+  </data>
+  <data name="Last status code: {0}" xml:space="preserve">
+    <value>最近状态码：{0}</value>
   </data>
   <data name="Last update: {0}." xml:space="preserve">
     <value>上次更新：{0}。</value>

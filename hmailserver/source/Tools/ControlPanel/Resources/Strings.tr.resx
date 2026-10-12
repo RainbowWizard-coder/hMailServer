@@ -6426,11 +6426,14 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Son yedekleme: {0} ({1}).</value>
   </data>
-  <data name="Last bounce (server time)" xml:space="preserve">
-    <value>Son geri dönüş (sunucu saati)</value>
+  <data name="Last bounce: {0}" xml:space="preserve">
+    <value>Son geri dönüş: {0}</value>
   </data>
   <data name="Last delivered (server time)" xml:space="preserve">
     <value>Son teslim (sunucu saati)</value>
+  </data>
+  <data name="Last delivered: {0}" xml:space="preserve">
+    <value>Son teslim: {0}</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Son tarama: {0}.</value>
@@ -6440,6 +6443,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="Last status code" xml:space="preserve">
     <value>Son durum kodu</value>
+  </data>
+  <data name="Last status code: {0}" xml:space="preserve">
+    <value>Son durum kodu: {0}</value>
   </data>
   <data name="Last update: {0}." xml:space="preserve">
     <value>Son güncelleme: {0}.</value>

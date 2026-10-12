@@ -6426,11 +6426,14 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Viimeisin varmuuskopio: {0} ({1}).</value>
   </data>
-  <data name="Last bounce (server time)" xml:space="preserve">
-    <value>Viimeisin palautus (palvelimen aikaa)</value>
+  <data name="Last bounce: {0}" xml:space="preserve">
+    <value>Viimeisin palautus: {0}</value>
   </data>
   <data name="Last delivered (server time)" xml:space="preserve">
     <value>Viimeksi toimitettu (palvelimen aikaa)</value>
+  </data>
+  <data name="Last delivered: {0}" xml:space="preserve">
+    <value>Viimeksi toimitettu: {0}</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Viimeisin tarkistus: {0}.</value>
@@ -6440,6 +6443,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Last status code" xml:space="preserve">
     <value>Viimeisin tilakoodi</value>
+  </data>
+  <data name="Last status code: {0}" xml:space="preserve">
+    <value>Viimeisin tilakoodi: {0}</value>
   </data>
   <data name="Last update: {0}." xml:space="preserve">
     <value>Viimeisin päivitys: {0}.</value>

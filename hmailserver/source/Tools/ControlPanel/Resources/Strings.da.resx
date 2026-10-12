@@ -6426,11 +6426,14 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Seneste sikkerhedskopi: {0} ({1}).</value>
   </data>
-  <data name="Last bounce (server time)" xml:space="preserve">
-    <value>Seneste returmail (servertid)</value>
+  <data name="Last bounce: {0}" xml:space="preserve">
+    <value>Seneste returmail: {0}</value>
   </data>
   <data name="Last delivered (server time)" xml:space="preserve">
     <value>Senest leveret (servertid)</value>
+  </data>
+  <data name="Last delivered: {0}" xml:space="preserve">
+    <value>Senest leveret: {0}</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Seneste scanning: {0}.</value>
@@ -6440,6 +6443,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="Last status code" xml:space="preserve">
     <value>Seneste statuskode</value>
+  </data>
+  <data name="Last status code: {0}" xml:space="preserve">
+    <value>Seneste statuskode: {0}</value>
   </data>
   <data name="Last update: {0}." xml:space="preserve">
     <value>Seneste opdatering: {0}.</value>

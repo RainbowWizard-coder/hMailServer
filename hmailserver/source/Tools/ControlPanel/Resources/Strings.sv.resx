@@ -6426,11 +6426,14 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Senaste säkerhetskopiering: {0} ({1}).</value>
   </data>
-  <data name="Last bounce (server time)" xml:space="preserve">
-    <value>Senaste studs (servertid)</value>
+  <data name="Last bounce: {0}" xml:space="preserve">
+    <value>Senaste studs: {0}</value>
   </data>
   <data name="Last delivered (server time)" xml:space="preserve">
     <value>Senast levererad (servertid)</value>
+  </data>
+  <data name="Last delivered: {0}" xml:space="preserve">
+    <value>Senast levererad: {0}</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Senaste genomsökning: {0}.</value>
@@ -6440,6 +6443,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Last status code" xml:space="preserve">
     <value>Senaste statuskod</value>
+  </data>
+  <data name="Last status code: {0}" xml:space="preserve">
+    <value>Senaste statuskod: {0}</value>
   </data>
   <data name="Last update: {0}." xml:space="preserve">
     <value>Senaste uppdatering: {0}.</value>

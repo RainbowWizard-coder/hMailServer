@@ -198,8 +198,7 @@ namespace hMailServer.ControlPanel.Tests.Services
             Assert.Contains(line, list, StringComparison.Ordinal);
 
          string built = WithheldRowTests.MemberText(list, "private void BuildColumns_()");
-         foreach ((string header, string sort) in new[] { ("Since (server time)", "EntryView.SinceAt"), ("Expires (server time)", "EntryView.ExpiresAt"),
-            ("Last bounce (server time)", "CountView.LastBounceAt"), ("Last delivered (server time)", "CountView.LastDeliveredAt") })
+         foreach ((string header, string sort) in new[] { ("Since (server time)", "EntryView.SinceAt"), ("Expires (server time)", "EntryView.ExpiresAt") })
          {
             Match column = Regex.Match(built, @"^.*L\(""" + Regex.Escape(header) + @"""\).*$", RegexOptions.Multiline);
             Assert.True(column.Success, "The suppression list has no column headed " + header + ".");

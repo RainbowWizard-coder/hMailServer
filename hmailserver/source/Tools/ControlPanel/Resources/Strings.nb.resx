@@ -6426,11 +6426,14 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Siste sikkerhetskopi: {0} ({1}).</value>
   </data>
-  <data name="Last bounce (server time)" xml:space="preserve">
-    <value>Siste returmelding (servertid)</value>
+  <data name="Last bounce: {0}" xml:space="preserve">
+    <value>Siste returmelding: {0}</value>
   </data>
   <data name="Last delivered (server time)" xml:space="preserve">
     <value>Sist levert (servertid)</value>
+  </data>
+  <data name="Last delivered: {0}" xml:space="preserve">
+    <value>Sist levert: {0}</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Siste skanning: {0}.</value>
@@ -6440,6 +6443,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   </data>
   <data name="Last status code" xml:space="preserve">
     <value>Siste statuskode</value>
+  </data>
+  <data name="Last status code: {0}" xml:space="preserve">
+    <value>Siste statuskode: {0}</value>
   </data>
   <data name="Last update: {0}." xml:space="preserve">
     <value>Sist oppdatert: {0}.</value>

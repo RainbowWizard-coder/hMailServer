@@ -6508,11 +6508,14 @@
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Остання резервна копія: {0} ({1}).</value>
   </data>
-  <data name="Last bounce (server time)" xml:space="preserve">
-    <value>Остання відмова (час сервера)</value>
+  <data name="Last bounce: {0}" xml:space="preserve">
+    <value>Остання відмова: {0}</value>
   </data>
   <data name="Last delivered (server time)" xml:space="preserve">
     <value>Остання доставка (час сервера)</value>
+  </data>
+  <data name="Last delivered: {0}" xml:space="preserve">
+    <value>Остання доставка: {0}</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Останнє сканування: {0}.</value>
@@ -6522,6 +6525,9 @@
   </data>
   <data name="Last status code" xml:space="preserve">
     <value>Останній код стану</value>
+  </data>
+  <data name="Last status code: {0}" xml:space="preserve">
+    <value>Останній код стану: {0}</value>
   </data>
   <data name="Last update: {0}." xml:space="preserve">
     <value>Останнє оновлення: {0}.</value>

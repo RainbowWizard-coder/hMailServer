@@ -6508,11 +6508,14 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Poslední záloha: {0} ({1}).</value>
   </data>
-  <data name="Last bounce (server time)" xml:space="preserve">
-    <value>Poslední nedoručenka (čas serveru)</value>
+  <data name="Last bounce: {0}" xml:space="preserve">
+    <value>Poslední nedoručenka: {0}</value>
   </data>
   <data name="Last delivered (server time)" xml:space="preserve">
     <value>Naposledy doručeno (čas serveru)</value>
+  </data>
+  <data name="Last delivered: {0}" xml:space="preserve">
+    <value>Naposledy doručeno: {0}</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Poslední kontrola: {0}.</value>
@@ -6522,6 +6525,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Last status code" xml:space="preserve">
     <value>Poslední stavový kód</value>
+  </data>
+  <data name="Last status code: {0}" xml:space="preserve">
+    <value>Poslední stavový kód: {0}</value>
   </data>
   <data name="Last update: {0}." xml:space="preserve">
     <value>Poslední aktualizace: {0}.</value>

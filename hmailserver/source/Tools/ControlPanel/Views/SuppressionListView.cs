@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
@@ -63,11 +64,9 @@ namespace hMailServer.ControlPanel.Views
          FrozenColumnCount = 1
       };
 
-      // The four columns of dates, floored at their widest date whenever the rows are read (FloorAtCells_).
+      // The list's two columns of dates, floored at their widest date whenever the rows are read (FloorAtCells_).
       private DataGridTextColumn sinceColumn_;
       private DataGridTextColumn expiresColumn_;
-      private DataGridTextColumn lastBounceColumn_;
-      private DataGridTextColumn lastDeliveredColumn_;
 
       private readonly InlineNotice status_ = new() { Visibility = Visibility.Collapsed };
 
@@ -227,8 +226,6 @@ namespace hMailServer.ControlPanel.Views
             counts_.ItemsSource = countRows;
             FloorAtCells_(sinceColumn_, entries, e => e.Since);
             FloorAtCells_(expiresColumn_, entries, e => e.Expires);
-            FloorAtCells_(lastBounceColumn_, countRows, c => c.LastBounce);
-            FloorAtCells_(lastDeliveredColumn_, countRows, c => c.LastDelivered);
 
             StatusText.Show(empty_, null, list.Total, null,
                L("No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one."));
@@ -313,6 +310,17 @@ namespace hMailServer.ControlPanel.Views
          public string LastDelivered { get; init; }
          public DateTime? LastDeliveredAt { get; init; }
          public string Listed { get; init; }
+
+         // The selected address's last status code, last bounce and last delivery, in
+         // the strip under the counts: as three columns of the grid they took it 317
+         // pixels past its card at 1280 by 800 (559 in German), the dates off screen
+         // on opening (final check of Tier 2).
+         public string Strip => string.Join("\n", new[]
+         {
+            string.IsNullOrEmpty(LastStatus) ? null : F("Last status code: {0}", LastStatus),
+            F("Last bounce: {0}", LastBounceAt is DateTime bounced ? ServerTimeText.Marked(bounced) : LastBounce),
+            F("Last delivered: {0}", LastDeliveredAt is DateTime delivered ? ServerTimeText.Marked(delivered) : LastDelivered),
+         }.Where(line => !string.IsNullOrEmpty(line)));
 
          // The address, then each count with its column's name: a row of bare
          // numbers says nothing without the columns. The columns are named by the
@@ -568,6 +576,10 @@ namespace hMailServer.ControlPanel.Views
          };
          parts.Children.Add(FillPanel.Filling(countsCard, FillPanel.TitledListCardFloor, 1));
 
+         // The selected address's last status code, last bounce and last delivery,
+         // under the counts, titled by the address (CountView.Strip).
+         parts.Children.Add(RowDetailStrip.For(counts_, row => ((CountView)row).Address, row => ((CountView)row).Strip));
+
          Content = root;
       }
 
@@ -645,20 +657,17 @@ namespace hMailServer.ControlPanel.Views
          entries_.RowStyle = rowStyle;
 
          counts_.Columns.Add(Trimmed_(L("Address"), nameof(CountView.Address), new DataGridLength(1, DataGridLengthUnitType.Star), 180));
-         // Each count under its category's name in the list's Reason column.
+         // Each count under its category's name in the list's Reason column, the name
+         // on two lines where it is two words (Number_). The last status code, bounce
+         // and delivery are the selected row's, in the strip under the card
+         // (CountView.Strip): the grid fits its card at 1280 by 800 in English, German
+         // and Japanese, where it scrolled 317, 559 and 332 pixels sideways.
          counts_.Columns.Add(Number_(CategoryText_("hard"), nameof(CountView.Hard)));
          counts_.Columns.Add(Number_(CategoryText_("soft"), nameof(CountView.Soft)));
          counts_.Columns.Add(Number_(CategoryText_("mailbox_full"), nameof(CountView.MailboxFull)));
          counts_.Columns.Add(Number_(CategoryText_("policy"), nameof(CountView.Policy)));
          counts_.Columns.Add(Number_(CategoryText_("other"), nameof(CountView.Other)));
          counts_.Columns.Add(Number_(L("In a row"), nameof(CountView.InARow)));
-         // Its codes' width over a floor, as the list's Status code is: fixed at its
-         // header's measured width, "Last status code" was cut by its last letters.
-         counts_.Columns.Add(Fitted_(L("Last status code"), nameof(CountView.LastStatus), 90));
-         lastBounceColumn_ = Dated_(L("Last bounce (server time)"), nameof(CountView.LastBounce), nameof(CountView.LastBounceAt));
-         lastDeliveredColumn_ = Dated_(L("Last delivered (server time)"), nameof(CountView.LastDelivered), nameof(CountView.LastDeliveredAt));
-         counts_.Columns.Add(lastBounceColumn_);
-         counts_.Columns.Add(lastDeliveredColumn_);
          counts_.Columns.Add(Fitted_(L("Listed"), nameof(CountView.Listed), GridStyles.WholeDevicePixels(GridStyles.CellWidth(L("Listed")))));
       }
 
@@ -704,11 +713,19 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>A column's floor: so many pixels, or its header's width where that is more, so that no header of either grid is cut in any language - an Auto column's header is not always counted once the grid scrolls sideways.</summary>
       private static double Floor_(string header, double floor) => Math.Max(floor, GridStyles.HeaderWidth(header));
 
-      /// <summary>A column of counts: 64 pixels, or its header's width where that is more, the digits and the header right-aligned.</summary>
+      /// <summary>
+      /// A column of counts: 64 pixels, or the widest word of its header where that is
+      /// more, the header wrapping onto a second line rather than widening the column
+      /// for a count of a few digits; the digits and the header right-aligned.
+      /// </summary>
       private static DataGridTextColumn Number_(string header, string path)
       {
          DataGridTextColumn column = Fitted_(header, path, 64);
          GridStyles.Number(column);
+         double width = Math.Max(64, GridStyles.WidestHeaderWord(header));
+         column.Width = width;
+         column.MinWidth = width;
+         GridStyles.WrappedHeader(column);
          return column;
       }
 
