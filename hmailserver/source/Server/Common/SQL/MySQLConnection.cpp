@@ -343,9 +343,16 @@ namespace HM
 
       if (client->IsMariaDbClient())
       {
-         // MariaDB Connector/C 3.4.9, as measured on 25 September 2026 against MySQL
-         // 8.4 and MariaDB 11.4 with the Windows build hMailServer bundles and Ubuntu
-         // 26.04's alike (docs/DatabaseTls.md has the table):
+         // MariaDB Connector/C, as measured on 25 September 2026 against MySQL 8.4 and
+         // MariaDB 11.4 with the Windows build hMailServer bundled then (3.4.9) and
+         // Ubuntu 26.04's alike (docs/DatabaseTls.md has the table). What this function
+         // sets - the first three rows - was measured again through hMailServer on
+         // 12 October 2026 against MySQL 8.4 and MariaDB 11.8, twenty cases, 3.4.9
+         // beside 3.4.11 (the build bundled since 6.3.7), each case alike on both. The
+         // last row, which this function never sets (the CA file reaches it for
+         // verify-full alone: DatabaseTls::FromConfiguration), was not measured again;
+         // it holds for 3.4.11 by its source, 3.4.10 having read the file there and
+         // checked the certificate, and 3.4.11 having taken that back (CONC-854).
          //
          //   ENFORCE 0, VERIFY 0   no TLS - and what both builds did when asked
          //                         nothing, which is why both are set every time

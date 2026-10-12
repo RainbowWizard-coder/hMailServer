@@ -73,7 +73,7 @@ typedef unsigned long STDCALL hm_mysql_get_server_version(hm_MYSQL *mysql);
 // The cipher of the connection's TLS session, or null when the connection is not
 // encrypted. Both clients export it.
 typedef const char * STDCALL hm_mysql_get_ssl_cipher(hm_MYSQL *mysql);
-// The client library's version: 30409 for MariaDB Connector/C 3.4.9, 80411 for
+// The client library's version: 30411 for MariaDB Connector/C 3.4.11, 80411 for
 // Oracle's 8.4.11. Which option numbers an Oracle client takes depends on it.
 typedef unsigned long STDCALL hm_mysql_get_client_version(void);
 

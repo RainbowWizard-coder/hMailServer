@@ -31,7 +31,8 @@
         build is shipped;
      6. the .NET Desktop Runtime the installer carries (build\get-dotnet-runtime.ps1)
         and the third-party files (build\get-installer-binaries.ps1, from this
-        project's build-inputs-1 release on GitLab and from 7-zip.org), each checked
+        project's build-inputs-1 and build-inputs-2 releases on GitLab and from
+        7-zip.org), each checked
         against its pinned hash, then checked again with -Verify;
      7. no tracked file changed while all that ran: build-tools.ps1 publishes
         without --locked-mode, and a restore rewrites a packages.lock.json that

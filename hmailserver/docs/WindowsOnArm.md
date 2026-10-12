@@ -412,9 +412,15 @@ MariaDB Connector/C builds for ARM64 with CMake and Visual Studio. The project
 does not build or ship it, because nothing here could test it. To use MySQL or
 MariaDB on an ARM64 server:
 
-1. Build Connector/C 3.4.9 from MariaDB's source archive for `-A ARM64`
+1. Build Connector/C 3.4.11 from MariaDB's source archive for `-A ARM64`
    (`cmake -A ARM64 -DCMAKE_BUILD_TYPE=Release`, then build `libmariadb`), in
-   the `vcvarsamd64_arm64.bat` environment.
+   the `vcvarsamd64_arm64.bat` environment. Use 3.4.11 or later, not 3.4.9: 3.4.1
+   to 3.4.9 have CVE-2026-107819 ([DatabaseTls.md](DatabaseTls.md),
+   "CVE-2026-107819"), fixed in 3.4.10, which MariaDB tagged and never released,
+   and that is why the x64 build moved to 3.4.11.
+   `libraries/build-mariadb-connector-c.ps1` builds the x64 client; its wrapper
+   `CMakeLists.txt` is the configuration to copy, with `-A ARM64` in place of its
+   Ninja generator.
 2. Copy `libmariadb.dll` to `hMailServer\Bin\libmysql.dll`, and the
    authentication plugins to `Bin\plugin`, as the x64 installer lays them out.
 3. Start the service. If the client is missing or is the x64 one, the ERROR log

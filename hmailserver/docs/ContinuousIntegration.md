@@ -1706,7 +1706,12 @@ runner clones nothing, and the job does the following itself:
    2. It upgrades the bench database through the running service
       (`upgrade-test-database.ps1`, exit 8).
    3. It stops the service and builds the Release server (`build.ps1`, exit 3),
-      then runs `post-build.ps1`.
+      then runs `post-build.ps1`, which puts the libraries, the type library and
+      the WebAdmin files beside it (exit 3 too: a post-build that stopped
+      part-way, as at a library the commit's manifest names and the bench has not
+      got, leaves the previous gate's files there, and until 6.3.7 the gate ran
+      on with them; `get-installer-binaries.ps1` run in the bench's checkout at
+      that commit places what is missing).
    4. It removes the old test assembly and builds the tests (`build-tests.ps1`,
       exit 6). A test assembly more than 30 minutes old is refused as stale
       (exit 7).
@@ -3243,7 +3248,7 @@ limit is a mitigation, not a proven cure; the job's debug log
 | The PostgreSQL client, libpq | `hMailServer.vcxproj`, `hMailServer64.iss`, `post-build.bat` | a regex manager | `custom.postgresql`: ftp.postgresql.org/pub/source/ | "native libraries" |
 | zlib, vendored | `Server/zlib/zlib.h` | a regex manager | `custom.zlib`: zlib.net/fossils/ | waits on the dashboard |
 | QuickJS, vendored | `Server/quickjs/VERSION` | a regex manager | `custom.quickjs`: bellard.org/quickjs/ | waits on the dashboard |
-| The MariaDB client, a build input | `post-build.bat`, `TestEnvironments.cs`, `.gitignore`, `CONTRIBUTING.md`, `third-party-binaries.json` | a regex manager | `custom.mariadb-connector-c`: downloads.mariadb.org's API | waits on the dashboard |
+| The MariaDB client, a build input | `post-build.bat`, `TestEnvironments.cs`, `CONTRIBUTING.md`, `RegressionEnvironment.md`, `third-party-binaries.json` | a regex manager | `custom.mariadb-connector-c`: downloads.mariadb.org's API | waits on the dashboard |
 | 7-Zip's `7za.exe`, a build input | `third-party-binaries.json` | a regex manager | `custom.7-zip`: 7-zip.org/download.html, the page only | waits on the dashboard |
 
 Not covered, each for a reason: the MSVC runtime (gathered from the build

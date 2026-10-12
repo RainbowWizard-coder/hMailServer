@@ -33,6 +33,15 @@ of the Inno scripts and the server, so that undoing one fails here in a second:
                at the next restart instead of being left without a word. Each of
                those entries must be found, so a renamed one is not passed over.
 
+  plugins      The MySQL client's plugins are installed by name, one entry each,
+               and the names are the manifest's: every
+               hmailserver/installation/Extras/plugin file that
+               hmailserver/docs/third-party-binaries.json lists is installed, and
+               nothing else is. get-installer-binaries.ps1 places files and removes
+               none, so a checkout that once fetched the 3.4.9 client keeps two
+               files 6.3.7 dropped in that folder, and the wildcard this
+               replaced (every .dll in the folder) would have shipped them again.
+
   unregister   hMailServer.exe decides /Unregister before it registers anything:
                the branch comes before the first _AtlModule.RegisterAppID() call,
                removes the AppID whatever UnregisterServer answered, and removes
@@ -61,18 +70,21 @@ of the Inno scripts and the server, so that undoing one fails here in a second:
 The check proves its own negative controls on every run, on altered copies of the
 texts it reads: an entry without a RunOnceId, two entries sharing one, an
 uninstaller that no longer waits, a stop elsewhere that does not wait,
-hMailServer.exe without uninsrestartdelete, the AppID registered before
-/Unregister is read, the AppID removal made conditional again, the installer's
-argument spelt differently from the server's, the password on DBSetupQuick's
-command line again, HM_ADMIN_PASSWORD left set after DBSetupQuick, the password on
-DBSetup's command line, DBSetup started without the credential, HM_ADMIN_PASSWORD
-left set after DBSetup, DBUpdater's command line built as one string and the
-password on it, must all be refused.
+hMailServer.exe without uninsrestartdelete, a client plugin without it, the
+plugins taken by a wildcard again, a plugin the manifest lists and the installer
+does not name, a plugin named that the manifest does not list, the AppID
+registered before /Unregister is read, the AppID removal made conditional again,
+the installer's argument spelt differently from the server's, the password on
+DBSetupQuick's command line again, HM_ADMIN_PASSWORD left set after DBSetupQuick,
+the password on DBSetup's command line, DBSetup started without the credential,
+HM_ADMIN_PASSWORD left set after DBSetup, DBUpdater's command line built as one
+string and the password on it, must all be refused.
 
 Usage: python build/check-installer-scripts.py
 Exits 1 listing what is wrong.
 """
 import io
+import json
 import os
 import re
 import sys
@@ -92,6 +104,11 @@ EVENT_LOG = 'Common/Application/WindowsEventLog.cpp'
 # Under Tools: the database step the installer runs, and the password it hands on.
 DBSETUPQUICK = 'DBSetupQuick/Program.cs'
 AUTHENTICATOR = 'Shared/Miscellaneous/Authenticator.cs'
+# The binary manifest, whose Extras/plugin entries are the plugins the installer names.
+MANIFEST = 'hmailserver/docs/third-party-binaries.json'
+MANIFEST_PLUGINS = 'hmailserver/installation/Extras/plugin/'
+# The installer script that installs the MySQL client and its plugins.
+CLIENT_FILES = 'section_files_common.iss'
 
 # The files the server's process loads, as their [Files] Source spells them. Each
 # must be found at least once, and every entry it matches must carry
@@ -103,8 +120,10 @@ LOADED_BY_THE_SERVER = [
     ('libssl', re.compile(r'\\libssl-[\w-]+\.dll$', re.I)),
     ('libpq', re.compile(r'POSTGRESQL_LIBPQ_PATH\}\\\*\.dll$', re.I)),
     ('the MySQL client', re.compile(r'\\libmysql\.dll$', re.I)),
-    ('the MySQL client plugins', re.compile(r'\\plugin\\\*\.dll$', re.I)),
+    ('the MySQL client plugins', re.compile(r'\\plugin\\[^\\]+\.dll$', re.I)),
 ]
+# A [Files] Source in the client's plugin folder, and the file it names.
+PLUGIN_SOURCE = re.compile(r'(?:^|\\)Extras\\plugin\\([^\\]+)$', re.I)
 
 
 def read(path):
@@ -120,6 +139,7 @@ def load():
     texts[EVENT_LOG] = read(os.path.join(SERVER, EVENT_LOG))
     texts[DBSETUPQUICK] = read(os.path.join(TOOLS, DBSETUPQUICK))
     texts[AUTHENTICATOR] = read(os.path.join(TOOLS, AUTHENTICATOR))
+    texts[MANIFEST] = read(os.path.join(ROOT, *MANIFEST.split('/')))
     return texts
 
 
@@ -262,6 +282,49 @@ def check_reboot(texts, problems):
                             'this check' % (' and '.join(FILES), label))
 
 
+def check_plugins(texts, problems):
+    """The client's plugins are installed by name, and the names are the manifest's."""
+    try:
+        manifest = json.loads(texts.get(MANIFEST, ''))
+    except ValueError as error:
+        problems.append('%s: not JSON (%s), so the plugins the installer names cannot be held to it' % (MANIFEST, error))
+        return
+    listed = set()
+    for artifact in manifest.get('artifacts', []):
+        path = str(artifact.get('path', ''))
+        if path.startswith(MANIFEST_PLUGINS) and not artifact.get('platform'):
+            listed.add(path[len(MANIFEST_PLUGINS):].lower())
+    if not listed:
+        problems.append('%s: no entry under %s; the client\'s plugins are no longer where this check looks for them'
+                        % (MANIFEST, MANIFEST_PLUGINS))
+
+    named = {}
+    for name in FILES:
+        for number, entry in section_entries(texts.get(name, ''), 'Files'):
+            match = PLUGIN_SOURCE.search(parameter(entry, 'Source') or '')
+            if not match:
+                continue
+            plugin = match.group(1)
+            if '*' in plugin or '?' in plugin:
+                problems.append('%s:%d: the client\'s plugins are taken by a wildcard, which ships whatever '
+                                'Extras\\plugin holds - get-installer-binaries.ps1 removes nothing, so a checkout that '
+                                'once fetched an earlier client ships that client\'s other files too; name each '
+                                'plugin the manifest lists: %s' % (name, number, entry))
+                continue
+            if name != CLIENT_FILES:
+                problems.append('%s:%d: a client plugin installed outside %s, which installs the client: %s'
+                                % (name, number, CLIENT_FILES, entry))
+            named[plugin.lower()] = '%s:%d' % (name, number)
+
+    for plugin in sorted(listed - set(named)):
+        problems.append('%s: %s lists %s%s, which get-installer-binaries.ps1 places and no [Files] entry installs'
+                        % (CLIENT_FILES, MANIFEST, MANIFEST_PLUGINS, plugin))
+    for plugin in sorted(set(named) - listed):
+        problems.append('%s: installs Extras\\plugin\\%s, which %s does not list, so get-installer-binaries.ps1 does '
+                        'not place it: the installer would ship a file left from an earlier client, or fail to build'
+                        % (named[plugin], plugin, MANIFEST))
+
+
 def check_unregister(texts, problems):
     main = texts.get(MAIN, '')
     branch = re.search(r'if\s*\(\s*sLastParam\.CompareNoCase\(\s*_T\("/Unregister"\)\s*\)\s*==\s*0\s*\)', main)
@@ -383,6 +446,7 @@ def check(texts):
     entries = check_run_once(texts, problems)
     check_wait(texts, problems)
     check_reboot(texts, problems)
+    check_plugins(texts, problems)
     check_unregister(texts, problems)
     check_event_source(texts, problems)
     check_upgrade(texts, problems)
@@ -420,6 +484,20 @@ def negative_controls(texts):
         ('hMailServer.exe installed without uninsrestartdelete',
          altered(texts, 'section_files_64.iss', 'hMailServer.exe"; DestDir: "{app}\\Bin"; Flags: ignoreversion uninsrestartdelete;',
                  'hMailServer.exe"; DestDir: "{app}\\Bin"; Flags: ignoreversion;')),
+        ('a client plugin installed without uninsrestartdelete',
+         altered(texts, CLIENT_FILES, 'dialog.dll"; DestDir: "{app}\\Bin\\plugin"; Flags: ignoreversion uninsrestartdelete;',
+                 'dialog.dll"; DestDir: "{app}\\Bin\\plugin"; Flags: ignoreversion;')),
+        ('the client\'s plugins taken by a wildcard again',
+         altered(texts, CLIENT_FILES, 'Source: ".\\Extras\\plugin\\auth_gssapi_client.dll";',
+                 'Source: ".\\Extras\\plugin\\*.dll";')),
+        ('a plugin the manifest lists and the installer does not name',
+         altered(texts, CLIENT_FILES, 'Source: ".\\Extras\\plugin\\parsec.dll"; DestDir: "{app}\\Bin\\plugin"; '
+                 'Flags: ignoreversion uninsrestartdelete; Components: server;\n', '')),
+        ('a plugin named that the manifest does not list (6.3.6\'s auth_named_pipe.dll)',
+         altered(texts, CLIENT_FILES, 'Source: ".\\Extras\\plugin\\sha256_password.dll";',
+                 'Source: ".\\Extras\\plugin\\auth_named_pipe.dll"; DestDir: "{app}\\Bin\\plugin"; '
+                 'Flags: ignoreversion uninsrestartdelete; Components: server;\n'
+                 'Source: ".\\Extras\\plugin\\sha256_password.dll";')),
         ('the AppID registered before /Unregister is read',
          altered(texts, MAIN, '   _AtlModule.InitializeCom();\n',
                  '   _AtlModule.InitializeCom();\n   _AtlModule.RegisterAppID();\n')),
@@ -484,7 +562,8 @@ def main():
         return 1
 
     print('OK    %d [UninstallRun] entries run once each; the uninstall and the upgrade wait for the server\'s process; '
-          'the files it loads are queued for a restart if still in use; /Unregister creates nothing and removes the '
+          'the files it loads are queued for a restart if still in use; the client\'s plugins are installed by the '
+          'manifest\'s names; /Unregister creates nothing and removes the '
           'event source; the upgrade\'s start is marked; the database tools\' password is on no command line; '
           '%d negative controls refused' % (entries, controls))
     return 0

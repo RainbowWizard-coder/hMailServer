@@ -682,8 +682,9 @@ that administrators upgrade by hand.
    refuses an older download left from before the pin) - and
    `build\get-installer-binaries.ps1` must have placed the third-party binaries
    - the MSVC runtime gathered from Visual Studio, the ADO type libraries copied
-   from Windows, and 7-Zip, the MariaDB client and the SQL Server Compact
-   runtime fetched from the `build-inputs-1` release -
+   from Windows, and 7-Zip from 7-zip.org, the MariaDB client from the
+   `build-inputs-2` release and the SQL Server Compact runtime from the
+   `build-inputs-1` release, each fetched -
    none of which is in git since 11 September 2026 (run it with `-Verify` to
    check; every file is matched against `hmailserver/docs/third-party-binaries.json`). Never run the installer on
    the dev machine — validation is the installer smoke test, which installs it

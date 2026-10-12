@@ -142,7 +142,8 @@ changed:
   release against a CVE feed would have concluded this server does not link OpenSSL.
 * **No executable binary is committed to the repository.** Forty were until 11
   September 2026. The ones the build still needs are fetched at build time from the
-  project's `build-inputs-1` release and checked against a SHA-256, gathered from
+  project's `build-inputs-1` and `build-inputs-2` releases, or from the publisher,
+  and checked against a SHA-256, gathered from
   the build machine's Visual Studio and checked by version, copied from Windows
   itself, or generated from this repository's own IDL, and every one is
   inventoried with an upstream, a version, a licence and the reason the build

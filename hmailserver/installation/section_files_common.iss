@@ -29,11 +29,33 @@ Source: "..\source\Translations\*"; Excludes: "CVS,.cvsignore,.#*"; DestDir: "{a
 Source: ".\Extras\dh2048.pem"; DestDir: "{app}\Bin";  Flags: ignoreversion; Components: server;
 
 #ifndef HM_ARM64
-; MySQL/MariaDB client library (x64) - MariaDB Connector/C, loaded at runtime as libmysql.dll
-; when the database type is MySQL/MariaDB. Talks to both MySQL and MariaDB servers.
+; MySQL/MariaDB client library (x64) - MariaDB Connector/C 3.4.11, loaded at runtime as
+; libmysql.dll when the database type is MySQL/MariaDB. Talks to both MySQL and MariaDB servers.
 Source: ".\Extras\libmysql.dll"; DestDir: "{app}\Bin"; Flags: ignoreversion uninsrestartdelete; Components: server;
-; Client authentication plugins, found via MYSQL_PLUGIN_DIR = {app}\Bin\plugin. These let the
-; single bundled client authenticate every common account type: caching_sha2_password (MySQL 8.0+
-; default), sha256_password, client_ed25519 / auth_gssapi_client / parsec (MariaDB), dialog, etc.
-Source: ".\Extras\plugin\*.dll"; DestDir: "{app}\Bin\plugin"; Flags: ignoreversion uninsrestartdelete; Components: server;
+; Its seven authentication plugins, found via MYSQL_PLUGIN_DIR = {app}\Bin\plugin, so that the one
+; client authenticates every common account type: caching_sha2_password (MySQL 8.0+ default),
+; sha256_password, client_ed25519 / auth_gssapi_client / parsec (MariaDB), dialog, mysql_clear_password.
+; Named one by one rather than .\Extras\plugin\*.dll: build\get-installer-binaries.ps1 places files
+; and removes none, so a checkout that once fetched an earlier client keeps that client's other
+; files in Extras\plugin, and a wildcard would ship them. build\check-installer-scripts.py holds
+; these names to the manifest's Extras/plugin entries.
+Source: ".\Extras\plugin\auth_gssapi_client.dll"; DestDir: "{app}\Bin\plugin"; Flags: ignoreversion uninsrestartdelete; Components: server;
+Source: ".\Extras\plugin\caching_sha2_password.dll"; DestDir: "{app}\Bin\plugin"; Flags: ignoreversion uninsrestartdelete; Components: server;
+Source: ".\Extras\plugin\client_ed25519.dll"; DestDir: "{app}\Bin\plugin"; Flags: ignoreversion uninsrestartdelete; Components: server;
+Source: ".\Extras\plugin\dialog.dll"; DestDir: "{app}\Bin\plugin"; Flags: ignoreversion uninsrestartdelete; Components: server;
+Source: ".\Extras\plugin\mysql_clear_password.dll"; DestDir: "{app}\Bin\plugin"; Flags: ignoreversion uninsrestartdelete; Components: server;
+Source: ".\Extras\plugin\parsec.dll"; DestDir: "{app}\Bin\plugin"; Flags: ignoreversion uninsrestartdelete; Components: server;
+Source: ".\Extras\plugin\sha256_password.dll"; DestDir: "{app}\Bin\plugin"; Flags: ignoreversion uninsrestartdelete; Components: server;
+#endif
+
+#ifndef HM_ARM64
+; Two files 6.2.3 to 6.3.6 put in Bin\plugin beside the client's plugins, which this
+; installer no longer carries (ThirdPartyBinaries.md): auth_named_pipe.dll, MariaDB Server's
+; own named_pipe authentication plugin, which no client loads, and
+; authentication_windows_client.dll, the client of MySQL Enterprise Edition's Windows
+; authentication. Both came from MariaDB Server's tree, not Connector/C, under the GPL. An
+; upgrade removes them, so that Bin\plugin holds what the installer says it does.
+[InstallDelete]
+Type: files; Name: "{app}\Bin\plugin\auth_named_pipe.dll"
+Type: files; Name: "{app}\Bin\plugin\authentication_windows_client.dll"
 #endif

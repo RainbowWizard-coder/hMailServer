@@ -246,7 +246,7 @@ reads from `hMailServer.vcxproj` and the tree: OpenSSL 4.0.3, Boost 1.92.0,
 PostgreSQL 18.6's libpq, QuickJS 2026-06-04 from its `VERSION` file, and zlib
 1.3.2, vendored as source; the files the Windows installer carries but git does
 not - the .NET Desktop Runtime 10.0.12 (pinned by version and SHA-512), 7-Zip,
-MariaDB Connector/C 3.4.9, the MSVC runtime and SQL Server Compact 4.0 SP1, each
+MariaDB Connector/C 3.4.11, the MSVC runtime and SQL Server Compact 4.0 SP1, each
 with the version and hash [third-party-binaries.json](third-party-binaries.json)
 pins; and, for the Linux packages, the distribution's glibc, OpenSSL, zlib, Boost,
 libpq, OpenLDAP and libstdc++, by name (their versions are the distribution's,
@@ -290,12 +290,12 @@ measured; [ASSURANCE-CASE.md](../../ASSURANCE-CASE.md), *Residual risk*).
 ### Third-party binaries
 
 No binary has been committed to the repository since 11 September 2026.
-[third-party-binaries.json](third-party-binaries.json) lists the 35 files the
-Windows build uses, and `build/get-installer-binaries.ps1` places them:
+[third-party-binaries.json](third-party-binaries.json) lists the 31 files the
+Windows x64 build uses, and `build/get-installer-binaries.ps1` places them:
 
 | Kind | Files | How each is checked |
 |---|---|---|
-| Fetched | 22: 7-Zip's console 19.00, the MariaDB Connector/C 3.4.9 client and its nine plugins (two copies), the SQL Server Compact 4.0 SP1 x64 runtime | SHA-256 against the manifest, from the project's `build-inputs-1` release |
+| Fetched | 18: 7-Zip's console 26.03, the MariaDB Connector/C 3.4.11 client and its seven plugins (two copies), the SQL Server Compact 4.0 SP1 x64 runtime | SHA-256 against the manifest, from the project's `build-inputs-2` (the MariaDB client) and `build-inputs-1` releases, or the publisher (7-Zip) |
 | Gathered | 10: the MSVC v145 runtime, 14.51.36231.0 | Its version, against the toolset that built the server |
 | System | 2: the ADO type libraries, Windows' own | Present; the hash is reported, not enforced |
 | Generated | 1: the COM interop assembly, made from the project's own type library | Never committed; the provenance check refuses it |
@@ -305,10 +305,12 @@ The .NET Desktop Runtime the installer bundles is not in the manifest:
 Microsoft's `aka.ms` link and checks only that the file is larger than 40 MB,
 so it is neither pinned to a version nor checked against a hash.
 
-`get-installer-binaries.ps1` fetches `build-inputs-1` from the project's
-package registry on GitLab, where it was re-published byte for byte after
-GitHub suspended the project's account; until 26 September 2026 it fetched
-GitHub's copy, which has answered 404 since 18 September
+`get-installer-binaries.ps1` fetches `build-inputs-1` and `build-inputs-2` from
+the project's package registry on GitLab: the first was re-published there byte
+for byte after GitHub suspended the project's account (until 26 September 2026
+the script fetched GitHub's copy, which has answered 404 since 18 September), and
+the second, the MariaDB Connector/C 3.4.11 client built from MariaDB's source, has
+been there alone
 ([ThirdPartyBinaries.md](ThirdPartyBinaries.md)). One more thing is not in
 place: 7-Zip 19.00, which the Windows backup runs, is from 2019:
 ThirdPartyBinaries.md names it the file most overdue a refresh. That

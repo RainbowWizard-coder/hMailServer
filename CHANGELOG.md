@@ -24,13 +24,15 @@ its original date and with its files byte for byte, but for 6.2.0 and 6.0.0-B4, 
 <https://gitlab.com/hmailserver/hmailserver/-/releases/permalink/latest>. A tag with no release is at
 `https://gitlab.com/hmailserver/hmailserver/-/tags/<tag>`.
 
-One release is not a version of the server and has no section here:
-[`build-inputs-1`](https://gitlab.com/hmailserver/hmailserver/-/tags/build-inputs-1), of 11 September 2026,
-holds the three third-party files the Windows installer build downloads instead of keeping them in git - the
-7-Zip 19.00 console, the MariaDB Connector/C 3.4.9 client and the SQL Server Compact 4.0 SP1 x64 runtime. Each is
-recorded by SHA-256 in `hmailserver/docs/third-party-binaries.json` and fetched by
-`build/get-installer-binaries.ps1`. Since 25 September 2026 the 7-Zip console is 26.03, fetched from 7-zip.org itself, and
-the release's 7-Zip 19.00 is no longer used.
+Two releases are not versions of the server and have no section here. They hold the third-party files the Windows
+installer build downloads instead of keeping them in git, each recorded by SHA-256 in
+`hmailserver/docs/third-party-binaries.json` and fetched by `build/get-installer-binaries.ps1`:
+[`build-inputs-1`](https://gitlab.com/hmailserver/hmailserver/-/tags/build-inputs-1), of 11 September 2026, with the
+7-Zip 19.00 console, the MariaDB Connector/C 3.4.9 client and the SQL Server Compact 4.0 SP1 x64 runtime, and
+[`build-inputs-2`](https://gitlab.com/hmailserver/hmailserver/-/tags/build-inputs-2), with the MariaDB Connector/C
+3.4.11 client this project builds from MariaDB's source, which the build has used in 3.4.9's place since 6.3.7. Since
+25 September 2026 the 7-Zip console is 26.03, fetched from 7-zip.org itself, so of `build-inputs-1` only the SQL
+Server Compact runtime is still used.
 
 ## How to read a section
 
@@ -363,6 +365,34 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   to an endpoint that never answers hold for a minute, and finds its key closed within ninety-five seconds of the
   sign-out, beside the endpoint reached six times ten seconds apart; with the sweep among the scheduled tasks the key
   closed at the turn after the pass, some two minutes on. Found by the batch's regression gate.
+
+- **The Windows installer's MySQL and MariaDB client is MariaDB Connector/C 3.4.11, from 3.4.9, which has
+  CVE-2026-107819.** Connector/C 3.4.1 to 3.4.9 had a flaw in the authentication switch a server asks for after TLS
+  (6.2.3 to 6.3.6 shipped 3.4.9): when the client checked the server's certificate and the check failed only on the
+  host name - a certificate a trusted authority issued, for another name - the switch did not refuse a plugin that
+  sends the password unhashed, so a man in the middle with such a certificate could ask for `mysql_clear_password`
+  and read the database password inside the TLS connection it stood up (Medium; fixed in Connector/C 3.4.10 by
+  MariaDB's CONC-846, commit e8c0a16d94dd). hMailServer reaches the flawed path only with `TlsMode=verify-full`, no
+  `TlsCaFile` (so the system's store decides trust) and the database on another host whose name is not `localhost`;
+  the default, `prefer`, does not check the certificate and so never enters it, and a named `TlsCaFile` refuses any
+  mismatch before the login. 3.4.11 and not 3.4.10: 3.4.10 is a tag in MariaDB's repository that MariaDB never
+  released, so 3.4.11 is the first release with the fix; it also undoes a regression the same change brought into
+  3.4.10, a CA file making the client check the certificate with checking turned off (CONC-854), which hMailServer,
+  passing `TlsCaFile` to `verify-full` alone, would not have met, and it bounds two reads of what a server sends
+  (CONC-842, the row reader; CONC-850, the GSSAPI plugin). MariaDB publishes 3.4.11 as source only, and no MariaDB
+  Server release bundles it yet, so the files are now built from MariaDB's signed source by
+  `libraries/build-mariadb-connector-c.ps1`, the way MariaDB Server's own build builds the Connector/C it bundles,
+  reproducibly (`hmailserver/docs/ThirdPartyBinaries.md`, "Connector/C 3.4.11, built from MariaDB's source"). The
+  client ships with its seven authentication plugins, two fewer than 6.3.6, and the installer names each of them
+  where it took whatever `Extras\plugin` held, so that a checkout which once fetched the 3.4.9 files cannot ship them
+  again: the archive the 3.4.9 files came in also held `auth_named_pipe.dll`, MariaDB Server's own `named_pipe`
+  server plugin, which no client loads, and `authentication_windows_client.dll`, the GPL client of MySQL Enterprise
+  Edition's Windows authentication, neither of them Connector/C. An upgrade removes both from `Bin\plugin`. So a
+  database account that signs in with MySQL Enterprise's Windows authentication (`authentication_windows`) can no
+  longer sign in after the upgrade, and the server cannot open its database - no such setup is known to the project,
+  and `ThirdPartyBinaries.md` says what one would have to do. The Linux server loads the distribution's
+  `libmariadb.so.3`, which the distribution patches; the Docker image and the snap stage Ubuntu 24.04's, which
+  predates the flaw. Renovate work item 47; CVE on the GitLab dashboard (record 404650204).
 
 ### Correctness
 
@@ -4243,6 +4273,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   batch's message indexer fix.
 
 ### Build and tests
+
+- **The Windows gate stops when the post-build step fails, where it ran the suite on the previous gate's files.**
+  `build/ci/windows-gate.ps1` ran `post-build.ps1` and went on whatever it answered, so a post-build that stopped
+  part-way - at a library the commit's binary manifest names and the bench has not got, as the MariaDB client's move
+  to 3.4.11 under `libraries\` would have made on both benches - left the previous gate's MySQL client, type library
+  and WebAdmin files beside the new server, and the gate tested those. It now ends with exit 3, `POST-BUILD FAILED`,
+  and says that `get-installer-binaries.ps1` run in the bench's checkout at that commit places what is missing
+  (ContinuousIntegration.md, the `windows-gate` steps). And `build/check-installer-scripts.py` holds the MySQL client
+  plugins the installer names to the binary manifest's `Extras/plugin` entries both ways, with a negative control for
+  each way, one for a plugin without `uninsrestartdelete` and one for the wildcard the installer took them by until
+  now.
 
 - **Every change is checked before it lands, a maintainer's batch as well as a merge request** (OpenSSF Baseline
   OSPS-VM-05.03 and OSPS-VM-06.02). `semgrep-sast`, `semgrep-sast-gate` and `mr-dependency-check` ran in a merge

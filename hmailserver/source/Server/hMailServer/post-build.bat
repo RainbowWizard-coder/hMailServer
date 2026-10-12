@@ -24,15 +24,20 @@ xcopy /F /Y "%HMS_LIBS%\postgresql-18.6\builddir\src\interfaces\libpq\*.dll" "%O
 if errorlevel 1 exit /b 1
 
 rem MySQL/MariaDB client (MariaDB Connector/C, shipped as libmysql.dll) + its auth
-rem plugins, vendored in the repo. Copied here so MySQL/MariaDB regression tests can
-rem load the same client the installer ships.
-set MARIADB_CONNECTOR=%SCRIPT_DIR%..\..\..\..\libraries\mariadb-connector-c-3.4.9
+rem plugins, placed under libraries\ by build\get-installer-binaries.ps1 from the
+rem build-inputs release the binary manifest names. Copied here so MySQL/MariaDB
+rem regression tests can load the same client the installer ships.
+set MARIADB_CONNECTOR=%SCRIPT_DIR%..\..\..\..\libraries\mariadb-connector-c-3.4.11
 xcopy /F /Y "%MARIADB_CONNECTOR%\libmysql.dll" "%OUT_DIR%"
 if errorlevel 1 exit /b 1
 
 if not exist "%OUT_DIR%plugin\" mkdir "%OUT_DIR%plugin"
 xcopy /F /Y "%MARIADB_CONNECTOR%\plugin\*.dll" "%OUT_DIR%plugin\"
 if errorlevel 1 exit /b 1
+rem The two MariaDB Server plugins the 3.4.9 client came with, which an upgrade
+rem removes too (section_files_common.iss, [InstallDelete]).
+if exist "%OUT_DIR%plugin\auth_named_pipe.dll" del /f /q "%OUT_DIR%plugin\auth_named_pipe.dll"
+if exist "%OUT_DIR%plugin\authentication_windows_client.dll" del /f /q "%OUT_DIR%plugin\authentication_windows_client.dll"
 
 rem MIDL generates the type library into the intermediate directory, but the
 rem installer ships it from the output directory. Without this copy the

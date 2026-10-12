@@ -1360,7 +1360,7 @@ def self_test():
         libs = dict((lib["purl"], lib) for lib in scan.VENDORED)
 
         def natives(openssl="4.0.3", openssl_arm64=None, boost="1_92_0", zlib="1.3.2", quickjs="2026-06-04",
-                    mariadb="3.4.9", sevenzip="26.03", sqlce="4.0 SP1 (MSI built 2012-04-06)"):
+                    mariadb="3.4.11", sevenzip="26.03", sqlce="4.0 SP1 (MSI built 2012-04-06)"):
             project = ("<I>$(hMailServerLibs)\\boost_%s;$(hMailServerLibs)\\openssl-%s\\out64\\include;"
                        "$(hMailServerLibs)\\postgresql-18.6\\src\\interfaces\\libpq</I>\n"
                        "<I>$(hMailServerLibs)\\openssl-%s-arm64\\out64\\include</I>\n" % (boost, openssl, openssl_arm64 or openssl))

@@ -131,8 +131,11 @@ hmailserver/test/LinuxRegressionTests/obj/
 # The ARM64 installer's own: the ARM64 runtime, 7-Zip's ARM64 console and the
 # ARM64 .NET Desktop Runtime (get-installer-binaries.ps1 and get-dotnet-runtime.ps1 -Platform ARM64).
 /hmailserver/installation/ARM64/
-/libraries/mariadb-connector-c-3.4.9/libmysql.dll
-/libraries/mariadb-connector-c-3.4.9/plugin/
+# The MariaDB client's copy, of whichever version: the folder the manifest names, and an
+# earlier version's that a checkout keeps when the manifest moves on (the script removes
+# nothing; 3.4.9's until 6.3.7), which post-build still uses for a commit whose manifest
+# names it. No version is written here, so that Renovate has none to move.
+/libraries/mariadb-connector-c-*/
 # The ADO 2.8 type libraries the server #imports: Windows' own files, copied
 # from %CommonProgramFiles%\System\ado by the same script (disposition "system").
 /libraries/msado28/*.tlb

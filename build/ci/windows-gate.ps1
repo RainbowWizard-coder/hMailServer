@@ -26,6 +26,9 @@
      2  pre-flight failed                         7  the test assembly is stale
      3  the server did not build                  8  the bench database upgrade failed
      4  the suite did not run, or ran no test     9  the idle server logs errors on its own
+   3 is also post-build (build\post-build.ps1) failing to put the libraries, the type
+   library and the WebAdmin files beside the server it built: a gate that went on would
+   test the previous gate's files beside this commit's server.
 
    Results, for the job's artifacts, in -ResultsDirectory (emptied first):
      gate.log              everything the run printed
@@ -246,8 +249,16 @@ if ($build -ne 0) { Stop-Gate 3 "BUILD FAILED - no gate" -StartService }
 $hash = (Get-FileHash 'hmailserver\source\Server\hMailServer\x64\Release\hMailServer.exe' -Algorithm SHA256).Hash
 "binary $hash"
 # The DLLs, the type library and the WebAdmin files beside the exe, as post-build
-# puts them (the service registration it also does is idempotent).
-& powershell.exe -NoProfile -ExecutionPolicy Bypass -File build\post-build.ps1 -Configuration Release *>&1 | Select-Object -Last 1 | ForEach-Object { "$_" }
+# puts them (the service registration it also does is idempotent). A post-build that
+# stops part-way - a library the commit's manifest names that the bench has not got,
+# as when the MariaDB client moved to 3.4.11 under libraries\ - leaves the previous
+# gate's files there, so its failure ends the gate: the bench's checkout needs
+# build\get-installer-binaries.ps1 run at this commit.
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File build\post-build.ps1 -Configuration Release *>&1 | ForEach-Object { "$_" } |
+   Where-Object { $_ -match 'not found|cannot|invalid|denied|failed|completed successfully' } | Select-Object -Last 5
+$postBuild = $LASTEXITCODE
+"POST-BUILD EXIT=$postBuild"
+if ($postBuild -ne 0) { Stop-Gate 3 "POST-BUILD FAILED - no gate (run build\get-installer-binaries.ps1 in $BenchDir at this commit if a library is missing)" -StartService }
 
 "--- build-tests"
 # Removed first, so that a tree whose test sources are unchanged since the last

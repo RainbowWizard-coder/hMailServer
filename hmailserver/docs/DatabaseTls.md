@@ -8,8 +8,9 @@ Two gaps the test lab on linix found on 25 September 2026 (`TestLab.md`, "What t
 first runs found", 4 and 7):
 
 * **The connection to MySQL and MariaDB was never encrypted through MariaDB
-  Connector/C**, which is the client this server bundles on Windows and the one
-  Ubuntu packages (3.4.9 both), and which asks for TLS only when it is told to -
+  Connector/C**, which is the client this server bundles on Windows (3.4.11 since
+  6.3.7, 3.4.9 before it; see below) and the one Ubuntu packages, and which asks
+  for TLS only when it is told to -
   which this server never did. (Oracle's `libmysqlclient`, which the Linux server
   loads only where there is no `libmariadb`, used its own default: TLS when
   offered.) A database account made with
@@ -73,8 +74,8 @@ own.
 
 | Backend | Before | After |
 |---|---|---|
-| **MySQL / MariaDB, Windows** (the bundled `libmysql.dll`, MariaDB Connector/C 3.4.9 from MariaDB 12.3.2) | **Plaintext, always** - to a server offering TLS as well; an account with `REQUIRE SSL` refused. `AllowUnencryptedConnection=1` set `MYSQL_OPT_SSL_ENFORCE` off, which was already the case: no difference. No way to ask for TLS or a certificate check. | **prefer** by default: TLS whenever offered, unchecked; plaintext when not; one attempt without TLS when the TLS offered cannot be agreed on (client error 2026). `require`, `verify-full` (SChannel, the CA file or the Windows store) and `disable` as above. |
-| **MySQL / MariaDB, Linux** (`libmariadb.so.3`, Ubuntu 26.04's 1:11.8.6, Connector/C 3.4.9) | **Plaintext, always**, as on Windows. | As on Windows; the CA file or the system's store (`/etc/ssl/certs`). |
+| **MySQL / MariaDB, Windows** (the bundled `libmysql.dll`, MariaDB Connector/C 3.4.11 since 6.3.7, 3.4.9 before it) | **Plaintext, always** - to a server offering TLS as well; an account with `REQUIRE SSL` refused. `AllowUnencryptedConnection=1` set `MYSQL_OPT_SSL_ENFORCE` off, which was already the case: no difference. No way to ask for TLS or a certificate check. | **prefer** by default: TLS whenever offered, unchecked; plaintext when not; one attempt without TLS when the TLS offered cannot be agreed on (client error 2026). `require`, `verify-full` (SChannel, the CA file or the Windows store) and `disable` as above. |
+| **MySQL / MariaDB, Linux** (`libmariadb.so.3`, Ubuntu 26.04's 1:11.8.6, Connector/C 3.4.9) | **Plaintext, always**, as on Windows. | As on Windows; the CA file or the system's store (`/etc/ssl/certs`). The distribution's client, which the distribution patches (CVE-2026-107819, below, is the distribution's to fix; `TlsCaFile` set is the mitigation until then). |
 | **MySQL / MariaDB, Linux, Oracle's client** (`libmysqlclient`, loaded only where no `libmariadb` is) | Its own default, PREFERRED: TLS when offered, unchecked. `AllowUnencryptedConnection=1` set option 38 - which to this client is not TLS at all but `MYSQL_OPT_OPTIONAL_RESULTSET_METADATA`, harmlessly to its default. | The same four modes through its own option, `MYSQL_OPT_SSL_MODE`: DISABLED, PREFERRED, REQUIRED, VERIFY_IDENTITY, and `MYSQL_OPT_SSL_CA` - whose number is not MariaDB's, which is why the client is told apart when it is loaded. |
 | **PostgreSQL, both platforms** (libpq) | libpq's default, prefer - or `PGSSLMODE` from the service's environment - unless `PostgreSQLSslMode` and `PostgreSQLSslRootCert` said otherwise. | **Unchanged when nothing is set**: no `sslmode` is added, so libpq's prefer (which falls back without TLS on its own) or `PGSSLMODE` stands. `TlsMode` and `TlsCaFile` become `sslmode` and `sslrootcert` when the two PostgreSQL keys are not set; those keys, which came first, win when they are. `verify-full` with no `TlsCaFile` is `sslrootcert=system` on Linux (libpq 16 and later), and libpq's own default file (`%APPDATA%\postgresql\root.crt` of the service's account) on Windows, where OpenSSL's store is not Windows'. |
 | **SQL Server, Windows** (ADO) | The provider's default: MSOLEDBSQL 18 and SQL Native Client encrypt the login and nothing after it unless the server forces encryption; `ConnectionStringOptions` appended verbatim. | **The whole session encrypted by default** through two of the three providers this server picks for itself when `[Database] Provider` is empty - MSOLEDBSQL, when version 18 or later is installed, and SQLNCLI for a failover partner - with `Use Encryption for Data=True;Trust Server Certificate=True`: every SQL Server since 2005 can, with the certificate it makes for itself. The third is SQLOLEDB, which the server picks when MSOLEDBSQL 18 or later is not installed, and on it only the login is encrypted (below). A failure that reads as TLS takes those two keywords away again for one more attempt, so a server that connected before still does. `MSOLEDBSQL19`, which encrypts and checks by default, is left to its default; SQLOLEDB, which cannot encrypt without checking the certificate against the Windows store, encrypts only the login unless `TlsMode` is `require` or `verify-full`, where it encrypts the session and checks. (SQLOLEDB takes `Trust Server Certificate` without complaint and does not honour it: against SQL Server 2022 and the certificate it made for itself, it was refused at the handshake - `[DBNETLIB][ConnectionOpen (SECDoClientHandshake()).]SSL Security error` - with the keyword as without it, measured on 25 September 2026.) `verify-full` is `Trust Server Certificate=False` against the Windows store; `TlsCaFile` is not read (HM7532 says so once). `ConnectionStringOptions` naming `Encrypt`, `Use Encryption for Data` or `TrustServerCertificate` wins while `TlsMode` is not set, as before, and is refused beside a `TlsMode` (HM7533). |
@@ -237,6 +238,33 @@ None of these is raised on a server whose `[Database]` has neither `TlsMode` nor
 * **Oracle's `libmysqlclient.so.24`** (MySQL 8.4's client, which Ubuntu 26.04
   packages) is not among the names the Linux server loads; `libmariadb3` is what the
   packages depend on.
+* **CVE-2026-107819, in MariaDB Connector/C 3.4.1 to 3.4.9, reached only
+  `verify-full` with no `TlsCaFile`.** When the client checked the certificate's
+  host name against `Server=` and it failed - a certificate a trusted authority
+  issued, for another name - the authentication switch that follows did not refuse
+  a plugin that sends the password unhashed, so a man in the middle with such a
+  certificate could ask for `mysql_clear_password` and read the password inside the
+  TLS connection it stood up. It was reached only with `TlsMode=verify-full`, an
+  empty `TlsCaFile` (so the system's store decides who is trusted) and a database
+  on another host: `prefer` and `require` do not check the certificate, `disable`
+  does not use TLS, and a named `TlsCaFile` refuses any mismatch before the login.
+  The Windows build ships Connector/C 3.4.11 since 6.3.7, which refuses the switch
+  on any failed check (the fix is 3.4.10's, a version MariaDB tagged and never
+  released: [ThirdPartyBinaries.md](ThirdPartyBinaries.md), "Connector/C 3.4.11,
+  built from MariaDB's source"); on Linux it is the distribution's client, and a
+  `TlsCaFile` naming the CA is the mitigation on a distribution that has not patched
+  it. What shows the fix is the source - 3.4.11's `my_auth.c` refuses after any
+  failed check, 3.4.9's after a failed trust check alone - and the built
+  `libmysql.dll`, which carries 3.4.11's refusal message where 3.4.9's does not. The
+  flaw itself needs a certificate that a root in Windows' own store trusts, issued
+  for another name, and no test here stages one. What was measured, on 12 October
+  2026 with `--check-database` through both clients against MariaDB 11.8 and MySQL
+  8.4, is the mitigation and that the swap changes nothing else: with a `TlsCaFile`,
+  `verify-full` refuses a certificate for another host name before the login on
+  3.4.9 and 3.4.11 alike, and the nineteen other cases - each authentication plugin,
+  `REQUIRE SSL`, a server without TLS, a wrong password, a certificate the CA did
+  not issue, and a MariaDB server's own certificate taken on the password's proof -
+  came out the same on both.
 * **Only Oracle's 8.x client is given TLS options.** 5.x numbered its options as
   MariaDB does, and 9.x's list was not read, so any other Oracle client is told
   nothing: its own default stands for `prefer` and `disable`, and `require` and

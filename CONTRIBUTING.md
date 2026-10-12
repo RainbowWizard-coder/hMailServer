@@ -180,13 +180,14 @@ Linux packaging, `build/*.sh` and `hmctl`, which are LF. The database scripts ar
 CRLF, the DKIM-signed `.eml` fixtures carry body hashes, and the raw-message tests send file content verbatim,
 so a tool that normalises the tree to LF breaks all three.
 
-**The installer's fetched inputs.** Twenty-two files are fetched rather than kept in git: the twelve
-third-party files the installer carries (7-Zip's `7za.exe`, the MariaDB client and its nine plugins, and the
+**The installer's fetched inputs.** Eighteen files are fetched rather than kept in git: the ten
+third-party files the installer carries (7-Zip's `7za.exe`, the MariaDB client and its seven plugins, and the
 SQL Server Compact 4.0 runtime), and a second copy of the MariaDB client and its plugins under
-`libraries\mariadb-connector-c-3.4.9\`, which the post-build step copies beside the server.
-`build\get-installer-binaries.ps1` downloads them from the project's `build-inputs-1` release, whose files are in
-the project's package registry on GitLab (<https://gitlab.com/hmailserver/hmailserver/-/releases/build-inputs-1>,
-the same bytes GitHub served until 18 September 2026), and 7-Zip's console from 7-zip.org, and checks each against
+`libraries\mariadb-connector-c-3.4.11\`, which the post-build step copies beside the server.
+`build\get-installer-binaries.ps1` downloads them from the project's `build-inputs-<n>` releases, whose files are
+in the project's package registry on GitLab (the MariaDB client from `build-inputs-2`, built from MariaDB's
+source by `libraries\build-mariadb-connector-c.ps1`; the SQL Server Compact runtime from `build-inputs-1`, the
+same bytes GitHub served until 18 September 2026), and 7-Zip's console from 7-zip.org, and checks each against
 the SHA-256 in `hmailserver/docs/third-party-binaries.json`
 ([ThirdPartyBinaries.md](hmailserver/docs/ThirdPartyBinaries.md#where-the-build-gets-them)). The server, the
 tools, the Control Panel and the test assembly compile without them; a regression bench and the installer need

@@ -197,12 +197,12 @@
     },
     {
       "customType": "regex",
-      "description": "The MariaDB client (Connector/C) the Windows server loads for MySQL and MariaDB: its directory under libraries/, where the build, the test runner, git and the binary manifest name it.",
+      "description": "The MariaDB client (Connector/C) the Windows server loads for MySQL and MariaDB: its directory under libraries/, where the build, the test runner, CONTRIBUTING.md, RegressionEnvironment.md and the binary manifest name it (.gitignore ignores every version's directory and names none).",
       "managerFilePatterns": [
         "/^hmailserver/source/Server/hMailServer/post-build\\.bat$/",
         "/^hmailserver/test/VMTestRunner\\.Console/Configuration/TestEnvironments\\.cs$/",
-        "/^\\.gitignore$/",
         "/^CONTRIBUTING\\.md$/",
+        "/^hmailserver/docs/RegressionEnvironment\\.md$/",
         "/^hmailserver/docs/third-party-binaries\\.json$/"
       ],
       "matchStrings": ["mariadb-connector-c-(?<currentValue>\\d+\\.\\d+\\.\\d+)"],

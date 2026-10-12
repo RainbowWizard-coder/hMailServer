@@ -202,7 +202,7 @@ $installerComponents = @{
       Cpe     = 'cpe:2.3:a:mariadb:connector\/c:{0}:*:*:*:*:*:*:*'
       License = 'LGPL-2.1-or-later'
       Website = 'https://mariadb.com/docs/connectors/mariadb-connector-c/'
-      Why     = 'the MySQL and MariaDB client, libmysql.dll and its nine authentication plugins, loaded at run time; the hash is that of the archive fetched, and each file''s own is in third-party-binaries.json'
+      Why     = 'the MySQL and MariaDB client, libmysql.dll and its seven authentication plugins, loaded at run time, built from MariaDB''s source by libraries/build-mariadb-connector-c.ps1; the hash is that of the archive fetched, and each file''s own is in third-party-binaries.json'
    }
    'Microsoft SQL Server Compact 4.0 SP1 x64 ENU' = @{
       Id          = 'sql-server-compact'
@@ -515,7 +515,7 @@ foreach ($key in $byComponent.Keys) {
          }
       }
    }
-   # One entry per hash: the MariaDB client's twenty files come from one archive.
+   # One entry per hash: the MariaDB client's sixteen files come from one archive.
    $unique = @()
    foreach ($hash in $hashes) {
       if (-not ($unique | Where-Object { $_.algorithm -eq $hash.algorithm -and $_.value -eq $hash.value })) { $unique += $hash }
