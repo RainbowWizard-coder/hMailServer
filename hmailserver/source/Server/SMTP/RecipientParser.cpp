@@ -49,6 +49,7 @@ namespace HM
    const String CONST_UNKNOWN_USER = "Unknown user";
 
    RecipientParser::RecipientParser() :
+      reversed_srs_for_sender_(false),
       memo_added_count_(0)
    {
 
@@ -64,6 +65,11 @@ namespace HM
    {
       bool bDomainIsLocal = false;
       bTreatSecurityAsLocal = false;
+
+      // The calls UserCanSendToList_ makes for a list's members come in above 0.
+      const bool outermost = iRecursionLevel == 0;
+      if (outermost)
+         reversed_srs_for_sender_ = false;
 
       // Apply domain name aliases to the sender address. Can be done
       // outside the loop since this won't be recursed.
@@ -125,8 +131,13 @@ namespace HM
                // authentication or relay restriction, because that is the one thing
                // the address was handed out for. Anything else sent to it is mail
                // for an outside address and is held to the relay rules like any
-               // other (upstream PR 649).
+               // other (upstream PR 649) - at its DATA, where they refuse it, so
+               // that a server verifying the address with a sender of its own is
+               // still told it exists (SMTPConnection::ProtocolRCPT_).
                bTreatSecurityAsLocal = sSender.IsEmpty();
+
+               if (outermost && !sSender.IsEmpty())
+                  reversed_srs_for_sender_ = true;
                recipientAddress = originalSender;
                continue;
             }

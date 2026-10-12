@@ -39,6 +39,15 @@ namespace HM
       DeliveryPossibility CheckDeliveryPossibility(bool bSenderIsAuthed, String sSender, const String &sOriginalRecipient, String &sErrMsg, bool &bTreatSecurityAsLocal, int iRecursionLevel, bool checkRecipientQuota = false);
       void CreateMessageRecipientList(const String &sRecipientAddress, std::shared_ptr<MessageRecipients> pRecipients, bool &recipientOK);
 
+      // Whether the last CheckDeliveryPossibility called with iRecursionLevel 0 found
+      // an SRS address this server handed out and followed it back for a sender of
+      // its own - not a bounce's null one - so that it is mail for an outside address
+      // (bTreatSecurityAsLocal false). SMTPConnection::ProtocolRCPT_ answers such a
+      // RCPT TO, named first in its transaction, as it always did when the relay rules
+      // refuse it, for a server that verifies the address with a sender of its own,
+      // and refuses its DATA.
+      bool GetReversedSrsForSender() const { return reversed_srs_for_sender_; }
+
       // An address routed to a URL (Util/InboundWebhooks.h) is, by default, one
       // recipient of its own with no account behind it. An address whose route
       // is one of these - the routes a message has been taken by already - is
@@ -84,6 +93,10 @@ namespace HM
       // of CreateMessageRecipientList constructs a fresh parser, whose empty set
       // means what it always meant: expand the list to its members.
       std::set<String> moderated_list_addresses_;
+
+      // GetReversedSrsForSender's answer: set by the outermost CheckDeliveryPossibility
+      // alone, so that the calls it makes for a list's members neither clear nor set it.
+      bool reversed_srs_for_sender_;
 
       // The collection the two memos below describe, held weakly so that a
       // collection which has been freed can never be mistaken for the one in

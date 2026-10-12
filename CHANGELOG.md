@@ -433,8 +433,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   passed back to the original sender. Every message to a valid address was taken as delivery to a local recipient, not
   only a bounce (from 6.2.1, which brought SRS). Only a bounce, with a null reverse-path (RFC 5321 4.5.5), is taken so
   now; anything else sent to the address is mail for the original sender's domain and is held to the relay rules like
-  any other. `SMTP/Srs.cs` holds both. Found by upstream's review of its own SRS (upstream PR 649), which shared the
-  shape.
+  any other. Its `RCPT TO` is answered as it always was, so that a server verifying the address with a sender of its
+  own - Postfix's `reject_unverified_sender` asks as `double-bounce@` - is still told it exists and takes the forwarded
+  message; where the relay rules refuse it, the transaction is refused at `DATA` or `BDAT` with the reply the
+  `RCPT TO` would have had, and the SMTP log says why. Such an address keeps its transaction to itself: a recipient
+  named after it is answered `452 4.5.3`, which asks the client to send to it in a transaction of its own, rather than
+  lost with it at `DATA`, and named after a recipient already taken it is refused at once, as any outside address is.
+  `SMTP/Srs.cs` holds each. Found by upstream's review of its own SRS (upstream PR 649), which shared the shape and
+  refuses the `RCPT TO` itself.
 
 - **Fixed: an SRS address or a BATV tag almost a whole cycle old was accepted as fresh, and a signature was compared
   in a time that said how much of it was right.** Both carry their day as a number that wraps - every 1024 days for

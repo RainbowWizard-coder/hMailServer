@@ -148,6 +148,12 @@ namespace HM
       // connecting address has been banned where BanMultiRcptNullSender asks.
       bool CheckMultiRecipientNullSender_(const String &recipientAddress);
 
+      // An SRS address named by a sender of its own that the relay rules refuse, as
+      // the first recipient of the transaction (srs_relay_refusal_code_): the reply
+      // the RCPT TO would have had is kept for the transaction's DATA or BDAT, and
+      // the SMTP log says so.
+      void KeepSrsRelayRefusal_(int code, const String &text, const String &recipientAddress);
+
       // Restricted delivery (Common/Util/RestrictedDelivery.h), at RCPT TO in
       // both directions: false with 550 5.7.1 sent when the recipient is a
       // restricted local account the envelope sender may not write to, or when
@@ -514,6 +520,17 @@ namespace HM
       // RejectMultiRcptNullSender is on: the DATA that follows is refused as the
       // recipient was. Cleared with the transaction.
       bool multi_recipient_null_sender_;
+
+      // An SRS address this server handed out was named in THIS transaction by a
+      // sender of its own, not a bounce's null one, as its first recipient, and the
+      // relay rules refuse it (RecipientParser::GetReversedSrsForSender): its RCPT TO
+      // was answered 250 as it always was, so that a server verifying the address
+      // with a sender of its own - Postfix's reject_unverified_sender probes as
+      // double-bounce@ - is told it exists, every RCPT TO after it is answered 452
+      // 4.5.3, and the DATA or BDAT that follows is refused with the reply the RCPT TO
+      // would have had. 0 when there is none; cleared with the transaction.
+      int srs_relay_refusal_code_;
+      String srs_relay_refusal_text_;
 
       // The DISTINCT addresses a null sender has named in this transaction,
       // lower-cased. The count of recipients on the message will not do: a

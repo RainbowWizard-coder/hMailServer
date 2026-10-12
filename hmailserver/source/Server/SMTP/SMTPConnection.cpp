@@ -148,6 +148,7 @@ namespace HM
       addressed_spam_trap_(false),
       domain_policy_(DomainPolicyList::VerdictNone),
       multi_recipient_null_sender_(false),
+      srs_relay_refusal_code_(0),
       banned_for_null_sender_(false),
       auth_on_delivery_port_seen_(false),
       spam_protection_deferred_(false),
@@ -1566,6 +1567,17 @@ namespace HM
          return;
       }
 
+      // A transaction whose DATA will be refused for an SRS address of this server
+      // (KeepSrsRelayRefusal_) is that address's alone. Any other recipient is
+      // answered as a server out of room for recipients answers, 452 4.5.3, which
+      // asks the client to send to it in a transaction of its own (RFC 5321
+      // 4.5.3.1.10), rather than taken here and lost to the refusal at DATA.
+      if (srs_relay_refusal_code_ != 0)
+      {
+         SendResponse_(452, _T("4.5.3"), _T("Too many recipients for this transaction; send to this one in another."));
+         return;
+      }
+
       // SECURITY: the per-account recipient ceiling is applied here, as recipients
       // accumulate, and not only at MAIL FROM - otherwise one message addressed to
       // thousands of recipients would cost a single message from the budget. Checked
@@ -1589,6 +1601,12 @@ namespace HM
       
       RecipientParser::DeliveryPossibility dp = RecipientParser::DP_Possible;
 
+      // An SRS address this server handed out, followed back for a sender of its own
+      // rather than a bounce's null one: mail for an outside address, which meets the
+      // relay rules below - at its DATA, where they refuse it and it is the first
+      // recipient of the transaction (srs_relay_refusal_code_).
+      bool srsForSender = false;
+
       {
          // This decides whether the address is deliverable at all, using the same
          // domain and account lookups as below, so it needs the same protection: a
@@ -1597,6 +1615,7 @@ namespace HM
          DatabaseUnavailableMarker::Scope databaseScope;
 
          dp = recipientParser_.CheckDeliveryPossibility(isAuthenticated_, current_message_->GetFromAddress(), sRecipientAddress, sErrMsg, localDelivery, 0, true);
+         srsForSender = recipientParser_.GetReversedSrsForSender();
 
          if (dp != RecipientParser::DP_Possible && DatabaseUnavailableMarker::IsMarked())
          {
@@ -1646,13 +1665,41 @@ namespace HM
          iRelayOption = SecurityRange::IPRANGE_RELAY_REMOTE_TO_REMOTE;
 
       bool bAllowRelay = GetSecurityRange()->GetAllowOption(iRelayOption);
-         
+
+      // The reply the relay rules give an SRS address named by a sender of its own,
+      // kept for the DATA when they refuse it. Such a RCPT TO has always been answered
+      // 250 - it was taken for mail to a local recipient - and a server that verifies
+      // a sender's address before it takes the sender's mail asks with a RCPT TO of
+      // its own - Postfix's reject_unverified_sender, from double-bounce@ by default -
+      // and then QUIT or RSET, never DATA. Refused here, the probe would read the
+      // forwarded mail's Return-Path as no address and refuse the forward itself. So
+      // the RCPT TO is answered as it always was, and the transaction is refused at
+      // its DATA, before a byte of the message is read, with the reply this RCPT TO
+      // would have had: the relay rules decide, as they do for every outside
+      // address, and only the moment moves (upstream PR 649 refuses the RCPT TO).
+      // A probe names the address alone, so the refusal waits for the first
+      // recipient of a transaction only. Named after another recipient has been
+      // taken, the address is refused here, as any outside address is, and the
+      // recipients before it keep their message; named first, it keeps the
+      // transaction to itself (the 452 above).
+      const bool deferRelayRefusal = srsForSender && current_message_->GetRecipients()->GetCount() == 0;
+      int deferredRefusalCode = 0;
+      String deferredRefusalText;
+
       if (bAllowRelay == false)
       {
-         // User is not allowed to send this email.
-         SendErrorResponse_(550, "Delivery is not allowed to this address.");
-         AWStats::LogDeliveryFailure(GetIPAddressString(), current_message_->GetFromAddress(), sRecipientAddress, 550, current_message_->GetID());
-         return;
+         if (deferRelayRefusal)
+         {
+            deferredRefusalCode = 550;
+            deferredRefusalText = "Delivery is not allowed to this address.";
+         }
+         else
+         {
+            // User is not allowed to send this email.
+            SendErrorResponse_(550, "Delivery is not allowed to this address.");
+            AWStats::LogDeliveryFailure(GetIPAddressString(), current_message_->GetFromAddress(), sRecipientAddress, 550, current_message_->GetID());
+            return;
+         }
       }
 
       bool authenticationRequired = true;
@@ -1668,10 +1715,22 @@ namespace HM
       // If the user is local but not authenticated, maybe we should do SMTP authentication.
       if (authenticationRequired && !isAuthenticated_)
       {
-         // Authentication is required, but the user hasn't authenticated.
-         SendErrorResponse_(530, "SMTP authentication is required.");
-         AWStats::LogDeliveryFailure(GetIPAddressString(), current_message_->GetFromAddress(), sRecipientAddress, 530, current_message_->GetID());
-         return;
+         if (deferRelayRefusal)
+         {
+            // As the relay refusal above: at the DATA, where the first refusal stands.
+            if (deferredRefusalCode == 0)
+            {
+               deferredRefusalCode = 530;
+               deferredRefusalText = "SMTP authentication is required.";
+            }
+         }
+         else
+         {
+            // Authentication is required, but the user hasn't authenticated.
+            SendErrorResponse_(530, "SMTP authentication is required.");
+            AWStats::LogDeliveryFailure(GetIPAddressString(), current_message_->GetFromAddress(), sRecipientAddress, 530, current_message_->GetID());
+            return;
+         }
       }
 
       // This server is the submission server (RFC 6409) for the message if the client
@@ -1679,7 +1738,8 @@ namespace HM
       // does not require authentication to do so - by default, only the server itself.
       // For everyone else it is a relay, and a relay adds trace fields only. Decided
       // here because this is where that determination is already made. Upstream #552.
-      if (isAuthenticated_ || (localSender && !authenticationRequired))
+      // Not for a recipient the relay rules refuse, whose DATA is refused.
+      if (deferredRefusalCode == 0 && (isAuthenticated_ || (localSender && !authenticationRequired)))
          message_submission_ = true;
 
       // Restricted delivery (Common/Util/RestrictedDelivery.h), in both
@@ -1912,6 +1972,12 @@ namespace HM
             vecAllRecipients[i]->SetDSNNotify(recipientNotify);
       }
    
+      // Kept for the DATA only now that the recipient is taken: a RCPT TO refused after
+      // the relay rules - by greylisting, say, or the callout - leaves the transaction
+      // as it was.
+      if (deferredRefusalCode != 0)
+         KeepSrsRelayRefusal_(deferredRefusalCode, deferredRefusalText, sRecipientAddress);
+
       // 2.1.5 = destination (recipient) address is valid (RFC 3463).
       SendResponse_(250, _T("2.1.5"), _T("OK"));
    }
@@ -2183,6 +2249,26 @@ namespace HM
       }
 
       return true;
+   }
+
+   void
+   SMTPConnection::KeepSrsRelayRefusal_(int code, const String &text, const String &recipientAddress)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // Keeps the refusal the relay rules make of an SRS address named by a sender of
+   // its own, as the transaction's first recipient, for the transaction's DATA or
+   // BDAT, which ProtocolDATA_ and ProtocolBDAT_ send before reading the message;
+   // the RCPT TO itself goes on to be answered as it always was, and ProtocolRCPT_
+   // answers every recipient after it 452 4.5.3.
+   //---------------------------------------------------------------------------()
+   {
+      srs_relay_refusal_code_ = code;
+      srs_relay_refusal_text_ = text;
+
+      String note;
+      note.Format(_T("RCPT TO %s: an SRS address of this server, named by a sender of its own, which the relay rules refuse (%d). Answered as before, for a server verifying the address; the DATA will be refused."),
+         recipientAddress.c_str(), code);
+      LOG_SMTP(GetSessionID(), GetIPAddressString(), note);
    }
 
    bool
@@ -3686,6 +3772,8 @@ namespace HM
       domain_policy_ = DomainPolicyList::VerdictNone;
       multi_recipient_null_sender_ = false;
       null_sender_recipients_.clear();
+      srs_relay_refusal_code_ = 0;
+      srs_relay_refusal_text_.Empty();
       spam_protection_deferred_ = false;
 
       message_submission_ = false;
@@ -4457,6 +4545,16 @@ namespace HM
          return;
       }
 
+      // An SRS address of this server named by a sender of its own, which the relay
+      // rules refuse: its RCPT TO was answered for a server verifying the address, and
+      // the message is refused here, with the reply that RCPT TO would have had.
+      if (srs_relay_refusal_code_ != 0)
+      {
+         SendErrorResponse_(srs_relay_refusal_code_, srs_relay_refusal_text_);
+         LogAwstatsMessageRejected_();
+         return;
+      }
+
       // Let's add an event call on DATA so we can act on reception during SMTP conversation..
       if (Configuration::Instance()->GetUseScriptServer())
       {
@@ -4620,6 +4718,15 @@ namespace HM
       if (multi_recipient_null_sender_)
       {
          SendResponse_(550, _T("5.7.1"), _T("A null sender may name one recipient; this transaction named more, and a delivery report has exactly one."));
+         LogAwstatsMessageRejected_();
+         StartBdatDiscard_((size_t)chunkSize);
+         return;
+      }
+
+      // The same refusal ProtocolDATA_ makes for an SRS address the relay rules refuse.
+      if (srs_relay_refusal_code_ != 0)
+      {
+         SendErrorResponse_(srs_relay_refusal_code_, srs_relay_refusal_text_);
          LogAwstatsMessageRejected_();
          StartBdatDiscard_((size_t)chunkSize);
          return;
