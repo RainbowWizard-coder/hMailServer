@@ -431,7 +431,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception why) when (!ExceptionPolicy.IsFatal(why))
          {
-            Unread_(L("Could not read the journaling rules: "), ServerSession.DescribeComError(why));
+            Unread_(L("Could not read the journaling rules: {0}"), ServerSession.DescribeComError(why));
             return;
          }
 
@@ -450,9 +450,9 @@ namespace hMailServer.ControlPanel.Views
       /// them, the notice above says what happened, with Try again, and Add the
       /// rule waits for a read that works (Services/ReadFailure).
       /// </summary>
-      private void Unread_(string prefix, string why)
+      private void Unread_(string template, string why)
       {
-         ReadFailure.Show(readNotice_, empty_, rules_, prefix, why, Reload_, add_);
+         ReadFailure.Show(readNotice_, empty_, rules_, template, why, Reload_, add_);
          rules_.Visibility = Visibility.Collapsed;
          chosen_.Visibility = Visibility.Collapsed;
          listCard_.Visibility = Visibility.Collapsed;

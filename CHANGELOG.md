@@ -3963,6 +3963,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   buttons would not fit their card on one line, not only below 340 pixels. `RulesPageTests` and `RulesActionOrderTests`
   hold both.
 
+- **Fixed: 34 texts were pieces of a sentence that the reason for a failure was glued to.** "Could not read the list: ",
+  "Could not read the domains: ", "The run failed: ", "Could not copy: ", "Scope: " and 29 more ended in a colon and a
+  space, and the page put the reason after them, so no language could put the reason anywhere else (review finding F283,
+  which made the other joins whole). Each is a whole text now with the reason for its {0} - "Could not read the list:
+  {0}" - the same words in each language where they were, ready for a translator to reorder; the two labels set before a
+  run of their own, "Store:" and "What to do:", are whole labels. `check-localisation` and `WholeTextsTests` refuse a
+  text with white space at either edge.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

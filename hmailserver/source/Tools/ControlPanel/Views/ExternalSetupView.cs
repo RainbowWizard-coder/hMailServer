@@ -415,7 +415,9 @@ namespace hMailServer.ControlPanel.Views
          {
             var action = new TextBlock { Margin = new Thickness(0, 12, 0, 0) };
             action.SetResourceReference(StyleProperty, "TextCaption");
-            action.Inlines.Add(new Run(L("What to do: ")) { FontWeight = FontWeights.SemiBold });
+            // The label is a whole text, "What to do:", and the space after it a run of its own.
+            action.Inlines.Add(new Run(L("What to do:")) { FontWeight = FontWeights.SemiBold });
+            action.Inlines.Add(new Run(" ")); // no-loc: the space between the label and the action
             action.Inlines.Add(new Run(item.Action));
             content.Children.Add(action);
          }

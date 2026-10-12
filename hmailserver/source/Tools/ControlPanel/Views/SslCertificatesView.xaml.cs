@@ -214,7 +214,7 @@ namespace hMailServer.ControlPanel.Views
             // what could not be read and then why, with Try again, the list emptied and
             // Add disabled until a read works - where the notice gave the reason alone,
             // and nothing on the page read the list again.
-            ReadFailure.Show(LoadNotice, EmptyStatus, CertGrid, L("Could not read the certificates: "), failure, () => Reload(), AddCertButton);
+            ReadFailure.Show(LoadNotice, EmptyStatus, CertGrid, L("Could not read the certificates: {0}"), failure, () => Reload(), AddCertButton);
          }
          else
          {

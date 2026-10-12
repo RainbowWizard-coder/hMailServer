@@ -496,10 +496,12 @@ PAIR_CHOICE = re.compile(r"==\s*1\s*\)?\s*\?\s*L\(\s*" + CS_LITERAL + r"\s*\)\s*
 # L("MX - which server takes the mail for ") + domain, the Japanese of a sentence added
 # with a leading space kept the space after its 。, and " (inactive)" put the English
 # order of a name and its state in every language (review finding F283). The colon of a
-# label, "Scope: " + value, is the one separator a text may end with.
+# label was let end a text, "Could not read the list: " + reason, and 34 such pieces were
+# left, which no language could reorder either: a label is a whole text, "Store:", and a
+# reason goes into a template, "Could not read the list: {0}" (the final check of Tier 2).
 def glued_at_edge(text):
-   """True for a marked text with white space at its start, or at its end after anything but a colon."""
-   return text != text.lstrip() or (text != text.rstrip() and not text.endswith(": "))
+   """True for a marked text with white space at either edge."""
+   return text != text.strip()
 
 
 def cs_pair_choices(src):
@@ -1080,7 +1082,7 @@ def self_test():
    for text, expected in {"MX - which server takes the mail for ": True, " (inactive)": True,
                           " and the policy verifies nothing.": True, "Before you copy - ": True,
                           "\n\nSave this weak password anyway?": True, "Web  ": True,
-                          "Could not read the list: ": False, "Scope: ": False,
+                          "Could not read the list: ": True, "Scope: ": True, "Could not read the list: {0}": False, "Store:": False,
                           "MX - which server takes the mail for {0}": False, "It is safe to enable signing.": False}.items():
       if glued_at_edge(text) != expected:
          print(f"FAIL: {text!r} is {'not ' if expected else ''}reported as glued at an edge")

@@ -314,7 +314,9 @@ namespace hMailServer.ControlPanel.Views
          // The path in the monospaced face and cut in its middle where it is long,
          // the whole of it in the tool tip, where it wrapped at a backslash (F304).
          storePath_.Inlines.Clear();
-         storePath_.Inlines.Add(new System.Windows.Documents.Run(L("Store: ")));
+         // The label is a whole text, "Store:", and the space after it a run of its own.
+         storePath_.Inlines.Add(new System.Windows.Documents.Run(L("Store:")));
+         storePath_.Inlines.Add(new System.Windows.Documents.Run(" ")); // no-loc: the space between the label and the path
          storePath_.Inlines.Add(new System.Windows.Documents.Run(DataText.MiddleOfPath(path)) { FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily) });
          storePath_.ToolTip = path;
 
@@ -464,7 +466,7 @@ namespace hMailServer.ControlPanel.Views
 
          var scope = new TextBlock
          {
-            Text = L("Scope: ") + string.Join("; ", restrictions) + ".",
+            Text = F("Scope: {0}.", string.Join("; ", restrictions)),
             TextWrapping = TextWrapping.Wrap,
             Margin = new Thickness(0, 6, 0, 0)
          };

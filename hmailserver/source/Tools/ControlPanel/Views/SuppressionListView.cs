@@ -166,7 +166,7 @@ namespace hMailServer.ControlPanel.Views
          {
             // The lists go with the domains, the notice says what happened, with
             // Try again, and Add waits for a read that works (Services/ReadFailure).
-            ReadFailure.Show(status_, empty_, entries_, L("Could not read the domains: "), ex, OnEnter, addButton_);
+            ReadFailure.Show(status_, empty_, entries_, L("Could not read the domains: {0}"), ex, OnEnter, addButton_);
             counts_.ItemsSource = null;
             processingOff_.Visibility = Visibility.Collapsed;
          }
@@ -250,7 +250,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            Unread_(L("Could not read the suppression list: "), ServerSession.DescribeComError(ex));
+            Unread_(L("Could not read the suppression list: {0}"), ServerSession.DescribeComError(ex));
          }
       }
 
@@ -260,9 +260,9 @@ namespace hMailServer.ControlPanel.Views
       /// both go with the counts, the notice says what happened, with Try again,
       /// and Add waits for a read that works (Services/ReadFailure).
       /// </summary>
-      private void Unread_(string prefix, string why)
+      private void Unread_(string template, string why)
       {
-         ReadFailure.Show(status_, empty_, entries_, prefix, why, Reload, addButton_);
+         ReadFailure.Show(status_, empty_, entries_, template, why, Reload, addButton_);
          counts_.ItemsSource = null;
       }
 

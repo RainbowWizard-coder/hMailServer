@@ -3079,14 +3079,14 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Could not change the match mode: {0}" xml:space="preserve">
     <value>Could not change the match mode: {0}</value>
   </data>
-  <data name="Could not change the role: " xml:space="preserve">
-    <value>Could not change the role: </value>
+  <data name="Could not change the role: {0}" xml:space="preserve">
+    <value>Could not change the role: {0}</value>
   </data>
   <data name="Could not change the second factor: {0}" xml:space="preserve">
     <value>Could not change the second factor: {0}</value>
   </data>
-  <data name="Could not copy: " xml:space="preserve">
-    <value>Could not copy: </value>
+  <data name="Could not copy: {0}" xml:space="preserve">
+    <value>Could not copy: {0}</value>
   </data>
   <data name="Could not create the account: {0}" xml:space="preserve">
     <value>Could not create the account: {0}</value>
@@ -3175,8 +3175,8 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Could not list the messages: {0}" xml:space="preserve">
     <value>Could not list the messages: {0}</value>
   </data>
-  <data name="Could not load folders: " xml:space="preserve">
-    <value>Could not load folders: </value>
+  <data name="Could not load folders: {0}" xml:space="preserve">
+    <value>Could not load folders: {0}</value>
   </data>
   <data name="Could not load permissions: {0}" xml:space="preserve">
     <value>Could not load permissions: {0}</value>
@@ -3228,20 +3228,20 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>Could not open {0}: {1}</value>
   </data>
-  <data name="Could not read the IP ranges: " xml:space="preserve">
-    <value>Could not read the IP ranges: </value>
+  <data name="Could not read the IP ranges: {0}" xml:space="preserve">
+    <value>Could not read the IP ranges: {0}</value>
   </data>
-  <data name="Could not read the accounts: " xml:space="preserve">
-    <value>Could not read the accounts: </value>
+  <data name="Could not read the accounts: {0}" xml:space="preserve">
+    <value>Could not read the accounts: {0}</value>
   </data>
-  <data name="Could not read the aliases: " xml:space="preserve">
-    <value>Could not read the aliases: </value>
+  <data name="Could not read the aliases: {0}" xml:space="preserve">
+    <value>Could not read the aliases: {0}</value>
   </data>
-  <data name="Could not read the audit trail: " xml:space="preserve">
-    <value>Could not read the audit trail: </value>
+  <data name="Could not read the audit trail: {0}" xml:space="preserve">
+    <value>Could not read the audit trail: {0}</value>
   </data>
-  <data name="Could not read the backup settings: " xml:space="preserve">
-    <value>Could not read the backup settings: </value>
+  <data name="Could not read the backup settings: {0}" xml:space="preserve">
+    <value>Could not read the backup settings: {0}</value>
   </data>
   <data name="Could not read the bans: {0}" xml:space="preserve">
     <value>Could not read the bans: {0}</value>
@@ -3249,32 +3249,29 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Could not read the certificate: {0}" xml:space="preserve">
     <value>Could not read the certificate: {0}</value>
   </data>
-  <data name="Could not read the certificates: " xml:space="preserve">
-    <value>Could not read the certificates: </value>
+  <data name="Could not read the certificates: {0}" xml:space="preserve">
+    <value>Could not read the certificates: {0}</value>
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Could not read the consistency report: {0}</value>
   </data>
-  <data name="Could not read the distribution lists: " xml:space="preserve">
-    <value>Could not read the distribution lists: </value>
+  <data name="Could not read the distribution lists: {0}" xml:space="preserve">
+    <value>Could not read the distribution lists: {0}</value>
   </data>
-  <data name="Could not read the domains: " xml:space="preserve">
-    <value>Could not read the domains: </value>
+  <data name="Could not read the domains: {0}" xml:space="preserve">
+    <value>Could not read the domains: {0}</value>
   </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>Could not read the file: {0}</value>
   </data>
-  <data name="Could not read the incoming relays: " xml:space="preserve">
-    <value>Could not read the incoming relays: </value>
+  <data name="Could not read the incoming relays: {0}" xml:space="preserve">
+    <value>Could not read the incoming relays: {0}</value>
   </data>
-  <data name="Could not read the journaling rules: " xml:space="preserve">
-    <value>Could not read the journaling rules: </value>
+  <data name="Could not read the journaling rules: {0}" xml:space="preserve">
+    <value>Could not read the journaling rules: {0}</value>
   </data>
   <data name="Could not read the key rotation: {0}" xml:space="preserve">
     <value>Could not read the key rotation: {0}</value>
-  </data>
-  <data name="Could not read the list: " xml:space="preserve">
-    <value>Could not read the list: </value>
   </data>
   <data name="Could not read the list: {0}" xml:space="preserve">
     <value>Could not read the list: {0}</value>
@@ -3300,44 +3297,44 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>Could not read the photo: {0}</value>
   </data>
-  <data name="Could not read the ports: " xml:space="preserve">
-    <value>Could not read the ports: </value>
+  <data name="Could not read the ports: {0}" xml:space="preserve">
+    <value>Could not read the ports: {0}</value>
   </data>
-  <data name="Could not read the public folders: " xml:space="preserve">
-    <value>Could not read the public folders: </value>
+  <data name="Could not read the public folders: {0}" xml:space="preserve">
+    <value>Could not read the public folders: {0}</value>
   </data>
-  <data name="Could not read the quarantine: " xml:space="preserve">
-    <value>Could not read the quarantine: </value>
+  <data name="Could not read the quarantine: {0}" xml:space="preserve">
+    <value>Could not read the quarantine: {0}</value>
   </data>
-  <data name="Could not read the queue: " xml:space="preserve">
-    <value>Could not read the queue: </value>
+  <data name="Could not read the queue: {0}" xml:space="preserve">
+    <value>Could not read the queue: {0}</value>
   </data>
   <data name="Could not read the relay: {0}" xml:space="preserve">
     <value>Could not read the relay: {0}</value>
   </data>
-  <data name="Could not read the roles: " xml:space="preserve">
-    <value>Could not read the roles: </value>
+  <data name="Could not read the roles: {0}" xml:space="preserve">
+    <value>Could not read the roles: {0}</value>
   </data>
-  <data name="Could not read the routes: " xml:space="preserve">
-    <value>Could not read the routes: </value>
+  <data name="Could not read the routes: {0}" xml:space="preserve">
+    <value>Could not read the routes: {0}</value>
   </data>
-  <data name="Could not read the rules: " xml:space="preserve">
-    <value>Could not read the rules: </value>
+  <data name="Could not read the rules: {0}" xml:space="preserve">
+    <value>Could not read the rules: {0}</value>
   </data>
-  <data name="Could not read the server's statistics: " xml:space="preserve">
-    <value>Could not read the server's statistics: </value>
+  <data name="Could not read the server's statistics: {0}" xml:space="preserve">
+    <value>Could not read the server's statistics: {0}</value>
   </data>
-  <data name="Could not read the server: " xml:space="preserve">
-    <value>Could not read the server: </value>
+  <data name="Could not read the server: {0}" xml:space="preserve">
+    <value>Could not read the server: {0}</value>
   </data>
-  <data name="Could not read the setting levels: " xml:space="preserve">
-    <value>Could not read the setting levels: </value>
+  <data name="Could not read the setting levels: {0}" xml:space="preserve">
+    <value>Could not read the setting levels: {0}</value>
   </data>
-  <data name="Could not read the suppression list: " xml:space="preserve">
-    <value>Could not read the suppression list: </value>
+  <data name="Could not read the suppression list: {0}" xml:space="preserve">
+    <value>Could not read the suppression list: {0}</value>
   </data>
-  <data name="Could not read the update status: " xml:space="preserve">
-    <value>Could not read the update status: </value>
+  <data name="Could not read the update status: {0}" xml:space="preserve">
+    <value>Could not read the update status: {0}</value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Could not read {0}: {1}</value>
@@ -10923,8 +10920,8 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Scope (empty = the Microsoft default)" xml:space="preserve">
     <value>Scope (empty = the Microsoft default)</value>
   </data>
-  <data name="Scope: " xml:space="preserve">
-    <value>Scope: </value>
+  <data name="Scope: {0}." xml:space="preserve">
+    <value>Scope: {0}.</value>
   </data>
   <data name="Scoped, expiring credentials for the REST API, so automation does not have to carry the administrator password." xml:space="preserve">
     <value>Scoped, expiring credentials for the REST API, so automation does not have to carry the administrator password.</value>
@@ -12090,8 +12087,8 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Store new mail compressed, with large parts held once" xml:space="preserve">
     <value>Store new mail compressed, with large parts held once</value>
   </data>
-  <data name="Store: " xml:space="preserve">
-    <value>Store: </value>
+  <data name="Store:" xml:space="preserve">
+    <value>Store:</value>
   </data>
   <data name="Stored as [LDAP] {0}." xml:space="preserve">
     <value>Stored as [LDAP] {0}.</value>
@@ -12711,8 +12708,8 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>The anti-virus configuration could not be read.</value>
   </data>
-  <data name="The anti-virus configuration could not be read: " xml:space="preserve">
-    <value>The anti-virus configuration could not be read: </value>
+  <data name="The anti-virus configuration could not be read: {0}" xml:space="preserve">
+    <value>The anti-virus configuration could not be read: {0}</value>
   </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>The archive holds no messages for this account.</value>
@@ -13156,8 +13153,8 @@ could not be loaded. The message has probably been delivered and is no longer in
   <data name="The greylisting settings could not be read." xml:space="preserve">
     <value>The greylisting settings could not be read.</value>
   </data>
-  <data name="The group members could not be read: " xml:space="preserve">
-    <value>The group members could not be read: </value>
+  <data name="The group members could not be read: {0}" xml:space="preserve">
+    <value>The group members could not be read: {0}</value>
   </data>
   <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark." xml:space="preserve">
     <value>The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark.</value>
@@ -13587,8 +13584,8 @@ Add it anyway?</value>
   <data name="The run did not finish. What was read before it stopped is below." xml:space="preserve">
     <value>The run did not finish. What was read before it stopped is below.</value>
   </data>
-  <data name="The run failed: " xml:space="preserve">
-    <value>The run failed: </value>
+  <data name="The run failed: {0}" xml:space="preserve">
+    <value>The run failed: {0}</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself.</value>
@@ -13864,8 +13861,8 @@ It will keep trying as you use the application.</value>
   <data name="The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address." xml:space="preserve">
     <value>The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address.</value>
   </data>
-  <data name="The spam configuration could not be read: " xml:space="preserve">
-    <value>The spam configuration could not be read: </value>
+  <data name="The spam configuration could not be read: {0}" xml:space="preserve">
+    <value>The spam configuration could not be read: {0}</value>
   </data>
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement.</value>
@@ -13903,8 +13900,8 @@ It will keep trying as you use the application.</value>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>The transport security configuration could not be read.</value>
   </data>
-  <data name="The transport security configuration could not be read: " xml:space="preserve">
-    <value>The transport security configuration could not be read: </value>
+  <data name="The transport security configuration could not be read: {0}" xml:space="preserve">
+    <value>The transport security configuration could not be read: {0}</value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>The two halves fail differently and have different causes. Work out which one you have before anything else.</value>
@@ -14938,8 +14935,8 @@ It will keep trying as you use the application.</value>
   <data name="What this server still needs, in the order a new installation meets it. Each item says whether it is done, the next one to do is marked, and the button beside it opens the page that does it. Where the answer cannot be read from here, the item says what to check instead of guessing." xml:space="preserve">
     <value>What this server still needs, in the order a new installation meets it. Each item says whether it is done, the next one to do is marked, and the button beside it opens the page that does it. Where the answer cannot be read from here, the item says what to check instead of guessing.</value>
   </data>
-  <data name="What to do: " xml:space="preserve">
-    <value>What to do: </value>
+  <data name="What to do:" xml:space="preserve">
+    <value>What to do:</value>
   </data>
   <data name="What will be written:" xml:space="preserve">
     <value>What will be written:</value>

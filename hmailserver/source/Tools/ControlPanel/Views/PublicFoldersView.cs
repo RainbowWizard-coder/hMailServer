@@ -235,7 +235,7 @@ namespace hMailServer.ControlPanel.Views
             // a count is a fact this page has now: all three go, the notice says
             // what happened, with Try again, and Add folder waits for a read that
             // works (Services/ReadFailure).
-            ReadFailure.Show(notice_, empty_, list_, L("Could not read the public folders: "), ex, Reload, addButton_);
+            ReadFailure.Show(notice_, empty_, list_, L("Could not read the public folders: {0}"), ex, Reload, addButton_);
             count_.Visibility = Visibility.Collapsed;
             misnamed_.Visibility = Visibility.Collapsed;
             return;

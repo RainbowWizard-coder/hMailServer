@@ -262,7 +262,7 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         ReadFailure.Show(ReadNotice, null, null, L("Could not read the server: "), readError_, Reload,
+         ReadFailure.Show(ReadNotice, null, null, L("Could not read the server: {0}"), readError_, Reload,
             PauseButton);
       }
 

@@ -37,14 +37,14 @@ namespace hMailServer.ControlPanel.Services
       private static readonly object Marker = new();
 
       /// <summary>
-      /// Shows a read that failed with an exception: <paramref name="prefix"/>
-      /// ("Could not read the routes: ") followed by the reason as
-      /// <see cref="ServerSession.DescribeComError"/> puts it.
+      /// Shows a read that failed with an exception: <paramref name="template"/>, a whole
+      /// text ("Could not read the routes: {0}"), with the reason as
+      /// <see cref="ServerSession.DescribeComError"/> puts it for its {0}.
       /// </summary>
-      public static void Show(InlineNotice notice, EmptyState empty, ItemsControl list, string prefix, Exception why,
+      public static void Show(InlineNotice notice, EmptyState empty, ItemsControl list, string template, Exception why,
          Action tryAgain, params UIElement[] writes)
       {
-         Show(notice, empty, list, prefix, ServerSession.DescribeComError(why), tryAgain, writes);
+         Show(notice, empty, list, template, ServerSession.DescribeComError(why), tryAgain, writes);
 
          // The sentence says what the failure means; the code it came with - the
          // exception's type, HRESULT and text - stays in reach in the tool tip.
@@ -60,7 +60,7 @@ namespace hMailServer.ControlPanel.Services
       /// rest; one whose rows are not an ItemsSource passes null for the list and
       /// clears them itself.
       /// </summary>
-      public static void Show(InlineNotice notice, EmptyState empty, ItemsControl list, string prefix, string why,
+      public static void Show(InlineNotice notice, EmptyState empty, ItemsControl list, string template, string why,
          Action tryAgain, params UIElement[] writes)
       {
          if (list != null)
@@ -75,7 +75,7 @@ namespace hMailServer.ControlPanel.Services
             return;
 
          notice.Level = StatusLevel.Critical;
-         notice.Text = (prefix ?? "") + (why ?? "");
+         notice.Text = Sentence(template, why);
          notice.ToolTip = null;
 
          // The button is kept from one failure to the next. Try again runs the
@@ -93,6 +93,15 @@ namespace hMailServer.ControlPanel.Services
          notice.Tag = Marker;
          notice.Visibility = Visibility.Visible;
       }
+
+      /// <summary>
+      /// A failure's sentence: the page's whole text with the reason for its {0}, or the
+      /// reason alone where the page gives none. The page's words were a fragment ending
+      /// in ": " that the reason was glued to, which no language could reorder (review
+      /// finding F283, finished in the final check of Tier 2).
+      /// </summary>
+      public static string Sentence(string template, string why)
+         => template == null ? why ?? "" : string.Format(System.Globalization.CultureInfo.CurrentCulture, template, why ?? "");
 
       /// <summary>
       /// After a read that worked: the notice is hidden when it is showing a

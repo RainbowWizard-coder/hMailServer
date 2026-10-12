@@ -194,7 +194,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            notice_.Show(StatusLevel.Critical, L("The group members could not be read: ") + ServerSession.DescribeComError(ex));
+            notice_.Show(StatusLevel.Critical, F("The group members could not be read: {0}", ServerSession.DescribeComError(ex)));
          }
       }
 

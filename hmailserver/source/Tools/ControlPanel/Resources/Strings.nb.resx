@@ -3079,14 +3079,14 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Could not change the match mode: {0}" xml:space="preserve">
     <value>Kunne ikke endre samsvarsmodus: {0}</value>
   </data>
-  <data name="Could not change the role: " xml:space="preserve">
-    <value>Kunne ikke endre rollen: </value>
+  <data name="Could not change the role: {0}" xml:space="preserve">
+    <value>Kunne ikke endre rollen: {0}</value>
   </data>
   <data name="Could not change the second factor: {0}" xml:space="preserve">
     <value>Kunne ikke endre den andre faktoren: {0}</value>
   </data>
-  <data name="Could not copy: " xml:space="preserve">
-    <value>Kunne ikke kopiere: </value>
+  <data name="Could not copy: {0}" xml:space="preserve">
+    <value>Kunne ikke kopiere: {0}</value>
   </data>
   <data name="Could not create the account: {0}" xml:space="preserve">
     <value>Kunne ikke opprette kontoen: {0}</value>
@@ -3175,8 +3175,8 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Could not list the messages: {0}" xml:space="preserve">
     <value>Meldingene kunne ikke listes opp: {0}</value>
   </data>
-  <data name="Could not load folders: " xml:space="preserve">
-    <value>Kunne ikke laste mapper: </value>
+  <data name="Could not load folders: {0}" xml:space="preserve">
+    <value>Kunne ikke laste mapper: {0}</value>
   </data>
   <data name="Could not load permissions: {0}" xml:space="preserve">
     <value>Kunne ikke laste tillatelser: {0}</value>
@@ -3228,20 +3228,20 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>Kunne ikke åpne {0}: {1}</value>
   </data>
-  <data name="Could not read the IP ranges: " xml:space="preserve">
-    <value>Kunne ikke lese IP-områdene: </value>
+  <data name="Could not read the IP ranges: {0}" xml:space="preserve">
+    <value>Kunne ikke lese IP-områdene: {0}</value>
   </data>
-  <data name="Could not read the accounts: " xml:space="preserve">
-    <value>Kunne ikke lese kontoene: </value>
+  <data name="Could not read the accounts: {0}" xml:space="preserve">
+    <value>Kunne ikke lese kontoene: {0}</value>
   </data>
-  <data name="Could not read the aliases: " xml:space="preserve">
-    <value>Kunne ikke lese aliasene: </value>
+  <data name="Could not read the aliases: {0}" xml:space="preserve">
+    <value>Kunne ikke lese aliasene: {0}</value>
   </data>
-  <data name="Could not read the audit trail: " xml:space="preserve">
-    <value>Kunne ikke lese revisjonsloggen: </value>
+  <data name="Could not read the audit trail: {0}" xml:space="preserve">
+    <value>Kunne ikke lese revisjonsloggen: {0}</value>
   </data>
-  <data name="Could not read the backup settings: " xml:space="preserve">
-    <value>Kunne ikke lese innstillingene for sikkerhetskopiering: </value>
+  <data name="Could not read the backup settings: {0}" xml:space="preserve">
+    <value>Kunne ikke lese innstillingene for sikkerhetskopiering: {0}</value>
   </data>
   <data name="Could not read the bans: {0}" xml:space="preserve">
     <value>Blokkeringene kunne ikke leses: {0}</value>
@@ -3249,32 +3249,29 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Could not read the certificate: {0}" xml:space="preserve">
     <value>Kunne ikke lese sertifikatet: {0}</value>
   </data>
-  <data name="Could not read the certificates: " xml:space="preserve">
-    <value>Kunne ikke lese sertifikatene: </value>
+  <data name="Could not read the certificates: {0}" xml:space="preserve">
+    <value>Kunne ikke lese sertifikatene: {0}</value>
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Kunne ikke lese konsistensrapporten: {0}</value>
   </data>
-  <data name="Could not read the distribution lists: " xml:space="preserve">
-    <value>Kunne ikke lese distribusjonslistene: </value>
+  <data name="Could not read the distribution lists: {0}" xml:space="preserve">
+    <value>Kunne ikke lese distribusjonslistene: {0}</value>
   </data>
-  <data name="Could not read the domains: " xml:space="preserve">
-    <value>Kunne ikke lese domenene: </value>
+  <data name="Could not read the domains: {0}" xml:space="preserve">
+    <value>Kunne ikke lese domenene: {0}</value>
   </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>Kunne ikke lese filen: {0}</value>
   </data>
-  <data name="Could not read the incoming relays: " xml:space="preserve">
-    <value>Kunne ikke lese de innkommende relayene: </value>
+  <data name="Could not read the incoming relays: {0}" xml:space="preserve">
+    <value>Kunne ikke lese de innkommende relayene: {0}</value>
   </data>
-  <data name="Could not read the journaling rules: " xml:space="preserve">
-    <value>Kunne ikke lese journalføringsreglene: </value>
+  <data name="Could not read the journaling rules: {0}" xml:space="preserve">
+    <value>Kunne ikke lese journalføringsreglene: {0}</value>
   </data>
   <data name="Could not read the key rotation: {0}" xml:space="preserve">
     <value>Kunne ikke lese nøkkelrotasjonen: {0}</value>
-  </data>
-  <data name="Could not read the list: " xml:space="preserve">
-    <value>Kunne ikke lese listen: </value>
   </data>
   <data name="Could not read the list: {0}" xml:space="preserve">
     <value>Kunne ikke lese listen: {0}</value>
@@ -3300,44 +3297,44 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>Bildet kunne ikke leses: {0}</value>
   </data>
-  <data name="Could not read the ports: " xml:space="preserve">
-    <value>Kunne ikke lese portene: </value>
+  <data name="Could not read the ports: {0}" xml:space="preserve">
+    <value>Kunne ikke lese portene: {0}</value>
   </data>
-  <data name="Could not read the public folders: " xml:space="preserve">
-    <value>Kunne ikke lese de offentlige mappene: </value>
+  <data name="Could not read the public folders: {0}" xml:space="preserve">
+    <value>Kunne ikke lese de offentlige mappene: {0}</value>
   </data>
-  <data name="Could not read the quarantine: " xml:space="preserve">
-    <value>Kunne ikke lese karantenen: </value>
+  <data name="Could not read the quarantine: {0}" xml:space="preserve">
+    <value>Kunne ikke lese karantenen: {0}</value>
   </data>
-  <data name="Could not read the queue: " xml:space="preserve">
-    <value>Kunne ikke lese køen: </value>
+  <data name="Could not read the queue: {0}" xml:space="preserve">
+    <value>Kunne ikke lese køen: {0}</value>
   </data>
   <data name="Could not read the relay: {0}" xml:space="preserve">
     <value>Kunne ikke lese relayet: {0}</value>
   </data>
-  <data name="Could not read the roles: " xml:space="preserve">
-    <value>Kunne ikke lese rollene: </value>
+  <data name="Could not read the roles: {0}" xml:space="preserve">
+    <value>Kunne ikke lese rollene: {0}</value>
   </data>
-  <data name="Could not read the routes: " xml:space="preserve">
-    <value>Kunne ikke lese rutene: </value>
+  <data name="Could not read the routes: {0}" xml:space="preserve">
+    <value>Kunne ikke lese rutene: {0}</value>
   </data>
-  <data name="Could not read the rules: " xml:space="preserve">
-    <value>Kunne ikke lese reglene: </value>
+  <data name="Could not read the rules: {0}" xml:space="preserve">
+    <value>Kunne ikke lese reglene: {0}</value>
   </data>
-  <data name="Could not read the server's statistics: " xml:space="preserve">
-    <value>Kunne ikke lese serverens statistikk: </value>
+  <data name="Could not read the server's statistics: {0}" xml:space="preserve">
+    <value>Kunne ikke lese serverens statistikk: {0}</value>
   </data>
-  <data name="Could not read the server: " xml:space="preserve">
-    <value>Kunne ikke lese serveren: </value>
+  <data name="Could not read the server: {0}" xml:space="preserve">
+    <value>Kunne ikke lese serveren: {0}</value>
   </data>
-  <data name="Could not read the setting levels: " xml:space="preserve">
-    <value>Kunne ikke lese innstillingsnivåene: </value>
+  <data name="Could not read the setting levels: {0}" xml:space="preserve">
+    <value>Kunne ikke lese innstillingsnivåene: {0}</value>
   </data>
-  <data name="Could not read the suppression list: " xml:space="preserve">
-    <value>Kunne ikke lese sperrelisten: </value>
+  <data name="Could not read the suppression list: {0}" xml:space="preserve">
+    <value>Kunne ikke lese sperrelisten: {0}</value>
   </data>
-  <data name="Could not read the update status: " xml:space="preserve">
-    <value>Kunne ikke lese oppdateringsstatus: </value>
+  <data name="Could not read the update status: {0}" xml:space="preserve">
+    <value>Kunne ikke lese oppdateringsstatus: {0}</value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Kunne ikke lese {0}: {1}</value>
@@ -10923,8 +10920,8 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Scope (empty = the Microsoft default)" xml:space="preserve">
     <value>Scope (tom = Microsofts standard)</value>
   </data>
-  <data name="Scope: " xml:space="preserve">
-    <value>Scope: </value>
+  <data name="Scope: {0}." xml:space="preserve">
+    <value>Scope: {0}.</value>
   </data>
   <data name="Scoped, expiring credentials for the REST API, so automation does not have to carry the administrator password." xml:space="preserve">
     <value>Avgrenset legitimasjon med utløp for REST-API-et, slik at automatisering ikke trenger å bære administratorpassordet.</value>
@@ -12090,8 +12087,8 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Store new mail compressed, with large parts held once" xml:space="preserve">
     <value>Lagre ny e-post komprimert, med store deler lagret én gang</value>
   </data>
-  <data name="Store: " xml:space="preserve">
-    <value>Lager: </value>
+  <data name="Store:" xml:space="preserve">
+    <value>Lager:</value>
   </data>
   <data name="Stored as [LDAP] {0}." xml:space="preserve">
     <value>Lagres som [LDAP] {0}.</value>
@@ -12711,8 +12708,8 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Antiviruskonfigurasjonen kunne ikke leses.</value>
   </data>
-  <data name="The anti-virus configuration could not be read: " xml:space="preserve">
-    <value>Antiviruskonfigurasjonen kunne ikke leses: </value>
+  <data name="The anti-virus configuration could not be read: {0}" xml:space="preserve">
+    <value>Antiviruskonfigurasjonen kunne ikke leses: {0}</value>
   </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>Arkivet inneholder ingen meldinger for denne kontoen.</value>
@@ -13156,8 +13153,8 @@ kunne ikke lastes. Meldingen er sannsynligvis levert og ikke lenger i køen.</va
   <data name="The greylisting settings could not be read." xml:space="preserve">
     <value>Grålisting-innstillingene kunne ikke leses.</value>
   </data>
-  <data name="The group members could not be read: " xml:space="preserve">
-    <value>Gruppemedlemmene kunne ikke leses: </value>
+  <data name="The group members could not be read: {0}" xml:space="preserve">
+    <value>Gruppemedlemmene kunne ikke leses: {0}</value>
   </data>
   <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark." xml:space="preserve">
     <value>Gruppene denne serveren vil avtale en TLS-nøkkel med, i OpenSSLs listeform. Som levert tilbyr den de to postkvante-hybridene først og faller tilbake på X25519 og NIST-kurvene for en motpart som ikke har noen av dem, så ingenting endrer seg for en eldre klient. En tom liste, eller en OpenSSL avviser eller som ikke ville latt noen gruppe være aktivert, tas ikke i bruk: serveren logger den og bruker den klassiske reserveløsningen, så en feil her kan ikke ta ned TLS - men den gir stille opp hybridene, og det er derfor den leverte listen vises i stedet for et tomt felt. Endre den mot en skanning heller enn i blinde.</value>
@@ -13587,8 +13584,8 @@ Legg til likevel?</value>
   <data name="The run did not finish. What was read before it stopped is below." xml:space="preserve">
     <value>Kjøringen ble ikke ferdig. Det som ble lest før den stoppet, står nedenfor.</value>
   </data>
-  <data name="The run failed: " xml:space="preserve">
-    <value>Kjøringen mislyktes: </value>
+  <data name="The run failed: {0}" xml:space="preserve">
+    <value>Kjøringen mislyktes: {0}</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>De samme linjene, kategoriene og masken som loggfilene får, med trace- og span-id vedlagt når et span er aktivt på tråden som logget. Eksportøren eksporterer aldri sine egne feillinjer, ellers ville en død collector matet seg selv.</value>
@@ -13864,8 +13861,8 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address." xml:space="preserve">
     <value>Kildebegrensningen må være en adresse (10.0.0.5), et område (10.0.0.1-10.0.0.99) eller CIDR (10.0.0.0/24). La den stå tom for å godta nøkkelen fra enhver adresse.</value>
   </data>
-  <data name="The spam configuration could not be read: " xml:space="preserve">
-    <value>Spamkonfigurasjonen kunne ikke leses: </value>
+  <data name="The spam configuration could not be read: {0}" xml:space="preserve">
+    <value>Spamkonfigurasjonen kunne ikke leses: {0}</value>
   </data>
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Den lagrede digesten er ikke en brukbar SHA-256-verdi, så denne seksjonen autentiserer ingenting. Tilbakekall den og opprett en erstatning.</value>
@@ -13903,8 +13900,8 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Konfigurasjonen for transportsikkerhet kunne ikke leses.</value>
   </data>
-  <data name="The transport security configuration could not be read: " xml:space="preserve">
-    <value>Transportsikkerhetskonfigurasjonen kunne ikke leses: </value>
+  <data name="The transport security configuration could not be read: {0}" xml:space="preserve">
+    <value>Transportsikkerhetskonfigurasjonen kunne ikke leses: {0}</value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>De to halvdelene feiler forskjellig og har forskjellige årsaker. Finn ut hvilken du har før noe annet.</value>
@@ -14938,8 +14935,8 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="What this server still needs, in the order a new installation meets it. Each item says whether it is done, the next one to do is marked, and the button beside it opens the page that does it. Where the answer cannot be read from here, the item says what to check instead of guessing." xml:space="preserve">
     <value>Det denne serveren fortsatt trenger, i den rekkefølgen en ny installasjon møter det. Hvert punkt sier om det er gjort, neste trinn er merket, og knappen ved siden av åpner siden som gjør det. Der svaret ikke kan leses herfra, sier punktet hva som skal kontrolleres i stedet for å gjette.</value>
   </data>
-  <data name="What to do: " xml:space="preserve">
-    <value>Hva du skal gjøre: </value>
+  <data name="What to do:" xml:space="preserve">
+    <value>Hva du skal gjøre:</value>
   </data>
   <data name="What will be written:" xml:space="preserve">
     <value>Hva som blir skrevet:</value>

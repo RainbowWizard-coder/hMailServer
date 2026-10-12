@@ -179,7 +179,7 @@ namespace hMailServer.ControlPanel.Views
          if (ClipboardWriter.TrySetText(text, out string error))
             Toast.Success(L("The version details are on the clipboard."));
          else
-            Toast.Failure(L("Could not copy: ") + error);
+            Toast.Failure(F("Could not copy: {0}", error));
       }
 
       private static TextBlock Text(string text, string style, Thickness margin)

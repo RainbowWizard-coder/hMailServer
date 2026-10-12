@@ -3112,14 +3112,14 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Could not change the match mode: {0}" xml:space="preserve">
     <value>Nepodařilo se změnit režim porovnávání: {0}</value>
   </data>
-  <data name="Could not change the role: " xml:space="preserve">
-    <value>Nepodařilo se změnit roli: </value>
+  <data name="Could not change the role: {0}" xml:space="preserve">
+    <value>Nepodařilo se změnit roli: {0}</value>
   </data>
   <data name="Could not change the second factor: {0}" xml:space="preserve">
     <value>Nepodařilo se změnit druhý faktor: {0}</value>
   </data>
-  <data name="Could not copy: " xml:space="preserve">
-    <value>Nepodařilo se zkopírovat: </value>
+  <data name="Could not copy: {0}" xml:space="preserve">
+    <value>Nepodařilo se zkopírovat: {0}</value>
   </data>
   <data name="Could not create the account: {0}" xml:space="preserve">
     <value>Nepodařilo se vytvořit účet: {0}</value>
@@ -3208,8 +3208,8 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Could not list the messages: {0}" xml:space="preserve">
     <value>Zprávy se nepodařilo vypsat: {0}</value>
   </data>
-  <data name="Could not load folders: " xml:space="preserve">
-    <value>Nepodařilo se načíst složky: </value>
+  <data name="Could not load folders: {0}" xml:space="preserve">
+    <value>Nepodařilo se načíst složky: {0}</value>
   </data>
   <data name="Could not load permissions: {0}" xml:space="preserve">
     <value>Nepodařilo se načíst oprávnění: {0}</value>
@@ -3261,20 +3261,20 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>Nepodařilo se otevřít {0}: {1}</value>
   </data>
-  <data name="Could not read the IP ranges: " xml:space="preserve">
-    <value>Nepodařilo se přečíst rozsahy IP: </value>
+  <data name="Could not read the IP ranges: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst rozsahy IP: {0}</value>
   </data>
-  <data name="Could not read the accounts: " xml:space="preserve">
-    <value>Nepodařilo se přečíst účty: </value>
+  <data name="Could not read the accounts: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst účty: {0}</value>
   </data>
-  <data name="Could not read the aliases: " xml:space="preserve">
-    <value>Nepodařilo se přečíst aliasy: </value>
+  <data name="Could not read the aliases: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst aliasy: {0}</value>
   </data>
-  <data name="Could not read the audit trail: " xml:space="preserve">
-    <value>Nepodařilo se přečíst auditní záznam: </value>
+  <data name="Could not read the audit trail: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst auditní záznam: {0}</value>
   </data>
-  <data name="Could not read the backup settings: " xml:space="preserve">
-    <value>Nepodařilo se přečíst nastavení zálohování: </value>
+  <data name="Could not read the backup settings: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst nastavení zálohování: {0}</value>
   </data>
   <data name="Could not read the bans: {0}" xml:space="preserve">
     <value>Bany se nepodařilo přečíst: {0}</value>
@@ -3282,32 +3282,29 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Could not read the certificate: {0}" xml:space="preserve">
     <value>Certifikát se nepodařilo přečíst: {0}</value>
   </data>
-  <data name="Could not read the certificates: " xml:space="preserve">
-    <value>Nepodařilo se přečíst certifikáty: </value>
+  <data name="Could not read the certificates: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst certifikáty: {0}</value>
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Nepodařilo se přečíst zprávu o konzistenci: {0}</value>
   </data>
-  <data name="Could not read the distribution lists: " xml:space="preserve">
-    <value>Nepodařilo se přečíst distribuční seznamy: </value>
+  <data name="Could not read the distribution lists: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst distribuční seznamy: {0}</value>
   </data>
-  <data name="Could not read the domains: " xml:space="preserve">
-    <value>Nepodařilo se přečíst domény: </value>
+  <data name="Could not read the domains: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst domény: {0}</value>
   </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>Nepodařilo se přečíst soubor: {0}</value>
   </data>
-  <data name="Could not read the incoming relays: " xml:space="preserve">
-    <value>Nepodařilo se přečíst příchozí relaye: </value>
+  <data name="Could not read the incoming relays: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst příchozí relaye: {0}</value>
   </data>
-  <data name="Could not read the journaling rules: " xml:space="preserve">
-    <value>Nepodařilo se přečíst pravidla žurnálování: </value>
+  <data name="Could not read the journaling rules: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst pravidla žurnálování: {0}</value>
   </data>
   <data name="Could not read the key rotation: {0}" xml:space="preserve">
     <value>Rotaci klíčů nelze načíst: {0}</value>
-  </data>
-  <data name="Could not read the list: " xml:space="preserve">
-    <value>Nepodařilo se přečíst seznam: </value>
   </data>
   <data name="Could not read the list: {0}" xml:space="preserve">
     <value>Nepodařilo se přečíst seznam: {0}</value>
@@ -3333,44 +3330,44 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>Fotografii se nepodařilo přečíst: {0}</value>
   </data>
-  <data name="Could not read the ports: " xml:space="preserve">
-    <value>Nepodařilo se přečíst porty: </value>
+  <data name="Could not read the ports: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst porty: {0}</value>
   </data>
-  <data name="Could not read the public folders: " xml:space="preserve">
-    <value>Nepodařilo se přečíst veřejné složky: </value>
+  <data name="Could not read the public folders: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst veřejné složky: {0}</value>
   </data>
-  <data name="Could not read the quarantine: " xml:space="preserve">
-    <value>Nepodařilo se přečíst karanténu: </value>
+  <data name="Could not read the quarantine: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst karanténu: {0}</value>
   </data>
-  <data name="Could not read the queue: " xml:space="preserve">
-    <value>Nepodařilo se přečíst frontu: </value>
+  <data name="Could not read the queue: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst frontu: {0}</value>
   </data>
   <data name="Could not read the relay: {0}" xml:space="preserve">
     <value>Nepodařilo se přečíst relay: {0}</value>
   </data>
-  <data name="Could not read the roles: " xml:space="preserve">
-    <value>Nepodařilo se přečíst role: </value>
+  <data name="Could not read the roles: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst role: {0}</value>
   </data>
-  <data name="Could not read the routes: " xml:space="preserve">
-    <value>Nepodařilo se přečíst trasy: </value>
+  <data name="Could not read the routes: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst trasy: {0}</value>
   </data>
-  <data name="Could not read the rules: " xml:space="preserve">
-    <value>Nepodařilo se přečíst pravidla: </value>
+  <data name="Could not read the rules: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst pravidla: {0}</value>
   </data>
-  <data name="Could not read the server's statistics: " xml:space="preserve">
-    <value>Nepodařilo se přečíst statistiky serveru: </value>
+  <data name="Could not read the server's statistics: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst statistiky serveru: {0}</value>
   </data>
-  <data name="Could not read the server: " xml:space="preserve">
-    <value>Nepodařilo se přečíst server: </value>
+  <data name="Could not read the server: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst server: {0}</value>
   </data>
-  <data name="Could not read the setting levels: " xml:space="preserve">
-    <value>Nepodařilo se přečíst úrovně nastavení: </value>
+  <data name="Could not read the setting levels: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst úrovně nastavení: {0}</value>
   </data>
-  <data name="Could not read the suppression list: " xml:space="preserve">
-    <value>Nepodařilo se přečíst seznam blokovaných: </value>
+  <data name="Could not read the suppression list: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst seznam blokovaných: {0}</value>
   </data>
-  <data name="Could not read the update status: " xml:space="preserve">
-    <value>Nepodařilo se přečíst stav aktualizace: </value>
+  <data name="Could not read the update status: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst stav aktualizace: {0}</value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Nepodařilo se přečíst {0}: {1}</value>
@@ -11071,8 +11068,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Scope (empty = the Microsoft default)" xml:space="preserve">
     <value>Rozsah (prázdné = výchozí hodnota Microsoftu)</value>
   </data>
-  <data name="Scope: " xml:space="preserve">
-    <value>Rozsah: </value>
+  <data name="Scope: {0}." xml:space="preserve">
+    <value>Rozsah: {0}.</value>
   </data>
   <data name="Scoped, expiring credentials for the REST API, so automation does not have to carry the administrator password." xml:space="preserve">
     <value>Omezené přihlašovací údaje s vypršením platnosti pro REST API, aby automatizace nemusela nosit heslo správce.</value>
@@ -12244,8 +12241,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Store new mail compressed, with large parts held once" xml:space="preserve">
     <value>Ukládat novou poštu komprimovanou, velké části jen jednou</value>
   </data>
-  <data name="Store: " xml:space="preserve">
-    <value>Úložiště: </value>
+  <data name="Store:" xml:space="preserve">
+    <value>Úložiště:</value>
   </data>
   <data name="Stored as [LDAP] {0}." xml:space="preserve">
     <value>Uloženo jako [LDAP] {0}.</value>
@@ -12868,8 +12865,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Nastavení antiviru nelze přečíst.</value>
   </data>
-  <data name="The anti-virus configuration could not be read: " xml:space="preserve">
-    <value>Nepodařilo se přečíst antivirovou konfiguraci: </value>
+  <data name="The anti-virus configuration could not be read: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst antivirovou konfiguraci: {0}</value>
   </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>Archiv pro tento účet neobsahuje žádné zprávy.</value>
@@ -13334,8 +13331,8 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   <data name="The greylisting settings could not be read." xml:space="preserve">
     <value>Nastavení greylistingu se nepodařilo přečíst.</value>
   </data>
-  <data name="The group members could not be read: " xml:space="preserve">
-    <value>Členy skupiny nešlo přečíst: </value>
+  <data name="The group members could not be read: {0}" xml:space="preserve">
+    <value>Členy skupiny nešlo přečíst: {0}</value>
   </data>
   <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark." xml:space="preserve">
     <value>Skupiny, s nimiž se tento server dohodne na klíči TLS, ve tvaru seznamu OpenSSL. V dodaném stavu nabízí nejprve dva postkvantové hybridy a pro protistranu, která nemá ani jeden z nich, ustoupí k X25519 a křivkám NIST, takže pro starší klienty se nic nemění. Prázdný seznam, nebo takový, který OpenSSL odmítne nebo který by nenechal povolenou žádnou skupinu, se nepoužije: server jej zapíše do protokolu a použije klasickou záložní sadu, takže chyba zde nemůže TLS vyřadit – tiše se ale vzdá hybridů, a proto se zobrazuje dodaný seznam, ne prázdné pole. Měňte jej podle výsledků skenu, ne naslepo.</value>
@@ -13771,8 +13768,8 @@ Přesto přidat?</value>
   <data name="The run did not finish. What was read before it stopped is below." xml:space="preserve">
     <value>Běh neskončil. Co bylo přečteno, než se zastavil, je níže.</value>
   </data>
-  <data name="The run failed: " xml:space="preserve">
-    <value>Běh selhal: </value>
+  <data name="The run failed: {0}" xml:space="preserve">
+    <value>Běh selhal: {0}</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>Stejné řádky, kategorie a maska jako u souborů logu, s připojeným id trasování a spanu, kdykoli je na vlákně, které logovalo, aktivní span. Exportér nikdy neexportuje řádky o vlastním selhání, jinak by se mrtvý kolektor krmil sám.</value>
@@ -14048,8 +14045,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address." xml:space="preserve">
     <value>Omezení zdroje musí být adresa (10.0.0.5), rozsah (10.0.0.1-10.0.0.99) nebo CIDR (10.0.0.0/24). Nechte ho prázdné, aby se klíč přijímal z jakékoli adresy.</value>
   </data>
-  <data name="The spam configuration could not be read: " xml:space="preserve">
-    <value>Nepodařilo se přečíst konfiguraci antispamu: </value>
+  <data name="The spam configuration could not be read: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst konfiguraci antispamu: {0}</value>
   </data>
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Uložený digest není použitelná hodnota SHA-256, takže tato sekce nic neověřuje. Odvolejte ji a vytvořte náhradu.</value>
@@ -14087,8 +14084,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Konfiguraci transportního zabezpečení nešlo přečíst.</value>
   </data>
-  <data name="The transport security configuration could not be read: " xml:space="preserve">
-    <value>Nepodařilo se přečíst konfiguraci zabezpečení přenosu: </value>
+  <data name="The transport security configuration could not be read: {0}" xml:space="preserve">
+    <value>Nepodařilo se přečíst konfiguraci zabezpečení přenosu: {0}</value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>Obě poloviny selhávají jinak a mají jiné příčiny. Než uděláte cokoli jiného, zjistěte, kterou z nich máte.</value>
@@ -15128,8 +15125,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="What this server still needs, in the order a new installation meets it. Each item says whether it is done, the next one to do is marked, and the button beside it opens the page that does it. Where the answer cannot be read from here, the item says what to check instead of guessing." xml:space="preserve">
     <value>Co tento server ještě potřebuje, v pořadí, v jakém to nová instalace potkává. U každé položky je uvedeno, zda je hotová, další krok je označen a tlačítko vedle něj otevře stránku, která ho udělá. Kde odpověď odsud nelze přečíst, položka místo hádání uvede, co zkontrolovat.</value>
   </data>
-  <data name="What to do: " xml:space="preserve">
-    <value>Co dělat: </value>
+  <data name="What to do:" xml:space="preserve">
+    <value>Co dělat:</value>
   </data>
   <data name="What will be written:" xml:space="preserve">
     <value>Co se zapíše:</value>

@@ -3112,14 +3112,14 @@ Control Panel может читать файлы сообщений только
   <data name="Could not change the match mode: {0}" xml:space="preserve">
     <value>Не удалось изменить режим сопоставления: {0}</value>
   </data>
-  <data name="Could not change the role: " xml:space="preserve">
-    <value>Не удалось изменить роль: </value>
+  <data name="Could not change the role: {0}" xml:space="preserve">
+    <value>Не удалось изменить роль: {0}</value>
   </data>
   <data name="Could not change the second factor: {0}" xml:space="preserve">
     <value>Не удалось изменить второй фактор: {0}</value>
   </data>
-  <data name="Could not copy: " xml:space="preserve">
-    <value>Не удалось скопировать: </value>
+  <data name="Could not copy: {0}" xml:space="preserve">
+    <value>Не удалось скопировать: {0}</value>
   </data>
   <data name="Could not create the account: {0}" xml:space="preserve">
     <value>Не удалось создать учётную запись: {0}</value>
@@ -3208,8 +3208,8 @@ Control Panel может читать файлы сообщений только
   <data name="Could not list the messages: {0}" xml:space="preserve">
     <value>Не удалось перечислить сообщения: {0}</value>
   </data>
-  <data name="Could not load folders: " xml:space="preserve">
-    <value>Не удалось загрузить папки: </value>
+  <data name="Could not load folders: {0}" xml:space="preserve">
+    <value>Не удалось загрузить папки: {0}</value>
   </data>
   <data name="Could not load permissions: {0}" xml:space="preserve">
     <value>Не удалось загрузить разрешения: {0}</value>
@@ -3261,20 +3261,20 @@ Control Panel может читать файлы сообщений только
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>Не удалось открыть {0}: {1}</value>
   </data>
-  <data name="Could not read the IP ranges: " xml:space="preserve">
-    <value>Не удалось прочитать диапазоны IP: </value>
+  <data name="Could not read the IP ranges: {0}" xml:space="preserve">
+    <value>Не удалось прочитать диапазоны IP: {0}</value>
   </data>
-  <data name="Could not read the accounts: " xml:space="preserve">
-    <value>Не удалось прочитать учётные записи: </value>
+  <data name="Could not read the accounts: {0}" xml:space="preserve">
+    <value>Не удалось прочитать учётные записи: {0}</value>
   </data>
-  <data name="Could not read the aliases: " xml:space="preserve">
-    <value>Не удалось прочитать псевдонимы: </value>
+  <data name="Could not read the aliases: {0}" xml:space="preserve">
+    <value>Не удалось прочитать псевдонимы: {0}</value>
   </data>
-  <data name="Could not read the audit trail: " xml:space="preserve">
-    <value>Не удалось прочитать журнал аудита: </value>
+  <data name="Could not read the audit trail: {0}" xml:space="preserve">
+    <value>Не удалось прочитать журнал аудита: {0}</value>
   </data>
-  <data name="Could not read the backup settings: " xml:space="preserve">
-    <value>Не удалось прочитать параметры резервного копирования: </value>
+  <data name="Could not read the backup settings: {0}" xml:space="preserve">
+    <value>Не удалось прочитать параметры резервного копирования: {0}</value>
   </data>
   <data name="Could not read the bans: {0}" xml:space="preserve">
     <value>Не удалось прочитать блокировки: {0}</value>
@@ -3282,32 +3282,29 @@ Control Panel может читать файлы сообщений только
   <data name="Could not read the certificate: {0}" xml:space="preserve">
     <value>Не удалось прочитать сертификат: {0}</value>
   </data>
-  <data name="Could not read the certificates: " xml:space="preserve">
-    <value>Не удалось прочитать сертификаты: </value>
+  <data name="Could not read the certificates: {0}" xml:space="preserve">
+    <value>Не удалось прочитать сертификаты: {0}</value>
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Не удалось прочитать отчёт о проверке целостности: {0}</value>
   </data>
-  <data name="Could not read the distribution lists: " xml:space="preserve">
-    <value>Не удалось прочитать списки рассылки: </value>
+  <data name="Could not read the distribution lists: {0}" xml:space="preserve">
+    <value>Не удалось прочитать списки рассылки: {0}</value>
   </data>
-  <data name="Could not read the domains: " xml:space="preserve">
-    <value>Не удалось прочитать домены: </value>
+  <data name="Could not read the domains: {0}" xml:space="preserve">
+    <value>Не удалось прочитать домены: {0}</value>
   </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>Не удалось прочитать файл: {0}</value>
   </data>
-  <data name="Could not read the incoming relays: " xml:space="preserve">
-    <value>Не удалось прочитать входящие ретрансляции: </value>
+  <data name="Could not read the incoming relays: {0}" xml:space="preserve">
+    <value>Не удалось прочитать входящие ретрансляции: {0}</value>
   </data>
-  <data name="Could not read the journaling rules: " xml:space="preserve">
-    <value>Не удалось прочитать правила журналирования: </value>
+  <data name="Could not read the journaling rules: {0}" xml:space="preserve">
+    <value>Не удалось прочитать правила журналирования: {0}</value>
   </data>
   <data name="Could not read the key rotation: {0}" xml:space="preserve">
     <value>Не удалось прочитать ротацию ключей: {0}</value>
-  </data>
-  <data name="Could not read the list: " xml:space="preserve">
-    <value>Не удалось прочитать список: </value>
   </data>
   <data name="Could not read the list: {0}" xml:space="preserve">
     <value>Не удалось прочитать список: {0}</value>
@@ -3333,44 +3330,44 @@ Control Panel может читать файлы сообщений только
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>Не удалось прочитать фотографию: {0}</value>
   </data>
-  <data name="Could not read the ports: " xml:space="preserve">
-    <value>Не удалось прочитать порты: </value>
+  <data name="Could not read the ports: {0}" xml:space="preserve">
+    <value>Не удалось прочитать порты: {0}</value>
   </data>
-  <data name="Could not read the public folders: " xml:space="preserve">
-    <value>Не удалось прочитать общие папки: </value>
+  <data name="Could not read the public folders: {0}" xml:space="preserve">
+    <value>Не удалось прочитать общие папки: {0}</value>
   </data>
-  <data name="Could not read the quarantine: " xml:space="preserve">
-    <value>Не удалось прочитать карантин: </value>
+  <data name="Could not read the quarantine: {0}" xml:space="preserve">
+    <value>Не удалось прочитать карантин: {0}</value>
   </data>
-  <data name="Could not read the queue: " xml:space="preserve">
-    <value>Не удалось прочитать очередь: </value>
+  <data name="Could not read the queue: {0}" xml:space="preserve">
+    <value>Не удалось прочитать очередь: {0}</value>
   </data>
   <data name="Could not read the relay: {0}" xml:space="preserve">
     <value>Не удалось прочитать ретрансляцию: {0}</value>
   </data>
-  <data name="Could not read the roles: " xml:space="preserve">
-    <value>Не удалось прочитать роли: </value>
+  <data name="Could not read the roles: {0}" xml:space="preserve">
+    <value>Не удалось прочитать роли: {0}</value>
   </data>
-  <data name="Could not read the routes: " xml:space="preserve">
-    <value>Не удалось прочитать маршруты: </value>
+  <data name="Could not read the routes: {0}" xml:space="preserve">
+    <value>Не удалось прочитать маршруты: {0}</value>
   </data>
-  <data name="Could not read the rules: " xml:space="preserve">
-    <value>Не удалось прочитать правила: </value>
+  <data name="Could not read the rules: {0}" xml:space="preserve">
+    <value>Не удалось прочитать правила: {0}</value>
   </data>
-  <data name="Could not read the server's statistics: " xml:space="preserve">
-    <value>Не удалось прочитать статистику сервера: </value>
+  <data name="Could not read the server's statistics: {0}" xml:space="preserve">
+    <value>Не удалось прочитать статистику сервера: {0}</value>
   </data>
-  <data name="Could not read the server: " xml:space="preserve">
-    <value>Не удалось прочитать данные сервера: </value>
+  <data name="Could not read the server: {0}" xml:space="preserve">
+    <value>Не удалось прочитать данные сервера: {0}</value>
   </data>
-  <data name="Could not read the setting levels: " xml:space="preserve">
-    <value>Не удалось прочитать уровни параметров: </value>
+  <data name="Could not read the setting levels: {0}" xml:space="preserve">
+    <value>Не удалось прочитать уровни параметров: {0}</value>
   </data>
-  <data name="Could not read the suppression list: " xml:space="preserve">
-    <value>Не удалось прочитать список подавления: </value>
+  <data name="Could not read the suppression list: {0}" xml:space="preserve">
+    <value>Не удалось прочитать список подавления: {0}</value>
   </data>
-  <data name="Could not read the update status: " xml:space="preserve">
-    <value>Не удалось прочитать состояние обновления: </value>
+  <data name="Could not read the update status: {0}" xml:space="preserve">
+    <value>Не удалось прочитать состояние обновления: {0}</value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Не удалось прочитать {0}: {1}</value>
@@ -11071,8 +11068,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Scope (empty = the Microsoft default)" xml:space="preserve">
     <value>Область (пусто — значение Microsoft по умолчанию)</value>
   </data>
-  <data name="Scope: " xml:space="preserve">
-    <value>Область: </value>
+  <data name="Scope: {0}." xml:space="preserve">
+    <value>Область: {0}.</value>
   </data>
   <data name="Scoped, expiring credentials for the REST API, so automation does not have to carry the administrator password." xml:space="preserve">
     <value>Ограниченные по правам учётные данные с истекающим сроком действия для REST API, чтобы автоматизации не приходилось хранить пароль администратора.</value>
@@ -12244,8 +12241,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Store new mail compressed, with large parts held once" xml:space="preserve">
     <value>Хранить новую почту в сжатом виде, крупные части — один раз</value>
   </data>
-  <data name="Store: " xml:space="preserve">
-    <value>Хранилище: </value>
+  <data name="Store:" xml:space="preserve">
+    <value>Хранилище:</value>
   </data>
   <data name="Stored as [LDAP] {0}." xml:space="preserve">
     <value>Хранится как [LDAP] {0}.</value>
@@ -12868,8 +12865,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Не удалось прочитать конфигурацию антивируса.</value>
   </data>
-  <data name="The anti-virus configuration could not be read: " xml:space="preserve">
-    <value>Не удалось прочитать антивирусную конфигурацию: </value>
+  <data name="The anti-virus configuration could not be read: {0}" xml:space="preserve">
+    <value>Не удалось прочитать антивирусную конфигурацию: {0}</value>
   </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>В архиве нет сообщений для этой учётной записи.</value>
@@ -13334,8 +13331,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The greylisting settings could not be read." xml:space="preserve">
     <value>Параметры серых списков не удалось прочитать.</value>
   </data>
-  <data name="The group members could not be read: " xml:space="preserve">
-    <value>Не удалось прочитать участников группы: </value>
+  <data name="The group members could not be read: {0}" xml:space="preserve">
+    <value>Не удалось прочитать участников группы: {0}</value>
   </data>
   <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark." xml:space="preserve">
     <value>Группы, с помощью которых этот сервер будет согласовывать ключ TLS, в формате списка OpenSSL. В поставляемом виде он предлагает сначала два постквантовых гибрида, а для стороны, у которой нет ни одного из них, откатывается на X25519 и кривые NIST, поэтому для старого клиента ничего не меняется. Пустой список, список, который OpenSSL отклоняет, или такой, при котором не осталось бы ни одной включённой группы, не применяется: сервер записывает его в журнал и использует классический запасной список, поэтому ошибка здесь не может вывести TLS из строя — но гибриды при этом молча теряются, и именно поэтому показан поставляемый список, а не пустое поле. Меняйте его, сверяясь с результатами сканирования, а не вслепую.</value>
@@ -13771,8 +13768,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The run did not finish. What was read before it stopped is below." xml:space="preserve">
     <value>Прогон не завершился. Ниже то, что было прочитано до остановки.</value>
   </data>
-  <data name="The run failed: " xml:space="preserve">
-    <value>Прогон не удался: </value>
+  <data name="The run failed: {0}" xml:space="preserve">
+    <value>Прогон не удался: {0}</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>Те же строки, категории и маска, что получают файлы журналов, с прикреплёнными идентификаторами трассы и спана всякий раз, когда на записавшем потоке активен спан. Экспортёр никогда не экспортирует строки о собственных сбоях, иначе мёртвый коллектор кормил бы сам себя.</value>
@@ -14048,8 +14045,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address." xml:space="preserve">
     <value>Ограничение по источнику должно быть адресом (10.0.0.5), диапазоном (10.0.0.1-10.0.0.99) или CIDR (10.0.0.0/24). Оставьте пустым, чтобы принимать ключ с любого адреса.</value>
   </data>
-  <data name="The spam configuration could not be read: " xml:space="preserve">
-    <value>Не удалось прочитать конфигурацию защиты от спама: </value>
+  <data name="The spam configuration could not be read: {0}" xml:space="preserve">
+    <value>Не удалось прочитать конфигурацию защиты от спама: {0}</value>
   </data>
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Сохранённая контрольная сумма не является пригодным значением SHA-256, поэтому этот раздел никого не аутентифицирует. Отзовите его и создайте замену.</value>
@@ -14087,8 +14084,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Не удалось прочитать конфигурацию транспортной безопасности.</value>
   </data>
-  <data name="The transport security configuration could not be read: " xml:space="preserve">
-    <value>Не удалось прочитать конфигурацию защиты транспорта: </value>
+  <data name="The transport security configuration could not be read: {0}" xml:space="preserve">
+    <value>Не удалось прочитать конфигурацию защиты транспорта: {0}</value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>Две половины отказывают по-разному и по разным причинам. Прежде всего разберитесь, какая из них у вас.</value>
@@ -15128,8 +15125,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="What this server still needs, in the order a new installation meets it. Each item says whether it is done, the next one to do is marked, and the button beside it opens the page that does it. Where the answer cannot be read from here, the item says what to check instead of guessing." xml:space="preserve">
     <value>Что ещё нужно этому серверу, в том порядке, в каком с этим сталкивается новая установка. Каждый пункт говорит, выполнен ли он, следующий шаг отмечен, а кнопка рядом открывает страницу, которая его выполняет. Там, где ответ отсюда прочитать нельзя, пункт говорит, что проверить, вместо того чтобы гадать.</value>
   </data>
-  <data name="What to do: " xml:space="preserve">
-    <value>Что делать: </value>
+  <data name="What to do:" xml:space="preserve">
+    <value>Что делать:</value>
   </data>
   <data name="What will be written:" xml:space="preserve">
     <value>Что будет записано:</value>

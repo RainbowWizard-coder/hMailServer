@@ -3079,14 +3079,14 @@
   <data name="Could not change the match mode: {0}" xml:space="preserve">
     <value>无法更改匹配模式：{0}</value>
   </data>
-  <data name="Could not change the role: " xml:space="preserve">
-    <value>无法更改角色： </value>
+  <data name="Could not change the role: {0}" xml:space="preserve">
+    <value>无法更改角色： {0}</value>
   </data>
   <data name="Could not change the second factor: {0}" xml:space="preserve">
     <value>无法更改第二因素：{0}</value>
   </data>
-  <data name="Could not copy: " xml:space="preserve">
-    <value>无法复制： </value>
+  <data name="Could not copy: {0}" xml:space="preserve">
+    <value>无法复制： {0}</value>
   </data>
   <data name="Could not create the account: {0}" xml:space="preserve">
     <value>无法创建该账户：{0}</value>
@@ -3175,8 +3175,8 @@
   <data name="Could not list the messages: {0}" xml:space="preserve">
     <value>无法列出邮件: {0}</value>
   </data>
-  <data name="Could not load folders: " xml:space="preserve">
-    <value>无法加载文件夹： </value>
+  <data name="Could not load folders: {0}" xml:space="preserve">
+    <value>无法加载文件夹： {0}</value>
   </data>
   <data name="Could not load permissions: {0}" xml:space="preserve">
     <value>无法加载权限：{0}</value>
@@ -3228,20 +3228,20 @@
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>无法打开 {0}：{1}</value>
   </data>
-  <data name="Could not read the IP ranges: " xml:space="preserve">
-    <value>无法读取 IP 范围： </value>
+  <data name="Could not read the IP ranges: {0}" xml:space="preserve">
+    <value>无法读取 IP 范围： {0}</value>
   </data>
-  <data name="Could not read the accounts: " xml:space="preserve">
-    <value>无法读取账户： </value>
+  <data name="Could not read the accounts: {0}" xml:space="preserve">
+    <value>无法读取账户： {0}</value>
   </data>
-  <data name="Could not read the aliases: " xml:space="preserve">
-    <value>无法读取别名： </value>
+  <data name="Could not read the aliases: {0}" xml:space="preserve">
+    <value>无法读取别名： {0}</value>
   </data>
-  <data name="Could not read the audit trail: " xml:space="preserve">
-    <value>无法读取审计记录： </value>
+  <data name="Could not read the audit trail: {0}" xml:space="preserve">
+    <value>无法读取审计记录： {0}</value>
   </data>
-  <data name="Could not read the backup settings: " xml:space="preserve">
-    <value>无法读取备份设置： </value>
+  <data name="Could not read the backup settings: {0}" xml:space="preserve">
+    <value>无法读取备份设置： {0}</value>
   </data>
   <data name="Could not read the bans: {0}" xml:space="preserve">
     <value>无法读取封禁：{0}</value>
@@ -3249,32 +3249,29 @@
   <data name="Could not read the certificate: {0}" xml:space="preserve">
     <value>无法读取该证书：{0}</value>
   </data>
-  <data name="Could not read the certificates: " xml:space="preserve">
-    <value>无法读取证书：</value>
+  <data name="Could not read the certificates: {0}" xml:space="preserve">
+    <value>无法读取证书：{0}</value>
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>无法读取一致性报告：{0}</value>
   </data>
-  <data name="Could not read the distribution lists: " xml:space="preserve">
-    <value>无法读取分发列表： </value>
+  <data name="Could not read the distribution lists: {0}" xml:space="preserve">
+    <value>无法读取分发列表： {0}</value>
   </data>
-  <data name="Could not read the domains: " xml:space="preserve">
-    <value>无法读取域： </value>
+  <data name="Could not read the domains: {0}" xml:space="preserve">
+    <value>无法读取域： {0}</value>
   </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>无法读取该文件：{0}</value>
   </data>
-  <data name="Could not read the incoming relays: " xml:space="preserve">
-    <value>无法读取传入中继： </value>
+  <data name="Could not read the incoming relays: {0}" xml:space="preserve">
+    <value>无法读取传入中继： {0}</value>
   </data>
-  <data name="Could not read the journaling rules: " xml:space="preserve">
-    <value>无法读取日志归档规则： </value>
+  <data name="Could not read the journaling rules: {0}" xml:space="preserve">
+    <value>无法读取日志归档规则： {0}</value>
   </data>
   <data name="Could not read the key rotation: {0}" xml:space="preserve">
     <value>无法读取密钥轮换：{0}</value>
-  </data>
-  <data name="Could not read the list: " xml:space="preserve">
-    <value>无法读取列表： </value>
   </data>
   <data name="Could not read the list: {0}" xml:space="preserve">
     <value>无法读取该列表：{0}</value>
@@ -3300,44 +3297,44 @@
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>无法读取照片：{0}</value>
   </data>
-  <data name="Could not read the ports: " xml:space="preserve">
-    <value>无法读取端口： </value>
+  <data name="Could not read the ports: {0}" xml:space="preserve">
+    <value>无法读取端口： {0}</value>
   </data>
-  <data name="Could not read the public folders: " xml:space="preserve">
-    <value>无法读取公用文件夹： </value>
+  <data name="Could not read the public folders: {0}" xml:space="preserve">
+    <value>无法读取公用文件夹： {0}</value>
   </data>
-  <data name="Could not read the quarantine: " xml:space="preserve">
-    <value>无法读取隔离区： </value>
+  <data name="Could not read the quarantine: {0}" xml:space="preserve">
+    <value>无法读取隔离区： {0}</value>
   </data>
-  <data name="Could not read the queue: " xml:space="preserve">
-    <value>无法读取队列： </value>
+  <data name="Could not read the queue: {0}" xml:space="preserve">
+    <value>无法读取队列： {0}</value>
   </data>
   <data name="Could not read the relay: {0}" xml:space="preserve">
     <value>无法读取该中继：{0}</value>
   </data>
-  <data name="Could not read the roles: " xml:space="preserve">
-    <value>无法读取角色： </value>
+  <data name="Could not read the roles: {0}" xml:space="preserve">
+    <value>无法读取角色： {0}</value>
   </data>
-  <data name="Could not read the routes: " xml:space="preserve">
-    <value>无法读取路由： </value>
+  <data name="Could not read the routes: {0}" xml:space="preserve">
+    <value>无法读取路由： {0}</value>
   </data>
-  <data name="Could not read the rules: " xml:space="preserve">
-    <value>无法读取规则： </value>
+  <data name="Could not read the rules: {0}" xml:space="preserve">
+    <value>无法读取规则： {0}</value>
   </data>
-  <data name="Could not read the server's statistics: " xml:space="preserve">
-    <value>无法读取服务器的统计信息： </value>
+  <data name="Could not read the server's statistics: {0}" xml:space="preserve">
+    <value>无法读取服务器的统计信息： {0}</value>
   </data>
-  <data name="Could not read the server: " xml:space="preserve">
-    <value>无法读取服务器： </value>
+  <data name="Could not read the server: {0}" xml:space="preserve">
+    <value>无法读取服务器： {0}</value>
   </data>
-  <data name="Could not read the setting levels: " xml:space="preserve">
-    <value>无法读取设置级别： </value>
+  <data name="Could not read the setting levels: {0}" xml:space="preserve">
+    <value>无法读取设置级别： {0}</value>
   </data>
-  <data name="Could not read the suppression list: " xml:space="preserve">
-    <value>无法读取抑制列表： </value>
+  <data name="Could not read the suppression list: {0}" xml:space="preserve">
+    <value>无法读取抑制列表： {0}</value>
   </data>
-  <data name="Could not read the update status: " xml:space="preserve">
-    <value>无法读取更新状态： </value>
+  <data name="Could not read the update status: {0}" xml:space="preserve">
+    <value>无法读取更新状态： {0}</value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>无法读取 {0}：{1}</value>
@@ -10923,8 +10920,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Scope (empty = the Microsoft default)" xml:space="preserve">
     <value>范围 (为空 = Microsoft 默认值)</value>
   </data>
-  <data name="Scope: " xml:space="preserve">
-    <value>范围: </value>
+  <data name="Scope: {0}." xml:space="preserve">
+    <value>范围: {0}.</value>
   </data>
   <data name="Scoped, expiring credentials for the REST API, so automation does not have to carry the administrator password." xml:space="preserve">
     <value>用于 REST API 的有范围限制、会到期的凭据，这样自动化就不必携带管理员密码。</value>
@@ -12090,8 +12087,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Store new mail compressed, with large parts held once" xml:space="preserve">
     <value>以压缩形式存储新邮件，大的部分只存一次</value>
   </data>
-  <data name="Store: " xml:space="preserve">
-    <value>存储: </value>
+  <data name="Store:" xml:space="preserve">
+    <value>存储:</value>
   </data>
   <data name="Stored as [LDAP] {0}." xml:space="preserve">
     <value>存储为 [LDAP] {0}。</value>
@@ -12711,8 +12708,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>无法读取防病毒配置。</value>
   </data>
-  <data name="The anti-virus configuration could not be read: " xml:space="preserve">
-    <value>无法读取防病毒配置： </value>
+  <data name="The anti-virus configuration could not be read: {0}" xml:space="preserve">
+    <value>无法读取防病毒配置： {0}</value>
   </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>存档中没有此账户的邮件。</value>
@@ -13156,8 +13153,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The greylisting settings could not be read." xml:space="preserve">
     <value>灰名单设置无法读取。</value>
   </data>
-  <data name="The group members could not be read: " xml:space="preserve">
-    <value>无法读取组成员: </value>
+  <data name="The group members could not be read: {0}" xml:space="preserve">
+    <value>无法读取组成员: {0}</value>
   </data>
   <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark." xml:space="preserve">
     <value>本服务器愿意用来协商 TLS 密钥的群组，采用 OpenSSL 的列表格式。出厂设置会先提供两个后量子混合群组，对于两者都不支持的对端则回退到 X25519 和 NIST 曲线，因此对较旧的客户端来说没有任何变化。空列表、OpenSSL 拒绝的列表，或者会导致没有任何群组可用的列表都不会被应用：服务器会将其记入日志并使用经典回退列表，因此这里的错误不会让 TLS 瘫痪 - 但它会悄悄放弃混合群组，这正是此处显示出厂列表而不是空白的原因。请对照一次扫描的结果来更改它，而不是在两眼一抹黑的情况下更改。</value>
@@ -13587,8 +13584,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The run did not finish. What was read before it stopped is below." xml:space="preserve">
     <value>运行未完成。它停止之前读取到的内容如下。</value>
   </data>
-  <data name="The run failed: " xml:space="preserve">
-    <value>运行失败: </value>
+  <data name="The run failed: {0}" xml:space="preserve">
+    <value>运行失败: {0}</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>与日志文件所得的行、类别和掩码相同，只要记录日志的线程上有活动的跨度，就会附加跟踪 id 和跨度 id。导出器永远不会导出自己的失败行，否则一个失效的收集器会自我喂养。</value>
@@ -13864,8 +13861,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address." xml:space="preserve">
     <value>来源限制必须是一个地址 (10.0.0.5)、一个范围 (10.0.0.1-10.0.0.99) 或 CIDR (10.0.0.0/24)。留空则接受来自任何地址的密钥。</value>
   </data>
-  <data name="The spam configuration could not be read: " xml:space="preserve">
-    <value>无法读取垃圾邮件配置： </value>
+  <data name="The spam configuration could not be read: {0}" xml:space="preserve">
+    <value>无法读取垃圾邮件配置： {0}</value>
   </data>
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>存储的摘要不是可用的 SHA-256 值，因此此节无法验证任何内容。请吊销它并创建一个替代品。</value>
@@ -13903,8 +13900,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>无法读取传输安全配置。</value>
   </data>
-  <data name="The transport security configuration could not be read: " xml:space="preserve">
-    <value>无法读取传输安全配置： </value>
+  <data name="The transport security configuration could not be read: {0}" xml:space="preserve">
+    <value>无法读取传输安全配置： {0}</value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>这两半的失败方式和原因都不同。在做任何其他事之前，先弄清楚您遇到的是哪一种。</value>
@@ -14938,8 +14935,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="What this server still needs, in the order a new installation meets it. Each item says whether it is done, the next one to do is marked, and the button beside it opens the page that does it. Where the answer cannot be read from here, the item says what to check instead of guessing." xml:space="preserve">
     <value>此服务器仍需要的内容，按新安装遇到它们的顺序排列。每一项都会说明是否已完成，下一步会被标出，旁边的按钮会打开完成它的页面。如果无法从这里读取答案，该项会说明要检查什么，而不是猜测。</value>
   </data>
-  <data name="What to do: " xml:space="preserve">
-    <value>要做的事: </value>
+  <data name="What to do:" xml:space="preserve">
+    <value>要做的事:</value>
   </data>
   <data name="What will be written:" xml:space="preserve">
     <value>将写入的内容：</value>

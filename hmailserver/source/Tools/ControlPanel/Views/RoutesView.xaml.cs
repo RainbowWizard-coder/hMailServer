@@ -100,7 +100,7 @@ namespace hMailServer.ControlPanel.Views
             // Neither the rows of the last read nor "No routes defined yet." is a
             // fact this page has now: both go, the notice says what happened, with
             // Try again, and Add waits for a read that works (Services/ReadFailure).
-            ReadFailure.Show(Notice, EmptyStatus, RouteGrid, L("Could not read the routes: "), ex, Reload, AddRouteButton);
+            ReadFailure.Show(Notice, EmptyStatus, RouteGrid, L("Could not read the routes: {0}"), ex, Reload, AddRouteButton);
             CountPill.Visibility = Visibility.Collapsed;
             return;
          }

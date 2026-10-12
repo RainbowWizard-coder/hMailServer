@@ -3079,14 +3079,14 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Could not change the match mode: {0}" xml:space="preserve">
     <value>Vastaavuustilaa ei voitu muuttaa: {0}</value>
   </data>
-  <data name="Could not change the role: " xml:space="preserve">
-    <value>Roolia ei voitu muuttaa: </value>
+  <data name="Could not change the role: {0}" xml:space="preserve">
+    <value>Roolia ei voitu muuttaa: {0}</value>
   </data>
   <data name="Could not change the second factor: {0}" xml:space="preserve">
     <value>Toista tunnistustekijää ei voitu muuttaa: {0}</value>
   </data>
-  <data name="Could not copy: " xml:space="preserve">
-    <value>Ei voitu kopioida: </value>
+  <data name="Could not copy: {0}" xml:space="preserve">
+    <value>Ei voitu kopioida: {0}</value>
   </data>
   <data name="Could not create the account: {0}" xml:space="preserve">
     <value>Tiliä ei voitu luoda: {0}</value>
@@ -3175,8 +3175,8 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Could not list the messages: {0}" xml:space="preserve">
     <value>Viestejä ei voitu luetella: {0}</value>
   </data>
-  <data name="Could not load folders: " xml:space="preserve">
-    <value>Kansioita ei voitu ladata: </value>
+  <data name="Could not load folders: {0}" xml:space="preserve">
+    <value>Kansioita ei voitu ladata: {0}</value>
   </data>
   <data name="Could not load permissions: {0}" xml:space="preserve">
     <value>Käyttöoikeuksia ei voitu ladata: {0}</value>
@@ -3228,20 +3228,20 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>Kohdetta {0} ei voitu avata: {1}</value>
   </data>
-  <data name="Could not read the IP ranges: " xml:space="preserve">
-    <value>IP-alueita ei voitu lukea: </value>
+  <data name="Could not read the IP ranges: {0}" xml:space="preserve">
+    <value>IP-alueita ei voitu lukea: {0}</value>
   </data>
-  <data name="Could not read the accounts: " xml:space="preserve">
-    <value>Tilejä ei voitu lukea: </value>
+  <data name="Could not read the accounts: {0}" xml:space="preserve">
+    <value>Tilejä ei voitu lukea: {0}</value>
   </data>
-  <data name="Could not read the aliases: " xml:space="preserve">
-    <value>Aliaksia ei voitu lukea: </value>
+  <data name="Could not read the aliases: {0}" xml:space="preserve">
+    <value>Aliaksia ei voitu lukea: {0}</value>
   </data>
-  <data name="Could not read the audit trail: " xml:space="preserve">
-    <value>Tarkastuslokia ei voitu lukea: </value>
+  <data name="Could not read the audit trail: {0}" xml:space="preserve">
+    <value>Tarkastuslokia ei voitu lukea: {0}</value>
   </data>
-  <data name="Could not read the backup settings: " xml:space="preserve">
-    <value>Varmuuskopioinnin asetuksia ei voitu lukea: </value>
+  <data name="Could not read the backup settings: {0}" xml:space="preserve">
+    <value>Varmuuskopioinnin asetuksia ei voitu lukea: {0}</value>
   </data>
   <data name="Could not read the bans: {0}" xml:space="preserve">
     <value>Estoja ei voitu lukea: {0}</value>
@@ -3249,32 +3249,29 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Could not read the certificate: {0}" xml:space="preserve">
     <value>Varmennetta ei voitu lukea: {0}</value>
   </data>
-  <data name="Could not read the certificates: " xml:space="preserve">
-    <value>Varmenteita ei voitu lukea: </value>
+  <data name="Could not read the certificates: {0}" xml:space="preserve">
+    <value>Varmenteita ei voitu lukea: {0}</value>
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Eheysraporttia ei voitu lukea: {0}</value>
   </data>
-  <data name="Could not read the distribution lists: " xml:space="preserve">
-    <value>Jakelulistoja ei voitu lukea: </value>
+  <data name="Could not read the distribution lists: {0}" xml:space="preserve">
+    <value>Jakelulistoja ei voitu lukea: {0}</value>
   </data>
-  <data name="Could not read the domains: " xml:space="preserve">
-    <value>Verkkotunnuksia ei voitu lukea: </value>
+  <data name="Could not read the domains: {0}" xml:space="preserve">
+    <value>Verkkotunnuksia ei voitu lukea: {0}</value>
   </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>Tiedostoa ei voitu lukea: {0}</value>
   </data>
-  <data name="Could not read the incoming relays: " xml:space="preserve">
-    <value>Saapuvia välityspalvelimia ei voitu lukea: </value>
+  <data name="Could not read the incoming relays: {0}" xml:space="preserve">
+    <value>Saapuvia välityspalvelimia ei voitu lukea: {0}</value>
   </data>
-  <data name="Could not read the journaling rules: " xml:space="preserve">
-    <value>Journalointisääntöjä ei voitu lukea: </value>
+  <data name="Could not read the journaling rules: {0}" xml:space="preserve">
+    <value>Journalointisääntöjä ei voitu lukea: {0}</value>
   </data>
   <data name="Could not read the key rotation: {0}" xml:space="preserve">
     <value>Avainten kierrätystä ei voitu lukea: {0}</value>
-  </data>
-  <data name="Could not read the list: " xml:space="preserve">
-    <value>Luetteloa ei voitu lukea: </value>
   </data>
   <data name="Could not read the list: {0}" xml:space="preserve">
     <value>Luetteloa ei voitu lukea: {0}</value>
@@ -3300,44 +3297,44 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>Kuvaa ei voitu lukea: {0}</value>
   </data>
-  <data name="Could not read the ports: " xml:space="preserve">
-    <value>Portteja ei voitu lukea: </value>
+  <data name="Could not read the ports: {0}" xml:space="preserve">
+    <value>Portteja ei voitu lukea: {0}</value>
   </data>
-  <data name="Could not read the public folders: " xml:space="preserve">
-    <value>Julkisia kansioita ei voitu lukea: </value>
+  <data name="Could not read the public folders: {0}" xml:space="preserve">
+    <value>Julkisia kansioita ei voitu lukea: {0}</value>
   </data>
-  <data name="Could not read the quarantine: " xml:space="preserve">
-    <value>Karanteenia ei voitu lukea: </value>
+  <data name="Could not read the quarantine: {0}" xml:space="preserve">
+    <value>Karanteenia ei voitu lukea: {0}</value>
   </data>
-  <data name="Could not read the queue: " xml:space="preserve">
-    <value>Jonoa ei voitu lukea: </value>
+  <data name="Could not read the queue: {0}" xml:space="preserve">
+    <value>Jonoa ei voitu lukea: {0}</value>
   </data>
   <data name="Could not read the relay: {0}" xml:space="preserve">
     <value>Välityspalvelinta ei voitu lukea: {0}</value>
   </data>
-  <data name="Could not read the roles: " xml:space="preserve">
-    <value>Rooleja ei voitu lukea: </value>
+  <data name="Could not read the roles: {0}" xml:space="preserve">
+    <value>Rooleja ei voitu lukea: {0}</value>
   </data>
-  <data name="Could not read the routes: " xml:space="preserve">
-    <value>Reittejä ei voitu lukea: </value>
+  <data name="Could not read the routes: {0}" xml:space="preserve">
+    <value>Reittejä ei voitu lukea: {0}</value>
   </data>
-  <data name="Could not read the rules: " xml:space="preserve">
-    <value>Sääntöjä ei voitu lukea: </value>
+  <data name="Could not read the rules: {0}" xml:space="preserve">
+    <value>Sääntöjä ei voitu lukea: {0}</value>
   </data>
-  <data name="Could not read the server's statistics: " xml:space="preserve">
-    <value>Palvelimen tilastoja ei voitu lukea: </value>
+  <data name="Could not read the server's statistics: {0}" xml:space="preserve">
+    <value>Palvelimen tilastoja ei voitu lukea: {0}</value>
   </data>
-  <data name="Could not read the server: " xml:space="preserve">
-    <value>Palvelinta ei voitu lukea: </value>
+  <data name="Could not read the server: {0}" xml:space="preserve">
+    <value>Palvelinta ei voitu lukea: {0}</value>
   </data>
-  <data name="Could not read the setting levels: " xml:space="preserve">
-    <value>Asetustasoja ei voitu lukea: </value>
+  <data name="Could not read the setting levels: {0}" xml:space="preserve">
+    <value>Asetustasoja ei voitu lukea: {0}</value>
   </data>
-  <data name="Could not read the suppression list: " xml:space="preserve">
-    <value>Estolistaa ei voitu lukea: </value>
+  <data name="Could not read the suppression list: {0}" xml:space="preserve">
+    <value>Estolistaa ei voitu lukea: {0}</value>
   </data>
-  <data name="Could not read the update status: " xml:space="preserve">
-    <value>Päivityksen tilaa ei voitu lukea: </value>
+  <data name="Could not read the update status: {0}" xml:space="preserve">
+    <value>Päivityksen tilaa ei voitu lukea: {0}</value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Kohdetta {0} ei voitu lukea: {1}</value>
@@ -10923,8 +10920,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Scope (empty = the Microsoft default)" xml:space="preserve">
     <value>Scope (tyhjä = Microsoftin oletus)</value>
   </data>
-  <data name="Scope: " xml:space="preserve">
-    <value>Scope: </value>
+  <data name="Scope: {0}." xml:space="preserve">
+    <value>Scope: {0}.</value>
   </data>
   <data name="Scoped, expiring credentials for the REST API, so automation does not have to carry the administrator password." xml:space="preserve">
     <value>Rajatut, vanhenevat tunnistetiedot REST-rajapintaa varten, jottei automaation tarvitse kuljettaa mukanaan järjestelmänvalvojan salasanaa.</value>
@@ -12090,8 +12087,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Store new mail compressed, with large parts held once" xml:space="preserve">
     <value>Tallenna uusi posti pakattuna, suuret osat kerran</value>
   </data>
-  <data name="Store: " xml:space="preserve">
-    <value>Varasto: </value>
+  <data name="Store:" xml:space="preserve">
+    <value>Varasto:</value>
   </data>
   <data name="Stored as [LDAP] {0}." xml:space="preserve">
     <value>Tallennetaan nimellä [LDAP] {0}.</value>
@@ -12711,8 +12708,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Virustorjunnan määritystä ei voitu lukea.</value>
   </data>
-  <data name="The anti-virus configuration could not be read: " xml:space="preserve">
-    <value>Virustorjunnan asetuksia ei voitu lukea: </value>
+  <data name="The anti-virus configuration could not be read: {0}" xml:space="preserve">
+    <value>Virustorjunnan asetuksia ei voitu lukea: {0}</value>
   </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>Arkistossa ei ole viestejä tälle tilille.</value>
@@ -13156,8 +13153,8 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   <data name="The greylisting settings could not be read." xml:space="preserve">
     <value>Harmaalistauksen asetuksia ei voitu lukea.</value>
   </data>
-  <data name="The group members could not be read: " xml:space="preserve">
-    <value>Ryhmän jäseniä ei voitu lukea: </value>
+  <data name="The group members could not be read: {0}" xml:space="preserve">
+    <value>Ryhmän jäseniä ei voitu lukea: {0}</value>
   </data>
   <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark." xml:space="preserve">
     <value>Ryhmät, joilla tämä palvelin suostuu sopimaan TLS-avaimen, OpenSSL:n luettelomuodossa. Toimitettuna se tarjoaa ensin kaksi postkvanttihybridiä ja palaa X25519:ään ja NIST-käyriin sellaisen vastapuolen kanssa, jolla ei ole kumpaakaan, joten vanhemmalle asiakkaalle mikään ei muutu. Tyhjää luetteloa, tai sellaista, jonka OpenSSL hylkää tai joka ei jättäisi yhtään ryhmää käyttöön, ei oteta käyttöön: palvelin kirjaa sen lokiin ja käyttää klassista varavaihtoehtoa, joten virhe tässä ei voi kaataa TLS:ää - mutta se luopuu hybrideistä hiljaa, ja siksi näytetään toimitettu luettelo eikä tyhjää kenttää. Muuta sitä skannauksen perusteella äläkä sokkona.</value>
@@ -13587,8 +13584,8 @@ Lisätäänkö silti?</value>
   <data name="The run did not finish. What was read before it stopped is below." xml:space="preserve">
     <value>Ajo ei valmistunut. Se, mitä ehdittiin lukea ennen pysähtymistä, on alla.</value>
   </data>
-  <data name="The run failed: " xml:space="preserve">
-    <value>Ajo epäonnistui: </value>
+  <data name="The run failed: {0}" xml:space="preserve">
+    <value>Ajo epäonnistui: {0}</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>Samat rivit, luokat ja maski, jotka lokitiedostot saavat, jäljitys- ja jänne-tunnisteet liitettyinä aina, kun lokittaneessa säikeessä on aktiivinen jänne. Viejä ei koskaan vie omia virherivejään, muuten kuollut kerääjä ruokkisi itseään.</value>
@@ -13864,8 +13861,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address." xml:space="preserve">
     <value>Lähderajoituksen on oltava osoite (10.0.0.5), alue (10.0.0.1-10.0.0.99) tai CIDR (10.0.0.0/24). Jätä tyhjäksi hyväksyäksesi avaimen mistä tahansa osoitteesta.</value>
   </data>
-  <data name="The spam configuration could not be read: " xml:space="preserve">
-    <value>Roskapostiasetuksia ei voitu lukea: </value>
+  <data name="The spam configuration could not be read: {0}" xml:space="preserve">
+    <value>Roskapostiasetuksia ei voitu lukea: {0}</value>
   </data>
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Tallennettu tiiviste ei ole käyttökelpoinen SHA-256-arvo, joten tämä osio ei todenna mitään. Kumoa se ja luo korvaava.</value>
@@ -13903,8 +13900,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Siirtoturvallisuuden määritystä ei voitu lukea.</value>
   </data>
-  <data name="The transport security configuration could not be read: " xml:space="preserve">
-    <value>Siirron suojausasetuksia ei voitu lukea: </value>
+  <data name="The transport security configuration could not be read: {0}" xml:space="preserve">
+    <value>Siirron suojausasetuksia ei voitu lukea: {0}</value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>Kaksi puoliskoa epäonnistuvat eri tavoin ja eri syistä. Selvitä ennen mitään muuta, kumpi sinulla on.</value>
@@ -14938,8 +14935,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="What this server still needs, in the order a new installation meets it. Each item says whether it is done, the next one to do is marked, and the button beside it opens the page that does it. Where the answer cannot be read from here, the item says what to check instead of guessing." xml:space="preserve">
     <value>Mitä tämä palvelin vielä tarvitsee, siinä järjestyksessä kuin uusi asennus kohtaa ne. Jokainen kohta kertoo, onko se tehty, seuraava vaihe on merkitty, ja sen vieressä oleva painike avaa sivun, joka tekee sen. Kun vastausta ei voi lukea täältä, kohta kertoo arvaamisen sijaan, mitä tarkistaa.</value>
   </data>
-  <data name="What to do: " xml:space="preserve">
-    <value>Mitä tehdä: </value>
+  <data name="What to do:" xml:space="preserve">
+    <value>Mitä tehdä:</value>
   </data>
   <data name="What will be written:" xml:space="preserve">
     <value>Mitä kirjoitetaan:</value>

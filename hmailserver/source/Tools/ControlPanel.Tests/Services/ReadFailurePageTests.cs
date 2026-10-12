@@ -37,25 +37,25 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// <summary>Every list page, the method that reads its list, and the words its failure leads with.</summary>
       public static TheoryData<string, string, string> Readers => new()
       {
-         { "QueueView.xaml.cs", "private void Reload()", "Could not read the queue: " },
-         { "IPRangesView.xaml.cs", "private void Reload()", "Could not read the IP ranges: " },
-         { "RoutesView.xaml.cs", "private void Reload()", "Could not read the routes: " },
-         { "RulesView.xaml.cs", "private void Reload()", "Could not read the rules: " },
-         { "TcpIpPortsView.xaml.cs", "private void Reload()", "Could not read the ports: " },
-         { "UtilityViews.cs", "private void Reload()", "Could not read the incoming relays: " },
-         { "PublicFoldersView.cs", "private void Reload_(IReadOnlyList<string> selectPath, int selectIndex)", "Could not read the public folders: " },
-         { "QuarantineView.cs", "private void Reload()", "Could not read the quarantine: " },
-         { "DomainPolicyListView.cs", "private void Unread_(string prefix, string why)", "Could not read the list: " },
-         { "AuditTrailView.cs", "private void Reload()", "Could not read the audit trail: " },
-         { "JournalingView.cs", "private void Unread_(string prefix, string why)", "Could not read the journaling rules: " },
-         { "RolesView.cs", "private void Reload_()", "Could not read the roles: " },
-         { "CollectionEditorView.cs", "private void Load_(int selectId, int selectIndex, bool focus)", "Could not read the list: " },
-         { "BackupView.xaml.cs", "public void OnEnter()", "Could not read the backup settings: " },
-         { "DomainsView.xaml.cs", "private void ReloadDomains(string select = null)", "Could not read the domains: " },
-         { "DomainsView.xaml.cs", "private void ReloadAccounts()", "Could not read the accounts: " },
-         { "SuppressionListView.cs", "private bool LoadDomains_()", "Could not read the domains: " },
-         { "SuppressionListView.cs", "private void Unread_(string prefix, string why)", "Could not read the suppression list: " },
-         { "SslCertificatesView.xaml.cs", "private async void Reload(int reselectId = 0, Action after = null)", "Could not read the certificates: " },
+         { "QueueView.xaml.cs", "private void Reload()", "Could not read the queue: {0}" },
+         { "IPRangesView.xaml.cs", "private void Reload()", "Could not read the IP ranges: {0}" },
+         { "RoutesView.xaml.cs", "private void Reload()", "Could not read the routes: {0}" },
+         { "RulesView.xaml.cs", "private void Reload()", "Could not read the rules: {0}" },
+         { "TcpIpPortsView.xaml.cs", "private void Reload()", "Could not read the ports: {0}" },
+         { "UtilityViews.cs", "private void Reload()", "Could not read the incoming relays: {0}" },
+         { "PublicFoldersView.cs", "private void Reload_(IReadOnlyList<string> selectPath, int selectIndex)", "Could not read the public folders: {0}" },
+         { "QuarantineView.cs", "private void Reload()", "Could not read the quarantine: {0}" },
+         { "DomainPolicyListView.cs", "private void Unread_(string template, string why)", "Could not read the list: {0}" },
+         { "AuditTrailView.cs", "private void Reload()", "Could not read the audit trail: {0}" },
+         { "JournalingView.cs", "private void Unread_(string template, string why)", "Could not read the journaling rules: {0}" },
+         { "RolesView.cs", "private void Reload_()", "Could not read the roles: {0}" },
+         { "CollectionEditorView.cs", "private void Load_(int selectId, int selectIndex, bool focus)", "Could not read the list: {0}" },
+         { "BackupView.xaml.cs", "public void OnEnter()", "Could not read the backup settings: {0}" },
+         { "DomainsView.xaml.cs", "private void ReloadDomains(string select = null)", "Could not read the domains: {0}" },
+         { "DomainsView.xaml.cs", "private void ReloadAccounts()", "Could not read the accounts: {0}" },
+         { "SuppressionListView.cs", "private bool LoadDomains_()", "Could not read the domains: {0}" },
+         { "SuppressionListView.cs", "private void Unread_(string template, string why)", "Could not read the suppression list: {0}" },
+         { "SslCertificatesView.xaml.cs", "private async void Reload(int reselectId = 0, Action after = null)", "Could not read the certificates: {0}" },
       };
 
       [Theory]
@@ -169,7 +169,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string source = ReadControlPanelFile(Path.Join("Services", "ReadFailure.cs"));
 
          string show = WithheldRowTests.MemberText(source,
-            "public static void Show(InlineNotice notice, EmptyState empty, ItemsControl list, string prefix, string why,");
+            "public static void Show(InlineNotice notice, EmptyState empty, ItemsControl list, string template, string why,");
          Assert.True(show != null, "ReadFailure.Show is gone.");
          foreach (string step in new[] { "list.ItemsSource = null;", "empty.Visibility = Visibility.Collapsed;", "Enable(false, writes);",
                                          "notice.Level = StatusLevel.Critical;", "TryAgainButton(tryAgain)", "notice.Visibility = Visibility.Visible;" })
@@ -201,7 +201,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string source = ReadControlPanelFile(Path.Join("Services", "ReadFailure.cs"));
 
          string show = WithheldRowTests.MemberText(source,
-            "public static void Show(InlineNotice notice, EmptyState empty, ItemsControl list, string prefix, string why,");
+            "public static void Show(InlineNotice notice, EmptyState empty, ItemsControl list, string template, string why,");
          Assert.True(show != null, "ReadFailure.Show is gone.");
          Assert.True(show.Contains("IsShown(notice) && notice.Content is Wpf.Ui.Controls.Button kept", StringComparison.Ordinal),
             "ReadFailure.Show replaces the Try again button on every failure, which drops the keyboard focus to the window.");
@@ -257,7 +257,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheJournalingPage_HidesTheListCardWithTheList_WhenTheReadFails()
       {
          string source = ReadView("JournalingView.cs");
-         string unread = WithheldRowTests.MemberText(source, "private void Unread_(string prefix, string why)");
+         string unread = WithheldRowTests.MemberText(source, "private void Unread_(string template, string why)");
          string reload = WithheldRowTests.MemberText(source, "private void Reload_()");
          Assert.True(unread != null && reload != null, "JournalingView.Unread_ or Reload_ is gone.");
 

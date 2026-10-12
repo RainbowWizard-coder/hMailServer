@@ -3079,14 +3079,14 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Could not change the match mode: {0}" xml:space="preserve">
     <value>Der Abgleichmodus konnte nicht geändert werden: {0}</value>
   </data>
-  <data name="Could not change the role: " xml:space="preserve">
-    <value>Die Rolle konnte nicht geändert werden: </value>
+  <data name="Could not change the role: {0}" xml:space="preserve">
+    <value>Die Rolle konnte nicht geändert werden: {0}</value>
   </data>
   <data name="Could not change the second factor: {0}" xml:space="preserve">
     <value>Der zweite Faktor konnte nicht geändert werden: {0}</value>
   </data>
-  <data name="Could not copy: " xml:space="preserve">
-    <value>Kopieren nicht möglich: </value>
+  <data name="Could not copy: {0}" xml:space="preserve">
+    <value>Kopieren nicht möglich: {0}</value>
   </data>
   <data name="Could not create the account: {0}" xml:space="preserve">
     <value>Das Konto konnte nicht angelegt werden: {0}</value>
@@ -3175,8 +3175,8 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Could not list the messages: {0}" xml:space="preserve">
     <value>Die Nachrichten konnten nicht aufgelistet werden: {0}</value>
   </data>
-  <data name="Could not load folders: " xml:space="preserve">
-    <value>Ordner konnten nicht geladen werden: </value>
+  <data name="Could not load folders: {0}" xml:space="preserve">
+    <value>Ordner konnten nicht geladen werden: {0}</value>
   </data>
   <data name="Could not load permissions: {0}" xml:space="preserve">
     <value>Berechtigungen konnten nicht geladen werden: {0}</value>
@@ -3228,20 +3228,20 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>{0} konnte nicht geöffnet werden: {1}</value>
   </data>
-  <data name="Could not read the IP ranges: " xml:space="preserve">
-    <value>Die IP-Bereiche konnten nicht gelesen werden: </value>
+  <data name="Could not read the IP ranges: {0}" xml:space="preserve">
+    <value>Die IP-Bereiche konnten nicht gelesen werden: {0}</value>
   </data>
-  <data name="Could not read the accounts: " xml:space="preserve">
-    <value>Die Konten konnten nicht gelesen werden: </value>
+  <data name="Could not read the accounts: {0}" xml:space="preserve">
+    <value>Die Konten konnten nicht gelesen werden: {0}</value>
   </data>
-  <data name="Could not read the aliases: " xml:space="preserve">
-    <value>Die Aliase konnten nicht gelesen werden: </value>
+  <data name="Could not read the aliases: {0}" xml:space="preserve">
+    <value>Die Aliase konnten nicht gelesen werden: {0}</value>
   </data>
-  <data name="Could not read the audit trail: " xml:space="preserve">
-    <value>Das Prüfprotokoll konnte nicht gelesen werden: </value>
+  <data name="Could not read the audit trail: {0}" xml:space="preserve">
+    <value>Das Prüfprotokoll konnte nicht gelesen werden: {0}</value>
   </data>
-  <data name="Could not read the backup settings: " xml:space="preserve">
-    <value>Die Sicherungseinstellungen konnten nicht gelesen werden: </value>
+  <data name="Could not read the backup settings: {0}" xml:space="preserve">
+    <value>Die Sicherungseinstellungen konnten nicht gelesen werden: {0}</value>
   </data>
   <data name="Could not read the bans: {0}" xml:space="preserve">
     <value>Die Banns konnten nicht gelesen werden: {0}</value>
@@ -3249,32 +3249,29 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Could not read the certificate: {0}" xml:space="preserve">
     <value>Das Zertifikat konnte nicht gelesen werden: {0}</value>
   </data>
-  <data name="Could not read the certificates: " xml:space="preserve">
-    <value>Die Zertifikate konnten nicht gelesen werden: </value>
+  <data name="Could not read the certificates: {0}" xml:space="preserve">
+    <value>Die Zertifikate konnten nicht gelesen werden: {0}</value>
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Der Konsistenzbericht konnte nicht gelesen werden: {0}</value>
   </data>
-  <data name="Could not read the distribution lists: " xml:space="preserve">
-    <value>Die Verteilerlisten konnten nicht gelesen werden: </value>
+  <data name="Could not read the distribution lists: {0}" xml:space="preserve">
+    <value>Die Verteilerlisten konnten nicht gelesen werden: {0}</value>
   </data>
-  <data name="Could not read the domains: " xml:space="preserve">
-    <value>Die Domains konnten nicht gelesen werden: </value>
+  <data name="Could not read the domains: {0}" xml:space="preserve">
+    <value>Die Domains konnten nicht gelesen werden: {0}</value>
   </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>Die Datei konnte nicht gelesen werden: {0}</value>
   </data>
-  <data name="Could not read the incoming relays: " xml:space="preserve">
-    <value>Die eingehenden Relays konnten nicht gelesen werden: </value>
+  <data name="Could not read the incoming relays: {0}" xml:space="preserve">
+    <value>Die eingehenden Relays konnten nicht gelesen werden: {0}</value>
   </data>
-  <data name="Could not read the journaling rules: " xml:space="preserve">
-    <value>Die Journaling-Regeln konnten nicht gelesen werden: </value>
+  <data name="Could not read the journaling rules: {0}" xml:space="preserve">
+    <value>Die Journaling-Regeln konnten nicht gelesen werden: {0}</value>
   </data>
   <data name="Could not read the key rotation: {0}" xml:space="preserve">
     <value>Die Schlüsselrotation konnte nicht gelesen werden: {0}</value>
-  </data>
-  <data name="Could not read the list: " xml:space="preserve">
-    <value>Die Liste konnte nicht gelesen werden: </value>
   </data>
   <data name="Could not read the list: {0}" xml:space="preserve">
     <value>Die Liste konnte nicht gelesen werden: {0}</value>
@@ -3300,44 +3297,44 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>Das Foto konnte nicht gelesen werden: {0}</value>
   </data>
-  <data name="Could not read the ports: " xml:space="preserve">
-    <value>Die Ports konnten nicht gelesen werden: </value>
+  <data name="Could not read the ports: {0}" xml:space="preserve">
+    <value>Die Ports konnten nicht gelesen werden: {0}</value>
   </data>
-  <data name="Could not read the public folders: " xml:space="preserve">
-    <value>Die öffentlichen Ordner konnten nicht gelesen werden: </value>
+  <data name="Could not read the public folders: {0}" xml:space="preserve">
+    <value>Die öffentlichen Ordner konnten nicht gelesen werden: {0}</value>
   </data>
-  <data name="Could not read the quarantine: " xml:space="preserve">
-    <value>Die Quarantäne konnte nicht gelesen werden: </value>
+  <data name="Could not read the quarantine: {0}" xml:space="preserve">
+    <value>Die Quarantäne konnte nicht gelesen werden: {0}</value>
   </data>
-  <data name="Could not read the queue: " xml:space="preserve">
-    <value>Die Warteschlange konnte nicht gelesen werden: </value>
+  <data name="Could not read the queue: {0}" xml:space="preserve">
+    <value>Die Warteschlange konnte nicht gelesen werden: {0}</value>
   </data>
   <data name="Could not read the relay: {0}" xml:space="preserve">
     <value>Das Relay konnte nicht gelesen werden: {0}</value>
   </data>
-  <data name="Could not read the roles: " xml:space="preserve">
-    <value>Die Rollen konnten nicht gelesen werden: </value>
+  <data name="Could not read the roles: {0}" xml:space="preserve">
+    <value>Die Rollen konnten nicht gelesen werden: {0}</value>
   </data>
-  <data name="Could not read the routes: " xml:space="preserve">
-    <value>Die Routen konnten nicht gelesen werden: </value>
+  <data name="Could not read the routes: {0}" xml:space="preserve">
+    <value>Die Routen konnten nicht gelesen werden: {0}</value>
   </data>
-  <data name="Could not read the rules: " xml:space="preserve">
-    <value>Die Regeln konnten nicht gelesen werden: </value>
+  <data name="Could not read the rules: {0}" xml:space="preserve">
+    <value>Die Regeln konnten nicht gelesen werden: {0}</value>
   </data>
-  <data name="Could not read the server's statistics: " xml:space="preserve">
-    <value>Die Statistik des Servers konnte nicht gelesen werden: </value>
+  <data name="Could not read the server's statistics: {0}" xml:space="preserve">
+    <value>Die Statistik des Servers konnte nicht gelesen werden: {0}</value>
   </data>
-  <data name="Could not read the server: " xml:space="preserve">
-    <value>Der Server konnte nicht gelesen werden: </value>
+  <data name="Could not read the server: {0}" xml:space="preserve">
+    <value>Der Server konnte nicht gelesen werden: {0}</value>
   </data>
-  <data name="Could not read the setting levels: " xml:space="preserve">
-    <value>Die Einstellungsebenen konnten nicht gelesen werden: </value>
+  <data name="Could not read the setting levels: {0}" xml:space="preserve">
+    <value>Die Einstellungsebenen konnten nicht gelesen werden: {0}</value>
   </data>
-  <data name="Could not read the suppression list: " xml:space="preserve">
-    <value>Die Unterdrückungsliste konnte nicht gelesen werden: </value>
+  <data name="Could not read the suppression list: {0}" xml:space="preserve">
+    <value>Die Unterdrückungsliste konnte nicht gelesen werden: {0}</value>
   </data>
-  <data name="Could not read the update status: " xml:space="preserve">
-    <value>Die Aktualisierung konnte nicht gelesen werden: </value>
+  <data name="Could not read the update status: {0}" xml:space="preserve">
+    <value>Die Aktualisierung konnte nicht gelesen werden: {0}</value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>{0} konnte nicht gelesen werden: {1}</value>
@@ -10923,8 +10920,8 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Scope (empty = the Microsoft default)" xml:space="preserve">
     <value>Scope (leer = die Microsoft-Vorgabe)</value>
   </data>
-  <data name="Scope: " xml:space="preserve">
-    <value>Scope: </value>
+  <data name="Scope: {0}." xml:space="preserve">
+    <value>Scope: {0}.</value>
   </data>
   <data name="Scoped, expiring credentials for the REST API, so automation does not have to carry the administrator password." xml:space="preserve">
     <value>Eingeschränkte, ablaufende Zugangsdaten für die REST-API, damit die Automatisierung nicht das Administratorpasswort mit sich führen muss.</value>
@@ -12090,8 +12087,8 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Store new mail compressed, with large parts held once" xml:space="preserve">
     <value>Neue Post komprimiert speichern, große Teile nur einmal</value>
   </data>
-  <data name="Store: " xml:space="preserve">
-    <value>Speicher: </value>
+  <data name="Store:" xml:space="preserve">
+    <value>Speicher:</value>
   </data>
   <data name="Stored as [LDAP] {0}." xml:space="preserve">
     <value>Gespeichert als [LDAP] {0}.</value>
@@ -12711,8 +12708,8 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Die Virenschutzkonfiguration konnte nicht gelesen werden.</value>
   </data>
-  <data name="The anti-virus configuration could not be read: " xml:space="preserve">
-    <value>Die Antiviren-Konfiguration konnte nicht gelesen werden: </value>
+  <data name="The anti-virus configuration could not be read: {0}" xml:space="preserve">
+    <value>Die Antiviren-Konfiguration konnte nicht gelesen werden: {0}</value>
   </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>Das Archiv enthält keine Nachrichten für dieses Konto.</value>
@@ -13156,8 +13153,8 @@ konnte nicht geladen werden. Die Nachricht wurde wahrscheinlich zugestellt und i
   <data name="The greylisting settings could not be read." xml:space="preserve">
     <value>Die Greylisting-Einstellungen konnten nicht gelesen werden.</value>
   </data>
-  <data name="The group members could not be read: " xml:space="preserve">
-    <value>Die Gruppenmitglieder konnten nicht gelesen werden: </value>
+  <data name="The group members could not be read: {0}" xml:space="preserve">
+    <value>Die Gruppenmitglieder konnten nicht gelesen werden: {0}</value>
   </data>
   <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark." xml:space="preserve">
     <value>Die Gruppen, mit denen dieser Server einen TLS-Schlüssel aushandeln wird, in der Listenform von OpenSSL. Werkseitig bietet er zuerst die beiden Post-Quanten-Hybride an und weicht für eine Gegenstelle, die keines von beiden hat, auf X25519 und die NIST-Kurven aus, sodass sich für einen älteren Client nichts ändert. Eine leere Liste, oder eine, die OpenSSL ablehnt oder die keine Gruppe aktiviert ließe, wird nicht übernommen: der Server protokolliert sie und verwendet die klassische Ausweichliste, ein Fehler hier kann TLS also nicht lahmlegen - er gibt aber stillschweigend die Hybride auf, weshalb die werkseitige Liste angezeigt wird und kein leeres Feld. Ändern Sie sie anhand eines Scans und nicht im Blindflug.</value>
@@ -13587,8 +13584,8 @@ Trotzdem hinzufügen?</value>
   <data name="The run did not finish. What was read before it stopped is below." xml:space="preserve">
     <value>Der Lauf wurde nicht beendet. Was vor dem Abbruch gelesen wurde, steht unten.</value>
   </data>
-  <data name="The run failed: " xml:space="preserve">
-    <value>Der Lauf schlug fehl: </value>
+  <data name="The run failed: {0}" xml:space="preserve">
+    <value>Der Lauf schlug fehl: {0}</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>Dieselben Zeilen, Kategorien und dieselbe Maske, die auch die Protokolldateien bekommen, mit angehängter Trace- und Span-Id, wann immer auf dem protokollierenden Thread ein Span aktiv ist. Der Exporter exportiert nie seine eigenen Fehlerzeilen, sonst würde sich ein toter Collector selbst füttern.</value>
@@ -13864,8 +13861,8 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address." xml:space="preserve">
     <value>Die Quellbeschränkung muss eine Adresse (10.0.0.5), ein Bereich (10.0.0.1-10.0.0.99) oder CIDR (10.0.0.0/24) sein. Lassen Sie sie leer, um den Schlüssel von jeder Adresse anzunehmen.</value>
   </data>
-  <data name="The spam configuration could not be read: " xml:space="preserve">
-    <value>Die Spam-Konfiguration konnte nicht gelesen werden: </value>
+  <data name="The spam configuration could not be read: {0}" xml:space="preserve">
+    <value>Die Spam-Konfiguration konnte nicht gelesen werden: {0}</value>
   </data>
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Der gespeicherte Digest ist kein brauchbarer SHA-256-Wert, dieser Abschnitt authentifiziert also nichts. Widerrufen Sie ihn und legen Sie einen Ersatz an.</value>
@@ -13903,8 +13900,8 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Die Konfiguration der Transportsicherheit konnte nicht gelesen werden.</value>
   </data>
-  <data name="The transport security configuration could not be read: " xml:space="preserve">
-    <value>Die Transportsicherheits-Konfiguration konnte nicht gelesen werden: </value>
+  <data name="The transport security configuration could not be read: {0}" xml:space="preserve">
+    <value>Die Transportsicherheits-Konfiguration konnte nicht gelesen werden: {0}</value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>Die beiden Hälften scheitern unterschiedlich und haben unterschiedliche Ursachen. Stellen Sie vor allem anderen fest, welche von beiden Sie vor sich haben.</value>
@@ -14938,8 +14935,8 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="What this server still needs, in the order a new installation meets it. Each item says whether it is done, the next one to do is marked, and the button beside it opens the page that does it. Where the answer cannot be read from here, the item says what to check instead of guessing." xml:space="preserve">
     <value>Was dieser Server noch braucht, in der Reihenfolge, in der eine neue Installation darauf trifft. Jeder Punkt sagt, ob er erledigt ist, der nächste Schritt ist markiert, und die Schaltfläche daneben öffnet die Seite, die ihn erledigt. Wo sich die Antwort von hier aus nicht lesen lässt, sagt der Punkt, was zu prüfen ist, statt zu raten.</value>
   </data>
-  <data name="What to do: " xml:space="preserve">
-    <value>Was zu tun ist: </value>
+  <data name="What to do:" xml:space="preserve">
+    <value>Was zu tun ist:</value>
   </data>
   <data name="What will be written:" xml:space="preserve">
     <value>Was geschrieben wird:</value>

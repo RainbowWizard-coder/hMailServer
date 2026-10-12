@@ -164,7 +164,7 @@ namespace hMailServer.ControlPanel.Views
             PassphraseBox.Password = "";
             PassphraseAgainBox.Password = "";
             EncryptionNotice.Visibility = Visibility.Collapsed;
-            ReadFailure.Show(Notice, null, null, L("Could not read the backup settings: "), ex, OnEnter, BackupCard);
+            ReadFailure.Show(Notice, null, null, L("Could not read the backup settings: {0}"), ex, OnEnter, BackupCard);
          }
 
          RefreshScheduleStatus();

@@ -323,7 +323,7 @@ namespace hMailServer.ControlPanel.Views
             review_.Load(new List<HeldMessage>());
             selectAll_.IsChecked = false;
             UpdateBulkBar_();
-            ReadFailure.Show(status_, empty_, list_, L("Could not read the quarantine: "), ex, Reload);
+            ReadFailure.Show(status_, empty_, list_, L("Could not read the quarantine: {0}"), ex, Reload);
             count_.Visibility = Visibility.Collapsed;
          }
       }

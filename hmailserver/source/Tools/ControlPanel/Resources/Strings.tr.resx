@@ -3079,14 +3079,14 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Could not change the match mode: {0}" xml:space="preserve">
     <value>Eşleştirme kipi değiştirilemedi: {0}</value>
   </data>
-  <data name="Could not change the role: " xml:space="preserve">
-    <value>Rol değiştirilemedi: </value>
+  <data name="Could not change the role: {0}" xml:space="preserve">
+    <value>Rol değiştirilemedi: {0}</value>
   </data>
   <data name="Could not change the second factor: {0}" xml:space="preserve">
     <value>İkinci etken değiştirilemedi: {0}</value>
   </data>
-  <data name="Could not copy: " xml:space="preserve">
-    <value>Kopyalanamadı: </value>
+  <data name="Could not copy: {0}" xml:space="preserve">
+    <value>Kopyalanamadı: {0}</value>
   </data>
   <data name="Could not create the account: {0}" xml:space="preserve">
     <value>Hesap oluşturulamadı: {0}</value>
@@ -3175,8 +3175,8 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Could not list the messages: {0}" xml:space="preserve">
     <value>İletiler listelenemedi: {0}</value>
   </data>
-  <data name="Could not load folders: " xml:space="preserve">
-    <value>Klasörler yüklenemedi: </value>
+  <data name="Could not load folders: {0}" xml:space="preserve">
+    <value>Klasörler yüklenemedi: {0}</value>
   </data>
   <data name="Could not load permissions: {0}" xml:space="preserve">
     <value>İzinler yüklenemedi: {0}</value>
@@ -3228,20 +3228,20 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>{0} açılamadı: {1}</value>
   </data>
-  <data name="Could not read the IP ranges: " xml:space="preserve">
-    <value>IP aralıkları okunamadı: </value>
+  <data name="Could not read the IP ranges: {0}" xml:space="preserve">
+    <value>IP aralıkları okunamadı: {0}</value>
   </data>
-  <data name="Could not read the accounts: " xml:space="preserve">
-    <value>Hesaplar okunamadı: </value>
+  <data name="Could not read the accounts: {0}" xml:space="preserve">
+    <value>Hesaplar okunamadı: {0}</value>
   </data>
-  <data name="Could not read the aliases: " xml:space="preserve">
-    <value>Diğer adlar okunamadı: </value>
+  <data name="Could not read the aliases: {0}" xml:space="preserve">
+    <value>Diğer adlar okunamadı: {0}</value>
   </data>
-  <data name="Could not read the audit trail: " xml:space="preserve">
-    <value>Denetim izi okunamadı: </value>
+  <data name="Could not read the audit trail: {0}" xml:space="preserve">
+    <value>Denetim izi okunamadı: {0}</value>
   </data>
-  <data name="Could not read the backup settings: " xml:space="preserve">
-    <value>Yedekleme ayarları okunamadı: </value>
+  <data name="Could not read the backup settings: {0}" xml:space="preserve">
+    <value>Yedekleme ayarları okunamadı: {0}</value>
   </data>
   <data name="Could not read the bans: {0}" xml:space="preserve">
     <value>Yasaklar okunamadı: {0}</value>
@@ -3249,32 +3249,29 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Could not read the certificate: {0}" xml:space="preserve">
     <value>Sertifika okunamadı: {0}</value>
   </data>
-  <data name="Could not read the certificates: " xml:space="preserve">
-    <value>Sertifikalar okunamadı: </value>
+  <data name="Could not read the certificates: {0}" xml:space="preserve">
+    <value>Sertifikalar okunamadı: {0}</value>
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Tutarlılık raporu okunamadı: {0}</value>
   </data>
-  <data name="Could not read the distribution lists: " xml:space="preserve">
-    <value>Dağıtım listeleri okunamadı: </value>
+  <data name="Could not read the distribution lists: {0}" xml:space="preserve">
+    <value>Dağıtım listeleri okunamadı: {0}</value>
   </data>
-  <data name="Could not read the domains: " xml:space="preserve">
-    <value>Etki alanları okunamadı: </value>
+  <data name="Could not read the domains: {0}" xml:space="preserve">
+    <value>Etki alanları okunamadı: {0}</value>
   </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>Dosya okunamadı: {0}</value>
   </data>
-  <data name="Could not read the incoming relays: " xml:space="preserve">
-    <value>Gelen aktarmalar okunamadı: </value>
+  <data name="Could not read the incoming relays: {0}" xml:space="preserve">
+    <value>Gelen aktarmalar okunamadı: {0}</value>
   </data>
-  <data name="Could not read the journaling rules: " xml:space="preserve">
-    <value>Günlükleme kuralları okunamadı: </value>
+  <data name="Could not read the journaling rules: {0}" xml:space="preserve">
+    <value>Günlükleme kuralları okunamadı: {0}</value>
   </data>
   <data name="Could not read the key rotation: {0}" xml:space="preserve">
     <value>Anahtar döndürme okunamadı: {0}</value>
-  </data>
-  <data name="Could not read the list: " xml:space="preserve">
-    <value>Liste okunamadı: </value>
   </data>
   <data name="Could not read the list: {0}" xml:space="preserve">
     <value>Liste okunamadı: {0}</value>
@@ -3300,44 +3297,44 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>Fotoğraf okunamadı: {0}</value>
   </data>
-  <data name="Could not read the ports: " xml:space="preserve">
-    <value>Portlar okunamadı: </value>
+  <data name="Could not read the ports: {0}" xml:space="preserve">
+    <value>Portlar okunamadı: {0}</value>
   </data>
-  <data name="Could not read the public folders: " xml:space="preserve">
-    <value>Genel klasörler okunamadı: </value>
+  <data name="Could not read the public folders: {0}" xml:space="preserve">
+    <value>Genel klasörler okunamadı: {0}</value>
   </data>
-  <data name="Could not read the quarantine: " xml:space="preserve">
-    <value>Karantina okunamadı: </value>
+  <data name="Could not read the quarantine: {0}" xml:space="preserve">
+    <value>Karantina okunamadı: {0}</value>
   </data>
-  <data name="Could not read the queue: " xml:space="preserve">
-    <value>Kuyruk okunamadı: </value>
+  <data name="Could not read the queue: {0}" xml:space="preserve">
+    <value>Kuyruk okunamadı: {0}</value>
   </data>
   <data name="Could not read the relay: {0}" xml:space="preserve">
     <value>Aktarma okunamadı: {0}</value>
   </data>
-  <data name="Could not read the roles: " xml:space="preserve">
-    <value>Roller okunamadı: </value>
+  <data name="Could not read the roles: {0}" xml:space="preserve">
+    <value>Roller okunamadı: {0}</value>
   </data>
-  <data name="Could not read the routes: " xml:space="preserve">
-    <value>Rotalar okunamadı: </value>
+  <data name="Could not read the routes: {0}" xml:space="preserve">
+    <value>Rotalar okunamadı: {0}</value>
   </data>
-  <data name="Could not read the rules: " xml:space="preserve">
-    <value>Kurallar okunamadı: </value>
+  <data name="Could not read the rules: {0}" xml:space="preserve">
+    <value>Kurallar okunamadı: {0}</value>
   </data>
-  <data name="Could not read the server's statistics: " xml:space="preserve">
-    <value>Sunucunun istatistikleri okunamadı: </value>
+  <data name="Could not read the server's statistics: {0}" xml:space="preserve">
+    <value>Sunucunun istatistikleri okunamadı: {0}</value>
   </data>
-  <data name="Could not read the server: " xml:space="preserve">
-    <value>Sunucu okunamadı: </value>
+  <data name="Could not read the server: {0}" xml:space="preserve">
+    <value>Sunucu okunamadı: {0}</value>
   </data>
-  <data name="Could not read the setting levels: " xml:space="preserve">
-    <value>Ayar düzeyleri okunamadı: </value>
+  <data name="Could not read the setting levels: {0}" xml:space="preserve">
+    <value>Ayar düzeyleri okunamadı: {0}</value>
   </data>
-  <data name="Could not read the suppression list: " xml:space="preserve">
-    <value>Engelleme listesi okunamadı: </value>
+  <data name="Could not read the suppression list: {0}" xml:space="preserve">
+    <value>Engelleme listesi okunamadı: {0}</value>
   </data>
-  <data name="Could not read the update status: " xml:space="preserve">
-    <value>Güncelleştirme durumu okunamadı: </value>
+  <data name="Could not read the update status: {0}" xml:space="preserve">
+    <value>Güncelleştirme durumu okunamadı: {0}</value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>{0} okunamadı: {1}</value>
@@ -10923,8 +10920,8 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Scope (empty = the Microsoft default)" xml:space="preserve">
     <value>Kapsam (boş = Microsoft varsayılanı)</value>
   </data>
-  <data name="Scope: " xml:space="preserve">
-    <value>Kapsam: </value>
+  <data name="Scope: {0}." xml:space="preserve">
+    <value>Kapsam: {0}.</value>
   </data>
   <data name="Scoped, expiring credentials for the REST API, so automation does not have to carry the administrator password." xml:space="preserve">
     <value>REST API için kapsamlı ve süreli kimlik bilgileri; böylece otomasyonun yönetici parolasını taşıması gerekmez.</value>
@@ -12090,8 +12087,8 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Store new mail compressed, with large parts held once" xml:space="preserve">
     <value>Yeni postayı sıkıştırarak sakla, büyük parçaları bir kez sakla</value>
   </data>
-  <data name="Store: " xml:space="preserve">
-    <value>Depo: </value>
+  <data name="Store:" xml:space="preserve">
+    <value>Depo:</value>
   </data>
   <data name="Stored as [LDAP] {0}." xml:space="preserve">
     <value>[LDAP] {0} olarak saklanır.</value>
@@ -12711,8 +12708,8 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Virüsten koruma yapılandırması okunamadı.</value>
   </data>
-  <data name="The anti-virus configuration could not be read: " xml:space="preserve">
-    <value>Antivirüs yapılandırması okunamadı: </value>
+  <data name="The anti-virus configuration could not be read: {0}" xml:space="preserve">
+    <value>Antivirüs yapılandırması okunamadı: {0}</value>
   </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>Arşivde bu hesap için ileti yok.</value>
@@ -13156,8 +13153,8 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   <data name="The greylisting settings could not be read." xml:space="preserve">
     <value>Gri liste ayarları okunamadı.</value>
   </data>
-  <data name="The group members could not be read: " xml:space="preserve">
-    <value>Grup üyeleri okunamadı: </value>
+  <data name="The group members could not be read: {0}" xml:space="preserve">
+    <value>Grup üyeleri okunamadı: {0}</value>
   </data>
   <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark." xml:space="preserve">
     <value>Bu sunucunun bir TLS anahtarı üzerinde anlaşacağı gruplar, OpenSSL'in liste biçiminde. Teslim edildiği haliyle önce iki kuantum sonrası melezi sunar ve ikisine de sahip olmayan bir karşı taraf için X25519'a ve NIST eğrilerine geri döner; bu yüzden eski bir istemci için hiçbir şey değişmez. Boş bir liste, OpenSSL'in reddettiği ya da etkin hiçbir grup bırakmayacak bir liste uygulanmaz: sunucu bunu günlüğe yazar ve klasik yedek listeyi kullanır; bu yüzden buradaki bir hata TLS'yi devre dışı bırakamaz - ama melezlerden sessizce vazgeçer; teslim edilen listenin boş bir alan yerine gösterilmesinin nedeni de budur. Onu körlemesine değil, bir tarama sonucuna bakarak değiştirin.</value>
@@ -13587,8 +13584,8 @@ Yine de eklensin mi?</value>
   <data name="The run did not finish. What was read before it stopped is below." xml:space="preserve">
     <value>Çalıştırma bitmedi. Durmadan önce okunanlar aşağıda.</value>
   </data>
-  <data name="The run failed: " xml:space="preserve">
-    <value>Çalıştırma başarısız oldu: </value>
+  <data name="The run failed: {0}" xml:space="preserve">
+    <value>Çalıştırma başarısız oldu: {0}</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>Günlük dosyalarının aldığı satırlar, kategoriler ve maskeyle aynı; günlüğe yazan iş parçacığında bir aralık etkinken izleme ve aralık kimliği eklenir. Dışa aktarıcı kendi başarısızlık satırlarını hiçbir zaman dışa aktarmaz; aksi hâlde ölü bir toplayıcı kendi kendini beslerdi.</value>
@@ -13864,8 +13861,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address." xml:space="preserve">
     <value>Kaynak kısıtlaması bir adres (10.0.0.5), bir aralık (10.0.0.1-10.0.0.99) veya CIDR (10.0.0.0/24) olmalı. Anahtarı her adresten kabul etmek için boş bırakın.</value>
   </data>
-  <data name="The spam configuration could not be read: " xml:space="preserve">
-    <value>Spam yapılandırması okunamadı: </value>
+  <data name="The spam configuration could not be read: {0}" xml:space="preserve">
+    <value>Spam yapılandırması okunamadı: {0}</value>
   </data>
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Saklanan özet kullanılabilir bir SHA-256 değeri değil; bu yüzden bu bölüm hiçbir şeyi doğrulamıyor. İptal edip yerine yenisini oluşturun.</value>
@@ -13903,8 +13900,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Taşıma güvenliği yapılandırması okunamadı.</value>
   </data>
-  <data name="The transport security configuration could not be read: " xml:space="preserve">
-    <value>Aktarım güvenliği yapılandırması okunamadı: </value>
+  <data name="The transport security configuration could not be read: {0}" xml:space="preserve">
+    <value>Aktarım güvenliği yapılandırması okunamadı: {0}</value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>İki yarı farklı biçimde başarısız olur ve nedenleri farklıdır. Başka bir şey yapmadan önce hangisine sahip olduğunuzu belirleyin.</value>
@@ -14938,8 +14935,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="What this server still needs, in the order a new installation meets it. Each item says whether it is done, the next one to do is marked, and the button beside it opens the page that does it. Where the answer cannot be read from here, the item says what to check instead of guessing." xml:space="preserve">
     <value>Bu sunucunun hâlâ ihtiyaç duyduğu şeyler, yeni bir kurulumun onlarla karşılaştığı sırayla. Her öğe yapılıp yapılmadığını söyler, sonraki adım işaretlenir ve yanındaki düğme onu yapan sayfayı açar. Yanıtın buradan okunamadığı yerde öğe, tahmin etmek yerine neyin denetleneceğini söyler.</value>
   </data>
-  <data name="What to do: " xml:space="preserve">
-    <value>Yapılacak: </value>
+  <data name="What to do:" xml:space="preserve">
+    <value>Yapılacak:</value>
   </data>
   <data name="What will be written:" xml:space="preserve">
     <value>Yazılacak olan:</value>

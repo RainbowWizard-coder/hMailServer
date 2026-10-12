@@ -3090,14 +3090,14 @@
   <data name="Could not change the match mode: {0}" xml:space="preserve">
     <value>一致モードを変更できませんでした: {0}</value>
   </data>
-  <data name="Could not change the role: " xml:space="preserve">
-    <value>ロールを変更できませんでした: </value>
+  <data name="Could not change the role: {0}" xml:space="preserve">
+    <value>ロールを変更できませんでした: {0}</value>
   </data>
   <data name="Could not change the second factor: {0}" xml:space="preserve">
     <value>第 2 要素を変更できませんでした: {0}</value>
   </data>
-  <data name="Could not copy: " xml:space="preserve">
-    <value>コピーできませんでした: </value>
+  <data name="Could not copy: {0}" xml:space="preserve">
+    <value>コピーできませんでした: {0}</value>
   </data>
   <data name="Could not create the account: {0}" xml:space="preserve">
     <value>アカウントを作成できませんでした: {0}</value>
@@ -3186,8 +3186,8 @@
   <data name="Could not list the messages: {0}" xml:space="preserve">
     <value>メッセージを一覧表示できませんでした: {0}</value>
   </data>
-  <data name="Could not load folders: " xml:space="preserve">
-    <value>フォルダーを読み込めませんでした: </value>
+  <data name="Could not load folders: {0}" xml:space="preserve">
+    <value>フォルダーを読み込めませんでした: {0}</value>
   </data>
   <data name="Could not load permissions: {0}" xml:space="preserve">
     <value>権限を読み込めませんでした: {0}</value>
@@ -3239,20 +3239,20 @@
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>{0} を開けませんでした: {1}</value>
   </data>
-  <data name="Could not read the IP ranges: " xml:space="preserve">
-    <value>IP 範囲を読み取れませんでした: </value>
+  <data name="Could not read the IP ranges: {0}" xml:space="preserve">
+    <value>IP 範囲を読み取れませんでした: {0}</value>
   </data>
-  <data name="Could not read the accounts: " xml:space="preserve">
-    <value>アカウントを読み取れませんでした: </value>
+  <data name="Could not read the accounts: {0}" xml:space="preserve">
+    <value>アカウントを読み取れませんでした: {0}</value>
   </data>
-  <data name="Could not read the aliases: " xml:space="preserve">
-    <value>エイリアスを読み取れませんでした: </value>
+  <data name="Could not read the aliases: {0}" xml:space="preserve">
+    <value>エイリアスを読み取れませんでした: {0}</value>
   </data>
-  <data name="Could not read the audit trail: " xml:space="preserve">
-    <value>監査ログを読み取れませんでした: </value>
+  <data name="Could not read the audit trail: {0}" xml:space="preserve">
+    <value>監査ログを読み取れませんでした: {0}</value>
   </data>
-  <data name="Could not read the backup settings: " xml:space="preserve">
-    <value>バックアップ設定を読み取れませんでした: </value>
+  <data name="Could not read the backup settings: {0}" xml:space="preserve">
+    <value>バックアップ設定を読み取れませんでした: {0}</value>
   </data>
   <data name="Could not read the bans: {0}" xml:space="preserve">
     <value>BAN を読み込めませんでした: {0}</value>
@@ -3260,32 +3260,29 @@
   <data name="Could not read the certificate: {0}" xml:space="preserve">
     <value>証明書を読み込めませんでした: {0}</value>
   </data>
-  <data name="Could not read the certificates: " xml:space="preserve">
-    <value>証明書を読み取れませんでした: </value>
+  <data name="Could not read the certificates: {0}" xml:space="preserve">
+    <value>証明書を読み取れませんでした: {0}</value>
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>整合性レポートを読み取れませんでした: {0}</value>
   </data>
-  <data name="Could not read the distribution lists: " xml:space="preserve">
-    <value>配布リストを読み取れませんでした: </value>
+  <data name="Could not read the distribution lists: {0}" xml:space="preserve">
+    <value>配布リストを読み取れませんでした: {0}</value>
   </data>
-  <data name="Could not read the domains: " xml:space="preserve">
-    <value>ドメインを読み取れませんでした: </value>
+  <data name="Could not read the domains: {0}" xml:space="preserve">
+    <value>ドメインを読み取れませんでした: {0}</value>
   </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>ファイルを読み取れませんでした: {0}</value>
   </data>
-  <data name="Could not read the incoming relays: " xml:space="preserve">
-    <value>受信リレーを読み取れませんでした: </value>
+  <data name="Could not read the incoming relays: {0}" xml:space="preserve">
+    <value>受信リレーを読み取れませんでした: {0}</value>
   </data>
-  <data name="Could not read the journaling rules: " xml:space="preserve">
-    <value>ジャーナリング ルールを読み取れませんでした: </value>
+  <data name="Could not read the journaling rules: {0}" xml:space="preserve">
+    <value>ジャーナリング ルールを読み取れませんでした: {0}</value>
   </data>
   <data name="Could not read the key rotation: {0}" xml:space="preserve">
     <value>キーのローテーションを読み取れませんでした: {0}</value>
-  </data>
-  <data name="Could not read the list: " xml:space="preserve">
-    <value>リストを読み取れませんでした: </value>
   </data>
   <data name="Could not read the list: {0}" xml:space="preserve">
     <value>リストを読み取れませんでした: {0}</value>
@@ -3311,44 +3308,44 @@
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>写真を読み取れませんでした: {0}</value>
   </data>
-  <data name="Could not read the ports: " xml:space="preserve">
-    <value>ポートを読み取れませんでした: </value>
+  <data name="Could not read the ports: {0}" xml:space="preserve">
+    <value>ポートを読み取れませんでした: {0}</value>
   </data>
-  <data name="Could not read the public folders: " xml:space="preserve">
-    <value>公開フォルダーを読み取れませんでした: </value>
+  <data name="Could not read the public folders: {0}" xml:space="preserve">
+    <value>公開フォルダーを読み取れませんでした: {0}</value>
   </data>
-  <data name="Could not read the quarantine: " xml:space="preserve">
-    <value>検疫を読み取れませんでした: </value>
+  <data name="Could not read the quarantine: {0}" xml:space="preserve">
+    <value>検疫を読み取れませんでした: {0}</value>
   </data>
-  <data name="Could not read the queue: " xml:space="preserve">
-    <value>キューを読み取れませんでした: </value>
+  <data name="Could not read the queue: {0}" xml:space="preserve">
+    <value>キューを読み取れませんでした: {0}</value>
   </data>
   <data name="Could not read the relay: {0}" xml:space="preserve">
     <value>リレーを読み取れませんでした: {0}</value>
   </data>
-  <data name="Could not read the roles: " xml:space="preserve">
-    <value>ロールを読み取れませんでした: </value>
+  <data name="Could not read the roles: {0}" xml:space="preserve">
+    <value>ロールを読み取れませんでした: {0}</value>
   </data>
-  <data name="Could not read the routes: " xml:space="preserve">
-    <value>ルートを読み取れませんでした: </value>
+  <data name="Could not read the routes: {0}" xml:space="preserve">
+    <value>ルートを読み取れませんでした: {0}</value>
   </data>
-  <data name="Could not read the rules: " xml:space="preserve">
-    <value>ルールを読み取れませんでした: </value>
+  <data name="Could not read the rules: {0}" xml:space="preserve">
+    <value>ルールを読み取れませんでした: {0}</value>
   </data>
-  <data name="Could not read the server's statistics: " xml:space="preserve">
-    <value>サーバーの統計を読み取れませんでした: </value>
+  <data name="Could not read the server's statistics: {0}" xml:space="preserve">
+    <value>サーバーの統計を読み取れませんでした: {0}</value>
   </data>
-  <data name="Could not read the server: " xml:space="preserve">
-    <value>サーバーを読み取れませんでした: </value>
+  <data name="Could not read the server: {0}" xml:space="preserve">
+    <value>サーバーを読み取れませんでした: {0}</value>
   </data>
-  <data name="Could not read the setting levels: " xml:space="preserve">
-    <value>設定レベルを読み取れませんでした: </value>
+  <data name="Could not read the setting levels: {0}" xml:space="preserve">
+    <value>設定レベルを読み取れませんでした: {0}</value>
   </data>
-  <data name="Could not read the suppression list: " xml:space="preserve">
-    <value>抑止リストを読み取れませんでした: </value>
+  <data name="Could not read the suppression list: {0}" xml:space="preserve">
+    <value>抑止リストを読み取れませんでした: {0}</value>
   </data>
-  <data name="Could not read the update status: " xml:space="preserve">
-    <value>更新の状態を読み取れませんでした: </value>
+  <data name="Could not read the update status: {0}" xml:space="preserve">
+    <value>更新の状態を読み取れませんでした: {0}</value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>{0} を読み取れませんでした: {1}</value>
@@ -10934,8 +10931,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Scope (empty = the Microsoft default)" xml:space="preserve">
     <value>スコープ (空 = Microsoft の既定)</value>
   </data>
-  <data name="Scope: " xml:space="preserve">
-    <value>スコープ: </value>
+  <data name="Scope: {0}." xml:space="preserve">
+    <value>スコープ: {0}.</value>
   </data>
   <data name="Scoped, expiring credentials for the REST API, so automation does not have to carry the administrator password." xml:space="preserve">
     <value>REST API 用のスコープ付きで期限のある資格情報。自動化が管理者パスワードを持ち歩かなくて済みます。</value>
@@ -12101,8 +12098,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Store new mail compressed, with large parts held once" xml:space="preserve">
     <value>新しいメールを圧縮して保存し、大きな部分は一度だけ保存する</value>
   </data>
-  <data name="Store: " xml:space="preserve">
-    <value>ストア: </value>
+  <data name="Store:" xml:space="preserve">
+    <value>ストア:</value>
   </data>
   <data name="Stored as [LDAP] {0}." xml:space="preserve">
     <value>[LDAP] {0} として保存されます。</value>
@@ -12722,8 +12719,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>ウイルス対策の設定を読み取れませんでした。</value>
   </data>
-  <data name="The anti-virus configuration could not be read: " xml:space="preserve">
-    <value>ウイルス対策設定を読み取れませんでした: </value>
+  <data name="The anti-virus configuration could not be read: {0}" xml:space="preserve">
+    <value>ウイルス対策設定を読み取れませんでした: {0}</value>
   </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>アーカイブにはこのアカウントのメッセージがありません。</value>
@@ -13167,8 +13164,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The greylisting settings could not be read." xml:space="preserve">
     <value>グレイリスティング設定を読み取れませんでした。</value>
   </data>
-  <data name="The group members could not be read: " xml:space="preserve">
-    <value>グループ メンバーを読み取れませんでした: </value>
+  <data name="The group members could not be read: {0}" xml:space="preserve">
+    <value>グループ メンバーを読み取れませんでした: {0}</value>
   </data>
   <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark." xml:space="preserve">
     <value>このサーバーが TLS キーの合意に使うグループを、OpenSSL のリスト形式で指定します。出荷時の設定では、2 つのポスト量子ハイブリッドを先に提示し、どちらも持たない相手には X25519 と NIST 曲線にフォールバックするため、古いクライアントにとっては何も変わりません。空のリスト、OpenSSL が拒否するリスト、あるいは有効なグループが 1 つも残らないリストは適用されません。サーバーはそれをログに記録し、従来方式のフォールバックを使うため、ここでの誤りが TLS を停止させることはありません。ただし、ハイブリッドは黙って放棄されます。空欄ではなく出荷時のリストを表示しているのはそのためです。手探りで変更するのではなく、スキャンの結果に照らして変更してください。</value>
@@ -13598,8 +13595,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The run did not finish. What was read before it stopped is below." xml:space="preserve">
     <value>実行は完了しませんでした。停止するまでに読み取られた内容を下に示します。</value>
   </data>
-  <data name="The run failed: " xml:space="preserve">
-    <value>実行に失敗しました: </value>
+  <data name="The run failed: {0}" xml:space="preserve">
+    <value>実行に失敗しました: {0}</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>ログ ファイルが受け取るのと同じ行、カテゴリ、マスクに、ログを記録したスレッドでスパンがアクティブなときはいつでもトレース ID とスパン ID が付加されます。エクスポーターは自身の失敗行を決してエクスポートしません。そうしないと、停止したコレクターが自分自身を養うことになります。</value>
@@ -13875,8 +13872,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address." xml:space="preserve">
     <value>送信元の制限は、アドレス (10.0.0.5)、範囲 (10.0.0.1-10.0.0.99)、または CIDR (10.0.0.0/24) でなければなりません。任意のアドレスからキーを受け入れるには空のままにしてください。</value>
   </data>
-  <data name="The spam configuration could not be read: " xml:space="preserve">
-    <value>スパム設定を読み取れませんでした: </value>
+  <data name="The spam configuration could not be read: {0}" xml:space="preserve">
+    <value>スパム設定を読み取れませんでした: {0}</value>
   </data>
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>保存されているダイジェストが使用可能な SHA-256 値ではないため、このセクションは何も認証しません。失効させて代わりを作成してください。</value>
@@ -13914,8 +13911,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>トランスポート セキュリティの設定を読み取れませんでした。</value>
   </data>
-  <data name="The transport security configuration could not be read: " xml:space="preserve">
-    <value>トランスポート セキュリティ設定を読み取れませんでした: </value>
+  <data name="The transport security configuration could not be read: {0}" xml:space="preserve">
+    <value>トランスポート セキュリティ設定を読み取れませんでした: {0}</value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>2 つの半分は失敗の仕方も原因も異なります。まず、自分がどちらに該当するかを見極めてください。</value>
@@ -14949,8 +14946,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="What this server still needs, in the order a new installation meets it. Each item says whether it is done, the next one to do is marked, and the button beside it opens the page that does it. Where the answer cannot be read from here, the item says what to check instead of guessing." xml:space="preserve">
     <value>このサーバーにまだ必要なものを、新しいインストールが出会う順に示します。各項目には完了しているかどうかが示され、次の手順には印が付き、横のボタンでその作業を行うページが開きます。ここから答えを読み取れない場合は、推測せずに確認すべきことを示します。</value>
   </data>
-  <data name="What to do: " xml:space="preserve">
-    <value>対応: </value>
+  <data name="What to do:" xml:space="preserve">
+    <value>対応:</value>
   </data>
   <data name="What will be written:" xml:space="preserve">
     <value>書き込まれる内容:</value>

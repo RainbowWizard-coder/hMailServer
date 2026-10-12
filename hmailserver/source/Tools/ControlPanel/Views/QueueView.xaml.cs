@@ -289,7 +289,7 @@ namespace hMailServer.ControlPanel.Views
             // Neither the rows of the last read nor "The delivery queue is empty."
             // is a fact this page has now: both go, and the notice says what
             // happened, with Try again (Services/ReadFailure).
-            ReadFailure.Show(Notice, EmptyStatus, QueueGrid, L("Could not read the queue: "), ex, Reload, RetryAllButton);
+            ReadFailure.Show(Notice, EmptyStatus, QueueGrid, L("Could not read the queue: {0}"), ex, Reload, RetryAllButton);
             CountPill.Visibility = Visibility.Collapsed;
          }
       }

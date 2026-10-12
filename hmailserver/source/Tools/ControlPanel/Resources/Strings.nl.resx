@@ -3079,14 +3079,14 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Could not change the match mode: {0}" xml:space="preserve">
     <value>Kon de overeenkomstmodus niet wijzigen: {0}</value>
   </data>
-  <data name="Could not change the role: " xml:space="preserve">
-    <value>Kon de rol niet wijzigen: </value>
+  <data name="Could not change the role: {0}" xml:space="preserve">
+    <value>Kon de rol niet wijzigen: {0}</value>
   </data>
   <data name="Could not change the second factor: {0}" xml:space="preserve">
     <value>Kon de tweede factor niet wijzigen: {0}</value>
   </data>
-  <data name="Could not copy: " xml:space="preserve">
-    <value>Kon niet kopiëren: </value>
+  <data name="Could not copy: {0}" xml:space="preserve">
+    <value>Kon niet kopiëren: {0}</value>
   </data>
   <data name="Could not create the account: {0}" xml:space="preserve">
     <value>Kon het account niet aanmaken: {0}</value>
@@ -3175,8 +3175,8 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Could not list the messages: {0}" xml:space="preserve">
     <value>De berichten konden niet worden getoond: {0}</value>
   </data>
-  <data name="Could not load folders: " xml:space="preserve">
-    <value>Kon de mappen niet laden: </value>
+  <data name="Could not load folders: {0}" xml:space="preserve">
+    <value>Kon de mappen niet laden: {0}</value>
   </data>
   <data name="Could not load permissions: {0}" xml:space="preserve">
     <value>Kon de machtigingen niet laden: {0}</value>
@@ -3228,20 +3228,20 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>Kon {0} niet openen: {1}</value>
   </data>
-  <data name="Could not read the IP ranges: " xml:space="preserve">
-    <value>Kon de IP-bereiken niet lezen: </value>
+  <data name="Could not read the IP ranges: {0}" xml:space="preserve">
+    <value>Kon de IP-bereiken niet lezen: {0}</value>
   </data>
-  <data name="Could not read the accounts: " xml:space="preserve">
-    <value>Kon de accounts niet lezen: </value>
+  <data name="Could not read the accounts: {0}" xml:space="preserve">
+    <value>Kon de accounts niet lezen: {0}</value>
   </data>
-  <data name="Could not read the aliases: " xml:space="preserve">
-    <value>Kon de aliassen niet lezen: </value>
+  <data name="Could not read the aliases: {0}" xml:space="preserve">
+    <value>Kon de aliassen niet lezen: {0}</value>
   </data>
-  <data name="Could not read the audit trail: " xml:space="preserve">
-    <value>Kon het auditlogboek niet lezen: </value>
+  <data name="Could not read the audit trail: {0}" xml:space="preserve">
+    <value>Kon het auditlogboek niet lezen: {0}</value>
   </data>
-  <data name="Could not read the backup settings: " xml:space="preserve">
-    <value>Kon de back-upinstellingen niet lezen: </value>
+  <data name="Could not read the backup settings: {0}" xml:space="preserve">
+    <value>Kon de back-upinstellingen niet lezen: {0}</value>
   </data>
   <data name="Could not read the bans: {0}" xml:space="preserve">
     <value>De verbanningen konden niet worden gelezen: {0}</value>
@@ -3249,32 +3249,29 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Could not read the certificate: {0}" xml:space="preserve">
     <value>Kon het certificaat niet lezen: {0}</value>
   </data>
-  <data name="Could not read the certificates: " xml:space="preserve">
-    <value>Kon de certificaten niet lezen: </value>
+  <data name="Could not read the certificates: {0}" xml:space="preserve">
+    <value>Kon de certificaten niet lezen: {0}</value>
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Kon het consistentierapport niet lezen: {0}</value>
   </data>
-  <data name="Could not read the distribution lists: " xml:space="preserve">
-    <value>Kon de distributielijsten niet lezen: </value>
+  <data name="Could not read the distribution lists: {0}" xml:space="preserve">
+    <value>Kon de distributielijsten niet lezen: {0}</value>
   </data>
-  <data name="Could not read the domains: " xml:space="preserve">
-    <value>Kon de domeinen niet lezen: </value>
+  <data name="Could not read the domains: {0}" xml:space="preserve">
+    <value>Kon de domeinen niet lezen: {0}</value>
   </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>Kon het bestand niet lezen: {0}</value>
   </data>
-  <data name="Could not read the incoming relays: " xml:space="preserve">
-    <value>Kon de inkomende relays niet lezen: </value>
+  <data name="Could not read the incoming relays: {0}" xml:space="preserve">
+    <value>Kon de inkomende relays niet lezen: {0}</value>
   </data>
-  <data name="Could not read the journaling rules: " xml:space="preserve">
-    <value>Kon de journalingregels niet lezen: </value>
+  <data name="Could not read the journaling rules: {0}" xml:space="preserve">
+    <value>Kon de journalingregels niet lezen: {0}</value>
   </data>
   <data name="Could not read the key rotation: {0}" xml:space="preserve">
     <value>Kon de sleutelrotatie niet lezen: {0}</value>
-  </data>
-  <data name="Could not read the list: " xml:space="preserve">
-    <value>Kon de lijst niet lezen: </value>
   </data>
   <data name="Could not read the list: {0}" xml:space="preserve">
     <value>Kon de lijst niet lezen: {0}</value>
@@ -3300,44 +3297,44 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>De foto kon niet worden gelezen: {0}</value>
   </data>
-  <data name="Could not read the ports: " xml:space="preserve">
-    <value>Kon de poorten niet lezen: </value>
+  <data name="Could not read the ports: {0}" xml:space="preserve">
+    <value>Kon de poorten niet lezen: {0}</value>
   </data>
-  <data name="Could not read the public folders: " xml:space="preserve">
-    <value>Kon de openbare mappen niet lezen: </value>
+  <data name="Could not read the public folders: {0}" xml:space="preserve">
+    <value>Kon de openbare mappen niet lezen: {0}</value>
   </data>
-  <data name="Could not read the quarantine: " xml:space="preserve">
-    <value>Kon de quarantaine niet lezen: </value>
+  <data name="Could not read the quarantine: {0}" xml:space="preserve">
+    <value>Kon de quarantaine niet lezen: {0}</value>
   </data>
-  <data name="Could not read the queue: " xml:space="preserve">
-    <value>Kon de wachtrij niet lezen: </value>
+  <data name="Could not read the queue: {0}" xml:space="preserve">
+    <value>Kon de wachtrij niet lezen: {0}</value>
   </data>
   <data name="Could not read the relay: {0}" xml:space="preserve">
     <value>Kon de relay niet lezen: {0}</value>
   </data>
-  <data name="Could not read the roles: " xml:space="preserve">
-    <value>Kon de rollen niet lezen: </value>
+  <data name="Could not read the roles: {0}" xml:space="preserve">
+    <value>Kon de rollen niet lezen: {0}</value>
   </data>
-  <data name="Could not read the routes: " xml:space="preserve">
-    <value>Kon de routes niet lezen: </value>
+  <data name="Could not read the routes: {0}" xml:space="preserve">
+    <value>Kon de routes niet lezen: {0}</value>
   </data>
-  <data name="Could not read the rules: " xml:space="preserve">
-    <value>Kon de regels niet lezen: </value>
+  <data name="Could not read the rules: {0}" xml:space="preserve">
+    <value>Kon de regels niet lezen: {0}</value>
   </data>
-  <data name="Could not read the server's statistics: " xml:space="preserve">
-    <value>Kon de statistieken van de server niet lezen: </value>
+  <data name="Could not read the server's statistics: {0}" xml:space="preserve">
+    <value>Kon de statistieken van de server niet lezen: {0}</value>
   </data>
-  <data name="Could not read the server: " xml:space="preserve">
-    <value>Kon de server niet lezen: </value>
+  <data name="Could not read the server: {0}" xml:space="preserve">
+    <value>Kon de server niet lezen: {0}</value>
   </data>
-  <data name="Could not read the setting levels: " xml:space="preserve">
-    <value>Kon de instellingsniveaus niet lezen: </value>
+  <data name="Could not read the setting levels: {0}" xml:space="preserve">
+    <value>Kon de instellingsniveaus niet lezen: {0}</value>
   </data>
-  <data name="Could not read the suppression list: " xml:space="preserve">
-    <value>Kon de onderdrukkingslijst niet lezen: </value>
+  <data name="Could not read the suppression list: {0}" xml:space="preserve">
+    <value>Kon de onderdrukkingslijst niet lezen: {0}</value>
   </data>
-  <data name="Could not read the update status: " xml:space="preserve">
-    <value>Kon de updatestatus niet lezen: </value>
+  <data name="Could not read the update status: {0}" xml:space="preserve">
+    <value>Kon de updatestatus niet lezen: {0}</value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Kon {0} niet lezen: {1}</value>
@@ -10923,8 +10920,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Scope (empty = the Microsoft default)" xml:space="preserve">
     <value>Scope (leeg = de standaard van Microsoft)</value>
   </data>
-  <data name="Scope: " xml:space="preserve">
-    <value>Scope: </value>
+  <data name="Scope: {0}." xml:space="preserve">
+    <value>Scope: {0}.</value>
   </data>
   <data name="Scoped, expiring credentials for the REST API, so automation does not have to carry the administrator password." xml:space="preserve">
     <value>Referenties met een beperkt bereik en een vervaldatum voor de REST-API, zodat automatisering het beheerderswachtwoord niet hoeft mee te dragen.</value>
@@ -12090,8 +12087,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Store new mail compressed, with large parts held once" xml:space="preserve">
     <value>Nieuwe e-mail gecomprimeerd opslaan, grote delen één keer</value>
   </data>
-  <data name="Store: " xml:space="preserve">
-    <value>Opslag: </value>
+  <data name="Store:" xml:space="preserve">
+    <value>Opslag:</value>
   </data>
   <data name="Stored as [LDAP] {0}." xml:space="preserve">
     <value>Opgeslagen als [LDAP] {0}.</value>
@@ -12711,8 +12708,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>De antivirusconfiguratie kon niet worden gelezen.</value>
   </data>
-  <data name="The anti-virus configuration could not be read: " xml:space="preserve">
-    <value>Kon de antivirusconfiguratie niet lezen: </value>
+  <data name="The anti-virus configuration could not be read: {0}" xml:space="preserve">
+    <value>Kon de antivirusconfiguratie niet lezen: {0}</value>
   </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>Het archief bevat geen berichten voor dit account.</value>
@@ -13156,8 +13153,8 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The greylisting settings could not be read." xml:space="preserve">
     <value>De greylisting-instellingen konden niet worden gelezen.</value>
   </data>
-  <data name="The group members could not be read: " xml:space="preserve">
-    <value>De groepsleden konden niet worden gelezen: </value>
+  <data name="The group members could not be read: {0}" xml:space="preserve">
+    <value>De groepsleden konden niet worden gelezen: {0}</value>
   </data>
   <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark." xml:space="preserve">
     <value>De groepen waarmee deze server een TLS-sleutel wil overeenkomen, in de lijstvorm van OpenSSL. Zoals geleverd biedt hij eerst de twee post-quantumhybriden aan en valt hij terug op X25519 en de NIST-krommen voor een tegenpartij die geen van beide heeft, zodat er voor een oudere client niets verandert. Een lege lijst, of een die OpenSSL afwijst of die geen enkele groep ingeschakeld zou laten, wordt niet toegepast: de server logt hem en gebruikt de klassieke terugval, dus een fout hier kan TLS niet platleggen - maar hij geeft de hybriden wel stilzwijgend op, en daarom wordt de geleverde lijst getoond in plaats van een leeg veld. Wijzig hem aan de hand van een scan en niet in het duister.</value>
@@ -13587,8 +13584,8 @@ Toch toevoegen?</value>
   <data name="The run did not finish. What was read before it stopped is below." xml:space="preserve">
     <value>De run is niet voltooid. Wat er is gelezen voordat hij stopte, staat hieronder.</value>
   </data>
-  <data name="The run failed: " xml:space="preserve">
-    <value>De run is mislukt: </value>
+  <data name="The run failed: {0}" xml:space="preserve">
+    <value>De run is mislukt: {0}</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>Dezelfde regels, categorieën en hetzelfde masker als de logbestanden krijgen, met de trace- en span-id erbij zodra er een span actief is op de thread die logde. De exporter exporteert nooit zijn eigen foutregels, anders zou een dode collector zichzelf voeden.</value>
@@ -13864,8 +13861,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address." xml:space="preserve">
     <value>De bronbeperking moet een adres (10.0.0.5), een bereik (10.0.0.1-10.0.0.99) of CIDR (10.0.0.0/24) zijn. Laat leeg om de sleutel vanaf elk adres te accepteren.</value>
   </data>
-  <data name="The spam configuration could not be read: " xml:space="preserve">
-    <value>Kon de spamconfiguratie niet lezen: </value>
+  <data name="The spam configuration could not be read: {0}" xml:space="preserve">
+    <value>Kon de spamconfiguratie niet lezen: {0}</value>
   </data>
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>De opgeslagen digest is geen bruikbare SHA-256-waarde, dus deze sectie authenticeert niets. Trek hem in en maak een vervanger aan.</value>
@@ -13903,8 +13900,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>De configuratie voor transportbeveiliging kon niet worden gelezen.</value>
   </data>
-  <data name="The transport security configuration could not be read: " xml:space="preserve">
-    <value>Kon de transportbeveiligingsconfiguratie niet lezen: </value>
+  <data name="The transport security configuration could not be read: {0}" xml:space="preserve">
+    <value>Kon de transportbeveiligingsconfiguratie niet lezen: {0}</value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>De twee helften falen op verschillende manieren en hebben verschillende oorzaken. Stel eerst vast welke van de twee u hebt.</value>
@@ -14938,8 +14935,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="What this server still needs, in the order a new installation meets it. Each item says whether it is done, the next one to do is marked, and the button beside it opens the page that does it. Where the answer cannot be read from here, the item says what to check instead of guessing." xml:space="preserve">
     <value>Wat deze server nog nodig heeft, in de volgorde waarin een nieuwe installatie het tegenkomt. Elk onderdeel zegt of het klaar is, de volgende stap is gemarkeerd en de knop ernaast opent de pagina die het regelt. Waar het antwoord hier niet te lezen is, zegt het onderdeel wat u moet controleren in plaats van te gokken.</value>
   </data>
-  <data name="What to do: " xml:space="preserve">
-    <value>Wat te doen: </value>
+  <data name="What to do:" xml:space="preserve">
+    <value>Wat te doen:</value>
   </data>
   <data name="What will be written:" xml:space="preserve">
     <value>Wat wordt geschreven:</value>

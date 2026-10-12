@@ -320,7 +320,7 @@ namespace hMailServer.ControlPanel.Views
             // fact this page has now: both go, with the criteria and actions of
             // the rule that was selected, the notice says what happened, with
             // Try again, and Add rule waits for a read that works (Services/ReadFailure).
-            ReadFailure.Show(Notice, EmptyStatus, RuleGrid, L("Could not read the rules: "), ex, Reload, AddRuleButton);
+            ReadFailure.Show(Notice, EmptyStatus, RuleGrid, L("Could not read the rules: {0}"), ex, Reload, AddRuleButton);
             CountPill.Visibility = Visibility.Collapsed;
             selectedRuleId_ = 0;
             CriteriaGrid.ItemsSource = null;

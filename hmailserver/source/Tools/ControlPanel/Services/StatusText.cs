@@ -17,14 +17,14 @@ namespace hMailServer.ControlPanel.Services
    public static class StatusText
    {
       public static void Show(TextBlock status, int rowCount, string error,
-                              string emptyText, string errorPrefix = "")
+                              string emptyText, string errorTemplate = null)
       {
          if (status == null)
             return;
 
          if (!string.IsNullOrEmpty(error))
          {
-            status.Text = errorPrefix + error;
+            status.Text = ReadFailure.Sentence(errorTemplate, error);
             status.Visibility = Visibility.Visible;
          }
          else if (rowCount == 0)
@@ -46,14 +46,14 @@ namespace hMailServer.ControlPanel.Services
       /// is never silent. Both are hidden while there are rows.
       /// </summary>
       public static void Show(EmptyState empty, InlineNotice notice, int rowCount, string error,
-                              string emptyText, string errorPrefix = "")
+                              string emptyText, string errorTemplate = null)
       {
          bool failed = !string.IsNullOrEmpty(error);
 
          if (notice != null)
          {
             notice.Level = StatusLevel.Critical;
-            notice.Text = failed ? errorPrefix + error : null;
+            notice.Text = failed ? ReadFailure.Sentence(errorTemplate, error) : null;
             notice.Visibility = failed ? Visibility.Visible : Visibility.Collapsed;
          }
 
@@ -62,7 +62,7 @@ namespace hMailServer.ControlPanel.Services
 
          if (failed)
          {
-            empty.Text = errorPrefix + error;
+            empty.Text = ReadFailure.Sentence(errorTemplate, error);
             empty.Visibility = notice == null ? Visibility.Visible : Visibility.Collapsed;
          }
          else if (rowCount == 0)

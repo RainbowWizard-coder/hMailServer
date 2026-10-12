@@ -224,7 +224,7 @@ namespace hMailServer.ControlPanel.Views
             // with Try again, and Add and Restore defaults wait for a read that
             // works - Restore defaults replaces every range, which is the last
             // thing to offer over a list that could not be seen (Services/ReadFailure).
-            ReadFailure.Show(Notice, EmptyStatus, RangeGrid, L("Could not read the IP ranges: "), ex, Reload,
+            ReadFailure.Show(Notice, EmptyStatus, RangeGrid, L("Could not read the IP ranges: {0}"), ex, Reload,
                AddRangeButton, RestoreDefaultsButton);
             CountPill.Visibility = Visibility.Collapsed;
             // The permissions card keeps the edits it holds: a read that failed

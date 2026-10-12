@@ -662,7 +662,7 @@ namespace hMailServer.ControlPanel.Views
             // cleared above, the empty state and the pill go, the notice says what
             // happened, with Try again, and Add waits for a read that works
             // (Services/ReadFailure).
-            ReadFailure.Show(status_, empty_, null, L("Could not read the list: "), ex, Reload, addButton_);
+            ReadFailure.Show(status_, empty_, null, L("Could not read the list: {0}"), ex, Reload, addButton_);
             countBadge_.Visibility = Visibility.Collapsed;
             ShowState_(null);
             return;

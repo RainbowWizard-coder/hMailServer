@@ -3079,14 +3079,14 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Could not change the match mode: {0}" xml:space="preserve">
     <value>Kunde inte ändra matchningsläget: {0}</value>
   </data>
-  <data name="Could not change the role: " xml:space="preserve">
-    <value>Kunde inte ändra rollen: </value>
+  <data name="Could not change the role: {0}" xml:space="preserve">
+    <value>Kunde inte ändra rollen: {0}</value>
   </data>
   <data name="Could not change the second factor: {0}" xml:space="preserve">
     <value>Kunde inte ändra den andra faktorn: {0}</value>
   </data>
-  <data name="Could not copy: " xml:space="preserve">
-    <value>Kunde inte kopiera: </value>
+  <data name="Could not copy: {0}" xml:space="preserve">
+    <value>Kunde inte kopiera: {0}</value>
   </data>
   <data name="Could not create the account: {0}" xml:space="preserve">
     <value>Kunde inte skapa kontot: {0}</value>
@@ -3175,8 +3175,8 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Could not list the messages: {0}" xml:space="preserve">
     <value>Meddelandena kunde inte listas: {0}</value>
   </data>
-  <data name="Could not load folders: " xml:space="preserve">
-    <value>Kunde inte läsa in mappar: </value>
+  <data name="Could not load folders: {0}" xml:space="preserve">
+    <value>Kunde inte läsa in mappar: {0}</value>
   </data>
   <data name="Could not load permissions: {0}" xml:space="preserve">
     <value>Kunde inte läsa in behörigheter: {0}</value>
@@ -3228,20 +3228,20 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>Kunde inte öppna {0}: {1}</value>
   </data>
-  <data name="Could not read the IP ranges: " xml:space="preserve">
-    <value>Kunde inte läsa IP-intervallen: </value>
+  <data name="Could not read the IP ranges: {0}" xml:space="preserve">
+    <value>Kunde inte läsa IP-intervallen: {0}</value>
   </data>
-  <data name="Could not read the accounts: " xml:space="preserve">
-    <value>Kunde inte läsa kontona: </value>
+  <data name="Could not read the accounts: {0}" xml:space="preserve">
+    <value>Kunde inte läsa kontona: {0}</value>
   </data>
-  <data name="Could not read the aliases: " xml:space="preserve">
-    <value>Kunde inte läsa aliasen: </value>
+  <data name="Could not read the aliases: {0}" xml:space="preserve">
+    <value>Kunde inte läsa aliasen: {0}</value>
   </data>
-  <data name="Could not read the audit trail: " xml:space="preserve">
-    <value>Kunde inte läsa granskningsloggen: </value>
+  <data name="Could not read the audit trail: {0}" xml:space="preserve">
+    <value>Kunde inte läsa granskningsloggen: {0}</value>
   </data>
-  <data name="Could not read the backup settings: " xml:space="preserve">
-    <value>Kunde inte läsa inställningarna för säkerhetskopiering: </value>
+  <data name="Could not read the backup settings: {0}" xml:space="preserve">
+    <value>Kunde inte läsa inställningarna för säkerhetskopiering: {0}</value>
   </data>
   <data name="Could not read the bans: {0}" xml:space="preserve">
     <value>Spärrarna kunde inte läsas: {0}</value>
@@ -3249,32 +3249,29 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Could not read the certificate: {0}" xml:space="preserve">
     <value>Kunde inte läsa certifikatet: {0}</value>
   </data>
-  <data name="Could not read the certificates: " xml:space="preserve">
-    <value>Kunde inte läsa certifikaten: </value>
+  <data name="Could not read the certificates: {0}" xml:space="preserve">
+    <value>Kunde inte läsa certifikaten: {0}</value>
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Kunde inte läsa konsistensrapporten: {0}</value>
   </data>
-  <data name="Could not read the distribution lists: " xml:space="preserve">
-    <value>Kunde inte läsa distributionslistorna: </value>
+  <data name="Could not read the distribution lists: {0}" xml:space="preserve">
+    <value>Kunde inte läsa distributionslistorna: {0}</value>
   </data>
-  <data name="Could not read the domains: " xml:space="preserve">
-    <value>Kunde inte läsa domänerna: </value>
+  <data name="Could not read the domains: {0}" xml:space="preserve">
+    <value>Kunde inte läsa domänerna: {0}</value>
   </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>Kunde inte läsa filen: {0}</value>
   </data>
-  <data name="Could not read the incoming relays: " xml:space="preserve">
-    <value>Kunde inte läsa de inkommande reläerna: </value>
+  <data name="Could not read the incoming relays: {0}" xml:space="preserve">
+    <value>Kunde inte läsa de inkommande reläerna: {0}</value>
   </data>
-  <data name="Could not read the journaling rules: " xml:space="preserve">
-    <value>Kunde inte läsa journalföringsreglerna: </value>
+  <data name="Could not read the journaling rules: {0}" xml:space="preserve">
+    <value>Kunde inte läsa journalföringsreglerna: {0}</value>
   </data>
   <data name="Could not read the key rotation: {0}" xml:space="preserve">
     <value>Det gick inte att läsa nyckelrotationen: {0}</value>
-  </data>
-  <data name="Could not read the list: " xml:space="preserve">
-    <value>Kunde inte läsa listan: </value>
   </data>
   <data name="Could not read the list: {0}" xml:space="preserve">
     <value>Kunde inte läsa listan: {0}</value>
@@ -3300,44 +3297,44 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>Fotot kunde inte läsas: {0}</value>
   </data>
-  <data name="Could not read the ports: " xml:space="preserve">
-    <value>Kunde inte läsa portarna: </value>
+  <data name="Could not read the ports: {0}" xml:space="preserve">
+    <value>Kunde inte läsa portarna: {0}</value>
   </data>
-  <data name="Could not read the public folders: " xml:space="preserve">
-    <value>Kunde inte läsa de publika mapparna: </value>
+  <data name="Could not read the public folders: {0}" xml:space="preserve">
+    <value>Kunde inte läsa de publika mapparna: {0}</value>
   </data>
-  <data name="Could not read the quarantine: " xml:space="preserve">
-    <value>Kunde inte läsa karantänen: </value>
+  <data name="Could not read the quarantine: {0}" xml:space="preserve">
+    <value>Kunde inte läsa karantänen: {0}</value>
   </data>
-  <data name="Could not read the queue: " xml:space="preserve">
-    <value>Kunde inte läsa kön: </value>
+  <data name="Could not read the queue: {0}" xml:space="preserve">
+    <value>Kunde inte läsa kön: {0}</value>
   </data>
   <data name="Could not read the relay: {0}" xml:space="preserve">
     <value>Kunde inte läsa reläet: {0}</value>
   </data>
-  <data name="Could not read the roles: " xml:space="preserve">
-    <value>Kunde inte läsa rollerna: </value>
+  <data name="Could not read the roles: {0}" xml:space="preserve">
+    <value>Kunde inte läsa rollerna: {0}</value>
   </data>
-  <data name="Could not read the routes: " xml:space="preserve">
-    <value>Kunde inte läsa rutterna: </value>
+  <data name="Could not read the routes: {0}" xml:space="preserve">
+    <value>Kunde inte läsa rutterna: {0}</value>
   </data>
-  <data name="Could not read the rules: " xml:space="preserve">
-    <value>Kunde inte läsa reglerna: </value>
+  <data name="Could not read the rules: {0}" xml:space="preserve">
+    <value>Kunde inte läsa reglerna: {0}</value>
   </data>
-  <data name="Could not read the server's statistics: " xml:space="preserve">
-    <value>Kunde inte läsa serverns statistik: </value>
+  <data name="Could not read the server's statistics: {0}" xml:space="preserve">
+    <value>Kunde inte läsa serverns statistik: {0}</value>
   </data>
-  <data name="Could not read the server: " xml:space="preserve">
-    <value>Kunde inte läsa servern: </value>
+  <data name="Could not read the server: {0}" xml:space="preserve">
+    <value>Kunde inte läsa servern: {0}</value>
   </data>
-  <data name="Could not read the setting levels: " xml:space="preserve">
-    <value>Kunde inte läsa inställningsnivåerna: </value>
+  <data name="Could not read the setting levels: {0}" xml:space="preserve">
+    <value>Kunde inte läsa inställningsnivåerna: {0}</value>
   </data>
-  <data name="Could not read the suppression list: " xml:space="preserve">
-    <value>Kunde inte läsa spärrlistan: </value>
+  <data name="Could not read the suppression list: {0}" xml:space="preserve">
+    <value>Kunde inte läsa spärrlistan: {0}</value>
   </data>
-  <data name="Could not read the update status: " xml:space="preserve">
-    <value>Kunde inte läsa uppdateringsstatus: </value>
+  <data name="Could not read the update status: {0}" xml:space="preserve">
+    <value>Kunde inte läsa uppdateringsstatus: {0}</value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Kunde inte läsa {0}: {1}</value>
@@ -10923,8 +10920,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Scope (empty = the Microsoft default)" xml:space="preserve">
     <value>Omfång (tomt = Microsofts standard)</value>
   </data>
-  <data name="Scope: " xml:space="preserve">
-    <value>Omfång: </value>
+  <data name="Scope: {0}." xml:space="preserve">
+    <value>Omfång: {0}.</value>
   </data>
   <data name="Scoped, expiring credentials for the REST API, so automation does not have to carry the administrator password." xml:space="preserve">
     <value>Avgränsade, tidsbegränsade inloggningsuppgifter för REST API:et, så att automation inte behöver bära på administratörslösenordet.</value>
@@ -12090,8 +12087,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Store new mail compressed, with large parts held once" xml:space="preserve">
     <value>Lagra ny e-post komprimerad, med stora delar lagrade en gång</value>
   </data>
-  <data name="Store: " xml:space="preserve">
-    <value>Lager: </value>
+  <data name="Store:" xml:space="preserve">
+    <value>Lager:</value>
   </data>
   <data name="Stored as [LDAP] {0}." xml:space="preserve">
     <value>Sparas som [LDAP] {0}.</value>
@@ -12711,8 +12708,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Antiviruskonfigurationen kunde inte läsas.</value>
   </data>
-  <data name="The anti-virus configuration could not be read: " xml:space="preserve">
-    <value>Antiviruskonfigurationen kunde inte läsas: </value>
+  <data name="The anti-virus configuration could not be read: {0}" xml:space="preserve">
+    <value>Antiviruskonfigurationen kunde inte läsas: {0}</value>
   </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>Arkivet innehåller inga meddelanden för det här kontot.</value>
@@ -13156,8 +13153,8 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The greylisting settings could not be read." xml:space="preserve">
     <value>Gråstlistningsinställningarna kunde inte läsas.</value>
   </data>
-  <data name="The group members could not be read: " xml:space="preserve">
-    <value>Gruppmedlemmarna kunde inte läsas: </value>
+  <data name="The group members could not be read: {0}" xml:space="preserve">
+    <value>Gruppmedlemmarna kunde inte läsas: {0}</value>
   </data>
   <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark." xml:space="preserve">
     <value>De grupper som den här servern kommer överens om en TLS-nyckel med, i OpenSSL:s listform. Som levererat erbjuder den de två postkvanthybriderna först och faller tillbaka på X25519 och NIST-kurvorna för en motpart som inte har någon av dem, så inget ändras för en äldre klient. En tom lista, eller en som OpenSSL avvisar eller som inte skulle lämna någon grupp aktiverad, tillämpas inte: servern loggar den och använder den klassiska reservlistan, så ett misstag här kan inte slå ut TLS - men den ger tyst upp hybriderna, och det är därför den levererade listan visas i stället för ett tomt fält. Ändra den mot en skanning snarare än i blindo.</value>
@@ -13587,8 +13584,8 @@ Lägg till det ändå?</value>
   <data name="The run did not finish. What was read before it stopped is below." xml:space="preserve">
     <value>Körningen blev inte klar. Vad som lästes innan den stannade finns nedan.</value>
   </data>
-  <data name="The run failed: " xml:space="preserve">
-    <value>Körningen misslyckades: </value>
+  <data name="The run failed: {0}" xml:space="preserve">
+    <value>Körningen misslyckades: {0}</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>Samma rader, kategorier och mask som loggfilerna får, med spårnings- och span-id bifogade när ett span är aktivt på tråden som loggade. Exportören exporterar aldrig sina egna felrader, annars skulle en död insamlare mata sig själv.</value>
@@ -13864,8 +13861,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address." xml:space="preserve">
     <value>Källbegränsningen måste vara en adress (10.0.0.5), ett intervall (10.0.0.1-10.0.0.99) eller CIDR (10.0.0.0/24). Lämna tomt för att godta nyckeln från vilken adress som helst.</value>
   </data>
-  <data name="The spam configuration could not be read: " xml:space="preserve">
-    <value>Skräppostkonfigurationen kunde inte läsas: </value>
+  <data name="The spam configuration could not be read: {0}" xml:space="preserve">
+    <value>Skräppostkonfigurationen kunde inte läsas: {0}</value>
   </data>
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Den sparade digesten är inte ett användbart SHA-256-värde, så den här sektionen autentiserar ingenting. Återkalla den och skapa en ersättning.</value>
@@ -13903,8 +13900,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Transportsäkerhetskonfigurationen kunde inte läsas.</value>
   </data>
-  <data name="The transport security configuration could not be read: " xml:space="preserve">
-    <value>Transportsäkerhetskonfigurationen kunde inte läsas: </value>
+  <data name="The transport security configuration could not be read: {0}" xml:space="preserve">
+    <value>Transportsäkerhetskonfigurationen kunde inte läsas: {0}</value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>De två halvorna misslyckas olika och har olika orsaker. Ta reda på vilken du har före allt annat.</value>
@@ -14938,8 +14935,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="What this server still needs, in the order a new installation meets it. Each item says whether it is done, the next one to do is marked, and the button beside it opens the page that does it. Where the answer cannot be read from here, the item says what to check instead of guessing." xml:space="preserve">
     <value>Det den här servern fortfarande behöver, i den ordning en ny installation möter det. Varje punkt säger om den är klar, nästa steg är markerat och knappen bredvid öppnar sidan som gör det. Där svaret inte kan läsas härifrån säger punkten vad som ska kontrolleras i stället för att gissa.</value>
   </data>
-  <data name="What to do: " xml:space="preserve">
-    <value>Vad du ska göra: </value>
+  <data name="What to do:" xml:space="preserve">
+    <value>Vad du ska göra:</value>
   </data>
   <data name="What will be written:" xml:space="preserve">
     <value>Vad som kommer att skrivas:</value>

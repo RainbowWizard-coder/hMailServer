@@ -260,7 +260,7 @@ namespace hMailServer.ControlPanel.Views
             // again, Add domain waits for a read that works, and the three cards
             // that hang off the selected domain hang off nothing
             // (Services/ReadFailure).
-            ReadFailure.Show(DomainNotice, DomainStatus, DomainList, L("Could not read the domains: "), ex, () => ReloadDomains(), AddDomainButton);
+            ReadFailure.Show(DomainNotice, DomainStatus, DomainList, L("Could not read the domains: {0}"), ex, () => ReloadDomains(), AddDomainButton);
             ReloadAccounts();
             ReloadAliases();
             ReloadDistLists();
@@ -434,7 +434,7 @@ namespace hMailServer.ControlPanel.Views
          AddAliasForm.IsEnabled = DomainList.SelectedItem != null;
          SetListStatus(AliasStatus, rows.Count, error,
             DomainList.SelectedItem == null ? L("Select a domain to see its aliases.") : L("No aliases for this domain."),
-            L("Could not read the aliases: "));
+            L("Could not read the aliases: {0}"));
       }
 
       /// <summary>
@@ -486,12 +486,12 @@ namespace hMailServer.ControlPanel.Views
          AddListForm.IsEnabled = DomainList.SelectedItem != null;
          SetListStatus(DistStatus, rows.Count, error,
             DomainList.SelectedItem == null ? L("Select a domain to see its distribution lists.") : L("No distribution lists for this domain."),
-            L("Could not read the distribution lists: "));
+            L("Could not read the distribution lists: {0}"));
       }
 
       // Shows a centered empty/error placeholder over a list when it has no rows.
-      private static void SetListStatus(Scaffold.EmptyState status, int rowCount, string error, string emptyText, string errorPrefix)
-         => StatusText.Show(status, null, rowCount, error, emptyText, errorPrefix);
+      private static void SetListStatus(Scaffold.EmptyState status, int rowCount, string error, string emptyText, string errorTemplate)
+         => StatusText.Show(status, null, rowCount, error, emptyText, errorTemplate);
 
       private void AddAlias_Click(object sender, RoutedEventArgs e)
       {
@@ -755,7 +755,7 @@ namespace hMailServer.ControlPanel.Views
             // domain yet." is a fact this page has now: both go, the notice says
             // what happened, with Try again, and the account form waits for a
             // read that works (Services/ReadFailure).
-            ReadFailure.Show(AccountNotice, AccountStatus, AccountList, L("Could not read the accounts: "), ex, ReloadAccounts, AccountForm);
+            ReadFailure.Show(AccountNotice, AccountStatus, AccountList, L("Could not read the accounts: {0}"), ex, ReloadAccounts, AccountForm);
             return;
          }
 

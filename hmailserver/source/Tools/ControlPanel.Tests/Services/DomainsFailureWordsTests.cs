@@ -47,8 +47,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheAliasesAndListsReadFailures_SayCouldNotRead_AsTheDomainsAndAccountsDo()
       {
          string page = ReadControlPanelFile("Views/DomainsView.xaml.cs");
-         foreach (string prefix in new[] { "Could not read the domains: ", "Could not read the accounts: ", "Could not read the aliases: ", "Could not read the distribution lists: " })
-            Assert.Contains("L(\"" + prefix + "\")", page, StringComparison.Ordinal);
+         foreach (string template in new[] { "Could not read the domains: {0}", "Could not read the accounts: {0}", "Could not read the aliases: {0}", "Could not read the distribution lists: {0}" })
+            Assert.Contains("L(\"" + template + "\")", page, StringComparison.Ordinal);
 
          Assert.Contains("F(\"Could not create the account: {0}\", ServerSession.DescribeComError(ex))", page, StringComparison.Ordinal);
       }

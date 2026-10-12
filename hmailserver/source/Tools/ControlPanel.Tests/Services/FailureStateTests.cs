@@ -619,7 +619,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string reload = WithheldRowTests.MemberText(source, "public void Reload()");
          Assert.Contains("status_.Show(StatusLevel.Information, L(\"Save it and reopen it: a level's own value belongs to something that exists.\"));", reload, StringComparison.Ordinal);
          Assert.Contains("status_.Show(StatusLevel.Information, L(\"This server has no setting levels:", reload, StringComparison.Ordinal);
-         Assert.Contains("ReadFailure.Show(status_, null, null, L(\"Could not read the setting levels: \"), ex, Reload, save_);", reload, StringComparison.Ordinal);
+         Assert.Contains("ReadFailure.Show(status_, null, null, L(\"Could not read the setting levels: {0}\"), ex, Reload, save_);", reload, StringComparison.Ordinal);
          Assert.Contains("ReadFailure.Clear(status_, save_);", reload, StringComparison.Ordinal);
 
          // Try again keeps its button across failures: the failure is not cleared

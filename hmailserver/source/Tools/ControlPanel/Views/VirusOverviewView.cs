@@ -437,7 +437,7 @@ namespace hMailServer.ControlPanel.Views
          if (!configRead_)
          {
             body_.Children.Clear();
-            ReadFailure.Show(readFailure_, null, null, L("The anti-virus configuration could not be read: "), firstError_, Reload);
+            ReadFailure.Show(readFailure_, null, null, L("The anti-virus configuration could not be read: {0}"), firstError_, Reload);
             header_.Status = null;
             status_.Text = "";
             return;

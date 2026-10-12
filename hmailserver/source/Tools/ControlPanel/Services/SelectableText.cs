@@ -207,7 +207,7 @@ namespace hMailServer.ControlPanel.Services
       public static void SetClipboard(string text)
       {
          if (!ClipboardWriter.TrySetText(text, out string error))
-            Toast.Failure(L("Could not copy: ") + error);
+            Toast.Failure(F("Could not copy: {0}", error));
       }
 
       /// <summary>

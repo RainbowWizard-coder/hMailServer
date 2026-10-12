@@ -207,7 +207,7 @@ namespace hMailServer.ControlPanel.Views
             // An empty list is a claim this dialog cannot make about a list it
             // could not read: the empty state stays hidden and the notice says
             // what happened.
-            notice_.Show(StatusLevel.Critical, L("Could not read the list: ") + ServerSession.DescribeComError(ex));
+            notice_.Show(StatusLevel.Critical, F("Could not read the list: {0}", ServerSession.DescribeComError(ex)));
          }
          finally
          {

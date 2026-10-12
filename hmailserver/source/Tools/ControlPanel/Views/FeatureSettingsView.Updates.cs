@@ -191,7 +191,7 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         ReadFailure.Show(UpdateReadNotice, null, null, L("Could not read the update status: "), readError, ReloadUpdate_,
+         ReadFailure.Show(UpdateReadNotice, null, null, L("Could not read the update status: {0}"), readError, ReloadUpdate_,
             CheckUpdateButton, DownloadUpdateButton, InstallUpdateButton);
       }
 

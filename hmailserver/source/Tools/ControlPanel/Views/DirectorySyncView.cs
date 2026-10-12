@@ -1005,7 +1005,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            Summary_(StatusLevel.Critical, L("The run failed: ") + ServerSession.DescribeComError(ex));
+            Summary_(StatusLevel.Critical, F("The run failed: {0}", ServerSession.DescribeComError(ex)));
             previewedOptions_ = null;
          }
          finally

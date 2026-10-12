@@ -160,7 +160,7 @@ namespace hMailServer.ControlPanel.Views
             }
             else
             {
-               ReadFailure.Show(status_, null, null, L("Could not read the setting levels: "), ex, Reload, save_);
+               ReadFailure.Show(status_, null, null, L("Could not read the setting levels: {0}"), ex, Reload, save_);
             }
          }
          finally

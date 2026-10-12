@@ -388,7 +388,7 @@ namespace hMailServer.ControlPanel.Views
          // (Services/ReadFailure).
          if (!configRead_)
          {
-            ReadFailure.Show(readFailure_, null, null, L("The transport security configuration could not be read: "), firstError_, Reload);
+            ReadFailure.Show(readFailure_, null, null, L("The transport security configuration could not be read: {0}"), firstError_, Reload);
             header_.Status = null;
             status_.Text = "";
             return;

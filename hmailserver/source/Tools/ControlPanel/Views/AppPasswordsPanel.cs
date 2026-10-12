@@ -455,7 +455,7 @@ namespace hMailServer.ControlPanel.Views
          if (ClipboardWriter.TrySetText(issuedValue_.Text, out string error))
             status_.Text = L("Copied.");
          else
-            status_.Text = L("Could not copy: ") + error;
+            status_.Text = F("Could not copy: {0}", error);
       }
    }
 }

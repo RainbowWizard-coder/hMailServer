@@ -391,7 +391,7 @@ namespace hMailServer.ControlPanel.Views
             // happened, at Critical, with Try again, Give the role waits for a
             // read that works (Services/ReadFailure), and Take the role away, with
             // no row left to choose, cannot be pressed.
-            ReadFailure.Show(readNotice_, empty_, assignmentGrid_, L("Could not read the roles: "), why, Reload_, give_);
+            ReadFailure.Show(readNotice_, empty_, assignmentGrid_, L("Could not read the roles: {0}"), why, Reload_, give_);
             roleGrid_.ItemsSource = null;
             roleChoice_.ItemsSource = null;
             assignmentGrid_.Visibility = Visibility.Collapsed;
@@ -482,7 +482,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception why) when (!ExceptionPolicy.IsFatal(why))
          {
-            Fail_(L("Could not change the role: ") + ServerSession.DescribeComError(why));
+            Fail_(F("Could not change the role: {0}", ServerSession.DescribeComError(why)));
             return;
          }
 

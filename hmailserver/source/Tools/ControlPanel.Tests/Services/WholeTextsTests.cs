@@ -80,12 +80,14 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       [Fact]
-      public void NoCataloguedTextHasWhiteSpaceAtAnEdgeButTheColonOfALabel()
+      public void NoCataloguedTextHasWhiteSpaceAtAnEdge()
       {
          // build/check-localisation.py refuses these in the source; this holds
-         // the catalogue the Control Panel ships to the same rule.
+         // the catalogue the Control Panel ships to the same rule. A label's colon
+         // was let end a text, and 34 pieces glued to a reason were left (the final
+         // check of Tier 2): a label is whole, "Store:", a reason a template's {0}.
          var glued = Catalogue(null).Keys
-            .Where(key => key != key.TrimStart() || (key != key.TrimEnd() && !key.EndsWith(": ", StringComparison.Ordinal)))
+            .Where(key => key != key.Trim())
             .ToList();
          Assert.True(glued.Count == 0, "Texts glued at an edge: " + string.Join(" | ", glued.Select(k => "'" + k + "'")));
       }

@@ -863,7 +863,7 @@ namespace hMailServer.ControlPanel.Views
             // A mailbox this dialog could not read is not one with no folders.
             folderEmpty_.Visibility = Visibility.Collapsed;
             folderStatus_.Text = "";
-            folderNotice_.Show(StatusLevel.Critical, L("Could not load folders: ") + ServerSession.DescribeComError(ex));
+            folderNotice_.Show(StatusLevel.Critical, F("Could not load folders: {0}", ServerSession.DescribeComError(ex)));
          }
          finally
          {

@@ -172,7 +172,7 @@ namespace hMailServer.ControlPanel.Views
             // Neither the rows of the last read nor "Nothing has been recorded
             // yet." is a fact this page has now: both go, and the notice says what
             // happened, with Try again (Services/ReadFailure).
-            ReadFailure.Show(status_, empty_, rows_, L("Could not read the audit trail: "), ex, Reload);
+            ReadFailure.Show(status_, empty_, rows_, L("Could not read the audit trail: {0}"), ex, Reload);
          }
 
          ShowPager_();
@@ -230,7 +230,7 @@ namespace hMailServer.ControlPanel.Views
             if (failure != null || read.Error != null)
             {
                if (failure != null)
-                  ReadFailure.Show(status_, empty_, rows_, L("Could not read the audit trail: "), failure, Reload);
+                  ReadFailure.Show(status_, empty_, rows_, L("Could not read the audit trail: {0}"), failure, Reload);
                else
                   ReadFailure.Show(status_, empty_, rows_, null, F("The server's answer could not be read: {0}", read.Error), Reload);
                return;

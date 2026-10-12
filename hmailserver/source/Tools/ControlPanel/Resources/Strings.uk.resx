@@ -3112,14 +3112,14 @@
   <data name="Could not change the match mode: {0}" xml:space="preserve">
     <value>Не вдалося змінити режим зіставлення: {0}</value>
   </data>
-  <data name="Could not change the role: " xml:space="preserve">
-    <value>Не вдалося змінити роль: </value>
+  <data name="Could not change the role: {0}" xml:space="preserve">
+    <value>Не вдалося змінити роль: {0}</value>
   </data>
   <data name="Could not change the second factor: {0}" xml:space="preserve">
     <value>Не вдалося змінити другий фактор: {0}</value>
   </data>
-  <data name="Could not copy: " xml:space="preserve">
-    <value>Не вдалося скопіювати: </value>
+  <data name="Could not copy: {0}" xml:space="preserve">
+    <value>Не вдалося скопіювати: {0}</value>
   </data>
   <data name="Could not create the account: {0}" xml:space="preserve">
     <value>Не вдалося створити обліковий запис: {0}</value>
@@ -3208,8 +3208,8 @@
   <data name="Could not list the messages: {0}" xml:space="preserve">
     <value>Не вдалося показати повідомлення: {0}</value>
   </data>
-  <data name="Could not load folders: " xml:space="preserve">
-    <value>Не вдалося завантажити папки: </value>
+  <data name="Could not load folders: {0}" xml:space="preserve">
+    <value>Не вдалося завантажити папки: {0}</value>
   </data>
   <data name="Could not load permissions: {0}" xml:space="preserve">
     <value>Не вдалося завантажити дозволи: {0}</value>
@@ -3261,20 +3261,20 @@
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>Не вдалося відкрити {0}: {1}</value>
   </data>
-  <data name="Could not read the IP ranges: " xml:space="preserve">
-    <value>Не вдалося прочитати діапазони IP: </value>
+  <data name="Could not read the IP ranges: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати діапазони IP: {0}</value>
   </data>
-  <data name="Could not read the accounts: " xml:space="preserve">
-    <value>Не вдалося прочитати облікові записи: </value>
+  <data name="Could not read the accounts: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати облікові записи: {0}</value>
   </data>
-  <data name="Could not read the aliases: " xml:space="preserve">
-    <value>Не вдалося прочитати псевдоніми: </value>
+  <data name="Could not read the aliases: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати псевдоніми: {0}</value>
   </data>
-  <data name="Could not read the audit trail: " xml:space="preserve">
-    <value>Не вдалося прочитати журнал аудиту: </value>
+  <data name="Could not read the audit trail: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати журнал аудиту: {0}</value>
   </data>
-  <data name="Could not read the backup settings: " xml:space="preserve">
-    <value>Не вдалося прочитати параметри резервного копіювання: </value>
+  <data name="Could not read the backup settings: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати параметри резервного копіювання: {0}</value>
   </data>
   <data name="Could not read the bans: {0}" xml:space="preserve">
     <value>Не вдалося прочитати блокування: {0}</value>
@@ -3282,32 +3282,29 @@
   <data name="Could not read the certificate: {0}" xml:space="preserve">
     <value>Не вдалося прочитати сертифікат: {0}</value>
   </data>
-  <data name="Could not read the certificates: " xml:space="preserve">
-    <value>Не вдалося прочитати сертифікати: </value>
+  <data name="Could not read the certificates: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати сертифікати: {0}</value>
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Не вдалося прочитати звіт про перевірку цілісності: {0}</value>
   </data>
-  <data name="Could not read the distribution lists: " xml:space="preserve">
-    <value>Не вдалося прочитати списки розсилки: </value>
+  <data name="Could not read the distribution lists: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати списки розсилки: {0}</value>
   </data>
-  <data name="Could not read the domains: " xml:space="preserve">
-    <value>Не вдалося прочитати домени: </value>
+  <data name="Could not read the domains: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати домени: {0}</value>
   </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>Не вдалося прочитати файл: {0}</value>
   </data>
-  <data name="Could not read the incoming relays: " xml:space="preserve">
-    <value>Не вдалося прочитати вхідні ретранслятори: </value>
+  <data name="Could not read the incoming relays: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати вхідні ретранслятори: {0}</value>
   </data>
-  <data name="Could not read the journaling rules: " xml:space="preserve">
-    <value>Не вдалося прочитати правила журналювання: </value>
+  <data name="Could not read the journaling rules: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати правила журналювання: {0}</value>
   </data>
   <data name="Could not read the key rotation: {0}" xml:space="preserve">
     <value>Не вдалося прочитати ротацію ключів: {0}</value>
-  </data>
-  <data name="Could not read the list: " xml:space="preserve">
-    <value>Не вдалося прочитати список: </value>
   </data>
   <data name="Could not read the list: {0}" xml:space="preserve">
     <value>Не вдалося прочитати список: {0}</value>
@@ -3333,44 +3330,44 @@
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>Не вдалося прочитати фотографію: {0}</value>
   </data>
-  <data name="Could not read the ports: " xml:space="preserve">
-    <value>Не вдалося прочитати порти: </value>
+  <data name="Could not read the ports: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати порти: {0}</value>
   </data>
-  <data name="Could not read the public folders: " xml:space="preserve">
-    <value>Не вдалося прочитати публічні папки: </value>
+  <data name="Could not read the public folders: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати публічні папки: {0}</value>
   </data>
-  <data name="Could not read the quarantine: " xml:space="preserve">
-    <value>Не вдалося прочитати карантин: </value>
+  <data name="Could not read the quarantine: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати карантин: {0}</value>
   </data>
-  <data name="Could not read the queue: " xml:space="preserve">
-    <value>Не вдалося прочитати чергу: </value>
+  <data name="Could not read the queue: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати чергу: {0}</value>
   </data>
   <data name="Could not read the relay: {0}" xml:space="preserve">
     <value>Не вдалося прочитати ретранслятор: {0}</value>
   </data>
-  <data name="Could not read the roles: " xml:space="preserve">
-    <value>Не вдалося прочитати ролі: </value>
+  <data name="Could not read the roles: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати ролі: {0}</value>
   </data>
-  <data name="Could not read the routes: " xml:space="preserve">
-    <value>Не вдалося прочитати маршрути: </value>
+  <data name="Could not read the routes: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати маршрути: {0}</value>
   </data>
-  <data name="Could not read the rules: " xml:space="preserve">
-    <value>Не вдалося прочитати правила: </value>
+  <data name="Could not read the rules: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати правила: {0}</value>
   </data>
-  <data name="Could not read the server's statistics: " xml:space="preserve">
-    <value>Не вдалося прочитати статистику сервера: </value>
+  <data name="Could not read the server's statistics: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати статистику сервера: {0}</value>
   </data>
-  <data name="Could not read the server: " xml:space="preserve">
-    <value>Не вдалося прочитати дані сервера: </value>
+  <data name="Could not read the server: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати дані сервера: {0}</value>
   </data>
-  <data name="Could not read the setting levels: " xml:space="preserve">
-    <value>Не вдалося прочитати рівні параметрів: </value>
+  <data name="Could not read the setting levels: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати рівні параметрів: {0}</value>
   </data>
-  <data name="Could not read the suppression list: " xml:space="preserve">
-    <value>Не вдалося прочитати список придушення: </value>
+  <data name="Could not read the suppression list: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати список придушення: {0}</value>
   </data>
-  <data name="Could not read the update status: " xml:space="preserve">
-    <value>Не вдалося прочитати стан оновлення: </value>
+  <data name="Could not read the update status: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати стан оновлення: {0}</value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Не вдалося прочитати {0}: {1}</value>
@@ -11071,8 +11068,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Scope (empty = the Microsoft default)" xml:space="preserve">
     <value>Область (порожньо = типова для Microsoft)</value>
   </data>
-  <data name="Scope: " xml:space="preserve">
-    <value>Область: </value>
+  <data name="Scope: {0}." xml:space="preserve">
+    <value>Область: {0}.</value>
   </data>
   <data name="Scoped, expiring credentials for the REST API, so automation does not have to carry the administrator password." xml:space="preserve">
     <value>Обмежені облікові дані з терміном дії для REST API, щоб автоматизації не доводилося носити з собою пароль адміністратора.</value>
@@ -12244,8 +12241,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Store new mail compressed, with large parts held once" xml:space="preserve">
     <value>Зберігати нову пошту стисненою, великі частини — один раз</value>
   </data>
-  <data name="Store: " xml:space="preserve">
-    <value>Сховище: </value>
+  <data name="Store:" xml:space="preserve">
+    <value>Сховище:</value>
   </data>
   <data name="Stored as [LDAP] {0}." xml:space="preserve">
     <value>Зберігається як [LDAP] {0}.</value>
@@ -12868,8 +12865,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Не вдалося прочитати конфігурацію захисту від вірусів.</value>
   </data>
-  <data name="The anti-virus configuration could not be read: " xml:space="preserve">
-    <value>Не вдалося прочитати антивірусну конфігурацію: </value>
+  <data name="The anti-virus configuration could not be read: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати антивірусну конфігурацію: {0}</value>
   </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>В архіві немає повідомлень для цього облікового запису.</value>
@@ -13334,8 +13331,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The greylisting settings could not be read." xml:space="preserve">
     <value>Параметри сірого списку не вдалося прочитати.</value>
   </data>
-  <data name="The group members could not be read: " xml:space="preserve">
-    <value>Не вдалося прочитати учасників групи: </value>
+  <data name="The group members could not be read: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати учасників групи: {0}</value>
   </data>
   <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark." xml:space="preserve">
     <value>Групи, за якими цей сервер погоджуватиме ключ TLS, у форматі списку OpenSSL. У постаченому вигляді він пропонує спочатку два постквантові гібриди, а для сторони, яка не має жодного з них, відкочується до X25519 і кривих NIST, тому для старішого клієнта нічого не змінюється. Порожній список, список, який OpenSSL відхиляє, або такий, що не залишив би жодної ввімкненої групи, не застосовується: сервер записує його в журнал і використовує класичний запасний список, тому помилка тут не може вивести TLS з ладу — але гібриди при цьому мовчки втрачаються, і саме тому показано постачений список, а не порожнє поле. Змінюйте його за результатами сканування, а не наосліп.</value>
@@ -13771,8 +13768,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The run did not finish. What was read before it stopped is below." xml:space="preserve">
     <value>Прогін не завершився. Нижче те, що було прочитано до зупинки.</value>
   </data>
-  <data name="The run failed: " xml:space="preserve">
-    <value>Прогін не вдався: </value>
+  <data name="The run failed: {0}" xml:space="preserve">
+    <value>Прогін не вдався: {0}</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>Ті самі рядки, категорії та маска, що отримують файли журналів, з прикріпленими ідентифікаторами трасування та спану щоразу, коли на потоці, що записав, активний спан. Експортер ніколи не експортує рядки про власні збої, інакше мертвий колектор годував би сам себе.</value>
@@ -14048,8 +14045,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address." xml:space="preserve">
     <value>Обмеження за джерелом має бути адресою (10.0.0.5), діапазоном (10.0.0.1-10.0.0.99) або CIDR (10.0.0.0/24). Залиште порожнім, щоб приймати ключ з будь-якої адреси.</value>
   </data>
-  <data name="The spam configuration could not be read: " xml:space="preserve">
-    <value>Не вдалося прочитати конфігурацію захисту від спаму: </value>
+  <data name="The spam configuration could not be read: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати конфігурацію захисту від спаму: {0}</value>
   </data>
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Збережений дайджест не є придатним значенням SHA-256, тому цей розділ нічого не автентифікує. Відкличте його і створіть заміну.</value>
@@ -14087,8 +14084,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Не вдалося прочитати конфігурацію транспортної безпеки.</value>
   </data>
-  <data name="The transport security configuration could not be read: " xml:space="preserve">
-    <value>Не вдалося прочитати конфігурацію захисту транспорту: </value>
+  <data name="The transport security configuration could not be read: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати конфігурацію захисту транспорту: {0}</value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>Дві половини відмовляють по-різному і з різних причин. Насамперед з'ясуйте, яка з них у вас.</value>
@@ -15128,8 +15125,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="What this server still needs, in the order a new installation meets it. Each item says whether it is done, the next one to do is marked, and the button beside it opens the page that does it. Where the answer cannot be read from here, the item says what to check instead of guessing." xml:space="preserve">
     <value>Що ще потрібно цьому серверу, у тому порядку, в якому з цим стикається нове встановлення. Кожен пункт каже, чи його виконано, наступний крок позначено, а кнопка поруч відкриває сторінку, яка його виконує. Там, де відповідь звідси прочитати не можна, пункт каже, що перевірити, замість того щоб угадувати.</value>
   </data>
-  <data name="What to do: " xml:space="preserve">
-    <value>Що робити: </value>
+  <data name="What to do:" xml:space="preserve">
+    <value>Що робити:</value>
   </data>
   <data name="What will be written:" xml:space="preserve">
     <value>Що буде записано:</value>

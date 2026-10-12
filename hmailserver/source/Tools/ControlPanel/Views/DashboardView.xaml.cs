@@ -438,7 +438,7 @@ namespace hMailServer.ControlPanel.Views
          {
             timer_.Stop();
             ShowKpisUnread_();
-            ReadFailure.Show(ReadNotice, null, null, L("Could not read the server's statistics: "), ex, TryAgain_);
+            ReadFailure.Show(ReadNotice, null, null, L("Could not read the server's statistics: {0}"), ex, TryAgain_);
             return false;
          }
       }
