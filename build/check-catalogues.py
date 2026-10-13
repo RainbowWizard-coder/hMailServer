@@ -76,6 +76,7 @@ same rules.
 
 Exits 1 with the language, the catalogue key and what is wrong.
 """
+import hashlib
 import os
 import re
 import sys
@@ -448,6 +449,66 @@ READBACK_TERMS = {
    "tr": [(re.compile(r"(?i)\bindex(?:es|ing|er)?\b"), re.compile(r"(?i)\bdirector(?:y|ies)\b"), re.compile(r"(?i)\bdizin\w*"),
            "indeks (the message index)")],
 }
+# The texts the term rule leaves alone for now: two other units of batch53's wave A wrote them beside
+# the read-back, before the rule, and the wave's fold is the first tree that holds both them and the
+# rule - cp53-navigation's purposes of the Advanced, Server limits & expert settings and Monitoring &
+# alerts pages, which it reworded where the read-back had mended the old ones, and the last page's new
+# subtitle, and cp53-quarantine-search's notices of its search of every held message. Each names a
+# thing the way the catalogue no longer does. The rule leaves that one word alone while the text is
+# exactly as its unit wrote it, by the first 16 hex digits of the SHA-256 of its value in UTF-8, and
+# says so; a text changed in any way is held to the rule again, and one that no longer has the word
+# is reported, so that its entry goes out with the change that mended it. The fold writes the
+# catalogue's word (the fifth field) in each and takes the entries out.
+READBACK_TERMS_PENDING = (
+   # (catalogue, how its English begins, the value's fingerprint, the word left, the catalogue's word, whose text)
+   ("uk", "Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, and the switch",
+    "3d3d45596fcd3638", "сценаріїв", "скриптів", "cp53-navigation"),
+   ("uk", "Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - per-account",
+    "4a5c481b6ff8ac44", "сценаріїв", "скриптів", "cp53-navigation"),
+   ("uk", "The REST API and the Control Deck's listener, the Prometheus metrics and health endpoints",
+    "532130a92cf200ae", "стану здоров'я", "справності", "cp53-navigation"),
+   ("uk", "The REST administration API, the metrics and health endpoints",
+    "d30dca6ac631dbf9", "стану здоров'я", "справності", "cp53-navigation"),
+   ("zh-Hans", "Could not search every held message on the server", "0dfc63343c15b443", "暂留", "暂挂", "cp53-quarantine-search"),
+   ("zh-Hans", "Searched every held message on the server: {0} match the search.", "e611ba759e2ef5bc", "暂留", "暂挂",
+    "cp53-quarantine-search"),
+   ("zh-Hans", "Searched every held message on the server: {0} matches the search.", "e611ba759e2ef5bc", "暂留", "暂挂",
+    "cp53-quarantine-search"),
+   ("zh-Hans", "Searching every held message on the server", "067af9a629c7e678", "暂留", "暂挂", "cp53-quarantine-search"),
+   ("zh-Hans", "This server is older than the Control Panel and cannot search every held message", "64ce4caf27951cc9",
+    "暂留", "暂挂", "cp53-quarantine-search"),
+)
+
+
+def readback_fingerprint(value):
+   """The first 16 hex digits of the SHA-256 of a value in UTF-8, which READBACK_TERMS_PENDING knows a text by."""
+   return hashlib.sha256(value.encode("utf-8")).hexdigest()[:16]
+
+
+def readback_pending(tag, source, target, word):
+   """The READBACK_TERMS_PENDING entry that leaves this word of this text alone, or None."""
+   for entry in READBACK_TERMS_PENDING:
+      if entry[0] == tag and source.startswith(entry[1]) and entry[3] in word and readback_fingerprint(target) == entry[2]:
+         return entry
+   return None
+
+
+def readback_pending_texts(tag, catalogue):
+   """(entry, English, how it stands) for each text of {English: translation} that a READBACK_TERMS_PENDING entry
+   of this catalogue is for: "left" while the text is as its unit wrote it, "mended" once it no longer has the
+   word. A text changed that still has it is the term rule's to report, and a text the tree lacks is not listed."""
+   out = []
+   for entry in READBACK_TERMS_PENDING:
+      if entry[0] != tag:
+         continue
+      for source, target in sorted(catalogue.items()):
+         if not source.startswith(entry[1]):
+            continue
+         if readback_fingerprint(target) == entry[2]:
+            out.append((entry, source, "left"))
+         elif entry[3] not in without_mnemonic(target):
+            out.append((entry, source, "mended"))
+   return out
 
 
 def readback_opens_lower(source, target):
@@ -479,6 +540,8 @@ def readback_findings(tag, source, target):
       if (english is not None and not english.search(source)) or (unless is not None and unless.search(source)):
          continue
       for match in refused.finditer(target):
+         if readback_pending(tag, source, target, match.group(0)):
+            continue
          findings.append("%r names what this catalogue calls %s throughout" % (match.group(0), says))
    if tag in READBACK_PROVIDER_NAMES and READBACK_IDENTITY_PROVIDER.search(source) and not READBACK_OTHER_PROVIDER.search(source):
       name, others = READBACK_PROVIDER_NAMES[tag]
@@ -918,6 +981,43 @@ def self_test():
       if found != expected:
          print("FAIL: [%s] %r is %s by the read-back rules" % (tag, value, "reported" if found else "not reported"))
          failures += 1
+
+   # The texts the term rule leaves alone until the fold mends them: only such a text, as its unit wrote
+   # it, and only its word; once it is mended its entry is reported, and each entry's word is one the rule
+   # refuses and the word it is mended to one the rule takes.
+   global READBACK_TERMS_PENDING
+   kept = READBACK_TERMS_PENDING
+   timeout = "The event-script timeout among them."
+   left = "Серед них тайм-аут сценаріїв подій."
+   try:
+      READBACK_TERMS_PENDING = (("uk", "The event-script timeout", readback_fingerprint(left), "сценаріїв", "скриптів", "self-test"),)
+      pending_cases = {
+         (timeout, left): False,
+         (timeout, "Серед іншого тайм-аут сценаріїв подій."): True,
+         ("The event-script engine is off.", left): True,
+      }
+      for (source, value), expected in pending_cases.items():
+         found = bool(readback_findings("uk", source, value))
+         if found != expected:
+            print("FAIL: [uk] %r is %s by the term rule while an entry waits for its mend" % (value, "reported" if found else "not reported"))
+            failures += 1
+      for value, expected in ((left, ["left"]), ("Серед них тайм-аут скриптів подій.", ["mended"]),
+                              ("Серед іншого тайм-аут сценаріїв подій.", [])):
+         states = [state for _, _, state in readback_pending_texts("uk", {timeout: value, "Event scripts": "Скрипти подій"})]
+         if states != expected:
+            print("FAIL: an entry of READBACK_TERMS_PENDING stands %s for %r, where it should stand %s" % (states, value, expected))
+            failures += 1
+   finally:
+      READBACK_TERMS_PENDING = kept
+   for tag, opening, fingerprint, word, mend, unit in READBACK_TERMS_PENDING:
+      refused = [pattern for _, _, pattern, _ in READBACK_TERMS.get(tag, ())]
+      if not re.fullmatch(r"[0-9a-f]{16}", fingerprint) or not opening or not unit:
+         print("FAIL: the READBACK_TERMS_PENDING entry for %r is not whole" % opening)
+         failures += 1
+      if not any(pattern.search(word) for pattern in refused) or any(pattern.search(mend) for pattern in refused):
+         print("FAIL: the READBACK_TERMS_PENDING entry for %r leaves %r, which the rule does not refuse, or mends it to %r, "
+               "which it does" % (opening, word, mend))
+         failures += 1
    print("self-test: %d failure(s)" % failures)
    return 1 if failures else 0
 
@@ -942,6 +1042,7 @@ def main():
    for source, what in references:
       print("  [en] %s\n        in %r" % (what, source[:110]))
    total = len(references)
+   notes = []
 
    for name in sorted(os.listdir(RESOURCES)):
       match = re.match(r"^Strings\.([A-Za-z-]+)\.resx$", name)
@@ -957,10 +1058,19 @@ def main():
       few = {key[:-len(FEW)]: value for key, value in raw.items()
              if key.endswith(FEW) and key[:-len(FEW)] in english and value}
       findings += [(source + FEW, what) for source, what in check(tag, few, pages=catalogue)]
+      # The texts the term rule leaves alone until the fold mends them (READBACK_TERMS_PENDING).
+      for entry, source, state in readback_pending_texts(tag, catalogue):
+         if state == "left":
+            notes.append("  NOTE [%s] %r is left in %s's text until it is mended to %s (READBACK_TERMS_PENDING)\n"
+                         "        in %r" % (tag, entry[3], entry[5], entry[4], source[:110]))
+         else:
+            findings.append((source, "the text no longer says %r; take its entry out of READBACK_TERMS_PENDING" % entry[3]))
       total += len(findings)
       for source, what in findings:
          print("  [%s] %s\n        in %r" % (tag, what, source[:110]))
 
+   for note in notes:
+      print(note)
    if total:
       print("FAIL: %d problem(s) across the catalogues" % total)
       return 1
