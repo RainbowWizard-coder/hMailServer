@@ -664,7 +664,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   server: when it failed so for every one of them, the notice to the sender said `No mail servers appear to exists`
   and to check the address (`4.1.2`) - through a route or the relay server, `The host specified as SMTP relay server
   could not be found` (`4.3.5`) - where it now says that the DNS query failed (`4.4.4`); the message is retried
-  either way. The Control Panel's MX query asks the server's resolver the same way (`Utilities.ResolveMXRecords`),
+  either way. When it failed so for some of a domain's mail servers only, the message still goes to the others, and
+  an address two of them share is still tried once: the lookup took such an address out only when every exchange
+  answered, so the change would otherwise have had it tried twice. The Control Panel's MX query asks the server's resolver the same way (`Utilities.ResolveMXRecords`),
   and said for such a domain that the server found no mail servers, where it now says that the lookup failed.
   `DNSResolverTester` (`public-suffix-tests` on Linux) holds the rules to answers scripted on its own thread,
   `SURBLTester` the passing over, and `AntiSpam/DnsLookupFailures.cs` the HELO, PTR, MX-record, DNS blacklist and

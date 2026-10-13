@@ -174,6 +174,32 @@ namespace HM
 
          return Configuration::Instance()->GetIPv6Preferred();
       }
+
+      // Takes out of a domain's mail servers every address a server before it
+      // already has: an address two of them share is tried once, by the first.
+      void
+      RemoveDuplicateAddresses_(std::vector<HostNameAndIpAddress> &servers)
+      {
+         auto iter = servers.begin();
+         std::set<String> duplicateCheck;
+
+         while (iter != servers.end())
+         {
+            String name = (*iter).GetIpAddress();
+            if (duplicateCheck.find(name) != duplicateCheck.end())
+            {
+               // We found a duplicate. Remove it.
+               iter = servers.erase(iter);
+            }
+            else
+            {
+               // This is not a duplicate. Move to next.
+               iter++;
+
+               duplicateCheck.insert(name);
+            }
+         }
+      }
    }
 
 
@@ -694,7 +720,16 @@ namespace HM
 
          if (dnsQueryFailure)
          {
-            // All dns queries failed.
+            // The lookup of an exchange did not complete. Delivery goes on to
+            // the addresses the others have all the same - ExternalDelivery
+            // takes a list that is not empty whatever this answers - so an
+            // address two of them share is taken out here too, and tried once.
+            // Since upstream PR 640 an exchange whose A query failed beside an
+            // AAAA query answered NODATA, the answer of every IPv4-only
+            // exchange, comes here; until then it was an exchange with no
+            // address, and the others' addresses went through the removal below.
+            RemoveDuplicateAddresses_(saFoundNames);
+
             String logMessage;
                logMessage.Format(_T("Failed to resolve email servers (A lookup). Domain name: %s."), sDomainName.c_str());
             LOG_DEBUG(logMessage);
@@ -709,27 +744,9 @@ namespace HM
 
       LOG_TCPIP(sLogMsg);
 
-            
+
       // Remove duplicate names.
-      auto iter = saFoundNames.begin();
-      std::set<String> duplicateCheck;
-
-      while (iter != saFoundNames.end())
-      {
-         String name = (*iter).GetIpAddress();
-         if (duplicateCheck.find(name) != duplicateCheck.end())
-         {
-            // We found a duplicate. Remove it.
-            iter = saFoundNames.erase(iter);
-         }
-         else
-         {
-            // This is not a duplicate. Move to next.
-            iter++;
-
-            duplicateCheck.insert(name);
-         }
-      }
+      RemoveDuplicateAddresses_(saFoundNames);
 
       return true;
    }
@@ -1125,6 +1142,42 @@ namespace HM
          std::vector<String> names;
          expect(resolver.GetMXRecords(_T("alias.test"), names) && joined(names) == "mx.target.test",
                 "an MX lookup of an alias: the target's exchange; found \"" + joined(names) + "\"");
+      }
+
+      // Delivery's lookup of a domain's mail servers (GetEmailServers): an
+      // exchange whose A query failed beside an AAAA query answered NODATA makes
+      // it a lookup that did not complete, and delivery goes on to what the
+      // other exchanges have all the same, so an address two of them share is
+      // there once, as it is when every exchange answered.
+      for (const bool exchangeFails : { true, false })
+      {
+         ScriptedDns zone;
+         Answer exchanges;
+         exchanges.answered = true;
+         exchanges.records.push_back(DNSRecord(AnsiString("mx1.mail.test"), DNS_TYPE_MX, 10));
+         exchanges.records.push_back(DNSRecord(AnsiString("mx2.mail.test"), DNS_TYPE_MX, 20));
+         exchanges.records.push_back(DNSRecord(AnsiString("mx3.mail.test"), DNS_TYPE_MX, 30));
+         zone.answers[QuestionKey_(DNS_TYPE_MX, _T("mail.test"))].push_back(exchanges);
+         zone.answers[QuestionKey_(a, _T("mx1.mail.test"))].push_back(withRecord(a, "192.0.2.25"));
+         zone.answers[QuestionKey_(a, _T("mx2.mail.test"))].push_back(withRecord(a, "192.0.2.25"));
+         zone.answers[QuestionKey_(a, _T("mx3.mail.test"))].push_back(exchangeFails ? failed(servfail) : noRecords(nodata));
+
+         Installed installed(zone);
+         DNSResolver resolver;
+         std::vector<HostNameAndIpAddress> servers;
+         const bool result = resolver.GetEmailServers(_T("mail.test"), servers);
+
+         std::vector<String> found;
+         for (HostNameAndIpAddress &server : servers)
+            found.push_back(server.GetHostName() + _T("/") + server.GetIpAddress());
+
+         const std::string why = exchangeFails
+            ? "a domain's mail servers, two sharing an address and a third whose A query failed beside an AAAA query answered NODATA"
+            : "a domain's mail servers, two sharing an address and a third with no address";
+
+         expect(result == !exchangeFails, why + ": answered " + (result ? "true" : "false") + "; asked " + askedOf(zone));
+         expect(joined(found) == "mx1.mail.test/192.0.2.25",
+                why + ": found \"" + joined(found) + "\", expected the shared address once, \"mx1.mail.test/192.0.2.25\"");
       }
 
       expect(scripted_dns == nullptr, "the tester's answers are taken off its thread when it is done.");

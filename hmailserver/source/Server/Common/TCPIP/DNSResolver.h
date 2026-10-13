@@ -17,6 +17,11 @@ namespace HM
       DNSResolver();
       virtual ~DNSResolver();
 
+      // The addresses of a domain's mail servers - its MX records' exchanges, or
+      // the domain itself when it publishes no MX - each address once. False
+      // when the lookup did not complete, and for a null MX (RFC 7505); when the
+      // lookup of one exchange did not complete, what the others have is added
+      // all the same, each address once.
       bool GetEmailServers(const String &sDomainName, std::vector<HostNameAndIpAddress> &saFoundNames);
 
       // False when the lookup did not complete: the MX query failed, or it found
@@ -103,9 +108,11 @@ namespace HM
    // was answered, whichever of A and AAAA failed and whatever the other
    // answered; NXDOMAIN and NODATA stay "no addresses"; an alias is followed;
    // GetDnsListAnswers asks A alone, and a query that failed once more, and
-   // only that one, past the DNS cache; and a TXT, MX or other record lookup
+   // only that one, past the DNS cache; a TXT, MX or other record lookup
    // that found nothing fails when the query asking whether the name is an
-   // alias failed (upstream PR 640). It runs inside the service with the
+   // alias failed (upstream PR 640); and GetEmailServers, when the lookup of
+   // one of a domain's exchanges failed, still holds an address two of the
+   // others share once. It runs inside the service with the
    // other class tests (ClassTester), and on Linux in public-suffix-tests. No
    // DNS, database or setting. It throws std::logic_error naming the first
    // thing that is wrong.

@@ -149,7 +149,9 @@ A lookup that answered - with addresses or without - is not asked again.
 
 Delivery makes the same address lookup of each of a recipient's mail servers,
 and of a route's host or the SMTP relay server, and retries a message whose
-servers it cannot reach either way. When the lookup failed for every one of
+servers it cannot reach either way. When the lookup failed for some of them
+only, the message goes to the others, and an address two of them share is
+tried once, as when every one answered. When it failed for every one of
 them, the notice to the sender now says
 `Unable to find the recipient's email server. The DNS query has failed.`
 (`4.4.4`); before 6.3.7 a failed A query beside an AAAA query answered without
