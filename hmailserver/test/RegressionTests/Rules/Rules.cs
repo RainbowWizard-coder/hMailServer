@@ -2886,6 +2886,160 @@ namespace RegressionTests.Rules
       }
 
       /// <summary>
+      /// The Control Panel moved an action with RuleAction.MoveUp or MoveDown, which store
+      /// the places they give it and the action it passes, and then asked RuleAction.Save of
+      /// it before Rule.Save. RuleAction.Save holds the action it saves to the save's checks,
+      /// changed or not, so that the action dialog tells of a stored one they refuse until it
+      /// is corrected; and so such an action, moved itself, was moved and told of as not
+      /// moved, moved again at each click, and the rule's save, which asks for the owner's
+      /// rules to be read again, was never reached. The Control Panel now moves the action
+      /// and saves the rule (RulesView's MoveAction, held to it by ControlPanel.Tests'
+      /// RuleActionMoveTests), as here: each move is stored, delivery follows them, the
+      /// stored actions are left as they were and not taken, and RuleAction.Save of each is
+      /// still refused.
+      ///
+      /// Against a server whose Rule.Save held every action of the rule, the stored ones too,
+      /// the first move's Rule.Save throws, refusing the reply nothing changed.
+      /// </summary>
+      [Test]
+      [Description("A rule's stored Run function name and Reply that the save refuses are moved over COM as the Control Panel moves an action - the name up, the reply down, then another action - each move stored and delivery following the moves; both are left as they were and not taken, and RuleAction.Save of each, unchanged, is still refused.")]
+      public void AStoredActionTheSaveRefusesIsMovedAsTheControlPanelMovesIt()
+      {
+         var sender = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "storedmove-sender@example.test", "test");
+         var owner = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "storedmove-owner@example.test", "test");
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "storedmove-ceo@example.test", "test");
+
+         // Of the two Set header value actions on X-Rule-Order, the message keeps the value of
+         // the one taken last.
+         var ruleId = NewRuleOnTheSubject(owner, "Stored parts moved", "Alpha",
+            action =>
+            {
+               action.Type = eRuleActionType.eRASetHeaderValue;
+               action.HeaderName = "X-Rule-Order";
+               action.Value = "a";
+            },
+            action =>
+            {
+               action.Type = eRuleActionType.eRARunScriptFunction;
+               action.ScriptFunction = "MarkTheSubject";
+            },
+            action =>
+            {
+               action.Type = eRuleActionType.eRAReply;
+               action.FromAddress = owner.Address;
+               action.Subject = "Autoreply";
+            },
+            action =>
+            {
+               action.Type = eRuleActionType.eRASetHeaderValue;
+               action.HeaderName = "X-Rule-Order";
+               action.Value = "b";
+            });
+
+         // As stored before Save refused them. The save asked for the account's rules to be
+         // read again at the next delivery, which reads the table's.
+         _application.Database.ExecuteSQL(
+            "update hm_rule_actions set actionscriptfunction = 'MarkTheSubject()' where actionruleid = " + ruleId +
+            " and actiontype = " + (int)eRuleActionType.eRARunScriptFunction);
+         _application.Database.ExecuteSQL(
+            "update hm_rule_actions set actionfromaddress = 'storedmove-ceo@example.test' where actionruleid = " + ruleId +
+            " and actionfromaddress = '" + owner.Address + "'");
+
+         const string name = "Run MarkTheSubject()";
+         const string reply = "Reply from storedmove-ceo@example.test";
+         CollectionAssert.AreEqual(new[] { "X-Rule-Note: taken", "X-Rule-Order: a", name, reply, "X-Rule-Order: b" },
+            StoredActions(owner, ruleId), "The rule is not stored as it was made.");
+         var before = DeliveredTo(owner, sender.Address, "Alpha");
+         StringAssert.Contains("X-Rule-Order: b", before, "The rule's actions were not taken in their order before the moves.");
+         StringAssert.DoesNotContain("X-Rule-Order: a", before, "The rule's actions were not taken in their order before the moves.");
+
+         // The stored name up and the stored reply down, each the action moved itself, and
+         // then the second X-Rule-Order up past the first.
+         MoveAsTheControlPanelDoes(owner, ruleId, name, true);
+         CollectionAssert.AreEqual(new[] { "X-Rule-Note: taken", name, "X-Rule-Order: a", reply, "X-Rule-Order: b" },
+            StoredActions(owner, ruleId), "Moving the stored Run function action up did not store its place.");
+
+         MoveAsTheControlPanelDoes(owner, ruleId, reply, false);
+         CollectionAssert.AreEqual(new[] { "X-Rule-Note: taken", name, "X-Rule-Order: a", "X-Rule-Order: b", reply },
+            StoredActions(owner, ruleId), "Moving the stored reply down did not store its place.");
+
+         MoveAsTheControlPanelDoes(owner, ruleId, "X-Rule-Order: b", true);
+         var moved = new[] { "X-Rule-Note: taken", name, "X-Rule-Order: b", "X-Rule-Order: a", reply };
+         CollectionAssert.AreEqual(moved, StoredActions(owner, ruleId), "Moving an action past another did not store its place.");
+
+         var delivered = DeliveredTo(owner, sender.Address, "Alpha");
+         StringAssert.Contains("X-Rule-Note: taken", delivered, "The rule did not match after the moves.");
+         StringAssert.Contains("X-Rule-Order: a", delivered, "Delivery does not follow the moves.");
+         StringAssert.DoesNotContain("X-Rule-Order: b", delivered, "Delivery does not follow the moves.");
+
+         // Neither stored action was taken at either delivery.
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         ImapClientSimulator.AssertMessageCount(sender.Address, "test", "Inbox", 0);
+         Assert.IsTrue(LogHandler.DefaultLogContains("Reply action of rule"),
+            "The reply not sent is not in the application log.");
+
+         // RuleAction.Save of each, unchanged, is still refused, and stores nothing.
+         var rule = ReadRuleAfresh(owner, ruleId);
+         var nameRefused = Assert.Throws<System.Runtime.InteropServices.COMException>(
+            () => ActionOfType(rule, eRuleActionType.eRARunScriptFunction).Save(),
+            "RuleAction.Save stored the Run function action naming MarkTheSubject().");
+         StringAssert.Contains("names 'MarkTheSubject()', which is not a plain function name", nameRefused.Message, nameRefused.Message);
+         var replyRefused = Assert.Throws<System.Runtime.InteropServices.COMException>(
+            () => ActionOfType(rule, eRuleActionType.eRAReply).Save(),
+            "RuleAction.Save stored the reply from storedmove-ceo@example.test.");
+         StringAssert.Contains("is sent only from an address the account may send as", replyRefused.Message, replyRefused.Message);
+         CollectionAssert.AreEqual(moved, StoredActions(owner, ruleId), "A RuleAction.Save refused changed the rule's actions.");
+      }
+
+      // An action moved as the Control Panel moves one (RulesView's MoveAction): the rule read
+      // afresh, the action found by its id and moved up or down - RuleAction.MoveUp and
+      // MoveDown store its place - and the rule saved, which asks for the owner's rules to be
+      // read again.
+      private void MoveAsTheControlPanelDoes(Account owner, int ruleId, string described, bool up)
+      {
+         var rule = ReadRuleAfresh(owner, ruleId);
+         int actionId = 0;
+         for (int i = 0; i < rule.Actions.Count; i++)
+         {
+            if (Described(rule.Actions[i]) == described)
+               actionId = rule.Actions[i].ID;
+         }
+         Assert.AreNotEqual(0, actionId, "The rule " + rule.Name + " has no action " + described + ".");
+
+         var action = rule.Actions.get_ItemByDBID(actionId);
+         if (up)
+            action.MoveUp();
+         else
+            action.MoveDown();
+         rule.Save();
+      }
+
+      // A rule's actions in their order, as the table holds them.
+      private List<string> StoredActions(Account owner, int ruleId)
+      {
+         var rule = ReadRuleAfresh(owner, ruleId);
+         var actions = new List<string>();
+         for (int i = 0; i < rule.Actions.Count; i++)
+            actions.Add(Described(rule.Actions[i]));
+         return actions;
+      }
+
+      private static string Described(RuleAction action)
+      {
+         switch (action.Type)
+         {
+            case eRuleActionType.eRASetHeaderValue:
+               return action.HeaderName + ": " + action.Value;
+            case eRuleActionType.eRARunScriptFunction:
+               return "Run " + action.ScriptFunction;
+            case eRuleActionType.eRAReply:
+               return "Reply from " + action.FromAddress;
+            default:
+               return action.Type.ToString();
+         }
+      }
+
+      /// <summary>
       /// A new rule's criteria and actions were bound to rule id 0 when they were first
       /// read before its first save - and Rule.Save reads the actions itself, to hold them
       /// to the rule's owner, so that every rule saved over COM had its actions bound so.

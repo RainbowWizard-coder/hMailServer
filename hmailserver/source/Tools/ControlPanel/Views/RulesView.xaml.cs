@@ -1008,8 +1008,16 @@ namespace hMailServer.ControlPanel.Views
             dynamic rule = rules.ItemByDBID[selectedRuleId_];
             dynamic actions = rule.Actions;
             dynamic a = actions.ItemByDBID[row.Id];
+            // The move stores the places it gives the action and the one it passes
+            // (RuleActions::UpdateSortOrder_), and the rule's save asks for the owner's
+            // rules to be read again, leaving out of its checks each action it writes as
+            // stored. Not RuleAction.Save as well: it holds the action it saves to the
+            // save's checks, changed or not - so that the action dialog tells of a stored
+            // one they refuse until it is corrected - and so it refused such an action,
+            // stored before the checks or restored from a backup, after the move had
+            // stored its place: the move was made and told of as not made, made again at
+            // each click, and the rule's save never reached.
             if (up) a.MoveUp(); else a.MoveDown();
-            a.Save();
             rule.Save();
             ServerSession.Release(a);
             ServerSession.Release(actions);

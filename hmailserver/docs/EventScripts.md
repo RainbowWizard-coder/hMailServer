@@ -169,8 +169,8 @@ Since 12 October 2026 such a name, or none, is refused before that, when the rul
 saved, on both platforms and for a rule of every owner: COM's `RuleAction.Save` and
 `Rule.Save` and the REST API's rule routes answer with the reason
 (`RuleGuard::WhyScriptFunctionMayNotBeStored`, which asks the firing path's own test,
-`ScriptServer::IsPlainProcedureName`) - `Rule.Save` where it changes the action, and
-a rule holding one stored before is still changed around it ([MailFlowRules.md](MailFlowRules.md)).
+`ScriptServer::IsPlainProcedureName`) - `Rule.Save` where it changes the action, so
+that over COM a rule holding one stored before is still changed around it ([MailFlowRules.md](MailFlowRules.md)).
 What the firing path does is then for a name stored before that, restored from a
 backup or written to the database.
 

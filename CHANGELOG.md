@@ -698,7 +698,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   action left as it is - where in the tree after 6.3.6 every save of it was refused for that action, and the Control
   Panel, which stores a criterion or an action before it saves the rule, told of the part it had stored as not saved,
   stored it again at each retry, and left delivery with the rule as it had been, the reload of the owner's rules being
-  asked for by the save refused (found by the check of the fix). Upstream PR 671's save-time half, adapted: upstream's
+  asked for by the save refused (found by the check of the fix). And the Control Panel's Move up and Move down of an
+  action save the rule after the move, where they asked `RuleAction.Save` of the action first: it holds the action it
+  saves to the save's checks whether or not it changes it, so that the action dialog tells of such an action as
+  refused until it is corrected, and so it refused such an action moved itself after the move had stored its place -
+  the move told of as not made, made again at each click, and the rule's save, which asks for the owner's rules to be
+  read again, never reached (found by the re-check of the fix). Upstream PR 671's save-time half, adapted: upstream's
   test also refuses `$`, which a JScript or JavaScript function may be named with, and is not taken, nor its second
   check when the rule fires (`.gitlab/upstream-sync`). `RuleOwnerTester` (`business-object-tests` on Linux) holds the
   check to examples; `Rules/Rules.cs` saves such names and plain ones through `RuleAction.Save` and `Rule.Save` for a
@@ -706,9 +711,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   saved and not yet saved; `API/RestApiRules.cs` posts and puts them under the three routes, and
   `API/RestApiAccountRules.cs`, which both benches run, under an account's; and `API/Events.cs` has the firing path
   still refuse one written to the database. `Rules/Rules.cs` also changes a rule holding a stored name, and one
-  holding a stored reply and `From`, as the Control Panel changes a rule, with a delivery after each change, and has
+  holding a stored reply and `From`, as the Control Panel changes a rule, with a delivery after each change, has
   `Rule.Save` still refuse a stored action it changes and a rule moved to an account that may not send as its reply's
-  address.
+  address, and moves a stored name up and a stored reply down as the Control Panel moves an action, with a delivery
+  after the moves; `ControlPanel.Tests`' `RuleActionMoveTests` holds the Control Panel's Move up and Move down to the
+  rule's save alone.
 
 ### Downloads and the release
 
