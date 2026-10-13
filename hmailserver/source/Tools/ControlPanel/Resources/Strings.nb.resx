@@ -730,7 +730,7 @@
     <value>En virusskanner som slutter å svare. ClamAV kontaktes etter at meldingen er godtatt, så en fastlåst clamd viser seg som godtatt-men-aldri-levert. Hver socket-operasjon er begrenset av ClamAVs minste og maksimale tidsavbrudd på siden Antivirus-innstillinger - en frist for én lesing eller skriving, satt på nytt hver gang, så en stor melding som strømmes i biter, kan ta lengre tid enn det maksimale tidsavbruddet totalt.</value>
   </data>
   <data name="A way back from a profile is held and cannot be read, so it cannot be put back. Discard it to apply a profile; the audit trail names each value the profile replaced." xml:space="preserve">
-    <value>En vei tilbake fra en profil er tatt vare på og kan ikke leses, så den kan ikke settes tilbake. Forkast den for å bruke en profil; revisjonssporet nevner hver verdi profilen erstattet.</value>
+    <value>En vei tilbake fra en profil er tatt vare på og kan ikke leses, så den kan ikke settes tilbake. Forkast den for å bruke en profil; revisjonsloggen nevner hver verdi profilen erstattet.</value>
   </data>
   <data name="A zero-access mailbox is encrypted to the person's own key: this server can no longer read, search, export or recover its mail, and a forgotten password without the recovery key loses it. Allowing it switches nobody on." xml:space="preserve">
     <value>En nulltilgangspostkasse krypteres til personens egen nøkkel: denne serveren kan ikke lenger lese, søke i, eksportere eller gjenopprette posten, og et glemt passord uten gjenopprettingsnøkkelen mister den. Å tillate det slår det ikke på for noen.</value>

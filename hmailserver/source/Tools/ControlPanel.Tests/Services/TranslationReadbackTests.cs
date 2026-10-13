@@ -42,6 +42,9 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("tr", "Alias addr_ess", "Di_ğer ad adresi")]
       [InlineData("cs", "The server's administrator code", "Kód správce serveru")]
       [InlineData("fi", "Encryption _passphrase", "Salauksen tunnuslaus_e")]
+      [InlineData("da", "A way back from a profile is held and cannot be read, so it cannot be put back. Discard it to apply a profile; the audit trail names each value the profile replaced.", "En vej tilbage fra en profil er gemt og kan ikke læses, så den kan ikke sættes tilbage. Kassér den for at anvende en profil; revisionsloggen nævner hver værdi, profilen erstattede.")]
+      [InlineData("nb", "A way back from a profile is held and cannot be read, so it cannot be put back. Discard it to apply a profile; the audit trail names each value the profile replaced.", "En vei tilbake fra en profil er tatt vare på og kan ikke leses, så den kan ikke settes tilbake. Forkast den for å bruke en profil; revisjonsloggen nevner hver verdi profilen erstattet.")]
+      [InlineData("uk", "Upstream gateways (spam filters, load balancers) whose IP addresses should not count as the connecting client in anti-spam host checks.", "Вищестоящі шлюзи (спам-фільтри, балансувальники навантаження), чиї IP-адреси не повинні вважатися клієнтом, що підключається, у перевірках вузла захисту від спаму.")]
       public void AMendedTextReadsAsMended(string tag, string english, string expected)
       {
          Dictionary<string, string> catalogue = ReadCatalogueForReadback(tag);

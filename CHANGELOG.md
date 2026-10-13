@@ -4829,13 +4829,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   where Czech puts them, dosáhnout takes the genitive, and no comma stands before the nebo that ends a list; the
   MTA-STS card's note on its mx lines, a sentence of its own, opens with a capital, Řádky, and z before živých is ze.
 
-- **Fixed: 86 Danish texts said what their English does not, or named one thing two ways.** "Listed", for an address
+- **Fixed: 87 Danish texts said what their English does not, or named one thing two ways.** "Listed", for an address
   put on the allow or block list, read as shown in a list (vises), and "intet tælles eller listes" said that nothing
   sneaks; SNMP managers were administrators, where they are the management stations that poll the agent
   (administrationsstationer); a timer was reinforced, or armed with weapons (armeres), where it is set (sættes); the
   sendout's notice gave its time with no kl.; and the default IP ranges were Min computer and Internet, where the
   server gives them in English and the IP ranges page lists them so. An IP range is an interval, as the IP ranges page
-  calls it, where some texts and the Add range card said område; the stage timings of the stalled-mail page are its
+  calls it, where some texts and the Add range card said område; the audit trail is the Revisionslog, its page's
+  title, throughout, where two texts said revisionssporet; the stage timings of the stalled-mail page are its
   trintider; and uanset takes no comma before its clause.
 
 - **Fixed: 265 Finnish texts said what their English does not, left out a comma Finnish requires, or named one thing
@@ -4849,13 +4850,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   have their punctuation mended, most of them with the comma Finnish puts before every subordinate clause, after sen
   sijaan, before ennen kuin and kunnes, and round a relative clause.
 
-- **Fixed: 167 Norwegian texts said what their English does not, broke Norwegian grammar, or named one thing two
+- **Fixed: 168 Norwegian texts said what their English does not, broke Norwegian grammar, or named one thing two
   ways.** "Strictly worse" was strictly speaking worse (strengt tatt); the accept pipeline, which takes mail in, was
   an approval or authentication pipeline (godkjenning), where it is mottak; SNMP managers were administrators, where
   they are the management stations that poll the agent; and the default IP ranges were Min datamaskin and Internet,
   where the server gives them in English and the IP ranges page lists them so. A relative som that stands for the
   whole clause before it is noe som, a comma closes a relative clause put before the verb, a mail header is a header
-  throughout, a worker is a worker thread (arbeidstråd), and the sendout's notice gives its time with kl.
+  and the audit trail the Revisjonslogg, its page's title, throughout, a worker is a worker thread (arbeidstråd), and
+  the sendout's notice gives its time with kl.
 
 - **Fixed: 169 Turkish texts said what their English does not, or named one thing two ways.** An entry of the sender
   block list was an address and a domain, where it is one or the other; an operator was a business (işletme); the log
@@ -4866,15 +4868,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   call them, the message index an indeks, and the Control Panel the Denetim Masası in prose, as 67 texts call it; the
   Alias address caption's key moves to ğ, since the Domains page gives every other letter of it to another caption.
 
-- **Fixed: 168 Ukrainian texts said what their English does not, broke Ukrainian grammar, or named one thing two
+- **Fixed: 169 Ukrainian texts said what their English does not, broke Ukrainian grammar, or named one thing two
   ways.** A fair password's advice to consider adding {0} was the weak password's order to add it; free software under
   the AGPLv3 was free of charge (безкоштовне), where it is free as in freedom (вільне); a device was what allows SMTP
   delivery, where the IP range does; and the default IP ranges were Мій комп’ютер and Internet, where the server gives
   them in English and the IP ranges page lists them so. Слухач is animate, so no listeners are слухачів, доки ... не
   takes a finite verb, a session is a сеанс, an event script a скрипт, a resolver a розв'язувач, an identity provider a
-  постачальник ідентичності and a server's health its справність throughout, and the Control Panel is the Панель
-  керування in prose, as 63 texts call it; the MTA-STS card's note on its mx lines, a sentence of its own, opens with
-  a capital, Рядки.
+  постачальник ідентичності, an upstream gateway a вищестоящий шлюз and a server's health its справність throughout,
+  and the Control Panel is the Панель керування in prose, as 63 texts call it; the MTA-STS card's note on its mx
+  lines, a sentence of its own, opens with a capital, Рядки.
 
 - **Fixed: 115 Japanese texts said what their English does not, or named one thing two ways.** One pass of SPF, DKIM
   or DMARC read as all three; free software under the AGPLv3 was free of charge (無償), where it is free as in freedom
@@ -4901,14 +4903,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   for the whole clause before it; a Ukrainian or Chinese text that names the identity provider two ways, or names it
   the other way on one of its own cards, where the English says only "the provider"; a word for a thing the entries
   above say a catalogue names one way throughout - a hold, a resolver, a server's health, an event script, a mail
-  header, the message index, an administrator, a passphrase - where that catalogue's other word for it is back, with
-  an access key's underscore read out of the word; and, in any catalogue, a sentence that opens in lower case where
-  its English opens with a capital, a name the server writes in lower case excepted. Run over the catalogues as they
-  were, the rules make 236 findings in 212 texts; the self-test holds each rule against a text the read-back mended,
-  as it was and as it is. `TranslationReadbackTests` holds one mended text of each of the eight catalogues; the
-  default IP ranges' names, My computer and Internet, which the server gives in English; the Ukrainian quarantine's
-  questions for deleting 21 or 31 messages, which speak of the senders as they do for 5; and the MTA-STS card's note
-  on its mx lines, which opens in each of the eight with the literal mx or with a capital.
+  header, the message index, an administrator, a passphrase, the audit trail, an upstream gateway - where that
+  catalogue's other word for it is back, with an access key's underscore read out of the word; and, in any catalogue,
+  a sentence that opens in lower case where its English opens with a capital, a name the server writes in lower case
+  excepted. Run over the catalogues as they were, the rules make 242 findings in 218 texts; the self-test holds each
+  rule against a text the read-back mended, as it was and as it is. `TranslationReadbackTests` holds one mended text
+  of each of the eight catalogues; the default IP ranges' names, My computer and Internet, which the server gives in
+  English; the Ukrainian quarantine's questions for deleting 21 or 31 messages, which speak of the senders as they do
+  for 5; and the MTA-STS card's note on its mx lines, which opens in each of the eight with the literal mx or with a
+  capital.
 
 ### Administration
 

@@ -730,7 +730,7 @@
     <value>En virusscanner, der holder op med at svare. ClamAV kontaktes, efter at meddelelsen er accepteret, så en fastlåst clamd viser sig som accepteret-men-aldrig-leveret. Hver socket-handling er begrænset af ClamAV's minimale og maksimale timeout på siden Antivirus-indstillinger - en frist for én læsning eller skrivning, som sættes på ny hver gang, så en stor meddelelse, der streames i bidder, kan tage længere tid end den maksimale timeout i alt.</value>
   </data>
   <data name="A way back from a profile is held and cannot be read, so it cannot be put back. Discard it to apply a profile; the audit trail names each value the profile replaced." xml:space="preserve">
-    <value>En vej tilbage fra en profil er gemt og kan ikke læses, så den kan ikke sættes tilbage. Kassér den for at anvende en profil; revisionssporet nævner hver værdi, profilen erstattede.</value>
+    <value>En vej tilbage fra en profil er gemt og kan ikke læses, så den kan ikke sættes tilbage. Kassér den for at anvende en profil; revisionsloggen nævner hver værdi, profilen erstattede.</value>
   </data>
   <data name="A zero-access mailbox is encrypted to the person's own key: this server can no longer read, search, export or recover its mail, and a forgotten password without the recovery key loses it. Allowing it switches nobody on." xml:space="preserve">
     <value>En nuladgangspostkasse krypteres til personens egen nøgle: denne server kan ikke længere læse, søge i, eksportere eller gendanne dens post, og en glemt adgangskode uden gendannelsesnøglen mister den. At tillade det slår det ikke til for nogen.</value>

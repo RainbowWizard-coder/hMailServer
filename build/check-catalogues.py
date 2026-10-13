@@ -393,9 +393,13 @@ def quotation_findings(tag, target):
 #   an administrator a správce in Czech and a passphrase a tunnuslause in Finnish, which its re-check
 #   found left beside texts that say so: the two-factor prompt's heading, Kód administrátora
 #   serveru, over a description that says správce, and the Backup page's Salauksen salasanalaus_e,
-#   a word its access key split, between texts that say tunnuslause. A term is read in the value
-#   and its English with the access key's underscore taken out; a Norwegian word is read whole,
-#   hyphens and all, and a table's column headers, kolonneoverskrifter, are not mail headers.
+#   a word its access key split, between texts that say tunnuslause. Their repair found three more:
+#   the audit trail is the Revisionslog and the Revisjonslogg, its page's Danish and Norwegian
+#   title, where Setting profiles' notice of a way back it cannot read said revisionssporet and
+#   revisjonssporet, and an upstream gateway a вищестоящий шлюз, as its page's Ukrainian purpose
+#   says, where the page's own subtitle said Вищі шлюзи. A term is read in the value and its English
+#   with the access key's underscore taken out; a Norwegian word is read whole, hyphens and all, and
+#   a table's column headers, kolonneoverskrifter, are not mail headers.
 READBACK_CONFIRMING_VERBS = {
    "Apply", "Cancel", "Clear", "Delete", "Discard", "Empty", "Erase", "Keep", "Lift", "Merge", "Overwrite", "Purge",
    "Put", "Release", "Remove", "Replace", "Reset", "Restore", "Revert", "Show", "Stop", "Turn",
@@ -464,6 +468,7 @@ READBACK_LITERAL_MARK = re.compile(r"[A-Z0-9_=@./:<>]")
 # English that leaves the text alone, or None; the word refused; what the catalogue calls it).
 READBACK_TERMS = {
    "cs": [(re.compile(r"(?i)\badministrator"), None, re.compile(r"(?i)administrátor\w*"), "správce (an administrator)")],
+   "da": [(None, None, re.compile(r"(?i)revisionsspor\w*"), "Revisionslog (the audit trail)")],
    "fi": [(None, None, re.compile(r"(?i)salasanalau\w*"), "tunnuslause (a passphrase)")],
    "zh-Hans": [(None, None, re.compile(r"扣留|暂扣|暂留"), "暂挂 (a held message)")],
    "uk": [
@@ -471,24 +476,28 @@ READBACK_TERMS = {
       (None, None, re.compile(r"(?i)стан\w* здоров\S*"), "справність (a server's health)"),
       (re.compile(r"(?i)\bevent[- ]scripts?\b|\bscript events\b|\bevent-scripting\b"), None, re.compile(r"(?i)сценар\w*"),
        "скрипт (an event script)"),
+      (re.compile(r"(?i)\bupstream gateways?\b"), None, re.compile(r"(?i)\bвищ(?:ий|ого|ому|им|і|их|ими)\s+шлюз\w*"),
+       "вищестоящий шлюз (an upstream gateway)"),
    ],
    # A table's column headers are overskrifter, kolonneoverskrifter, as Norwegian has it; a word is read
    # whole, hyphens and all, so that a header named before it (Received-overskriften) is still refused.
    "nb": [(re.compile(r"(?i)(?<!column )(?<!table )\bheaders?\b(?! rows?\b)"), None,
-           re.compile(r"(?i)(?<![\w-])(?!kolonne|tabell)[\w-]*overskrift\w*"), "header (a mail header)")],
+           re.compile(r"(?i)(?<![\w-])(?!kolonne|tabell)[\w-]*overskrift\w*"), "header (a mail header)"),
+          (None, None, re.compile(r"(?i)revisjonsspor\w*"), "Revisjonslogg (the audit trail)")],
    "tr": [(re.compile(r"(?i)\bindex(?:es|ing|er)?\b"), re.compile(r"(?i)\bdirector(?:y|ies)\b"), re.compile(r"(?i)\bdizin\w*"),
            "indeks (the message index)")],
 }
 # The texts the term rule leaves alone for now: two other units of batch53's wave A wrote them beside
 # the read-back, before the rule, and the wave's fold is the first tree that holds both them and the
-# rule - cp53-navigation's purposes of the Advanced, Server limits & expert settings and Monitoring &
-# alerts pages, which it reworded where the read-back had mended the old ones, and the last page's new
-# subtitle, and cp53-quarantine-search's notices of its search of every held message. Each names a
-# thing the way the catalogue no longer does. The rule leaves that one word alone while the text is
-# exactly as its unit wrote it, by the first 16 hex digits of the SHA-256 of its value in UTF-8, and
-# says so; a text changed in any way is held to the rule again, and one that no longer has the word
-# is reported, so that its entry goes out with the change that mended it. The fold writes the
-# catalogue's word (the fifth field) in each and takes the entries out.
+# rule - cp53-navigation's purposes of the Advanced, Server limits & expert settings, Monitoring &
+# alerts, Incoming relays and Logging pages, which it reworded where the read-back had mended the old
+# ones, and the Monitoring & alerts page's new subtitle, and cp53-quarantine-search's notices of its
+# search of every held message. Each names a thing the way the catalogue no longer does. The rule
+# leaves that one word alone while the text is exactly as its unit wrote it, by the first 16 hex
+# digits of the SHA-256 of its value in UTF-8, and says so; a text changed in any way is held to the
+# rule again, and one that no longer has the word is reported, so that its entry goes out with the
+# change that mended it. The fold writes the catalogue's word (the fifth field) in each and takes the
+# entries out.
 READBACK_TERMS_PENDING = (
    # (catalogue, how its English begins, the value's fingerprint, the word left, the catalogue's word, whose text)
    ("uk", "Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, and the switch",
@@ -499,6 +508,12 @@ READBACK_TERMS_PENDING = (
     "532130a92cf200ae", "стану здоров'я", "справності", "cp53-navigation"),
    ("uk", "The REST administration API, the metrics and health endpoints",
     "d30dca6ac631dbf9", "стану здоров'я", "справності", "cp53-navigation"),
+   ("uk", "Upstream gateways whose IP address must not be treated as the connecting client in spam checks, and the front-end",
+    "962221b00ae0d97c", "Вищі шлюзи", "Вищестоящі шлюзи", "cp53-navigation"),
+   ("da", "Which log files the server writes, how much detail they carry and how long they are kept, the copies it sends",
+    "7a889555e98429c8", "revisionssporet", "revisionsloggen", "cp53-navigation"),
+   ("nb", "Which log files the server writes, how much detail they carry and how long they are kept, the copies it sends",
+    "7a7e2546db7c50e7", "revisjonssporet", "revisjonsloggen", "cp53-navigation"),
    ("zh-Hans", "Could not search every held message on the server", "0dfc63343c15b443", "暂留", "暂挂", "cp53-quarantine-search"),
    ("zh-Hans", "Searched every held message on the server: {0} match the search.", "e611ba759e2ef5bc", "暂留", "暂挂",
     "cp53-quarantine-search"),
@@ -1023,6 +1038,13 @@ def self_test():
       ("fi", "Encryption _passphrase", "Salauksen salasanalaus_e"): True,
       ("fi", "Encryption _passphrase", "Salauksen tunnuslaus_e"): False,
       ("uk", "Script _events", "Події сцена_ріїв"): True,
+      ("da", "Discard it; the audit trail names each value the profile replaced.", "Kassér den; revisionssporet nævner hver værdi."): True,
+      ("da", "Discard it; the audit trail names each value the profile replaced.", "Kassér den; revisionsloggen nævner hver værdi."): False,
+      ("nb", "Discard it; the audit trail names each value the profile replaced.", "Forkast den; revisjonssporet nevner hver verdi."): True,
+      ("nb", "Discard it; the audit trail names each value the profile replaced.", "Forkast den; revisjonsloggen nevner hver verdi."): False,
+      ("uk", "Upstream gateways (spam filters, load balancers) whose IP addresses should not count.", "Вищі шлюзи (спам-фільтри), чиї IP-адреси не враховуються."): True,
+      ("uk", "Upstream gateways (spam filters, load balancers) whose IP addresses should not count.", "Вищестоящі шлюзи (спам-фільтри), чиї IP-адреси не враховуються."): False,
+      ("uk", "Upstreams allowed to use XCLIENT (comma separated)", "Вищі вузли, яким дозволено XCLIENT (через кому)"): False,
       ("fi", "It is sent without anyone being asked.", "Se lähetetään, ilman että keneltäkään kysytään."): False,
       ("fi", "It is sent without anyone being asked.", "Se lähetetään ilman, että keneltäkään kysytään."): False,
       ("fi", "It is sent without anyone being asked.", "Se lähetetään ilman että keneltäkään kysytään."): True,

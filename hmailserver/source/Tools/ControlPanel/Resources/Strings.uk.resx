@@ -14856,7 +14856,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>Верхній IP</value>
   </data>
   <data name="Upstream gateways (spam filters, load balancers) whose IP addresses should not count as the connecting client in anti-spam host checks." xml:space="preserve">
-    <value>Вищі шлюзи (спам-фільтри, балансувальники навантаження), чиї IP-адреси не повинні вважатися клієнтом, що підключається, у перевірках вузла захисту від спаму.</value>
+    <value>Вищестоящі шлюзи (спам-фільтри, балансувальники навантаження), чиї IP-адреси не повинні вважатися клієнтом, що підключається, у перевірках вузла захисту від спаму.</value>
   </data>
   <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks, and the front-end proxies that may pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
     <value>Вищі шлюзи, чия IP-адреса не повинна вважатися клієнтом, що підключається, у перевірках на спам, і фронтенд-проксі, яким дозволено передавати справжню адресу клієнта протоколом PROXY або командою XCLIENT.</value>
