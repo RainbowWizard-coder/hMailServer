@@ -426,8 +426,9 @@ cmd_up_dst() {
 
 # The daylight-saving check (E0 of the build plan): the database of up-dst put a
 # minute before the change of the season (01:00 UTC on 25 October 2026, or on 28
-# March 2027), then sqlcheck's dst check, which watches a lease on its local clock
-# and one on its UTC clock across it; the clock is put back afterwards.
+# March 2027 - these two, forward to them before they come and back to them after),
+# then sqlcheck's dst check, which watches a lease on its local clock and one on its
+# UTC clock across it; the clock is put back afterwards.
 cmd_dst() {
   load_secrets
   local db="${1:-}" season="${2:-}" change now offset container
@@ -440,8 +441,12 @@ cmd_dst() {
   container="$P-$db-dst"
   docker ps -q --filter "name=^$container\$" | grep -q . || die "$container is not up - run: bash $0 up-dst $db"
   now=$(date +%s)
+  # Signed either way: after the change has passed the clock goes back to it, and
+  # libfaketime reads "-N" as N seconds back - where "+-N", which a plain "+%d"
+  # wrote, it reads as no offset at all, and the check then found the clock where
+  # it was.
   offset=$(( change - 60 - now ))
-  printf '+%d\n' "$offset" > "$AA_HOME/dst/$db.rc"
+  printf '%+d\n' "$offset" > "$AA_HOME/dst/$db.rc"
   # Read again by the database within a second (FAKETIME_CACHE_DURATION).
   sleep 3
   local results
