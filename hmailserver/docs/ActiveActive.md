@@ -92,19 +92,28 @@ database, each with its own data directory, 2,000 messages relayed to a sink tha
 records what it is given, and 1,000 into one mailbox, sent through both nodes
 (`aa-lab.sh baseline`).
 
-| | PostgreSQL 17 | MariaDB 11.8 | MySQL 8.4 | SQL Server 2022, two runs |
+| | PostgreSQL 17 | MariaDB 11.8 | MySQL 8.4 | SQL Server 2022, three runs |
 |---|---|---|---|---|
-| Relayed and never delivered | 106 of 2,000 | 122 | 29 | 314 and 316 |
-| Relayed twice | 0 | 0 | 0 | 0 and 0 |
-| Left in the mailbox, of 1,000 | 118 | 226 | 82 | 218 and 260 |
-| UIDs given to two messages | 0 | 5 | 0 | 14 and 18 |
-| Messages one of the two nodes served as a placeholder | all of them | all of them | all of them | all of them |
+| Relayed and never delivered | 106 of 2,000 | 122 | 29 | 314, 316 and 239 |
+| Relayed twice | 0 | 0 | 0 | none |
+| Left in the mailbox, of 1,000 | 118 | 226 | 82 | 218, 260 and 288 |
+| UIDs given to two messages | 0 | 5 | 0 | 14, 18 and 21 |
+| Messages one of the two nodes served as a placeholder | all of them | about all of them | all of them | about all of them |
 
 The SQL Server runs, on 13 October 2026, were two Windows nodes of the same build,
 each a Windows service with a data directory of its own, talking to SQL Server
 through ADO and the Microsoft OLE DB Driver 18 as an installation does, at READ
 UNCOMMITTED (the Windows lab, [build/lab/active-active/windows/](../../build/lab/active-active/README.md)).
-There, `SELECT` showed 204 and 242 messages where `STATUS` said 218 and 260.
+There, `SELECT` showed 204, 242 and 267 messages where `STATUS` said 218, 260 and
+288. Relayed mail was lost more often than on any of the Linux engines, and more UIDs
+were given twice; into one mailbox about as many were kept as on MariaDB, and more
+than on PostgreSQL and MySQL. The two labs differ in platform and load (Windows VMs
+behind a laptop's NAT against Linux containers on one server), so the engines are
+not compared under the same conditions. The placeholders are each node's count: with
+one row to a UID they show that every message was one on exactly one node, and where
+UIDs were given twice they cannot (a UID on two rows is a placeholder on both nodes,
+or on neither), so there they say about all - 98 + 123 for MariaDB's 221 messages
+listed, and 95 + 110, 123 + 121 and 137 + 133 for SQL Server's 204, 242 and 267.
 
 With one data directory shared by both, which [WarmStandby.md](WarmStandby.md)
 forbids, nothing was lost but 1,489 of the 2,000 relayed messages went out twice.
@@ -633,13 +642,15 @@ Windows service, on SQL Server 2022 in a container beside the Linux databases, w
 the same load, sink and checks, and the engine checks run as the server's sessions
 run, at READ UNCOMMITTED. One of the two machines has an installation of its own,
 and the server finds its configuration through the machine's one `InstallLocation`,
-so that node runs in turns with it. Testers that race two connection pools in one
-process run in the Windows gate, whose database is SQL Server Compact. The engine
-checks are also run through the server's own database layer: `database-claim-tests`
-against the Linux suite's PostgreSQL and the database matrix's MySQL and MariaDB
-before the server starts, and the same checks inside the Windows server on a SQL
-Server Compact database of their own (`DatabaseClaimTester`). Faults are made on
-purpose:
+so that node runs in turns with it. On the Windows nodes a node is cut off from the
+database by a firewall rule on the one whose firewall the lab may change, which drops
+its connections at once, and the balancer runs on the machine that hosts the two, the
+one that reaches both. Testers that race two connection pools in one process run in
+the Windows gate, whose database is SQL Server Compact. The engine checks are also
+run through the server's own database layer: `database-claim-tests` against the Linux
+suite's PostgreSQL and the database matrix's MySQL and MariaDB before the server
+starts, and the same checks inside the Windows server on a SQL Server Compact
+database of their own (`DatabaseClaimTester`). Faults are made on purpose:
 - a node killed (`docker kill`);
 - a node frozen past its lease (`docker pause`, then `unpause`);
 - a node cut off from the database;

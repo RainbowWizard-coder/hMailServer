@@ -5611,8 +5611,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   decided, and the work set out as thirty-one units in the order they are to be built.** Two nodes of today's build
   on one database, each with its own data directory, failed to deliver 29 to 122 of 2,000 relayed messages and kept
   only 82 to 226 of 1,000 sent into one mailbox, on PostgreSQL 17, MariaDB 11.8 and MySQL 8.4, and on SQL Server 2022,
-  with two Windows nodes talking to it through ADO as an installation does, 314 and 316 never left, 218 and 260 were
-  kept, and 14 and 18 UIDs went to two messages each, in two runs: a node that claims a queued row whose file is on
+  with two Windows nodes talking to it through ADO as an installation does, 239 to 316 never left, 218 to 288 were
+  kept, and 14 to 21 UIDs went to two messages each, in three runs: a node that claims a queued row whose file is on
   the other node's disk deletes the row, which for one local recipient is already the delivered message, and it
   serves a placeholder for every message whose file is on the other disk. The corrections
   to the first version: no backend returns a row count, and MySQL connects without `CLIENT_FOUND_ROWS`; the IMAP
