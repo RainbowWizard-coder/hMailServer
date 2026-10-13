@@ -485,6 +485,37 @@ namespace HM
       return result;
    }
 
+   // FireOnDeliveryFailed's VBScript call, until it was quoted through
+   // EscapeForVBScriptLiteral (upstream #671), took the quotes out of the error,
+   // replaced each CR LF pair with " + vbCRLF + " and trimmed what was left, so the
+   // trim stopped at the first pair and at the last: the CR LF that ends the last
+   // line of every SMTP delivery error (SMTPClientConnection's "Remote server
+   // replied: ...\r\n") reached the handler, and still does. A lone CR or LF before
+   // the first pair or after the last is white space here, as it was to that trim.
+   String
+   ScriptServer::TrimKeepingCrLfPairs(const String &value)
+   {
+      const int first = value.Find(_T("\r\n"));
+
+      if (first < 0)
+      {
+         String trimmed = value;
+         trimmed.TrimLeft();
+         trimmed.TrimRight();
+         return trimmed;
+      }
+
+      const int last = value.ReverseFind(_T("\r\n"));
+
+      String head = value.Mid(0, first);
+      head.TrimLeft();
+
+      String tail = value.Mid(last + 2);
+      tail.TrimRight();
+
+      return head + value.Mid(first, last + 2 - first) + tail;
+   }
+
    bool
    ScriptServer::IsPlainProcedureName(const String &name)
    {
@@ -550,6 +581,22 @@ namespace HM
 
       if (ScriptServer::EscapeForVBScriptLiteral(vb) != String(_T("\"\"\\\" & vbCr & \"\" & vbLf & \"z")))
          throw std::logic_error("ScriptLiteralTester: a VBScript literal was not escaped as VBScript reads it");
+
+      // The VBScript OnDeliveryFailed's trim: an SMTP delivery error loses the
+      // spaces it starts with and keeps the CR LF it ends with; the white space
+      // before the first pair and after the last goes, a lone CR or LF with it;
+      // with no pair, the whole value is trimmed.
+      if (ScriptServer::TrimKeepingCrLfPairs(_T("   Error Type: SMTP\r\n   Remote server replied: 550 No\r\n")) !=
+          String(_T("Error Type: SMTP\r\n   Remote server replied: 550 No\r\n")))
+         throw std::logic_error("ScriptLiteralTester: a delivery error's final CR LF was trimmed, or its leading spaces kept");
+
+      if (ScriptServer::TrimKeepingCrLfPairs(_T("\n \r\r\n x \r\n \n\t")) != String(_T("\r\n x \r\n")))
+         throw std::logic_error("ScriptLiteralTester: the white space outside the first and the last CR LF pair was not trimmed as it was");
+
+      if (ScriptServer::TrimKeepingCrLfPairs(_T(" \t x y \n")) != String(_T("x y")) ||
+          ScriptServer::TrimKeepingCrLfPairs(_T("\r\n")) != String(_T("\r\n")) ||
+          ScriptServer::TrimKeepingCrLfPairs(_T("")) != String(_T("")))
+         throw std::logic_error("ScriptLiteralTester: a value with no CR LF pair, or one that is a pair, was not trimmed as it was");
 
       // The rule function's name. A letter outside ASCII is refused, as the
       // JavaScript engine's lookup refuses it: the names are the same on both.

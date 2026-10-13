@@ -813,9 +813,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   handed the answer with its quotes taken out.** Those three calls were quoted by hand: the password and the
   unique-id had their quotes doubled and nothing else, and `OnDeliveryFailed` took the quotes out of the recipient
   and the error and joined in only a CR LF pair, so a lone CR or LF left the string open and the call did not
-  compile. They are quoted as every other VBScript call is now (`ScriptServer::EscapeForVBScriptLiteral`).
-  `API/Events.cs` sends all three and reads what the handler was given;
-  [EventScripts.md](hmailserver/docs/EventScripts.md) says how the calls are quoted. Found reading upstream issue 671.
+  compile. They are quoted as every other VBScript call is now (`ScriptServer::EscapeForVBScriptLiteral`), and
+  `OnDeliveryFailed`'s error is trimmed as before - of the white space at either end, but not of a CR LF pair - so
+  the handler is still given the CR LF that ends its last line. `API/Events.cs` sends all three and reads what the
+  handler was given, that CR LF among it; [EventScripts.md](hmailserver/docs/EventScripts.md) says how the calls are
+  quoted. Found reading upstream issue 671.
 
 ### Downloads and the release
 

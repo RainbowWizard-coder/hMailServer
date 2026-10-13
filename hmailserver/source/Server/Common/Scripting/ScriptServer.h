@@ -84,6 +84,14 @@ namespace HM
       // value as it is, where a line break used to make the call a syntax error.
       static String EscapeForVBScriptLiteral(const String &value);
 
+      // The value trimmed of the white space at either end, as String's TrimLeft and
+      // TrimRight trim it, but never into a CR LF pair: what is before the first pair
+      // and after the last is trimmed, and everything from the first pair to the last
+      // is kept. It is how a VBScript OnDeliveryFailed has always been handed its
+      // error - the call joined each pair in before it trimmed, so no trim reached
+      // one - and so it keeps the CR LF that ends the error's last line.
+      static String TrimKeepingCrLfPairs(const String &value);
+
       // Whether a rule's "Run function" name can be written into call text as it
       // is: ASCII letters, digits, _ and $, not starting with a digit, at most 255
       // characters - the names the JavaScript engine looks up. Anything else is
@@ -321,9 +329,10 @@ namespace HM
 
    };
 
-   // The three helpers above, held to examples: what a password that tried to end
-   // its string becomes, each escape, the VBScript splices, and the procedure
-   // names FireEvent lets through. ClassTester::DoTests runs it.
+   // The helpers above, held to examples: what a password that tried to end its
+   // string becomes, each escape, the VBScript splices, what the VBScript
+   // OnDeliveryFailed's trim keeps, and the procedure names FireEvent lets
+   // through. ClassTester::DoTests runs it.
    class ScriptLiteralTester
    {
    public:

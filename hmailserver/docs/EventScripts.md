@@ -169,7 +169,11 @@ joined in only a CR LF pair - so a lone CR or LF in a password or in the unique-
 remote POP3 server lists (its listing is split at CR LF pairs only), or a lone LF in
 a remote server's answer (a CR ends the line the answer is read from), left the
 literal open, the call did not compile and the handler was not asked;
-`OnDeliveryFailed` is now handed its two values with their quotes.
+`OnDeliveryFailed` is now handed its two values with their quotes. Its error is
+trimmed of the white space at either end; on VBScript, as before, the trim does not
+reach into a CR LF pair - the hand-quoting joined each pair in before it trimmed - so a
+VBScript handler is handed the CR LF that ends the error's last line, which a JScript
+or JavaScript one is not.
 A rule's "Run function" name is written
 into the call as it is, so a name that is not a plain identifier - ASCII letters,
 digits, `_` and `$`, not starting with a digit, at most 255 characters - is refused

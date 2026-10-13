@@ -1428,6 +1428,76 @@ namespace RegressionTests.API
          }
       }
 
+      // The codes VBScriptWritingCodes wrote after the marker, from the comma that
+      // opens them to the comma that closes them; empty when the marker is not there.
+      private static string CodesAfter(string log, string marker)
+      {
+         int start = log.IndexOf(marker, StringComparison.Ordinal);
+         if (start < 0)
+            return string.Empty;
+
+         start += marker.Length;
+
+         int end = start;
+         while (end < log.Length && (char.IsDigit(log[end]) || log[end] == ','))
+            end++;
+
+         return log.Substring(start, end - start);
+      }
+
+      [Test]
+      [Description("A VBScript OnDeliveryFailed is handed the error trimmed as it always was: without the spaces it starts with, and with the CR LF that ends its last line, which every SMTP delivery error has. The call joined each CR LF pair in before it trimmed, so no trim reached one; quoted through EscapeForVBScriptLiteral (upstream #671), the error was trimmed whole first and lost that CR LF, which the JScript and JavaScript handlers are not given.")]
+      public void AVBScriptOnDeliveryFailedIsHandedTheErrorWithTheLineBreakThatEndsIt()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "test@example.test", "test");
+
+         const string nobody = "nobody@dummy-example.com";
+         const string remoteWords = "No such user here";
+
+         // From the ports set aside for this file's unit (47100-47119).
+         const int port = 47104;
+
+         var scripting = _settings.Scripting;
+
+         try
+         {
+            scripting.Language = "VBScript";
+            File.WriteAllText(scripting.CurrentScriptFile,
+               VBScriptWritingCodes("OnDeliveryFailed", "message, sRecipient, sErrorMessage", "sErrorMessage", "error codes="));
+            scripting.Enabled = true;
+            scripting.Reload();
+
+            LogHandler.DeleteEventLog();
+
+            using (var server = new SmtpServerSimulator(1, port))
+            {
+               server.AddRecipientResult(new Dictionary<string, int> { { nobody, 550 } });
+               server.RecipientReplyTexts[nobody] = "5.1.1 " + remoteWords;
+               server.StartListen();
+
+               TestSetup.AddRoutePointingAtLocalhost(1, port, false);
+
+               SmtpClientSimulator.StaticSend(account.Address, nobody, "Refused", "Body");
+
+               server.WaitForCompletion();
+            }
+
+            CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+            string log = ReadEventLogContaining("error codes=");
+            string codes = CodesAfter(log, "error codes=");
+
+            StringAssert.StartsWith("," + CharacterCodes("Error Type: SMTP") + ",13,10,", codes,
+               "The VBScript handler's error must start without the spaces of its first line, as it always did: " + log);
+            StringAssert.EndsWith("," + CharacterCodes(remoteWords) + ",13,10,", codes,
+               "The VBScript handler's error must end with the CR LF that ends its last line, as it always did: " + log);
+         }
+         finally
+         {
+            LeaveAnEmptyVBScriptScriptLoaded();
+         }
+      }
+
       [Test]
       [Description("A remote POP3 server's unique-id holding a quote and a lone LF reaches a VBScript OnExternalAccountDownload as the value it is. The call doubled the id's quotes and nothing else, so a line break left the literal open: the call did not compile and the handler was not asked (upstream #671). The listing is split at CR LF pairs only, so a lone LF stays in the id.")]
       public void ARemoteUniqueIdWithALineFeedReachesTheVBScriptHandler()

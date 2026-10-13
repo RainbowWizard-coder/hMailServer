@@ -189,9 +189,14 @@ namespace HM
             // were taken out of both values, and only a CR LF pair joined in, so a lone
             // CR or LF in the remote server's answer - which its sender chooses - left
             // the literal unterminated: the call did not compile and the handler was
-            // not told of the failure at all (upstream #671). Trimmed first, as before.
-            sErrorMessageCopy.TrimLeft();
-            sErrorMessageCopy.TrimRight();
+            // not told of the failure at all (upstream #671).
+            //
+            // Trimmed first, as it was trimmed when each CR LF pair was joined in
+            // before the trim: of the white space at either end, but never into a
+            // pair (ScriptServer::TrimKeepingCrLfPairs). So the handler is still
+            // handed the CR LF that ends the error's last line, which the JScript
+            // and JavaScript handlers, their error trimmed whole, are not given.
+            sErrorMessageCopy = ScriptServer::TrimKeepingCrLfPairs(sErrorMessageCopy);
 
             sEventCaller.Format(_T("OnDeliveryFailed(HMAILSERVER_MESSAGE, \"%s\", \"%s\")"),
                ScriptServer::EscapeForVBScriptLiteral(sRecipientCopy).c_str(),
