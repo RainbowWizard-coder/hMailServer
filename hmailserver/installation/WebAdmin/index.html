@@ -5076,7 +5076,12 @@ function qSearchTyped(){
     return;
   }
   if(Q.found&&Q.foundFor===text){drawQuarantine();return;}
-  const said=$("#qSaid");if(said)said.textContent=qSaid();
+  // The answer drawn is another text's: the list's own rows take its place
+  // until this text's answer comes, narrowed by the box, so that the rows
+  // shown are what qList() holds (the redraw's own call back here returns at
+  // once, the text being Q.typed already).
+  if(Q.found)drawQuarantine();
+  else{const said=$("#qSaid");if(said)said.textContent=qSaid();}
   Q.searchTimer=setTimeout(()=>{qSearchServer(text);},400);
 }
 async function qSearchServer(text){

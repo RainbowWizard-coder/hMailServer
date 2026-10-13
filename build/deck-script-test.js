@@ -8192,6 +8192,29 @@ async function main() {
          $('#qReadTitle') ? $('#qReadTitle').textContent : 'no panel');
       click(act('qreadclose'));
       await flush();
+      // The text changes while the answer for the old one is drawn: until the next
+      // answer comes, the rows shown are the list's own, narrowed by the box, as the
+      // header's box and "the checked messages" read them - not the old answer's
+      // row, which matches neither text.
+      await search('ops_teamx');
+      check('while the next answer is awaited the rows shown are the list\'s, narrowed by the box',
+         qRows().filter((r) => !r.hidden).length === 0 && qRows().every((r) => !r.dataset.keep) && $('#qSaid').textContent === 'Searching every held message on the server…',
+         qRows().filter((r) => !r.hidden).map((r) => r.textContent.slice(0, 80)).join(' | ') + ' // ' + $('#qSaid').textContent);
+      before = requests.length;
+      fireTimers();
+      await flush();
+      check('and its answer is asked for once the typing stops',
+         called(before, 'GET', '/api/v1/quarantine?q=ops_teamx&limit=1000').length === 1 && $('#qSaid').textContent === 'Searched every held message on the server. Matches: 0.',
+         paths(before) + ' ' + $('#qSaid').textContent);
+      // Back to the text answered before: its answer is drawn again, asked for once more
+      // only after the typing stops.
+      before = requests.length;
+      await search('ops_team');
+      fireTimers();
+      await flush();
+      check('the text answered before is asked again and its answer drawn whole',
+         called(before, 'GET', '/api/v1/quarantine?q=ops_team&limit=1000').length === 1 && qRows().length === 1 && !qRows()[0].hidden &&
+         qRows()[0].textContent.indexOf('An old invoice') >= 0, paths(before) + ' ' + qText());
       before = requests.length;
       await search('');
       fireTimers();
