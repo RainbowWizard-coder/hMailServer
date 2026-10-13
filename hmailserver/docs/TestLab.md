@@ -139,6 +139,15 @@ and a MySQL-family database has more (a `TEXT` column cannot have a default ther
 so on MariaDB it is refused: `Field 'domainquotawarningtext' doesn't have a default
 value`.
 
+The server's tree is laid out as the `linux-suite` job lays it out, root's alone:
+inside the tree the suite is run from (`.hmtest-tree`) when the way to that tree is
+root's alone, and `/var/lib/hmtest-tree` in the container when it is not - a clone
+another account owns, mounted with `docker run -v`, or a checkout every account may
+write, as GitLab's docker executor makes one - so that a command a fixture runs beside
+the server as root (`hmailserver --apply-environment`, `Security/AutoBanHookRetry`) is
+not refused ([ServiceAccount.md](ServiceAccount.md), "On Linux, a command run as root").
+`HM_TREE` names another place. The logs are copied into the results either way.
+
 The filter is `db` by default: the **database-sensitive fixtures**, the ones whose SQL
 differs by dialect or leans on the database's own behaviour - name validation and
 uniqueness (collation and case), IMAP search, sort and threading over stored headers,

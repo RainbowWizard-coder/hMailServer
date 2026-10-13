@@ -4976,6 +4976,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the corpus at the end; and after the second check's repairs, with the check of where a mail program ends a link: no
   difference in 1,807 seconds, about 39.9 million inputs in 160 jobs, none a crash or a timeout
   ([Fuzzing.md](hmailserver/docs/Fuzzing.md), "UTS 46 against ada").
+- **Fixed: the database matrix laid the server's tree out where a command run beside the server as root is refused,
+  so that its whole suite failed one test on every engine.** A command run as root runs on as root only over folders
+  no other account could have put a symbolic link in ([ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "On
+  Linux, a command run as root"), and `build/ci/linux-suite.sh` lays its tree out inside the checkout only when the
+  way to the checkout is root's alone, and in `/var/lib/hmtest-tree` in the job's container when it is not.
+  `build/lab/db-suite.sh`, which the `db-matrix` job and `build/lab/lab.sh suite` run, laid it out inside the checkout
+  always - which GitLab's docker executor makes under umask 0000 and a lab's `docker run -v` mounts as its user's - so
+  that with `HM_SUITE_FILTER=all` `hmailserver --apply-environment` refused the tree (exit 2) and
+  `AutoBanHookRetry.ACommandRunBesideTheServerLeavesWhatIsBelowItAlone` failed; the database-sensitive fixtures, its
+  default, do not hold that test. It now chooses as `linux-suite.sh` does, and makes the tree under umask 0022. Found
+  by the whole suite on MySQL 8.4, MariaDB 11.8 and PostgreSQL 17 at the fold of active-active's landing B1, where it
+  was the one failure on each engine.
 - **The database layer counts the rows a statement matched, on all four backends, and has the database's clock in UTC:
   the first unit of active-active (AA-01 in ActiveActive.md), which nothing in the server uses yet.**
   `DatabaseConnectionManager::ExecuteCount` runs a statement as `Execute` does - the same fault injection, measuring

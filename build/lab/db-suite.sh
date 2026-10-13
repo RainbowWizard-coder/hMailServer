@@ -34,6 +34,9 @@
 #   HM_SUITE_FILTER      db (the default): the database-sensitive fixtures below;
 #                        all: the whole suite; anything else: a dotnet test --filter
 #   HM_SERVER_BINARY     linux-build/hmailserver (the linux-build job's artifact)
+#   HM_TREE              where the server's tree is laid out: by default .hmtest-tree
+#                        under the tree when the way to it is root's alone, and
+#                        /var/lib/hmtest-tree in the container when it is not (below)
 #   HM_RESULTS_DIR       db-matrix/ under the tree
 #   HM_RESULTS_OWNER     uid:gid to give the results to at the end (the lab's caller)
 set -uo pipefail
@@ -53,7 +56,45 @@ DBUSER="${HM_LAB_DB_USER:-hmlab}"
 DBPASS="${HM_LAB_DB_PASSWORD:-}"
 DB="${HM_LAB_DB_NAME:-hmlab_ci}"
 FILTER="${HM_SUITE_FILTER:-db}"
-T="${HM_TREE:-$PWD/.hmtest-tree}"
+
+# Where the server's tree goes, as build/ci/linux-suite.sh lays it out. The tree is
+# root's alone, as a server run as root has it: the suite runs the server as root, and
+# a command a fixture runs beside it as root (hmailserver --apply-environment,
+# Security/AutoBanHookRetry) runs on as root only where no account but root could have
+# put a symbolic link where it goes - its data, log, temporary, event and database
+# folders, everything under them and the ways to them root's alone
+# (platform/root_command.h) - and is refused, exit 2, anywhere else. So the tree is
+# inside the tree run from (.hmtest-tree) when the way to it is root's alone, and
+# /var/lib/hmtest-tree in the container when it is not: a tree another account owns
+# (the docker run -v of a user's clone, as the lab's callers mount one) or every
+# account may write (GitLab's docker executor checks out under umask 0000). Made under
+# umask 0022 either way. collect copies the logs out of it into the results.
+way_is_roots() {
+  local physical folder="" part owner group mode
+  local -a parts
+  physical=$(cd "$1" 2> /dev/null && pwd -P) || return 1
+  IFS=/ read -ra parts <<< "$physical"
+  for part in "${parts[@]}"; do
+    folder="${folder%/}/$part"
+    # The mode as ls writes it (drwxrwxrwx): the group's write is its sixth
+    # character, others' the ninth.
+    read -r owner group mode <<< "$(stat -c '%u %g %A' "$folder" 2> /dev/null)"
+    [ "$owner" = 0 ] || return 1
+    [ "${mode:8:1}" != w ] || return 1
+    if [ "${mode:5:1}" = w ] && [ "$group" != 0 ]; then return 1; fi
+  done
+  return 0
+}
+
+tree_elsewhere=""
+if [ -n "${HM_TREE:-}" ]; then
+  T="$HM_TREE"
+elif way_is_roots "$PWD"; then
+  T="$PWD/.hmtest-tree"
+else
+  T="/var/lib/hmtest-tree"
+  tree_elsewhere="the way to $PWD is not root's alone"
+fi
 OUT="${HM_RESULTS_DIR:-$PWD/db-matrix}"
 BINARY="${HM_SERVER_BINARY:-$PWD/linux-build/hmailserver}"
 MIN_FREE_MB="${HM_MIN_FREE_MB:-4096}"
@@ -208,6 +249,12 @@ fi
 if [ "$MODE" = run ] && [ ! -f hmailserver/test/LinuxRegressionTests/LinuxRegressionTests.csproj ]; then
   echo "REFUSED: run this from the root of a tree (no hmailserver/test/LinuxRegressionTests here)."
   exit 2
+fi
+
+# The tree root's alone (above), whatever umask the caller runs under.
+umask 0022
+if [ -n "$tree_elsewhere" ]; then
+  echo "$tree_elsewhere, so the server's tree is $T"
 fi
 
 # The results directory may be a mount point (the lab's), so it is emptied, not removed.
