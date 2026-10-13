@@ -372,7 +372,10 @@ def quotation_findings(tag, target):
 #   grunnen til at), which takes noe som;
 # - an identity provider named two ways in one text: the Ukrainian and Chinese read-backs made it
 #   a постачальник ідентичності and a 身份提供方 and left the English's short "the provider" a
-#   провайдер and a 提供商 or 提供者 in the same texts (repaired after the read-back's check).
+#   провайдер and a 提供商 or 提供者 in the same texts (repaired after the read-back's check);
+# - in every catalogue, a sentence that opens in lower case where its English opens with a
+#   capital: six began the MTA-STS caveat with the key's name, "mode a max_age načtené ...", when
+#   the read-back held the word to the texts beside it, which write it mid-sentence.
 READBACK_CONFIRMING_VERBS = {
    "Apply", "Cancel", "Clear", "Delete", "Discard", "Empty", "Erase", "Keep", "Lift", "Merge", "Overwrite", "Purge",
    "Put", "Release", "Remove", "Replace", "Reset", "Restore", "Revert", "Show", "Stop", "Turn",
@@ -394,11 +397,35 @@ READBACK_PROVIDER_NAMES = {
    "uk": ("постачальник ідентичності", re.compile(r"(?i)провайдер\w*")),
    "zh-Hans": ("身份提供方", re.compile(r"提供商|提供者")),
 }
+# A first word that is a literal as it is written: a capital, a digit or a mark inside it.
+READBACK_LITERAL_MARK = re.compile(r"[A-Z0-9_=@./:<>]")
+
+
+def readback_opens_lower(source, target):
+   """True for a translated sentence that opens with a lower-case letter where its English opens with
+   a capital. A clause set after a colon opens in lower case, so the English must end a sentence; a
+   script with no capitals (Hebrew, Arabic, Japanese, Chinese, Korean) writes a key's name as it is;
+   and a first word that the English writes too (mode, autoconfig) or that is a literal by its look
+   (hMailServer, eDiscovery, max_age, p=none, rua=) opens the text as the server writes it."""
+   if not source or not target or not source[0].isupper() or not (target[0].isalpha() and target[0].islower()):
+      return False
+   if not source.rstrip().endswith((".", "!", "?", ELLIPSIS)):
+      return False
+   if any(0x0590 <= ord(c) <= 0x08FF or 0x3040 <= ord(c) <= 0x9FFF or 0xAC00 <= ord(c) <= 0xD7AF for c in target):
+      return False
+   word = target.split()[0].rstrip(".,:;!?)")
+   if READBACK_LITERAL_MARK.search(word):
+      return False
+   core = re.split(r"[-'’]", word)[0]
+   return not re.search(r"(?<!\w)" + re.escape(core) + r"(?!\w)", source)
 
 
 def readback_findings(tag, source, target):
    """What the read-back of 6.3.7 mended, found again in one translation (see above)."""
    findings = []
+   if readback_opens_lower(source, target):
+      findings.append("the sentence opens with %r in lower case, where its English opens with a capital; let a "
+                      "word open it and keep the name as the server writes it" % target.split()[0])
    if tag in READBACK_PROVIDER_NAMES and READBACK_IDENTITY_PROVIDER.search(source) and not READBACK_OTHER_PROVIDER.search(source):
       name, others = READBACK_PROVIDER_NAMES[tag]
       for match in others.finditer(target):
@@ -739,6 +766,7 @@ def self_test():
    query = "Type a domain and press Query. The answer lists the servers that receive that domain's mail."
    register = "Register this server as an application with the identity provider, download the provider's public signing key."
    saml = "Sign people in with a SAML identity provider. Give the provider this server's metadata."
+   mode = "Mode and max_age read from hMailServer.ini on this machine."
    readback_cases = {
       ("zh-Hans", stop, "停止更新？尚未安装任何内容。"): True,
       ("zh-Hans", stop, "是否停止更新？尚未安装任何内容。"): False,
@@ -753,14 +781,14 @@ def self_test():
       ("ja", query, "ドメインを入力して [照会] を押してください。"): False,
       ("ja", "Press Run diagnostics and the result appears here.", "まだ何も実行していません。診断を実行 を押すと、"): True,
       ("ja", "Press Ctrl+K to search every page.", "Ctrl+K を押してすべてのページを検索してください。"): False,
-      ("fi", "So a locked database defers mail instead of bouncing it.", "joten tietokanta lykkää postia sen sijaan että palauttaisi sen."): True,
-      ("fi", "So a locked database defers mail instead of bouncing it.", "joten tietokanta lykkää postia sen sijaan, että palauttaisi sen."): False,
-      ("fi", "So a locked database defers mail instead of bouncing it.", "joten tietokanta lykkää postia, sen sijaan että palauttaisi sen."): False,
+      ("fi", "So a locked database defers mail instead of bouncing it.", "Joten tietokanta lykkää postia sen sijaan että palauttaisi sen."): True,
+      ("fi", "So a locked database defers mail instead of bouncing it.", "Joten tietokanta lykkää postia sen sijaan, että palauttaisi sen."): False,
+      ("fi", "So a locked database defers mail instead of bouncing it.", "Joten tietokanta lykkää postia, sen sijaan että palauttaisi sen."): False,
       ("fi", "Remove the sample before this server takes real mail.", "Poista näyte ennen kuin tämä palvelin ottaa vastaan postia."): True,
       ("fi", "Remove the sample before this server takes real mail.", "Poista näyte, ennen kuin tämä palvelin ottaa vastaan postia."): False,
       ("fi", "Wait, and do not sign out until it has.", "Odota, ja ennen kuin se on valmis, älä kirjaudu ulos."): False,
-      ("nb", "One slow dependency does this to the whole server, which is why.", "gjør dette mot hele serveren, som er grunnen til at"): True,
-      ("nb", "One slow dependency does this to the whole server, which is why.", "gjør dette mot hele serveren, noe som er grunnen til at"): False,
+      ("nb", "One slow dependency does this to the whole server, which is why.", "Gjør dette mot hele serveren, som er grunnen til at"): True,
+      ("nb", "One slow dependency does this to the whole server, which is why.", "Gjør dette mot hele serveren, noe som er grunnen til at"): False,
       ("da", query, "Skriv et domæne, og tryk på Forespørgsel, som er grunnen til at"): False,
       ("uk", register, "Зареєструйте цей сервер у постачальника ідентичності, завантажте ключ підписування провайдера."): True,
       ("uk", register, "Зареєструйте цей сервер у постачальника ідентичності, завантажте ключ підписування постачальника."): False,
@@ -768,6 +796,13 @@ def self_test():
       ("zh-Hans", saml, "通过 SAML 身份提供方让用户登录。把本服务器的元数据提供给提供商。"): True,
       ("zh-Hans", saml, "通过 SAML 身份提供方让用户登录。把本服务器的元数据提供给提供方。"): False,
       ("zh-Hans", "Set both to the exact values your identity provider puts in its tokens.", "请把两者都设为您的提供者放入令牌中的确切值。"): True,
+      ("cs", mode, "mode a max_age načtené z hMailServer.ini na tomto počítači."): True,
+      ("cs", mode, "Hodnoty mode a max_age byly načteny z hMailServer.ini na tomto počítači."): False,
+      ("uk", mode, "mode і max_age прочитано з hMailServer.ini на цьому комп’ютері."): True,
+      ("ja", mode, "mode と max_age は、このコンピューターの hMailServer.ini から読み取りました。"): False,
+      ("pl", "Windows did not run it as an administrator", "system Windows nie uruchomił go jako administrator"): False,
+      ("fi", "Could not write to hMailServer.ini: {0}.", "hMailServer.ini-tiedostoon ei voitu kirjoittaa: {0}."): False,
+      ("da", "Autodiscover and autoconfig are served by the built-in HTTP listener.", "autoconfig og Autodiscover leveres af den indbyggede HTTP-lytter."): False,
    }
    for (tag, source, value), expected in readback_cases.items():
       found = bool(readback_findings(tag, source, value))

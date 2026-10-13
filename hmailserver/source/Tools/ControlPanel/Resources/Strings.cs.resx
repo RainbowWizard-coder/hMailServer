@@ -7482,7 +7482,7 @@ Nic, co tam již je, se neodstraní.</value>
     <value>Pře_sunout nebo přejmenovat…</value>
   </data>
   <data name="Mode and max_age read from hMailServer.ini on this machine." xml:space="preserve">
-    <value>mode a max_age načtené z hMailServer.ini na tomto počítači.</value>
+    <value>Hodnoty mode a max_age byly načteny z hMailServer.ini na tomto počítači.</value>
   </data>
   <data name="Monitoring" xml:space="preserve">
     <value>Monitorování</value>

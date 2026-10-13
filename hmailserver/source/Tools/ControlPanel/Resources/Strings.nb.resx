@@ -7394,7 +7394,7 @@ Ingenting som allerede er der, fjernes.</value>
     <value>Fly_tt eller gi nytt navn…</value>
   </data>
   <data name="Mode and max_age read from hMailServer.ini on this machine." xml:space="preserve">
-    <value>mode og max_age lest fra hMailServer.ini på denne maskinen.</value>
+    <value>Verdiene for mode og max_age er lest fra hMailServer.ini på denne maskinen.</value>
   </data>
   <data name="Monitoring" xml:space="preserve">
     <value>Overvåking</value>

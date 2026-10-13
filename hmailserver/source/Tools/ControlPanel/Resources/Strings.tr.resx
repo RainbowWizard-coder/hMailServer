@@ -7394,7 +7394,7 @@ Zaten orada olan hiçbir şey silinmez.</value>
     <value>Taşı veya yeniden adlandı_r…</value>
   </data>
   <data name="Mode and max_age read from hMailServer.ini on this machine." xml:space="preserve">
-    <value>mode ve max_age bu makinedeki hMailServer.ini'den okundu.</value>
+    <value>Bu makinedeki hMailServer.ini'den mode ve max_age değerleri okundu.</value>
   </data>
   <data name="Monitoring" xml:space="preserve">
     <value>İzleme</value>

@@ -7394,7 +7394,7 @@ Mitään jo olemassa olevaa ei poisteta.</value>
     <value>Si_irrä tai nimeä uudelleen…</value>
   </data>
   <data name="Mode and max_age read from hMailServer.ini on this machine." xml:space="preserve">
-    <value>mode ja max_age luettu tämän koneen hMailServer.ini-tiedostosta.</value>
+    <value>Arvot mode ja max_age on luettu tämän koneen hMailServer.ini-tiedostosta.</value>
   </data>
   <data name="Monitoring" xml:space="preserve">
     <value>Valvonta</value>

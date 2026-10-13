@@ -7482,7 +7482,7 @@
     <value>Перенести або пере_йменувати…</value>
   </data>
   <data name="Mode and max_age read from hMailServer.ini on this machine." xml:space="preserve">
-    <value>mode і max_age прочитано з hMailServer.ini на цьому комп’ютері.</value>
+    <value>Значення mode і max_age прочитано з hMailServer.ini на цьому комп’ютері.</value>
   </data>
   <data name="Monitoring" xml:space="preserve">
     <value>Моніторинг</value>

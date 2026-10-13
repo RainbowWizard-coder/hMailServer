@@ -4894,11 +4894,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   a button set off by spaces in Chinese or Japanese, where Chinese quotes it and Japanese brackets it; a space after a
   Chinese full-width mark, or a half-width question mark after Chinese text; a Finnish subordinate clause after sen
   sijaan, ennen kuin, kunnes or their kin with no comma before it; a Norwegian som that stands for the whole clause
-  before it; and a Ukrainian or Chinese text that names the identity provider two ways. Run over the catalogues as
-  they were, the rules make 151 findings in 138 texts; the self-test holds each rule against a text the read-back
-  mended, as it was and as it is. `TranslationReadbackTests` holds one mended text of each of the eight catalogues;
-  the default IP ranges' names, My computer and Internet, which the server gives in English; and the Ukrainian
-  quarantine's questions for deleting 21 or 31 messages, which speak of the senders as they do for 5.
+  before it; a Ukrainian or Chinese text that names the identity provider two ways; and, in any catalogue, a sentence
+  that opens in lower case where its English opens with a capital, a name the server writes in lower case excepted.
+  Run over the catalogues as they were, the rules make 151 findings in 138 texts; the self-test holds each rule
+  against a text the read-back mended, as it was and as it is. `TranslationReadbackTests` holds one mended text of
+  each of the eight catalogues; the default IP ranges' names, My computer and Internet, which the server gives in
+  English; and the Ukrainian quarantine's questions for deleting 21 or 31 messages, which speak of the senders as
+  they do for 5.
 
 ### Administration
 
