@@ -132,6 +132,7 @@ sys.path[:] = [p for p in sys.path if os.path.normcase(os.path.realpath(p or os.
 import argparse
 import datetime
 import importlib.util
+import inspect
 import io
 import json
 import re
@@ -1100,9 +1101,10 @@ def self_test():
             # The branch is left checked out in no worktree, as a batch is folded in its own.
             run(work, "checkout", "-q", "--detach")
             sink = io.StringIO()
+            # checkout="default" runs land() with its own checkout check, as main() does.
+            held = {} if kw.get("checkout") == "default" else {"checkout": kw.get("checkout", same_checkout)}
             try:
-                code = land(opts, Git(work), api, sink, sleep=lambda s: None, scan=kw.get("scan", clean_scan),
-                            checkout=kw.get("checkout", same_checkout))
+                code = land(opts, Git(work), api, sink, sleep=lambda s: None, scan=kw.get("scan", clean_scan), **held)
             except Refused as e:
                 print(str(e), file=sink)
                 code = e.code
@@ -1229,6 +1231,35 @@ def self_test():
         scanner.loader.exec_module(scanner_module)
         expect("CHECKOUT_COPIES hold this script, sign-off.py and scan-secrets.py's OWN",
                sorted((set(scanner_module.OWN) | {"build/land-via-mr.py", "build/sign-off.py"}) - set(CHECKOUT_COPIES)), [])
+        # What a real landing runs: main() calls land() with no scan and no checkout check
+        # of its own, so land()'s defaults - build/scan-secrets.py, and this checkout's
+        # copies held to the base - are what holds every landing. A default replaced, or a
+        # main() that passed a stand-in, would turn either off with every gate green and
+        # every case above, which pass their own, still passing.
+        parameters = inspect.signature(land).parameters
+        expect("land()'s secret scan is secret_scan unless a caller gives another",
+               parameters["scan"].default is secret_scan, True)
+        expect("land()'s checkout check is checkout_differs unless a caller gives another",
+               parameters["checkout"].default is checkout_differs, True)
+        held_land = globals()["land"]
+        landed = []
+        globals()["land"] = lambda *a, **kw: landed.append((a, kw)) or 0
+        try:
+            main(["batch1", "--dry-run"])
+        finally:
+            globals()["land"] = held_land
+        expect("main() runs land() with land()'s own secret scan and checkout check",
+               [(len(a), sorted(k for k in kw if k in ("scan", "checkout"))) for a, kw in landed], [(4, [])])
+        # ... and land() run so, from this tree, over a project whose master has none of
+        # the files it runs: refused before the scan and any API call, each file named.
+        bare, work = scenario("default-checkout")
+        commit(work, "signed")
+        api = FakeGitLab(bare, approved_by=[zain])
+        del scans[:]
+        code, text = attempt(work, api, checkout="default")
+        expect("land()'s own checkout check, this tree against another master: exit", code, 2)
+        expect("land()'s own checkout check: no API call, no scan", (api.calls, scans), ([], []))
+        expect("land()'s own checkout check: each of the files named", [p for p in CHECKOUT_COPIES if p not in text], [])
 
         # 2c. A worktree with master checked out keeps it, and is named, to be brought to
         #     the tip before the next landing.
