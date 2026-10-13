@@ -6079,12 +6079,14 @@ namespace hMailServer.ControlPanel.Views
             // floating in empty space), and as wide as that column whatever its cards
             // hold, so that every card of every tab ends at one edge (FormColumnPanel;
             // review finding F295). The right inset is the room the tab's own scroll
-            // bar takes, so that no note runs underneath it.
+            // bar takes, so that no note runs underneath it. On another page (an embedded
+            // section) the column, the scroll bar and the gaps are the host's: the cards
+            // are as wide as its own and end at the edge they end at.
             var panel = new Scaffold.FormColumnPanel
             {
-               MaxWidth = DesignTokens.FormWidth,
+               MaxWidth = embedded_ ? double.PositiveInfinity : DesignTokens.FormWidth,
                HorizontalAlignment = HorizontalAlignment.Left,
-               Margin = new Thickness(0, DesignTokens.Space.Xs, DesignTokens.Space.Md, DesignTokens.Space.Xs)
+               Margin = embedded_ ? new Thickness(0) : new Thickness(0, DesignTokens.Space.Xs, DesignTokens.Space.Md, DesignTokens.Space.Xs)
             };
 
             // Why this tab's REST settings cannot be read when the REST API cannot
@@ -6316,6 +6318,7 @@ namespace hMailServer.ControlPanel.Views
          else
             ShowNotice_(environmentSentence, StatusLevel.Information);
 
+         PlaceEmbeddedFooter_();
          afterBuildUi_?.Invoke();
 
          // The editors were filled above, and a WPF-UI NumberBox raises

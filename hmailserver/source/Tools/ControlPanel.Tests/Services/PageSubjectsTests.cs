@@ -182,10 +182,12 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// A section shown on another page draws no frame of its own: no header and no
-      /// padding, no Reload, no scroll viewer that would take the mouse wheel from the
-      /// page's, and its Save, with the pill beside it, under its cards, which Ctrl+S
-      /// knows by its command whatever the host names it.
+      /// A section shown on another page draws no frame of its own: no header, no
+      /// padding, no gap and no width of its own, no Reload, no scroll viewer that would
+      /// take the mouse wheel from the page's; and its Save, with the pill beside it, is
+      /// its last card's own, in the card's footer - on a page whose cards answer their
+      /// own access keys, the key is then the card's - and Ctrl+S knows it by its
+      /// command whatever the host names it.
       /// </summary>
       [Fact]
       public void AnEmbeddedSectionDrawsNoFrameOfItsOwn()
@@ -196,9 +198,23 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("== \"settings-reload\"", embedded, StringComparison.Ordinal);
          Assert.Contains("PageCommands.SetCommand(SaveButton, PageCommand.Save);", embedded, StringComparison.Ordinal);
          Assert.Contains("footer.Children.Add(HeaderActions);", embedded, StringComparison.Ordinal);
+         Assert.Contains("SettingsTabs.Padding = new Thickness(0);", embedded, StringComparison.Ordinal);
+         Assert.DoesNotContain("frame.Children.Add(footer);", embedded, StringComparison.Ordinal);
+
+         string place = WithheldRowTests.MemberText(embedded, "private void PlaceEmbeddedFooter_()");
+         Assert.True(place != null, "ServerSettingsView.PlaceEmbeddedFooter_ is gone.");
+         Assert.Contains(".SelectMany(panel => panel.Children.OfType<Scaffold.Card>())", place, StringComparison.Ordinal);
+         Assert.Contains(".LastOrDefault();", place, StringComparison.Ordinal);
+         int leave = place.IndexOf("embeddedFooterCard_.Footer = null;", StringComparison.Ordinal);
+         int enter = place.IndexOf("last.Footer = embeddedFooter_;", StringComparison.Ordinal);
+         Assert.True(leave > 0 && enter > leave, "The footer does not leave the card the drawing replaced before it goes into the new one.");
 
          string build = WithheldRowTests.MemberText(ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.xaml.cs")), "private void BuildUi()");
          Assert.Matches(new System.Text.RegularExpressions.Regex(@"object content = embedded_\s*\?\s*panel\s*:\s*new ScrollViewer"), build);
+         Assert.Contains("MaxWidth = embedded_ ? double.PositiveInfinity : DesignTokens.FormWidth,", build, StringComparison.Ordinal);
+         Assert.Contains("Margin = embedded_ ? new Thickness(0) :", build, StringComparison.Ordinal);
+         int placed = build.IndexOf("PlaceEmbeddedFooter_();", StringComparison.Ordinal);
+         Assert.True(placed > build.IndexOf("SettingsTabs.Items.Add(", StringComparison.Ordinal), "The footer is placed before the cards are drawn.");
       }
 
       /// <summary>

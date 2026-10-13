@@ -313,7 +313,7 @@
              until review finding F273, the server's settings drawn by
              ServerSettingsView's RuleLimits section (RulesView.EnterLimits_). Not on
              the account dialog's Rules tab, whose rules are the account's. -->
-        <ContentControl x:Name="LimitsHost" Focusable="False" IsTabStop="False" Margin="0,16,0,0" />
+        <ContentControl x:Name="LimitsHost" Focusable="False" IsTabStop="False" Margin="0,12,0,0" />
         </scaffold:FillPanel>
         </ScrollViewer>
     </Grid>
