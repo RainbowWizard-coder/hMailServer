@@ -6741,7 +6741,8 @@ STDMETHODIMP InterfaceSettings::put_AutoBanWidenByReverseName(VARIANT_BOOL newVa
 }
 
 // The PROXY protocol on the IMAP and POP3 listeners: each listener's switch and its
-// list of the peers allowed to send the header, read by TCPServer at every accept.
+// list of the peers allowed to send the header, which TCPServer reads at every accept
+// on that listener, the list only while the switch is on.
 // SMTP's pair is in the [Settings] store (GetIniSetting / SetIniSetting).
 STDMETHODIMP InterfaceSettings::get_IMAPProxyProtocolEnabled(VARIANT_BOOL *pVal)
 {

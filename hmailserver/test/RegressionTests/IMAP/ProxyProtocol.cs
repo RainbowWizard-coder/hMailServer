@@ -121,7 +121,8 @@ namespace RegressionTests.IMAP
       [Test]
       [Description("The header is required from a peer on the list: an IMAP command where the header is due " +
                    "is an invalid header, answered with nothing and reported in the error log, because a " +
-                   "proxy that sends none - a health check that speaks IMAP, say - is misconfigured.")]
+                   "proxy that sends none - a health check that sends a command before the greeting, say - " +
+                   "is misconfigured.")]
       public void TrustedPeerThatSendsNoHeaderIsClosedAndReported()
       {
          ProxyProtocolClient.SetImap(_settings, true, _thisMachine);
@@ -229,21 +230,34 @@ namespace RegressionTests.IMAP
       [Test]
       [Description("While the switch is on, a PROXY header from a peer that is not on the list is an attempt " +
                    "to name a client without the right to: the connection, greeted at once as an ordinary one, " +
-                   "is closed without an answer, as the SMTP listener does.")]
+                   "is closed without an answer, as the SMTP listener does - in each of the header's version 1 " +
+                   "forms, TCP4, TCP6 and UNKNOWN, with and without the addresses UNKNOWN may carry.")]
       public void HeaderFromAnUntrustedPeerClosesTheConnection()
       {
          ProxyProtocolClient.SetImap(_settings, true, "192.0.2.99");
 
-         using (var client = new ProxyProtocolClient(143))
+         string[] headers =
          {
-            client.ReadUntil("* OK");
+            ProxyProtocolClient.Version1Tcp4("198.51.100.76", 45104, TestPorts.Actual(143)),
+            "PROXY TCP6 2001:db8::76 ::1 45105 " + TestPorts.Actual(143) + "\r\n",
+            "PROXY UNKNOWN\r\n",
+            "PROXY UNKNOWN 2001:db8::77 ::1 45106 " + TestPorts.Actual(143) + "\r\n"
+         };
 
-            client.Send(ProxyProtocolClient.Version1Tcp4("198.51.100.76", 45104, TestPorts.Actual(143)));
+         foreach (string header in headers)
+         {
+            using (var client = new ProxyProtocolClient(143))
+            {
+               client.ReadUntil("* OK");
 
-            string received = client.ReadUntilRemoteClose();
+               client.Send(header);
 
-            ClassicAssert.AreEqual("", received,
-               "A header from a peer that is not trusted must close the connection without an answer. Got: " + received);
+               string received = client.ReadUntilRemoteClose();
+
+               ClassicAssert.AreEqual("", received,
+                  "A header from a peer that is not trusted must close the connection without an answer. Header: " +
+                  header.TrimEnd() + ". Got: " + received);
+            }
          }
       }
 
@@ -288,19 +302,54 @@ namespace RegressionTests.IMAP
       }
 
       [Test]
-      [Description("A version 1 UNKNOWN header names no client, so the session keeps the address it comes " +
-                   "from, whose range lets LOGIN through.")]
-      public void Version1UnknownKeepsTheConnectionsOwnAddress()
+      [Description("A version 1 UNKNOWN header and a version 2 LOCAL one name no client, so the session keeps " +
+                   "the address it comes from, whose range lets LOGIN through - and the header is read as one: " +
+                   "the greeting is the first thing the server sends and nothing but the LOGIN's reply follows " +
+                   "it, where a server that did not read the header would greet at once and answer its bytes " +
+                   "as commands.")]
+      public void HeadersThatNameNoClientKeepTheConnectionsOwnAddress()
       {
          ProxyProtocolClient.SetImap(_settings, true, _thisMachine);
 
          using (var client = new ProxyProtocolClient(143))
          {
             client.Send("PROXY UNKNOWN\r\n");
-            client.ReadUntil("* OK");
 
-            StringAssert.StartsWith("a1 OK", Login(client, "test"));
+            StringAssert.StartsWith("a1 OK", LoginWithNothingButTheGreetingBefore(client));
          }
+
+         using (var client = new ProxyProtocolClient(143))
+         {
+            client.Send(ProxyProtocolClient.Version2(false /* LOCAL */, 0x00 /* AF_UNSPEC */, new byte[0]));
+
+            StringAssert.StartsWith("a1 OK", LoginWithNothingButTheGreetingBefore(client));
+         }
+      }
+
+      /// <summary>
+      ///    Reads the greeting as the first line, logs on, and returns the LOGIN's tagged
+      ///    reply, failing the test if anything but untagged data came between the two:
+      ///    an answer there is the server reading a header's bytes as a command.
+      /// </summary>
+      private string LoginWithNothingButTheGreetingBefore(ProxyProtocolClient client)
+      {
+         string greeting = client.ReadUntil("\r\n");
+
+         StringAssert.StartsWith("* OK", greeting, "The greeting must be the first line the server sends. Got: " + greeting);
+
+         client.Send("a1 LOGIN " + _account.Address + " test\r\n");
+
+         string seen = client.ReadUntil("a1 ");
+         string[] lines = seen.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+
+         for (int i = 0; i < lines.Length - 1; i++)
+         {
+            StringAssert.StartsWith("* ", lines[i],
+               "Nothing but untagged data may come between the greeting and the LOGIN's reply; an answer there " +
+               "is the server reading the header's bytes as a command. Got: " + seen);
+         }
+
+         return lines[lines.Length - 1];
       }
 
       [Test]

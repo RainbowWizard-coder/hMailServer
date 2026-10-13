@@ -4711,9 +4711,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   rules judge, is not thereby trusted to name IMAP and POP3 ones, nor the reverse. The country policy and
   `OnClientConnect` are still asked at the accept, before the header, about the balancer, as on SMTP
   ([CountryBlocking.md](hmailserver/docs/CountryBlocking.md), [EventScripts.md](hmailserver/docs/EventScripts.md)).
-  The fixtures `IMAP.ProxyProtocol` and `POP3.ProxyProtocol` (10 and 9 tests) each assert a refusal that only the
-  named client's range or ban can give; the active-active lab's balancer sends `send-proxy-v2` to all three
-  listeners, and its `proxy` scenario shows the auto-ban banning the client behind the balancer and not the balancer.
+  In the fixtures `IMAP.ProxyProtocol` and `POP3.ProxyProtocol` (10 and 9 tests), four in each assert a refusal that
+  only the named client's range or ban can give - a version 1 and a version 2 header, a range that refuses the
+  protocol, and the auto-ban; the rest hold the refusal of an untrusted peer's PROXY line and of a listed peer's
+  missing header, the headers that name no client, the lists kept apart, the switch off and, on IMAP, a command
+  tagged PROXY. With the fix reverted 14 of the 19 fail, and the 5 that pass either way are those that assert that
+  nothing changes: the switch off, the lists kept apart and the tagged command. The active-active lab's balancer
+  sends `send-proxy-v2` to all three listeners, and its `proxy` scenario shows the auto-ban banning the client behind
+  the balancer and not the balancer.
 - **Fixed: an answer of the HTTP listeners that its handler returned after the listener's request deadline was cut off
   after its first 64 KB.** The REST API, the webmail, the Control Deck, CalDAV and CardDAV, and the web services all
   answer through one HTTP server, whose request deadline - 30 seconds on the REST listener, 15 on the web services' -
