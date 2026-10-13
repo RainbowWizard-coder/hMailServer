@@ -56,11 +56,13 @@ Two values that look right are not:
 
 Either way, the service has to be restarted before the server reads it.
 
-- **In the Control Panel**: Maintenance > Updates - in 6.3.3 and earlier,
-  Settings, Network, API & monitoring, the Updates card. Put the value in the
-  field labelled "Update feed URL (empty = the built-in feed)" - "Feed URL (empty
-  = this project's GitHub releases; set for a mirror)" up to 6.3.3. Save, and let
-  the Control Panel restart the service when it offers to.
+- **In the Control Panel**: from 6.3.7, Maintenance > Updates, in the field
+  labelled "Update feed URL (empty = the built-in feed)". In 6.3.4 to 6.3.6 the
+  field is on Monitoring & troubleshooting > API & monitoring, the Updates card,
+  labelled "Update feed URL (empty = the built-in feed; set for a mirror)", and up
+  to 6.3.3 on the same card, labelled "Feed URL (empty = this project's GitHub
+  releases; set for a mirror)". Save, and let the Control Panel restart the
+  service when it offers to.
 - **In the file**: `Bin\hMailServer.INI` in the installation folder
   (`C:\Program Files\hMailServer\Bin` unless it was installed somewhere else).
   Edit it as an administrator. Add the line under `[Settings]`, or replace an
