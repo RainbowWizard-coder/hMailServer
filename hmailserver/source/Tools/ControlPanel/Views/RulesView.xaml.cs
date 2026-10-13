@@ -200,7 +200,9 @@ namespace hMailServer.ControlPanel.Views
          EnterLimits_();
       }
 
-      // F5 and Refresh read the rules again, and the card unless it holds an edit.
+      // F5 where the page has no Refresh to press (the account dialog's Rules tab, its
+      // header hidden): the rules read again, and the card, where there is one, unless it
+      // holds an edit. The header's Refresh does the same (Refresh_Click).
       void IRefreshablePage.Refresh()
       {
          HideOutcome_();
@@ -595,8 +597,17 @@ namespace hMailServer.ControlPanel.Views
       private void ShowListState_() => ListSearchState.Show(RuleGrid, SearchBar.SearchText, CountPill,
          n => Plural(n, "{0} rule", "{0} rules"), EmptyStatus, L("No rules defined yet - create one below."));
 
-      /// <summary>The header's Refresh: the list read again, as F5 reads it.</summary>
-      private void Refresh_Click(object sender, RoutedEventArgs e) => Reload();
+      /// <summary>
+      /// The header's Refresh, which F5 presses (PageCommands.Refresh): the list read
+      /// again, and the Rule limits card unless it holds an edit. The card was read
+      /// again by IRefreshablePage.Refresh alone, which F5 reaches only on a page with
+      /// no Refresh to press - the account dialog's Rules tab, which has no card.
+      /// </summary>
+      private void Refresh_Click(object sender, RoutedEventArgs e)
+      {
+         Reload();
+         limits_?.RefreshUnlessEdited();
+      }
 
       private static readonly string[] FieldNames =
          { "?", L("From"), L("To"), L("CC"), L("Subject"), L("Body"), L("Message size"), L("Recipient list"), L("Delivery attempts"),

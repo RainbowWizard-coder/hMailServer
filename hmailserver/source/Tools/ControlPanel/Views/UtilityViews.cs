@@ -99,7 +99,9 @@ namespace hMailServer.ControlPanel.Views
          del.Click += (s, e) => DeleteSelected();
          var refresh = new Wpf.Ui.Controls.Button { Content = L("_Refresh") };
          System.Windows.Automation.AutomationProperties.SetAutomationId(refresh, "relays-refresh");
-         refresh.Click += (s, e) => Reload();
+         // F5 presses it (PageCommands.Refresh), so it reads what IRefreshablePage.Refresh
+         // does: the relays, and the proxies' card unless it holds an edit.
+         refresh.Click += (s, e) => ((IRefreshablePage)this).Refresh();
 
          grid.Children.Add(new PageHeader
          {
@@ -220,7 +222,8 @@ namespace hMailServer.ControlPanel.Views
          proxies_.OnEnter();
       }
 
-      // F5 and Refresh read the relays again, and the proxies' card unless it holds an edit.
+      // The header's Refresh, which F5 presses: the relays read again, and the proxies'
+      // card unless it holds an edit.
       void IRefreshablePage.Refresh()
       {
          Reload();

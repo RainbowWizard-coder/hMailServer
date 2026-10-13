@@ -164,7 +164,14 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("public bool HasUnsavedChanges => limits_?.HasUnsavedChanges == true;", rules, StringComparison.Ordinal);
          Assert.Contains("public bool SaveChanges() => limits_ == null || limits_.SaveChanges();", rules, StringComparison.Ordinal);
          Assert.Contains("public bool RevealSetting(string key, string label) => limits_ != null && limits_.RevealSetting(key, label);", rules, StringComparison.Ordinal);
-         Assert.Contains("limits_?.RefreshUnlessEdited();", rules, StringComparison.Ordinal);
+         // The Refresh that F5 presses reads the card again, not only the page F5 reads
+         // where there is no Refresh to press (PageCommands.Refresh).
+         string refresh = WithheldRowTests.MemberText(rules, "private void Refresh_Click(object sender, RoutedEventArgs e)");
+         Assert.True(refresh != null, "RulesView.Refresh_Click is gone.");
+         Assert.Matches(new System.Text.RegularExpressions.Regex(@"\{\s*Reload\(\);\s*limits_\?\.RefreshUnlessEdited\(\);\s*\}"), refresh);
+         Assert.Contains("Click=\"Refresh_Click\"", ReadControlPanelFile(Path.Join("Views", "RulesView.xaml")), StringComparison.Ordinal);
+         string refreshable = WithheldRowTests.MemberText(rules, "void IRefreshablePage.Refresh()");
+         Assert.Contains("limits_?.RefreshUnlessEdited();", refreshable, StringComparison.Ordinal);
          string configure = WithheldRowTests.MemberText(rules, "public void ConfigureForRules(Func<dynamic> rulesProvider, bool serverLevel, bool embedded)");
          Assert.Contains("LimitsHost.Visibility = Visibility.Collapsed;", configure, StringComparison.Ordinal);
          Assert.Contains("<ContentControl x:Name=\"LimitsHost\"", ReadControlPanelFile(Path.Join("Views", "RulesView.xaml")), StringComparison.Ordinal);
@@ -198,7 +205,11 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("new ServerSettingsView(ServerSettingsView.Section.FrontEndProxies, embedded: true)", relays, StringComparison.Ordinal);
          Assert.Contains("SaveCaption = L(\"Save pro_xy settings\")", relays, StringComparison.Ordinal);
          Assert.Contains("public bool HasUnsavedChanges => proxies_.HasUnsavedChanges;", relays, StringComparison.Ordinal);
-         Assert.Contains("proxies_.RefreshUnlessEdited();", relays, StringComparison.Ordinal);
+         // The header's Refresh, which F5 presses, reads the card again as the page's refresh does.
+         Assert.Contains("refresh.Click += (s, e) => ((IRefreshablePage)this).Refresh();", relays, StringComparison.Ordinal);
+         Assert.DoesNotContain("refresh.Click += (s, e) => Reload();", relays, StringComparison.Ordinal);
+         string refreshable = WithheldRowTests.MemberText(relays, "void IRefreshablePage.Refresh()");
+         Assert.Matches(new System.Text.RegularExpressions.Regex(@"\{\s*Reload\(\);\s*proxies_\.RefreshUnlessEdited\(\);\s*\}"), refreshable);
          Assert.Contains("parts.Children.Add(proxies_);", relays, StringComparison.Ordinal);
       }
 
