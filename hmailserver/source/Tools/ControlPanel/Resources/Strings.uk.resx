@@ -11795,7 +11795,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>Задайте поріг автоблокування і тривалість блокування.</value>
   </data>
   <data name="Set the connection security on each listener, then require it for authentication." xml:space="preserve">
-    <value>Задайте захист підключення на кожному слухачі, потім вимагайте її для автентифікації.</value>
+    <value>Задайте захист підключення на кожному слухачі, потім вимагайте його для автентифікації.</value>
   </data>
   <data name="Set the folder PST files are copied into; the import job itself is started in the Control Deck or over the REST API." xml:space="preserve">
     <value>Задайте папку, до якої копіюються файли PST; саме завдання імпорту запускається в Control Deck або через REST API.</value>

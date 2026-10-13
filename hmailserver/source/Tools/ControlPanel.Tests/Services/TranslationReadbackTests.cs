@@ -36,6 +36,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("ja", "Sendout queued {0}.", "{0} に一斉送信をキューに入れました。")]
       [InlineData("fi", "The cipher list could not be read.", "Salauslistaa ei voitu lukea.")]
       [InlineData("uk", "No listeners are configured.", "Слухачів не налаштовано.")]
+      [InlineData("uk", "Set the connection security on each listener, then require it for authentication.", "Задайте захист підключення на кожному слухачі, потім вимагайте його для автентифікації.")]
       [InlineData("zh-Hans", "Stop the update? Nothing has been installed yet.", "是否停止更新？尚未安装任何内容。")]
       [InlineData("tr", "Alias addr_ess", "Di_ğer ad adresi")]
       public void AMendedTextReadsAsMended(string tag, string english, string expected)
