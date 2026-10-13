@@ -514,7 +514,7 @@ namespace RegressionTests.SMTP
       public void EachEntryThatDoesNotParseIsReportedOnce()
       {
          // Not addresses, and new to this run of the server, which never reports an
-         // entry it has reported once.
+         // entry of a list again once it has reported it.
          string run = Guid.NewGuid().ToString("N").Substring(0, 12);
          string first = "not-an-address-" + run + "-a";
          string second = "not-an-address-" + run + "-b";
@@ -546,6 +546,76 @@ namespace RegressionTests.SMTP
          finally
          {
             DisableFeatures();
+         }
+      }
+
+      [Test]
+      [Description("An entry that does not parse is reported in the error log (HM6281) once for each list that " +
+                   "holds it, naming the list: one balancer is often listed for SMTP, IMAP and POP3 alike, so " +
+                   "that one host name written for it is a typo in each list. The same entry in SMTP's, IMAP's " +
+                   "and POP3's lists is three reports, each naming its setting, and the next connection to each " +
+                   "listener makes none. Kept by the entry's text alone, the first list's report left the " +
+                   "others unreported, and it named no list.")]
+      public void AnEntryThatDoesNotParseIsReportedForEachListThatHoldsIt()
+      {
+         // A host name, as one written for a balancer would be, and new to this run of
+         // the server, which never reports an entry of a list again once it has
+         // reported it.
+         string entry = "lb-" + Guid.NewGuid().ToString("N").Substring(0, 12) + ".example.net";
+
+         try
+         {
+            EnableProxyProtocol(entry);
+            ProxyProtocolClient.SetImap(_settings, true, entry);
+            ProxyProtocolClient.SetPop3(_settings, true, entry);
+
+            // The entry matches nothing, so this machine is an ordinary peer of each
+            // listener and is greeted at once. Each accept matched its listener's list
+            // before the greeting was sent, so a report it made is in the error log by
+            // the time the greeting has been read.
+            GreetAndLeaveEachListener();
+
+            CustomAsserts.AssertReportedError(
+               "The setting SMTPProxyProtocolTrustedIPs contains an entry that is not a valid IP address or CIDR range: " + entry,
+               "The setting IMAPProxyProtocolTrustedIPs contains an entry that is not a valid IP address or CIDR range: " + entry,
+               "The setting POP3ProxyProtocolTrustedIPs contains an entry that is not a valid IP address or CIDR range: " + entry);
+
+            GreetAndLeaveEachListener();
+
+            CustomAsserts.AssertNoReportedError();
+         }
+         finally
+         {
+            ProxyProtocolClient.TurnOffImapAndPop3(_settings);
+            DisableFeatures();
+         }
+      }
+
+      /// <summary>
+      ///    One plain connection to each of the SMTP, IMAP and POP3 listeners, from this
+      ///    machine and with no header: greeted, and left with the protocol's own goodbye.
+      /// </summary>
+      private static void GreetAndLeaveEachListener()
+      {
+         using (var smtp = new ProxyProtocolClient(25))
+         {
+            smtp.ReadUntil("220 ");
+            smtp.Send("QUIT\r\n");
+            smtp.ReadUntil("221");
+         }
+
+         using (var imap = new ProxyProtocolClient(143))
+         {
+            imap.ReadUntil("* OK");
+            imap.Send("a1 LOGOUT\r\n");
+            imap.ReadTaggedReply("a1");
+         }
+
+         using (var pop3 = new ProxyProtocolClient(110))
+         {
+            pop3.ReadUntil("+OK");
+            pop3.Send("QUIT\r\n");
+            pop3.ReadUntil("+OK");
          }
       }
 

@@ -4164,7 +4164,7 @@ namespace HM
       // one being authorised.
       return TrustedProxyList::Matches(
          IniFileSettings::Instance()->GetSMTPXClientTrustedIPs(),
-         GetTrueRemoteEndpointAddress());
+         GetTrueRemoteEndpointAddress(), _T("SMTPXClientTrustedIPs"));
    }
 
    void

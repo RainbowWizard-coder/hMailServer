@@ -880,7 +880,7 @@ namespace HM
       // header is ignored and the request is what it is: plain HTTP.
       AnsiString peerText = peer.ToString();
       bool loopback = peerText == "::1" || peerText.StartsWith("127.");
-      if (!loopback && !TrustedProxyList::Matches(IniFileSettings::Instance()->GetWebServicesTrustedProxies(), peer))
+      if (!loopback && !TrustedProxyList::Matches(IniFileSettings::Instance()->GetWebServicesTrustedProxies(), peer, _T("WebServicesTrustedProxies")))
          return false;
 
       // X-Forwarded-Proto is the de facto header for this (RFC 7239's Forwarded

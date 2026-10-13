@@ -7,6 +7,7 @@
 
 #include <mutex>
 #include <set>
+#include <utility>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -305,7 +306,7 @@ namespace HM
    }
 
    bool
-   TrustedProxyList::Matches(const String &configuredList, const IPAddress &address)
+   TrustedProxyList::Matches(const String &configuredList, const IPAddress &address, const String &listName)
    {
       if (configuredList.IsEmpty())
          return false;
@@ -319,7 +320,7 @@ namespace HM
          if (entry.IsEmpty())
             continue;
 
-         if (EntryMatches_(entry, address))
+         if (EntryMatches_(entry, address, listName))
             return true;
       }
 
@@ -327,7 +328,7 @@ namespace HM
    }
 
    bool
-   TrustedProxyList::EntryMatches_(const String &entry, const IPAddress &address)
+   TrustedProxyList::EntryMatches_(const String &entry, const IPAddress &address, const String &listName)
    {
       String addressPart = entry;
       int prefixLength = -1;
@@ -340,14 +341,14 @@ namespace HM
          String prefixPart = entry.Mid(slashIndex + 1);
          if (prefixPart.IsEmpty())
          {
-            ReportInvalidEntryOnce_(entry);
+            ReportInvalidEntryOnce_(listName, entry);
             return false;
          }
 
          unsigned int parsedPrefix = 0;
          if (!ParsePortNumber(prefixPart, parsedPrefix)) // digits-only parse; range-checked below
          {
-            ReportInvalidEntryOnce_(entry);
+            ReportInvalidEntryOnce_(listName, entry);
             return false;
          }
 
@@ -357,7 +358,7 @@ namespace HM
       IPAddress entryAddress;
       if (!entryAddress.TryParse(addressPart, false))
       {
-         ReportInvalidEntryOnce_(entry);
+         ReportInvalidEntryOnce_(listName, entry);
          return false;
       }
 
@@ -374,7 +375,7 @@ namespace HM
       {
          if (prefixLength > 32)
          {
-            ReportInvalidEntryOnce_(entry);
+            ReportInvalidEntryOnce_(listName, entry);
             return false;
          }
 
@@ -389,7 +390,7 @@ namespace HM
       // GetAddress2 = low 64 bits).
       if (prefixLength > 128)
       {
-         ReportInvalidEntryOnce_(entry);
+         ReportInvalidEntryOnce_(listName, entry);
          return false;
       }
 
@@ -404,28 +405,32 @@ namespace HM
    }
 
    void
-   TrustedProxyList::ReportInvalidEntryOnce_(const String &entry)
+   TrustedProxyList::ReportInvalidEntryOnce_(const String &listName, const String &entry)
    {
       // The list is consulted on every connection, so a configuration typo must
       // not write one error per connection - but it must also not be silent,
       // because a malformed entry FAILS CLOSED (it trusts nothing), which from
       // the administrator's chair looks like the feature not working. So each
-      // entry is reported the first time it is met and never again in this
-      // process, whichever list holds it: SMTP's PROXY and XCLIENT lists, IMAP's
-      // and POP3's, the web services' and the country exemptions all come here.
-      // Until 6.3.7 one latch served them all, and the first list's typo left
-      // every other list's unreported for the rest of the run.
+      // entry of each list is reported the first time it is met and never again
+      // in this process, naming the setting that holds it: SMTP's PROXY and
+      // XCLIENT lists, IMAP's and POP3's, the web services' and the country
+      // exemptions all come here, and one balancer is often listed in several of
+      // them, so that one typo for it is a typo in each. Kept by the entry's text
+      // alone, the first list to report it would leave the others unreported,
+      // and the one report would not say which list to mend. Until 6.3.7 one
+      // latch served them all, and the first entry reported left every other,
+      // in any list, unreported for the rest of the run.
       static std::mutex reported_mutex;
-      static std::set<String> reported;
+      static std::set<std::pair<String, String>> reported;
 
       {
          std::lock_guard<std::mutex> guard(reported_mutex);
 
-         if (!reported.insert(entry).second)
+         if (!reported.insert(std::make_pair(listName, entry)).second)
             return;
       }
 
       ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6281, "TrustedProxyList::EntryMatches_",
-         Formatter::Format(_T("The trusted proxy list contains an entry that is not a valid IP address or CIDR range: {0}. The entry is ignored (it matches nothing). It will not be reported again until the service is restarted."), entry));
+         Formatter::Format(_T("The setting {0} contains an entry that is not a valid IP address or CIDR range: {1}. The entry is ignored (it matches nothing). It will not be reported again for this setting until the service is restarted."), listName, entry));
    }
 }

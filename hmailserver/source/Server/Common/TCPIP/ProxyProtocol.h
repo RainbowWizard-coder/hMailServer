@@ -88,14 +88,19 @@ namespace HM
       endpoint), never an address that a PROXY header or XCLIENT command
       supplied, so that a chained proxy cannot bootstrap trust from an address
       it asserted itself.
+
+      listName is the name of the setting that holds the list (for example
+      SMTPProxyProtocolTrustedIPs). It decides nothing about the match: it is
+      what the error log names when an entry of the list does not parse, and
+      each list's entries are reported apart from every other list's.
    */
    class TrustedProxyList
    {
    public:
-      static bool Matches(const String &configuredList, const IPAddress &address);
+      static bool Matches(const String &configuredList, const IPAddress &address, const String &listName);
 
    private:
-      static bool EntryMatches_(const String &entry, const IPAddress &address);
-      static void ReportInvalidEntryOnce_(const String &entry);
+      static bool EntryMatches_(const String &entry, const IPAddress &address, const String &listName);
+      static void ReportInvalidEntryOnce_(const String &listName, const String &entry);
    };
 }

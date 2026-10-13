@@ -508,7 +508,9 @@ namespace HM
       if (exemptRanges.IsEmpty())
          return false;
 
-      return TrustedProxyList::Matches(exemptRanges, Unmapped(address));
+      // Named for the error log, should an entry not parse: the list given here
+      // is that setting's, or (from a tester) what it holds by default.
+      return TrustedProxyList::Matches(exemptRanges, Unmapped(address), PROPERTY_COUNTRY_EXEMPT_RANGES);
    }
 
    bool

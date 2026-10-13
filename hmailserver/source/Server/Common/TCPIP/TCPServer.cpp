@@ -127,11 +127,13 @@ namespace HM
       // are database settings of their own (IMAPProxyProtocolEnabled and the rest,
       // Constants.h), so that a peer trusted to name the clients of one protocol
       // is not thereby trusted to name those of another. The list is read only
-      // when the switch is on, and an empty one trusts nobody.
+      // when the switch is on, and an empty one trusts nobody. The list's name is
+      // what the error log names should one of its entries not parse.
       bool ProxyProtocolExpectedFrom_(SessionType sessionType, const IPAddress &peer)
       {
          bool enabled = false;
          String trusted;
+         const wchar_t *listName = nullptr;
 
          switch (sessionType)
          {
@@ -139,6 +141,7 @@ namespace HM
             enabled = IniFileSettings::Instance()->GetSMTPProxyProtocolEnabled();
             if (enabled)
                trusted = IniFileSettings::Instance()->GetSMTPProxyProtocolTrustedIPs();
+            listName = _T("SMTPProxyProtocolTrustedIPs");
             break;
          case STIMAP:
             {
@@ -146,6 +149,7 @@ namespace HM
                enabled = imap && imap->GetIMAPProxyProtocolEnabled();
                if (enabled)
                   trusted = imap->GetIMAPProxyProtocolTrustedIPs();
+               listName = PROPERTY_IMAP_PROXY_PROTOCOL_TRUSTED_IPS;
             }
             break;
          case STPOP3:
@@ -154,13 +158,14 @@ namespace HM
                enabled = pop3 && pop3->GetPOP3ProxyProtocolEnabled();
                if (enabled)
                   trusted = pop3->GetPOP3ProxyProtocolTrustedIPs();
+               listName = PROPERTY_POP3_PROXY_PROTOCOL_TRUSTED_IPS;
             }
             break;
          default:
             return false;
          }
 
-         return enabled && TrustedProxyList::Matches(trusted, peer);
+         return enabled && TrustedProxyList::Matches(trusted, peer, listName);
       }
    }
 
