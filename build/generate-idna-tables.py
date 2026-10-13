@@ -353,6 +353,7 @@ def collect(directory, pinned):
                              % (cp, record[2], classes_of_all[cp]))
     bidi = {cp: value for cp, value in enumerate(classes_of_all) if value != "L"}
     longest = processing_invariants(decompositions, classes, compositions, classes_of_all)
+    mapping_invariants(mapping)
     return {
         "texts": texts,
         "mapping": mapping,
@@ -364,6 +365,19 @@ def collect(directory, pinned):
         "joining": joining,
         "longest_decomposition": longest,
     }
+
+
+def mapping_invariants(mapping):
+    """The data held to what Idna::KindOfMapping and SURBL's weighing of a host before it
+    is mapped rest on (Idna.h, SURBL.cpp's CodePointsToMap_): a mapping that holds a
+    full stop is a full stop alone - none is mapped to "a.b" or ".." - so that the full
+    stops of a mapped name are those of the code points KindOfMapping says MapsToFullStop
+    of, and a code point mapped to anything else ends no label and makes none empty."""
+    full_stop = 0x2E
+    for first, _, status, target in mapping:
+        if status == "mapped" and full_stop in target and target != (full_stop,):
+            raise InputError("U+%04X is mapped to a full stop beside other code points: a host weighed before it is "
+                             "mapped would not count that full stop" % first)
 
 
 def processing_invariants(decompositions, classes, compositions, bidi_classes):

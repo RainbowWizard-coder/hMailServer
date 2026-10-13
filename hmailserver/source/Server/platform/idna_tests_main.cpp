@@ -34,7 +34,7 @@ main(int /*argc*/, char * /*argv*/[])
       return 1;
    }
 
-   printf("ok    UTS 46: IdnaTestV2.txt of Unicode 18.0.0, all %zu test lines - ToUnicode, ToASCII Nontransitional and Transitional with every check on, and ToASCII with the URL standard's flags - and Punycode against RFC 3492's samples, NFC, the URL standard's domain parser, a long label, and a label as written beside the label it decodes to\n",
+   printf("ok    UTS 46: IdnaTestV2.txt of Unicode 18.0.0, all %zu test lines - ToUnicode, ToASCII Nontransitional and Transitional with every check on, and ToASCII with the URL standard's flags - and Punycode against RFC 3492's samples, NFC, the URL standard's domain parser, a long label, a label as written beside the label it decodes to, and what the mapping writes each code point as\n",
           tester.GetLinesRun());
    return 0;
 }

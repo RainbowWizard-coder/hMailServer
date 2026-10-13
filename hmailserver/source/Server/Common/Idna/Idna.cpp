@@ -945,6 +945,35 @@ namespace HM
          return StatusOf_(codePoint) == IdnaTables::StatusIgnored;
       }
 
+      MappingKind
+      KindOfMapping(unsigned int codePoint)
+      {
+         const IdnaTables::MappingRange &range = MappingOf_(codePoint);
+         if (range.status == IdnaTables::StatusIgnored)
+            return MapsToNothing;
+
+         // A code point that is not mapped - valid, a deviation, which
+         // Nontransitional Processing keeps, or disallowed - is written as
+         // itself.
+         const bool mapped = range.status == IdnaTables::StatusMapped;
+         const size_t length = mapped ? range.length : 1;
+
+         bool nameCharacters = true;
+         for (size_t i = 0; i < length; i++)
+         {
+            const unsigned int c = mapped ? IdnaTables::MappingData[range.offset + i] : codePoint;
+            if (c >= 0x80)
+               return MapsPastAscii;
+            if (!((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == hyphen || c == '_'))
+               nameCharacters = false;
+         }
+
+         const unsigned int firstWritten = mapped ? IdnaTables::MappingData[range.offset] : codePoint;
+         if (length == 1 && firstWritten == fullStop)
+            return MapsToFullStop;
+         return nameCharacters ? MapsToNameCharacters : MapsToOtherAscii;
+      }
+
       unsigned int
       ToAscii(const CodePoints &domain, const Options &options, std::string &ascii)
       {

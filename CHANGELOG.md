@@ -876,36 +876,39 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   letters, or an internationalised one, no longer escapes the URI block lists.** Before it looks a host up, a browser
   maps it by Unicode's UTS 46, which is the WHATWG URL standard's "domain to ASCII": fullwidth and other compatibility
   letters and digits become ASCII ones, `U+3002` and the other full stops `.`, capitals small letters, the name is put
-  in NFC, and each label in Unicode becomes `xn--` and its Punycode - `http://ｅｖｉｌ。example/` goes to `evil.example`,
-  and `http://bücher.example/` to `xn--bcher-kva.example`. The SURBL test and the sender lists' URL entries deleted
-  only the code points UTS 46 ignores (6.3.6) and mapped nothing, so a listed name written in fullwidth letters was no
-  name at all, and a link to an internationalised name was asked about only as the ASCII labels after its last label
-  in Unicode, or not at all (in every version). A host that is not ASCII is now read by UTS 46 with the URL standard's
-  flags - the mapping, NFC, the validity criteria with RFC 5893's bidi rule and RFC 5892's joiner rules, and
-  Punycode - from tables generated out of Unicode 18.0.0's own data files and compiled in (`Common/Idna`,
-  `build/generate-idna-tables.py`), so that Windows and Linux read a host alike whatever Unicode version the system
-  has; an ASCII host is lowered and nothing more, as the standard has it. A label UTS 46 refuses - a code point it
-  disallows, the bidi or joiner rules broken, an `xn--` label that is not Punycode - still hands over the name before
-  it and the labels after it, as every label in Unicode did; a URL entry whose host is not ASCII and has such a label
-  is refused, as a browser fails it; and an entry written in Unicode covers a link written in its `xn--` form and the
-  other way round (`https://bücher.example/` is stored as `xn--bcher-kva.example/`). A label that can never be
-  short enough for a DNS name - its mapping holds a code point past ASCII and more than four times 63 code points,
-  which NFC can shorten fourfold at most - is not mapped further, so that a host of a megabyte that UTS 46 maps to
-  many times its length (`U+FDFA` is eighteen code points) costs about what 6.3.6's reading of it did, where
-  mapping the whole of it first took ten times the memory and the time. A host that is not ASCII is read as it is
-  written too, as 6.3.6 read it - percent-decoded, the ignored code points deleted, nothing mapped - and the hosts
-  that reading hands over are handed over after UTS 46's: a link in running text followed by a closing quotation
-  mark, a guillemet, a dash or CJK punctuation, which UTS 46 takes into the host's last label as it takes a letter,
-  or makes a label of after an ideographic full stop, names the host before the character as well, where the mail
-  programs that make the link end it - `Visit http://evil.example” now` is asked about as `evil.example` beside
+  in NFC, and each label in Unicode becomes `xn--` and its Punycode - `http://ｅｖｉｌ。example/` goes to `evil.example`, and
+  `http://bücher.example/` to `xn--bcher-kva.example`. The SURBL test and the sender lists' URL entries deleted only the
+  code points UTS 46 ignores (6.3.6) and mapped nothing, so a listed name written in fullwidth letters was no name at
+  all, and a link to an internationalised name was asked about only as the ASCII labels after its last label in Unicode,
+  or not at all (in every version). A host that is not ASCII is now read by UTS 46 with the URL standard's flags - the
+  mapping, NFC, the validity criteria with RFC 5893's bidi rule and RFC 5892's joiner rules, and Punycode - from tables
+  generated out of Unicode 18.0.0's own data files and compiled in (`Common/Idna`, `build/generate-idna-tables.py`), so
+  that Windows and Linux read a host alike whatever Unicode version the system has; an ASCII host is lowered and nothing
+  more, as the standard has it. A label UTS 46 refuses - a code point it disallows, the bidi or joiner rules broken, an
+  `xn--` label that is not Punycode - still hands over the name before it and the labels after it, as every label in
+  Unicode did; a URL entry whose host is not ASCII and has such a label is refused, as a browser fails it; and an entry
+  written in Unicode covers a link written in its `xn--` form and the other way round (`https://bücher.example/` is
+  stored as `xn--bcher-kva.example/`). A host that can lead nowhere is not mapped at all - when more than four times 253
+  of its code points are left once those UTS 46 ignores and the full stops it ends with are put aside, and one of them
+  maps past ASCII or five are full stops, its ASCII form would be longer than any DNS name, since no code point maps to
+  nothing and NFC can shorten a text fourfold at most, and it is no IPv4 address, so no browser reaches it - and a label
+  that can never be short enough, its mapping holding a code point past ASCII and more than four times 63 code points,
+  is not mapped further. So a host of a megabyte, in one label or in many, costs about the memory 6.3.6's reading of it
+  did and a few hundredths of a second, where mapped label by label it took up to nine times that memory and twenty-five
+  times the time: a megabyte of short labels of `U+FDFA`, which UTS 46 maps to eighteen code points, took 0.15 s and 105
+  MB to read where 6.3.6 took 0.007 s and 12.5 MB, and now takes 0.015 s and 14 MB. A host that is not ASCII is read as
+  it is written too, as 6.3.6 read it - percent-decoded, the ignored code points deleted, nothing mapped - and the hosts
+  that reading hands over are handed over after UTS 46's: a link in running text followed by a closing quotation mark, a
+  guillemet, a dash or CJK punctuation, which UTS 46 takes into the host's last label as it takes a letter, or makes a
+  label of after an ideographic full stop, names the host before the character as well, where the mail programs that
+  make the link end it - `Visit http://evil.example” now` is asked about as `evil.example` beside
   `evil.xn--example-b46c` - and every host 6.3.6 handed over for a link is handed over still. `IdnaTester` holds the
   implementation to every line of Unicode's `IdnaTestV2.txt` (6,396, in ClassTester and, on Linux, in the new
   `idna-tests`), `SURBLTester` (`public-suffix-tests`) holds the links and the entries, and `AntiSpam/Basics.cs`
-  delivers a link in fullwidth letters, one with an ideographic full stop, one in fullwidth capitals in an HTML part
-  and one to an internationalised name, each to a listed name, and finds each tagged, and so it does a listed name
-  followed by a closing quotation mark, by CJK corner brackets and an ideographic full stop, and by an ideographic
-  comma in an HTML part's text
-  ([SenderListsAndDigests.md](hmailserver/docs/SenderListsAndDigests.md); [Roadmap3.md](Roadmap3.md),
+  delivers a link in fullwidth letters, one with an ideographic full stop, one in fullwidth capitals in an HTML part and
+  one to an internationalised name, each to a listed name, and finds each tagged, and so it does a listed name followed
+  by a closing quotation mark, by CJK corner brackets and an ideographic full stop, and by an ideographic comma in an
+  HTML part's text ([SenderListsAndDigests.md](hmailserver/docs/SenderListsAndDigests.md); [Roadmap3.md](Roadmap3.md),
   "Internationalised link hosts").
 
 - **An HTML part's character references are read as a browser reads them: every named one HTML defines, and in the

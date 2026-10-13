@@ -195,7 +195,12 @@ namespace HM
       // not are handed over after them: a link in running text followed by a
       // closing quotation mark, a guillemet, a dash or CJK punctuation, which
       // UTS 46 takes into the host's last label, hands over the name before it
-      // as well. Any other IPv6 address hands over nothing. html: text is HTML,
+      // as well. A host that is not ASCII and can lead nowhere - more than
+      // 1,012 code points UTS 46 neither deletes nor makes a trailing full stop
+      // of, one of them mapped past ASCII or five full stops among them, so that
+      // its ASCII form would be longer than any name and it is no address - is
+      // not read by UTS 46 at all, and hands over what it does as written. Any
+      // other IPv6 address hands over nothing. html: text is HTML,
       // whose character references are read as the browser reads them - every
       // named one HTML defines (HtmlReferences.h), and one HTML reads without
       // its ';' read so but in an attribute's value before an '=' or a letter
@@ -240,7 +245,8 @@ namespace HM
       // Empty when that is not one name or address a list could be asked
       // about: any other IPv6 address, a name with a character a name cannot
       // hold, a host that is not ASCII with a label UTS 46 refuses (a browser
-      // fails it), one label, nothing. The URL
+      // fails it) or that can lead nowhere (FindLinkHosts says when), one
+      // label, nothing. The URL
       // entries of the sender lists (SenderPattern) are read with it, so that
       // an entry and the links it is matched against name a host alike: an
       // entry written in Unicode covers a link written in its xn-- form, and
@@ -342,8 +348,10 @@ namespace HM
    // userinfo, ports, IPv6 and the IPv4 addresses it carries, percent-encoding
    // as UTF-8, UTS 46 (the code points it ignores, fullwidth letters and
    // digits, the ideographic full stops, NFC, xn-- forms, the labels it
-   // refuses, and a megabyte of a code point it maps to eighteen), the host
-   // as it is written beside it, the IPv4 forms, backslashes,
+   // refuses, a megabyte of a code point it maps to eighteen, and a host that
+   // can lead nowhere weighed and not mapped, a megabyte of short or empty
+   // labels among them), the host as it is written beside it, the IPv4 forms,
+   // backslashes,
    // links with no scheme, quoted-printable soft line breaks, HTML character
    // references - every named one HTML defines, read as the tokenizer reads
    // it, in an attribute's value and in text - and quotes, and punctuation

@@ -33,7 +33,7 @@ and optionally when it stops mattering.
 | `someone@example.com` | That one address, in any case. No wildcards. |
 | `example.com` | `example.com` and every subdomain of it — `mail.example.com`, not `notexample.com`, not `example.com.attacker.net`. |
 | `@example.com` | The same as `example.com`. Stored as `example.com`. |
-| `https://bad.example/anything` | A **URL**: stored as `bad.example/`, and covering a link in the message whose host is `bad.example` or a subdomain of it, whoever sent the message. Its host is read as the link extractor reads a link's: the part after the last `@` (`http://a@b@bad.example/` is `bad.example/`), up to a port, a `/`, `?`, `#` or `\`, percent-decoded as UTF-8, and a host that is not ASCII read as a browser reads it, by UTS 46: the characters a browser deletes from a host deleted (`sh%C2%ADop.example`, with a soft hyphen, is `shop.example/`), fullwidth letters and the ideographic full stops read as the ASCII ones, and a name in Unicode written in its `xn--` form, as DNS carries it (`https://bücher.example/` is `xn--bcher-kva.example/`, and covers a link written either way); with each leading `www.` dropped while two labels or more are left, and an address in dotted decimal - an IPv4-mapped IPv6 address (`http://[::ffff:192.0.2.61]/`) or one under the NAT64 prefix `64:ff9b::/96` is the IPv4 address it carries (`192.0.2.61/`). A host no link can have there — any other IPv6 address, a name with a character a name cannot hold, a name in Unicode that UTS 46 refuses, a name of one label — is refused. |
+| `https://bad.example/anything` | A **URL**: stored as `bad.example/`, and covering a link in the message whose host is `bad.example` or a subdomain of it, whoever sent the message. Its host is read as the link extractor reads a link's: the part after the last `@` (`http://a@b@bad.example/` is `bad.example/`), up to a port, a `/`, `?`, `#` or `\`, percent-decoded as UTF-8, and a host that is not ASCII read as a browser reads it, by UTS 46: the characters a browser deletes from a host deleted (`sh%C2%ADop.example`, with a soft hyphen, is `shop.example/`), fullwidth letters and the ideographic full stops read as the ASCII ones, and a name in Unicode written in its `xn--` form, as DNS carries it (`https://bücher.example/` is `xn--bcher-kva.example/`, and covers a link written either way); with each leading `www.` dropped while two labels or more are left, and an address in dotted decimal - an IPv4-mapped IPv6 address (`http://[::ffff:192.0.2.61]/`) or one under the NAT64 prefix `64:ff9b::/96` is the IPv4 address it carries (`192.0.2.61/`). A host no link can have there — any other IPv6 address, a name with a character a name cannot hold, a name in Unicode that UTS 46 refuses or that is longer than any name can be, a name of one label — is refused. |
 
 An entry covers a message when it matches **either** the envelope sender
 (`MAIL FROM`) **or** the address in the message's `From` header. The header is
@@ -56,7 +56,9 @@ ones, a name in Unicode in its `xn--` form) and read as it is written too, as
 6.3.6 read it, so that a link in running text followed by a closing quotation
 mark, a guillemet, a dash or CJK punctuation - which UTS 46 takes into the
 host's last label - also names the host before that character, where the mail
-programs that make the link end it; an HTML part's character references read
+programs that make the link end it; a host in Unicode longer than any
+name can be (more than four times 253 code points once the ones a browser
+deletes are gone) is not read by UTS 46 at all; an HTML part's character references read
 first, as a browser reads them - every named one HTML defines (`&eopf;vil.example`
 is `evil.example`, `b&uuml;cher.example` is `xn--bcher-kva.example`); and an
 address in its own order, an

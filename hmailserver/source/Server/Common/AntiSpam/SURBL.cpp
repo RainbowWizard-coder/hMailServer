@@ -7,6 +7,7 @@
 
 #include "../../Common/AntiSpam/AntiSpamDiagnostics.h"
 #include "../../Common/Idna/Idna.h"
+#include "../../Common/Idna/IdnaTables.h"
 #include "../../Common/BO/MessageData.h"
 #include "../../Common/BO/SURBLServer.h"
 #include "../../Common/TCPIP/DNSResolver.h"
@@ -92,10 +93,11 @@ namespace HM
       // such label has an ASCII form DNS carries, and Punycode takes time that
       // grows with the square of a label's length, which a link of a megabyte
       // would make seconds - nor mapped further than it could ever be short
-      // enough, so that a host of a megabyte that maps to many times its
+      // enough, so that one label of a megabyte that maps to many times its
       // length (U+FDFA is eighteen code points) costs what its length does.
       // An ASCII label is read whatever its length, as an address's part may
-      // be (0x1.000...0.1).
+      // be (0x1.000...0.1). A host of many labels is weighed before it is
+      // mapped at all (CodePointsToMap_).
       Idna::Options LinkHostOptions_()
       {
          Idna::Options options = Idna::UrlStandardOptions();
@@ -716,6 +718,75 @@ namespace HM
          return String(name);
       }
 
+      // What UTS 46 is run on for a host part that is not ASCII (HostDecoded_):
+      // its code points, percent-decoded, less the ones UTS 46 ignores, and less
+      // all but two of the full stops it ends with (the code points UTS 46 maps
+      // to '.' alone, written '.') - every reading of a host is the same for two
+      // as for more, since Canonical_ and the labels after a refused one drop
+      // them, EndsInANumber_ tells none from one from more, and no label is
+      // read otherwise for the empty ones after it. False, and nothing to map,
+      // when the host part can lead nowhere: when more than LongestDecomposition
+      // times maxNameLength code points are left besides those full stops, its
+      // ASCII form, without them, is longer than any name - no code point maps
+      // to nothing, NFC makes a text that many times shorter at most, and each
+      // label's ASCII form is as long as its code points at least (Idna.h) - and
+      // a code point it maps past ASCII, or a fifth full stop, makes it no IPv4
+      // address either. One that maps to ASCII alone with four full stops at
+      // most may be an address, a part of any length (0x1<U+FF0E>000...0<U+FF0E>1),
+      // and is mapped whatever its length: five labels at most, and four ASCII
+      // code points at most for each code point (U+2167 is viii). So any other
+      // host part of a megabyte costs a pass that looks each code point up once,
+      // where mapped whole - a megabyte of short labels of U+FDFA, which maps to
+      // eighteen, or of full stops, each a label - it took many times the time
+      // and the memory of 6.3.6's reading of it, growing with the link up to the
+      // anti-spam scan's limit. What a browser makes of a host it can lead
+      // nowhere from is no host it goes to, and the host as it is written
+      // (HostAsWritten_) is still read.
+      bool CodePointsToMap_(const std::vector<unsigned int> &codePoints, std::vector<unsigned int> &toMap)
+      {
+         toMap.clear();
+
+         size_t end = codePoints.size();
+         size_t trailingFullStops = 0;
+         while (end > 0)
+         {
+            const Idna::MappingKind kind = Idna::KindOfMapping(codePoints[end - 1]);
+            if (kind == Idna::MapsToFullStop)
+               trailingFullStops++;
+            else if (kind != Idna::MapsToNothing)
+               break;
+            end--;
+         }
+
+         size_t weight = 0;
+         size_t fullStops = std::min<size_t>(trailingFullStops, 2);
+         bool pastAscii = false;
+         for (size_t i = 0; i < end; i++)
+         {
+            const Idna::MappingKind kind = Idna::KindOfMapping(codePoints[i]);
+            if (kind == Idna::MapsToNothing)
+               continue;
+            if (kind == Idna::MapsToFullStop)
+               fullStops++;
+            else if (kind == Idna::MapsPastAscii)
+               pastAscii = true;
+            weight++;
+         }
+
+         const bool mayBeAnAddress = !pastAscii && fullStops <= 4;
+         if (weight > IdnaTables::LongestDecomposition * maxNameLength && !mayBeAnAddress)
+            return false;
+
+         toMap.reserve(weight + 2);
+         for (size_t i = 0; i < end; i++)
+         {
+            if (!Idna::IsIgnored(codePoints[i]))
+               toMap.push_back(codePoints[i]);
+         }
+         toMap.insert(toMap.end(), std::min<size_t>(trailingFullStops, 2), static_cast<unsigned int>('.'));
+         return true;
+      }
+
       // A host part as a browser reads it before it looks the name up - the URL
       // standard's host parser, whose domain parser is UTS 46's ToASCII (Idna.h):
       // percent-decoded as UTF-8 (%C2%AD is a soft hyphen); then, when it is
@@ -736,7 +807,9 @@ namespace HM
       // label; and one written "xn--" that it refuses (not Punycode, or not a
       // label it allows once decoded) stays as written, as an ASCII label
       // does. refused says whether UTS 46 refused any label of a host that is
-      // not ASCII: a browser then goes nowhere (HostOfAuthority).
+      // not ASCII: a browser then goes nowhere (HostOfAuthority). A host part
+      // that can lead nowhere (CodePointsToMap_) is not mapped: it is refused,
+      // and read as nothing.
       //
       // Until 6.3.6 a byte past ASCII was U+FFFD and nothing was deleted, so
       // http://ev%C2%ADil.example/ and a zero-width space in a name were no
@@ -770,8 +843,15 @@ namespace HM
             return host;
          }
 
+         std::vector<unsigned int> toMap;
+         if (!CodePointsToMap_(codePoints, toMap))
+         {
+            refused = true;
+            return host;
+         }
+
          std::vector<Idna::Label> labels;
-         Idna::ProcessLabels(codePoints, LinkHostOptions_(), labels);
+         Idna::ProcessLabels(toMap, LinkHostOptions_(), labels);
 
          for (size_t i = 0; i < labels.size(); i++)
          {
@@ -3423,6 +3503,92 @@ namespace HM
             Fail_("a megabyte of U+FDFA in a host is read in time proportional to its length", _T("http://<U+FDFA x 340000>.evil.example/"),
                StringParser::IntToString(static_cast<int>(seconds * 1000)) + _T(" ms"),
                String(_T("well under ")) + StringParser::IntToString(static_cast<int>(bound)) + _T(" ms"));
+      }
+
+      // A host part that can lead nowhere - more than LongestDecomposition
+      // times 253 code points that UTS 46 neither deletes nor makes a trailing
+      // full stop of, one of them mapped past ASCII or five full stops among
+      // them - is weighed, not mapped (CodePointsToMap_), and hands over what
+      // its reading as written does: a megabyte of short labels of U+FDFA, or
+      // of empty ones, was mapped label by label, two copies of each label
+      // kept, and took many times the memory and the time 6.3.6's reading of it
+      // took, the cut of a label's mapping (Idna.h) never reached. Held by how
+      // many code points UTS 46 is given, not by the time; and a host part on
+      // the other side of the line - one that may be an address, one whose
+      // trailing full stops are the rest of it, one of 1,012 code points - is
+      // read as a browser reads it, whole.
+      {
+         struct WeighCase
+         {
+            std::wstring hostPart;
+            bool mapped;
+            size_t toMap;
+            const wchar_t *hosts;
+            const char *why;
+         };
+
+         auto repeated = [](const std::wstring &piece, size_t times)
+         {
+            std::wstring text;
+            text.reserve(piece.size() * times);
+            for (size_t i = 0; i < times; i++)
+               text += piece;
+            return text;
+         };
+
+         const std::wstring fdfa(1, static_cast<wchar_t>(0xFDFA));
+         const std::wstring fourteenFdfa(14, static_cast<wchar_t>(0xFDFA));
+         const std::wstring eAcute(1, static_cast<wchar_t>(0x00E9));
+         const std::wstring ideographicFullStop(1, static_cast<wchar_t>(0x3002));
+         const std::wstring fullwidthFullStop(1, static_cast<wchar_t>(0xFF0E));
+         const std::wstring fullwidthEvil = L"\uFF45\uFF56\uFF49\uFF4C";
+
+         const WeighCase weighCases[] =
+         {
+            { repeated(fdfa + L".", 262000) + L"evil.example", false, 0, L"evil.example",
+              "a megabyte of labels of one U+FDFA: the labels after them, as written" },
+            { repeated(fourteenFdfa + L".", 24000) + L"evil.example", false, 0, L"evil.example",
+              "a megabyte of labels of fourteen U+FDFA: the labels after them, as written" },
+            { repeated(fourteenFdfa + ideographicFullStop, 24000) + L"evil.example", false, 0, L"",
+              "the same with ideographic full stops: as written no labels after them, and no browser reaches the name" },
+            { L"\uFF41" + repeated(fullwidthFullStop, 340000) + L"\uFF41", false, 0, L"",
+              "a megabyte of fullwidth full stops, ASCII once mapped but no address with five of them" },
+            { repeated(eAcute, 997) + L"." + fullwidthEvil + L".example", true, 1010, L"evil.example",
+              "1,010 code points, one mapped past ASCII: mapped, so the labels after the long one as a browser reads them" },
+            { repeated(eAcute, 1000) + L"." + fullwidthEvil + L".example", false, 0, L"",
+              "1,013 code points, one mapped past ASCII: longer than any name could be, and as written no name after them" },
+            { eAcute + L".example" + repeated(ideographicFullStop, 2000), true, 11, L"xn--9ca.example",
+              "a name and 2,000 ideographic full stops after it, two of them kept, which reads it alike" },
+            { eAcute + repeated(L".", 100000), true, 3, L"",
+              "one code point and 100,000 full stops after it, two of them kept" },
+            { L"0x1" + fullwidthFullStop + repeated(std::wstring(1, static_cast<wchar_t>(0xFF10)), 2000) + fullwidthFullStop + L"1", true, 2006,
+              L"1.0.0.1|0.0.0.1", "an address with a part of 2,000 fullwidth zeros, which may be an address however long" },
+         };
+
+         for (const WeighCase &test : weighCases)
+         {
+            std::vector<unsigned int> toMap;
+            const bool mapped = CodePointsToMap_(PercentDecodedCodePoints_(test.hostPart), toMap);
+            if (mapped != test.mapped || toMap.size() != test.toMap)
+               Fail_(test.why, String(test.hostPart.substr(0, 16).c_str()) + _T("..."),
+                  String(mapped ? _T("mapped, ") : _T("not mapped, ")) + StringParser::IntToString(static_cast<int>(toMap.size())) + _T(" code points"),
+                  String(test.mapped ? _T("mapped, ") : _T("not mapped, ")) + StringParser::IntToString(static_cast<int>(test.toMap)) + _T(" code points"));
+
+            const String text = String(_T("<a href=\"http://")) + String(test.hostPart.c_str()) + _T("/\">a link</a>");
+            std::vector<String> hosts;
+            const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+            SURBL::FindLinkHosts(text, true, [&hosts](const String &host) { hosts.push_back(host); return true; });
+            const double seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
+
+            if (Joined_(hosts) != String(test.hosts))
+               Fail_(test.why, String(test.hostPart.substr(0, 16).c_str()) + _T("..."), Joined_(hosts), test.hosts);
+
+            const double bound = HM_TEST_TIME_BOUND(2000);
+            if (seconds * 1000 > bound)
+               Fail_(test.why, String(test.hostPart.substr(0, 16).c_str()) + _T("..."),
+                  StringParser::IntToString(static_cast<int>(seconds * 1000)) + _T(" ms"),
+                  String(_T("well under ")) + StringParser::IntToString(static_cast<int>(bound)) + _T(" ms"));
+         }
       }
 
       // A part of 300 zeros written in fullwidth digits between fullwidth full

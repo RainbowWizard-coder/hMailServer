@@ -55,10 +55,14 @@ namespace HM
          // no code point's canonical decomposition being longer than four - and
          // the rest of it is only looked up for the full stop that ends it and
          // for the direction of its code points (ProcessLabels). Its unicode and
-         // mapped then hold the label as far as it was mapped, in NFC. So a host
-         // of a megabyte costs time and memory in proportion to its length,
-         // where a mapping of up to 18 code points for one (U+FDFA) and NFC
-         // over the whole of it made both many times that.
+         // mapped then hold the label as far as it was mapped, in NFC. So one
+         // label of a megabyte costs time and memory in proportion to its
+         // length, where a mapping of up to 18 code points for one (U+FDFA) and
+         // NFC over the whole of it made both many times that. A name of many
+         // labels is not held so: each label short enough is mapped whole, and
+         // a megabyte of them costs what their mappings do. A reader that wants
+         // a name's cost bounded weighs the name before it processes it
+         // (KindOfMapping), as SURBL's reading of a link's host does.
          size_t longestLabel;
       };
 
@@ -127,6 +131,28 @@ namespace HM
       // hyphen, the zero-width space, the variation selectors and the like).
       bool IsIgnored(unsigned int codePoint);
 
+      // What UTS 46's mapping (section 4, step 1, Nontransitional Processing)
+      // writes a code point as, told without writing it, for a reader that
+      // weighs a name before it processes it: nothing, for a code point it
+      // ignores; a full stop alone (U+002E, U+3002, U+FF0E, U+FF61 - no other
+      // mapping holds a full stop, build/generate-idna-tables.py holds the data
+      // to that); a name's characters alone, a-z, 0-9, '-' and '_' (a capital,
+      // a fullwidth letter, a circled one, the trade mark sign's "tm"); other
+      // ASCII alone (a space, a fullwidth solidus's '/', U+2100's "a/c"); or
+      // code points one of which is past ASCII - as every code point past ASCII
+      // it does not map is written, itself. No mapping but an ignored code
+      // point's is empty.
+      enum MappingKind
+      {
+         MapsToNothing = 0,
+         MapsToFullStop = 1,
+         MapsToNameCharacters = 2,
+         MapsToOtherAscii = 3,
+         MapsPastAscii = 4
+      };
+
+      MappingKind KindOfMapping(unsigned int codePoint);
+
       // ToASCII (section 4.2): the errors, none when it succeeded, and the name
       // as far as the conversion went.
       unsigned int ToAscii(const CodePoints &domain, const Options &options, std::string &ascii);
@@ -167,7 +193,9 @@ namespace HM
    // set aside as the file says - and to cases of its own: Punycode against
    // RFC 3492's samples, NFC, the URL standard's domain to ASCII (fullwidth
    // letters, ideographic full stops, forbidden code points), the time a long
-   // label takes, and a label as written beside the label it decodes to. It
+   // label takes, a label as written beside the label it decodes to, and what
+   // KindOfMapping says of a code point, held to the mapping at both ends of
+   // every range of the mapping table. It
    // runs inside the service with the other class tests (ClassTester), and on
    // Linux in idna-tests. No file, DNS, database or setting: the test data is
    // compiled in. It throws std::logic_error naming the first thing that is

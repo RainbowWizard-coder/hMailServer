@@ -466,5 +466,84 @@ namespace HM
           labels[1].errors != 0 || labels[1].punycode || labels[1].ascii != "xn--bcher-kva" ||
           labels[1].mapped != labels[1].unicode)
          Fail_("an xn-- label that decodes to ASCII", "was not kept as written beside the label it decodes to");
+
+      // What the mapping writes a code point as, told without writing it
+      // (KindOfMapping).
+      struct KindCase
+      {
+         unsigned int codePoint;
+         Idna::MappingKind kind;
+         const char *what;
+      };
+
+      const KindCase kindCases[] =
+      {
+         { 0x00AD, Idna::MapsToNothing, "a soft hyphen, ignored (Cf)" },
+         { 0xFE0F, Idna::MapsToNothing, "a variation selector, ignored (Mn)" },
+         { 0x002E, Idna::MapsToFullStop, "a full stop" },
+         { 0x3002, Idna::MapsToFullStop, "an ideographic full stop" },
+         { 0xFF0E, Idna::MapsToFullStop, "a fullwidth full stop" },
+         { 0xFF61, Idna::MapsToFullStop, "a halfwidth ideographic full stop" },
+         { 'a', Idna::MapsToNameCharacters, "a small letter" },
+         { 'A', Idna::MapsToNameCharacters, "a capital, mapped to a small letter" },
+         { '-', Idna::MapsToNameCharacters, "a hyphen-minus" },
+         { 0xFF45, Idna::MapsToNameCharacters, "a fullwidth e" },
+         { 0xFF0D, Idna::MapsToNameCharacters, "a fullwidth hyphen-minus" },
+         { 0xFF3F, Idna::MapsToNameCharacters, "a fullwidth low line" },
+         { 0x24D4, Idna::MapsToNameCharacters, "a circled e (So)" },
+         { 0x2122, Idna::MapsToNameCharacters, "the trade mark sign, tm (So)" },
+         { 0x2167, Idna::MapsToNameCharacters, "the Roman numeral eight, viii (Nl)" },
+         { '!', Idna::MapsToOtherAscii, "an exclamation mark" },
+         { 0xFF0F, Idna::MapsToOtherAscii, "a fullwidth solidus, a '/'" },
+         { 0x00A0, Idna::MapsToOtherAscii, "a no-break space, a space (Zs)" },
+         { 0x2100, Idna::MapsToOtherAscii, "the account-of sign, a/c" },
+         { 0x00FC, Idna::MapsPastAscii, "a u with diaeresis" },
+         { 0xFDFA, Idna::MapsPastAscii, "an Arabic ligature mapped to eighteen code points (Lo)" },
+         { 0x201D, Idna::MapsPastAscii, "a right double quotation mark, valid (Pf)" },
+         { 0x3001, Idna::MapsPastAscii, "an ideographic comma (Po)" },
+         { 0x300D, Idna::MapsPastAscii, "a right corner bracket (Pe)" },
+         { 0x2011, Idna::MapsPastAscii, "a non-breaking hyphen, mapped to U+2010 (Pd)" },
+         { 0x200D, Idna::MapsPastAscii, "a zero-width joiner, a deviation kept (Cf)" },
+         { 0x2665, Idna::MapsPastAscii, "a black heart suit, valid (So)" },
+         { 0x0378, Idna::MapsPastAscii, "an unassigned code point, disallowed" },
+         { 0xE000, Idna::MapsPastAscii, "a private-use code point (Co)" },
+         { 0xD800, Idna::MapsPastAscii, "a surrogate (Cs)" },
+         { 0x0301, Idna::MapsPastAscii, "a combining acute accent (Mn)" },
+         { 0x0661, Idna::MapsPastAscii, "an Arabic-Indic digit one (Nd)" },
+         { 0x110000, Idna::MapsPastAscii, "past Unicode's last code point" },
+      };
+
+      for (const KindCase &test : kindCases)
+      {
+         if (Idna::KindOfMapping(test.codePoint) != test.kind)
+            Fail_(test.what, "KindOfMapping gave " + std::to_string(static_cast<int>(Idna::KindOfMapping(test.codePoint))) +
+                     ", expected " + std::to_string(static_cast<int>(test.kind)));
+      }
+
+      // KindOfMapping says what ProcessLabels' mapping writes, at both ends of
+      // every range of IdnaMappingTable.txt the tables hold: nothing exactly
+      // when it deletes the code point, a full stop exactly when it ends a
+      // label there, and past ASCII exactly when it writes a code point past
+      // ASCII, between two letters, once in NFC.
+      for (size_t range = 0; range < IdnaTables::MappingRangeCount; range++)
+      {
+         const unsigned int ends[2] = { IdnaTables::MappingRanges[range].first, IdnaTables::MappingRanges[range].last };
+         for (unsigned int codePoint : ends)
+         {
+            const Idna::MappingKind kind = Idna::KindOfMapping(codePoint);
+            Idna::ProcessLabels({ 'a', codePoint, 'b' }, url, labels);
+
+            bool pastAscii = false;
+            for (const Idna::Label &label : labels)
+               for (unsigned int written : label.mapped)
+                  pastAscii = pastAscii || written >= 0x80;
+
+            const bool deleted = labels.size() == 1 && labels[0].mapped == CodePoints({ 'a', 'b' });
+            if ((kind == Idna::MapsToNothing) != deleted || (kind == Idna::MapsToFullStop) != (labels.size() == 2) ||
+                (kind == Idna::MapsPastAscii) != pastAscii)
+               Fail_(Hex_({ codePoint }), "KindOfMapping gave " + std::to_string(static_cast<int>(kind)) +
+                        ", and ProcessLabels wrote it otherwise");
+         }
+      }
    }
 }
