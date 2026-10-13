@@ -84,6 +84,7 @@
 #include "../Common/Util/TraceHeaderWriter.h"
 #include "../Common/Util/TransparentTransmissionBuffer.h"
 #include "../Common/Persistence/MessageStore.h"
+#include "../Common/BO/MessageData.h"
 
 namespace
 {
@@ -651,6 +652,89 @@ namespace
       Check(held == std::string(Result().c_str(), ResultBytes), "FileUtilities::CopyOver did not put the whole result in the message's place");
       Check(alone, "FileUtilities::CopyOver left a file beside the message");
    }
+
+   // FileUtilities::WriteToFileAtomically with the body copied from a file, as a
+   // message read header only is written: the head and the range, whole, onto
+   // the file the range came from and onto another; refused, the file as it was
+   // and nothing beside it, for a range past the source's end.
+   void BodyCopiedFromFileCase()
+   {
+      const boost::filesystem::path directory = boost::filesystem::temp_directory_path() /
+         boost::filesystem::unique_path("hm-close-range-%%%%-%%%%");
+      boost::filesystem::create_directories(directory);
+
+      std::string failure;
+      try
+      {
+         const boost::filesystem::path message = directory / "message.eml";
+         const boost::filesystem::path other = directory / "other.eml";
+         const std::string old = "Subject: old\r\n\r\n" + std::string(3 * 1024 * 1024 + 17, 'b') + "end\r\n";
+         WriteWhole(message, AnsiString(old.data(), old.size()));
+         const size_t offset = 16;
+
+         Check(HM::FileUtilities::WriteToFileAtomically(Wide(other), AnsiString("Subject: other\r\n\r\n"), Wide(message), offset, old.size()),
+               "WriteToFileAtomically answered false for a body copied from another file");
+         Check(ReadAll(other) == "Subject: other\r\n\r\n" + old.substr(offset), "WriteToFileAtomically did not write the head and the whole range to another file");
+
+         Check(HM::FileUtilities::WriteToFileAtomically(Wide(message), AnsiString("Subject: new, and longer\r\n\r\n"), Wide(message), offset, old.size()),
+               "WriteToFileAtomically answered false for a body copied from the file it replaces");
+         Check(ReadAll(message) == "Subject: new, and longer\r\n\r\n" + old.substr(offset), "WriteToFileAtomically did not put the head and the whole range in the file it was copied from");
+
+         const std::string before = ReadAll(message);
+         Check(!HM::FileUtilities::WriteToFileAtomically(Wide(message), AnsiString("Subject: x\r\n\r\n"), Wide(message), offset, before.size() + 1),
+               "WriteToFileAtomically answered true for a range past the end of its source");
+         Check(ReadAll(message) == before, "a refused WriteToFileAtomically changed the file");
+         Check(HoldsOnly(directory, { message.filename().string(), other.filename().string() }), "a refused WriteToFileAtomically left a file beside the message");
+      }
+      catch (const std::exception &e)
+      {
+         failure = e.what();
+      }
+
+      boost::system::error_code ignored;
+      boost::filesystem::remove_all(directory, ignored);
+      Check(failure.empty(), failure);
+   }
+
+   // A message over MessageData::MaxParseBytes read header only (LargeMessageTester,
+   // Common/BO/MessageData.cpp): the header read, changed and written back with the
+   // body byte for byte; and what is refused, each reported once.
+   void LargeMessageCase()
+   {
+      const boost::filesystem::path directory = boost::filesystem::temp_directory_path() /
+         boost::filesystem::unique_path("hm-large-message-%%%%-%%%%");
+      boost::filesystem::create_directories(directory);
+
+      const int changedBody = ReportsOf("HM7840");
+      const int notRead = ReportsOf("HM7841");
+      const int cutShort = ReportsOf("HM7842");
+      const int notWritten = ReportsOf("HM6011");
+      const int emptyRefused = ReportsOf("HM6010");
+
+      std::string failure;
+      try
+      {
+         HM::LargeMessageTester tester;
+         tester.Test(Wide(directory));
+         Check(ReportsOf("HM7840") == changedBody && ReportsOf("HM7842") == cutShort && ReportsOf("HM6011") == notWritten,
+               "reading, changing and writing the header of a large message reported an error");
+
+         tester.TestRefusals(Wide(directory));
+         Check(ReportsOf("HM7840") == changedBody + 1, "a changed body of a header-only message was not reported once as HM7840");
+         Check(ReportsOf("HM7842") == cutShort + 1, "a header-only message whose source was cut short was not reported once as HM7842");
+         Check(ReportsOf("HM7841") == notRead + 1, "a header with no end in the bytes read was not reported once as HM7841");
+         Check(ReportsOf("HM6011") == notWritten + 2, "the two refused writes were not each reported once as HM6011");
+         Check(ReportsOf("HM6010") == emptyRefused + 1, "the write of a message whose header could not be read was not refused once as HM6010");
+      }
+      catch (const std::exception &e)
+      {
+         failure = e.what();
+      }
+
+      boost::system::error_code ignored;
+      boost::filesystem::remove_all(directory, ignored);
+      Check(failure.empty(), failure);
+   }
 }
 
 namespace
@@ -760,6 +844,8 @@ int main()
    failed += Run("the spool of a received message: a file that takes every byte is written whole, and on /dev/full the message is counted as not written", SpoolCase);
    failed += Run("FileUtilities::CopyOver puts the whole of a file in another's place and leaves nothing beside it", CopyOverCase);
    failed += Run("a backup restore's member list" + ADownload() + " and MoveOver where the disk takes them: each whole, and MoveOver's result in the message's place with nothing beside it", WritersWithRoomCase);
+   failed += Run("FileUtilities::WriteToFileAtomically with the body copied from a file: the head and the whole range, onto another file and onto the one it came from, and a range past the source's end refused with the file as it was", BodyCopiedFromFileCase);
+   failed += Run("a message over 80 MB read header only when asked: its loop count read, raised and written back with the body byte for byte, and a changed body, a source cut short and a header with no end refused and reported", LargeMessageCase);
    failed += Run("a quota (RLIMIT_FSIZE): File::Close, WriteToFile, TraceHeaderWriter::Write, the message store's WriteAtomically, the spool, CopyOver, a backup restore's member list" + ADownload() + " and MoveOver from another file system refuse a file short of its last bytes, and leave the stored message as it was", QuotaCase);
    if (SocketsRefused)
       std::printf("not run: a download (HttpsClient::Download into a file that takes it whole, under the quota and on the full disk) - this process may make no IPv4 socket (EACCES), as under build/ci/packages/offline.c, and the download's server is a loopback one; every other writer runs without it\n");

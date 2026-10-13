@@ -690,8 +690,12 @@ namespace HM
 
       const String fileName = MessageStore::WorkingFile(pOrigMessage);
 
+      // Header only when the message is too large to be read whole: the report
+      // carries its header and none of its body, and the loop count and
+      // Auto-Submitted are header fields - until the large-message row such a
+      // message's load failed, and a bounce of it read neither.
       std::shared_ptr<MessageData> pMsgData = std::shared_ptr<MessageData> (new MessageData());
-      pMsgData->LoadFromMessage(fileName, pOrigMessage);
+      pMsgData->LoadFromMessage(fileName, pOrigMessage, MessageData::LargeMessage::HeaderOnly);
 
       // true because we don't want to send bounces if AutoSubmitted header
       if (!RuleApplier::IsGeneratedResponseAllowed(pMsgData, true))

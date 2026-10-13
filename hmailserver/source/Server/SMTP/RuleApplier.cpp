@@ -120,8 +120,13 @@ namespace HM
          return;
       }
 
+      // A message too large to be read whole (MessageData::MaxParseBytes) is read
+      // header only, so that the rules' header criteria and header actions apply
+      // to it and its body criteria decline (MessageMatchesCriteria_). Until the
+      // large-message row its load failed, the guard below reported HM6040, and
+      // no rule ran on it at all.
       std::shared_ptr<MessageData> pMessageData = std::shared_ptr<MessageData>(new MessageData());
-      const bool loaded = pMessageData->LoadFromMessage(account, pMessage);
+      const bool loaded = pMessageData->LoadFromMessage(account, pMessage, MessageData::LargeMessage::HeaderOnly);
 
       // The rule set must not run against a MessageData the engine could not populate.
       // Every criterion would then be compared against an empty string, NotEquals and
@@ -168,6 +173,7 @@ namespace HM
       // to be able to find out why; an administrator with thirty rules does not
       // need thirty lines about the same message.
       bool sealedBodyLogged = false;
+      bool unreadBodyLogged = false;
 
       std::shared_ptr<RuleCriterias> pCriterias = pRule->GetCriterias();
       for (int i = 0; i < pCriterias->GetCount(); i++)
@@ -178,7 +184,20 @@ namespace HM
             continue;
 
          bool sealedBodyDeclined = false;
-         bool bMatch = MessageMatchesCriteria_(pCriteria, pMsgData, sealedBodyDeclined);
+         bool unreadBodyDeclined = false;
+         bool bMatch = MessageMatchesCriteria_(pCriteria, pMsgData, sealedBodyDeclined, unreadBodyDeclined);
+
+         if (unreadBodyDeclined && !unreadBodyLogged)
+         {
+            unreadBodyLogged = true;
+
+            std::shared_ptr<Message> ruleMessage = pMsgData->GetMessage();
+
+            LOG_APPLICATION(Formatter::Format("RuleApplier - Message {0} is larger than the {1} MB a message is read whole at, so only its header was read: the criterion of rule \"{2}\" that needs its body or its attachments could not be evaluated and did not match. The rule's other criteria were evaluated.",
+               ruleMessage ? ruleMessage->GetID() : 0,
+               (int) (MessageData::MaxParseBytes / (1024 * 1024)),
+               pRule->GetName()));
+         }
 
          if (sealedBodyDeclined && !sealedBodyLogged)
          {
@@ -820,7 +839,8 @@ namespace HM
             continue;
 
          bool sealedBodyDeclined = false;
-         const bool bMatch = MessageMatchesCriteria_(pCriteria, pMsgData, sealedBodyDeclined);
+         bool unreadBodyDeclined = false;
+         const bool bMatch = MessageMatchesCriteria_(pCriteria, pMsgData, sealedBodyDeclined, unreadBodyDeclined);
 
          if (bAllRequired)
          {
@@ -936,9 +956,12 @@ namespace HM
       if (!anyReject)
          return false;
 
+      // Header only for a message too large to be read whole, as ApplyRules reads
+      // it, so that a reject rule on its header refuses it here rather than at
+      // delivery.
       std::shared_ptr<MessageData> data = std::shared_ptr<MessageData>(new MessageData());
       std::shared_ptr<const Account> noAccount;
-      if (!data->LoadFromMessage(noAccount, message))
+      if (!data->LoadFromMessage(noAccount, message, MessageData::LargeMessage::HeaderOnly))
          return false;
 
       RuleApplier applier;
@@ -1034,8 +1057,10 @@ namespace HM
       // Increase the number of rule-deliveries made.
       String newFileName = MessageStore::WorkingFile(emptyAccount, pMsg);
 
+      // Header only when the copy is too large to be read whole: the count is a
+      // header field, and the body is copied behind it as it is.
       std::shared_ptr<MessageData> pNewMsgData = std::shared_ptr<MessageData>(new MessageData());
-      pNewMsgData->LoadFromMessage(emptyAccount, pMsg);
+      pNewMsgData->LoadFromMessage(emptyAccount, pMsg, MessageData::LargeMessage::HeaderOnly);
       pNewMsgData->IncreaseRuleLoopCount();
       pNewMsgData->WriteReported(newFileName, "The rule-loop counter on a forwarded message");
 
@@ -1144,8 +1169,9 @@ namespace HM
       // Increase the number of rule-deliveries made.
       String newMessageFileName = MessageStore::WorkingFile(pMsg);
 
+      // Header only when the copy is too large to be read whole, as for a forward.
       std::shared_ptr<MessageData> pNewMsgData = std::shared_ptr<MessageData>(new MessageData());
-      pNewMsgData->LoadFromMessage(newMessageFileName, pMsg);
+      pNewMsgData->LoadFromMessage(newMessageFileName, pMsg, MessageData::LargeMessage::HeaderOnly);
       pNewMsgData->IncreaseRuleLoopCount();
       pNewMsgData->SetFieldValue("X-CopyRule", rule->GetName());
       pNewMsgData->WriteReported(newMessageFileName, "The X-CopyRule header and rule-loop counter on a copied message");
@@ -1192,8 +1218,10 @@ namespace HM
 
       // The script may have modified the message. We need to reload it. We could
       // do a CRC check or something similar to determine whether it has changed,
-      // but performance-wise we can probably just as well reload it.
-      pMsgData->LoadFromMessage(account, pMsgData->GetMessage());
+      // but performance-wise we can probably just as well reload it - as ApplyRules
+      // loaded it, header only when it is too large to be read whole, so that the
+      // rules after this one still have its header.
+      pMsgData->LoadFromMessage(account, pMsgData->GetMessage(), MessageData::LargeMessage::HeaderOnly);
    }
 
    void 
@@ -1340,11 +1368,35 @@ namespace HM
    }
 
    bool
-   RuleApplier::MessageMatchesCriteria_(std::shared_ptr<RuleCriteria> pCriteria, std::shared_ptr<MessageData> pMsgData, bool &sealedBodyDeclined) const
+   RuleApplier::MessageMatchesCriteria_(std::shared_ptr<RuleCriteria> pCriteria, std::shared_ptr<MessageData> pMsgData, bool &sealedBodyDeclined, bool &unreadBodyDeclined) const
    {
       String sFieldValue;
       if (pCriteria->GetUsePredefined())
       {
+         // A message too large to be read whole has only its header read
+         // (ApplyRules), so its body is not empty but unread, and neither are its
+         // attachments absent: as for a sealed body below, a criterion that needs
+         // them does not match, whichever way round it is phrased - a "body does
+         // not contain" or an "attachment name does not contain .exe" would
+         // otherwise match every such message. The size, the recipients and every
+         // header are read as for any message.
+         switch (pCriteria->GetPredefinedField())
+         {
+         case RuleCriteria::FTBody:
+         case RuleCriteria::FTAttachmentName:
+         case RuleCriteria::FTSensitiveContent:
+         case RuleCriteria::FTContent:
+         case RuleCriteria::FTAttachmentType:
+            if (pMsgData->IsHeaderOnly())
+            {
+               unreadBodyDeclined = true;
+               return false;
+            }
+            break;
+         default:
+            break;
+         }
+
          switch (pCriteria->GetPredefinedField())
          {
          case RuleCriteria::FTFrom:

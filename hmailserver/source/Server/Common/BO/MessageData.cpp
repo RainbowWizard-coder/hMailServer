@@ -14,6 +14,11 @@
 #include "../Util/Time.h"
 #include "../Util/GUIDCreator.h"
 #include "../Util/Utilities.h"
+#include "../Util/File.h"
+#include "../Util/ByteBuffer.h"
+
+#include <cstring>
+#include <stdexcept>
 
 // Test
 #include "../Persistence/PersistentMessage.h"
@@ -47,24 +52,26 @@ namespace HM
       // distribution-list copy) never calls LoadFromMessage, and writing that is
       // exactly what it is for - so the default has to be "loaded".
       load_failed_ = false;
+      large_ = LargeMessage::Refuse;
 
       mime_mail_ = std::shared_ptr<MimeBody>(new MimeBody);
    }
 
    bool
-   MessageData::LoadFromMessage(std::shared_ptr<const Account> account, std::shared_ptr<Message> pMessage)
+   MessageData::LoadFromMessage(std::shared_ptr<const Account> account, std::shared_ptr<Message> pMessage, LargeMessage large)
    {
       String fileName = PersistentMessage::GetFileName(account, pMessage);
 
-      return LoadFromMessage(fileName, pMessage);
+      return LoadFromMessage(fileName, pMessage, large);
    }
-   
+
 
    bool
-   MessageData::LoadFromMessage(const String &fileName, std::shared_ptr<Message> pMessage)
+   MessageData::LoadFromMessage(const String &fileName, std::shared_ptr<Message> pMessage, LargeMessage large)
    {
       message_ = pMessage;
       message_file_name_ = fileName;
+      large_ = large;
 
       // Note that the previous contents are dropped here, before either of the failure
       // returns below: after a failed load - including a failed RefreshFromMessage on a
@@ -86,9 +93,36 @@ namespace HM
       encrypted_file_ = String();
       encrypted_to_.clear();
 
-      const int MaxSize = 1024*1024 * 80; // we'll ignore messages larger than 80MB.
-      if (source_->InMemory() ? source_->GetOriginal()->size() > (size_t) MaxSize : FileUtilities::FileSize(message_file_name_) > MaxSize)
-         return false;
+      // Larger than a message is parsed whole: refused, as it always was, or -
+      // for a caller that asked - its header alone (LargeMessage). A message of
+      // this size is never one being composed, so the answer is the header or
+      // nothing.
+      if (source_->InMemory() ? source_->GetOriginal()->size() > (size_t) MaxParseBytes : FileUtilities::FileSize(message_file_name_) > MaxParseBytes)
+      {
+         if (large != LargeMessage::HeaderOnly)
+            return false;
+
+         const MimeLoadResult loaded = source_->InMemory()
+            ? mime_mail_->LoadHeaderFromMemory(source_->GetOriginal())
+            : mime_mail_->LoadHeaderFromFile(message_file_name_);
+
+         if (loaded != MimeLoadResult::Loaded)
+         {
+            const String reason = loaded == MimeLoadResult::OpenFailed
+               ? String(_T("the file could not be opened or read"))
+               : Formatter::Format("its first {0} MB hold no end of the header, or a header field that could not be parsed", (int) (MimeBody::MaxHeaderOnlyBytes / (1024 * 1024)));
+
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7841, "MessageData::LoadFromMessage",
+               Formatter::Format("The header of the message file {0}, which is larger than the {1} MB a message is read whole at, could not be read: {2}. The message was not loaded, and nothing is written over it.",
+                  message_file_name_, (int) (MaxParseBytes / (1024 * 1024)), reason));
+
+            mime_mail_ = std::shared_ptr<MimeBody>(new MimeBody);
+            return false;
+         }
+
+         load_failed_ = false;
+         return true;
+      }
 
       bool bNewMessage = false;
       try
@@ -199,7 +233,13 @@ namespace HM
       if (!message_)
          return false;
 
-      return LoadFromMessage(message_file_name_, message_);
+      return LoadFromMessage(message_file_name_, message_, large_);
+   }
+
+   bool
+   MessageData::IsHeaderOnly() const
+   {
+      return mime_mail_ && mime_mail_->IsHeaderOnly();
    }
 
 
@@ -1373,6 +1413,231 @@ namespace HM
       Application::Instance()->SubmitPendingEmail();
 
       Sleep(50000);
+   }
+
+   namespace
+   {
+      void ExpectLarge_(bool condition, const char *what)
+      {
+         if (!condition)
+            throw std::logic_error(std::string("LargeMessageTester: ") + what);
+      }
+
+      // The body of the test message: a megabyte of numbered lines, repeated
+      // to past MaxParseBytes, then a last line no other line is - so that a
+      // copy cut short, or one with a block out of place, compares unequal.
+      const char *const LargeBodyEnd = "The last line of the large message.\r\n";
+
+      AnsiString LargeBodyBlock_()
+      {
+         AnsiString block;
+         for (int line = 0; block.GetLength() < 1024 * 1024 - 100; line++)
+            block += Formatter::FormatAsAnsi("Line {0} of a block of a message too large to be read whole.\r\n", line);
+         return block;
+      }
+
+      int LargeBodyBlocks_()
+      {
+         return MessageData::MaxParseBytes / (1024 * 1024) + 1;
+      }
+
+      bool WriteLargeMessage_(const String &fileName, const AnsiString &header)
+      {
+         File file;
+         if (!file.Open(fileName, File::OTCreate) || !file.Write(header))
+            return false;
+
+         const AnsiString block = LargeBodyBlock_();
+         for (int i = 0; i < LargeBodyBlocks_(); i++)
+         {
+            if (!file.Write(block))
+               return false;
+         }
+
+         return file.Write(AnsiString(LargeBodyEnd)) && file.Close();
+      }
+
+      // The header of the file - everything before its first blank line, that
+      // line counted - and whether the rest is the test message's body, byte
+      // for byte, read in blocks.
+      bool ReadLargeMessage_(const String &fileName, AnsiString &header, bool &bodyIntact)
+      {
+         header = "";
+         bodyIntact = false;
+
+         File file;
+         if (!file.Open(fileName, File::OTReadOnly))
+            return false;
+
+         std::shared_ptr<ByteBuffer> start = file.ReadChunk(64 * 1024);
+         if (!start)
+            return false;
+
+         const AnsiString startText(start->GetCharBuffer(), start->GetSize());
+         const int end = startText.Find("\r\n\r\n");
+         if (end < 0)
+            return false;
+
+         header = startText.Mid(0, end + 4);
+         if (!file.SetPosition(end + 4))
+            return false;
+
+         const AnsiString block = LargeBodyBlock_();
+         for (int i = 0; i < LargeBodyBlocks_(); i++)
+         {
+            std::shared_ptr<ByteBuffer> read = file.ReadChunk(block.GetLength());
+            if (!read || read->GetSize() != (size_t) block.GetLength() || std::memcmp(read->GetCharBuffer(), block.c_str(), read->GetSize()) != 0)
+               return true;
+         }
+
+         const AnsiString last(LargeBodyEnd);
+         std::shared_ptr<ByteBuffer> tail = file.ReadChunk(last.GetLength() + 1);
+         bodyIntact = tail && tail->GetSize() == (size_t) last.GetLength() && std::memcmp(tail->GetCharBuffer(), last.c_str(), tail->GetSize()) == 0;
+         return true;
+      }
+
+      const char *const LargeHeader_ =
+         "Return-Path: <sender@example.test>\r\n"
+         "X-hMailServer-LoopCount: 2\r\n"
+         "From: sender@example.test\r\n"
+         "To: recipient@example.test\r\n"
+         "Subject: A message too large to be read whole\r\n"
+         "MIME-Version: 1.0\r\n"
+         "Content-Type: text/plain; charset=\"us-ascii\"\r\n"
+         "\r\n";
+
+      // The loop count as GetRuleLoopCount reads it and IncreaseRuleLoopCount
+      // raises it, held to a limit of the tester's own: those two ask the
+      // server's settings for the limit (RuleGuard::ReadLoopCount), and
+      // file-utilities-tests on Linux runs with none - its PropertySet was never
+      // loaded, and the read crashed the program there.
+      const int TesterLoopLimit = 10;
+
+      int LoopCountOf_(MessageData &data)
+      {
+         return RuleGuard::ReadLoopCount(data.GetFieldValue(XHMAILSERVER_LOOPCOUNT), TesterLoopLimit);
+      }
+
+      void RaiseLoopCount_(MessageData &data)
+      {
+         data.SetRuleLoopCount(LoopCountOf_(data) + 1);
+      }
+   }
+
+   void
+   LargeMessageTester::Test(const String &directory)
+   {
+      const String fileName = FileUtilities::Combine(directory, GUIDCreator::GetGUID() + _T(".eml"));
+      const String copyName = FileUtilities::Combine(directory, GUIDCreator::GetGUID() + _T(".eml"));
+
+      try
+      {
+         ExpectLarge_(WriteLargeMessage_(fileName, LargeHeader_), "the test message could not be written");
+
+         std::shared_ptr<Message> message = std::shared_ptr<Message>(new Message(false));
+
+         // Refused, as every caller that does not ask has it.
+         MessageData refused;
+         ExpectLarge_(!refused.LoadFromMessage(fileName, message), "a message over MaxParseBytes loaded although the caller did not ask for its header alone");
+         ExpectLarge_(!refused.IsHeaderOnly(), "a refused load says it read the header");
+
+         // The header alone: read as any message's, the body empty.
+         std::shared_ptr<MessageData> data = std::shared_ptr<MessageData>(new MessageData());
+         ExpectLarge_(data->LoadFromMessage(fileName, message, MessageData::LargeMessage::HeaderOnly), "a message over MaxParseBytes was not loaded header only when asked");
+         ExpectLarge_(data->IsHeaderOnly(), "a header-only load does not say so");
+         ExpectLarge_(data->GetSubject() == _T("A message too large to be read whole"), "the subject of a header-only message was not read");
+         ExpectLarge_(LoopCountOf_(*data) == 2, "the loop count of a header-only message was not read");
+         ExpectLarge_(data->GetBody().IsEmpty() && data->GetAttachments()->GetCount() == 0, "a header-only message has a body or parts");
+
+         // The loop count raised and written: the header with it, and the body
+         // copied behind it byte for byte.
+         RaiseLoopCount_(*data);
+         data->SetFieldValue(_T("X-Large-Message-Test"), _T("set"));
+         ExpectLarge_(data->Write(fileName), "a header-only message whose header changed was not written");
+
+         AnsiString header;
+         bool bodyIntact = false;
+         ExpectLarge_(ReadLargeMessage_(fileName, header, bodyIntact), "the rewritten message could not be read back");
+         ExpectLarge_(header.Find("X-hMailServer-LoopCount: 3\r\n") >= 0, "the raised loop count is not in the rewritten header");
+         ExpectLarge_(header.Find("X-Large-Message-Test: set\r\n") >= 0, "the header set is not in the rewritten header");
+         ExpectLarge_(header.Find("Subject: A message too large to be read whole\r\n") >= 0, "the rewritten header lost a field it had");
+         ExpectLarge_(bodyIntact, "the body of the rewritten message is not the body it had, byte for byte");
+         ExpectLarge_(message->GetSize() == FileUtilities::FileSize(fileName), "the message's size is not its rewritten file's");
+
+         // Loaded again, as the last load chose: the header only, the count as written.
+         ExpectLarge_(data->RefreshFromMessage() && data->IsHeaderOnly() && LoopCountOf_(*data) == 3, "a refreshed header-only message was not loaded header only again");
+
+         // Written again to another name, from the file it was rewritten to.
+         RaiseLoopCount_(*data);
+         ExpectLarge_(data->Write(copyName), "a header-only message was not written to another name");
+         ExpectLarge_(ReadLargeMessage_(copyName, header, bodyIntact) && bodyIntact && header.Find("X-hMailServer-LoopCount: 4\r\n") >= 0, "the copy written to another name is not the header and the whole body");
+         ExpectLarge_(ReadLargeMessage_(fileName, header, bodyIntact) && bodyIntact && header.Find("X-hMailServer-LoopCount: 3\r\n") >= 0, "writing the copy changed the message it was read from");
+      }
+      catch (...)
+      {
+         FileUtilities::DeleteFile(fileName);
+         FileUtilities::DeleteFile(copyName);
+         throw;
+      }
+
+      FileUtilities::DeleteFile(fileName);
+      FileUtilities::DeleteFile(copyName);
+   }
+
+   void
+   LargeMessageTester::TestRefusals(const String &directory)
+   {
+      const String fileName = FileUtilities::Combine(directory, GUIDCreator::GetGUID() + _T(".eml"));
+      const String longHeaderName = FileUtilities::Combine(directory, GUIDCreator::GetGUID() + _T(".eml"));
+
+      try
+      {
+         ExpectLarge_(WriteLargeMessage_(fileName, LargeHeader_), "the test message could not be written");
+         const long size = FileUtilities::FileSize(fileName);
+
+         std::shared_ptr<Message> message = std::shared_ptr<Message>(new Message(false));
+
+         // A changed body: refused (HM7840), the message as it was.
+         std::shared_ptr<MessageData> data = std::shared_ptr<MessageData>(new MessageData());
+         ExpectLarge_(data->LoadFromMessage(fileName, message, MessageData::LargeMessage::HeaderOnly), "a message over MaxParseBytes was not loaded header only when asked");
+         data->SetBody(_T("A body that would replace the one never read."));
+         ExpectLarge_(!data->Write(fileName), "a header-only message whose body changed was written");
+
+         AnsiString header;
+         bool bodyIntact = false;
+         ExpectLarge_(ReadLargeMessage_(fileName, header, bodyIntact) && bodyIntact && FileUtilities::FileSize(fileName) == size &&
+                      header == AnsiString(LargeHeader_), "a refused write of a changed body changed the message");
+
+         // A source cut short after its header was read: refused (HM7842), the
+         // file left as it now is.
+         data = std::shared_ptr<MessageData>(new MessageData());
+         ExpectLarge_(data->LoadFromMessage(fileName, message, MessageData::LargeMessage::HeaderOnly), "a message over MaxParseBytes was not loaded header only when asked");
+         const AnsiString shortened = AnsiString(LargeHeader_) + "A body cut short.\r\n";
+         ExpectLarge_(FileUtilities::WriteToFile(fileName, shortened), "the message could not be cut short");
+         RaiseLoopCount_(*data);
+         ExpectLarge_(!data->Write(fileName), "a header-only message whose source was cut short was written");
+         ExpectLarge_(FileUtilities::ReadCompleteTextFile(fileName) == String(shortened), "a refused write over a source cut short changed the file");
+
+         // A header with no end in the first MaxHeaderOnlyBytes: not loaded (HM7841).
+         AnsiString longHeader = "Subject: A header longer than is read\r\n";
+         const AnsiString filler = "X-Filler: 0123456789012345678901234567890123456789012345678901234567890123456789\r\n";
+         while ((size_t) longHeader.GetLength() <= MimeBody::MaxHeaderOnlyBytes)
+            longHeader += filler;
+         longHeader += "\r\n";
+         ExpectLarge_(WriteLargeMessage_(longHeaderName, longHeader), "the message with a long header could not be written");
+         MessageData longData;
+         ExpectLarge_(!longData.LoadFromMessage(longHeaderName, message, MessageData::LargeMessage::HeaderOnly), "a message whose header has no end in the bytes read was loaded");
+         ExpectLarge_(!longData.Write(longHeaderName), "a message whose header could not be read was written");
+      }
+      catch (...)
+      {
+         FileUtilities::DeleteFile(fileName);
+         FileUtilities::DeleteFile(longHeaderName);
+         throw;
+      }
+
+      FileUtilities::DeleteFile(fileName);
+      FileUtilities::DeleteFile(longHeaderName);
    }
 
 

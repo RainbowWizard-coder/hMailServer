@@ -560,6 +560,21 @@ namespace HM
       // name is for the error log.
       MimeLoadResult LoadFromMemory(const std::shared_ptr<const std::string> &message, const String &name, bool keepAsideOnFailure);
 
+      // The header of a message too large to be parsed whole (MessageData::
+      // LoadFromMessage, LargeMessage::HeaderOnly): its fields parsed as the
+      // whole message's would be, its body left where it is - in the file, or
+      // in message for LoadHeaderFromMemory - and nothing of it read. Written
+      // with its body unchanged, the header is followed by the body copied
+      // byte for byte from there, never held in memory from a file; a change
+      // to the body is refused when written (HM7840), since the body that was
+      // never read cannot be written with it. ParseFailed when the first
+      // MaxHeaderOnlyBytes hold no end of the header, or a field the parser
+      // refuses; OpenFailed when the file could not be opened.
+      MimeLoadResult LoadHeaderFromFile(const AnsiString &pszFilename);
+      MimeLoadResult LoadHeaderFromMemory(const std::shared_ptr<const std::string> &message);
+      bool IsHeaderOnly() const { return header_only_; }
+      static const size_t MaxHeaderOnlyBytes = 10 * 1024 * 1024;
+
       // The whole message as SaveAllToFile would write it, into memory and
       // nowhere else: the header and, when nothing of the body changed, the
       // body copied from the source it was loaded from. False, reported, when
@@ -627,6 +642,7 @@ namespace HM
       bool body_modified_ = false;     // True if any body content was changed
       size_t last_header_size_ = 0;    // Header size captured from last Load() call
       size_t last_multipart_end_ = 0;  // Position right after "--boundary--" closing marker, or 0 if not multipart
+      bool header_only_ = false;       // Only the header was read (LoadHeaderFromFile): the body is unread in the source
 
    protected:
       bool AllocateBuffer(size_t nBufSize);
@@ -648,6 +664,20 @@ namespace HM
 
       // Where the body is in the bytes a parse has just read (loaded of them).
       void RecordBodyBounds_(const char *bytes, size_t loaded);
+
+      // The header-only load of the first length bytes of a source of total
+      // bytes: false, nothing kept, when they do not hold the whole header.
+      bool LoadHeaderOnly_(const char *bytes, size_t length, size_t total);
+
+      // True when a header-only message's body is as it was read, so that it
+      // can be copied from its source; false, reported (HM7840), when it was
+      // changed. target is for the error log.
+      bool HeaderOnlyBodyUnchanged_(const String &target) const;
+
+      // SaveAllToFile for a header-only message read from a file: the header,
+      // then the unread body copied from the file in chunks, into a file beside
+      // the target that is renamed over it.
+      bool SaveHeaderOnlyToFile_(const AnsiString &pszFilename);
 
       String GenerateFileNameFromEncapsulatedSubject(bool unicode) const;
    };

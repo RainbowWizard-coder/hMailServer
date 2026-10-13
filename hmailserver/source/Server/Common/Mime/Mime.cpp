@@ -1719,6 +1719,7 @@ namespace HM
       std::shared_ptr<ByteBuffer> pFileContents = oFile.ReadTextFile();
 
       FreeBuffer();
+      header_only_ = false;
 
       // Cannot happen today - ReadTextFile throws instead of answering null - but "no
       // buffer" must never be allowed to read as "no content", which is precisely the
@@ -1796,6 +1797,7 @@ namespace HM
       MimeBody::LoadFromMemory(const std::shared_ptr<const std::string> &message, const String &name, bool keepAsideOnFailure)
    {
       FreeBuffer();
+      header_only_ = false;
 
       if (!message)
          return MimeLoadResult::ParseFailed;
@@ -1838,6 +1840,126 @@ namespace HM
       }
 
       return MimeLoadResult::Loaded;
+   }
+
+   namespace
+   {
+      // The size of the header the first length bytes of a message hold whole,
+      // its closing blank line counted, or 0 when they do not hold all of it.
+      //
+      // Where MimeHeader::Load stops: at a field that begins with CR. Every CRLF
+      // in a header ends a line (FindString finds them in order), and one
+      // followed by anything but a space or a tab ends its field, so the first
+      // CRLF followed by CR is where the header ends - a header with no field at
+      // all begins with it - and Load then steps over the two bytes of the blank
+      // line when they are there. Bytes that hold all of that parse exactly as
+      // the whole message does, which is why a header-only load can stop reading
+      // there. (A NUL at the start of a field ends the header sooner, inside
+      // these bytes, and Load stops there by itself.)
+      size_t HeaderOnlyEnd(const char *bytes, size_t length, size_t searchFrom)
+      {
+         if (length >= 2 && bytes[0] == '\r')
+            return 2;
+
+         const char *found = FindString(bytes + searchFrom, "\r\n\r", bytes + length);
+         if (found == nullptr)
+            return 0;
+
+         const size_t at = static_cast<size_t>(found - bytes);
+         return at + 4 <= length ? at + 4 : 0;
+      }
+   }
+
+   MimeLoadResult
+      MimeBody::LoadHeaderFromFile(const AnsiString &pszFilename)
+   {
+      File oFile;
+      if (!oFile.Open(pszFilename, File::OTReadOnly))
+         return MimeLoadResult::OpenFailed;
+
+      // The whole size, past File's int: what the body is copied to when the
+      // message is written, and what tells a file changed under us from this
+      // one.
+      unsigned __int64 total = 0;
+      if (!FileUtilities::FileSize64(String(pszFilename), total))
+         return MimeLoadResult::OpenFailed;
+
+      // Read in steps until the bytes hold the end of the header, which for
+      // nearly every message is inside the first. Searched from where the last
+      // step's bytes might have begun it, not from the start each time.
+      const size_t step = 64 * 1024;
+      const size_t most = MaxHeaderOnlyBytes;
+      std::string bytes;
+      size_t end = 0;
+      try
+      {
+         while (end == 0 && bytes.size() < most)
+         {
+            std::shared_ptr<ByteBuffer> chunk = oFile.ReadChunk(static_cast<int>(step));
+            if (!chunk || chunk->GetSize() == 0)
+               break;
+
+            const size_t searchFrom = bytes.size() >= 3 ? bytes.size() - 3 : 0;
+            bytes.append(chunk->GetCharBuffer(), chunk->GetSize());
+            end = HeaderOnlyEnd(bytes.data(), bytes.size(), searchFrom);
+         }
+      }
+      catch (...)
+      {
+         // ReadChunk throws when a read fails: the file could not be read,
+         // which is what OpenFailed says to the caller.
+         return MimeLoadResult::OpenFailed;
+      }
+
+      if (end == 0 || !LoadHeaderOnly_(bytes.data(), bytes.size(), static_cast<size_t>(total)))
+         return MimeLoadResult::ParseFailed;
+
+      source_file_ = pszFilename;
+      return MimeLoadResult::Loaded;
+   }
+
+   MimeLoadResult
+      MimeBody::LoadHeaderFromMemory(const std::shared_ptr<const std::string> &message)
+   {
+      if (!message)
+         return MimeLoadResult::ParseFailed;
+
+      const size_t most = MaxHeaderOnlyBytes;
+      const size_t length = std::min(message->size(), most);
+      if (HeaderOnlyEnd(message->data(), length, 0) == 0 || !LoadHeaderOnly_(message->data(), length, message->size()))
+         return MimeLoadResult::ParseFailed;
+
+      source_bytes_ = message;
+      return MimeLoadResult::Loaded;
+   }
+
+   bool
+   MimeBody::LoadHeaderOnly_(const char *bytes, size_t length, size_t total)
+   {
+      Clear();
+
+      const size_t end = HeaderOnlyEnd(bytes, length, 0);
+      if (end == 0 || end > total)
+         return false;
+
+      // The parse the whole message's header gets (MimeBody::Load), over bytes
+      // that hold all of it.
+      const size_t headerSize = MimeHeader::Load(bytes, length, true);
+      if (headerSize == 0 || headerSize > end)
+      {
+         Clear();
+         return false;
+      }
+
+      // The body is everything after the header, to the end of the source as
+      // it was read: copied byte for byte when the message is written, the
+      // closing boundary, a trailing line and all, since none of it was parsed.
+      last_header_size_ = headerSize;
+      body_byte_offset_ = headerSize;
+      body_byte_end_ = total;
+      body_modified_ = false;
+      header_only_ = true;
+      return true;
    }
 
    // Returns true if any child body part has been modified (body text or headers).
@@ -1908,10 +2030,61 @@ namespace HM
       return true;
    }
 
+   bool MimeBody::HeaderOnlyBodyUnchanged_(const String &target) const
+   {
+      if (!body_modified_ && !IsAnyChildModified())
+         return true;
+
+      // Nothing on the server's own paths changes the body of a message read
+      // header only - the rules decline what needs it, and the signature and
+      // the disclaimers are not appended to it (docs/MailFlowRules.md) - so this
+      // is a caller that should not have, and the message is kept whole.
+      ErrorManager::Instance()->ReportError(ErrorManager::High, 7840, "MimeBody::SaveAllToFile",
+         Formatter::Format("The message {0} was not written: it is too large to be read whole, so only its header was read, and a change to its body cannot be written without the body. The message has been left as it was.", target));
+      return false;
+   }
+
+   bool MimeBody::SaveHeaderOnlyToFile_(const AnsiString &pszFilename)
+   {
+      AnsiString headerBuffer;
+      MimeHeader::Store(headerBuffer);  // includes trailing blank line \r\n
+
+      // The body as it was read: from the source file's offset to the size it
+      // had then, copied in chunks behind the header into a file beside the
+      // target, which is renamed over it - the source is normally the target
+      // itself. A source that is no longer as long as it was has been changed
+      // underneath us, and is not copied.
+      if (!FileUtilities::WriteToFileAtomically(String(pszFilename), headerBuffer, String(source_file_), body_byte_offset_, body_byte_end_))
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::High, 7842, "MimeBody::SaveAllToFile",
+            Formatter::Format("The message {0} could not be rewritten with its body copied from {1}, which was read header only: the file was not as long as when its header was read, or it could not be read or the copy could not be written. The message has been left as it was.",
+               String(pszFilename), String(source_file_)));
+         return false;
+      }
+
+      // The new file is the source from here on, as for the preserved path.
+      const size_t bodySize = body_byte_end_ - body_byte_offset_;
+      source_file_ = pszFilename;
+      body_byte_offset_ = (size_t) headerBuffer.GetLength();
+      body_byte_end_ = body_byte_offset_ + bodySize;
+      return true;
+   }
+
    // write the entire header and content to file.
    bool MimeBody::SaveAllToFile(const AnsiString & pszFilename)
    {
       LOG_DEBUG(Formatter::Format("Rewriting message file {0}.", String(pszFilename)));
+
+      // A message read header only from a file: its body is copied from the
+      // file and never read into memory, which is what reading the header only
+      // was for.
+      if (header_only_ && !source_bytes_)
+      {
+         if (!HeaderOnlyBodyUnchanged_(String(pszFilename)))
+            return false;
+
+         return SaveHeaderOnlyToFile_(pszFilename);
+      }
 
       AnsiString fullMessage;
       bool preserved = false;
@@ -1957,6 +2130,11 @@ namespace HM
       headerSize = 0;
       bodySize = 0;
       output = "";
+
+      // A message read header only has no body here to write but the one in
+      // its source, which the path below copies as it does any unchanged body.
+      if (header_only_ && !HeaderOnlyBodyUnchanged_(target))
+         return false;
 
       // If body content was not modified and we have a source, serialize only
       // headers (using raw_line_ for unmodified fields) and copy body from it.
@@ -2214,6 +2392,7 @@ namespace HM
       body_modified_ = false;
       last_header_size_ = 0;
       last_multipart_end_ = 0;
+      header_only_ = false;
    }
 
    // return the length needed to store this body part 

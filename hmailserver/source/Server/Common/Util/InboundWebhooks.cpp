@@ -2278,12 +2278,19 @@ namespace HM
       // parses. One that does not - what HM7404 is - is returned on its sender
       // alone, as SMTPDeliverer::SubmitErrorLog_ returns a message it cannot
       // read: the sender is owed the news that it was not delivered.
+      //
+      // Header only when the copy is too large to be read whole (MessageData::
+      // MaxParseBytes): both are header fields. Such a copy is kept, never
+      // posted - a route's ceiling is at most that size - and arrives here when
+      // it is tried again and cannot be made into a body; until the
+      // large-message row its load failed too, so an Auto-Submitted one was
+      // returned to its sender rather than kept.
       if (senderTold && copyThere)
       {
          std::shared_ptr<Message> parsed = std::shared_ptr<Message>(new Message(false));
          std::shared_ptr<MessageData> data = std::shared_ptr<MessageData>(new MessageData());
 
-         if (data->LoadFromMessage(file, parsed))
+         if (data->LoadFromMessage(file, parsed, MessageData::LargeMessage::HeaderOnly))
             senderTold = RuleApplier::IsGeneratedResponseAllowed(data, true);
       }
 

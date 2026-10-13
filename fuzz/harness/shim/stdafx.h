@@ -332,6 +332,11 @@ namespace HM
       // change (temporary file, then a replacing rename). The harness never saves
       // a message, so it answers the way the other writers here do.
       static bool WriteToFileAtomically(const String &, const AnsiString &) { return false; }
+      // MimeBody::LoadHeaderFromFile sizes the file it reads the header of, and
+      // SaveAllToFile copies such a message's body behind its header from the
+      // file (the large-message row). Neither file exists here.
+      static bool FileSize64(const String &, unsigned __int64 &size) { size = 0; return false; }
+      static bool WriteToFileAtomically(const String &, const AnsiString &, const String &, unsigned __int64, unsigned __int64) { return false; }
       // MimeBody::LoadFromMemory keeps a message it could not parse aside in
       // "Problematic messages", making the directory first (the encryption-at-rest
       // row). Neither exists here, so the copy is not written, as above.

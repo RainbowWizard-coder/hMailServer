@@ -107,9 +107,12 @@ namespace HM
 
       String originalFileName = MessageStore::WorkingFile(pRecipientAccount, pOriginalMessage);
 
-      // Check that rule loop count is not yet reached.
+      // Check that rule loop count is not yet reached. Header only when the message
+      // is too large to be read whole (MessageData::MaxParseBytes): the count is a
+      // header field, and until the large-message row such a message's load failed,
+      // so its count read as 0 and a forwarding loop of it was never stopped.
       std::shared_ptr<MessageData> pOldMsgData  = std::shared_ptr<MessageData>(new MessageData());
-      pOldMsgData->LoadFromMessage(originalFileName, pOriginalMessage);
+      pOldMsgData->LoadFromMessage(originalFileName, pOriginalMessage, MessageData::LargeMessage::HeaderOnly);
 
       // false = check only loop counter not AutoSubmitted header because forward not rule
       if (!RuleApplier::IsGeneratedResponseAllowed(pOldMsgData, false))
@@ -160,10 +163,12 @@ namespace HM
 
       pNewMessage->SetState(Message::Delivering);
 
-      // Increase the number of rule-deliveries made.
+      // Increase the number of rule-deliveries made - on the header alone for a copy
+      // too large to be read whole, whose body is copied behind it as it is, where
+      // the write of the count was refused (HM6010) and the copy went without it.
       std::shared_ptr<MessageData> pNewMsgData = std::shared_ptr<MessageData>(new MessageData());
       const String newFileName = MessageStore::WorkingFile(pNewMessage);
-      pNewMsgData->LoadFromMessage(newFileName, pNewMessage);
+      pNewMsgData->LoadFromMessage(newFileName, pNewMessage, MessageData::LargeMessage::HeaderOnly);
       pNewMsgData->IncreaseRuleLoopCount();
       pNewMsgData->WriteReported(newFileName, "The rule-loop counter on a forwarded message");
 
@@ -270,8 +275,9 @@ namespace HM
 
       const String originalFileName = MessageStore::WorkingFile(pRecipientAccount, pOriginalMessage);
 
+      // Header only when too large to be read whole, as PerformForwarding reads it.
       std::shared_ptr<MessageData> pOldMsgData = std::shared_ptr<MessageData>(new MessageData());
-      pOldMsgData->LoadFromMessage(originalFileName, pOriginalMessage);
+      pOldMsgData->LoadFromMessage(originalFileName, pOriginalMessage, MessageData::LargeMessage::HeaderOnly);
 
       // Guard against redirect loops via the rule loop counter.
       if (!RuleApplier::IsGeneratedResponseAllowed(pOldMsgData, false))
@@ -315,7 +321,7 @@ namespace HM
 
       std::shared_ptr<MessageData> pNewMsgData = std::shared_ptr<MessageData>(new MessageData());
       const String newFileName = MessageStore::WorkingFile(pNewMessage);
-      pNewMsgData->LoadFromMessage(newFileName, pNewMessage);
+      pNewMsgData->LoadFromMessage(newFileName, pNewMessage, MessageData::LargeMessage::HeaderOnly);
       pNewMsgData->IncreaseRuleLoopCount();
       pNewMsgData->WriteReported(newFileName, "The rule-loop counter on a forwarded message");
 

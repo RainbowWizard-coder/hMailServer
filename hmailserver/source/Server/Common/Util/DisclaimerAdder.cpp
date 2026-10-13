@@ -25,6 +25,24 @@ namespace HM
 {
    namespace
    {
+      // A message too large to be read whole (MessageData::MaxParseBytes) has only
+      // its header read, and the text a footer goes after is in its body, which
+      // is not read to append to it - finding the part to append to means parsing
+      // the whole of it, and appending blind to a body whose structure is not
+      // known breaks an encoded or a multipart one. So nothing is appended, and
+      // the log says so, where an administrator missing a footer will look. Until
+      // the large-message row the load failed and the footer was left off without
+      // a word. True when the message is such a one and was left alone.
+      bool LargeMessageSkipped_(std::shared_ptr<Message> message, std::shared_ptr<MessageData> data, const String &what)
+      {
+         if (!data->IsHeaderOnly())
+            return false;
+
+         LOG_APPLICATION(Formatter::Format("DisclaimerAdder - Message {0} from {1} is larger than the {2} MB a message is read whole at, so {3} was not appended: appending it needs the body, which was not read. The message was sent unchanged.",
+            message ? message->GetID() : 0, message ? message->GetFromAddress() : String(), (int) (MessageData::MaxParseBytes / (1024 * 1024)), what));
+         return true;
+      }
+
       // What a quoted copy of the footer looks like once a mail client has been
       // at it: angle-bracket quote markers at the start of every line, tags
       // wrapped around it, white space folded differently. All of that is
@@ -234,10 +252,13 @@ namespace HM
 
       if (loadedHere)
       {
+         // Header only when the message is too large to be read whole, so that
+         // the guards below, which read the header, decide as for any message,
+         // and the log can say why it got no footer.
          data = std::shared_ptr<MessageData>(new MessageData());
          std::shared_ptr<Account> emptyAccount;
 
-         if (!data->LoadFromMessage(emptyAccount, message))
+         if (!data->LoadFromMessage(emptyAccount, message, MessageData::LargeMessage::HeaderOnly))
             return false;
       }
 
@@ -267,6 +288,9 @@ namespace HM
          LOG_APPLICATION(logText);
          return false;
       }
+
+      if (LargeMessageSkipped_(message, data, _T("the domain's disclaimer")))
+         return false;
 
       auto plainPart = data->GetBodyTextPlainPart();
       auto htmlPart = data->GetBodyTextHtmlPart();
@@ -332,11 +356,16 @@ namespace HM
       {
          data = std::shared_ptr<MessageData>(new MessageData());
          std::shared_ptr<Account> emptyAccount;
-         if (!data->LoadFromMessage(emptyAccount, message))
+         if (!data->LoadFromMessage(emptyAccount, message, MessageData::LargeMessage::HeaderOnly))
             return false;
       }
 
       if (IsProtectedContentType(data->GetFieldValue(_T("Content-Type"))))
+         return false;
+
+      // A rule's disclaimer on a message read header only - the rules read one
+      // too large to be read whole that way (RuleApplier::ApplyRules).
+      if (LargeMessageSkipped_(message, data, _T("the disclaimer of ") + appliedBy))
          return false;
 
       auto plainPart = data->GetBodyTextPlainPart();

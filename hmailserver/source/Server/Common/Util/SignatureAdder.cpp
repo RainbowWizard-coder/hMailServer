@@ -144,9 +144,11 @@ namespace HM
 
       if (loadedHere)
       {
+         // Header only when the message is too large to be read whole, so that
+         // the log can say why it got no signature (below).
          data = std::shared_ptr<MessageData>(new MessageData());
          std::shared_ptr<Account> emptyAccount;
-         if (!data->LoadFromMessage(emptyAccount, message))
+         if (!data->LoadFromMessage(emptyAccount, message, MessageData::LargeMessage::HeaderOnly))
             return false;
       }
 
@@ -168,6 +170,19 @@ namespace HM
          logText.Format(_T("SignatureAdder - Message %I64d from %s is signed or encrypted (%s), so the signature was not appended: appending to it would break the signature or the encryption. The message was sent unchanged."),
             message->GetID(), message->GetFromAddress().c_str(), data->GetFieldValue(_T("Content-Type")).c_str());
          LOG_APPLICATION(logText);
+         return false;
+      }
+
+      if (data->IsHeaderOnly())
+      {
+         // Too large to be read whole (MessageData::MaxParseBytes), so only the
+         // header was read: the text the signature goes after is in the body,
+         // which is not read to append to it - finding the part to append to means
+         // parsing the whole of it. Sent as written, and said where an
+         // administrator missing a signature will look. Until the large-message row
+         // the load failed and the signature was left off without a word.
+         LOG_APPLICATION(Formatter::Format("SignatureAdder - Message {0} from {1} is larger than the {2} MB a message is read whole at, so the signature was not appended: appending it needs the body, which was not read. The message was sent unchanged.",
+            message->GetID(), message->GetFromAddress(), (int) (MessageData::MaxParseBytes / (1024 * 1024))));
          return false;
       }
 

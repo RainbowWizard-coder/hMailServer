@@ -453,6 +453,67 @@ namespace HM
    }
 
    bool
+   FileUtilities::WriteToFileAtomically(const String &sFilename, const AnsiString &sHead, const String &sBodySource, unsigned __int64 bodyOffset, unsigned __int64 bodyEnd)
+   {
+      if (bodyEnd < bodyOffset)
+         return false;
+
+      const String temporary = sFilename + _T(".writing-") + GUIDCreator::GetGUID();
+
+      bool written = false;
+      try
+      {
+         // Both closed before the rename below: a file open here could not be
+         // replaced on Windows, and the source is normally sFilename itself.
+         File source;
+         File target;
+
+         // The offset is a header's size (MimeBody::MaxHeaderOnlyBytes at most),
+         // which File's int position holds.
+         unsigned __int64 sourceSize = 0;
+         if (source.Open(sBodySource, File::OTReadOnly) &&
+             FileSize64(sBodySource, sourceSize) && sourceSize >= bodyEnd &&
+             bodyOffset <= (unsigned __int64) INT_MAX && source.SetPosition((int) bodyOffset) &&
+             target.Open(temporary, File::OTCreate) && target.Write(sHead))
+         {
+            written = true;
+
+            unsigned __int64 remaining = bodyEnd - bodyOffset;
+            while (written && remaining > 0)
+            {
+               const unsigned __int64 step = remaining < (unsigned __int64) File::FileChunkSize ? remaining : (unsigned __int64) File::FileChunkSize;
+               std::shared_ptr<ByteBuffer> chunk = source.ReadChunk((int) step);
+
+               size_t copied = 0;
+               written = chunk && chunk->GetSize() > 0 && target.Write(chunk, copied) && copied == chunk->GetSize();
+               if (written)
+                  remaining -= chunk->GetSize();
+            }
+         }
+
+         source.Close();
+
+         // The close writes the last of the data (File::Close): a file that did
+         // not take it is short, and is not renamed into place.
+         if (!target.Close())
+            written = false;
+      }
+      catch (...)
+      {
+         // ReadChunk throws when a read fails.
+         written = false;
+      }
+
+      if (!written || !Move(temporary, sFilename))
+      {
+         DeleteFile(temporary);
+         return false;
+      }
+
+      return true;
+   }
+
+   bool
    FileUtilities::CopyOver(const String &sFrom, const String &sTo)
    {
       // Copy onto a file that exists truncates it and then writes it (copy_file with

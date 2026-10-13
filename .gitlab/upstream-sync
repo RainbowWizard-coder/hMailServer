@@ -142,5 +142,36 @@
 #     0f7c26762 (#552), f047b8c1b, a843b0ec4 (#558): roadmap rows under
 #     "Planned work", each with the size and the reason it did not ride along.
 #
+# Ported 2026-10-13 (branch large-message-headers): 5841e577e, upstream issue
+# #683, merged as PR #686 - a message over 80 MB. Here the write of such a
+# message was already refused (MessageData::CheckWritable_, HM6010), so the blank
+# message #683 reports never went out; what was left was the defect's other half,
+# fixed in our code for the paths it names, with tests that fail on 74aed9ab8:
+# the rule-loop count that an account's forward, a Sieve redirect, a rule's
+# forward and copy and a bounce read and raise, the rules' header conditions and
+# header actions, and the signature and the disclaimers, which are not appended
+# to such a message and say so in the log (hmailserver/docs/MailFlowRules.md, "A
+# message over 80 MB"). Upstream's SignatureAdder refusal is taken, with the log
+# line beside it.
+#
+#   DELIBERATELY NOT TAKEN:
+#   - The header-only load for EVERY caller once the file is over 80 MB
+#     (MessageData::LoadFromMessage). Ours reads the header alone only for a
+#     caller that asks (MessageData::LargeMessage::HeaderOnly): the other callers -
+#     the virus scanner, the sandbox, the indexer, IMAP SEARCH, the REST routes,
+#     COM's Message and more - would otherwise see a message with no body and no
+#     attachments where they now see a load refused, and a scan of its
+#     attachments would find nothing in a message it never read.
+#   - Its Events.cs case, a script's header change saved over COM on such a
+#     message (OnAcceptMessage, Message.HeaderValue, Message.Save). COM's Message
+#     still refuses a message over 80 MB, so the change is not saved (HM6010) and
+#     the message is kept as it was. Reading it header only there would change what
+#     every script sees of such a message - its header, where it now sees none -
+#     which is the owner's to decide.
+#   - Upstream's error numbers 5736-5738 (ours are HM7840-HM7842) and its own
+#     temporary-file copy of the body in MimeBody::SaveAllToFile: ours copies it
+#     in pieces through FileUtilities::WriteToFileAtomically, the writer every
+#     rewrite of a message here goes through.
+#
 # Update this SHA (and only this SHA) when a batch has been triaged.
 d5e087066fa8ba5382787739ba61a9abc8975d99

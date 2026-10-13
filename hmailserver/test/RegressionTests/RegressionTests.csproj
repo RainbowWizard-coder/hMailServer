@@ -494,6 +494,7 @@
     <Compile Include="Rules\MailFlowRules.cs" />
     <Compile Include="Rules\OutboundContentPolicy.cs" />
     <Compile Include="Rules\SealedMessageRules.cs" />
+    <Compile Include="Rules\LargeMessages.cs" />
     <Compile Include="Shared\SingletonProvider.cs" />
     <Compile Include="SMTP\BareLineFeedEndOfData.cs" />
     <Compile Include="SMTP\AWStatsLoggingTests.cs" />

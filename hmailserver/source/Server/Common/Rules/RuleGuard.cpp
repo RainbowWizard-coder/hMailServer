@@ -217,10 +217,12 @@ namespace HM
 
       if (!loadSucceeded)
       {
-         // LoadFromMessage said no: a file over the 80 MB parser limit, or one whose
-         // MIME parse threw - in which case it has already been copied to "Problematic
-         // messages" and reported as HM4218. Either way the MessageData holds nothing,
-         // and nothing is not what the rule set was written against.
+         // LoadFromMessage said no: a file over the 80 MB parser limit whose header
+         // could not be read either (HM7841 - the rules read such a file header only,
+         // MessageData::LargeMessage::HeaderOnly), or one whose MIME parse threw - in
+         // which case it has already been copied to "Problematic messages" and
+         // reported as HM4218. Either way the MessageData holds nothing, and nothing
+         // is not what the rule set was written against.
          String errorMessage = Formatter::Format("Rules were not applied to message {0} ({1}) because its contents could not be read. The message is being delivered unfiltered; a rule matching on an empty subject, body or header would otherwise have acted on it. File: {2}",
             message->GetID(), scope, fileName);
 

@@ -29,8 +29,9 @@ namespace HM
    //   MimeBody::LoadFromFile        -> returns false before reading
    //   MimeBody::ReadFromFile        -> returns false before reading
    //   MimeBody::ReadBodyFromSourceFile -> returns ""
+   //   MimeBody::LoadHeaderFromFile  -> returns OpenFailed before reading
    //
-   // None of the three are called by the current targets - they all drive
+   // None of the four are called by the current targets - they all drive
    // MimeBody::Load / MimeHeader::Load on a buffer, which is exactly what
    // LoadFromFile does once File has handed it the bytes. Refusing to open is
    // still the right stub rather than an abort(), for two reasons:
@@ -76,6 +77,13 @@ namespace HM
    }
 
    std::shared_ptr<ByteBuffer> File::ReadFile()
+   {
+      return std::shared_ptr<ByteBuffer>(new ByteBuffer());
+   }
+
+   // MimeBody::LoadHeaderFromFile reads a large message's header in steps.
+   // Unreachable while Open() fails, as above.
+   std::shared_ptr<ByteBuffer> File::ReadChunk(int)
    {
       return std::shared_ptr<ByteBuffer>(new ByteBuffer());
    }

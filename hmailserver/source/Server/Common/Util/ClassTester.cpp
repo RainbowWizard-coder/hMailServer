@@ -250,6 +250,16 @@ namespace HM
       LoopCountTester loopCountTester;
       loopCountTester.Test();
 
+      // A message over the 80 MB a message is parsed whole at, read header only
+      // where a caller asks: its loop count read, raised and written back with the
+      // body copied byte for byte, where until the large-message row a forward,
+      // a rule or a bounce read no count and could write none (MessageData.h,
+      // LargeMessage). The refusals, which report, run on Linux
+      // (file-utilities-tests), where the reports are counted.
+      OutputDebugString(_T("hMailServer: Testing a message too large to be read whole\n"));
+      LargeMessageTester largeMessageTester;
+      largeMessageTester.Test(IniFileSettings::Instance()->GetTempDirectory());
+
       // And no edit resets it: a Sieve script's addheader or deleteheader, refused
       // when stored and skipped when run, a rule that sets it, and a line break in a
       // value that would write it as a second field (RuleGuard.h, LoopCountEditTester).

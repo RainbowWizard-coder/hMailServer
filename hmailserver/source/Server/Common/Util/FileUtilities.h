@@ -45,6 +45,14 @@ namespace HM
       // construction. The temporary name is unique per call.
       static bool WriteToFileAtomically(const String &sFilename, const AnsiString &sData);
 
+      // The same, for a message whose body is not held in memory (MimeBody::
+      // LoadHeaderFromFile): sHead, then the bytes of sBodySource from
+      // bodyOffset up to bodyEnd, copied in chunks and never held whole.
+      // sBodySource may be sFilename itself; it is closed before the rename.
+      // False, sFilename as it was and nothing left beside it, when sBodySource
+      // is shorter than bodyEnd, or a read, a write or the rename fails.
+      static bool WriteToFileAtomically(const String &sFilename, const AnsiString &sHead, const String &sBodySource, unsigned __int64 bodyOffset, unsigned __int64 bodyEnd);
+
       // Copy's counterpart of WriteToFileAtomically: sFrom is copied to a temporary
       // name beside sTo and renamed over it, so sTo holds its old content or the
       // whole of the new, never a part. Copy itself, onto a file that exists,

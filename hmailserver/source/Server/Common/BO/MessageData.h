@@ -20,10 +20,37 @@ namespace HM
       MessageData();
       virtual ~MessageData();
 
-      bool LoadFromMessage(const String &fileName, std::shared_ptr<Message> pMessage);
-      bool LoadFromMessage(std::shared_ptr<const Account> account, std::shared_ptr<Message> pMessage);
+      // The size above which a message is not parsed whole: 80 MB.
+      static const int MaxParseBytes = 1024 * 1024 * 80;
 
+      // What LoadFromMessage does with a message larger than MaxParseBytes.
+      //
+      // Refuse answers false, as it always has, and every caller but a few
+      // asks for it. HeaderOnly loads the header alone (MimeBody::
+      // LoadHeaderFromFile) and answers true: the fields read and change as
+      // any message's, the body reads as empty and has no parts, and Write
+      // copies the body unread from where it is behind the header - refusing
+      // (HM7840) when the body was changed. It is for what reads or changes
+      // only the header (docs/MailFlowRules.md): the rule-loop count a forward,
+      // a redirect, a rule's copy or a bounce reads and raises, the rules' header
+      // criteria and header actions, and the signature and disclaimers, which
+      // need the header to know whether they apply and say in the log that
+      // they were not appended to such a message.
+      enum class LargeMessage
+      {
+         Refuse,
+         HeaderOnly
+      };
+
+      bool LoadFromMessage(const String &fileName, std::shared_ptr<Message> pMessage, LargeMessage large = LargeMessage::Refuse);
+      bool LoadFromMessage(std::shared_ptr<const Account> account, std::shared_ptr<Message> pMessage, LargeMessage large = LargeMessage::Refuse);
+
+      // Loaded again from the same file, as the last load chose to treat a
+      // large message.
       bool RefreshFromMessage();
+
+      // True when only the header was loaded (LargeMessage::HeaderOnly).
+      bool IsHeaderOnly() const;
 
       String GetHeader() const;
       
@@ -171,6 +198,10 @@ namespace HM
       // refuse rather than replace the message on disk with nothing. See Write.
       bool load_failed_;
 
+      // What the last LoadFromMessage was asked to do with a large message, for
+      // RefreshFromMessage.
+      LargeMessage large_;
+
       // What was parsed (Persistence/MessageStore.h): the stored file itself, or
       // the original bytes of one the store keeps in another form, held in
       // memory for as long as this is - never a copy on the disk - because
@@ -198,6 +229,24 @@ namespace HM
    public:
       MessageDataTester() {};
       void Test();
+   };
+
+   // A message larger than MessageData::MaxParseBytes, read header only, in
+   // files written to directory and removed: ClassTester runs Test on
+   // Windows, file-utilities-tests on Linux runs both.
+   class LargeMessageTester
+   {
+   public:
+      // Refuse answers false; HeaderOnly reads the header, raises the loop count
+      // and writes it back with the body byte for byte, to the same name and to
+      // another. Reports nothing.
+      void Test(const String &directory);
+
+      // What is refused, each reported: a changed body (HM7840, and HM6011 from
+      // Write), with the message left as it was; a body source cut short
+      // (HM7842 and HM6011); a header with no end in the bytes read (HM7841),
+      // and a write of what that load left (HM6010). The caller counts them.
+      void TestRefusals(const String &directory);
    };
 
 }

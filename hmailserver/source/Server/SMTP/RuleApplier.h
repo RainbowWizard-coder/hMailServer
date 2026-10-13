@@ -103,7 +103,11 @@ namespace HM
       // message is signed or encrypted end to end. The criterion then does not
       // match, whatever the match type, because the body is unreadable rather
       // than empty - and the caller writes one line per rule saying so.
-      bool MessageMatchesCriteria_(std::shared_ptr<RuleCriteria> pCriteria, std::shared_ptr<MessageData> pMsgData, bool &sealedBodyDeclined) const;
+      // unreadBodyDeclined is the same for a criterion that needs the body - the
+      // body, an attachment's name or type, the content - of a message too large
+      // to be read whole, of which only the header was read (MessageData::
+      // LargeMessage::HeaderOnly).
+      bool MessageMatchesCriteria_(std::shared_ptr<RuleCriteria> pCriteria, std::shared_ptr<MessageData> pMsgData, bool &sealedBodyDeclined, bool &unreadBodyDeclined) const;
       
       // Records on a forward's or a copy's message the hosted domain that sends it on
       // (Message::GetRelayingDomainID), whose key seals the ARC set over it: the
