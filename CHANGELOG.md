@@ -4879,6 +4879,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   コントロール パネル and four Control Panel; a stage of the accept pipeline is a ステージ and an entry an エントリ throughout; and a
   button named in a sentence is in [ ], as the catalogue writes it, where two were set off by spaces.
 
+- **Fixed: 176 Chinese texts said what their English does not, stated where their English asks, or named one thing two
+  ways.** A published record's value was its time of publication (发布时间); "Not reached" said "Not consulted"; and the
+  certificate was what SSL/TLS and STARTTLS need (需要, with nothing after it), where it is required when they are used.
+  Sixteen confirmations stated what their English asks, as 停止更新？ did, and ask with 是否, as the rest do; 16 texts called
+  the reader 你, where the catalogue says 您; a button named in a sentence is quoted, where two were set off by spaces;
+  no space follows a full-width mark; and an account is a 账户, a hold 暂挂, the accept pipeline the 接收流水线 and the CA
+  bundle the CA 证书包 throughout.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
