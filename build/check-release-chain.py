@@ -220,10 +220,11 @@ refuses it. This checker holds them to each other. It fails when:
     before_script, artifacts or an allow_failure of its own, or either does not take
     container-image's dotenv report, which names each platform's image by its
     digest: each must have one dependencies key, [container-image], and one needs
-    key, whose entry for container-image has one artifacts key, true, and take no
-    rule with needs of its own (GitLab hands a job that uses needs the reports of
-    the needs with artifacts alone, whatever its dependencies say, its YAML reader
-    takes the last of two keys, and a rule's needs replace the job's); or
+    key, whose entry for container-image has one job key and one artifacts key,
+    true, and take no rule with needs of its own (GitLab hands a job that uses needs
+    the reports of the needs with artifacts alone, whatever its dependencies say,
+    its YAML reader takes the last of two keys, and a rule's needs replace the
+    job's); or
     container-scan.sh no longer takes each platform's image by its digest, the
     project's alone, or a CI file names GitLab's container-scanning analyzer or
     includes its template again (GITLAB_SCANNER) - an image GitLab rebuilds daily
@@ -233,6 +234,20 @@ refuses it. This checker holds them to each other. It fails when:
     refuse, exiting non-zero, unless it is "1" - or is read by a rule, which is
     decided when the pipeline is made and would leave a release tagged before it was
     set without the jobs; or a committed CI file sets that variable;
+  * the two container scans are written in a form this does not read: it reads
+    their needs, dependencies and rules as this tree writes its CI files - a lint of
+    them against drift, not a YAML parser - and refuses each other form of them that
+    GitLab's YAML reader takes, rather than read past it: a key of either job, of
+    its entry for container-image or of a template whose rules it takes that is not
+    bare (quoted, a space before its colon, a merge key), a key of the job written
+    twice, or a second job key in that entry; in the rules it takes and each block
+    their !reference [X, rules] names, rules: with anything after it on its line or
+    written twice, a list not indented four, or a rule that is not a list item of
+    bare keys or !reference [X, rules], X a block of .gitlab-ci.yml or
+    container-image.yml; either job, or a template it reaches, defined twice in the
+    CI files; and a line at a CI file's top level that is not a key. GitLab's own
+    templates are not read, nor what GitLab refuses itself when the pipeline is made
+    (a need from another pipeline beside dependencies, an alias without its anchor);
   * a platform of the image (IMAGE_PLATFORMS, linux/amd64 and linux/arm64) is left
     out anywhere: the Dockerfile must take the .deb of TARGETARCH and run the server
     in the build, linux-image.sh build for the platform asked for, a branch's
@@ -897,6 +912,54 @@ def rule_items(text, jobs, seen=None):
         else:
             items.append(item)
     return items
+
+
+def unread_keys(text, level):
+    """The lines of a block's text, whose keys are level spaces in, that this checker
+    does not read as keys: each line there or further out that is not a bare key - a
+    name of small letters and underscores, unquoted, its colon straight after it, then a
+    space, a tab or the line's end. A quoted key, a space before the colon, a merge key
+    (<<), a list item and a document marker are among them, and GitLab's YAML reader
+    reads each."""
+    return [line.strip() for line in text.split("\n")
+            if line.strip() and len(line) - len(line.lstrip(" ")) <= level
+            and not (line[:level] == " " * level and re.match(r"[a-z_]+:(?:[ \t]|$)", line[level:]))]
+
+
+def unread_rules(name, jobs, seen=None):
+    """What this checker does not read of the rules the block name of jobs takes, as
+    rule_items reads them: a second rules: key, which GitLab's YAML reader takes and
+    rule_items does not; anything after rules: on its line; a list that is not indented
+    four; a rule that is not a list item of bare keys or !reference [X, rules] - a rule
+    in flow style, an alias, a !reference to anything but X's rules list; and an X that
+    is not a block of jobs, or whose own keys unread_keys finds unread. Each is "where:
+    what"; [] when every rule is read."""
+    seen = set() if seen is None else seen
+    seen.add(name)
+    text = jobs[name]
+    found = []
+    heads = re.findall(r"^  rules:(.*)$", text, re.MULTILINE)
+    if len(heads) > 1:
+        found.append("%s: a second rules: key" % name)
+    if heads and heads[0].strip():
+        found.append("%s: rules:%s" % (name, heads[0]))
+    body = re.search(r"^  rules:\s*\n(.*?)(?=^  [A-Za-z_]|\Z)", text, re.MULTILINE | re.DOTALL)
+    items = re.split(r"^    - ", body.group(1), flags=re.MULTILINE) if body else [""]
+    if items[0].strip():
+        found.append("%s: %s" % (name, items[0].strip().split("\n")[0]))
+    for item in items[1:]:
+        reference = re.match(r"!reference \[([A-Za-z0-9_.\-]+), rules\]$", item.strip())
+        if not reference:
+            first, _, rest = item.partition("\n")
+            if not re.match(r"[a-z_]+:(?:[ \t]|$)", first):
+                found.append("%s: - %s" % (name, first.strip()))
+            found += ["%s: %s" % (name, line) for line in unread_keys(rest, 6)]
+        elif reference.group(1) not in jobs:
+            found.append("%s: !reference [%s, rules], of a block this does not read" % (name, reference.group(1)))
+        elif reference.group(1) not in seen:
+            found += ["%s: %s" % (reference.group(1), line) for line in unread_keys(jobs[reference.group(1)], 2)]
+            found += unread_rules(reference.group(1), jobs, seen)
+    return found
 
 
 def tag_escapes(name, jobs):
@@ -3651,33 +3714,57 @@ def image_platform_problems(texts, jobs, image_jobs):
     # need with artifacts: false, the dependencies line kept, is accepted and leaves the
     # job no image to scan - container-scan.sh exits 2, and the job is allowed to fail.
     # The job is read as GitLab's YAML reader, Psych, reads it, which takes the last of
-    # two keys and no, off or False for false: its needs and its dependencies must each
-    # be one key, as this checker reads them, and its entry's one artifacts key must say
-    # true. An entry without the key, which GitLab takes for true, is refused as well, as
-    # every need this checker holds to its artifacts is: the key is written out. Each
-    # job's own entry is the one GitLab takes, since IMAGE_JOBS holds both to needs of
-    # their own that name container-image, which replace the needs that
-    # container_scanning_arm64 would otherwise take from container_scanning by extends;
-    # and no rule the job takes may bring needs, since a rule that matches replaces the
-    # job's needs whole (rules:needs).
+    # two keys and no, off or False for false: each key of the job must be one, its needs
+    # and its dependencies among them, and its entry for container-image must have one
+    # job key, naming it, and one artifacts key, saying true. An entry without the key,
+    # which GitLab takes for true, is refused as well, as every need this checker holds
+    # to its artifacts is: the key is written out. Each job's own entry is the one GitLab
+    # takes, since IMAGE_JOBS holds both to needs of their own that name container-image,
+    # which replace the needs that container_scanning_arm64 would otherwise take from
+    # container_scanning by extends, and GitLab refuses a job that needs one job twice
+    # (YamlProcessor's validate_needs_specification!), so that no other entry, in
+    # whatever form, can name container-image; and no rule the job takes may bring needs,
+    # since a rule that matches replaces the job's needs whole (rules:needs).
+    #
+    # This reads the CI files as this tree writes them - a lint of them against drift,
+    # not a YAML parser - and refuses every other form of what it holds that GitLab
+    # reads, which it would read past: a key of the job, of a template whose rules it
+    # could take, or of its entry for container-image that is not bare (unread_keys:
+    # quoted, a space before the colon, a merge key); in the rules it takes and each
+    # block their !reference [X, rules] names, what unread_rules does not read (a
+    # second rules: key, anything after rules: on its line, a list not indented four, a
+    # rule in flow style or by a !reference to anything but X's rules, an X outside
+    # .gitlab-ci.yml and container-image.yml, the files it reads); either job, or a
+    # template it reaches, defined more than once in the CI files, since GitLab merges a
+    # later include's keys over an earlier one's and takes the last of two definitions
+    # in one file; and a line at a CI file's top level that is not a key, such as a
+    # merge key there, whose keys top_level_keys does not see. GitLab's own templates
+    # are not read, nor what GitLab refuses itself when the pipeline is made (a need
+    # from another pipeline beside dependencies, an alias without its anchor).
     merged = dict(jobs)
     merged.update(image_jobs)
-    for name, arch in (("container_scanning", "amd64"), ("container_scanning_arm64", "arm64")):
+    scans = (("container_scanning", "amd64"), ("container_scanning_arm64", "arm64"))
+    for name, arch in scans:
         scan = image_jobs.get(name, "")
-        for key in ("needs", "dependencies"):
-            count = len(re.findall(r"^  %s:" % key, scan, re.MULTILINE))
-            if count > 1:
-                problems.append("%s has %d %s: keys: GitLab's YAML reader takes the last alone, and the job's needs and "
-                                "dependencies, by which it takes container-image's dotenv report, must each be one key"
-                                % (name, count, key))
-        deciding = [current for current in template_order(name, merged) if re.search(r"^  rules:", merged[current], re.MULTILINE)]
+        keys = re.findall(r"^  ([a-z_]+):(?:[ \t]|$)", scan, re.MULTILINE)
+        for key in sorted(set(key for key in keys if keys.count(key) > 1)):
+            problems.append("%s has %d %s: keys: GitLab's YAML reader takes the last alone, where this checker reads the "
+                            "first or any, and each key of the job - its needs, dependencies and rules, by which it takes "
+                            "container-image's dotenv report, among them - must be one" % (name, keys.count(key), key))
+        order = template_order(name, merged)
+        deciding = [current for current in order if re.search(r"^  rules:", merged[current], re.MULTILINE)]
         if scan and any(re.search(r"^[ \t]*needs:", item, re.MULTILINE)
                         for item in (rule_items(merged[deciding[0]], merged) if deciding else [])):
             problems.append("%s takes a rule with needs of its own: a rule that matches replaces the job's needs whole "
                             "(rules:needs), and the job takes container-image's dotenv report by the needs of its own that "
                             "this checker holds" % name)
-        said = re.findall(r"^[ \t]*artifacts:[ \t]*(.*?)(?:[ \t]+#.*)?[ \t]*$", need_entries(scan).get("container-image", ""),
-                          re.MULTILINE)
+        entry = need_entries(scan).get("container-image", "")
+        named = len(re.findall(r"^(?:      )?job:", entry, re.MULTILINE))
+        if scan and named > 1:
+            problems.append("%s's need of container-image has %d job: keys: GitLab's YAML reader takes the last alone, where "
+                            "this checker reads the first, so that the entry it holds to artifacts: true would be another "
+                            "job's need, and container-image's could be one without its artifacts" % (name, named))
+        said = re.findall(r"^[ \t]*artifacts:[ \t]*(.*?)(?:[ \t]+#.*)?[ \t]*$", entry, re.MULTILINE)
         if scan and said != ["true"]:
             problems.append("%s does not need container-image with artifacts: true, its entry's one artifacts key (%s): "
                             "GitLab hands a job that uses needs the dotenv reports of the needs with artifacts alone, "
@@ -3685,6 +3772,38 @@ def image_platform_problems(texts, jobs, image_jobs):
                             "digest (HM_IMAGE_%s), which build/ci/container-scan.sh scans"
                             % (name, "it says " + ", ".join("artifacts: " + value for value in said) if said
                                else "it says nothing of artifacts", arch, arch.upper()))
+        unread = unread_keys(scan, 2)
+        for current in order[1:order.index(deciding[0]) + 1 if deciding else len(order)]:
+            unread += ["%s: %s" % (current, line) for line in unread_keys(merged[current], 2)]
+        unread += ["its need of container-image: %s" % line for line in unread_keys(entry.partition("\n")[2], 6)]
+        if deciding:
+            unread += ["the rules it takes, in %s" % what for what in unread_rules(deciding[0], merged)]
+        if scan and unread:
+            problems.append("%s is written in a form this checker does not read (%s): it reads the job's keys, those of its "
+                            "need of container-image and the rules it takes only as this tree writes them - each key bare "
+                            "(unquoted, its colon straight after its name), the rules a list indented four, each rule bare "
+                            "keys or !reference [X, rules] with X a block of .gitlab-ci.yml or container-image.yml - where "
+                            "GitLab's YAML reader takes other forms too, a quoted key, a space before a colon, a merge key "
+                            "and a rule in flow style among them, so that container-image's dotenv report could be lost "
+                            "past this check" % (name, unread[0]))
+    every_ci = ci_files(texts)
+    for reached, paths in sorted(reached_definitions(every_ci, [name for name, _ in scans]).items()):
+        count = sum(top_level_keys(every_ci[path]).count(reached) for path in paths)
+        if count > 1:
+            problems.append("%s is defined %s: GitLab merges a later include's keys over an earlier one's and "
+                            ".gitlab-ci.yml's over all, and of two definitions in one file takes the last, where this "
+                            "checker reads one, so that the needs, dependencies or rules of container_scanning or "
+                            "container_scanning_arm64 could be other than it reads - each, and every template they reach, "
+                            "is defined once" % (reached, "in " + " and ".join(paths) if len(paths) > 1 else
+                                                 "%s in %s" % ({2: "twice"}.get(count, "%d times" % count), paths[0])))
+    for path, text in sorted(every_ci.items()):
+        odd = [line for line in (text or "").split("\n")
+               if line[:1] not in ("", " ", "\t", "#") and not TOP_LEVEL_KEY.match(line)]
+        if odd:
+            problems.append("%s has a line at the top level that is not a key this checker reads (%s): GitLab's YAML reader "
+                            "takes a merge key there, or another such form, for keys of the file - a definition of "
+                            "container_scanning or container_scanning_arm64 among them - which this does not see"
+                            % (path, odd[0][:80]))
     start = image_jobs.get("container-image-start-arm64", "")
     command = re.search(r"^START_COMMAND='([^'\n]+)'$", texts["image-start"], re.MULTILINE)
     if start and not (re.search(r"^  extends: container-image-start\s*$", start, re.MULTILINE)
@@ -4346,6 +4465,31 @@ def self_test(chain, feed):
     broken("the arm64 scan over the amd64 image", "image", "    HM_SCAN_ARCH: arm64\n", "", "container_scanning_arm64 does not scan")
     broken("the arm64 scan without the image's name", "image", "  dependencies: [container-image]\n  rules:\n",
            "  dependencies: []\n  rules:\n", "container_scanning_arm64 does not scan")
+
+    def broken_image(what, needle, *edits):
+        """broken() over the image's CI file with each (old, new) of edits made in turn,
+        each old text once in the file as it then is."""
+        image = texts["image"]
+        for old, new in edits:
+            if image.count(old) != 1:
+                failures.append("%s: the text to break is not once in image (%r)" % (what, old))
+                return
+            image = image.replace(old, new, 1)
+        broken(what, "image", texts["image"], image, needle)
+
+    def broken_include(what, path, addition, needle, image=None):
+        """check() with addition after the included CI file path's text, and the image's
+        CI file as image where it is given."""
+        if path not in texts["ci-includes"]:
+            failures.append("%s: %s is not in the tree" % (what, path))
+            return
+        copy = dict(texts, **{"ci-includes": dict(texts["ci-includes"], **{path: texts["ci-includes"][path] + addition})})
+        if image is not None:
+            copy["image"] = image
+        found, _ = check(copy, chain, feed)
+        if not any(needle in p for p in found):
+            failures.append("%s is caught: %s" % (what, found))
+
     # Either scan's need of container-image without its artifacts, its dependencies line
     # kept: artifacts: false; no, one of YAML's other spellings of false; and a second
     # key, false, after the true one, which GitLab's YAML reader takes. Then a second
@@ -4354,6 +4498,35 @@ def self_test(chain, feed):
     # with needs of its own, which replace the job's. Each job's entry is found by the
     # key after its dependencies line, the amd64 job's timeout and the arm64 job's rules,
     # and its rules by its HM_SCAN_ARCH after them, which is that job's alone.
+    #
+    # Then each other form of these GitLab reads, which this checker would read past and
+    # by each of which, as GitLab reads it, the job takes no dotenv report from
+    # container-image, where the checker of df33e223e let each pass: the fifteen found on
+    # 13 October 2026 - a second artifacts, dependencies or needs key, quoted or with a
+    # space before its colon; a merge key after the job's own keys, from an anchor in a
+    # hidden block before the file's first job; a rule in flow style, with the tag-only
+    # condition or another one that matches; rules: !reference [X, rules] on the key's
+    # own line, and - !reference [X, rule], X such a hidden block whose rule needs
+    # container-image without its artifacts; and the job defined again in
+    # .gitlab/ci/snap.yml, the CI file included last - and then a second rules: key, a
+    # comment after rules:, a key of a rule quoted or a merge key, the rules indented six,
+    # a !reference [X, rules] of a block that only another CI file defines, and a second
+    # job: key in its need of container-image, which then names another job while a need
+    # in flow style names container-image without its artifacts. Then, once: the job
+    # defined again in its own file under a quoted name, whole but for dependencies: [];
+    # container_scanning_arm64 without rules of its own, taking container_scanning's,
+    # whose second rules key is quoted; .release-rules with a second rules key, bare or
+    # with a space before its colon; and a merge key at an included file's top level.
+    # And .release-rules defined again in another CI file, which GitLab merges under
+    # .gitlab-ci.yml's own and which so keeps the report, is refused as every second
+    # definition of what either job reaches is: this reads one.
+    first_job = "\nlinux-image-arm64:\n"
+    later = ".gitlab/ci/snap.yml"
+    own_rules = ("    - if: $CONTAINER_SCANNING_DISABLED == 'true' || $CONTAINER_SCANNING_DISABLED == '1'\n"
+                 "      when: never\n    - !reference [.release-rules, rules]\n")
+    tag_rule = "    - if: %s\n      needs:\n        - job: container-image\n          artifacts: false\n" % TAG_ONLY
+    hidden_rules = '\n.hm-probe:\n  rules:\n    - if: $CI_PIPELINE_SOURCE == "schedule"\n      when: never\n' + tag_rule
+    hidden_rule = "\n.hm-probe:\n  rule:\n    if: %s\n    needs:\n      - job: container-image\n        artifacts: false\n" % TAG_ONLY
     for name, arch, after in (("container_scanning", "amd64", "  timeout:"), ("container_scanning_arm64", "arm64", "  rules:")):
         need = "    - job: container-image\n      artifacts: true\n  dependencies: [container-image]\n" + after
         for what, artifacts in (("false", "      artifacts: false\n"), ("no", "      artifacts: no\n"),
@@ -4367,6 +4540,66 @@ def self_test(chain, feed):
         broken("%s with a rule that brings needs of its own" % name, "image", rule,
                "    - if: $CI_COMMIT_TAG\n      needs:\n        - job: container-image\n          artifacts: false\n" + rule,
                "%s takes a rule with needs of its own" % name)
+        unread = "%s is written in a form this checker does not read" % name
+        variables = "  variables:\n    HM_SCAN_ARCH: %s\n" % arch
+        rules = "  rules:\n" + own_rules + variables
+        cases = [("a second artifacts key, %s" % spelled,
+                  [(need, need.replace("      artifacts: true\n", "      artifacts: true\n      %s\n" % spelled, 1))])
+                 for spelled in ('"artifacts": false', "artifacts : false", "'artifacts': false")]
+        cases += [("a second %s key, %s" % (key, spelled.split("\n")[0]), [(need, need.replace(after, "  %s\n" % spelled + after, 1))])
+                  for key, spelled in (("dependencies", '"dependencies": []'), ("dependencies", "dependencies : []"),
+                                       ("dependencies", "'dependencies': []"),
+                                       ("needs", '"needs":\n    - job: container-image\n      artifacts: false'),
+                                       ("needs", "needs : [{job: container-image, artifacts: false}]"))]
+        cases += [("a merge key after its own keys, bringing %s" % brought.split(":")[0],
+                   [(first_job, "\n.hm-probe:\n  parts: &hm-probe\n    %s\n" % brought + first_job),
+                    (need, need.replace(after, "  <<: *hm-probe\n" + after, 1))])
+                  for brought in ("dependencies: []", "needs:\n      - job: container-image\n        artifacts: false")]
+        cases += [("a rule in flow style, if: %s" % condition,
+                   [(rule, "    - {if: %s, needs: [{job: container-image, artifacts: false}]}\n" % condition + rule)])
+                  for condition in ("$CI_COMMIT_TAG", "'%s'" % TAG_ONLY)]
+        cases += [("rules: !reference [X, rules] on the key's own line",
+                   [(first_job, hidden_rules + first_job), (rules, "  rules: !reference [.hm-probe, rules]\n" + variables)]),
+                  ("a rule by - !reference [X, rule]",
+                   [(first_job, hidden_rule + first_job), (rule, "    - !reference [.hm-probe, rule]\n" + rule)]),
+                  ("a comment after rules:, before a rule with needs",
+                   [(rules, "  rules: # the scan's\n" + tag_rule + own_rules + variables)]),
+                  ("a rule's needs key quoted", [(rule, tag_rule.replace("      needs:\n", '      "needs":\n', 1) + rule)]),
+                  ("a rule's needs by a merge key",
+                   [(rule, "    - if: %s\n      <<: {needs: [{job: container-image, artifacts: false}]}\n" % TAG_ONLY + rule)]),
+                  ("its rules indented six",
+                   [(rules, "  rules:\n" + "".join("  %s\n" % line for line in (tag_rule + own_rules).split("\n")[:-1]) + variables)])]
+        for what, edits in cases:
+            broken_image("%s with %s" % (name, what), unread, *edits)
+        broken_image("%s with a second rules: key" % name, "%s has 2 rules: keys" % name, (rule, rule + "  rules:\n" + tag_rule))
+        broken_image("%s with a second job key in its need of container-image, which a need in flow style then names" % name,
+                     "%s's need of container-image has 2 job: keys" % name,
+                     (need, need.replace("      artifacts: true\n", "      artifacts: true\n      job: container-image-sbom\n"
+                                         "    - {job: container-image, artifacts: false}\n", 1)))
+        broken_include("%s defined again in %s" % (name, later), later, "\n%s:\n  dependencies: []\n" % name,
+                       "%s is defined in" % name)
+        broken_include("%s with a rule by !reference [X, rules], X a block %s alone defines" % (name, later), later, hidden_rules,
+                       unread, texts["image"].replace(rule, "    - !reference [.hm-probe, rules]\n" + rule, 1))
+    broken("container_scanning defined again in its own file, under a quoted name", "image", texts["image"],
+           texts["image"] + '\n"container_scanning":\n' + blocks(texts["image"]).get("container_scanning", "").replace(
+               "  dependencies: [container-image]\n", "  dependencies: []\n", 1) + "\n", "container_scanning is defined twice in")
+    broken_image("container_scanning_arm64 taking container_scanning's rules, whose second rules key is quoted",
+                 'container_scanning_arm64 is written in a form this checker does not read (container_scanning: "rules":)',
+                 ("  dependencies: [container-image]\n  rules:\n" + own_rules, "  dependencies: [container-image]\n"),
+                 ("    - !reference [.release-rules, rules]\n  variables:\n    HM_SCAN_ARCH: amd64\n",
+                  "    - !reference [.release-rules, rules]\n  variables:\n    HM_SCAN_ARCH: amd64\n  \"rules\":\n" + tag_rule))
+    release_rules = (".release-rules:\n  rules:\n    - if: %s || $CI_PIPELINE_SOURCE == \"merge_request_event\"\n      when: never\n"
+                     "    - if: %s\n" % (REFUSAL, TAG_ONLY))
+    broken(".release-rules with a second rules key, a space before its colon", "ci", release_rules,
+           release_rules + "  rules :\n" + tag_rule,
+           "container_scanning is written in a form this checker does not read (the rules it takes, in .release-rules: rules :)")
+    broken(".release-rules with a second rules key", "ci", release_rules, release_rules + "  rules:\n" + tag_rule,
+           "container_scanning is written in a form this checker does not read (the rules it takes, in .release-rules: a second "
+           "rules: key)")
+    broken_include("a template both scans take defined again", later, "\n.release-rules:\n  rules:\n    - when: never\n",
+                   ".release-rules is defined in")
+    broken_include("a merge key at an included file's top level", later, "\n<<: {container_scanning: {dependencies: []}}\n",
+                   "%s has a line at the top level that is not a key" % later)
     broken("the arm64 start gone", "image", "\ncontainer-image-start-arm64:\n", "\ncontainer-image-start-old:\n",
            "has no container-image-start-arm64 job")
     broken("the arm64 start as the host's platform", "image", "      docker:\n        platform: linux/arm64\n", "",

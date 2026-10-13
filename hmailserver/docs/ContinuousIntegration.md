@@ -3875,16 +3875,30 @@ fails when `container_scanning` runs in another image than `dependency-scan`'s
 Trivy, by another release or digest, does not run the script, scans another
 platform or keeps no report; when `container_scanning_arm64` does not extend it
 for linux/arm64 (`HM_SCAN_ARCH: arm64`) or has an image, a script, a
-`before_script`, artifacts or an `allow_failure` of its own; when either does not
-take `container-image`'s dotenv report, which names each platform's image by its
-digest: each must have one `dependencies` key, `[container-image]`, and one
-`needs` key, whose entry for `container-image` has one `artifacts` key, `true`,
-and take no rule with `needs` of its own, since GitLab hands a job that uses
-`needs` the reports of the needs with artifacts alone, whatever its
-`dependencies` say, its YAML reader takes the last of two keys, and a rule's
-`needs` replace the job's; when the script no longer takes each platform's image
-by its digest, the project's alone; and when a CI file names GitLab's
-container-scanning analyzer or includes its template again.
+`before_script`, artifacts or an `allow_failure` of its own; when either does
+not take `container-image`'s dotenv report, which names each platform's image by
+its digest: each must have one `dependencies` key, `[container-image]`, and one
+`needs` key, whose entry for `container-image` has one `job` key and one
+`artifacts` key, `true`, and take no rule with `needs` of its own, since GitLab
+hands a job that uses `needs` the reports of the needs with artifacts alone,
+whatever its `dependencies` say, its YAML reader takes the last of two keys, and
+a rule's `needs` replace the job's; when the script no longer takes each
+platform's image by its digest, the project's alone; and when a CI file names
+GitLab's container-scanning analyzer or includes its template again. It reads
+the two jobs as this tree writes its CI files, a lint of them against drift and
+not a YAML parser, and so fails on each other form of what it holds that
+GitLab's YAML reader takes, rather than read past it: a key of either job, of
+its entry for `container-image` or of a template whose rules it takes that is
+not bare (quoted, a space before its colon, a merge key), a key of the job
+written twice or a second `job` key in that entry; in the rules it takes and
+each block their `!reference [X, rules]` names, `rules:` with anything after it
+on its line or written twice, a list not indented four, or a rule that is not a
+list item of bare keys or `!reference [X, rules]`, `X` a block of
+`.gitlab-ci.yml` or `container-image.yml`; either job, or a template it reaches,
+defined twice in the CI files; and a line at a CI file's top level that is not a
+key. GitLab's own templates are not read, nor what GitLab refuses itself when
+the pipeline is made, such as a need from another pipeline beside `dependencies`
+or an alias without its anchor.
 
 `semgrep-sast` passes whatever it found, and holds nothing to a baseline; what
 holds a change or a release on its findings is the job that reads its report

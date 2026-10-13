@@ -4683,11 +4683,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   finding is still a warning. Run as the jobs run it, on 10 October it scanned 6.3.6's two published images by digest
   in 18 seconds each. `build/check-release-chain.py` holds the jobs to `dependency-scan`'s image, to the script and
   to `container-image`'s dotenv report, which names each platform's image by its digest: each must have one
-  `dependencies` key, `[container-image]`, and one `needs` key, whose entry for `container-image` has one
-  `artifacts` key, `true`, and take no rule with `needs` of its own, since GitLab hands a job that uses `needs` the
-  reports of the needs with artifacts alone, whatever its `dependencies` say, its YAML reader takes the last of two
-  keys, and a rule's `needs` replace the job's. It fails a CI file that names GitLab's container-scanning analyzer
-  or includes its template again (ContinuousIntegration.md, "container_scanning's scanner").
+  `dependencies` key, `[container-image]`, and one `needs` key, whose entry for `container-image` has one `job` key
+  and one `artifacts` key, `true`, and take no rule with `needs` of its own, since GitLab hands a job that uses
+  `needs` the reports of the needs with artifacts alone, whatever its `dependencies` say, its YAML reader takes the
+  last of two keys, and a rule's `needs` replace the job's. It reads these as this tree writes its CI files, a lint
+  of them against drift and not a YAML parser, and refuses each other form of them that GitLab's reader takes: a key
+  of either job, of its entry for `container-image` or of a template whose rules it takes that is not bare (quoted, a
+  space before its colon, a merge key), a key of the job written twice or a second `job` key in that entry; in the
+  rules it takes, `rules:` with anything after it on its line or written twice, a list not indented four, and a rule
+  that is not a list item of bare keys or `!reference [X, rules]`, `X` a block of `.gitlab-ci.yml` or
+  `container-image.yml`; either job, or a template it reaches, defined twice in the CI files; and a line at a CI
+  file's top level that is not a key. GitLab's own templates are not read, nor what GitLab refuses itself when a
+  pipeline is made. It fails a CI file that names GitLab's container-scanning analyzer or includes its template again
+  (ContinuousIntegration.md, "container_scanning's scanner").
 - **Both secret scans read every path under a directory named `build`, `bin`, `obj`, `target` or `packages`, this
   tree's `build/` among them, which GitLab's rules leave out.** `secret_detection` and `build/scan-secrets.py`, the
   hooks' and the landing's scan, took GitLab's rules whole, and their global allowlist left out those directories:
