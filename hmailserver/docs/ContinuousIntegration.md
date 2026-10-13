@@ -4749,7 +4749,8 @@ sources, less the third-party code under `libraries/`, the vendored QuickJS and
 zlib, the generated tables (`HelpPagesData.cpp`, `PortalPageData.cpp`,
 `PortalLanguagesData.cpp`, `PortalSmimeData.cpp`, `PortalOpenPgpData.cpp`,
 `ProfilesData.*`, `SettingsDefaults.h`, `PublicSuffixListData.h`,
-`SettingsSearchIndex.g.cs`) and the WinForms designer's files; the regression
+UTS 46's `IdnaTables.cpp` and `IdnaTestData.cpp`, `SettingsSearchIndex.g.cs`)
+and the WinForms designer's files; the regression
 suites, the tools' test projects, the fuzz harness and the two page harnesses as
 tests; C++14 as the standard its C++ rules report against, which is what MSVC
 compiles the shared sources as; Python 3.14. `sonar.sources` and `sonar.tests`
