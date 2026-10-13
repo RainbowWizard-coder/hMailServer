@@ -551,41 +551,59 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the database ended is reconnected, counted 1 and written - where on MariaDB and MySQL it counted 0, was not run
   again and wrote nothing.
 
-- **The database layer has a transaction the persistence code can join, and no statement inside it is run again
-  on a new connection** (ActiveActive.md, unit AA-02). Each `DatabaseConnectionManager::Execute` and
-  `OpenRecordset` borrowed a pooled connection of its own, so a transaction begun on one connection covered none
-  of the statements a save makes, and nothing in the server was one transaction. `DatabaseTransaction`
-  (`Common/SQL/DatabaseTransaction.h`) holds one connection for the thread that opens it: the statements that
-  thread makes through the same pool while it is open run on that connection, an existing save's included, and a
-  scope opened inside it joins it. The database layer runs a statement again after a reconnect
-  (`DALConnection::Execute`, `DALRecordset::Open`), where a statement on the new session commits outside the
-  transaction while what came before it was rolled back with the lost one; inside a scope every statement is sent
-  once, the first failure fails the scope and refuses what follows, and `DatabaseTransaction::Run` runs the whole
-  unit of work again - a bounded number of times, rolled back first - after a deadlock, a serialisation failure, a
-  lock wait that timed out or a connection lost before the `COMMIT` (SQL Server 1205; MySQL and MariaDB 1213, 1205
-  and 1020; PostgreSQL 40001 and 40P01; SQL Server Compact 25090), and never after a connection lost during the
-  `COMMIT`, which it reports instead (`HM8501`), as it reports a unit given up (`HM8500`), nor when the pool had no
-  connection to give, since it has waited for one already (`DBConnectionAcquireTimeout`). A row that is there
-  already, which several inserts ask to be ignored, is ignored only when it is that - outside a scope the backends'
-  own ignoring also lets through an unknown error, and on MySQL a lost connection - and on PostgreSQL under a
-  savepoint, so that it leaves the transaction to commit. A MySQL database with a table that is not InnoDB has no
-  transactions, and a scope on it says so and is not retried. An OnError event script run while a scope is open
-  runs outside it, on the pool's connections, as before. Nothing in the server opens a scope yet - AA-04 puts
-  UIDs and mod-sequences in one - so one node runs as it did. `DatabaseTransactionTester` (in `ClassTester`, on a
-  SQL Server Compact database of its own; `database-transaction-tests` against the Linux suite's PostgreSQL and
-  the database matrix's MySQL and MariaDB) holds it on a real database, each check beside a control that shows the
-  same without it: a rollback discards the pool's own statements made on the thread; two transactions on one row
-  wait for each other; two units of work that deadlock both commit once under `Run`, where scopes alone lose the
-  victim's; a session ended in the middle commits nothing and the retry commits once, where
-  `DALConnection::Execute` commits the next statement on its own (on PostgreSQL and SQL Server Compact; on MySQL and
-  MariaDB over TLS it takes the TLS layer's end of file of a session the server ended for a failed statement, and
-  does not run it again). A SQL Server Compact connection closed with a transaction open is rolled back first
+- **The database layer has a transaction the persistence code can join, and no statement inside it is run again on a
+  new connection** (ActiveActive.md, unit AA-02). Each `DatabaseConnectionManager::Execute` and `OpenRecordset`
+  borrowed a pooled connection of its own, so a transaction begun on one connection covered none of the statements a
+  save makes, and nothing in the server was one transaction. `DatabaseTransaction`
+  (`Common/SQL/DatabaseTransaction.h`) holds one connection for the thread that opens it: the statements that thread
+  makes through the same pool while it is open run on that connection, an existing save's included, and a scope opened
+  inside it joins it. The database layer runs a statement again after a reconnect (`DALConnection::Execute`,
+  `DALRecordset::Open`), where a statement on the new session commits outside the transaction while what came before
+  it was rolled back with the lost one; inside a scope every statement is sent once - except on a MySQL database that
+  is not transactional (a table that is not InnoDB), where a scope runs its statements as the pool does - the first
+  failure fails the scope and refuses what follows, and `DatabaseTransaction::Run` runs the whole unit of work again -
+  a bounded number of times, rolled back first - after a deadlock, a serialisation failure, a lock wait that timed out
+  or a connection lost before the `COMMIT` (SQL Server 1205; MySQL and MariaDB 1213, 1205 and 1020; PostgreSQL 40001
+  and 40P01; SQL Server Compact 25090), and never after a connection lost during the `COMMIT`, which it reports
+  instead (`HM8501`), as it reports a unit given up (`HM8500`), nor when the pool had no connection to give, since it
+  has waited for one already (`DBConnectionAcquireTimeout`). On SQL Server the provider's records of a failure say
+  which it was, since a deadlock's victim and a session that is gone both come as `E_FAIL`, and a record that names
+  nothing - MSOLEDBSQL 18's "Unspecified error" for a session the server ended - leaves it to the result. A row that
+  is there already, which several inserts ask to be ignored (`DALErrorInSQL`), is ignored only when it is that, a
+  duplicate of a primary key or a unique index the backend names - outside a scope the backends' own ignoring also
+  lets through, on SQL Server and SQL Server Compact, an insert a foreign key refused for want of the row it refers
+  to, a NULL into a NOT NULL column and a CHECK constraint (the provider's `DB_E_INTEGRITYVIOLATION` for each), an
+  unknown error on those two and MySQL, and on MySQL a lost connection - and on PostgreSQL under a savepoint, so that
+  it leaves the transaction to commit. A statement marked `[IGNORE-ERRORS]`, whose failure the backend answers as a
+  success, fails the scope when that failure has ended the transaction - on SQL Server a conversion error rolls it
+  back - where what followed it would have committed on its own. A MySQL database with a table that is not InnoDB has
+  no transactions, and a scope on it says so and is not retried. On SQL Server Compact the pool holds the server's one
+  connection, so an open scope holds it and every other thread waits for it: a scope that fails gives its connection
+  back before the failure is reported, and a statement its own thread makes outside it while it is open is refused at
+  once (`HM8503`), where it waited `DBConnectionAcquireTimeout` for a connection only that thread could give back. An
+  OnError event script run while a scope is open runs outside it, on the pool's connections, as before. Nothing in the
+  server opens a scope yet - AA-04 puts UIDs and mod-sequences in one - so one node runs as it did.
+  `DatabaseTransactionTester` (in `ClassTester`, on a SQL Server Compact database of its own;
+  `database-transaction-tests` against the Linux suite's PostgreSQL and the database matrix's MySQL and MariaDB; and
+  against SQL Server 2022 through the server's own ADO code with MSOLEDBSQL 18 on the Windows lab's node,
+  ActiveActive.md D18) holds it on a real database, each check beside a control that shows the same without it: a
+  rollback discards the pool's own statements made on the thread; two transactions on one row wait for each other; two
+  units of work that deadlock both commit once under `Run`, where scopes alone lose the victim's; a session ended in
+  the middle commits nothing and the retry commits once, where `DALConnection::Execute` commits the next statement on
+  its own (on PostgreSQL, SQL Server and SQL Server Compact; on MySQL and MariaDB over TLS it takes the TLS layer's
+  end of file of a session the server ended for a failed statement, and does not run it again); an insert a foreign
+  key refused and a NULL into a NOT NULL column are not taken for a row that is there already; a unit with a failed
+  statement marked `[IGNORE-ERRORS]` is committed whole or not at all; and on a pool of one connection a failed
+  scope's connection is there for a statement made outside it, and an open scope's is not waited for.
+  `RegressionTests.API.Events.AnOnErrorScriptRunsOutsideTheDatabaseTransactionItIsReportedFrom` holds the OnError
+  script outside the scope: a message it saves while a statement of a failed scope on the server's own database is
+  reported is delivered. A SQL Server Compact connection closed with a transaction open is rolled back first
   (`SQLCEConnection::Disconnect`): ADO refuses to close it otherwise, and the connection stayed open under its
-  transaction while the server took it for closed, so that the next attempt to connect it failed on an object that
-  was still open - which a scope that reconnects a connection it could not roll back would meet. On one node this
-  shows only when the server closes its database (a stop, a reinitialise) while a script holds
-  `Database.BeginTransaction` open: that transaction is now rolled back at the close, where it stayed open past it.
-  The comment in `PersistentDomain.cpp` that said SQL Server Compact has no transactions, and the one in
+  transaction while the server took it for closed, so that the next attempt to connect it failed on an object that was
+  still open - which a scope that reconnects a connection it could not roll back would meet. On one node this shows
+  only when the server closes its database (a stop, a reinitialise) while a script holds `Database.BeginTransaction`
+  open: that transaction is now rolled back at the close, where it stayed open past it. The comment in
+  `PersistentDomain.cpp` that said SQL Server Compact has no transactions, and the one in
   `DatabaseConnectionManager.cpp` that said it has them for data alone, are corrected.
 - **Fixed: on PostgreSQL, a transaction in which a statement had failed was reported as committed.** PostgreSQL
   answers the `COMMIT` of such a transaction with success and the tag `ROLLBACK`, and `PGConnection` looked at the

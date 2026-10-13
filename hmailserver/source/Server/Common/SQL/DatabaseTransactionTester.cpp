@@ -115,6 +115,13 @@ namespace HM
             Raw(_T("create table aatxnprobe (id int not null primary key, v int not null)") + engine);
             Raw(_T("create table aatxnprobeb (id int not null primary key, v int not null)") + engine);
 
+            // A row of aatxnprobec refers to a row of aatxnprobe by its v: an insert
+            // naming a row that is not there is refused by the foreign key, which on
+            // SQL Server and Compact the provider gives the HRESULT of a duplicate
+            // key (DB_E_INTEGRITYVIOLATION).
+            Raw(_T("create table aatxnprobec (id int not null primary key, v int not null, ")
+                _T("constraint fk_aatxnprobec_v foreign key (v) references aatxnprobe (id))") + engine);
+
             // The pool after the tables: a MySQL connection decides when it opens
             // whether it has transactions, from the tables there are then
             // (MySQLConnection::LoadSupportsTransactions_), and a database with no
@@ -127,8 +134,10 @@ namespace HM
             if (!raw_)
                return;
 
-            // TryExecute: nothing reported when there is nothing to drop.
+            // TryExecute: nothing reported when there is nothing to drop. The table
+            // with the foreign key first, before the table it refers to.
             String ignored;
+            raw_->TryExecute(SQLCommand(_T("drop table aatxnprobec")), ignored, 0, 0);
             raw_->TryExecute(SQLCommand(_T("drop table aatxnprobe")), ignored, 0, 0);
             raw_->TryExecute(SQLCommand(_T("drop table aatxnprobeb")), ignored, 0, 0);
             raw_->TryExecute(SQLCommand(_T("drop table aatxnprobem")), ignored, 0, 0);
@@ -156,6 +165,7 @@ namespace HM
 
          void Reset()
          {
+            Raw(_T("delete from aatxnprobec"));
             Raw(_T("delete from aatxnprobe"));
             Raw(_T("delete from aatxnprobeb"));
             Raw(_T("insert into aatxnprobe (id, v) values (1, 0)"));
@@ -229,6 +239,13 @@ namespace HM
       SQLCommand Insert(int id, int value)
       {
          return SQLCommand(Formatter::Format("insert into aatxnprobe (id, v) values ({0}, {1})", id, value));
+      }
+
+      // A row of aatxnprobec that refers to a row of aatxnprobe that is not there
+      // (Reset leaves row 1 alone in aatxnprobe), which the foreign key refuses.
+      SQLCommand Orphan(int id)
+      {
+         return SQLCommand(Formatter::Format("insert into aatxnprobec (id, v) values ({0}, 99)", id));
       }
    }
 
@@ -433,6 +450,51 @@ namespace HM
             probe.Say(_T("the first failure fails the transaction: nothing after it is run, and nothing is committed; a pool with no connection to give is not tried again"));
          }
 
+         // On a pool of one connection - SQL Server Compact's always is - a scope
+         // holds the only connection there is. A scope that failed gives it back at
+         // the failure, before the failure is reported, so that what then runs
+         // outside the transaction under a Suspension (ErrorManager's OnError
+         // script) finds it; and a statement made outside an open scope by the
+         // scope's own thread, which could only wait for the connection that
+         // thread holds, is refused at once (HM8503) rather than after
+         // DBConnectionAcquireTimeout - where the server's other threads waited
+         // with it, measured on the bench's Compact database.
+         {
+            probe.Reset();
+            std::shared_ptr<DatabaseConnectionManager> one = OpenPool(settings, 1);
+            {
+               DatabaseTransaction transaction(one);
+               Check(transaction.IsOpen() && transaction.Execute(Update(_T("aatxnprobe"), 1)), _T("a transaction on a pool of one connection did not open, or its update failed"));
+               transaction.root_->Fail_(DatabaseTransaction::FailureStatement, _T("the tester's failure"));
+
+               DatabaseTransaction::Suspension outside;
+               const std::chrono::steady_clock::time_point started = std::chrono::steady_clock::now();
+               const bool ran = one->Execute(Update(_T("aatxnprobeb"), 5));
+               const long long waited = (long long) std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - started).count();
+               Check(ran, Formatter::Format("a statement under a Suspension, made after a transaction on a pool of one connection had failed, found no connection after {0} ms: the failed scope kept the only one", (__int64) waited));
+            }
+            Check(probe.Value(_T("aatxnprobe"), 1) == 0 && probe.Value(_T("aatxnprobeb"), 1) == 5,
+               _T("on a pool of one connection, the failed transaction's update stayed, or the statement made outside it did not"));
+
+            if (provokeErrors)
+            {
+               DatabaseTransaction transaction(one);
+               Check(transaction.IsOpen(), _T("a transaction on a pool of one connection did not open"));
+               {
+                  DatabaseTransaction::Suspension outside;
+                  const std::chrono::steady_clock::time_point started = std::chrono::steady_clock::now();
+                  const bool ran = one->Execute(Update(_T("aatxnprobeb"), 5));
+                  const long long waited = (long long) std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - started).count();
+                  Check(!ran, _T("a statement under a Suspension ran on a pool of one connection whose only connection an open transaction of the same thread held"));
+                  Check(waited < 10000, Formatter::Format("a statement under a Suspension waited {0} ms for a connection only its own thread's open transaction could give back", (__int64) waited));
+               }
+               Check(transaction.Commit(), _T("the open transaction did not commit after a statement outside it was refused"));
+            }
+
+            one->Disconnect();
+            probe.Say(_T("on a pool of one connection, a failed transaction gives it back before the failure is reported, and a statement outside an open one on its own thread is refused at once"));
+         }
+
          // A row that is there already, with DALErrorInSQL, is not a failure and
          // leaves the transaction as it was - on PostgreSQL by a savepoint, without
          // which the failed insert aborts the transaction and the COMMIT rolls back.
@@ -468,6 +530,100 @@ namespace HM
             }
 
             probe.Say(_T("a row that is there already, ignored, leaves the transaction to commit"));
+         }
+
+         // A row that is there already is the one failure DALErrorInSQL may hide. On
+         // SQL Server and SQL Server Compact the provider gives an insert a foreign
+         // key refused, and on SQL Server a NULL into a NOT NULL column, the HRESULT
+         // of a duplicate key (DB_E_INTEGRITYVIOLATION), which those backends call
+         // DALErrorInSQL; a unit of work that went on past such an insert would
+         // commit without the row the database refused. First what the connection
+         // says each failure was, on the tester's own connection outside any
+         // transaction, where nothing is reported; then, where errors may be
+         // reported, the scope itself with DALErrorInSQL.
+         {
+            probe.Reset();
+
+            auto classified = [&](const SQLCommand &command) -> DALConnection::LastFailure
+            {
+               probe.raw_->ForgetLastFailure();
+               String error;
+               const DALConnection::ExecutionResult result = probe.raw_->TryExecute(command, error, 0, 0);
+               Check(result != DALConnection::DALSuccess, _T("a statement the database was to refuse succeeded: ") + command.GetQueryString());
+               return probe.raw_->ClassifyLastFailure(result);
+            };
+
+            const DALConnection::LastFailure duplicate = classified(Insert(1, 50));
+            Check(duplicate == DALConnection::LastFailureDuplicate,
+               Formatter::Format("an insert of a row whose primary key is there already was classified {0}, not as a row that is there already ({1})",
+                  (int) duplicate, (int) DALConnection::LastFailureDuplicate));
+
+            const DALConnection::LastFailure orphan = classified(Orphan(1));
+            Check(orphan == DALConnection::LastFailureOther,
+               Formatter::Format("an insert a foreign key refused was classified {0}, not as a failed statement ({1}): with DALErrorInSQL a unit of work would go on and commit without the row",
+                  (int) orphan, (int) DALConnection::LastFailureOther));
+
+            const DALConnection::LastFailure null = classified(SQLCommand(_T("insert into aatxnprobe (id, v) values (5, null)")));
+            Check(null == DALConnection::LastFailureOther,
+               Formatter::Format("an insert of a NULL into a NOT NULL column was classified {0}, not as a failed statement ({1})",
+                  (int) null, (int) DALConnection::LastFailureOther));
+
+            Check(probe.Value(_T("aatxnprobec"), 1) == -1 && probe.Value(_T("aatxnprobe"), 5) == -1, _T("a row the database refused is there"));
+
+            if (provokeErrors)
+            {
+               probe.Reset();
+               {
+                  DatabaseTransaction transaction(pool);
+                  Check(transaction.Execute(Update(_T("aatxnprobe"), 1)), _T("the first update failed"));
+                  __int64 insertId = 99;
+                  Check(!transaction.Execute(Orphan(2), &insertId, DALConnection::DALErrorInSQL),
+                     _T("an insert a foreign key refused, made with DALErrorInSQL, was taken for a row that is there already"));
+                  Check(transaction.GetFailure() == DatabaseTransaction::FailureStatement, _T("an insert a foreign key refused did not fail the transaction as a statement the database refused"));
+                  Check(!transaction.Execute(Update(_T("aatxnprobe"), 10)) && !transaction.Commit(), _T("a statement or a commit was run after an insert a foreign key refused"));
+               }
+               Check(probe.Value(_T("aatxnprobe"), 1) == 0 && probe.Value(_T("aatxnprobec"), 2) == -1,
+                  _T("a unit of work with an insert a foreign key refused committed part of itself"));
+            }
+
+            probe.Say(_T("an insert a foreign key refused and a NULL into a NOT NULL column are failures, not rows that are there already, and DALErrorInSQL does not hide them"));
+         }
+
+         // A statement marked [IGNORE-ERRORS], whose failure the backend answers as a
+         // success: the scope goes on only while the transaction does. Here a value
+         // that is not a number into an int column. SQL Server rolls the whole
+         // transaction back at that conversion error (245), so there the scope
+         // fails and nothing of the unit is committed; PostgreSQL goes back to the
+         // savepoint the scope set, MySQL, MariaDB and SQL Server Compact take back
+         // the statement alone (or MySQL outside strict mode stores 0), and the unit
+         // commits whole. All of it or none of it: where the scope went on after
+         // SQL Server had rolled back, the update after the statement committed on
+         // its own and the COMMIT was refused.
+         {
+            probe.Reset();
+            bool committed = false;
+            DatabaseTransaction::Failure failure = DatabaseTransaction::FailureNone;
+            {
+               DatabaseTransaction transaction(pool);
+               Check(transaction.Execute(Update(_T("aatxnprobe"), 1)), _T("the first update failed"));
+               const bool past = transaction.Execute(SQLCommand(_T("insert into aatxnprobe (id, v) values (6, 'not a number') /* [IGNORE-ERRORS] */")));
+               committed = past && transaction.Execute(Update(_T("aatxnprobe"), 10)) && transaction.Commit();
+               failure = transaction.GetFailure();
+            }
+
+            const int value = probe.Value(_T("aatxnprobe"), 1);
+            if (committed)
+            {
+               Check(value == 11, Formatter::Format("a unit of work that went on past a statement marked [IGNORE-ERRORS] committed and left {0}, not 11", value));
+               probe.Say(_T("a statement marked [IGNORE-ERRORS] that failed: the transaction went on, and the unit committed whole"));
+            }
+            else
+            {
+               Check(value == 0 && failure == DatabaseTransaction::FailureStatement,
+                  Formatter::Format("a unit of work ended at a statement marked [IGNORE-ERRORS] left {0}, not 0, and failed as {1}: part of it was committed on its own after the database had ended its transaction",
+                     value, (int) failure));
+               probe.Say(_T("a statement marked [IGNORE-ERRORS] that failed: the database ended the transaction, and the scope failed with nothing committed"));
+            }
          }
 
          // Two transactions on one row: the second waits for the first's commit, and
@@ -724,7 +880,9 @@ namespace HM
                   probe.EndSessionOf(transaction.root_->connection_);
                   return true;
                });
-               Check(unknown.outcome == DatabaseTransaction::CommitUnknown && runs == 1, _T("Run ran a unit of work again after its COMMIT's connection was lost"));
+               Check(unknown.outcome == DatabaseTransaction::CommitUnknown && runs == 1,
+                  Formatter::Format("a unit of work whose COMMIT's connection was lost was not said to be of unknown outcome ({0}), or was run again: outcome {1}, {2} runs: {3}",
+                     (int) DatabaseTransaction::CommitUnknown, (int) unknown.outcome, runs, unknown.error));
                Check(probe.Value(_T("aatxnprobe"), 31) == -1, _T("the unit of work whose session ended before its COMMIT was committed"));
             }
 
@@ -817,6 +975,38 @@ namespace HM
       }
 
       FileUtilities::DeleteDirectory(directory, true);
+   }
+
+   void
+   DatabaseTransactionTester::TestOnErrorOnTheServersDatabase()
+   {
+      // ErrorManager fires OnError only while event scripts run, and with them off
+      // the failure below would be an error reported for nothing: the fixture that
+      // runs ClassTester with scripting off asserts the error log empty.
+      if (!Configuration::Instance() || !Configuration::Instance()->GetUseScriptServer())
+      {
+         OutputDebugString(_T("hMailServer: DatabaseTransaction: OnError outside the transaction - not checked, event scripts are off\n"));
+         return;
+      }
+
+      std::shared_ptr<DatabaseConnectionManager> manager = Application::Instance()->GetDBManager();
+      Check(manager != nullptr, _T("the server has no database connection manager"));
+
+      DatabaseTransaction transaction(manager);
+      Check(transaction.IsOpen(), _T("a transaction did not open on the server's own database: ") + transaction.GetErrorMessage());
+
+      // A statement the database refuses, reported (HM5032) after the transaction
+      // has been rolled back - and while it is reported, ErrorManager runs the
+      // OnError script of the fixture that runs this, which saves a message to the
+      // queue: on the pool's connections, outside this failed transaction, where
+      // its Save would be refused and the message never sent. The fixture
+      // (RegressionTests.API.Events) finds the message delivered.
+      Check(!transaction.Execute(SQLCommand(_T("insert into aatxn_onerror_missing (id) values (1)"))),
+         _T("an insert into a table that does not exist succeeded"));
+      Check(transaction.GetFailure() == DatabaseTransaction::FailureStatement,
+         _T("an insert into a table that does not exist did not fail the transaction as a statement the database refused"));
+
+      OutputDebugString(_T("hMailServer: DatabaseTransaction: OnError outside the transaction - a statement failed inside one on the server's own database, and was reported\n"));
    }
 #endif
 }

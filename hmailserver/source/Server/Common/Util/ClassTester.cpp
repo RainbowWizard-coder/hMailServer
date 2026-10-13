@@ -627,11 +627,18 @@ namespace HM
       // two transactions on one row wait for each other, a lock wait that times
       // out is run again whole by Run, and a connection lost in the middle
       // commits nothing and the retry commits once - each beside the control
-      // that shows the same thing without it. database-transaction-tests runs the
-      // same on PostgreSQL, MySQL and MariaDB.
+      // that shows the same thing without it - and an insert a foreign key
+      // refused is not taken for a row that is there already.
+      // database-transaction-tests runs the same on PostgreSQL, MySQL and MariaDB.
       OutputDebugString(_T("hMailServer: Testing the database transaction scope\n"));
       DatabaseTransactionTester databaseTransactionTester;
       databaseTransactionTester.TestCompact();
+
+      // And, only while event scripts run, a statement that fails inside a
+      // transaction on the server's own database, so that the OnError script of
+      // RegressionTests.API.Events' fixture runs while it is reported - outside
+      // the transaction, which the fixture reads from what the script saved.
+      databaseTransactionTester.TestOnErrorOnTheServersDatabase();
 #endif
 
       // The end of the greylisting key migration (schema 6107): the key against

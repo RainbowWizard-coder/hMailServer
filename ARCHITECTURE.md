@@ -117,9 +117,15 @@ on one connection covers nothing the persistence layer does. `DatabaseTransactio
 `Execute` and `OpenRecordset` made through the same manager on the thread that opened
 it runs on its connection, so an existing save joins it unchanged, and a scope opened
 inside another joins that one. No statement inside it is run again after a reconnect -
-on a new session it would commit outside the transaction - so the first failure fails
-the scope, and `DatabaseTransaction::Run` runs the whole unit of work again on a
-deadlock, a serialisation failure or a lost connection. Take any lock of the process
+on a new session it would commit outside the transaction - except on a MySQL database
+that is not transactional (a table that is not InnoDB), where a scope runs its
+statements as the pool does; so the first failure fails the scope, and
+`DatabaseTransaction::Run` runs the whole unit of work again on a deadlock, a
+serialisation failure or a lost connection. A failure a caller asks to ignore with
+`DALErrorInSQL` is ignored inside a scope only when it is a duplicate key, never
+another integrity violation such as a foreign key's. On SQL Server Compact the pool
+is the server's one connection, so an open scope holds it and every other thread waits
+for it: keep a unit short. Take any lock of the process
 before opening a scope, never inside one, and keep the unit to database work: it may
 run more than once, and an event script run while it is open (OnError) runs outside it.
 

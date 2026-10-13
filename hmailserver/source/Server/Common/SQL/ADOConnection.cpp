@@ -48,9 +48,11 @@ namespace HM
       if ( !SUCCEEDED( hr ) )
       {
          HM_ASSERT(0);
-      }  
+      }
 
       bConnected = false;
+      failure_answered_as_success_ = false;
+      last_failure_result_ = DALSuccess;
    }
 
 
@@ -453,8 +455,16 @@ namespace HM
       if (rowsAffected != nullptr)
          *rowsAffected = -1;
 
+      // This statement's: whether its failure is answered as a success below, and
+      // what it failed with (ClassifyLastFailure).
+      failure_answered_as_success_ = false;
+      last_failure_result_ = DALSuccess;
+
       if (!bConnected)
+      {
+         last_failure_result_ = DALConnectionProblem;
          return DALConnectionProblem; // --- already disconnected.
+      }
 
       String queryString = command.GetQueryString();
 
@@ -506,6 +516,7 @@ namespace HM
             *rowsAffected = -1;
 
          ExecutionResult dbErr = GetErrorType(_com_error::WCodeToHRESULT(err.WCode()));
+         last_failure_result_ = dbErr;
 
          // A caller that passes DALErrorInSQL forgives an integrity violation and
          // nothing else (DALConnection::TryExecute). This was "iIgnoreErrors & dbErr":
@@ -517,6 +528,7 @@ namespace HM
             if (rowsAffected != nullptr)
                *rowsAffected = 0;
 
+            failure_answered_as_success_ = true;
             return DALConnection::DALSuccess;
          }
 
@@ -530,6 +542,7 @@ namespace HM
             if (rowsAffected != nullptr)
                *rowsAffected = 0;
 
+            failure_answered_as_success_ = true;
             return DALConnection::DALSuccess;
          }
 
@@ -559,6 +572,7 @@ namespace HM
          sErrorMessage = "Source: ADOConnection::Execute(), Code: HM10045, Description: Unknown error when executing SQL statement: \n";
          sErrorMessage.append(queryString);
 
+         last_failure_result_ = DALUnknown;
          return DALUnknown;
       }
 
@@ -660,16 +674,26 @@ namespace HM
    DALConnection::LastFailure
    ADOConnection::ClassifyLastFailure(ExecutionResult result)
    {
-      if (result == DALConnection::DALConnectionProblem || !bConnected || cADOConnection == NULL)
+      if (!bConnected || cADOConnection == NULL)
          return LastFailureConnection;
 
-      // GetErrorType's DALErrorInSQL is an integrity violation, which is what a
-      // caller that ignores DALErrorInSQL means by a row that is there already.
-      LastFailure kind = result == DALConnection::DALErrorInSQL ? LastFailureDuplicate : LastFailureOther;
+      // The provider's records of the failure decide, and the result only when
+      // they say nothing: it says too little. GetErrorType gives DALConnectionProblem
+      // for E_FAIL, which is how SQL Server's providers answer a deadlock's victim
+      // as well as a session that is gone, and DALErrorInSQL for
+      // DB_E_INTEGRITYVIOLATION, which is a foreign key with no row to refer to, a
+      // NULL into a NOT NULL column and a CHECK constraint (natives 547, 515, 547)
+      // as well as a duplicate key (2627, 2601) - measured with SQLOLEDB and with
+      // MSOLEDBSQL 18 on SQL Server 2022, 13 October 2026. A caller that asked for
+      // DALErrorInSQL to be ignored means a row that is there already, and an
+      // insert a foreign key refused is not one: it must not commit without it.
+      //
+      // ADO keeps the records on the connection until another failure replaces
+      // them; ForgetLastFailure clears them before a statement, so that these are
+      // that statement's.
+      bool recorded = false;
+      LastFailure kind = LastFailureOther;
 
-      // The provider's records of the failure, which ADO keeps on the connection
-      // until another failure replaces them; ForgetLastFailure clears them before
-      // a statement, so that these are that statement's.
       try
       {
          ErrorsPtr errors = cADOConnection->GetErrors();
@@ -681,34 +705,55 @@ namespace HM
             if (error == NULL)
                continue;
 
+            const long native = error->GetNativeError();
+            const _bstr_t state = error->GetSQLState();
+            const wchar_t *text = (const wchar_t *) state;
+            const bool stated = text != nullptr && text[0] != L'\0';
+
+            // A record with neither a native error nor an SQLSTATE says nothing of
+            // what the failure was. MSOLEDBSQL 18 answered the next statement and
+            // the COMMIT of a session the server had ended (KILL) with E_FAIL and one
+            // such record, "Unspecified error", in some runs and with SQLSTATE 08S01
+            // in others (measured on the Windows lab's node W1, 13 October 2026;
+            // SQLOLEDB gives native 11 or 0 and 08S01): then the result decides,
+            // below.
+            if (native == 0 && !stated)
+               continue;
+
+            recorded = true;
+
             // Chosen as a deadlock's victim: SQL Server has rolled the
             // transaction back (E_FAIL, native 1205, SQLSTATE 40001, and the
-            // session's @@TRANCOUNT 0 after it: measured with SQLOLEDB on SQL
-            // Server 2022, 13 October 2026).
-            const long native = error->GetNativeError();
+            // session's @@TRANCOUNT 0 after it).
             if (native == 1205)
                return LastFailureRetryable;
 
-            // A primary key's or a unique index's duplicate, whatever the
-            // provider's HRESULT for it (SQLOLEDB's is DB_E_INTEGRITYVIOLATION,
-            // with native 2627 and SQLSTATE 23000, and the transaction goes on).
+            // SQLSTATE class 08, a connection exception: the session is gone, while
+            // bConnected still says connected.
+            if (stated && text[0] == L'0' && text[1] == L'8')
+               return LastFailureConnection;
+
+            // A primary key's or a unique index's duplicate, and nothing else
+            // DB_E_INTEGRITYVIOLATION is: the transaction goes on after it.
             if (native == 2627 || native == 2601)
                kind = LastFailureDuplicate;
-
-            // SQLSTATE class 08, a connection exception: the session is gone. A
-            // session the server ended (KILL) answers its next statement with
-            // E_FAIL, native 11 and SQLSTATE 08S01 (measured as above), while
-            // bConnected still says connected: this is the one sign of it.
-            const _bstr_t state = error->GetSQLState();
-            const wchar_t *text = (const wchar_t *) state;
-            if (text != nullptr && text[0] == L'0' && text[1] == L'8')
-               return LastFailureConnection;
          }
       }
       catch (...)
       {
-         // No records to read: classified on the result alone.
-         return kind;
+         // Records that could not be read: what was read of them decides, or the
+         // result when that was nothing.
+         LOG_DEBUG(_T("ADOConnection: the provider's error records could not be read whole after a failure."));
+      }
+
+      // Nothing recorded that says what it was: E_FAIL is taken for a lost
+      // connection, as DALConnection::Execute takes it, whether the caller passes
+      // the statement's result or - after a BEGIN or a COMMIT, whose calls say no
+      // more than false - DALUnknown, and the connection's last result is read.
+      if (!recorded)
+      {
+         return result == DALConnection::DALConnectionProblem || last_failure_result_ == DALConnection::DALConnectionProblem ?
+            LastFailureConnection : LastFailureOther;
       }
 
       return kind;
@@ -717,6 +762,9 @@ namespace HM
    void
    ADOConnection::ForgetLastFailure()
    {
+      failure_answered_as_success_ = false;
+      last_failure_result_ = DALSuccess;
+
       try
       {
          if (cADOConnection != NULL)
@@ -725,6 +773,66 @@ namespace HM
       catch (...)
       {
          LOG_DEBUG(_T("ADOConnection: the provider's error records could not be cleared before a statement."));
+      }
+   }
+
+   bool
+   ADOConnection::IsTransactionFailed() const
+   {
+      // Asked after a statement inside a transaction succeeded, or seemed to: a
+      // failure the [IGNORE-ERRORS] marker (or a caller's iIgnoreErrors) answered
+      // as a success may have ended the transaction all the same. SQL Server
+      // rolls a transaction back at some failures with XACT_ABORT off - a
+      // conversion error among them (native 245, SQLSTATE 22018: @@TRANCOUNT 0
+      // after it, measured with SQLOLEDB and with MSOLEDBSQL 18 on SQL Server
+      // 2022, 13 October 2026) - and what follows on the session then commits on
+      // its own. One round trip, only after a failure that was answered as a
+      // success; nothing otherwise.
+      if (!failure_answered_as_success_)
+         return false;
+
+      if (!bConnected || cADOConnection == NULL)
+         return true;
+
+      try
+      {
+         // As ADORecordset::TryOpen runs a query: a command on the connection,
+         // whose client cursor reads the one row whole.
+         _CommandPtr adoCommand;
+         adoCommand.CreateInstance(__uuidof(Command));
+         adoCommand->CommandType = adCmdText;
+         adoCommand->CommandText = _bstr_t(_T("select @@TRANCOUNT as trancount"));
+         adoCommand->ActiveConnection = cADOConnection;
+
+         _RecordsetPtr counted = adoCommand->Execute(NULL, NULL, adCmdText);
+         adoCommand->ActiveConnection = NULL;
+
+         if (counted == NULL || counted->GetRecordCount() < 1)
+            return true;
+
+         FieldsPtr fields;
+         FieldPtr field;
+         _variant_t value;
+
+         counted->get_Fields(&fields);
+         if (fields != NULL)
+            fields->get_Item(_variant_t(_T("trancount")), &field);
+         if (field != NULL)
+            field->get_Value(&value);
+
+         counted->Close();
+
+         if (value.vt == VT_EMPTY || value.vt == VT_NULL)
+            return true;
+
+         return (long) value == 0;
+      }
+      catch (...)
+      {
+         // Whether the transaction is still open cannot be told, after a failure
+         // that may have ended it: it is taken as ended, so that nothing more of
+         // the unit is sent into what may be autocommit.
+         return true;
       }
    }
 

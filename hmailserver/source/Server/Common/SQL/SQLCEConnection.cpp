@@ -993,9 +993,12 @@ namespace HM
       if (result == DALConnection::DALConnectionProblem || !connected_ || cSQLCEConnection == NULL)
          return LastFailureConnection;
 
-      // GetErrorType_'s DALErrorInSQL is an integrity violation, which is what a
-      // caller that ignores DALErrorInSQL means by a row that is there already.
-      LastFailure kind = result == DALConnection::DALErrorInSQL ? LastFailureDuplicate : LastFailureOther;
+      // A row that is there already only when the provider names a duplicate:
+      // GetErrorType_'s DALErrorInSQL is DB_E_INTEGRITYVIOLATION, which is a
+      // foreign key with no row to refer to as well (native 25026, measured with
+      // Compact 4.0 on 13 October 2026), and a caller that asked for DALErrorInSQL
+      // to be ignored must not commit without a row a foreign key refused.
+      LastFailure kind = LastFailureOther;
 
       // The provider's records of the failure, which ADO keeps on the connection
       // until another failure replaces them; ForgetLastFailure clears them before
@@ -1019,9 +1022,8 @@ namespace HM
                // was (measured with Compact 4.0, 13 October 2026).
                return LastFailureRetryable;
             case SSCE_M_KEYDUPLICATE:
-               // A unique index refused the row: DB_E_INTEGRITYVIOLATION as well
-               // (measured), and named here so that it is the duplicate whatever
-               // HRESULT a provider gives it.
+               // A unique index refused the row (DB_E_INTEGRITYVIOLATION, measured):
+               // the one integrity violation that is a row there already.
                kind = LastFailureDuplicate;
                break;
             default:
@@ -1031,8 +1033,9 @@ namespace HM
       }
       catch (...)
       {
-         // No records to read: classified on the result alone.
-         return kind;
+         // Records that could not be read: a duplicate only when one of those
+         // read before said so, and nothing that may be ignored otherwise.
+         LOG_DEBUG(_T("SQLCEConnection: the provider's error records could not be read whole after a failure."));
       }
 
       return kind;

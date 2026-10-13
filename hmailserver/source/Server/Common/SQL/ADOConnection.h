@@ -81,9 +81,19 @@ namespace HM
 
       // DALConnection's, from the records the provider left in the connection's
       // Errors collection: native error 1205, a deadlock's victim, which a unit of
-      // work is run again for, and an SQLSTATE of class 08, a connection lost.
+      // work is run again for; an SQLSTATE of class 08, a connection lost; native
+      // 2627 or 2601, a duplicate key, and no other integrity violation. The
+      // result - or after a BEGIN or a COMMIT the connection's last one - decides
+      // only when the provider recorded nothing that says what the failure was.
       virtual LastFailure ClassifyLastFailure(ExecutionResult result);
       virtual void ForgetLastFailure();
+
+      // Whether the transaction open on the connection has ended under the last
+      // statement although it was answered as a success - a failure the
+      // [IGNORE-ERRORS] marker or a caller's iIgnoreErrors let through, after
+      // which SQL Server may have rolled the transaction back: @@TRANCOUNT, read
+      // only then.
+      virtual bool IsTransactionFailed() const;
 
    private:
 
@@ -109,8 +119,15 @@ namespace HM
 
       bool IsMSOLEDBSQL18OrLaterInstalled_() const;
 
-      _ConnectionPtr cADOConnection;  
+      _ConnectionPtr cADOConnection;
       bool bConnected;
+
+      // Whether the last TryExecute answered a failure as a success (an ignored
+      // error, the [IGNORE-ERRORS] marker), for IsTransactionFailed; and what that
+      // statement failed with, for ClassifyLastFailure after a BEGIN or a COMMIT,
+      // whose callers have no more than false. DALSuccess when it did not fail.
+      bool failure_answered_as_success_;
+      ExecutionResult last_failure_result_;
 
    };
 

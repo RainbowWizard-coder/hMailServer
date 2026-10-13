@@ -185,9 +185,12 @@ namespace HM
       // deadlock, a serialisation failure or a lock wait that timed out, for which
       // a unit of work is run again whole (SQL Server 1205, MySQL and MariaDB
       // 1213, 1205 and 1020, PostgreSQL 40001 and 40P01, SQL Server Compact
-      // 25090); a row that is there already (a unique key, or on SQL Server and
-      // Compact an integrity violation, which is what the backends' own
-      // DALErrorInSQL means); or anything else. Asked straight after the failure,
+      // 25090); a row that is there already, which is a primary key's or a unique
+      // index's duplicate the backend names (SQL Server 2627 and 2601, MySQL and
+      // MariaDB 1062, PostgreSQL 23505, SQL Server Compact 25016) and no other
+      // integrity violation - the backends' own DALErrorInSQL is every one of them
+      // on SQL Server and Compact, a foreign key's, a NULL's and a CHECK's
+      // included; or anything else. Asked straight after the failure,
       // with what TryExecute, TryOpen or the transaction call returned (DALUnknown
       // when it said no more than false), before anything else runs on the
       // connection; ForgetLastFailure before the statement, so that what is read
@@ -210,9 +213,14 @@ namespace HM
 
       // PostgreSQL's: a statement that fails inside a transaction aborts it, and
       // every statement after it is refused until the rollback - so a failure a
-      // caller means to ignore needs a savepoint there (DatabaseTransaction) - and
-      // whether that has happened to the transaction open now.
+      // caller means to ignore needs a savepoint there (DatabaseTransaction).
       virtual bool GetFailedStatementEndsTransaction() const { return false; }
+
+      // Whether the transaction open now has been ended by a failure although the
+      // last statement was answered as a success: on PostgreSQL by any failure
+      // (PQTRANS_INERROR); on SQL Server by a failure the [IGNORE-ERRORS] marker
+      // let through that rolled the transaction back (ADOConnection, @@TRANCOUNT).
+      // Asked only while a transaction is open on the connection.
       virtual bool IsTransactionFailed() const { return false; }
 
    protected:

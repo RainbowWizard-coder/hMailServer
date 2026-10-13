@@ -767,9 +767,36 @@ namespace HM
             return pEmpty;
          }
 
-         // All connections are busy. Wait until one is released instead of
-         // polling. A timeout bounds the wait as a defensive backstop so a lost
-         // notification can never wedge the caller indefinitely.
+         // All connections are busy - and when every one lent out is held by a
+         // database transaction of this thread, no wait can end: only this thread
+         // could give one back, and it is waiting. A statement made under a
+         // DatabaseTransaction::Suspension does that (an OnError event script run
+         // while a statement of the transaction is reported), or a second
+         // transaction begun beside one, on a pool that has no other connection
+         // to lend: on SQL Server Compact the pool holds one (IniFileSettings). It
+         // is refused at once, where it waited DBConnectionAcquireTimeout a
+         // statement and every other thread waited with it.
+         const size_t heldHere = DatabaseTransaction::ConnectionsHeldOnThisThread_(this);
+         if (heldHere > 0 && busy_connections_.size() <= heldHere)
+         {
+            String message;
+            message.Format(_T("A statement was not run: every connection the database pool has lent out (%d) is held by a database transaction of the thread that made it - a statement made outside that transaction while it is open, such as an OnError event script's - so a wait for one could only end when that thread gave one back. On SQL Server Compact the pool holds one connection; on the other engines [Database] NumberOfConnections sets how many."),
+               (int) busy_connections_.size());
+
+            // As on the timeout below: released first, because the report runs an
+            // OnError script that reads the database through this function.
+            guard.unlock();
+
+            DatabaseUnavailableMarker::Mark();
+            ErrorManager::Instance()->ReportError(ErrorManager::High, 8503, "DatabaseConnectionManager::GetConnection_", message);
+
+            std::shared_ptr<DALConnection> pEmpty;
+            return pEmpty;
+         }
+
+         // Wait until one is released instead of polling. A timeout bounds the
+         // wait as a defensive backstop so a lost notification can never wedge
+         // the caller indefinitely.
          boost::chrono::milliseconds wait_time(100);
 
          if (bounded_wait)

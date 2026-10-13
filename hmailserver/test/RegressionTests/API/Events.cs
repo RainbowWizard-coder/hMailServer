@@ -588,6 +588,60 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("An OnError script run while a statement of a database transaction is reported runs outside that " +
+                   "transaction (ErrorManager hides the thread's DatabaseTransaction while it fires OnError): the message it " +
+                   "saves goes to the queue and is delivered, although the transaction it was reported from has failed. " +
+                   "The internal suite's DatabaseTransactionTester makes the statement fail inside a transaction on the " +
+                   "server's own database, which it does only while event scripts run. Without the suspension the script's " +
+                   "Save ran inside the failed transaction, was refused, and nothing was sent; and on SQL Server Compact, whose " +
+                   "pool holds the server's one connection, until the failed transaction gave its connection back before the " +
+                   "error was reported, the Save waited a minute a statement for it, the whole server with it, and failed.")]
+      public void AnOnErrorScriptRunsOutsideTheDatabaseTransactionItIsReportedFrom()
+      {
+         var alerted = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "alerted@example.test", "test");
+
+         try
+         {
+            // Only the one error the tester provokes: its statement names a table
+            // of its own that does not exist.
+            var script =
+               "Sub OnError(iSeverity, iError, sSource, sDescription)\r\n" +
+               "   If iError <> 5032 Or InStr(sDescription, \"aatxn_onerror_missing\") = 0 Then Exit Sub\r\n" +
+               "   Dim oAlert\r\n" +
+               "   Set oAlert = CreateObject(\"hMailServer.Message\")\r\n" +
+               "   oAlert.FromAddress = \"onerror@example.test\"\r\n" +
+               "   oAlert.AddRecipient \"\", \"" + alerted.Address + "\"\r\n" +
+               "   oAlert.Subject = \"Alert from OnError\"\r\n" +
+               "   oAlert.Body = sSource\r\n" +
+               "   oAlert.Save\r\n" +
+               "End Sub\r\n";
+
+            var scripting = _settings.Scripting;
+            scripting.Language = "VBScript";
+            File.WriteAllText(scripting.CurrentScriptFile, script);
+            scripting.Enabled = true;
+            scripting.Reload();
+
+            SingletonProvider<TestSetup>.Instance.GetApp().Utilities.RunTestSuite("I know what I am doing.");
+
+            CustomAsserts.AssertReportedError("aatxn_onerror_missing");
+
+            // Saved while the error was reported, so delivered within seconds; on the
+            // code before, never.
+            var inbox = alerted.IMAPFolders.get_ItemByName("Inbox");
+            CustomAsserts.AssertFolderMessageCount(inbox, 1);
+            var message = inbox.Messages[0];
+            ClassicAssert.AreEqual("Alert from OnError", message.Subject, "The message delivered is not the one the OnError script saved.");
+            StringAssert.Contains("DatabaseTransaction::Execute", message.Body,
+               "The message the OnError script saved does not carry the source of the error it was run for.");
+         }
+         finally
+         {
+            LeaveAnEmptyVBScriptScriptLoaded();
+         }
+      }
+
+      [Test]
       public void TestOnExternalAccountDownload()
       {
          LogHandler.DeleteCurrentDefaultLog();

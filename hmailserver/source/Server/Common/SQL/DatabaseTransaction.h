@@ -42,7 +42,8 @@ namespace HM
       unit - an OnError event script run while one of its statements is being
       reported - goes to the pool as it always did.
 
-      NO STATEMENT INSIDE A SCOPE IS RUN AGAIN. DALConnection::Execute and
+      NO STATEMENT INSIDE A SCOPE IS RUN AGAIN - except on a MySQL database that
+      is not transactional, below. DALConnection::Execute and
       DALRecordset::Open run a statement again after a reconnect, and on a new
       session a statement is outside the transaction: it commits on its own, while
       everything before it was rolled back with the session that was lost. So a
@@ -50,10 +51,11 @@ namespace HM
       and the first failure fails the scope: every later statement in it is
       refused without being sent, and the commit is refused. The engines differ in
       what a failure leaves - SQL Server and MySQL roll the whole transaction back
-      at a deadlock and go on in autocommit, PostgreSQL refuses everything until
-      the rollback, a MySQL lock wait that timed out takes back only its own
-      statement - and refusing everything after the first failure is the one rule
-      that is right on all four.
+      at a deadlock and go on in autocommit, SQL Server does so at a conversion
+      error too, PostgreSQL refuses everything until the rollback, a MySQL lock
+      wait that timed out takes back only its own statement - and refusing
+      everything after the first failure is the one rule that is right on all
+      four.
 
       What is retried is the whole unit of work, by Run: a bounded number of
       times, on a lost connection and on the engines' deadlock and serialisation
@@ -67,20 +69,31 @@ namespace HM
 
       A failure the caller asked to ignore - DALConnection::DALErrorInSQL, "this
       row is there already", which several inserts pass - is ignored here only
-      when it is that: a unique or integrity violation the backend names
-      (DALConnection::ClassifyLastFailure). Outside a scope the backends' own
-      ignoring is wider (on SQL Server, SQL Server Compact and MySQL it lets an
-      unknown error through as well, a lost connection included on MySQL), and
-      inside a transaction that would hide a deadlock that has already rolled the
-      transaction back. On PostgreSQL, where any failed statement aborts the
-      transaction, a statement that may be ignored runs under a savepoint, so that
-      an ignored duplicate leaves the transaction as it was.
+      when it is that: a primary key's or a unique index's duplicate the backend
+      names (DALConnection::ClassifyLastFailure: SQL Server 2627 and 2601, MySQL
+      and MariaDB 1062, PostgreSQL 23505, SQL Server Compact 25016). Outside a
+      scope the backends' own ignoring is wider: on SQL Server and SQL Server
+      Compact it lets through every integrity violation - an insert a foreign key
+      refused for want of the row it refers to, a NULL into a NOT NULL column, a
+      CHECK constraint - and on those two and MySQL an unknown error as well, a
+      lost connection included on MySQL. Inside a transaction that would commit
+      a unit without a row the database refused, and would hide a deadlock that
+      has already rolled the transaction back. On PostgreSQL, where any failed
+      statement aborts the transaction, a statement that may be ignored runs
+      under a savepoint, so that an ignored duplicate leaves the transaction as it
+      was. A statement marked [IGNORE-ERRORS], whose failure the backend itself
+      answers as a success, fails the scope when that failure has ended the
+      transaction (DALConnection::IsTransactionFailed): on SQL Server a
+      conversion error rolls the transaction back.
 
       On a MySQL database with a table that is not InnoDB nothing is
       transactional (MySQLConnection::LoadSupportsTransactions_): the scope still
       runs the unit on one connection, IsTransactional() says false, a rollback
-      takes nothing back, and Run does not retry a unit it cannot undo. One node
-      is still served as it was before transactions, where nothing was atomic.
+      takes nothing back, and Run does not retry a unit it cannot undo. Its
+      statements run as the pool runs them (DALConnection::Execute,
+      DALRecordset::Open), again after a reconnect, with the backend's own
+      ignoring. One node is still served as it was before transactions, where
+      nothing was atomic.
 
       What it reports. A statement that fails for a reason a retry would not mend
       is reported as the pool reports it (HM5032, HM5033), and a BEGIN or a COMMIT
@@ -100,6 +113,15 @@ namespace HM
       connection and its locks until it ends, and the work Run is given may run
       more than once, so it must take its inputs afresh each time and change
       nothing outside the database until Run returns.
+
+      On SQL Server Compact the pool holds one connection (IniFileSettings), so
+      an open scope holds the only one the server has: every other thread's
+      statement waits for it, for DBConnectionAcquireTimeout at most. A scope
+      that fails gives its connection back at once, before the failure is
+      reported; and a statement its own thread makes outside it while it is
+      open - under a Suspension - is refused at once (HM8503) when this thread's
+      scopes hold every connection the pool has lent out, since a wait could
+      only end when the thread gave one back.
    */
    class DatabaseTransaction
    {
@@ -245,7 +267,12 @@ namespace HM
          Suspension &operator=(const Suspension &) = delete;
 
       private:
+         friend class DatabaseTransaction;
+
          DatabaseTransaction *hidden_;
+
+         // The Suspension this one was made inside, or none.
+         Suspension *enclosing_;
       };
 
    private:
@@ -257,6 +284,12 @@ namespace HM
 
       // The innermost scope of this manager on this thread, open or not, or none.
       static DatabaseTransaction *Current_(const DatabaseConnectionManager *manager);
+
+      // How many of the manager's connections this thread's scopes hold, the ones
+      // a Suspension hides included: DatabaseConnectionManager::GetConnection_
+      // does not wait for a connection when these are all it has lent out, since
+      // only this thread could give one back.
+      static size_t ConnectionsHeldOnThisThread_(const DatabaseConnectionManager *manager);
 
       // Whether the manager's statements on this thread are to run here: a joined
       // scope's always are (and are refused once what it joined has ended); an
@@ -275,8 +308,9 @@ namespace HM
       // One statement of the scope's own (a savepoint's), on the connection.
       bool RunControl_(const String &sql, String &sErrorMessage);
 
-      // The first failure, on the outermost scope: recorded, and the transaction
-      // rolled back at once so that its locks are free. The scope stays its
+      // The first failure, on the outermost scope: recorded, the transaction
+      // rolled back at once so that its locks are free, and the connection given
+      // back to the pool before the failure is reported. The scope stays its
       // thread's and refuses every statement until it ends.
       void Fail_(Failure failure, const String &message);
 
@@ -321,6 +355,9 @@ namespace HM
       String error_;
 
       static thread_local DatabaseTransaction *current_;
+
+      // The innermost Suspension on this thread, or none.
+      static thread_local Suspension *suspension_;
    };
 
    // The scope held to what it promises, on a real database, through
@@ -331,23 +368,28 @@ namespace HM
    // connection lost in the middle of a scope commits nothing and the retry
    // commits once, where DALConnection::Execute's reconnect commits the
    // statement after it on its own (the negative control, C17); a failed
-   // statement fails the scope and refuses the rest; scopes join and nest.
-   // PostgreSQL also: an ignored duplicate leaves the transaction usable, and a
-   // COMMIT that PostgreSQL turned into a ROLLBACK is reported as a failure.
+   // statement fails the scope and refuses the rest; scopes join and nest; an
+   // insert a foreign key refused and a NULL into a NOT NULL column are not taken
+   // for a row that is there already, with DALErrorInSQL or without; a statement
+   // marked [IGNORE-ERRORS] that failed leaves the unit committed whole or not at
+   // all (on SQL Server, where a conversion error rolls the transaction back, not
+   // at all). PostgreSQL also: an ignored duplicate leaves the transaction usable,
+   // and a COMMIT that PostgreSQL turned into a ROLLBACK is reported as a failure.
    // MySQL also: a database with a table that is not InnoDB reports that it is
    // not transactional.
    //
-   // On a pool and tables of its own (aatxnprobe, aatxnprobeb), which it makes,
-   // empties and removes, so it can be run against a database a server has made
-   // before the server starts on it; never against one a server is using. On
-   // Windows ClassTester runs TestCompact, on a SQL Server Compact database of
-   // the tester's own in the temp folder - the Windows gate's engine. On Linux the
-   // program database-transaction-tests runs Test against the database its
-   // configuration file names: PostgreSQL in the Linux suite, MySQL and MariaDB in
-   // the database matrix. Nothing runs it against SQL Server yet: Test is written
-   // for it too, and needs a login that may end a session there (KILL, ALTER ANY
-   // CONNECTION). It says what failed by throwing std::logic_error with a
-   // sentence.
+   // On a pool and tables of its own (aatxnprobe, aatxnprobeb, aatxnprobec), which
+   // it makes, empties and removes, so it can be run against a database a server
+   // has made before the server starts on it; never against one a server is using
+   // as a node of a set. On Windows ClassTester runs TestCompact, on a SQL Server
+   // Compact database of the tester's own in the temp folder - the Windows gate's
+   // engine. On Linux the program database-transaction-tests runs Test against the
+   // database its configuration file names: PostgreSQL in the Linux suite, MySQL
+   // and MariaDB in the database matrix. SQL Server is the Windows lab's
+   // (ActiveActive.md, D18): Test against its database, through the server's ADO
+   // code on a node, with a login that may end a session there (KILL needs ALTER
+   // ANY CONNECTION, and seeing it gone VIEW SERVER STATE). It says what failed by
+   // throwing std::logic_error with a sentence.
    class DatabaseTransactionTester
    {
    public:
@@ -368,6 +410,13 @@ namespace HM
       // ClassTester's: a SQL Server Compact database of the tester's own, made
       // in the temp folder and removed again.
       void TestCompact();
+
+      // ClassTester's, and only while event scripts run: a statement that fails
+      // inside a transaction on the server's own database, so that the OnError
+      // script a regression test installs runs while it is reported
+      // (ErrorManager runs it under a Suspension) - the test finds what the
+      // script saved committed. With scripting off it does nothing.
+      void TestOnErrorOnTheServersDatabase();
 #endif
 
    private:

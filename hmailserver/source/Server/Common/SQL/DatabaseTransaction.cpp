@@ -24,6 +24,7 @@
 namespace HM
 {
    thread_local DatabaseTransaction *DatabaseTransaction::current_ = nullptr;
+   thread_local DatabaseTransaction::Suspension *DatabaseTransaction::suspension_ = nullptr;
 
    namespace
    {
@@ -500,16 +501,18 @@ namespace HM
 
          if (connection->IsTransactionFailed())
          {
-            // PostgreSQL, and a statement marked [IGNORE-ERRORS] whose failure the
-            // backend answered as a success: the failure has aborted the
-            // transaction all the same.
+            // A statement marked [IGNORE-ERRORS] whose failure the backend answered
+            // as a success, and the failure has ended the transaction all the
+            // same: on PostgreSQL any failure aborts it, which the savepoint takes
+            // back; on SQL Server some roll it back (a conversion error), and what
+            // followed would commit on its own (ADOConnection::IsTransactionFailed).
             if (savepoint)
             {
                return RunControl_(UndoToSavepoint, sErrorMessage) &&
                       RunControl_(ReleaseSavepoint, sErrorMessage);
             }
 
-            sErrorMessage = _T("A statement failed inside the transaction, so PostgreSQL rolls the whole of it back.");
+            sErrorMessage = _T("A statement failed inside the transaction, and the database has ended the transaction, so nothing of it is committed.");
             root->Fail_(FailureStatement, sErrorMessage);
             return false;
          }
@@ -554,8 +557,9 @@ namespace HM
          root->Fail_(FailureStatement, message);
 
          // Reported as the pool reports a statement that failed, and after the
-         // rollback, so that an OnError script that reads or writes the rows
-         // this transaction held finds them free.
+         // rollback, with the connection back in the pool (Fail_), so that an
+         // OnError script that reads or writes the rows this transaction held
+         // finds them free and a connection to do it on.
          ErrorManager::Instance()->ReportError(ErrorManager::High, 5032, "DatabaseTransaction::Execute", message);
          break;
       }
@@ -693,13 +697,25 @@ namespace HM
          // not committed. It is opened again before the pool has it back.
          reconnect_on_release_ = true;
          in_transaction_ = false;
-         return;
+      }
+      else
+      {
+         // Rolled back now rather than when the scope ends, so that the locks it
+         // holds - on MySQL a lock wait that timed out took back only its own
+         // statement - are free for the other units at once.
+         RollBack_();
       }
 
-      // Rolled back now rather than when the scope ends, so that the locks it
-      // holds - on MySQL a lock wait that timed out took back only its own
-      // statement - are free for the other units at once.
-      RollBack_();
+      // And the connection goes back to the pool now, not when the scope ends:
+      // whatever runs while the failure is reported - an OnError script, which
+      // ErrorManager runs outside the transaction, on the pool - and the rest of
+      // the server find it there. On SQL Server Compact the pool holds the one
+      // connection the server has (IniFileSettings), so a failed scope that kept
+      // it until its caller let it go made the script wait for it a minute a
+      // statement, and every other thread with it (measured on the bench, 13
+      // October 2026). The scope stays its thread's, and refuses every statement
+      // until it ends.
+      Release_();
    }
 
    void
@@ -805,8 +821,9 @@ namespace HM
 
       if (connection_->IsTransactionFailed())
       {
-         // PostgreSQL would answer the COMMIT with success and roll back.
-         Fail_(FailureStatement, _T("A statement failed inside the transaction, so PostgreSQL rolls the whole of it back."));
+         // PostgreSQL would answer the COMMIT with success and roll back; SQL
+         // Server, whose transaction has ended, would refuse it.
+         Fail_(FailureStatement, _T("A statement failed inside the transaction, and the database has ended the transaction, so nothing of it is committed."));
          End_();
          return false;
       }
@@ -985,9 +1002,11 @@ namespace HM
    }
 
    DatabaseTransaction::Suspension::Suspension() :
-      hidden_(current_)
+      hidden_(current_),
+      enclosing_(suspension_)
    {
       current_ = nullptr;
+      suspension_ = this;
    }
 
    DatabaseTransaction::Suspension::~Suspension()
@@ -995,6 +1014,34 @@ namespace HM
       // Scopes opened during the suspension have ended (they are on the stack
       // inside it), so the thread's chain is the one hidden.
       HM_ASSERT(current_ == nullptr);
+      HM_ASSERT(suspension_ == this);
       current_ = hidden_;
+      suspension_ = enclosing_;
+   }
+
+   size_t
+   DatabaseTransaction::ConnectionsHeldOnThisThread_(const DatabaseConnectionManager *manager)
+   {
+      // A connection is held by the outermost scope of a transaction; a joined
+      // scope runs on its root's. The chain in force, then each one a Suspension
+      // hides: the scopes opened inside a Suspension form a chain of their own,
+      // so no scope is in two.
+      size_t held = 0;
+
+      auto count = [&](const DatabaseTransaction *chain)
+      {
+         for (const DatabaseTransaction *scope = chain; scope != nullptr; scope = scope->previous_)
+         {
+            if (scope->manager_.get() == manager && scope->root_ == scope && scope->connection_)
+               held++;
+         }
+      };
+
+      count(current_);
+
+      for (const Suspension *suspension = suspension_; suspension != nullptr; suspension = suspension->enclosing_)
+         count(suspension->hidden_);
+
+      return held;
    }
 }
