@@ -4864,6 +4864,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   call them, the message index an indeks, and the Control Panel the Denetim Masası in prose, as 67 texts call it; the
   Alias address caption's key moves to ğ, since the Domains page gives every other letter of it to another caption.
 
+- **Fixed: 156 Ukrainian texts said what their English does not, broke Ukrainian grammar, or named one thing two
+  ways.** A fair password's advice to consider adding {0} was the weak password's order to add it; free software under
+  the AGPLv3 was free of charge (безкоштовне), where it is free as in freedom (вільне); a device was what allows SMTP
+  delivery, where the IP range does; and the default IP ranges were Мій комп’ютер and Internet, where the server gives
+  them in English and the IP ranges page lists them so. Слухач is animate, so no listeners are слухачів, доки ... не
+  takes a finite verb, a session is a сеанс, an event script a скрипт, a resolver a розв'язувач and a server's health
+  its справність throughout, and the Control Panel is the Панель керування in prose, as 63 texts call it.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
