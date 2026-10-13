@@ -505,7 +505,7 @@ def check(tag, catalogue, pages=None):
       for problem in readback_findings(tag, source, target):
          findings.append((source, problem))
 
-      wanted ={digits(m.group(0)) for m in NUMBER.finditer(bare)}
+      wanted = {digits(m.group(0)) for m in NUMBER.finditer(bare)}
       have = {digits(m.group(0)) for m in NUMBER.finditer(PLACEHOLDER.sub(" ", target))}
       for number in sorted(w for w in wanted - have if len(w) >= 2):
          findings.append((source, "the number %s is not in the translation" % number))
