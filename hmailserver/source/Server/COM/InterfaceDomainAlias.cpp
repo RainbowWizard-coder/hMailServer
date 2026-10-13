@@ -113,6 +113,16 @@ STDMETHODIMP InterfaceDomainAlias::Save()
       if (!object_)
          return GetAccessDenied();
 
+      // A domain alias maps an external name onto a hosted domain, applied to
+      // every sender and recipient before the server decides a domain is local,
+      // so which names map in is the server's to decide - as which domains exist
+      // is. The server administrator's, not a domain administrator's: a domain
+      // administrator could otherwise make another company's domain, or a public
+      // one, an alias of its own and take that name's mail server-wide. Removing
+      // an alias of its own domain stays a domain administrator's (Delete).
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
       HM::String sErrorMessage;
       if (HM::PersistentDomainAlias::SaveObject(object_, sErrorMessage, HM::PersistenceModeNormal))
       {

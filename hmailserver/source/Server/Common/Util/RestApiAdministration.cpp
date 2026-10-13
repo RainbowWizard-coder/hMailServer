@@ -45,6 +45,7 @@
 #include "RestrictedDelivery.h"
 #include "ImpersonationCheck.h"
 #include "RestApiSettingLevels.h"
+#include "HttpsClient.h"
 #include "../Persistence/PersistentSettingOverride.h"
 #include "JsonDocument.h"
 #include "Unicode.h"
@@ -1006,6 +1007,33 @@ namespace HM
       bool forbidden = false;
       if (!ApplyDomainBody(body, domain, caller.domains, error, renamed, forbidden))
          return BuildResponse_(forbidden ? 403 : 400, ErrorBody(quote, String(error)));
+
+      // The name is the server administrator's to change, as the eleven limits
+      // above are: a credential confined to a domain administers what is inside
+      // it and does not decide which name the server answers for. A rename makes
+      // the domain accept mail for a different name - and, left to a confined
+      // credential, one it does not own, which every tenant's mail to that name
+      // would then be delivered into. Nothing has been persisted yet, so a
+      // refusal here changes nothing. A PUT that sends the name unchanged (the
+      // Control Deck and hmctl send the whole object back) is not a rename.
+      if (renamed && !HoldsServerAuthority_(caller))
+         return BuildResponse_(403, "{\"error\":\"name is the server administrator's to change; a credential restricted to a domain cannot rename a domain\"}");
+
+      // The relay host a credential confined to a domain sets is held to a
+      // public address, as a reader's fetch host and a tenant's inbound webhook
+      // are (HttpsClient::HostIsPublic): delivery connects to it with no address
+      // rule (SMTP/ServerTargetResolver), so an internal name or address here
+      // would be a way for one tenant to have the server reach its own network.
+      // The server administrator may still set an internal smart host. Judged
+      // only when the body names relay_host and it is not empty, so a PUT of
+      // another field, or one that clears the host, is never refused on it.
+      if (body.Get("relay_host") && !HoldsServerAuthority_(caller))
+      {
+         const String relayHost = domain->GetRelayHost();
+         String relayRefusal;
+         if (!relayHost.IsEmpty() && !HttpsClient::HostIsPublic(AnsiString(relayHost), relayRefusal))
+            return BuildResponse_(403, ErrorBody(quote, String("relay_host: ") + relayRefusal));
+      }
 
       // The domain's own values of the settings with levels, judged now with
       // everything else and written once the domain itself is saved.

@@ -6,6 +6,7 @@
 
 #include "InterfaceDomain.h"
 #include "../Common/Util/CountryBlocking.h"
+#include "../Common/Util/HttpsClient.h"
 #include "InterfaceDomain.h"
 #include "InterfaceAccounts.h"
 #include "InterfaceRules.h"
@@ -111,14 +112,19 @@ STDMETHODIMP InterfaceDomain::put_Name(BSTR newVal)
       if (!object_)
          return GetAccessDenied();
 
-      if (!authentication_->GetIsDomainAdmin())
+      // The server administrator's, not a domain administrator's: a rename makes
+      // the domain accept mail for a different name, and which names the server
+      // answers for is the server's to decide, as which domains exist is. A
+      // domain administrator administers what is inside its domain and keeps
+      // every other setting on it; it does not rename it.
+      if (!authentication_->GetIsServerAdmin())
          return authentication_->GetAccessDenied();
-   
+
       HM::String sName = newVal;
       sName.Trim();
-   
+
       object_->SetName(sName);
-   
+
       return S_OK;
    }
    catch (...)
@@ -218,7 +224,22 @@ STDMETHODIMP InterfaceDomain::Save()
 
       if (!authentication_->GetIsDomainAdmin())
          return authentication_->GetAccessDenied();
-   
+
+      // The relay host a credential that is not the server administrator sets is
+      // held to a public address, as a reader's fetch host is: delivery connects
+      // to it with no address rule (SMTP/ServerTargetResolver), so an internal
+      // name or address here would be a way for a domain administrator to have
+      // the server reach its own network. The server administrator may still set
+      // an internal smart host. Judged only when a host is set, so clearing it,
+      // or saving a domain that has none, is never refused on it.
+      if (!authentication_->GetIsServerAdmin())
+      {
+         const HM::String relayHost = object_->GetRelayHost();
+         HM::String relayRefusal;
+         if (!relayHost.IsEmpty() && !HM::HttpsClient::HostIsPublic(HM::AnsiString(relayHost), relayRefusal))
+            return COMError::GenerateError(L"The relay host must be a public address: " + relayRefusal);
+      }
+
       // Save object in the database.
       HM::String sErrorMessage;
       if (HM::PersistentDomain::SaveObject(object_, sErrorMessage, HM::PersistenceModeNormal))

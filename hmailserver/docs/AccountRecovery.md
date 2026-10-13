@@ -194,6 +194,15 @@ The forgotten password
 **Forgotten your password?** on the sign-in card asks for an address and posts it to
 `POST /api/v1/password-reset`, which takes no credentials.
 
+Because it takes none, another site could otherwise have each of its visitors'
+browsers post it and have this server mail a reset link to an address the page
+names. Since 6.3.7 the request is refused when the browser reports it as
+cross-site — a `Sec-Fetch-Site` of `cross-site` or `same-site`, or an `Origin`
+that is not this server's — so only this server's own sign-in card, and a script
+that sends no such header, reach it ([DevicesAndSessions.md](DevicesAndSessions.md)).
+The double opt-in, the single answer for every address, and the rate limits
+below all stand behind that.
+
 The answer is **always the same**: 202, and one sentence saying that if the address
 belongs to a mailbox here and that mailbox has a confirmed recovery address, a link is
 on its way. That is the answer for an address that is not a mailbox, for a mailbox

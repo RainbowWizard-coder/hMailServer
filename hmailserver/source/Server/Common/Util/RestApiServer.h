@@ -2239,6 +2239,22 @@ namespace HM
 
       static AnsiString GetAuthorizationHeader_(const AnsiString &request);
       static AnsiString GetHeader_(const AnsiString &request, const AnsiString &lowerCaseName);
+
+      // True when a browser says this request was made from another site - a
+      // cross-site form post, the shape of a cross-site request forgery. Read
+      // from the browser's own fetch-metadata: Sec-Fetch-Site, which every
+      // current browser sends, is cross-site or same-site (same-origin and none
+      // pass); or, when it is absent, an Origin whose host is not the one in the
+      // request's Host header. A script, hmctl and the PowerShell module send
+      // neither, so none of them is ever read as cross-site. Used to refuse a
+      // state-changing request that carries a credential (so a page a browser
+      // visits cannot act with a cached HTTP Basic credential or a session) and
+      // the two anonymous posts that carry no token - the public subscribe form
+      // and the password-reset request - which another site could otherwise have
+      // a visitor's browser send. GET and HEAD are never cross-site here: they
+      // change nothing. See ProcessRequest_.
+      static bool RequestIsCrossSite_(const AnsiString &request);
+
       // suppressChallenge leaves out WWW-Authenticate, for a request a page's
       // own script made: see the definition, and IsPageScriptRequest_ below.
       static HttpResponse BuildUnauthorizedResponse_(bool secondFactorRequired, bool suppressChallenge);
@@ -2554,11 +2570,16 @@ namespace HM
       HttpResponse HandleServerMessagePut_(const AnsiString &name, const AnsiString &requestBody);
       HttpResponse HandleSieveEvaluate_(const AnsiString &requestBody);
       HttpResponse HandleCalendarExpand_(const AnsiString &requestBody);
-      HttpResponse HandleCreateRule_(__int64 accountId, const AnsiString &requestBody, __int64 domainId = 0);
-      HttpResponse HandleUpdateRule_(__int64 accountId, __int64 ruleId, const AnsiString &requestBody, __int64 domainId = 0);
+      // callerHoldsServerAuthority is RestApiServer::HoldsServerAuthority_(caller):
+      // the actions that reach past a rule's owner (RuleGuard::
+      // ActionReachesBeyondRuleOwner) are refused on an account's or a domain's
+      // rule unless the caller holds it. A global rule is server-authority only
+      // to reach (Authorize_), so the flag is always true there.
+      HttpResponse HandleCreateRule_(__int64 accountId, const AnsiString &requestBody, bool callerHoldsServerAuthority, __int64 domainId = 0);
+      HttpResponse HandleUpdateRule_(__int64 accountId, __int64 ruleId, const AnsiString &requestBody, bool callerHoldsServerAuthority, __int64 domainId = 0);
       HttpResponse HandleDeleteRule_(__int64 accountId, __int64 ruleId, __int64 domainId = 0);
-      HttpResponse HandleAccountRules_(const Route &route, const AnsiString &requestBody);
-      HttpResponse HandleDomainRules_(const Route &route, const AnsiString &requestBody);
+      HttpResponse HandleAccountRules_(const Route &route, const AnsiString &requestBody, bool callerHoldsServerAuthority);
+      HttpResponse HandleDomainRules_(const Route &route, const AnsiString &requestBody, bool callerHoldsServerAuthority);
       static AnsiString OpenApiRulesPaths_();
       static AnsiString OpenApiAccountRulesPaths_();
       static AnsiString OpenApiDomainRulesPaths_();

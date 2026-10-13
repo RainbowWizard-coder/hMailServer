@@ -119,6 +119,14 @@ first request past a ceiling is logged. The page answers the same sentence
 whether or not the address was already there, so it tells nobody who is on the
 list.
 
+The page's form carries no token, since whoever is asking has none, so since
+6.3.7 a post the browser reports as cross-site — a `Sec-Fetch-Site` of
+`cross-site` or `same-site`, or an `Origin` that is not this server's — is
+refused before it reaches the list, so another site cannot have a visitor's
+browser send a confirmation to an address it names. The form this server serves
+posts to itself (`same-origin`) and is unaffected
+([DevicesAndSessions.md](DevicesAndSessions.md)).
+
 An account the list's membership query answers is a member already: a request in
 its name sends nothing and makes no row, so a stranger cannot keep it from the
 list's mail by asking in its name.

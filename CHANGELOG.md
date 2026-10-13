@@ -101,6 +101,42 @@ before. An administrator who cannot upgrade yet runs the three `icacls` lines th
 prompt. Found by the project's own review (work item 78; CVE requested).
 [ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "What the other users of the computer may read".
 
+- **Fixed: a credential confined to named domains could make a few changes that reach other tenants, on a
+  multi-tenant server.** A domain administrator, a help desk, or a full-scope API key issued for named domains
+  administers what is inside its domains; a handful of changes named, or reached, something beyond them, and are
+  now held to the server administrator alone — over the REST API and over the COM API both — with the confined
+  credential keeping every change that stays inside its domains:
+  - renaming a domain, and creating a domain alias, which decide what names the server accepts mail for;
+  - creating, rewriting or deleting a custom role, which is assigned across domains;
+  - setting a rule's `bind_to_address`, `send_using_route` or `script_function` action on a domain's or an
+    account's rule, each of which reaches one of the server's own addresses, a configured route's stored
+    credentials, or a function of the server's event script (a global rule, which only the server administrator
+    saves, is unchanged).
+
+  A confined credential's domain **relay host** is now held to a public address, as a reader's collected-from host
+  already was, so it cannot point the server's delivery at the server's own network; and the server-wide
+  **metric history** (`GET /api/v1/metrics/history`), counted from counters that carry no domain, is refused a
+  confined credential as the report's server-wide sections already were. Found by the project's own web-surface
+  review; handled under [SECURITY.md](SECURITY.md) and described here with the release that fixes it.
+  [Roles.md](hmailserver/docs/Roles.md), "What names a domain beyond the credential's own".
+
+- **Fixed: a credentialed REST request a browser made from another site was accepted (cross-site request
+  forgery).** A session's write already needed `X-Requested-With: hMailServer` and the session cookie is
+  `SameSite=Strict`, but HTTP Basic — which a browser keeps once it has answered the sign-in box — was not held to
+  anything, so a form on another site could act with it. A state-changing request that carries a credential is now
+  refused when the browser reports it as cross-site (`Sec-Fetch-Site`, or an `Origin` that is not this server's),
+  and the two anonymous posts that carry no token — the mailing-list subscribe form and the password-reset
+  request — are held to the same rule, so another site cannot have a visitor's browser drive them. Scripts, `hmctl`
+  and the PowerShell module send no such header and are unaffected, as are the Deck and the webmail, which act on
+  their own origin. Found by the project's own web-surface review; handled under [SECURITY.md](SECURITY.md).
+  [DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md).
+
+- **Fixed: the ACME HTTP-01 challenge responder served one connection at a time.** During a certificate
+  validation a client that connected and sent nothing held the responder for several seconds, so enough of them in
+  turn could keep the certificate authority's own request from being answered and make the renewal fail. The
+  responder now serves connections concurrently, so an idle client holds only its own short-lived handler and never
+  the others. Found by the project's own web-surface review.
+
 - **Fixed: any sender could lift the rule loop limit off a message, an account's own Sieve script or rule could
   reset it, and a Sieve `notify` did not consult it.** The server counts the generated messages a message has been
   through - a rule's forward, reply or copy, an account's forward, a Sieve `redirect`, `vacation` or `notify`, a

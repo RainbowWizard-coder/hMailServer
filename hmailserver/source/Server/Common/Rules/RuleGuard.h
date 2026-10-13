@@ -272,6 +272,36 @@ namespace HM
       // the rule is stored under, it does not ask (InterfaceRule::Save).
       static String WhyActionMayNotBeStored(__int64 ruleAccountId, __int64 ruleDomainId, const RuleAction &action);
 
+      // Three actions reach past a rule's owner into the server's own
+      // configuration: BindToAddress binds the message to one of the server's
+      // addresses - another tenant's dedicated IP among them; SendUsingRoute
+      // sends it through a configured SMTP route, with that route's stored
+      // credentials; and ScriptFunction calls a function of the server's event
+      // script. On a GLOBAL rule - no account and no domain, which only the
+      // server administrator saves - they are the administrator's to use. On a
+      // rule that belongs to an account or a domain (ruleAccountId > 0 ||
+      // ruleDomainId > 0) only a credential that holds the server's authority
+      // may set one: a domain administrator, or a key confined to named
+      // domains, has no claim on another tenant's address, on a route's
+      // credentials, or on the server's script, and had none checked before.
+      //
+      // THE DEFECT. The REST rule routes and COM held an action only to its
+      // owner through WhyActionMayNotBeStored (the From a rule writes, the
+      // address a reply is sent from); these three were not held to anything,
+      // so a domain administrator, or a key issued for one domain, could save a
+      // domain or account rule that bound mail to another tenant's address, sent
+      // it through a route whose credentials it never saw, or called any
+      // function of the server's script.
+      //
+      // Whether the CALLER holds the server's authority is the interface's to
+      // answer - RestApiServer::HoldsServerAuthority_ over REST,
+      // COMAuthentication::GetIsServerAdmin over COM - so this says only whether
+      // the action is one of the three on an owned rule, and the caller combines
+      // it with its own authority test. That keeps the one judgement the same
+      // wherever a rule is saved, as WhyActionMayNotBeStored does for the owner
+      // rules. RuleOwnerTester holds it to examples.
+      static bool ActionReachesBeyondRuleOwner(__int64 ruleAccountId, __int64 ruleDomainId, const RuleAction &action);
+
       // The From a rule's reply is written with: the action's name as an RFC 5322
       // quoted string - a backslash before each quote and backslash in it, each line
       // break or tab a space - then the address in angle brackets; the address alone,

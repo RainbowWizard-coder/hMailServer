@@ -933,7 +933,18 @@ namespace HM
       // an address the owner may send as (and a Run function name the server runs,
       // which ParseAction has refused already). False with the sentence, naming the
       // action, for the first that is refused.
-      bool ActionsFitOwner(const RuleDocument &document, __int64 accountId, __int64 domainId, std::string &error)
+      //
+      // And the three actions that reach past the rule's owner into the server's
+      // own configuration - bind_to_address, send_using_route and
+      // script_function (RuleGuard::ActionReachesBeyondRuleOwner) - are held, on
+      // an account's or a domain's rule, to a caller with the server's authority:
+      // a domain administrator, or a key confined to named domains, has no claim
+      // on another tenant's address, on a route's stored credentials, or on the
+      // server's script. callerHoldsServerAuthority is HoldsServerAuthority_(caller);
+      // a global rule (no account, no domain) is reachable only with it, so the
+      // flag is always true there and the three stay the administrator's.
+      bool ActionsFitOwner(const RuleDocument &document, __int64 accountId, __int64 domainId,
+                           bool callerHoldsServerAuthority, std::string &error)
       {
          for (size_t i = 0; i < document.actions.size(); i++)
          {
@@ -941,6 +952,15 @@ namespace HM
             if (!refusal.IsEmpty())
             {
                error = Positioned("actions", i) + std::string(Unicode::ToUtf8(refusal).c_str());
+               return false;
+            }
+
+            if (!callerHoldsServerAuthority &&
+                RuleGuard::ActionReachesBeyondRuleOwner(accountId, domainId, *document.actions[i]))
+            {
+               error = Positioned("actions", i) +
+                  "this action binds to one of the server's addresses, sends through a server route, or calls a function of "
+                  "the server's script, which only the server administrator may set on a domain's or an account's rule";
                return false;
             }
          }
@@ -1010,11 +1030,12 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleCreateRule_(__int64 accountId, const AnsiString &requestBody, __int64 domainId)
+   RestApiServer::HandleCreateRule_(__int64 accountId, const AnsiString &requestBody, bool callerHoldsServerAuthority, __int64 domainId)
    {
       RuleDocument document;
       std::string error;
-      if (!ParseRuleDocument(requestBody, document, error) || !ActionsFitOwner(document, accountId, domainId, error))
+      if (!ParseRuleDocument(requestBody, document, error) ||
+          !ActionsFitOwner(document, accountId, domainId, callerHoldsServerAuthority, error))
          return BuildResponse_(400, RefusalBody(error, &RestApiServer::JsonEscape_));
 
       // The collection, read as InterfaceApplication::get_Rules reads the global
@@ -1055,7 +1076,7 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleUpdateRule_(__int64 accountId, __int64 ruleId, const AnsiString &requestBody, __int64 domainId)
+   RestApiServer::HandleUpdateRule_(__int64 accountId, __int64 ruleId, const AnsiString &requestBody, bool callerHoldsServerAuthority, __int64 domainId)
    {
       // The one collection the route names. Rules(0) holds the rules with no
       // account and Rules(id) one account's, so a rule that belongs elsewhere -
@@ -1072,7 +1093,8 @@ namespace HM
       // it was.
       RuleDocument document;
       std::string error;
-      if (!ParseRuleDocument(requestBody, document, error) || !ActionsFitOwner(document, accountId, domainId, error))
+      if (!ParseRuleDocument(requestBody, document, error) ||
+          !ActionsFitOwner(document, accountId, domainId, callerHoldsServerAuthority, error))
          return BuildResponse_(400, RefusalBody(error, &RestApiServer::JsonEscape_));
 
       // The old criteria and actions go, then the new are written beneath the
@@ -1151,7 +1173,7 @@ namespace HM
    // address's domain by DomainNamedByRoute_, permissioned as the account's
    // other writes are.
    HttpResponse
-   RestApiServer::HandleAccountRules_(const Route &route, const AnsiString &requestBody)
+   RestApiServer::HandleAccountRules_(const Route &route, const AnsiString &requestBody, bool callerHoldsServerAuthority)
    {
       std::shared_ptr<Account> account = std::shared_ptr<Account>(new Account());
       if (!PersistentAccount::ReadObject(account, String(route.identifier)) || account->GetID() == 0)
@@ -1162,9 +1184,9 @@ namespace HM
       case RouteAccountRuleList:
          return HandleListRules_(account->GetID());
       case RouteAccountRuleCreate:
-         return HandleCreateRule_(account->GetID(), requestBody);
+         return HandleCreateRule_(account->GetID(), requestBody, callerHoldsServerAuthority);
       case RouteAccountRuleUpdate:
-         return HandleUpdateRule_(account->GetID(), route.record_id, requestBody);
+         return HandleUpdateRule_(account->GetID(), route.record_id, requestBody, callerHoldsServerAuthority);
       case RouteAccountRuleDelete:
          return HandleDeleteRule_(account->GetID(), route.record_id);
       default:
@@ -1177,7 +1199,7 @@ namespace HM
    // COM. Scoped to the domain by DomainNamedByRoute_, so a domain
    // administrator's key reaches its own domain's rules and no other's.
    HttpResponse
-   RestApiServer::HandleDomainRules_(const Route &route, const AnsiString &requestBody)
+   RestApiServer::HandleDomainRules_(const Route &route, const AnsiString &requestBody, bool callerHoldsServerAuthority)
    {
       std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(String(route.identifier));
       if (!domain || domain->GetID() == 0)
@@ -1188,9 +1210,9 @@ namespace HM
       case RouteDomainRuleList:
          return HandleListRules_(0, domain->GetID());
       case RouteDomainRuleCreate:
-         return HandleCreateRule_(0, requestBody, domain->GetID());
+         return HandleCreateRule_(0, requestBody, callerHoldsServerAuthority, domain->GetID());
       case RouteDomainRuleUpdate:
-         return HandleUpdateRule_(0, route.record_id, requestBody, domain->GetID());
+         return HandleUpdateRule_(0, route.record_id, requestBody, callerHoldsServerAuthority, domain->GetID());
       case RouteDomainRuleDelete:
          return HandleDeleteRule_(0, route.record_id, domain->GetID());
       default:

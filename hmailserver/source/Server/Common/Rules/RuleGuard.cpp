@@ -618,6 +618,25 @@ namespace HM
       }
    }
 
+   bool
+   RuleGuard::ActionReachesBeyondRuleOwner(__int64 ruleAccountId, __int64 ruleDomainId, const RuleAction &action)
+   {
+      // A global rule's actions are the server administrator's, whatever they
+      // are: no owner, nothing beyond it to reach.
+      if (ruleAccountId <= 0 && ruleDomainId <= 0)
+         return false;
+
+      switch (action.GetType())
+      {
+      case RuleAction::BindToAddress:
+      case RuleAction::SendUsingRoute:
+      case RuleAction::ScriptFunction:
+         return true;
+      default:
+         return false;
+      }
+   }
+
    String
    RuleGuard::ReplyFromHeader(const String &name, const String &address)
    {

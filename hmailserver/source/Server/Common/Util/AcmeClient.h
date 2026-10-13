@@ -13,6 +13,11 @@
 
 #include "../BO/ScheduledTask.h"
 
+#include <condition_variable>
+#include <map>
+#include <mutex>
+#include <thread>
+
 #include <openssl/ossl_typ.h>
 
 namespace HM
@@ -198,12 +203,29 @@ namespace HM
    private:
       void Run_();
 
+      // One accepted connection, served to its end and closed. Run_ gives each
+      // its own short-lived thread, so a client that connects and sends nothing
+      // holds only that thread for its receive timeout and never the accept
+      // loop - which is what lets the CA's own request be answered while an idle
+      // client waits (W-11). It reads challenges_ under mutex_, as Run_ did.
+      void ServeConnection_(SOCKET clientSocket);
+
       SOCKET listen_socket_;
       std::thread worker_;
       bool running_;
 
       boost::recursive_mutex mutex_;
       std::map<AnsiString, AnsiString> challenges_;
+
+      // The connections being served right now, each on a detached thread.
+      // Capped so a flood of idle connections cannot start threads without
+      // bound; past the cap Run_ drops a connection rather than serve it on the
+      // accept loop. Stop waits for the count to reach zero before it releases
+      // the socket, so a detached worker never touches this object once it is
+      // gone. Guarded by active_mutex_; active_idle_ is signalled when it falls.
+      int active_connections_;
+      std::mutex active_mutex_;
+      std::condition_variable active_idle_;
    };
 
    class AcmeRenewalTask : public ScheduledTask

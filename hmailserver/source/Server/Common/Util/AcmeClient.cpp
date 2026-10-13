@@ -60,6 +60,7 @@ static const int SD_SEND = SHUT_WR;
 #include <openssl/core_names.h>
 #include <openssl/sha.h>
 
+#include <chrono>
 #include <ctime>
 
 #ifdef _DEBUG
@@ -1670,7 +1671,8 @@ namespace HM
 
    AcmeChallengeServer::AcmeChallengeServer() :
       listen_socket_(INVALID_SOCKET),
-      running_(false)
+      running_(false),
+      active_connections_(0)
    {
 
    }
@@ -1731,6 +1733,16 @@ namespace HM
       if (worker_.joinable())
          worker_.join();
 
+      // The accept loop has stopped; wait for the connections it handed to their
+      // own threads to finish before the socket is released and this object goes
+      // away, so a detached worker never touches either afterwards. Bounded well
+      // past a connection's five-second receive timeout, so a worker wedged in
+      // send() to a client that has stopped reading cannot hold Stop for ever.
+      {
+         std::unique_lock<std::mutex> lock(active_mutex_);
+         active_idle_.wait_for(lock, std::chrono::seconds(15), [this]() { return active_connections_ == 0; });
+      }
+
       AcceptLoop::Release(listen_socket_);
    }
 
@@ -1739,6 +1751,62 @@ namespace HM
    {
       boost::lock_guard<boost::recursive_mutex> guard(mutex_);
       challenges_[token] = keyAuthorization;
+   }
+
+   namespace
+   {
+      // How many challenge connections may be served at once. Each lives only
+      // for its receive timeout, so this is never reached in normal use - a CA
+      // opens one connection; it is a ceiling against a flood of idle
+      // connections opened to starve the responder, and the one case the loop
+      // drops a connection rather than serve it concurrently.
+      const int MaxConcurrentChallengeConnections = 64;
+   }
+
+   void
+   AcmeChallengeServer::ServeConnection_(SOCKET clientSocket)
+   {
+      // Five seconds, in the form each platform takes: until 6.3.6 Linux was
+      // handed the Windows form, refused it, and a client that connected and
+      // sent nothing kept the CA's validation request from being answered.
+      // Since W-11 each connection is served on its own thread, so this timeout
+      // holds back only that thread and never the accept loop.
+      AcceptLoop::SetTimeouts(clientSocket, 5000);
+
+      char buffer[4096];
+      int bytesRead = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
+
+      AnsiString response = "HTTP/1.0 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
+
+      if (bytesRead > 0)
+      {
+         buffer[bytesRead] = 0;
+         AnsiString request = buffer;
+
+         AnsiString prefix = "GET /.well-known/acme-challenge/";
+
+         if (request.StartsWith(prefix))
+         {
+            int tokenEnd = request.Find(" ", prefix.GetLength());
+            if (tokenEnd > 0)
+            {
+               AnsiString token = request.Mid(prefix.GetLength(), tokenEnd - prefix.GetLength());
+
+               boost::lock_guard<boost::recursive_mutex> guard(mutex_);
+
+               auto iter = challenges_.find(token);
+               if (iter != challenges_.end())
+               {
+                  response.Format("HTTP/1.0 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: %d\r\nConnection: close\r\n\r\n%hs",
+                     iter->second.GetLength(), iter->second.c_str());
+               }
+            }
+         }
+      }
+
+      send(clientSocket, response.c_str(), response.GetLength(), 0);
+      shutdown(clientSocket, SD_SEND);
+      closesocket(clientSocket);
    }
 
    void
@@ -1756,45 +1824,40 @@ namespace HM
             continue;
          }
 
-         // Five seconds, in the form each platform takes: until 6.3.6 Linux was
-         // handed the Windows form, refused it, and a client that connected and
-         // sent nothing kept the CA's validation request from being answered.
-         AcceptLoop::SetTimeouts(clientSocket, 5000);
-
-         char buffer[4096];
-         int bytesRead = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
-
-         AnsiString response = "HTTP/1.0 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
-
-         if (bytesRead > 0)
+         // Each connection on its own short-lived thread, so that one that sends
+         // nothing is held only by its own thread for its five-second receive
+         // timeout and never by this loop - which goes straight back to accept()
+         // and answers the CA's request behind it (W-11). Past the cap, or once
+         // stopping, the connection is dropped rather than served here, which
+         // would block the loop as the single-threaded responder did; the CA
+         // retries, and idle connections free their slots as their timeouts
+         // expire.
+         bool accepted = false;
          {
-            buffer[bytesRead] = 0;
-            AnsiString request = buffer;
-
-            AnsiString prefix = "GET /.well-known/acme-challenge/";
-
-            if (request.StartsWith(prefix))
+            std::lock_guard<std::mutex> guard(active_mutex_);
+            if (running_ && active_connections_ < MaxConcurrentChallengeConnections)
             {
-               int tokenEnd = request.Find(" ", prefix.GetLength());
-               if (tokenEnd > 0)
-               {
-                  AnsiString token = request.Mid(prefix.GetLength(), tokenEnd - prefix.GetLength());
-
-                  boost::lock_guard<boost::recursive_mutex> guard(mutex_);
-
-                  auto iter = challenges_.find(token);
-                  if (iter != challenges_.end())
-                  {
-                     response.Format("HTTP/1.0 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: %d\r\nConnection: close\r\n\r\n%hs",
-                        iter->second.GetLength(), iter->second.c_str());
-                  }
-               }
+               active_connections_++;
+               accepted = true;
             }
          }
 
-         send(clientSocket, response.c_str(), response.GetLength(), 0);
-         shutdown(clientSocket, SD_SEND);
-         closesocket(clientSocket);
+         if (!accepted)
+         {
+            closesocket(clientSocket);
+            continue;
+         }
+
+         std::thread([this, clientSocket]()
+         {
+            ServeConnection_(clientSocket);
+
+            {
+               std::lock_guard<std::mutex> guard(active_mutex_);
+               active_connections_--;
+            }
+            active_idle_.notify_all();
+         }).detach();
       }
    }
 

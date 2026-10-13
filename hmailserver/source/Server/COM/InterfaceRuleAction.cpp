@@ -70,6 +70,19 @@ STDMETHODIMP InterfaceRuleAction::Save()
                return COMError::GenerateError("The rule this action belongs to could not be read, so the action was not saved. See hMailServer error log.");
 
             refusal = HM::RuleGuard::WhyActionMayNotBeStored(ruleAccountId, ruleDomainId, *object_);
+
+            // bind_to_address, send_using_route and script_function reach past
+            // the rule's owner into the server's configuration, so on a domain's
+            // or an account's rule only the server administrator may set one, as
+            // Rule.Save and the REST rule routes hold them
+            // (RuleGuard::ActionReachesBeyondRuleOwner). A global rule's are the
+            // administrator's as before.
+            if (refusal.IsEmpty() &&
+                HM::RuleGuard::ActionReachesBeyondRuleOwner(ruleAccountId, ruleDomainId, *object_) &&
+                !authentication_->GetIsServerAdmin())
+               return COMError::GenerateError(
+                  L"This action binds to one of the server's addresses, sends through a server route, or calls a function of "
+                  L"the server's script, which only the server administrator may set on a domain's or an account's rule.");
          }
          else if (object_->GetType() == HM::RuleAction::SetHeaderValue)
             refusal = HM::RuleGuard::WhyHeaderMayNotBeSet(object_->GetHeaderName());

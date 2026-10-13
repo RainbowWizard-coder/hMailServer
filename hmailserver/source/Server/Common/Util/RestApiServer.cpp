@@ -1523,6 +1523,50 @@ namespace HM
    }
 
    bool
+   RestApiServer::RequestIsCrossSite_(const AnsiString &request)
+   {
+      // The request line's method: GET and HEAD change nothing, so they are
+      // never treated as a cross-site write however they arrive.
+      const int lineEnd = request.Find("\r\n");
+      const AnsiString requestLine = lineEnd < 0 ? request : request.Mid(0, lineEnd);
+      const std::vector<AnsiString> parts = StringParser::SplitString(requestLine, " ");
+      const AnsiString method = parts.empty() ? AnsiString() : parts[0];
+      if (method == "GET" || method == "HEAD")
+         return false;
+
+      // Sec-Fetch-Site is the browser's own word for where the request came
+      // from, and every current browser sends it (scripts, hmctl and the
+      // PowerShell module send none). same-origin is the page acting on its own
+      // server - the Deck and the webmail - and none is a direct navigation or a
+      // non-browser caller; both pass. cross-site and same-site are another
+      // site, and are what this refuses.
+      AnsiString fetchSite = GetHeader_(request, "sec-fetch-site");
+      fetchSite.MakeLower();
+      if (!fetchSite.IsEmpty())
+         return fetchSite == "cross-site" || fetchSite == "same-site";
+
+      // No fetch metadata: a non-browser caller, or a browser too old to send
+      // it. Fall back to the Origin, which a browser sets to the page's origin
+      // on a form post. Compared to the request's own Host rather than to a name
+      // this server was configured with, so that a reverse proxy forwarding the
+      // browser's Host and Origin (both the outside name) reads as same-origin,
+      // while a form on another site (its own Origin, this server's Host) does
+      // not. An Origin that is absent, or that cannot be read as a URL, is left
+      // to pass: a script sends none, and the fetch-metadata above is what
+      // carries the protection for a browser.
+      const AnsiString origin = GetHeader_(request, "origin");
+      if (origin.IsEmpty())
+         return false;
+
+      const AnsiString originHost = HostFromUrl(origin);
+      if (originHost.IsEmpty())
+         return false;
+
+      const AnsiString requestHost = HostName(GetHeader_(request, "host"));
+      return originHost != requestHost;
+   }
+
+   bool
    RestApiServer::IsSessionCreateRequest_(const AnsiString &request)
    {
       const int lineEnd = request.Find("\r\n");
@@ -2591,7 +2635,18 @@ namespace HM
          return HandleRecoveryVerifyPage_(method, query);
 
       if (method == "POST" && path == "/api/v1/password-reset")
+      {
+         // Carries no token, as it cannot - nobody has one yet - so another
+         // site could have each of its visitors' browsers post it and have this
+         // server send reset mail to an address the page names. A browser that
+         // reports the post as cross-site is refused; a real request comes from
+         // this server's own reset page (same-origin) or from a script (no
+         // fetch-metadata), which both pass. W-12.
+         if (RequestIsCrossSite_(request))
+            return BuildResponse_(403, "{\"error\":\"a password-reset request is not accepted from another site\"}");
+
          return HandlePasswordResetRequest_(GetRequestBody_(request), peer_address);
+      }
 
       if (method == "POST" && path == "/api/v1/password-reset/complete")
          return HandlePasswordResetComplete_(GetRequestBody_(request), peer_address);
@@ -2627,7 +2682,17 @@ namespace HM
          const AnsiString tail = path.Mid(slash);
 
          if ((method == "GET" || method == "POST") && tail == "/subscribe")
+         {
+            // The subscribe form carries no token either, so another site could
+            // post it from a visitor's browser to have this server send a
+            // confirmation to an address the page names. A cross-site post is
+            // refused; the form this server serves posts to itself (same-origin)
+            // and passes. W-12.
+            if (method == "POST" && RequestIsCrossSite_(request))
+               return BuildResponse_(403, "{\"error\":\"a request to join a list is not accepted from another site\"}");
+
             return HandleListSubscribePage_(method, listAddress, method == "POST" ? GetRequestBody_(request) : AnsiString(), peer_address);
+         }
 
          if (method == "GET" && tail == "/archive")
             return HandleListArchivePage_(listAddress, query, request, peer_address);
@@ -2730,6 +2795,27 @@ namespace HM
 
          if (caller.result == AuthenticationFailed)
             return BuildUnauthorizedResponse_(caller.second_factor_required, IsPageScriptRequest_(request));
+
+         // The credential is good. A browser that says the request came from
+         // another site is refused here, whatever the credential: the
+         // X-Requested-With rule above holds a SESSION to its own page, but HTTP
+         // Basic is accepted on every route and a browser that once answered the
+         // Basic box keeps the credential and sends it with any later request to
+         // the origin, a top-level form post from another site included. So a
+         // state-changing request a browser reports as cross-site is refused
+         // before it is dispatched - closing cross-site request forgery for the
+         // administrator password and an account's password as well as for a
+         // session. A script, hmctl and the PowerShell module send no
+         // fetch-metadata and no Origin, so none of them is ever refused here;
+         // the Deck and the webmail act on their own origin (same-origin), which
+         // passes. See RequestIsCrossSite_.
+         if (RequestIsCrossSite_(request))
+         {
+            if (scimPath)
+               return BuildScimError_(403, "", _T("a request that changes something is not accepted from another site; a browser reports it as cross-site"));
+
+            return BuildResponse_(403, "{\"error\":\"a request that changes something is not accepted from another site\"}");
+         }
 
          // Who is acting, for the length of this request and no longer.
          // Nothing may decide from it, which is why the decision below takes
@@ -3215,12 +3301,12 @@ namespace HM
          case RouteDomainRuleCreate:
          case RouteDomainRuleUpdate:
          case RouteDomainRuleDelete:
-            return HandleDomainRules_(route, GetRequestBody_(request));
+            return HandleDomainRules_(route, GetRequestBody_(request), HoldsServerAuthority_(caller));
          case RouteAccountRuleList:
          case RouteAccountRuleCreate:
          case RouteAccountRuleUpdate:
          case RouteAccountRuleDelete:
-            return HandleAccountRules_(route, GetRequestBody_(request));
+            return HandleAccountRules_(route, GetRequestBody_(request), HoldsServerAuthority_(caller));
          case RouteAccountExport:
             return HandleAccountExport_(route, GetRequestBody_(request));
          case RouteAccountExportArchive:
@@ -3469,9 +3555,9 @@ namespace HM
          case RouteDomainAliasDelete:
             return HandleDeleteDomainAlias_(String(route.identifier), String(route.name));
          case RouteRuleCreate:
-            return HandleCreateRule_(0, GetRequestBody_(request));
+            return HandleCreateRule_(0, GetRequestBody_(request), HoldsServerAuthority_(caller));
          case RouteRuleUpdate:
-            return HandleUpdateRule_(0, route.record_id, GetRequestBody_(request));
+            return HandleUpdateRule_(0, route.record_id, GetRequestBody_(request), HoldsServerAuthority_(caller));
          case RouteRuleDelete:
             return HandleDeleteRule_(0, route.record_id);
          case RouteCertificateCreate:
@@ -10169,6 +10255,49 @@ namespace HM
 
          return AuthorizationAllowed;
       }
+
+      // The custom roles are the server's, not a domain's. A role may be
+      // assigned for every domain, so one changed through these routes decides
+      // what accounts in every domain may do: a credential confined to named
+      // domains must not create, rewrite or delete one, even where its role
+      // holds manage_roles (a full key issued for named domains does). Reading
+      // the roles stays allowed - RouteRoleList and RouteRoleGet are not here -
+      // and the handler shows a confined credential the definitions with no
+      // holders outside its domains. Refused here, beside the groups below, for
+      // the same reason they are.
+      if (route.kind == RouteRoleCreate || route.kind == RouteRoleUpdate || route.kind == RouteRoleDelete)
+      {
+         refusalReason = "this credential is restricted to named domains, and the custom roles are the server's: they are assigned across domains, so changing one is not a domain's to do";
+         return AuthorizationForbidden;
+      }
+
+      // The metric history is counted from the same server-wide counters as the
+      // report's server-wide sections (above), which carry no domain at all.
+      // Narrowing it would mean inventing an attribution, so it is refused
+      // outright, as those sections are; a confined credential reads its own
+      // domains' traffic from the per-domain reports instead. /status gives the
+      // current totals the same way and is left allowed by design (its version
+      // and state are what the Deck needs); its counters are judged with this.
+      if (route.kind == RouteMetricsHistory)
+      {
+         refusalReason = "this credential is restricted to named domains, and the metric history is counted from server-wide counters that carry no domain";
+         return AuthorizationForbidden;
+      }
+
+      // A domain alias maps an external name onto a hosted domain, and the
+      // server applies it to every sender and every recipient before it decides
+      // whether a domain is local - so which names map in is the server's to
+      // decide, as which domains exist is (DomainCreate and DomainDelete, in the
+      // switch below). A credential confined to named domains may list its own
+      // domain's aliases and remove one (the delete is scoped by the path), but
+      // not create one: the name it would add is a domain beyond the one the
+      // path names, which the handler does not see.
+      if (route.kind == RouteDomainAliasCreate)
+      {
+         refusalReason = "this credential is restricted to named domains, and a domain alias names a name beyond them; creating one is the server administrator's";
+         return AuthorizationForbidden;
+      }
+
       switch (route.kind)
       {
       // The set of domains is the server's. A key issued for named domains

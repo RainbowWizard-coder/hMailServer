@@ -364,6 +364,18 @@ STDMETHODIMP InterfaceRule::Save()
          const HM::String refusal = HM::RuleGuard::WhyActionMayNotBeStored(object_->GetAccountID(), object_->GetDomainID(), *action);
          if (!refusal.IsEmpty())
             return COMError::GenerateError(refusal);
+
+         // bind_to_address, send_using_route and script_function reach past the
+         // rule's owner into the server's configuration (another tenant's
+         // address, a route's stored credentials, the server's script), and on a
+         // domain's or an account's rule only the server administrator may set
+         // one - a domain administrator, who may change its own and its accounts'
+         // rules, may not. A global rule's are the administrator's as before.
+         if (HM::RuleGuard::ActionReachesBeyondRuleOwner(object_->GetAccountID(), object_->GetDomainID(), *action) &&
+             !authentication_->GetIsServerAdmin())
+            return COMError::GenerateError(
+               L"This action binds to one of the server's addresses, sends through a server route, or calls a function of "
+               L"the server's script, which only the server administrator may set on a domain's or an account's rule.");
       }
 
       // Set the sort order of the rule.

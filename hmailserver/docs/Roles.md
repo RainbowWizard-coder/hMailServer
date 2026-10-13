@@ -168,6 +168,53 @@ before a later `Authenticate` on it failed. A program may also compose mail with
 `Attachment.SaveAs`, which read and write a file on the server's disk by its path,
 answer the server administrator and the event scripts alone.
 
+What names a domain beyond the credential's own
+-----------------------------------------------
+
+A credential confined to named domains — a domain administrator, a help desk, a
+full-scope API key issued for named domains — administers what is inside its
+domains. A handful of changes name, or reach, something beyond them even on a
+route that names one of the credential's own domains, and are the server
+administrator's alone whatever permission the confined credential holds. Each is
+refused the same way over REST (`Authorize_`, and the domain and rule handlers)
+and over COM (`COMAuthentication`, `InterfaceDomain`, `InterfaceDomainAlias`,
+`InterfaceRule` and `InterfaceRuleAction`), and a refusal changes nothing:
+
+* **A domain's name.** `PUT /api/v1/domains/{domain}` and `Domain.Name` rename the
+  domain; the name the server answers for is the server's to set, as which
+  domains exist is, so a confined credential keeps every other setting on its
+  domain and is refused a change of the name. A `PUT` that sends the name
+  unchanged is an ordinary save and is not refused.
+* **A domain alias.** Creating one (`POST /api/v1/domains/{domain}/domain-aliases`,
+  `DomainAliases.Add` with `DomainAlias.Save`) maps a name onto the domain, which
+  the server applies before it decides a domain is local, so which names map in
+  is the server's. A confined credential lists and removes its own domain's
+  aliases and is refused creating one.
+* **The custom roles.** `POST /api/v1/roles`, `PUT` and `DELETE
+  /api/v1/roles/{name}`: a role is assigned across domains, so changing one is not
+  a domain's to do. A confined credential reads the role definitions
+  (`view_configuration`) and is refused changing them, even a full key issued for
+  named domains, which holds `manage_roles`.
+* **The metric history.** `GET /api/v1/metrics/history` is counted from
+  server-wide counters that carry no domain, as the report's server-wide sections
+  are, so a confined credential is refused it and reads its own domains' traffic
+  from the per-domain reports instead. `GET /api/v1/status` gives the current
+  totals and stays readable, by design — its version and state are what the Deck
+  needs.
+* **The relay host.** A domain's relay host is where delivery connects when the
+  domain's mail leaves, with no address rule, so a confined credential's relay
+  host is held to a public address, as a reader's fetch host is
+  ([RestrictedDelivery.md](RestrictedDelivery.md) names the reader rule): an
+  internal name or address is the server administrator's to set, and a `PUT` that
+  does not name the relay host is never refused on it.
+* **Three rule actions.** On a domain's or an account's rule, `bind_to_address`,
+  `send_using_route` and `script_function` reach past the rule's owner — to one
+  of the server's addresses, a configured route's stored credentials, or a
+  function of the server's event script — and are the server administrator's to
+  set; a confined credential keeps every other rule action
+  ([MailFlowRules.md](MailFlowRules.md)). On a global rule, which only the server
+  administrator saves, all three are as they were.
+
 Mail that a COM credential queues - `Message.Save` of a new message to deliver, and of
 one already in the queue, whose file its delivery reads - claims to be from only an
 address that credential may send as (since 6.3.6): its envelope sender, and the one
