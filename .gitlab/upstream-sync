@@ -245,6 +245,15 @@
 #     (HM5735, Medium): a second check when the rule fires. ScriptServer::FireEvent
 #     has refused such a name there since 6.3.4 (HM5018, High, before a Windows
 #     engine sees it), and the Linux lookup never evaluates one.
+#   - 4c03c0bb8 (#671), its check in InterfaceRule::Save of every action of the
+#     rule, the stored ones with the one changed: a rule holding a name stored
+#     before the check, or restored from a backup, could then not be saved for
+#     any change, and the Control Panel, which stores a criterion or an action
+#     before it saves the rule, left the part stored and told of it as not saved.
+#     Ours (13 October 2026) holds an action at Rule.Save where the save changes
+#     it - a new one, one changed or made another type, every action of a rule
+#     moved to another account - and leaves one stored as it is to the firing
+#     path, which refuses it.
 #
 # Update this SHA (and only this SHA) when a batch has been triaged.
 d5e087066fa8ba5382787739ba61a9abc8975d99
