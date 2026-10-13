@@ -894,33 +894,34 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   nothing and NFC can shorten a text fourfold at most, and it is no IPv4 address, so no browser reaches it; nor is one
   that holds a code point past ASCII UTS 46 maps to text a domain may not hold - `U+FDFA`, eighteen code points with
   spaces among them, a no-break space, `U+2100`'s `a/c` - which the URL standard's host parser fails - and a label that
-  can never be short enough, its mapping holding a code point past ASCII and more than four times 63 code points, is
-  not mapped further. So a host of a megabyte, in one label or in many, costs about the memory 6.3.6's reading of it
-  did and a few hundredths of a second, where mapped label by label it took up to nine times that memory and twenty-five
-  times the time: a megabyte of short labels of `U+FDFA`, which UTS 46 maps to eighteen code points, took 0.15 s and 105
-  MB to read where 6.3.6 took 0.007 s and 12.5 MB, and now takes 0.015 s and 14 MB; and a megabyte of links whose hosts
-  are each a thousand code points of `U+FDFA`, each under that bound, took 0.21 s where 6.3.6 took 0.010 s, and now
-  takes 0.011 s. A host that is not ASCII is read as
-  it is written too, as 6.3.6 read it - percent-decoded, the ignored code points deleted, nothing mapped - so that every
-  host 6.3.6 handed over for a link is handed over still; and by UTS 46 again as far as each place where a mail program
-  may end a link in running text - mail programs differ in what they end a link at, but each ends it at the first of
-  those characters, so the places are the first character past ASCII, in the text as it is written and not
-  percent-encoded, of each of five kinds (punctuation that UTS 46 maps to a full stop, to a name's characters or to
-  anything else, and a symbol it maps to a name's characters or to anything else), where the run of punctuation the host
-  part ends with begins, and the first ideographic or fullwidth full stop with text past ASCII after it: seven at most,
-  however many such characters the host holds. The hosts those readings hand over are handed over after UTS 46's: a link
-  followed by a closing quotation mark, a guillemet, a dash or CJK punctuation, which UTS 46 takes into the host's last
-  label as it takes a letter, or by CJK text after an ideographic full stop, which it makes a label of, names the host
-  before the character as well, whatever that host is written in and whatever symbols it or a label before it holds -
-  `Visit http://evil.example” now` and `Visit http://ｅｖｉｌ.example” now` are each asked about as `evil.example` beside
-  `evil.xn--example-b46c`, `http://bücher.example”` as `xn--bcher-kva.example` and `http://i♥.ws”` as `xn--i-n3p.ws` -
-  where as written alone a host not in ASCII before the character named nothing. `IdnaTester` holds the implementation
-  to every line of Unicode's `IdnaTestV2.txt` (6,396, in ClassTester and, on Linux, in the new `idna-tests`),
-  `SURBLTester` (`public-suffix-tests`) holds the links and the entries, and `AntiSpam/Basics.cs` delivers a link in
-  fullwidth letters, one with an ideographic full stop, one in fullwidth capitals in an HTML part and one to an
-  internationalised name, each to a listed name, and finds each tagged, and so it does a listed name followed by a
-  closing quotation mark, by CJK corner brackets and an ideographic full stop, and by an ideographic comma in an HTML
-  part's text, and the listed names written in fullwidth letters, in double-struck named references and in Unicode,
+  can never be short enough, its mapping holding a code point past ASCII and more than four times 63 code points, is not
+  mapped further. So a host of a megabyte, in one label or in many, costs about the memory 6.3.6's reading of it did and
+  a few hundredths of a second, where mapped label by label it took up to nine times that memory and twenty-five times
+  the time: a megabyte of short labels of `U+FDFA`, which UTS 46 maps to eighteen code points, took 0.15 s and 105 MB to
+  read where 6.3.6 took 0.007 s and 12.5 MB, and now takes 0.015 s and 14 MB; and a megabyte of links whose hosts are
+  each a thousand code points of `U+FDFA`, each under that bound, took 0.21 s where 6.3.6 took 0.010 s, and now takes
+  0.011 s; a megabyte of links of code points UTS 46 maps to valid ones - katakana squares, e with an acute - takes a
+  tenth to a fifth of a second, read to every place below, where 6.3.6, mapping nothing, took a hundredth. A host that
+  is not ASCII is read as it is written too, as 6.3.6 read it - percent-decoded, the ignored code points deleted,
+  nothing mapped - so that every host 6.3.6 handed over for a link is handed over still; and by UTS 46 again as far as
+  each place where a mail program may end a link in running text - mail programs differ in what they end a link at, but
+  each ends it at the first of those characters, so the places are the first character past ASCII, in the text as it is
+  written and not percent-encoded, of each of five kinds (punctuation that UTS 46 maps to a full stop, to a name's
+  characters or to anything else, and a symbol it maps to a name's characters or to anything else), where the run of
+  punctuation the host part ends with begins, and the first ideographic or fullwidth full stop with text past ASCII
+  after it: seven at most, however many such characters the host holds. The hosts those readings hand over are handed
+  over after UTS 46's: a link followed by a closing quotation mark, a guillemet, a dash or CJK punctuation, which UTS 46
+  takes into the host's last label as it takes a letter, or by CJK text after an ideographic full stop, which it makes a
+  label of, names the host before the character as well, whatever that host is written in and whatever symbols it or a
+  label before it holds - `Visit http://evil.example” now` and `Visit http://ｅｖｉｌ.example” now` are each asked about as
+  `evil.example` beside `evil.xn--example-b46c`, `http://bücher.example”` as `xn--bcher-kva.example` and `http://i♥.ws”`
+  as `xn--i-n3p.ws` - where as written alone a host not in ASCII before the character named nothing. `IdnaTester` holds
+  the implementation to every line of Unicode's `IdnaTestV2.txt` (6,396, in ClassTester and, on Linux, in the new
+  `idna-tests`), `SURBLTester` (`public-suffix-tests`) holds the links and the entries, and `AntiSpam/Basics.cs`
+  delivers a link in fullwidth letters, one with an ideographic full stop, one in fullwidth capitals in an HTML part and
+  one to an internationalised name, each to a listed name, and finds each tagged, and so it does a listed name followed
+  by a closing quotation mark, by CJK corner brackets and an ideographic full stop, and by an ideographic comma in an
+  HTML part's text, and the listed names written in fullwidth letters, in double-struck named references and in Unicode,
   followed by a closing quotation mark, an ideographic comma, an ideographic full stop and CJK, and `&rdquo;`, and one
   in fullwidth letters with a label of a heart before it, followed by a closing quotation mark
   ([SenderListsAndDigests.md](hmailserver/docs/SenderListsAndDigests.md); [Roadmap3.md](Roadmap3.md), "Internationalised
@@ -4613,29 +4614,33 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   fuzz.** `idna-tests`, a new tester program, runs `IdnaTester` on Linux - every line of `IdnaTestV2.txt` 18.0.0 four
   ways, and Punycode, NFC and the URL standard's domain parser - in `linux-build`, and the source packages'
   `dh_auto_test` and `%check` run it with the other testers; on Windows it runs in ClassTester. Its tables and test
-  lines are generated by `build/generate-idna-tables.py` from the six Unicode 18.0.0 files under `Common/Idna/ucd`,
-  each held to its SHA-256; `checkers` runs it with `--check` beside the other generators, and SonarQube Cloud's scope
-  leaves its two files out, as it does theirs (`.sonarcloud.properties`); the data's Unicode License v3 is in
+  lines are generated by `build/generate-idna-tables.py` from the six Unicode 18.0.0 files under `Common/Idna/ucd`, each
+  held to its SHA-256; `checkers` runs it with `--check` beside the other generators, and SonarQube Cloud's scope leaves
+  its two files out, as it does theirs (`.sonarcloud.properties`); the data's Unicode License v3 is in
   `hmailserver/docs/Licenses/`, the packages' copyright file, the Windows installer's licence, the source tarball's
   required files and the SBOM. So are the BSD 3-Clause terms of HTML's list of named character references - the
   standard's terms for a portion of it incorporated into source code - whose table `build/generate-html-references.py`
   writes from the standard's own `entities.json`, held to its SHA-256 likewise and run with `--check` in `checkers`.
-  `build/ci/idna-differential-fuzz.sh` builds the server's core library with libFuzzer
-  and AddressSanitizer beside ada 4.0.0, the URL parser of Node.js, taken from PyPI and Unicode's files from
-  unicode.org, each pinned, nothing from GitHub, and puts every input to the domain parser, `SURBL::HostOfAuthority`
-  and the link reader in text and in HTML - once as written and once in character references, every code point past
-  ASCII that has a named reference written as one - on both sides, and holds the link reader to handing over every
-  host 6.3.6 handed over for the input, by a copy of 6.3.6's reading (`fuzz/harness/surbl_636_reading.h`), whatever
-  ada makes of it; before it fuzzes it holds the server's NFC to
-  `NormalizationTest.txt` and ada to `IdnaTestV2.txt`, so that what it sets aside - the code points whose Unicode
-  tables differ between the two, and ada's four departures from UTS 46 (its joiner and bidi rules, a name it leaves
-  out of NFC, and Punycode that begins with its delimiter) - is shown to be the tables' or ada's, against Unicode's
-  own files, RFC 3492 and ada's own label check. The one defect of the server's it found before release is kept in
-  `fuzz/regression/idna_ada_fuzzer` and replayed before every run fuzzes, beside an input of ada's joiner departure in a
-  label written `xn--`, which the rule for it now covers. Its 30-minute run on server2 on the night of 12 October 2026,
-  from a fresh build: no difference in 1,819 seconds, about 47.9 million inputs; and on 13 October 2026, with the two
-  checks above, from the corpus the runs before had left: no difference in 1,807 seconds, about 36.4 million inputs in
-  159 jobs, none of them a crash or a timeout under AddressSanitizer, and 10,228 inputs in the corpus at the end
+  `build/ci/idna-differential-fuzz.sh` builds the server's core library with libFuzzer and AddressSanitizer beside ada
+  4.0.0, the URL parser of Node.js, taken from PyPI and Unicode's files from unicode.org, each pinned, nothing from
+  GitHub, and puts every input to the domain parser, `SURBL::HostOfAuthority` and the link reader in text and in HTML -
+  once as written and once in character references, every code point past ASCII that has a named reference written as
+  one - on both sides, and holds the link reader to handing over every host 6.3.6 handed over for the input, by a copy
+  of 6.3.6's reading (`fuzz/harness/surbl_636_reading.h`), whatever ada makes of it, and to handing over ada's host when
+  the input is followed by a closing quotation mark, in text and as `&rdquo;` in HTML's text, or by an ideographic full
+  stop and CJK, wherever the server's rule puts a place a mail program may end the link at there; before it fuzzes it
+  holds the server's NFC to `NormalizationTest.txt` and ada to `IdnaTestV2.txt`, so that what it sets aside - the code
+  points whose Unicode tables differ between the two, and ada's four departures from UTS 46 (its joiner and bidi rules,
+  a name it leaves out of NFC, and Punycode that begins with its delimiter) - is shown to be the tables' or ada's,
+  against Unicode's own files, RFC 3492 and ada's own label check. The one defect of the server's it found before
+  release is kept in `fuzz/regression/idna_ada_fuzzer` and replayed before every run fuzzes, beside an input of ada's
+  joiner departure in a label written `xn--`, which the rule for it now covers, and one of a symbol percent-encoded
+  before a name and a quotation mark after it, which a mail program sees as ASCII. Its 30-minute run on server2 on the
+  night of 12 October 2026, from a fresh build: no difference in 1,819 seconds, about 47.9 million inputs; and on 13
+  October 2026, with the two checks above, from the corpus the runs before had left: no difference in 1,807 seconds,
+  about 36.4 million inputs in 159 jobs, none of them a crash or a timeout under AddressSanitizer, and 10,228 inputs in
+  the corpus at the end; and after the second check's repairs, with the check of where a mail program ends a link: no
+  difference in 1,807 seconds, about 39.9 million inputs in 160 jobs, none a crash or a timeout
   ([Fuzzing.md](hmailserver/docs/Fuzzing.md), "UTS 46 against ada").
 - **Every change is checked before it lands, a maintainer's batch as well as a merge request** (OpenSSF Baseline
   OSPS-VM-05.03 and OSPS-VM-06.02). `semgrep-sast`, `semgrep-sast-gate` and `mr-dependency-check` ran in a merge

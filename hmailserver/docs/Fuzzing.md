@@ -450,6 +450,24 @@ first input on which they differ, printing both answers:
    whatever ada makes of the input. The reading is a copy of 6.3.6's, as the
    `v6.3.6` tag has it (`fuzz/harness/surbl_636_reading.h`), not the server's
    own, which must not be read to judge itself.
+6. **Where a mail program ends the link**: the host of 3, when the input is
+   followed straight away by a character a mail program ends a link in
+   running text at and UTS 46 would take into the host's last label - a
+   closing quotation mark, in `see http://<input>” now` and as `&rdquo;` in
+   HTML's text, and an ideographic full stop before CJK text - whatever the
+   input is written in, ASCII or not, and whatever symbols it holds. The
+   reader reads a host part as far as the first character of each kind a
+   mail program may end a link at (`LinkEnds_` in `SURBL.cpp`: punctuation
+   and symbols past ASCII, each by what UTS 46 maps it to), as far as where
+   the punctuation it ends with begins, and as far as the first full stop
+   past ASCII before text past ASCII; so the quotation mark is asked of an
+   input that holds no punctuation of its kind or does not end in such a
+   run, and the full stop of one that holds no full stop past ASCII or none
+   before text past ASCII. The kinds are told from the server's own data
+   (`Idna::KindOfMapping`, `Idna::CategoryGroupOf`, `Idna::IsDisallowed`),
+   which `generate-idna-tables.py --check` and `IdnaTester` hold, so this
+   holds the reader to the rule and to reading the part of the host before
+   the character as a browser reads it.
 
 It runs on Linux only, with clang's libFuzzer and AddressSanitizer, in the CI
 image, as a CMake project of its own (`fuzz/idna/`) that builds the server's
@@ -519,6 +537,23 @@ HTML's named references to characters UTS 46 maps or takes
 70 names: check 4 left out every input holding an `&`, so it now writes the
 input in references as well.
 
+A second adversarial check, of the repaired code, found two more the same
+day. The name before such punctuation was handed over only when the name
+itself was written in ASCII: the reading as it is written, which found it,
+finds no name in fullwidth letters, named references or Unicode, so
+`http://ｅｖｉｌ.example”` named `evil.xn--example-b46c` alone - check 5
+holds the reader only to 6.3.6's hosts, and 6.3.6 handed over none for it, so
+check 6 now asks for the name before the character. Its first run stopped
+after 69 seconds, before the reading to the character was committed, on
+`%C2%A9` before a long name and the quotation mark: that reading looked for
+where a mail program ends a link in the host percent-decoded, where a mail
+program sees `%C2%A9` as three ASCII characters and ends nothing there; it
+looks in the host as it is written, and the input is kept. And a host of many
+short labels of `U+FDFA`, or of empty ones, each mapped whole, cost up to nine
+times the memory and twenty-five times the time of 6.3.6's reading of it; no
+input of this fuzz can show that, its inputs being 256 bytes at most, so
+`SURBLTester` holds the reader to it by how many code points UTS 46 is given.
+
 One defect of the server's, on 12 October 2026, before 6.3.7 shipped the code:
 `0x1.0x000000000000` followed by two parts of over a hundred digits, all zeros
 but a final 1, each after a fullwidth full stop, was `1.0.0.1` to ada and
@@ -561,10 +596,26 @@ references from a list of its own: written from the server's own table, as at
 first, they found nothing, a table that lost names reading back alike what it
 wrote.
 
-The last run, 30 minutes with eight processes from the corpus the runs before it
-had left: no difference in 1,807 seconds, about 36.4 million inputs in 159 jobs,
-none of them a crash or a timeout under AddressSanitizer, and 10,228 inputs in
-the corpus at the end. A difference a run reports now is
+The last run of the first repairs, 30 minutes with eight processes from the
+corpus the runs before it had left: no difference in 1,807 seconds, about 36.4
+million inputs in 159 jobs, none of them a crash or a timeout under
+AddressSanitizer, and 10,228 inputs in the corpus at the end.
+
+The run after the second check's repairs, 30 minutes with eight processes, on
+the tree with check 6 from the build directory of a run from nothing an hour
+before (the files changed since recompiled) and the corpus the runs before it
+had left: the server's NFC held to `NormalizationTest.txt` and ada to
+`IdnaTestV2.txt` as before, the three kept findings replayed without a
+difference, and then no difference in 1,807 seconds, about 39.9 million
+inputs in 160 jobs, none of them a crash or a timeout under AddressSanitizer,
+and 10,319 inputs in the corpus at the end - server2 shared with other builds the
+while. A negative control showed check 6's teeth: with the reading to the
+first punctuation or symbol past ASCII alone, the rule the check proposed, a
+run stopped after 117 seconds at check 6, `xn--4ca.b」c--de.f` before the
+quotation mark handing over `xn--4ca.b` where a mail program that takes the
+punctuation off a link's end gives a browser `xn--4ca.xn--bc--de-wt3e.f`.
+
+A difference a run reports now is
 either a defect of the server's - its UTS 46 or its link reader - or a further
 departure of ada's, and is not to be set aside until it is shown to be ada's
 against Unicode's own data or the RFC it departs from.

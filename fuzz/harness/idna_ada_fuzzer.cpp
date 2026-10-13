@@ -16,7 +16,7 @@
 // two programs. So is a difference that is one of ada's four departures from
 // UTS 46 (idna_ada_common.h), which idna_ada_conformance.cpp shows on Unicode's
 // own conformance tests, or holds the server's NFC to, before a run starts.
-// Five things are asked of every other input, and the first that does not
+// Six things are asked of every other input, and the first that does not
 // hold ends the run with both answers:
 //
 //   1. The domain parser. HM::Idna::DomainToAscii and ada's - its to_ascii and
@@ -45,6 +45,22 @@
 //      a character a mail program ends a link at, and the labels after one -
 //      by a copy of 6.3.6's reading (surbl_636_reading.h), in the text and in
 //      both HTML links of 3 and 4, wherever each is asked.
+//   6. And the link reader hands over the host of 3 when the input is followed
+//      straight away by a character a mail program ends a link at, which
+//      UTS 46 would take into the host's last label: a closing quotation mark,
+//      in the text "see http://<input><U+201D> now" and as &rdquo; in HTML's
+//      text, and an ideographic full stop before CJK text - whatever the input
+//      is written in, ASCII or not, whatever symbols it holds. The reader
+//      reads a host part to the first character of each kind a mail program
+//      may end a link at (SURBL.cpp's LinkEnds_), to where the run of
+//      punctuation it ends with begins, and to the first full stop past ASCII
+//      before text past ASCII; so the quotation mark is asked of an input that
+//      holds no punctuation of its kind or does not end in such a run, and the
+//      full stop of one that holds no full stop past ASCII or none before
+//      text past ASCII. The kinds are told here from the server's data
+//      (Idna::KindOfMapping, Idna::CategoryGroupOf, Idna::IsDisallowed), so
+//      this holds the reader to the rule and to reading the part of the host
+//      before the character as a browser reads it, not to the rule's data.
 
 #include "idna_ada_common.h"
 #include "surbl_636_reading.h"
@@ -173,6 +189,74 @@ namespace
             text += static_cast<wchar_t>(static_cast<unsigned char>(character));
       }
       return text;
+   }
+
+   // The kind of character a mail program may end a link at, as SURBL.cpp's
+   // LinkEnds_ tells it: punctuation past ASCII that UTS 46 maps to a full
+   // stop, to a name's characters alone, or to anything else, and a symbol it
+   // maps to a name's characters alone or to anything else - one it neither
+   // ignores nor disallows - and NoKind_ for every other code point.
+   const int NoKind_ = -1;
+   const int PunctuationToAFullStop_ = 0;
+   const int PunctuationToAnythingElse_ = 2;
+
+   int KindOfEnd_(unsigned int codePoint)
+   {
+      if (codePoint < 0x80)
+         return NoKind_;
+
+      const HM::Idna::MappingKind kind = HM::Idna::KindOfMapping(codePoint);
+      const HM::Idna::CategoryGroup group = HM::Idna::CategoryGroupOf(codePoint);
+      if (kind == HM::Idna::MapsToNothing || HM::Idna::IsDisallowed(codePoint) ||
+          (group != HM::Idna::CategoryPunctuation && group != HM::Idna::CategorySymbol))
+         return NoKind_;
+
+      const int mapping = kind == HM::Idna::MapsToFullStop ? 0 : kind == HM::Idna::MapsToNameCharacters ? 1 : 2;
+      return (group == HM::Idna::CategoryPunctuation ? 0 : 3) + mapping;
+   }
+
+   bool HoldsAnEndOfKind_(const std::vector<unsigned int> &codePoints, int kind)
+   {
+      for (unsigned int codePoint : codePoints)
+         if (KindOfEnd_(codePoint) == kind)
+            return true;
+      return false;
+   }
+
+   // Whether the input ends in a character of the run that LinkEnds_ takes a
+   // mail program to take off a link's end: one UTS 46 ignores, an ASCII one
+   // other than a letter or a digit, or one past ASCII that is punctuation, a
+   // symbol, a separator or other.
+   bool EndsInTheTrailingRun_(const std::vector<unsigned int> &codePoints)
+   {
+      if (codePoints.empty())
+         return false;
+
+      const unsigned int last = codePoints.back();
+      if (last < 0x80)
+         return !((last >= 'a' && last <= 'z') || (last >= 'A' && last <= 'Z') || (last >= '0' && last <= '9'));
+      return HM::Idna::KindOfMapping(last) == HM::Idna::MapsToNothing ||
+             HM::Idna::CategoryGroupOf(last) != HM::Idna::CategoryLetterMarkOrNumber;
+   }
+
+   // Whether the input holds a full stop past ASCII followed, within it and
+   // past the code points UTS 46 ignores, by a code point UTS 46 maps past
+   // ASCII and takes: CJK text after a sentence's full stop, to LinkEnds_.
+   bool HoldsAFullStopBeforeText_(const std::vector<unsigned int> &codePoints)
+   {
+      for (size_t i = 0; i < codePoints.size(); i++)
+      {
+         if (KindOfEnd_(codePoints[i]) != PunctuationToAFullStop_)
+            continue;
+
+         size_t next = i + 1;
+         while (next < codePoints.size() && HM::Idna::KindOfMapping(codePoints[next]) == HM::Idna::MapsToNothing)
+            next++;
+         if (next < codePoints.size() && HM::Idna::KindOfMapping(codePoints[next]) == HM::Idna::MapsPastAscii &&
+             !HM::Idna::IsDisallowed(codePoints[next]))
+            return true;
+      }
+      return false;
    }
 
    [[noreturn]] void Differs_(const char *what, const std::vector<unsigned int> &input, const std::string &ours, const std::string &theirs)
@@ -323,6 +407,53 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
    expectHandedOver("the link reader missed the host a browser reaches, in an HTML link written in character references",
                     "the link reader missed a host 6.3.6 handed over, in an HTML link written in character references",
                     "<a href=\"http://", WithReferences_(codePoints), "/\">a link</a>", true);
+
+   // 6. The host of 3 when the input is followed by a character a mail program
+   // ends a link at.
+   auto expectHostBeforeTheEnd = [&](const char *what, const std::string &before, const std::wstring &after, bool html)
+   {
+      HM::String text = Wide_(before);
+      text += HM::String(raw.c_str());
+      text += HM::String(after.c_str());
+
+      bool found = false;
+      std::string all;
+      HM::SURBL::FindLinkHosts(text, html, [&](const HM::String &host) -> bool
+      {
+         all += (all.empty() ? "" : "|") + Printable_(host);
+         found = found || host == expected;
+         return true;
+      });
+
+      if (!found && !setAside())
+         Differs_(what, codePoints, all.empty() ? "nothing" : all, "\"" + Printable_(expected) + "\"");
+   };
+
+   if (!expected.IsEmpty() && !endsTextLink)
+   {
+      // The quotation mark is the first of its kind, or where the run the host
+      // part ends with begins.
+      if (!HoldsAnEndOfKind_(codePoints, PunctuationToAnythingElse_) || !EndsInTheTrailingRun_(codePoints))
+      {
+         expectHostBeforeTheEnd("the link reader missed the host before a closing quotation mark, in running text", "see http://",
+                                std::wstring(1, static_cast<wchar_t>(0x201D)) + L" now", false);
+         if (!endsAttribute)
+            expectHostBeforeTheEnd("the link reader missed the host before &rdquo;, in HTML's text", "<p>see http://", L"&rdquo; now</p>", true);
+      }
+
+      // The full stop is the first of its kind, or the first before text past
+      // ASCII.
+      if (!HoldsAnEndOfKind_(codePoints, PunctuationToAFullStop_) || !HoldsAFullStopBeforeText_(codePoints))
+      {
+         std::wstring cjk;
+         cjk += static_cast<wchar_t>(0x3002);
+         cjk += static_cast<wchar_t>(0x8C22);
+         cjk += static_cast<wchar_t>(0x8C22);
+         cjk += L" now";
+         expectHostBeforeTheEnd("the link reader missed the host before an ideographic full stop and CJK text, in running text", "see http://",
+                                cjk, false);
+      }
+   }
 
    return 0;
 }
