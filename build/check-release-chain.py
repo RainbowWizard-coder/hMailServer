@@ -3632,10 +3632,11 @@ def image_platform_problems(texts, jobs, image_jobs):
             problems.append("%s no longer has %s (%s)" % (FILES["image-sbom"], needle, why))
     scan = image_jobs.get("container_scanning_arm64", "")
     if scan and not (re.search(r"^  extends: container_scanning\s*$", scan, re.MULTILINE)
+                     and re.search(r"^  dependencies: \[container-image\]\s*$", scan, re.MULTILINE)
                      and re.search(r"^    HM_SCAN_ARCH: arm64\s*$", scan, re.MULTILINE)):
-        problems.append("container_scanning_arm64 does not scan the linux/arm64 image: it must extend container_scanning and "
-                        "set HM_SCAN_ARCH to arm64, by which build/ci/container-scan.sh takes HM_IMAGE_ARM64 from "
-                        "container-image's dotenv report")
+        problems.append("container_scanning_arm64 does not scan the linux/arm64 image: it must extend container_scanning, "
+                        "take container-image's dotenv report (dependencies: [container-image]) and set HM_SCAN_ARCH "
+                        "to arm64, by which build/ci/container-scan.sh takes HM_IMAGE_ARM64 from that report")
     start = image_jobs.get("container-image-start-arm64", "")
     command = re.search(r"^START_COMMAND='([^'\n]+)'$", texts["image-start"], re.MULTILINE)
     if start and not (re.search(r"^  extends: container-image-start\s*$", start, re.MULTILINE)
@@ -4295,6 +4296,8 @@ def self_test(chain, feed):
     broken("the index left unsigned", "image-sign", '\nsign index "$index"\n', "\ntrue\n", "the index, which every tag names, signed")
     broken("the arm64 scan gone", "image", "\ncontainer_scanning_arm64:\n", "\ncontainer_scanning_old:\n", "has no container_scanning_arm64 job")
     broken("the arm64 scan over the amd64 image", "image", "    HM_SCAN_ARCH: arm64\n", "", "container_scanning_arm64 does not scan")
+    broken("the arm64 scan without the image's name", "image", "  dependencies: [container-image]\n  rules:\n",
+           "  dependencies: []\n  rules:\n", "container_scanning_arm64 does not scan")
     broken("the arm64 start gone", "image", "\ncontainer-image-start-arm64:\n", "\ncontainer-image-start-old:\n",
            "has no container-image-start-arm64 job")
     broken("the arm64 start as the host's platform", "image", "      docker:\n        platform: linux/arm64\n", "",
