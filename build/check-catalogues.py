@@ -359,6 +359,71 @@ def quotation_findings(tag, target):
    return findings
 
 
+# What the read-back of 6.3.7 (batch53, row 53.6) mended in the Czech, Danish, Finnish,
+# Norwegian, Turkish, Ukrainian, Japanese and Chinese catalogues, where a rule can see it:
+# - a Chinese confirmation that does not ask: the English asks (Stop the update?) and the
+#   Chinese stated it (停止更新？) - sixteen did, and ask with 是否 now, as the rest do;
+# - a button set off by spaces where Chinese quotes it and Japanese brackets it (点击 查询。,
+#   入力して 照会 を押して), a space after a full-width mark (配置： {0}), and a half-width
+#   question mark after Han characters (您想做什么?);
+# - a Finnish subordinate clause after a conjunction phrase with no comma (lykkää postia sen
+#   sijaan että palauttaisi, poista näyte ennen kuin palvelin): 67 texts;
+# - a Norwegian relative som that stands for the whole clause before it (hele serveren, som er
+#   grunnen til at), which takes noe som.
+READBACK_CONFIRMING_VERBS = {
+   "Apply", "Cancel", "Clear", "Delete", "Discard", "Empty", "Erase", "Keep", "Lift", "Merge", "Overwrite", "Purge",
+   "Put", "Release", "Remove", "Replace", "Reset", "Restore", "Revert", "Show", "Stop", "Turn",
+}
+READBACK_CHINESE_ASKING = ("是否", "吗", "什么", "哪", "谁", "能否", "为何", "如何", "何时", "何处", "怎么", "多少", "是不是", "要不要")
+READBACK_CHINESE_SPACED_BUTTON = re.compile(r"(?:点击|单击) (?![“\"「（(])\S")
+READBACK_CHINESE_SPACE_AFTER_MARK = re.compile(r"[，。：；！？、] (?=\S)")
+READBACK_CHINESE_HALF_WIDTH_ASK = re.compile(r"[一-鿿][?!]")
+READBACK_JAPANESE_SPACED_BUTTON = re.compile(r"[぀-ゟ゠-ヿ一-鿿] を(?:押|クリック)")
+READBACK_FINNISH_PHRASE = re.compile(r"(?<=[\w)\"”]) (sen sijaan|sen jälkeen|silloin|silloinkin|heti|vasta|samalla) (että|kun)\b")
+READBACK_FINNISH_CONJUNCTION = re.compile(r"(\w+) (ennen kuin|kunnes)\b")
+READBACK_FINNISH_COORDINATORS = {"ja", "tai", "eli", "sekä", "mutta", "vaan", "eikä", "taikka", "joten", "koska"}
+READBACK_NORWEGIAN_CLAUSE_SOM = re.compile(r", som er (?:grunnen|årsaken) til\b")
+
+
+def readback_findings(tag, source, target):
+   """What the read-back of 6.3.7 mended, found again in one translation (see above)."""
+   findings = []
+   if tag == "zh-Hans":
+      first = re.split(r"[ ?]", source, maxsplit=1)[0]
+      mark = target.find("？")
+      if "?" in source and first in READBACK_CONFIRMING_VERBS and mark >= 0:
+         question = target[:mark + 1]
+         if not any(word in question for word in READBACK_CHINESE_ASKING) and not re.search(r"[。！\n]", question):
+            findings.append("the confirmation %r does not ask; ask with 是否 (是否%s), as the catalogue's other "
+                            "confirmations do" % (question, question))
+      for match in READBACK_CHINESE_SPACED_BUTTON.finditer(target):
+         findings.append("a button set off by spaces (%r); quote its name with “”"
+                         % target[max(0, match.start() - 6):match.end() + 6])
+      for match in READBACK_CHINESE_SPACE_AFTER_MARK.finditer(target):
+         findings.append("a space after a full-width mark (%r); the mark has its own space"
+                         % target[max(0, match.start() - 6):match.end() + 6])
+      for match in READBACK_CHINESE_HALF_WIDTH_ASK.finditer(target):
+         findings.append("a half-width %r after Chinese text (%r); write the full-width mark"
+                         % (match.group(0)[-1], target[max(0, match.start() - 6):match.end() + 2]))
+   elif tag == "ja":
+      for match in READBACK_JAPANESE_SPACED_BUTTON.finditer(target):
+         findings.append("a button set off by spaces (%r); bracket its name with [ ]"
+                         % target[max(0, match.start() - 8):match.end() + 2])
+   elif tag == "fi":
+      for match in READBACK_FINNISH_PHRASE.finditer(target):
+         findings.append("no comma before the subordinate clause (%r); write %s, %s"
+                         % (match.group(0).strip(), match.group(1), match.group(2)))
+      for match in READBACK_FINNISH_CONJUNCTION.finditer(target):
+         if match.group(1).lower() not in READBACK_FINNISH_COORDINATORS:
+            findings.append("no comma before the subordinate clause (%r); write %s, %s"
+                            % (match.group(0), match.group(1), match.group(2)))
+   elif tag == "nb":
+      for match in READBACK_NORWEGIAN_CLAUSE_SOM.finditer(target):
+         findings.append("som stands for the whole clause before it (%r); write noe som"
+                         % target[max(0, match.start() - 20):match.end()])
+   return findings
+
+
 def untranslated(tag, source, target):
    """True when a catalogue of another script gives an English key of ordinary words back as it is."""
    if tag not in OTHER_SCRIPTS or target != source or source in SAME_IN_EVERY_SCRIPT:
@@ -437,7 +502,10 @@ def check(tag, catalogue, pages=None):
       for problem in dash_findings(tag, source, target):
          findings.append((source, problem))
 
-      wanted = {digits(m.group(0)) for m in NUMBER.finditer(bare)}
+      for problem in readback_findings(tag, source, target):
+         findings.append((source, problem))
+
+      wanted ={digits(m.group(0)) for m in NUMBER.finditer(bare)}
       have = {digits(m.group(0)) for m in NUMBER.finditer(PLACEHOLDER.sub(" ", target))}
       for number in sorted(w for w in wanted - have if len(w) >= 2):
          findings.append((source, "the number %s is not in the translation" % number))
@@ -648,6 +716,40 @@ def self_test():
    if "Spam filtering" not in navigation_groups():
       print("FAIL: the place rule does not read the navigation map's group titles")
       failures += 1
+
+   # The read-back rules: each failing case is a text the read-back of 6.3.7 mended, each
+   # passing one the text as it was mended, or a text the rule must leave alone.
+   stop = "Stop the update? Nothing has been installed yet."
+   query = "Type a domain and press Query. The answer lists the servers that receive that domain's mail."
+   readback_cases = {
+      ("zh-Hans", stop, "停止更新？尚未安装任何内容。"): True,
+      ("zh-Hans", stop, "是否停止更新？尚未安装任何内容。"): False,
+      ("zh-Hans", "Remove the sample domain with every mailbox in it? Anything added goes too.", "移除样例域吗？"): False,
+      ("zh-Hans", "What do you want to do?", "您想做什么？"): False,
+      ("zh-Hans", "What do you want to do?", "您想做什么?"): True,
+      ("zh-Hans", query, "输入域名并点击 查询。"): True,
+      ("zh-Hans", query, "输入域名并点击“查询”。"): False,
+      ("zh-Hans", "The configuration could not be read: {0}", "无法读取传输安全配置： {0}"): True,
+      ("zh-Hans", "The configuration could not be read: {0}", "无法读取传输安全配置：{0}"): False,
+      ("ja", query, "ドメインを入力して 照会 を押してください。"): True,
+      ("ja", query, "ドメインを入力して [照会] を押してください。"): False,
+      ("ja", "Press Run diagnostics and the result appears here.", "まだ何も実行していません。診断を実行 を押すと、"): True,
+      ("ja", "Press Ctrl+K to search every page.", "Ctrl+K を押してすべてのページを検索してください。"): False,
+      ("fi", "So a locked database defers mail instead of bouncing it.", "joten tietokanta lykkää postia sen sijaan että palauttaisi sen."): True,
+      ("fi", "So a locked database defers mail instead of bouncing it.", "joten tietokanta lykkää postia sen sijaan, että palauttaisi sen."): False,
+      ("fi", "So a locked database defers mail instead of bouncing it.", "joten tietokanta lykkää postia, sen sijaan että palauttaisi sen."): False,
+      ("fi", "Remove the sample before this server takes real mail.", "Poista näyte ennen kuin tämä palvelin ottaa vastaan postia."): True,
+      ("fi", "Remove the sample before this server takes real mail.", "Poista näyte, ennen kuin tämä palvelin ottaa vastaan postia."): False,
+      ("fi", "Wait, and do not sign out until it has.", "Odota, ja ennen kuin se on valmis, älä kirjaudu ulos."): False,
+      ("nb", "One slow dependency does this to the whole server, which is why.", "gjør dette mot hele serveren, som er grunnen til at"): True,
+      ("nb", "One slow dependency does this to the whole server, which is why.", "gjør dette mot hele serveren, noe som er grunnen til at"): False,
+      ("da", query, "Skriv et domæne, og tryk på Forespørgsel, som er grunnen til at"): False,
+   }
+   for (tag, source, value), expected in readback_cases.items():
+      found = bool(readback_findings(tag, source, value))
+      if found != expected:
+         print("FAIL: [%s] %r is %s by the read-back rules" % (tag, value, "reported" if found else "not reported"))
+         failures += 1
    print("self-test: %d failure(s)" % failures)
    return 1 if failures else 0
 

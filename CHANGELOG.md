@@ -4887,6 +4887,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   no space follows a full-width mark; and an account is a 账户, a hold 暂挂, the accept pipeline the 接收流水线 and the CA
   bundle the CA 证书包 throughout.
 
+- **Added: build/check-catalogues.py finds again what the read-back of eight catalogues mended, where a rule can see
+  it.** Its read-back rules refuse a Chinese confirmation that does not ask, its English opening with Delete, Remove,
+  Stop or another confirming verb and asking, where the Chinese question has none of 是否, 吗 or the other asking words;
+  a button set off by spaces in Chinese or Japanese, where Chinese quotes it and Japanese brackets it; a space after a
+  Chinese full-width mark, or a half-width question mark after Chinese text; a Finnish subordinate clause after sen
+  sijaan, ennen kuin, kunnes or their kin with no comma before it; and a Norwegian som that stands for the whole
+  clause before it. Run over the catalogues as they were, the rules find 124 texts; the self-test holds each rule
+  against a text the read-back mended, as it was and as it is. `TranslationReadbackTests` holds one mended text of
+  each of the eight catalogues, and the default IP ranges' names, My computer and Internet, which the server gives in
+  English.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
