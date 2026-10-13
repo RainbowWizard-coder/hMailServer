@@ -4844,7 +4844,7 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   how long each took; and the default IP ranges were Oma tietokone and Internet, where the server gives them in
   English. A mail domain is a verkkotunnus, as in the rest of the catalogue, where some texts said toimialue, which
   the catalogue keeps for a Windows domain; the cipher list is a salauslista and the message store a viestivarasto
-  throughout; and 82 texts have their punctuation mended, most of them with the comma Finnish puts before every
+  throughout; and 84 texts have their punctuation mended, most of them with the comma Finnish puts before every
   subordinate clause, after sen sijaan, before ennen kuin and kunnes, and round a relative clause.
 
 - **Fixed: 166 Norwegian texts said what their English does not, broke Norwegian grammar, or named one thing two
@@ -4893,10 +4893,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   a button set off by spaces in Chinese or Japanese, where Chinese quotes it and Japanese brackets it; a space after a
   Chinese full-width mark, or a half-width question mark after Chinese text; a Finnish subordinate clause after sen
   sijaan, ennen kuin, kunnes or their kin with no comma before it; and a Norwegian som that stands for the whole
-  clause before it. Run over the catalogues as they were, the rules find 124 texts; the self-test holds each rule
-  against a text the read-back mended, as it was and as it is. `TranslationReadbackTests` holds one mended text of
-  each of the eight catalogues, and the default IP ranges' names, My computer and Internet, which the server gives in
-  English.
+  clause before it. Run over the catalogues as they were, the rules make 124 findings in 120 texts; the self-test
+  holds each rule against a text the read-back mended, as it was and as it is. `TranslationReadbackTests` holds one
+  mended text of each of the eight catalogues, and the default IP ranges' names, My computer and Internet, which the
+  server gives in English.
 
 ### Administration
 
