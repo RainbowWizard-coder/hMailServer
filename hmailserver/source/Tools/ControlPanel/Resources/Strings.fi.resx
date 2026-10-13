@@ -1826,7 +1826,7 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
     <value>Arkistointi kirjoittaa kopion jokaisesta viestistä valitsemaasi kansioon.</value>
   </data>
   <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, and the switch that turns the event-scripting engine on." xml:space="preserve">
-    <value>Arkistointi, peilaus, oletusverkkotunnus, toimitus IPv6:n kautta, levytilarajat sekä kytkin joka ottaa tapahtumakomentosarjamoottorin käyttöön.</value>
+    <value>Arkistointi, peilaus, oletusverkkotunnus, toimitus IPv6:n kautta, levytilarajat sekä kytkin, joka ottaa tapahtumakomentosarjamoottorin käyttöön.</value>
   </data>
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id (muistivaativa, suositeltu)</value>
@@ -8744,7 +8744,7 @@ Mitään jo olemassa olevaa ei poisteta.</value>
     <value>Avaa TLS-varmenteet, joka omistaa varmenne- ja avaintiedostojen polut</value>
   </data>
   <data name="Open TLS versions &amp; ciphers, which owns the protocol versions and cipher lists" xml:space="preserve">
-    <value>Avaa TLS-versiot ja salaukset, joka omistaa protokollaversiot ja salausluettelot</value>
+    <value>Avaa TLS-versiot ja salaukset, joka omistaa protokollaversiot ja salauslistat</value>
   </data>
   <data name="Open _log folder" xml:space="preserve">
     <value>_Avaa lokikansio</value>
@@ -12625,7 +12625,7 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
     <value>PROXY-protokolla ja XCLIENT, joilla edustan välityspalvelin välittää asiakkaan todellisen osoitteen</value>
   </data>
   <data name="The REST API and the Control Deck's listener, the Prometheus metrics and health endpoints a monitoring system reads, the OpenTelemetry export, the alerts, outbound webhooks and SNMP agent that tell another system what happened, and how long a stopping service waits for its sessions." xml:space="preserve">
-    <value>REST-rajapinta ja Control Deckin kuuntelija, Prometheus-mittarit ja kuntopäätepisteet, joita valvontajärjestelmä lukee, OpenTelemetry-vienti, hälytykset, lähtevät webhookit ja SNMP-agentti, jotka kertovat toiselle järjestelmälle, mitä tapahtui, sekä se, kuinka kauan pysähtyvä palvelu odottaa istuntojaan.</value>
+    <value>REST-rajapinta ja Control Deckin kuuntelija, Prometheus-mittarit ja terveyspäätepisteet, joita valvontajärjestelmä lukee, OpenTelemetry-vienti, hälytykset, lähtevät webhookit ja SNMP-agentti, jotka kertovat toiselle järjestelmälle, mitä tapahtui, sekä se, kuinka kauan pysähtyvä palvelu odottaa istuntojaan.</value>
   </data>
   <data name="The REST API answered {0}." xml:space="preserve">
     <value>REST-rajapinta vastasi {0}.</value>
@@ -12670,7 +12670,7 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
     <value>REST-rajapinnan uudet asetukset on tallennettu, mutta ne eivät ole vielä voimassa - Control Deckin voi avata, kun palvelin ottaa ne käyttöön.</value>
   </data>
   <data name="The REST administration API, the metrics and health endpoints a monitoring system reads, and the alerts, webhooks and SNMP agent that tell another system what happened. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services &amp; autoconfiguration page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
-    <value>REST-hallintarajapinta, mittarit ja kuntopäätepisteet, joita valvontajärjestelmä lukee, sekä hälytykset, webhookit ja SNMP-agentti, jotka kertovat toiselle järjestelmälle, mitä tapahtui. Julkinen verkkopalvelukuuntelija (automaattinen määritys, MTA-STS-isännöinti) on Verkkopalvelut ja automaattinen määritys -sivulla; OAuth2-token-todennus on Todennus-sivulla.</value>
+    <value>REST-hallintarajapinta, mittarit ja terveyspäätepisteet, joita valvontajärjestelmä lukee, sekä hälytykset, webhookit ja SNMP-agentti, jotka kertovat toiselle järjestelmälle, mitä tapahtui. Julkinen verkkopalvelukuuntelija (automaattinen määritys, MTA-STS-isännöinti) on Verkkopalvelut ja automaattinen määritys -sivulla; OAuth2-token-todennus on Todennus-sivulla.</value>
   </data>
   <data name="The RSA/EC public key file {0} does not exist on this machine, so RS256 tokens cannot be verified." xml:space="preserve">
     <value>RSA-/EC-julkisen avaimen tiedostoa {0} ei ole tällä koneella, joten RS256-tokeneita ei voi tarkistaa.</value>

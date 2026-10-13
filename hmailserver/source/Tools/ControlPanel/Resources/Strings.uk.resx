@@ -1847,7 +1847,7 @@
     <value>Архівування записує копію кожного повідомлення до вибраної вами папки.</value>
   </data>
   <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, and the switch that turns the event-scripting engine on." xml:space="preserve">
-    <value>Архівування, дзеркалювання, типовий домен, доставлення через IPv6, обмеження дискового простору, а також перемикач, який вмикає рушій сценаріїв подій.</value>
+    <value>Архівування, дзеркалювання, типовий домен, доставлення через IPv6, обмеження дискового простору, а також перемикач, який вмикає рушій скриптів подій.</value>
   </data>
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id (вимогливий до пам’яті, рекомендовано)</value>
@@ -8655,7 +8655,7 @@
     <value>На сторінці «Параметри захисту від спаму» перелічіть домени запечатування, яким ви довіряєте (служби списків розсилки й пересилання, на які покладаються ваші користувачі), і ввімкніть зміщення ARC. Назвати, кому ви довіряєте, — судження, яке можете зробити лише ви, тому типового значення немає.</value>
   </data>
   <data name="On the Backup, restore &amp; migration page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
-    <value>На сторінці «Резервне копіювання, відновлення та міграція» задайте теку, до якої записується резервна копія, на іншому диску, ніж той, де лежить сховище повідомлень.</value>
+    <value>На сторінці «Резервне копіювання, відновлення та міграція» задайте папку, до якої записується резервна копія, на іншому диску, ніж той, де лежить сховище повідомлень.</value>
   </data>
   <data name="On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for." xml:space="preserve">
     <value>На вкладці SMTP сторінки «Протоколи» задайте в полі «Ім'я вузла» повне DNS-ім'я цього сервера, наприклад mail.example.com. Потім попросіть власника публічної адреси сервера створити PTR-запис із цим ім'ям; сторінка «DNS-записи» показує, про що просити.</value>
@@ -11693,7 +11693,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>Загальносерверні межі, довговічність і засоби проти зловживань, що не належать жодній окремій функції, редагуються тут.</value>
   </data>
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - per-account sending limits and the event-script timeout among them." xml:space="preserve">
-    <value>Загальносерверні межі, довговічність і засоби проти зловживань, що не належать жодному окремому протоколу чи функції, - серед них обмеження надсилання для облікових записів і тайм-аут сценаріїв подій.</value>
+    <value>Загальносерверні межі, довговічність і засоби проти зловживань, що не належать жодному окремому протоколу чи функції, - серед них обмеження надсилання для облікових записів і тайм-аут скриптів подій.</value>
   </data>
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason." xml:space="preserve">
     <value>Загальносерверні межі, довговічність і засоби проти зловживань, що не належать жодному окремому протоколу чи функції. Типові значення безпечні; змінюйте їх лише з конкретної причини.</value>
@@ -12785,7 +12785,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>Протокол PROXY і XCLIENT, за допомогою яких фронтенд-проксі передає справжню адресу клієнта</value>
   </data>
   <data name="The REST API and the Control Deck's listener, the Prometheus metrics and health endpoints a monitoring system reads, the OpenTelemetry export, the alerts, outbound webhooks and SNMP agent that tell another system what happened, and how long a stopping service waits for its sessions." xml:space="preserve">
-    <value>REST API і прослуховувач Control Deck, метрики Prometheus і кінцеві точки стану здоров'я, які читає система моніторингу, експорт OpenTelemetry, оповіщення, вихідні вебхуки та агент SNMP, які повідомляють іншій системі, що сталося, і те, як довго служба, що зупиняється, чекає на свої сеанси.</value>
+    <value>REST API і прослуховувач Control Deck, метрики Prometheus і кінцеві точки справності, які читає система моніторингу, експорт OpenTelemetry, оповіщення, вихідні вебхуки та агент SNMP, які повідомляють іншій системі, що сталося, і те, як довго служба, що зупиняється, чекає на свої сеанси.</value>
   </data>
   <data name="The REST API answered {0}." xml:space="preserve">
     <value>REST API відповів {0}.</value>
@@ -12830,7 +12830,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>Нові параметри REST API збережено, але вони ще не діють - Control Deck можна буде відкрити, коли сервер їх застосує.</value>
   </data>
   <data name="The REST administration API, the metrics and health endpoints a monitoring system reads, and the alerts, webhooks and SNMP agent that tell another system what happened. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services &amp; autoconfiguration page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
-    <value>REST API адміністрування, метрики та кінцеві точки стану здоров'я, які читає система моніторингу, а також оповіщення, вебхуки та агент SNMP, які повідомляють іншій системі, що сталося. Публічний слухач вебслужб (автоконфігурація, надання MTA-STS) — на сторінці «Вебслужби та автоконфігурація»; автентифікація токенами OAuth2 — на сторінці «Автентифікація».</value>
+    <value>REST API адміністрування, метрики та кінцеві точки справності, які читає система моніторингу, а також оповіщення, вебхуки та агент SNMP, які повідомляють іншій системі, що сталося. Публічний слухач вебслужб (автоконфігурація, надання MTA-STS) — на сторінці «Вебслужби та автоконфігурація»; автентифікація токенами OAuth2 — на сторінці «Автентифікація».</value>
   </data>
   <data name="The RSA/EC public key file {0} does not exist on this machine, so RS256 tokens cannot be verified." xml:space="preserve">
     <value>Файлу відкритого ключа RSA/EC {0} на цьому комп’ютері не існує, тому токени RS256 неможливо перевірити.</value>
@@ -14472,7 +14472,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>Цей сервер старіший за Панель керування і не може дозволити чи заблокувати відправника з карантину. Оновіть сервер.</value>
   </data>
   <data name="This server is older than the Control Panel and cannot search every held message, so the search looks at the most recent only. Upgrade the server." xml:space="preserve">
-    <value>Цей сервер старіший за Control Panel і не може шукати в усіх утриманих повідомленнях, тому пошук охоплює лише найновіші. Оновіть сервер.</value>
+    <value>Цей сервер старіший за Панель керування і не може шукати в усіх утриманих повідомленнях, тому пошук охоплює лише найновіші. Оновіть сервер.</value>
   </data>
   <data name="This server is older than the Control Panel and cannot show a held message's headers or text. Upgrade the server." xml:space="preserve">
     <value>Цей сервер старіший за Панель керування і не може показати заголовки чи текст затриманого повідомлення. Оновіть сервер.</value>
@@ -14859,7 +14859,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>Вищестоящі шлюзи (спам-фільтри, балансувальники навантаження), чиї IP-адреси не повинні вважатися клієнтом, що підключається, у перевірках вузла захисту від спаму.</value>
   </data>
   <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks, and the front-end proxies that may pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
-    <value>Вищі шлюзи, чия IP-адреса не повинна вважатися клієнтом, що підключається, у перевірках на спам, і фронтенд-проксі, яким дозволено передавати справжню адресу клієнта протоколом PROXY або командою XCLIENT.</value>
+    <value>Вищестоящі шлюзи, чия IP-адреса не повинна вважатися клієнтом, що підключається, у перевірках на спам, і фронтенд-проксі, яким дозволено передавати справжню адресу клієнта протоколом PROXY або командою XCLIENT.</value>
   </data>
   <data name="Upstreams allowed to use XCLIENT (comma separated)" xml:space="preserve">
     <value>Вищі вузли, яким дозволено XCLIENT (через кому)</value>

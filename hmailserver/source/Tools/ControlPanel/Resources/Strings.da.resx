@@ -1612,7 +1612,7 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
     <value>En post ændres på stedet gennem REST-API'et, som beder om administratorens engangskode, før det svarer, og der blev ikke givet nogen. Tryk på Redigér… for at blive spurgt igen, eller slet posten, og tilføj den igen.</value>
   </data>
   <data name="An entry is changed in place over the REST API, which is off (its port on the Monitoring &amp; alerts page is {0}). Give it a port there and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
-    <value>En post ændres på stedet gennem REST-API'et, som er slået fra (dets port på siden Overvågning og advarsler er {0}). Giv det en port der, og geninitialisér serveren, eller slet posten, og tilføj den igen.</value>
+    <value>En post ændres på stedet gennem REST-API'et, som er slået fra (dets port på siden Overvågning og advarsler er {0}). Giv det en port der, og reinitialiser serveren, eller slet posten, og tilføj den igen.</value>
   </data>
   <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
     <value>En post ændres på stedet gennem REST-API'et, som kun lytter på {0}, uden for rækkevidde af et Control Panel på en anden maskine. Ændr posten i Control Deck på serveren, eller slet den, og tilføj den igen.</value>
@@ -6739,7 +6739,7 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
     <value>Sænk markerings- og afvisningstærsklerne, eller slå flere af kontrollerne til.</value>
   </data>
   <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. To allow or block a domain outright, use the Allowed and blocked domains page, under Spam filtering." xml:space="preserve">
-    <value>MAIL FROM:&lt;&gt; er returstien for en leveringsrapport, og en rapport har præcis én modtager: adressen, der sendte den besked, den handler om. En tom afsender, der derefter angiver endnu en modtager, er backscatter, en forfalsket rapport eller en sondering. Fra: serveren accepterer den som altid. Til: den anden og hver følgende RCPT TO besvares med 550, og transaktionens DATA afvises også; en tom afsender med én modtager røres aldrig. Kun uautentificerede sessioner fra et IP-område, der kører spamtestene, og aldrig en afsender blandt spamundtagelserne. Brug siden Tilladte og blokerede domæner under Spamfiltrering for at tillade eller blokere et helt domæne.</value>
+    <value>MAIL FROM:&lt;&gt; er returstien for en leveringsrapport, og en rapport har præcis én modtager: adressen, der sendte den besked, den handler om. En tom afsender, der derefter angiver endnu en modtager, er backscatter, en forfalsket rapport eller en sondering. Fra: serveren accepterer den som altid. Til: den anden og hver følgende RCPT TO besvares med 550, og transaktionens DATA afvises også; en tom afsender med én modtager røres aldrig. Kun uautentificerede sessioner fra et IP-interval, der kører spamtestene, og aldrig en afsender blandt spamundtagelserne. Brug siden Tilladte og blokerede domæner under Spamfiltrering for at tillade eller blokere et helt domæne.</value>
   </data>
   <data name="MD5 (legacy)" xml:space="preserve">
     <value>MD5 (forældet)</value>
@@ -12625,7 +12625,7 @@ Hver mappe tømmes først: post, der er kommet siden sikkerhedskopien, er væk. 
     <value>PROXY-protokollen og XCLIENT, som en frontend-proxy giver den rigtige klientadresse videre med</value>
   </data>
   <data name="The REST API and the Control Deck's listener, the Prometheus metrics and health endpoints a monitoring system reads, the OpenTelemetry export, the alerts, outbound webhooks and SNMP agent that tell another system what happened, and how long a stopping service waits for its sessions." xml:space="preserve">
-    <value>REST API'et og Control Decks lytter, Prometheus-metrikker og sundhedsendpoints, som et overvågningssystem læser, OpenTelemetry-eksporten, de advarsler, udgående webhooks og den SNMP-agent, der fortæller et andet system, hvad der skete, og hvor længe en tjeneste, der stopper, venter på sine sessioner.</value>
+    <value>REST API'et og Control Decks lytter, Prometheus-metrikker og sundhedsendepunkter, som et overvågningssystem læser, OpenTelemetry-eksporten, de advarsler, udgående webhooks og den SNMP-agent, der fortæller et andet system, hvad der skete, og hvor længe en tjeneste, der stopper, venter på sine sessioner.</value>
   </data>
   <data name="The REST API answered {0}." xml:space="preserve">
     <value>REST-API'et svarede {0}.</value>
@@ -12649,7 +12649,7 @@ Hver mappe tømmes først: post, der er kommet siden sikkerhedskopien, er væk. 
     <value>REST-API'et er slået fra (dets port på siden Overvågning og advarsler er {0}), og både denne side og Control Deck læser sagerne gennem det. Giv det en port der.</value>
   </data>
   <data name="The REST API is off (its port on the Monitoring &amp; alerts page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the Monitoring &amp; alerts page, reinitialise the server, and open this page again." xml:space="preserve">
-    <value>REST-API'et er slået fra (dets port på siden Overvågning og advarsler er {0}), og disse indstillinger nås gennem det: serveren gemmer dem, men ingen COM-egenskab bærer dem. Giv REST-API'et en port på siden Overvågning og advarsler, geninitialisér serveren, og åbn denne side igen.</value>
+    <value>REST-API'et er slået fra (dets port på siden Overvågning og advarsler er {0}), og disse indstillinger nås gennem det: serveren gemmer dem, men ingen COM-egenskab bærer dem. Giv REST-API'et en port på siden Overvågning og advarsler, reinitialiser serveren, og åbn denne side igen.</value>
   </data>
   <data name="The REST API listens on {0} only, so the Control Deck opens only in a browser on the server itself." xml:space="preserve">
     <value>REST-API'et lytter kun på {0}, så Control Deck kan kun åbnes i en browser på selve serveren.</value>
@@ -12670,7 +12670,7 @@ Hver mappe tømmes først: post, der er kommet siden sikkerhedskopien, er væk. 
     <value>REST-API'ets nye indstillinger er gemt, men gælder endnu ikke - Control Deck kan åbnes, når serveren tager dem i brug.</value>
   </data>
   <data name="The REST administration API, the metrics and health endpoints a monitoring system reads, and the alerts, webhooks and SNMP agent that tell another system what happened. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services &amp; autoconfiguration page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
-    <value>REST-administrations-API'et, de metrikker og sundhedsendpoints, et overvågningssystem læser, og de advarsler, webhooks og den SNMP-agent, der fortæller et andet system, hvad der skete. Den offentlige webtjenestelytter (autokonfiguration, MTA-STS-hosting) findes på siden Webtjenester og autokonfiguration; OAuth2-tokengodkendelse findes på siden Godkendelse.</value>
+    <value>REST-administrations-API'et, de metrikker og sundhedsendepunkter, et overvågningssystem læser, og de advarsler, webhooks og den SNMP-agent, der fortæller et andet system, hvad der skete. Den offentlige webtjenestelytter (autokonfiguration, MTA-STS-hosting) findes på siden Webtjenester og autokonfiguration; OAuth2-tokengodkendelse findes på siden Godkendelse.</value>
   </data>
   <data name="The RSA/EC public key file {0} does not exist on this machine, so RS256 tokens cannot be verified." xml:space="preserve">
     <value>Filen med den offentlige RSA-/EC-nøgle, {0}, findes ikke på denne maskine, så RS256-tokens kan ikke verificeres.</value>
@@ -13931,10 +13931,10 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
     <value>Indstillingsniveauerne blev gemt.</value>
   </data>
   <data name="The settings marked Not read are kept in the [Database] section of hMailServer.ini, which could not be read: {0} No COM property carries them, and from 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change them; saving leaves them as they are on the server." xml:space="preserve">
-    <value>Indstillingerne, der er markeret Ikke læst, ligger i afsnittet [Database] i hMailServer.ini, som ikke kunne læses: {0} Ingen COM-egenskab bærer dem, og fra 6.3.6 tilhører filen administratorerne. Luk Kontrolpanelet, og start det med Kør som administrator for at se og ændre dem; når der gemmes, forbliver de, som de er på serveren.</value>
+    <value>Indstillingerne, der er markeret Ikke læst, ligger i afsnittet [Database] i hMailServer.ini, som ikke kunne læses: {0} Ingen COM-egenskab bærer dem, og fra 6.3.6 tilhører filen administratorerne. Luk Control Panel, og start det med Kør som administrator for at se og ændre dem; når der gemmes, forbliver de, som de er på serveren.</value>
   </data>
   <data name="The settings marked Not read are kept in the [Database] section of hMailServer.ini, which was not found on this computer, and no COM property carries them. Start the Control Panel on the computer the server runs on to see and change them; saving leaves them as they are on the server." xml:space="preserve">
-    <value>Indstillingerne, der er markeret Ikke læst, ligger i afsnittet [Database] i hMailServer.ini, som ikke blev fundet på denne computer, og ingen COM-egenskab bærer dem. Start Kontrolpanelet på den computer, serveren kører på, for at se og ændre dem; når der gemmes, forbliver de, som de er på serveren.</value>
+    <value>Indstillingerne, der er markeret Ikke læst, ligger i afsnittet [Database] i hMailServer.ini, som ikke blev fundet på denne computer, og ingen COM-egenskab bærer dem. Start Control Panel på den computer, serveren kører på, for at se og ændre dem; når der gemmes, forbliver de, som de er på serveren.</value>
   </data>
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>De indstillinger, der begrænser hvert trin</value>
@@ -15221,7 +15221,7 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
     <value>Hvilken liste? Der skrives én post for hver enkelt afsender eller domæne, og derefter behandles hver meddelelse. En meddelelse, der ikke kan oprettes en post for, efterlades, hvor den er.</value>
   </data>
   <data name="Which log files the server writes, how much detail they carry and how long they are kept, the copies it sends to syslog and the Windows Event Log, and what the audit trail records." xml:space="preserve">
-    <value>Hvilke logfiler serveren skriver, hvor mange detaljer de bærer, og hvor længe de beholdes, de kopier, den sender til syslog og Windows' hændelseslog, og hvad revisionssporet registrerer.</value>
+    <value>Hvilke logfiler serveren skriver, hvor mange detaljer de bærer, og hvor længe de beholdes, de kopier, den sender til syslog og Windows' hændelseslog, og hvad revisionsloggen registrerer.</value>
   </data>
   <data name="Which name servers the server asks, and whether answers are DNSSEC validated." xml:space="preserve">
     <value>Hvilke navneservere serveren spørger, og om svar valideres med DNSSEC.</value>

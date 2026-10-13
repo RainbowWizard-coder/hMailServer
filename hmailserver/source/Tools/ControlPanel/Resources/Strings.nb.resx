@@ -1612,7 +1612,7 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
     <value>En oppføring endres på stedet gjennom REST-API-et, som ber om administratorens engangskode før det svarer, og ingen ble oppgitt. Trykk Rediger… for å bli spurt igjen, eller slett oppføringen og legg den til igjen.</value>
   </data>
   <data name="An entry is changed in place over the REST API, which is off (its port on the Monitoring &amp; alerts page is {0}). Give it a port there and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
-    <value>En oppføring endres på stedet gjennom REST-API-et, som er slått av (porten på siden Overvåking og alarmer er {0}). Gi det en port der og initialiser serveren på nytt, eller slett oppføringen og legg den til igjen.</value>
+    <value>En oppføring endres på stedet gjennom REST-API-et, som er slått av (porten på siden Overvåking og alarmer er {0}). Gi det en port der og reinitialiser serveren, eller slett oppføringen og legg den til igjen.</value>
   </data>
   <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
     <value>En oppføring endres på stedet gjennom REST-API-et, som bare lytter på {0}, utenfor rekkevidde for et Control Panel på en annen maskin. Endre oppføringen i Control Deck på serveren, eller slett den og legg den til igjen.</value>
@@ -12649,7 +12649,7 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
     <value>REST-API-et er slått av (porten på siden Overvåking og alarmer er {0}), og både denne siden og Control Deck leser sakene gjennom det. Gi det en port der.</value>
   </data>
   <data name="The REST API is off (its port on the Monitoring &amp; alerts page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the Monitoring &amp; alerts page, reinitialise the server, and open this page again." xml:space="preserve">
-    <value>REST-API-et er slått av (porten på siden Overvåking og alarmer er {0}), og disse innstillingene nås gjennom det: serveren lagrer dem, men ingen COM-egenskap bærer dem. Gi REST-API-et en port på siden Overvåking og alarmer, initialiser serveren på nytt, og åpne denne siden igjen.</value>
+    <value>REST-API-et er slått av (porten på siden Overvåking og alarmer er {0}), og disse innstillingene nås gjennom det: serveren lagrer dem, men ingen COM-egenskap bærer dem. Gi REST-API-et en port på siden Overvåking og alarmer, reinitialiser serveren, og åpne denne siden igjen.</value>
   </data>
   <data name="The REST API listens on {0} only, so the Control Deck opens only in a browser on the server itself." xml:space="preserve">
     <value>REST-API-et lytter bare på {0}, så Control Deck kan bare åpnes i en nettleser på selve serveren.</value>
@@ -15221,7 +15221,7 @@ Det fortsetter å prøve mens du bruker programmet.</value>
     <value>Hvilken liste? Det skrives én oppføring for hver enkelt avsender eller domene, og deretter behandles hver melding. En melding det ikke kan lages en oppføring for, blir liggende der den er.</value>
   </data>
   <data name="Which log files the server writes, how much detail they carry and how long they are kept, the copies it sends to syslog and the Windows Event Log, and what the audit trail records." xml:space="preserve">
-    <value>Hvilke loggfiler serveren skriver, hvor mye detalj de inneholder og hvor lenge de beholdes, kopiene den sender til syslog og Windows-hendelsesloggen, og hva revisjonssporet registrerer.</value>
+    <value>Hvilke loggfiler serveren skriver, hvor mye detalj de inneholder og hvor lenge de beholdes, kopiene den sender til syslog og Windows-hendelsesloggen, og hva revisjonsloggen registrerer.</value>
   </data>
   <data name="Which name servers the server asks, and whether answers are DNSSEC validated." xml:space="preserve">
     <value>Hvilke navneservere serveren spør, og om svar valideres med DNSSEC.</value>

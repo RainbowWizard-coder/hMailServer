@@ -3439,7 +3439,7 @@
     <value>无法保存：{0}</value>
   </data>
   <data name="Could not search every held message on the server, so the search looks at the most recent only: {0}" xml:space="preserve">
-    <value>无法搜索服务器上的所有暂留邮件，因此搜索只查看最近的邮件：{0}</value>
+    <value>无法搜索服务器上的所有暂挂邮件，因此搜索只查看最近的邮件：{0}</value>
   </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>无法开始备份：{0}</value>
@@ -8561,7 +8561,7 @@
     <value>在“配置方案列表”页面上将这四个方案与此服务器比较，并应用合适的一个；它所替换的值会被保留以便恢复。</value>
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the TLS certificates page, or add port 465 with implicit TLS." xml:space="preserve">
-    <value>在TCP/IP 端口页面，为提交端口 (587) 设置 STARTTLS 并使用TLS 证书页面的证书，或添加使用隐式 TLS 的端口 465。</value>
+    <value>在“TCP/IP 端口”页面，为提交端口 (587) 设置 STARTTLS 并使用“TLS 证书”页面的证书，或添加使用隐式 TLS 的端口 465。</value>
   </data>
   <data name="On the TCP/IP ports page, open the SMTP port 25 and set its SMTP authentication to Honeypot or Off, then reinitialise. Mail clients that still sign in on 25 are refused and banned from then on, so move them to 587 first." xml:space="preserve">
     <value>在“TCP/IP 端口”页面上打开 SMTP 端口 25，将其 SMTP 身份验证设为“蜜罐”或“关闭”，然后重新初始化。此后仍在端口 25 登录的邮件客户端会被拒绝并封禁，因此请先把它们改到 587。</value>
@@ -11167,16 +11167,16 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
     <value>已搜索</value>
   </data>
   <data name="Searched every held message on the server: {0} match the search." xml:space="preserve">
-    <value>已搜索服务器上的所有暂留邮件：{0} 封与搜索匹配。</value>
+    <value>已搜索服务器上的所有暂挂邮件：{0} 封与搜索匹配。</value>
   </data>
   <data name="Searched every held message on the server: {0} matches the search." xml:space="preserve">
-    <value>已搜索服务器上的所有暂留邮件：{0} 封与搜索匹配。</value>
+    <value>已搜索服务器上的所有暂挂邮件：{0} 封与搜索匹配。</value>
   </data>
   <data name="Searches" xml:space="preserve">
     <value>搜索记录</value>
   </data>
   <data name="Searching every held message on the server…" xml:space="preserve">
-    <value>正在搜索服务器上的所有暂留邮件…</value>
+    <value>正在搜索服务器上的所有暂挂邮件…</value>
   </data>
   <data name="Searching the audit trail…" xml:space="preserve">
     <value>正在搜索审计记录…</value>
@@ -14282,7 +14282,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
     <value>此服务器版本低于控制面板，无法从隔离区允许或拦截发件人。请升级服务器。</value>
   </data>
   <data name="This server is older than the Control Panel and cannot search every held message, so the search looks at the most recent only. Upgrade the server." xml:space="preserve">
-    <value>此服务器版本低于 Control Panel，无法搜索所有暂留邮件，因此搜索只查看最近的邮件。请升级服务器。</value>
+    <value>此服务器版本低于控制面板，无法搜索所有暂挂邮件，因此搜索只查看最近的邮件。请升级服务器。</value>
   </data>
   <data name="This server is older than the Control Panel and cannot show a held message's headers or text. Upgrade the server." xml:space="preserve">
     <value>此服务器版本低于控制面板，无法显示被暂挂邮件的邮件头或正文。请升级服务器。</value>
@@ -15221,7 +15221,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
     <value>写入哪份名单？系统会为每个不同的发件人或域写入一条条目，然后再对每封邮件执行操作。无法为其写入条目的邮件将保留原状。</value>
   </data>
   <data name="Which log files the server writes, how much detail they carry and how long they are kept, the copies it sends to syslog and the Windows Event Log, and what the audit trail records." xml:space="preserve">
-    <value>服务器写哪些日志文件、包含多少细节以及保留多久，它发往 syslog 和 Windows 事件日志的副本，以及审计跟踪记录什么。</value>
+    <value>服务器写哪些日志文件、包含多少细节以及保留多久，它发往 syslog 和 Windows 事件日志的副本，以及审计记录会记下哪些内容。</value>
   </data>
   <data name="Which name servers the server asks, and whether answers are DNSSEC validated." xml:space="preserve">
     <value>服务器向哪些名称服务器查询，以及应答是否经过 DNSSEC 验证。</value>

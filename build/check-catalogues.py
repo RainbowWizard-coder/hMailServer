@@ -487,41 +487,18 @@ READBACK_TERMS = {
    "tr": [(re.compile(r"(?i)\bindex(?:es|ing|er)?\b"), re.compile(r"(?i)\bdirector(?:y|ies)\b"), re.compile(r"(?i)\bdizin\w*"),
            "indeks (the message index)")],
 }
-# The texts the term rule leaves alone for now: two other units of batch53's wave A wrote them beside
-# the read-back, before the rule, and the wave's fold is the first tree that holds both them and the
-# rule - cp53-navigation's purposes of the Advanced, Server limits & expert settings, Monitoring &
-# alerts, Incoming relays and Logging pages, which it reworded where the read-back had mended the old
-# ones, and the Monitoring & alerts page's new subtitle, and cp53-quarantine-search's notices of its
-# search of every held message. Each names a thing the way the catalogue no longer does. The rule
-# leaves that one word alone while the text is exactly as its unit wrote it, by the first 16 hex
-# digits of the SHA-256 of its value in UTF-8, and says so; a text changed in any way is held to the
-# rule again, and one that no longer has the word is reported, so that its entry goes out with the
-# change that mended it. The fold writes the catalogue's word (the fifth field) in each and takes the
-# entries out.
+# The texts the term rule leaves alone for now: a text another branch wrote beside the read-back, before
+# the rule, that names a thing the way the catalogue no longer does, until the fold that first holds both
+# the text and the rule mends it. The rule leaves that one word alone while the text is exactly as its
+# unit wrote it, by the first 16 hex digits of the SHA-256 of its value in UTF-8, and says so; a text
+# changed in any way is held to the rule again, and one that no longer has the word is reported, so that
+# its entry goes out with the change that mended it. The fold writes the catalogue's word (the fifth
+# field) in each and takes the entries out. batch53's wave A fold did so for the twelve the read-back
+# left - cp53-navigation's purposes of the Advanced, Server limits & expert settings, Monitoring & alerts,
+# Incoming relays and Logging pages and the Monitoring & alerts page's subtitle, and
+# cp53-quarantine-search's notices of its search of every held message - so none is left.
 READBACK_TERMS_PENDING = (
    # (catalogue, how its English begins, the value's fingerprint, the word left, the catalogue's word, whose text)
-   ("uk", "Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, and the switch",
-    "3d3d45596fcd3638", "сценаріїв", "скриптів", "cp53-navigation"),
-   ("uk", "Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - per-account",
-    "4a5c481b6ff8ac44", "сценаріїв", "скриптів", "cp53-navigation"),
-   ("uk", "The REST API and the Control Deck's listener, the Prometheus metrics and health endpoints",
-    "532130a92cf200ae", "стану здоров'я", "справності", "cp53-navigation"),
-   ("uk", "The REST administration API, the metrics and health endpoints",
-    "d30dca6ac631dbf9", "стану здоров'я", "справності", "cp53-navigation"),
-   ("uk", "Upstream gateways whose IP address must not be treated as the connecting client in spam checks, and the front-end",
-    "962221b00ae0d97c", "Вищі шлюзи", "Вищестоящі шлюзи", "cp53-navigation"),
-   ("da", "Which log files the server writes, how much detail they carry and how long they are kept, the copies it sends",
-    "7a889555e98429c8", "revisionssporet", "revisionsloggen", "cp53-navigation"),
-   ("nb", "Which log files the server writes, how much detail they carry and how long they are kept, the copies it sends",
-    "7a7e2546db7c50e7", "revisjonssporet", "revisjonsloggen", "cp53-navigation"),
-   ("zh-Hans", "Could not search every held message on the server", "0dfc63343c15b443", "暂留", "暂挂", "cp53-quarantine-search"),
-   ("zh-Hans", "Searched every held message on the server: {0} match the search.", "e611ba759e2ef5bc", "暂留", "暂挂",
-    "cp53-quarantine-search"),
-   ("zh-Hans", "Searched every held message on the server: {0} matches the search.", "e611ba759e2ef5bc", "暂留", "暂挂",
-    "cp53-quarantine-search"),
-   ("zh-Hans", "Searching every held message on the server", "067af9a629c7e678", "暂留", "暂挂", "cp53-quarantine-search"),
-   ("zh-Hans", "This server is older than the Control Panel and cannot search every held message", "64ce4caf27951cc9",
-    "暂留", "暂挂", "cp53-quarantine-search"),
 )
 
 
