@@ -110,7 +110,7 @@ namespace HM
          {
             const String reason = loaded == MimeLoadResult::OpenFailed
                ? String(_T("the file could not be opened or read"))
-               : Formatter::Format("its first {0} MB hold no end of the header, or a header field that could not be parsed", (int) (MimeBody::MaxHeaderOnlyBytes / (1024 * 1024)));
+               : Formatter::Format("its first {0} MB hold no end of the header, or a header field that could not be parsed", (int) (MimeBody::MaxHeaderOnlyBytes / (static_cast<size_t>(1024) * 1024)));
 
             ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7841, "MessageData::LoadFromMessage",
                Formatter::Format("The header of the message file {0}, which is larger than the {1} MB a message is read whole at, could not be read: {2}. The message was not loaded, and nothing is written over it.",

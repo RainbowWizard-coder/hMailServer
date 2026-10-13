@@ -569,11 +569,18 @@ namespace HM
       // to the body is refused when written (HM7840), since the body that was
       // never read cannot be written with it. ParseFailed when the first
       // MaxHeaderOnlyBytes hold no end of the header, or a field the parser
-      // refuses; OpenFailed when the file could not be opened.
+      // refuses; OpenFailed when the file could not be opened or read.
       MimeLoadResult LoadHeaderFromFile(const AnsiString &pszFilename);
       MimeLoadResult LoadHeaderFromMemory(const std::shared_ptr<const std::string> &message);
       bool IsHeaderOnly() const { return header_only_; }
-      static const size_t MaxHeaderOnlyBytes = 10 * 1024 * 1024;
+
+      // The most of a file LoadHeaderFromFile reads for the end of the header,
+      // 10 MB, and the steps it reads it in, 64 KB - each multiplied in size_t
+      // from its first factor on, not in int and then widened (clang-tidy's
+      // bugprone-implicit-widening-of-multiplication-result, which the
+      // static-analysis job holds to its baseline).
+      static const size_t MaxHeaderOnlyBytes = static_cast<size_t>(10) * 1024 * 1024;
+      static const size_t HeaderOnlyReadStep = static_cast<size_t>(64) * 1024;
 
       // The whole message as SaveAllToFile would write it, into memory and
       // nowhere else: the header and, when nothing of the body changed, the

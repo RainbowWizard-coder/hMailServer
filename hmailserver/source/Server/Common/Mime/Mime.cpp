@@ -1887,7 +1887,7 @@ namespace HM
       // Read in steps until the bytes hold the end of the header, which for
       // nearly every message is inside the first. Searched from where the last
       // step's bytes might have begun it, not from the start each time.
-      const size_t step = 64 * 1024;
+      const size_t step = HeaderOnlyReadStep;
       const size_t most = MaxHeaderOnlyBytes;
       std::string bytes;
       size_t end = 0;
