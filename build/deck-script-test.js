@@ -3681,7 +3681,26 @@ function answer(method, path, headers, raw) {
       return json(200, { revoked: true });
    }
 
-   if (path === '/api/v1/quarantine' && method === 'GET') { return json(200, state.quarantine); }
+   // The list as the server answers it: the bare array without q, offset and
+   // limit, and with any of them a page as an object - the list's own messages,
+   // or with q every held message's that match it in the sender, the
+   // recipients, the subject or the reason. quarantineOlder stands in for the
+   // messages held beyond the list's page, which only a search reaches; an old
+   // server answers the array whatever is asked, and a failing one refuses q.
+   if (path.split('?')[0] === '/api/v1/quarantine' && method === 'GET') {
+      const query = path.indexOf('?') < 0 ? '' : path.slice(path.indexOf('?') + 1);
+      if (!query || state.quarantineOldServer) { return json(200, state.quarantine); }
+      const parameter = (name) => { const hit = query.split('&').filter((p) => p.split('=')[0] === name)[0]; return hit ? decodeURIComponent(hit.split('=').slice(1).join('=').replace(/\+/g, ' ')) : ''; };
+      const q = parameter('q').trim();
+      if (q && state.quarantineSearchFails) { return json(500, { error: 'the quarantine could not be searched' }); }
+      const every = state.quarantine.concat(state.quarantineOlder || []);
+      const wanted = q.toLowerCase();
+      const matched = every.filter((m) => [m.sender, m.recipients, m.subject, m.reason].some((v) => String(v || '').toLowerCase().indexOf(wanted) >= 0));
+      const offset = Number(parameter('offset') || 0);
+      const limit = Number(parameter('limit') || 100);
+      const page = (q ? matched : state.quarantine).slice(offset, offset + limit);
+      return json(200, { query: q, held: every.length, total: q ? matched.length : every.length, offset, count: page.length, messages: page });
+   }
    // One action over many held messages, answered per message, as
    // QuarantineReview::Run answers: the entries allow and block write (one per
    // distinct sender or domain), then what became of each id. A public suffix
@@ -7869,7 +7888,8 @@ async function main() {
       const qText = () => rows().map((r) => r.textContent).join(' | ');
       const qBulk = (from) => called(from, 'POST', '/api/v1/quarantine/bulk').map((r) => JSON.parse(r.body));
       const regroup = async (value) => { setValue('qGroup', value); $('#qGroup').dispatchEvent(makeEvent('change')); await flush(); };
-      check('the quarantine view reads what is held, once', called(before, 'GET', '/api/v1/quarantine').length === 1, paths(before));
+      check('the quarantine view reads what is held, once, as a page that says how many are held in all',
+         called(before, 'GET', /^\/api\/v1\/quarantine(\?|$)/).length === 1 && called(before, 'GET', '/api/v1/quarantine?offset=0&limit=1000').length === 1, paths(before));
       check('grouped by the sender\'s organization, as the server names it, the group with the newest message first',
          qGroups().length === 3 && qGroups()[0].textContent.indexOf('spammer.example') >= 0 && qGroups()[0].textContent.indexOf('2 messages') >= 0 &&
          qGroups()[1].textContent.indexOf('(no domain)') >= 0 && qGroups()[2].textContent.indexOf('supply.example') >= 0, qText());
@@ -8100,7 +8120,7 @@ async function main() {
       await flush();
       sent = qBulk(before);
       check('Yes deletes it, through the bulk request, and the page reads what is held again',
-         sent.length === 1 && sent[0].action === 'delete' && JSON.stringify(sent[0].ids) === '[41]' && called(before, 'GET', '/api/v1/quarantine').length >= 1 && qRows().length === 1,
+         sent.length === 1 && sent[0].action === 'delete' && JSON.stringify(sent[0].ids) === '[41]' && called(before, 'GET', /^\/api\/v1\/quarantine(\?|$)/).length >= 1 && qRows().length === 1,
          JSON.stringify(sent) + ' ' + qText());
 
       // The header's release acts on what is still checked, in one request.
@@ -8123,6 +8143,70 @@ async function main() {
          $('#qSaid').textContent.indexOf('QuarantineRetentionDays') >= 0 && $('#qSaid').textContent.indexOf('hMailServer.ini') < 0 &&
          $('#qSaid').textContent.indexOf('Anti-spam settings page') >= 0 && $('#qSaid').textContent.indexOf('PUT /api/v1/settings/ini/QuarantineRetentionDays') >= 0,
          $('#qSaid').textContent);
+
+      // The search of every held message (review finding F261): while the list
+      // holds only the newest of what is held, the box asks the server a moment
+      // after the typing stops, draws what it answers whole and says so.
+      state.quarantine = [
+         { id: 61, sender: 'promo@shop.example', recipients: 'anna@example.com', subject: 'Spring sale', reason: 'Score 9 (DNSBL)', score: 9, size: 2048, created: '2026-10-12 10:00:00',
+           helo: 'mx.shop.example', sender_domain: 'shop.example', helo_domain: 'shop.example' },
+         { id: 60, sender: 'billing@supply.example', recipients: 'anna@example.com', subject: 'Invoice 5012', reason: 'Score 22 (SURBL)', score: 22, size: 8192, created: '2026-10-12 09:00:00',
+           helo: 'mx.supply.example', sender_domain: 'supply.example', helo_domain: 'supply.example' }
+      ];
+      state.quarantineOlder = [
+         { id: 7, sender: 'old@archive.example', recipients: 'anna@example.com,ops_team@example.com', subject: 'An old invoice', reason: 'Score 30 (SURBL)', score: 30, size: 4096, created: '2026-09-01 08:00:00',
+           helo: 'mx.archive.example', sender_domain: 'archive.example', helo_domain: 'archive.example' }
+      ];
+      before = requests.length;
+      click(act('qrefresh'));
+      await flush();
+      check('a list holding the newest of what is held says how many are held and that a search looks through every one',
+         called(before, 'GET', '/api/v1/quarantine?offset=0&limit=1000').length === 1 && qRows().length === 2 &&
+         $('#qSaid').textContent === 'Held: 3. Listed here: the most recent 2; a search looks through every held message.', paths(before) + ' ' + $('#qSaid').textContent);
+      before = requests.length;
+      await search('ops_team');
+      check('a search asks nothing at once, and says it is searching', called(before, 'GET', /\?q=/).length === 0 &&
+         $('#qSaid').textContent === 'Searching every held message on the server…', paths(before) + ' ' + $('#qSaid').textContent);
+      fireTimers();
+      await flush();
+      check('a moment after the typing stops it asks the server over every held message',
+         called(before, 'GET', '/api/v1/quarantine?q=ops_team&limit=1000').length === 1, paths(before));
+      check('and draws what it answers whole - a match on a second recipient, which the row shows only as "+ 1 more"',
+         qRows().length === 1 && !qRows()[0].hidden && qRows()[0].textContent.indexOf('An old invoice') >= 0 && qRows()[0].textContent.indexOf('ops_team') < 0, qText());
+      check('saying it searched every held message', $('#qSaid').textContent === 'Searched every held message on the server. Matches: 1.', $('#qSaid').textContent);
+      before = requests.length;
+      await search('');
+      fireTimers();
+      await flush();
+      check('the box emptied gives the list back and asks nothing',
+         qRows().length === 2 && qRows().every((r) => !r.hidden) && called(before, 'GET', /\?q=/).length === 0, paths(before) + ' ' + qText());
+      state.quarantineSearchFails = true;
+      await search('invoice');
+      fireTimers();
+      await flush();
+      check('a search the server cannot answer says so, and the list\'s own matches stay',
+         $('#qSaid').textContent.indexOf('Could not search every held message on the server, so the search looks at the most recent only: the quarantine could not be searched') === 0 &&
+         qRows().filter((r) => !r.hidden).length === 1, $('#qSaid').textContent + ' ' + qText());
+      state.quarantineSearchFails = false;
+      await search('');
+      fireTimers();
+      await flush();
+      // A server older than the search answers the bare list, which the box narrows as it is drawn.
+      state.quarantineOldServer = true;
+      click(act('qrefresh'));
+      await flush();
+      before = requests.length;
+      await search('invoice');
+      fireTimers();
+      await flush();
+      check('a server older than the search is not asked: its list is narrowed as it is drawn',
+         called(before, 'GET', /\?q=/).length === 0 && qRows().filter((r) => !r.hidden).length === 1 && $('#qSaid').textContent === '2 messages held.',
+         paths(before) + ' ' + $('#qSaid').textContent);
+      state.quarantineOldServer = false;
+      state.quarantineOlder = [];
+      await search('');
+      fireTimers();
+      await flush();
 
       click(act('qdigest'));
       await flush();

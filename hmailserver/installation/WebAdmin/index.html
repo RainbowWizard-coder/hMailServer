@@ -542,6 +542,13 @@ let view="dash", pollTimer=null;
 /* The discovery case on screen, its name and its re-read timer: declared here,
    with the view, because the navigation and a sign-out put them back. */
 let discoveryCase=0,discoveryName="",discoveryTimer=null;
+/* What the view on screen asks of the server when the search box changes,
+   beyond the rows filterRows narrows: the quarantine's search of every held
+   message, which drawQuarantine sets. Every render clears it, so that no other
+   view's box asks anything. A hook rather than a test of the view in
+   filterRows, since the Deck parity census reads view==="x") f() as the view's
+   own render function. */
+let searchHook=null;
 
 /* ---------- Language ----------
    English is the key. A catalogue - one object, English to translation, in
@@ -969,6 +976,7 @@ const titles={dash:K("Dashboard"),checklist:K("Checklist"),domains:K("Domains"),
 async function render(silent){
   $("#viewTitle").textContent=t(titles[view]);
   helpFollow();
+  searchHook=null;
   try{
     if(view==="dash")await renderDash(silent);
     else if(view==="domains")await renderDomains();
@@ -2164,12 +2172,16 @@ function filterRows(){
   const keeps=text=>(!wide||text.indexOf(wide)>=0)&&(!narrow||text.indexOf(narrow)>=0);
   document.querySelectorAll("#content tbody tr").forEach(r=>{
     if(r.querySelector("td.empty"))return;
+    // A row the server found for this very text (the quarantine's search of
+    // every held message) is shown whole: it matched there.
+    if(r.dataset&&r.dataset.keep){r.hidden=false;return;}
     r.hidden=!keeps(r.textContent.toLowerCase());
   });
   document.querySelectorAll("#content .fr").forEach(r=>{
     r.hidden=!keeps(r.dataset.k||r.textContent.toLowerCase());
   });
   if(rowCursor>=0)markRow(rowCursor);
+  if(searchHook)searchHook();
 }
 $("#deckSearch").oninput=filterRows;
 
@@ -5013,8 +5025,13 @@ $("#samlBtn").onclick=()=>{markSsoPending();location.href="/portal/saml/start?de
    write before anything is. A sort orders the messages inside each group. The
    headers and a plain-text preview open in a panel, as text: nothing a held
    message says is ever drawn as HTML. The search box above narrows the rows
-   as it does everywhere. */
-const Q={items:[],group:"sender",sort:null,desc:false,folded:new Set(),checked:new Set(),ask:null,list:null,said:""};
+   as it does everywhere - and while the list holds only the newest thousand,
+   where it found nothing older than they (review finding F261), it asks the
+   server over every held message, GET /api/v1/quarantine?q=, a moment after
+   the typing stops, and draws the rows that answers whole, since the server
+   matched them. */
+const Q={items:[],group:"sender",sort:null,desc:false,folded:new Set(),checked:new Set(),ask:null,list:null,said:"",
+  held:0,canSearch:false,found:null,foundFor:"",foundTotal:0,searchError:"",searchTimer:null,typed:""};
 const QICON={
   release:'<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.3" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.1 8.2l2 2 3.9-4.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   delete:'<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.3" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.8 5.8l4.4 4.4M10.2 5.8l-4.4 4.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
@@ -5024,19 +5041,83 @@ const QICON={
   preview:'<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M1.5 8s2.4-4.4 6.5-4.4S14.5 8 14.5 8s-2.4 4.4-6.5 4.4S1.5 8 1.5 8z" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="8" r="2" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>'
 };
 async function renderQuarantine(){
-  const answer=await api("/api/v1/quarantine");
+  // The newest thousand, and how many are held in all, which the bare list
+  // does not say. A server older than the search answers the bare list, and
+  // that list is searched as it is drawn.
+  const answer=await api("/api/v1/quarantine?offset=0&limit=1000");
   Q.items=asList(answer,"messages");
-  // A check survives a refresh for as long as its message is still held.
-  const present=new Set(Q.items.map(m=>String(m.id)));
+  Q.canSearch=!!answer&&!Array.isArray(answer)&&typeof answer.held==="number";
+  Q.held=Q.canSearch?answer.held:Q.items.length;
+  // A check survives a refresh for as long as its message is still held - in
+  // the list, or in the answer to a search, which is asked again below.
+  const present=new Set(Q.items.concat(Q.found||[]).map(m=>String(m.id)));
   Array.from(Q.checked).forEach(id=>{if(!present.has(id))Q.checked.delete(id);});
+  clearTimeout(Q.searchTimer);Q.found=null;Q.typed="";Q.searchError="";
   drawQuarantine();
+}
+/* The messages the table draws: the server's answer to the search in the box
+   while it is the answer for that text, the list otherwise. */
+function qList(){return Q.found&&Q.foundFor===Q.typed?Q.found:Q.items;}
+/* The search box over the quarantine, read as it changes (searchHook, which
+   filterRows calls): while the list holds only the newest thousand, its text
+   is asked of the server a moment after the typing stops; until the answer
+   comes the list's own rows are narrowed as everywhere. */
+function qSearchTyped(){
+  const box=$("#deckSearch");
+  const text=box?String(box.value||"").trim():"";
+  if(text===Q.typed)return;
+  Q.typed=text;
+  clearTimeout(Q.searchTimer);
+  Q.searchError="";
+  const asks=Q.canSearch&&Q.items.length<Q.held&&text!==""&&text.length<=255;
+  if(!asks){
+    if(Q.found){Q.found=null;drawQuarantine();}
+    else{const said=$("#qSaid");if(said)said.textContent=qSaid();}
+    return;
+  }
+  if(Q.found&&Q.foundFor===text){drawQuarantine();return;}
+  const said=$("#qSaid");if(said)said.textContent=qSaid();
+  Q.searchTimer=setTimeout(()=>{qSearchServer(text);},400);
+}
+async function qSearchServer(text){
+  try{
+    const answer=await api("/api/v1/quarantine?q="+encodeURIComponent(text)+"&limit=1000");
+    if(Q.typed!==text||view!=="quarantine")return;
+    Q.found=asList(answer,"messages");
+    Q.foundFor=text;
+    Q.foundTotal=answer&&typeof answer.total==="number"?answer.total:Q.found.length;
+    // The checks of messages no longer held, in the list or the answer, go.
+    const present=new Set(Q.items.concat(Q.found).map(m=>String(m.id)));
+    Array.from(Q.checked).forEach(id=>{if(!present.has(id))Q.checked.delete(id);});
+  }catch(e){
+    if(Q.typed!==text||view!=="quarantine")return;
+    Q.found=null;
+    Q.searchError=(e&&e.message)||"";
+  }
+  drawQuarantine();
+}
+/* What the line over the table says: how many are held, and while the list
+   holds only the newest thousand that a search looks through every one - or
+   what the search of them came to. */
+function qSaid(){
+  const held=Q.held||Q.items.length;
+  const partial=Q.canSearch&&Q.items.length<held;
+  if(partial&&Q.typed!==""&&Q.typed.length<=255){
+    if(Q.searchError)return tf("Could not search every held message on the server, so the search looks at the most recent only: {0}",Q.searchError);
+    if(Q.found&&Q.foundFor===Q.typed)return Q.foundTotal>Q.found.length
+      ?tf("Searched every held message on the server. Matches: {0}; shown here, the most recent: {1}.",Q.foundTotal,Q.found.length)
+      :tf("Searched every held message on the server. Matches: {0}.",Q.foundTotal);
+    return t("Searching every held message on the server…");
+  }
+  if(partial)return tf("Held: {0}. Listed here: the most recent {1}; a search looks through every held message.",held,Q.items.length);
+  return held===1?t("1 message held."):tf("{0} messages held.",held);
 }
 function qKey(m){return String((Q.group==="helo"?m.helo_domain:m.sender_domain)||"").toLowerCase();}
 function qGroups(){
   // The server lists newest first, so the order in which the keys are first
   // met is the order of each group's newest message.
   const order=[],members={};
-  Q.items.forEach(m=>{const k=qKey(m);if(!members[k]){members[k]=[];order.push(k);}members[k].push(m);});
+  qList().forEach(m=>{const k=qKey(m);if(!members[k]){members[k]=[];order.push(k);}members[k].push(m);});
   return order.map(k=>({key:k,members:members[k]}));
 }
 function qSorted(list){
@@ -5046,7 +5127,7 @@ function qSorted(list){
   const dir=Q.desc?-1:1;
   return list.slice().sort((a,b)=>{const x=key(a),y=key(b);return (x<y?-1:x>y?1:(Number(a.id)-Number(b.id)))*dir;});
 }
-function qOrdered(){return Q.group==="none"?qSorted(Q.items):[].concat(...qGroups().map(g=>qSorted(g.members)));}
+function qOrdered(){return Q.group==="none"?qSorted(qList()):[].concat(...qGroups().map(g=>qSorted(g.members)));}
 function qState(members){
   let on=0;members.forEach(m=>{if(Q.checked.has(String(m.id)))on++;});
   return on===0?"false":on===members.length?"true":"mixed";
@@ -5063,7 +5144,7 @@ function qActs(scope,attrs,tips){
   const lists=may("manage_settings")?one("allow","",tips[2])+one("block","",tips[3]):"";
   return one("release","good",tips[0])+one("delete","bad",tips[1])+lists;
 }
-function qMessageRow(m,indented){
+function qMessageRow(m,indented,keep){
   const id=String(m.id);
   const recipients=String(m.recipients||"").split(",").map(r=>r.trim()).filter(Boolean);
   const shown=recipients.length>1?tf("{0} + {1} more",recipients[0],recipients.length-1):(recipients[0]||"");
@@ -5071,7 +5152,7 @@ function qMessageRow(m,indented){
   const helo=String(m.helo||"");
   const subject=String(m.subject||"")||t("(no subject)");
   const mail=may("view_mailbox");
-  return '<tr class="qmsg'+(indented?" in":"")+'"><td class="qc">'+qBox(Q.checked.has(id)?"true":"false",t("Check this message"),'data-id="'+escHtml(id)+'"')+'</td>'+
+  return '<tr class="qmsg'+(indented?" in":"")+'"'+(keep?' data-keep="1"':'')+'><td class="qc">'+qBox(Q.checked.has(id)?"true":"false",t("Check this message"),'data-id="'+escHtml(id)+'"')+'</td>'+
     '<td class="qa">'+qActs("row",'data-id="'+escHtml(id)+'"',[t("Release"),t("Delete"),t("Whitelist the sender, then release"),t("Blacklist the sender, then delete")])+'</td>'+
     '<td style="white-space:nowrap">'+escHtml(m.created||"")+'</td>'+
     '<td class="qtrim" title="'+escHtml(helo||t("No HELO name was recorded"))+'">'+(mail?'<button class="qmini" data-act="qread" data-what="headers" data-id="'+escHtml(id)+'" title="'+escHtml(t("Show the headers"))+'" aria-label="'+escHtml(t("Show the headers"))+'">'+QICON.headers+'</button> ':"")+'<span>'+escHtml(helo||"—")+'</span></td>'+
@@ -5087,20 +5168,22 @@ function drawQuarantine(){
     return '<th'+(cls?' class="'+cls+'"':"")+' aria-sort="'+(on?(Q.desc?"descending":"ascending"):"none")+'"><button class="thsort" data-act="qsort" data-col="'+col+'">'+escHtml(label)+(on?(Q.desc?" ↓":" ↑"):"")+'</button></th>';
   };
   let body="";
+  const shown=qList();
+  const found=shown===Q.found;
   if(Q.group==="none"){
-    body=qSorted(Q.items).map(m=>qMessageRow(m,false)).join("");
+    body=qSorted(shown).map(m=>qMessageRow(m,false,found)).join("");
   }else{
     qGroups().forEach(g=>{
       const title=g.key||t("(no domain)");
       const open=!Q.folded.has(g.key);
       const count=g.members.length===1?t("1 message"):tf("{0} messages",g.members.length);
-      body+='<tr class="qgroup"><td class="qc">'+qBox(qState(g.members),tf("Check every message from {0}",title),'data-key="'+escHtml(g.key)+'"')+'</td>'+
+      body+='<tr class="qgroup"'+(found?' data-keep="1"':'')+'><td class="qc">'+qBox(qState(g.members),tf("Check every message from {0}",title),'data-key="'+escHtml(g.key)+'"')+'</td>'+
         '<td class="qa">'+qActs("group",'data-key="'+escHtml(g.key)+'"',[t("Release this group"),t("Delete this group"),t("Whitelist this group's senders, then release"),t("Blacklist this group's senders, then delete")])+'</td>'+
         '<td colspan="6"><button class="qfold" data-act="qfold" data-key="'+escHtml(g.key)+'" aria-expanded="'+(open?"true":"false")+'" title="'+escHtml(open?t("Fold this group"):t("Unfold this group"))+'" aria-label="'+escHtml(open?t("Fold this group"):t("Unfold this group"))+'">'+(open?"▾":"▸")+'</button> '+escHtml(title)+' <span class="muted">'+escHtml(count)+'</span></td></tr>';
-      if(open)body+=qSorted(g.members).map(m=>qMessageRow(m,true)).join("");
+      if(open)body+=qSorted(g.members).map(m=>qMessageRow(m,true,found)).join("");
     });
   }
-  const total=Q.items.length;
+  const total=shown.length;
   const manage=may("manage_quarantine");
   const option=(v,label)=>'<option value="'+v+'"'+(Q.group===v?" selected":"")+'>'+escHtml(label)+'</option>';
   $("#content").innerHTML=`<div class="view"><div class="card view">
@@ -5113,21 +5196,22 @@ function drawQuarantine(){
       ${viewShown("settings")?`<button class="btn ghost sm" data-act="qdigest">${t("Digest settings")}</button>`:""}
     </div>
     <p class="note">${escHtml(operation("/api/v1/quarantine","get").summary||"")}. ${escHtml(operation("/api/v1/quarantine/{id}/release","post").description||"")}</p>
-    <p class="note" id="qSaid">${escHtml(Q.said||(total===1?t("1 message held."):tf("{0} messages held.",total)))}</p>
+    <p class="note" id="qSaid">${escHtml(Q.said||qSaid())}</p>
     <div class="err" id="err_quarantine"></div>
     <div class="tablewrap"><table class="qtable"><thead><tr>
-      <th class="qc">${total?qBox(qState(Q.items),t("Check every message"),'data-all="1"'):""}</th>
+      <th class="qc">${total?qBox(qState(shown),t("Check every message"),'data-all="1"'):""}</th>
       <th class="qa">${total?qActs("checked","",[t("Release the checked messages"),t("Delete the checked messages"),t("Whitelist the checked messages' senders, then release"),t("Blacklist the checked messages' senders, then delete")]):""}</th>
       ${head("created",t("Held"))}${head("helo",t("HELO"))}${head("sender",t("Sender"))}${head("recipients",t("Recipients"))}${head("score",t("Score"),"num")}${head("subject",t("Subject"))}
     </tr></thead>
-    <tbody>${body||'<tr><td colspan="8" class="empty">'+t("Nothing is held. ✦")+'</td></tr>'}</tbody></table></div>
+    <tbody>${body||'<tr><td colspan="8" class="empty">'+(found?t("No held message matches the search."):t("Nothing is held. ✦"))+'</td></tr>'}</tbody></table></div>
     </div></div>`;
   Q.said="";
   $("#qGroup").onchange=()=>{Q.group=$("#qGroup").value;drawQuarantine();};
+  searchHook=()=>qSearchTyped();
   filterRows();
 }
 function qCheck(d){
-  if(d.all){const all=qState(Q.items)==="true";Q.checked.clear();if(!all)Q.items.forEach(m=>Q.checked.add(String(m.id)));}
+  if(d.all){const all=qState(qList())==="true";Q.checked.clear();if(!all)qList().forEach(m=>Q.checked.add(String(m.id)));}
   else if(d.key!==undefined){
     const g=qGroups().filter(x=>x.key===d.key)[0];if(!g)return;
     const all=qState(g.members)==="true";
