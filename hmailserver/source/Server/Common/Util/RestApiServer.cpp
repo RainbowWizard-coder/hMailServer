@@ -12381,20 +12381,28 @@ namespace HM
       // A number in the quarantine's query string - an offset or a limit: digits
       // alone, within the bounds, as the sandbox's held list reads its own. A
       // page quietly moved to the nearest one allowed is read as the end of the
-      // list, so anything else is refused.
+      // list, so anything else is refused. The digits are added up as they are
+      // read, nine at most, which an int always holds: no conversion is left to
+      // fail unseen, and value is set only when the number is in its bounds.
       bool QuarantinePageNumber(const AnsiString &text, int minimum, int maximum, int &value)
       {
          if (text.IsEmpty() || text.GetLength() > 9)
             return false;
 
+         int parsed = 0;
          for (int i = 0; i < text.GetLength(); i++)
          {
             if (text[i] < '0' || text[i] > '9')
                return false;
+
+            parsed = parsed * 10 + (text[i] - '0');
          }
 
-         value = atoi(text.c_str());
-         return value >= minimum && value <= maximum;
+         if (parsed < minimum || parsed > maximum)
+            return false;
+
+         value = parsed;
+         return true;
       }
    }
 
