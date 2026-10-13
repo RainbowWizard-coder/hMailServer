@@ -139,8 +139,9 @@ namespace RegressionTests.IMAP
       }
 
       [Test]
-      [Description("Security: with no master user configured, an authzid is refused outright rather than " +
-                   "treated as an ordinary login.")]
+      [Description("Security: with no master user configured, an authzid naming another account is refused " +
+                   "outright rather than treated as an ordinary login. One naming the client itself is an " +
+                   "ordinary login (Security/SaslPlainAuthorizationIdentity.cs).")]
       public void ImpersonationIsRefusedWhenNoMasterUserIsConfigured()
       {
          _settings.IMAPMasterUser = string.Empty;
