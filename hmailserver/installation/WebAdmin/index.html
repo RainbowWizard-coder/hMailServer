@@ -5456,7 +5456,8 @@ async function qDigest(){
    as text in a panel: textContent, never innerHTML, whatever the message says. */
 async function qRead(id,what){
   setErr("err_quarantine","");
-  const m=Q.items.filter(x=>String(x.id)===String(id))[0]||{};
+  // In the list, or only in the answer to a search, which reaches past it.
+  const m=Q.items.concat(Q.found||[]).filter(x=>String(x.id)===String(id))[0]||{};
   try{
     const a=await api("/api/v1/quarantine/"+encodeURIComponent(id)+"/"+(what==="headers"?"headers":"preview"));
     const text=String((what==="headers"?a.headers:a.text)||"");

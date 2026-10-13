@@ -3749,7 +3749,9 @@ function answer(method, path, headers, raw) {
    if (path === '/api/v1/quarantine/expire' && method === 'POST') { return json(200, { removed: 0, retention_days: 30 }); }
    if (/^\/api\/v1\/quarantine\/\d+\/(headers|preview)$/.test(path) && method === 'GET') {
       const id = Number(segment(path, 4));
-      if (!state.quarantine.some((m) => m.id === id)) { return json(404, { error: 'quarantined message not found' }); }
+      // Any held message, as the server reads one by its id: the list's, or one
+      // held beyond it that only a search's answer brings to the page.
+      if (!state.quarantine.concat(state.quarantineOlder || []).some((m) => m.id === id)) { return json(404, { error: 'quarantined message not found' }); }
       // Hostile, as a held message's own words are: the page must show them as text.
       return segment(path, 5) === 'headers'
          ? json(200, { id, truncated: false, limit: 65536, headers: 'Received: from localhost ([192.0.2.9])\r\nFrom: <' + HOSTILE + '>\r\nSubject: <b>held</b>\r\n' })
@@ -8174,6 +8176,22 @@ async function main() {
       check('and draws what it answers whole - a match on a second recipient, which the row shows only as "+ 1 more"',
          qRows().length === 1 && !qRows()[0].hidden && qRows()[0].textContent.indexOf('An old invoice') >= 0 && qRows()[0].textContent.indexOf('ops_team') < 0, qText());
       check('saying it searched every held message', $('#qSaid').textContent === 'Searched every held message on the server. Matches: 1.', $('#qSaid').textContent);
+      // Message 7 is held beyond the list's page, and only the answer holds it: its
+      // panels are titled with its own sender and subject, not the null sender's.
+      click(act('qread', { what: 'headers', id: 7 }));
+      await flush();
+      check('the headers of a message only the answer holds are titled with its sender',
+         $('#qReadTitle') !== null && $('#qReadTitle').textContent === 'Headers of the message from old@archive.example',
+         $('#qReadTitle') ? $('#qReadTitle').textContent : 'no panel');
+      click(act('qreadclose'));
+      await flush();
+      click(act('qread', { what: 'preview', id: 7 }));
+      await flush();
+      check('and its preview with its subject',
+         $('#qReadTitle') !== null && $('#qReadTitle').textContent === 'Preview of "An old invoice"',
+         $('#qReadTitle') ? $('#qReadTitle').textContent : 'no panel');
+      click(act('qreadclose'));
+      await flush();
       before = requests.length;
       await search('');
       fireTimers();
