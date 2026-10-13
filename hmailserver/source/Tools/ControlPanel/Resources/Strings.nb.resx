@@ -2875,6 +2875,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Complete. The user's DN comes from the template, proved with a simple bind against {0} over {1} - no search and no service account needed." xml:space="preserve">
     <value>Fullstendig. Brukerens DN kommer fra malen, bevist med en simple bind mot {0} over {1} - ingen søk og ingen tjenestekonto trengs.</value>
   </data>
+  <data name="Compliance" xml:space="preserve">
+    <value>Samsvar</value>
+  </data>
   <data name="Compromise lock cleared" xml:space="preserve">
     <value>Kompromitteringslås opphevet</value>
   </data>
@@ -5056,8 +5059,8 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Everything except debug (severity 6)" xml:space="preserve">
     <value>Alt unntatt feilsøking (alvorsgrad 6)</value>
   </data>
-  <data name="Everything that decides whether a message is wanted." xml:space="preserve">
-    <value>Alt som avgjør om en melding er ønsket.</value>
+  <data name="Everything that decides whether a message is spam: the checks and their scores, the lists that let a sender through or stop it, and the quarantine." xml:space="preserve">
+    <value>Alt som avgjør om en melding er spam: kontrollene og poengene deres, listene som slipper en avsender gjennom eller stopper den, og karantenen.</value>
   </data>
   <data name="Everything, debug included (severity 7)" xml:space="preserve">
     <value>Alt, inkludert feilsøking (alvorsgrad 7)</value>
@@ -6729,8 +6732,8 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Lower the mark and refuse thresholds, or turn on more of the checks." xml:space="preserve">
     <value>Senk merke- og avvisningsterskelen, eller slå på flere av kontrollene.</value>
   </data>
-  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. To allow or block a domain outright, use the Allowed and blocked domains page, under Spam &amp; virus filtering." xml:space="preserve">
-    <value>MAIL FROM:&lt;&gt; er returstien for en leveringsrapport, og en rapport har nøyaktig én mottaker: adressen som sendte meldingen den gjelder. En tom avsender som deretter oppgir en andre mottaker, er backscatter, en forfalsket rapport eller en sondering. Av: serveren godtar den som alltid. På: den andre og hver senere RCPT TO besvares med 550, og transaksjonens DATA avvises også; en tom avsender med én mottaker røres aldri. Bare uautentiserte økter fra et IP-område som kjører søppelposttestene, og aldri en avsender blant spamunntakene. For å tillate eller blokkere et helt domene, bruk siden Tillatte og blokkerte domener under Spam- og virusfiltrering.</value>
+  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. To allow or block a domain outright, use the Allowed and blocked domains page, under Spam filtering." xml:space="preserve">
+    <value>MAIL FROM:&lt;&gt; er returstien for en leveringsrapport, og en rapport har nøyaktig én mottaker: adressen som sendte meldingen den gjelder. En tom avsender som deretter oppgir en andre mottaker, er backscatter, en forfalsket rapport eller en sondering. Av: serveren godtar den som alltid. På: den andre og hver senere RCPT TO besvares med 550, og transaksjonens DATA avvises også; en tom avsender med én mottaker røres aldri. Bare uautentiserte økter fra et IP-område som kjører søppelposttestene, og aldri en avsender blant spamunntakene. For å tillate eller blokkere et helt domene, bruk siden Tillatte og blokkerte domener under Spamfiltrering.</value>
   </data>
   <data name="MD5 (legacy)" xml:space="preserve">
     <value>MD5 (eldre)</value>
@@ -11961,9 +11964,6 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Spam" xml:space="preserve">
     <value>Spam</value>
   </data>
-  <data name="Spam &amp; virus filtering" xml:space="preserve">
-    <value>Spam- og virusfiltrering</value>
-  </data>
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Spam URI Realtime Block Lists. Meldinger der lenkene i meldingskroppen slås opp til disse vertene, får spampoeng.</value>
   </data>
@@ -11978,6 +11978,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   </data>
   <data name="Spam exemptions entry" xml:space="preserve">
     <value>Spamunntak</value>
+  </data>
+  <data name="Spam filtering" xml:space="preserve">
+    <value>Spamfiltrering</value>
   </data>
   <data name="Spam filtering overview" xml:space="preserve">
     <value>Oversikt over spamfiltrering</value>
@@ -14731,6 +14734,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="Virtual host: https://bucket.endpoint/key" xml:space="preserve">
     <value>Virtuell vert: https://bucket.endpoint/key</value>
   </data>
+  <data name="Virus scanning" xml:space="preserve">
+    <value>Virusskanning</value>
+  </data>
   <data name="Virus scanning and attachment blocking of received messages." xml:space="preserve">
     <value>Virusskanning og blokkering av vedlegg i mottatte meldinger.</value>
   </data>
@@ -15172,6 +15178,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="Which scanners can actually run, what they are asked to look at, and what happens to a message found to be infected. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
     <value>Hvilke skannere som faktisk kan kjøre, hva de bes om å se på, og hva som skjer med en melding som viser seg å være infisert. Ingenting på denne siden kan redigeres - hver del har en knapp til siden som eier innstillingene for den.</value>
   </data>
+  <data name="Which scanners examine each message, what is scanned, and what happens to a message that is found to be infected." xml:space="preserve">
+    <value>Hvilke skannere som undersøker hver melding, hva som skannes, og hva som skjer med en melding som viser seg å være infisert.</value>
+  </data>
   <data name="Which services are running, who is connected right now, and how long the server has been up." xml:space="preserve">
     <value>Hvilke tjenester som kjører, hvem som er koblet til akkurat nå, og hvor lenge serveren har vært oppe.</value>
   </data>
@@ -15192,6 +15201,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Hvem som endret hva, når, over hvilket grensesnitt og hvorfra - hver administrativ endring som én rad i en hashkjede - og en innstilling satt tilbake til verdien den hadde.</value>
+  </data>
+  <data name="Who changed what, where copies of the mail go, and what is held for a legal case." xml:space="preserve">
+    <value>Hvem som endret hva, hvor kopier av posten går, og hva som holdes tilbake for en rettssak.</value>
   </data>
   <data name="Who holds a role" xml:space="preserve">
     <value>Hvem som har en rolle</value>

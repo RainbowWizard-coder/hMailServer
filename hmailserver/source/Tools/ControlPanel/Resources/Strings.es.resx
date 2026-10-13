@@ -2875,6 +2875,9 @@ Los detalles completos se escribieron en:
   <data name="Complete. The user's DN comes from the template, proved with a simple bind against {0} over {1} - no search and no service account needed." xml:space="preserve">
     <value>Completo. El DN del usuario viene de la plantilla, probado con un bind simple contra {0} por {1} - sin búsqueda ni cuenta de servicio.</value>
   </data>
+  <data name="Compliance" xml:space="preserve">
+    <value>Cumplimiento normativo</value>
+  </data>
   <data name="Compromise lock cleared" xml:space="preserve">
     <value>Bloqueo por compromiso retirado</value>
   </data>
@@ -5056,8 +5059,8 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Everything except debug (severity 6)" xml:space="preserve">
     <value>Todo salvo depuración (gravedad 6)</value>
   </data>
-  <data name="Everything that decides whether a message is wanted." xml:space="preserve">
-    <value>Todo lo que decide si un mensaje es deseado.</value>
+  <data name="Everything that decides whether a message is spam: the checks and their scores, the lists that let a sender through or stop it, and the quarantine." xml:space="preserve">
+    <value>Todo lo que decide si un mensaje es spam: las comprobaciones y sus puntuaciones, las listas que dejan pasar o detienen a un remitente y la cuarentena.</value>
   </data>
   <data name="Everything, debug included (severity 7)" xml:space="preserve">
     <value>Todo, incluida la depuración (gravedad 7)</value>
@@ -6729,8 +6732,8 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   <data name="Lower the mark and refuse thresholds, or turn on more of the checks." xml:space="preserve">
     <value>Baje los umbrales de marcado y de rechazo, o active más comprobaciones.</value>
   </data>
-  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. To allow or block a domain outright, use the Allowed and blocked domains page, under Spam &amp; virus filtering." xml:space="preserve">
-    <value>MAIL FROM:&lt;&gt; es la ruta de retorno de un informe de entrega, y un informe tiene exactamente un destinatario: la dirección que envió el mensaje al que se refiere. Un remitente vacío que después nombra un segundo destinatario es backscatter, un informe falsificado o un sondeo. Desactivado, el servidor lo acepta como siempre. Activado, el segundo RCPT TO y cada uno posterior recibe 550 y también se rechaza el DATA de la transacción; un remitente vacío con un destinatario nunca se toca. Solo sesiones sin autenticar de un rango IP que ejecuta las pruebas antispam, y nunca un remitente de las exenciones antispam. Para permitir o bloquear un dominio por completo, use la página Dominios permitidos y bloqueados, en Filtrado de spam y virus.</value>
+  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. To allow or block a domain outright, use the Allowed and blocked domains page, under Spam filtering." xml:space="preserve">
+    <value>MAIL FROM:&lt;&gt; es la ruta de retorno de un informe de entrega, y un informe tiene exactamente un destinatario: la dirección que envió el mensaje al que se refiere. Un remitente vacío que después nombra un segundo destinatario es backscatter, un informe falsificado o un sondeo. Desactivado, el servidor lo acepta como siempre. Activado, el segundo RCPT TO y cada uno posterior recibe 550 y también se rechaza el DATA de la transacción; un remitente vacío con un destinatario nunca se toca. Solo sesiones sin autenticar de un rango IP que ejecuta las pruebas antispam, y nunca un remitente de las exenciones antispam. Para permitir o bloquear un dominio por completo, use la página Dominios permitidos y bloqueados, en Filtrado de spam.</value>
   </data>
   <data name="MD5 (legacy)" xml:space="preserve">
     <value>MD5 (heredado)</value>
@@ -11961,9 +11964,6 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Spam" xml:space="preserve">
     <value>Spam</value>
   </data>
-  <data name="Spam &amp; virus filtering" xml:space="preserve">
-    <value>Filtrado de spam y virus</value>
-  </data>
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Listas de bloqueo en tiempo real de URI de spam. Los mensajes cuyos enlaces del cuerpo resuelvan en estos hosts ganan puntuación de spam.</value>
   </data>
@@ -11978,6 +11978,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Spam exemptions entry" xml:space="preserve">
     <value>Exención antispam</value>
+  </data>
+  <data name="Spam filtering" xml:space="preserve">
+    <value>Filtrado de spam</value>
   </data>
   <data name="Spam filtering overview" xml:space="preserve">
     <value>Resumen del filtrado de spam</value>
@@ -14731,6 +14734,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="Virtual host: https://bucket.endpoint/key" xml:space="preserve">
     <value>Host virtual: https://bucket.endpoint/key</value>
   </data>
+  <data name="Virus scanning" xml:space="preserve">
+    <value>Análisis de virus</value>
+  </data>
   <data name="Virus scanning and attachment blocking of received messages." xml:space="preserve">
     <value>Análisis de virus y bloqueo de adjuntos de los mensajes recibidos.</value>
   </data>
@@ -15172,6 +15178,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="Which scanners can actually run, what they are asked to look at, and what happens to a message found to be infected. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
     <value>Qué analizadores pueden ejecutarse realmente, qué se les pide que miren y qué le ocurre a un mensaje en el que se encuentra una infección. Nada de esta página puede editarse - cada sección tiene un botón que abre la página propietaria de sus ajustes.</value>
   </data>
+  <data name="Which scanners examine each message, what is scanned, and what happens to a message that is found to be infected." xml:space="preserve">
+    <value>Qué analizadores examinan cada mensaje, qué se analiza y qué ocurre con un mensaje que resulta estar infectado.</value>
+  </data>
   <data name="Which services are running, who is connected right now, and how long the server has been up." xml:space="preserve">
     <value>Qué servicios están en marcha, quién está conectado ahora mismo y cuánto tiempo lleva el servidor funcionando.</value>
   </data>
@@ -15192,6 +15201,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Quién cambió qué, cuándo, por qué interfaz y desde dónde - cada cambio administrativo como una fila de una cadena de hash - y un ajuste restablecido al valor que tenía.</value>
+  </data>
+  <data name="Who changed what, where copies of the mail go, and what is held for a legal case." xml:space="preserve">
+    <value>Quién cambió qué, adónde van las copias del correo y qué se conserva para un caso legal.</value>
   </data>
   <data name="Who holds a role" xml:space="preserve">
     <value>Quién tiene un rol</value>

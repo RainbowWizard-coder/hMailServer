@@ -28,7 +28,7 @@ namespace hMailServer.ControlPanel.Views
    ///
    ///   - Every result names the page it lives on. A palette that silently
    ///     teleports people trains them to keep using the palette; one that says
-   ///     "Anti-spam settings, in Spam &amp; virus filtering" teaches the tree and
+   ///     "Anti-spam settings, in Spam filtering" teaches the tree and
    ///     is needed less next time. This is the whole difference between the
    ///     palette curing the findability problem and the palette hiding it.
    ///   - The results list contains section captions, which are rows that cannot

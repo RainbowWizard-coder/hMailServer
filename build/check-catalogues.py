@@ -165,7 +165,7 @@ NOT_A_CONTROL_PANEL_PAGE = ("Control Deck", "Deck's")
 
 # A place the English says something is under: "Allowed and blocked domains have a page
 # of their own under Anti-spam" sent the reader to a group the sidebar does not have -
-# the page is under Spam & virus filtering (review finding F280, found re-checking
+# the page is under Spam filtering (review finding F280, found re-checking
 # 4a53ffb35, whose page rule reads only "the X page"). A capitalised run of at most five
 # words after "under" that ends its clause has to be a page title or a group title the
 # navigation map gives. The archive's Inbound and Error folders and the registry's HKLM
@@ -630,10 +630,10 @@ def self_test():
 
    # The place rule: what a text says something is under is a page or a group.
    pages = {"Anti-spam settings", "Advanced", "Allowed and blocked domains"}
-   groups = {"Spam & virus filtering", "Sign-in & access"}
+   groups = {"Spam filtering", "Sign-in & access"}
    places = {
       "Allowed and blocked domains have a page of their own under Anti-spam.": True,
-      "Domains are allowed or blocked outright on the Allowed and blocked domains page, under Spam & virus filtering.": False,
+      "Domains are allowed or blocked outright on the Allowed and blocked domains page, under Spam filtering.": False,
       "Until it is turned on under Anti-spam settings, spam over the threshold is refused.": False,
       "The engine itself is switched on under Advanced.": False,
       "It is switched on under Anti-spam.": True,
@@ -645,7 +645,7 @@ def self_test():
       if found != expected:
          print("FAIL: %r is %s as naming a place the navigation does not have" % (text, "reported" if found else "not reported"))
          failures += 1
-   if "Spam & virus filtering" not in navigation_groups():
+   if "Spam filtering" not in navigation_groups():
       print("FAIL: the place rule does not read the navigation map's group titles")
       failures += 1
    print("self-test: %d failure(s)" % failures)

@@ -259,7 +259,7 @@ namespace hMailServer.ControlPanel.Services
       }
 
       /// <summary>
-      /// The breadcrumb as one string ("Spam &amp; virus filtering &gt; Anti-spam
+      /// The breadcrumb as one string ("Spam filtering &gt; Anti-spam
       /// settings"), for a search result that has to say where the thing it
       /// found actually lives. Uses a plain "&gt;" rather than a chevron
       /// character so it is safe in a tool tip, an accessible name and a test
@@ -743,9 +743,15 @@ namespace hMailServer.ControlPanel.Services
                            "Authentication-Results|Received-SPF|DMARC reports|DMARC aggregate reports|rua",
                   seeAlso: "certs|dns|webservices")),
 
-            Group("ShieldCheckmark24", N("Spam & virus filtering"),
-               N("Everything that decides whether a message is wanted."),
-               "Anti-spam|Antispam|Anti-virus|Antivirus|Filtering|Junk|Malware|Content filtering",
+            // Spam filtering and Virus scanning are two groups since review finding
+            // F153: the group held fourteen pages on two subjects, and the virus
+            // overview was its twelfth row, under eleven spam pages. The six sender
+            // lists stay with the spam pages, since the spam filtering overview links
+            // to every one of them (SpamPipeline.LinkedPages); the old heading is an
+            // alias of each.
+            Group("ShieldCheckmark24", N("Spam filtering"),
+               N("Everything that decides whether a message is spam: the checks and their scores, the lists that let a sender through or stop it, and the quarantine."),
+               "Spam & virus filtering|Anti-spam|Antispam|Filtering|Junk|Content filtering",
 
                // The group had five spam pages and no answer to the question an
                // administrator actually arrives with: what will all of this do to
@@ -836,7 +842,11 @@ namespace hMailServer.ControlPanel.Services
                Page("domainpolicylist", N("Allowed and blocked domains"),
                   N("Sending domains this server has decided about: an allowed one skips greylisting and the score's refusals, a blocked one is refused at MAIL FROM - by domain or HELO suffix, not by IP address."),
                   aliases: "Domain white and black list|Domain allow and block list|Domain white list|Domain black list|Domain whitelist|Domain blacklist|Always accept a domain|Never accept a domain|HELO suffix|Refuse a domain|Trust a domain whose SPF is broken|Rotating IP addresses",
-                  seeAlso: "antispam|spamwhitelist|blockedsenders"),
+                  seeAlso: "antispam|spamwhitelist|blockedsenders")),
+
+            Group("Bug24", N("Virus scanning"),
+               N("Which scanners examine each message, what is scanned, and what happens to a message that is found to be infected."),
+               "Spam & virus filtering|Anti-virus|Antivirus|Malware|Virus|Infected mail|Attachments",
 
                // The same argument as the spam overview above, and the anti-virus
                // case is sharper: the settings page can show that a scanner is
@@ -1006,6 +1016,21 @@ namespace hMailServer.ControlPanel.Services
                   seeAlso: "messagetrace|queue|delivery|domains",
                   needs: "administer_domain"),
 
+               Page("api", N("API & monitoring"),
+                  N("The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions."),
+                  aliases: "REST|Prometheus|Grafana|Metrics|Health endpoint|Nagios|Zabbix|Automation|OpenTelemetry|OTLP|Windows Event Log|Event Viewer|ManageSieve|Sieve|Sieve scripts|Graceful shutdown|Drain on stop",
+                  seeAlso: "apikeys|logging|status|webservices")),
+
+            // Its own group since review finding F152: Monitoring & troubleshooting asks
+            // whether mail is flowing, and these three answer a compliance question -
+            // who changed what, where copies of the mail go, what is held for a case.
+            // The built-in auditor holds view_discovery and not administer_server, so
+            // its sidebar shows Compliance with eDiscovery, where it showed Monitoring
+            // & troubleshooting with eDiscovery as its only row.
+            Group("Gavel24", N("Compliance"),
+               N("Who changed what, where copies of the mail go, and what is held for a legal case."),
+               "Audit|Legal|eDiscovery|Legal hold|Journal|Records",
+
                // Who changed what: every administrative change as one row of a hash
                // chain, over Utilities.GetAuditTrail, with a setting's change put back
                // from its row. The server administrator's: the trail records every
@@ -1035,12 +1060,7 @@ namespace hMailServer.ControlPanel.Services
                   N("The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck."),
                   aliases: "Discovery|Legal hold|Litigation hold|Case|Custodian|Preserve mail|Search every mailbox|Export for a lawyer|Discovery search",
                   seeAlso: "audit|journaling",
-                  needs: "view_discovery"),
-
-               Page("api", N("API & monitoring"),
-                  N("The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions."),
-                  aliases: "REST|Prometheus|Grafana|Metrics|Health endpoint|Nagios|Zabbix|Automation|OpenTelemetry|OTLP|Windows Event Log|Event Viewer|ManageSieve|Sieve|Sieve scripts|Graceful shutdown|Drain on stop",
-                  seeAlso: "apikeys|logging|status|webservices")),
+                  needs: "view_discovery")),
 
             Group("Wrench24", N("Maintenance"),
                N("Housekeeping, tuning, and the settings that still have no better home."),

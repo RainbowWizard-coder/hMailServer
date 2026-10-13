@@ -204,7 +204,7 @@ is no defence against spoofing, and stops nothing that changes its address.
 |---|---|---|---|---|---|
 | The account's own | Settings → **Safe senders** | — | — | `/api/v1/me/sender-list` | — |
 | A domain's | — | Domain → **Allow and block list** tab | Domain editor → **Allow and block list** | `/api/v1/domains/{domain}/sender-list` | `Domain.SenderList` |
-| The server's | — | Spam & virus filtering → **Allow and block list** | Lists → **Allow and block list** | `/api/v1/sender-list` | `Settings.AntiSpam.SenderList` |
+| The server's | — | Spam filtering → **Allow and block list** | Lists → **Allow and block list** | `/api/v1/sender-list` | `Settings.AntiSpam.SenderList` |
 
 An account's own list is its holder's alone: there is no administrator path to
 it, and one account's entry is `404` to another. **Block this sender** and

@@ -2895,7 +2895,7 @@ namespace hMailServer.ControlPanel.Views
          // recipient is a protocol lie, not "maybe spam", and it is answered with
          // a refusal and optionally a ban rather than points.
          var nullSender = Card(L("Null sender with several recipients"),
-            L("MAIL FROM:<> is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. To allow or block a domain outright, use the Allowed and blocked domains page, under Spam & virus filtering."));
+            L("MAIL FROM:<> is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. To allow or block a domain outright, use the Allowed and blocked domains page, under Spam filtering."));
          nullSender.Settings.Add(new ComBool
          {
             Path = "AntiSpam.RejectMultiRcptNullSender",

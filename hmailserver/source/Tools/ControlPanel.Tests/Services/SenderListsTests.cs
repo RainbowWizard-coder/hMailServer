@@ -34,7 +34,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          {
             NavNode page = NavigationMap.Find(row.Page);
             Assert.NotNull(page);
-            Assert.Equal("Spam & virus filtering", page.Parent.Title);
+            Assert.Equal("Spam filtering", page.Parent.Title);
             Assert.False(string.IsNullOrWhiteSpace(row.When));
             Assert.False(string.IsNullOrWhiteSpace(row.Matches));
             Assert.False(string.IsNullOrWhiteSpace(row.Does));

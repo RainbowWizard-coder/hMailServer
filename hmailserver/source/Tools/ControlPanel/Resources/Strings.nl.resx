@@ -2875,6 +2875,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Complete. The user's DN comes from the template, proved with a simple bind against {0} over {1} - no search and no service account needed." xml:space="preserve">
     <value>Compleet. De DN van de gebruiker komt uit het sjabloon en wordt bewezen met een simple bind tegen {0} via {1} - geen zoekopdracht en geen serviceaccount nodig.</value>
   </data>
+  <data name="Compliance" xml:space="preserve">
+    <value>Compliance</value>
+  </data>
   <data name="Compromise lock cleared" xml:space="preserve">
     <value>Compromitteringsvergrendeling opgeheven</value>
   </data>
@@ -5056,8 +5059,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Everything except debug (severity 6)" xml:space="preserve">
     <value>Alles behalve debug (ernst 6)</value>
   </data>
-  <data name="Everything that decides whether a message is wanted." xml:space="preserve">
-    <value>Alles wat bepaalt of een bericht gewenst is.</value>
+  <data name="Everything that decides whether a message is spam: the checks and their scores, the lists that let a sender through or stop it, and the quarantine." xml:space="preserve">
+    <value>Alles wat bepaalt of een bericht spam is: de controles en hun scores, de lijsten die een afzender doorlaten of tegenhouden, en de quarantaine.</value>
   </data>
   <data name="Everything, debug included (severity 7)" xml:space="preserve">
     <value>Alles, inclusief debug (ernst 7)</value>
@@ -6729,8 +6732,8 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Lower the mark and refuse thresholds, or turn on more of the checks." xml:space="preserve">
     <value>Verlaag de markeer- en weigerdrempels, of schakel meer van de controles in.</value>
   </data>
-  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. To allow or block a domain outright, use the Allowed and blocked domains page, under Spam &amp; virus filtering." xml:space="preserve">
-    <value>MAIL FROM:&lt;&gt; is het retourpad van een bezorgrapport, en een rapport heeft precies één ontvanger: het adres dat het betreffende bericht verzond. Een lege afzender die daarna een tweede ontvanger noemt, is backscatter, een vervalst rapport of een aftasting. Uit: de server accepteert hem zoals altijd. Aan: de tweede en elke volgende RCPT TO krijgt 550 en ook de DATA van de transactie wordt geweigerd; een lege afzender met één ontvanger wordt nooit aangeraakt. Alleen niet-geauthenticeerde sessies van een IP-bereik dat de spamtests uitvoert, en nooit een afzender uit de spamuitzonderingen. Gebruik de pagina Toegestane en geblokkeerde domeinen, onder Spam- en virusfiltering, om een heel domein toe te staan of te blokkeren.</value>
+  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. To allow or block a domain outright, use the Allowed and blocked domains page, under Spam filtering." xml:space="preserve">
+    <value>MAIL FROM:&lt;&gt; is het retourpad van een bezorgrapport, en een rapport heeft precies één ontvanger: het adres dat het betreffende bericht verzond. Een lege afzender die daarna een tweede ontvanger noemt, is backscatter, een vervalst rapport of een aftasting. Uit: de server accepteert hem zoals altijd. Aan: de tweede en elke volgende RCPT TO krijgt 550 en ook de DATA van de transactie wordt geweigerd; een lege afzender met één ontvanger wordt nooit aangeraakt. Alleen niet-geauthenticeerde sessies van een IP-bereik dat de spamtests uitvoert, en nooit een afzender uit de spamuitzonderingen. Gebruik de pagina Toegestane en geblokkeerde domeinen, onder Spamfiltering, om een heel domein toe te staan of te blokkeren.</value>
   </data>
   <data name="MD5 (legacy)" xml:space="preserve">
     <value>MD5 (verouderd)</value>
@@ -11961,9 +11964,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Spam" xml:space="preserve">
     <value>Spam</value>
   </data>
-  <data name="Spam &amp; virus filtering" xml:space="preserve">
-    <value>Spam- en virusfiltering</value>
-  </data>
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Spam URI Realtime Block Lists. Berichten waarvan de links in de berichttekst op deze hosts oplossen, krijgen spamscore.</value>
   </data>
@@ -11978,6 +11978,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Spam exemptions entry" xml:space="preserve">
     <value>Spamuitzondering</value>
+  </data>
+  <data name="Spam filtering" xml:space="preserve">
+    <value>Spamfiltering</value>
   </data>
   <data name="Spam filtering overview" xml:space="preserve">
     <value>Overzicht van spamfiltering</value>
@@ -14731,6 +14734,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Virtual host: https://bucket.endpoint/key" xml:space="preserve">
     <value>Virtuele host: https://bucket.endpoint/key</value>
   </data>
+  <data name="Virus scanning" xml:space="preserve">
+    <value>Virusscannen</value>
+  </data>
   <data name="Virus scanning and attachment blocking of received messages." xml:space="preserve">
     <value>Virusscannen en het blokkeren van bijlagen bij ontvangen berichten.</value>
   </data>
@@ -15172,6 +15178,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Which scanners can actually run, what they are asked to look at, and what happens to a message found to be infected. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
     <value>Welke scanners echt kunnen draaien, wat hun wordt gevraagd te bekijken, en wat er gebeurt met een bericht dat geïnfecteerd blijkt. Op deze pagina kan niets worden bewerkt - elke sectie heeft een knop naar de pagina waar de instellingen ervan thuishoren.</value>
   </data>
+  <data name="Which scanners examine each message, what is scanned, and what happens to a message that is found to be infected." xml:space="preserve">
+    <value>Welke scanners elk bericht onderzoeken, wat er wordt gescand en wat er gebeurt met een bericht dat besmet blijkt.</value>
+  </data>
   <data name="Which services are running, who is connected right now, and how long the server has been up." xml:space="preserve">
     <value>Welke services draaien, wie er op dit moment verbonden is, en hoe lang de server al draait.</value>
   </data>
@@ -15192,6 +15201,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Wie wat wanneer wijzigde, via welke interface en van waar - elke beheerwijziging als één rij in een hashketen - en een instelling teruggezet naar de waarde die ze had.</value>
+  </data>
+  <data name="Who changed what, where copies of the mail go, and what is held for a legal case." xml:space="preserve">
+    <value>Wie wat heeft gewijzigd, waar kopieën van de mail naartoe gaan en wat er voor een juridische zaak wordt bewaard.</value>
   </data>
   <data name="Who holds a role" xml:space="preserve">
     <value>Wie een rol heeft</value>

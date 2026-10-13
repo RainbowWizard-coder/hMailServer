@@ -2886,6 +2886,9 @@
   <data name="Complete. The user's DN comes from the template, proved with a simple bind against {0} over {1} - no search and no service account needed." xml:space="preserve">
     <value>完了。ユーザーの DN はテンプレートから得られ、{1} 経由で {0} に対するシンプル バインドで証明されます。検索もサービス アカウントも不要です。</value>
   </data>
+  <data name="Compliance" xml:space="preserve">
+    <value>コンプライアンス</value>
+  </data>
   <data name="Compromise lock cleared" xml:space="preserve">
     <value>侵害によるロックを解除</value>
   </data>
@@ -5067,8 +5070,8 @@
   <data name="Everything except debug (severity 6)" xml:space="preserve">
     <value>デバッグ以外のすべて (重大度 6)</value>
   </data>
-  <data name="Everything that decides whether a message is wanted." xml:space="preserve">
-    <value>メッセージが望まれているかどうかを決めるすべて。</value>
+  <data name="Everything that decides whether a message is spam: the checks and their scores, the lists that let a sender through or stop it, and the quarantine." xml:space="preserve">
+    <value>メッセージがスパムかどうかを決めるすべて: チェックとそのスコア、送信者を通すか止めるリスト、そして検疫。</value>
   </data>
   <data name="Everything, debug included (severity 7)" xml:space="preserve">
     <value>デバッグを含むすべて (重大度 7)</value>
@@ -6740,8 +6743,8 @@
   <data name="Lower the mark and refuse thresholds, or turn on more of the checks." xml:space="preserve">
     <value>マークと拒否のしきい値を下げるか、より多くのチェックをオンにしてください。</value>
   </data>
-  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. To allow or block a domain outright, use the Allowed and blocked domains page, under Spam &amp; virus filtering." xml:space="preserve">
-    <value>MAIL FROM:&lt;&gt; は配信レポートの返送経路であり、レポートの宛先はちょうど 1 つ、すなわち対象メッセージを送った送信元アドレスです。空の送信者がその後に 2 つ目の宛先を指定するなら、それはバックスキャッター、偽造レポート、または探査です。オフの場合、サーバーは従来どおり受け入れます。オンの場合、2 つ目以降の RCPT TO には 550 を返し、そのトランザクションの DATA も拒否します。宛先が 1 つの空の送信者には一切触れません。スパムテストを実行する IP 範囲からの未認証セッションのみが対象で、スパム対策の除外にある送信者には決して適用されません。ドメイン全体を許可またはブロックするには、[スパムとウイルスのフィルタリング] の下にある [許可・ブロックするドメイン] ページを使用します。</value>
+  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. To allow or block a domain outright, use the Allowed and blocked domains page, under Spam filtering." xml:space="preserve">
+    <value>MAIL FROM:&lt;&gt; は配信レポートの返送経路であり、レポートの宛先はちょうど 1 つ、すなわち対象メッセージを送った送信元アドレスです。空の送信者がその後に 2 つ目の宛先を指定するなら、それはバックスキャッター、偽造レポート、または探査です。オフの場合、サーバーは従来どおり受け入れます。オンの場合、2 つ目以降の RCPT TO には 550 を返し、そのトランザクションの DATA も拒否します。宛先が 1 つの空の送信者には一切触れません。スパムテストを実行する IP 範囲からの未認証セッションのみが対象で、スパム対策の除外にある送信者には決して適用されません。ドメイン全体を許可またはブロックするには、[スパム フィルタリング] の下にある [許可・ブロックするドメイン] ページを使用します。</value>
   </data>
   <data name="MD5 (legacy)" xml:space="preserve">
     <value>MD5 (レガシ)</value>
@@ -11972,9 +11975,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Spam" xml:space="preserve">
     <value>スパム</value>
   </data>
-  <data name="Spam &amp; virus filtering" xml:space="preserve">
-    <value>スパムとウイルスのフィルタリング</value>
-  </data>
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Spam URI Realtime Block Lists。本文内のリンクがこれらのホストに解決されるメッセージにはスパム スコアが加算されます。</value>
   </data>
@@ -11989,6 +11989,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Spam exemptions entry" xml:space="preserve">
     <value>スパム対策の除外</value>
+  </data>
+  <data name="Spam filtering" xml:space="preserve">
+    <value>スパム フィルタリング</value>
   </data>
   <data name="Spam filtering overview" xml:space="preserve">
     <value>スパム フィルタリングの概要</value>
@@ -14742,6 +14745,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Virtual host: https://bucket.endpoint/key" xml:space="preserve">
     <value>仮想ホスト: https://bucket.endpoint/key</value>
   </data>
+  <data name="Virus scanning" xml:space="preserve">
+    <value>ウイルス スキャン</value>
+  </data>
   <data name="Virus scanning and attachment blocking of received messages." xml:space="preserve">
     <value>受信メッセージのウイルス スキャンと添付ファイルのブロック。</value>
   </data>
@@ -15183,6 +15189,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Which scanners can actually run, what they are asked to look at, and what happens to a message found to be infected. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
     <value>実際に実行できるスキャナー、スキャナーが見るように指示されるもの、感染が見つかったメッセージの扱い。このページでは何も編集できません。各セクションに、その設定を持つページを開くボタンがあります。</value>
   </data>
+  <data name="Which scanners examine each message, what is scanned, and what happens to a message that is found to be infected." xml:space="preserve">
+    <value>各メッセージを調べるスキャナー、スキャンの対象、感染が見つかったメッセージの扱い。</value>
+  </data>
   <data name="Which services are running, who is connected right now, and how long the server has been up." xml:space="preserve">
     <value>どのサービスが実行中か、今誰が接続しているか、サーバーの稼働時間。</value>
   </data>
@@ -15203,6 +15212,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>誰が何をいつ、どのインターフェースでどこから変更したか (すべての管理上の変更をハッシュチェーンの 1 行として)、そして設定を以前の値に戻します。</value>
+  </data>
+  <data name="Who changed what, where copies of the mail go, and what is held for a legal case." xml:space="preserve">
+    <value>誰が何を変更したか、メールのコピーがどこへ送られるか、法的案件のために何が保全されているか。</value>
   </data>
   <data name="Who holds a role" xml:space="preserve">
     <value>ロールを持つアカウント</value>

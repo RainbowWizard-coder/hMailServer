@@ -519,17 +519,17 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       /// <summary>
       /// The overview is the first thing in the group. It is the page an
-      /// administrator opening "Spam &amp; virus filtering" should meet first, and
+      /// administrator opening "Spam filtering" should meet first, and
       /// putting it below five editors would leave the group looking exactly as it
       /// did.
       /// </summary>
       [Fact]
       public void TheOverview_IsTheFirstPageOfTheSpamGroup()
       {
-         NavNode group = NavigationMap.Groups.Single(g => g.Title == "Spam & virus filtering");
+         NavNode group = NavigationMap.Groups.Single(g => g.Title == "Spam filtering");
 
          Assert.Equal("spamoverview", group.Children.First(c => c.IsPage).Key);
-         Assert.Equal("Spam & virus filtering", NavigationMap.GroupOf("spamoverview"));
+         Assert.Equal("Spam filtering", NavigationMap.GroupOf("spamoverview"));
       }
 
       /// <summary>
@@ -538,22 +538,19 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// added to the group, or renamed, or moved, this fails until the overview
       /// knows about it.
       ///
-      /// The three anti-virus pages are deliberately excluded - they are in the same
-      /// group but not part of the spam score - and so is the overview itself.
-      /// `virusoverview` joined that list when it was added: it is the virus half's
-      /// own overview, and a row on the spam overview links to the page that owns a
-      /// spam check, which no virus page does.
+      /// The overview itself is excluded. The three anti-virus pages, which this
+      /// list excluded while they shared the group, are in Virus scanning since
+      /// review finding F153.
       /// </summary>
       [Fact]
       public void TheOverview_LinksToEverySpamPageInItsGroup()
       {
-         NavNode group = NavigationMap.Groups.Single(g => g.Title == "Spam & virus filtering");
+         NavNode group = NavigationMap.Groups.Single(g => g.Title == "Spam filtering");
 
          var spamPages = group.Children
             .Where(c => c.IsPage)
             .Select(c => c.Key)
-            .Where(key => key != "spamoverview"
-                          && key != "virusoverview" && key != "antivirus" && key != "blockedattachments")
+            .Where(key => key != "spamoverview")
             .OrderBy(key => key, StringComparer.Ordinal)
             .ToList();
 

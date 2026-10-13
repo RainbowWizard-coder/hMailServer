@@ -2908,6 +2908,9 @@ Control Panel может читать файлы сообщений только
   <data name="Complete. The user's DN comes from the template, proved with a simple bind against {0} over {1} - no search and no service account needed." xml:space="preserve">
     <value>Настройка полна. DN пользователя берётся из шаблона и проверяется простой привязкой к {0} по {1} — ни поиск, ни служебная учётная запись не нужны.</value>
   </data>
+  <data name="Compliance" xml:space="preserve">
+    <value>Соответствие требованиям</value>
+  </data>
   <data name="Compromise lock cleared" xml:space="preserve">
     <value>Блокировка из-за компрометации снята</value>
   </data>
@@ -5123,8 +5126,8 @@ Control Panel может читать файлы сообщений только
   <data name="Everything except debug (severity 6)" xml:space="preserve">
     <value>Всё, кроме отладки (важность 6)</value>
   </data>
-  <data name="Everything that decides whether a message is wanted." xml:space="preserve">
-    <value>Всё, что решает, нужное ли это сообщение.</value>
+  <data name="Everything that decides whether a message is spam: the checks and their scores, the lists that let a sender through or stop it, and the quarantine." xml:space="preserve">
+    <value>Всё, что решает, спам ли это сообщение: проверки и их баллы, списки, которые пропускают или останавливают отправителя, и карантин.</value>
   </data>
   <data name="Everything, debug included (severity 7)" xml:space="preserve">
     <value>Всё, включая отладку (важность 7)</value>
@@ -6811,8 +6814,8 @@ Control Panel может читать файлы сообщений только
   <data name="Lower the mark and refuse thresholds, or turn on more of the checks." xml:space="preserve">
     <value>Снизьте пороги пометки и отклонения или включите больше проверок.</value>
   </data>
-  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. To allow or block a domain outright, use the Allowed and blocked domains page, under Spam &amp; virus filtering." xml:space="preserve">
-    <value>MAIL FROM:&lt;&gt; - это обратный путь отчёта о доставке, а у отчёта ровно один получатель: адрес, отправивший письмо, о котором идёт речь. Пустой отправитель, который затем называет второго получателя, - это backscatter, поддельный отчёт или зондирование. Выключено: сервер принимает его, как и всегда. Включено: на второй и каждый следующий RCPT TO даётся 550, а DATA транзакции тоже отклоняется; пустой отправитель с одним получателем не затрагивается никогда. Только неаутентифицированные сеансы из диапазона IP, для которого выполняются антиспам-проверки, и никогда - отправитель из исключений антиспама. Чтобы разрешить или заблокировать домен целиком, используйте страницу «Разрешённые и заблокированные домены» в разделе «Фильтрация спама и вирусов».</value>
+  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. To allow or block a domain outright, use the Allowed and blocked domains page, under Spam filtering." xml:space="preserve">
+    <value>MAIL FROM:&lt;&gt; - это обратный путь отчёта о доставке, а у отчёта ровно один получатель: адрес, отправивший письмо, о котором идёт речь. Пустой отправитель, который затем называет второго получателя, - это backscatter, поддельный отчёт или зондирование. Выключено: сервер принимает его, как и всегда. Включено: на второй и каждый следующий RCPT TO даётся 550, а DATA транзакции тоже отклоняется; пустой отправитель с одним получателем не затрагивается никогда. Только неаутентифицированные сеансы из диапазона IP, для которого выполняются антиспам-проверки, и никогда - отправитель из исключений антиспама. Чтобы разрешить или заблокировать домен целиком, используйте страницу «Разрешённые и заблокированные домены» в разделе «Фильтрация спама».</value>
   </data>
   <data name="MD5 (legacy)" xml:space="preserve">
     <value>MD5 (устаревший)</value>
@@ -12115,9 +12118,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Spam" xml:space="preserve">
     <value>Спам</value>
   </data>
-  <data name="Spam &amp; virus filtering" xml:space="preserve">
-    <value>Фильтрация спама и вирусов</value>
-  </data>
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Spam URI Realtime Block Lists. Сообщения, ссылки в теле которых разрешаются на этих узлах, получают оценку спама.</value>
   </data>
@@ -12132,6 +12132,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Spam exemptions entry" xml:space="preserve">
     <value>Исключение антиспама</value>
+  </data>
+  <data name="Spam filtering" xml:space="preserve">
+    <value>Фильтрация спама</value>
   </data>
   <data name="Spam filtering overview" xml:space="preserve">
     <value>Обзор фильтрации спама</value>
@@ -14921,6 +14924,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Virtual host: https://bucket.endpoint/key" xml:space="preserve">
     <value>Виртуальный узел: https://bucket.endpoint/key</value>
   </data>
+  <data name="Virus scanning" xml:space="preserve">
+    <value>Антивирусное сканирование</value>
+  </data>
   <data name="Virus scanning and attachment blocking of received messages." xml:space="preserve">
     <value>Антивирусное сканирование и блокировка вложений в полученных сообщениях.</value>
   </data>
@@ -15362,6 +15368,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Which scanners can actually run, what they are asked to look at, and what happens to a message found to be infected. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
     <value>Какие сканеры действительно могут работать, на что их просят смотреть и что происходит с сообщением, в котором найдено заражение. На этой странице ничего нельзя редактировать - в каждом разделе есть кнопка, открывающая страницу, которой принадлежат его параметры.</value>
   </data>
+  <data name="Which scanners examine each message, what is scanned, and what happens to a message that is found to be infected." xml:space="preserve">
+    <value>Какие сканеры проверяют каждое сообщение, что сканируется и что происходит с сообщением, в котором найден вирус.</value>
+  </data>
   <data name="Which services are running, who is connected right now, and how long the server has been up." xml:space="preserve">
     <value>Какие службы работают, кто подключён прямо сейчас и как долго сервер работает.</value>
   </data>
@@ -15382,6 +15391,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Кто что изменил, когда, через какой интерфейс и откуда — каждое административное изменение как одна строка хеш-цепочки — и настройка, возвращённая к значению, которое она имела.</value>
+  </data>
+  <data name="Who changed what, where copies of the mail go, and what is held for a legal case." xml:space="preserve">
+    <value>Кто что изменил, куда уходят копии почты и что удерживается для судебного дела.</value>
   </data>
   <data name="Who holds a role" xml:space="preserve">
     <value>У кого есть роль</value>

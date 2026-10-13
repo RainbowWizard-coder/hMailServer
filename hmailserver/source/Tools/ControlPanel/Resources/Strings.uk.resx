@@ -2908,6 +2908,9 @@
   <data name="Complete. The user's DN comes from the template, proved with a simple bind against {0} over {1} - no search and no service account needed." xml:space="preserve">
     <value>Налаштування повне. DN користувача береться з шаблону й перевіряється простою прив’язкою до {0} через {1} — ні пошук, ні обліковий запис служби не потрібні.</value>
   </data>
+  <data name="Compliance" xml:space="preserve">
+    <value>Відповідність вимогам</value>
+  </data>
   <data name="Compromise lock cleared" xml:space="preserve">
     <value>Блокування через компрометацію знято</value>
   </data>
@@ -5123,8 +5126,8 @@
   <data name="Everything except debug (severity 6)" xml:space="preserve">
     <value>Усе, крім налагодження (важливість 6)</value>
   </data>
-  <data name="Everything that decides whether a message is wanted." xml:space="preserve">
-    <value>Усе, що вирішує, чи є повідомлення бажаним.</value>
+  <data name="Everything that decides whether a message is spam: the checks and their scores, the lists that let a sender through or stop it, and the quarantine." xml:space="preserve">
+    <value>Усе, що вирішує, чи є повідомлення спамом: перевірки та їхні бали, списки, які пропускають або зупиняють відправника, і карантин.</value>
   </data>
   <data name="Everything, debug included (severity 7)" xml:space="preserve">
     <value>Усе, включно з налагодженням (важливість 7)</value>
@@ -6811,8 +6814,8 @@
   <data name="Lower the mark and refuse thresholds, or turn on more of the checks." xml:space="preserve">
     <value>Знизьте пороги позначення та відхилення або ввімкніть більше перевірок.</value>
   </data>
-  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. To allow or block a domain outright, use the Allowed and blocked domains page, under Spam &amp; virus filtering." xml:space="preserve">
-    <value>MAIL FROM:&lt;&gt; - це зворотний шлях звіту про доставку, а звіт має рівно одного одержувача: адресу, яка надіслала лист, про який ідеться. Порожній відправник, який потім називає другого одержувача, - це backscatter, підроблений звіт або зондування. Вимкнено: сервер приймає його, як і завжди. Увімкнено: на другий і кожен наступний RCPT TO дається 550, а DATA транзакції теж відхиляється; порожнього відправника з одним одержувачем ніколи не зачіпають. Лише неавтентифіковані сеанси з діапазону IP, для якого виконуються антиспам-перевірки, і ніколи - відправник із винятків антиспаму. Щоб дозволити або заблокувати домен повністю, скористайтеся сторінкою «Дозволені й заблоковані домени» в розділі «Фільтрація спаму та вірусів».</value>
+  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. To allow or block a domain outright, use the Allowed and blocked domains page, under Spam filtering." xml:space="preserve">
+    <value>MAIL FROM:&lt;&gt; - це зворотний шлях звіту про доставку, а звіт має рівно одного одержувача: адресу, яка надіслала лист, про який ідеться. Порожній відправник, який потім називає другого одержувача, - це backscatter, підроблений звіт або зондування. Вимкнено: сервер приймає його, як і завжди. Увімкнено: на другий і кожен наступний RCPT TO дається 550, а DATA транзакції теж відхиляється; порожнього відправника з одним одержувачем ніколи не зачіпають. Лише неавтентифіковані сеанси з діапазону IP, для якого виконуються антиспам-перевірки, і ніколи - відправник із винятків антиспаму. Щоб дозволити або заблокувати домен повністю, скористайтеся сторінкою «Дозволені й заблоковані домени» в розділі «Фільтрація спаму».</value>
   </data>
   <data name="MD5 (legacy)" xml:space="preserve">
     <value>MD5 (застарілий)</value>
@@ -12115,9 +12118,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Spam" xml:space="preserve">
     <value>Спам</value>
   </data>
-  <data name="Spam &amp; virus filtering" xml:space="preserve">
-    <value>Фільтрація спаму та вірусів</value>
-  </data>
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Списки блокування URI спаму в реальному часі. Повідомлення, посилання в тілі яких розв'язуються на ці вузли, отримують оцінку спаму.</value>
   </data>
@@ -12132,6 +12132,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Spam exemptions entry" xml:space="preserve">
     <value>Виняток антиспаму</value>
+  </data>
+  <data name="Spam filtering" xml:space="preserve">
+    <value>Фільтрація спаму</value>
   </data>
   <data name="Spam filtering overview" xml:space="preserve">
     <value>Огляд фільтрації спаму</value>
@@ -14921,6 +14924,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Virtual host: https://bucket.endpoint/key" xml:space="preserve">
     <value>Віртуальний вузол: https://bucket.endpoint/key</value>
   </data>
+  <data name="Virus scanning" xml:space="preserve">
+    <value>Антивірусне сканування</value>
+  </data>
   <data name="Virus scanning and attachment blocking of received messages." xml:space="preserve">
     <value>Антивірусне сканування та блокування вкладень в отриманих повідомленнях.</value>
   </data>
@@ -15362,6 +15368,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Which scanners can actually run, what they are asked to look at, and what happens to a message found to be infected. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
     <value>Які сканери справді можуть працювати, на що їх просять дивитися і що відбувається з повідомленням, у якому знайдено зараження. На цій сторінці нічого не можна редагувати - у кожному розділі є кнопка, що відкриває сторінку, якій належать його параметри.</value>
   </data>
+  <data name="Which scanners examine each message, what is scanned, and what happens to a message that is found to be infected." xml:space="preserve">
+    <value>Які сканери перевіряють кожне повідомлення, що сканується і що відбувається з повідомленням, у якому знайдено вірус.</value>
+  </data>
   <data name="Which services are running, who is connected right now, and how long the server has been up." xml:space="preserve">
     <value>Які служби працюють, хто під'єднаний просто зараз і як довго сервер працює.</value>
   </data>
@@ -15382,6 +15391,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Хто що змінив, коли, через який інтерфейс і звідки — кожна адміністративна зміна як один рядок хеш-ланцюга — і налаштування, повернуте до значення, яке воно мало.</value>
+  </data>
+  <data name="Who changed what, where copies of the mail go, and what is held for a legal case." xml:space="preserve">
+    <value>Хто що змінив, куди йдуть копії пошти і що утримується для судової справи.</value>
   </data>
   <data name="Who holds a role" xml:space="preserve">
     <value>Хто має роль</value>

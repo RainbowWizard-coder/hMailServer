@@ -148,7 +148,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       /// <summary>
       /// No two rows of the rail share a glyph, and no two neighbours are drawn from
-      /// the same family: Spam &amp; virus filtering's ShieldCheckmark24 and Sign-in &amp;
+      /// the same family: the spam group's ShieldCheckmark24 and Sign-in &amp;
       /// access's ShieldKeyhole24 were two near-identical shields side by side at 18
       /// pixels.
       /// </summary>

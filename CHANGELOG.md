@@ -4649,6 +4649,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   trail's Action for a new object and an eDiscovery case's state, and the two catalogues wrote it as the time of
   creation, 作成日時 and 创建时间, beside 更新 and 削除. They say 作成 and 已创建 now; `JapaneseStyleTests` holds both.
 
+- **Changed: the sidebar has a Compliance group and a Virus scanning group, and the spam group is Spam filtering.**
+  Monitoring & troubleshooting asks whether mail is flowing, and its last rows were the audit trail, journaling and
+  eDiscovery, which answer a compliance question: who changed what, where copies of the mail go and what is held for a
+  legal case. They are the new Compliance group after it, under a gavel, unchanged and in the same order, so the
+  built-in auditor, which may open eDiscovery alone, sees Compliance with eDiscovery where it saw Monitoring &
+  troubleshooting with eDiscovery as its only row. Spam & virus filtering held fourteen pages on two subjects, the
+  virus scanning overview its twelfth row under eleven spam pages: the three virus pages are Virus scanning now, after
+  it, under a bug, the overview first, and the group is Spam filtering, whose description names the checks, the lists
+  and the quarantine and no virus. The old heading is a search alias of both groups and every page keeps its key, so
+  links, tours, Related links and automation ids arrive as before; the Allowed and blocked domains page's place in the
+  null-sender card's text says Spam filtering in every language. At 760 by 520 the rail's last glyphs are below the
+  fold, as the owner accepted (review findings F152 and F153, decision of 12 October 2026). `SidebarStructureTests`
+  holds the two groups, their glyphs, their pages and the auditor's sidebar.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

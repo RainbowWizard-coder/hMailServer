@@ -2908,6 +2908,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Complete. The user's DN comes from the template, proved with a simple bind against {0} over {1} - no search and no service account needed." xml:space="preserve">
     <value>Kompletní. DN uživatele pochází ze šablony a prokazuje se jednoduchým bindem proti {0} přes {1} – není potřeba žádné hledání ani účet služby.</value>
   </data>
+  <data name="Compliance" xml:space="preserve">
+    <value>Dodržování předpisů</value>
+  </data>
   <data name="Compromise lock cleared" xml:space="preserve">
     <value>Zámek kompromitace zrušen</value>
   </data>
@@ -5123,8 +5126,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Everything except debug (severity 6)" xml:space="preserve">
     <value>Vše kromě ladění (závažnost 6)</value>
   </data>
-  <data name="Everything that decides whether a message is wanted." xml:space="preserve">
-    <value>Vše, co rozhoduje, zda je zpráva žádoucí.</value>
+  <data name="Everything that decides whether a message is spam: the checks and their scores, the lists that let a sender through or stop it, and the quarantine." xml:space="preserve">
+    <value>Vše, co rozhoduje, zda je zpráva spam: kontroly a jejich skóre, seznamy, které odesílatele propustí nebo zastaví, a karanténa.</value>
   </data>
   <data name="Everything, debug included (severity 7)" xml:space="preserve">
     <value>Vše včetně ladění (závažnost 7)</value>
@@ -6811,8 +6814,8 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Lower the mark and refuse thresholds, or turn on more of the checks." xml:space="preserve">
     <value>Snižte prahy pro označení a odmítnutí, nebo zapněte více kontrol.</value>
   </data>
-  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. To allow or block a domain outright, use the Allowed and blocked domains page, under Spam &amp; virus filtering." xml:space="preserve">
-    <value>MAIL FROM:&lt;&gt; je zpáteční cesta zprávy o doručení a taková zpráva má přesně jednoho příjemce: adresu, která odeslala zprávu, jíž se týká. Prázdný odesílatel, který pak uvede druhého příjemce, je backscatter, podvržená zpráva o doručení nebo sonda. Vypnuto: server jej přijme jako vždy. Zapnuto: druhé a každé další RCPT TO dostane 550 a odmítne se i DATA transakce; prázdného odesílatele s jedním příjemcem se to nikdy nedotkne. Jen neověřené relace z rozsahu IP, který spouští antispamové testy, a nikdy odesílatel z výjimek z antispamu. Doménu jako celek povolíte nebo zablokujete na stránce Povolené a blokované domény ve skupině Filtrování spamu a virů.</value>
+  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. To allow or block a domain outright, use the Allowed and blocked domains page, under Spam filtering." xml:space="preserve">
+    <value>MAIL FROM:&lt;&gt; je zpáteční cesta zprávy o doručení a taková zpráva má přesně jednoho příjemce: adresu, která odeslala zprávu, jíž se týká. Prázdný odesílatel, který pak uvede druhého příjemce, je backscatter, podvržená zpráva o doručení nebo sonda. Vypnuto: server jej přijme jako vždy. Zapnuto: druhé a každé další RCPT TO dostane 550 a odmítne se i DATA transakce; prázdného odesílatele s jedním příjemcem se to nikdy nedotkne. Jen neověřené relace z rozsahu IP, který spouští antispamové testy, a nikdy odesílatel z výjimek z antispamu. Doménu jako celek povolíte nebo zablokujete na stránce Povolené a blokované domény ve skupině Filtrování spamu.</value>
   </data>
   <data name="MD5 (legacy)" xml:space="preserve">
     <value>MD5 (zastaralé)</value>
@@ -12115,9 +12118,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Spam" xml:space="preserve">
     <value>Spam</value>
   </data>
-  <data name="Spam &amp; virus filtering" xml:space="preserve">
-    <value>Filtrování spamu a virů</value>
-  </data>
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Spam URI Realtime Block Lists. Zprávy, jejichž odkazy v těle se na těchto hostitelích najdou, získají spamové skóre.</value>
   </data>
@@ -12132,6 +12132,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Spam exemptions entry" xml:space="preserve">
     <value>Výjimka z antispamu</value>
+  </data>
+  <data name="Spam filtering" xml:space="preserve">
+    <value>Filtrování spamu</value>
   </data>
   <data name="Spam filtering overview" xml:space="preserve">
     <value>Přehled filtrování spamu</value>
@@ -14921,6 +14924,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Virtual host: https://bucket.endpoint/key" xml:space="preserve">
     <value>Virtuální hostitel: https://bucket.endpoint/key</value>
   </data>
+  <data name="Virus scanning" xml:space="preserve">
+    <value>Antivirová kontrola</value>
+  </data>
   <data name="Virus scanning and attachment blocking of received messages." xml:space="preserve">
     <value>Antivirová kontrola a blokování příloh přijatých zpráv.</value>
   </data>
@@ -15362,6 +15368,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Which scanners can actually run, what they are asked to look at, and what happens to a message found to be infected. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
     <value>Které skenery skutečně mohou běžet, na co se mají dívat a co se stane se zprávou, v níž najdou nákazu. Na této stránce nelze nic upravovat - každá část má tlačítko, které otevře stránku, jíž patří její nastavení.</value>
   </data>
+  <data name="Which scanners examine each message, what is scanned, and what happens to a message that is found to be infected." xml:space="preserve">
+    <value>Které kontroly prověřují každou zprávu, co se kontroluje a co se stane se zprávou, u níž se zjistí nákaza.</value>
+  </data>
   <data name="Which services are running, who is connected right now, and how long the server has been up." xml:space="preserve">
     <value>Které služby běží, kdo je právě připojen a jak dlouho server běží.</value>
   </data>
@@ -15382,6 +15391,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Kdo změnil co, kdy, přes jaké rozhraní a odkud - každá administrativní změna jako jeden řádek v hašovacím řetězu - a nastavení vrácené na hodnotu, kterou mělo.</value>
+  </data>
+  <data name="Who changed what, where copies of the mail go, and what is held for a legal case." xml:space="preserve">
+    <value>Kdo co změnil, kam odcházejí kopie pošty a co je zadrženo kvůli právnímu případu.</value>
   </data>
   <data name="Who holds a role" xml:space="preserve">
     <value>Kdo má přidělenou roli</value>
