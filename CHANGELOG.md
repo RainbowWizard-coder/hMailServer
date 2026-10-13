@@ -4751,6 +4751,21 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   put the previous release back names the backup destination that Backup, restore & migration sets, where both used
   the pages' old titles, which only a search alias still found.
 
+- **Fixed: a Control Panel signed in to a server on another machine shows the server's hMailServer.ini values on the
+  settings pages that hold them beside the server's other settings, and saves them.** On Protocols, Delivery of
+  e-mail, Logging, Monitoring & alerts, Advanced and the other pages of that kind, the switches, texts, choices and
+  numbers kept under [Settings] were read and written only when hMailServer.ini was on this computer, so that a remote
+  Control Panel showed each at its default as though it were the server's value, and a save left it unwritten and said
+  it was saved. Among them were the rows this release moves onto those pages and onto Incoming relays, whose INI-only
+  page had refused to show what it could not read: the metrics listener's bind address read 127.0.0.1 on a server
+  bound to 0.0.0.0, without the warning that /metrics answers 503 there, ManageSieve on every address was said to be
+  kept on this machine, and PROXY and XCLIENT were off whatever the server had. They ask the server now, as the moved
+  ports and secrets already did, and read the file only without a session; a value that falls back to the file is
+  marked Not read and left alone by a save, and the [Database] rows, which the server does not answer over COM, are
+  still the file's. The INI-only pages, such as Server limits & expert settings, still say that they can be edited
+  only on the server. `RemoteIniRowsTests` holds the rows to the rule, and the store to the server's values and writes
+  with no file on this computer.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

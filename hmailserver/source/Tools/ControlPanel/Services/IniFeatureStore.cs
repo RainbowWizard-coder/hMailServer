@@ -329,6 +329,16 @@ namespace hMailServer.ControlPanel.Services
          IniPath = Locate();
       }
 
+      /// <summary>
+      /// A store of the file at <paramref name="iniPath"/>, or of none: what a Control
+      /// Panel on a machine other than the server's has, which a test builds without
+      /// the registry and the service that <see cref="Locate"/> reads.
+      /// </summary>
+      internal IniFeatureStore(string iniPath)
+      {
+         IniPath = iniPath;
+      }
+
       private static string Locate()
       {
          // Installed server: registry InstallLocation.

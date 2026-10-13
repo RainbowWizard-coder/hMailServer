@@ -300,11 +300,12 @@ namespace hMailServer.ControlPanel.Views
 
          /// <summary>
          /// A withheld [Settings] row's save: what was typed over it, as typed, and
-         /// nothing when nothing was.
+         /// nothing when nothing was - to the server, as every [Settings] row's
+         /// (<see cref="IIniSetting"/>).
          /// </summary>
          protected bool SaveWithheld(IniFeatureStore store, string key)
          {
-            if (store == null || !store.IsAvailable || string.IsNullOrEmpty(WithheldEntry))
+            if (store == null || !store.SettingsReachable || string.IsNullOrEmpty(WithheldEntry))
                return false;
 
             store.Write(key, WithheldEntry);
@@ -683,6 +684,22 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>
       /// Marker for settings stored in hMailServer.ini rather than in the COM
       /// settings tree, so the save path can route them to the INI store.
+      ///
+      /// A [Settings] row is read from the server and written to it whenever the
+      /// section can be reached at all (IniFeatureStore.SettingsReachable): over COM
+      /// while there is a session, the server's store being where the value is, and
+      /// read from the file on this computer only when there is none
+      /// (IniFeatureStore.Read; a write is the server's alone, IniFeatureStore.Write).
+      /// The switches, texts, choices and numbers asked whether the file was on this
+      /// computer instead (IsAvailable), so that a Control Panel signed in to a server
+      /// on another machine showed each at its default as though it were the server's
+      /// value, and a save left it unwritten and counted it saved: the metrics
+      /// listener's bind address read 127.0.0.1 on a server bound to 0.0.0.0, and the
+      /// warning that /metrics answers 503 there was not shown, where the INI-only page
+      /// those rows came from refused to show values it could not read. A value that
+      /// fell back to the file is marked Not read and left alone by a save (BuildUi).
+      /// A [Database] row (SectionIniNumber) is the file's alone, as the server does
+      /// not answer that section over COM, by design.
       /// </summary>
       private interface IIniSetting
       {
@@ -717,7 +734,7 @@ namespace hMailServer.ControlPanel.Views
          protected override FrameworkElement BuildEditor(object value)
          {
             bool current = Default;
-            if (IniStore != null && IniStore.IsAvailable)
+            if (IniStore != null && IniStore.SettingsReachable)
                current = IniStore.ReadBool(Path, Default);
 
             loaded_ = current;
@@ -733,7 +750,7 @@ namespace hMailServer.ControlPanel.Views
             if (WithheldEntry != null)
                return SaveWithheld(IniStore, Path);
 
-            if (IniStore == null || !IniStore.IsAvailable || box_ == null)
+            if (IniStore == null || !IniStore.SettingsReachable || box_ == null)
                return false;
 
             bool value = box_.IsChecked is true;
@@ -787,7 +804,7 @@ namespace hMailServer.ControlPanel.Views
          protected override FrameworkElement BuildEditor(object value)
          {
             int current = Default;
-            if (IniStore != null && IniStore.IsAvailable && !int.TryParse(ReadRaw(), out current))
+            if (Reachable && !int.TryParse(ReadRaw(), out current))
                current = Default;
 
             loaded_ = ((long)current).ToString();
@@ -823,7 +840,7 @@ namespace hMailServer.ControlPanel.Views
                return SaveWithheld(IniStore, Path);
 
             // A value the server ignores is shown, never written.
-            if (Ignored || IniStore == null || !IniStore.IsAvailable || number_ == null)
+            if (Ignored || !Reachable || number_ == null)
                return false;
 
             string value = ((long)(number_.Value ?? Default)).ToString();
@@ -834,6 +851,9 @@ namespace hMailServer.ControlPanel.Views
             loaded_ = value;
             return true;
          }
+
+         /// <summary>Whether the value can be read and written: [Settings] through the server, read from the file without a session (IIniSetting).</summary>
+         protected virtual bool Reachable => IniStore != null && IniStore.SettingsReachable;
 
          /// <summary>Where the value is read from and written to - [Settings], unless a subclass says otherwise.</summary>
          protected virtual string ReadRaw() => IniStore.Read(Path, Default.ToString());
@@ -858,6 +878,9 @@ namespace hMailServer.ControlPanel.Views
       private class SectionIniNumber : IniNumber
       {
          public string Section;
+
+         // The file on this computer alone: the server does not answer [Database] over COM (IIniSetting).
+         protected override bool Reachable => IniStore != null && IniStore.IsAvailable;
 
          protected override string ReadRaw() => IniStore.ReadFrom(Section, Path, Default.ToString());
 
@@ -905,7 +928,7 @@ namespace hMailServer.ControlPanel.Views
          protected override FrameworkElement BuildEditor(object value)
          {
             string current = Default;
-            if (IniStore != null && IniStore.IsAvailable)
+            if (IniStore != null && IniStore.SettingsReachable)
                current = IniStore.Read(Path, Default);
 
             loaded_ = (current ?? "").Trim();
@@ -930,7 +953,7 @@ namespace hMailServer.ControlPanel.Views
             if (WithheldEntry != null)
                return SaveWithheld(IniStore, Path);
 
-            if (IniStore == null || !IniStore.IsAvailable || box_ == null)
+            if (IniStore == null || !IniStore.SettingsReachable || box_ == null)
                return false;
 
             string value = box_.Text.Trim();
@@ -963,7 +986,7 @@ namespace hMailServer.ControlPanel.Views
          protected override FrameworkElement BuildEditor(object value)
          {
             int current = Default;
-            if (IniStore != null && IniStore.IsAvailable && !int.TryParse(IniStore.Read(Path, Default.ToString()), out current))
+            if (IniStore != null && IniStore.SettingsReachable && !int.TryParse(IniStore.Read(Path, Default.ToString()), out current))
                current = Default;
 
             loaded_ = current;
@@ -988,7 +1011,7 @@ namespace hMailServer.ControlPanel.Views
             if (WithheldEntry != null)
                return SaveWithheld(IniStore, Path);
 
-            if (IniStore == null || !IniStore.IsAvailable || combo_ == null)
+            if (IniStore == null || !IniStore.SettingsReachable || combo_ == null)
                return false;
 
             int value = (int)ReadEditor();
