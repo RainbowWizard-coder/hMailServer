@@ -108,7 +108,7 @@ namespace hMailServer.ControlPanel.Services
             ["delivery"] = new HelpTarget("SettingsReasons.md", "Delivery of e-mail"),
             ["routes"] = new HelpTarget("RemoteDomains.md", "A policy is not a route"),
             ["remotedomains"] = new HelpTarget("RemoteDomains.md"),
-            ["relays"] = HelpTarget.NoGuide,
+            ["relays"] = new HelpTarget("SettingsReasons.md", "Incoming relays"),
             ["rules"] = new HelpTarget("MailFlowRules.md"),
             ["servermessages"] = HelpTarget.NoGuide,
             ["sendout"] = HelpTarget.NoGuide,

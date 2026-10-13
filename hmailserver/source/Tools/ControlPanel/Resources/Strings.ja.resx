@@ -10775,6 +10775,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Save it and reopen it: a level's own value belongs to something that exists." xml:space="preserve">
     <value>保存してから開き直してください。レベル独自の値は、存在するものに属します。</value>
   </data>
+  <data name="Save pro_xy settings" xml:space="preserve">
+    <value>プロキシの設定を保存(_X)</value>
+  </data>
   <data name="Save s_ettings" xml:space="preserve">
     <value>設定を保存(_E)</value>
   </data>
@@ -11525,8 +11528,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single feature are edited here." xml:space="preserve">
     <value>特定の機能に属さないサーバー全体の上限、耐久性、不正利用対策はここで編集します。</value>
   </data>
-  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - the PROXY protocol and XCLIENT, per-account sending limits and the event-script timeout among them." xml:space="preserve">
-    <value>特定のプロトコルや機能に属さないサーバー全体の上限、耐久性、不正利用対策。PROXY プロトコルと XCLIENT、アカウントごとの送信制限、イベント スクリプトのタイムアウトもここにあります。</value>
+  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - per-account sending limits and the event-script timeout among them." xml:space="preserve">
+    <value>特定のプロトコルや機能に属さないサーバー全体の上限、耐久性、不正利用対策。アカウントごとの送信制限、イベント スクリプトのタイムアウトもここにあります。</value>
   </data>
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason." xml:space="preserve">
     <value>特定のプロトコルや機能に属さないサーバー全体の上限、耐久性、不正利用対策。既定値は安全です。明確な理由がある場合にのみ変更してください。</value>
@@ -12607,6 +12610,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The OAuth2 settings could not be read: {0}" xml:space="preserve">
     <value>OAuth2 設定を読み取れませんでした: {0}</value>
+  </data>
+  <data name="The PROXY protocol and XCLIENT, with which a front-end proxy passes on the real client address" xml:space="preserve">
+    <value>フロントエンドのプロキシが実際のクライアント アドレスを伝える PROXY プロトコルと XCLIENT</value>
   </data>
   <data name="The REST API and the Control Deck's listener, the Prometheus metrics and health endpoints a monitoring system reads, the OpenTelemetry export, the alerts, outbound webhooks and SNMP agent that tell another system what happened, and how long a stopping service waits for its sessions." xml:space="preserve">
     <value>REST API と Control Deck のリスナー、監視システムが読み取る Prometheus メトリクスとヘルス エンドポイント、OpenTelemetry のエクスポート、何が起きたかを別のシステムに伝えるアラート、送信 Webhook、SNMP エージェント、および停止中のサービスがセッションを待つ時間。</value>
@@ -14643,8 +14649,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Upstream gateways (spam filters, load balancers) whose IP addresses should not count as the connecting client in anti-spam host checks." xml:space="preserve">
     <value>スパム対策のホスト チェックで接続元クライアントとして数えるべきでない IP アドレスを持つ上流ゲートウェイ (スパム フィルター、ロード バランサー)。</value>
   </data>
-  <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks." xml:space="preserve">
-    <value>スパム チェックで IP アドレスを接続元クライアントとして扱ってはならない上流ゲートウェイ。</value>
+  <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks, and the front-end proxies that may pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
+    <value>スパム チェックで IP アドレスを接続元クライアントとして扱ってはならない上流ゲートウェイと、PROXY プロトコルまたは XCLIENT で実際のクライアント アドレスを伝えてよいフロントエンドのプロキシ。</value>
   </data>
   <data name="Upstreams allowed to use XCLIENT (comma separated)" xml:space="preserve">
     <value>XCLIENT の使用を許可する上流 (コンマ区切り)</value>

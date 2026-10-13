@@ -666,9 +666,13 @@ namespace hMailServer.ControlPanel.Services
                   aliases: "Mandatory TLS|TLS policy|Require TLS|TLS policy map|Connector|Partner domain|Recipient callout|Recipient verification|Backup MX|Secondary MX|Rate limit|Per-domain limits",
                   seeAlso: "routes|tlsoverview|delivery"),
 
+               // With the front-end proxies, which pass on the real client address of such
+               // an upstream, since review finding F273: a card of Server limits & expert
+               // settings until then.
                Page("relays", N("Incoming relays"),
-                  N("Upstream gateways whose IP address must not be treated as the connecting client in spam checks."),
-                  aliases: "Trusted relay|Upstream gateway|Front-end filter|Load balancer|Proxy|Received header",
+                  N("Upstream gateways whose IP address must not be treated as the connecting client in spam checks, and the front-end proxies that may pass on the real client address with the PROXY protocol or XCLIENT."),
+                  aliases: "Trusted relay|Upstream gateway|Front-end filter|Load balancer|Proxy|Received header|" +
+                           "PROXY protocol|HAProxy|XCLIENT|Front-end proxy|Front-end proxies|Real client address",
                   seeAlso: "ipranges|antispam|hardening"),
 
                // With the limits every rule is held to, a card under the rules since review
@@ -1188,10 +1192,10 @@ namespace hMailServer.ControlPanel.Services
                // titles stay as aliases, and the key is unchanged, so every link,
                // bookmark and remembered path still arrives here.
                Page("hardening", N("Server limits & expert settings"),
-                  N("Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - the PROXY protocol and XCLIENT, per-account sending limits and the event-script timeout among them."),
+                  N("Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - per-account sending limits and the event-script timeout among them."),
                   aliases: "Advanced INI settings|Advanced hardening|INI settings|hMailServer.ini|Registry|Undocumented|Expert settings|Everything else|" +
                            "Timeouts|Queue bounds|Sending limits|Rate limit|Throttle|fsync|Durability|DPAPI|Received headers|mailer-daemon|" +
-                           "PROXY protocol|HAProxy|XCLIENT|Front-end proxy|Sending limits per account|Per-account limits|Script timeout",
+                           "Sending limits per account|Per-account limits|Script timeout",
                   seeAlso: "advanced|performance|backup")),
 
             Page("about", N("About"),

@@ -10885,6 +10885,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Save it and reopen it: a level's own value belongs to something that exists." xml:space="preserve">
     <value>Збережіть і відкрийте знову: власне значення рівня належить тому, що існує.</value>
   </data>
+  <data name="Save pro_xy settings" xml:space="preserve">
+    <value>Зберегти налаштування _проксі</value>
+  </data>
   <data name="Save s_ettings" xml:space="preserve">
     <value>_Зберегти параметри</value>
   </data>
@@ -11665,8 +11668,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single feature are edited here." xml:space="preserve">
     <value>Загальносерверні межі, довговічність і засоби проти зловживань, що не належать жодній окремій функції, редагуються тут.</value>
   </data>
-  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - the PROXY protocol and XCLIENT, per-account sending limits and the event-script timeout among them." xml:space="preserve">
-    <value>Загальносерверні межі, довговічність і засоби проти зловживань, що не належать жодному окремому протоколу чи функції, - серед них протокол PROXY і XCLIENT, обмеження надсилання для облікових записів і тайм-аут сценаріїв подій.</value>
+  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - per-account sending limits and the event-script timeout among them." xml:space="preserve">
+    <value>Загальносерверні межі, довговічність і засоби проти зловживань, що не належать жодному окремому протоколу чи функції, - серед них обмеження надсилання для облікових записів і тайм-аут сценаріїв подій.</value>
   </data>
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason." xml:space="preserve">
     <value>Загальносерверні межі, довговічність і засоби проти зловживань, що не належать жодному окремому протоколу чи функції. Типові значення безпечні; змінюйте їх лише з конкретної причини.</value>
@@ -12753,6 +12756,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The OAuth2 settings could not be read: {0}" xml:space="preserve">
     <value>Не вдалося прочитати параметри OAuth2: {0}</value>
+  </data>
+  <data name="The PROXY protocol and XCLIENT, with which a front-end proxy passes on the real client address" xml:space="preserve">
+    <value>Протокол PROXY і XCLIENT, за допомогою яких фронтенд-проксі передає справжню адресу клієнта</value>
   </data>
   <data name="The REST API and the Control Deck's listener, the Prometheus metrics and health endpoints a monitoring system reads, the OpenTelemetry export, the alerts, outbound webhooks and SNMP agent that tell another system what happened, and how long a stopping service waits for its sessions." xml:space="preserve">
     <value>REST API і прослуховувач Control Deck, метрики Prometheus і кінцеві точки стану здоров'я, які читає система моніторингу, експорт OpenTelemetry, оповіщення, вихідні вебхуки та агент SNMP, які повідомляють іншій системі, що сталося, і те, як довго служба, що зупиняється, чекає на свої сеанси.</value>
@@ -14819,8 +14825,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Upstream gateways (spam filters, load balancers) whose IP addresses should not count as the connecting client in anti-spam host checks." xml:space="preserve">
     <value>Вищі шлюзи (спам-фільтри, балансувальники навантаження), чиї IP-адреси не повинні вважатися клієнтом, що підключається, у перевірках вузла захисту від спаму.</value>
   </data>
-  <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks." xml:space="preserve">
-    <value>Вищі шлюзи, чия IP-адреса не повинна вважатися клієнтом, що підключається, у перевірках на спам.</value>
+  <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks, and the front-end proxies that may pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
+    <value>Вищі шлюзи, чия IP-адреса не повинна вважатися клієнтом, що підключається, у перевірках на спам, і фронтенд-проксі, яким дозволено передавати справжню адресу клієнта протоколом PROXY або командою XCLIENT.</value>
   </data>
   <data name="Upstreams allowed to use XCLIENT (comma separated)" xml:space="preserve">
     <value>Вищі вузли, яким дозволено XCLIENT (через кому)</value>

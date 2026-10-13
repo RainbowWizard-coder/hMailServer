@@ -10885,6 +10885,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Save it and reopen it: a level's own value belongs to something that exists." xml:space="preserve">
     <value>Uložte a znovu otevřete: vlastní hodnota úrovně patří něčemu, co existuje.</value>
   </data>
+  <data name="Save pro_xy settings" xml:space="preserve">
+    <value>Uložit nastavení pro_xy</value>
+  </data>
   <data name="Save s_ettings" xml:space="preserve">
     <value>Uložit n_astavení</value>
   </data>
@@ -11665,8 +11668,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single feature are edited here." xml:space="preserve">
     <value>Zde se upravují stropy pro celý server, nastavení trvanlivosti a ochrany proti zneužití, které nepatří žádné jednotlivé funkci.</value>
   </data>
-  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - the PROXY protocol and XCLIENT, per-account sending limits and the event-script timeout among them." xml:space="preserve">
-    <value>Stropy pro celý server, nastavení trvanlivosti a ochrany proti zneužití, které nepatří žádnému jednotlivému protokolu ani funkci - mezi nimi protokol PROXY a XCLIENT, limity odesílání pro jednotlivé účty a časový limit skriptů událostí.</value>
+  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - per-account sending limits and the event-script timeout among them." xml:space="preserve">
+    <value>Stropy pro celý server, nastavení trvanlivosti a ochrany proti zneužití, které nepatří žádnému jednotlivému protokolu ani funkci - mezi nimi limity odesílání pro jednotlivé účty a časový limit skriptů událostí.</value>
   </data>
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason." xml:space="preserve">
     <value>Stropy pro celý server, nastavení trvanlivosti a ochrany proti zneužití, které nepatří žádnému jednotlivému protokolu ani funkci. Výchozí hodnoty jsou bezpečné; měňte je jen z konkrétního důvodu.</value>
@@ -12753,6 +12756,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="The OAuth2 settings could not be read: {0}" xml:space="preserve">
     <value>Nastavení OAuth2 nelze přečíst: {0}</value>
+  </data>
+  <data name="The PROXY protocol and XCLIENT, with which a front-end proxy passes on the real client address" xml:space="preserve">
+    <value>Protokol PROXY a XCLIENT, jimiž předřazený proxy server předává skutečnou adresu klienta</value>
   </data>
   <data name="The REST API and the Control Deck's listener, the Prometheus metrics and health endpoints a monitoring system reads, the OpenTelemetry export, the alerts, outbound webhooks and SNMP agent that tell another system what happened, and how long a stopping service waits for its sessions." xml:space="preserve">
     <value>REST API a naslouchací proces Control Deck, metriky pro Prometheus a koncové body stavu, které čte monitorovací systém, export OpenTelemetry, upozornění, odchozí webhooky a agent SNMP, které dávají vědět jinému systému, co se stalo, a to, jak dlouho zastavovaná služba čeká na své relace.</value>
@@ -14819,8 +14825,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Upstream gateways (spam filters, load balancers) whose IP addresses should not count as the connecting client in anti-spam host checks." xml:space="preserve">
     <value>Předřazené brány (spamové filtry, load balancery), jejichž adresy IP se v antispamových kontrolách hostitele nemají počítat jako připojující se klient.</value>
   </data>
-  <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks." xml:space="preserve">
-    <value>Předřazené brány, jejichž adresa IP se v kontrolách spamu nesmí považovat za připojujícího se klienta.</value>
+  <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks, and the front-end proxies that may pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
+    <value>Předřazené brány, jejichž adresa IP se v kontrolách spamu nesmí považovat za připojujícího se klienta, a předřazené proxy servery, které smějí skutečnou adresu klienta předat protokolem PROXY nebo příkazem XCLIENT.</value>
   </data>
   <data name="Upstreams allowed to use XCLIENT (comma separated)" xml:space="preserve">
     <value>Předřazené servery, které smějí používat XCLIENT (oddělené čárkami)</value>

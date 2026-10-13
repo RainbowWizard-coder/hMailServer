@@ -63,6 +63,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("hardening", "DiagnosingStalledMail.md", "Settings that bound each stage")]
       [InlineData("adminaccess", "SecretsAtRest.md", "The administrator password")]
       [InlineData("externalsetup", "SetupChecklist.md", null)]
+      // Its front-end proxies' reasons since review finding F273 moved the card there.
+      [InlineData("relays", "SettingsReasons.md", "Incoming relays")]
       public void APageTheReviewFoundMismatched_OpensADocumentAboutIt(string key, string doc, string heading)
       {
          HelpTarget target = HelpMap.For(key);
@@ -78,7 +80,6 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("spamoverview")]
       [InlineData("ipranges")]
       [InlineData("virusoverview")]
-      [InlineData("relays")]
       [InlineData("messagetrace")]
       public void APageNoDocumentIsAbout_HasNoGuide(string key)
       {

@@ -78,6 +78,26 @@ reports being read at all; refusals met while delivering are still counted.
 *Account-number pattern.* Empty, the default, is an account-number detector that never fires. A pattern the
 server cannot compile is refused.
 
+
+## Incoming relays
+
+*Front-end proxies (PROXY protocol and XCLIENT).* Put a load balancer, a TLS
+terminator or a Postfix relay in front of the SMTP listener and every connection
+appears to come from that device - which silently breaks DNSBL checks, SPF,
+greylisting, auto-ban and the IP range rules all at once, while everything still
+reports success. The upstream has to be configured to send the real address or
+nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server line,
+and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check
+that from here - and once an address is listed as a PROXY protocol proxy the header
+becomes required from it, so a proxy that does not send one will have its connections
+dropped.
+
+*Proxies allowed to send a PROXY header.* Each is matched against the real TCP peer. An entry that does not
+parse matches nothing rather than everything, and is reported in the error log once per run.
+
+*Upstreams allowed to use XCLIENT.* XCLIENT is not even advertised in EHLO to an upstream that is not listed, so
+an attacker learns nothing about the deployment by asking.
+
 ## TLS versions & ciphers
 
 *Key exchange groups, in order of preference.* An empty list, or one OpenSSL rejects
@@ -314,23 +334,6 @@ name in the error log; empty refuses everything beyond hMailServer's own objects
 
 *Timeouts and queue bounds.* The defaults are deliberate; each one is there because
 there is a diagnosable situation in which it is the right thing to change.
-
-*Front-end proxies (PROXY protocol and XCLIENT).* Put a load balancer, a TLS
-terminator or a Postfix relay in front of the SMTP listener and every connection
-appears to come from that device - which silently breaks DNSBL checks, SPF,
-greylisting, auto-ban and the IP range rules all at once, while everything still
-reports success. The upstream has to be configured to send the real address or
-nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server line,
-and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check
-that from here - and once an address is listed as a PROXY protocol proxy the header
-becomes required from it, so a proxy that does not send one will have its connections
-dropped.
-
-*Proxies allowed to send a PROXY header.* Each is matched against the real TCP peer. An entry that does not
-parse matches nothing rather than everything, and is reported in the error log once per run.
-
-*Upstreams allowed to use XCLIENT.* XCLIENT is not even advertised in EHLO to an upstream that is not listed, so
-an attacker learns nothing about the deployment by asking.
 
 *Refused connections.* Locking out an address that keeps failing to sign in is a
 different mechanism entirely and is on the Auto-ban page.

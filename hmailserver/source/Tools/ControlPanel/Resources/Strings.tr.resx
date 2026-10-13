@@ -10764,6 +10764,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Save it and reopen it: a level's own value belongs to something that exists." xml:space="preserve">
     <value>Kaydedip yeniden açın: bir düzeyin kendi değeri var olan bir şeye aittir.</value>
   </data>
+  <data name="Save pro_xy settings" xml:space="preserve">
+    <value>Pro_xy ayarlarını kaydet</value>
+  </data>
   <data name="Save s_ettings" xml:space="preserve">
     <value>Ayarları _kaydet</value>
   </data>
@@ -11514,8 +11517,8 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single feature are edited here." xml:space="preserve">
     <value>Tek bir özelliğe ait olmayan sunucu geneli üst sınırlar, dayanıklılık ve kötüye kullanım denetimleri burada düzenlenir.</value>
   </data>
-  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - the PROXY protocol and XCLIENT, per-account sending limits and the event-script timeout among them." xml:space="preserve">
-    <value>Tek bir protokole veya özelliğe ait olmayan sunucu geneli üst sınırlar, dayanıklılık ve kötüye kullanım denetimleri - PROXY protokolü ve XCLIENT, hesap başına gönderim sınırları ve olay betiği zaman aşımı da bunların arasındadır.</value>
+  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - per-account sending limits and the event-script timeout among them." xml:space="preserve">
+    <value>Tek bir protokole veya özelliğe ait olmayan sunucu geneli üst sınırlar, dayanıklılık ve kötüye kullanım denetimleri - hesap başına gönderim sınırları ve olay betiği zaman aşımı da bunların arasındadır.</value>
   </data>
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason." xml:space="preserve">
     <value>Tek bir protokole veya özelliğe ait olmayan sunucu geneli üst sınırlar, dayanıklılık ve kötüye kullanım denetimleri. Varsayılanlar güvenlidir; bunları yalnızca belirli bir nedenle değiştirin.</value>
@@ -12596,6 +12599,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="The OAuth2 settings could not be read: {0}" xml:space="preserve">
     <value>OAuth2 ayarları okunamadı: {0}</value>
+  </data>
+  <data name="The PROXY protocol and XCLIENT, with which a front-end proxy passes on the real client address" xml:space="preserve">
+    <value>Bir ön uç proxy'nin gerçek istemci adresini iletmesini sağlayan PROXY protokolü ve XCLIENT</value>
   </data>
   <data name="The REST API and the Control Deck's listener, the Prometheus metrics and health endpoints a monitoring system reads, the OpenTelemetry export, the alerts, outbound webhooks and SNMP agent that tell another system what happened, and how long a stopping service waits for its sessions." xml:space="preserve">
     <value>REST API ve Control Deck dinleyicisi, bir izleme sisteminin okuduğu Prometheus ölçümleri ve sağlık uç noktaları, OpenTelemetry dışa aktarımı, başka bir sisteme ne olduğunu bildiren uyarılar, giden webhook'lar ve SNMP aracısı ile duran bir hizmetin oturumlarını ne kadar beklediği.</value>
@@ -14632,8 +14638,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="Upstream gateways (spam filters, load balancers) whose IP addresses should not count as the connecting client in anti-spam host checks." xml:space="preserve">
     <value>IP adresleri spam önleme ana bilgisayar denetimlerinde bağlanan istemci sayılmaması gereken üst akış ağ geçitleri (spam süzgeçleri, yük dengeleyiciler).</value>
   </data>
-  <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks." xml:space="preserve">
-    <value>IP adresi spam denetimlerinde bağlanan istemci olarak ele alınmaması gereken üst akış ağ geçitleri.</value>
+  <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks, and the front-end proxies that may pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
+    <value>IP adresi spam denetimlerinde bağlanan istemci olarak ele alınmaması gereken üst akış ağ geçitleri ve gerçek istemci adresini PROXY protokolü veya XCLIENT ile iletebilen ön uç proxy'ler.</value>
   </data>
   <data name="Upstreams allowed to use XCLIENT (comma separated)" xml:space="preserve">
     <value>XCLIENT kullanmasına izin verilen üst akışlar (virgülle ayrılmış)</value>

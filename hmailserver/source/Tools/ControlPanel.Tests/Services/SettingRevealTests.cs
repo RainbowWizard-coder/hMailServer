@@ -28,7 +28,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void Dispose() => Loc.Reset();
 
       private static readonly string[] ServerPages =
-         { "protocols", "delivery", "antispam", "antivirus", "tls", "logging", "performance", "advanced", "adminaccess", "autoban", "webmail", "api", "rules" };
+         { "protocols", "delivery", "antispam", "antivirus", "tls", "logging", "performance", "advanced", "adminaccess", "autoban", "webmail", "api", "rules", "relays" };
 
       private static readonly string[] FeaturePages =
          { "security", "acme", "hardening", "authentication", "dns", "webservices", "updates" };
@@ -42,7 +42,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("DlpAccountNumberPattern", "rules", "Rule limits", "Rule limits")]
       [InlineData("AntiSpam.SpamAssassinHost", "antispam", "Content filters", "SpamAssassin")]
       [InlineData("UpdateWindow", "updates", null, "How this server updates")]
-      [InlineData("SMTPProxyProtocolEnabled", "hardening", null, "Front-end proxies (PROXY protocol and XCLIENT)")]
+      [InlineData("SMTPProxyProtocolEnabled", "relays", "Front-end proxies (PROXY protocol and XCLIENT)", "Front-end proxies (PROXY protocol and XCLIENT)")]
       [InlineData("DkimOversignHeaders", "security", "Signing", "DKIM oversigning")]
       [InlineData("SRSEnabled", "security", "Forwarding", "Forwarded mail & bounce protection (SRS / BATV)")]
       public void TheIndexRecordsWhereOnItsPageASettingIs(string key, string page, string tab, string card)

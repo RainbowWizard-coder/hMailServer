@@ -60,7 +60,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// </summary>
       [Theory]
       [InlineData("ServerSettingsView.xaml.cs", 4)]
-      [InlineData("FeatureSettingsView.xaml.cs", 4)]
+      [InlineData("FeatureSettingsView.xaml.cs", 2)]
       public void EveryHintOfTwoTexts_IsTwoSentencesAtMost(string file, int fewest)
       {
          var hints = Regex.Matches(View(file), @"\b(?:Blurb|Hint)\s*=\s*Sentences\(L\(" + Literal + @"\),\s*L\(" + Literal + @"\)\)")
@@ -113,7 +113,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("Transport security", "The list is not an option of the feature - it is the feature.")]
       [InlineData("Administrative access", "Active Directory accounts are exempt")]
       [InlineData("Directory authentication (LDAP)", "let one wrong password trigger a directory lockout policy")]
-      [InlineData("Server limits & expert settings", "a proxy that does not send one will have its connections dropped")]
+      [InlineData("Incoming relays", "a proxy that does not send one will have its connections dropped")]
       [InlineData("Advanced", "is a security decision rather than a convenience")]
       [InlineData("Backup & restore", "so a failed backup never deletes anything")]
       [InlineData("Delivery of e-mail", "says so in the error log once an hour")]
@@ -140,6 +140,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("advanced", "Advanced")]
       [InlineData("ldap", "Directory authentication (LDAP)")]
       [InlineData("directorysync", "Directory synchronisation")]
+      [InlineData("relays", "Incoming relays")]
       public void ThePagesWithNoOtherGuide_OpenTheirSection(string key, string heading)
          => Assert.Contains("[\"" + key + "\"] = new HelpTarget(\"SettingsReasons.md\", \"" + heading + "\"),",
             ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Services", "HelpMap.cs")), StringComparison.Ordinal);

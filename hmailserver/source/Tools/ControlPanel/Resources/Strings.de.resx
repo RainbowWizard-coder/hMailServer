@@ -10764,6 +10764,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Save it and reopen it: a level's own value belongs to something that exists." xml:space="preserve">
     <value>Speichern und erneut öffnen: Der eigene Wert einer Ebene gehört zu etwas, das existiert.</value>
   </data>
+  <data name="Save pro_xy settings" xml:space="preserve">
+    <value>Pro_xy-Einstellungen speichern</value>
+  </data>
   <data name="Save s_ettings" xml:space="preserve">
     <value>Einstellungen _speichern</value>
   </data>
@@ -11514,8 +11517,8 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single feature are edited here." xml:space="preserve">
     <value>Serverweite Obergrenzen, Dauerhaftigkeit und Missbrauchskontrollen, die zu keiner einzelnen Funktion gehören, werden hier bearbeitet.</value>
   </data>
-  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - the PROXY protocol and XCLIENT, per-account sending limits and the event-script timeout among them." xml:space="preserve">
-    <value>Serverweite Obergrenzen, Dauerhaftigkeit und Missbrauchskontrollen, die zu keinem einzelnen Protokoll und keiner einzelnen Funktion gehören - darunter das PROXY-Protokoll und XCLIENT, Versandgrenzen je Konto und das Zeitlimit für Ereignisskripte.</value>
+  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - per-account sending limits and the event-script timeout among them." xml:space="preserve">
+    <value>Serverweite Obergrenzen, Dauerhaftigkeit und Missbrauchskontrollen, die zu keinem einzelnen Protokoll und keiner einzelnen Funktion gehören - darunter Versandgrenzen je Konto und das Zeitlimit für Ereignisskripte.</value>
   </data>
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason." xml:space="preserve">
     <value>Serverweite Obergrenzen, Dauerhaftigkeit und Missbrauchskontrollen, die zu keinem einzelnen Protokoll und keiner einzelnen Funktion gehören. Die Vorgaben sind sicher; ändern Sie diese nur mit einem bestimmten Grund.</value>
@@ -12596,6 +12599,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   </data>
   <data name="The OAuth2 settings could not be read: {0}" xml:space="preserve">
     <value>Die OAuth2-Einstellungen konnten nicht gelesen werden: {0}</value>
+  </data>
+  <data name="The PROXY protocol and XCLIENT, with which a front-end proxy passes on the real client address" xml:space="preserve">
+    <value>Das PROXY-Protokoll und XCLIENT, mit denen ein vorgelagerter Proxy die echte Client-Adresse weitergibt</value>
   </data>
   <data name="The REST API and the Control Deck's listener, the Prometheus metrics and health endpoints a monitoring system reads, the OpenTelemetry export, the alerts, outbound webhooks and SNMP agent that tell another system what happened, and how long a stopping service waits for its sessions." xml:space="preserve">
     <value>Die REST-API und der Listener des Control Decks, die Prometheus-Metriken und die Zustandsprüfungs-Endpunkte, die ein Überwachungssystem liest, der OpenTelemetry-Export, die Warnungen, ausgehenden Webhooks und der SNMP-Agent, die einem anderen System sagen, was geschehen ist, und wie lange ein Dienst beim Beenden auf seine Sitzungen wartet.</value>
@@ -14632,8 +14638,8 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="Upstream gateways (spam filters, load balancers) whose IP addresses should not count as the connecting client in anti-spam host checks." xml:space="preserve">
     <value>Vorgelagerte Gateways (Spamfilter, Lastverteiler), deren IP-Adressen bei Anti-Spam-Hostprüfungen nicht als der verbindende Client zählen sollen.</value>
   </data>
-  <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks." xml:space="preserve">
-    <value>Vorgelagerte Gateways, deren IP-Adresse bei Spamprüfungen nicht als der verbindende Client behandelt werden darf.</value>
+  <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks, and the front-end proxies that may pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
+    <value>Vorgelagerte Gateways, deren IP-Adresse bei Spamprüfungen nicht als der verbindende Client behandelt werden darf, und die vorgelagerten Proxys, die die echte Client-Adresse mit dem PROXY-Protokoll oder XCLIENT weitergeben dürfen.</value>
   </data>
   <data name="Upstreams allowed to use XCLIENT (comma separated)" xml:space="preserve">
     <value>Vorgelagerte Systeme, die XCLIENT verwenden dürfen (kommagetrennt)</value>

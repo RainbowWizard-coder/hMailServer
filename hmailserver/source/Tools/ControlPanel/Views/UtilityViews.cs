@@ -17,8 +17,17 @@ using static hMailServer.ControlPanel.Services.Loc;
 namespace hMailServer.ControlPanel.Views
 {
    /// <summary>Incoming relays: trusted upstream servers whose IPs are skipped in spam host checks.</summary>
-   public class IncomingRelaysView : UserControl, IPageLifecycle, IRefreshablePage
+   public class IncomingRelaysView : UserControl, IPageLifecycle, IRefreshablePage, IRevealSetting
    {
+      // The front-end proxies, which pass on the real client address of an upstream:
+      // the server's settings for what this page is about, a section of the settings
+      // pages shown here since review finding F273 (it was a card of Server limits &
+      // expert settings), with its own Save, captioned in this page's scope.
+      private readonly ServerSettingsView proxies_ = new ServerSettingsView(ServerSettingsView.Section.FrontEndProxies, embedded: true)
+      {
+         SaveCaption = L("Save pro_xy settings")
+      };
+
       // A grid with a column each for the name and the two ends of the range,
       // each row the relay's own, by its id (IncomingRelayRow), where it was a
       // list of strings - "Front-end spam filter   (203.0.113.40 - 203.0.113.41)",
@@ -182,6 +191,10 @@ namespace hMailServer.ControlPanel.Views
          var addCard = new Card { Title = L("Add relay"), Content = row };
          parts.Children.Add(addCard);
 
+         System.Windows.Automation.AutomationProperties.SetAutomationId(proxies_, "relays-proxies");
+         proxies_.Margin = new Thickness(0, DesignTokens.Space.Md, 0, 0);
+         parts.Children.Add(proxies_);
+
          Content = grid;
       }
 
@@ -201,13 +214,31 @@ namespace hMailServer.ControlPanel.Views
          });
       }
 
-      public void OnEnter() => Reload();
+      public void OnEnter()
+      {
+         Reload();
+         proxies_.OnEnter();
+      }
 
-      void IRefreshablePage.Refresh() => Reload();
+      // F5 and Refresh read the relays again, and the proxies' card unless it holds an edit.
+      void IRefreshablePage.Refresh()
+      {
+         Reload();
+         proxies_.RefreshUnlessEdited();
+      }
 
       public void OnLeave()
       {
       }
+
+      /// <summary>An edit of the front-end proxies' card is the page's unsaved change.</summary>
+      public bool HasUnsavedChanges => proxies_.HasUnsavedChanges;
+
+      /// <summary>Saves the front-end proxies' card, as its own Save does.</summary>
+      public bool SaveChanges() => proxies_.SaveChanges();
+
+      /// <summary>A setting of the front-end proxies' card, found by Ctrl+K, is shown on it.</summary>
+      public bool RevealSetting(string key, string label) => proxies_.RevealSetting(key, label);
 
       private void Reload()
       {

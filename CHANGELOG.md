@@ -4715,6 +4715,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   its access key is free there in every language. `PageSubjectsTests` holds the card on the page, the page's questions
   to it and the frame it does not draw.
 
+- **Changed: the PROXY protocol and XCLIENT are a card on the Incoming relays page.** Both let a named upstream - a
+  load balancer, a TLS terminator, a Postfix relay - pass on the real client address, which is what the Incoming
+  relays page is about, and they were a card of Server limits & expert settings. They are a Front-end proxies card
+  under the relays now, with its own Save proxy settings, which Ctrl+S presses, its pill, the page's question before
+  it is left with an unsaved edit, F5 reading the card again only while it holds none, and the same four settings,
+  words and examples; Server limits & expert settings lists them among the settings that used to be on it, with the
+  way to them, a search for PROXY protocol, HAProxy or XCLIENT opens Incoming relays, and so does the task "put a
+  proxy in front of the server" (review finding F273, the owner's decision of 12 October 2026). The help on Incoming
+  relays opens their reasons, under Incoming relays in the reasons document. `PageSubjectsTests` holds the card on the
+  page and the signpost.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

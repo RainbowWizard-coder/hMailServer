@@ -81,7 +81,14 @@ namespace hMailServer.ControlPanel.Views
          /// ServerSettingsView.Embedded.cs): Delivery of e-mail's Rules tab until review
          /// finding F273, one sidebar row from the page that holds the rules.
          /// </summary>
-         RuleLimits
+         RuleLimits,
+
+         /// <summary>
+         /// The PROXY protocol and XCLIENT, a card on the Incoming relays page (an
+         /// embedded section): a card of Server limits &amp; expert settings until review
+         /// finding F273, where the page that is about upstream gateways did not have it.
+         /// </summary>
+         FrontEndProxies
       }
 
       // ---- editor model ------------------------------------------------------
@@ -2173,6 +2180,7 @@ namespace hMailServer.ControlPanel.Views
             case Section.Webmail: BuildWebmail(); break;
             case Section.Monitoring: BuildMonitoring(); break;
             case Section.RuleLimits: BuildRuleLimits(); break;
+            case Section.FrontEndProxies: BuildFrontEndProxies(); break;
          }
       }
 
@@ -4543,6 +4551,43 @@ namespace hMailServer.ControlPanel.Views
             Blurb = Sentences(L("A regular expression."), L("Perl syntax, searched in a message's text and its text attachments, up to 2000 characters."))
          });
          Tab(L("Rule limits")).Cards.Add(limits);
+      }
+
+      /// <summary>
+      /// The front-end proxies, a card on the Incoming relays page (Section.FrontEndProxies,
+      /// embedded there by IncomingRelaysView) since review finding F273: both let a
+      /// named upstream pass on the real client address, which is the page's subject -
+      /// an upstream whose address must not count as the client's. They were a card of
+      /// Server limits &amp; expert settings, in the INI-only view; the four [Settings]
+      /// keys and their words are as they were. Verified in TCPServer::HandleAccept and
+      /// SMTPConnection::XClientPermitted_: every trust decision is made against the real
+      /// TCP peer, never against an address a header supplied, so chained proxies cannot
+      /// bootstrap trust - which is why the wording leads with the trust list.
+      /// </summary>
+      private void BuildFrontEndProxies()
+      {
+         // No PageKey: the section's header is not drawn, and the Incoming relays page's own names the page.
+         var proxies = Card(L("Front-end proxies (PROXY protocol and XCLIENT)"),
+            L("These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server."));
+         proxies.Settings.Add(new IniBool { Path = "SMTPProxyProtocolEnabled", Label = L("Accept the PROXY protocol (v1 and v2) on the SMTP listener"), Default = false, IniStore = iniStore_ });
+         proxies.Settings.Add(new IniText
+         {
+            Path = "SMTPProxyProtocolTrustedIPs",
+            Label = L("Proxies allowed to send a PROXY header (comma separated)"),
+            Placeholder = "10.0.0.5, 192.168.10.0/24", // no-loc: an example
+            Blurb = Sentences(L("Addresses or CIDR blocks."), L("Empty means nobody, which is the safe default.")),
+            IniStore = iniStore_
+         });
+         proxies.Settings.Add(new IniBool { Path = "SMTPXClientEnabled", Label = L("Accept the XCLIENT command (Postfix)"), Default = false, IniStore = iniStore_ });
+         proxies.Settings.Add(new IniText
+         {
+            Path = "SMTPXClientTrustedIPs",
+            Label = L("Upstreams allowed to use XCLIENT (comma separated)"),
+            Placeholder = "10.0.0.6", // no-loc: an example
+            Blurb = Sentences(L("Addresses or CIDR blocks."), L("Empty means nobody.")),
+            IniStore = iniStore_
+         });
+         Tab(L("Front-end proxies (PROXY protocol and XCLIENT)")).Cards.Add(proxies);
       }
 
       /// <summary>

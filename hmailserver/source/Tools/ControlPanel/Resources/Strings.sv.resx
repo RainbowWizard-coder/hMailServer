@@ -10764,6 +10764,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Save it and reopen it: a level's own value belongs to something that exists." xml:space="preserve">
     <value>Spara och öppna igen: en nivås eget värde hör till något som finns.</value>
   </data>
+  <data name="Save pro_xy settings" xml:space="preserve">
+    <value>Spara pro_xyinställningar</value>
+  </data>
   <data name="Save s_ettings" xml:space="preserve">
     <value>S_para inställningar</value>
   </data>
@@ -11514,8 +11517,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single feature are edited here." xml:space="preserve">
     <value>Serverövergripande tak, hållbarhet och missbrukskontroller som inte hör till någon enskild funktion redigeras här.</value>
   </data>
-  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - the PROXY protocol and XCLIENT, per-account sending limits and the event-script timeout among them." xml:space="preserve">
-    <value>Serverövergripande tak, hållbarhet och missbrukskontroller som inte hör till något enskilt protokoll eller någon enskild funktion - bland dem PROXY-protokollet och XCLIENT, sändningsgränser per konto och tidsgränsen för händelseskript.</value>
+  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - per-account sending limits and the event-script timeout among them." xml:space="preserve">
+    <value>Serverövergripande tak, hållbarhet och missbrukskontroller som inte hör till något enskilt protokoll eller någon enskild funktion - bland dem sändningsgränser per konto och tidsgränsen för händelseskript.</value>
   </data>
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason." xml:space="preserve">
     <value>Serverövergripande tak, hållbarhet och missbrukskontroller som inte hör till något enskilt protokoll eller någon enskild funktion. Standardvärdena är säkra; ändra dessa bara av ett specifikt skäl.</value>
@@ -12596,6 +12599,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="The OAuth2 settings could not be read: {0}" xml:space="preserve">
     <value>OAuth2-inställningarna kunde inte läsas: {0}</value>
+  </data>
+  <data name="The PROXY protocol and XCLIENT, with which a front-end proxy passes on the real client address" xml:space="preserve">
+    <value>PROXY-protokollet och XCLIENT, med vilka en frontend-proxy skickar vidare den verkliga klientadressen</value>
   </data>
   <data name="The REST API and the Control Deck's listener, the Prometheus metrics and health endpoints a monitoring system reads, the OpenTelemetry export, the alerts, outbound webhooks and SNMP agent that tell another system what happened, and how long a stopping service waits for its sessions." xml:space="preserve">
     <value>REST API:et och Control Decks lyssnare, Prometheus-mätvärdena och hälsoslutpunkterna som ett övervakningssystem läser, OpenTelemetry-exporten, larmen, de utgående webhooks och SNMP-agenten som berättar för ett annat system vad som hände, och hur länge en tjänst som stoppas väntar på sina sessioner.</value>
@@ -14632,8 +14638,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Upstream gateways (spam filters, load balancers) whose IP addresses should not count as the connecting client in anti-spam host checks." xml:space="preserve">
     <value>Uppströms gateways (skräppostfilter, lastbalanserare) vars IP-adresser inte ska räknas som den anslutande klienten i skräppostens värdkontroller.</value>
   </data>
-  <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks." xml:space="preserve">
-    <value>Uppströms-gateways vars IP-adress inte får behandlas som den anslutande klienten i skräppostkontroller.</value>
+  <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks, and the front-end proxies that may pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
+    <value>Uppströms-gateways vars IP-adress inte får behandlas som den anslutande klienten i skräppostkontroller, och frontend-proxyerna som får skicka vidare den verkliga klientadressen med PROXY-protokollet eller XCLIENT.</value>
   </data>
   <data name="Upstreams allowed to use XCLIENT (comma separated)" xml:space="preserve">
     <value>Uppströmsvärdar som får använda XCLIENT (kommaseparerade)</value>

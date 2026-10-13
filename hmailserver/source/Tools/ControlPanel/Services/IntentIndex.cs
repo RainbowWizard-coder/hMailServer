@@ -357,7 +357,7 @@ namespace hMailServer.ControlPanel.Services
             N("Set the folder PST files are copied into; the import job itself is started in the Control Deck or over the REST API.")),
          new IntentEntry(N("send an alert to another system"), "api",
             N("Alert rules, outbound webhooks and the SNMP agent tell another system what happened.")),
-         new IntentEntry(N("put a proxy in front of the server"), "hardening",
+         new IntentEntry(N("put a proxy in front of the server"), "relays",
             N("Let a load balancer or a Postfix relay pass on the real client address with the PROXY protocol or XCLIENT.")),
          new IntentEntry(N("what version am i running"), "about",
             N("Version, build and licence information."))

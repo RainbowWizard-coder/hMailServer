@@ -2244,37 +2244,6 @@ namespace hMailServer.ControlPanel.Views
                // resolver settings moved to Network > DNS resolver.
                cards_.Add(new CardDef
                {
-                  // Both of these let a peer tell this server where a connection
-                  // "really" came from, which is why the wording leads with the
-                  // trust list rather than the on/off switch. Verified in
-                  // TCPServer::HandleAccept and SMTPConnection::XClientPermitted_:
-                  // every trust decision is made against the real TCP peer, never
-                  // against an address a header supplied, so chained proxies cannot
-                  // bootstrap trust.
-                  Title = L("Front-end proxies (PROXY protocol and XCLIENT)"),
-                  Blurb = L("These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server."),
-                  Settings =
-                  {
-                     new BoolSetting { Key = "SMTPProxyProtocolEnabled", Default = false, Label = L("Accept the PROXY protocol (v1 and v2) on the SMTP listener") },
-                     new TextSetting
-                     {
-                        Key = "SMTPProxyProtocolTrustedIPs",
-                        Label = L("Proxies allowed to send a PROXY header (comma separated)"),
-                        Placeholder = "10.0.0.5, 192.168.10.0/24",
-                        Blurb = Sentences(L("Addresses or CIDR blocks."), L("Empty means nobody, which is the safe default."))
-                     },
-                     new BoolSetting { Key = "SMTPXClientEnabled", Default = false, Label = L("Accept the XCLIENT command (Postfix)") },
-                     new TextSetting
-                     {
-                        Key = "SMTPXClientTrustedIPs",
-                        Label = L("Upstreams allowed to use XCLIENT (comma separated)"),
-                        Placeholder = "10.0.0.6",
-                        Blurb = Sentences(L("Addresses or CIDR blocks."), L("Empty means nobody."))
-                     }
-                  }
-               });
-               cards_.Add(new CardDef
-               {
                   Title = L("Received headers"),
                   Blurb = L("Submission identity handling and the diagnostic headers added to received mail. (Where SMTP AUTH is offered is on the Authentication page.)"),
                   Settings =
@@ -2538,7 +2507,8 @@ namespace hMailServer.ControlPanel.Views
                      new ElsewhereSetting("tls", L("TLS session tickets, session cache size, resumption lifetime and ticket-key rotation")),
                      new ElsewhereSetting("delivery", L("MX hosts tried per attempt, times the attempt number")),
                      new ElsewhereSetting("performance", L("Maximum parallel external POP3 fetch threads")),
-                     new ElsewhereSetting("security", L("SRS, BATV and the plain envelope-sender rewrite for forwarded mail"), N("Forwarding"))
+                     new ElsewhereSetting("security", L("SRS, BATV and the plain envelope-sender rewrite for forwarded mail"), N("Forwarding")),
+                     new ElsewhereSetting("relays", L("The PROXY protocol and XCLIENT, with which a front-end proxy passes on the real client address"))
                   }
                });
                break;

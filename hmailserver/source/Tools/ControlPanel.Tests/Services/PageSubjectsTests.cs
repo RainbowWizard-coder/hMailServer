@@ -24,7 +24,8 @@ namespace hMailServer.ControlPanel.Tests.Services
    /// Auto-ban; the default domain, IPv6 and the disk space on Advanced; the
    /// per-account sending limits and the script timeout on Server limits. Delivery of
    /// e-mail's Rules tab, one sidebar row from the Rules page, is a Rule limits card
-   /// under the rules.
+   /// under the rules, and the PROXY protocol and XCLIENT, a card of Server limits, a
+   /// card under the incoming relays.
    /// </summary>
    [Collection("Loc")]
    public class PageSubjectsTests : IDisposable
@@ -49,8 +50,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("advanced", "Disk space")]
       [InlineData("advanced", "Migrations")]
       [InlineData("advanced", "PST import")]
-      [InlineData("hardening", "PROXY protocol")]
-      [InlineData("hardening", "XCLIENT")]
+      [InlineData("relays", "PROXY protocol")]
+      [InlineData("relays", "XCLIENT")]
       [InlineData("hardening", "Sending limits per account")]
       [InlineData("hardening", "Script timeout")]
       [InlineData("rules", "Rule loop limit")]
@@ -70,7 +71,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("block mail from a country", "autoban")]
       [InlineData("import a pst file", "advanced")]
       [InlineData("send an alert to another system", "api")]
-      [InlineData("put a proxy in front of the server", "hardening")]
+      [InlineData("put a proxy in front of the server", "relays")]
       public void TheTaskForASubjectOpensThePageThatHoldsIt(string phrase, string key)
       {
          Assert.Contains(IntentIndex.Entries, intent => intent.Phrase == phrase && intent.Page == key);
@@ -87,6 +88,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("api", "ManageSieve")]
       [InlineData("api", "Sieve")]
       [InlineData("rules", "Sieve")]
+      [InlineData("hardening", "PROXY protocol")]
+      [InlineData("hardening", "XCLIENT")]
       public void AnAliasForASubjectThePageDoesNotHoldIsGone(string key, string alias)
       {
          Assert.DoesNotContain(alias, NavigationMap.Find(key).Aliases);
@@ -105,8 +108,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("advanced", "PST import")]
       [InlineData("advanced", "migrations")]
       [InlineData("advanced", "IPv6")]
-      [InlineData("hardening", "PROXY protocol")]
-      [InlineData("hardening", "XCLIENT")]
+      [InlineData("relays", "PROXY protocol")]
+      [InlineData("relays", "XCLIENT")]
       [InlineData("hardening", "event-script timeout")]
       public void ThePagesDescriptionNamesWhatItHolds(string key, string words)
       {
@@ -147,7 +150,35 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          Assert.Contains("rules", NavigationMap.Find("delivery").SeeAlso);
          Assert.Contains("delivery", NavigationMap.Find("rules").SeeAlso);
-         Assert.Contains("hardening", NavigationMap.Find("relays").SeeAlso.Take(3));
+      }
+
+      /// <summary>
+      /// The PROXY protocol and XCLIENT are a card under the incoming relays, which are
+      /// what they are about: the settings pages' FrontEndProxies section shown on the
+      /// page with its own Save, and Server limits &amp; expert settings says where they
+      /// went among the settings that used to be on it.
+      /// </summary>
+      [Fact]
+      public void TheFrontEndProxiesAreACardOnTheIncomingRelaysPage()
+      {
+         string server = ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.xaml.cs"));
+         string proxies = WithheldRowTests.MemberText(server, "private void BuildFrontEndProxies()");
+         Assert.True(proxies != null, "ServerSettingsView.BuildFrontEndProxies is gone.");
+         foreach (string key in new[] { "SMTPProxyProtocolEnabled", "SMTPProxyProtocolTrustedIPs", "SMTPXClientEnabled", "SMTPXClientTrustedIPs" })
+            Assert.Contains("Path = \"" + key + "\"", proxies, StringComparison.Ordinal);
+         Assert.Contains("case Section.FrontEndProxies: BuildFrontEndProxies(); break;", server, StringComparison.Ordinal);
+
+         string feature = ReadControlPanelFile(Path.Join("Views", "FeatureSettingsView.xaml.cs"));
+         Assert.DoesNotContain("Key = \"SMTPProxyProtocolEnabled\"", feature, StringComparison.Ordinal);
+         Assert.Contains("new ElsewhereSetting(\"relays\",", feature, StringComparison.Ordinal);
+
+         string relays = ReadControlPanelFile(Path.Join("Views", "UtilityViews.cs"));
+         Assert.Contains("public class IncomingRelaysView : UserControl, IPageLifecycle, IRefreshablePage, IRevealSetting", relays, StringComparison.Ordinal);
+         Assert.Contains("new ServerSettingsView(ServerSettingsView.Section.FrontEndProxies, embedded: true)", relays, StringComparison.Ordinal);
+         Assert.Contains("SaveCaption = L(\"Save pro_xy settings\")", relays, StringComparison.Ordinal);
+         Assert.Contains("public bool HasUnsavedChanges => proxies_.HasUnsavedChanges;", relays, StringComparison.Ordinal);
+         Assert.Contains("proxies_.RefreshUnlessEdited();", relays, StringComparison.Ordinal);
+         Assert.Contains("parts.Children.Add(proxies_);", relays, StringComparison.Ordinal);
       }
 
       /// <summary>

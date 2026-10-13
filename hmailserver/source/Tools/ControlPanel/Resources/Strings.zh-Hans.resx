@@ -10764,6 +10764,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Save it and reopen it: a level's own value belongs to something that exists." xml:space="preserve">
     <value>请先保存再重新打开：级别自己的值属于已存在的对象。</value>
   </data>
+  <data name="Save pro_xy settings" xml:space="preserve">
+    <value>保存代理设置(_X)</value>
+  </data>
   <data name="Save s_ettings" xml:space="preserve">
     <value>保存设置(_E)</value>
   </data>
@@ -11514,8 +11517,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single feature are edited here." xml:space="preserve">
     <value>不属于任何单一功能的服务器范围上限、持久性和防滥用控制在此编辑。</value>
   </data>
-  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - the PROXY protocol and XCLIENT, per-account sending limits and the event-script timeout among them." xml:space="preserve">
-    <value>不属于任何单一协议或功能的服务器范围上限、持久性和防滥用控制 - 其中包括 PROXY 协议和 XCLIENT、按账户的发送限制以及事件脚本超时。</value>
+  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - per-account sending limits and the event-script timeout among them." xml:space="preserve">
+    <value>不属于任何单一协议或功能的服务器范围上限、持久性和防滥用控制 - 其中包括按账户的发送限制以及事件脚本超时。</value>
   </data>
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason." xml:space="preserve">
     <value>不属于任何单一协议或功能的服务器范围上限、持久性和防滥用控制。默认值是安全的；只在有明确原因时才更改。</value>
@@ -12596,6 +12599,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The OAuth2 settings could not be read: {0}" xml:space="preserve">
     <value>无法读取 OAuth2 设置: {0}</value>
+  </data>
+  <data name="The PROXY protocol and XCLIENT, with which a front-end proxy passes on the real client address" xml:space="preserve">
+    <value>前端代理用来传递真实客户端地址的 PROXY 协议和 XCLIENT</value>
   </data>
   <data name="The REST API and the Control Deck's listener, the Prometheus metrics and health endpoints a monitoring system reads, the OpenTelemetry export, the alerts, outbound webhooks and SNMP agent that tell another system what happened, and how long a stopping service waits for its sessions." xml:space="preserve">
     <value>REST API 和 Control Deck 的侦听器、监控系统读取的 Prometheus 指标和健康端点、OpenTelemetry 导出、告诉另一个系统发生了什么的警报、出站 Webhook 和 SNMP 代理，以及正在停止的服务等待其会话的时长。</value>
@@ -14632,8 +14638,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Upstream gateways (spam filters, load balancers) whose IP addresses should not count as the connecting client in anti-spam host checks." xml:space="preserve">
     <value>上游网关 (垃圾邮件过滤器、负载均衡器)，其 IP 地址在反垃圾邮件主机检查中不应算作连接客户端。</value>
   </data>
-  <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks." xml:space="preserve">
-    <value>上游网关，其 IP 地址在垃圾邮件检查中不得被当作连接客户端。</value>
+  <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks, and the front-end proxies that may pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
+    <value>上游网关，其 IP 地址在垃圾邮件检查中不得被当作连接客户端；以及可以用 PROXY 协议或 XCLIENT 传递真实客户端地址的前端代理。</value>
   </data>
   <data name="Upstreams allowed to use XCLIENT (comma separated)" xml:space="preserve">
     <value>允许使用 XCLIENT 的上游（以逗号分隔）</value>

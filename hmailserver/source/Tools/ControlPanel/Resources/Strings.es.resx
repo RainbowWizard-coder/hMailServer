@@ -10764,6 +10764,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Save it and reopen it: a level's own value belongs to something that exists." xml:space="preserve">
     <value>Guárdelo y vuelva a abrirlo: el valor propio de un nivel pertenece a algo que existe.</value>
   </data>
+  <data name="Save pro_xy settings" xml:space="preserve">
+    <value>Guardar la configuración de pro_xy</value>
+  </data>
   <data name="Save s_ettings" xml:space="preserve">
     <value>Guardar los aj_ustes</value>
   </data>
@@ -11514,8 +11517,8 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single feature are edited here." xml:space="preserve">
     <value>Aquí se editan los topes de todo el servidor, la durabilidad y los controles de abuso que no pertenecen a ninguna función concreta.</value>
   </data>
-  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - the PROXY protocol and XCLIENT, per-account sending limits and the event-script timeout among them." xml:space="preserve">
-    <value>Topes de todo el servidor, durabilidad y controles de abuso que no pertenecen a ningún protocolo ni función concretos - entre ellos el protocolo PROXY y XCLIENT, los límites de envío por cuenta y el tiempo límite de los scripts de eventos.</value>
+  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - per-account sending limits and the event-script timeout among them." xml:space="preserve">
+    <value>Topes de todo el servidor, durabilidad y controles de abuso que no pertenecen a ningún protocolo ni función concretos - entre ellos los límites de envío por cuenta y el tiempo límite de los scripts de eventos.</value>
   </data>
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason." xml:space="preserve">
     <value>Topes de todo el servidor, durabilidad y controles de abuso que no pertenecen a ningún protocolo ni función concretos. Los valores por defecto son seguros; cámbielos solo con un motivo concreto.</value>
@@ -12596,6 +12599,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="The OAuth2 settings could not be read: {0}" xml:space="preserve">
     <value>No se pudieron leer los ajustes de OAuth2: {0}</value>
+  </data>
+  <data name="The PROXY protocol and XCLIENT, with which a front-end proxy passes on the real client address" xml:space="preserve">
+    <value>El protocolo PROXY y XCLIENT, con los que un proxy situado delante transmite la dirección real del cliente</value>
   </data>
   <data name="The REST API and the Control Deck's listener, the Prometheus metrics and health endpoints a monitoring system reads, the OpenTelemetry export, the alerts, outbound webhooks and SNMP agent that tell another system what happened, and how long a stopping service waits for its sessions." xml:space="preserve">
     <value>La API REST y el agente de escucha del Control Deck, las métricas de Prometheus y los puntos de acceso de salud que lee un sistema de supervisión, la exportación OpenTelemetry, las alertas, los webhooks salientes y el agente SNMP que le dicen a otro sistema lo que ha pasado, y cuánto espera un servicio que se detiene a sus sesiones.</value>
@@ -14632,8 +14638,8 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="Upstream gateways (spam filters, load balancers) whose IP addresses should not count as the connecting client in anti-spam host checks." xml:space="preserve">
     <value>Pasarelas situadas delante (filtros de spam, balanceadores de carga) cuyas direcciones IP no deben contar como el cliente conectante en las comprobaciones antispam de host.</value>
   </data>
-  <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks." xml:space="preserve">
-    <value>Pasarelas situadas delante cuya dirección IP no debe tratarse como el cliente conectante en las comprobaciones de spam.</value>
+  <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks, and the front-end proxies that may pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
+    <value>Pasarelas situadas delante cuya dirección IP no debe tratarse como el cliente conectante en las comprobaciones de spam, y los proxies situados delante que pueden transmitir la dirección real del cliente con el protocolo PROXY o XCLIENT.</value>
   </data>
   <data name="Upstreams allowed to use XCLIENT (comma separated)" xml:space="preserve">
     <value>Sistemas situados delante autorizados a usar XCLIENT (separados por comas)</value>
