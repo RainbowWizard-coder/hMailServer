@@ -5644,8 +5644,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   server's sessions run, a reader saw 109 rows that were then rolled back and missed 108 that were committed, where
   one with the `READCOMMITTED` hint saw neither. On Windows the server finds `hMailServer.ini` through the machine's one
   `InstallLocation`, so a second installation on a machine reads the first's configuration and runs on its database;
-  the Windows lab's node beside an installation runs in turns with it. Nothing in the server has changed:
-  active-active is still not built, and WarmStandby.md's one service per database still holds.
+  the Windows lab's node beside an installation runs in turns with it. The reading and the lab change nothing in the
+  server: active-active is still not built, and WarmStandby.md's one service per database still holds. Of the first
+  phase of its work, units AA-01, AA-02 and AA-23 are in the tree (*Correctness*, *IMAP, POP3 and the webmail* and
+  *Build and tests*, above); AA-03, AA-04 and AA-26 were not started.
 
 ---
 

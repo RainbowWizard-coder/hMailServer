@@ -4,10 +4,15 @@ Active-active nodes: a design
 **Not built.** This is a design, written on 29 September 2026 for 6.3.6, and
 active-active itself does not exist in the server: there is no node registry, no
 lease, no schema step and no setting for it. Of the first phase of the work below,
-which makes one node sturdier on its own, the database layer's row counts and its
-UTC clock (AA-01, below) and the transaction scope the persistence layer can use
-(AA-02, `DatabaseTransaction`) are in the tree, and nothing in the server uses them
-yet. Until it is built, [WarmStandby.md](WarmStandby.md) holds without
+which makes one node sturdier on its own, three units are in the tree: the
+database layer's row counts and its UTC clock (AA-01, below) and the transaction
+scope the persistence layer can use (AA-02, `DatabaseTransaction`), which nothing
+in the server uses yet, and the PROXY protocol on the IMAP and POP3 listeners
+(AA-23), off by default. The phase's other three - AA-03's conditional claims,
+AA-04's UIDs and mod-sequences in one transaction, AA-26's flag changes under the
+folder row's lock - were not started for this release, so the two things one node
+gets wrong today that AA-04 and AA-26 mend are as they were. Until it is built,
+[WarmStandby.md](WarmStandby.md) holds without
 exception: **exactly one hMailServer service may run against a database at a
 time.** Two active services on one database lose mail, deliver the same mail
 twice, fetch the same remote mailbox twice, and can give two messages in one
@@ -717,8 +722,9 @@ The order of the work
 
 Thirty-one units, each small enough for one person or agent in a few days. The
 first phase makes one node sturdier, and mends two things one node gets wrong
-today. Most of the rest change nothing on one node: one node is its own leader,
-wins every claim, skips its own change-log rows and has no folder to watch.
+today (AA-04 and AA-26, not started yet). Most of the rest change nothing on one
+node: one node is its own leader, wins every claim, skips its own change-log rows
+and has no folder to watch.
 
 1. **One node, sturdier** (no schema step):
    - AA-01, the database layer's row counts on all four backends, the UTC clock,
@@ -741,10 +747,12 @@ wins every claim, skips its own change-log rows and has no folder to watch.
      on a Windows node through the server's own ADO code (MSOLEDBSQL 18; "SQL
      Server", above);
    - AA-03, conditional claims on today's lock columns, and a queue delete that
-     cannot remove a delivered row;
-   - AA-04, UIDs and mod-sequences in one transaction;
-   - AA-26, flag changes and whole-row saves under the folder row's lock;
-   - AA-23, the PROXY protocol for IMAP and POP3.
+     cannot remove a delivered row (not started);
+   - AA-04, UIDs and mod-sequences in one transaction (not started);
+   - AA-26, flag changes and whole-row saves under the folder row's lock (not
+     started);
+   - AA-23, the PROXY protocol for IMAP and POP3 (built; off by default, each
+     listener with its own switch and list of trusted peers).
 2. **The guard:**
    - AA-05, nodes register in `hm_nodes` with an identity that follows the disk,
      and while active-active is off one node is active and the others keep their
