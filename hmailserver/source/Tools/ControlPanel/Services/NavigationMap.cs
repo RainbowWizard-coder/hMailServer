@@ -404,7 +404,16 @@ namespace hMailServer.ControlPanel.Services
                   (N("Encryption"), "DANE|TLSA|MTA-STS|Downgrade|Opportunistic TLS|Enforce TLS"),
                   (N("Signing"), "ARC|DKIM oversigning|Oversign|DKIM expiry|DKIM timestamps|Authentication-Results|Received-SPF"),
                   (N("Forwarding"), "SRS|Sender Rewriting Scheme|BATV|Bounce address tag|Forged bounces"),
-                  (N("Reports"), "TLS-RPT|TLS reporting|DMARC reports|DMARC aggregate reports|rua"))
+                  (N("Reports"), "TLS-RPT|TLS reporting|DMARC reports|DMARC aggregate reports|rua")),
+               // Monitoring & alerts' tabs since review finding F273, and the ManageSieve
+               // tab of Protocols: a search for the subject opens the tab that holds it.
+               ["api"] = TabsOf_(
+                  (N("Metrics"), "Prometheus|Grafana|Metrics|Health endpoint|Nagios|Zabbix|OpenTelemetry|OTLP"),
+                  (N("Alerts & webhooks"), "Alerts|Alert rules|Alert digest|Webhooks|Outbound webhooks|Webhook events"),
+                  (N("SNMP"), "SNMP|SNMP agent|SNMPv3"),
+                  (N("Shutdown"), "Graceful shutdown|Drain on stop")), // no-loc: search aliases, matched as written
+               ["protocols"] = TabsOf_(
+                  (N("ManageSieve"), "ManageSieve|Sieve|Sieve scripts|RFC 5804|Port 4190|Filter scripts"))
             });
 
       /// <summary>
@@ -692,10 +701,14 @@ namespace hMailServer.ControlPanel.Services
                // them (review finding F238). This server offers neither CRAM-MD5 nor
                // APOP, so a search for them lands where the mechanisms it does offer
                // are switched.
+               // ManageSieve is a tab here since review finding F273: the protocol mail
+               // clients manage an account's filter scripts through, which was a card of
+               // API & monitoring, where the Sieve alias sent the palette.
                Page("protocols", N("Protocols"),
-                  N("Per-protocol limits and behaviour for SMTP, POP3 and IMAP."),
+                  N("Per-protocol limits and behaviour for SMTP, POP3 and IMAP, and the ManageSieve listener mail clients manage their filter scripts through."),
                   aliases: "SMTP|POP3|IMAP|Timeouts|Max connections|Message size limit|Max message size|Host name|HELO name|EHLO|Authentication required|Welcome banner|" +
-                           "SASL|SASL PLAIN|AUTH PLAIN|AUTH LOGIN|Plain-text authentication|CRAM-MD5|APOP",
+                           "SASL|SASL PLAIN|AUTH PLAIN|AUTH LOGIN|Plain-text authentication|CRAM-MD5|APOP|" +
+                           "ManageSieve|Sieve|Sieve scripts|RFC 5804|Port 4190|Filter scripts",
                   seeAlso: "ports|delivery|authentication|servermessages"),
 
                Page("webservices", N("Web services & autoconfiguration"),
@@ -1022,10 +1035,14 @@ namespace hMailServer.ControlPanel.Services
                   aliases: "Log viewer|Tail|Trace|Debug|SMTP conversation|Error log|Awstats",
                   seeAlso: "logging|queue|diagnostics"),
 
+               // The places the log goes: the files, syslog and, since review finding F273,
+               // the Windows Event Log, which was a card of API & monitoring. The alerts,
+               // the outbound webhooks and the SNMP agent, which tell another system what
+               // happened, went the other way, to Monitoring & alerts.
                Page("logging", N("Logging"),
-                  N("Which log files the server writes, how much detail they carry and how long they are kept, what the audit trail records, and the alerts, outbound webhooks and SNMP agent that tell another system what happened."),
-                  aliases: "Log level|Log files|Log folder|Retention|Delete old logs|Verbosity|Debug logging|Syslog|Alerts|Alert rules|Webhooks|Outbound webhooks|SNMP|SNMP agent|Audit trail settings",
-                  seeAlso: "logs|messagetrace|audit|performance"),
+                  N("Which log files the server writes, how much detail they carry and how long they are kept, the copies it sends to syslog and the Windows Event Log, and what the audit trail records."),
+                  aliases: "Log level|Log files|Log folder|Retention|Delete old logs|Verbosity|Debug logging|Syslog|Windows Event Log|Event Viewer|Event log|Application log|Audit trail settings",
+                  seeAlso: "logs|messagetrace|audit|api|performance"),
 
                // The guide to mail that stops moving on a healthy-looking server,
                // as a page with a button beside each step. The queue shows that a
@@ -1066,9 +1083,16 @@ namespace hMailServer.ControlPanel.Services
                   seeAlso: "messagetrace|queue|delivery|domains",
                   needs: "administer_domain"),
 
-               Page("api", N("API & monitoring"),
-                  N("The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions."),
-                  aliases: "REST|Prometheus|Grafana|Metrics|Health endpoint|Nagios|Zabbix|Automation|OpenTelemetry|OTLP|Windows Event Log|Event Viewer|ManageSieve|Sieve|Sieve scripts|Graceful shutdown|Drain on stop",
+               // "Monitoring & alerts" since review finding F273 (the owner's decision of
+               // 12 October 2026): what an outside system reads from this server and what
+               // this server tells one. The alerts, the outbound webhooks and the SNMP agent
+               // came from Logging, where its Webhooks alias outranked the page that held
+               // them; the Windows Event Log went to Logging and ManageSieve to Protocols.
+               // The old title is an alias, and the key is unchanged.
+               Page("api", N("Monitoring & alerts"),
+                  N("The REST API and the Control Deck's listener, the Prometheus metrics and health endpoints a monitoring system reads, the OpenTelemetry export, the alerts, outbound webhooks and SNMP agent that tell another system what happened, and how long a stopping service waits for its sessions."),
+                  aliases: "API & monitoring|REST|REST API|Prometheus|Grafana|Metrics|Health endpoint|Nagios|Zabbix|Automation|OpenTelemetry|OTLP|" +
+                           "Alerts|Alert rules|Alert digest|Webhooks|Outbound webhooks|Webhook events|SNMP|SNMP agent|SNMPv3|Graceful shutdown|Drain on stop",
                   seeAlso: "apikeys|logging|status|webservices")),
 
             // Its own group since review finding F152: Monitoring & troubleshooting asks

@@ -261,7 +261,7 @@ namespace hMailServer.ControlPanel.Views
 
             if (!enabled)
             {
-               rangeNote_.Text = L("The server keeps no history: 'Keep metric history for' on the API & monitoring page is 0. Set it to the days to keep.");
+               rangeNote_.Text = L("The server keeps no history: 'Keep metric history for' on the Monitoring & alerts page is 0. Set it to the days to keep.");
                ChartsGrid.Children.Add(throughputCard_);
                ChartsGrid.Children.Add(sessionsCard_);
                return;

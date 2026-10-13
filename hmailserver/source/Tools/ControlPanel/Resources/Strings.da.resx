@@ -762,9 +762,6 @@
   <data name="AD do_main of that user" xml:space="preserve">
     <value>AD-dom_æne for den bruger</value>
   </data>
-  <data name="API &amp; monitoring" xml:space="preserve">
-    <value>API og overvågning</value>
-  </data>
   <data name="API key" xml:space="preserve">
     <value>API-nøgle</value>
   </data>
@@ -1614,8 +1611,8 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
     <value>En post ændres på stedet gennem REST-API'et, som beder om administratorens engangskode, før det svarer, og der blev ikke givet nogen. Tryk på Redigér… for at blive spurgt igen, eller slet posten, og tilføj den igen.</value>
   </data>
-  <data name="An entry is changed in place over the REST API, which is off (its port on the API &amp; monitoring page is {0}). Give it a port there and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
-    <value>En post ændres på stedet gennem REST-API'et, som er slået fra (dets port på siden API og overvågning er {0}). Giv det en port der, og geninitialisér serveren, eller slet posten, og tilføj den igen.</value>
+  <data name="An entry is changed in place over the REST API, which is off (its port on the Monitoring &amp; alerts page is {0}). Give it a port there and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
+    <value>En post ændres på stedet gennem REST-API'et, som er slået fra (dets port på siden Overvågning og advarsler er {0}). Giv det en port der, og geninitialisér serveren, eller slet posten, og tilføj den igen.</value>
   </data>
   <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
     <value>En post ændres på stedet gennem REST-API'et, som kun lytter på {0}, uden for rækkevidde af et Control Panel på en anden maskine. Ændr posten i Control Deck på serveren, eller slet den, og tilføj den igen.</value>
@@ -4636,8 +4633,8 @@ Ingen post røres - indekset er udledt af den - men indtil genopbygningen har in
   <data name="Enable message indexing" xml:space="preserve">
     <value>Aktivér meddelelsesindeksering</value>
   </data>
-  <data name="Enable or disable the protocol servers. Changes apply when you press Save changes. ManageSieve (for managing Sieve scripts) is enabled on the API &amp; monitoring page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
-    <value>Aktivér eller deaktivér protokolserverne. Ændringer træder i kraft, når du trykker på Gem ændringer. ManageSieve (til administration af Sieve-scripts) aktiveres på siden API og overvågning; OAuth2-tokengodkendelse findes på siden Godkendelse.</value>
+  <data name="Enable or disable the protocol servers. Changes apply when you press Save changes. ManageSieve (for managing Sieve scripts) is switched on by its port on the ManageSieve tab; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
+    <value>Aktivér eller deaktivér protokolserverne. Ændringer træder i kraft, når du trykker på Gem ændringer. ManageSieve (til administration af Sieve-scripts) slås til med sin port på fanen ManageSieve; OAuth2-tokengodkendelse findes på siden Godkendelse.</value>
   </data>
   <data name="Enable plus addressing" xml:space="preserve">
     <value>Aktivér plus-adressering</value>
@@ -6974,6 +6971,9 @@ Hvert Web Push-abonnement under det nuværende par holder straks op med at virke
   <data name="Makes {0} with three mailboxes, a distribution list, a rule and some delivered mail, so that every page has something in it. Remove it before this server takes real mail." xml:space="preserve">
     <value>Opretter {0} med tre postkasser, en distributionsliste, en regel og lidt leveret post, så der er noget på hver side. Fjern prøven, før denne server modtager rigtig post.</value>
   </data>
+  <data name="ManageSieve" xml:space="preserve">
+    <value>ManageSieve</value>
+  </data>
   <data name="ManageSieve (RFC 5804)" xml:space="preserve">
     <value>ManageSieve (RFC 5804)</value>
   </data>
@@ -7303,6 +7303,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Messages: {0}, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. Files compressed: {5}. Measured {6}." xml:space="preserve">
     <value>Meddelelser: {0}, {1} MB som klienterne ser dem. Deres filer fylder {2} MB og de dele, der gemmes én gang, {3} MB, hvilket sparer {4} %. Komprimerede filer: {5}. Målt {6}.</value>
   </data>
+  <data name="Metrics" xml:space="preserve">
+    <value>Metrikker</value>
+  </data>
   <data name="Metrics bind address" xml:space="preserve">
     <value>Bindingsadresse for metrics</value>
   </data>
@@ -7389,6 +7392,9 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="Monitoring" xml:space="preserve">
     <value>Overvågning</value>
+  </data>
+  <data name="Monitoring &amp; alerts" xml:space="preserve">
+    <value>Overvågning og advarsler</value>
   </data>
   <data name="Monitoring &amp; troubleshooting" xml:space="preserve">
     <value>Overvågning og fejlfinding</value>
@@ -8677,9 +8683,6 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Open" xml:space="preserve">
     <value>Åben</value>
   </data>
-  <data name="Open API &amp; monitoring, which owns the REST listener's port and TLS settings" xml:space="preserve">
-    <value>Åbn API og overvågning, som ejer REST-lytterens port- og TLS-indstillinger</value>
-  </data>
   <data name="Open Anti-spam settings (PTR and HELO checks)" xml:space="preserve">
     <value>Åbn Antispam-indstillinger (PTR- og HELO-kontroller)</value>
   </data>
@@ -8712,6 +8715,9 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="Open Logging settings" xml:space="preserve">
     <value>Åbn indstillinger for logføring</value>
+  </data>
+  <data name="Open Monitoring &amp; alerts, which owns the REST listener's port and TLS settings" xml:space="preserve">
+    <value>Åbn Overvågning og advarsler, som ejer REST-lytterens port- og TLS-indstillinger</value>
   </data>
   <data name="Open Protocols (host name)" xml:space="preserve">
     <value>Åbn Protokoller (værtsnavn)</value>
@@ -8914,8 +8920,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Outbound webhooks" xml:space="preserve">
     <value>Udgående webhooks</value>
   </data>
-  <data name="Outbound webhooks post events to the receivers subscribed in the Control Deck or over the REST API. A subscription that names no domain covers every domain, and switching this off takes the domain out of all of them. The server's own switch is on the Logging page." xml:space="preserve">
-    <value>Udgående webhooks sender hændelser til de modtagere, der abonnerer i Control Deck eller via REST-API'et. Et abonnement, der ikke nævner noget domæne, dækker alle domæner, og at slå dette fra tager domænet ud af dem alle. Serverens egen kontakt er på siden Logføring.</value>
+  <data name="Outbound webhooks post events to the receivers subscribed in the Control Deck or over the REST API. A subscription that names no domain covers every domain, and switching this off takes the domain out of all of them. The server's own switch is on the Monitoring &amp; alerts page." xml:space="preserve">
+    <value>Udgående webhooks sender hændelser til de modtagere, der abonnerer i Control Deck eller via REST-API'et. Et abonnement, der ikke nævner noget domæne, dækker alle domæner, og at slå dette fra tager domænet ud af dem alle. Serverens egen kontakt er på siden Overvågning og advarsler.</value>
   </data>
   <data name="Outside senders get nothing, or the domain's text when its override is on." xml:space="preserve">
     <value>Afsendere udefra får intet, eller domænets tekst, når dets tilsidesættelse er slået til.</value>
@@ -9147,8 +9153,8 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   <data name="Per-name lockout" xml:space="preserve">
     <value>Udelukkelse pr. navn</value>
   </data>
-  <data name="Per-protocol limits and behaviour for SMTP, POP3 and IMAP." xml:space="preserve">
-    <value>Grænser og adfærd pr. protokol for SMTP, POP3 og IMAP.</value>
+  <data name="Per-protocol limits and behaviour for SMTP, POP3 and IMAP, and the ManageSieve listener mail clients manage their filter scripts through." xml:space="preserve">
+    <value>Grænser og adfærd pr. protokol for SMTP, POP3 og IMAP og ManageSieve-lytteren, som mailklienter administrerer deres filterscripts igennem.</value>
   </data>
   <data name="Performance" xml:space="preserve">
     <value>Ydelse</value>
@@ -9524,9 +9530,6 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   </data>
   <data name="REST administration API and the Control Deck" xml:space="preserve">
     <value>REST-administrations-API og Control Deck</value>
-  </data>
-  <data name="REST administration API, Prometheus metrics and remote script management. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services &amp; autoconfiguration page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
-    <value>REST-administrations-API, Prometheus-metrics og fjernadministration af scripts. Den offentlige webtjenestelytter (autokonfiguration, MTA-STS-hosting) findes på siden Webtjenester og autokonfiguration; OAuth2-tokengodkendelse findes på siden Godkendelse.</value>
   </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>Fil med offentlig RSA-/EC-nøgle (PEM, til RS*-/ES*-tokens)</value>
@@ -11316,8 +11319,8 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Send everything through my provider" xml:space="preserve">
     <value>Send alt gennem min udbyder</value>
   </data>
-  <data name="Send it as a bearer token, in this header, to the REST listener configured on the API &amp; monitoring page:" xml:space="preserve">
-    <value>Send den som et bearer-token i denne header til REST-lytteren, der er konfigureret på siden API og overvågning:</value>
+  <data name="Send it as a bearer token, in this header, to the REST listener configured on the Monitoring &amp; alerts page:" xml:space="preserve">
+    <value>Send den som et bearer-token i denne header til REST-lytteren, der er konfigureret på siden Overvågning og advarsler:</value>
   </data>
   <data name="Send it during this _hour of the local day (0 to 23)" xml:space="preserve">
     <value>Send den i denne _time på det lokale døgn (0 til 23)</value>
@@ -11765,6 +11768,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   </data>
   <data name="Shown: {0} of {1}" xml:space="preserve">
     <value>Vist: {0} af {1}</value>
+  </data>
+  <data name="Shutdown" xml:space="preserve">
+    <value>Nedlukning</value>
   </data>
   <data name="Sieve" xml:space="preserve">
     <value>Sieve</value>
@@ -12516,8 +12522,8 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
     <value>Control Deck leveres af REST-API'et, som er slået fra - giv det en port nedenfor.</value>
   </data>
-  <data name="The Control Deck is served by the REST API, which is off - give it a port on the API &amp; monitoring page." xml:space="preserve">
-    <value>Control Deck leveres af REST-API'et, som er slået fra - giv det en port på siden API og overvågning.</value>
+  <data name="The Control Deck is served by the REST API, which is off - give it a port on the Monitoring &amp; alerts page." xml:space="preserve">
+    <value>Control Deck leveres af REST-API'et, som er slået fra - giv det en port på siden Overvågning og advarsler.</value>
   </data>
   <data name="The Control Panel is connected to another host, so the account its service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Control Panel er forbundet til en anden vært, så den konto, dens tjeneste kører som, kan ikke læses herfra. Åbn Control Panel på selve serveren for at se den.</value>
@@ -12579,11 +12585,17 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="The MTA-STS hosting settings could not be read: {0}" xml:space="preserve">
     <value>MTA-STS-hostingindstillingerne kunne ikke læses: {0}</value>
   </data>
+  <data name="The ManageSieve listener" xml:space="preserve">
+    <value>ManageSieve-lytteren</value>
+  </data>
   <data name="The NCSA log line format above takes precedence, so this has no effect while it is selected. The setting is remembered and applies again as soon as the format goes back to hMailServer's own." xml:space="preserve">
     <value>NCSA-loglinjeformatet ovenfor har forrang, så dette har ingen virkning, mens det er valgt. Indstillingen huskes og gælder igen, så snart formatet går tilbage til hMailServers eget.</value>
   </data>
   <data name="The OAuth2 settings could not be read: {0}" xml:space="preserve">
     <value>OAuth2-indstillingerne kunne ikke læses: {0}</value>
+  </data>
+  <data name="The REST API and the Control Deck's listener, the Prometheus metrics and health endpoints a monitoring system reads, the OpenTelemetry export, the alerts, outbound webhooks and SNMP agent that tell another system what happened, and how long a stopping service waits for its sessions." xml:space="preserve">
+    <value>REST API'et og Control Decks lytter, Prometheus-metrikker og sundhedsendpoints, som et overvågningssystem læser, OpenTelemetry-eksporten, de advarsler, udgående webhooks og den SNMP-agent, der fortæller et andet system, hvad der skete, og hvor længe en tjeneste, der stopper, venter på sine sessioner.</value>
   </data>
   <data name="The REST API answered {0}." xml:space="preserve">
     <value>REST-API'et svarede {0}.</value>
@@ -12597,17 +12609,17 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="The REST API could not be reached: {0}" xml:space="preserve">
     <value>REST-API'et kunne ikke nås: {0}</value>
   </data>
-  <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs a TLS certificate file and its private key file on the API &amp; monitoring page, or an ACME certificate issued to this server." xml:space="preserve">
-    <value>REST-API'et kører ikke: det leverer kun almindelig HTTP på 127.0.0.1 eller ::1, og at lytte på {0} kræver en TLS-certifikatfil og dens privatnøglefil på siden API og overvågning eller et ACME-certifikat udstedt til denne server.</value>
+  <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs a TLS certificate file and its private key file on the Monitoring &amp; alerts page, or an ACME certificate issued to this server." xml:space="preserve">
+    <value>REST-API'et kører ikke: det leverer kun almindelig HTTP på 127.0.0.1 eller ::1, og at lytte på {0} kræver en TLS-certifikatfil og dens privatnøglefil på siden Overvågning og advarsler eller et ACME-certifikat udstedt til denne server.</value>
   </data>
-  <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
-    <value>REST-API'et kører ikke: at lytte på {0} kræver et certifikat, som angives på siden API og overvågning.</value>
+  <data name="The REST API is not running: listening on {0} needs a certificate, set on the Monitoring &amp; alerts page." xml:space="preserve">
+    <value>REST-API'et kører ikke: at lytte på {0} kræver et certifikat, som angives på siden Overvågning og advarsler.</value>
   </data>
-  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and both this page and the Control Deck read the cases over it. Give it a port there." xml:space="preserve">
-    <value>REST-API'et er slået fra (dets port på siden API og overvågning er {0}), og både denne side og Control Deck læser sagerne gennem det. Giv det en port der.</value>
+  <data name="The REST API is off (its port on the Monitoring &amp; alerts page is {0}), and both this page and the Control Deck read the cases over it. Give it a port there." xml:space="preserve">
+    <value>REST-API'et er slået fra (dets port på siden Overvågning og advarsler er {0}), og både denne side og Control Deck læser sagerne gennem det. Giv det en port der.</value>
   </data>
-  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
-    <value>REST-API'et er slået fra (dets port på siden API og overvågning er {0}), og disse indstillinger nås gennem det: serveren gemmer dem, men ingen COM-egenskab bærer dem. Giv REST-API'et en port på siden API og overvågning, geninitialisér serveren, og åbn denne side igen.</value>
+  <data name="The REST API is off (its port on the Monitoring &amp; alerts page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the Monitoring &amp; alerts page, reinitialise the server, and open this page again." xml:space="preserve">
+    <value>REST-API'et er slået fra (dets port på siden Overvågning og advarsler er {0}), og disse indstillinger nås gennem det: serveren gemmer dem, men ingen COM-egenskab bærer dem. Giv REST-API'et en port på siden Overvågning og advarsler, geninitialisér serveren, og åbn denne side igen.</value>
   </data>
   <data name="The REST API listens on {0} only, so the Control Deck opens only in a browser on the server itself." xml:space="preserve">
     <value>REST-API'et lytter kun på {0}, så Control Deck kan kun åbnes i en browser på selve serveren.</value>
@@ -12627,14 +12639,11 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="The REST API's new settings are saved but not yet in effect - the Control Deck can be opened once the server applies them." xml:space="preserve">
     <value>REST-API'ets nye indstillinger er gemt, men gælder endnu ikke - Control Deck kan åbnes, når serveren tager dem i brug.</value>
   </data>
-  <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions." xml:space="preserve">
-    <value>REST API'et, Prometheus-metrikker og sundhedsendpoints, som et eksternt overvågningssystem læser, Windows' hændelseslog, ManageSieve-lytteren, og hvor længe en tjeneste, der stopper, venter på sine sessioner.</value>
+  <data name="The REST administration API, the metrics and health endpoints a monitoring system reads, and the alerts, webhooks and SNMP agent that tell another system what happened. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services &amp; autoconfiguration page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
+    <value>REST-administrations-API'et, de metrikker og sundhedsendpoints, et overvågningssystem læser, og de advarsler, webhooks og den SNMP-agent, der fortæller et andet system, hvad der skete. Den offentlige webtjenestelytter (autokonfiguration, MTA-STS-hosting) findes på siden Webtjenester og autokonfiguration; OAuth2-tokengodkendelse findes på siden Godkendelse.</value>
   </data>
   <data name="The RSA/EC public key file {0} does not exist on this machine, so RS256 tokens cannot be verified." xml:space="preserve">
     <value>Filen med den offentlige RSA-/EC-nøgle, {0}, findes ikke på denne maskine, så RS256-tokens kan ikke verificeres.</value>
-  </data>
-  <data name="The SNMP agent, alerts, outbound webhooks and the audit trail" xml:space="preserve">
-    <value>SNMP-agenten, advarslerne, de udgående webhooks og revisionsloggen</value>
   </data>
   <data name="The Service Control Manager could not be queried, so the account the service runs as is unknown: {0}" xml:space="preserve">
     <value>Service Control Manager kunne ikke forespørges, så den konto, tjenesten kører som, er ukendt: {0}</value>
@@ -13375,6 +13384,9 @@ kunne ikke indlæses. Meddelelsen er sandsynligvis leveret og ikke længere i k�
   <data name="The log files belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log." xml:space="preserve">
     <value>Logfilerne tilhører fra 6.3.6 administratorerne, så dette Kontrolpanel må ikke læse dem. Luk det, og start det med Kør som administrator for at se den levende log.</value>
   </data>
+  <data name="The log files, syslog, the Windows Event Log and the audit trail" xml:space="preserve">
+    <value>Logfilerne, syslog, Windows' hændelseslog og revisionsloggen</value>
+  </data>
   <data name="The log folder was not found on this computer. Live logs read the log files where the server runs: start the Control Panel on that computer to see them." xml:space="preserve">
     <value>Logmappen blev ikke fundet på denne computer. Levende logs læser logfilerne der, hvor serveren kører: start Kontrolpanelet på den computer for at se dem.</value>
   </data>
@@ -13782,8 +13794,8 @@ Tilføj alligevel?</value>
   <data name="The server is starting or stopping, so whether its ports are being listened on cannot be said yet. Open this page again in a moment." xml:space="preserve">
     <value>Serveren starter eller stopper, så om der lyttes på dens porte, kan endnu ikke siges. Åbn denne side igen om et øjeblik.</value>
   </data>
-  <data name="The server keeps no history: 'Keep metric history for' on the API &amp; monitoring page is 0. Set it to the days to keep." xml:space="preserve">
-    <value>Serveren gemmer ingen historik: 'Behold metrikhistorik i' på siden API og overvågning er 0. Sæt den til antallet af dage, der skal beholdes.</value>
+  <data name="The server keeps no history: 'Keep metric history for' on the Monitoring &amp; alerts page is 0. Set it to the days to keep." xml:space="preserve">
+    <value>Serveren gemmer ingen historik: 'Behold metrikhistorik i' på siden Overvågning og advarsler er 0. Sæt den til antallet af dage, der skal beholdes.</value>
   </data>
   <data name="The server log as it is written, read from the log folder on this computer." xml:space="preserve">
     <value>Serverloggen, efterhånden som den skrives, læst fra logmappen på denne computer.</value>
@@ -15169,8 +15181,8 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>Hvilken liste? Der skrives én post for hver enkelt afsender eller domæne, og derefter behandles hver meddelelse. En meddelelse, der ikke kan oprettes en post for, efterlades, hvor den er.</value>
   </data>
-  <data name="Which log files the server writes, how much detail they carry and how long they are kept, what the audit trail records, and the alerts, outbound webhooks and SNMP agent that tell another system what happened." xml:space="preserve">
-    <value>Hvilke logfiler serveren skriver, hvor mange detaljer de bærer, og hvor længe de beholdes, hvad revisionssporet registrerer, og de advarsler, udgående webhooks og den SNMP-agent, der fortæller et andet system, hvad der skete.</value>
+  <data name="Which log files the server writes, how much detail they carry and how long they are kept, the copies it sends to syslog and the Windows Event Log, and what the audit trail records." xml:space="preserve">
+    <value>Hvilke logfiler serveren skriver, hvor mange detaljer de bærer, og hvor længe de beholdes, de kopier, den sender til syslog og Windows' hændelseslog, og hvad revisionssporet registrerer.</value>
   </data>
   <data name="Which name servers the server asks, and whether answers are DNSSEC validated." xml:space="preserve">
     <value>Hvilke navneservere serveren spørger, og om svar valideres med DNSSEC.</value>
@@ -15913,9 +15925,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="_Older" xml:space="preserve">
     <value>Æl_dre</value>
   </data>
-  <data name="_Open API &amp; monitoring" xml:space="preserve">
-    <value>_Åbn API og overvågning</value>
-  </data>
   <data name="_Open Anti-spam settings" xml:space="preserve">
     <value>_Åbn Antispam-indstillinger</value>
   </data>
@@ -15927,6 +15936,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="_Open Logging" xml:space="preserve">
     <value>_Åbn Logføring</value>
+  </data>
+  <data name="_Open Monitoring &amp; alerts" xml:space="preserve">
+    <value>_Åbn Overvågning og advarsler</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>_Åbn rapport</value>

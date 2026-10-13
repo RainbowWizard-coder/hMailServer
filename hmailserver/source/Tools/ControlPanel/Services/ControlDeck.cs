@@ -54,7 +54,7 @@ namespace hMailServer.ControlPanel.Services
       /// (<paramref name="pending"/>, IniFeatureStore.PendingNames; null where the
       /// server cannot say) and, for a page that holds the port, what to say there
       /// when the REST API is off (<paramref name="whyOffHere"/>, null for the
-      /// sentence that names the API &amp; monitoring page).
+      /// sentence that names the Monitoring &amp; alerts page).
       ///
       /// While one of <see cref="ListenerSettings"/> waits to be applied, and the port
       /// saved is not 0, the Deck is not where the file says - the REST API turned on
@@ -87,11 +87,11 @@ namespace hMailServer.ControlPanel.Services
          bool loopback = bind == "127.0.0.1" || bind == "::1" || bind.Equals("localhost", StringComparison.OrdinalIgnoreCase); // no-loc
 
          if (off)
-            whyNot = whyOffHere ?? L("The Control Deck is served by the REST API, which is off - give it a port on the API & monitoring page.");
+            whyNot = whyOffHere ?? L("The Control Deck is served by the REST API, which is off - give it a port on the Monitoring & alerts page.");
          else if (loopback && !localSession)
             whyNot = F("The REST API listens on {0} only, so the Control Deck opens only in a browser on the server itself.", bind);
          else
-            whyNot = F("The REST API is not running: listening on {0} needs a certificate, set on the API & monitoring page.", bind);
+            whyNot = F("The REST API is not running: listening on {0} needs a certificate, set on the Monitoring & alerts page.", bind);
 
          return null;
       }

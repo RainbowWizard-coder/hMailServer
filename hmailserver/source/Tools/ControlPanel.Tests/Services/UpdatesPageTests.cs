@@ -69,7 +69,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains(IntentIndex.Entries, intent => intent.Phrase == phrase && intent.Page == "updates");
       }
 
-      /// <summary>The policy's settings are found on the Updates page, and none on API &amp; monitoring.</summary>
+      /// <summary>The policy's settings are found on the Updates page, and none on Monitoring &amp; alerts, which was API &amp; monitoring.</summary>
       [Fact]
       public void TheUpdatePolicyIsFiledOnTheUpdatesPage()
       {
@@ -78,9 +78,10 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.All(policy, entry => Assert.Equal("updates", entry.Page));
 
          string feature = ReadControlPanelFile(Path.Join("Views", "FeatureSettingsView.xaml.cs"));
-         string integration = Section_(feature, "Integration");
-         Assert.DoesNotContain("UpdateCheckEnabled", integration, StringComparison.Ordinal);
-         Assert.Contains("new ElsewhereSetting(\"updates\",", integration, StringComparison.Ordinal);
+         string monitoring = WithheldRowTests.MemberText(ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.xaml.cs")), "private void BuildMonitoring()");
+         Assert.True(monitoring != null, "ServerSettingsView.BuildMonitoring is gone.");
+         Assert.DoesNotContain("UpdateCheckEnabled", monitoring, StringComparison.Ordinal);
+         Assert.Contains("Page = \"updates\" }", monitoring, StringComparison.Ordinal);
 
          string updates = Section_(feature, "Updates");
          Assert.Contains("Header.PageKey = \"updates\";", updates, StringComparison.Ordinal);

@@ -178,7 +178,7 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>
       /// The tabs of a page that have documents of their own, keyed
       /// "page#Tab" by the page's navigation key and the tab's English header, as
-      /// the page builds it (Tab(L("SNMP")) on the Logging page): the pane opens
+      /// the page builds it (Tab(L("SNMP")) on the Monitoring &amp; alerts page): the pane opens
       /// the tab's document while the tab is the one showing, and the page's own
       /// entry on its other tabs. A tab whose subject the page's entry does not
       /// cover, and no document does, is <see cref="HelpTarget.NoGuide"/> here.
@@ -195,6 +195,7 @@ namespace hMailServer.ControlPanel.Services
             ["delivery#Mailing lists"] = new HelpTarget("MailingLists.md"),
 
             ["protocols#SMTP"] = new HelpTarget("Protocols.md", "SMTP"),
+            ["protocols#ManageSieve"] = HelpTarget.NoGuide,
 
             ["antispam#Sender auth"] = new HelpTarget("SmtpPolicy.md", "SPF's other results (#286)"),
             ["antispam#Host checks"] = new HelpTarget("SmtpPolicy.md"),
@@ -207,8 +208,11 @@ namespace hMailServer.ControlPanel.Services
             ["autoban#Compromised accounts"] = new HelpTarget("CompromisedAccounts.md"),
 
             ["logging#Audit trail"] = new HelpTarget("AlertsAndAuditTrail.md", "The audit trail"),
-            ["logging#Alerts & webhooks"] = new HelpTarget("AlertsAndAuditTrail.md", "Alerts"),
-            ["logging#SNMP"] = new HelpTarget("Snmp.md"),
+
+            ["api#Metrics"] = new HelpTarget("SettingsReasons.md", "Monitoring & alerts"),
+            ["api#Alerts & webhooks"] = new HelpTarget("AlertsAndAuditTrail.md", "Alerts"),
+            ["api#SNMP"] = new HelpTarget("Snmp.md"),
+            ["api#Shutdown"] = new HelpTarget("SettingsReasons.md", "Monitoring & alerts"),
 
             ["performance#Message store"] = new HelpTarget("MessageStore.md"),
 

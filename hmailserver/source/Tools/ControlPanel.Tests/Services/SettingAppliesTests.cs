@@ -111,7 +111,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("Issue and renew certificates automatically, on the Automatic certificates (ACME) page", lines[1]);
          Assert.Equal("Waiting for a service restart:", lines[2]);
          Assert.StartsWith(SettingApplies.DescribePending("RestApiPort"), lines[3], System.StringComparison.Ordinal);
-         Assert.Contains(", on the API & monitoring page", lines[3], System.StringComparison.Ordinal);
+         Assert.Contains(", on the Monitoring & alerts page", lines[3], System.StringComparison.Ordinal);
          // A key no page shows is named as it is; a key marked now, or not at all, is
          // not one the bar counts.
          Assert.Equal("NoSuchKey", lines[4]);

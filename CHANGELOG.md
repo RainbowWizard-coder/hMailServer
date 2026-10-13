@@ -4685,6 +4685,24 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   first list sees it over the first one it can (review finding F269; the Virus sub-heading the review also proposed is
   the Virus scanning group). `SidebarStructureTests` holds the run, the sub-heading's place and its row.
 
+- **Changed: API & monitoring is Monitoring & alerts, and holds the alerts, the outbound webhooks and the SNMP agent;
+  the Windows Event Log is on Logging, and ManageSieve is a tab of Protocols.** Logging held the Alerts & webhooks and
+  SNMP tabs, which tell another system what happened, while its neighbour API & monitoring held the Windows Event Log,
+  where the log goes, and the ManageSieve listener, a mail protocol; its Webhooks alias outranked the page that had
+  the webhook settings, and nothing said where ManageSieve was but the Protocols page's Services card, which sent the
+  reader to API & monitoring. The page is Monitoring & alerts now, in five tabs - REST API, Metrics, Alerts &
+  webhooks, SNMP and Shutdown - with the same settings, words and warnings: the metrics listener's five warnings, the
+  bearer token's and the HTTP Basic password's Generate and Remove the stored secret when saving, and every port and
+  number held as typed to the server's range and refused on its field by a save. The Windows Event Log is a card of
+  Logging's Logging tab, after syslog, and ManageSieve a tab of Protocols with the state of the STARTTLS it borrows a
+  certificate for. A search for Alerts, Webhooks or SNMP opens Monitoring & alerts on the tab that holds it, Windows
+  Event Log opens Logging and Sieve or ManageSieve the ManageSieve tab; the old title is a search alias, the page's
+  key is unchanged, every sentence that named the page names it anew in every language, and the REST API's refusal on
+  a page no longer offers to open the page it is on (review finding F273, the owner's decision of 12 October 2026).
+  `PageSubjectsTests` holds the cards on their pages, their warnings and secrets, the aliases, the descriptions and
+  the task that opens them; `SettingNumberRangeTests` holds the moved numbers to their ranges and the addresses to
+  their width.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

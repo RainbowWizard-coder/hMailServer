@@ -762,9 +762,6 @@
   <data name="AD do_main of that user" xml:space="preserve">
     <value>Dominio _AD de ese usuario</value>
   </data>
-  <data name="API &amp; monitoring" xml:space="preserve">
-    <value>API y supervisión</value>
-  </data>
   <data name="API key" xml:space="preserve">
     <value>Clave de API</value>
   </data>
@@ -1614,8 +1611,8 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
     <value>Una entrada se cambia en su sitio a través de la API REST, que pide el código de un solo uso del administrador antes de responder, y no se dio ninguno. Pulse Editar… para que se le vuelva a pedir, o borre la entrada y vuelva a añadirla.</value>
   </data>
-  <data name="An entry is changed in place over the REST API, which is off (its port on the API &amp; monitoring page is {0}). Give it a port there and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
-    <value>Una entrada se cambia en su sitio a través de la API REST, que está desactivada (su puerto en la página API y supervisión es {0}). Dele allí un puerto y reinicialice el servidor, o borre la entrada y vuelva a añadirla.</value>
+  <data name="An entry is changed in place over the REST API, which is off (its port on the Monitoring &amp; alerts page is {0}). Give it a port there and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
+    <value>Una entrada se cambia en su sitio a través de la API REST, que está desactivada (su puerto en la página Supervisión y alertas es {0}). Dele allí un puerto y reinicialice el servidor, o borre la entrada y vuelva a añadirla.</value>
   </data>
   <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
     <value>Una entrada se cambia en su sitio a través de la API REST, que escucha solo en {0}, fuera del alcance de un Control Panel de otro equipo. Cambie la entrada en el Control Deck en el servidor, o bórrela y vuelva a añadirla.</value>
@@ -4636,8 +4633,8 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Enable message indexing" xml:space="preserve">
     <value>Activar la indexación de mensajes</value>
   </data>
-  <data name="Enable or disable the protocol servers. Changes apply when you press Save changes. ManageSieve (for managing Sieve scripts) is enabled on the API &amp; monitoring page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
-    <value>Activar o desactivar los servidores de protocolo. Los cambios se aplican al pulsar Guardar los cambios. ManageSieve (para gestionar scripts Sieve) se activa en la página API y supervisión; la autenticación con token OAuth2 está en la página Autenticación.</value>
+  <data name="Enable or disable the protocol servers. Changes apply when you press Save changes. ManageSieve (for managing Sieve scripts) is switched on by its port on the ManageSieve tab; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
+    <value>Activar o desactivar los servidores de protocolo. Los cambios se aplican al pulsar Guardar los cambios. ManageSieve (para gestionar scripts Sieve) se activa con su puerto en la pestaña ManageSieve; la autenticación con token OAuth2 está en la página Autenticación.</value>
   </data>
   <data name="Enable plus addressing" xml:space="preserve">
     <value>Activar el direccionamiento con signo más</value>
@@ -6974,6 +6971,9 @@ Cada suscripción de Web Push hecha con el par actual deja de funcionar al momen
   <data name="Makes {0} with three mailboxes, a distribution list, a rule and some delivered mail, so that every page has something in it. Remove it before this server takes real mail." xml:space="preserve">
     <value>Crea {0} con tres buzones, una lista de distribución, una regla y algo de correo entregado, para que cada página tenga algo. Elimine la muestra antes de que este servidor reciba correo real.</value>
   </data>
+  <data name="ManageSieve" xml:space="preserve">
+    <value>ManageSieve</value>
+  </data>
   <data name="ManageSieve (RFC 5804)" xml:space="preserve">
     <value>ManageSieve (RFC 5804)</value>
   </data>
@@ -7303,6 +7303,9 @@ No se elimina nada de lo que ya está.</value>
   <data name="Messages: {0}, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. Files compressed: {5}. Measured {6}." xml:space="preserve">
     <value>Mensajes: {0}, {1} MB tal como los ven los clientes. Sus archivos ocupan {2} MB y las partes guardadas una vez {3} MB, lo que ahorra un {4} %. Archivos comprimidos: {5}. Medido {6}.</value>
   </data>
+  <data name="Metrics" xml:space="preserve">
+    <value>Métricas</value>
+  </data>
   <data name="Metrics bind address" xml:space="preserve">
     <value>Dirección de enlace de las métricas</value>
   </data>
@@ -7389,6 +7392,9 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="Monitoring" xml:space="preserve">
     <value>Supervisión</value>
+  </data>
+  <data name="Monitoring &amp; alerts" xml:space="preserve">
+    <value>Supervisión y alertas</value>
   </data>
   <data name="Monitoring &amp; troubleshooting" xml:space="preserve">
     <value>Supervisión y resolución de problemas</value>
@@ -8677,9 +8683,6 @@ No se elimina nada de lo que ya está.</value>
   <data name="Open" xml:space="preserve">
     <value>Abierto</value>
   </data>
-  <data name="Open API &amp; monitoring, which owns the REST listener's port and TLS settings" xml:space="preserve">
-    <value>Abrir API y supervisión, donde están el puerto del oyente REST y sus ajustes de TLS</value>
-  </data>
   <data name="Open Anti-spam settings (PTR and HELO checks)" xml:space="preserve">
     <value>Abrir Ajustes antispam (comprobaciones PTR y HELO)</value>
   </data>
@@ -8712,6 +8715,9 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="Open Logging settings" xml:space="preserve">
     <value>Abrir Ajustes de registro</value>
+  </data>
+  <data name="Open Monitoring &amp; alerts, which owns the REST listener's port and TLS settings" xml:space="preserve">
+    <value>Abrir Supervisión y alertas, donde están el puerto del oyente REST y sus ajustes de TLS</value>
   </data>
   <data name="Open Protocols (host name)" xml:space="preserve">
     <value>Abrir Protocolos (nombre de host)</value>
@@ -8914,8 +8920,8 @@ No se elimina nada de lo que ya está.</value>
   <data name="Outbound webhooks" xml:space="preserve">
     <value>Webhooks salientes</value>
   </data>
-  <data name="Outbound webhooks post events to the receivers subscribed in the Control Deck or over the REST API. A subscription that names no domain covers every domain, and switching this off takes the domain out of all of them. The server's own switch is on the Logging page." xml:space="preserve">
-    <value>Los webhooks salientes envían eventos a los receptores suscritos en el Control Deck o por la API REST. Una suscripción que no nombra ningún dominio cubre todos los dominios, y desactivar esto saca al dominio de todas. El interruptor propio del servidor está en la página Registro.</value>
+  <data name="Outbound webhooks post events to the receivers subscribed in the Control Deck or over the REST API. A subscription that names no domain covers every domain, and switching this off takes the domain out of all of them. The server's own switch is on the Monitoring &amp; alerts page." xml:space="preserve">
+    <value>Los webhooks salientes envían eventos a los receptores suscritos en el Control Deck o por la API REST. Una suscripción que no nombra ningún dominio cubre todos los dominios, y desactivar esto saca al dominio de todas. El interruptor propio del servidor está en la página Supervisión y alertas.</value>
   </data>
   <data name="Outside senders get nothing, or the domain's text when its override is on." xml:space="preserve">
     <value>Los remitentes de fuera no reciben nada, o el texto del dominio cuando su anulación está activada.</value>
@@ -9147,8 +9153,8 @@ No se aceptarán conexiones nuevas ni se entregará correo hasta que se reanude.
   <data name="Per-name lockout" xml:space="preserve">
     <value>Bloqueo por nombre</value>
   </data>
-  <data name="Per-protocol limits and behaviour for SMTP, POP3 and IMAP." xml:space="preserve">
-    <value>Límites y comportamiento por protocolo para SMTP, POP3 e IMAP.</value>
+  <data name="Per-protocol limits and behaviour for SMTP, POP3 and IMAP, and the ManageSieve listener mail clients manage their filter scripts through." xml:space="preserve">
+    <value>Límites y comportamiento por protocolo para SMTP, POP3 e IMAP, y el agente de escucha de ManageSieve a través del cual los clientes de correo gestionan sus scripts de filtro.</value>
   </data>
   <data name="Performance" xml:space="preserve">
     <value>Rendimiento</value>
@@ -9524,9 +9530,6 @@ No se aceptarán conexiones nuevas ni se entregará correo hasta que se reanude.
   </data>
   <data name="REST administration API and the Control Deck" xml:space="preserve">
     <value>API REST de administración y el Control Deck</value>
-  </data>
-  <data name="REST administration API, Prometheus metrics and remote script management. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services &amp; autoconfiguration page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
-    <value>API REST de administración, métricas de Prometheus y gestión remota de scripts. El oyente público de servicios web (autoconfiguración, alojamiento de MTA-STS) está en la página Servicios web y autoconfiguración; la autenticación por token OAuth2 está en la página Autenticación.</value>
   </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>Archivo de clave pública RSA/EC (PEM, para tokens RS*/ES*)</value>
@@ -11316,8 +11319,8 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Send everything through my provider" xml:space="preserve">
     <value>Enviar todo a través de mi proveedor</value>
   </data>
-  <data name="Send it as a bearer token, in this header, to the REST listener configured on the API &amp; monitoring page:" xml:space="preserve">
-    <value>Envíela como token de portador, en esta cabecera, al oyente REST configurado en la página API y supervisión:</value>
+  <data name="Send it as a bearer token, in this header, to the REST listener configured on the Monitoring &amp; alerts page:" xml:space="preserve">
+    <value>Envíela como token de portador, en esta cabecera, al oyente REST configurado en la página Supervisión y alertas:</value>
   </data>
   <data name="Send it during this _hour of the local day (0 to 23)" xml:space="preserve">
     <value>Enviarlo durante esta _hora del día local (0 a 23)</value>
@@ -11765,6 +11768,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Shown: {0} of {1}" xml:space="preserve">
     <value>Mostrados: {0} de {1}</value>
+  </data>
+  <data name="Shutdown" xml:space="preserve">
+    <value>Apagado</value>
   </data>
   <data name="Sieve" xml:space="preserve">
     <value>Sieve</value>
@@ -12516,8 +12522,8 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
     <value>El Control Deck lo sirve la API REST, que está desactivada - asígnele un puerto más abajo.</value>
   </data>
-  <data name="The Control Deck is served by the REST API, which is off - give it a port on the API &amp; monitoring page." xml:space="preserve">
-    <value>El Control Deck lo sirve la API REST, que está desactivada - asígnele un puerto en la página API y supervisión.</value>
+  <data name="The Control Deck is served by the REST API, which is off - give it a port on the Monitoring &amp; alerts page." xml:space="preserve">
+    <value>El Control Deck lo sirve la API REST, que está desactivada - asígnele un puerto en la página Supervisión y alertas.</value>
   </data>
   <data name="The Control Panel is connected to another host, so the account its service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>El Control Panel está conectado a otro host, así que la cuenta con la que se ejecuta su servicio no puede leerse desde aquí. Abra el Control Panel en el propio servidor para verla.</value>
@@ -12579,11 +12585,17 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="The MTA-STS hosting settings could not be read: {0}" xml:space="preserve">
     <value>No se pudieron leer los ajustes de alojamiento de MTA-STS: {0}</value>
   </data>
+  <data name="The ManageSieve listener" xml:space="preserve">
+    <value>El agente de escucha de ManageSieve</value>
+  </data>
   <data name="The NCSA log line format above takes precedence, so this has no effect while it is selected. The setting is remembered and applies again as soon as the format goes back to hMailServer's own." xml:space="preserve">
     <value>El formato de línea de registro NCSA de arriba tiene prioridad, así que esto no tiene efecto mientras esté seleccionado. El ajuste se recuerda y vuelve a aplicarse en cuanto el formato regrese al propio de hMailServer.</value>
   </data>
   <data name="The OAuth2 settings could not be read: {0}" xml:space="preserve">
     <value>No se pudieron leer los ajustes de OAuth2: {0}</value>
+  </data>
+  <data name="The REST API and the Control Deck's listener, the Prometheus metrics and health endpoints a monitoring system reads, the OpenTelemetry export, the alerts, outbound webhooks and SNMP agent that tell another system what happened, and how long a stopping service waits for its sessions." xml:space="preserve">
+    <value>La API REST y el agente de escucha del Control Deck, las métricas de Prometheus y los puntos de acceso de salud que lee un sistema de supervisión, la exportación OpenTelemetry, las alertas, los webhooks salientes y el agente SNMP que le dicen a otro sistema lo que ha pasado, y cuánto espera un servicio que se detiene a sus sesiones.</value>
   </data>
   <data name="The REST API answered {0}." xml:space="preserve">
     <value>La API REST respondió {0}.</value>
@@ -12597,17 +12609,17 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="The REST API could not be reached: {0}" xml:space="preserve">
     <value>No se pudo acceder a la API REST: {0}</value>
   </data>
-  <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs a TLS certificate file and its private key file on the API &amp; monitoring page, or an ACME certificate issued to this server." xml:space="preserve">
-    <value>La API REST no está en marcha: solo sirve HTTP sin cifrar en 127.0.0.1 o ::1, y escuchar en {0} requiere un archivo de certificado TLS y su archivo de clave privada en la página API y supervisión, o un certificado ACME emitido para este servidor.</value>
+  <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs a TLS certificate file and its private key file on the Monitoring &amp; alerts page, or an ACME certificate issued to this server." xml:space="preserve">
+    <value>La API REST no está en marcha: solo sirve HTTP sin cifrar en 127.0.0.1 o ::1, y escuchar en {0} requiere un archivo de certificado TLS y su archivo de clave privada en la página Supervisión y alertas, o un certificado ACME emitido para este servidor.</value>
   </data>
-  <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
-    <value>La API REST no se está ejecutando: escuchar en {0} necesita un certificado, que se configura en la página API y supervisión.</value>
+  <data name="The REST API is not running: listening on {0} needs a certificate, set on the Monitoring &amp; alerts page." xml:space="preserve">
+    <value>La API REST no se está ejecutando: escuchar en {0} necesita un certificado, que se configura en la página Supervisión y alertas.</value>
   </data>
-  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and both this page and the Control Deck read the cases over it. Give it a port there." xml:space="preserve">
-    <value>La API REST está desactivada (su puerto en la página API y supervisión es {0}), y tanto esta página como el Control Deck leen los casos a través de ella. Asígnele allí un puerto.</value>
+  <data name="The REST API is off (its port on the Monitoring &amp; alerts page is {0}), and both this page and the Control Deck read the cases over it. Give it a port there." xml:space="preserve">
+    <value>La API REST está desactivada (su puerto en la página Supervisión y alertas es {0}), y tanto esta página como el Control Deck leen los casos a través de ella. Asígnele allí un puerto.</value>
   </data>
-  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
-    <value>La API REST está desactivada (su puerto en la página API y supervisión es {0}), y estos ajustes se alcanzan a través de ella: el servidor los guarda, pero ninguna propiedad COM los lleva. Dé un puerto a la API REST en la página API y supervisión, reinicialice el servidor y vuelva a abrir esta página.</value>
+  <data name="The REST API is off (its port on the Monitoring &amp; alerts page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the Monitoring &amp; alerts page, reinitialise the server, and open this page again." xml:space="preserve">
+    <value>La API REST está desactivada (su puerto en la página Supervisión y alertas es {0}), y estos ajustes se alcanzan a través de ella: el servidor los guarda, pero ninguna propiedad COM los lleva. Dé un puerto a la API REST en la página Supervisión y alertas, reinicialice el servidor y vuelva a abrir esta página.</value>
   </data>
   <data name="The REST API listens on {0} only, so the Control Deck opens only in a browser on the server itself." xml:space="preserve">
     <value>La API REST solo escucha en {0}, así que el Control Deck solo se abre en un navegador en el propio servidor.</value>
@@ -12627,14 +12639,11 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="The REST API's new settings are saved but not yet in effect - the Control Deck can be opened once the server applies them." xml:space="preserve">
     <value>La nueva configuración de la API REST está guardada, pero aún no tiene efecto - el Control Deck podrá abrirse cuando el servidor la aplique.</value>
   </data>
-  <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions." xml:space="preserve">
-    <value>La API REST, las métricas de Prometheus y los puntos de acceso de salud que lee un sistema de supervisión externo, el registro de eventos de Windows, el agente de escucha de ManageSieve y cuánto espera un servicio que se detiene a sus sesiones.</value>
+  <data name="The REST administration API, the metrics and health endpoints a monitoring system reads, and the alerts, webhooks and SNMP agent that tell another system what happened. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services &amp; autoconfiguration page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
+    <value>La API REST de administración, las métricas y los puntos de acceso de salud que lee un sistema de supervisión, y las alertas, los webhooks y el agente SNMP que le dicen a otro sistema lo que ha pasado. El oyente público de servicios web (autoconfiguración, alojamiento de MTA-STS) está en la página Servicios web y autoconfiguración; la autenticación por token OAuth2 está en la página Autenticación.</value>
   </data>
   <data name="The RSA/EC public key file {0} does not exist on this machine, so RS256 tokens cannot be verified." xml:space="preserve">
     <value>El archivo de clave pública RSA/EC {0} no existe en esta máquina, así que los tokens RS256 no pueden verificarse.</value>
-  </data>
-  <data name="The SNMP agent, alerts, outbound webhooks and the audit trail" xml:space="preserve">
-    <value>El agente SNMP, las alertas, los webhooks salientes y el registro de auditoría</value>
   </data>
   <data name="The Service Control Manager could not be queried, so the account the service runs as is unknown: {0}" xml:space="preserve">
     <value>No se pudo consultar el Administrador de control de servicios, así que se desconoce la cuenta con la que se ejecuta el servicio: {0}</value>
@@ -13375,6 +13384,9 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   <data name="The log files belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log." xml:space="preserve">
     <value>Desde 6.3.6 los archivos de registro pertenecen a los administradores, así que este Panel de control no puede leerlos. Ciérrelo e inícielo con Ejecutar como administrador para ver el registro en vivo.</value>
   </data>
+  <data name="The log files, syslog, the Windows Event Log and the audit trail" xml:space="preserve">
+    <value>Los archivos de registro, syslog, el registro de eventos de Windows y el registro de auditoría</value>
+  </data>
   <data name="The log folder was not found on this computer. Live logs read the log files where the server runs: start the Control Panel on that computer to see them." xml:space="preserve">
     <value>No se encontró la carpeta de registros en este equipo. Registros en vivo lee los archivos de registro donde se ejecuta el servidor: inicie el Panel de control en ese equipo para verlos.</value>
   </data>
@@ -13782,8 +13794,8 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   <data name="The server is starting or stopping, so whether its ports are being listened on cannot be said yet. Open this page again in a moment." xml:space="preserve">
     <value>El servidor se está iniciando o deteniendo, así que aún no se puede saber si se escucha en sus puertos. Vuelva a abrir esta página dentro de un momento.</value>
   </data>
-  <data name="The server keeps no history: 'Keep metric history for' on the API &amp; monitoring page is 0. Set it to the days to keep." xml:space="preserve">
-    <value>El servidor no guarda ningún historial: 'Conservar el histórico de métricas durante' en la página API y supervisión es 0. Póngalo en los días que quiera conservar.</value>
+  <data name="The server keeps no history: 'Keep metric history for' on the Monitoring &amp; alerts page is 0. Set it to the days to keep." xml:space="preserve">
+    <value>El servidor no guarda ningún historial: 'Conservar el histórico de métricas durante' en la página Supervisión y alertas es 0. Póngalo en los días que quiera conservar.</value>
   </data>
   <data name="The server log as it is written, read from the log folder on this computer." xml:space="preserve">
     <value>El registro del servidor según se escribe, leído de la carpeta de registros de este equipo.</value>
@@ -15169,8 +15181,8 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>¿Qué lista? Se escribe una entrada por cada remitente o dominio distinto, y luego se actúa sobre cada mensaje. Un mensaje para el que no se puede crear ninguna entrada se deja donde está.</value>
   </data>
-  <data name="Which log files the server writes, how much detail they carry and how long they are kept, what the audit trail records, and the alerts, outbound webhooks and SNMP agent that tell another system what happened." xml:space="preserve">
-    <value>Qué archivos de registro escribe el servidor, cuánto detalle llevan y cuánto tiempo se conservan, qué anota el registro de auditoría, y las alertas, los webhooks salientes y el agente SNMP que le dicen a otro sistema lo que ha pasado.</value>
+  <data name="Which log files the server writes, how much detail they carry and how long they are kept, the copies it sends to syslog and the Windows Event Log, and what the audit trail records." xml:space="preserve">
+    <value>Qué archivos de registro escribe el servidor, cuánto detalle llevan y cuánto tiempo se conservan, las copias que envía a syslog y al registro de eventos de Windows, y qué anota el registro de auditoría.</value>
   </data>
   <data name="Which name servers the server asks, and whether answers are DNSSEC validated." xml:space="preserve">
     <value>A qué servidores de nombres pregunta el servidor, y si las respuestas se validan con DNSSEC.</value>
@@ -15913,9 +15925,6 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="_Older" xml:space="preserve">
     <value>Más _antiguos</value>
   </data>
-  <data name="_Open API &amp; monitoring" xml:space="preserve">
-    <value>_Abrir API y supervisión</value>
-  </data>
   <data name="_Open Anti-spam settings" xml:space="preserve">
     <value>_Abrir Ajustes antispam</value>
   </data>
@@ -15927,6 +15936,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="_Open Logging" xml:space="preserve">
     <value>_Abrir Registro</value>
+  </data>
+  <data name="_Open Monitoring &amp; alerts" xml:space="preserve">
+    <value>_Abrir Supervisión y alertas</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>_Abrir el informe</value>

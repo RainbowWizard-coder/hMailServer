@@ -255,6 +255,9 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("FeatureSettingsView.xaml.cs", "traces/metrics",
          "the Monitoring card advertised an OpenTelemetry metrics exporter that does not exist - "
          + "only the traces signal is implemented")]
+      [InlineData("ServerSettingsView.xaml.cs", "traces/metrics",
+         "the Monitoring card, on Monitoring & alerts since review finding F273, advertised an "
+         + "OpenTelemetry metrics exporter that does not exist - only the traces signal is implemented")]
       [InlineData("ServerSettingsView.xaml.cs", "Label = \"Worker thread priority\"",
          "an editable box wrote a thread priority the server never reads")]
       public void WithdrawnClaim_IsNotInTheSettingsPages(string view, string claim, string why)

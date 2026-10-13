@@ -38,7 +38,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheButton_SaysWhyItCannotOpenTheDeck()
       {
          Assert.Null(ControlDeck.Address("0", "127.0.0.1", "", "", null, true, null, out string off));
-         Assert.Equal("The Control Deck is served by the REST API, which is off - give it a port on the API & monitoring page.", off);
+         Assert.Equal("The Control Deck is served by the REST API, which is off - give it a port on the Monitoring & alerts page.", off);
          Assert.Null(ControlDeck.Address("", null, null, null, null, true, null, out string empty));
          Assert.Equal(off, empty);
 
@@ -46,7 +46,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("The REST API listens on 127.0.0.1 only, so the Control Deck opens only in a browser on the server itself.", remote);
 
          Assert.Null(ControlDeck.Address("8045", "0.0.0.0", "", "", false, true, null, out string uncertified));
-         Assert.Equal("The REST API is not running: listening on 0.0.0.0 needs a certificate, set on the API & monitoring page.", uncertified);
+         Assert.Equal("The REST API is not running: listening on 0.0.0.0 needs a certificate, set on the Monitoring & alerts page.", uncertified);
       }
 
       /// <summary>
@@ -77,7 +77,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          // Turned off and saved: off, whatever is still listening.
          Assert.Null(ControlDeck.Address("0", "127.0.0.1", "", "", null, true, null, new[] { "RestApiPort" }, null, out string turnedOff));
-         Assert.Equal("The Control Deck is served by the REST API, which is off - give it a port on the API & monitoring page.", turnedOff);
+         Assert.Equal("The Control Deck is served by the REST API, which is off - give it a port on the Monitoring & alerts page.", turnedOff);
 
          // The button asks the server for what waits.
          string link = ReadControlPanelFile(Path.Join("Views", "ControlDeckLink.cs"));
@@ -100,12 +100,14 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Null(ControlDeck.Address("8045", "127.0.0.1", "", "", null, false, "mail.example.com", null, below, out string remote));
          Assert.Equal("The REST API listens on 127.0.0.1 only, so the Control Deck opens only in a browser on the server itself.", remote);
 
-         string feature = ReadControlPanelFile(Path.Join("Views", "FeatureSettingsView.xaml.cs"));
-         string setting = WithheldRowTests.MemberText(feature, "private sealed class DeckLinkSetting : Setting");
-         Assert.True(setting != null, "FeatureSettingsView.DeckLinkSetting is gone.");
-         Assert.Contains("ControlDeckLink.Row(L(\"Open the Control Deck\"), L(\"" + below + "\"))", setting, StringComparison.Ordinal);
-         Assert.Single(Regex.Matches(feature, @"new DeckLinkSetting\(\)"));
-         Assert.Matches(new Regex(@"Settings =\s*\{\s*new DeckLinkSetting\(\),\s*[^}]*Key = ""RestApiPort"""), feature);
+         // The REST API's card, on Monitoring & alerts since review finding F273.
+         string settings = ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.xaml.cs"));
+         string row = WithheldRowTests.MemberText(settings, "private sealed class DeckLinkRow : ComSetting, INotPersisted");
+         Assert.True(row != null, "ServerSettingsView.DeckLinkRow is gone.");
+         Assert.Contains("ControlDeckLink.Row(L(\"Open the Control Deck\"), WhyOffHere)", row, StringComparison.Ordinal);
+         Assert.Single(Regex.Matches(settings, Regex.Escape("new DeckLinkRow { WhyOffHere = L(\"" + below + "\") }")));
+         Assert.Matches(new Regex(@"rest\.Settings\.Add\(new DeckLinkRow \{ WhyOffHere = [^}]*\}\);\s*rest\.Settings\.Add\(new ElsewhereRow[^;]*;(?:[ \t]*//[^\n]*)?\s*rest\.Settings\.Add\(new IniRangeNumber \{ Path = ""RestApiPort"""), settings);
+         Assert.DoesNotContain("DeckLinkSetting", ReadControlPanelFile(Path.Join("Views", "FeatureSettingsView.xaml.cs")), StringComparison.Ordinal);
       }
 
       /// <summary>
@@ -165,8 +167,7 @@ namespace hMailServer.ControlPanel.Tests.Services
             Assert.Contains("Control Deck", statement.Groups["blurb"].Value, StringComparison.Ordinal);
          }
 
-         string feature = ReadControlPanelFile(Path.Join("Views", "FeatureSettingsView.xaml.cs"));
-         Assert.Matches(new Regex(@"Title = L\(""REST administration API and the Control Deck""\),\s*Blurb = L\(""[^""]*the browser-based Control Deck at the listener root[^""]*""\),\s*Settings =\s*\{\s*new DeckLinkSetting\(\),"), feature);
+         Assert.Matches(new Regex(@"var rest = Card\(L\(""REST administration API and the Control Deck""\),\s*L\(""[^""]*the browser-based Control Deck at the listener root[^""]*""\)\);\s*rest\.Settings\.Add\(new DeckLinkRow"), settings);
       }
 
       /// <summary>

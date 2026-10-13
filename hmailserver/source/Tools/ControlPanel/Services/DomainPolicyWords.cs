@@ -89,7 +89,7 @@ namespace hMailServer.ControlPanel.Services
          {
             string portText = (port ?? "").Trim();
             if (!int.TryParse(portText, NumberStyles.Integer, CultureInfo.InvariantCulture, out int number) || number <= 0 || number > 65535)
-               return F("An entry is changed in place over the REST API, which is off (its port on the API & monitoring page is {0}). Give it a port there and reinitialise the server, or delete the entry and add it again.",
+               return F("An entry is changed in place over the REST API, which is off (its port on the Monitoring & alerts page is {0}). Give it a port there and reinitialise the server, or delete the entry and add it again.",
                   portText.Length == 0 ? "0" : portText);
 
             string bind = string.IsNullOrWhiteSpace(bindAddress) ? "127.0.0.1" : bindAddress.Trim(); // no-loc

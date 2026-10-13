@@ -99,7 +99,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void AnEntryCannotBeChanged_WhileTheRestApiIsOff(string port, string said)
       {
          string why = DomainPolicyWords.Unchangeable(true, port, "127.0.0.1", true, "The settings pages' sentence.");
-         Assert.Equal("An entry is changed in place over the REST API, which is off (its port on the API & monitoring page is " + said + "). Give it a port there and reinitialise the server, or delete the entry and add it again.", why);
+         Assert.Equal("An entry is changed in place over the REST API, which is off (its port on the Monitoring & alerts page is " + said + "). Give it a port there and reinitialise the server, or delete the entry and add it again.", why);
          Assert.DoesNotContain("these settings", why, StringComparison.Ordinal);
       }
 

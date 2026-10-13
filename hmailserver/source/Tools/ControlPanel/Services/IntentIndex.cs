@@ -347,14 +347,15 @@ namespace hMailServer.ControlPanel.Services
             N("Set the per-IP submission rate limit; authenticated senders above it are refused.")),
          new IntentEntry(N("monitor the server from outside"), "api",
             N("Prometheus metrics, health endpoints and the REST API are enabled here.")),
-         // Four subjects filed on pages whose names do not say so (review finding
-         // F273): the countries on Auto-ban, the PST import on Advanced, the alerts
-         // and webhooks on Logging, and the PROXY protocol on Server limits.
+         // Four subjects that were filed on pages whose names did not say so (review
+         // finding F273): the countries on Auto-ban, which stayed and is in its purpose,
+         // the PST import, the alerts and webhooks, now on Monitoring & alerts, and the
+         // PROXY protocol.
          new IntentEntry(N("block mail from a country"), "autoban",
             N("Refuse or allow connections by the country a MaxMind database places the address in; nothing is judged by country until you supply the database.")),
          new IntentEntry(N("import a pst file"), "advanced",
             N("Set the folder PST files are copied into; the import job itself is started in the Control Deck or over the REST API.")),
-         new IntentEntry(N("send an alert to another system"), "logging",
+         new IntentEntry(N("send an alert to another system"), "api",
             N("Alert rules, outbound webhooks and the SNMP agent tell another system what happened.")),
          new IntentEntry(N("put a proxy in front of the server"), "hardening",
             N("Let a load balancer or a Postfix relay pass on the real client address with the PROXY protocol or XCLIENT.")),

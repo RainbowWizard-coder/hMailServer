@@ -52,7 +52,10 @@ namespace hMailServer.ControlPanel.Tests.Services
          // The settings rows hold the bare example and their boxes mark it
          // (ExamplePlaceholder.Shown; PlaceholderExamplesTests).
          Assert.Contains("Label = L(\"Override DNS server (empty = the name servers Windows uses)\"), Placeholder = \"1.1.1.1\"", feature, StringComparison.Ordinal);
-         Assert.Equal(3, Regex.Matches(feature, Regex.Escape("Placeholder = \"http://localhost:4318\"")).Count);
+         // The three OpenTelemetry endpoints, on Monitoring & alerts since review finding F273.
+         string server = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.xaml.cs"));
+         Assert.Equal(3, Regex.Matches(server, Regex.Escape("Placeholder = \"http://localhost:4318\"")).Count);
+         Assert.Contains("box_ = TextEditor(current, ExamplePlaceholder.Shown(Placeholder));", server, StringComparison.Ordinal);
          Assert.Contains("PlaceholderText = ExamplePlaceholder.Shown(Placeholder)", feature, StringComparison.Ordinal);
          // A placeholder written as English in every language, "e.g. 127.0.0.1", is gone.
          Assert.DoesNotContain("Placeholder = \"e.g.", feature, StringComparison.Ordinal);

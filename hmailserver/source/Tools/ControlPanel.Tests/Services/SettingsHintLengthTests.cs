@@ -34,7 +34,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          // file, the pattern whose first group (or last) is a hint, the fewest hints it must read
          { "ServerSettingsView.xaml.cs", @"\bBlurb\s*=\s*L\(" + Literal + @"\)", 200 },
-         { "FeatureSettingsView.xaml.cs", @"\b(?:Blurb|Hint)\s*=\s*L\(" + Literal + @"\)", 80 },
+         { "FeatureSettingsView.xaml.cs", @"\b(?:Blurb|Hint)\s*=\s*L\(" + Literal + @"\)", 70 },
          { "BackupView.xaml", @"Hint=""\{loc:L '((?:[^'\\]|\\.)*)'\}""", 6 },
          { "DistributionListDialog.cs", @"WithHint\(L\(" + Literal + @"\)", 4 },
          { "LdapSettingsView.cs", @"Labelled(?:Box|Combo)_\(L\(" + Literal + @"\),\s*\w+,\s*""[\w-]+"",\s*(?://[^\n]*\n\s*)*[LF]\(" + Literal, 10 },
@@ -118,7 +118,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("Backup & restore", "so a failed backup never deletes anything")]
       [InlineData("Delivery of e-mail", "says so in the error log once an hour")]
       [InlineData("Logging", "this sends a copy, it does not move anything")]
-      [InlineData("API & monitoring", "rather than a second tally")]
+      [InlineData("Monitoring & alerts", "rather than a second tally")]
       [InlineData("Performance", "worse than no box at all")]
       public void TheSentencesTheHintsLost_AreUnderThePagesHeading(string heading, string reason)
       {

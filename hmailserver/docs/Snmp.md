@@ -67,8 +67,8 @@ community as it is unless its box is filled; over REST an empty value clears it.
 
 **Where it is set.** There is no COM property for any of these, as there is none for
 the Prometheus listener: the REST API, the Deck and `hmctl` are the surfaces, and
-the Control Panel has them on Monitoring & troubleshooting > Logging, the SNMP
-tab, which reads and writes them over the REST API - so the tab shows them only
+the Control Panel has them on Monitoring & troubleshooting > Monitoring & alerts,
+the SNMP tab, which reads and writes them over the REST API - so the tab shows them only
 while the REST API is on, and otherwise says why. The environment layer names
 them as it names every `hm_settings` row (`HM_PROPERTY_SnmpEnabled` and so on,
 with `_FILE` for the three secrets;

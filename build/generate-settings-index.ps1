@@ -43,11 +43,11 @@ $serverPath = Join-Path $cpRoot 'Views\ServerSettingsView.xaml.cs'
 $outputPath = Join-Path $cpRoot 'Services\SettingsSearchIndex.g.cs'
 
 # Section -> nav page key, matching MainWindow's page factories.
-$featurePages = @{ 'Security' = 'security'; 'Automation' = 'acme'; 'Integration' = 'api'; 'Hardening' = 'hardening';
+$featurePages = @{ 'Security' = 'security'; 'Automation' = 'acme'; 'Hardening' = 'hardening';
                    'Authentication' = 'authentication'; 'Dns' = 'dns'; 'WebServices' = 'webservices'; 'Updates' = 'updates' }
 $serverPages = @{ 'Protocols' = 'protocols'; 'Delivery' = 'delivery'; 'AntiSpam' = 'antispam'; 'AntiVirus' = 'antivirus';
                   'Tls' = 'tls'; 'Logging' = 'logging'; 'Performance' = 'performance'; 'Advanced' = 'advanced';
-                  'AdminAccess' = 'adminaccess'; 'AutoBan' = 'autoban'; 'Webmail' = 'webmail' }
+                  'AdminAccess' = 'adminaccess'; 'AutoBan' = 'autoban'; 'Webmail' = 'webmail'; 'Monitoring' = 'api' }
 
 # Hand-written pages carry settings too - they just declare them as ordinary
 # XAML controls instead of a table, so the two scans above cannot see them.

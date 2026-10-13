@@ -59,7 +59,9 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// And two by the owner's decision of 12 October 2026 on review finding F301:
       /// SSL certificates is TLS certificates and SSL/TLS is TLS versions &amp;
       /// ciphers, the glossary's word in their titles, each with its old title an
-      /// alias (PageTitlesTests).
+      /// alias (PageTitlesTests). And on review finding F273's card moves, API &amp;
+      /// monitoring is Monitoring &amp; alerts, the alerts, webhooks and SNMP agent on
+      /// it, with the old title an alias.
       ///
       /// Fails against the unfixed code because NavigationMap does not exist
       /// there; from now on it fails whenever a title moves.
@@ -103,7 +105,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("relays", "Incoming relays")]
       [InlineData("dns", "DNS resolver")]
       [InlineData("webservices", "Web services & autoconfiguration")]
-      [InlineData("api", "API & monitoring")]
+      [InlineData("api", "Monitoring & alerts")]
       [InlineData("backup", "Backup & restore")]
       [InlineData("updates", "Updates")]
       [InlineData("mxquery", "MX query")]

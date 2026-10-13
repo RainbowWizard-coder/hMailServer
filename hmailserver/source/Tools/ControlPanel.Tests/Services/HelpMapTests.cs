@@ -110,7 +110,8 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       /// <summary>A tab with a document of its own opens it; the page's other tabs keep the page's.</summary>
       [Theory]
-      [InlineData("logging", "SNMP", "Snmp.md")]
+      [InlineData("api", "SNMP", "Snmp.md")]
+      [InlineData("api", "Alerts & webhooks", "AlertsAndAuditTrail.md")]
       [InlineData("logging", "Audit trail", "AlertsAndAuditTrail.md")]
       [InlineData("logging", "Logging", "Syslog.md")]
       [InlineData("logging", null, "Syslog.md")]
@@ -134,7 +135,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.False(HelpMap.For("webmail", "Notifications").IsGuide);
          Assert.False(HelpMap.For("adminaccess", "Two-factor").IsGuide);
          Assert.Null(HelpMap.For("no-such-page", "SNMP"));
-         Assert.Contains("SNMP", HelpMap.TabsOf("logging"));
+         Assert.Contains("SNMP", HelpMap.TabsOf("api"));
+         Assert.DoesNotContain("SNMP", HelpMap.TabsOf("logging"));
+         Assert.False(HelpMap.For("protocols", "ManageSieve").IsGuide);
          Assert.Empty(HelpMap.TabsOf("domains"));
          Assert.Empty(HelpMap.TabsOf(null));
       }

@@ -236,7 +236,7 @@ namespace hMailServer.ControlPanel.Views
 
          // The header on a line of its own, in the monospaced face: it was set in
          // the sentence, marked off by two spaces either side (review finding F304).
-         TextBlock sendIt = Paragraph_(L("Send it as a bearer token, in this header, to the REST listener configured on the API & monitoring page:"));
+         TextBlock sendIt = Paragraph_(L("Send it as a bearer token, in this header, to the REST listener configured on the Monitoring & alerts page:"));
          sendIt.Margin = new Thickness(0, 0, 0, 4);
          content.Children.Add(sendIt);
          var header = new TextBlock
@@ -261,7 +261,7 @@ namespace hMailServer.ControlPanel.Views
 
          var links = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 10, 0, 0) };
          links.Children.Add(PageLink_("api", F("Open {0}", L(NavigationMap.TitleOf("api"))),
-            L("Open API & monitoring, which owns the REST listener's port and TLS settings")));
+            L("Open Monitoring & alerts, which owns the REST listener's port and TLS settings")));
          content.Children.Add(links);
 
          return card;

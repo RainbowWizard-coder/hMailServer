@@ -433,7 +433,7 @@ namespace hMailServer.ControlPanel.Views
       private ScrollViewer BuildWebhooks()
       {
          var panel = DialogFields.TabPanel();
-         panel.Children.Add(DialogFields.Note(L("Outbound webhooks post events to the receivers subscribed in the Control Deck or over the REST API. A subscription that names no domain covers every domain, and switching this off takes the domain out of all of them. The server's own switch is on the Logging page.")));
+         panel.Children.Add(DialogFields.Note(L("Outbound webhooks post events to the receivers subscribed in the Control Deck or over the REST API. A subscription that names no domain covers every domain, and switching this off takes the domain out of all of them. The server's own switch is on the Monitoring & alerts page.")));
          panel.Children.Add(ControlDeckLink.DialogRow());
          panel.Children.Add(DialogFields.Check(webhooksOn_));
          panel.Children.Add(DialogFields.Check(webhookSubjects_));

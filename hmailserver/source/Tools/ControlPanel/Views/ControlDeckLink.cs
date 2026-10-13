@@ -36,7 +36,7 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>
       /// <see cref="Find(out string)"/>, with <paramref name="whyOffHere"/> the reason a
       /// page that holds the REST API's port gives while it is off (null for the
-      /// sentence that names the API &amp; monitoring page). The settings saved and not
+      /// sentence that names the Monitoring &amp; alerts page). The settings saved and not
       /// yet applied are asked of the server, so that the button is not pressable
       /// while hMailServer.ini names an address nothing listens on yet
       /// (ControlDeck.ListenerSettings).

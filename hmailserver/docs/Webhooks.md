@@ -405,8 +405,8 @@ Four rows in `hm_settings` — none of them in `hMailServer.ini`.
 
 On COM they are `Settings.WebhooksEnabled`, `.WebhookMaxAttempts`,
 `.WebhookMaxPerMinute` and `.WebhookRetentionDays`, and the Control Panel edits
-them through those properties on Monitoring & troubleshooting > Logging, the
-Alerts & webhooks tab. A value outside a range is **refused** with the same
+them through those properties on Monitoring & troubleshooting > Monitoring &
+alerts, the Alerts & webhooks tab. A value outside a range is **refused** with the same
 sentence over REST and over COM, not clamped.
 
 ---
@@ -451,8 +451,8 @@ words, the last twenty-five deliveries with the reason a pending one has not
 arrived, an editor built from the route's own schema, and two buttons — raise a
 test event, run a pass now. In all twenty languages.
 
-**The desktop Control Panel** has the four settings on its Logging page, the
-Alerts & webhooks tab, and a domain's two switches, `webhooks_enabled` and
+**The desktop Control Panel** has the four settings on its Monitoring & alerts
+page, the Alerts & webhooks tab, and a domain's two switches, `webhooks_enabled` and
 `webhook_subjects`, on the domain dialog's Webhooks tab. The subscriptions and
 their deliveries are not in it.
 

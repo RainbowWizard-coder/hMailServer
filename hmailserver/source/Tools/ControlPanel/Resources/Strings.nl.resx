@@ -762,9 +762,6 @@
   <data name="AD do_main of that user" xml:space="preserve">
     <value>AD-do_mein van die gebruiker</value>
   </data>
-  <data name="API &amp; monitoring" xml:space="preserve">
-    <value>API en monitoring</value>
-  </data>
   <data name="API key" xml:space="preserve">
     <value>API-sleutel</value>
   </data>
@@ -1614,8 +1611,8 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
     <value>Een vermelding wordt ter plekke gewijzigd via de REST-API, die de eenmalige code van de beheerder vraagt voordat hij antwoordt, en er is geen gegeven. Druk op Bewerken… om er opnieuw naar te worden gevraagd, of verwijder de vermelding en voeg haar opnieuw toe.</value>
   </data>
-  <data name="An entry is changed in place over the REST API, which is off (its port on the API &amp; monitoring page is {0}). Give it a port there and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
-    <value>Een vermelding wordt ter plekke gewijzigd via de REST-API, die uit staat (de poort op de pagina API en monitoring is {0}). Geef die daar een poort en initialiseer de server opnieuw, of verwijder de vermelding en voeg haar opnieuw toe.</value>
+  <data name="An entry is changed in place over the REST API, which is off (its port on the Monitoring &amp; alerts page is {0}). Give it a port there and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
+    <value>Een vermelding wordt ter plekke gewijzigd via de REST-API, die uit staat (de poort op de pagina Monitoring en waarschuwingen is {0}). Geef die daar een poort en initialiseer de server opnieuw, of verwijder de vermelding en voeg haar opnieuw toe.</value>
   </data>
   <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
     <value>Een vermelding wordt ter plekke gewijzigd via de REST-API, die alleen op {0} luistert, buiten bereik van een Control Panel op een andere machine. Wijzig de vermelding in het Control Deck op de server, of verwijder haar en voeg haar opnieuw toe.</value>
@@ -4636,8 +4633,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Enable message indexing" xml:space="preserve">
     <value>Berichtindexering inschakelen</value>
   </data>
-  <data name="Enable or disable the protocol servers. Changes apply when you press Save changes. ManageSieve (for managing Sieve scripts) is enabled on the API &amp; monitoring page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
-    <value>Schakel de protocolservers in of uit. Wijzigingen gelden zodra u op Wijzigingen opslaan drukt. ManageSieve (voor het beheren van Sieve-scripts) wordt ingeschakeld op de pagina API en monitoring; OAuth2-tokenauthenticatie staat op de pagina Authenticatie.</value>
+  <data name="Enable or disable the protocol servers. Changes apply when you press Save changes. ManageSieve (for managing Sieve scripts) is switched on by its port on the ManageSieve tab; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
+    <value>Schakel de protocolservers in of uit. Wijzigingen gelden zodra u op Wijzigingen opslaan drukt. ManageSieve (voor het beheren van Sieve-scripts) wordt ingeschakeld met zijn poort op het tabblad ManageSieve; OAuth2-tokenauthenticatie staat op de pagina Authenticatie.</value>
   </data>
   <data name="Enable plus addressing" xml:space="preserve">
     <value>Plusadressering inschakelen</value>
@@ -6974,6 +6971,9 @@ Elk Web Push-abonnement onder het huidige paar werkt meteen niet meer, en iedere
   <data name="Makes {0} with three mailboxes, a distribution list, a rule and some delivered mail, so that every page has something in it. Remove it before this server takes real mail." xml:space="preserve">
     <value>Maakt {0} met drie postbussen, een distributielijst, een regel en wat bezorgde post, zodat elke pagina iets bevat. Verwijder het voorbeeld voordat deze server echte post aanneemt.</value>
   </data>
+  <data name="ManageSieve" xml:space="preserve">
+    <value>ManageSieve</value>
+  </data>
   <data name="ManageSieve (RFC 5804)" xml:space="preserve">
     <value>ManageSieve (RFC 5804)</value>
   </data>
@@ -7303,6 +7303,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Messages: {0}, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. Files compressed: {5}. Measured {6}." xml:space="preserve">
     <value>Berichten: {0}, {1} MB zoals clients ze zien. Hun bestanden nemen {2} MB in en de één keer bewaarde delen {3} MB, een besparing van {4}%. Gecomprimeerde bestanden: {5}. Gemeten {6}.</value>
   </data>
+  <data name="Metrics" xml:space="preserve">
+    <value>Metrics</value>
+  </data>
   <data name="Metrics bind address" xml:space="preserve">
     <value>Bindadres voor metrieken</value>
   </data>
@@ -7389,6 +7392,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Monitoring" xml:space="preserve">
     <value>Monitoring</value>
+  </data>
+  <data name="Monitoring &amp; alerts" xml:space="preserve">
+    <value>Monitoring en waarschuwingen</value>
   </data>
   <data name="Monitoring &amp; troubleshooting" xml:space="preserve">
     <value>Monitoring en probleemoplossing</value>
@@ -8677,9 +8683,6 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Open" xml:space="preserve">
     <value>Open</value>
   </data>
-  <data name="Open API &amp; monitoring, which owns the REST listener's port and TLS settings" xml:space="preserve">
-    <value>API en monitoring openen, waar de poort- en TLS-instellingen van de REST-listener zijn ondergebracht</value>
-  </data>
   <data name="Open Anti-spam settings (PTR and HELO checks)" xml:space="preserve">
     <value>Antispaminstellingen openen (PTR- en HELO-controles)</value>
   </data>
@@ -8712,6 +8715,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Open Logging settings" xml:space="preserve">
     <value>Logboekinstellingen openen</value>
+  </data>
+  <data name="Open Monitoring &amp; alerts, which owns the REST listener's port and TLS settings" xml:space="preserve">
+    <value>Monitoring en waarschuwingen openen, waar de poort- en TLS-instellingen van de REST-listener zijn ondergebracht</value>
   </data>
   <data name="Open Protocols (host name)" xml:space="preserve">
     <value>Protocollen openen (hostnaam)</value>
@@ -8914,8 +8920,8 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Outbound webhooks" xml:space="preserve">
     <value>Uitgaande webhooks</value>
   </data>
-  <data name="Outbound webhooks post events to the receivers subscribed in the Control Deck or over the REST API. A subscription that names no domain covers every domain, and switching this off takes the domain out of all of them. The server's own switch is on the Logging page." xml:space="preserve">
-    <value>Uitgaande webhooks sturen gebeurtenissen naar de ontvangers die in het Control Deck of via de REST-API zijn geabonneerd. Een abonnement dat geen domein noemt, dekt elk domein, en dit uitschakelen haalt het domein uit allemaal. De eigen schakelaar van de server staat op de pagina Logboekregistratie.</value>
+  <data name="Outbound webhooks post events to the receivers subscribed in the Control Deck or over the REST API. A subscription that names no domain covers every domain, and switching this off takes the domain out of all of them. The server's own switch is on the Monitoring &amp; alerts page." xml:space="preserve">
+    <value>Uitgaande webhooks sturen gebeurtenissen naar de ontvangers die in het Control Deck of via de REST-API zijn geabonneerd. Een abonnement dat geen domein noemt, dekt elk domein, en dit uitschakelen haalt het domein uit allemaal. De eigen schakelaar van de server staat op de pagina Monitoring en waarschuwingen.</value>
   </data>
   <data name="Outside senders get nothing, or the domain's text when its override is on." xml:space="preserve">
     <value>Afzenders van buiten krijgen niets, of de tekst van het domein als de overschrijving ervan aan staat.</value>
@@ -9147,8 +9153,8 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Per-name lockout" xml:space="preserve">
     <value>Vergrendeling per naam</value>
   </data>
-  <data name="Per-protocol limits and behaviour for SMTP, POP3 and IMAP." xml:space="preserve">
-    <value>Limieten en gedrag per protocol voor SMTP, POP3 en IMAP.</value>
+  <data name="Per-protocol limits and behaviour for SMTP, POP3 and IMAP, and the ManageSieve listener mail clients manage their filter scripts through." xml:space="preserve">
+    <value>Limieten en gedrag per protocol voor SMTP, POP3 en IMAP, en de ManageSieve-listener waarlangs mailprogramma's hun filterscripts beheren.</value>
   </data>
   <data name="Performance" xml:space="preserve">
     <value>Prestaties</value>
@@ -9524,9 +9530,6 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   </data>
   <data name="REST administration API and the Control Deck" xml:space="preserve">
     <value>REST-beheer-API en de Control Deck</value>
-  </data>
-  <data name="REST administration API, Prometheus metrics and remote script management. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services &amp; autoconfiguration page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
-    <value>REST-beheer-API, Prometheus-metrics en beheer van scripts op afstand. De openbare webserviceslistener (autoconfiguratie, MTA-STS-hosting) staat op de pagina Webservices en autoconfiguratie; OAuth2-tokenauthenticatie staat op de pagina Authenticatie.</value>
   </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>Bestand met de publieke RSA-/EC-sleutel (PEM, voor RS*-/ES*-tokens)</value>
@@ -11316,8 +11319,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Send everything through my provider" xml:space="preserve">
     <value>Alles via mijn provider verzenden</value>
   </data>
-  <data name="Send it as a bearer token, in this header, to the REST listener configured on the API &amp; monitoring page:" xml:space="preserve">
-    <value>Stuur hem als bearertoken in deze header naar de REST-listener die is geconfigureerd op de pagina API en monitoring:</value>
+  <data name="Send it as a bearer token, in this header, to the REST listener configured on the Monitoring &amp; alerts page:" xml:space="preserve">
+    <value>Stuur hem als bearertoken in deze header naar de REST-listener die is geconfigureerd op de pagina Monitoring en waarschuwingen:</value>
   </data>
   <data name="Send it during this _hour of the local day (0 to 23)" xml:space="preserve">
     <value>Tijdens dit _uur van de lokale dag versturen (0 tot en met 23)</value>
@@ -11765,6 +11768,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Shown: {0} of {1}" xml:space="preserve">
     <value>Getoond: {0} van {1}</value>
+  </data>
+  <data name="Shutdown" xml:space="preserve">
+    <value>Afsluiten</value>
   </data>
   <data name="Sieve" xml:space="preserve">
     <value>Sieve</value>
@@ -12516,8 +12522,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
     <value>De Control Deck wordt geleverd door de REST-API, die uit staat - geef die hieronder een poort.</value>
   </data>
-  <data name="The Control Deck is served by the REST API, which is off - give it a port on the API &amp; monitoring page." xml:space="preserve">
-    <value>De Control Deck wordt geleverd door de REST-API, die uit staat - geef die een poort op de pagina API en monitoring.</value>
+  <data name="The Control Deck is served by the REST API, which is off - give it a port on the Monitoring &amp; alerts page." xml:space="preserve">
+    <value>De Control Deck wordt geleverd door de REST-API, die uit staat - geef die een poort op de pagina Monitoring en waarschuwingen.</value>
   </data>
   <data name="The Control Panel is connected to another host, so the account its service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Het Control Panel is verbonden met een andere host, dus het account waaronder die service draait kan hiervandaan niet worden gelezen. Open het Control Panel op de server zelf om het te zien.</value>
@@ -12579,11 +12585,17 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The MTA-STS hosting settings could not be read: {0}" xml:space="preserve">
     <value>De MTA-STS-hostinginstellingen konden niet worden gelezen: {0}</value>
   </data>
+  <data name="The ManageSieve listener" xml:space="preserve">
+    <value>De ManageSieve-listener</value>
+  </data>
   <data name="The NCSA log line format above takes precedence, so this has no effect while it is selected. The setting is remembered and applies again as soon as the format goes back to hMailServer's own." xml:space="preserve">
     <value>Het NCSA-logregelformaat hierboven heeft voorrang, dus dit heeft geen effect zolang dat is geselecteerd. De instelling wordt onthouden en geldt weer zodra het formaat terugkeert naar dat van hMailServer zelf.</value>
   </data>
   <data name="The OAuth2 settings could not be read: {0}" xml:space="preserve">
     <value>De OAuth2-instellingen konden niet worden gelezen: {0}</value>
+  </data>
+  <data name="The REST API and the Control Deck's listener, the Prometheus metrics and health endpoints a monitoring system reads, the OpenTelemetry export, the alerts, outbound webhooks and SNMP agent that tell another system what happened, and how long a stopping service waits for its sessions." xml:space="preserve">
+    <value>De REST-API en de listener van het Control Deck, de Prometheus-metrics en de gezondheidseindpunten die een monitoringsysteem uitleest, de OpenTelemetry-export, de waarschuwingen, uitgaande webhooks en de SNMP-agent die een ander systeem laten weten wat er is gebeurd, en hoe lang een service die stopt op zijn sessies wacht.</value>
   </data>
   <data name="The REST API answered {0}." xml:space="preserve">
     <value>De REST-API antwoordde {0}.</value>
@@ -12597,17 +12609,17 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The REST API could not be reached: {0}" xml:space="preserve">
     <value>De REST-API kon niet worden bereikt: {0}</value>
   </data>
-  <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs a TLS certificate file and its private key file on the API &amp; monitoring page, or an ACME certificate issued to this server." xml:space="preserve">
-    <value>De REST-API draait niet: hij levert gewone HTTP alleen op 127.0.0.1 of ::1, en luisteren op {0} vereist een TLS-certificaatbestand en het bijbehorende privésleutelbestand op de pagina API en monitoring, of een ACME-certificaat dat aan deze server is uitgegeven.</value>
+  <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs a TLS certificate file and its private key file on the Monitoring &amp; alerts page, or an ACME certificate issued to this server." xml:space="preserve">
+    <value>De REST-API draait niet: hij levert gewone HTTP alleen op 127.0.0.1 of ::1, en luisteren op {0} vereist een TLS-certificaatbestand en het bijbehorende privésleutelbestand op de pagina Monitoring en waarschuwingen, of een ACME-certificaat dat aan deze server is uitgegeven.</value>
   </data>
-  <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
-    <value>De REST-API draait niet: luisteren op {0} vereist een certificaat, in te stellen op de pagina API en monitoring.</value>
+  <data name="The REST API is not running: listening on {0} needs a certificate, set on the Monitoring &amp; alerts page." xml:space="preserve">
+    <value>De REST-API draait niet: luisteren op {0} vereist een certificaat, in te stellen op de pagina Monitoring en waarschuwingen.</value>
   </data>
-  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and both this page and the Control Deck read the cases over it. Give it a port there." xml:space="preserve">
-    <value>De REST-API staat uit (de poort op de pagina API en monitoring is {0}), en zowel deze pagina als de Control Deck lezen de zaken erover. Geef hem daar een poort.</value>
+  <data name="The REST API is off (its port on the Monitoring &amp; alerts page is {0}), and both this page and the Control Deck read the cases over it. Give it a port there." xml:space="preserve">
+    <value>De REST-API staat uit (de poort op de pagina Monitoring en waarschuwingen is {0}), en zowel deze pagina als de Control Deck lezen de zaken erover. Geef hem daar een poort.</value>
   </data>
-  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
-    <value>De REST-API staat uit (de poort op de pagina API en monitoring is {0}), en deze instellingen worden erover bereikt: de server bewaart ze, maar geen COM-eigenschap draagt ze. Geef de REST-API een poort op de pagina API en monitoring, initialiseer de server opnieuw en open deze pagina opnieuw.</value>
+  <data name="The REST API is off (its port on the Monitoring &amp; alerts page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the Monitoring &amp; alerts page, reinitialise the server, and open this page again." xml:space="preserve">
+    <value>De REST-API staat uit (de poort op de pagina Monitoring en waarschuwingen is {0}), en deze instellingen worden erover bereikt: de server bewaart ze, maar geen COM-eigenschap draagt ze. Geef de REST-API een poort op de pagina Monitoring en waarschuwingen, initialiseer de server opnieuw en open deze pagina opnieuw.</value>
   </data>
   <data name="The REST API listens on {0} only, so the Control Deck opens only in a browser on the server itself." xml:space="preserve">
     <value>De REST-API luistert alleen op {0}, dus de Control Deck opent alleen in een browser op de server zelf.</value>
@@ -12627,14 +12639,11 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The REST API's new settings are saved but not yet in effect - the Control Deck can be opened once the server applies them." xml:space="preserve">
     <value>De nieuwe instellingen van de REST-API zijn opgeslagen, maar nog niet van kracht - de Control Deck kan worden geopend zodra de server ze toepast.</value>
   </data>
-  <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions." xml:space="preserve">
-    <value>De REST-API, de Prometheus-metrics en de gezondheidseindpunten die een extern monitoringsysteem uitleest, het Windows-gebeurtenislogboek, de ManageSieve-listener, en hoe lang een service die stopt op zijn sessies wacht.</value>
+  <data name="The REST administration API, the metrics and health endpoints a monitoring system reads, and the alerts, webhooks and SNMP agent that tell another system what happened. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services &amp; autoconfiguration page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
+    <value>De REST-beheer-API, de metrics en gezondheidseindpunten die een monitoringsysteem uitleest, en de waarschuwingen, webhooks en de SNMP-agent die een ander systeem laten weten wat er is gebeurd. De openbare webserviceslistener (autoconfiguratie, MTA-STS-hosting) staat op de pagina Webservices en autoconfiguratie; OAuth2-tokenauthenticatie staat op de pagina Authenticatie.</value>
   </data>
   <data name="The RSA/EC public key file {0} does not exist on this machine, so RS256 tokens cannot be verified." xml:space="preserve">
     <value>Het bestand met de publieke RSA-/EC-sleutel {0} bestaat niet op deze machine, dus RS256-tokens kunnen niet worden geverifieerd.</value>
-  </data>
-  <data name="The SNMP agent, alerts, outbound webhooks and the audit trail" xml:space="preserve">
-    <value>De SNMP-agent, de waarschuwingen, de uitgaande webhooks en het auditlogboek</value>
   </data>
   <data name="The Service Control Manager could not be queried, so the account the service runs as is unknown: {0}" xml:space="preserve">
     <value>De Service Control Manager kon niet worden bevraagd, dus het account waaronder de service draait is onbekend: {0}</value>
@@ -13375,6 +13384,9 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The log files belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log." xml:space="preserve">
     <value>De logbestanden zijn vanaf 6.3.6 van de beheerders, dus dit Configuratiescherm mag ze niet lezen. Sluit het en start het met Als administrator uitvoeren om het live logboek te zien.</value>
   </data>
+  <data name="The log files, syslog, the Windows Event Log and the audit trail" xml:space="preserve">
+    <value>De logbestanden, syslog, het Windows-gebeurtenislogboek en het auditlogboek</value>
+  </data>
   <data name="The log folder was not found on this computer. Live logs read the log files where the server runs: start the Control Panel on that computer to see them." xml:space="preserve">
     <value>De logmap is niet gevonden op deze computer. Live logboeken leest de logbestanden waar de server draait: start het Configuratiescherm op die computer om ze te zien.</value>
   </data>
@@ -13782,8 +13794,8 @@ Toch toevoegen?</value>
   <data name="The server is starting or stopping, so whether its ports are being listened on cannot be said yet. Open this page again in a moment." xml:space="preserve">
     <value>De server wordt gestart of gestopt, dus of er op zijn poorten wordt geluisterd, valt nog niet te zeggen. Open deze pagina zo meteen opnieuw.</value>
   </data>
-  <data name="The server keeps no history: 'Keep metric history for' on the API &amp; monitoring page is 0. Set it to the days to keep." xml:space="preserve">
-    <value>De server bewaart geen geschiedenis: 'Metriekgeschiedenis bewaren gedurende' op de pagina API en monitoring is 0. Zet die op het aantal te bewaren dagen.</value>
+  <data name="The server keeps no history: 'Keep metric history for' on the Monitoring &amp; alerts page is 0. Set it to the days to keep." xml:space="preserve">
+    <value>De server bewaart geen geschiedenis: 'Metriekgeschiedenis bewaren gedurende' op de pagina Monitoring en waarschuwingen is 0. Zet die op het aantal te bewaren dagen.</value>
   </data>
   <data name="The server log as it is written, read from the log folder on this computer." xml:space="preserve">
     <value>Het serverlogboek zoals het wordt geschreven, gelezen uit de logmap op deze computer.</value>
@@ -15169,8 +15181,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>Welke lijst? Voor elke afzonderlijke afzender of elk afzonderlijk domein wordt één vermelding geschreven, en daarna wordt op elk bericht gehandeld. Een bericht waarvoor geen vermelding kan worden gemaakt, blijft waar het is.</value>
   </data>
-  <data name="Which log files the server writes, how much detail they carry and how long they are kept, what the audit trail records, and the alerts, outbound webhooks and SNMP agent that tell another system what happened." xml:space="preserve">
-    <value>Welke logbestanden de server schrijft, hoeveel detail ze bevatten en hoe lang ze worden bewaard, wat het audittrail vastlegt, en de waarschuwingen, uitgaande webhooks en de SNMP-agent die een ander systeem laten weten wat er is gebeurd.</value>
+  <data name="Which log files the server writes, how much detail they carry and how long they are kept, the copies it sends to syslog and the Windows Event Log, and what the audit trail records." xml:space="preserve">
+    <value>Welke logbestanden de server schrijft, hoeveel detail ze bevatten en hoe lang ze worden bewaard, de kopieën die hij naar syslog en het Windows-gebeurtenislogboek stuurt, en wat het audittrail vastlegt.</value>
   </data>
   <data name="Which name servers the server asks, and whether answers are DNSSEC validated." xml:space="preserve">
     <value>Welke naamservers de server bevraagt, en of antwoorden met DNSSEC worden gevalideerd.</value>
@@ -15913,9 +15925,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Older" xml:space="preserve">
     <value>_Oudere</value>
   </data>
-  <data name="_Open API &amp; monitoring" xml:space="preserve">
-    <value>API en monitoring o_penen</value>
-  </data>
   <data name="_Open Anti-spam settings" xml:space="preserve">
     <value>Antispaminstellingen o_penen</value>
   </data>
@@ -15927,6 +15936,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Open Logging" xml:space="preserve">
     <value>Logboekregistratie _openen</value>
+  </data>
+  <data name="_Open Monitoring &amp; alerts" xml:space="preserve">
+    <value>Monitoring en waarschuwingen o_penen</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>Rapport _openen</value>

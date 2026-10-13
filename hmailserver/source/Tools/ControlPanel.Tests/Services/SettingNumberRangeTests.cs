@@ -145,12 +145,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       public static IEnumerable<object[]> Ranges() => new[]
       {
          new object[] { "AcmeHttpPort", 1L, 65535L },                     // EnvironmentSettings::CheckIniValue; 0 leaves no challenge listener
-         new object[] { "RestApiPort", 0L, 65535L },
-         new object[] { "MetricsServerPort", 0L, 65535L },
-         new object[] { "ManageSieveServerPort", 0L, 65535L },
          new object[] { "WebServicesHttpPort", 0L, 65535L },
          new object[] { "WebServicesHttpsPort", 0L, 65535L },
-         new object[] { "OtelMetricsInterval", 5L, 3600L },              // OtelMetricsExporter's clamps
          new object[] { "UpdateCheckHours", 1L, 168L },
          new object[] { "UpdateServiceWaitSeconds", 5L, 86400L },
          new object[] { "DNSQueryTimeout", 0L, 86400L },                 // DNSResolverWinApi's day
@@ -177,6 +173,63 @@ namespace hMailServer.ControlPanel.Tests.Services
             Assert.Contains("Maximum = " + maximum.ToString(CultureInfo.InvariantCulture), definition, StringComparison.Ordinal);
          else
             Assert.DoesNotContain("Maximum =", definition, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The range each numeric key that came to ServerSettingsView's pages with review
+      /// finding F273's moves - the Monitoring &amp; alerts page and the Protocols page's
+      /// ManageSieve tab - is held to, as a ranged number (IniRangeNumber): the text as
+      /// typed, refused on its field by a save when it is out of range, as the INI-only
+      /// view does it, and not a NumberBox that pulled it to the bound.
+      /// </summary>
+      public static IEnumerable<object[]> MovedRanges() => new[]
+      {
+         new object[] { "RestApiPort", 0L, 65535L },
+         new object[] { "MetricsServerPort", 0L, 65535L },
+         new object[] { "ManageSieveServerPort", 0L, 65535L },
+         new object[] { "OtelMetricsInterval", 5L, 3600L },              // OtelMetricsExporter's clamps
+         new object[] { "MetricsHistoryDays", 0L, 36500L },
+         new object[] { "ShutdownDrainSeconds", 0L, 86400L }
+      };
+
+      [Theory]
+      [MemberData(nameof(MovedRanges))]
+      public void EveryMovedNumericKey_IsARangedNumber_WithTheServersRange(string key, long minimum, long maximum)
+      {
+         string server = ServerSource_();
+         Match row = Regex.Match(server, @"new IniRangeNumber\s*\{\s*Path = """ + Regex.Escape(key) + @"""[^}]*\}");
+         Assert.True(row.Success, key + " is not a ranged number on the server settings pages.");
+         Assert.Contains("Minimum = " + minimum.ToString(CultureInfo.InvariantCulture), row.Value, StringComparison.Ordinal);
+         Assert.Contains("Maximum = " + maximum.ToString(CultureInfo.InvariantCulture), row.Value, StringComparison.Ordinal);
+         Assert.DoesNotMatch(new Regex(@"Key = """ + Regex.Escape(key) + @""""), Source_());
+      }
+
+      /// <summary>The bind addresses that moved are address-wide boxes there, as they were.</summary>
+      [Theory]
+      [InlineData("RestApiBindAddress")]
+      [InlineData("MetricsServerBindAddress")]
+      [InlineData("ManageSieveServerBindAddress")]
+      public void EveryMovedAddress_IsAddressWide(string key)
+      {
+         Match row = Regex.Match(ServerSource_(), @"new IniText\s*\{\s*Path = """ + Regex.Escape(key) + @"""[^}]*\}");
+         Assert.True(row.Success, key + " is not on the server settings pages.");
+         Assert.Contains("Address = true", row.Value, StringComparison.Ordinal);
+      }
+
+      /// <summary>ServerSettingsView's save asks every ranged number before it writes any, and says so on the field.</summary>
+      [Fact]
+      public void TheServerSettingsSave_AsksTheRangedNumbersBeforeItWritesAny()
+      {
+         string server = ServerSource_();
+         string save = WithheldRowTests.MemberText(server, "private bool Save_()");
+         Assert.True(save != null, "ServerSettingsView.Save_ is gone.");
+         int asks = save.IndexOf(".OfType<IniRangeNumber>()", StringComparison.Ordinal);
+         int writes = save.IndexOf("ini.SaveToIni()", StringComparison.Ordinal);
+         Assert.True(asks > 0 && writes > asks, "Save_ no longer holds every ranged number to its range before it writes.");
+         Assert.Contains("number.Field.Error = number.Refusal;", save, StringComparison.Ordinal);
+         string row = WithheldRowTests.MemberText(server.Contains("class IniRangeNumber", StringComparison.Ordinal) ? server : MonitoringSource_(), "private sealed class IniRangeNumber : ComSetting, IIniSetting");
+         Assert.True(row != null, "IniRangeNumber is gone.");
+         Assert.Contains("SettingNumberRange.Error(LiveValue, Minimum, Maximum, false)", row, StringComparison.Ordinal);
       }
 
       [Fact]
@@ -207,7 +260,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheDnsOverride_IsHeldToItsRule_AndTheAddressesAreAddressWide()
       {
          Assert.Contains("Rule = SettingAddressRule.DnsOverride", Definition_("DNSServer"), StringComparison.Ordinal);
-         foreach (string key in new[] { "DNSServer", "RestApiBindAddress", "MetricsServerBindAddress", "ManageSieveServerBindAddress", "WebServicesBindAddress", "AuthUserReplacementIP" })
+         foreach (string key in new[] { "DNSServer", "WebServicesBindAddress", "AuthUserReplacementIP" })
             Assert.Contains("Address = true", Definition_(key), StringComparison.Ordinal);
       }
 
@@ -308,6 +361,22 @@ namespace hMailServer.ControlPanel.Tests.Services
             else if (source[end] == '}' && --depth == 0) break;
          }
          return source[m.Index..(end + 1)];
+      }
+
+      private static string ServerSource_() => View_("ServerSettingsView.xaml.cs");
+
+      private static string MonitoringSource_() => View_("ServerSettingsView.Monitoring.cs");
+
+      private static string View_(string file)
+      {
+         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory != null; directory = directory.Parent)
+         {
+            string candidate = Path.Join(directory.FullName, "ControlPanel", "Views", file);
+            if (File.Exists(candidate))
+               return File.ReadAllText(candidate);
+         }
+
+         throw new FileNotFoundException(file + " could not be found from the test binaries.");
       }
 
       private static string Source_()

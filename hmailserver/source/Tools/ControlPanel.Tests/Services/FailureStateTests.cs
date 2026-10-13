@@ -571,7 +571,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       /// <summary>
       /// When the REST API cannot be used at all, the reason is said once per tab,
-      /// under the strip, with the API & monitoring page one press away, and each
+      /// under the strip, with the Monitoring & alerts page one press away, and each
       /// REST row is marked Not read on its card; a refusal of one group alone stays
       /// on that group's card.
       /// </summary>
@@ -586,7 +586,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          string build = WithheldRowTests.MemberText(source, "private void BuildUi()");
          Assert.Matches(new Regex(@"if \(group != null && group\.SessionWide\)\s*\{\s*tabRestProblem \?\?= group\.Refusal;\s*if \(setting\.WantsInitialValue\)\s*fields\.Children\.Add\(lastRow = UnreadRow_\(setting\)\);"), build);
-         Assert.Contains("panel.Children.Insert(0, RestTabNotice_(tabRestProblem));", build, StringComparison.Ordinal);
+         Assert.Contains("panel.Children.Insert(0, RestTabNotice_(tabRestProblem, section_ != Section.Monitoring));", build, StringComparison.Ordinal);
 
          // Declared per tab, so that each tab says it once and no tab says another's.
          int tabLoop = build.IndexOf("foreach (TabDef tab in tabs_)", StringComparison.Ordinal);
@@ -594,9 +594,11 @@ namespace hMailServer.ControlPanel.Tests.Services
          int cardLoop = build.IndexOf("foreach (CardDef card in tab.Cards)", StringComparison.Ordinal);
          Assert.True(tabLoop >= 0 && tabLoop < declared && declared < cardLoop, "The REST reason is not kept per tab.");
 
-         string notice = WithheldRowTests.MemberText(source, "private static Scaffold.InlineNotice RestTabNotice_(string reason)");
+         string notice = WithheldRowTests.MemberText(source, "private static Scaffold.InlineNotice RestTabNotice_(string reason, bool offerApiPage)");
          Assert.Contains("Sentences(L(\"These settings are read through the REST API, which this session cannot use.\"), reason)", notice, StringComparison.Ordinal);
-         Assert.Contains("L(\"_Open API & monitoring\")", notice, StringComparison.Ordinal);
+         Assert.Contains("L(\"_Open Monitoring & alerts\")", notice, StringComparison.Ordinal);
+         // Not on the page that holds the REST API's own settings, whose REST API tab is beside the one that says it.
+         Assert.Contains("if (ServerSession.Current != null && offerApiPage)", notice, StringComparison.Ordinal);
          Assert.Contains("NavigateTo(\"api\")", notice, StringComparison.Ordinal);
       }
 

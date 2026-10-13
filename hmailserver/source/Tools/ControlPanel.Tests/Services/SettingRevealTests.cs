@@ -28,10 +28,10 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void Dispose() => Loc.Reset();
 
       private static readonly string[] ServerPages =
-         { "protocols", "delivery", "antispam", "antivirus", "tls", "logging", "performance", "advanced", "adminaccess", "autoban", "webmail" };
+         { "protocols", "delivery", "antispam", "antivirus", "tls", "logging", "performance", "advanced", "adminaccess", "autoban", "webmail", "api" };
 
       private static readonly string[] FeaturePages =
-         { "security", "acme", "api", "hardening", "authentication", "dns", "webservices", "updates" };
+         { "security", "acme", "hardening", "authentication", "dns", "webservices", "updates" };
 
       [Theory]
       [InlineData("GeoIpDatabaseFile", "autoban", "Countries", "Country blocking")]

@@ -51,7 +51,7 @@ namespace hMailServer.ControlPanel.Services
          string portText = (port ?? "").Trim();
          if (!int.TryParse(portText, NumberStyles.Integer, CultureInfo.InvariantCulture, out int number) || number <= 0 || number > 65535)
          {
-            refusal = F("The REST API is off (its port on the API & monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API & monitoring page, reinitialise the server, and open this page again.",
+            refusal = F("The REST API is off (its port on the Monitoring & alerts page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the Monitoring & alerts page, reinitialise the server, and open this page again.",
                portText.Length == 0 ? "0" : portText);
             return null;
          }
@@ -67,7 +67,7 @@ namespace hMailServer.ControlPanel.Services
 
          if (!tls && !loopback)
          {
-            refusal = F("The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs a TLS certificate file and its private key file on the API & monitoring page, or an ACME certificate issued to this server.", bind);
+            refusal = F("The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs a TLS certificate file and its private key file on the Monitoring & alerts page, or an ACME certificate issued to this server.", bind);
             return null;
          }
 

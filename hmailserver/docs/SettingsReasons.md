@@ -28,6 +28,9 @@ folder - which a restored or hand-edited database can do - the folder issues a U
 has already used, and a client that caches by UID shows one message where another
 should be.
 
+*ManageSieve (RFC 5804).* STARTTLS is offered only when a TLS-capable mailbox port
+has a certificate to borrow - the status on the card says whether it will be.
+
 ## Web services & autoconfiguration
 
 *Calendar and contacts discovery (CalDAV / CardDAV).* Leave both addresses empty
@@ -220,7 +223,10 @@ detail whatever the level.
 *Send log entries to syslog.* Log files are unaffected: this sends a copy, it does not
 move anything.
 
-## API & monitoring
+*Windows Event Log.* Protocol traffic and routine logging never go there - a mail
+server that logs every session to the Application log gets itself uninstalled.
+
+## Monitoring & alerts
 
 *REST administration API and the Control Deck.* The API is authenticated with the
 administrator password, or with a scoped API key - a key can be read-only, limited to
@@ -239,12 +245,6 @@ the same counters the metrics endpoint pushes rather than a second tally.
 *TLS private key file for the metrics listener.* If TLS is configured but cannot be
 prepared (an unreadable file, a key that does not match), the health probes stay on
 plain HTTP and /metrics answers 503 rather than serving the exposition in the clear.
-
-*Windows Event Log.* Protocol traffic and routine logging never go there - a mail
-server that logs every session to the Application log gets itself uninstalled.
-
-*ManageSieve (RFC 5804).* STARTTLS is offered only when a TLS-capable mailbox port
-has a certificate to borrow - the status on the card says whether it will be.
 
 ## Backup & restore
 

@@ -131,6 +131,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("dnsbl", "DNS block lists (DNSBL)", "DNS blacklists (DNSBL)")]
       [InlineData("certs", "TLS certificates", "SSL certificates")]
       [InlineData("tls", "TLS versions & ciphers", "SSL/TLS")]
+      [InlineData("api", "Monitoring & alerts", "API & monitoring")]
       public void ThePageIsCalledOneThingAndTheOtherNameFindsIt(string key, string title, string alias)
       {
          NavNode page = NavigationMap.Find(key);
