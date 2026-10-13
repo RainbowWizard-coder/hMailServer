@@ -378,7 +378,36 @@ namespace hMailServer.ControlPanel.Services
             ["Utilities > Server sendout"] = "sendout",
             ["Utilities > Diagnostics"] = "diagnostics",
             ["Utilities > Backup"] = "backup",
-            ["Utilities > Backup & restore"] = "backup"
+            ["Utilities > Backup & restore"] = "backup",
+
+            // The sidebar's routes before review finding F273's moves, which the
+            // documents and an administrator's own notes name: the spam group was
+            // Spam & virus filtering and held the three virus pages, now Virus
+            // scanning; the audit trail, journaling and eDiscovery were under
+            // Monitoring & troubleshooting, now Compliance; and four pages were called
+            // otherwise - SSL certificates, SSL/TLS, API & monitoring and Backup &
+            // restore, each a search alias of its page as well.
+            ["Certificates & encryption > SSL certificates"] = "certs",
+            ["Certificates & encryption > SSL/TLS"] = "tls",
+            ["Spam & virus filtering > Spam filtering overview"] = "spamoverview",
+            ["Spam & virus filtering > Quarantine"] = "quarantine",
+            ["Spam & virus filtering > Anti-spam settings"] = "antispam",
+            ["Spam & virus filtering > SURBL servers"] = "surbl",
+            ["Spam & virus filtering > DNS block lists (DNSBL)"] = "dnsbl",
+            ["Spam & virus filtering > Spam exemptions"] = "spamwhitelist",
+            ["Spam & virus filtering > Blocked senders"] = "blockedsenders",
+            ["Spam & virus filtering > Allow and block list"] = "senderlist",
+            ["Spam & virus filtering > Greylisting exemptions"] = "greylistwhitelist",
+            ["Spam & virus filtering > Greylisting bypass list"] = "greylistbypass",
+            ["Spam & virus filtering > Allowed and blocked domains"] = "domainpolicylist",
+            ["Spam & virus filtering > Virus scanning overview"] = "virusoverview",
+            ["Spam & virus filtering > Anti-virus settings"] = "antivirus",
+            ["Spam & virus filtering > Blocked attachments"] = "blockedattachments",
+            ["Monitoring & troubleshooting > Audit trail"] = "audit",
+            ["Monitoring & troubleshooting > Journaling & dual delivery"] = "journaling",
+            ["Monitoring & troubleshooting > eDiscovery"] = "discovery",
+            ["Monitoring & troubleshooting > API & monitoring"] = "api",
+            ["Maintenance > Backup & restore"] = "backup"
          });
 
       /// <summary>

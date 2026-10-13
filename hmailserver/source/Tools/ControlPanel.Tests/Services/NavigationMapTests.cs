@@ -294,6 +294,28 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("Utilities > MX-query", "mxquery")]
       [InlineData("Utilities > Diagnostics", "diagnostics")]
       [InlineData("Status > Delivery queue", "queue")]
+      // The sidebar's own routes before review finding F273's moves.
+      [InlineData("Certificates & encryption > SSL certificates", "certs")]
+      [InlineData("Certificates & encryption > SSL/TLS", "tls")]
+      [InlineData("Spam & virus filtering > Spam filtering overview", "spamoverview")]
+      [InlineData("Spam & virus filtering > Quarantine", "quarantine")]
+      [InlineData("Spam & virus filtering > Anti-spam settings", "antispam")]
+      [InlineData("Spam & virus filtering > SURBL servers", "surbl")]
+      [InlineData("Spam & virus filtering > DNS block lists (DNSBL)", "dnsbl")]
+      [InlineData("Spam & virus filtering > Spam exemptions", "spamwhitelist")]
+      [InlineData("Spam & virus filtering > Blocked senders", "blockedsenders")]
+      [InlineData("Spam & virus filtering > Allow and block list", "senderlist")]
+      [InlineData("Spam & virus filtering > Greylisting exemptions", "greylistwhitelist")]
+      [InlineData("Spam & virus filtering > Greylisting bypass list", "greylistbypass")]
+      [InlineData("Spam & virus filtering > Allowed and blocked domains", "domainpolicylist")]
+      [InlineData("Spam & virus filtering > Virus scanning overview", "virusoverview")]
+      [InlineData("Spam & virus filtering > Anti-virus settings", "antivirus")]
+      [InlineData("Spam & virus filtering > Blocked attachments", "blockedattachments")]
+      [InlineData("Monitoring & troubleshooting > Audit trail", "audit")]
+      [InlineData("Monitoring & troubleshooting > Journaling & dual delivery", "journaling")]
+      [InlineData("Monitoring & troubleshooting > eDiscovery", "discovery")]
+      [InlineData("Monitoring & troubleshooting > API & monitoring", "api")]
+      [InlineData("Maintenance > Backup & restore", "backup")]
       public void LegacyPath_StillResolves(string path, string key)
       {
          Assert.True(NavigationMap.LegacyPaths.TryGetValue(path, out string resolved),

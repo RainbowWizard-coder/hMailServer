@@ -80,6 +80,24 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(key, first.Page);
       }
 
+      /// <summary>
+      /// A route the documents wrote before the moves, with the arrow they write it
+      /// with, opens the page it led to: the group renamed, the pages moved to a group
+      /// of their own, and the pages renamed.
+      /// </summary>
+      [Theory]
+      [InlineData("Spam & virus filtering → Spam exemptions", "spamwhitelist")]
+      [InlineData("Spam & virus filtering → Anti-virus settings", "antivirus")]
+      [InlineData("Monitoring & troubleshooting → Audit trail", "audit")]
+      [InlineData("Monitoring & troubleshooting → API & monitoring", "api")]
+      [InlineData("Certificates & encryption → SSL/TLS", "tls")]
+      [InlineData("Maintenance → Backup & restore", "backup")]
+      public void ARouteFromBeforeTheMovesOpensItsPage(string route, string key)
+      {
+         PaletteRow first = PaletteSearch.Query(route, null, null).First(r => r.Kind == PaletteRowKind.Page);
+         Assert.Equal(key, first.Page);
+      }
+
       /// <summary>The aliases that sent the reader to the wrong page are gone from it, and from the pages the cards left.</summary>
       [Theory]
       [InlineData("logging", "Webhooks")]

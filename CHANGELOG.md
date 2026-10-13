@@ -4738,6 +4738,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   backup folder, the update's no-backup reason and the documents name the page by its new one (review finding F273,
   the owner's decision of 12 October 2026). `PageSubjectsTests` holds the card on the page and Advanced without it.
 
+- **Changed: a route written before the sidebar's moves still opens its page.** The documents and an administrator's
+  notes name pages by their sidebar route, as *Maintenance → Backup & restore* or *Spam & virus filtering → Anti-virus
+  settings*, and twenty-one of those routes changed with the moves above: the spam group's eleven pages and the three
+  virus pages, the audit trail, journaling and eDiscovery, and the four pages that were called SSL certificates,
+  SSL/TLS, API & monitoring and Backup & restore. Ctrl+K takes each old route, with the arrow or with ">", and offers
+  its page first, as it does the classic Administrator's paths. `NavigationMapTests` holds every route, and
+  `PageSubjectsTests` the search.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
