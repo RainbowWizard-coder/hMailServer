@@ -618,6 +618,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   a failure it ignored. The transaction is now rolled back and the commit reported as failed.
   `DatabaseTransactionTester` holds it on PostgreSQL with a duplicate ignored inside a transaction begun on a pooled
   connection, which failed on the code before.
+- **Fixed: an entry of a trusted address list that does not parse went unreported once any other had been
+  reported.** The lists of the peers the server trusts - SMTP's PROXY protocol and `XCLIENT` lists, the IMAP and POP3
+  listeners' PROXY protocol lists, `WebServicesTrustedProxies` and the country policy's exempt ranges - match nothing
+  for an entry that is not an address or a CIDR range, and report it in the error log (`HM6281`) the first time it is
+  met rather than at every connection: once a run, as the descriptions of the SMTP, IMAP and POP3 lists say. But one
+  latch served every list in the server, so that the first entry reported left every other unreported until the
+  service was restarted - a second typo in the same list, or one in another list (from 6.2.23 Alpha 1, which brought
+  the first of them). Each entry is now reported the first time it is met and not again until the service is
+  restarted.
+  `SMTP.ProxyProtocol.EachEntryThatDoesNotParseIsReportedOnce` lists two such entries and finds both reported and the
+  next connection reporting nothing, where the tree before reported the first alone. Found by the review of unit
+  AA-23, whose IMAP and POP3 lists' descriptions said the same.
 - **Fixed: a ManageSieve refusal that quoted a script's text with a line break in it was split in two.** RFC 5804's
   quoted string may hold no CR or LF, and `PUTSCRIPT` and `CHECKSCRIPT` quote the script's own text when they refuse
   it - an extension name, a string - which a Sieve string may write across lines. The server sent the text as it

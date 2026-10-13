@@ -10,6 +10,7 @@ using System.Text;
 using hMailServer;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
+using RegressionTests.Infrastructure;
 using RegressionTests.Shared;
 
 namespace RegressionTests.SMTP
@@ -495,6 +496,52 @@ namespace RegressionTests.SMTP
 
                socket.Send("QUIT\r\n");
             }
+         }
+         finally
+         {
+            DisableFeatures();
+         }
+      }
+
+      [Test]
+      [Description("An entry of the trusted list that does not parse matches nothing, so that the peer is an " +
+                   "ordinary one and is greeted at once, and each such entry is reported in the error log " +
+                   "(HM6281) the first time it is met and not again: two in the list are two reports, and the " +
+                   "next connection makes none. Until 6.3.7 one latch served every trusted list in the server - " +
+                   "SMTP's PROXY and XCLIENT lists, IMAP's and POP3's, the web services' and the country " +
+                   "exemptions - so the first entry reported left the second, and every other list's, unreported " +
+                   "for the rest of the run.")]
+      public void EachEntryThatDoesNotParseIsReportedOnce()
+      {
+         // Not addresses, and new to this run of the server, which never reports an
+         // entry it has reported once.
+         string run = Guid.NewGuid().ToString("N").Substring(0, 12);
+         string first = "not-an-address-" + run + "-a";
+         string second = "not-an-address-" + run + "-b";
+
+         try
+         {
+            EnableProxyProtocol(first + ", " + second);
+
+            using (var socket = new RawSmtpSocket())
+            {
+               socket.ReadUntil("220 ");
+               socket.Send("QUIT\r\n");
+               socket.ReadUntil("221");
+            }
+
+            CustomAsserts.AssertReportedError(first, second);
+
+            // The accept matched the list before the greeting was sent, so a report it
+            // made is in the error log by the time the greeting has been read.
+            using (var socket = new RawSmtpSocket())
+            {
+               socket.ReadUntil("220 ");
+               socket.Send("QUIT\r\n");
+               socket.ReadUntil("221");
+            }
+
+            CustomAsserts.AssertNoReportedError();
          }
          finally
          {

@@ -5,7 +5,8 @@
 #include "StdAfx.h"
 #include "ProxyProtocol.h"
 
-#include <boost/atomic.hpp>
+#include <mutex>
+#include <set>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -408,14 +409,23 @@ namespace HM
       // The list is consulted on every connection, so a configuration typo must
       // not write one error per connection - but it must also not be silent,
       // because a malformed entry FAILS CLOSED (it trusts nothing), which from
-      // the administrator's chair looks like the feature not working.
-      static boost::atomic<bool> already_reported(false);
+      // the administrator's chair looks like the feature not working. So each
+      // entry is reported the first time it is met and never again in this
+      // process, whichever list holds it: SMTP's PROXY and XCLIENT lists, IMAP's
+      // and POP3's, the web services' and the country exemptions all come here.
+      // Until 6.3.7 one latch served them all, and the first list's typo left
+      // every other list's unreported for the rest of the run.
+      static std::mutex reported_mutex;
+      static std::set<String> reported;
 
-      bool expected = false;
-      if (!already_reported.compare_exchange_strong(expected, true))
-         return;
+      {
+         std::lock_guard<std::mutex> guard(reported_mutex);
+
+         if (!reported.insert(entry).second)
+            return;
+      }
 
       ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6281, "TrustedProxyList::EntryMatches_",
-         Formatter::Format(_T("The trusted proxy list contains an entry that is not a valid IP address or CIDR range: {0}. The entry is ignored (it matches nothing). Further occurrences of this error will not be reported until the service is restarted."), entry));
+         Formatter::Format(_T("The trusted proxy list contains an entry that is not a valid IP address or CIDR range: {0}. The entry is ignored (it matches nothing). It will not be reported again until the service is restarted."), entry));
    }
 }
