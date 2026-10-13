@@ -664,7 +664,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the never-ban list read such a forward lookup of a banned address's reverse name as a name that does not resolve
   back to it, and announced the ban, where it now asks again a minute later, as for any lookup not answered.
   Delivery makes the same address lookup of a recipient's mail servers, and of a route's host or the SMTP relay
-  server: when it failed so for every one of them, the notice to the sender said `No mail servers appear to exists`
+  server: when none of them had an address and that lookup of one of them failed so - through a route that names
+  several hosts, of the last of them - the notice to the sender said `No mail servers appear to exists`
   and to check the address (`4.1.2`) - through a route or the relay server, `The host specified as SMTP relay server
   could not be found` (`4.3.5`) - where it now says that the DNS query failed (`4.4.4`); the message is retried
   either way. When it failed so for some of a domain's mail servers only, the message still goes to the others, and

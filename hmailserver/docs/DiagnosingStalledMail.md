@@ -125,18 +125,18 @@ its verdict: it does not score, refuse or reject for a lookup that failed. From
 a SERVFAIL, a timeout, no DNS server answering - and not only when all of them
 did (upstream PR 640). An address lookup asks A and AAAA (AAAA where IPv6 is
 available, which is everywhere in practice), and the name's CNAME when neither
-found anything; a record lookup - a DKIM key, an SPF record, a DMARC policy, an
-MX - asks the CNAME when it found nothing. Neither asks it of a name that does
-not exist - NXDOMAIN, for an address lookup from A and AAAA both - because such
-a name is no alias, so a failure of that query cannot make the lookup one that
-failed. A name answered NODATA is there and may be an alias: when the CNAME
-query of it fails, the lookup has failed. The DNS blacklists and SURBL ask the
-A record alone: a list answers with A records, for an IPv6 address as for an
-IPv4 one (RFC 5782), and until 6.3.7 they asked AAAA as well. Before 6.3.7 an A
-query that failed beside an AAAA query answered "no AAAA records" - the answer
-of every IPv4-only host, and of every address a DNS blacklist does not list -
-was read as "this name has no addresses". NXDOMAIN and NODATA are answers, and
-still mean "no addresses".
+found anything; a record lookup - a DKIM key, an SPF record, a DMARC policy, the
+MX-record test's MX - asks the CNAME when it found nothing. Neither asks it of
+a name that does not exist - NXDOMAIN, for an address lookup from A and AAAA
+both - because such a name is no alias, so a failure of that query cannot make
+the lookup one that failed. A name answered NODATA is there and may be an
+alias: when the CNAME query of it fails, the lookup has failed. The DNS
+blacklists and SURBL ask the A record alone: a list answers with A records, for
+an IPv6 address as for an IPv4 one (RFC 5782), and until 6.3.7 they asked AAAA
+as well. Before 6.3.7 an A query that failed beside an AAAA query answered "no
+AAAA records" - the answer of every IPv4-only host, and of every address a DNS
+blacklist does not list - was read as "this name has no addresses". NXDOMAIN
+and NODATA are answers, and still mean "no addresses".
 
 | Test | When its lookup fails | Before 6.3.7 |
 |---|---|---|
@@ -157,8 +157,10 @@ Delivery makes the same address lookup of each of a recipient's mail servers,
 and of a route's host or the SMTP relay server, and retries a message whose
 servers it cannot reach either way. When the lookup failed for some of them
 only, the message goes to the others, and an address two of them share is
-tried once, as when every one answered. When it failed for every one of
-them, the notice to the sender now says
+tried once, as when every one answered. When none of them has an address
+and the lookup of one of them failed - through a route that names several
+hosts, the lookup of the last of them, which is the one the notice follows -
+the notice to the sender now says
 `Unable to find the recipient's email server. The DNS query has failed.`
 (`4.4.4`); before 6.3.7 a failed A query beside an AAAA query answered without
 an address made it `No mail servers appear to exists for the recipient's
