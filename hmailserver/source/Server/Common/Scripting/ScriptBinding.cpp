@@ -36,6 +36,7 @@
 
 #include "ScriptBinding.h"
 #include "ScriptObjectContainer.h"
+#include "ScriptServer.h"
 #include "Result.h"
 #include "ClientInfo.h"
 
@@ -1830,24 +1831,16 @@ namespace HM
          return RunJobs_(engine, fileName, outcome);
       }
 
-      // A name a handler may have: letters, digits, _ and $, not starting with a
-      // digit. Anything else is not looked up at all.
+      // A name a handler may have: ASCII letters, digits, _ and $, not starting with a
+      // digit, at most 255 characters. Anything else is not looked up at all. The one
+      // test the Windows engines' call text is held to (ScriptServer::
+      // IsPlainProcedureName), and the one a rule's Run function name is held to when
+      // the rule is saved (RuleGuard::WhyScriptFunctionMayNotBeStored) - so a name
+      // saved is a name looked up here, where this was a copy of it until 13 October
+      // 2026.
       bool IsIdentifier_(const String &name)
       {
-         if (name.IsEmpty() || name.GetLength() > 255)
-            return false;
-
-         for (int i = 0; i < name.GetLength(); i++)
-         {
-            wchar_t c = name[i];
-            bool letter = (c >= L'a' && c <= L'z') || (c >= L'A' && c <= L'Z') || c == L'_' || c == L'$';
-            bool digit = c >= L'0' && c <= L'9';
-
-            if (!letter && !(digit && i > 0))
-               return false;
-         }
-
-         return true;
+         return ScriptServer::IsPlainProcedureName(name);
       }
 
       // The function named, or undefined: looked up by evaluating the name, so that

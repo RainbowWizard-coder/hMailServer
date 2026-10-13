@@ -184,7 +184,11 @@ namespace RegressionTests.API
          ClassicAssert.AreEqual(400, put.status, put.body);
          StringAssert.Contains("which is not a plain function name", put.body, put.body);
 
-         Rule kept = owner.Rules.get_ItemByDBID((int) id);
+         // Read again over COM: the collection the account handed out above was loaded
+         // when it was first read, before the rule was made, and is not read again.
+         hMailServer.Rules rulesNow = owner.Rules;
+         rulesNow.Refresh();
+         Rule kept = rulesNow.get_ItemByDBID((int) id);
          ClassicAssert.AreEqual(1, kept.Actions.Count);
          ClassicAssert.AreEqual(eRuleActionType.eRARunScriptFunction, kept.Actions[0].Type);
          ClassicAssert.AreEqual("OnRule", kept.Actions[0].ScriptFunction);

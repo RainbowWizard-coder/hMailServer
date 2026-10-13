@@ -2473,16 +2473,23 @@ namespace RegressionTests.Rules
       /// it matched, and whoever saved it was told nothing. It is refused now when it is
       /// saved - by RuleAction.Save, for a rule saved and for one not saved yet, and by
       /// Rule.Save, for an action changed after its own Save - for a rule of every owner,
-      /// with the reason; a plain name, the longest included, is saved. Upstream PR 671's
-      /// save-time half, held to the firing path's own test.
+      /// whether the administrator saves an account's rule or the account itself, signed
+      /// in as itself, with the reason; a plain name, the longest included, is saved.
+      /// Upstream PR 671's save-time half, held to the firing path's own test.
       ///
       /// Against the unfixed server every Save below succeeds.
       /// </summary>
       [Test]
-      [Description("A Run function action naming no function, or a name that is not a plain function name, is refused when it is saved over COM, for a rule of every owner, saved or not yet saved, and says why; a plain name is saved.")]
+      [Description("A Run function action naming no function, or a name that is not a plain function name, is refused when it is saved over COM, for a rule of every owner, saved or not yet saved, by the administrator or by the account signed in as itself, and says why; a plain name is saved.")]
       public void ARunFunctionActionIsSavedOnlyNamingAFunctionTheServerRuns()
       {
          var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "runfunction@example.test", "test");
+
+         // Signed in as the account itself, as a mail client or a script of its own is -
+         // the one upstream's own test of the fix saves its rule as.
+         var itself = new Application();
+         var signedIn = itself.Authenticate(account.Address, "test") as Account;
+         Assert.IsNotNull(signedIn, "The account could not sign in to COM.");
 
          // Each name with the words its refusal must hold. A name too long to be one is
          // described by its length, and a line break is shown as an escape, so that the
@@ -2504,6 +2511,9 @@ namespace RegressionTests.Rules
          var accountRule = NewRuleMatchingEverything(account, "Runs a function");
          accountRule.Save();
 
+         var ownRule = NewRuleMatchingEverything(signedIn, "Runs a function of its own");
+         ownRule.Save();
+
          var domainRule = _domain.Rules.Add();
          domainRule.Name = "Domain runs a function";
          domainRule.Active = false;
@@ -2522,7 +2532,7 @@ namespace RegressionTests.Rules
 
          var plainNames = new[] { "MarkTheSubject", "_x$1", new string('a', 255) };
 
-         foreach (var rule in new[] { accountRule, domainRule, globalRule, unsavedRule })
+         foreach (var rule in new[] { accountRule, ownRule, domainRule, globalRule, unsavedRule })
          {
             foreach (var refusal in refusals)
             {
@@ -2565,9 +2575,11 @@ namespace RegressionTests.Rules
          // What the server holds, read through collections of their own: the plain names
          // of each rule, and nothing refused.
          var domainNow = _application.Domains.get_ItemByName(_domain.Name);
+         var accountNow = domainNow.Accounts.get_ItemByAddress(account.Address);
          var stored = new[]
          {
-            domainNow.Accounts.get_ItemByAddress(account.Address).Rules.get_ItemByDBID(accountRule.ID),
+            accountNow.Rules.get_ItemByDBID(accountRule.ID),
+            accountNow.Rules.get_ItemByDBID(ownRule.ID),
             domainNow.Rules.get_ItemByDBID(domainRule.ID),
             _application.Rules.get_ItemByDBID(globalRule.ID),
             _application.Rules.get_ItemByDBID(unsavedRule.ID),
@@ -2581,6 +2593,8 @@ namespace RegressionTests.Rules
 
             CollectionAssert.AreEqual(plainNames, names, "The Run function actions stored for " + rule.Name + ".");
          }
+
+         GC.KeepAlive(itself);
       }
 
       /// <summary>
