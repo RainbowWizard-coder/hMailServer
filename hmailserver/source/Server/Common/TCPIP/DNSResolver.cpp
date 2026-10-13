@@ -322,7 +322,6 @@ namespace HM
       }
 
       std::vector<DNSRecord> foundRecords;
-      int status = 0;
 
       // Whether every query made here was answered - with records or without. A
       // query answered NXDOMAIN or NODATA says the name holds no address of that
@@ -334,30 +333,51 @@ namespace HM
       // lookup read a failure as "not listed".
       bool everyQueryAnswered = true;
 
+      // Whether every one of them answered NXDOMAIN. Then the name does not
+      // exist - or the name at the end of the aliases the answers came through
+      // does not (RFC 6604) - so it holds no record of any type, a CNAME among
+      // them (RFC 2308 section 2.1): there is no alias to follow, and the CNAME
+      // query below is not made. Made, a failure of it - one packet lost -
+      // turned "this name has no addresses" into a lookup that did not
+      // complete, and a HELO host that does not exist went unscored. When one
+      // family answered NXDOMAIN and the other NODATA, the name is there by one
+      // of the answers, and the question is asked.
+      bool nameDoesNotExist = true;
+
+      // Each query with a status of its own, read before the next is asked.
+      auto askForAddresses = [&](int resourceType)
+      {
+         int queryStatus = 0;
+         const bool answered = Ask_(hostName, resourceType, foundRecords, queryStatus, false);
+
+         if (!answered)
+            everyQueryAnswered = false;
+
+         if (!answered || queryStatus != DNS_ERROR_RCODE_NAME_ERROR)
+            nameDoesNotExist = false;
+      };
+
       // if IPv6 is preferred first do IPv6 DNS Lookup(s)
       const bool ipv6Available = IPv6Available_();
       if (ipv6Available && IPv6Preferred_())
       {
-         if (!Ask_(hostName, DNS_TYPE_AAAA, foundRecords, status, false))
-            everyQueryAnswered = false;
-
-         if (!Ask_(hostName, DNS_TYPE_A, foundRecords, status, false))
-            everyQueryAnswered = false;
+         askForAddresses(DNS_TYPE_AAAA);
+         askForAddresses(DNS_TYPE_A);
       }
       else // Standard
       {
-         if (!Ask_(hostName, DNS_TYPE_A, foundRecords, status, false))
-            everyQueryAnswered = false;
+         askForAddresses(DNS_TYPE_A);
 
-         if (ipv6Available && !Ask_(hostName, DNS_TYPE_AAAA, foundRecords, status, false))
-            everyQueryAnswered = false;
+         if (ipv6Available)
+            askForAddresses(DNS_TYPE_AAAA);
       }
 
-      if (foundRecords.size() == 0 && followCnameRecords)
+      if (foundRecords.size() == 0 && followCnameRecords && !nameDoesNotExist)
       {
          // The queries for A/AAAA didn't return any records. Attempt to look up via CNAME
          std::vector<DNSRecord> foundCNames;
-         bool cnameQueryResult = Ask_(hostName, DNS_TYPE_CNAME, foundCNames, status, false);
+         int cnameStatus = 0;
+         bool cnameQueryResult = Ask_(hostName, DNS_TYPE_CNAME, foundCNames, cnameStatus, false);
 
          // A CNAME should only point at a single host name.
          if (cnameQueryResult && foundCNames.size() == 1)
@@ -514,11 +534,23 @@ namespace HM
 
       bool result = Ask_(query, resourceType, records, status, false);
 
-      if (records.size() == 0)
+      // NXDOMAIN: the name does not exist - or the name at the end of the
+      // aliases the answer came through does not (RFC 6604) - so it holds no
+      // record of any type, a CNAME among them (RFC 2308 section 2.1), and there
+      // is no alias to follow. The CNAME query is not made: a failure of it
+      // turned "no records" - a DKIM key that does not exist, which RFC 6376
+      // section 6.1.2 makes a PERMFAIL, no SPF record (RFC 7208 section 4.3:
+      // none), no DMARC policy - into a lookup that did not complete. A name
+      // answered NODATA is there, and may be an alias: the question below is
+      // asked of it.
+      const bool nameDoesNotExist = result && status == DNS_ERROR_RCODE_NAME_ERROR;
+
+      if (records.size() == 0 && !nameDoesNotExist)
       {
          // Nothing of the type asked for. The name may be an alias.
          std::vector<DNSRecord> foundCNames;
-         bool cnameQueryResult = Ask_(query, DNS_TYPE_CNAME, foundCNames, status, false);
+         int cnameStatus = 0;
+         bool cnameQueryResult = Ask_(query, DNS_TYPE_CNAME, foundCNames, cnameStatus, false);
 
          // A CNAME should only point at a single host name.
          if (cnameQueryResult && foundCNames.size() == 1)
@@ -779,11 +811,17 @@ namespace HM
 
       bool result = Ask_(sDomain, DNS_TYPE_MX, foundMxRecords, status, false);
 
-      if (foundMxRecords.size() == 0)
+      // NXDOMAIN: a domain that does not exist is no alias, and has no MX - the
+      // answer the MX-record test scores - whatever a CNAME query would meet; it
+      // is not made (GetRecordsOfTypeRecursive_).
+      const bool nameDoesNotExist = result && status == DNS_ERROR_RCODE_NAME_ERROR;
+
+      if (foundMxRecords.size() == 0 && !nameDoesNotExist)
       {
          // The queries for MX didn't return any records. Attempt to look up via CNAME
          std::vector<DNSRecord> foundCNames;
-         bool cnameQueryResult = Ask_(sDomain, DNS_TYPE_CNAME, foundCNames, status, false);
+         int cnameStatus = 0;
+         bool cnameQueryResult = Ask_(sDomain, DNS_TYPE_CNAME, foundCNames, cnameStatus, false);
 
          // A CNAME should only point at a single host name.
          if (cnameQueryResult && foundCNames.size() == 1)
@@ -1027,6 +1065,49 @@ namespace HM
          expect(joined(found) == "198.51.100.1", "a failed lookup adds nothing to what the caller held: \"" + joined(found) + "\"");
       }
 
+      // A name that does not exist - NXDOMAIN for every address query made - is
+      // no alias: no CNAME query is made of it, and whatever one would have met,
+      // the name has no addresses. Asked, a failed one made the lookup fail, and
+      // a HELO host that does not exist went unscored.
+      for (const bool ipv6 : { true, false })
+      {
+         ScriptedDns zone;
+         zone.ipv6Available = ipv6;
+         zone.answers[QuestionKey_(a, _T("gone.test"))].push_back(noRecords(nxdomain));
+         zone.answers[QuestionKey_(aaaa, _T("gone.test"))].push_back(noRecords(nxdomain));
+         zone.answers[QuestionKey_(cname, _T("gone.test"))].push_back(failed(servfail));
+
+         Installed installed(zone);
+         DNSResolver resolver;
+         std::vector<String> found;
+         const std::string why = ipv6
+            ? "NXDOMAIN for A and AAAA, with a CNAME query that would fail"
+            : "no IPv6, NXDOMAIN for A, with a CNAME query that would fail";
+
+         expect(resolver.GetIpAddresses(_T("gone.test"), found, true) && found.empty(),
+                why + ": true, no addresses; asked " + askedOf(zone));
+         expect(askedOf(zone) == (ipv6 ? "1/gone.test, 28/gone.test" : "1/gone.test"),
+                why + ": no CNAME query is made of a name that does not exist; asked " + askedOf(zone));
+      }
+
+      // NXDOMAIN for one family and NODATA for the other: the name is there by
+      // one of the answers, so whether it is an alias is asked, and a failure of
+      // that query fails the lookup.
+      {
+         ScriptedDns zone;
+         zone.answers[QuestionKey_(a, _T("half.test"))].push_back(noRecords(nxdomain));
+         zone.answers[QuestionKey_(aaaa, _T("half.test"))].push_back(noRecords(nodata));
+         zone.answers[QuestionKey_(cname, _T("half.test"))].push_back(failed(servfail));
+
+         Installed installed(zone);
+         DNSResolver resolver;
+         std::vector<String> found;
+         expect(!resolver.GetIpAddresses(_T("half.test"), found, true) && found.empty(),
+                "NXDOMAIN for A, NODATA for AAAA and a failed CNAME query: the lookup failed; asked " + askedOf(zone));
+         expect(askedOf(zone) == "1/half.test, 28/half.test, 5/half.test",
+                "NXDOMAIN for A and NODATA for AAAA: the CNAME query is made; asked " + askedOf(zone));
+      }
+
       // GetDnsListAnswers: the A query alone - a DNS list answers with A
       // records for IPv4 and IPv6 addresses alike (RFC 5782) - and a query that
       // failed is asked once more, past the cache; the second answer counts.
@@ -1129,6 +1210,33 @@ namespace HM
          std::vector<String> names;
          expect(resolver.GetMXRecords(_T("plain.test"), names) && names.empty(),
                 "an MX lookup answered NODATA, and NODATA for the CNAME: true, none");
+      }
+
+      // A record lookup answered NXDOMAIN - for MX here and for A, the never-ban
+      // list's lookup; GetTXTRecords goes the same way, behind its DNSSEC gate -
+      // and an MX lookup: no records, whatever a CNAME query would have met, for
+      // none is made of a name that does not exist. Asked, a failed one made a
+      // DKIM key that does not exist a TempFail, where RFC 6376 section 6.1.2
+      // makes it a PERMFAIL, and an SPF record that is not there a temperror.
+      {
+         ScriptedDns zone;
+         zone.answers[QuestionKey_(DNS_TYPE_MX, _T("gone.test"))].push_back(noRecords(nxdomain));
+         zone.answers[QuestionKey_(a, _T("gone.test"))].push_back(noRecords(nxdomain));
+         zone.answers[QuestionKey_(cname, _T("gone.test"))].push_back(failed(servfail));
+
+         Installed installed(zone);
+         DNSResolver resolver;
+         std::vector<AnsiString> values;
+         expect(resolver.GetRecordsOfType("gone.test", DNS_TYPE_MX, values) && values.empty(),
+                "a record lookup answered NXDOMAIN, with a CNAME query that would fail: true, none; asked " + askedOf(zone));
+         expect(resolver.GetRecordsOfType("gone.test", a, values) && values.empty(),
+                "an A record lookup answered NXDOMAIN, with a CNAME query that would fail: true, none; asked " + askedOf(zone));
+
+         std::vector<String> names;
+         expect(resolver.GetMXRecords(_T("gone.test"), names) && names.empty(),
+                "an MX lookup answered NXDOMAIN, with a CNAME query that would fail: true, none; asked " + askedOf(zone));
+         expect(askedOf(zone) == "15/gone.test, 1/gone.test, 15/gone.test",
+                "no CNAME query is made of a name that does not exist; asked " + askedOf(zone));
       }
 
       {

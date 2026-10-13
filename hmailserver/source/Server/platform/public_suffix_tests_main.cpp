@@ -80,7 +80,7 @@ main(int /*argc*/, char * /*argv*/[])
       return 1;
    }
 
-   printf("ok    a lookup with a failed query: a failure and not \"no addresses\" unless addresses were found, whichever of A, AAAA and CNAME failed and whatever the others answered; NXDOMAIN and NODATA still no addresses; an alias followed; a DNS list asked for A alone, and once more past the DNS cache when that query fails, and only then; a record lookup whose CNAME query failed; a domain's mail servers with an exchange whose lookup failed, each address once\n");
+   printf("ok    a lookup with a failed query: a failure and not \"no addresses\" unless addresses were found, whichever of A, AAAA and CNAME failed and whatever the others answered; NXDOMAIN and NODATA still no addresses; an alias followed; a DNS list asked for A alone, and once more past the DNS cache when that query fails, and only then; a record lookup whose CNAME query failed; a name answered NXDOMAIN asked no CNAME query, and without records whatever one would meet; a domain's mail servers with an exchange whose lookup failed, each address once\n");
 
    // What is an address, which the refusal below asks first: the same answer
    // here as on Windows, where IPAddressTester runs in ClassTester.

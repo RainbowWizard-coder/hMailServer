@@ -73,7 +73,7 @@ Common causes, in the order they actually occur:
 | What the log shows | Cause |
 |---|---|
 | `SpamTestSpamAssassin` with a large `Time:` | spamd is unreachable, overloaded, or accepting connections without answering |
-| `SpamTestDNSBlackLists`, `SpamTestSURBL` or `SpamTestSPF` slow | the resolver is not answering. Look in the TCP/IP log for `DNS - Query timed out` and `DNS - Query failure`. A DNS blacklist or SURBL lookup asks the A record alone, and asks once more when that query fails (below), so one that times out waits for `DNSQueryTimeout` twice - as long as its A and AAAA queries waited before 6.3.7; and SURBL, which stopped at the first lookup that failed, goes on to the message's other names until its ten seconds for beginning lookups are up, the ones begun then waited for. **Do not reach for `DNSServer` as the fix** — see the warning below |
+| `SpamTestDNSBlackLists`, `SpamTestSURBL` or `SpamTestSPF` slow | the resolver is not answering. Look in the TCP/IP log for `DNS - Query timed out` and `DNS - Query failure`. A DNS blacklist or SURBL lookup asks the A record alone, and asks once more when that query fails (below), so one that times out waits for its query timeout twice - `DNSQueryTimeout` on Windows; on Linux, which does not read that setting, five seconds for each DNS server the query is sent to - as long as its A and AAAA queries waited before 6.3.7; and SURBL, which stopped at the first lookup that failed, goes on to the message's other names until its ten seconds for beginning lookups are up, the ones begun then waited for. **Do not reach for `DNSServer` as the fix** — see the warning below |
 | `done spam-protection`, then silence | message modifications: the spam headers, the signature, the List-\* headers, or the write of the modified message back to disk |
 | `script/save` slow | an `OnAcceptMessage` event script, or the database |
 | Nothing between `354` and silence | you are on a version older than 6.2.17; upgrade, because that is the version that added these lines |
@@ -125,21 +125,27 @@ its verdict: it does not score, refuse or reject for a lookup that failed. From
 a SERVFAIL, a timeout, no DNS server answering - and not only when all of them
 did (upstream PR 640). An address lookup asks A and AAAA (AAAA where IPv6 is
 available, which is everywhere in practice), and the name's CNAME when neither
-found anything. The DNS blacklists and SURBL ask the A record alone: a list
-answers with A records, for an IPv6 address as for an IPv4 one (RFC 5782), and
-until 6.3.7 they asked AAAA as well. Before 6.3.7 an A query that failed beside
-an AAAA query answered "no AAAA records" - the answer of every IPv4-only host,
-and of every address a DNS blacklist does not list - was read as "this name has
-no addresses". NXDOMAIN and NODATA are answers, and still mean "no addresses".
+found anything; a record lookup - a DKIM key, an SPF record, a DMARC policy, an
+MX - asks the CNAME when it found nothing. Neither asks it of a name that does
+not exist - NXDOMAIN, for an address lookup from A and AAAA both - because such
+a name is no alias, so a failure of that query cannot make the lookup one that
+failed. A name answered NODATA is there and may be an alias: when the CNAME
+query of it fails, the lookup has failed. The DNS blacklists and SURBL ask the
+A record alone: a list answers with A records, for an IPv6 address as for an
+IPv4 one (RFC 5782), and until 6.3.7 they asked AAAA as well. Before 6.3.7 an A
+query that failed beside an AAAA query answered "no AAAA records" - the answer
+of every IPv4-only host, and of every address a DNS blacklist does not list -
+was read as "this name has no addresses". NXDOMAIN and NODATA are answers, and
+still mean "no addresses".
 
 | Test | When its lookup fails | Before 6.3.7 |
 |---|---|---|
-| The HELO host (`CheckHostInHelo`) | not scored | scored when one of A and AAAA failed and the other was answered without an address, or when both were and the CNAME query failed |
+| The HELO host (`CheckHostInHelo`) | not scored | scored when one of A and AAAA failed and the other was answered without an address, or when both were - not both NXDOMAIN - and the CNAME query failed |
 | PTR (`CheckPTR`) | not scored, whether the PTR lookup or the address lookup of the name it gives failed | a failed address lookup of the reverse name was scored |
-| MX records (`UseMXChecks`) | not scored | scored when the MX query found nothing and the CNAME query failed |
+| MX records (`UseMXChecks`) | not scored | scored when the MX query was answered NODATA and the CNAME query failed |
 | A DNS blacklist | asked for the A record alone, and once more, past the DNS cache, when that query fails; when it fails twice, the client is not checked against that list, and the log says so | asked once, for A and AAAA; a lookup that failed was "not listed", logged as `0 addresses found` like a list's answer |
 | SURBL | asked for the A record alone, and once more, past the DNS cache, when that query fails; when it fails twice, the name is passed over and the message's other names are asked | asked once, for A and AAAA; the first lookup that failed ended the list for the message, so a listed link after it was never asked about |
-| DKIM keys, DMARC policies, SPF records | a temporary error, as for any lookup that fails: DKIM `TempFail`, DMARC and SPF `temperror` | a lookup that found no record and whose CNAME query failed read as "not published" - for a DKIM key, a `PermFail` |
+| DKIM keys, DMARC policies, SPF records | a temporary error, as for any lookup that fails: DKIM `TempFail`, DMARC and SPF `temperror`. A name that does not exist (NXDOMAIN) has nothing published, as before: for a DKIM key a `PermFail`, no key for signature (RFC 6376 section 6.1.2), and for SPF `none` | a lookup answered NODATA whose CNAME query failed read as "not published" - for a DKIM key, a `PermFail` |
 
 The second attempt of a DNS blacklist or SURBL lookup bypasses the Windows DNS
 cache, which would otherwise answer it from the first; on Linux the server keeps
@@ -305,7 +311,7 @@ the folders it is granted - is [ServiceAccount.md](ServiceAccount.md).
 | `FinalizationTimeout` | 240 | The whole accept pipeline, after which the sender gets a `451` | no bound |
 | `SAMaxTimeout` | 90 | SpamAssassin: idle timeout, and a session ceiling of this plus 30s | **not** "no bound" — see below |
 | `ClamMaxTimeout` | 90 | ClamAV: idle timeout per socket operation | **not** "no bound" — see below |
-| `DNSQueryTimeout` | 10 | A single DNS query | no bound |
+| `DNSQueryTimeout` | 10 | A single DNS query, on Windows. The Linux resolver does not read it: a query there waits five seconds for each DNS server it is sent to | no bound |
 | `ScriptTimeout` | 60 | One event script invocation | no bound |
 | `ExternalProcessTimeout` | 300 | An external scanner process | no bound |
 | `ClientSessionCeiling` | 1800 | An entire outbound delivery session | no bound |
@@ -361,10 +367,14 @@ lines were checked on 7 October 2026 against `ExternalDelivery::DeliverToSingleD
 (the application log lines and their bracketed reason) and `DnssecResolver.cpp`
 (`QueryValidatedRrset_`, `ValidateRrset`, `ValidateZoneKeys`, `FetchDsRecords`,
 `WhereUnproven` and `DescribeCheck`, which word every reason). The lookups a spam
-test cannot complete were checked on 12 October 2026 against
+test cannot complete were checked on 12 October 2026, and again on 13 October
+for a name that does not exist and for the timeouts, against
 `DNSResolver::GetIpAddressesRecursive_`, `GetDnsListAnswers`,
 `GetRecordsOfTypeRecursive_` and `GetMXRecordsRecursive_` (what counts as a failed
-lookup, and the second attempt), `DNSResolverWinApi::Query` (the cache bypass),
+lookup, the CNAME query not made of a name answered NXDOMAIN, and the second
+attempt), `DNSResolverWinApi::Query` (the cache bypass, and `DNSQueryTimeout`, read
+on Windows alone), `DnssecResolver.cpp`'s `RunQuery` and `DnsTimeoutMilliseconds`
+(the five seconds for each DNS server on Linux),
 `BLCheck::ClientExistsInDNSBL`, `SURBL::Run`, `SpamTestHeloHost::CheckHostInHelo_`,
 `SpamTestPTR::CheckPTR_`, `SpamTestMXRecords::HasAnyMXRecords_`, `DKIM.cpp`'s key
 lookup, `DMARC.cpp` and `SPFEvaluator` (the table and every line quoted),

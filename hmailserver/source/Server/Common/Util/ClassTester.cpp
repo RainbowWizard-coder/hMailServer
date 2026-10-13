@@ -482,7 +482,8 @@ namespace HM
       // failure, not "no addresses", unless addresses were found - which the
       // HELO and PTR tests read; the lookup the DNS blacklists and SURBL make,
       // of the A record alone and once more past the DNS cache when it fails;
-      // a record lookup whose CNAME query failed; and a domain's mail servers
+      // a record lookup whose CNAME query failed, and one answered NXDOMAIN,
+      // which asks no CNAME query; and a domain's mail servers
       // when an exchange's lookup failed, each address once. Against answers
       // scripted on this thread (upstream PR 640).
       OutputDebugString(_T("hMailServer: Testing DNSResolver\n"));

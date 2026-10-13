@@ -19,22 +19,31 @@ namespace HM
 
       // The addresses of a domain's mail servers - its MX records' exchanges, or
       // the domain itself when it publishes no MX - each address once. False
-      // when the lookup did not complete, and for a null MX (RFC 7505); when the
-      // lookup of one exchange did not complete, what the others have is added
-      // all the same, each address once.
+      // when the lookup did not complete, and on Windows for a null MX (RFC
+      // 7505); when the lookup of one exchange did not complete, what the others
+      // have is added all the same, each address once. The POSIX resolver drops
+      // a null MX's exchange, the root, so there such a domain is one with no MX,
+      // and its own addresses are its mail servers.
       bool GetEmailServers(const String &sDomainName, std::vector<HostNameAndIpAddress> &saFoundNames);
 
-      // False when the lookup did not complete: the MX query failed, or it found
-      // nothing and the query that asks whether the name is an alias failed.
+      // The names of a domain's exchanges. True with none when the domain
+      // publishes no MX, or does not exist (NXDOMAIN) - of a name that does not
+      // exist, no CNAME query is made. False when the lookup did not complete:
+      // the MX query failed, or it was answered NODATA and the query that asks
+      // whether the name is an alias failed; and on Windows for a null MX (RFC
+      // 7505), which the MX-record test reads as a lookup that failed. The POSIX
+      // resolver drops a null MX's exchange, so there it is true with none.
       bool GetMXRecords(const String &sDomain, std::vector<String> &vecFoundNames);
 
       // The name's IPv4 and IPv6 addresses, A and AAAA (AAAA where IPv6 is
       // available on this server), and with followCnameRecords those of the
       // name it is an alias of when it holds none itself. True when addresses
       // were found, or when every query made was answered and none had any - the
-      // name does not exist, or holds no address: then nothing is added. False
-      // when nothing was found and a query failed (a SERVFAIL, a timeout, no DNS
-      // server), because then whether the name has addresses is not known.
+      // name does not exist, or holds no address: then nothing is added. A name
+      // whose every address query answered NXDOMAIN does not exist, and is asked
+      // no CNAME query. False when nothing was found and a query failed (a
+      // SERVFAIL, a timeout, no DNS server), because then whether the name has
+      // addresses is not known.
       // Until upstream PR 640 a failed A query beside an AAAA query answered "no
       // AAAA records" - the answer of every IPv4-only host - was true with none.
       bool GetIpAddresses(const String &sDomain, std::vector<String> &saFoundNames, bool followCnameRecords);
@@ -59,9 +68,10 @@ namespace HM
 
       // The values of one record type, as the bytes they arrived as, following a
       // CNAME where the name holds none of that type. False means the lookup could
-      // not be completed - the query failed, or it found nothing and the query
-      // asking whether the name is an alias failed; true with nothing in values
-      // means the name holds no record of that type. resourceType is a DNS_TYPE_
+      // not be completed - the query failed, or it was answered NODATA and the
+      // query asking whether the name is an alias failed; true with nothing in
+      // values means the name holds no record of that type, or does not exist
+      // (NXDOMAIN, which no CNAME query follows). resourceType is a DNS_TYPE_
       // constant, as DNSResolverWinApi takes.
       //
       // For SPF, which cannot use the typed methods above because each of them adds
@@ -109,13 +119,15 @@ namespace HM
    // answered; NXDOMAIN and NODATA stay "no addresses"; an alias is followed;
    // GetDnsListAnswers asks A alone, and a query that failed once more, and
    // only that one, past the DNS cache; a TXT, MX or other record lookup
-   // that found nothing fails when the query asking whether the name is an
-   // alias failed (upstream PR 640); and GetEmailServers, when the lookup of
-   // one of a domain's exchanges failed, still holds an address two of the
-   // others share once. It runs inside the service with the
-   // other class tests (ClassTester), and on Linux in public-suffix-tests. No
-   // DNS, database or setting. It throws std::logic_error naming the first
-   // thing that is wrong.
+   // answered NODATA fails when the query asking whether the name is an
+   // alias failed (upstream PR 640), and a lookup answered NXDOMAIN - for an
+   // address lookup, by A and AAAA both - asks no such query and has no
+   // records, whatever that query would have met; and GetEmailServers, when
+   // the lookup of one of a domain's exchanges failed, still holds an address
+   // two of the others share once. It runs inside the service with the other
+   // class tests (ClassTester), and on Linux in public-suffix-tests. No DNS,
+   // database or setting. It throws std::logic_error naming the first thing
+   // that is wrong.
    class DNSResolverTester
    {
    public:

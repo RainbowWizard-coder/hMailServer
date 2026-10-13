@@ -37,7 +37,10 @@ namespace RegressionTests.AntiSpam
    ///    answer it describes - a SERVFAIL, a timeout, NXDOMAIN, NODATA - and not
    ///    whatever a resolver on the internet said that day. NXDOMAIN and NODATA
    ///    stay "no addresses" and are still scored; they are here so that the fix
-   ///    is not mistaken for a test that stopped scoring anything.
+   ///    is not mistaken for a test that stopped scoring anything. A name that
+   ///    does not exist is no alias, and is not asked about as one: the NXDOMAIN
+   ///    cases whose CNAME query would fail show that one failed query of a
+   ///    question that need not be asked does not make the answer unknown.
    ///
    ///    The HELO, PTR and MX-record tests connect from the machine's own address,
    ///    because the HELO test passes over a client in the loopback range.
@@ -55,9 +58,12 @@ namespace RegressionTests.AntiSpam
       [OneTimeSetUp]
       public void ShortenTheTimeout()
       {
-         // A lookup that times out waits DNSQueryTimeout, and the DNS blacklists
-         // ask one that fails twice: two seconds rather than ten keep the timeout
-         // cases short. Read where it is used, so no restart.
+         // On Windows a query that times out waits DNSQueryTimeout, and the DNS
+         // blacklists ask one that fails twice: two seconds rather than ten keep
+         // the Windows timeout cases short. Read where it is used, so no restart.
+         // The Linux resolver does not read it: there a query waits five seconds
+         // for each DNS server it asks (DnssecResolver), so the timeout cases of
+         // the Linux suite wait that long whatever this says.
          ServerIniFile.SetSetting("DNSQueryTimeout", "2");
       }
 
@@ -179,6 +185,25 @@ namespace RegressionTests.AntiSpam
       }
 
       [Test]
+      [Description("A HELO host that does not exist (NXDOMAIN for A and AAAA) is scored whatever a CNAME query would meet: a name that does not exist is no alias, and is not asked about as one.")]
+      public void HeloHostThatDoesNotExistIsScoredWhateverItsCnameQueryWouldMeet()
+      {
+         // Asked, a CNAME query that failed made the lookup one that did not
+         // complete, and the HELO host went unscored: one lost packet sufficed.
+         string host = "helo-nxdomain-cname-servfail." + Zone;
+         SuiteDns.Zone.WithNxDomain(host)
+            .WithServFail(host, FakeDnsServer.TypeCname);
+
+         ArmHelo_();
+         string message = SendWithHelo_(host, "helo-nxdomain-cname");
+
+         AssertScored_(message, HeloReason, "a HELO host answered NXDOMAIN for A and AAAA, whose CNAME query would have failed");
+         AssertAsked_(host, FakeDnsServer.TypeA, FakeDnsServer.TypeAaaa);
+         ClassicAssert.AreEqual(0, AskedOf_(host, FakeDnsServer.TypeCname),
+            "A HELO host that does not exist was asked whether it is an alias. Asked: " + string.Join(", ", SuiteDns.Zone.Queries));
+      }
+
+      [Test]
       [Description("A HELO host that resolves to the client's own address is not scored, as before.")]
       public void HeloHostThatResolvesToTheClientIsNotScored()
       {
@@ -256,6 +281,62 @@ namespace RegressionTests.AntiSpam
          string message = SendWithHelo_("client.example.test", "mx-nodata", "sender@" + domain);
 
          AssertScored_(message, "X-hMailServer-Reason-", "a sender's domain answered NODATA for MX and CNAME, and so did its registrable domain");
+      }
+
+      [Test]
+      [Description("A sender's domain that does not exist (NXDOMAIN) has no MX record, and is scored by the MX-record test whatever a CNAME query would meet: it is not asked.")]
+      public void SenderDomainThatDoesNotExistIsScoredForMx()
+      {
+         string domain = "mx-nxdomain-cname-servfail." + Zone;
+         SuiteDns.Zone.WithNxDomain(domain)
+            .WithServFail(domain, FakeDnsServer.TypeCname);
+
+         _antiSpam.UseMXChecks = true;
+         _antiSpam.UseMXChecksScore = 5;
+
+         string message = SendWithHelo_("client.example.test", "mx-nxdomain-cname", "sender@" + domain);
+
+         AssertScored_(message, "Sender domain does not have any MX records.",
+            "a sender's domain answered NXDOMAIN, whose CNAME query would have failed, and its registrable domain NODATA");
+         AssertAsked_(domain, FakeDnsServer.TypeMx);
+         ClassicAssert.AreEqual(0, AskedOf_(domain, FakeDnsServer.TypeCname),
+            "A sender's domain that does not exist was asked whether it is an alias. Asked: " + string.Join(", ", SuiteDns.Zone.Queries));
+      }
+
+      // ------------------------------------------------------------------ DKIM
+
+      [Test]
+      [Description("A DKIM signature whose key does not exist (NXDOMAIN) fails permanently - no key for signature, RFC 6376 section 6.1.2 - whatever a CNAME query of the key's name would meet: it is not asked.")]
+      public void DkimKeyThatDoesNotExistIsAPermanentFailure()
+      {
+         // Asked, a CNAME query that failed made the key's lookup one that did
+         // not complete: a TempFail, and the message accepted without a verdict.
+         // The key is looked up before the body hash is checked, so the
+         // signature's placeholder hashes are never reached.
+         const string selector = "dkim-nxdomain";
+         string keyName = selector + "._domainkey." + Zone;
+         SuiteDns.Zone.WithNxDomain(keyName)
+            .WithServFail(keyName, FakeDnsServer.TypeCname);
+
+         _antiSpam.DKIMVerificationEnabled = true;
+         _antiSpam.DKIMVerificationFailureScore = 5;
+
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "dkim-nxdomain@example.test", "test");
+         string raw = "DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=" + Zone + ";\r\n" +
+                      "\ts=" + selector + "; h=from:subject;\r\n" +
+                      "\tbh=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=; b=AAAAAAAAAAAA\r\n" +
+                      "From: <" + account.Address + ">\r\n" +
+                      "To: <" + account.Address + ">\r\n" +
+                      "Subject: DNS lookup failures\r\n" +
+                      "\r\n" +
+                      "A message.\r\n";
+         SmtpClientSimulator.StaticSendRaw(account.Address, account.Address, raw);
+         string message = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+
+         AssertScored_(message, "Rejected by DKIM.", "a DKIM signature whose key's name answered NXDOMAIN, whose CNAME query would have failed");
+         AssertAsked_(keyName, FakeDnsServer.TypeTxt);
+         ClassicAssert.AreEqual(0, AskedOf_(keyName, FakeDnsServer.TypeCname),
+            "A DKIM key's name that does not exist was asked whether it is an alias. Asked: " + string.Join(", ", SuiteDns.Zone.Queries));
       }
 
       // ------------------------------------------------------------------ DNS blacklists
@@ -471,6 +552,26 @@ namespace RegressionTests.AntiSpam
 
          StringAssert.Contains("Status: 4.1.2", notice,
             "An exchange that answered NODATA for A and AAAA was not reported as a domain with no mail servers.");
+      }
+
+      [Test]
+      [Description("A recipient's domain that does not exist (NXDOMAIN) has no mail servers, and the notice says so whatever a CNAME query of the name would meet: the address lookup made in place of an MX asks none.")]
+      public void DeliveryToADomainThatDoesNotExistSaysThereAreNoMailServers()
+      {
+         // With no MX the domain's own addresses are its mail servers (RFC 5321
+         // section 5.1), and that address lookup asked the CNAME too: failed, it
+         // made the domain's lookup one that did not complete (4.4.4).
+         string domain = "deliver-nxdomain-cname-servfail." + Zone;
+         SuiteDns.Zone.WithNxDomain(domain)
+            .WithServFail(domain, FakeDnsServer.TypeCname);
+
+         string notice = DeliverToAndReadTheNotice_("deliver-nxdomain-cname", "someone@" + domain);
+
+         StringAssert.Contains("Status: 4.1.2", notice,
+            "A recipient's domain that does not exist was not reported as a domain with no mail servers.");
+         StringAssert.DoesNotContain("Status: 4.4.4", notice,
+            "A recipient's domain that does not exist was reported as a DNS query that failed - the CNAME query, asked of a name that does not exist, decided the answer.");
+         AssertAsked_(domain, FakeDnsServer.TypeMx, FakeDnsServer.TypeA, FakeDnsServer.TypeAaaa);
       }
 
       [Test]

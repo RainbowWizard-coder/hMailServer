@@ -647,7 +647,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   The HELO test then scored the message for a name it could not look up, a DNS blacklist and SURBL read the failure
   as "not listed", and SURBL's first failed lookup ended the list for the message, so a listed link after it was
   never asked about. A lookup now fails unless addresses were found or every query - A, AAAA, and the CNAME query
-  made when neither found anything - was answered; NXDOMAIN and NODATA still mean no addresses. The DNS blacklists
+  made when neither found anything - was answered; NXDOMAIN and NODATA still mean no addresses, and a name that
+  does not exist, which is no alias, is asked no CNAME query, so that one failed query cannot make it a lookup that
+  did not complete. The DNS blacklists
   and SURBL ask the A record alone, the only record a list answers with, for an IPv6 address as for an IPv4 one
   (RFC 5782), where they asked AAAA too, and ask it once more, past the Windows DNS cache, when it fails; SURBL then
   passes over the name and asks the others; a blacklist writes `DNS lookup failed: <name>. The client could not be
@@ -655,9 +657,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   application log at most every 15 minutes, as SURBL does. So a lookup the list answered does not fail on an AAAA
   query, one that times out waits for the DNS twice, as its A and AAAA queries made it wait before, and one that
   is answered is one query where it was two. The same shape is gone from two more places: the PTR test scored a
-  reverse name whose address lookup failed, and a TXT, MX or other record lookup that found nothing and whose CNAME
-  query failed read as "no records" - a DKIM key not published, which is a `PermFail`, no DMARC policy, no SPF
-  record, no MX for the MX-record test - where it is now a temporary error, as any other lookup that fails is; and
+  reverse name whose address lookup failed, and a TXT, MX or other record lookup answered NODATA whose CNAME query
+  failed read as "no records" - a DKIM key not published, which is a `PermFail`, no DMARC policy, no SPF record, no
+  MX for the MX-record test - where it is now a temporary error, as any other lookup that fails is (a name answered
+  NXDOMAIN is still no records, and asked no CNAME query: a DKIM key that does not exist is a `PermFail`); and
   the never-ban list read such a forward lookup of a banned address's reverse name as a name that does not resolve
   back to it, and announced the ban, where it now asks again a minute later, as for any lookup not answered.
   Delivery makes the same address lookup of a recipient's mail servers, and of a route's host or the SMTP relay
@@ -666,13 +669,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   could not be found` (`4.3.5`) - where it now says that the DNS query failed (`4.4.4`); the message is retried
   either way. When it failed so for some of a domain's mail servers only, the message still goes to the others, and
   an address two of them share is still tried once: the lookup took such an address out only when every exchange
-  answered, so the change would otherwise have had it tried twice. The Control Panel's MX query asks the server's resolver the same way (`Utilities.ResolveMXRecords`),
-  and said for such a domain that the server found no mail servers, where it now says that the lookup failed.
-  `DNSResolverTester` (`public-suffix-tests` on Linux) holds the rules to answers scripted on its own thread,
-  `SURBLTester` the passing over, and `AntiSpam/DnsLookupFailures.cs` the HELO, PTR, MX-record, DNS blacklist and
-  SURBL tests, the delivery notice and the MX query against the suite's zone answering SERVFAIL, timing out,
-  NXDOMAIN and NODATA; DiagnosingStalledMail.md, "When a spam test cannot look a name up", has the table. Found by
-  upstream.
+  answered, so the change would otherwise have had it tried twice. The Control Panel's MX query asks the server's
+  resolver the same way (`Utilities.ResolveMXRecords`), and said for such a domain that the server found no mail
+  servers, where it now says that the lookup failed. `DNSResolverTester` (`public-suffix-tests` on Linux) holds the
+  rules to answers scripted on its own thread, `SURBLTester` the passing over, and `AntiSpam/DnsLookupFailures.cs`
+  the HELO, PTR, MX-record, DKIM key, DNS blacklist and SURBL tests, the delivery notice and the MX query against
+  the suite's zone answering SERVFAIL, timing out, NXDOMAIN and NODATA; DiagnosingStalledMail.md, "When a spam test
+  cannot look a name up", has the table. Found by upstream.
 
 ### Downloads and the release
 
