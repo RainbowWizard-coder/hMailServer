@@ -28,7 +28,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void Dispose() => Loc.Reset();
 
       private static readonly string[] ServerPages =
-         { "protocols", "delivery", "antispam", "antivirus", "tls", "logging", "performance", "advanced", "adminaccess", "autoban", "webmail", "api" };
+         { "protocols", "delivery", "antispam", "antivirus", "tls", "logging", "performance", "advanced", "adminaccess", "autoban", "webmail", "api", "rules" };
 
       private static readonly string[] FeaturePages =
          { "security", "acme", "hardening", "authentication", "dns", "webservices", "updates" };
@@ -39,7 +39,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("JsonLogging", "logging", "Logging", "Log categories")]
       [InlineData("MirrorEMailAddress", "advanced", "Copies of mail", "Mirroring")]
       [InlineData("PstImportDirectory", "advanced", "Migrations", "Migrations")]
-      [InlineData("DlpAccountNumberPattern", "delivery", "Rules", "Sensitive content in rules")]
+      [InlineData("DlpAccountNumberPattern", "rules", "Rule limits", "Rule limits")]
       [InlineData("AntiSpam.SpamAssassinHost", "antispam", "Content filters", "SpamAssassin")]
       [InlineData("UpdateWindow", "updates", null, "How this server updates")]
       [InlineData("SMTPProxyProtocolEnabled", "hardening", null, "Front-end proxies (PROXY protocol and XCLIENT)")]

@@ -12,7 +12,7 @@ using static hMailServer.ControlPanel.Services.Loc;
 
 namespace hMailServer.ControlPanel.Views
 {
-   public partial class RulesView : UserControl, IPageLifecycle, IRefreshablePage
+   public partial class RulesView : UserControl, IPageLifecycle, IRefreshablePage, IRevealSetting
    {
       public class RuleRow
       {
@@ -46,6 +46,11 @@ namespace hMailServer.ControlPanel.Views
 
       private int selectedRuleId_;
       private bool suppressMatchMode_;
+
+      // The Rule limits card, the server's settings for every rule (review finding
+      // F273); made as the page is first entered, and never for the account dialog.
+      private ServerSettingsView limits_;
+      private bool limitsHidden_;
       private Func<dynamic> rulesProvider_ = () => ServerSession.Current.Application.Rules;
       private bool serverLevel_ = true;
 
@@ -57,6 +62,12 @@ namespace hMailServer.ControlPanel.Views
       {
          rulesProvider_ = rulesProvider;
          serverLevel_ = serverLevel;
+         if (embedded)
+         {
+            limitsHidden_ = true;
+            LimitsHost.Visibility = Visibility.Collapsed;
+         }
+
          if (embedded && HeaderPanel != null)
          {
             HeaderPanel.Visibility = Visibility.Collapsed;
@@ -186,9 +197,46 @@ namespace hMailServer.ControlPanel.Views
          HideOutcome_();
          LoadScopes();
          Reload();
+         EnterLimits_();
       }
 
-      void IRefreshablePage.Refresh() => OnEnter();
+      // F5 and Refresh read the rules again, and the card unless it holds an edit.
+      void IRefreshablePage.Refresh()
+      {
+         HideOutcome_();
+         LoadScopes();
+         Reload();
+         limits_?.RefreshUnlessEdited();
+      }
+
+      /// <summary>
+      /// The Rule limits card, read as the page is entered: the server's settings that
+      /// hold every rule, a section of the settings pages embedded here, with its own
+      /// Save, captioned in this page's scope (review finding F273).
+      /// </summary>
+      private void EnterLimits_()
+      {
+         if (limitsHidden_)
+            return;
+
+         if (limits_ == null)
+         {
+            limits_ = new ServerSettingsView(ServerSettingsView.Section.RuleLimits, embedded: true) { SaveCaption = L("Sa_ve rule limits") };
+            System.Windows.Automation.AutomationProperties.SetAutomationId(limits_, "rules-limits");
+            LimitsHost.Content = limits_;
+         }
+
+         limits_.OnEnter();
+      }
+
+      /// <summary>An edit of the Rule limits card is the page's unsaved change.</summary>
+      public bool HasUnsavedChanges => limits_?.HasUnsavedChanges == true;
+
+      /// <summary>Saves the Rule limits card, as its own Save does.</summary>
+      public bool SaveChanges() => limits_ == null || limits_.SaveChanges();
+
+      /// <summary>A setting of the Rule limits card, found by Ctrl+K, is shown on it.</summary>
+      public bool RevealSetting(string key, string label) => limits_ != null && limits_.RevealSetting(key, label);
 
       // The server's rules, or one domain's: the same page on Domain.Rules,
       // which is what a domain's rules are over COM. Hidden where the page is

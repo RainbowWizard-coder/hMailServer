@@ -10503,6 +10503,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Rule for {0} turned on." xml:space="preserve">
     <value>Sääntö kohteelle {0} otettu käyttöön.</value>
   </data>
+  <data name="Rule limits" xml:space="preserve">
+    <value>Sääntöjen rajat</value>
+  </data>
   <data name="Rule loop limit" xml:space="preserve">
     <value>Sääntösilmukan raja</value>
   </data>
@@ -10745,6 +10748,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>Tallenna käytt_öoikeudet</value>
+  </data>
+  <data name="Sa_ve rule limits" xml:space="preserve">
+    <value>Tallenna sääntöjen _rajat</value>
   </data>
   <data name="Sandbox" xml:space="preserve">
     <value>Hiekkalaatikko</value>
@@ -11421,9 +11427,6 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
     <value>Arkaluonteista sisältöä löytyi (card_number, iban, account_number)</value>
   </data>
-  <data name="Sensitive content in rules" xml:space="preserve">
-    <value>Arkaluonteinen sisältö säännöissä</value>
-  </data>
   <data name="Sent" xml:space="preserve">
     <value>Lähtevä</value>
   </data>
@@ -11523,8 +11526,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Server-wide message rules, evaluated top to bottom." xml:space="preserve">
     <value>Palvelimenlaajuiset viestisäännöt, arvioidaan ylhäältä alas.</value>
   </data>
-  <data name="Server-wide rules that inspect messages as they arrive and act on them." xml:space="preserve">
-    <value>Palvelimenlaajuiset säännöt, jotka tutkivat viestit niiden saapuessa ja toimivat niiden perusteella.</value>
+  <data name="Server-wide rules that inspect messages as they arrive and act on them, and the limits every rule is held to." xml:space="preserve">
+    <value>Palvelimenlaajuiset säännöt, jotka tutkivat viestit niiden saapuessa ja toimivat niiden perusteella, sekä rajat, joita jokainen sääntö noudattaa.</value>
   </data>
   <data name="Server-wide secret mixed into password hashes" xml:space="preserve">
     <value>Palvelimenlaajuinen salaisuus, joka sekoitetaan salasanatiivisteisiin</value>
@@ -14101,9 +14104,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server." xml:space="preserve">
     <value>Näillä nimetty ylävirran palvelin voi välittää todellisen asiakasosoitteen. Molemmat ovat oletuksena pois päältä eivätkä luota keneenkään, ennen kuin osoite on lueteltu, koska vastapuoli, joka voi kirjoittaa oman lähdeosoitteensa uusiksi, on kukistanut jokaisen IP-pohjaisen valvonnan tällä palvelimella.</value>
   </data>
-  <data name="These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page." xml:space="preserve">
-    <value>Nämä rajoittavat, mitä mikä tahansa sääntö saa tehdä. Itse säännöt - mihin kukin osuu ja mitä se tekee - ovat Säännöt-sivulla.</value>
-  </data>
   <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
     <value>Nämä asetukset luetaan REST-rajapinnan kautta, jota tämä istunto ei voi käyttää.</value>
   </data>
@@ -14910,6 +14910,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="What every listener protects, which certificate it presents and when that expires, and what can still be negotiated." xml:space="preserve">
     <value>Mitä kukin kuuntelija suojaa, minkä varmenteen se esittää ja milloin se vanhenee, ja mistä voidaan yhä neuvotella.</value>
+  </data>
+  <data name="What every rule is held to: how far a chain of messages that rules send - a forward, a reply, a copy - may go before rules stop acting on it." xml:space="preserve">
+    <value>Mitä jokainen sääntö noudattaa: kuinka pitkälle sääntöjen lähettämien viestien ketju - välitys, vastaus, kopio - saa edetä, ennen kuin säännöt lakkaavat toimimasta sen perusteella.</value>
   </data>
   <data name="What every spam check is doing right now, in the order the server runs them, and where each is switched on." xml:space="preserve">
     <value>Mitä jokainen roskapostitarkistus tekee juuri nyt, siinä järjestyksessä kuin palvelin ajaa ne, ja missä kukin kytketään päälle.</value>

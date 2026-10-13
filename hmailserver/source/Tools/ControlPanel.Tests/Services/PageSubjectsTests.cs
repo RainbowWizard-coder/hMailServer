@@ -22,7 +22,9 @@ namespace hMailServer.ControlPanel.Tests.Services
    /// card stays, the page's description and aliases name it: the graceful shutdown
    /// on Monitoring &amp; alerts; the countries and the compromised accounts on
    /// Auto-ban; the default domain, IPv6 and the disk space on Advanced; the
-   /// per-account sending limits and the script timeout on Server limits.
+   /// per-account sending limits and the script timeout on Server limits. Delivery of
+   /// e-mail's Rules tab, one sidebar row from the Rules page, is a Rule limits card
+   /// under the rules.
    /// </summary>
    [Collection("Loc")]
    public class PageSubjectsTests : IDisposable
@@ -51,7 +53,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("hardening", "XCLIENT")]
       [InlineData("hardening", "Sending limits per account")]
       [InlineData("hardening", "Script timeout")]
-      [InlineData("delivery", "Rule loop limit")]
+      [InlineData("rules", "Rule loop limit")]
+      [InlineData("rules", "Account-number pattern")]
       public void ASubjectAPageHoldsFindsThatPageFirst(string key, string subject)
       {
          NavNode page = NavigationMap.Find(key);
@@ -111,29 +114,60 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// Delivery of e-mail's Rules tab and the Rules page link to each other: the
-      /// tab says what it limits and opens the Rules page, and the Rules page and
-      /// Incoming relays signpost the pages that hold what they do not.
+      /// The rules' limits are a card on the Rules page, under the rules: Delivery of
+      /// e-mail has no Rules tab, the card is the settings pages' RuleLimits section
+      /// shown on the page (an embedded section, its Save named in the page's scope and
+      /// found by Ctrl+K), and the page asks it whether there is an unsaved change, saves
+      /// it, shows its setting for the palette and leaves it out of the account dialog.
       /// </summary>
       [Fact]
-      public void ThePagesASubjectIsLookedForOnLinkToIt()
+      public void TheRuleLimitsAreACardOnTheRulesPage()
       {
-         // Among the first three: a page's partners come first, as the breadcrumb's
-         // Related bar draws them first wherever there is room and lists them first
-         // in its drop-down (RelatedLinksFit); Delivery of e-mail's link to Rules was
-         // its fourth, when the bar drew three.
-         Assert.Contains("delivery", NavigationMap.Find("rules").SeeAlso.Take(3));
-         Assert.Contains("rules", NavigationMap.Find("delivery").SeeAlso.Take(3));
-         Assert.Contains("hardening", NavigationMap.Find("relays").SeeAlso.Take(3));
-
          string server = ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.xaml.cs"));
-         int loopLimit = server.IndexOf("Path = \"RuleLoopLimit\"", StringComparison.Ordinal);
-         int notice = server.IndexOf("The rules themselves - what each one matches and what it does - are on the Rules page.", StringComparison.Ordinal);
-         int opens = server.IndexOf("Page = \"rules\"", StringComparison.Ordinal);
-         int tab = server.IndexOf("Tab(L(\"Rules\")).Cards.Add(rules);", StringComparison.Ordinal);
-         Assert.True(loopLimit > 0 && notice > loopLimit && opens > notice && tab > opens,
-            "Delivery of e-mail's Rules tab does not say where the rules are, with the way there.");
-         Assert.Contains("Content = Page == null ? null : NoticeActions.OpenPage(Page, \"settings-open-\" + Page)", server, StringComparison.Ordinal);
+         string delivery = WithheldRowTests.MemberText(server, "private void BuildDelivery()");
+         string limits = WithheldRowTests.MemberText(server, "private void BuildRuleLimits()");
+         Assert.True(delivery != null && limits != null, "A page's builder is gone.");
+         Assert.DoesNotContain("Tab(L(\"Rules\"))", delivery, StringComparison.Ordinal);
+         Assert.DoesNotContain("RuleLoopLimit", delivery, StringComparison.Ordinal);
+         Assert.Contains("Path = \"RuleLoopLimit\"", limits, StringComparison.Ordinal);
+         Assert.Contains("Path = \"DlpAccountNumberPattern\"", limits, StringComparison.Ordinal);
+         Assert.Contains("Tab(L(\"Rule limits\")).Cards.Add(limits);", limits, StringComparison.Ordinal);
+         Assert.Contains("case Section.RuleLimits: BuildRuleLimits(); break;", server, StringComparison.Ordinal);
+
+         string rules = ReadControlPanelFile(Path.Join("Views", "RulesView.xaml.cs"));
+         Assert.Contains("public partial class RulesView : UserControl, IPageLifecycle, IRefreshablePage, IRevealSetting", rules, StringComparison.Ordinal);
+         Assert.Contains("new ServerSettingsView(ServerSettingsView.Section.RuleLimits, embedded: true) { SaveCaption = L(\"Sa_ve rule limits\") }", rules, StringComparison.Ordinal);
+         Assert.Contains("public bool HasUnsavedChanges => limits_?.HasUnsavedChanges == true;", rules, StringComparison.Ordinal);
+         Assert.Contains("public bool SaveChanges() => limits_ == null || limits_.SaveChanges();", rules, StringComparison.Ordinal);
+         Assert.Contains("public bool RevealSetting(string key, string label) => limits_ != null && limits_.RevealSetting(key, label);", rules, StringComparison.Ordinal);
+         Assert.Contains("limits_?.RefreshUnlessEdited();", rules, StringComparison.Ordinal);
+         string configure = WithheldRowTests.MemberText(rules, "public void ConfigureForRules(Func<dynamic> rulesProvider, bool serverLevel, bool embedded)");
+         Assert.Contains("LimitsHost.Visibility = Visibility.Collapsed;", configure, StringComparison.Ordinal);
+         Assert.Contains("<ContentControl x:Name=\"LimitsHost\"", ReadControlPanelFile(Path.Join("Views", "RulesView.xaml")), StringComparison.Ordinal);
+
+         Assert.Contains("rules", NavigationMap.Find("delivery").SeeAlso);
+         Assert.Contains("delivery", NavigationMap.Find("rules").SeeAlso);
+         Assert.Contains("hardening", NavigationMap.Find("relays").SeeAlso.Take(3));
+      }
+
+      /// <summary>
+      /// A section shown on another page draws no frame of its own: no header and no
+      /// padding, no Reload, no scroll viewer that would take the mouse wheel from the
+      /// page's, and its Save, with the pill beside it, under its cards, which Ctrl+S
+      /// knows by its command whatever the host names it.
+      /// </summary>
+      [Fact]
+      public void AnEmbeddedSectionDrawsNoFrameOfItsOwn()
+      {
+         string embedded = ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.Embedded.cs"));
+         Assert.Contains("Header.Visibility = Visibility.Collapsed;", embedded, StringComparison.Ordinal);
+         Assert.Contains("frame.Margin = new Thickness(0);", embedded, StringComparison.Ordinal);
+         Assert.Contains("== \"settings-reload\"", embedded, StringComparison.Ordinal);
+         Assert.Contains("PageCommands.SetCommand(SaveButton, PageCommand.Save);", embedded, StringComparison.Ordinal);
+         Assert.Contains("footer.Children.Add(HeaderActions);", embedded, StringComparison.Ordinal);
+
+         string build = WithheldRowTests.MemberText(ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.xaml.cs")), "private void BuildUi()");
+         Assert.Matches(new System.Text.RegularExpressions.Regex(@"object content = embedded_\s*\?\s*panel\s*:\s*new ScrollViewer"), build);
       }
 
       /// <summary>

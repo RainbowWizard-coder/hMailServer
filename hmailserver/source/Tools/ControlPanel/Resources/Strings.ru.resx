@@ -10624,6 +10624,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Rule for {0} turned on." xml:space="preserve">
     <value>Правило для {0} включено.</value>
   </data>
+  <data name="Rule limits" xml:space="preserve">
+    <value>Ограничения правил</value>
+  </data>
   <data name="Rule loop limit" xml:space="preserve">
     <value>Ограничение на циклы правил</value>
   </data>
@@ -10866,6 +10869,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>_Сохранить разрешения</value>
+  </data>
+  <data name="Sa_ve rule limits" xml:space="preserve">
+    <value>Сохранить о_граничения правил</value>
   </data>
   <data name="Sandbox" xml:space="preserve">
     <value>Песочница</value>
@@ -11572,9 +11578,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
     <value>Найдено конфиденциальное содержимое (card_number, iban, account_number)</value>
   </data>
-  <data name="Sensitive content in rules" xml:space="preserve">
-    <value>Конфиденциальное содержимое в правилах</value>
-  </data>
   <data name="Sent" xml:space="preserve">
     <value>Исходящая</value>
   </data>
@@ -11674,8 +11677,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Server-wide message rules, evaluated top to bottom." xml:space="preserve">
     <value>Общесерверные правила для сообщений, проверяемые сверху вниз.</value>
   </data>
-  <data name="Server-wide rules that inspect messages as they arrive and act on them." xml:space="preserve">
-    <value>Общесерверные правила, которые проверяют сообщения по мере их поступления и выполняют над ними действия.</value>
+  <data name="Server-wide rules that inspect messages as they arrive and act on them, and the limits every rule is held to." xml:space="preserve">
+    <value>Общесерверные правила, которые проверяют сообщения по мере их поступления и выполняют над ними действия, и ограничения, которым подчиняется каждое правило.</value>
   </data>
   <data name="Server-wide secret mixed into password hashes" xml:space="preserve">
     <value>Общесерверный секрет, подмешиваемый в хеши паролей</value>
@@ -14285,9 +14288,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server." xml:space="preserve">
     <value>Эти параметры позволяют названному вышестоящему узлу передавать настоящий адрес клиента. Оба по умолчанию выключены и не доверяют никому, пока адрес не внесён в список, поскольку собеседник, способный переписать собственный адрес источника, обходит любые основанные на IP средства контроля на этом сервере.</value>
   </data>
-  <data name="These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page." xml:space="preserve">
-    <value>Эти параметры ограничивают то, что может сделать любое правило. Сами правила - чему соответствует каждое и что оно делает - находятся на странице «Правила».</value>
-  </data>
   <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
     <value>Эти параметры читаются через REST API, который этот сеанс не может использовать.</value>
   </data>
@@ -15100,6 +15100,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="What every listener protects, which certificate it presents and when that expires, and what can still be negotiated." xml:space="preserve">
     <value>Что защищает каждый прослушиватель, какой сертификат предъявляет и когда тот истекает, и что ещё может быть согласовано.</value>
+  </data>
+  <data name="What every rule is held to: how far a chain of messages that rules send - a forward, a reply, a copy - may go before rules stop acting on it." xml:space="preserve">
+    <value>Чему подчиняется каждое правило: как далеко может зайти цепочка сообщений, которые отправляют правила, — пересылка, ответ, копия, — прежде чем правила перестанут на неё действовать.</value>
   </data>
   <data name="What every spam check is doing right now, in the order the server runs them, and where each is switched on." xml:space="preserve">
     <value>Что прямо сейчас делает каждая проверка на спам, в порядке, в котором сервер их выполняет, и где каждая включается.</value>

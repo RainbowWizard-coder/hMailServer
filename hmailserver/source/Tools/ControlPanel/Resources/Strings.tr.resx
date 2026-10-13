@@ -10503,6 +10503,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Rule for {0} turned on." xml:space="preserve">
     <value>{0} için kural etkinleştirildi.</value>
   </data>
+  <data name="Rule limits" xml:space="preserve">
+    <value>Kural sınırları</value>
+  </data>
   <data name="Rule loop limit" xml:space="preserve">
     <value>Kural döngü sınırı</value>
   </data>
@@ -10745,6 +10748,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>İzinleri _kaydet</value>
+  </data>
+  <data name="Sa_ve rule limits" xml:space="preserve">
+    <value>Kural _sınırlarını kaydet</value>
   </data>
   <data name="Sandbox" xml:space="preserve">
     <value>Korumalı alan</value>
@@ -11421,9 +11427,6 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
     <value>Hassas içerik bulundu (card_number, iban, account_number)</value>
   </data>
-  <data name="Sensitive content in rules" xml:space="preserve">
-    <value>Kurallarda hassas içerik</value>
-  </data>
   <data name="Sent" xml:space="preserve">
     <value>Giden</value>
   </data>
@@ -11523,8 +11526,8 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Server-wide message rules, evaluated top to bottom." xml:space="preserve">
     <value>Yukarıdan aşağıya değerlendirilen sunucu geneli ileti kuralları.</value>
   </data>
-  <data name="Server-wide rules that inspect messages as they arrive and act on them." xml:space="preserve">
-    <value>İletileri gelirken inceleyen ve onlara göre davranan sunucu geneli kurallar.</value>
+  <data name="Server-wide rules that inspect messages as they arrive and act on them, and the limits every rule is held to." xml:space="preserve">
+    <value>İletileri gelirken inceleyen ve onlara göre davranan sunucu geneli kurallar ve her kuralın uyduğu sınırlar.</value>
   </data>
   <data name="Server-wide secret mixed into password hashes" xml:space="preserve">
     <value>Parola karmalarına karıştırılan sunucu geneli gizli anahtar</value>
@@ -14101,9 +14104,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server." xml:space="preserve">
     <value>Bunlar, adı verilen bir üst sunucunun gerçek istemci adresini iletmesine olanak verir. İkisi de varsayılan olarak kapalıdır ve bir adres listelenene kadar kimseye güvenmez, çünkü kendi kaynak adresini yeniden yazabilen bir eş, bu sunucudaki IP tabanlı her denetimi alt etmiştir.</value>
   </data>
-  <data name="These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page." xml:space="preserve">
-    <value>Bunlar her kuralın neler yapabileceğini sınırlar. Kuralların kendileri - her birinin neyle eşleştiği ve ne yaptığı - Kurallar sayfasındadır.</value>
-  </data>
   <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
     <value>Bu ayarlar REST API üzerinden okunur ve bu oturum REST API'yi kullanamıyor.</value>
   </data>
@@ -14910,6 +14910,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="What every listener protects, which certificate it presents and when that expires, and what can still be negotiated." xml:space="preserve">
     <value>Her dinleyicinin neyi koruduğu, hangi sertifikayı sunduğu ve onun ne zaman sona erdiği ve hâlâ neyin uzlaşılabileceği.</value>
+  </data>
+  <data name="What every rule is held to: how far a chain of messages that rules send - a forward, a reply, a copy - may go before rules stop acting on it." xml:space="preserve">
+    <value>Her kuralın uyduğu sınır: kuralların gönderdiği iletilerin oluşturduğu bir zincirin - bir yönlendirme, bir yanıt, bir kopya - kurallar ona göre davranmayı bırakmadan önce ne kadar uzayabileceği.</value>
   </data>
   <data name="What every spam check is doing right now, in the order the server runs them, and where each is switched on." xml:space="preserve">
     <value>Her spam denetiminin şu anda ne yaptığı, sunucunun çalıştırdığı sırayla ve her birinin nerede açıldığı.</value>

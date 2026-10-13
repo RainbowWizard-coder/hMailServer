@@ -645,11 +645,11 @@ namespace hMailServer.ControlPanel.Services
 
                Page("delivery", N("Delivery of e-mail"),
                   N("A smart host, retry intervals, bounce handling and what happens to local mail."),
-                  aliases: "SMTP relayer|Relay host|Smarthost|Send through my ISP|Retries|Bounce|Non-delivery report|Deliver local to local|Rule loop limit|Sensitive content|Account-number pattern",
+                  aliases: "SMTP relayer|Relay host|Smarthost|Send through my ISP|Retries|Bounce|Non-delivery report|Deliver local to local",
                   // Partners first, as the breadcrumb's Related bar draws them first
-                  // wherever there is room: the Rules page, whose limits are on this
-                  // page's Rules tab, among the first three.
-                  seeAlso: "routes|queue|rules|ipranges|servermessages"),
+                  // wherever there is room. The rules' limits were this page's Rules
+                  // tab until review finding F273, and are a card of the Rules page.
+                  seeAlso: "routes|queue|ipranges|rules|servermessages"),
 
                Page("routes", N("Routes"),
                   N("Deliver mail for named domains to a chosen server instead of looking up its MX record."),
@@ -671,9 +671,12 @@ namespace hMailServer.ControlPanel.Services
                   aliases: "Trusted relay|Upstream gateway|Front-end filter|Load balancer|Proxy|Received header",
                   seeAlso: "ipranges|antispam|hardening"),
 
+               // With the limits every rule is held to, a card under the rules since review
+               // finding F273: Delivery of e-mail's Rules tab, one row up the sidebar.
                Page("rules", N("Rules"),
-                  N("Server-wide rules that inspect messages as they arrive and act on them."),
-                  aliases: "Global rules|Filters|Conditions and actions|Auto-reply|Move to folder|Tag subject",
+                  N("Server-wide rules that inspect messages as they arrive and act on them, and the limits every rule is held to."),
+                  aliases: "Global rules|Filters|Conditions and actions|Auto-reply|Move to folder|Tag subject|" +
+                           "Rule limits|Rule loop limit|Sensitive content|Account-number pattern|DLP",
                   seeAlso: "domains|scripts|delivery"),
 
                Page("servermessages", N("Server messages"),

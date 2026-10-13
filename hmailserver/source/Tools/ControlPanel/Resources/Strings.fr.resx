@@ -10503,6 +10503,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Rule for {0} turned on." xml:space="preserve">
     <value>Règle pour {0} activée.</value>
   </data>
+  <data name="Rule limits" xml:space="preserve">
+    <value>Limites des règles</value>
+  </data>
   <data name="Rule loop limit" xml:space="preserve">
     <value>Limite de boucle des règles</value>
   </data>
@@ -10745,6 +10748,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>_Enregistrer les permissions</value>
+  </data>
+  <data name="Sa_ve rule limits" xml:space="preserve">
+    <value>Enre_gistrer les limites des règles</value>
   </data>
   <data name="Sandbox" xml:space="preserve">
     <value>Bac à sable</value>
@@ -11421,9 +11427,6 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
     <value>Contenu sensible détecté (card_number, iban, account_number)</value>
   </data>
-  <data name="Sensitive content in rules" xml:space="preserve">
-    <value>Contenu sensible dans les règles</value>
-  </data>
   <data name="Sent" xml:space="preserve">
     <value>Sortant</value>
   </data>
@@ -11523,8 +11526,8 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Server-wide message rules, evaluated top to bottom." xml:space="preserve">
     <value>Règles de messages valables pour tout le serveur, évaluées de haut en bas.</value>
   </data>
-  <data name="Server-wide rules that inspect messages as they arrive and act on them." xml:space="preserve">
-    <value>Règles valables pour tout le serveur qui inspectent les messages à leur arrivée et agissent dessus.</value>
+  <data name="Server-wide rules that inspect messages as they arrive and act on them, and the limits every rule is held to." xml:space="preserve">
+    <value>Règles valables pour tout le serveur qui inspectent les messages à leur arrivée et agissent dessus, et les limites auxquelles chaque règle est tenue.</value>
   </data>
   <data name="Server-wide secret mixed into password hashes" xml:space="preserve">
     <value>Secret valable pour tout le serveur, mélangé aux empreintes des mots de passe</value>
@@ -14101,9 +14104,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server." xml:space="preserve">
     <value>Ceux-ci permettent à un amont nommé de transmettre l'adresse réelle du client. Les deux sont désactivés par défaut et ne font confiance à personne tant qu'une adresse n'est pas listée, parce qu'un pair capable de réécrire sa propre adresse source a vaincu tous les contrôles fondés sur l'IP de ce serveur.</value>
   </data>
-  <data name="These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page." xml:space="preserve">
-    <value>Ces réglages limitent ce que chaque règle peut faire. Les règles elles-mêmes - ce à quoi chacune correspond et ce qu'elle fait - sont sur la page Règles.</value>
-  </data>
   <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
     <value>Ces réglages sont lus par l'API REST, que cette session ne peut pas utiliser.</value>
   </data>
@@ -14910,6 +14910,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="What every listener protects, which certificate it presents and when that expires, and what can still be negotiated." xml:space="preserve">
     <value>Ce que protège chaque écouteur, quel certificat il présente et quand celui-ci expire, et ce qui reste négociable.</value>
+  </data>
+  <data name="What every rule is held to: how far a chain of messages that rules send - a forward, a reply, a copy - may go before rules stop acting on it." xml:space="preserve">
+    <value>Ce à quoi chaque règle est tenue : jusqu'où peut aller une chaîne de messages que des règles envoient - un transfert, une réponse, une copie - avant que les règles cessent d'agir dessus.</value>
   </data>
   <data name="What every spam check is doing right now, in the order the server runs them, and where each is switched on." xml:space="preserve">
     <value>Ce que fait chaque vérification anti-spam en ce moment, dans l'ordre où le serveur les exécute, et où chacune s'active.</value>

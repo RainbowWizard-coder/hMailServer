@@ -10503,6 +10503,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Rule for {0} turned on." xml:space="preserve">
     <value>Regel voor {0} ingeschakeld.</value>
   </data>
+  <data name="Rule limits" xml:space="preserve">
+    <value>Regellimieten</value>
+  </data>
   <data name="Rule loop limit" xml:space="preserve">
     <value>Limiet voor regellussen</value>
   </data>
@@ -10745,6 +10748,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>Rechten _opslaan</value>
+  </data>
+  <data name="Sa_ve rule limits" xml:space="preserve">
+    <value>Regellimieten o_pslaan</value>
   </data>
   <data name="Sandbox" xml:space="preserve">
     <value>Sandbox</value>
@@ -11421,9 +11427,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
     <value>Gevoelige inhoud gevonden (card_number, iban, account_number)</value>
   </data>
-  <data name="Sensitive content in rules" xml:space="preserve">
-    <value>Gevoelige inhoud in regels</value>
-  </data>
   <data name="Sent" xml:space="preserve">
     <value>Uitgaand</value>
   </data>
@@ -11523,8 +11526,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Server-wide message rules, evaluated top to bottom." xml:space="preserve">
     <value>Serverbrede berichtregels, van boven naar beneden geëvalueerd.</value>
   </data>
-  <data name="Server-wide rules that inspect messages as they arrive and act on them." xml:space="preserve">
-    <value>Serverbrede regels die berichten bij binnenkomst inspecteren en erop handelen.</value>
+  <data name="Server-wide rules that inspect messages as they arrive and act on them, and the limits every rule is held to." xml:space="preserve">
+    <value>Serverbrede regels die berichten bij binnenkomst inspecteren en erop handelen, en de limieten waaraan elke regel gebonden is.</value>
   </data>
   <data name="Server-wide secret mixed into password hashes" xml:space="preserve">
     <value>Serverbreed geheim dat door wachtwoordhashes wordt gemengd</value>
@@ -14101,9 +14104,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server." xml:space="preserve">
     <value>Hiermee kan een met name genoemde upstream het echte clientadres doorgeven. Beide staan standaard uit en vertrouwen niemand totdat een adres is vermeld, want een tegenpartij die haar eigen bronadres kan herschrijven, heeft elke op IP gebaseerde controle op deze server verslagen.</value>
   </data>
-  <data name="These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page." xml:space="preserve">
-    <value>Deze beperken wat elke regel mag doen. De regels zelf - waarop elke regel past en wat hij doet - staan op de pagina Regels.</value>
-  </data>
   <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
     <value>Deze instellingen worden via de REST-API gelezen, die deze sessie niet kan gebruiken.</value>
   </data>
@@ -14910,6 +14910,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="What every listener protects, which certificate it presents and when that expires, and what can still be negotiated." xml:space="preserve">
     <value>Wat elke listener beschermt, welk certificaat hij aanbiedt en wanneer dat verloopt, en waarover nog kan worden onderhandeld.</value>
+  </data>
+  <data name="What every rule is held to: how far a chain of messages that rules send - a forward, a reply, a copy - may go before rules stop acting on it." xml:space="preserve">
+    <value>Waaraan elke regel gebonden is: hoe ver een keten van berichten die regels versturen - een doorsturing, een antwoord, een kopie - mag gaan voordat regels er niet meer op handelen.</value>
   </data>
   <data name="What every spam check is doing right now, in the order the server runs them, and where each is switched on." xml:space="preserve">
     <value>Wat elke spamcontrole op dit moment doet, in de volgorde waarin de server ze uitvoert, en waar elk ervan wordt ingeschakeld.</value>

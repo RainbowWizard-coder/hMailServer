@@ -309,6 +309,11 @@
                 </scaffold:Card.Footer>
             </scaffold:Card>
         </UniformGrid>
+        <!-- Rule limits, what every rule is held to: Delivery of e-mail's Rules tab
+             until review finding F273, the server's settings drawn by
+             ServerSettingsView's RuleLimits section (RulesView.EnterLimits_). Not on
+             the account dialog's Rules tab, whose rules are the account's. -->
+        <ContentControl x:Name="LimitsHost" Focusable="False" IsTabStop="False" Margin="0,16,0,0" />
         </scaffold:FillPanel>
         </ScrollViewer>
     </Grid>

@@ -10503,6 +10503,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Rule for {0} turned on." xml:space="preserve">
     <value>Rule for {0} turned on.</value>
   </data>
+  <data name="Rule limits" xml:space="preserve">
+    <value>Rule limits</value>
+  </data>
   <data name="Rule loop limit" xml:space="preserve">
     <value>Rule loop limit</value>
   </data>
@@ -10745,6 +10748,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>Sa_ve permissions</value>
+  </data>
+  <data name="Sa_ve rule limits" xml:space="preserve">
+    <value>Sa_ve rule limits</value>
   </data>
   <data name="Sandbox" xml:space="preserve">
     <value>Sandbox</value>
@@ -11421,9 +11427,6 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
     <value>Sensitive content found (card_number, iban, account_number)</value>
   </data>
-  <data name="Sensitive content in rules" xml:space="preserve">
-    <value>Sensitive content in rules</value>
-  </data>
   <data name="Sent" xml:space="preserve">
     <value>Sent</value>
   </data>
@@ -11523,8 +11526,8 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Server-wide message rules, evaluated top to bottom." xml:space="preserve">
     <value>Server-wide message rules, evaluated top to bottom.</value>
   </data>
-  <data name="Server-wide rules that inspect messages as they arrive and act on them." xml:space="preserve">
-    <value>Server-wide rules that inspect messages as they arrive and act on them.</value>
+  <data name="Server-wide rules that inspect messages as they arrive and act on them, and the limits every rule is held to." xml:space="preserve">
+    <value>Server-wide rules that inspect messages as they arrive and act on them, and the limits every rule is held to.</value>
   </data>
   <data name="Server-wide secret mixed into password hashes" xml:space="preserve">
     <value>Server-wide secret mixed into password hashes</value>
@@ -14101,9 +14104,6 @@ It will keep trying as you use the application.</value>
   <data name="These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server." xml:space="preserve">
     <value>These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server.</value>
   </data>
-  <data name="These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page." xml:space="preserve">
-    <value>These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page.</value>
-  </data>
   <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
     <value>These settings are read through the REST API, which this session cannot use.</value>
   </data>
@@ -14910,6 +14910,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="What every listener protects, which certificate it presents and when that expires, and what can still be negotiated." xml:space="preserve">
     <value>What every listener protects, which certificate it presents and when that expires, and what can still be negotiated.</value>
+  </data>
+  <data name="What every rule is held to: how far a chain of messages that rules send - a forward, a reply, a copy - may go before rules stop acting on it." xml:space="preserve">
+    <value>What every rule is held to: how far a chain of messages that rules send - a forward, a reply, a copy - may go before rules stop acting on it.</value>
   </data>
   <data name="What every spam check is doing right now, in the order the server runs them, and where each is switched on." xml:space="preserve">
     <value>What every spam check is doing right now, in the order the server runs them, and where each is switched on.</value>

@@ -74,7 +74,14 @@ namespace hMailServer.ControlPanel.Views
          /// stopping service waits for its sessions. Its [Settings] rows came from the
          /// INI-only view (FeatureSettingsView) and its REST and COM rows from Logging.
          /// </summary>
-         Monitoring
+         Monitoring,
+
+         /// <summary>
+         /// Rule limits, cards on the Rules page (an embedded section, see
+         /// ServerSettingsView.Embedded.cs): Delivery of e-mail's Rules tab until review
+         /// finding F273, one sidebar row from the page that holds the rules.
+         /// </summary>
+         RuleLimits
       }
 
       // ---- editor model ------------------------------------------------------
@@ -2165,6 +2172,7 @@ namespace hMailServer.ControlPanel.Views
             case Section.AdminAccess: BuildAdminAccess(); break;
             case Section.Webmail: BuildWebmail(); break;
             case Section.Monitoring: BuildMonitoring(); break;
+            case Section.RuleLimits: BuildRuleLimits(); break;
          }
       }
 
@@ -2633,33 +2641,6 @@ namespace hMailServer.ControlPanel.Views
             IniStore = iniStore_
          });
          Tab(L("Smart host")).Cards.Add(oauth);
-
-         var rules = Card(L("Rules"));
-         rules.Settings.Add(new ComText { Path = "RuleLoopLimit", Label = L("Rule loop limit"), Numeric = true });
-         // A tab called Rules one sidebar row from the Rules page, and neither said
-         // where the other was (review finding F273): this tab holds what every
-         // rule may do, the page the rules themselves.
-         rules.Settings.Add(new ComNoticeRow
-         {
-            Text = L("These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page."),
-            Page = "rules" // no-loc: a page key
-         });
-         Tab(L("Rules")).Cards.Add(rules);
-
-         // The one detector of the sensitive-content rule condition that has to be
-         // told what to look for (docs/OutboundContentPolicy.md). Beside the rules
-         // that use it; kept by the server with no COM property.
-         var sensitive = Card(L("Sensitive content in rules"),
-            L("The sensitive-content condition of a rule looks for card numbers, IBANs and, when a pattern is set here, this organisation's own account numbers."));
-         sensitive.Settings.Add(new RestText
-         {
-            Path = "DlpAccountNumberPattern",
-            Label = L("Account-number pattern (empty = none)"),
-            Key = "dlp_account_number_pattern",
-            Placeholder = "ACC-\\d{8}", // no-loc
-            Blurb = Sentences(L("A regular expression."), L("Perl syntax, searched in a message's text and its text attachments, up to 2000 characters."))
-         });
-         Tab(L("Rules")).Cards.Add(sensitive);
 
          // What comes back after delivery besides bounces: the providers' abuse
          // reports and the reports other servers write about this one's domains.
@@ -4538,6 +4519,33 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
+      /// Rule limits, a card on the Rules page (Section.RuleLimits, embedded there by
+      /// RulesView) since review finding F273: what every rule is held to - how far a
+      /// chain of messages that rules send may go, and the one detector of the
+      /// sensitive-content condition that has to be told what to look for
+      /// (docs/OutboundContentPolicy.md). They were the Rules tab of Delivery of e-mail,
+      /// one sidebar row from the Rules page, which said where the rules were.
+      /// </summary>
+      private void BuildRuleLimits()
+      {
+         // No PageKey: the section's header is not drawn, and the Rules page's own names the page.
+         var limits = Card(L("Rule limits"),
+            Sentences(L("What every rule is held to: how far a chain of messages that rules send - a forward, a reply, a copy - may go before rules stop acting on it."),
+               L("The sensitive-content condition of a rule looks for card numbers, IBANs and, when a pattern is set here, this organisation's own account numbers.")));
+         limits.Settings.Add(new ComText { Path = "RuleLoopLimit", Label = L("Rule loop limit"), Numeric = true });
+         // Kept by the server with no COM property, and reached over the REST API.
+         limits.Settings.Add(new RestText
+         {
+            Path = "DlpAccountNumberPattern",
+            Label = L("Account-number pattern (empty = none)"),
+            Key = "dlp_account_number_pattern",
+            Placeholder = "ACC-\\d{8}", // no-loc
+            Blurb = Sentences(L("A regular expression."), L("Perl syntax, searched in a message's text and its text attachments, up to 2000 characters."))
+         });
+         Tab(L("Rule limits")).Cards.Add(limits);
+      }
+
+      /// <summary>
       /// A Warning under the COM allow-list while it is "*", which lets an event
       /// script create any object with the service account's rights - the
       /// shipped value, so that upgrading breaks no script, and the one to narrow
@@ -6196,12 +6204,16 @@ namespace hMailServer.ControlPanel.Views
             panel.Children.Insert(0, noticeSlot);
             tabNoticeSlots_.Add(noticeSlot);
 
-            var scroll = new ScrollViewer
-            {
-               VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-               Content = panel
-            };
-            SettingsTabs.Items.Add(new TabItem { Header = tab.Header, Content = scroll });
+            // On another page (an embedded section) the cards are in that page's own
+            // scroll viewer: one of their own would take the mouse wheel from it.
+            object content = embedded_
+               ? panel
+               : new ScrollViewer
+               {
+                  VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                  Content = panel
+               };
+            SettingsTabs.Items.Add(new TabItem { Header = tab.Header, Content = content });
          }
 
          // Each card that lost settings says how many at its top, as a Warning: the

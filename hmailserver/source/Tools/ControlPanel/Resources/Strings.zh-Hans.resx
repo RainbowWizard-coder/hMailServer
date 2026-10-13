@@ -10503,6 +10503,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Rule for {0} turned on." xml:space="preserve">
     <value>已启用 {0} 的规则。</value>
   </data>
+  <data name="Rule limits" xml:space="preserve">
+    <value>规则限制</value>
+  </data>
   <data name="Rule loop limit" xml:space="preserve">
     <value>规则循环上限</value>
   </data>
@@ -10745,6 +10748,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>保存权限(_V)</value>
+  </data>
+  <data name="Sa_ve rule limits" xml:space="preserve">
+    <value>保存规则限制(_V)</value>
   </data>
   <data name="Sandbox" xml:space="preserve">
     <value>沙箱</value>
@@ -11421,9 +11427,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
     <value>发现敏感内容 (card_number, iban, account_number)</value>
   </data>
-  <data name="Sensitive content in rules" xml:space="preserve">
-    <value>规则中的敏感内容</value>
-  </data>
   <data name="Sent" xml:space="preserve">
     <value>发出的</value>
   </data>
@@ -11523,8 +11526,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Server-wide message rules, evaluated top to bottom." xml:space="preserve">
     <value>服务器范围的邮件规则，自上而下评估。</value>
   </data>
-  <data name="Server-wide rules that inspect messages as they arrive and act on them." xml:space="preserve">
-    <value>在邮件到达时检查并处理它们的服务器范围规则。</value>
+  <data name="Server-wide rules that inspect messages as they arrive and act on them, and the limits every rule is held to." xml:space="preserve">
+    <value>在邮件到达时检查并处理它们的服务器范围规则，以及每条规则都受到的限制。</value>
   </data>
   <data name="Server-wide secret mixed into password hashes" xml:space="preserve">
     <value>混入密码哈希的服务器范围机密</value>
@@ -14101,9 +14104,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server." xml:space="preserve">
     <value>这些设置让指定的上游传递真实的客户端地址。两者默认都关闭，并且在列出地址之前不信任任何人，因为能改写自己源地址的对端已经击败了本服务器上所有基于 IP 的控制。</value>
   </data>
-  <data name="These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page." xml:space="preserve">
-    <value>这些设置限制每条规则可以做什么。规则本身（每条规则匹配什么、做什么）在“规则”页。</value>
-  </data>
   <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
     <value>这些设置通过 REST API 读取，而此会话无法使用 REST API。</value>
   </data>
@@ -14910,6 +14910,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="What every listener protects, which certificate it presents and when that expires, and what can still be negotiated." xml:space="preserve">
     <value>每个监听器保护什么、出示哪个证书及其何时到期，以及还有什么可以协商。</value>
+  </data>
+  <data name="What every rule is held to: how far a chain of messages that rules send - a forward, a reply, a copy - may go before rules stop acting on it." xml:space="preserve">
+    <value>每条规则都受到的限制：规则发出的邮件（转发、回复、副本）形成的链条，在规则停止对其执行操作之前最多可以延续多远。</value>
   </data>
   <data name="What every spam check is doing right now, in the order the server runs them, and where each is switched on." xml:space="preserve">
     <value>每项垃圾邮件检查此刻在做什么，按服务器运行它们的顺序排列，以及各自在哪里开启。</value>

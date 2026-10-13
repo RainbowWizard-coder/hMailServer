@@ -10514,6 +10514,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Rule for {0} turned on." xml:space="preserve">
     <value>{0} のルールをオンにしました。</value>
   </data>
+  <data name="Rule limits" xml:space="preserve">
+    <value>ルールの制限</value>
+  </data>
   <data name="Rule loop limit" xml:space="preserve">
     <value>ルールのループ上限</value>
   </data>
@@ -10756,6 +10759,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>権限を保存(_V)</value>
+  </data>
+  <data name="Sa_ve rule limits" xml:space="preserve">
+    <value>ルールの制限を保存(_V)</value>
   </data>
   <data name="Sandbox" xml:space="preserve">
     <value>サンドボックス</value>
@@ -11432,9 +11438,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
     <value>機密性の高い内容を検出 (card_number, iban, account_number)</value>
   </data>
-  <data name="Sensitive content in rules" xml:space="preserve">
-    <value>ルールでの機密コンテンツ</value>
-  </data>
   <data name="Sent" xml:space="preserve">
     <value>送信</value>
   </data>
@@ -11534,8 +11537,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Server-wide message rules, evaluated top to bottom." xml:space="preserve">
     <value>サーバー全体のメッセージ ルール。上から下へ評価されます。</value>
   </data>
-  <data name="Server-wide rules that inspect messages as they arrive and act on them." xml:space="preserve">
-    <value>到着したメッセージを検査して処理するサーバー全体のルール。</value>
+  <data name="Server-wide rules that inspect messages as they arrive and act on them, and the limits every rule is held to." xml:space="preserve">
+    <value>到着したメッセージを検査して処理するサーバー全体のルールと、すべてのルールに適用される制限。</value>
   </data>
   <data name="Server-wide secret mixed into password hashes" xml:space="preserve">
     <value>パスワード ハッシュに混ぜ込むサーバー全体のシークレット</value>
@@ -14112,9 +14115,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server." xml:space="preserve">
     <value>この 2 つは、指定した上流が本当のクライアント アドレスを伝えられるようにするものです。どちらも既定では無効で、アドレスが列挙されるまで誰も信頼しません。自分の送信元アドレスを書き換えられる相手は、このサーバーの IP ベースの制御をすべて突破してしまっているからです。</value>
   </data>
-  <data name="These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page." xml:space="preserve">
-    <value>これらの設定は、すべてのルールが行えることを制限します。ルールそのもの (各ルールが何に一致し何をするか) はルールページにあります。</value>
-  </data>
   <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
     <value>これらの設定は REST API を通じて読み取りますが、このセッションでは REST API を使用できません。</value>
   </data>
@@ -14921,6 +14921,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="What every listener protects, which certificate it presents and when that expires, and what can still be negotiated." xml:space="preserve">
     <value>各リスナーが何を保護し、どの証明書を提示し、それがいつ期限切れになり、何がまだネゴシエートされ得るか。</value>
+  </data>
+  <data name="What every rule is held to: how far a chain of messages that rules send - a forward, a reply, a copy - may go before rules stop acting on it." xml:space="preserve">
+    <value>すべてのルールに適用される制限: ルールが送るメッセージ (転送、返信、コピー) の連鎖を、ルールが処理しなくなるまでにどこまで続けてよいか。</value>
   </data>
   <data name="What every spam check is doing right now, in the order the server runs them, and where each is switched on." xml:space="preserve">
     <value>各スパム チェックが今何をしているか。サーバーが実行する順序で、それぞれがどこでオンになるかと共に。</value>

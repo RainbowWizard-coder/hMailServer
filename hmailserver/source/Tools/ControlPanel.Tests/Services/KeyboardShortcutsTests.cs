@@ -317,7 +317,11 @@ namespace hMailServer.ControlPanel.Tests.Services
          };
 
          var refresh = new Regex(@"L\(""_(?:Refresh|Reload)""\)|\{loc:L '_(?:Refresh|Reload)'\}|PageCommand\.Refresh\)|\bIRefreshablePage\b|CollectionEditorView");
-         var save = new Regex(@"L\(""_Save changes""\)|\{loc:L '_Save changes'\}|PageCommand\.Save\)");
+         // A page whose edit is a settings section shown on it (an embedded ServerSettingsView,
+         // the Rules page's Rule limits) is reached through the section's Save, which
+         // ServerSettingsView.Embedded marks with PageCommand.Save whatever the page names it.
+         var save = new Regex(@"L\(""_Save changes""\)|\{loc:L '_Save changes'\}|PageCommand\.Save\)|new ServerSettingsView\(ServerSettingsView\.Section\.\w+, embedded: true\)");
+         Assert.Contains("PageCommands.SetCommand(SaveButton, PageCommand.Save);", File.ReadAllText(Path.Join(views, "ServerSettingsView.Embedded.cs")), StringComparison.Ordinal);
          var bad = new List<string>();
          foreach (string page in pages)
          {

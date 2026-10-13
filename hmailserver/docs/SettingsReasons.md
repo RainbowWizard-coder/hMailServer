@@ -63,9 +63,6 @@ the provider was told to send it is what tells a report from a forgery.
 
 *Fixed token* (the smart host's OAuth2). The setting is for tokens obtained outside this server.
 
-*Account-number pattern.* Empty, the default, is an account-number detector that never fires. A pattern the
-server cannot compile is refused.
-
 *Classify bounces and keep a suppression list.* A database that cannot be read sends
 the mail as if the address were not listed, and says so in the error log once an hour.
 
@@ -74,6 +71,12 @@ on its next delivery attempt.
 
 *Read delivery reports that arrive for this server's senders.* Turning this off stops
 reports being read at all; refusals met while delivering are still counted.
+
+
+## Rules
+
+*Account-number pattern.* Empty, the default, is an account-number detector that never fires. A pattern the
+server cannot compile is refused.
 
 ## TLS versions & ciphers
 

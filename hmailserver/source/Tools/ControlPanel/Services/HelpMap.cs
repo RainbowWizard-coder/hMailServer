@@ -189,7 +189,6 @@ namespace hMailServer.ControlPanel.Services
          new ReadOnlyDictionary<string, HelpTarget>(new Dictionary<string, HelpTarget>(StringComparer.OrdinalIgnoreCase)
          {
             ["delivery#Delivery"] = new HelpTarget("BounceSuppression.md", "Turning it on"),
-            ["delivery#Rules"] = new HelpTarget("MailFlowRules.md"),
             ["delivery#Feedback"] = new HelpTarget("Complaints.md"),
             ["delivery#Reputation"] = new HelpTarget("ReputationWatch.md"),
             ["delivery#Mailing lists"] = new HelpTarget("MailingLists.md"),

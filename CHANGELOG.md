@@ -4703,6 +4703,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the task that opens them; `SettingNumberRangeTests` holds the moved numbers to their ranges and the addresses to
   their width.
 
+- **Changed: the limits every rule is held to are a Rule limits card on the Rules page.** They were the Rules tab of
+  Delivery of e-mail - the rule loop limit, and the account-number pattern the sensitive-content condition looks for -
+  one sidebar row from the Rules page, and the tab had to say where the rules were. The card is under the rules now,
+  with its own Save rule limits, which Ctrl+S presses, and the pill that says whether what is on screen has reached
+  the server; the page asks before it is left with an unsaved edit of the card, F5 and Refresh read the card again
+  unless it holds one, a search for the loop limit or the pattern opens the page on the card, and the account dialog's
+  Rules tab, whose rules are the account's, has no card. Delivery of e-mail has no Rules tab, and the reasons document
+  keeps the pattern's under Rules (review finding F273, the owner's decision of 12 October 2026). The card is the
+  settings pages' own, shown on another page with no frame of its own, its Save captioned in the page's words so that
+  its access key is free there in every language. `PageSubjectsTests` holds the card on the page, the page's questions
+  to it and the frame it does not draw.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -10624,6 +10624,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Rule for {0} turned on." xml:space="preserve">
     <value>Pravidlo pro {0} bylo zapnuto.</value>
   </data>
+  <data name="Rule limits" xml:space="preserve">
+    <value>Limity pravidel</value>
+  </data>
   <data name="Rule loop limit" xml:space="preserve">
     <value>Limit smyček pravidel</value>
   </data>
@@ -10866,6 +10869,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>U_ložit oprávnění</value>
+  </data>
+  <data name="Sa_ve rule limits" xml:space="preserve">
+    <value>Uložit li_mity pravidel</value>
   </data>
   <data name="Sandbox" xml:space="preserve">
     <value>Sandbox</value>
@@ -11572,9 +11578,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
     <value>Nalezen citlivý obsah (card_number, iban, account_number)</value>
   </data>
-  <data name="Sensitive content in rules" xml:space="preserve">
-    <value>Citlivý obsah v pravidlech</value>
-  </data>
   <data name="Sent" xml:space="preserve">
     <value>Odchozí</value>
   </data>
@@ -11674,8 +11677,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Server-wide message rules, evaluated top to bottom." xml:space="preserve">
     <value>Pravidla pro zprávy platná pro celý server, vyhodnocovaná shora dolů.</value>
   </data>
-  <data name="Server-wide rules that inspect messages as they arrive and act on them." xml:space="preserve">
-    <value>Pravidla platná pro celý server, která zkoumají zprávy při jejich příchodu a provádějí s nimi akce.</value>
+  <data name="Server-wide rules that inspect messages as they arrive and act on them, and the limits every rule is held to." xml:space="preserve">
+    <value>Pravidla platná pro celý server, která zkoumají zprávy při jejich příchodu a provádějí s nimi akce, a limity, které platí pro každé pravidlo.</value>
   </data>
   <data name="Server-wide secret mixed into password hashes" xml:space="preserve">
     <value>Tajný klíč platný pro celý server, přimíchaný do hashů hesel</value>
@@ -14285,9 +14288,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server." xml:space="preserve">
     <value>Tyto volby umožňují pojmenovanému předřazenému serveru předat skutečnou adresu klienta. Obě jsou ve výchozím nastavení vypnuté a nedůvěřují nikomu, dokud není uvedena adresa, protože protějšek, který může přepsat vlastní zdrojovou adresu, obešel každou kontrolu na tomto serveru založenou na IP.</value>
   </data>
-  <data name="These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page." xml:space="preserve">
-    <value>Tato nastavení omezují, co smí udělat každé pravidlo. Pravidla samotná - čemu každé odpovídá a co dělá - jsou na stránce Pravidla.</value>
-  </data>
   <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
     <value>Tato nastavení se čtou přes REST API, které tato relace nemůže použít.</value>
   </data>
@@ -15100,6 +15100,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="What every listener protects, which certificate it presents and when that expires, and what can still be negotiated." xml:space="preserve">
     <value>Co každý listener chrání, který certifikát předkládá a kdy vyprší, a co lze ještě vyjednat.</value>
+  </data>
+  <data name="What every rule is held to: how far a chain of messages that rules send - a forward, a reply, a copy - may go before rules stop acting on it." xml:space="preserve">
+    <value>Co platí pro každé pravidlo: jak daleko smí dojít řetězec zpráv, které pravidla odesílají – přeposlání, odpověď, kopie –, než na něj pravidla přestanou reagovat.</value>
   </data>
   <data name="What every spam check is doing right now, in the order the server runs them, and where each is switched on." xml:space="preserve">
     <value>Co právě dělá každá kontrola spamu, v pořadí, v jakém je server spouští, a kde se každá zapíná.</value>

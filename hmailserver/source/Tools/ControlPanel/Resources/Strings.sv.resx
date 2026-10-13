@@ -10503,6 +10503,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Rule for {0} turned on." xml:space="preserve">
     <value>Regeln för {0} har aktiverats.</value>
   </data>
+  <data name="Rule limits" xml:space="preserve">
+    <value>Regelgränser</value>
+  </data>
   <data name="Rule loop limit" xml:space="preserve">
     <value>Gräns för regelloopar</value>
   </data>
@@ -10745,6 +10748,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>Spara _behörigheter</value>
+  </data>
+  <data name="Sa_ve rule limits" xml:space="preserve">
+    <value>_Spara regelgränser</value>
   </data>
   <data name="Sandbox" xml:space="preserve">
     <value>Sandlåda</value>
@@ -11421,9 +11427,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Sensitive content found (card_number, iban, account_number)" xml:space="preserve">
     <value>Känsligt innehåll hittat (card_number, iban, account_number)</value>
   </data>
-  <data name="Sensitive content in rules" xml:space="preserve">
-    <value>Känsligt innehåll i regler</value>
-  </data>
   <data name="Sent" xml:space="preserve">
     <value>Utgående</value>
   </data>
@@ -11523,8 +11526,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Server-wide message rules, evaluated top to bottom." xml:space="preserve">
     <value>Serverövergripande meddelanderegler, utvärderade uppifrån och ned.</value>
   </data>
-  <data name="Server-wide rules that inspect messages as they arrive and act on them." xml:space="preserve">
-    <value>Serverövergripande regler som granskar meddelanden när de kommer in och agerar på dem.</value>
+  <data name="Server-wide rules that inspect messages as they arrive and act on them, and the limits every rule is held to." xml:space="preserve">
+    <value>Serverövergripande regler som granskar meddelanden när de kommer in och agerar på dem, och gränserna som varje regel hålls inom.</value>
   </data>
   <data name="Server-wide secret mixed into password hashes" xml:space="preserve">
     <value>Serverövergripande hemlighet som blandas in i lösenordshashar</value>
@@ -14101,9 +14104,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server." xml:space="preserve">
     <value>De här låter en namngiven uppströmsvärd lämna vidare den verkliga klientadressen. Båda är av som standard och litar inte på någon förrän en adress listas, eftersom en motpart som kan skriva om sin egen källadress har besegrat varje IP-baserad kontroll på den här servern.</value>
   </data>
-  <data name="These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page." xml:space="preserve">
-    <value>Dessa begränsar vad varje regel får göra. Själva reglerna - vad var och en matchar och vad den gör - finns på sidan Regler.</value>
-  </data>
   <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
     <value>De här inställningarna läses via REST-API:t, som den här sessionen inte kan använda.</value>
   </data>
@@ -14910,6 +14910,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="What every listener protects, which certificate it presents and when that expires, and what can still be negotiated." xml:space="preserve">
     <value>Vad varje lyssnare skyddar, vilket certifikat den presenterar och när det går ut, och vad som fortfarande kan förhandlas.</value>
+  </data>
+  <data name="What every rule is held to: how far a chain of messages that rules send - a forward, a reply, a copy - may go before rules stop acting on it." xml:space="preserve">
+    <value>Det varje regel hålls inom: hur långt en kedja av meddelanden som regler skickar - en vidarebefordran, ett svar, en kopia - får gå innan reglerna slutar agera på den.</value>
   </data>
   <data name="What every spam check is doing right now, in the order the server runs them, and where each is switched on." xml:space="preserve">
     <value>Vad varje skräppostkontroll gör just nu, i den ordning servern kör dem, och var var och en slås på.</value>
