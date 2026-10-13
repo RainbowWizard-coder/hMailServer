@@ -1571,6 +1571,11 @@ namespace HM
       bodyStart = 0;
       entityEnd = 0;
 
+      // Its own header and body only, so that this is one step at every
+      // section of a FETCH, for a part holding thousands too: whether a part
+      // below it was changed is IsAnyChildModified's to find, a walk of every
+      // one of them, which a caller cutting sections from the stored bytes asks
+      // once of the message (IMAPFetch::StoredMessage_).
       if (!stored_bounds_ || !stored_placed_ || body_modified_ || headers_modified_)
          return false;
 

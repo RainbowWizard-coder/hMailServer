@@ -114,8 +114,11 @@ namespace HM
       // (MessageStore::ReadAll, which answers a container's original from the
       // store's cache of decodes) and counted to their ceiling. IMAP's own parse,
       // MessageStore::LoadMime, keeps no bytes, so in the server it is always
-      // the read. False when it cannot be read, or what is read is not as long
-      // as what was parsed - not the bytes the parts were placed in.
+      // the read. False when any part of the message was changed since it was
+      // read (MimeBody::IsAnyChildModified, a walk of every part, asked here
+      // once for the message's sections and not of each part at each section),
+      // when it cannot be read, or when what is read is not as long as what
+      // was parsed - not the bytes the parts were placed in.
       bool StoredMessage_(const String &messageFileName);
 
       // Bytes of the stored message with the client's <start.count> applied,
@@ -276,12 +279,14 @@ namespace HM
    // of its bytes, so that their sections are cut from the stored message
    // IMAPFetch reads through the store - read once, counted to the ceiling,
    // refused past it, and not used when it is not as long as what was parsed.
-   // And a BODYSTRUCTURE of a message nested past the depth a structure
-   // describes is one a client can read, as is one of a multipart with no
-   // parts - one whose boundary holds a NUL among them - which describes it
-   // with the size of the octets its BODY[N] hands out; BODY carries no
-   // extension data. ClassTester runs it on Windows, imap-parse-tests on
-   // Linux.
+   // Once a part of a message was changed since it was read, it is not placed
+   // in the stored bytes and nothing of the message is cut from them, while a
+   // part not itself changed still answers where it was read from. And a
+   // BODYSTRUCTURE of a message nested past the depth a structure describes is
+   // one a client can read, as is one of a multipart with no parts - one whose
+   // boundary holds a NUL among them - which describes it with the size of the
+   // octets its BODY[N] hands out; BODY carries no extension data. ClassTester
+   // runs it on Windows, imap-parse-tests on Linux.
    class IMAPFetchPartBytesTester
    {
    public:

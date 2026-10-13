@@ -612,9 +612,14 @@ namespace HM
       // False where nothing true can be said: a part made rather than read
       // (CreatePart, SetRawText and the like), one whose header did not parse,
       // one of a message encapsulated in a part that was itself not placed, and
-      // one changed since it was read. IMAP's FETCH serves a part's MIME header
-      // and a multipart's body from these, so that they are the stored bytes
-      // rather than the part written out again.
+      // one whose own header or body was changed since it was read. A part
+      // holding one that was changed still answers where it was read from,
+      // which no longer holds the change: the parts below are not walked here,
+      // where a FETCH asks at every section, and a caller cutting a part from
+      // the stored bytes asks the message's IsAnyChildModified, once, as IMAP's
+      // FETCH does for a message's sections. It serves a part's MIME header and
+      // a multipart's body from these, so that they are the stored bytes rather
+      // than the part written out again.
       bool GetStoredBounds(size_t &entityStart, size_t &bodyStart, size_t &entityEnd) const;
 
       // The bytes this body was parsed from, when LoadFromMemory parsed it and

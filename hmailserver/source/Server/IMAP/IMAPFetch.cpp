@@ -841,11 +841,17 @@ namespace HM
       stored_message_asked_ = true;
 
       // What the parse read: the top-level body is placed from the first byte
-      // to the last of what it was handed.
+      // to the last of what it was handed. Not once any part of the message
+      // was changed since it was read: the stored bytes are no longer its
+      // parts, and the sections are written out from the parse, as they were
+      // before. Asked here, once for the message's sections, because it walks
+      // every part; GetStoredBounds, asked at every section, looks at the part
+      // alone.
       size_t start = 0;
       size_t headerEnd = 0;
       size_t parsed = 0;
-      if (!navigated_message_ || !navigated_message_->GetStoredBounds(start, headerEnd, parsed) || start != 0)
+      if (!navigated_message_ || !navigated_message_->GetStoredBounds(start, headerEnd, parsed) || start != 0 ||
+          navigated_message_->IsAnyChildModified())
          return false;
 
       std::shared_ptr<const std::string> stored = navigated_message_->GetSourceBytes();
@@ -3046,6 +3052,52 @@ namespace HM
 
          if (milliseconds > HM_TEST_TIME_BOUND(2000))
             throw std::logic_error("100,000 MIME sections of parts 9,000 deep in three multiparts took " + std::to_string((long long) milliseconds) + " ms");
+
+         // And of the multipart holding the other two, 18,000 parts below it:
+         // its MIME header and the first bytes of its body, cut from the stored
+         // bytes, 50,000 times each. Whether it was changed since it was read is
+         // asked of its own header and body at each section, and of the
+         // message's parts once (MimeBody::GetStoredBounds,
+         // IMAPFetch::StoredMessage_) - not of the 18,000 at each, 1.8 billion
+         // steps.
+         String holderMime;
+         holderMime.Format(_T("BODY.PEEK[%d.MIME]"), parts);
+         String holderBody;
+         holderBody.Format(_T("BODY.PEEK[%d]<0.4>"), parts);
+
+         String holderCommand = _T("(");
+         for (int i = 0; i < sections; i++)
+         {
+            if (i > 0)
+               holderCommand += _T(" ");
+            holderCommand += i % 2 == 0 ? holderMime : holderBody;
+         }
+         holderCommand += _T(")");
+
+         IMAPFetchParser holderParser;
+         if (holderParser.ParseCommand(holderCommand).GetResult() != IMAPResult::ResultOK || holderParser.GetPartsToLookAt().size() != (size_t) sections)
+            HM_TEST_FAILED();
+
+         const std::string holderHeader = "Content-Type: multipart/mixed; boundary=\"b2\"\r\n\r\n";
+         const std::string holderStart = "--b2";
+
+         IMAPFetch holder;
+         int asked = 0;
+         std::chrono::steady_clock::time_point holderStarted = std::chrono::steady_clock::now();
+         for (IMAPFetchParser::BodyPart &part : holderParser.GetPartsToLookAt())
+         {
+            const std::string &expected = asked % 2 == 0 ? holderHeader : holderStart;
+            asked++;
+
+            std::shared_ptr<ByteBuffer> section = holder.GetByteBufferByBodyPart_(_T(""), message, part);
+            if (section->GetSize() != expected.size() || memcmp(section->GetCharBuffer(), expected.c_str(), expected.size()) != 0)
+               HM_TEST_FAILED();
+         }
+         const double holderMilliseconds = HeaderFieldsMillisecondsSince_(holderStarted);
+
+         if (holderMilliseconds > HM_TEST_TIME_BOUND(2000))
+            throw std::logic_error("100,000 sections of a multipart holding 18,000 parts, its MIME header and the first bytes of its body, took " +
+               std::to_string((long long) holderMilliseconds) + " ms");
       }
 
       // Sections of the parts of a forwarded message of 4 MB, 4,000 of them in
@@ -3674,6 +3726,74 @@ namespace HM
 
             fetch.ForgetMessageSections_();
          }
+      }
+
+      // A part changed since it was read is not placed in the stored bytes. A
+      // part holding it still answers where it was read from - GetStoredBounds
+      // looks at the part alone, a step at every section - but nothing of the
+      // message is cut from the stored bytes any more: its sections are
+      // written out from the parse, the change with them.
+      {
+         const std::string alternativeBody =
+            "--c\r\nContent-Type: text/plain\r\n\r\noriginal\r\n"
+            "--c\r\nContent-Type: text/html\r\n\r\n<p>html</p>\r\n"
+            "--c--";
+         const std::string besideHeader = "Content-Type: text/plain;\r\n charset=us-ascii\r\n\r\n";
+         const std::string text =
+            "Subject: s\r\nContent-Type: multipart/mixed; boundary=\"b\"\r\n\r\n"
+            "--b\r\nContent-Type: multipart/alternative; boundary=\"c\"\r\n\r\n" + alternativeBody + "\r\n"
+            "--b\r\n" + besideHeader + "beside\r\n"
+            "--b--\r\n";
+
+         std::shared_ptr<MimeBody> message = ParsedMessage_(text);
+         std::shared_ptr<MimeBody> alternative = message->FindFirstPart();
+         std::shared_ptr<MimeBody> beside = message->FindNextPart();
+         std::shared_ptr<MimeBody> plain = alternative ? alternative->FindFirstPart() : std::shared_ptr<MimeBody>();
+         std::shared_ptr<MimeBody> html = alternative ? alternative->FindNextPart() : std::shared_ptr<MimeBody>();
+         if (!beside || !plain || !html)
+            throw std::logic_error("A message of a multipart and a part beside it did not parse into its parts");
+
+         auto placed = [](const std::shared_ptr<MimeBody> &part)
+         {
+            size_t entityStart = 0;
+            size_t bodyStart = 0;
+            size_t entityEnd = 0;
+            return part->GetStoredBounds(entityStart, bodyStart, entityEnd);
+         };
+
+         if (!placed(message) || !placed(alternative) || !placed(plain) || !placed(html) || !placed(beside))
+            throw std::logic_error("A part of a message read and not changed is not placed in the bytes it was read from");
+
+         // Read and not changed: the multipart's body and the MIME header beside
+         // it are the stored bytes.
+         {
+            IMAPFetch fetch;
+            const std::string body = sectionBytes(fetch, message, "BODY.PEEK[1]");
+            if (body != alternativeBody)
+               throw std::logic_error("BODY.PEEK[1] of a multipart read and not changed: " + Difference_(body, alternativeBody));
+
+            const std::string mime = sectionBytes(fetch, message, "BODY.PEEK[2.MIME]");
+            if (mime != besideHeader)
+               throw std::logic_error("BODY.PEEK[2.MIME] of a message read and not changed: " + Difference_(mime, besideHeader));
+         }
+
+         plain->SetRawText("changed\r\n");
+
+         if (placed(plain))
+            throw std::logic_error("A part changed since it was read is still placed in the bytes it was read from");
+
+         if (!placed(message) || !placed(alternative) || !placed(html) || !placed(beside))
+            throw std::logic_error("A part not itself changed no longer answers where it was read from, which would walk the parts below it at every section");
+
+         IMAPFetch fetch;
+         const std::string body = sectionBytes(fetch, message, "BODY.PEEK[1]");
+         if (body.find("changed") == std::string::npos || body.find("original") != std::string::npos)
+            throw std::logic_error("BODY.PEEK[1] of a multipart holding a part changed since it was read is not the multipart as it is now: " + body);
+
+         const std::string mime = sectionBytes(fetch, message, "BODY.PEEK[2.MIME]");
+         const std::string rebuilt = AnsiString(beside->GetHeaderContents());
+         if (mime != rebuilt || mime == besideHeader)
+            throw std::logic_error("BODY.PEEK[2.MIME] of a message a part of which was changed since it was read was cut from the stored bytes: " + Difference_(mime, rebuilt));
       }
 
       // A BODYSTRUCTURE of messages nested in messages 150 deep, which a client
