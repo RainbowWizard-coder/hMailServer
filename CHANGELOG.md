@@ -4855,6 +4855,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   whole clause before it is noe som, a comma closes a relative clause put before the verb, a mail header is a header
   throughout, a worker is a worker thread (arbeidstråd), and the sendout's notice gives its time with kl.
 
+- **Fixed: 167 Turkish texts said what their English does not, or named one thing two ways.** An entry of the sender
+  block list was an address and a domain, where it is one or the other; an operator was a business (işletme); the log
+  scheduled each stage (zamanlar), where it records how long each took; two texts had an older sentence's setting
+  names spliced into the new page's name; a DKIM selector retired on a pension (emekliye ayrılmak); and the default IP
+  ranges were Bilgisayarım and Internet, where the server gives them in English and the IP ranges page lists them so.
+  A domain this server hosts is an etki alanı and another server's an alan adı, an alias is a diğer ad, as their pages
+  call them, the message index an indeks, and the Control Panel the Denetim Masası in prose, as 67 texts call it; the
+  Alias address caption's key moves to ğ, since the Domains page gives every other letter of it to another caption.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -31,13 +31,13 @@
     <value>'Etki alanındaki herkes gönderebilir', gönderenin adresinin bu sunucunun barındırdığı bir etki alanında olması demektir; liste ayrıca kimlik doğrulama da istemedikçe bunu dışarıdan biri de iddia edebilir. Liste yalnızca oturum açmış kişilerle sınırlanacaksa aşağıda bunu işaretleyin.</value>
   </data>
   <data name="'Protect stored secrets with Windows DPAPI' on the Server limits &amp; expert settings page is off, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
-    <value>Sunucu sınırları ve uzman ayarları sayfasında 'Saklanan gizli anahtarları Windows DPAPI ile koru' kapalı olduğundan bir hesabın ikinci faktörü ve [Settings] sırları yazıldığı gibi saklanır ve saklanan sırlar anahtarı gerekmez.</value>
+    <value>Sunucu sınırları ve uzman ayarları sayfasında 'Saklanan gizli anahtarları Windows DPAPI ile koru' kapalı olduğundan bir hesabın ikinci etkeni ve [Settings] sırları yazıldığı gibi saklanır ve saklanan sırlar anahtarı gerekmez.</value>
   </data>
   <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
-    <value>'Gerekçesiyle reddet', bir gönderimi RCPT aşamasında gerekçesiyle yanıtlar ve geri kalan her şeyi - bir takma adı, bir iletmeyi, zamanlanmış bir gönderimi - bir teslim durumu bildiriminde gönderene iade eder. 'Teslim et ve yalnızca kaydet', listenin ne yapacağını o yapmadan önce görmenin güvenli yoludur.</value>
+    <value>'Gerekçesiyle reddet', bir gönderimi RCPT aşamasında gerekçesiyle yanıtlar ve geri kalan her şeyi - bir diğer adı, bir iletmeyi, zamanlanmış bir gönderimi - bir teslim durumu bildiriminde gönderene iade eder. 'Teslim et ve yalnızca kaydet', listenin ne yapacağını o yapmadan önce görmenin güvenli yoludur.</value>
   </data>
   <data name="'{0}' is not a 24-hour HH:MM time. The server accepts values like 02:00 or 23:45 and refuses anything else rather than guess. Leave the box empty for no daily backup." xml:space="preserve">
-    <value>'{0}' 24 saatlik HH:MM biçiminde bir saat değil. Sunucu 02:00 veya 23:45 gibi değerleri kabul eder, bunun dışındakileri tahmin etmek yerine reddeder. Günlük yedekleme istemiyorsanız kutuyu boş bırakın.</value>
+    <value>'{0}' 24 saatlik SS:DD biçiminde bir saat değil. Sunucu 02:00 veya 23:45 gibi değerleri kabul eder, bunun dışındakileri tahmin etmek yerine reddeder. Günlük yedekleme istemiyorsanız kutuyu boş bırakın.</value>
   </data>
   <data name="'{0}' is not a domain name. Give a comma-separated list of domains, or leave the box empty to let the key act on every domain." xml:space="preserve">
     <value>'{0}' bir etki alanı adı değil. Virgülle ayrılmış bir etki alanı listesi girin veya anahtarın her etki alanında geçerli olması için kutuyu boş bırakın.</value>
@@ -226,7 +226,7 @@
     <value>Varsayılan 161.</value>
   </data>
   <data name="180 by default. A suppression list entry a complaint made keeps its own expiry, set with the bounces." xml:space="preserve">
-    <value>Varsayılan 180. Bir şikâyetin oluşturduğu engelleme listesi kaydı, geri dönen iletilerle belirlenen kendi süresini korur.</value>
+    <value>Varsayılan 180. Bir şikâyetin oluşturduğu engelleme listesi kaydı, geri dönüş ayarlarıyla birlikte belirlenen kendi süresini korur.</value>
   </data>
   <data name="2 is mail, which is where a mail server's lines belong and what a collector's mail.* rule already matches. 0 is kernel and should not be used." xml:space="preserve">
     <value>2, mail demektir; bir posta sunucusunun satırlarının ait olduğu yer ve bir toplayıcının mail.* kuralının zaten eşleştiği değer budur. 0 kernel'dir ve kullanılmamalıdır.</value>
@@ -397,10 +397,10 @@
     <value>Bir kimlik doğrulayıcı uygulamadan gelen ve bu hesabın parolasının yanı sıra istenen kod. Yalnızca bir kodun gerçekten girilebildiği yerlerde geçerlidir - Denetim Masası ve API. Posta istemcileri kod sunamaz; bu nedenle bu açıldığında onların bunun yerine bir uygulama parolası kullanması gerekir.</value>
   </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
-    <value>Bir alan adının ya da tek bir hesabın postasının bir adrese gönderilen kopyası: iletinin eklendiği bir zarf raporu olarak ya da iletinin kendisi olarak.</value>
+    <value>Bir etki alanının ya da tek bir hesabın postasının bir adrese gönderilen kopyası: iletinin eklendiği bir zarf raporu olarak ya da iletinin kendisi olarak.</value>
   </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself. Nothing is copied until a rule exists here, and a rule is not the archive: it sends mail elsewhere rather than keeping files on this machine." xml:space="preserve">
-    <value>Bir alan adının ya da tek bir hesabın postasının bir adrese gönderilen kopyası: iletinin eklendiği bir zarf raporu olarak ya da iletinin kendisi olarak. Burada bir kural olmadıkça hiçbir şey kopyalanmaz ve kural arşiv değildir: dosyaları bu makinede tutmak yerine postayı başka bir yere gönderir.</value>
+    <value>Bir etki alanının ya da tek bir hesabın postasının bir adrese gönderilen kopyası: iletinin eklendiği bir zarf raporu olarak ya da iletinin kendisi olarak. Burada bir kural olmadıkça hiçbir şey kopyalanmaz ve kural arşiv değildir: dosyaları bu makinede tutmak yerine postayı başka bir yere gönderir.</value>
   </data>
   <data name="A copy of every log entry, as RFC 5424, to a syslog collector - rsyslog, syslog-ng, a SIEM - beside the log files rather than instead of them. On Linux with no collector named, a server running under systemd writes to the journal, where journalctl can read it." xml:space="preserve">
     <value>Her günlük girdisinin bir kopyası, RFC 5424 biçiminde, bir syslog toplayıcısına - rsyslog, syslog-ng, bir SIEM - günlük dosyalarının yerine değil, yanı sıra gönderilir. Linux'ta bir toplayıcı belirtilmediğinde, systemd altında çalışan sunucu journal'a yazar ve journalctl bunu okuyabilir.</value>
@@ -424,7 +424,7 @@
     <value>Rehber fotoğrafı en çok 100 KB olabilir.</value>
   </data>
   <data name="A domain - the server needs one before it can receive mail" xml:space="preserve">
-    <value>Bir alan adı - sunucunun posta alabilmesi için önce bir alan adı gerekir</value>
+    <value>Bir etki alanı - sunucunun posta alabilmesi için önce bir etki alanı gerekir</value>
   </data>
   <data name="A domain is required." xml:space="preserve">
     <value>Bir alan adı gerekli.</value>
@@ -457,7 +457,7 @@
     <value>Bir klasörün adı en fazla {0} karakter olabilir.</value>
   </data>
   <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. Each domain may set its own." xml:space="preserve">
-    <value>Gelen posta için bir pay: sınırını bundan daha az aşan bir posta kutusu almaya devam eder; böylece bir hafta uzakta olan biri pazartesi büyük bir ek geldi diye posta kaybetmez. Her alan kendi değerini belirleyebilir.</value>
+    <value>Gelen posta için bir pay: sınırını bundan daha az aşan bir posta kutusu almaya devam eder; böylece bir hafta uzakta olan biri pazartesi büyük bir ek geldi diye posta kaybetmez. Her etki alanı kendi değerini belirleyebilir.</value>
   </data>
   <data name="A group exists so that several accounts can be given the same rights at once - grant the group access to a public folder under Public folders, and every account listed here gets that access. An empty group grants nothing to anyone." xml:space="preserve">
     <value>Bir grup, birden çok hesaba aynı hakların tek seferde verilebilmesi için vardır - Genel klasörler altında gruba bir genel klasör için erişim verin, burada listelenen her hesap o erişimi kazanır. Boş bir grup kimseye hiçbir şey vermez.</value>
@@ -550,7 +550,7 @@
     <value>"{0}" için yeni bir değer yazılmış ve altında "Kaydederken saklanan gizli anahtarı kaldır" işaretlenmiş. Değeri silin ya da işareti kaldırın - hangisinin kastedildiğini tahmin etmek bu sayfanın vereceği bir karar değil.</value>
   </data>
   <data name="A notice is sent to the envelope sender of every infected message. Virus senders forge that address almost without exception, so this mostly delivers mail to people who did not send anything - which is backscatter, and it is what gets a server onto a block list." xml:space="preserve">
-    <value>Virüslü her iletinin zarf göndericisine bir bildirim gönderilir. Virüs gönderenler bu adresi neredeyse istisnasız sahte yazar; dolayısıyla bu, çoğunlukla hiçbir şey göndermemiş kişilere posta teslim eder - bu da geri saçılmadır (backscatter) ve bir sunucuyu engelleme listesine sokan şey tam olarak budur.</value>
+    <value>Virüslü her iletinin zarf gönderenine bir bildirim gönderilir. Virüs gönderenler bu adresi neredeyse istisnasız sahte yazar; dolayısıyla bu, çoğunlukla hiçbir şey göndermemiş kişilere posta teslim eder - bu da geri saçılmadır (backscatter) ve bir sunucuyu engelleme listesine sokan şey tam olarak budur.</value>
   </data>
   <data name="A one-time code required in addition to the administrator password, checked by the server - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator deletes AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restarts the hMailServer service." xml:space="preserve">
     <value>Yönetici parolasına ek olarak istenen ve sunucu tarafından denetlenen tek kullanımlık kod - dolayısıyla bu kimlik bilgisinin her istemcisi için geçerlidir: bu Denetim Masası, COM API'sini kullanan betikler ve kodu bir X-hMailServer-OTP başlığından okuyan REST API. Gizli anahtar sunucuda, hMailServer.ini içinde, makineye bağlı korumayla saklanır. Bu, yönetici parolasını tek başına değersiz kılar. Kurulum anahtarını güvende tutun: kimlik doğrulayıcı kaybolursa yerel bir yönetici, yönetici olarak çalıştırılan bir düzenleyiciyle hMailServer.ini dosyasının [Security] bölümünden AdministratorTotpSecret değerini siler ve hMailServer hizmetini yeniden başlatır.</value>
@@ -559,7 +559,7 @@
     <value>'{0}' için zaten bir parola ifadesi saklanıyor. Kaydetmek onun yerine yenisini koyar - eskisi buradan kurtarılamaz. Değiştirilsin mi?</value>
   </data>
   <data name="A passphrase is set: the archive is encrypted as it is written, file names included, and a restore asks for the passphrase." xml:space="preserve">
-    <value>Bir parola tümcesi ayarlı: arşiv yazılırken şifrelenir, dosya adları da dahil, ve geri yükleme parola tümcesini ister.</value>
+    <value>Bir parola ifadesi ayarlı: arşiv yazılırken şifrelenir, dosya adları da dahil, ve geri yükleme parola ifadesini ister.</value>
   </data>
   <data name="A passphrase is stored for this certificate. It is never displayed here - saving a new one replaces it. Whether it is the right passphrase is only proven when the server loads the key: after the next restart, check the application error log." xml:space="preserve">
     <value>Bu sertifika için bir parola ifadesi saklanıyor. Burada asla gösterilmez - yenisini kaydetmek eskisinin yerine geçer. Doğru parola ifadesi olup olmadığı ancak sunucu anahtarı yüklediğinde anlaşılır: bir sonraki yeniden başlatmadan sonra uygulama hata günlüğüne bakın.</value>
@@ -637,7 +637,7 @@
     <value>Tek bir ters etki alanı altında 203.0.113.10, .11 ve .12 adreslerini sırayla deneyen bir tarayıcı, her biri için bir yasak ve bir güvenlik duvarı kuralı kazanır. Bu açıkken yasak yine o tek adres için hemen yazılır, ardından arka planda, onun /24 bloğu içinde, ters adları onun kaydedilebilir etki alanını paylaşan çevresindeki kesintisiz adres dizisine genişletilir: tek bir aralık ve tek bir güvenlik duvarı kuralı, uygulama günlüğünde belirtilir.</value>
   </data>
   <data name="A schedule creates and updates accounts with nobody watching. It never disables one, whatever the checkbox above is set to - departures are left to a person who has read a preview. Switch this on only after a preview has told you what it is going to do." xml:space="preserve">
-    <value>Zamanlama, hesapları kimse izlemezken oluşturur ve günceller. Yukarıdaki onay kutusu nasıl ayarlanırsa ayarlansın hiçbir hesabı devre dışı bırakmaz - ayrılanlar, bir önizlemeyi okumuş bir kişiye bırakılır. Bunu ancak bir önizleme size ne yapacağını söyledikten sonra açın.</value>
+    <value>Zamanlama, hesapları kimse izlemezken oluşturur ve günceller. Yukarıdaki onay kutusu nasıl ayarlanırsa ayarlansın hiçbir hesabı devre dışı bırakmaz - ayrılanlar, bir ön izlemeyi okumuş bir kişiye bırakılır. Bunu ancak bir ön izleme size ne yapacağını söyledikten sonra açın.</value>
   </data>
   <data name="A schedule is configured: daily at {0:00}:{1:00}, server local time." xml:space="preserve">
     <value>Bir zamanlama yapılandırılmış: her gün {0:00}:{1:00}, sunucunun yerel saati.</value>
@@ -649,10 +649,10 @@
     <value>Bir zamanlama yapılandırılmış: her {0} dakikada bir yedekleme.</value>
   </data>
   <data name="A second factor for the administrator - a one-time code beside the password" xml:space="preserve">
-    <value>Yönetici için ikinci bir faktör - parolanın yanında tek kullanımlık bir kod</value>
+    <value>Yönetici için ikinci bir etken - parolanın yanında tek kullanımlık bir kod</value>
   </data>
   <data name="A second factor is enrolled. This account's own password no longer signs in to mail clients - only its app passwords do. Removing the second factor restores it." xml:space="preserve">
-    <value>İkinci faktör kaydedilmiş. Bu hesabın kendi parolası artık posta istemcilerinde oturum açmaz - yalnızca uygulama parolaları açar. İkinci faktörün kaldırılması bunu geri getirir.</value>
+    <value>İkinci etken kaydedilmiş. Bu hesabın kendi parolası artık posta istemcilerinde oturum açmaz - yalnızca uygulama parolaları açar. İkinci etkenin kaldırılması bunu geri getirir.</value>
   </data>
   <data name="A second factor is enrolled: every sign-in with the administrator credential - this tool, the COM API and the REST API - needs a code. Turning it off removes that requirement, and the administrator password alone signs in again." xml:space="preserve">
     <value>İkinci etken kaydedilmiş: yönetici kimlik bilgisiyle yapılan her oturum açma - bu araç, COM API'si ve REST API - bir kod gerektirir. Kapatmak bu gereksinimi kaldırır ve yönetici parolası yeniden tek başına oturum açar.</value>
@@ -673,7 +673,7 @@
     <value>HELO 192.0.2.7, HELO [192.0.2.7] ya da HELO localhost ile selamlayan veya MAIL FROM:&lt;user@192.0.2.7&gt; gönderen bir oturum kendisi için hiçbir ad vermemiştir ve gönderdiği ileti, onu bir listeye yazmak için hiçbir dayanak olmadan bekletilir ya da puanlanır. Kapalıyken sunucu bunu her zamanki gibi kabul eder. Açıkken spam testleri çalışmadan önce MAIL FROM aşamasında 550 5.7.1 ile yanıtlanır: köşeli parantezli ya da parantezsiz bir adres, tek bir etiket, co.uk gibi genel bir sonek ve ana bilgisayar adı olmayan her şey reddedilir; mail.co.uk ise bir addır. DNS'e hiçbir şey sorulmaz; sonekler, karantinanın gruplamada kullandığı Public Suffix List listesinden gelir. Yalnızca spam testlerini çalıştıran bir IP aralığından gelen kimliği doğrulanmamış oturumlar, AUTH fırsatını kullandıktan sonra değerlendirilir; spam istisnalarındaki bir gönderen ve HELO'su kendi ağ geçidinize ait olan gelen bir aktarıcı asla değerlendirilmez.</value>
   </data>
   <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
-    <value>Bağlantılardan bir pay, hiçbir zaman teslimat iş parçacıklarından fazla değil: barındırılan bir alan adının hesapları ya da aktarılan tüm postalar birlikte her teslimat iş parçacığını tutamaz. Hacmi hesap başına gönderme sınırı denetler; bu değil.</value>
+    <value>Bağlantılardan bir pay, hiçbir zaman teslimat iş parçacıklarından fazla değil: barındırılan bir etki alanının hesapları ya da aktarılan tüm postalar birlikte her teslimat iş parçacığını tutamaz. Hacmi hesap başına gönderme sınırı denetler; bu değil.</value>
   </data>
   <data name="A short built-in list - &quot;password&quot;, &quot;123456&quot;, &quot;changeme&quot; and about thirty more - compared without regard to case. It is deliberately not a &quot;top 10000&quot; list, which would need a data file and an update path; it catches the passwords that get typed while setting up a mailbox nobody comes back to." xml:space="preserve">
     <value>Kısa, yerleşik bir liste - "password", "123456", "changeme" ve otuz kadarı daha - büyük/küçük harf gözetilmeden karşılaştırılır. Bilinçli olarak bir "ilk 10000" listesi değildir; öylesi bir veri dosyası ve güncelleme yolu gerektirirdi. Bu liste, kimsenin bir daha dönmediği bir posta kutusu kurulurken yazılan parolaları yakalar.</value>
@@ -865,7 +865,7 @@
     <value>XCLIENT komutunu kabul et (Postfix)</value>
   </data>
   <data name="Acceptance exceeded the message finalisation deadline (240 s by default): the sender retries rather than waiting for ever, the error entry names the deadline, and the stage timings above it name what consumed the time." xml:space="preserve">
-    <value>Kabul işlemi ileti sonlandırma son süresini aştı (varsayılan 240 sn): gönderen sonsuza kadar beklemek yerine yeniden dener, hata girdisi bu son tarihi belirtir ve üstündeki aşama süreleri zamanı neyin tükettiğini gösterir.</value>
+    <value>Kabul işlemi ileti sonlandırma son süresini aştı (varsayılan 240 sn): gönderen sonsuza kadar beklemek yerine yeniden dener, hata girdisi bu son süreyi belirtir ve üstündeki aşama süreleri zamanı neyin tükettiğini gösterir.</value>
   </data>
   <data name="Accepting" xml:space="preserve">
     <value>Kabul etme</value>
@@ -937,10 +937,10 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
     <value>Dizine bağlı olarak işaretlenen hesaplar, etki alanı parolalarıyla bir LDAP bind üzerinden oturum açar - Windows oturum açmasından farklı olarak bu, etki alanına katılmamış bir ana bilgisayardan da çalışır; DMZ'deki bir posta sunucusunun olağan durumu da budur. hMailServer.ini dosyasının [LDAP] bölümünü düzenler; sunucu bu bölümü kaydetmenizden sonraki iki saniye içinde yeniden okur, dolayısıyla bu ayarlar hizmetin yeniden başlatılmasını gerektirmez.</value>
   </data>
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Windows directory tab tick 'Check this password against Windows (Active Directory, or a local Windows account)' and fill in 'Windows user name' - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
-    <value>Dizine bağlı olarak işaretlenen hesaplar. Bu tarafı zaten bu arayüzde mevcut: Etki alanları'nı açın, hesabı düzenleyin ve Windows dizini sekmesinde 'Bu parolayı Windows'a karşı denetle (Active Directory ya da yerel bir Windows hesabı)' seçeneğini işaretleyip 'Windows kullanıcı adı' alanını doldurun - yani %u ile taşınan sAMAccountName. Bu işareti taşımayan hesaplar olağan hMailServer parolalarını korur ve dizine hiç dokunmaz.</value>
+    <value>Dizine bağlı olarak işaretlenen hesaplar. Bu taraf zaten bu arayüzde mevcut: Etki alanları'nı açın, hesabı düzenleyin ve Windows dizini sekmesinde 'Bu parolayı Windows'a karşı denetle (Active Directory ya da yerel bir Windows hesabı)' seçeneğini işaretleyip 'Windows kullanıcı adı' alanını doldurun - yani %u ile taşınan sAMAccountName. Bu işareti taşımayan hesaplar olağan hMailServer parolalarını korur ve dizine hiç dokunmaz.</value>
   </data>
   <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it." xml:space="preserve">
-    <value>Bu etki alanındaki hesaplar yalnızca burada belirtilen etki alanlarıyla posta alışverişi yapabilir: belirtilen bir etki alanında olmayan dış gönderici RCPT TO aşamasında reddedilir ve buradaki bir hesap yalnızca belirtilen etki alanlarına, kendi etki alanına ve postmaster'a gönderebilir. Bu sunucunun barındırdığı diğer etki alanları, belirtilmedikçe dış sayılır. Geri dönen iletiler her zaman geçer. Her hesap, kendi iletişim kutusunda kısıtlı veya muaf denmedikçe buna uyar; boş bırakılırsa etki alanı kısıtlı değildir. Bu etki alanının dışarıya ulaşan bir takma adı veya dağıtım listesi sizindir ve kısıtlı bir hesap ona yazabilir.</value>
+    <value>Bu etki alanındaki hesaplar yalnızca burada belirtilen etki alanlarıyla posta alışverişi yapabilir: belirtilen bir etki alanında olmayan dış gönderici RCPT TO aşamasında reddedilir ve buradaki bir hesap yalnızca belirtilen etki alanlarına, kendi etki alanına ve postmaster'a gönderebilir. Bu sunucunun barındırdığı diğer etki alanları, belirtilmedikçe dış sayılır. Geri dönen iletiler her zaman geçer. Her hesap, kendi iletişim kutusunda kısıtlı veya muaf denmedikçe buna uyar; boş bırakılırsa etki alanı kısıtlı değildir. Bu etki alanının dışarıya ulaşan bir diğer adı veya dağıtım listesi sizindir ve kısıtlı bir hesap ona yazabilir.</value>
   </data>
   <data name="Accounts that are not members" xml:space="preserve">
     <value>Üye olmayan hesaplar</value>
@@ -976,13 +976,13 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
     <value>Active Directory bu makinede kullanılamıyor: {0}</value>
   </data>
   <data name="Active Directory refuses anonymous searches by default, so search mode normally needs a credential that may read the directory. Negotiate and DN-template configurations need none of this." xml:space="preserve">
-    <value>Active Directory varsayılan olarak anonim aramaları reddeder; bu nedenle arama kipi normalde dizini okuyabilen bir kimlik bilgisi gerektirir. Negotiate ve DN şablonu yapılandırmalarının bunların hiçbirine ihtiyacı yoktur.</value>
+    <value>Active Directory varsayılan olarak anonim aramaları reddeder; bu nedenle arama modu normalde dizini okuyabilen bir kimlik bilgisi gerektirir. Negotiate ve DN şablonu yapılandırmalarının bunların hiçbirine ihtiyacı yoktur.</value>
   </data>
   <data name="Active Sieve (RFC 5228) filter script for this account. It runs during local delivery and supports keep, fileinto, discard and redirect. Leave empty to disable. Multiple named scripts can be managed over ManageSieve." xml:space="preserve">
     <value>Bu hesap için etkin Sieve (RFC 5228) filtre betiği. Yerel teslim sırasında çalışır ve keep, fileinto, discard ile redirect komutlarını destekler. Devre dışı bırakmak için boş bırakın. Adlandırılmış birden çok betik ManageSieve üzerinden yönetilebilir.</value>
   </data>
   <data name="Active domains: {0} of {1}." xml:space="preserve">
-    <value>Etkin alan adları: {0} / {1}.</value>
+    <value>Etkin etki alanları: {0} / {1}.</value>
   </data>
   <data name="Active sessions" xml:space="preserve">
     <value>Etkin oturumlar</value>
@@ -1087,7 +1087,7 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
     <value>Eylem ekle</value>
   </data>
   <data name="Add an IP range for the device that allows SMTP delivery without requiring authentication." xml:space="preserve">
-    <value>Kimlik doğrulama gerektirmeden SMTP teslimine izin veren cihaz için bir IP aralığı ekleyin.</value>
+    <value>Cihaz için, kimlik doğrulama gerektirmeden SMTP teslimine izin veren bir IP aralığı ekleyin.</value>
   </data>
   <data name="Add an IP range with everything denied - ranges are matched most specific first." xml:space="preserve">
     <value>Her şeyin reddedildiği bir IP aralığı ekleyin - aralıklar en özel olandan başlanarak eşleştirilir.</value>
@@ -1105,7 +1105,7 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
     <value>Bu gruba bir hesap ekleyin</value>
   </data>
   <data name="Add an account under the domain on the Domains page: an address, and the password a mail client signs in with." xml:space="preserve">
-    <value>Etki alanları sayfasında alan adının altına bir hesap ekleyin: bir adres ve posta istemcisinin oturum açtığı parola.</value>
+    <value>Etki alanları sayfasında etki alanının altına bir hesap ekleyin: bir adres ve posta istemcisinin oturum açtığı parola.</value>
   </data>
   <data name="Add an action to the rule “{0}”." xml:space="preserve">
     <value>“{0}” kuralına bir eylem ekleyin.</value>
@@ -1162,7 +1162,7 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
     <value>İmzayı _yanıtlara ekle</value>
   </data>
   <data name="Add the _first domain…" xml:space="preserve">
-    <value>İ_lk alan adını ekle…</value>
+    <value>İ_lk etki alanını ekle…</value>
   </data>
   <data name="Add the _first entry…" xml:space="preserve">
     <value>_İlk girdiyi ekle…</value>
@@ -1177,7 +1177,7 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
     <value>Önce etki alanını ekleyin; hesaplar, diğer adlar ve listelerin hepsi ona bağlıdır.</value>
   </data>
   <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
-    <value>Alan adını Etki alanları sayfasında ekleyin. Adı, barındıracağı her adreste @ işaretinden sonraki kısımdır.</value>
+    <value>Etki alanını Etki alanları sayfasında ekleyin. Adı, barındıracağı her adreste @ işaretinden sonraki kısımdır.</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must delete AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restart the hMailServer service." xml:space="preserve">
     <value>Aşağıdaki anahtarı bir kimlik doğrulayıcı uygulamaya ekleyin, sonra bir kodla onaylayın. Kayıt tamamlandığında yönetici parolası tek başına oturum açmaz - COM API'si ve REST API de bir kod isteyecektir. Anahtarı güvenli bir yerde saklayın: kimlik doğrulayıcıyı kaybederseniz yerel bir yöneticinin, yönetici olarak çalıştırılan bir düzenleyiciyle hMailServer.ini dosyasının [Security] bölümünden AdministratorTotpSecret değerini silmesi ve hMailServer hizmetini yeniden başlatması gerekir.</value>
@@ -1258,10 +1258,10 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
     <value>Bir etki alanının, kendilerine giden postalar kalıcı olarak geri döndüğü ya da biri onları buraya koyduğu için artık göndermediği adresler - her birinin arkasındaki sayılarla birlikte. Liste her gönderen etki alanı için ayrıdır.</value>
   </data>
   <data name="Addresses and domains every account wants or does not, below each account's own list and its domain's." xml:space="preserve">
-    <value>Tüm hesapların istediği ya da istemediği adresler ve alan adları; her hesabın kendi listesinin ve alan adının listesinin altında.</value>
+    <value>Tüm hesapların istediği ya da istemediği adresler ve alan adları; her hesabın kendi listesinin ve etki alanının listesinin altında.</value>
   </data>
   <data name="Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted." xml:space="preserve">
-    <value>Tüm hesapların istediği ya da istemediği adresler ve alan adlarının tamamı. İzinli bir göndericinin postası istenmeyen posta kararını atlar; engellenmiş birininki karantina açıksa orada alıkonur, değilse istenmeyen olarak işaretlenir - asla silinmez.</value>
+    <value>Tüm hesapların istediği ya da istemediği adresler ve alan adlarının tamamı. İzinli bir göndericinin postası spam kararını atlar; engellenmiş birininki karantina açıksa orada alıkonur, değilse spam olarak işaretlenir - asla silinmez.</value>
   </data>
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>{0} hesaplarının istediği ya da istemediği adresler ve alan adlarının tamamı. Hesabın kendi listesinden sonra, sunucunun listesinden önce bakılır.</value>
@@ -1372,10 +1372,10 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
     <value>Bir saatte tek tek gönderilen en fazla uyarı</value>
   </data>
   <data name="Alias addr_ess" xml:space="preserve">
-    <value>_Takma ad adresi</value>
+    <value>Di_ğer ad adresi</value>
   </data>
   <data name="Alias address" xml:space="preserve">
-    <value>Takma ad adresi</value>
+    <value>Diğer ad adresi</value>
   </data>
   <data name="Alias cache TTL (seconds)" xml:space="preserve">
     <value>Diğer ad önbelleği TTL süresi (saniye)</value>
@@ -1522,7 +1522,7 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
     <value>Dizin girdisi ortadan kalkan hesapları ayrıca etkin değ_il olarak işaretle</value>
   </data>
   <data name="Also require a valid Authenticode signature on the installer" xml:space="preserve">
-    <value>Kurulum programında geçerli bir Authenticode imzasını da zorunlu tut</value>
+    <value>Yükleyicide geçerli bir Authenticode imzasını da zorunlu tut</value>
   </data>
   <data name="Also skipped for any recipient domain that has greylisting turned off in its own settings." xml:space="preserve">
     <value>Ayrıca, kendi ayarlarında greylisting kapatılmış olan her alıcı etki alanı için de atlanır.</value>
@@ -1558,16 +1558,16 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
     <value>Sunucudaki mutlak yol. Bir PST işi, hedef hesabın etki alanının alt klasöründeki bir dosyayı adlandırır, örneğin example.com\archive.pst, başka hiçbir yeri değil.</value>
   </data>
   <data name="An account - a mailbox in a domain" xml:space="preserve">
-    <value>Bir hesap - bir alan adındaki posta kutusu</value>
+    <value>Bir hesap - bir etki alanındaki posta kutusu</value>
   </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new sign-ins." xml:space="preserve">
     <value>Bir hesap silinmeden kapatılabilir; bu, postaları korur ve yeni oturum açmaları reddeder.</value>
   </data>
   <data name="An account encrypted at rest can be read by the server only while its mailbox key is open, which the account's password opens at sign-in." xml:space="preserve">
-    <value>Bekleyen verisi şifrelenmiş bir hesabı sunucu yalnızca posta kutusu anahtarı açıkken okuyabilir; hesabın parolası onu oturum açılırken açar.</value>
+    <value>Beklemedeki verisi şifrelenmiş bir hesabı sunucu yalnızca posta kutusu anahtarı açıkken okuyabilir; hesabın parolası onu oturum açılırken açar.</value>
   </data>
   <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
-    <value>Hesap, bir alan adındaki posta kutusudur: insanların yazdığı adres ve bir istemcinin oturum açtığı kimlik.</value>
+    <value>Hesap, bir etki alanındaki posta kutusudur: insanların yazdığı adres ve bir istemcinin oturum açtığı kimlik.</value>
   </data>
   <data name="An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
     <value>Burada rolü olmayan bir hesap, yönetici düzeyinin ona her zaman verdiğine sahiptir.</value>
@@ -1615,7 +1615,7 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
     <value>Bir girdi REST API üzerinden yerinde değiştirilir ve REST API kapalı (İzleme ve uyarılar sayfasındaki bağlantı noktası {0}). Ona orada bir bağlantı noktası verip sunucuyu yeniden başlatın (Reinitialize) ya da girdiyi silip yeniden ekleyin.</value>
   </data>
   <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
-    <value>Bir girdi REST API üzerinden yerinde değiştirilir ve REST API yalnızca {0} üzerinde dinliyor; başka bir bilgisayardaki Control Panel oraya ulaşamaz. Girdiyi sunucudaki Control Deck'te değiştirin ya da silip yeniden ekleyin.</value>
+    <value>Bir girdi REST API üzerinden yerinde değiştirilir ve REST API yalnızca {0} üzerinde dinliyor; başka bir bilgisayardaki Denetim Masası oraya ulaşamaz. Girdiyi sunucudaki Control Deck'te değiştirin ya da silip yeniden ekleyin.</value>
   </data>
   <data name="An entry is changed in place over the REST API; until it can be used from here, delete the entry and add it again instead." xml:space="preserve">
     <value>Bir girdi REST API üzerinden yerinde değiştirilir; REST API buradan kullanılabilene kadar bunun yerine girdiyi silip yeniden ekleyin.</value>
@@ -1627,7 +1627,7 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
     <value>Okunamayan bir değere bağlı olan bir öğe, okunanlar onun eylem gerektirdiğini zaten göstermiyorsa, anlaşılamayanlar arasında sayılır.</value>
   </data>
   <data name="An older, weaker option: a one-time code asked for after the password when signing in to this Control Panel, checked by the tool itself after the server has already accepted the password. The secret is stored per machine under HKLM, so enabling or disabling it needs local administrator rights, and it does nothing for the REST API or for scripts using the COM API. Prefer the server-enforced factor above; this one remains for existing setups." xml:space="preserve">
-    <value>Daha eski ve daha zayıf bir seçenek: bu Denetim Masası'nda oturum açarken paroladan sonra istenen ve sunucu parolayı kabul ettikten sonra aracın kendisi tarafından denetlenen tek kullanımlık kod. Gizli anahtar makine başına HKLM altında saklanır; bu nedenle açmak veya kapatmak yerel yönetici hakları gerektirir ve bu seçenek REST API için ya da COM API'sini kullanan betikler için hiçbir şey yapmaz. Yukarıdaki, sunucunun zorunlu kıldığı faktörü tercih edin; bu seçenek mevcut kurulumlar için duruyor.</value>
+    <value>Daha eski ve daha zayıf bir seçenek: bu Denetim Masası'nda oturum açarken paroladan sonra istenen ve sunucu parolayı kabul ettikten sonra aracın kendisi tarafından denetlenen tek kullanımlık kod. Gizli anahtar makine başına HKLM altında saklanır; bu nedenle açmak veya kapatmak yerel yönetici hakları gerektirir ve bu seçenek REST API için ya da COM API'sini kullanan betikler için hiçbir şey yapmaz. Yukarıdaki, sunucunun zorunlu kıldığı etkeni tercih edin; bu seçenek mevcut kurulumlar için duruyor.</value>
   </data>
   <data name="An override replaces the global ceilings for that address; 0:0 exempts it entirely. Without the optional :hours the override uses the global period." xml:space="preserve">
     <value>Bir geçersiz kılma, o adres için genel üst sınırların yerine geçer; 0:0 adresi tamamen muaf tutar. İsteğe bağlı :hours kısmı olmadan geçersiz kılma genel dönemi kullanır.</value>
@@ -1658,7 +1658,7 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
     <value>Hesap sahibinin, parola sıfırlama bağlantısının gönderilebileceği başka bir posta kutusu ve kimlik doğrulama uygulamasından gelen kodun yerine geçen on tek kullanımlık kod. İkisini de hesap sahibi kendi parolasıyla, web postasından ayarlar: adresi ayarlayabilecek bir yönetici, adresi kendine yönlendirerek parolayı sıfırlayabilirdi. Burada yapılabilecek şey bir adresi kaldırmaktır.</value>
   </data>
   <data name="Answer 451 to an SPF temperror instead of accepting it" xml:space="preserve">
-    <value>Bir SPF temperror’a kabul etmek yerine 451 ile yanıt ver</value>
+    <value>Bir SPF temperror'a kabul etmek yerine 451 ile yanıt ver</value>
   </data>
   <data name="Answer from the Windows DNS resolver cache when possible" xml:space="preserve">
     <value>Mümkün olduğunda Windows DNS çözümleyici önbelleğinden yanıtla</value>
@@ -2174,7 +2174,7 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
     <value>Sunucunun altında: güvenlik duvarı</value>
   </data>
   <data name="Between the 354 and the 250 the server runs the accept pipeline - spam tests, message modifications, archiving, the OnAcceptMessage script and the database save - on a bounded pool of threads, and replies only when it finishes. The log times each stage. Read it as a sequence and look for the last line written: the stage that is stuck is the one after it. Two stages announce themselves with a start line (spam-protection and script/save); message modifications do not, so a stall there shows as &quot;done spam-protection&quot; followed by silence. A stage taking ten seconds or more is logged at application level even without debug logging." xml:space="preserve">
-    <value>354 ile 250 arasında sunucu kabul işlem hattını - spam sınamaları, ileti değişiklikleri, arşivleme, OnAcceptMessage betiği ve veritabanı kaydı - sınırlı bir iş parçacığı havuzunda çalıştırır ve yalnızca bitince yanıt verir. Günlük her aşamayı zamanlar. Onu bir sıra olarak okuyun ve yazılan son satıra bakın: takılan aşama, ondan sonraki aşamadır. İki aşama kendini bir başlangıç satırıyla duyurur (spam-protection ve script/save); ileti değişiklikleri duyurmaz, bu yüzden oradaki bir takılma "done spam-protection" ve ardından sessizlik olarak görünür. On saniye veya daha uzun süren bir aşama, hata ayıklama günlüğü olmasa bile uygulama düzeyinde günlüğe yazılır.</value>
+    <value>354 ile 250 arasında sunucu kabul işlem hattını - spam sınamaları, ileti değişiklikleri, arşivleme, OnAcceptMessage betiği ve veritabanı kaydı - sınırlı bir iş parçacığı havuzunda çalıştırır ve yalnızca bitince yanıt verir. Günlük her aşamanın süresini kaydeder. Onu bir sıra olarak okuyun ve yazılan son satıra bakın: takılan aşama, ondan sonraki aşamadır. İki aşama kendini bir başlangıç satırıyla duyurur (spam-protection ve script/save); ileti değişiklikleri duyurmaz, bu yüzden oradaki bir takılma "done spam-protection" ve ardından sessizlik olarak görünür. On saniye veya daha uzun süren bir aşama, hata ayıklama günlüğü olmasa bile uygulama düzeyinde günlüğe yazılır.</value>
   </data>
   <data name="Biased upwards on purpose: refusing early costs delivery latency and nothing else, because the refusal is temporary and a sending server retries for days, while a volume that reaches zero costs a database that will not open and a service that will not start." xml:space="preserve">
     <value>Bilerek yukarı doğru eğilimli: erken reddetmek teslim gecikmesine mal olur, başka hiçbir şeye; çünkü ret geçicidir ve gönderen sunucu günlerce yeniden dener. Oysa sıfıra ulaşan bir birim, açılmayan bir veritabanına ve başlamayan bir hizmete mal olur.</value>
@@ -2246,7 +2246,7 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
     <value>Engellenen gönderen</value>
   </data>
   <data name="Blocked: refused at MAIL FROM" xml:space="preserve">
-    <value>Engellenen: MAIL FROM’da reddedilir</value>
+    <value>Engellenen: MAIL FROM'da reddedilir</value>
   </data>
   <data name="Blowfish (legacy)" xml:space="preserve">
     <value>Blowfish (eski)</value>
@@ -2333,7 +2333,7 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
     <value>Derleme ve paketleme</value>
   </data>
   <data name="Builds a search index so IMAP SEARCH and the web client are faster." xml:space="preserve">
-    <value>IMAP SEARCH ve web istemcisi daha hızlı olsun diye bir arama dizini oluşturur.</value>
+    <value>IMAP SEARCH ve web istemcisi daha hızlı olsun diye bir arama indeksi oluşturur.</value>
   </data>
   <data name="Built in" xml:space="preserve">
     <value>Yerleşik</value>
@@ -2429,10 +2429,10 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
     <value>Buradan belirlenemiyor - sunucunun etki alanı listesi okunamadı; bu yüzden hangi etki alanlarının bir dizine bağlı olduğu bilinmiyor. Bu bir yapılandırma sorunu değil, bağlantı sorunu: bağlantı geri geldiğinde Yeniden yükle'ye basın.</value>
   </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
-    <value>Buradan söylenemez. hMailServer.ini okunamadı ve bir çalıştırmanın yapılıp yapılamayacağına bu sayfadaki hiçbir şey değil, o dosyanın [LDAP] bölümü karar verir. Önizleme'ye basın: sunucunun içinde çalışır ve eksik bir şey varsa tam olarak neyin eksik olduğunu söyler.</value>
+    <value>Buradan söylenemez. hMailServer.ini okunamadı ve bir çalıştırmanın yapılıp yapılamayacağına bu sayfadaki hiçbir şey değil, o dosyanın [LDAP] bölümü karar verir. Ön izle'ye basın: sunucunun içinde çalışır ve eksik bir şey varsa tam olarak neyin eksik olduğunu söyler.</value>
   </data>
   <data name="Cannot tell from here. hMailServer.ini is not reachable from this computer, so the [LDAP] section cannot be read - and it is that section, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
-    <value>Buradan belirlenemiyor. hMailServer.ini bu bilgisayardan erişilebilir değil; bu yüzden [LDAP] bölümü okunamıyor - ve bir çalıştırmanın olup olamayacağına bu sayfadaki hiçbir şey değil, o bölüm karar verir. Önizleme'ye basın: sunucunun içinde çalışır ve bir şey eksikse tam olarak neyin eksik olduğunu söyler.</value>
+    <value>Buradan belirlenemiyor. hMailServer.ini bu bilgisayardan erişilebilir değil; bu yüzden [LDAP] bölümü okunamıyor - ve bir çalıştırmanın olup olamayacağına bu sayfadaki hiçbir şey değil, o bölüm karar verir. Ön izle'ye basın: sunucunun içinde çalışır ve bir şey eksikse tam olarak neyin eksik olduğunu söyler.</value>
   </data>
   <data name="Cannot tell from here: hMailServer.ini could not be read, and it is the [LDAP] section of that file which decides. Start the Control Panel as administrator to see it." xml:space="preserve">
     <value>Buradan söylenemez: hMailServer.ini okunamadı ve karar veren, o dosyanın [LDAP] bölümüdür. Görmek için Denetim Masası'nı yönetici olarak başlatın.</value>
@@ -3487,7 +3487,7 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
     <value>Dış hesaplar sayılıyor…</value>
   </data>
   <data name="Counting the domains that have trap addresses…" xml:space="preserve">
-    <value>Tuzak adresleri olan alan adları sayılıyor…</value>
+    <value>Tuzak adresleri olan etki alanları sayılıyor…</value>
   </data>
   <data name="Countries" xml:space="preserve">
     <value>Ülkeler</value>
@@ -3520,10 +3520,10 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
     <value>Yeni bir REST API anahtarı oluştur</value>
   </data>
   <data name="Create and update mailboxes to match an LDAP directory - preview first, then apply." xml:space="preserve">
-    <value>Posta kutularını bir LDAP dizinine uyacak şekilde oluşturun ve güncelleştirin - önce önizleme, sonra uygulama.</value>
+    <value>Posta kutularını bir LDAP dizinine uyacak şekilde oluşturun ve güncelleştirin - önce ön izleme, sonra uygulama.</value>
   </data>
   <data name="Create and update the accounts the preview listed" xml:space="preserve">
-    <value>Önizlemenin listelediği hesapları oluştur ve güncelleştir</value>
+    <value>Ön izlemenin listelediği hesapları oluştur ve güncelleştir</value>
   </data>
   <data name="Create copy" xml:space="preserve">
     <value>Kopya oluştur</value>
@@ -3814,7 +3814,7 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
     <value>Reddedildi</value>
   </data>
   <data name="Default 10. The server reads values below 1 as 10 and clamps values above 90, because &quot;wait forever&quot; for an unreachable directory is how connection threads get exhausted." xml:space="preserve">
-    <value>Varsayılan 10. Sunucu 1'in altındaki değerleri 10 olarak okur ve 90'ın üstündekileri sıkıştırır, çünkü ulaşılamayan bir dizin için "sonsuza dek beklemek" bağlantı iş parçacıklarının tükenme biçimidir.</value>
+    <value>Varsayılan 10. Sunucu 1'in altındaki değerleri 10 olarak okur ve 90'ın üstündekileri 90 ile sınırlar, çünkü ulaşılamayan bir dizin için "sonsuza dek beklemek" bağlantı iş parçacıklarının tükenme biçimidir.</value>
   </data>
   <data name="Default domain (for sign-ins without a domain)" xml:space="preserve">
     <value>Varsayılan etki alanı (etki alanı belirtilmeden yapılan oturum açmalar için)</value>
@@ -4209,7 +4209,7 @@ Gönderene kabul edildiği söylendi; bu nedenle hiçbir şey yeniden denemeyece
     <value>Özet saati</value>
   </data>
   <data name="Digest settings saved. Which domains send a digest, and at what hour, is set on each domain's Quarantine digest tab." xml:space="preserve">
-    <value>Özet ayarları kaydedildi. Hangi alan adlarının özet gönderdiği ve hangi saatte, her alan adının Karantina özeti sekmesinde ayarlanır.</value>
+    <value>Özet ayarları kaydedildi. Hangi etki alanlarının özet gönderdiği ve hangi saatte, her etki alanının Karantina özeti sekmesinde ayarlanır.</value>
   </data>
   <data name="Directory" xml:space="preserve">
     <value>Rehber</value>
@@ -4388,7 +4388,7 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
     <value>Yalnızca ileti, kaydın gerektirdiği gibi SPF, DKIM veya DMARC'ı geçtiğinde gri listelemeyi atlayan alan adları ve HELO sonekleri.</value>
   </data>
   <data name="Domains whose look-alikes are judged as this server's own are, separated by commas or spaces - ASCII, xn-- for an internationalised name." xml:space="preserve">
-    <value>Benzerleri bu sunucunun kendi alan adları gibi değerlendirilen alan adları; virgül ya da boşlukla ayrılır - ASCII, uluslararası bir ad için xn--.</value>
+    <value>Benzerleri bu sunucunun kendi etki alanları gibi değerlendirilen alan adları; virgül ya da boşlukla ayrılır - ASCII, uluslararası bir ad için xn--.</value>
   </data>
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>Etki alanları, hesaplar, diğer adlar ve dağıtım listeleri ile her hesabın parolaları, iletmesi ve klasörleri.</value>
@@ -4397,7 +4397,7 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
     <value>Bitti</value>
   </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
-    <value>Bir sürüm bulunur bulunmaz kurulum programını indir ve doğrula</value>
+    <value>Bir sürüm bulunur bulunmaz yükleyiciyi indir ve doğrula</value>
   </data>
   <data name="Downloaded" xml:space="preserve">
     <value>İndirildi</value>
@@ -4667,10 +4667,10 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
     <value>_Her üyeyi geri dönüş adresinde kodla (VERP)</value>
   </data>
   <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
-    <value>Arşivi bir _parola tümcesiyle şifrele (AES-256, dosya adları dahil)</value>
+    <value>Arşivi bir _parola ifadesiyle şifrele (AES-256, dosya adları dahil)</value>
   </data>
   <data name="Encrypt mail to this domain at this server" xml:space="preserve">
-    <value>Bu etki alanına giden postayı bu sunucuda şifrele</value>
+    <value>Bu alan adına giden postayı bu sunucuda şifrele</value>
   </data>
   <data name="Encrypted" xml:space="preserve">
     <value>Şifreli</value>
@@ -4688,7 +4688,7 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
     <value>Şifreleme</value>
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
-    <value>_Şifreleme parola tümcesi</value>
+    <value>_Şifreleme parola ifadesi</value>
   </data>
   <data name="Encryption to other servers, the signatures this server adds and checks, the results it records, forwarded mail and the reports it sends." xml:space="preserve">
     <value>Diğer sunuculara şifreleme, bu sunucunun eklediği ve denetlediği imzalar, kaydettiği sonuçlar, iletilen posta ve gönderdiği raporlar.</value>
@@ -4814,13 +4814,13 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
     <value>Dinlenecek adresi girin, örneğin tüm IPv4 adresleri için 0.0.0.0.</value>
   </data>
   <data name="Enter the alias address." xml:space="preserve">
-    <value>Takma ad adresini girin.</value>
+    <value>Diğer ad adresini girin.</value>
   </data>
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Önce clamscan.exe yolunu girin.</value>
   </data>
   <data name="Enter the domain the route is for, such as partner.com." xml:space="preserve">
-    <value>Yolun geçerli olduğu etki alanını girin, örneğin partner.com.</value>
+    <value>Rotanın geçerli olduğu etki alanını girin, örneğin partner.com.</value>
   </data>
   <data name="Enter the group's name." xml:space="preserve">
     <value>Grubun adını girin.</value>
@@ -4838,7 +4838,7 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
     <value>Deneme numarasını bir tam sayı olarak girin; örneğin 3.</value>
   </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
-    <value>Arşivin şifreleneceği parola tümcesini girin ve aşağıya bir kez daha yazın.</value>
+    <value>Arşivin şifreleneceği parola ifadesini girin ve aşağıya bir kez daha yazın.</value>
   </data>
   <data name="Enter the path of the certificate file, or choose the file with Browse… beside the box." xml:space="preserve">
     <value>Sertifika dosyasının yolunu girin veya dosyayı kutunun yanındaki Gözat… düğmesiyle seçin.</value>
@@ -4862,7 +4862,7 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
     <value>Aralığın üst adresini girin, örneğin 10.0.0.255.</value>
   </data>
   <data name="Enter where the alias delivers." xml:space="preserve">
-    <value>Takma adın teslim edeceği adresi girin.</value>
+    <value>Diğer adın teslim edeceği adresi girin.</value>
   </data>
   <data name="Enter, F2" xml:space="preserve">
     <value>Enter, F2</value>
@@ -4889,7 +4889,7 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
     <value>_İzleri sil…</value>
   </data>
   <data name="Erase every stored trace of {0}? Quarantine entries, trace rows, greylisting, list memberships, aliases, the address-book entries, certificates, keys and memories other accounts keep of it, the messages outside any mailbox that name it - held for review (discarded for every recipient), expiring or password-protected - the archive tree and the log lines that name the address. What a legal hold covers is left in place. This cannot be undone." xml:space="preserve">
-    <value>{0} adresinin saklanan her izi silinsin mi? Karantina kayıtları, izleme satırları, greylisting, liste üyelikleri, takma adlar, diğer hesapların bu adres için tuttuğu adres defteri kayıtları, sertifikalar, anahtarlar ve bellekler, adresi anan ve hiçbir posta kutusunda olmayan iletiler - inceleme için bekletilenler (tüm alıcılar için atılır), süresi dolanlar veya parolayla korunanlar -, arşiv ağacı ve adresi anan günlük satırları. Yasal saklama kapsamındakiler yerinde bırakılır. Geri alınamaz.</value>
+    <value>{0} adresinin saklanan her izi silinsin mi? Karantina kayıtları, izleme satırları, greylisting, liste üyelikleri, diğer adlar, diğer hesapların bu adres için tuttuğu adres defteri kayıtları, sertifikalar, anahtarlar ve bellekler, adresi anan ve hiçbir posta kutusunda olmayan iletiler - inceleme için bekletilenler (tüm alıcılar için atılır), süresi dolanlar veya parolayla korunanlar -, arşiv ağacı ve adresi anan günlük satırları. Yasal saklama kapsamındakiler yerinde bırakılır. Geri alınamaz.</value>
   </data>
   <data name="Erase traces" xml:space="preserve">
     <value>İzleri sil</value>
@@ -4970,7 +4970,7 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
     <value>Her etkin hesap ve bir etki alanının her etkin listesi, o etki alanının kişilerine gösterilir: web postasında, adres tamamlamada ve salt okunur bir CardDAV adres defteri olarak. Etki alanının dışına asla çıkmaz.</value>
   </data>
   <data name="Every administrative change - from this Control Panel, the Control Deck, the REST API or a script - recorded in a hash-chained trail, so that a row removed or altered afterwards shows. It is read on the Audit trail page." xml:space="preserve">
-    <value>Her yönetim değişikliği - bu Control Panel'den, Control Deck'ten, REST API'den veya bir betikten - karma zinciriyle bağlanmış bir günlüğe yazılır; böylece sonradan silinen veya değiştirilen bir satır görünür. Denetim izi sayfasında okunur.</value>
+    <value>Her yönetim değişikliği - bu Denetim Masası'ndan, Control Deck'ten, REST API'den veya bir betikten - karma zinciriyle bağlanmış bir günlüğe yazılır; böylece sonradan silinen veya değiştirilen bir satır görünür. Denetim izi sayfasında okunur.</value>
   </data>
   <data name="Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row." xml:space="preserve">
     <value>Her yönetimsel değişiklik bir karma zincirinde bir satır olarak: kim yaptı, ne zaman, hangi arayüz üzerinden, nereden ve hangi yetkiyle. Bir ayarın değişikliği kendi satırından geri alınabilir.</value>
@@ -5051,7 +5051,7 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
     <value>Her değer güvenli tarafta kalarak başarısız olur. Scope değeri tam olarak "full" olmayan bir bölüm salt okunurdur, süre sonu eksik ya da okunamayan bir anahtar süresi dolmuş sayılır ve kullanılabilir özeti olmayan bir bölüm tamamen yoksayılır. Depoyu elle düzenlemeyi güvenli kılan budur: bir yazım hatası bir anahtarı ancak daraltabilir, asla genişletemez.</value>
   </data>
   <data name="Everyone with a mailbox at this domain sees these beside the name, on the webmail's Directory page, in their To field and in the read-only address book a phone syncs. Nothing here crosses a domain." xml:space="preserve">
-    <value>Bu alan adında posta kutusu olan herkes bunları adın yanında, web postasının Rehber sayfasında, Kime alanında ve bir telefonun eşitlediği salt okunur adres defterinde görür. Buradaki hiçbir şey alan adını aşmaz.</value>
+    <value>Bu etki alanında posta kutusu olan herkes bunları adın yanında, web postasının Rehber sayfasında, Kime alanında ve bir telefonun eşitlediği salt okunur adres defterinde görür. Buradaki hiçbir şey etki alanını aşmaz.</value>
   </data>
   <data name="Everything" xml:space="preserve">
     <value>Her şey</value>
@@ -5333,7 +5333,7 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
     <value>DMARC gevşek hizalaması için kuruluş etki alanını derlenmiş Public Suffix List yerine DNS'e sorarak (RFC 9989) bulur; DNS yanıt veremediğinde liste yine kullanılır. Etki alanı başına en çok sekiz sorgu, beş dakika önbelleğe alınır.</value>
   </data>
   <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server." xml:space="preserve">
-    <value>Listeye her ileti gönderildiğinde geri kalan üyeleri sunucunun hesapları arasında bulur, böylece listeyi kimsenin elle güncel tutması gerekmez. Üyeleri yalnızca alıcıları olan bir liste için boş bırakın; domain bu alan adının her etkin hesabı; domain:other.example bu sunucunun barındırdığı başka bir alan adı; pattern:sales-*@example.com joker karaktere uyan adresler, burada * herhangi bir karakter dizisi, ? ise tek bir karakterdir; everyone sunucudaki her etkin hesap demektir.</value>
+    <value>Listeye her ileti gönderildiğinde geri kalan üyeleri sunucunun hesapları arasında bulur, böylece listeyi kimsenin elle güncel tutması gerekmez. Üyeleri yalnızca alıcıları olan bir liste için boş bırakın; domain bu etki alanının her etkin hesabı; domain:other.example bu sunucunun barındırdığı başka bir etki alanı; pattern:sales-*@example.com joker karaktere uyan adresler, burada * herhangi bir karakter dizisi, ? ise tek bir karakterdir; everyone sunucudaki her etkin hesap demektir.</value>
   </data>
   <data name="Finish" xml:space="preserve">
     <value>Bitir</value>
@@ -5390,7 +5390,7 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
     <value>LDAPS ya da StartTLS için: dizin sunucusunda bu makinenin güvendiği bir sertifika - Windows makine sertifika deposundaki bir CA tarafından verilmiş ve içinde yukarıdaki ana bilgisayar adı bulunan. Bir etki alanı denetleyicisinde böyle bir sertifika hazır gelmez. Negotiate bind yöntemi hiçbir sertifika gerektirmez, çünkü parola ağı hiç geçmez.</value>
   </data>
   <data name="For a MinIO or Ceph gateway behind a CA of your own. The host name is checked either way." xml:space="preserve">
-    <value>Kendi sertifika yetkilisinin arkasındaki bir MinIO veya Ceph ağ geçidi için. Ana bilgisayar adı her durumda doğrulanır.</value>
+    <value>Kendi sertifika yetkilinizin arkasındaki bir MinIO veya Ceph ağ geçidi için. Ana bilgisayar adı her durumda doğrulanır.</value>
   </data>
   <data name="For a domain synchronised with Active Directory." xml:space="preserve">
     <value>Active Directory ile eşitlenen bir etki alanı için.</value>
@@ -5399,7 +5399,7 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
     <value>Birkaç kişinin paylaştığı bir posta kutusu için.</value>
   </data>
   <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed sign-ins, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the allowed and blocked domains still apply. Empty, the default, changes nothing." xml:space="preserve">
-    <value>Ana makineleri ortak bir ters adı paylaşan ve adresleri değişen bir sağlayıcı için: bağlanan bir adres, ters adlarından biri buradaki bir adla kapsanıyor ve adrese geri çözümleniyorsa hiçbir zaman otomatik yasaklanmaz - başarısız oturum açmalar, bir istenmeyen posta tuzağı ya da boş bir gönderen için. Başka hiçbir şey atlanmaz: gri liste, SPF, DKIM, DMARC ve izin verilen ve engellenen alan adları geçerli olmaya devam eder. Boş liste (varsayılan) hiçbir şeyi değiştirmez.</value>
+    <value>Ana makineleri ortak bir ters adı paylaşan ve adresleri değişen bir sağlayıcı için: bağlanan bir adres, ters adlarından biri buradaki bir adla kapsanıyor ve adrese geri çözümleniyorsa hiçbir zaman otomatik yasaklanmaz - başarısız oturum açmalar, bir spam tuzağı ya da boş bir gönderen için. Başka hiçbir şey atlanmaz: gri liste, SPF, DKIM, DMARC ve izin verilen ve engellenen alan adları geçerli olmaya devam eder. Boş liste (varsayılan) hiçbir şeyi değiştirmez.</value>
   </data>
   <data name="For a record of who corresponds with whom, keeping it for ever should be a decision rather than a default - which is why 0 is offered as an option instead of being one." xml:space="preserve">
     <value>Kimin kiminle yazıştığının kaydını sonsuza dek saklamak varsayılan değil, bir karar olmalı - 0'ın varsayılan olmak yerine bir seçenek olarak sunulmasının nedeni budur.</value>
@@ -5423,7 +5423,7 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
     <value>Örneğin partner.example veya etki alanı ve altındaki her şey için .example; bunları virgül veya boşlukla ayırın.</value>
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
-    <value>Arama kipi için: dizini okumasına izin verilen bir hizmet hesabı. Sıradan herhangi bir etki alanı hesabı varsayılan olarak okuyabilir; başka bir hak gerekmez.</value>
+    <value>Arama modu için: dizini okumasına izin verilen bir hizmet hesabı. Sıradan herhangi bir etki alanı hesabı varsayılan olarak okuyabilir; başka bir hak gerekmez.</value>
   </data>
   <data name="For the HTTP-Redirect binding: Entra ID's Login URL, Okta's Identity Provider Single Sign-On URL." xml:space="preserve">
     <value>HTTP-Redirect bağlaması için: Entra ID'nin Login URL'si, Okta'nın Identity Provider Single Sign-On URL'si.</value>
@@ -6155,7 +6155,7 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
     <value>Şablon ekle…</value>
   </data>
   <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above." xml:space="preserve">
-    <value>Pencerenin içinde, zamanlanmış görev doğrulanmış bir kurulum programını tıklamaya gerek kalmadan uygular: hizmet durur, dosyalar ve şema yükseltilir, hizmet başlar ve sonuç günlüğe, Windows olay günlüğüne ve yukarıdaki karta gider.</value>
+    <value>Pencerenin içinde, zamanlanmış görev doğrulanmış bir yükleyiciyi tıklamaya gerek kalmadan uygular: hizmet durur, dosyalar ve şema yükseltilir, hizmet başlar ve sonuç günlüğe, Windows olay günlüğüne ve yukarıdaki karta gider.</value>
   </data>
   <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>Güncelleştirme şimdi yüklensin mi?
@@ -6397,7 +6397,7 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
     <value>LDAPS - ilk bayttan itibaren TLS (varsayılan, port 636)</value>
   </data>
   <data name="LDAPS is the default. A number in the INI that is not one of these three is read as LDAPS, so a typo cannot silently weaken the transport - and whatever this is set to, a password is never sent over an unprotected connection unless that is explicitly allowed below." xml:space="preserve">
-    <value>Varsayılan LDAPS'tir. INI'de bu üçünden biri olmayan bir sayı LDAPS olarak okunur; böylece bir yazım hatası aktarımı sessizce zayıflatamaz - ve bu ne olarak ayarlanırsa ayarlansın, aşağıda açıkça izin verilmedikçe bir parola korumasız bir bağlantı üzerinden asla gönderilmez.</value>
+    <value>Varsayılan LDAPS'tir. INI'de bu üçünden biri olmayan bir sayı LDAPS olarak okunur; böylece bir yazım hatası taşımayı sessizce zayıflatamaz - ve bu ne olarak ayarlanırsa ayarlansın, aşağıda açıkça izin verilmedikçe bir parola korumasız bir bağlantı üzerinden asla gönderilmez.</value>
   </data>
   <data name="L_ist address" xml:space="preserve">
     <value>Liste ad_resi</value>
@@ -6460,7 +6460,7 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
     <value>Son {0}; en yüksek {1}</value>
   </data>
   <data name="Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
-    <value>Zaten ayarlı olan parola tümcesini korumak için iki kutuyu da boş bırakın. Sunucu onu asla geri vermez - ne bu programa ne de başka birine - bu yüzden yedeklerin yanında değil, başka bir yerde saklayın: geri yükleme onu ister ve parola tümcesi kaybolmuş bir arşivden hiç kimse hiçbir şey kurtaramaz.</value>
+    <value>Zaten ayarlı olan parola ifadesini korumak için iki kutuyu da boş bırakın. Sunucu onu asla geri vermez - ne bu programa ne de başka birine - bu yüzden yedeklerin yanında değil, başka bir yerde saklayın: geri yükleme onu ister ve parola ifadesi kaybolmuş bir arşivden hiç kimse hiçbir şey kurtaramaz.</value>
   </data>
   <data name="Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem." xml:space="preserve">
     <value>Otomatik için boş (veya 0) bırakın: bağlantı güvenliği LDAPS ise 636, değilse 389. Port güvenlik ayarından türetilir; böylece LDAPS seçip portu unutmak düz metin portuna karşı TLS denemesine yol açamaz - bu, sertifika sorunu gibi görünen bir biçimde başarısız olur.</value>
@@ -6595,7 +6595,7 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
     <value>Ar_şivdeki iletileri listele</value>
   </data>
   <data name="List the messages of an account as the archive above holds them, then put one back - into the folder it was in, or into a named one. A message whose file is still in the mailbox is not added twice. The archive, address and passphrase are the ones in the card above." xml:space="preserve">
-    <value>Bir hesabın iletilerini yukarıdaki arşivde bulundukları hâliyle listeler ve sonra birini geri koyar - bulunduğu klasöre ya da adı verilen bir klasöre. Dosyası hâlâ posta kutusunda olan bir ileti iki kez eklenmez. Arşiv, adres ve parola yukarıdaki karttakilerdir.</value>
+    <value>Bir hesabın iletilerini yukarıdaki arşivde bulundukları hâliyle listeler ve sonra birini geri koyar - bulunduğu klasöre ya da adı verilen bir klasöre. Dosyası hâlâ posta kutusunda olan bir ileti iki kez eklenmez. Arşiv, adres ve parola ifadesi yukarıdaki karttakilerdir.</value>
   </data>
   <data name="Listed" xml:space="preserve">
     <value>Listede</value>
@@ -6820,7 +6820,7 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
     <value>Boş bir gönderenden birkaç alıcıya posta</value>
   </data>
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
-    <value>Kuruluş dışından gelen posta, okuyucunun bir bakışta görmesi için işaretlenebilir. Oturum oturum açmadıysa, ileti güvenilen bir gelen aktarıcıdan geçmediyse ve ne zarf göndericisi ne de From adresi bu sunucunun barındırdığı bir etki alanına aitse, gönderen dışarıdandır.</value>
+    <value>Kuruluş dışından gelen posta, okuyucunun bir bakışta görmesi için işaretlenebilir. Oturum oturum açmadıysa, ileti güvenilen bir gelen aktarıcıdan geçmediyse ve ne zarf göndereni ne de From adresi bu sunucunun barındırdığı bir etki alanına aitse, gönderen dışarıdandır.</value>
   </data>
   <data name="Mail from outside with an attachment of a submitted type waits for the sandbox's verdict before it is delivered." xml:space="preserve">
     <value>Dışarıdan gelen ve gönderilen türde bir ek içeren posta, teslim edilmeden önce korumalı alanın kararını bekler.</value>
@@ -6838,7 +6838,7 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
     <value>Dışarıdan gelen ve gönderilen türde bir ek içeren posta korumalı alanı bekler: temiz bir karar onu teslim eder, kötü amaçlı bir karar karantina kapalıyken onu gönderene geri döndürür ve zamanında karar gelmezse o da geri döndürülür.</value>
   </data>
   <data name="Mail is addressed to a domain, so the server needs one before it can receive anything." xml:space="preserve">
-    <value>Posta bir alan adına gönderilir; sunucunun bir şey alabilmesi için önce bir alan adı gerekir.</value>
+    <value>Posta bir etki alanına gönderilir; sunucunun bir şey alabilmesi için önce bir etki alanı gerekir.</value>
   </data>
   <data name="Mail is not moving and nothing has crashed: which half has stalled, the log lines that name the cause, and the setting that bounds each stage." xml:space="preserve">
     <value>Posta hareket etmiyor ve hiçbir şey çökmedi: hangi yarının takıldığı, nedeni adlandıran günlük satırları ve her aşamayı sınırlayan ayar.</value>
@@ -7029,7 +7029,7 @@ Geçerli çiftle yapılan her Web Push aboneliği hemen çalışmayı bırakır 
     <value>Sertifikayla eşleşiyor</value>
   </data>
   <data name="Matches the envelope sender against {0} blocked address or domain; the score comes from the entry that matched." xml:space="preserve">
-    <value>Zarf göndereni {0} engellenen adres ve etki alanıyla eşleştirir; puan, eşleşen girdiden gelir.</value>
+    <value>Zarf göndereni {0} engellenen adres veya etki alanıyla eşleştirir; puan, eşleşen girdiden gelir.</value>
   </data>
   <data name="Matches the envelope sender against {0} blocked addresses and domains; the score comes from the entry that matched." xml:space="preserve">
     <value>Zarf göndereni {0} engellenen adres ve etki alanıyla eşleştirir; puan, eşleşen girdiden gelir.</value>
@@ -7256,7 +7256,7 @@ Zaten orada olan hiçbir şey silinmez.</value>
     <value>Arşivdeki iletiler</value>
   </data>
   <data name="Messages indexed: {0} of {1}." xml:space="preserve">
-    <value>Dizine eklenen iletiler: {0} / {1}.</value>
+    <value>İndekslenen iletiler: {0} / {1}.</value>
   </data>
   <data name="Messages larger than {0} KB skip every check that needs the body (SURBL, DKIM, DMARC and SpamAssassin). The connection checks still run, and the message is delivered." xml:space="preserve">
     <value>{0} KB'den büyük iletiler gövde gerektiren her denetimi (SURBL, DKIM, DMARC ve SpamAssassin) atlar. Bağlantı denetimleri yine çalışır ve ileti teslim edilir.</value>
@@ -7394,7 +7394,7 @@ Zaten orada olan hiçbir şey silinmez.</value>
     <value>Taşı veya yeniden adlandı_r…</value>
   </data>
   <data name="Mode and max_age read from hMailServer.ini on this machine." xml:space="preserve">
-    <value>Kip ve max_age bu makinedeki hMailServer.ini'den okundu.</value>
+    <value>mode ve max_age bu makinedeki hMailServer.ini'den okundu.</value>
   </data>
   <data name="Monitoring" xml:space="preserve">
     <value>İzleme</value>
@@ -7472,7 +7472,7 @@ Zaten orada olan hiçbir şey silinmez.</value>
     <value>Taşındı</value>
   </data>
   <data name="Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves." xml:space="preserve">
-    <value>Bir iletiyi \Junk olarak belirlenmiş klasöre taşımak onu sa-learn'e spam olarak bildirir, oradan geri çıkarmak ise ham olarak bildirir; böylece filtre, kimsenin yerine getirmediği ayrı bir tören yerine insanların zaten yaptıklarından öğrenir. Varsayılan olarak kapalıdır: her taşımada sa-learn'i çalıştırır ve haber bültenlerini Junk klasörüne koyan bir kullanıcı, filtreye haber bültenlerinin tarayıcının hizmet ettiği herkes için spam olduğunu öğretmiş olur.</value>
+    <value>Bir iletiyi Junk olarak belirlenmiş klasöre taşımak onu sa-learn'e spam olarak bildirir, oradan geri çıkarmak ise ham olarak bildirir; böylece filtre, kimsenin yerine getirmediği ayrı bir tören yerine insanların zaten yaptıklarından öğrenir. Varsayılan olarak kapalıdır: her taşımada sa-learn'i çalıştırır ve haber bültenlerini Junk klasörüne koyan bir kullanıcı, filtreye haber bültenlerinin tarayıcının hizmet ettiği herkes için spam olduğunu öğretmiş olur.</value>
   </data>
   <data name="Must be an absolute URL, as above." xml:space="preserve">
     <value>Yukarıdaki gibi mutlak bir URL olmalıdır.</value>
@@ -7673,7 +7673,7 @@ Zaten orada olan hiçbir şey silinmez.</value>
     <value>'{0}' adresli bir hesap bulunamadı.</value>
   </data>
   <data name="No account has been added in any domain." xml:space="preserve">
-    <value>Hiçbir alan adına hesap eklenmedi.</value>
+    <value>Hiçbir etki alanına hesap eklenmedi.</value>
   </data>
   <data name="No account that is not a member has &quot;{0}&quot; in its address." xml:space="preserve">
     <value>Adresinde "{0}" geçen, üye olmayan hesap yok.</value>
@@ -7688,7 +7688,7 @@ Zaten orada olan hiçbir şey silinmez.</value>
     <value>Etkin bir etki alanında “{0}” ile eşleşen etkin bir hesap yok; bu yüzden iletiyi kimse almaz.</value>
   </data>
   <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
-    <value>Etkin alan adı yok; bu yüzden henüz yayımlanacak bir şey yok.</value>
+    <value>Etkin etki alanı yok; bu yüzden henüz yayımlanacak bir şey yok.</value>
   </data>
   <data name="No active sessions" xml:space="preserve">
     <value>Etkin oturum yok</value>
@@ -7805,13 +7805,13 @@ Zaten orada olan hiçbir şey silinmez.</value>
     <value>Hiçbir etki alanında DKIM imzalama açık değil; bu yüzden DNS kaydı gerekmiyor.</value>
   </data>
   <data name="No domain has a trap address yet, so these settings do nothing." xml:space="preserve">
-    <value>Henüz hiçbir alan adının tuzak adresi yok, bu yüzden bu ayarlar hiçbir şey yapmaz.</value>
+    <value>Henüz hiçbir etki alanının tuzak adresi yok, bu yüzden bu ayarlar hiçbir şey yapmaz.</value>
   </data>
   <data name="No domain has an Active Directory domain name, so none can take part." xml:space="preserve">
     <value>Hiçbir etki alanının Active Directory etki alanı adı yok; bu yüzden hiçbiri katılamaz.</value>
   </data>
   <data name="No domain has been added yet." xml:space="preserve">
-    <value>Henüz alan adı eklenmedi.</value>
+    <value>Henüz etki alanı eklenmedi.</value>
   </data>
   <data name="No domains are configured, so there is nothing to sign and no record to publish." xml:space="preserve">
     <value>Hiç etki alanı yapılandırılmamış; bu yüzden imzalanacak bir şey ve yayımlanacak bir kayıt yok.</value>
@@ -7841,7 +7841,7 @@ Zaten orada olan hiçbir şey silinmez.</value>
     <value>Girdi yok; bu nedenle bu liste kimseye izin vermez ve kimseyi engellemez; bir hesabın kendi listesi ve etki alanınınki yine geçerlidir.</value>
   </data>
   <data name="No entry can be written for these messages." xml:space="preserve">
-    <value>Bu iletiler için hiçbir giriş yazılamaz.</value>
+    <value>Bu iletiler için hiçbir kayıt yazılamaz.</value>
   </data>
   <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
     <value>Bu göndereninin etki alanını kapsayan girdi yok; HELO adıyla karşılaştırılan girdiler burada denetlenmez.</value>
@@ -7979,7 +7979,7 @@ Zaten orada olan hiçbir şey silinmez.</value>
     <value>Tek kullanımlık kod verilmediği için şu anda kullanılan parola denetlenemedi.</value>
   </data>
   <data name="No passphrase is set: the archive is not encrypted, and anyone who can reach the destination folder can read every mailbox in it." xml:space="preserve">
-    <value>Parola tümcesi ayarlı değil: arşiv şifrelenmez ve hedef klasöre ulaşabilen herkes içindeki her posta kutusunu okuyabilir.</value>
+    <value>Parola ifadesi ayarlı değil: arşiv şifrelenmez ve hedef klasöre ulaşabilen herkes içindeki her posta kutusunu okuyabilir.</value>
   </data>
   <data name="No passphrase needed" xml:space="preserve">
     <value>Parola ifadesi gerekmiyor</value>
@@ -8030,7 +8030,7 @@ Zaten orada olan hiçbir şey silinmez.</value>
     <value>Adında "{0}" geçen genel klasör yok.</value>
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
-    <value>Henüz ortak klasör yok. Klasör ekle, birkaç hesabın açabileceği bir klasör oluşturur; ardından İzinler, kimin okuyup yazabileceğine karar verir.</value>
+    <value>Henüz genel klasör yok. Klasör ekle, birkaç hesabın açabileceği bir klasör oluşturur; ardından İzinler, kimin okuyup yazabileceğine karar verir.</value>
   </data>
   <data name="No recovery address is set. Until the account holder sets one in the webmail, a forgotten password can only be reset here." xml:space="preserve">
     <value>Kurtarma adresi ayarlanmamış. Hesap sahibi web postasından bir tane ayarlayana kadar, unutulan bir parola yalnızca burada sıfırlanabilir.</value>
@@ -8075,7 +8075,7 @@ Zaten orada olan hiçbir şey silinmez.</value>
     <value>İmza veritabanı klasörü ayarlanmamış.</value>
   </data>
   <data name="No stored-secrets key has been made, so an account's second factor and the [Settings] secrets are stored as written. Make one on the server with {0}, then export it." xml:space="preserve">
-    <value>Saklanan sırlar anahtarı oluşturulmadı, bu yüzden bir hesabın ikinci faktörü ve [Settings] sırları yazıldığı gibi saklanıyor. Sunucuda {0} ile bir anahtar oluşturun, ardından dışa aktarın.</value>
+    <value>Saklanan sırlar anahtarı oluşturulmadı, bu yüzden bir hesabın ikinci etkeni ve [Settings] sırları yazıldığı gibi saklanıyor. Sunucuda {0} ile bir anahtar oluşturun, ardından dışa aktarın.</value>
   </data>
   <data name="No syntax errors reported." xml:space="preserve">
     <value>Söz dizimi hatası bildirilmedi.</value>
@@ -8507,7 +8507,7 @@ Zaten orada olan hiçbir şey silinmez.</value>
     <value>Varsayılan olarak açık ve biri bir kurtarma adresi ayarlayana kadar etkisiz.</value>
   </data>
   <data name="On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged." xml:space="preserve">
-    <value>Varsayılan olarak açıktır ve buradaki, varsayılanı tedbirli olan olmayan tek anahtardır. Kapalıyken, kotasını zaten aşmış bir posta kutusuna gelen bir ileti kabul edilir ve sonra zarf gönderene yöneltilen bir teslim edilemedi raporuyla yanıtlanır - posta kutularını en hızlı dolduran trafik ise o adresi sahtelemiştir.</value>
+    <value>Varsayılan olarak açıktır ve burada varsayılanı tedbirli olmayan tek anahtardır. Kapalıyken, kotasını zaten aşmış bir posta kutusuna gelen bir ileti kabul edilir ve sonra zarf gönderene yöneltilen bir teslim edilemedi raporuyla yanıtlanır - posta kutularını en hızlı dolduran trafik ise o adresi sahtelemiştir.</value>
   </data>
   <data name="On by default, which is how Entra ID and ADFS sign. Off accepts a signature over the whole response." xml:space="preserve">
     <value>Varsayılan olarak açık; Entra ID ve ADFS böyle imzalar. Kapalıyken tüm yanıtın üzerindeki imza kabul edilir.</value>
@@ -8594,7 +8594,7 @@ Zaten orada olan hiçbir şey silinmez.</value>
     <value>OnAcceptMessage → webhook (SIEM / Slack / Teams)</value>
   </data>
   <data name="Once a day the server asks the DNS block lists below whether an address it sends from is listed, and raises the alert 'reputation.listed' when one is. It checks the delivery bind address and the addresses the global rules bind; a server behind NAT has to be told its public address here, because nothing on the machine can find it." xml:space="preserve">
-    <value>Sunucu günde bir kez aşağıdaki DNS engelleme listelerine, gönderim yaptığı bir adresin listelenip listelenmediğini sorar ve listelenmişse 'reputation.listed' uyarısını verir. Teslimin bağlama adresini ve genel kuralların bağlandığı adresleri denetler; NAT arkasındaki bir sunucuya ortak adresi burada bildirilmelidir, çünkü bilgisayardaki hiçbir şey onu bulamaz.</value>
+    <value>Sunucu günde bir kez aşağıdaki DNS engelleme listelerine, gönderim yaptığı bir adresin listelenip listelenmediğini sorar ve listelenmişse 'reputation.listed' uyarısını verir. Teslimin bağlama adresini ve genel kuralların bağlandığı adresleri denetler; NAT arkasındaki bir sunucuya genel adresi burada bildirilmelidir, çünkü bilgisayardaki hiçbir şey onu bulamaz.</value>
   </data>
   <data name="Once a minute the server writes one row per metric - sessions, messages processed, delivered, deferred and bounced, spam and viruses, authentication and TLS outcomes, missing message files - to hm_metricsamples, and keeps them this many days. 0 turns the sampler off." xml:space="preserve">
     <value>Sunucu dakikada bir, ölçüm başına bir satırı - oturumlar, işlenen, teslim edilen, ertelenen ve geri dönen iletiler, spam ve virüsler, kimlik doğrulama ve TLS sonuçları, eksik ileti dosyaları - hm_metricsamples tablosuna yazar ve bu kadar gün saklar. 0 örnekleyiciyi kapatır.</value>
@@ -8630,7 +8630,7 @@ Zaten orada olan hiçbir şey silinmez.</value>
     <value>Dokuz denetimin tek bir listesi, hangilerinin açık olduğu ve her birinin iki aşamadan hangisinde çalıştığı.</value>
   </data>
   <data name="One message to each account of this domain that has something newly held for it, listing what was held with a link that delivers it. A link works once and stops working after the hours set on the Quarantine page, which is also where the address the links point at is set - without that address nothing is sent. An empty digest is never sent, and each message says how to stop it." xml:space="preserve">
-    <value>Bu alan adının, kendisi için yeni bir şey alıkonan her hesabına, alıkonanları listeleyen ve bunları teslim eden bir bağlantı içeren tek bir ileti. Bağlantı bir kez çalışır ve Karantina sayfasında ayarlanan saat dolunca geçersiz olur; bağlantıların gösterdiği adres de aynı sayfada ayarlanır - o adres olmadan hiçbir şey gönderilmez. Boş bir özet asla gönderilmez ve her ileti nasıl durdurulacağını söyler.</value>
+    <value>Bu etki alanının, kendisi için yeni bir şey alıkonan her hesabına, alıkonanları listeleyen ve bunları teslim eden bir bağlantı içeren tek bir ileti. Bağlantı bir kez çalışır ve Karantina sayfasında ayarlanan saat dolunca geçersiz olur; bağlantıların gösterdiği adres de aynı sayfada ayarlanır - o adres olmadan hiçbir şey gönderilmez. Boş bir özet asla gönderilmez ve her ileti nasıl durdurulacağını söyler.</value>
   </data>
   <data name="One point per {0}, from the {1}-day history the server keeps. Throughput is the change in the processed-messages total per minute." xml:space="preserve">
     <value>Sunucunun sakladığı {1} günlük geçmişten, {0} başına bir nokta. Verim, işlenen ileti toplamındaki dakika başına değişimdir.</value>
@@ -8663,16 +8663,16 @@ Zaten orada olan hiçbir şey silinmez.</value>
     <value>Yalnızca Active Directory etki alanı adı ayarlanmış etki alanları listelenir - bir posta etki alanını bir dizine bağlayan alan odur. İlk seferinde etki alanlarını teker teker geçirin.</value>
   </data>
   <data name="Only for an archive that was written with a passphrase." xml:space="preserve">
-    <value>Yalnızca parolayla yazılmış bir arşiv için.</value>
+    <value>Yalnızca parola ifadesiyle yazılmış bir arşiv için.</value>
   </data>
   <data name="Only for an archive that was written with a passphrase. Without the right one the archive cannot be opened at all, and the restore is refused before anything on this server is touched." xml:space="preserve">
-    <value>Yalnızca bir parola tümcesiyle yazılmış arşivler için. Doğrusu olmadan arşiv hiç açılmaz ve geri yükleme, bu sunucuda hiçbir şeye dokunulmadan önce reddedilir.</value>
+    <value>Yalnızca bir parola ifadesiyle yazılmış arşivler için. Doğrusu olmadan arşiv hiç açılmaz ve geri yükleme, bu sunucuda hiçbir şeye dokunulmadan önce reddedilir.</value>
   </data>
   <data name="Only needed for HS* algorithms" xml:space="preserve">
     <value>Yalnızca HS* algoritmaları için gerekir</value>
   </data>
   <data name="Only needed when the key file is encrypted: with an encrypted key and no passphrase, the key does not load (server error 6170) and every TLS port using this certificate does not start - inbound mail on those ports stops. The passphrase is a secret: it is stored protected on the server and never displayed here again, and saving a new one replaces whatever was stored before." xml:space="preserve">
-    <value>Yalnızca anahtar dosyası şifreliyken gerekir: şifreli bir anahtar ve parola ifadesi yokken anahtar yüklenmez (sunucu hatası 6170) ve bu sertifikayı kullanan her TLS portu başlamaz - o portlardaki gelen posta durur. Parola ifadesi bir gizli anahtardır: sunucuda korumalı olarak saklanır ve burada bir daha asla gösterilmez; yenisini kaydetmek daha önce saklananın yerine geçer.</value>
+    <value>Yalnızca anahtar dosyası şifreliyken gerekir: şifreli bir anahtar ve parola ifadesi yokken anahtar yüklenmez (sunucu hatası 6170) ve bu sertifikayı kullanan her TLS portu başlamaz - o portlardaki gelen posta durur. Parola ifadesi gizli bir bilgidir: sunucuda korumalı olarak saklanır ve burada bir daha asla gösterilmez; yenisini kaydetmek daha önce saklananın yerine geçer.</value>
   </data>
   <data name="Only the first {0} characters are shown." xml:space="preserve">
     <value>Yalnızca ilk {0} karakter gösteriliyor.</value>
@@ -8750,7 +8750,7 @@ Zaten orada olan hiçbir şey silinmez.</value>
     <value>_Günlük klasörünü aç</value>
   </data>
   <data name="Open an issue with: the log from the 354 (or from the delivery attempt) onwards, including the stage timing lines; the ERROR_hmailserver_&lt;date&gt;.log for the same window; which scanners and event scripts are enabled; and whether the message eventually arrives, arrives twice, or never arrives." xml:space="preserve">
-    <value>Şunlarla bir sorun kaydı açın: 354'ten (ya da teslim denemesinden) itibaren, aşama zamanlama satırları dâhil günlük; aynı pencere için ERROR_hmailserver_&lt;date&gt;.log; hangi tarayıcıların ve olay betiklerinin etkin olduğu; ve iletinin sonunda gelip gelmediği, iki kez mi geldiği yoksa hiç gelmediği mi.</value>
+    <value>Şunlarla bir sorun kaydı açın: 354'ten (ya da teslim denemesinden) itibaren, aşama süresi satırları dâhil günlük; aynı pencere için ERROR_hmailserver_&lt;date&gt;.log; hangi tarayıcıların ve olay betiklerinin etkin olduğu; ve iletinin sonunda gelip gelmediği, iki kez mi geldiği yoksa hiç gelmediği mi.</value>
   </data>
   <data name="Open on the _wiki" xml:space="preserve">
     <value>_Wikide aç</value>
@@ -8933,7 +8933,7 @@ Zaten orada olan hiçbir şey silinmez.</value>
     <value>Giden webhook'lar olayları Control Deck'te veya REST API üzerinden abone olan alıcılara gönderir. Etki alanı belirtmeyen bir abonelik tüm etki alanlarını kapsar; bunu kapatmak etki alanını hepsinden çıkarır. Sunucunun kendi anahtarı İzleme ve uyarılar sayfasındadır.</value>
   </data>
   <data name="Outside senders get nothing, or the domain's text when its override is on." xml:space="preserve">
-    <value>Dışarıdaki gönderenler hiçbir şey almaz ya da geçersiz kılması açıksa alan adının metnini alır.</value>
+    <value>Dışarıdaki gönderenler hiçbir şey almaz ya da geçersiz kılması açıksa etki alanının metnini alır.</value>
   </data>
   <data name="Override DNS server (empty = the name servers Windows uses)" xml:space="preserve">
     <value>DNS sunucusunu geçersiz kıl (boş = Windows'un kullandığı ad sunucuları)</value>
@@ -9077,10 +9077,10 @@ Zaten orada olan hiçbir şey silinmez.</value>
     <value>Parola ifadesi saklanmış, anahtar şifreli değil</value>
   </data>
   <data name="Passphrase, _if the archive is encrypted" xml:space="preserve">
-    <value>Arşiv şifreliyse parola tümces_i</value>
+    <value>Arşiv şifreliyse parola ifades_i</value>
   </data>
   <data name="Passphrase, i_f the archive is encrypted" xml:space="preserve">
-    <value>Parola, arşiv şi_freliyse</value>
+    <value>Parola ifadesi, arşiv şi_freliyse</value>
   </data>
   <data name="Password" xml:space="preserve">
     <value>Parola</value>
@@ -9145,7 +9145,7 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
     <value>Kişiler web postasında bir kurtarma adresi ve tek kullanımlık kurtarma kodları ayarlayıp unuttukları parolayı bunlarla sıfırlayabilir. Sıfırlama bağlantısı yalnızca sunucu kendi genel adresini bildiğinde gönderilebilir: süresi dolan iletilerin, karantina özetinin veya oturum açarak içe aktarmanın taban adresi.</value>
   </data>
   <data name="People outside this domain's accounts whose name must not be borrowed, one per line: Name &lt;address&gt;, Name, or address." xml:space="preserve">
-    <value>Adı ödünç alınmaması gereken, bu alan adının hesapları dışındaki kişiler; her satıra bir tane: Ad &lt;address&gt;, Ad ya da adres.</value>
+    <value>Adı ödünç alınmaması gereken, bu etki alanının hesapları dışındaki kişiler; her satıra bir tane: Ad &lt;address&gt;, Ad ya da adres.</value>
   </data>
   <data name="Per remote domain: the TLS this server demands in each direction, the size and connections it will attempt, and recipient verification for a domain it backs up." xml:space="preserve">
     <value>Her uzak alan adı için: bu sunucunun her iki yönde istediği TLS, deneyeceği boyut ve bağlantı sayısı ve yedek MX olduğu bir alan adı için alıcı doğrulama.</value>
@@ -9226,7 +9226,7 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
     <value>Port (0 = kapalı)</value>
   </data>
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
-    <value>Port 25 diğerlerinden farklı değerlendirilir ve bu bilinçlidir: oradaki eş olağan olarak başka bir posta sunucusudur ve orada şifreleme gerektirmek, hiçbirini sunamayan gönderenlerden gelen postayı reddeder. Diğer her portta eş, parolası olan bir istemcidir.</value>
+    <value>Port 25 diğerlerinden farklı değerlendirilir ve bu bilinçlidir: oradaki eş olağan olarak başka bir posta sunucusudur ve orada şifreleme gerektirmek, hiç şifreleme sunamayan gönderenlerden gelen postayı reddeder. Diğer her portta eş, parolası olan bir istemcidir.</value>
   </data>
   <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there: an AUTH on it is a password being guessed." xml:space="preserve">
     <value>Port 25 diğer sunucuların posta teslim ettiği yerdir ve hiçbir e-posta istemcisi orada oturum açmamalıdır: oradaki bir AUTH, tahmin edilmeye çalışılan bir paroladır.</value>
@@ -9310,10 +9310,10 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
     <value>Ön izleme hiçbir şeyi değiştirmez ve Uygula'nın tam olarak ne yapacağını bildirir - sunucuda tek bir karar vericiyi paylaşırlar; bu yüzden ön izleme, uygulamanın yapmayacağı bir eylemi anlatamaz. Uygula, seçenekler olduğu hâliyle bir ön izleme çalıştırılana kadar devre dışı kalır.</value>
   </data>
   <data name="Preview of &quot;{0}&quot;" xml:space="preserve">
-    <value>“{0}” önizlemesi</value>
+    <value>“{0}” ön izlemesi</value>
   </data>
   <data name="Preview the text" xml:space="preserve">
-    <value>Metni önizle</value>
+    <value>Metni ön izle</value>
   </data>
   <data name="Preview, then apply" xml:space="preserve">
     <value>Önce ön izle, sonra uygula</value>
@@ -9640,10 +9640,10 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
     <value>MAIL FROM'da okunur: izin verilen bir alan adı greylisting'e tabi tutulmaz, spam puanı yüzünden reddedilmez veya bekletilmez; bu arada her sınama yine de çalışır ve işaretleme eşiği yine de işaretler. Kayıt, kuruluşun alan adını ve altındaki her şeyi kapsar.</value>
   </data>
   <data name="Read at delivery, for every recipient: a blocked sender's mail is held for them where the quarantine is on, and marked as spam where it is not." xml:space="preserve">
-    <value>Teslimde okunur, her alıcı için: engellenen bir gönderenin postası, karantina açıkken alıcı için bekletilir, kapalıyken istenmeyen olarak işaretlenir.</value>
+    <value>Teslimde okunur, her alıcı için: engellenen bir gönderenin postası, karantina açıkken alıcı için bekletilir, kapalıyken spam olarak işaretlenir.</value>
   </data>
   <data name="Read at delivery, for every recipient: an allowed sender's mail is delivered unmarked, and the accounts' own spam thresholds do not run. A message the server-wide spam score holds during the SMTP conversation is still held; the domain list is the one that stops that." xml:space="preserve">
-    <value>Teslimde okunur, her alıcı için: izinli bir gönderenin postası işaretlenmeden teslim edilir ve hesapların kendi istenmeyen eşikleri çalışmaz. Sunucu genelindeki istenmeyen puanının SMTP görüşmesi sırasında beklettiği bir ileti yine de bekletilir; bunu durduran alan adı listesidir.</value>
+    <value>Teslimde okunur, her alıcı için: izinli bir gönderenin postası işaretlenmeden teslim edilir ve hesapların kendi spam eşikleri çalışmaz. Sunucu genelindeki spam puanının SMTP görüşmesi sırasında beklettiği bir ileti yine de bekletilir; bunu durduran alan adı listesidir.</value>
   </data>
   <data name="Read cache (MB, up to 4,096; 0 = none)" xml:space="preserve">
     <value>Okuma önbelleği (MB, en fazla 4.096; 0 = yok)</value>
@@ -10058,7 +10058,7 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
     <value>Korumalı alanın bearer belirteci kaldırılsın mı? Korumalı alana istekler bundan sonra belirteçsiz gönderilir.</value>
   </data>
   <data name="Remove the second factor of {0}? Its own password signs in to mail clients again, and the authenticator app's codes stop working." xml:space="preserve">
-    <value>{0} hesabının ikinci faktörü kaldırılsın mı? Kendi parolası yeniden posta istemcilerinde oturum açar ve kimlik doğrulama uygulamasının kodları çalışmaz olur.</value>
+    <value>{0} hesabının ikinci etkeni kaldırılsın mı? Kendi parolası yeniden posta istemcilerinde oturum açar ve kimlik doğrulama uygulamasının kodları çalışmaz olur.</value>
   </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>Seçili hesabı bu gruptan kaldır</value>
@@ -10143,7 +10143,7 @@ Posta kutusu ve iletileri yeni adrese taşınır. Eski adrese gönderilen posta,
   <data name="Replace all IP ranges with the defaults?&#10;&#10;Every custom range - including any auto-ban entries - will be removed and replaced with 'My computer' (127.0.0.1) and 'Internet' (everything else). This changes who may connect and relay, immediately." xml:space="preserve">
     <value>Tüm IP aralıkları varsayılanlarla değiştirilsin mi?
 
-Otomatik yasaklama girdileri dâhil her özel aralık kaldırılır ve yerine 'Bilgisayarım' (127.0.0.1) ile 'İnternet' (diğer her şey) konur. Bu, kimin bağlanıp aktarma yapabileceğini hemen değiştirir.</value>
+Otomatik yasaklama girdileri dâhil her özel aralık kaldırılır ve yerine 'My computer' (127.0.0.1) ile 'Internet' (diğer her şey) konur. Bu, kimin bağlanıp aktarma yapabileceğini hemen değiştirir.</value>
   </data>
   <data name="Replace all configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security, and with SMTP authentication On on both SMTP ports, so a port 25 that is a honeypot takes AUTH again. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialised." xml:space="preserve">
     <value>Yapılandırılmış tüm portlar varsayılanlarla değiştirilsin mi?
@@ -10171,7 +10171,7 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
     <value>Her portu standart kümeyle değiştirir: SMTP 25 ve 587, POP3 110, IMAP 143, hepsi bağlantı güvenliği olmadan.</value>
   </data>
   <data name="Replaces every range with the standard two: 'My computer' (127.0.0.1) and 'Internet' (everything else)." xml:space="preserve">
-    <value>Her aralığı standart ikiliyle değiştirir: 'Bilgisayarım' (127.0.0.1) ve 'İnternet' (diğer her şey).</value>
+    <value>Her aralığı standart ikiliyle değiştirir: 'My computer' (127.0.0.1) ve 'Internet' (diğer her şey).</value>
   </data>
   <data name="Replies go to th_e list" xml:space="preserve">
     <value>Ya_nıtlar listeye gider</value>
@@ -10288,7 +10288,7 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
     <value>Aya_rları geri yükle</value>
   </data>
   <data name="Rescues legitimate forwarded mail from DMARC-failure penalties, but only for forwarders on your trusted-sealer list - with the list empty the feature does nothing at all, even when enabled." xml:space="preserve">
-    <value>Meşru iletilen postayı DMARC başarısızlığı cezalarından kurtarır, ama yalnızca güvenilen mühürleyen listenizdeki ileticiler için - liste boşken özellik etkin olsa bile hiçbir şey yapmaz.</value>
+    <value>Meşru iletilen postayı DMARC başarısızlığı cezalarından kurtarır, ama yalnızca güvenilen mühürleyici listenizdeki ileticiler için - liste boşken özellik etkin olsa bile hiçbir şey yapmaz.</value>
   </data>
   <data name="Resets a password, unlocks an account and reads a message trace." xml:space="preserve">
     <value>Bir parolayı sıfırlar, bir hesabın kilidini açar ve bir ileti izlemesini okur.</value>
@@ -10588,7 +10588,7 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
     <value>Windows sorduktan sonra hMailServer.exe /GrantServiceAccess komutunu yönetici olarak çalıştırır: NT SERVICE\hMailServer, program klasörünün kendi Data, Logs, Temp ve Database klasörlerinde ve bir yöneticinin onayladığı klasörlerde Değiştirme, program klasöründe Okuma izni alır - hMailServer.ini'de asla. İstenildiği zaman yeniden çalıştırılabilir ve kimsenin iznini kaldırmaz.</value>
   </data>
   <data name="Runs the same steps the server runs, in the same order, using the values in the editors above as they stand: connect, protect the transport, bind the service credential, search for the user - and, only if a password is typed below, bind as that user to prove it. The password is used once and never stored, and the test refuses to run any configuration that would put a password on the network unprotected. Note: the test runs from this computer, so a firewall that treats this machine and the hMailServer service differently can make the two disagree." xml:space="preserve">
-    <value>Sunucunun çalıştırdığı adımların aynısını, aynı sırayla, yukarıdaki düzenleyicilerdeki değerleri olduğu hâliyle kullanarak çalıştırır: bağlan, aktarımı koru, hizmet kimlik bilgisiyle bind yap, kullanıcıyı ara - ve yalnızca aşağıya bir parola yazılmışsa, kanıtlamak için o kullanıcı olarak bind yap. Parola bir kez kullanılır ve asla saklanmaz; sınama, bir parolayı ağa korumasız çıkaracak hiçbir yapılandırmayı çalıştırmayı reddeder. Not: sınama bu bilgisayardan çalışır; bu yüzden bu makineye ve hMailServer hizmetine farklı davranan bir güvenlik duvarı ikisinin farklı sonuç vermesine yol açabilir.</value>
+    <value>Sunucunun çalıştırdığı adımların aynısını, aynı sırayla, yukarıdaki düzenleyicilerdeki değerleri olduğu hâliyle kullanarak çalıştırır: bağlan, taşımayı koru, hizmet kimlik bilgisiyle bind yap, kullanıcıyı ara - ve yalnızca aşağıya bir parola yazılmışsa, kanıtlamak için o kullanıcı olarak bind yap. Parola bir kez kullanılır ve asla saklanmaz; sınama, bir parolayı ağa korumasız çıkaracak hiçbir yapılandırmayı çalıştırmayı reddeder. Not: sınama bu bilgisayardan çalışır; bu yüzden bu makineye ve hMailServer hizmetine farklı davranan bir güvenlik duvarı ikisinin farklı sonuç vermesine yol açabilir.</value>
   </data>
   <data name="Runs the server's built-in connectivity and configuration checks (outbound port 25, MX resolution, backup directory, IP configuration). The message-store consistency scan below is a separate read-only background task - the server runs it at start-up and hourly and records what it found in a recovery report." xml:space="preserve">
     <value>Sunucunun yerleşik bağlanabilirlik ve yapılandırma denetimlerini (giden port 25, MX çözümleme, yedekleme dizini, IP yapılandırması) çalıştırır. Aşağıdaki ileti deposu tutarlılık taraması ayrı, salt okunur bir arka plan görevidir - sunucu onu başlangıçta ve saatte bir çalıştırır ve bulduklarını bir kurtarma raporuna kaydeder.</value>
@@ -10690,7 +10690,7 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
     <value>SPF softfail puanı (0 = puanlanmaz)</value>
   </data>
   <data name="SPF tells receivers which servers may send this domain's mail; without it the mail is more likely to be refused or filed as spam." xml:space="preserve">
-    <value>SPF, alıcılara bu alan adının postasını hangi sunucuların gönderebileceğini söyler; onsuz posta daha sık reddedilir veya istenmeyen olarak ayrılır.</value>
+    <value>SPF, alıcılara bu alan adının postasını hangi sunucuların gönderebileceğini söyler; onsuz posta daha sık reddedilir veya spam olarak ayrılır.</value>
   </data>
   <data name="SPF temperror score (0 = not scored)" xml:space="preserve">
     <value>SPF temperror puanı (0 = puanlanmaz)</value>
@@ -11161,7 +11161,7 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
     <value>Kim, ne, arabirim veya ayrıntıda ara</value>
   </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
-    <value>Arayın ya da ne yapmak istediğinizi söyleyin - "spamı durdur", "bir IP'yi engelle"</value>
+    <value>Arayın ya da ne yapmak istediğinizi söyleyin - "spam'i durdur", "bir IP'yi engelle"</value>
   </data>
   <data name="Searched" xml:space="preserve">
     <value>Arandı</value>
@@ -11413,7 +11413,7 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
     <value>_Gönderen etki alanı</value>
   </data>
   <data name="Sending domains this server has decided about: an allowed one skips greylisting and the score's refusals, a blocked one is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
-    <value>Bu sunucunun karar verdiği gönderen alan adları: izin verilen, greylisting’i ve puana bağlı reddi atlar; engellenen, MAIL FROM’da reddedilir - IP adresine göre değil, alan adına veya HELO sonekine göre.</value>
+    <value>Bu sunucunun karar verdiği gönderen alan adları: izin verilen, greylisting'i ve puana bağlı reddi atlar; engellenen, MAIL FROM'da reddedilir - IP adresine göre değil, alan adına veya HELO sonekine göre.</value>
   </data>
   <data name="Sending organisations allowed or blocked by their domain or HELO name, in inbound sessions that have not signed in. To exempt an address or an IP range from every check use the spam exemptions; to decide per recipient use the allow and block list." xml:space="preserve">
     <value>Oturum açmamış gelen oturumlarda alan adına veya HELO adına göre izin verilen ya da engellenen gönderen kuruluşlar. Bir adresi veya IP aralığını tüm denetimlerden muaf tutmak için spam istisnalarını, alıcı başına karar vermek için izin ve engelleme listesini kullanın.</value>
@@ -11422,7 +11422,7 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
     <value>Toplu gönderim başarısız oldu: {0}</value>
   </data>
   <data name="Sendout queued {0}." xml:space="preserve">
-    <value>Toplu gönderim kuyruğa alındı {0}.</value>
+    <value>Toplu gönderim {0} saatinde kuyruğa alındı.</value>
   </data>
   <data name="Sends a copy of every message passing through the server to one address (compliance archiving)." xml:space="preserve">
     <value>Sunucudan geçen her iletinin bir kopyasını tek bir adrese gönderir (uyumluluk arşivleme).</value>
@@ -11632,10 +11632,10 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
     <value>Bir yansı kullanmak için ayarlayın.</value>
   </data>
   <data name="Set the HTTP or HTTPS port on the Web services &amp; autoconfiguration page so the URLs answer, then publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; DNS records for each mail domain, pointing at this server. These are address records, and this page checks TXT records only, so they cannot be confirmed from here." xml:space="preserve">
-    <value>HTTP veya HTTPS bağlantı noktasını Web hizmetleri ve otomatik yapılandırma sayfasında ayarlayın'de WebServicesHttpPort ve/veya WebServicesHttpsPort'u ayarlayın, ardından her posta etki alanı için bu sunucuya işaret eden autoconfig.&lt;domain&gt; ve autodiscover.&lt;domain&gt; DNS kayıtlarını yayımlayın. Bunlar adres kayıtlarıdır ve bu sayfa yalnızca TXT kayıtlarını denetler, bu yüzden buradan doğrulanamazlar.</value>
+    <value>URL'lerin yanıt vermesi için HTTP veya HTTPS portunu Web hizmetleri ve otomatik yapılandırma sayfasında ayarlayın, ardından her posta etki alanı için bu sunucuya işaret eden autoconfig.&lt;domain&gt; ve autodiscover.&lt;domain&gt; DNS kayıtlarını yayımlayın. Bunlar adres kayıtlarıdır ve bu sayfa yalnızca TXT kayıtlarını denetler, bu yüzden buradan doğrulanamazlar.</value>
   </data>
   <data name="Set the HTTPS port on the Web services &amp; autoconfiguration page (RFC 8461 requires the policy over HTTPS), give the listener a certificate that covers mta-sts.&lt;domain&gt;, then for each domain publish an A/AAAA (or CNAME) record for mta-sts.&lt;domain&gt; pointing at this server and a TXT record at _mta-sts.&lt;domain&gt; (v=STSv1; id=...). This page checks the TXT record; the address record and the certificate's name coverage cannot be checked from here." xml:space="preserve">
-    <value>HTTPS bağlantı noktasını Web hizmetleri ve otomatik yapılandırma sayfasında ayarlayın'de WebServicesHttpsPort'u ayarlayın (RFC 8461 ilkeyi HTTPS üzerinden gerektirir), dinleyiciye mta-sts.&lt;domain&gt; adını kapsayan bir sertifika verin, ardından her etki alanı için bu sunucuya işaret eden bir mta-sts.&lt;domain&gt; A/AAAA (veya CNAME) kaydı ve _mta-sts.&lt;domain&gt; adresinde bir TXT kaydı (v=STSv1; id=...) yayımlayın. Bu sayfa TXT kaydını denetler; adres kaydı ve sertifikanın ad kapsamı buradan denetlenemez.</value>
+    <value>HTTPS portunu Web hizmetleri ve otomatik yapılandırma sayfasında ayarlayın (RFC 8461 ilkeyi HTTPS üzerinden gerektirir), dinleyiciye mta-sts.&lt;domain&gt; adını kapsayan bir sertifika verin, ardından her etki alanı için bu sunucuya işaret eden bir mta-sts.&lt;domain&gt; A/AAAA (veya CNAME) kaydı ve _mta-sts.&lt;domain&gt; adresinde bir TXT kaydı (v=STSv1; id=...) yayımlayın. Bu sayfa TXT kaydını denetler; adres kaydı ve sertifikanın ad kapsamı buradan denetlenemez.</value>
   </data>
   <data name="Set the auto-ban threshold and how long the lockout lasts." xml:space="preserve">
     <value>Otomatik yasaklama eşiğini ve kilitlemenin ne kadar süreceğini ayarlayın.</value>
@@ -12046,7 +12046,7 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
     <value>SpamAssassin'in kararı atılıyor: birleştirme kapalıyken spam olarak etiketlediği bir iletiye sabit puan verilir, o da {0}.</value>
   </data>
   <data name="SpamAssassin: idle timeout, and a session ceiling of this plus 30 s. 0 does not mean no time limit." xml:space="preserve">
-    <value>SpamAssassin: boşta kalma zaman aşımı ve bunun 30 s fazlası olan bir oturum üst sınırı. 0, süre sınırı olmadığı anlamına gelmez.</value>
+    <value>SpamAssassin: boşta kalma zaman aşımı ve bunun 30 sn fazlası olan bir oturum üst sınırı. 0, süre sınırı olmadığı anlamına gelmez.</value>
   </data>
   <data name="Specialist knobs - leave at the defaults unless you have a specific reason." xml:space="preserve">
     <value>Uzman düğmeleri - belirli bir nedeniniz yoksa varsayılanlarda bırakın.</value>
@@ -12163,7 +12163,7 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
     <value>[LDAP] {0} olarak saklanır.</value>
   </data>
   <data name="Stored in hMailServer.ini on the server. The token it buys is cached in memory until 80% of its lifetime has passed and refetched automatically." xml:space="preserve">
-    <value>Sunucudaki hMailServer.ini'de saklanır. Satın aldığı belirteç, ömrünün %80'i geçene kadar bellekte önbelleğe alınır ve otomatik olarak yeniden getirilir.</value>
+    <value>Sunucudaki hMailServer.ini'de saklanır. Aldığı belirteç, ömrünün %80'i geçene kadar bellekte önbelleğe alınır ve otomatik olarak yeniden getirilir.</value>
   </data>
   <data name="Stored in the server's settings database." xml:space="preserve">
     <value>Sunucunun ayar veritabanında saklanır.</value>
@@ -12304,10 +12304,10 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
     <value>TLS 1.0 (eski)</value>
   </data>
   <data name="TLS 1.0 and TLS 1.1 are enabled. Both are deprecated by RFC 8996 and are refused outright by current clients, so leaving them on rarely buys the compatibility they were kept for, and a client that does negotiate one gets materially weaker protection than the rest." xml:space="preserve">
-    <value>TLS 1.0 ve TLS 1.1 etkin. İkisi de RFC 8996 ile kullanımdan kaldırıldı ve güncel istemciler tarafından doğrudan reddediliyor; bu yüzden açık bırakmak, uğruna tutuldukları uyumluluğu nadiren sağlar ve birini gerçekten pazarlık eden bir istemci diğerlerinden belirgin biçimde daha zayıf koruma alır.</value>
+    <value>TLS 1.0 ve TLS 1.1 etkin. İkisi de RFC 8996 ile kullanımdan kaldırıldı ve güncel istemciler tarafından doğrudan reddediliyor; bu yüzden açık bırakmak, uğruna tutuldukları uyumluluğu nadiren sağlar ve biri üzerinde gerçekten anlaşan bir istemci diğerlerinden belirgin biçimde daha zayıf koruma alır.</value>
   </data>
   <data name="TLS 1.0 is enabled. It is deprecated by RFC 8996 and is refused outright by current clients, so leaving it on rarely buys the compatibility it was kept for, and a client that does negotiate it gets materially weaker protection than the rest." xml:space="preserve">
-    <value>TLS 1.0 etkin. RFC 8996 ile kullanımdan kaldırıldı ve güncel istemciler tarafından doğrudan reddediliyor; bu yüzden açık bırakmak, uğruna tutulduğu uyumluluğu nadiren sağlar ve onu gerçekten pazarlık eden bir istemci diğerlerinden belirgin biçimde daha zayıf koruma alır.</value>
+    <value>TLS 1.0 etkin. RFC 8996 ile kullanımdan kaldırıldı ve güncel istemciler tarafından doğrudan reddediliyor; bu yüzden açık bırakmak, uğruna tutulduğu uyumluluğu nadiren sağlar ve onun üzerinde gerçekten anlaşan bir istemci diğerlerinden belirgin biçimde daha zayıf koruma alır.</value>
   </data>
   <data name="TLS 1.1" xml:space="preserve">
     <value>TLS 1.1</value>
@@ -12316,7 +12316,7 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
     <value>TLS 1.1 (eski)</value>
   </data>
   <data name="TLS 1.1 is enabled. It is deprecated by RFC 8996 and is refused outright by current clients, so leaving it on rarely buys the compatibility it was kept for, and a client that does negotiate it gets materially weaker protection than the rest." xml:space="preserve">
-    <value>TLS 1.1 etkin. RFC 8996 ile kullanımdan kaldırıldı ve güncel istemciler tarafından doğrudan reddediliyor; bu yüzden açık bırakmak, uğruna tutulduğu uyumluluğu nadiren sağlar ve onu gerçekten pazarlık eden bir istemci diğerlerinden belirgin biçimde daha zayıf koruma alır.</value>
+    <value>TLS 1.1 etkin. RFC 8996 ile kullanımdan kaldırıldı ve güncel istemciler tarafından doğrudan reddediliyor; bu yüzden açık bırakmak, uğruna tutulduğu uyumluluğu nadiren sağlar ve onun üzerinde gerçekten anlaşan bir istemci diğerlerinden belirgin biçimde daha zayıf koruma alır.</value>
   </data>
   <data name="TLS 1.2" xml:space="preserve">
     <value>TLS 1.2</value>
@@ -12403,7 +12403,7 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
     <value>Sekme girinti ekler. Odağı düzenleyiciden çıkarmak için Ctrl+Sekme kullanın.</value>
   </data>
   <data name="Tag outbound envelope senders with BATV and validate returning bounces" xml:space="preserve">
-    <value>Giden zarf göndericilerini BATV ile etiketle ve geri dönen geri dönmeleri doğrula</value>
+    <value>Giden zarf gönderenlerini BATV ile etiketle ve geri dönen geri dönmeleri doğrula</value>
   </data>
   <data name="Tag te_xt (up to 100 characters; empty = [EXTERNAL])" xml:space="preserve">
     <value>Etiket me_tni (en çok 100 karakter; boş = [EXTERNAL])</value>
@@ -12553,7 +12553,7 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
     <value>Control Deck'i REST API sunar ve REST API kapalı - İzleme ve uyarılar sayfasında ona bir bağlantı noktası verin.</value>
   </data>
   <data name="The Control Panel is connected to another host, so the account its service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
-    <value>Denetim Masası başka bir ana bilgisayara bağlı, bu yüzden O sunucunun hizmetinin çalıştığı hesap buradan okunamaz. Görmek için Denetim Masası'nı sunucunun kendisinde açın.</value>
+    <value>Denetim Masası başka bir ana bilgisayara bağlı, bu yüzden o sunucunun hizmetinin çalıştığı hesap buradan okunamaz. Görmek için Denetim Masası'nı sunucunun kendisinde açın.</value>
   </data>
   <data name="The Control Panel's and the server's versions, the build, .NET, Windows and the database, for a report." xml:space="preserve">
     <value>Bir bildirim için Denetim Masası ve sunucu sürümleri, derleme, .NET, Windows ve veritabanı.</value>
@@ -12562,7 +12562,7 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
     <value>Diğer sunucuların etki alanlarınız hakkında gönderdiği DMARC toplu raporları ve TLS-RPT raporları; her etki alanının rapor posta kutusundan okunur, bu posta kutusu etki alanının iletişim kutusunda ayarlanır.</value>
   </data>
   <data name="The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read." xml:space="preserve">
-    <value>Bu etki alanının postasını alan tarafların geri gönderdiği toplu DMARC raporları ve TLS-RPT raporları, etki alanının tek bir adresinden okunur ve Control Deck, kimin bu etki alanı olarak gönderdiğini ve hangi sonuçla gönderdiğini grafikle gösterir. Adresi, etki alanının _dmarc ve _smtp._tls TXT kayıtlarında rua=mailto: olarak yayımlayın. Bu adresteki hesabı veya takma adı kendiniz oluşturun; sunucu oluşturmaz ve adres belirtilmemişse hiçbir şey okunmaz.</value>
+    <value>Bu etki alanının postasını alan tarafların geri gönderdiği toplu DMARC raporları ve TLS-RPT raporları, etki alanının tek bir adresinden okunur ve Control Deck, kimin bu etki alanı olarak gönderdiğini ve hangi sonuçla gönderdiğini grafikle gösterir. Adresi, etki alanının _dmarc ve _smtp._tls TXT kayıtlarında rua=mailto: olarak yayımlayın. Bu adresteki hesabı veya diğer adı kendiniz oluşturun; sunucu oluşturmaz ve adres belirtilmemişse hiçbir şey okunmaz.</value>
   </data>
   <data name="The DMARC failure score could not be read from the server, so whether ARC filtering can change any message's score cannot be told." xml:space="preserve">
     <value>DMARC başarısızlık puanı sunucudan okunamadı; bu yüzden ARC filtrelemenin herhangi bir iletinin puanını değiştirip değiştiremeyeceği anlaşılamıyor.</value>
@@ -12655,7 +12655,7 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
     <value>REST API yalnızca {0} üzerinde dinliyor; bu yüzden Control Deck yalnızca sunucunun kendisindeki bir tarayıcıda açılır.</value>
   </data>
   <data name="The REST API listens on {0} only, which a Control Panel on another machine cannot reach. Change these settings in the Control Deck on the server, or from a Control Panel running there." xml:space="preserve">
-    <value>REST API yalnızca {0} üzerinde dinliyor; başka bir bilgisayardaki Control Panel oraya ulaşamaz. Bu ayarları sunucudaki Control Deck'te veya orada çalışan bir Control Panel'den değiştirin.</value>
+    <value>REST API yalnızca {0} üzerinde dinliyor; başka bir bilgisayardaki Denetim Masası oraya ulaşamaz. Bu ayarları sunucudaki Control Deck'te veya orada çalışan bir Denetim Masası'ndan değiştirin.</value>
   </data>
   <data name="The REST API listens on {0} only, which a Control Panel on another machine cannot reach. Read the cases in the Control Deck on the server." xml:space="preserve">
     <value>REST API yalnızca {0} üzerinde dinliyor; başka bir makinedeki Denetim Masası buraya ulaşamaz. Davaları sunucudaki Control Deck'te okuyun.</value>
@@ -12718,7 +12718,7 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
     <value>Hesap gruptan kaldırılamadı: {0}</value>
   </data>
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own." xml:space="preserve">
-    <value>Hesap almayı bırakmadan önce göndermeyi bırakır: sahibi reddi kendi istemcisinde nedeniyle görür, ona gelen posta ise sınıra ve onu aşan paya kadar gelmeye devam eder. Her alan kendi değerini belirleyebilir.</value>
+    <value>Hesap almayı bırakmadan önce göndermeyi bırakır: sahibi reddi kendi istemcisinde nedeniyle görür, ona gelen posta ise sınıra ve onu aşan paya kadar gelmeye devam eder. Her etki alanı kendi değerini belirleyebilir.</value>
   </data>
   <data name="The accounts chosen are members of this group already." xml:space="preserve">
     <value>Seçilen hesaplar zaten bu grubun üyesi.</value>
@@ -12754,7 +12754,7 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
     <value>Sunucunun yasakladığı adresler, nedenleri ve her yasağın ne zaman bittiği; aynı yasaklar IP aralıkları sayfasında süresi dolan aralıklardır.</value>
   </data>
   <data name="The administrator has a second factor, and the REST API asks for a one-time code with every request made with the password, which this page does not send. Read the cases in the Control Deck." xml:space="preserve">
-    <value>Yöneticinin ikinci bir faktörü var ve REST API parolayla yapılan her istekte tek kullanımlık bir kod ister; bu sayfa bunu göndermez. Davaları Control Deck'te okuyun.</value>
+    <value>Yöneticinin ikinci bir etkeni var ve REST API parolayla yapılan her istekte tek kullanımlık bir kod ister; bu sayfa bunu göndermez. Davaları Control Deck'te okuyun.</value>
   </data>
   <data name="The administrator has a second factor, and the REST API asks for its one-time code before it answers. Open the page again to be asked for the code." xml:space="preserve">
     <value>Yöneticinin ikinci bir etkeni var ve REST API yanıt vermeden önce tek kullanımlık kodunu istiyor. Kodun sorulması için sayfayı yeniden açın.</value>
@@ -12805,7 +12805,7 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
     <value>Virüsten koruma yapılandırması okunamadı.</value>
   </data>
   <data name="The anti-virus configuration could not be read: {0}" xml:space="preserve">
-    <value>Antivirüs yapılandırması okunamadı: {0}</value>
+    <value>Virüsten koruma yapılandırması okunamadı: {0}</value>
   </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>Arşivde bu hesap için ileti yok.</value>
@@ -13026,7 +13026,7 @@ Yukarıdaki anahtarı seçip elle kopyalayın - bir daha gösterilmeyecek.</valu
     <value>Tutarlılık denetimi kapalı; bu yüzden hiç tarama çalışmadı. {0} sayfasında 'İleti satırlarını diskteki dosyalarla düzenli aralıklarla çapraz denetle' ayarını etkinleştirin; sunucu ardından başlangıçta ve her saat tarar ve {1} dosyasını yazar.</value>
   </data>
   <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.ini." xml:space="preserve">
-    <value>ARC mühürlemenin karşılığı: gelen postada, güvenilen bir mühürleyiciden gelen geçerli bir ARC zinciri, DMARC başarısı iletme yüzünden bozulmuş bir ileti için DMARC başarısızlık puanını dengeleyebilir (RFC 8617). hMailServer.ini yerine diğer spam önleme ayarlarıyla birlikte saklandığı için Spam önleme ayarları sayfasının Gönderen kimlik doğrulaması sekmesinde yapılandırılır. Güvenilen mühürleyici listesi boşken özellik tasarım gereği hiçbir şey yapmaz: herkes baştan sona bir ARC zinciri uydurabilir ve onu kendi DNS'inde yayımladığı anahtarlarla mühürleyebilir; bu zincir doğrulanır.</value>
+    <value>ARC mühürlemenin karşılığı: gelen postada, güvenilen bir mühürleyiciden gelen geçerli bir ARC zinciri, DMARC başarısı iletme yüzünden bozulmuş bir ileti için DMARC başarısızlık puanını dengeleyebilir (RFC 8617). hMailServer.ini yerine diğer spam önleme ayarlarıyla birlikte saklandığı için Spam önleme ayarları sayfasının Gönderen kimlik doğrulaması sekmesinde yapılandırılır.</value>
   </data>
   <data name="The current password counts as the most recent one, so setting a password to itself is refused too - the repeat somebody is most likely to try." xml:space="preserve">
     <value>Geçerli parola en son parola sayılır; bu yüzden bir parolayı kendisine ayarlamak da reddedilir - birinin denemesi en olası tekrar budur.</value>
@@ -13050,7 +13050,7 @@ Yukarıdaki anahtarı seçip elle kopyalayın - bir daha gösterilmeyecek.</valu
     <value>Veritabanının saklanan sırlar anahtarına ilişkin kaydı okunamadı, bu yüzden bu sunucunun veritabanının anahtarına sahip olup olmadığı anlaşılamıyor.</value>
   </data>
   <data name="The database's second factors and [Settings] secrets are sealed under the stored-secrets key {0}, which this server does not hold, so they do not open here. Import it on the server from one that holds it: {1}." xml:space="preserve">
-    <value>Veritabanındaki ikinci faktörler ve [Settings] sırları, bu sunucuda bulunmayan {0} saklanan sırlar anahtarıyla mühürlü, bu yüzden burada açılmıyor. Anahtarı, ona sahip bir sunucudan bu sunucuya içe aktarın: {1}.</value>
+    <value>Veritabanındaki ikinci etkenler ve [Settings] sırları, bu sunucuda bulunmayan {0} saklanan sırlar anahtarıyla mühürlü, bu yüzden burada açılmıyor. Anahtarı, ona sahip bir sunucudan bu sunucuya içe aktarın: {1}.</value>
   </data>
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>Veritabanı: bağlantı havuzundan söz eden hataları arayın. Havuz süresi dolduğunda bir alıcı araması 550 yerine 451 4.3.2 yanıtı verir; bu yüzden bir yedekleme tarafından kilitlenmiş bir veritabanı postayı geri çevirmek yerine erteler.</value>
@@ -13200,7 +13200,7 @@ Yukarıdaki anahtarı seçip elle kopyalayın - bir daha gösterilmeyecek.</valu
     <value>Süre sonu, imzanın kapsadığı baytların içindedir; bu yüzden üçüncü bir tarafın ekleyebileceği bir şey değil, gönderen etki alanının kendi talimatıdır. Bunu kapatmak, yakalanan imzalı bir iletinin süresiz olarak yeniden oynatılabileceği anlamına gelir.</value>
   </data>
   <data name="The export is one .zip on this computer: mail as mbox per folder, contacts as vCard, calendars, the webmail's preferences, the Sieve script, the log lines naming the address and an account.xml with the rest. Erasing removes what deleting the account leaves: quarantine, trace and greylisting rows, list memberships, aliases, other people's address-book entries, the first-contact memory, the archive tree except copies under hold, and rewrites the log lines." xml:space="preserve">
-    <value>Dışa aktarma bu bilgisayarda tek bir .zip'tir: klasör başına mbox olarak posta, vCard olarak kişiler, takvimler, web postasının tercihleri, Sieve betiği, adresi anan günlük satırları ve geri kalanıyla bir account.xml. Silme, hesabı silmenin geride bıraktığını kaldırır: karantina, izleme ve greylisting satırları, liste üyelikleri, takma adlar, başkalarının adres defteri kayıtları, ilk temas belleği, bekletme altındaki kopyalar hariç arşiv ağacı ve günlük satırlarını yeniden yazar.</value>
+    <value>Dışa aktarma bu bilgisayarda tek bir .zip'tir: klasör başına mbox olarak posta, vCard olarak kişiler, takvimler, web postasının tercihleri, Sieve betiği, adresi anan günlük satırları ve geri kalanıyla bir account.xml. Silme, hesabı silmenin geride bıraktığını kaldırır: karantina, izleme ve greylisting satırları, liste üyelikleri, diğer adlar, başkalarının adres defteri kayıtları, ilk temas belleği, bekletme altındaki kopyalar hariç arşiv ağacı ve günlük satırlarını yeniden yazar.</value>
   </data>
   <data name="The external setup could not be checked - not connected to the server." xml:space="preserve">
     <value>Dış kurulum denetlenemedi - sunucuya bağlı değil.</value>
@@ -13283,10 +13283,10 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
     <value>Kimlik sağlayıcısının bu kişi için kimliği.</value>
   </data>
   <data name="The index has been emptied and the indexer asked to rebuild it. The rebuild runs in the background, in passes bounded by the limits above, so on a large mailstore it will take several passes - IMAP SEARCH finds less than it should until it finishes." xml:space="preserve">
-    <value>Dizin boşaltıldı ve dizinleyiciden onu yeniden oluşturması istendi. Yeniden oluşturma arka planda, yukarıdaki sınırlarla bağlı geçişlerle çalışır; bu yüzden büyük bir posta deposunda birkaç geçiş sürer - bitene kadar IMAP SEARCH olması gerekenden daha azını bulur.</value>
+    <value>İndeks boşaltıldı ve indeksleyiciden onu yeniden oluşturması istendi. Yeniden oluşturma arka planda, yukarıdaki sınırlarla bağlı geçişlerle çalışır; bu yüzden büyük bir posta deposunda birkaç geçiş sürer - bitene kadar IMAP SEARCH olması gerekenden daha azını bulur.</value>
   </data>
   <data name="The indexer has been asked to run; it works in the background and the counts below will not move until it has. As things stand:" xml:space="preserve">
-    <value>Dizinleyiciden çalışması istendi; arka planda çalışır ve aşağıdaki sayılar o çalışana kadar değişmez. Şu anki durum:</value>
+    <value>İndeksleyiciden çalışması istendi; arka planda çalışır ve aşağıdaki sayılar o çalışana kadar değişmez. Şu anki durum:</value>
   </data>
   <data name="The install of hMailServer {0} was cancelled: {1}" xml:space="preserve">
     <value>hMailServer {0} yüklemesi iptal edildi: {1}</value>
@@ -13313,7 +13313,7 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
     <value>Öğe artık yok.</value>
   </data>
   <data name="The key an account's second factor and the [Settings] secrets are sealed under in the database. It exists on the server alone, so a copy has to be exported and kept with the database backups." xml:space="preserve">
-    <value>Bir hesabın ikinci faktörünün ve [Settings] sırlarının veritabanında altında mühürlendiği anahtar. Yalnızca sunucuda bulunur, bu yüzden bir kopyası dışa aktarılmalı ve veritabanı yedekleriyle birlikte saklanmalıdır.</value>
+    <value>Bir hesabın ikinci etkeninin ve [Settings] sırlarının veritabanında altında mühürlendiği anahtar. Yalnızca sunucuda bulunur, bu yüzden bir kopyası dışa aktarılmalı ve veritabanı yedekleriyle birlikte saklanmalıdır.</value>
   </data>
   <data name="The key file could not be checked from this machine." xml:space="preserve">
     <value>Anahtar dosyası bu makineden denetlenemedi.</value>
@@ -13331,7 +13331,7 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
     <value>Anahtar dosyası şifreli ve saklanmış bir parola ifadesi yok; bu yüzden anahtar yüklenmez (sunucu hatası 6170) ve bu sertifikayı kullanan her TLS portu başlatılamaz - bu portlardaki gelen posta durur. Aşağıya parola ifadesini girin veya dosyayı şifrelenmemiş bir anahtarla değiştirin.</value>
   </data>
   <data name="The key file is not encrypted, and none is stored." xml:space="preserve">
-    <value>Anahtar dosyası şifreli değil ve hiçbiri saklanmıyor.</value>
+    <value>Anahtar dosyası şifreli değil ve saklanmış bir parola ifadesi yok.</value>
   </data>
   <data name="The key file is passphrase-protected (an encrypted PEM). It only loads if the matching passphrase is stored on this certificate." xml:space="preserve">
     <value>Anahtar dosyası parola ifadesiyle korunuyor (şifreli PEM). Yalnızca eşleşen parola ifadesi bu sertifikada saklıysa yüklenir.</value>
@@ -13382,7 +13382,7 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
     <value>Son deneme {0} tarihinde başarısız oldu: {1}</value>
   </data>
   <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts only an installer signed by one of this project's two release workflows - the GitHub one for the releases up to 6.3.3, the GitLab one for the releases after - and recorded in the public transparency log." xml:space="preserve">
-    <value>Bu karttaki son beş ayar, kendi sürümlerini üretip kendi Sigstore'uyla imzalayan ya da bu projeninkileri yansılayan bir kuruluş içindir. Hepsini boş bırakın; sunucu yalnızca bu projenin iki sürüm iş akışından biri tarafından (6.3.3'e kadarki sürümler için GitHub'daki, sonrakiler için GitLab'daki) imzalanmış ve genel şeffaflık günlüğüne kaydedilmiş bir kurulum programına güvenir.</value>
+    <value>Bu karttaki son beş ayar, kendi sürümlerini üretip kendi Sigstore'uyla imzalayan ya da bu projeninkileri yansılayan bir kuruluş içindir. Hepsini boş bırakın; sunucu yalnızca bu projenin iki sürüm iş akışından biri tarafından (6.3.3'e kadarki sürümler için GitHub'daki, sonrakiler için GitLab'daki) imzalanmış ve genel şeffaflık günlüğüne kaydedilmiş bir yükleyiciye güvenir.</value>
   </data>
   <data name="The last update step failed: {0}" xml:space="preserve">
     <value>Son güncelleştirme adımı başarısız oldu: {0}</value>
@@ -13391,7 +13391,7 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
     <value>Bu sayfanın sözünü ettiği satırlar hata ayıklama düzeyinde yazılır; yavaş olanlar uygulama düzeyinde de yazılır; bu yüzden yalnızca uygulama günlüğüyle bile önemli olanları görürsünüz. Sorunu bir kez yeniden üretin, sonra günlüğü okuyun. Yoğun bir sunucuda hata ayıklama günlüğünü sonradan kapatmayı unutmayın.</value>
   </data>
   <data name="The list is empty, and an empty list changes nothing: every domain is greylisted and scored as before." xml:space="preserve">
-    <value>Liste boş ve boş bir liste hiçbir şeyi değiştirmez: her alan adı eskisi gibi greylisting’e ve puanlamaya tabidir.</value>
+    <value>Liste boş ve boş bir liste hiçbir şeyi değiştirmez: her alan adı eskisi gibi greylisting'e ve puanlamaya tabidir.</value>
   </data>
   <data name="The list that decides is {0}, if its condition holds. {1}" xml:space="preserve">
     <value>Koşulu sağlanırsa karar veren liste: {0}. {1}</value>
@@ -13487,7 +13487,7 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
     <value>Sonraki anahtar iptal edildi.</value>
   </data>
   <data name="The next message from this domain to the address is refused, dropped or delivered and recorded, as the bounce settings say. Mail already queued to it meets the list on its next delivery attempt." xml:space="preserve">
-    <value>Bu etki alanından adrese giden bir sonraki ileti, geri dönüş ayarlarında belirtildiği gibi reddedilir, çıkarılır ya da teslim edilip kaydedilir. Ona zaten kuyrukta olan posta, bir sonraki teslim denemesinde listeyle karşılaşır.</value>
+    <value>Bu etki alanından adrese giden bir sonraki ileti, geri dönüş ayarlarında belirtildiği gibi reddedilir, çıkarılır ya da teslim edilip kaydedilir. Adrese gitmek üzere zaten kuyrukta olan posta, bir sonraki teslim denemesinde listeyle karşılaşır.</value>
   </data>
   <data name="The next rotation starts when the interval has passed." xml:space="preserve">
     <value>Sonraki döndürme, aralık dolduğunda başlar.</value>
@@ -13511,7 +13511,7 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
     <value>Ortağın anahtarı (boş = kayıtlı anahtar korunur)</value>
   </data>
   <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
-    <value>Doğru yazıldığından emin _olmak için parola tümcesi bir kez daha</value>
+    <value>Doğru yazıldığından emin _olmak için parola ifadesi bir kez daha</value>
   </data>
   <data name="The passphrase of {0} is saved." xml:space="preserve">
     <value>{0} için parola ifadesi kaydedildi.</value>
@@ -13585,7 +13585,7 @@ Yine de eklensin mi?</value>
     <value>Sağlayıcının bir belirtecin hâlâ geçerli olup olmadığını bildiren RFC 7662 uç noktası.</value>
   </data>
   <data name="The public address other servers see, when it is not an address of this machine." xml:space="preserve">
-    <value>Bu bilgisayarın adresi olmadığında, diğer sunucuların gördüğü ortak adres.</value>
+    <value>Bu bilgisayarın adresi olmadığında, diğer sunucuların gördüğü genel adres.</value>
   </data>
   <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written." xml:space="preserve">
     <value>Herkese açık derlem https://api.pwnedpasswords.com/range/ adresindedir. Kendi yansısını çalıştıran bir kuruluş onu burada belirtir: beş karakter yola eklenir veya {prefix} yazan yere konur.</value>
@@ -13597,7 +13597,7 @@ Yine de eklensin mi?</value>
     <value>Azure portalının verdiği, sv= ile başlayan sorgu dizesi. Korumalı olarak saklanır ve bir daha asla gösterilmez.</value>
   </data>
   <data name="The quota policy for this domain's mailboxes: where the owner is warned and in what words, how far past the limit incoming mail is still accepted, and where sending stops. -1 and an empty text mean the server's own values apply." xml:space="preserve">
-    <value>Bu alanın posta kutuları için kota ilkesi: sahibin nerede ve hangi sözlerle uyarıldığı, gelen postanın sınırın ne kadar ötesinde hâlâ kabul edildiği ve göndermenin nerede durduğu. -1 ve boş metin, sunucunun değerlerinin geçerli olduğu anlamına gelir.</value>
+    <value>Bu etki alanının posta kutuları için kota ilkesi: sahibin nerede ve hangi sözlerle uyarıldığı, gelen postanın sınırın ne kadar ötesinde hâlâ kabul edildiği ve göndermenin nerede durduğu. -1 ve boş metin, sunucunun değerlerinin geçerli olduğu anlamına gelir.</value>
   </data>
   <data name="The record at {0} carries p={1}, which is not a policy receivers recognise (none, quarantine, reject). Published: {2}" xml:space="preserve">
     <value>{0} kaydında p={1} var; bu, alıcıların tanıdığı bir ilke değil (none, quarantine, reject). Yayımlanan: {2}</value>
@@ -13762,7 +13762,7 @@ Yine de eklensin mi?</value>
     <value>Sunucu</value>
   </data>
   <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
-    <value>Sunucu, bu Control Panel'in okuyamadığı bir yanıt verdi ({0})</value>
+    <value>Sunucu, bu Denetim Masası'nın okuyamadığı bir yanıt verdi ({0})</value>
   </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on Install update above, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Sunucu yeni bir sürümü fark edebilir, onu sürümün kendi Sigstore imzasına karşı doğrulayabilir ve uygulayabilir - yukarıdaki Güncelleştirmeyi yükle düğmesine bir tıklamayla ya da belirlediğiniz bir pencerenin içinde kendi başına. Denetimi açana kadar kapalıdır; denetim, istekten başka hiçbir şey göndermez.</value>
@@ -13789,7 +13789,7 @@ Yine de eklensin mi?</value>
     <value>Sunucu kullanılabilir bir kayıt döndürmedi. Hata günlüğüne bakın.</value>
   </data>
   <data name="The server does not answer {0} in {1}; it may be older than this Control Panel." xml:space="preserve">
-    <value>Sunucu {1} üzerinde {0} için yanıt vermiyor; bu Control Panel'den eski olabilir.</value>
+    <value>Sunucu {1} üzerinde {0} için yanıt vermiyor; bu Denetim Masası'ndan eski olabilir.</value>
   </data>
   <data name="The server fails closed rather than guessing (server error 5921): no password is sent and the sign-in is refused. Fix it by choosing LDAPS or StartTLS, or the Negotiate bind method (which never transmits the password) - or, on a network you control end to end, by explicitly allowing the unprotected password." xml:space="preserve">
     <value>Sunucu tahmin etmek yerine kapalı olarak başarısız olur (sunucu hatası 5921): parola gönderilmez ve oturum açma reddedilir. LDAPS veya StartTLS ya da (parolayı hiçbir zaman iletmeyen) Negotiate bağlama yöntemini seçerek - veya uçtan uca denetlediğiniz bir ağda korumasız parolaya açıkça izin vererek - düzeltin.</value>
@@ -13801,7 +13801,7 @@ Yine de eklensin mi?</value>
     <value>Sunucu sonraki anahtarı oluşturur, yayımlanacak TXT kaydını gösterir, kaydı kendi çözümleyicisiyle denetler ve imzalamayı ancak kayıt yayılma süresinin tamamı boyunca çözümlendiğinde yeni anahtara geçirir. Eski seçici saklama süresi boyunca tutulur ve ardından emekliye ayrılır.</value>
   </data>
   <data name="The server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
-    <value>Sunucuda böyle bir ayar ya da eylem yok - bu Control Panel'den daha eski olabilir ({0})</value>
+    <value>Sunucuda böyle bir ayar ya da eylem yok - bu Denetim Masası'ndan daha eski olabilir ({0})</value>
   </data>
   <data name="The server ignores {0}: not an address or a CIDR block, so no address is spared for it." xml:space="preserve">
     <value>Sunucu {0} girdisini yok sayar: adres veya CIDR bloğu değildir, bu yüzden hiçbir adresi muaf tutmaz.</value>
@@ -13858,7 +13858,7 @@ Yine de eklensin mi?</value>
     <value>Sunucu bu değeri saklar ve hiç okumaz - hiçbir şey ondan bir iş parçacığı önceliği ayarlamaz; bu yüzden değiştirmenin etkisi yoktur. Yukarıdaki iş parçacığı sayılarına uyulur.</value>
   </data>
   <data name="The server to ask (empty = the domain's MX hosts)" xml:space="preserve">
-    <value>Sorulacak sunucu (boş = etki alanının MX ana bilgisayarları)</value>
+    <value>Sorulacak sunucu (boş = alan adının MX ana bilgisayarları)</value>
   </data>
   <data name="The server's Host name (Protocols &gt; SMTP) is empty, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
     <value>Sunucunun Ana bilgisayar adı (Protokoller &gt; SMTP) boş; bu yüzden HELO/EHLO'da Windows bilgisayar adını duyuruyor - genel bir DNS adı değil - ve hiçbir "a:" mekanizması sunulamaz. Öneri yalnızca etki alanının MX ana bilgisayarlarını yetkilendirir. Önce ana bilgisayar adını ayarlayın; bu sayfadaki birkaç kayıt ona ihtiyaç duyar.</value>
@@ -13976,13 +13976,13 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>Saklanan sırlar anahtarı - veritabanının sırlarının altında mühürlendiği şey</value>
   </data>
   <data name="The stored-secrets key {0} has never been exported. Export it on the server with {1} and keep the file with the database backups: a database restored without it opens no second factor and no [Settings] secret." xml:space="preserve">
-    <value>Saklanan sırlar anahtarı {0} hiç dışa aktarılmadı. Sunucuda {1} ile dışa aktarın ve dosyayı veritabanı yedekleriyle birlikte saklayın: onsuz geri yüklenen bir veritabanı hiçbir ikinci faktörü ve hiçbir [Settings] sırrını açamaz.</value>
+    <value>Saklanan sırlar anahtarı {0} hiç dışa aktarılmadı. Sunucuda {1} ile dışa aktarın ve dosyayı veritabanı yedekleriyle birlikte saklayın: onsuz geri yüklenen bir veritabanı hiçbir ikinci etkeni ve hiçbir [Settings] sırrını açamaz.</value>
   </data>
   <data name="The stored-secrets key {0} was exported on {1}; keep that file with the database backups." xml:space="preserve">
     <value>Saklanan sırlar anahtarı {0}, {1} tarihinde dışa aktarıldı; bu dosyayı veritabanı yedekleriyle birlikte saklayın.</value>
   </data>
   <data name="The subject tag breaks any DKIM signature the sender made over their subject, exactly as the anti-spam subject prefix does. The header does not, so prefer the header where the reader can show it." xml:space="preserve">
-    <value>Konudaki etiket, istenmeyen posta korumasının konu öneki gibi, gönderenin kendi konusu üzerinde oluşturduğu her DKIM imzasını bozar. Başlık bozmaz; bu yüzden okuyucunun gösterebildiği yerlerde başlığı tercih edin.</value>
+    <value>Konudaki etiket, spam korumasının konu öneki gibi, gönderenin kendi konusu üzerinde oluşturduğu her DKIM imzasını bozar. Başlık bozmaz; bu yüzden okuyucunun gösterebildiği yerlerde başlığı tercih edin.</value>
   </data>
   <data name="The tag text must be 100 characters or fewer." xml:space="preserve">
     <value>Etiket metni en çok 100 karakter olmalıdır.</value>
@@ -14003,13 +14003,13 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>Taşıma güvenliği yapılandırması okunamadı.</value>
   </data>
   <data name="The transport security configuration could not be read: {0}" xml:space="preserve">
-    <value>Aktarım güvenliği yapılandırması okunamadı: {0}</value>
+    <value>Taşıma güvenliği yapılandırması okunamadı: {0}</value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>İki yarı farklı biçimde başarısız olur ve nedenleri farklıdır. Başka bir şey yapmadan önce hangisine sahip olduğunuzu belirleyin.</value>
   </data>
   <data name="The two passphrases are not the same. Nothing has been saved." xml:space="preserve">
-    <value>İki parola tümcesi aynı değil. Hiçbir şey kaydedilmedi.</value>
+    <value>İki parola ifadesi aynı değil. Hiçbir şey kaydedilmedi.</value>
   </data>
   <data name="The two passwords do not match." xml:space="preserve">
     <value>İki parola eşleşmiyor.</value>
@@ -14087,7 +14087,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>{0} profili {1} tarihinde uygulanamadı: değiştireceği ayarların hiçbiri yazılamadı, bu yüzden geri alınacak bir şey yok. Profili yeniden uygulayın ya da gelen ayarları koruyun.</value>
   </data>
   <data name="The {0} profile is applied. What it replaced is kept, and can be put back." xml:space="preserve">
-    <value>{0} profili uygulandı. Yerine koyduğu şeyler saklanıyor ve geri alınabilir.</value>
+    <value>{0} profili uygulandı. Yerini aldığı değerler saklanıyor ve geri konabilir.</value>
   </data>
   <data name="The {0} profile was applied and then reverted on {1}; the settings are the ones it replaced." xml:space="preserve">
     <value>{0} profili uygulandı, ardından {1} tarihinde geri alındı; ayarlar onun yerine koyduklarıdır.</value>
@@ -14249,7 +14249,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>Bu parola yayımlanmış bir veri sızıntısında yer alıyor, bu yüzden bu hesaba karşı ilk denenecekler arasında olur. Başka bir parola seçin.</value>
   </data>
   <data name="This project's installers have been Authenticode-signed since 6.3.1, by Progressive Robot Ltd through Azure Artifact Signing; the releases before 6.3.1 carry no signature, and this refuses them. It checks, when an installer is downloaded, that Windows trusts the signature - WinVerifyTrust against this machine's trusted roots, with no revocation check - and not who made it: that is the job of the Sigstore signature, which every release carries and which is checked either way." xml:space="preserve">
-    <value>Bu projenin kurulum programları 6.3.1'den beri Progressive Robot Ltd tarafından Azure Artifact Signing ile Authenticode imzalıdır; 6.3.1'den önceki sürümler imza taşımaz ve bu ayar onları reddeder. Bir kurulum programı indirildiğinde, Windows'un imzaya güvenip güvenmediğini denetler - bu makinenin güvenilen kök sertifikalarına karşı WinVerifyTrust, iptal denetimi olmadan -, imzayı kimin attığını değil: o, her sürümün taşıdığı ve her durumda denetlenen Sigstore imzasının işidir.</value>
+    <value>Bu projenin yükleyicileri 6.3.1'den beri Progressive Robot Ltd tarafından Azure Artifact Signing ile Authenticode imzalıdır; 6.3.1'den önceki sürümler imza taşımaz ve bu ayar onları reddeder. Bir yükleyici indirildiğinde, Windows'un imzaya güvenip güvenmediğini denetler - bu makinenin güvenilen kök sertifikalarına karşı WinVerifyTrust, iptal denetimi olmadan -, imzayı kimin attığını değil: o, her sürümün taşıdığı ve her durumda denetlenen Sigstore imzasının işidir.</value>
   </data>
   <data name="This range _expires" xml:space="preserve">
     <value>_Bu aralığın süresi dolar</value>
@@ -14279,13 +14279,13 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>Bu sunucuda {0} hesap var, yani kullanımda: profil yeni bir sunucuya önerilir ve dördünden herhangi biri yine de bununla karşılaştırılabilir.</value>
   </data>
   <data name="This server is older than the Control Panel and cannot allow or block a sender from the quarantine. Upgrade the server." xml:space="preserve">
-    <value>Bu sunucu Control Panel'den daha eski ve karantinadan bir gönderene izin veremiyor ya da onu engelleyemiyor. Sunucuyu güncelleyin.</value>
+    <value>Bu sunucu Denetim Masası'ndan daha eski ve karantinadan bir gönderene izin veremiyor ya da onu engelleyemiyor. Sunucuyu güncelleyin.</value>
   </data>
   <data name="This server is older than the Control Panel and cannot search every held message, so the search looks at the most recent only. Upgrade the server." xml:space="preserve">
     <value>Bu sunucu Control Panel'den daha eski ve tüm bekletilen iletilerde arama yapamıyor, bu yüzden arama yalnızca en yenilere bakıyor. Sunucuyu güncelleyin.</value>
   </data>
   <data name="This server is older than the Control Panel and cannot show a held message's headers or text. Upgrade the server." xml:space="preserve">
-    <value>Bu sunucu Control Panel'den daha eski ve bekletilen bir iletinin üstbilgilerini ya da metnini gösteremiyor. Sunucuyu güncelleyin.</value>
+    <value>Bu sunucu Denetim Masası'ndan daha eski ve bekletilen bir iletinin üstbilgilerini ya da metnini gösteremiyor. Sunucuyu güncelleyin.</value>
   </data>
   <data name="This server now" xml:space="preserve">
     <value>Bu sunucu şu anda</value>
@@ -14321,7 +14321,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>Bu, "{0}" etki alanına karşı doğrular. Sunucunun kendi bilgisayarı ona katılmış olmalı.</value>
   </data>
   <data name="This will not stop the next message from this sender being held by the server-wide spam score." xml:space="preserve">
-    <value>Bu, sunucu genelindeki istenmeyen puanının bu gönderenin bir sonraki iletisini bekletmesini önlemez.</value>
+    <value>Bu, sunucu genelindeki spam puanının bu gönderenin bir sonraki iletisini bekletmesini önlemez.</value>
   </data>
   <data name="This will not stop the next message from this sender being held if it scores {0} or more." xml:space="preserve">
     <value>Bu, bu gönderenin bir sonraki iletisi {0} veya daha fazla puan alırsa bekletilmesini önlemez.</value>
@@ -14582,7 +14582,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>Yeni parolayı yazın.</value>
   </data>
   <data name="Type the sender's address, the IP address it connects from, or both." xml:space="preserve">
-    <value>Göndereninin adresini, bağlandığı IP adresini ya da ikisini birden yazın.</value>
+    <value>Gönderenin adresini, bağlandığı IP adresini ya da ikisini birden yazın.</value>
   </data>
   <data name="Type the user name the password belongs to." xml:space="preserve">
     <value>Parolanın ait olduğu kullanıcı adını yazın.</value>
@@ -14696,7 +14696,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>Yalnızca hesabın imzası olmadığında kullan</value>
   </data>
   <data name="Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last." xml:space="preserve">
-    <value>Listenin gönderdiği her kopyanın zarf göndericisi olarak kullanılır; böylece teslim başarısızlıkları - ölü bir abone, dolu bir posta kutusu - en son kim yazdıysa ona değil, liste sahibine ulaşır.</value>
+    <value>Listenin gönderdiği her kopyanın zarf göndereni olarak kullanılır; böylece teslim başarısızlıkları - ölü bir abone, dolu bir posta kutusu - en son kim yazdıysa ona değil, liste sahibine ulaşır.</value>
   </data>
   <data name="Used by" xml:space="preserve">
     <value>Kullanan portlar</value>
@@ -14828,7 +14828,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>DNS kaydı bekleniyor</value>
   </data>
   <data name="Waiting for the old selector to be retired." xml:space="preserve">
-    <value>Eski seçicinin emekliye ayrılması bekleniyor.</value>
+    <value>Eski seçicinin kullanımdan kaldırılması bekleniyor.</value>
   </data>
   <data name="Waiting for the old selector to retire" xml:space="preserve">
     <value>Eski seçicinin emekliye ayrılması bekleniyor</value>
@@ -14837,7 +14837,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>Windows isteminde hMailServer'ın değişiklik yapmasına izin vermeniz bekleniyor.</value>
   </data>
   <data name="Wakes the indexer instead of waiting for its next pass, and reports how many of this server's messages are currently indexed. The pass itself runs in the background and is bounded by the limits above, so on a large backlog it makes progress rather than finishing." xml:space="preserve">
-    <value>Bir sonraki geçişini beklemek yerine dizinleyiciyi uyandırır ve bu sunucunun iletilerinden şu anda kaçının dizinlendiğini bildirir. Geçişin kendisi arka planda çalışır ve yukarıdaki sınırlarla bağlıdır; bu yüzden büyük bir birikimde bitirmek yerine ilerler.</value>
+    <value>Bir sonraki geçişini beklemek yerine indeksleyiciyi uyandırır ve bu sunucunun iletilerinden şu anda kaçının indekslendiğini bildirir. Geçişin kendisi arka planda çalışır ve yukarıdaki sınırlarla bağlıdır; bu yüzden büyük bir birikimde bitirmek yerine ilerler.</value>
   </data>
   <data name="Warm-up schedule" xml:space="preserve">
     <value>Isınma takvimi</value>
@@ -14930,7 +14930,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>Ele geçirme görünümlü bir gönderimin yol açtığı sonuç</value>
   </data>
   <data name="What an account of its own changes. hMailServer.ini is read-only to it, on purpose: the administrator password, its second factor, the folders and the database are changed as the Control Panel says when you try, and settings are kept in the database as always. A folder set later outside the program folder - a backup or archive folder - is reached once Grant access approves it. An account other than NT SERVICE\hMailServer is set in services.msc and needs the &quot;Log on as a service&quot; right; an external database with Windows authentication needs a login for it. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
-    <value>Kendi hesabının değiştirdikleri. hMailServer.ini bu hesap için bilerek salt okunurdur: yönetici parolası, ikinci faktörü, klasörler ve veritabanı, denediğinizde Denetim Masası'nın söylediği şekilde değiştirilir ve ayarlar her zamanki gibi veritabanında tutulur. Program klasörünün dışında sonradan ayarlanan bir klasöre - bir yedekleme veya arşiv klasörüne - Erişim ver onu onayladığı anda ulaşılır. NT SERVICE\hMailServer dışındaki bir hesap services.msc içinde ayarlanır ve "Hizmet olarak oturum aç" hakkına ihtiyaç duyar; Windows kimlik doğrulamalı harici bir veritabanı onun için bir oturum açma kaydı ister. Oturum açamayan bir hizmet Windows olay günlüğüne 1069 hatasını yazar ve başlamaz.</value>
+    <value>Kendi hesabının değiştirdikleri. hMailServer.ini bu hesap için bilerek salt okunurdur: yönetici parolası, ikinci etkeni, klasörler ve veritabanı, denediğinizde Denetim Masası'nın söylediği şekilde değiştirilir ve ayarlar her zamanki gibi veritabanında tutulur. Program klasörünün dışında sonradan ayarlanan bir klasöre - bir yedekleme veya arşiv klasörüne - Erişim ver onu onayladığı anda ulaşılır. NT SERVICE\hMailServer dışındaki bir hesap services.msc içinde ayarlanır ve "Hizmet olarak oturum aç" hakkına ihtiyaç duyar; Windows kimlik doğrulamalı harici bir veritabanı onun için bir oturum açma kaydı ister. Oturum açamayan bir hizmet Windows olay günlüğüne 1069 hatasını yazar ve başlamaz.</value>
   </data>
   <data name="What can be negotiated" xml:space="preserve">
     <value>Neyin uzlaşılabileceği</value>
@@ -14987,7 +14987,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>Ne _gönderilir</value>
   </data>
   <data name="What is published at {0} does not carry this key's public key, so every signature made with this key fails verification. Waiting will not fix this - correct the published value to match the one above." xml:space="preserve">
-    <value>{0} adresinde TXT kayıtları var ama hiçbiri bu anahtarın ortak anahtarını taşımıyor, bu yüzden bu anahtarla yapılan her imza doğrulamada başarısız oluyor. Beklemek bunu düzeltmez - yayımlanan değeri yukarıdakiyle eşleşecek şekilde düzeltin.</value>
+    <value>{0} adresinde yayımlanan içerik bu anahtarın ortak anahtarını taşımıyor, bu yüzden bu anahtarla yapılan her imza doğrulamada başarısız oluyor. Beklemek bunu düzeltmez - yayımlanan değeri yukarıdakiyle eşleşecek şekilde düzeltin.</value>
   </data>
   <data name="What is sent" xml:space="preserve">
     <value>Ne gönderilir</value>
@@ -15125,7 +15125,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>Control Deck'in nerede olduğu okunamadı.</value>
   </data>
   <data name="Where the administrator is told, well before anything is refused. 1,024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
-    <value>Herhangi bir şey reddedilmeden çok önce yöneticiye nerede söylendiği. 1.024 MB kabaca elli en büyük boyutlu ileti daha demektir.</value>
+    <value>Herhangi bir şey reddedilmeden çok önce yöneticiye hangi noktada haber verildiği. 1.024 MB kabaca elli en büyük boyutlu ileti daha demektir.</value>
   </data>
   <data name="Where the issued certificate would be written could not be determined, because neither the output folder above nor the server's data folder ([Directories] DataFolder in hMailServer.ini) could be read." xml:space="preserve">
     <value>Verilen sertifikanın nereye yazılacağı belirlenemedi, çünkü ne yukarıdaki çıkış klasörü ne de sunucunun veri klasörü (hMailServer.ini içindeki [Directories] DataFolder) okunabildi.</value>
@@ -15212,7 +15212,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>Hangi dizin girdilerinin posta kutusu olacağı</value>
   </data>
   <data name="Which domains have a spam trap could not be read." xml:space="preserve">
-    <value>Hangi alan adlarının spam tuzağı olduğu okunamadı.</value>
+    <value>Hangi etki alanlarının spam tuzağı olduğu okunamadı.</value>
   </data>
   <data name="Which list do I need?" xml:space="preserve">
     <value>Hangi listeye ihtiyacım var?</value>
@@ -15344,7 +15344,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>Windows izni</value>
   </data>
   <data name="Windows: an inbound block rule per banned address in Windows Defender Firewall, TCP only and scoped to the ports this server listens on, in a rule group named hMailServer auto-ban; removed when the ban expires or the IP range is deleted. List the addresses you administer from under never-ban first." xml:space="preserve">
-    <value>Windows: Windows Defender Firewall içinde yasaklanan her adres için bir gelen engelleme kuralı, yalnızca TCP ve yalnızca bu sunucunun dinlediği bağlantı noktaları için, hMailServer auto-ban adlı bir kural grubunda; yasak sona erdiğinde veya IP aralığı silindiğinde kaldırılır. Önce yönetim yaptığınız adresleri „asla yasaklama“ listesine yazın.</value>
+    <value>Windows: Windows Defender Firewall içinde yasaklanan her adres için bir gelen engelleme kuralı, yalnızca TCP ve yalnızca bu sunucunun dinlediği bağlantı noktaları için, hMailServer auto-ban adlı bir kural grubunda; yasak sona erdiğinde veya IP aralığı silindiğinde kaldırılır. Önce yönetim yaptığınız adresleri "asla yasaklama" listesine yazın.</value>
   </data>
   <data name="With a list here a message is archived only when its local sender or one of its recipients belongs to a listed domain, and only the copies for listed domains are made - a listed recipient still gets their copy when the sender's domain is not listed. Matched without regard to case." xml:space="preserve">
     <value>Buraya bir liste yazıldığında bir ileti yalnızca yerel göndereni ya da alıcılarından biri listedeki bir etki alanına ait olduğunda arşivlenir ve yalnızca listedeki etki alanları için kopya oluşturulur - gönderenin etki alanı listede olmasa bile listedeki bir alıcı kendi kopyasını yine alır. Büyük/küçük harf gözetilmeden eşleştirilir.</value>
@@ -15353,7 +15353,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>Bir moderatör ayarlıyken yukarıdaki kuralların reddettiği bir gönderen reddedilmek yerine moderatöre iletilir. Moderatör, iletiyi kimliği doğrulanmış bir oturumdan listeye yeniden göndererek onaylar.</value>
   </data>
   <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
-    <value>Parola tümcesi ayarlıyken sıkıştırma kapalıysa ileti dosyaları arşivin içine değil yanına kopyalanır; orada onları hiçbir şey şifrelemez ve yedekleme çalışmayı reddeder. Sıkıştırmayı açın ya da parola tümcesini temizleyin.</value>
+    <value>Parola ifadesi ayarlıyken sıkıştırma kapalıysa ileti dosyaları arşivin içine değil yanına kopyalanır; orada onları hiçbir şey şifrelemez ve yedekleme çalışmayı reddeder. Sıkıştırmayı açın ya da parola ifadesini temizleyin.</value>
   </data>
   <data name="With an interval set, a captured ticket is useless after at most two intervals. Only meaningful while session tickets are enabled above." xml:space="preserve">
     <value>Bir aralık ayarlandığında yakalanan bir bilet en fazla iki aralık sonra işe yaramaz. Yalnızca yukarıda oturum biletleri etkinken anlamlıdır.</value>
@@ -15425,7 +15425,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>Salt yazılır: saklanan bir parola burada bir daha asla gösterilmez - korumak için kutuyu boş bırakın. Sunucudaki hMailServer.ini'de düz metin olarak saklanır, çünkü sunucunun onu dizine olduğu gibi sunması gerekir ve bu yüzden karmalayamaz; INI'ye dosya erişimini buna göre kısıtlayın.</value>
   </data>
   <data name="Writes the conditions an operator alerts on - database unavailable, a listener that would not start, a crash, a failed backup, the disk floor - to the Windows Application log, where Event Viewer, monitoring agents and SIEM collectors can see them. Each condition has an event id of its own that does not change, so an alert can match on it; a healthy server writes nothing at all." xml:space="preserve">
-    <value>Bir işletmenin uyarı aldığı durumları - veritabanının erişilemez olması, başlamayan bir dinleyici, bir çökme, başarısız bir yedekleme, disk tabanı - Olay Görüntüleyicisi'nin, izleme aracılarının ve SIEM toplayıcılarının görebildiği Windows Uygulama günlüğüne yazar. Her durumun değişmeyen kendi olay kimliği vardır, böylece bir uyarı ona göre eşleşebilir; sağlıklı bir sunucu hiçbir şey yazmaz.</value>
+    <value>Bir operatörün uyarı kurduğu durumları - veritabanının erişilemez olması, başlamayan bir dinleyici, bir çökme, başarısız bir yedekleme, disk tabanı - Olay Görüntüleyicisi'nin, izleme aracılarının ve SIEM toplayıcılarının görebildiği Windows Uygulama günlüğüne yazar. Her durumun değişmeyen kendi olay kimliği vardır, böylece bir uyarı ona göre eşleşebilir; sağlıklı bir sunucu hiçbir şey yazmaz.</value>
   </data>
   <data name="Yes" xml:space="preserve">
     <value>Evet</value>
@@ -16590,7 +16590,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>hMailServer.ini bu makinede bulunamadı; bu yüzden ayarları buradan okunamıyor.</value>
   </data>
   <data name="hMailServer.ini was not found on this machine, so mode and max_age shown are the shipped defaults." xml:space="preserve">
-    <value>hMailServer.ini bu makinede bulunamadı; bu yüzden gösterilen kip ve max_age ürünle gelen varsayılanlardır.</value>
+    <value>hMailServer.ini bu makinede bulunamadı; bu yüzden gösterilen mode ve max_age ürünle gelen varsayılanlardır.</value>
   </data>
   <data name="hMailServer.ini was not found on this machine, so the key store's location is unknown. API keys can only be managed from the server itself." xml:space="preserve">
     <value>hMailServer.ini bu makinede bulunamadı; bu yüzden anahtar deposunun konumu bilinmiyor. API anahtarları yalnızca sunucunun kendisinden yönetilebilir.</value>
@@ -17025,7 +17025,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>hesap kilitli</value>
   </data>
   <data name="the account's own domain" xml:space="preserve">
-    <value>hesabın kendi alan adı</value>
+    <value>hesabın kendi etki alanı</value>
   </data>
   <data name="the audience (aud) is not checked" xml:space="preserve">
     <value>hedef kitle (aud) denetlenmiyor</value>
@@ -17484,16 +17484,16 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>{0} belge "{1}" içeriyor.</value>
   </data>
   <data name="{0} domain has trap addresses." xml:space="preserve">
-    <value>{0} alan adının tuzak adresleri var.</value>
+    <value>{0} etki alanının tuzak adresleri var.</value>
   </data>
   <data name="{0} domain, and it is not active." xml:space="preserve">
-    <value>{0} alan adı, etkin değil.</value>
+    <value>{0} etki alanı, etkin değil.</value>
   </data>
   <data name="{0} domains have trap addresses." xml:space="preserve">
-    <value>{0} alan adının tuzak adresleri var.</value>
+    <value>{0} etki alanının tuzak adresleri var.</value>
   </data>
   <data name="{0} domains, none of them active." xml:space="preserve">
-    <value>{0} alan adı, hiçbiri etkin değil.</value>
+    <value>{0} etki alanı, hiçbiri etkin değil.</value>
   </data>
   <data name="{0} entries" xml:space="preserve">
     <value>{0} girdi</value>
@@ -17586,7 +17586,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>{0} zaten bir genel klasör.</value>
   </data>
   <data name="{0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
-    <value>{0} genel bir sonektir. Onun için bir giriş, altında kayıtlı her alan adını kapsar; bu neredeyse hiçbir zaman amaçlanan değildir.</value>
+    <value>{0} genel bir sonektir. Onun için bir kayıt, altında kayıtlı her alan adını kapsar; bu neredeyse hiçbir zaman amaçlanan değildir.</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} zaten bu grubun üyesi.</value>
@@ -17778,10 +17778,10 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>{0} dakika önce</value>
   </data>
   <data name="{0} more active domain was not looked up." xml:space="preserve">
-    <value>{0} etkin alan adı daha aranmadı.</value>
+    <value>{0} etkin etki alanı daha aranmadı.</value>
   </data>
   <data name="{0} more active domains were not looked up." xml:space="preserve">
-    <value>{0} etkin alan adı daha aranmadı.</value>
+    <value>{0} etkin etki alanı daha aranmadı.</value>
   </data>
   <data name="{0} more step on the {1}" xml:space="preserve">
     <value>{1} içinde {0} adım daha</value>
@@ -18177,7 +18177,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>{0}: {2} adresinde {1} kaydı yok.</value>
   </data>
   <data name="{0}: nothing published at {1} begins with v=STSv1, so senders will not recognise a policy there. Fix the record's value." xml:space="preserve">
-    <value>{0}: {1} konumunda TXT kaydı var ama hiçbiri v=STSv1 ile başlamıyor; bu yüzden gönderenler orada bir ilke tanımayacak. Kaydın değerini düzeltin.</value>
+    <value>{0}: {1} konumunda yayımlananların hiçbiri v=STSv1 ile başlamıyor; bu yüzden gönderenler orada bir ilke tanımayacak. Kaydın değerini düzeltin.</value>
   </data>
   <data name="{0}: only after SMTP authentication" xml:space="preserve">
     <value>{0}: yalnızca SMTP kimlik doğrulamasından sonra</value>
@@ -18261,10 +18261,10 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>{0}: {2} adresindeki {1} kaydı aranmadı.</value>
   </data>
   <data name="{0}: what is published at {1} does not carry this key's public key, so signatures fail verification. Fix the record's value - waiting for propagation will not help." xml:space="preserve">
-    <value>{0}: {1} konumunda TXT kaydı var ama hiçbiri bu anahtarın ortak anahtarını taşımıyor; bu yüzden imzalar doğrulamada başarısız oluyor. Kaydın değerini düzeltin - yayılmasını beklemek yardımcı olmaz.</value>
+    <value>{0}: {1} konumunda yayımlanan içerik bu anahtarın ortak anahtarını taşımıyor; bu yüzden imzalar doğrulamada başarısız oluyor. Kaydın değerini düzeltin - yayılmasını beklemek yardımcı olmaz.</value>
   </data>
   <data name="{0}: what is published at {1} does not match the staged secondary key. Fix the value before promoting - waiting will not help." xml:space="preserve">
-    <value>{0}: {1} konumunda TXT kaydı var ama hiçbiri hazırlanan ikincil anahtarla eşleşmiyor. Yükseltmeden önce değeri düzeltin - beklemek yardımcı olmaz.</value>
+    <value>{0}: {1} konumunda yayımlanan içerik hazırlanan ikincil anahtarla eşleşmiyor. Yükseltmeden önce değeri düzeltin - beklemek yardımcı olmaz.</value>
   </data>
   <data name="{0}: {1}" xml:space="preserve">
     <value>{0}: {1}</value>
