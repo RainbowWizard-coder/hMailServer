@@ -1003,12 +1003,13 @@ in to gitlab.com as a Maintainer. In order, and stopping at the first refusal:
    the checkout's rules script, in the analyzer image the checkout's
    `secret_detection` names, so the landing runs from a checkout of
    `master`, where the batch chooses neither the scanner nor its rules ([What
-   the secret scans read](#what-the-secret-scans-read)); before anything else
-   it refuses (exit 2) unless the checkout's copies of the files it runs -
-   `CHECKOUT_COPIES`: the landing script, `sign-off.py`, `scan-secrets.py`, the
-   rules script and `gitlab-security.yml` - are the remote `master`'s, working
-   tree and all, so that a checkout behind `master`, an edited one, or the
-   batch's own worktree is not what judges the batch. A `batch*` branch's pipeline does not run
+   the secret scans read](#what-the-secret-scans-read)); it refuses (exit 2)
+   unless the checkout's copies of the files it runs - `CHECKOUT_COPIES`: the
+   landing script, `sign-off.py`, `scan-secrets.py`, the rules script and
+   `gitlab-security.yml` - are the remote `master`'s, working tree and all,
+   which it checks once it has fetched `master`, before it loads the sign-off
+   check or runs the scan, so that a checkout behind `master`, an edited one,
+   or the batch's own worktree is not what judges the batch. A `batch*` branch's pipeline does not run
    `secret_detection`, and its merge request runs no pipeline, so this is the
    scan that reads a batch before it is on GitLab. A batch that changes the
    gates' own files - `GATE_FILES`: the five gate scripts; `.gitlab-ci.yml`,
@@ -4164,7 +4165,8 @@ What each scan trusts:
   checkout behind `master`, nor an edited one, nor the batch's own worktree,
   whose copies would be the batch's, can judge it. A landing leaves a worktree
   that has `master` checked out as it is, and says that it is to be brought to
-  the new `master` before the next landing, which refuses it until then.
+  the new `master` before the next landing, which refuses it if the batch
+  changed one of those files.
 - **The hooks** run the clone's own `scan-secrets.py`, from its working tree,
   over what the clone commits or pushes.
 

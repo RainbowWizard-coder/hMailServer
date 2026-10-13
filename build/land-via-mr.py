@@ -84,8 +84,8 @@ refusal:
      land-via-mr.log in the repository's git directory. Then it moves the local
      master to the tip when no worktree has master checked out - when one has,
      it names it, to be brought to the tip before the next landing, which
-     refuses it until then - and deletes the branch, remote and local, where it
-     can.
+     refuses it if the batch changed one of CHECKOUT_COPIES - and deletes the
+     branch, remote and local, where it can.
 
 It needs glab, logged in to gitlab.com as a Maintainer (only Maintainers may
 push a batch* branch or merge into master), and git.
@@ -530,7 +530,6 @@ def describe_jobs(statuses):
 
 def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_scan, checkout=checkout_differs):
     say = lambda text="": print(text, file=out)
-    sign_off = _load_sign_off()
     branch = opts.branch
     if not BRANCH.match(branch or ""):
         raise Refused(2, "%r is not a batch* branch: only a protected batch* branch runs the gate a landing waits for" % branch)
@@ -553,6 +552,8 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_sca
                          "this again from it" % (ROOT, ", ".join(stale), "is" if len(stale) == 1 else "are", remote, TARGET,
                                                  base[:12], "it" if len(stale) == 1 else "them", TARGET, base[:12],
                                                  "it" if len(stale) == 1 else "them"))
+    # The sign-off check is one of those copies: loaded, which runs its code, only now.
+    sign_off = _load_sign_off()
     if not git.ok("merge-base", "--is-ancestor", base, tip):
         raise Refused(3, "REFUSED: %s (%s) is not on top of %s/%s (%s); the project merges by fast-forward only. "
                          "Rebase it onto %s/%s; its pipeline then runs again." % (branch, tip[:12], remote, TARGET, base[:12], remote, TARGET))
@@ -1184,6 +1185,20 @@ def self_test():
         expect("a stale checkout: the files are named, and what to do",
                "build/scan-secrets.py, .gitlab/ci/gitlab-security.yml are not as origin/master" in text
                and "bring that checkout to" in text, True)
+        # The sign-off check is one of the copies: loaded - its code run - only once the
+        # checkout's copies are known to be the base's, never before a refusal of them.
+        held_load_sign_off = globals()["_load_sign_off"]
+        loaded = []
+        globals()["_load_sign_off"] = lambda: loaded.append("sign-off.py") or held_load_sign_off()
+        try:
+            code, text = attempt(work, api, checkout=lambda repo, base: ["build/sign-off.py"])
+            expect("a checkout whose sign-off.py is not master's: exit", code, 2)
+            expect("a checkout whose sign-off.py is not master's: the sign-off check is not loaded", loaded, [])
+            code, text = attempt(work, FakeGitLab(bare, approved_by=[zain]), dry_run=True)
+            expect("a checkout with master's copies: exit", code, 0)
+            expect("a checkout with master's copies: the sign-off check is loaded, once", loaded, ["sign-off.py"])
+        finally:
+            globals()["_load_sign_off"] = held_load_sign_off
         # checkout_differs itself, over a root that has master's copies, or not.
         bare, work = scenario("checkout-copies")
         held_copies = dict((path, "the base's %s\n" % path) for path in CHECKOUT_COPIES if path != "build/sign-off.py")
