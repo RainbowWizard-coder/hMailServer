@@ -6691,6 +6691,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Listening" xml:space="preserve">
     <value>Naslouchá</value>
   </data>
+  <data name="Lists" xml:space="preserve">
+    <value>Seznamy</value>
+  </data>
   <data name="Live" xml:space="preserve">
     <value>Živě</value>
   </data>

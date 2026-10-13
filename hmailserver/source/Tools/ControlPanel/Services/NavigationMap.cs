@@ -20,7 +20,7 @@ namespace hMailServer.ControlPanel.Services
    {
       internal NavNode(string key, string title, string purpose, IReadOnlyList<string> aliases,
          IReadOnlyList<string> seeAlso, IReadOnlyList<NavNode> children, string icon = null,
-         string needs = null)
+         string needs = null, string section = null)
       {
          Key = key;
          Title = title;
@@ -30,7 +30,20 @@ namespace hMailServer.ControlPanel.Services
          Children = children;
          Icon = icon;
          Needs = needs;
+         Section = section;
       }
+
+      /// <summary>
+      /// The sub-heading this page is drawn under inside its group, marked for
+      /// translation and translated where it is shown, or null for a page under the
+      /// group's heading alone. Pages that follow one another with the same section
+      /// are drawn under one sub-heading (<see cref="NavigationMap.SectionBefore"/>):
+      /// "Lists", over the spam group's six allow and block lists (review finding
+      /// F269). A sub-heading is a caption, not a level of the tree - nothing opens
+      /// it and the depth stays two - so the breadcrumb, the palette and the page's
+      /// key do not know of it.
+      /// </summary>
+      public string Section { get; }
 
       /// <summary>
       /// The permission a role must hold for this page to be shown, or empty
@@ -475,8 +488,28 @@ namespace hMailServer.ControlPanel.Services
       /// at a third left edge in the tree, left of the groups' (review finding F023).
       /// </summary>
       private static NavNode Page(string key, string title, string purpose, string aliases = "", string seeAlso = "",
-         string needs = ServerAdministration, string icon = null)
-         => new NavNode(key, title, purpose, Split(aliases), Split(seeAlso), Array.Empty<NavNode>(), icon, needs);
+         string needs = ServerAdministration, string icon = null, string section = null)
+         => new NavNode(key, title, purpose, Split(aliases), Split(seeAlso), Array.Empty<NavNode>(), icon, needs, section);
+
+      /// <summary>
+      /// The sub-heading to draw above <paramref name="rows"/>[<paramref name="index"/>]
+      /// - a group's pages as the signed-in credential sees them - or null: the page's
+      /// <see cref="NavNode.Section"/> where the row before it has another or none, so
+      /// that a run of pages of one section is drawn under one sub-heading, and a role
+      /// that cannot open the run's first page still sees the sub-heading over the
+      /// pages it can.
+      /// </summary>
+      public static string SectionBefore(IReadOnlyList<NavNode> rows, int index)
+      {
+         if (rows == null || index < 0 || index >= rows.Count)
+            return null;
+
+         string section = rows[index].Section;
+         if (string.IsNullOrEmpty(section))
+            return null;
+
+         return index > 0 && string.Equals(rows[index - 1].Section, section, StringComparison.Ordinal) ? null : section;
+      }
 
       private static NavNode Group(string title, string purpose, string aliases, params NavNode[] children)
          => new NavNode(null, title, purpose, Split(aliases), Array.Empty<string>(), children);
@@ -806,15 +839,22 @@ namespace hMailServer.ControlPanel.Services
                   aliases: "DNSBL|DNS blacklists (DNSBL)|DNS blacklists|DNS block lists|RBL|Blackhole list|Spamhaus|Barracuda|Block an IP by reputation",
                   seeAlso: "spamoverview|ipranges|antispam|surbl"),
 
+               // The six lists that let a sender through or stop one - five ways through
+               // and three to refuse - under one sub-heading, Lists, since review finding
+               // F269 (the owner's decision of 12 October 2026): the group was fourteen
+               // flat rows, and nothing in the sidebar said which of them were lists. The
+               // spam overview's "Which list do I need?" tells them apart.
                Page("spamwhitelist", N("Spam exemptions"),
                   N("Senders and IP ranges that bypass spam protection entirely."),
                   aliases: "White list|Anti-spam white list|Whitelist|Spam filter exemptions|Allow list|Safe senders|False positive|Let a sender through|Exempt from spam filter",
-                  seeAlso: "spamoverview|antispam|greylistwhitelist"),
+                  seeAlso: "spamoverview|antispam|greylistwhitelist",
+                  section: N("Lists")),
 
                Page("blockedsenders", N("Blocked senders"),
                   N("Envelope senders refused outright or scored - one address, or a whole domain with its subdomains."),
                   aliases: "Blacklist|Block list|Deny list|Block a sender|Banned senders|Refuse mail from",
-                  seeAlso: "senderlist|domainpolicylist|spamwhitelist|antispam|spamoverview"),
+                  seeAlso: "senderlist|domainpolicylist|spamwhitelist|antispam|spamoverview",
+                  section: N("Lists")),
 
                // Beside Blocked senders on purpose, because the two are easy to
                // confuse and are not the same thing: that list refuses during the
@@ -824,12 +864,14 @@ namespace hMailServer.ControlPanel.Services
                Page("senderlist", N("Allow and block list"),
                   N("Addresses and domains every account wants or does not, below each account's own list and its domain's."),
                   aliases: "Tenant allow list|Tenant block list|Sender allow list|Sender block list|Allow a sender for everyone|Never junk from|Precedence of sender lists",
-                  seeAlso: "blockedsenders|spamwhitelist|quarantine"),
+                  seeAlso: "blockedsenders|spamwhitelist|quarantine",
+                  section: N("Lists")),
 
                Page("greylistwhitelist", N("Greylisting exemptions"),
                   N("IP addresses exempt from the greylisting delay, for senders that will not retry."),
                   aliases: "Greylisting white list|Greylist whitelist|Greylist exemption|Greylisting delay|Slow mail|First message delayed|Retry delay",
-                  seeAlso: "greylistbypass|spamoverview|antispam|spamwhitelist"),
+                  seeAlso: "greylistbypass|spamoverview|antispam|spamwhitelist",
+                  section: N("Lists")),
 
                // Beside the greylisting exemptions on purpose: that list exempts an ADDRESS from
                // greylisting on no evidence, this one exempts a DOMAIN on the evidence
@@ -837,7 +879,8 @@ namespace hMailServer.ControlPanel.Services
                Page("greylistbypass", N("Greylisting bypass list"),
                   N("Domains and HELO suffixes let past greylisting only when the message passes SPF, DKIM or DMARC as the entry requires."),
                   aliases: "Greylisting bypass|Skip greylisting for a domain|Bypass greylisting on DKIM|Bypass greylisting on DMARC|Partner domain greylisting|Greylist exemption by domain",
-                  seeAlso: "greylistwhitelist|antispam|spamoverview"),
+                  seeAlso: "greylistwhitelist|antispam|spamoverview",
+                  section: N("Lists")),
 
                // Keyed by domain where the two lists above are keyed by address,
                // for the correspondent whose outbound hosts change every week:
@@ -848,7 +891,8 @@ namespace hMailServer.ControlPanel.Services
                Page("domainpolicylist", N("Allowed and blocked domains"),
                   N("Sending domains this server has decided about: an allowed one skips greylisting and the score's refusals, a blocked one is refused at MAIL FROM - by domain or HELO suffix, not by IP address."),
                   aliases: "Domain white and black list|Domain allow and block list|Domain white list|Domain black list|Domain whitelist|Domain blacklist|Always accept a domain|Never accept a domain|HELO suffix|Refuse a domain|Trust a domain whose SPF is broken|Rotating IP addresses",
-                  seeAlso: "antispam|spamwhitelist|blockedsenders")),
+                  seeAlso: "antispam|spamwhitelist|blockedsenders",
+                  section: N("Lists"))),
 
             Group("Bug24", N("Virus scanning"),
                N("Which scanners examine each message, what is scanned, and what happens to a message that is found to be infected."),

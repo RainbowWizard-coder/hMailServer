@@ -6609,6 +6609,9 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="Listening" xml:space="preserve">
     <value>In ascolto</value>
   </data>
+  <data name="Lists" xml:space="preserve">
+    <value>Elenchi</value>
+  </data>
   <data name="Live" xml:space="preserve">
     <value>In tempo reale</value>
   </data>

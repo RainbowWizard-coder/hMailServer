@@ -4674,6 +4674,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   versions & ciphers (review finding F301). `GlossaryTests` holds SSL to SSL/TLS and OpenSSL alone, and the two titles
   and their aliases.
 
+- **Changed: the spam group's six allow and block lists are under a sub-heading, Lists.** Spam filtering was a run of
+  flat rows in which nothing said which pages were lists: five ways to let a sender through and three to refuse one,
+  spread over Spam exemptions, Blocked senders, Allow and block list, Greylisting exemptions, Greylisting bypass list
+  and Allowed and blocked domains. They follow the checks and their block lists under the caption Lists now, in the
+  sidebar and in the rail's flyout, in every language; the spam overview's "Which list do I need?" still tells them
+  apart. The sub-heading is a caption at the pages' text column that neither the pointer nor the keyboard lands on, so
+  the arrow keys go from the page above it to the page below, and a level-3 heading to a screen reader; it is not a
+  level of the tree, so the breadcrumb, the palette and every link are as they were, and a role that cannot open the
+  first list sees it over the first one it can (review finding F269; the Virus sub-heading the review also proposed is
+  the Virus scanning group). `SidebarStructureTests` holds the run, the sub-heading's place and its row.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

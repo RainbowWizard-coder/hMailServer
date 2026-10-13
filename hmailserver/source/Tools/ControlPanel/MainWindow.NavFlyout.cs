@@ -64,8 +64,17 @@ namespace hMailServer.ControlPanel
          AutomationProperties.SetAutomationId(groupFlyoutList_, "navflyout-" + NavigationMap.Slug(group.Title));
 
          groupFlyoutList_.Items.Clear();
-         foreach (NavNode page in VisiblePagesOf_(group))
+         List<NavNode> pages = VisiblePagesOf_(group).ToList();
+         for (int i = 0; i < pages.Count; i++)
          {
+            NavNode page = pages[i];
+
+            // The tree's sub-headings here too (NavigationMap.SectionBefore): a
+            // caption the keyboard and the pointer pass by, a heading to a screen reader.
+            string section = NavigationMap.SectionBefore(pages, i);
+            if (section != null)
+               groupFlyoutList_.Items.Add(FlyoutSubHeading_(group, section));
+
             // The sidebar's page row by another control (App.xaml, NavFlyoutItem):
             // the hover fill, the brand pill on the page on screen, the focus
             // colour round the row the keyboard is on.
@@ -107,9 +116,37 @@ namespace hMailServer.ControlPanel
             if (!groupFlyout_.IsOpen)
                return;
 
-            ListBoxItem first = groupFlyoutList_.SelectedItem as ListBoxItem ?? groupFlyoutList_.Items.OfType<ListBoxItem>().FirstOrDefault();
+            ListBoxItem first = groupFlyoutList_.SelectedItem as ListBoxItem ?? groupFlyoutList_.Items.OfType<ListBoxItem>().FirstOrDefault(row => row.Focusable);
             first?.Focus();
          }));
+      }
+
+      /// <summary>
+      /// A sub-heading among the flyout's rows, as the tree draws it
+      /// (MainWindow.BuildNavSubHeading_): the caption's size, not focusable, not
+      /// hit-testable, and no page's key in its Tag, so that Enter and a click open
+      /// nothing from it.
+      /// </summary>
+      private static ListBoxItem FlyoutSubHeading_(NavNode group, string section)
+      {
+         var row = new ListBoxItem
+         {
+            Content = new TextBlock
+            {
+               Text = L(section),
+               FontSize = Typography.Caption,
+               FontWeight = FontWeights.SemiBold,
+               TextTrimming = TextTrimming.CharacterEllipsis
+            },
+            Focusable = false,
+            IsTabStop = false,
+            IsHitTestVisible = false
+         };
+         row.SetResourceReference(StyleProperty, "NavFlyoutItem");
+         AutomationProperties.SetName(row, L(section));
+         AutomationProperties.SetHeadingLevel(row, AutomationHeadingLevel.Level3);
+         AutomationProperties.SetAutomationId(row, "navflyout-section-" + NavigationMap.Slug(group.Title) + "-" + NavigationMap.Slug(section));
+         return row;
       }
 
       /// <summary>

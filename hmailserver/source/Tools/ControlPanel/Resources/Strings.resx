@@ -6609,6 +6609,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Listening" xml:space="preserve">
     <value>Listening</value>
   </data>
+  <data name="Lists" xml:space="preserve">
+    <value>Lists</value>
+  </data>
   <data name="Live" xml:space="preserve">
     <value>Live</value>
   </data>

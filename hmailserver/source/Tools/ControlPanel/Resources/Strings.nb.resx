@@ -6609,6 +6609,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Listening" xml:space="preserve">
     <value>Lytter</value>
   </data>
+  <data name="Lists" xml:space="preserve">
+    <value>Lister</value>
+  </data>
   <data name="Live" xml:space="preserve">
     <value>Direkte</value>
   </data>

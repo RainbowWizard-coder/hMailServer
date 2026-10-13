@@ -6620,6 +6620,9 @@
   <data name="Listening" xml:space="preserve">
     <value>待ち受け中</value>
   </data>
+  <data name="Lists" xml:space="preserve">
+    <value>リスト</value>
+  </data>
   <data name="Live" xml:space="preserve">
     <value>ライブ</value>
   </data>

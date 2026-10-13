@@ -6691,6 +6691,9 @@
   <data name="Listening" xml:space="preserve">
     <value>Слухає</value>
   </data>
+  <data name="Lists" xml:space="preserve">
+    <value>Списки</value>
+  </data>
   <data name="Live" xml:space="preserve">
     <value>Наживо</value>
   </data>

@@ -6691,6 +6691,9 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   <data name="Listening" xml:space="preserve">
     <value>Nasłuchuje</value>
   </data>
+  <data name="Lists" xml:space="preserve">
+    <value>Listy</value>
+  </data>
   <data name="Live" xml:space="preserve">
     <value>Na żywo</value>
   </data>

@@ -6609,6 +6609,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Listening" xml:space="preserve">
     <value>À l'écoute</value>
   </data>
+  <data name="Lists" xml:space="preserve">
+    <value>Listes</value>
+  </data>
   <data name="Live" xml:space="preserve">
     <value>En direct</value>
   </data>

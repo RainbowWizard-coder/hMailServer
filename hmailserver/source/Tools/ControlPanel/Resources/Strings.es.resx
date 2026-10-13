@@ -6609,6 +6609,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   <data name="Listening" xml:space="preserve">
     <value>Escuchando</value>
   </data>
+  <data name="Lists" xml:space="preserve">
+    <value>Listas</value>
+  </data>
   <data name="Live" xml:space="preserve">
     <value>En vivo</value>
   </data>

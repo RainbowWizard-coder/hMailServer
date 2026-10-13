@@ -6691,6 +6691,9 @@ Control Panel может читать файлы сообщений только
   <data name="Listening" xml:space="preserve">
     <value>Прослушивает</value>
   </data>
+  <data name="Lists" xml:space="preserve">
+    <value>Списки</value>
+  </data>
   <data name="Live" xml:space="preserve">
     <value>В реальном времени</value>
   </data>

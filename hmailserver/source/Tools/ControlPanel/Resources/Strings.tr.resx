@@ -6609,6 +6609,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Listening" xml:space="preserve">
     <value>Dinliyor</value>
   </data>
+  <data name="Lists" xml:space="preserve">
+    <value>Listeler</value>
+  </data>
   <data name="Live" xml:space="preserve">
     <value>Canlı</value>
   </data>

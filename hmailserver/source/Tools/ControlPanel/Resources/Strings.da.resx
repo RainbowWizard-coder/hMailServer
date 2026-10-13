@@ -6609,6 +6609,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Listening" xml:space="preserve">
     <value>Lytter</value>
   </data>
+  <data name="Lists" xml:space="preserve">
+    <value>Lister</value>
+  </data>
   <data name="Live" xml:space="preserve">
     <value>Live</value>
   </data>

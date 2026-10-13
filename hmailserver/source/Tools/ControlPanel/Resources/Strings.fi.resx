@@ -6609,6 +6609,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Listening" xml:space="preserve">
     <value>Kuuntelee</value>
   </data>
+  <data name="Lists" xml:space="preserve">
+    <value>Luettelot</value>
+  </data>
   <data name="Live" xml:space="preserve">
     <value>Reaaliaikainen</value>
   </data>

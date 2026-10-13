@@ -6609,6 +6609,9 @@
   <data name="Listening" xml:space="preserve">
     <value>正在监听</value>
   </data>
+  <data name="Lists" xml:space="preserve">
+    <value>列表</value>
+  </data>
   <data name="Live" xml:space="preserve">
     <value>实时</value>
   </data>

@@ -6609,6 +6609,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Listening" xml:space="preserve">
     <value>Luistert</value>
   </data>
+  <data name="Lists" xml:space="preserve">
+    <value>Lijsten</value>
+  </data>
   <data name="Live" xml:space="preserve">
     <value>Live</value>
   </data>

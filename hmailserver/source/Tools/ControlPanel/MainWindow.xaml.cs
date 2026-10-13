@@ -505,9 +505,54 @@ namespace hMailServer.ControlPanel
          // secondary, and no hover rule or keyboard border of the shell's.
          item.ItemContainerStyle = NavTree.ItemContainerStyle;
 
-         foreach (NavNode child in node.Children)
+         // A sub-heading above a run of the group's pages that share one, as the
+         // credential sees them - Lists, over the spam group's allow and block lists
+         // (NavigationMap.SectionBefore, review finding F269).
+         for (int i = 0; i < node.Children.Count; i++)
+         {
+            NavNode child = node.Children[i];
+            string section = NavigationMap.SectionBefore(node.Children, i);
+            if (section != null)
+               item.Items.Add(BuildNavSubHeading_(node, section));
             item.Items.Add(BuildNavItem(child));
+         }
 
+         return item;
+      }
+
+      /// <summary>
+      /// The Tag of a sub-heading's row: neither a page's key nor a group's node, so
+      /// that the tree's walks - AllLeaves for the pages, RevealGroup for the groups -
+      /// pass it by, as NavTree_SelectedItemChanged does.
+      /// </summary>
+      private static readonly object NavSubHeadingTag = new object();
+
+      /// <summary>
+      /// A sub-heading among a group's pages: its words in the caption's size, at the
+      /// pages' text column (the row template's, which it shares), on a row that
+      /// neither the pointer nor the keyboard can land on - not hit-testable, not
+      /// focusable, so the arrow keys go from the page above it to the page below -
+      /// and a level-3 heading to a screen reader, under the group's level-2 ones.
+      /// </summary>
+      private static TreeViewItem BuildNavSubHeading_(NavNode group, string section)
+      {
+         var item = new TreeViewItem
+         {
+            Header = new TextBlock
+            {
+               Text = L(section),
+               FontSize = Typography.Caption,
+               FontWeight = FontWeights.SemiBold,
+               TextTrimming = TextTrimming.CharacterEllipsis
+            },
+            Tag = NavSubHeadingTag,
+            Focusable = false,
+            IsTabStop = false,
+            IsHitTestVisible = false
+         };
+         System.Windows.Automation.AutomationProperties.SetName(item, L(section));
+         System.Windows.Automation.AutomationProperties.SetHeadingLevel(item, System.Windows.Automation.AutomationHeadingLevel.Level3);
+         System.Windows.Automation.AutomationProperties.SetAutomationId(item, "navsection-" + NavigationMap.Slug(group.Title) + "-" + NavigationMap.Slug(section));
          return item;
       }
 

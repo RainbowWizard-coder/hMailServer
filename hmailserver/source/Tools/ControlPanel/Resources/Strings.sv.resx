@@ -6609,6 +6609,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Listening" xml:space="preserve">
     <value>Lyssnar</value>
   </data>
+  <data name="Lists" xml:space="preserve">
+    <value>Listor</value>
+  </data>
   <data name="Live" xml:space="preserve">
     <value>Direkt</value>
   </data>

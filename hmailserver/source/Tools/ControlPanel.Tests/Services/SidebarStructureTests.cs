@@ -115,5 +115,81 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("Compliance", groups[0].Title);
          Assert.Equal(new[] { "discovery" }, groups[0].Children.Select(c => c.Key).ToArray());
       }
+
+      private static readonly string[] AllowAndBlockLists =
+         { "spamwhitelist", "blockedsenders", "senderlist", "greylistwhitelist", "greylistbypass", "domainpolicylist" };
+
+      /// <summary>
+      /// The spam group's six allow and block lists - five ways through and three to
+      /// refuse - are one run under the sub-heading Lists, after the checks and their
+      /// block lists, and no other page of the map has a sub-heading (review finding
+      /// F269, the owner's decision of 12 October 2026).
+      /// </summary>
+      [Fact]
+      public void TheAllowAndBlockListsAreOneRunUnderLists()
+      {
+         NavNode spam = NavigationMap.Groups.Single(g => g.Title == "Spam filtering");
+         var keys = spam.Children.Select(c => c.Key).ToList();
+         int first = keys.IndexOf("spamwhitelist");
+         Assert.Equal(AllowAndBlockLists, keys.Skip(first).Take(AllowAndBlockLists.Length).ToArray());
+         Assert.Equal("dnsbl", keys[first - 1]);
+
+         foreach (NavNode page in NavigationMap.Pages)
+            Assert.Equal(AllowAndBlockLists.Contains(page.Key) ? "Lists" : null, page.Section);
+
+         var drawn = Enumerable.Range(0, spam.Children.Count).Select(i => NavigationMap.SectionBefore(spam.Children, i)).ToList();
+         Assert.Equal("Lists", drawn[first]);
+         Assert.Single(drawn.Where(section => section != null));
+      }
+
+      /// <summary>
+      /// A role that cannot open the run's first page still sees the sub-heading, over
+      /// the first list it can open: the sub-heading is decided on the pages as the
+      /// credential sees them, not on the map's.
+      /// </summary>
+      [Fact]
+      public void TheSubHeadingStandsOverTheFirstListTheCredentialSees()
+      {
+         static bool NoExemptions(string needs) => true;
+         NavNode spam = NavigationMap.VisibleRoots(NoExemptions).Single(n => n.Title == "Spam filtering");
+         var withoutFirst = spam.Children.Where(c => c.Key != "spamwhitelist").ToList();
+
+         int blocked = withoutFirst.FindIndex(c => c.Key == "blockedsenders");
+         Assert.Equal("Lists", NavigationMap.SectionBefore(withoutFirst, blocked));
+         Assert.Null(NavigationMap.SectionBefore(withoutFirst, blocked + 1));
+         Assert.Null(NavigationMap.SectionBefore(withoutFirst, -1));
+         Assert.Null(NavigationMap.SectionBefore(withoutFirst, withoutFirst.Count));
+      }
+
+      /// <summary>
+      /// The sub-heading's row in the tree and in the rail's flyout is a caption that
+      /// nothing lands on - not focusable, not hit-testable, no page's key in its Tag -
+      /// and a level-3 heading to a screen reader, so that the arrow keys go from the
+      /// page above it to the page below and a click on it opens nothing.
+      /// </summary>
+      [Fact]
+      public void TheSubHeadingRowIsACaptionNothingLandsOn()
+      {
+         string shell = ConfirmationPatternTests.ReadControlPanelFile("MainWindow.xaml.cs");
+         string tree = WithheldRowTests.MemberText(shell, "private static TreeViewItem BuildNavSubHeading_(NavNode group, string section)");
+         Assert.True(tree != null, "MainWindow.BuildNavSubHeading_ is gone.");
+         string flyoutSource = ConfirmationPatternTests.ReadControlPanelFile("MainWindow.NavFlyout.cs");
+         string flyout = WithheldRowTests.MemberText(flyoutSource, "private static ListBoxItem FlyoutSubHeading_(NavNode group, string section)");
+         Assert.True(flyout != null, "MainWindow.FlyoutSubHeading_ is gone.");
+
+         foreach (string row in new[] { tree, flyout })
+         {
+            Assert.Contains("Focusable = false,", row, StringComparison.Ordinal);
+            Assert.Contains("IsHitTestVisible = false", row, StringComparison.Ordinal);
+            Assert.Contains("AutomationHeadingLevel.Level3", row, StringComparison.Ordinal);
+            Assert.Contains("FontSize = Typography.Caption,", row, StringComparison.Ordinal);
+         }
+
+         Assert.Contains("Tag = NavSubHeadingTag,", tree, StringComparison.Ordinal);
+         Assert.DoesNotContain("Tag =", flyout, StringComparison.Ordinal);
+         Assert.Contains("string section = NavigationMap.SectionBefore(node.Children, i);", shell, StringComparison.Ordinal);
+         Assert.Contains("string section = NavigationMap.SectionBefore(pages, i);", flyoutSource, StringComparison.Ordinal);
+         Assert.Contains("FirstOrDefault(row => row.Focusable)", flyoutSource, StringComparison.Ordinal);
+      }
    }
 }

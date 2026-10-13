@@ -6609,6 +6609,9 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   <data name="Listening" xml:space="preserve">
     <value>Lauscht</value>
   </data>
+  <data name="Lists" xml:space="preserve">
+    <value>Listen</value>
+  </data>
   <data name="Live" xml:space="preserve">
     <value>Live</value>
   </data>
