@@ -156,11 +156,15 @@ only the apostrophe was, and a password ending its string with `\'` ran the code
 after it; for VBScript the quote is doubled. A rule's "Run function" name is written
 into the call as it is, so a name that is not a plain identifier - ASCII letters,
 digits, `_` and `$`, not starting with a digit, at most 255 characters - is refused
-(HM5018) and nothing is run. On Linux the JavaScript engine never puts the name into
-source text: it looks the handler up by name, only when the name is a plain
-identifier (`ScriptBinding.cpp`'s `IsIdentifier_`, which asks the same test), so such
-a name finds no function, nothing is run, and the ERROR log has a Script Error line
-saying it is not a function defined in the event script.
+(HM5018) and nothing is run. On Linux no call text is built, but the handler is
+found by evaluating its name - `(typeof name === 'function') ? name : undefined`, so
+that one declared with `let`, `const` or `class` is found too - and only a plain
+identifier is evaluated (`ScriptBinding.cpp`'s `IsIdentifier_`, which asks
+`ScriptServer::IsPlainProcedureName`, the test the Windows call text and the save are
+held to). That one test is all that stands between a rule's name and script source
+on both platforms, and widening it widens what both put into it. Such a name finds
+no function, nothing is run, and the ERROR log has a Script Error line saying it is
+not a function defined in the event script.
 Since 12 October 2026 such a name, or none, is refused before that, when the rule is
 saved, on both platforms and for a rule of every owner: COM's `RuleAction.Save` and
 `Rule.Save` and the REST API's rule routes answer with the reason

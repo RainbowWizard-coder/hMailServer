@@ -39,7 +39,7 @@ Delete, forward, reply, move to a folder, set a header, send using a route, crea
 
 A reject with no text of its own names the rule in its 550, since 17 September 2026.
 
-**Run a script function** (`script_function`) names a function of the event script ([EventScripts.md](EventScripts.md)) by its plain name - ASCII letters, digits, `_` and `$`, not starting with a digit, at most 255 characters - the only name the server runs. Since 12 October 2026 no name, or any other, is refused when it is saved (COM's `RuleAction.Save` and `Rule.Save`, the REST routes), for a rule of every owner, and says why; until then it was saved, and refused each time the rule fired - HM5018 on Windows, a Script Error line on Linux - which is still what becomes of one stored before, or restored from a backup.
+**Run a script function** (`script_function`) names a function of the event script ([EventScripts.md](EventScripts.md)) by its plain name - ASCII letters, digits, `_` and `$`, not starting with a digit, at most 255 characters - the only name the server runs. Since 12 October 2026 a missing name, or one that is not plain, is refused when the rule is saved (COM's `RuleAction.Save` and `Rule.Save`, the REST routes), for a rule of every owner, with the reason; until then COM stored any name and the REST routes any but an empty one, and the server refused it each time the rule fired - HM5018 on Windows, a Script Error line on Linux - which is still what becomes of one stored before, or restored from a backup.
 
 ### Who a rule may speak for
 
