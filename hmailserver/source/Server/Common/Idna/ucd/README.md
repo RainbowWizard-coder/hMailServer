@@ -17,7 +17,7 @@ Unicode version the operating system has.
 |---|---|---|
 | `IdnaMappingTable.txt` | <https://www.unicode.org/Public/18.0.0/idna/IdnaMappingTable.txt> | each code point's status (valid, ignored, mapped, deviation, disallowed) and what it maps to |
 | `IdnaTestV2.txt` | <https://www.unicode.org/Public/18.0.0/idna/IdnaTestV2.txt> | Unicode's conformance tests for UTS 46, every line of which `IdnaTester` runs |
-| `UnicodeData.txt` | <https://www.unicode.org/Public/18.0.0/ucd/UnicodeData.txt> | the canonical decompositions and combining classes NFC needs, and General_Category Mark |
+| `UnicodeData.txt` | <https://www.unicode.org/Public/18.0.0/ucd/UnicodeData.txt> | the canonical decompositions and combining classes NFC needs, General_Category Mark, which a label may not begin with, and the group of every code point's General_Category - Punctuation, Symbol, Separator, Other - by which SURBL's reading of a link tells where a mail program may end the link |
 | `CompositionExclusions.txt` | <https://www.unicode.org/Public/18.0.0/ucd/CompositionExclusions.txt> | the composites NFC never makes |
 | `DerivedJoiningType.txt` | <https://www.unicode.org/Public/18.0.0/ucd/extracted/DerivedJoiningType.txt> | Joining_Type, for RFC 5892's rule for ZERO WIDTH NON-JOINER |
 | `DerivedBidiClass.txt` | <https://www.unicode.org/Public/18.0.0/ucd/extracted/DerivedBidiClass.txt> | Bidi_Class of every code point, an unassigned one's default among them, for RFC 5893's rule |
