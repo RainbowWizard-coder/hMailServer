@@ -4847,6 +4847,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   throughout; and 82 texts have their punctuation mended, most of them with the comma Finnish puts before every
   subordinate clause, after sen sijaan, before ennen kuin and kunnes, and round a relative clause.
 
+- **Fixed: 166 Norwegian texts said what their English does not, broke Norwegian grammar, or named one thing two
+  ways.** "Strictly worse" was strictly speaking worse (strengt tatt); the accept pipeline, which takes mail in, was
+  an approval or authentication pipeline (godkjenning), where it is mottak; SNMP managers were administrators, where
+  they are the management stations that poll the agent; and the default IP ranges were Min datamaskin and Internet,
+  where the server gives them in English and the IP ranges page lists them so. A relative som that stands for the
+  whole clause before it is noe som, a comma closes a relative clause put before the verb, a mail header is a header
+  throughout, a worker is a worker thread (arbeidstråd), and the sendout's notice gives its time with kl.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
