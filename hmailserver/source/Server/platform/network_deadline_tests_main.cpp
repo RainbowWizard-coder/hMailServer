@@ -607,9 +607,10 @@ RunNetworkDeadlineTests()
    SilentTcpPeer certificateAuthority;
    SilentUdpPeer nameServer;
    const int responderPort = FreeTcpPort();
+   const int responderFloodPort = FreeTcpPort();
 
    if (tokenEndpoint.Port() == 0 || policyHost.Port() == 0 || certificateAuthority.Port() == 0 || nameServer.Port() == 0 ||
-       responderPort == 0)
+       responderPort == 0 || responderFloodPort == 0 || responderFloodPort == responderPort)
    {
       printf("FAIL  the network deadlines: no socket could be bound to 127.0.0.1\n");
       boost::filesystem::remove_all(scratch, error);
@@ -855,6 +856,82 @@ RunNetworkDeadlineTests()
       responder.Stop();
 
       said = "an idle client let go and the request behind it answered after " + Seconds(seconds) + "; started again on its port at once";
+      return true;
+   }));
+
+   cases.push_back(Start("the ACME http-01 responder under parallel idle connections", 30, [responderFloodPort](std::string &said)
+   {
+      // A crowd of clients that connect and send nothing, and then the CA's own
+      // request. Served one at a time, each idle client holds the responder for
+      // its five-second receive timeout, so the validator behind sixteen of them
+      // would wait about eighty seconds; served concurrently, each idle client
+      // holds only its own thread and the validator is answered at once. So the
+      // validator must be answered well inside one idle client's timeout - two
+      // seconds is far below sixteen times five and far above a loopback
+      // round-trip - which it cannot be unless the connections are concurrent
+      // (W-11).
+      HM::AcmeChallengeServer responder;
+      if (!responder.Start(responderFloodPort))
+      {
+         said = "it could not listen on port " + std::to_string(responderFloodPort);
+         return false;
+      }
+      responder.SetChallenge("flood-token", "flood-token.key-authorization");
+
+      const int idleCount = 16;
+      std::vector<int> idle;
+      for (int i = 0; i < idleCount; i++)
+      {
+         const int connection = ConnectTo(responderFloodPort);
+         if (connection >= 0)
+            idle.push_back(connection);
+      }
+
+      if ((int) idle.size() != idleCount)
+      {
+         for (int connection : idle)
+            close(connection);
+         responder.Stop();
+         said = "only " + std::to_string(idle.size()) + " of " + std::to_string(idleCount) + " idle connections could be made";
+         return false;
+      }
+
+      const int validator = ConnectTo(responderFloodPort);
+      if (validator < 0)
+      {
+         for (int connection : idle)
+            close(connection);
+         responder.Stop();
+         said = "the validator could not connect behind the idle clients";
+         return false;
+      }
+
+      const std::string request = "GET /.well-known/acme-challenge/flood-token HTTP/1.0\r\nHost: mail.example.test\r\n\r\n";
+      const Clock::time_point started = Clock::now();
+      const bool sent = send(validator, request.data(), request.size(), 0) == static_cast<ssize_t>(request.size());
+
+      bool timedOut = false;
+      const std::string answer = sent ? ReadUntilClosed(validator, 10, timedOut) : std::string();
+      const double seconds = SecondsSince(started);
+
+      for (int connection : idle)
+         close(connection);
+      close(validator);
+      responder.Stop();
+
+      if (!sent || timedOut || answer.find(" 200 ") == std::string::npos ||
+          answer.find("flood-token.key-authorization") == std::string::npos)
+      {
+         said = "the CA's request behind " + std::to_string(idleCount) + " idle clients was not answered with the key authorization within " + Seconds(seconds);
+         return false;
+      }
+      if (seconds > 2)
+      {
+         said = "the CA's request behind " + std::to_string(idleCount) + " idle clients was answered only after " + Seconds(seconds) + " - the responder serves one connection at a time";
+         return false;
+      }
+
+      said = "the CA's request behind " + std::to_string(idleCount) + " idle clients was answered in " + Seconds(seconds);
       return true;
    }));
 

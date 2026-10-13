@@ -112,6 +112,7 @@
     <Compile Include="..\RegressionTests\API\RestApiApiKeys.cs" Link="API\RestApiApiKeys.cs" />
     <Compile Include="..\RegressionTests\API\RestApiArchive.cs" Link="API\RestApiArchive.cs" />
     <Compile Include="..\RegressionTests\API\RestApiAuthorization.cs" Link="API\RestApiAuthorization.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiTenantAuthorization.cs" Link="API\RestApiTenantAuthorization.cs" />
     <Compile Include="..\RegressionTests\API\RestApiRouteSweep.cs" Link="API\RestApiRouteSweep.cs" />
     <Compile Include="..\RegressionTests\API\RestApiDomains.cs" Link="API\RestApiDomains.cs" />
     <Compile Include="..\RegressionTests\API\RestApiMailboxMove.cs" Link="API\RestApiMailboxMove.cs" />
