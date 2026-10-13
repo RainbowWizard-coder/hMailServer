@@ -40,6 +40,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("uk", "Set the connection security on each listener, then require it for authentication.", "Задайте захист підключення на кожному слухачі, потім вимагайте його для автентифікації.")]
       [InlineData("zh-Hans", "Stop the update? Nothing has been installed yet.", "是否停止更新？尚未安装任何内容。")]
       [InlineData("tr", "Alias addr_ess", "Di_ğer ad adresi")]
+      [InlineData("cs", "The server's administrator code", "Kód správce serveru")]
+      [InlineData("fi", "Encryption _passphrase", "Salauksen tunnuslaus_e")]
       public void AMendedTextReadsAsMended(string tag, string english, string expected)
       {
          Dictionary<string, string> catalogue = ReadCatalogueForReadback(tag);

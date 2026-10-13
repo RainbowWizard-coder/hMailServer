@@ -4819,15 +4819,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the method to show what the binder throws, and holds that no page tells an older server by `DISP_E_UNKNOWNNAME`
   alone.
 
-- **Fixed: 98 Czech texts said what their English does not, or named one thing two ways.** A read-back of every
+- **Fixed: 100 Czech texts said what their English does not, or named one thing two ways.** A read-back of every
   explanatory text against its English found the sendout's notice saying that the sendout had queued {0}, where {0} is
   the time it was queued; a number of scanners read as a scanner's name; "0 = vůbec" (0 = at all) for a limit that 0
   closes; four DNS checks still saying what their English said before it was reworded; the default IP ranges named Můj
   počítač and Internet, where the server gives them in English and the IP ranges page lists them so; the administrator
-  an administrátor in the two-factor dialog, where the catalogue says správce; and the accept pipeline a pipeline
-  přijetí beside the page's přijímací řetězec. Clitics stand where Czech puts them, dosáhnout takes the genitive, and
-  no comma stands before the nebo that ends a list; the MTA-STS card's note on its mx lines, a sentence of its own,
-  opens with a capital, Řádky, and z before živých is ze.
+  an administrátor in the two-factor dialog, its heading among them, and in the suppression list's sources, where the
+  catalogue says správce; and the accept pipeline a pipeline přijetí beside the page's přijímací řetězec. Clitics stand
+  where Czech puts them, dosáhnout takes the genitive, and no comma stands before the nebo that ends a list; the
+  MTA-STS card's note on its mx lines, a sentence of its own, opens with a capital, Řádky, and z before živých is ze.
 
 - **Fixed: 86 Danish texts said what their English does not, or named one thing two ways.** "Listed", for an address
   put on the allow or block list, read as shown in a list (vises), and "intet tælles eller listes" said that nothing
@@ -4838,15 +4838,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   calls it, where some texts and the Add range card said område; the stage timings of the stalled-mail page are its
   trintider; and uanset takes no comma before its clause.
 
-- **Fixed: 264 Finnish texts said what their English does not, left out a comma Finnish requires, or named one thing
+- **Fixed: 265 Finnish texts said what their English does not, left out a comma Finnish requires, or named one thing
   two ways.** Free software under the AGPLv3 was free of charge (ilmainen), where it is free as in freedom (vapaa);
   leavers that the directory sync disables were deleted; "jokainen ... ei käynnisty" said that not every port starts,
   where none does; once a certificate expired, the ports did; the log scheduled each stage (ajastaa), where it records
   how long each took; and the default IP ranges were Oma tietokone and Internet, where the server gives them in
   English. A mail domain is a verkkotunnus, as in the rest of the catalogue, where some texts said toimialue, which
-  the catalogue keeps for a Windows domain; the cipher list is a salauslista and the message store a viestivarasto
-  throughout; and 94 texts have their punctuation mended, most of them with the comma Finnish puts before every
-  subordinate clause, after sen sijaan, before ennen kuin and kunnes, and round a relative clause.
+  the catalogue keeps for a Windows domain; the cipher list is a salauslista, the message store a viestivarasto and a
+  passphrase a tunnuslause throughout, where the backup's and the restore's texts said salasanalause; and 94 texts
+  have their punctuation mended, most of them with the comma Finnish puts before every subordinate clause, after sen
+  sijaan, before ennen kuin and kunnes, and round a relative clause.
 
 - **Fixed: 167 Norwegian texts said what their English does not, broke Norwegian grammar, or named one thing two
   ways.** "Strictly worse" was strictly speaking worse (strengt tatt); the accept pipeline, which takes mail in, was
@@ -4900,14 +4901,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   for the whole clause before it; a Ukrainian or Chinese text that names the identity provider two ways, or names it
   the other way on one of its own cards, where the English says only "the provider"; a word for a thing the entries
   above say a catalogue names one way throughout - a hold, a resolver, a server's health, an event script, a mail
-  header, the message index - where that catalogue's other word for it is back; and, in any catalogue, a sentence
-  that opens in lower case where its English opens with a capital, a name the server writes in lower case excepted.
-  Run over the catalogues as they were, the rules make 217 findings in 198 texts; the self-test holds each rule
-  against a text the read-back mended, as it was and as it is. `TranslationReadbackTests` holds one mended text of
-  each of the eight catalogues; the default IP ranges' names, My computer and Internet, which the server gives in
-  English; the Ukrainian quarantine's questions for deleting 21 or 31 messages, which speak of the senders as they do
-  for 5; and the MTA-STS card's note on its mx lines, which opens in each of the eight with the literal mx or with a
-  capital.
+  header, the message index, an administrator, a passphrase - where that catalogue's other word for it is back, with
+  an access key's underscore read out of the word; and, in any catalogue, a sentence that opens in lower case where
+  its English opens with a capital, a name the server writes in lower case excepted. Run over the catalogues as they
+  were, the rules make 236 findings in 212 texts; the self-test holds each rule against a text the read-back mended,
+  as it was and as it is. `TranslationReadbackTests` holds one mended text of each of the eight catalogues; the
+  default IP ranges' names, My computer and Internet, which the server gives in English; the Ukrainian quarantine's
+  questions for deleting 21 or 31 messages, which speak of the senders as they do for 5; and the MTA-STS card's note
+  on its mx lines, which opens in each of the eight with the literal mx or with a capital.
 
 ### Administration
 

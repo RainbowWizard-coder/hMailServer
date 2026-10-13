@@ -385,7 +385,12 @@ def quotation_findings(tag, target):
 # - a term the read-back's CHANGELOG entries say a catalogue uses throughout, named the other way
 #   again: a hold is 暂挂 in Chinese, a resolver a розв’язувач, a server's health its справність and
 #   an event script a скрипт in Ukrainian, a mail header a header in Norwegian and the message
-#   index an indeks in Turkish - the check of the read-back found each left in a text or two.
+#   index an indeks in Turkish - the check of the read-back found each left in a text or two - and
+#   an administrator a správce in Czech and a passphrase a tunnuslause in Finnish, which its re-check
+#   found left beside texts that say so: the two-factor prompt's heading, Kód administrátora
+#   serveru, over a description that says správce, and the Backup page's Salauksen salasanalaus_e,
+#   a word its access key split, between texts that say tunnuslause. A term is read in the value
+#   and its English with the access key's underscore taken out.
 READBACK_CONFIRMING_VERBS = {
    "Apply", "Cancel", "Clear", "Delete", "Discard", "Empty", "Erase", "Keep", "Lift", "Merge", "Overwrite", "Purge",
    "Put", "Release", "Remove", "Replace", "Reset", "Restore", "Revert", "Show", "Stop", "Turn",
@@ -438,6 +443,8 @@ READBACK_LITERAL_MARK = re.compile(r"[A-Z0-9_=@./:<>]")
 # Each catalogue's terms: (the English a text names the thing with, or None for every text; the
 # English that leaves the text alone, or None; the word refused; what the catalogue calls it).
 READBACK_TERMS = {
+   "cs": [(re.compile(r"(?i)\badministrator"), None, re.compile(r"(?i)administrátor\w*"), "správce (an administrator)")],
+   "fi": [(None, None, re.compile(r"(?i)salasanalau\w*"), "tunnuslause (a passphrase)")],
    "zh-Hans": [(None, None, re.compile(r"扣留|暂扣|暂留"), "暂挂 (a held message)")],
    "uk": [
       (None, None, re.compile(r"(?i)резолвер\w*"), "розв’язувач (a resolver)"),
@@ -536,21 +543,24 @@ def readback_findings(tag, source, target):
    if readback_opens_lower(source, target):
       findings.append("the sentence opens with %r in lower case, where its English opens with a capital; let a "
                       "word open it and keep the name as the server writes it" % target.split()[0])
+   # The words as they are read, with the access key's underscore out: "Salauksen salasanalaus_e"
+   # names a salasanalause, and "An _administrator" an administrator.
+   plain, plain_source = without_mnemonic(target), without_mnemonic(source)
    for english, unless, refused, says in READBACK_TERMS.get(tag, ()):
-      if (english is not None and not english.search(source)) or (unless is not None and unless.search(source)):
+      if (english is not None and not english.search(plain_source)) or (unless is not None and unless.search(plain_source)):
          continue
-      for match in refused.finditer(target):
+      for match in refused.finditer(plain):
          if readback_pending(tag, source, target, match.group(0)):
             continue
          findings.append("%r names what this catalogue calls %s throughout" % (match.group(0), says))
    if tag in READBACK_PROVIDER_NAMES and READBACK_IDENTITY_PROVIDER.search(source) and not READBACK_OTHER_PROVIDER.search(source):
       name, others = READBACK_PROVIDER_NAMES[tag]
-      for match in others.finditer(target):
+      for match in others.finditer(plain):
          findings.append("the identity provider is a %s in this catalogue, and this text names it %r too; one name"
                          % (name, match.group(0)))
    elif tag in READBACK_PROVIDER_NAMES and source.startswith(READBACK_IDENTITY_PROVIDER_TEXTS):
       name, others = READBACK_PROVIDER_NAMES[tag]
-      for match in others.finditer(target):
+      for match in others.finditer(plain):
          findings.append("this text is on a card of the identity provider, which this catalogue calls a %s, and it "
                          "names it %r; one name" % (name, match.group(0)))
    if tag == "zh-Hans":
@@ -975,6 +985,13 @@ def self_test():
       ("tr", "Shortest search string the index answers for (3 to 64)", "Dizinin yanıt verdiği en kısa arama dizesi (3 ile 64 arası)"): True,
       ("tr", "Shortest search string the index answers for (3 to 64)", "İndeksin yanıt verdiği en kısa arama dizesi (3 ile 64 arası)"): False,
       ("tr", "It is indexed in Active Directory, and it is what the Windows directory tab holds.", "Active Directory'de indekslidir ve Windows dizini sekmesinin sakladığı budur."): False,
+      ("cs", "The server's administrator code", "Kód administrátora serveru"): True,
+      ("cs", "The server's administrator code", "Kód správce serveru"): False,
+      ("cs", "An administrator", "Administrátor"): True,
+      ("cs", "Remote administration", "Vzdálená administrace"): False,
+      ("fi", "Encryption _passphrase", "Salauksen salasanalaus_e"): True,
+      ("fi", "Encryption _passphrase", "Salauksen tunnuslaus_e"): False,
+      ("uk", "Script _events", "Події сцена_ріїв"): True,
    }
    for (tag, source, value), expected in readback_cases.items():
       found = bool(readback_findings(tag, source, value))

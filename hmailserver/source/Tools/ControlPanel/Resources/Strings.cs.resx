@@ -1609,7 +1609,7 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
     <value>Adresa jako spammer@example.com je jen tato adresa; doména jako example.com je doména se všemi subdoménami.</value>
   </data>
   <data name="An administrator" xml:space="preserve">
-    <value>Administrátor</value>
+    <value>Správce</value>
   </data>
   <data name="An alias points one address at another without needing a second mailbox." xml:space="preserve">
     <value>Alias nasměruje jednu adresu na druhou, aniž by byla potřeba druhá poštovní schránka.</value>
@@ -14051,7 +14051,7 @@ Přesto přidat?</value>
     <value>Název hostitele serveru (Protokoly &gt; SMTP) je prázdný, takže v HELO/EHLO oznamuje název svého počítače Windows - ne veřejný název DNS - a žádný mechanismus „a:“ nelze nabídnout. Návrh autorizuje jen hostitele MX domény. Nejdřív nastavte název hostitele; potřebuje ho několik záznamů na této stránce.</value>
   </data>
   <data name="The server's administrator code" xml:space="preserve">
-    <value>Kód administrátora serveru</value>
+    <value>Kód správce serveru</value>
   </data>
   <data name="The server's answer about the archive could not be read." xml:space="preserve">
     <value>Odpověď serveru o archivu se nepodařilo přečíst.</value>
