@@ -4819,6 +4819,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the method to show what the binder throws, and holds that no page tells an older server by `DISP_E_UNKNOWNNAME`
   alone.
 
+- **Fixed: 96 Czech texts said what their English does not, or named one thing two ways.** A read-back of every
+  explanatory text against its English found the sendout's notice saying that the sendout had queued {0}, where {0} is
+  the time it was queued; a number of scanners read as a scanner's name; "0 = vůbec" (0 = at all) for a limit that 0
+  closes; four DNS checks still saying what their English said before it was reworded; the default IP ranges named Můj
+  počítač and Internet, where the server gives them in English and the IP ranges page lists them so; the administrator
+  an administrátor in the two-factor dialog, where the catalogue says správce; and the accept pipeline a pipeline
+  přijetí beside the page's přijímací řetězec. Clitics stand where Czech puts them, dosáhnout takes the genitive, and
+  no comma stands before the nebo that ends a list.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
