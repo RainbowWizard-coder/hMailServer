@@ -3471,6 +3471,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Nepodařilo se uložit: {0}</value>
   </data>
+  <data name="Could not search every held message on the server, so the search looks at the most recent only: {0}" xml:space="preserve">
+    <value>Nepodařilo se prohledat všechny zadržené zprávy na serveru, proto hledání bere v úvahu jen ty nejnovější: {0}</value>
+  </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Nepodařilo se spustit zálohu: {0}</value>
   </data>
@@ -11311,8 +11314,20 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Searched" xml:space="preserve">
     <value>Prohledáno</value>
   </data>
+  <data name="Searched every held message on the server: {0} match the search." xml:space="preserve">
+    <value>Prohledány všechny zadržené zprávy na serveru. Počet shod: {0}.</value>
+  </data>
+  <data name="Searched every held message on the server: {0} match the search.|few" xml:space="preserve">
+    <value>Prohledány všechny zadržené zprávy na serveru. Počet shod: {0}.</value>
+  </data>
+  <data name="Searched every held message on the server: {0} matches the search." xml:space="preserve">
+    <value>Prohledány všechny zadržené zprávy na serveru. Počet shod: {0}.</value>
+  </data>
   <data name="Searches" xml:space="preserve">
     <value>Hledání</value>
+  </data>
+  <data name="Searching every held message on the server…" xml:space="preserve">
+    <value>Prohledávají se všechny zadržené zprávy na serveru…</value>
   </data>
   <data name="Searching the audit trail…" xml:space="preserve">
     <value>Prohledává se auditní záznam…</value>
@@ -14455,6 +14470,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="This server is older than the Control Panel and cannot allow or block a sender from the quarantine. Upgrade the server." xml:space="preserve">
     <value>Tento server je starší než Control Panel a nedokáže z karantény povolit ani zablokovat odesílatele. Aktualizujte server.</value>
+  </data>
+  <data name="This server is older than the Control Panel and cannot search every held message, so the search looks at the most recent only. Upgrade the server." xml:space="preserve">
+    <value>Tento server je starší než Control Panel a nedokáže prohledat všechny zadržené zprávy, proto hledání bere v úvahu jen ty nejnovější. Aktualizujte server.</value>
   </data>
   <data name="This server is older than the Control Panel and cannot show a held message's headers or text. Upgrade the server." xml:space="preserve">
     <value>Tento server je starší než Control Panel a nedokáže zobrazit záhlaví ani text zadržené zprávy. Aktualizujte server.</value>
@@ -18143,6 +18161,15 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} z jednorázových kódů pro obnovu u tohoto účtu je nepoužitých.</value>
+  </data>
+  <data name="{0} of them, the most recent, are shown here." xml:space="preserve">
+    <value>Zobrazeny jsou zde ty nejnovější z nich: {0}.</value>
+  </data>
+  <data name="{0} of them, the most recent, are shown here.|few" xml:space="preserve">
+    <value>Zobrazeny jsou zde ty nejnovější z nich: {0}.</value>
+  </data>
+  <data name="{0} of them, the most recent, is shown here." xml:space="preserve">
+    <value>Zobrazeny jsou zde ty nejnovější z nich: {0}.</value>
   </data>
   <data name="{0} of {1} IP ranges refuse authentication until the session is encrypted." xml:space="preserve">
     <value>{0} z {1} IP rozsahů odmítá ověření, dokud není relace šifrovaná.</value>

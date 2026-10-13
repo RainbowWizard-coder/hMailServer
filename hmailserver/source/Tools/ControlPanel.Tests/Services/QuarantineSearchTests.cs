@@ -268,6 +268,189 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("WithIcon_(", view, StringComparison.Ordinal);
       }
 
+      // ---- the server's search, while the page holds only the most recent ------------
+
+      private static HeldMessage Held_(int id, string subject, string sender = "news@letters.example", string recipients = "ada@example.test")
+         => new() { Id = id, CreatedTime = "2026-10-08 03:42:00", Sender = sender, Recipients = recipients, Score = 21, Subject = subject, Reason = "Score 21", SenderDomain = "letters.example" };
+
+      /// <summary>
+      /// The server's answer is shown as it came while it is the answer for the text in
+      /// the box: its database matched it, by rules of its own - MySQL's collations
+      /// fold accents, so "café" finds "Cafe" there - and a second filter here hid what
+      /// it had found. A text typed since is the page's again until the server answers it.
+      /// </summary>
+      [Fact]
+      public void TheServersAnswer_IsShownWhole_WhileItIsTheAnswerForTheText()
+      {
+         var review = new QuarantineReview();
+         review.SetGrouping(QuarantineGrouping.None);
+         review.Load(new[] { Held_(900, "Newest"), Held_(899, "Second") });
+
+         review.SetFilter("café");
+         Assert.Empty(review.Shown);
+         Assert.False(review.ShowsServerSearch);
+
+         review.LoadServerSearch("café", new[] { Held_(12, "Cafe opening"), Held_(7, "Old cafe receipt") }, 2);
+         Assert.True(review.ShowsServerSearch);
+         Assert.Equal(new[] { 12, 7 }, review.Rows.Select(r => r.Id).ToArray());
+         Assert.Equal(2, review.ServerMatches);
+         Assert.Equal(2, review.Messages.Count);
+
+         // Another text: the page's own matches, until the server answers it.
+         review.SetFilter("second");
+         Assert.False(review.ShowsServerSearch);
+         Assert.Equal(new[] { 899 }, review.Rows.Select(r => r.Id).ToArray());
+
+         // The same text again: the answer for it.
+         review.SetFilter("  café ");
+         Assert.True(review.ShowsServerSearch);
+
+         // No search: the page.
+         review.SetFilter("");
+         Assert.False(review.ShowsServerSearch);
+         Assert.Equal(new[] { 900, 899 }, review.Rows.Select(r => r.Id).ToArray());
+      }
+
+      /// <summary>
+      /// A check on a message only the server's answer holds survives a reload of the
+      /// page, which every release and delete makes, and goes once the message has gone
+      /// from the answer as well; the four actions act on it as on any checked message.
+      /// </summary>
+      [Fact]
+      public void ChecksOnTheAnswersMessages_SurviveAReload_AndGoWithTheMessage()
+      {
+         var review = new QuarantineReview();
+         review.SetGrouping(QuarantineGrouping.None);
+         review.Load(new[] { Held_(900, "Newest invoice") });
+         review.SetFilter("invoice");
+         review.LoadServerSearch("invoice", new[] { Held_(900, "Newest invoice"), Held_(12, "Old invoice") }, 2);
+
+         review.Toggle(review.Rows.Single(r => r.Id == 12));
+         Assert.Equal(new[] { 12 }, review.CheckedIds.ToArray());
+         Assert.Equal("Old invoice", review.MessagesWith(new[] { 12 }).Single().Subject);
+
+         // The reload: the page again, the answer still standing until it is asked again.
+         review.Load(new[] { Held_(901, "Newer still"), Held_(900, "Newest invoice") });
+         Assert.Equal(new[] { 12 }, review.CheckedIds.ToArray());
+
+         // The answer asked again after the release of 12: the check goes with it.
+         review.LoadServerSearch("invoice", new[] { Held_(900, "Newest invoice") }, 1);
+         Assert.Empty(review.CheckedIds);
+
+         // A message in the page and the answer both is one message.
+         Assert.Single(review.MessagesWith(new[] { 900 }));
+      }
+
+      [Fact]
+      public void ClearingTheAnswer_GivesTheSearchBackToThePage()
+      {
+         var review = new QuarantineReview();
+         review.SetGrouping(QuarantineGrouping.None);
+         review.Load(new[] { Held_(900, "Invoice 9"), Held_(899, "Statement") });
+         review.SetFilter("invoice");
+         review.LoadServerSearch("invoice", new[] { Held_(900, "Invoice 9"), Held_(3, "Invoice 1") }, 2);
+         review.Toggle(review.Rows.Single(r => r.Id == 3));
+
+         review.ClearServerSearch();
+         Assert.False(review.ShowsServerSearch);
+         Assert.Null(review.ServerSearchText);
+         Assert.Empty(review.Found);
+         Assert.Equal(new[] { 900 }, review.Rows.Select(r => r.Id).ToArray());
+         Assert.Empty(review.CheckedIds);
+      }
+
+      [Fact]
+      public void HowManyMatch_IsNeverFewerThanTheServerSent()
+      {
+         var review = new QuarantineReview();
+         review.SetFilter("x");
+         review.LoadServerSearch("x", new[] { Held_(2, "x"), Held_(1, "x") }, 0);
+         Assert.Equal(2, review.ServerMatches);
+
+         review.LoadServerSearch("x", new[] { Held_(2, "x") }, 723);
+         Assert.Equal(723, review.ServerMatches);
+         Assert.Single(review.Found);
+      }
+
+      /// <summary>
+      /// The page asks Quarantine.Search while its list holds only the most recent and a
+      /// search is typed in - a moment after the typing stops, and at once after a
+      /// reload - says what came of it in the notice over the list, and falls back to the
+      /// page's own matches, saying so, on a failure or a server without the search. It
+      /// asks for a page no larger than the server gives and a text no longer than the
+      /// server takes.
+      /// </summary>
+      [Fact]
+      public void ThePage_AsksTheServerWhileItsListIsPartial_AndSaysSo()
+      {
+         string view = ReadControlPanelFile(Path.Join("Views", "QuarantineView.cs"));
+
+         string asks = WithheldRowTests.MemberText(view, "private bool SearchesTheServer_");
+         Assert.True(asks != null, "QuarantineView.SearchesTheServer_ is gone.");
+         Assert.Contains("review_.Messages.Count < total_", asks, StringComparison.Ordinal);
+         Assert.Contains("review_.Filter.Length <= ServerSearchLongest", asks, StringComparison.Ordinal);
+         Assert.Contains("!serverCannotSearch_", asks, StringComparison.Ordinal);
+
+         string search = WithheldRowTests.MemberText(view, "private void SearchServer_(bool again)");
+         Assert.True(search != null, "QuarantineView.SearchServer_ is gone.");
+         Assert.Contains("int matches = (int)quarantine.Search(text, 0, ServerSearchPage);", search, StringComparison.Ordinal);
+         Assert.Contains("review_.LoadServerSearch(text, found, matches);", search, StringComparison.Ordinal);
+         Assert.Contains("catch (COMException ex) when (ex.HResult == UnknownName)", search, StringComparison.Ordinal);
+         Assert.Contains("serverCannotSearch_ = true;", search, StringComparison.Ordinal);
+         Assert.Contains("serverSearchError_ = ServerSession.DescribeComError(ex);", search, StringComparison.Ordinal);
+
+         // A moment after the typing stops, not at every key; at once after a reload.
+         Assert.Contains("if (SearchesTheServer_ && !review_.ShowsServerSearch)\n               serverSearchTimer_.Start();", view.Replace("\r\n", "\n"), StringComparison.Ordinal);
+         Assert.Contains("SearchServer_(again: false);", view, StringComparison.Ordinal);
+         string reload = WithheldRowTests.MemberText(view, "private void Reload()");
+         Assert.Contains("SearchServer_(again: true);", reload, StringComparison.Ordinal);
+         Assert.Contains("review_.ClearServerSearch();", reload, StringComparison.Ordinal);
+         string leave = WithheldRowTests.MemberText(view, "public void OnLeave()");
+         Assert.Contains("serverSearchTimer_.Stop();", leave, StringComparison.Ordinal);
+
+         // What it says.
+         string notice = WithheldRowTests.MemberText(view, "private void ShowListNotice_()");
+         Assert.True(notice != null, "QuarantineView.ShowListNotice_ is gone.");
+         foreach (string said in new[]
+         {
+            "Searching every held message on the server…",
+            "Searched every held message on the server: {0} matches the search.",
+            "{0} of them, the most recent, are shown here.",
+            "Could not search every held message on the server, so the search looks at the most recent only: {0}",
+            "This server is older than the Control Panel and cannot search every held message, so the search looks at the most recent only. Upgrade the server.",
+            "{0} held, showing the {1} most recent."
+         })
+            Assert.Contains(said, notice, StringComparison.Ordinal);
+         Assert.True(notice.IndexOf("if (ReadFailure.IsShown(status_))", StringComparison.Ordinal) < notice.IndexOf("Status_(", StringComparison.Ordinal),
+            "The search's notice takes the place of a failed read's.");
+
+         // The pill counts what was looked at: every held message where the server did.
+         string state = WithheldRowTests.MemberText(view, "private void ShowSearchState_()");
+         Assert.Contains("int lookedAt = review_.ShowsServerSearch ? total_ : review_.Messages.Count;", state, StringComparison.Ordinal);
+         Assert.Contains("if (serverSearchTimer_.IsEnabled)", state, StringComparison.Ordinal);
+
+         // The page and the text are the server's own bounds.
+         Assert.Contains("private const int ServerSearchPage = 500;", view, StringComparison.Ordinal);
+         Assert.Contains("private const int ServerSearchLongest = 255;", view, StringComparison.Ordinal);
+         Assert.Contains("static const int max_listed_ = 500;", ReadServerFile(Path.Join("COM", "InterfaceQuarantine.h")), StringComparison.Ordinal);
+         Assert.Contains("static constexpr int MaxSearchText = 255;", ReadServerFile(Path.Join("Common", "AntiSpam", "QuarantineStore.h")), StringComparison.Ordinal);
+      }
+
+      private static string ReadServerFile(string relative)
+      {
+         var directory = new DirectoryInfo(AppContext.BaseDirectory);
+         while (directory != null)
+         {
+            string candidate = Path.Join(directory.FullName, "Server", relative);
+            if (File.Exists(candidate))
+               return File.ReadAllText(candidate);
+            directory = directory.Parent;
+         }
+
+         Assert.Fail("Server/" + relative.Replace('\\', '/') + " could not be found from the test binaries.");
+         return null;
+      }
+
       private static string ReadControlPanelFile(string relative)
       {
          var directory = new DirectoryInfo(AppContext.BaseDirectory);

@@ -261,7 +261,8 @@ Reviewing the quarantine
 
 The Control Panel's **Quarantine** page and the Deck's **Quarantine** view are the
 review queue: every message the server held rather than delivered, newest first,
-at most the thousand newest over REST and the five hundred newest over COM.
+at most the thousand newest over REST and the five hundred newest over COM - and
+the search reaches every one of them, however old (*Searching*, below).
 Quarantining is off until `QuarantineEnabled` is on in `hMailServer.ini`; until
 then spam over the delete threshold is refused during the SMTP conversation and
 nothing is held.
@@ -314,6 +315,18 @@ the row stores it - the envelope sender, the recipients as they were accepted
 (comma separated, cut at 1,000 characters), the subject and the reason, each cut at
 255. Letters outside ASCII are matched in any case as far as the database folds
 them.
+
+While the page holds every message held, the search narrows its rows as you type.
+While it holds only the most recent - the five hundred newest in the Control
+Panel, the thousand newest in the Deck - it asks the server a moment after the
+typing stops, so that a message older than the page is found too, and says so:
+*Searched every held message on the server: 37 match the search.* Where more match
+than a page holds, the most recent of them are listed and the notice says how many
+match in all; a longer search narrows them. A server older than the Control Panel
+cannot search, and the page then says that it looked at the most recent only. A
+search is the list's, and is not on the audit trail, as the list is not
+([AlertsAndAuditTrail.md](AlertsAndAuditTrail.md)): the quarantine is one of the
+server's working lists. Reading a held message's headers or its text is recorded.
 
 An account's own held mail - what the webmail's **Held mail** page lists - is every
 message held for that address, however many others the server holds, and

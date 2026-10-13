@@ -3438,6 +3438,9 @@
   <data name="Could not save: {0}" xml:space="preserve">
     <value>无法保存：{0}</value>
   </data>
+  <data name="Could not search every held message on the server, so the search looks at the most recent only: {0}" xml:space="preserve">
+    <value>无法搜索服务器上的所有暂留邮件，因此搜索只查看最近的邮件：{0}</value>
+  </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>无法开始备份：{0}</value>
   </data>
@@ -11163,8 +11166,17 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Searched" xml:space="preserve">
     <value>已搜索</value>
   </data>
+  <data name="Searched every held message on the server: {0} match the search." xml:space="preserve">
+    <value>已搜索服务器上的所有暂留邮件：{0} 封与搜索匹配。</value>
+  </data>
+  <data name="Searched every held message on the server: {0} matches the search." xml:space="preserve">
+    <value>已搜索服务器上的所有暂留邮件：{0} 封与搜索匹配。</value>
+  </data>
   <data name="Searches" xml:space="preserve">
     <value>搜索记录</value>
+  </data>
+  <data name="Searching every held message on the server…" xml:space="preserve">
+    <value>正在搜索服务器上的所有暂留邮件…</value>
   </data>
   <data name="Searching the audit trail…" xml:space="preserve">
     <value>正在搜索审计记录…</value>
@@ -14268,6 +14280,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="This server is older than the Control Panel and cannot allow or block a sender from the quarantine. Upgrade the server." xml:space="preserve">
     <value>此服务器版本低于 Control Panel，无法从隔离区允许或拦截发件人。请升级服务器。</value>
+  </data>
+  <data name="This server is older than the Control Panel and cannot search every held message, so the search looks at the most recent only. Upgrade the server." xml:space="preserve">
+    <value>此服务器版本低于 Control Panel，无法搜索所有暂留邮件，因此搜索只查看最近的邮件。请升级服务器。</value>
   </data>
   <data name="This server is older than the Control Panel and cannot show a held message's headers or text. Upgrade the server." xml:space="preserve">
     <value>此服务器版本低于 Control Panel，无法显示被暂挂邮件的邮件头或正文。请升级服务器。</value>
@@ -17788,6 +17803,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>此账户的一次性恢复代码中有 {0} 个未使用。</value>
+  </data>
+  <data name="{0} of them, the most recent, are shown here." xml:space="preserve">
+    <value>此处显示其中最近的 {0} 封。</value>
+  </data>
+  <data name="{0} of them, the most recent, is shown here." xml:space="preserve">
+    <value>此处显示其中最近的 {0} 封。</value>
   </data>
   <data name="{0} of {1} IP ranges refuse authentication until the session is encrypted." xml:space="preserve">
     <value>{1} 个 IP 范围中有 {0} 个在会话加密之前拒绝身份验证。</value>

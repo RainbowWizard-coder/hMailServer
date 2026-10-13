@@ -3438,6 +3438,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Could not save: {0}</value>
   </data>
+  <data name="Could not search every held message on the server, so the search looks at the most recent only: {0}" xml:space="preserve">
+    <value>Could not search every held message on the server, so the search looks at the most recent only: {0}</value>
+  </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Could not start the backup: {0}</value>
   </data>
@@ -11163,8 +11166,17 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Searched" xml:space="preserve">
     <value>Searched</value>
   </data>
+  <data name="Searched every held message on the server: {0} match the search." xml:space="preserve">
+    <value>Searched every held message on the server: {0} match the search.</value>
+  </data>
+  <data name="Searched every held message on the server: {0} matches the search." xml:space="preserve">
+    <value>Searched every held message on the server: {0} matches the search.</value>
+  </data>
   <data name="Searches" xml:space="preserve">
     <value>Searches</value>
+  </data>
+  <data name="Searching every held message on the server…" xml:space="preserve">
+    <value>Searching every held message on the server…</value>
   </data>
   <data name="Searching the audit trail…" xml:space="preserve">
     <value>Searching the audit trail…</value>
@@ -14268,6 +14280,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="This server is older than the Control Panel and cannot allow or block a sender from the quarantine. Upgrade the server." xml:space="preserve">
     <value>This server is older than the Control Panel and cannot allow or block a sender from the quarantine. Upgrade the server.</value>
+  </data>
+  <data name="This server is older than the Control Panel and cannot search every held message, so the search looks at the most recent only. Upgrade the server." xml:space="preserve">
+    <value>This server is older than the Control Panel and cannot search every held message, so the search looks at the most recent only. Upgrade the server.</value>
   </data>
   <data name="This server is older than the Control Panel and cannot show a held message's headers or text. Upgrade the server." xml:space="preserve">
     <value>This server is older than the Control Panel and cannot show a held message's headers or text. Upgrade the server.</value>
@@ -17788,6 +17803,12 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} of the account's one-time recovery codes are unused.</value>
+  </data>
+  <data name="{0} of them, the most recent, are shown here." xml:space="preserve">
+    <value>{0} of them, the most recent, are shown here.</value>
+  </data>
+  <data name="{0} of them, the most recent, is shown here." xml:space="preserve">
+    <value>{0} of them, the most recent, is shown here.</value>
   </data>
   <data name="{0} of {1} IP ranges refuse authentication until the session is encrypted." xml:space="preserve">
     <value>{0} of {1} IP ranges refuse authentication until the session is encrypted.</value>

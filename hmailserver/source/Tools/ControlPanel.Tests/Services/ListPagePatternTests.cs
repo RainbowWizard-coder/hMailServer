@@ -136,7 +136,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string quarantine = WithheldRowTests.MemberText(ReadControlPanelFile(Path.Join("Views", "QuarantineView.cs")), "private void ShowSearchState_()");
          Assert.True(quarantine != null, "QuarantineView.ShowSearchState_ is gone.");
          int failed = quarantine.IndexOf("if (ReadFailure.IsShown(status_))", StringComparison.Ordinal);
-         int counted = quarantine.IndexOf("count_.Text = ListSearchCount.PillText(review_.Filter, review_.Shown.Count, review_.Messages.Count,", StringComparison.Ordinal);
+         int counted = quarantine.IndexOf("count_.Text = ListSearchCount.PillText(review_.Filter, review_.Shown.Count, lookedAt,", StringComparison.Ordinal);
          Assert.True(failed >= 0 && counted > failed, "QuarantineView.ShowSearchState_ does not count what its search shows after asking whether the read worked.");
       }
 

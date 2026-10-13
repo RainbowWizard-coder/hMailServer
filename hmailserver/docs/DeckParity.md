@@ -861,6 +861,7 @@ Secondary and looser still: a COM method counts as covered when a non-GET route'
 | Quarantine | `DeleteByDBID` | QuarantineView | - |
 | Quarantine | `DeleteExpired` | QuarantineView | `POST /api/v1/complaints/expire`<br>`POST /api/v1/domain-reports/expire`<br>`POST /api/v1/quarantine/expire` |
 | Quarantine | `ReleaseByDBID` | QuarantineView | `POST /api/v1/review/{id}/release`<br>`POST /api/v1/sandbox/held/{queue_id}/release`<br>`POST /api/v1/quarantine/{id}/release` |
+| Quarantine | `Search` | QuarantineView | - |
 | AppPasswords | `Add` | AppPasswordsPanel | - |
 | AppPasswords | `DeleteByDBID` | AppPasswordsPanel | - |
 | Scripting | `CheckSyntax` | ScriptsView | `POST /api/v1/update/check`<br>`POST /api/v1/settings/scripting/check` |

@@ -3471,6 +3471,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Nie udało się zapisać: {0}</value>
   </data>
+  <data name="Could not search every held message on the server, so the search looks at the most recent only: {0}" xml:space="preserve">
+    <value>Nie udało się przeszukać wszystkich wstrzymanych wiadomości na serwerze, więc wyszukiwanie obejmuje tylko najnowsze: {0}</value>
+  </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Nie udało się rozpocząć kopii zapasowej: {0}</value>
   </data>
@@ -11311,8 +11314,20 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Searched" xml:space="preserve">
     <value>Przeszukano</value>
   </data>
+  <data name="Searched every held message on the server: {0} match the search." xml:space="preserve">
+    <value>Przeszukano wszystkie wstrzymane wiadomości na serwerze. Pasujące: {0}.</value>
+  </data>
+  <data name="Searched every held message on the server: {0} match the search.|few" xml:space="preserve">
+    <value>Przeszukano wszystkie wstrzymane wiadomości na serwerze. Pasujące: {0}.</value>
+  </data>
+  <data name="Searched every held message on the server: {0} matches the search." xml:space="preserve">
+    <value>Przeszukano wszystkie wstrzymane wiadomości na serwerze. Pasujące: {0}.</value>
+  </data>
   <data name="Searches" xml:space="preserve">
     <value>Wyszukiwania</value>
+  </data>
+  <data name="Searching every held message on the server…" xml:space="preserve">
+    <value>Przeszukiwanie wszystkich wstrzymanych wiadomości na serwerze…</value>
   </data>
   <data name="Searching the audit trail…" xml:space="preserve">
     <value>Przeszukiwanie dziennika audytu…</value>
@@ -14455,6 +14470,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="This server is older than the Control Panel and cannot allow or block a sender from the quarantine. Upgrade the server." xml:space="preserve">
     <value>Ten serwer jest starszy niż Control Panel i nie potrafi dopuścić ani zablokować nadawcy z poziomu kwarantanny. Zaktualizuj serwer.</value>
+  </data>
+  <data name="This server is older than the Control Panel and cannot search every held message, so the search looks at the most recent only. Upgrade the server." xml:space="preserve">
+    <value>Ten serwer jest starszy niż Control Panel i nie potrafi przeszukać wszystkich wstrzymanych wiadomości, więc wyszukiwanie obejmuje tylko najnowsze. Zaktualizuj serwer.</value>
   </data>
   <data name="This server is older than the Control Panel and cannot show a held message's headers or text. Upgrade the server." xml:space="preserve">
     <value>Ten serwer jest starszy niż Control Panel i nie potrafi pokazać nagłówków ani tekstu wstrzymanej wiadomości. Zaktualizuj serwer.</value>
@@ -18143,6 +18161,15 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} z jednorazowych kodów odzyskiwania konta jest nieużytych.</value>
+  </data>
+  <data name="{0} of them, the most recent, are shown here." xml:space="preserve">
+    <value>Pokazano tutaj najnowsze z nich: {0}.</value>
+  </data>
+  <data name="{0} of them, the most recent, are shown here.|few" xml:space="preserve">
+    <value>Pokazano tutaj najnowsze z nich: {0}.</value>
+  </data>
+  <data name="{0} of them, the most recent, is shown here." xml:space="preserve">
+    <value>Pokazano tutaj najnowsze z nich: {0}.</value>
   </data>
   <data name="{0} of {1} IP ranges refuse authentication until the session is encrypted." xml:space="preserve">
     <value>{0} z {1} zakresów adresów IP odmawia uwierzytelnienia, dopóki sesja nie jest szyfrowana.</value>

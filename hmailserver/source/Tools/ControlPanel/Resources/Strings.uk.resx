@@ -3471,6 +3471,9 @@
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Не вдалося зберегти: {0}</value>
   </data>
+  <data name="Could not search every held message on the server, so the search looks at the most recent only: {0}" xml:space="preserve">
+    <value>Не вдалося виконати пошук у всіх утриманих повідомленнях на сервері, тому пошук охоплює лише найновіші: {0}</value>
+  </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Не вдалося запустити резервне копіювання: {0}</value>
   </data>
@@ -11311,8 +11314,20 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Searched" xml:space="preserve">
     <value>Виконано пошук</value>
   </data>
+  <data name="Searched every held message on the server: {0} match the search." xml:space="preserve">
+    <value>Виконано пошук у всіх утриманих повідомленнях на сервері. Збігів: {0}.</value>
+  </data>
+  <data name="Searched every held message on the server: {0} match the search.|few" xml:space="preserve">
+    <value>Виконано пошук у всіх утриманих повідомленнях на сервері. Збігів: {0}.</value>
+  </data>
+  <data name="Searched every held message on the server: {0} matches the search." xml:space="preserve">
+    <value>Виконано пошук у всіх утриманих повідомленнях на сервері. Збігів: {0}.</value>
+  </data>
   <data name="Searches" xml:space="preserve">
     <value>Пошуки</value>
+  </data>
+  <data name="Searching every held message on the server…" xml:space="preserve">
+    <value>Пошук у всіх утриманих повідомленнях на сервері…</value>
   </data>
   <data name="Searching the audit trail…" xml:space="preserve">
     <value>Пошук у журналі аудиту…</value>
@@ -14455,6 +14470,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="This server is older than the Control Panel and cannot allow or block a sender from the quarantine. Upgrade the server." xml:space="preserve">
     <value>Цей сервер старіший за Control Panel і не може дозволити чи заблокувати відправника з карантину. Оновіть сервер.</value>
+  </data>
+  <data name="This server is older than the Control Panel and cannot search every held message, so the search looks at the most recent only. Upgrade the server." xml:space="preserve">
+    <value>Цей сервер старіший за Control Panel і не може шукати в усіх утриманих повідомленнях, тому пошук охоплює лише найновіші. Оновіть сервер.</value>
   </data>
   <data name="This server is older than the Control Panel and cannot show a held message's headers or text. Upgrade the server." xml:space="preserve">
     <value>Цей сервер старіший за Control Panel і не може показати заголовки чи текст затриманого повідомлення. Оновіть сервер.</value>
@@ -18143,6 +18161,15 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>Не використано одноразових кодів відновлення: {0}.</value>
+  </data>
+  <data name="{0} of them, the most recent, are shown here." xml:space="preserve">
+    <value>Тут показано найновіші з них: {0}.</value>
+  </data>
+  <data name="{0} of them, the most recent, are shown here.|few" xml:space="preserve">
+    <value>Тут показано найновіші з них: {0}.</value>
+  </data>
+  <data name="{0} of them, the most recent, is shown here." xml:space="preserve">
+    <value>Тут показано найновіші з них: {0}.</value>
   </data>
   <data name="{0} of {1} IP ranges refuse authentication until the session is encrypted." xml:space="preserve">
     <value>{0} з {1} діапазонів IP відхиляють автентифікацію, доки сеанс не зашифровано.</value>

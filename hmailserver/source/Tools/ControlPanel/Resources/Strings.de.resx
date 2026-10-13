@@ -3438,6 +3438,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Speichern nicht möglich: {0}</value>
   </data>
+  <data name="Could not search every held message on the server, so the search looks at the most recent only: {0}" xml:space="preserve">
+    <value>Es konnten nicht alle zurückgehaltenen Nachrichten auf dem Server durchsucht werden, daher berücksichtigt die Suche nur die neuesten: {0}</value>
+  </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Die Sicherung konnte nicht gestartet werden: {0}</value>
   </data>
@@ -11163,8 +11166,17 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Searched" xml:space="preserve">
     <value>Durchsucht</value>
   </data>
+  <data name="Searched every held message on the server: {0} match the search." xml:space="preserve">
+    <value>Alle zurückgehaltenen Nachrichten auf dem Server wurden durchsucht: {0} Nachrichten passen zur Suche.</value>
+  </data>
+  <data name="Searched every held message on the server: {0} matches the search." xml:space="preserve">
+    <value>Alle zurückgehaltenen Nachrichten auf dem Server wurden durchsucht: {0} Nachricht passt zur Suche.</value>
+  </data>
   <data name="Searches" xml:space="preserve">
     <value>Suchen</value>
+  </data>
+  <data name="Searching every held message on the server…" xml:space="preserve">
+    <value>Alle zurückgehaltenen Nachrichten auf dem Server werden durchsucht…</value>
   </data>
   <data name="Searching the audit trail…" xml:space="preserve">
     <value>Das Prüfprotokoll wird durchsucht…</value>
@@ -14268,6 +14280,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="This server is older than the Control Panel and cannot allow or block a sender from the quarantine. Upgrade the server." xml:space="preserve">
     <value>Dieser Server ist älter als das Control Panel und kann aus der Quarantäne heraus keinen Absender zulassen oder sperren. Aktualisieren Sie den Server.</value>
+  </data>
+  <data name="This server is older than the Control Panel and cannot search every held message, so the search looks at the most recent only. Upgrade the server." xml:space="preserve">
+    <value>Dieser Server ist älter als das Control Panel und kann nicht alle zurückgehaltenen Nachrichten durchsuchen, daher berücksichtigt die Suche nur die neuesten. Aktualisieren Sie den Server.</value>
   </data>
   <data name="This server is older than the Control Panel and cannot show a held message's headers or text. Upgrade the server." xml:space="preserve">
     <value>Dieser Server ist älter als das Control Panel und kann die Kopfzeilen oder den Text einer zurückgehaltenen Nachricht nicht anzeigen. Aktualisieren Sie den Server.</value>
@@ -17788,6 +17803,12 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} der Einmal-Wiederherstellungscodes des Kontos sind unbenutzt.</value>
+  </data>
+  <data name="{0} of them, the most recent, are shown here." xml:space="preserve">
+    <value>{0} davon, die neuesten, werden hier angezeigt.</value>
+  </data>
+  <data name="{0} of them, the most recent, is shown here." xml:space="preserve">
+    <value>{0} davon, die neueste, wird hier angezeigt.</value>
   </data>
   <data name="{0} of {1} IP ranges refuse authentication until the session is encrypted." xml:space="preserve">
     <value>{0} von {1} IP-Bereichen verweigern die Authentifizierung, bis die Sitzung verschlüsselt ist.</value>

@@ -205,6 +205,12 @@ namespace hMailServer.ControlPanel.Services
       private readonly HashSet<string> folded_ = new(StringComparer.OrdinalIgnoreCase);
       private List<QuarantineRow> rows_ = new();
 
+      // The server's answer to a search of every held message (Quarantine.Search),
+      // asked while the page holds only the most recent: the messages it sent, newest
+      // first. Null while it was not asked (review finding F261: the search found
+      // only what the page already held).
+      private List<HeldMessage> found_;
+
       public QuarantineGrouping Grouping { get; private set; } = QuarantineGrouping.SenderDomain;
 
       /// <summary>The column the messages are sorted by, or null for the server's order, newest first.</summary>
@@ -221,8 +227,55 @@ namespace hMailServer.ControlPanel.Services
       /// </summary>
       public string Filter { get; private set; } = "";
 
-      /// <summary>The messages the filter shows, in the server's order.</summary>
-      public IReadOnlyList<HeldMessage> Shown => string.IsNullOrWhiteSpace(Filter) ? messages_ : messages_.Where(m => Matches(m, Filter)).ToList();
+      /// <summary>
+      /// The messages the filter shows, in the server's order: the server's answer to
+      /// the search, whole, while it is the answer for the text in the box
+      /// (ShowsServerSearch) - the server matched it, and a second filter here could
+      /// hide what its database matched by its own rules, as MySQL's collations fold
+      /// accents - and otherwise the listed page's messages that match.
+      /// </summary>
+      public IReadOnlyList<HeldMessage> Shown => ShowsServerSearch
+         ? found_
+         : string.IsNullOrWhiteSpace(Filter) ? messages_ : messages_.Where(m => Matches(m, Filter)).ToList();
+
+      /// <summary>The text the server was last asked to search every held message for, or null while it was not asked.</summary>
+      public string ServerSearchText { get; private set; }
+
+      /// <summary>How many held messages match ServerSearchText in all: more than Found holds where the server sent the most recent of them.</summary>
+      public int ServerMatches { get; private set; }
+
+      /// <summary>The messages the server found for ServerSearchText, newest first; empty while it was not asked.</summary>
+      public IReadOnlyList<HeldMessage> Found => (IReadOnlyList<HeldMessage>)found_ ?? Array.Empty<HeldMessage>();
+
+      /// <summary>Whether the rows are the server's answer to the search in the box: from its answer until the text changes.</summary>
+      public bool ShowsServerSearch => found_ != null && ServerSearchText != null && Filter.Length > 0 && string.Equals(ServerSearchText, Filter, StringComparison.Ordinal);
+
+      /// <summary>
+      /// The server's answer to a search of every held message: what it was asked
+      /// for, the messages it sent and how many match in all. Checks on messages that
+      /// are in the answer or the listed page are kept.
+      /// </summary>
+      public void LoadServerSearch(string text, IEnumerable<HeldMessage> found, int matches)
+      {
+         ServerSearchText = (text ?? "").Trim();
+         found_ = (found ?? Enumerable.Empty<HeldMessage>()).ToList();
+         ServerMatches = Math.Max(matches, found_.Count);
+         KeepPresentChecks_();
+         Rebuild();
+      }
+
+      /// <summary>No answer from the server any more: the search looks at the listed page.</summary>
+      public void ClearServerSearch()
+      {
+         if (found_ == null && ServerSearchText == null)
+            return;
+
+         found_ = null;
+         ServerSearchText = null;
+         ServerMatches = 0;
+         KeepPresentChecks_();
+         Rebuild();
+      }
 
       /// <summary>The time held messages' ages are counted from, or null where they are not shown (QuarantineRow.Held).</summary>
       public DateTime? AgesFrom { get; set; }
@@ -352,10 +405,19 @@ namespace hMailServer.ControlPanel.Services
          messages_.Clear();
          messages_.AddRange(messages ?? Enumerable.Empty<HeldMessage>());
 
-         var present = new HashSet<int>(messages_.Select(m => m.Id));
-         checked_.RemoveWhere(id => !present.Contains(id));
-
+         KeepPresentChecks_();
          Rebuild();
+      }
+
+      // The checks on messages still held - in the listed page, or in the server's
+      // answer to a search - and none on the ones that are gone.
+      private void KeepPresentChecks_()
+      {
+         var present = new HashSet<int>(messages_.Select(m => m.Id));
+         if (found_ != null)
+            present.UnionWith(found_.Select(m => m.Id));
+
+         checked_.RemoveWhere(id => !present.Contains(id));
       }
 
       public void SetGrouping(QuarantineGrouping grouping)
@@ -453,10 +515,12 @@ namespace hMailServer.ControlPanel.Services
          return row.IsGroup ? row.Members.Select(m => m.Id).ToList() : new[] { row.Id };
       }
 
+      /// <summary>The messages with these ids, from the listed page and the server's answer to a search, each once.</summary>
       public IReadOnlyList<HeldMessage> MessagesWith(IEnumerable<int> ids)
       {
          var wanted = new HashSet<int>(ids ?? Enumerable.Empty<int>());
-         return messages_.Where(m => wanted.Contains(m.Id)).ToList();
+         var seen = new HashSet<int>();
+         return messages_.Concat(found_ ?? Enumerable.Empty<HeldMessage>()).Where(m => wanted.Contains(m.Id) && seen.Add(m.Id)).ToList();
       }
 
       /// <summary>

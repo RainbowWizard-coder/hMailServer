@@ -3438,6 +3438,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Ei voitu tallentaa: {0}</value>
   </data>
+  <data name="Could not search every held message on the server, so the search looks at the most recent only: {0}" xml:space="preserve">
+    <value>Kaikista palvelimen pidätetyistä viesteistä ei voitu hakea, joten haku katsoo vain uusimpia: {0}</value>
+  </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Varmuuskopiointia ei voitu aloittaa: {0}</value>
   </data>
@@ -11163,8 +11166,17 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Searched" xml:space="preserve">
     <value>Haettu</value>
   </data>
+  <data name="Searched every held message on the server: {0} match the search." xml:space="preserve">
+    <value>Haettiin kaikista palvelimen pidätetyistä viesteistä: {0} vastaa hakua.</value>
+  </data>
+  <data name="Searched every held message on the server: {0} matches the search." xml:space="preserve">
+    <value>Haettiin kaikista palvelimen pidätetyistä viesteistä: {0} vastaa hakua.</value>
+  </data>
   <data name="Searches" xml:space="preserve">
     <value>Haut</value>
+  </data>
+  <data name="Searching every held message on the server…" xml:space="preserve">
+    <value>Haetaan kaikista palvelimen pidätetyistä viesteistä…</value>
   </data>
   <data name="Searching the audit trail…" xml:space="preserve">
     <value>Tarkastuslokia haetaan…</value>
@@ -14268,6 +14280,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="This server is older than the Control Panel and cannot allow or block a sender from the quarantine. Upgrade the server." xml:space="preserve">
     <value>Tämä palvelin on Control Panelia vanhempi eikä voi sallia tai estää lähettäjää karanteenista. Päivitä palvelin.</value>
+  </data>
+  <data name="This server is older than the Control Panel and cannot search every held message, so the search looks at the most recent only. Upgrade the server." xml:space="preserve">
+    <value>Tämä palvelin on Control Panelia vanhempi eikä voi hakea kaikista pidätetyistä viesteistä, joten haku katsoo vain uusimpia. Päivitä palvelin.</value>
   </data>
   <data name="This server is older than the Control Panel and cannot show a held message's headers or text. Upgrade the server." xml:space="preserve">
     <value>Tämä palvelin on Control Panelia vanhempi eikä voi näyttää pidätetyn viestin otsakkeita tai tekstiä. Päivitä palvelin.</value>
@@ -17788,6 +17803,12 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} tilin kertakäyttöisistä palautuskoodeista on käyttämättä.</value>
+  </data>
+  <data name="{0} of them, the most recent, are shown here." xml:space="preserve">
+    <value>{0} niistä, uusimmat, näytetään tässä.</value>
+  </data>
+  <data name="{0} of them, the most recent, is shown here." xml:space="preserve">
+    <value>{0} niistä, uusin, näytetään tässä.</value>
   </data>
   <data name="{0} of {1} IP ranges refuse authentication until the session is encrypted." xml:space="preserve">
     <value>{0}/{1} IP-alueesta hylkää todennuksen, kunnes istunto on salattu.</value>

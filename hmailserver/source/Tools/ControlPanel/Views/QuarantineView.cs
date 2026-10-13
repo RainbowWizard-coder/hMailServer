@@ -121,6 +121,22 @@ namespace hMailServer.ControlPanel.Views
       // each was held (QuarantineReview.Filter).
       private readonly Toolbar search_ = new();
 
+      // The search asks the server while the page holds only the most recent
+      // messages, where it found nothing older than they (review finding F261):
+      // Quarantine.Search over every held message, a moment after the typing stops -
+      // a round trip a keystroke would be one too many of - and at once after a
+      // reload. The page of an answer is the page Refresh loads, and the longest
+      // text is the server's.
+      private const int ServerSearchPage = 500;
+      private const int ServerSearchLongest = 255;
+      private readonly System.Windows.Threading.DispatcherTimer serverSearchTimer_ = new() { Interval = TimeSpan.FromMilliseconds(400) };
+
+      // Why the last search of every held message failed, or null; and whether this
+      // server has no Quarantine.Search at all - a server older than the Control
+      // Panel - so that the search looks at the page alone.
+      private string serverSearchError_;
+      private bool serverCannotSearch_;
+
       // How many messages are held, beside the title, where an Information notice
       // said "5 messages held." (review finding F288).
       private readonly StatusPill count_ = new() { Level = StatusLevel.Normal, Visibility = Visibility.Collapsed };
@@ -185,11 +201,18 @@ namespace hMailServer.ControlPanel.Views
       // load meant leaving and returning showed the list as it stood the FIRST
       // time the page was opened - on the one page whose list is the only copy
       // of the messages it shows.
-      public void OnEnter() => Reload();
+      public void OnEnter()
+      {
+         // Asked again on each visit whether the server can search: it may have been
+         // upgraded since the page was last open.
+         serverCannotSearch_ = false;
+         Reload();
+      }
 
       public void OnLeave()
       {
          flyout_.IsOpen = false;
+         serverSearchTimer_.Stop();
       }
 
       private dynamic OpenQuarantine()
@@ -226,10 +249,53 @@ namespace hMailServer.ControlPanel.Views
          }
       }
 
-      private void Reload()
+      /// <summary>The messages the collection holds, a page of them, as Refresh or Search loaded it.</summary>
+      private static List<HeldMessage> ReadPage_(dynamic quarantine)
       {
          var messages = new List<HeldMessage>();
 
+         for (int i = 0; ; i++)
+         {
+            dynamic item;
+
+            try
+            {
+               item = quarantine[i];
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+            {
+               // The collection loads a page rather than the whole table, and
+               // indexing past it is how that page ends.
+               break;
+            }
+
+            try
+            {
+               messages.Add(new HeldMessage
+               {
+                  Id = (int)item.ID,
+                  CreatedTime = (string)item.CreatedTime ?? "",
+                  Sender = (string)item.Sender ?? "",
+                  Recipients = (string)item.Recipients ?? "",
+                  Score = (int)item.Score,
+                  Subject = (string)item.Subject ?? "",
+                  Reason = (string)item.Reason ?? "",
+                  Helo = Optional_(() => (string)item.HeloName),
+                  SenderDomain = Optional_(() => (string)item.SenderDomain),
+                  HeloDomain = Optional_(() => (string)item.HeloDomain)
+               });
+            }
+            finally
+            {
+               ServerSession.Release(item);
+            }
+         }
+
+         return messages;
+      }
+
+      private void Reload()
+      {
          try
          {
             dynamic quarantine = OpenQuarantine();
@@ -238,43 +304,7 @@ namespace hMailServer.ControlPanel.Views
                quarantine.Refresh();
 
                int total = (int)quarantine.Count;
-
-               for (int i = 0; ; i++)
-               {
-                  dynamic item;
-
-                  try
-                  {
-                     item = quarantine[i];
-                  }
-                  catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
-                  {
-                     // The collection loads a page rather than the whole table, and
-                     // indexing past it is how that page ends.
-                     break;
-                  }
-
-                  try
-                  {
-                     messages.Add(new HeldMessage
-                     {
-                        Id = (int)item.ID,
-                        CreatedTime = (string)item.CreatedTime ?? "",
-                        Sender = (string)item.Sender ?? "",
-                        Recipients = (string)item.Recipients ?? "",
-                        Score = (int)item.Score,
-                        Subject = (string)item.Subject ?? "",
-                        Reason = (string)item.Reason ?? "",
-                        Helo = Optional_(() => (string)item.HeloName),
-                        SenderDomain = Optional_(() => (string)item.SenderDomain),
-                        HeloDomain = Optional_(() => (string)item.HeloDomain)
-                     });
-                  }
-                  finally
-                  {
-                     ServerSession.Release(item);
-                  }
-               }
+               List<HeldMessage> messages = ReadPage_(quarantine);
 
                // A held time's age is counted only where the server's clock is this
                // computer's: CreatedTime is the server's local time.
@@ -282,7 +312,6 @@ namespace hMailServer.ControlPanel.Views
                if (heldColumn_ != null)
                   heldColumn_.Header = review_.HeldCaption;
                review_.Load(messages);
-               Rebind_();
 
                ReadFailure.Clear(status_);
 
@@ -300,14 +329,20 @@ namespace hMailServer.ControlPanel.Views
                emptyAction_ = empty_.Action;
                total_ = total;
                count_.Visibility = Visibility.Visible;
-               ShowSearchState_();
 
-               // A list longer than the page reads is a state with a consequence -
-               // the rest are still held - so it keeps its notice.
-               if (messages.Count < total)
-                  Status_(StatusLevel.Information, F("{0} held, showing the {1} most recent. The rest are still there - work through these, or let the retention sweep age them out.", total, messages.Count));
+               // A search still in the box is asked of the server again, at once, over
+               // what is held now - a release or a delete reloads the page - or, where
+               // the page holds everything, is the page's own again.
+               serverSearchTimer_.Stop();
+               serverSearchError_ = null;
+               if (SearchesTheServer_)
+                  SearchServer_(again: true);
                else
-                  status_.Visibility = Visibility.Collapsed;
+                  review_.ClearServerSearch();
+
+               Rebind_();
+               ShowSearchState_();
+               ShowListNotice_();
             }
             finally
             {
@@ -320,6 +355,8 @@ namespace hMailServer.ControlPanel.Views
             // this page has now - on the one page whose list is the only copy of
             // what it shows: both go, and the notice says what happened, with Try
             // again (Services/ReadFailure).
+            serverSearchTimer_.Stop();
+            review_.ClearServerSearch();
             review_.Load(new List<HeldMessage>());
             selectAll_.IsChecked = false;
             UpdateBulkBar_();
@@ -1526,13 +1563,32 @@ namespace hMailServer.ControlPanel.Views
 
          parts.Children.Add(status_);
 
-         // The search, over what the page holds.
+         // The search, over what the page holds - and while the page holds only the
+         // most recent messages, over every held message, asked of the server a
+         // moment after the typing stops, the page's own matches shown until it
+         // answers (SearchServer_).
          search_.SearchPlaceholder = L("Search sender, recipient, subject or reason");
          search_.SearchTextChanged += (_, _) =>
          {
             review_.SetFilter(search_.SearchText);
+
+            serverSearchTimer_.Stop();
+            serverSearchError_ = null;
+            if (SearchesTheServer_ && !review_.ShowsServerSearch)
+               serverSearchTimer_.Start();
+
             Rebind_();
             ShowSearchState_();
+            if (review_.Messages.Count < total_)
+               ShowListNotice_();
+         };
+         serverSearchTimer_.Tick += (_, _) =>
+         {
+            serverSearchTimer_.Stop();
+            SearchServer_(again: false);
+            Rebind_();
+            ShowSearchState_();
+            ShowListNotice_();
          };
          search_.SetResourceReference(MarginProperty, "AppCardGap");
          parts.Children.Add(search_);
@@ -1695,11 +1751,12 @@ namespace hMailServer.ControlPanel.Views
 
       /// <summary>
       /// The count and the empty state for the search: while a search is typed in,
-      /// the pill says how many of the messages read it shows ("Shown: 3 of 200" -
-      /// of those the server listed, which are what the search looks at), and the
-      /// number held otherwise; a search that matches nothing says so - and, where
-      /// the server listed only the most recent, that it looked at those - and a
-      /// search cleared gives back what the page says with nothing held.
+      /// the pill says how many it shows of the messages it looked at ("Shown: 3 of
+      /// 200" - those the server listed, or "Shown: 37 of 1200", every held message,
+      /// where the server searched them all), and the number held otherwise; a search
+      /// that matches nothing says so - and, where it looked at the most recent only,
+      /// that it looked at those - and a search cleared gives back what the page says
+      /// with nothing held.
       /// </summary>
       private void ShowSearchState_()
       {
@@ -1708,7 +1765,8 @@ namespace hMailServer.ControlPanel.Views
          if (ReadFailure.IsShown(status_))
             return;
 
-         count_.Text = ListSearchCount.PillText(review_.Filter, review_.Shown.Count, review_.Messages.Count,
+         int lookedAt = review_.ShowsServerSearch ? total_ : review_.Messages.Count;
+         count_.Text = ListSearchCount.PillText(review_.Filter, review_.Shown.Count, lookedAt,
             Plural(total_, "{0} message", "{0} messages"));
 
          if (string.IsNullOrWhiteSpace(review_.Filter) || review_.Messages.Count == 0)
@@ -1725,10 +1783,121 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         empty_.Text = review_.Messages.Count < total_
+         // While the server is about to be asked, the notice says so, and the most
+         // recent messages' having none is not the answer.
+         if (serverSearchTimer_.IsEnabled)
+         {
+            empty_.Visibility = Visibility.Collapsed;
+            return;
+         }
+
+         empty_.Text = review_.Messages.Count < total_ && !review_.ShowsServerSearch
             ? F("None of the {0} most recent held messages has \"{1}\" in its sender, recipients, subject or reason. The server lists no more than those.", review_.Messages.Count, review_.Filter)
             : F("No held message has \"{0}\" in its sender, recipients, subject or reason.", review_.Filter);
          empty_.Visibility = Visibility.Visible;
+      }
+
+      /// <summary>
+      /// Whether the search in the box is one for the server: the page holds only the
+      /// most recent messages, a search is typed in that is no longer than the server
+      /// takes, and the server has a search.
+      /// </summary>
+      private bool SearchesTheServer_ => review_.Messages.Count < total_ && review_.Filter.Length > 0 &&
+         review_.Filter.Length <= ServerSearchLongest && !serverCannotSearch_;
+
+      /// <summary>
+      /// Every held message the search in the box finds, asked of the server
+      /// (Quarantine.Search): the most recent of them shown, and how many there are.
+      /// Asked again, after a reload, even where the server answered this text
+      /// before: the reload has changed what is held.
+      /// </summary>
+      private void SearchServer_(bool again)
+      {
+         if (!SearchesTheServer_ || (!again && review_.ShowsServerSearch))
+            return;
+
+         string text = review_.Filter;
+         try
+         {
+            dynamic quarantine = OpenQuarantine();
+            try
+            {
+               int matches = (int)quarantine.Search(text, 0, ServerSearchPage);
+               List<HeldMessage> found = ReadPage_(quarantine);
+               serverSearchError_ = null;
+               review_.LoadServerSearch(text, found, matches);
+            }
+            finally
+            {
+               ServerSession.Release(quarantine);
+            }
+         }
+         catch (COMException ex) when (ex.HResult == UnknownName)
+         {
+            // A server older than the Control Panel: the search is the page's.
+            serverCannotSearch_ = true;
+            review_.ClearServerSearch();
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            // The page's own matches stay, and the notice says what they are.
+            serverSearchError_ = ServerSession.DescribeComError(ex);
+            review_.ClearServerSearch();
+         }
+      }
+
+      /// <summary>
+      /// The notice over the list. While a search is typed in and the page holds only
+      /// the most recent messages, what searching every held message came to: being
+      /// asked, the answer - how many match, and where more match than one page
+      /// holds, that the most recent of them are shown - or why the search looks at
+      /// the most recent only. Otherwise that the page holds only the most recent,
+      /// a state with a consequence: the rest are still held. A failed read keeps
+      /// its own notice (Services/ReadFailure).
+      /// </summary>
+      private void ShowListNotice_()
+      {
+         if (ReadFailure.IsShown(status_))
+            return;
+
+         int listed = review_.Messages.Count;
+         if (listed >= total_)
+         {
+            status_.Visibility = Visibility.Collapsed;
+            return;
+         }
+
+         if (review_.Filter.Length > 0 && review_.Filter.Length <= ServerSearchLongest)
+         {
+            if (serverCannotSearch_)
+            {
+               Status_(StatusLevel.Information, L("This server is older than the Control Panel and cannot search every held message, so the search looks at the most recent only. Upgrade the server."));
+               return;
+            }
+
+            if (serverSearchError_ != null)
+            {
+               Status_(StatusLevel.Warning, F("Could not search every held message on the server, so the search looks at the most recent only: {0}", serverSearchError_));
+               return;
+            }
+
+            if (review_.ShowsServerSearch)
+            {
+               int matches = review_.ServerMatches;
+               int shown = review_.Found.Count;
+               string searched = Plural(matches, "Searched every held message on the server: {0} matches the search.",
+                  "Searched every held message on the server: {0} match the search.");
+               Status_(StatusLevel.Information, matches > shown
+                  ? Sentences(searched, Plural(shown, "{0} of them, the most recent, is shown here.", "{0} of them, the most recent, are shown here."))
+                  : searched);
+               return;
+            }
+
+            Status_(StatusLevel.Information, L("Searching every held message on the server…"));
+            return;
+         }
+
+         Status_(StatusLevel.Information, F("{0} held, showing the {1} most recent. The rest are still there - work through these, or let the retention sweep age them out.", total_, listed));
       }
 
       private static Button MakeButton(string text, ControlAppearance appearance, RoutedEventHandler onClick)

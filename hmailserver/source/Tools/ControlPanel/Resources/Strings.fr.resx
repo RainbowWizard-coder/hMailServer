@@ -3438,6 +3438,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Impossible d'enregistrer : {0}</value>
   </data>
+  <data name="Could not search every held message on the server, so the search looks at the most recent only: {0}" xml:space="preserve">
+    <value>Impossible de rechercher dans tous les messages retenus sur le serveur ; la recherche ne porte donc que sur les plus récents : {0}</value>
+  </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Impossible de démarrer la sauvegarde : {0}</value>
   </data>
@@ -11163,8 +11166,17 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Searched" xml:space="preserve">
     <value>Recherché</value>
   </data>
+  <data name="Searched every held message on the server: {0} match the search." xml:space="preserve">
+    <value>Recherche effectuée dans tous les messages retenus sur le serveur : {0} messages correspondent à la recherche.</value>
+  </data>
+  <data name="Searched every held message on the server: {0} matches the search." xml:space="preserve">
+    <value>Recherche effectuée dans tous les messages retenus sur le serveur : {0} message correspond à la recherche.</value>
+  </data>
   <data name="Searches" xml:space="preserve">
     <value>Recherches</value>
+  </data>
+  <data name="Searching every held message on the server…" xml:space="preserve">
+    <value>Recherche dans tous les messages retenus sur le serveur…</value>
   </data>
   <data name="Searching the audit trail…" xml:space="preserve">
     <value>Recherche dans le journal d'audit…</value>
@@ -14268,6 +14280,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="This server is older than the Control Panel and cannot allow or block a sender from the quarantine. Upgrade the server." xml:space="preserve">
     <value>Ce serveur est plus ancien que le Control Panel et ne peut ni autoriser ni bloquer un expéditeur depuis la quarantaine. Mettez le serveur à jour.</value>
+  </data>
+  <data name="This server is older than the Control Panel and cannot search every held message, so the search looks at the most recent only. Upgrade the server." xml:space="preserve">
+    <value>Ce serveur est plus ancien que le Control Panel et ne peut pas rechercher dans tous les messages retenus ; la recherche ne porte donc que sur les plus récents. Mettez le serveur à jour.</value>
   </data>
   <data name="This server is older than the Control Panel and cannot show a held message's headers or text. Upgrade the server." xml:space="preserve">
     <value>Ce serveur est plus ancien que le Control Panel et ne peut pas afficher les en-têtes ou le texte d'un message retenu. Mettez le serveur à jour.</value>
@@ -17788,6 +17803,12 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} des codes de récupération à usage unique du compte sont inutilisés.</value>
+  </data>
+  <data name="{0} of them, the most recent, are shown here." xml:space="preserve">
+    <value>{0} d'entre eux, les plus récents, sont affichés ici.</value>
+  </data>
+  <data name="{0} of them, the most recent, is shown here." xml:space="preserve">
+    <value>{0} d'entre eux, le plus récent, est affiché ici.</value>
   </data>
   <data name="{0} of {1} IP ranges refuse authentication until the session is encrypted." xml:space="preserve">
     <value>{0} plages IP sur {1} refusent l'authentification tant que la session n'est pas chiffrée.</value>

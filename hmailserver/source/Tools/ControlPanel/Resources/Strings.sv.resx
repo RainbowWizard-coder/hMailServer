@@ -3438,6 +3438,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Kunde inte spara: {0}</value>
   </data>
+  <data name="Could not search every held message on the server, so the search looks at the most recent only: {0}" xml:space="preserve">
+    <value>Kunde inte söka i alla kvarhållna meddelanden på servern, så sökningen tittar bara på de senaste: {0}</value>
+  </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Kunde inte starta säkerhetskopieringen: {0}</value>
   </data>
@@ -11163,8 +11166,17 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Searched" xml:space="preserve">
     <value>Genomsökt</value>
   </data>
+  <data name="Searched every held message on the server: {0} match the search." xml:space="preserve">
+    <value>Sökte i alla kvarhållna meddelanden på servern: {0} matchar sökningen.</value>
+  </data>
+  <data name="Searched every held message on the server: {0} matches the search." xml:space="preserve">
+    <value>Sökte i alla kvarhållna meddelanden på servern: {0} matchar sökningen.</value>
+  </data>
   <data name="Searches" xml:space="preserve">
     <value>Sökningar</value>
+  </data>
+  <data name="Searching every held message on the server…" xml:space="preserve">
+    <value>Söker i alla kvarhållna meddelanden på servern…</value>
   </data>
   <data name="Searching the audit trail…" xml:space="preserve">
     <value>Söker i granskningsloggen…</value>
@@ -14268,6 +14280,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="This server is older than the Control Panel and cannot allow or block a sender from the quarantine. Upgrade the server." xml:space="preserve">
     <value>Den här servern är äldre än Control Panel och kan inte tillåta eller blockera en avsändare från karantänen. Uppgradera servern.</value>
+  </data>
+  <data name="This server is older than the Control Panel and cannot search every held message, so the search looks at the most recent only. Upgrade the server." xml:space="preserve">
+    <value>Den här servern är äldre än Control Panel och kan inte söka i alla kvarhållna meddelanden, så sökningen tittar bara på de senaste. Uppgradera servern.</value>
   </data>
   <data name="This server is older than the Control Panel and cannot show a held message's headers or text. Upgrade the server." xml:space="preserve">
     <value>Den här servern är äldre än Control Panel och kan inte visa huvudfälten eller texten för ett kvarhållet meddelande. Uppgradera servern.</value>
@@ -17788,6 +17803,12 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} av kontots engångskoder för återställning är oanvända.</value>
+  </data>
+  <data name="{0} of them, the most recent, are shown here." xml:space="preserve">
+    <value>{0} av dem, de senaste, visas här.</value>
+  </data>
+  <data name="{0} of them, the most recent, is shown here." xml:space="preserve">
+    <value>{0} av dem, det senaste, visas här.</value>
   </data>
   <data name="{0} of {1} IP ranges refuse authentication until the session is encrypted." xml:space="preserve">
     <value>{0} av {1} IP-intervall vägrar autentisering tills sessionen är krypterad.</value>

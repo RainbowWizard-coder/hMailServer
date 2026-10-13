@@ -4781,6 +4781,29 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   nor counts them. `RemoteIniRowsTests` holds the rows and the card to it, and the store to the default it answers for
   [Database] with no file on this computer and with a file this user may not read.
 
+- **Fixed: the Quarantine page's search looked only through the five hundred most recent held messages (review
+  finding F261).** It filtered the page COM had loaded, so an older message could not be found from the page at all,
+  and the Control Deck's search, filtering the newest thousand, could not either. The server searches every held
+  message now. Over COM `Quarantine.Search(Text, Offset, Count)` loads a page of the messages whose sender,
+  recipients, subject or reason holds the text, newest first, which `Item` then indexes, and answers how many match in
+  all. Over REST `GET /api/v1/quarantine` takes `q`, `offset` and `limit` and answers a page as an object - `query`,
+  `held`, `total`, `offset`, `count` and `messages` - and without them is the bare array of the newest thousand it
+  always was; `GET /api/v1/me/quarantine` takes the same for an account's own held mail and looks in the sender, the
+  subject and the reason, never in the recipients, which say who else a message was for. The text is matched as it is
+  written on all four databases: each LIKE has a parameter of its own, in the order SQL Server binds them by position,
+  with `%`, `_`, `[` and the escape character escaped, and the predicates were run against PostgreSQL, MariaDB, MySQL,
+  SQL Server and SQL Server Compact. A text is at most 255 characters and a page at most 500 over COM and 1,000 over
+  REST, and anything out of range is refused rather than cut. While the page holds only the most recent messages, its
+  search asks the server a moment after the typing stops and says so - "Searched every held message on the server: 37
+  match the search.", and how many match in all where more match than a page holds - keeps a check on a message only
+  the answer held across the reload a release or a delete makes, and falls back to the page's own matches, saying
+  why, on a failure or on a server without the search. The Deck's quarantine view does the same over REST, and its
+  line says how many are held where it said how many it had listed. The webmail's own list of held mail read the
+  newest thousand held for anybody and kept the account's, so that on a server holding more an account's older held
+  mail was never listed; it is every message held for the address now. Like the list, a search is not on the audit
+  trail: the quarantine is one of the server's working lists. `QuarantineSearchTests`, the `quarantine-search-tests`
+  program and the `QuarantineSearch` and `RestApiQuarantineSearch` fixtures hold it.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

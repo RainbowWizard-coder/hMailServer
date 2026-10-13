@@ -3449,6 +3449,9 @@
   <data name="Could not save: {0}" xml:space="preserve">
     <value>保存できませんでした: {0}</value>
   </data>
+  <data name="Could not search every held message on the server, so the search looks at the most recent only: {0}" xml:space="preserve">
+    <value>サーバー上のすべての保留中のメッセージを検索できなかったため、検索は最新のもののみを対象にしています: {0}</value>
+  </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>バックアップを開始できませんでした: {0}</value>
   </data>
@@ -11174,8 +11177,17 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Searched" xml:space="preserve">
     <value>検索済み</value>
   </data>
+  <data name="Searched every held message on the server: {0} match the search." xml:space="preserve">
+    <value>サーバー上のすべての保留中のメッセージを検索しました: {0} 件が検索に一致します。</value>
+  </data>
+  <data name="Searched every held message on the server: {0} matches the search." xml:space="preserve">
+    <value>サーバー上のすべての保留中のメッセージを検索しました: {0} 件が検索に一致します。</value>
+  </data>
   <data name="Searches" xml:space="preserve">
     <value>検索一覧</value>
+  </data>
+  <data name="Searching every held message on the server…" xml:space="preserve">
+    <value>サーバー上のすべての保留中のメッセージを検索しています…</value>
   </data>
   <data name="Searching the audit trail…" xml:space="preserve">
     <value>監査ログを検索しています…</value>
@@ -14279,6 +14291,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="This server is older than the Control Panel and cannot allow or block a sender from the quarantine. Upgrade the server." xml:space="preserve">
     <value>このサーバーは Control Panel より古く、検疫から送信者を許可またはブロックできません。サーバーをアップグレードしてください。</value>
+  </data>
+  <data name="This server is older than the Control Panel and cannot search every held message, so the search looks at the most recent only. Upgrade the server." xml:space="preserve">
+    <value>このサーバーは Control Panel より古く、すべての保留中のメッセージを検索できないため、検索は最新のもののみを対象にしています。サーバーをアップグレードしてください。</value>
   </data>
   <data name="This server is older than the Control Panel and cannot show a held message's headers or text. Upgrade the server." xml:space="preserve">
     <value>このサーバーは Control Panel より古く、保留中のメッセージのヘッダーやテキストを表示できません。サーバーをアップグレードしてください。</value>
@@ -17799,6 +17814,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>このアカウントの使い捨て回復コードのうち {0} 個が未使用です。</value>
+  </data>
+  <data name="{0} of them, the most recent, are shown here." xml:space="preserve">
+    <value>そのうち最も新しい {0} 件をここに表示しています。</value>
+  </data>
+  <data name="{0} of them, the most recent, is shown here." xml:space="preserve">
+    <value>そのうち最も新しい {0} 件をここに表示しています。</value>
   </data>
   <data name="{0} of {1} IP ranges refuse authentication until the session is encrypted." xml:space="preserve">
     <value>{1} 件の IP 範囲のうち {0} 件は、セッションが暗号化されるまで認証を拒否します。</value>
