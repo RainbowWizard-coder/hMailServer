@@ -4800,7 +4800,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   match the search.", and how many match in all where more match than a page holds - keeps a check on a message only
   the answer held across the reload a release or a delete makes, and falls back to the page's own matches, saying
   why, on a failure or on a server without the search. The Deck's quarantine view does the same over REST, and its
-  line says how many are held where it said how many it had listed. The webmail's own list of held mail read the
+  line says how many are held where it said how many it had listed; what a release or a delete left where it was, and
+  why, and what Remove expired removed, have a line of their own under it, which stays through the reload an action
+  makes and the search that reload asks again. The webmail's own list of held mail read the
   newest thousand held for anybody and kept the account's, so that on a server holding more an account's older held
   mail was never listed; it is the newest thousand held for the address now, its `total` how many are, and a search
   of it looks through every one. Like the list, a search is not on the audit trail: the quarantine is one of the

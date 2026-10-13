@@ -5029,8 +5029,12 @@ $("#samlBtn").onclick=()=>{markSsoPending();location.href="/portal/saml/start?de
    where it found nothing older than they (review finding F261), it asks the
    server over every held message, GET /api/v1/quarantine?q=, a moment after
    the typing stops, and draws the rows that answers whole, since the server
-   matched them. */
+   matched them. What an action came to - what a release or a delete left where
+   it was, and why, or what Remove expired removed - is a line of its own under
+   the one that says how many are held and what the search found, which the
+   search writes as it goes and would otherwise write over it. */
 const Q={items:[],group:"sender",sort:null,desc:false,folded:new Set(),checked:new Set(),ask:null,list:null,said:"",
+  outcome:"",outcomeFor:"",
   held:0,canSearch:false,found:null,foundFor:"",foundTotal:0,searchError:"",searchTimer:null,typed:""};
 const QICON={
   release:'<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.3" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.1 8.2l2 2 3.9-4.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -5041,6 +5045,11 @@ const QICON={
   preview:'<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M1.5 8s2.4-4.4 6.5-4.4S14.5 8 14.5 8s-2.4 4.4-6.5 4.4S1.5 8 1.5 8z" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="8" r="2" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>'
 };
 async function renderQuarantine(){
+  // What the action that asks for this reload came to, said just before it
+  // (Q.said), is the outcome's line until the next action is sent, the search's
+  // text is changed, Refresh is pressed or the view is opened again - each of
+  // which finds Q.said empty here or clears the line itself.
+  const said=Q.said;Q.said="";
   // The newest thousand, and how many are held in all, which the bare list
   // does not say. A server older than the search answers the bare list, and
   // that list is searched as it is drawn.
@@ -5052,9 +5061,15 @@ async function renderQuarantine(){
   // the list, or in the answer to a search, which is asked again below.
   const present=new Set(Q.items.concat(Q.found||[]).map(m=>String(m.id)));
   Array.from(Q.checked).forEach(id=>{if(!present.has(id))Q.checked.delete(id);});
+  Q.outcome=said;Q.outcomeFor=qBoxText();
   clearTimeout(Q.searchTimer);Q.found=null;Q.typed="";Q.searchError="";
   drawQuarantine();
 }
+/* The search box's text, as the quarantine reads it. */
+function qBoxText(){const box=$("#deckSearch");return box?String(box.value||"").trim():"";}
+/* The outcome's line, drawn again without the table: an action sent clears it
+   before its answer comes, and a change of the search's text clears it. */
+function qDrawOutcome(){const line=$("#qOutcome");if(line){line.textContent=Q.outcome;line.hidden=!Q.outcome;}}
 /* The messages the table draws: the server's answer to the search in the box
    while it is the answer for that text, the list otherwise. */
 function qList(){return Q.found&&Q.foundFor===Q.typed?Q.found:Q.items;}
@@ -5063,8 +5078,11 @@ function qList(){return Q.found&&Q.foundFor===Q.typed?Q.found:Q.items;}
    is asked of the server a moment after the typing stops; until the answer
    comes the list's own rows are narrowed as everywhere. */
 function qSearchTyped(){
-  const box=$("#deckSearch");
-  const text=box?String(box.value||"").trim():"";
+  const text=qBoxText();
+  // An action's outcome was said under the text the box held then: the text
+  // changed takes it away, and the reload's own asking again, the text as it
+  // was, leaves it.
+  if(Q.outcome&&text!==Q.outcomeFor){Q.outcome="";qDrawOutcome();}
   if(text===Q.typed)return;
   Q.typed=text;
   clearTimeout(Q.searchTimer);
@@ -5201,7 +5219,8 @@ function drawQuarantine(){
       ${viewShown("settings")?`<button class="btn ghost sm" data-act="qdigest">${t("Digest settings")}</button>`:""}
     </div>
     <p class="note">${escHtml(operation("/api/v1/quarantine","get").summary||"")}. ${escHtml(operation("/api/v1/quarantine/{id}/release","post").description||"")}</p>
-    <p class="note" id="qSaid">${escHtml(Q.said||qSaid())}</p>
+    <p class="note" id="qSaid">${escHtml(qSaid())}</p>
+    <p class="note" id="qOutcome" role="status"${Q.outcome?"":" hidden"}>${escHtml(Q.outcome)}</p>
     <div class="err" id="err_quarantine"></div>
     <div class="tablewrap"><table class="qtable"><thead><tr>
       <th class="qc">${total?qBox(qState(shown),t("Check every message"),'data-all="1"'):""}</th>
@@ -5210,7 +5229,6 @@ function drawQuarantine(){
     </tr></thead>
     <tbody>${body||'<tr><td colspan="8" class="empty">'+(found?t("No held message matches the search."):t("Nothing is held. ✦"))+'</td></tr>'}</tbody></table></div>
     </div></div>`;
-  Q.said="";
   $("#qGroup").onchange=()=>{Q.group=$("#qGroup").value;drawQuarantine();};
   searchHook=()=>qSearchTyped();
   filterRows();
@@ -5421,6 +5439,9 @@ async function qAct(d){
     if(!choice)return;
     Object.assign(body,choice);
   }
+  // What the action before came to goes as this one is sent, so that a refusal
+  // of this one is not read beside it.
+  Q.outcome="";qDrawOutcome();
   try{
     const a=await api("/api/v1/quarantine/bulk",{method:"POST",body:JSON.stringify(body)});
     const done=Number(a.succeeded)||0,failed=Number(a.failed)||0;
@@ -5433,15 +5454,21 @@ async function qAct(d){
     Q.said=failed?said+" "+tf("Left where they were: {0}. The first reason: {1}",failed,refused.length?refused[0].error:""):"";
     toast(said);
     await render();
+    // The quarantine's reload has read it; another view's - the quarantine left
+    // while the request was out - has not, and it goes rather than be shown when
+    // the quarantine is next opened.
+    Q.said="";
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_quarantine",e.message);}
 }
 async function qExpire(){
   setErr("err_quarantine","");
+  Q.outcome="";qDrawOutcome();
   try{
     const a=await api("/api/v1/quarantine/expire",{method:"POST",body:"{}"});
     const removed=Number(a.removed)||0;
     Q.said=removed?tf("{0} message(s) past the retention window were removed.",removed):t("Nothing was old enough to remove. The window is the QuarantineRetentionDays setting, on the Control Panel's Anti-spam settings page or at PUT /api/v1/settings/ini/QuarantineRetentionDays, and 0 means never.");
     await render();
+    Q.said="";
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_quarantine",e.message);}
 }
 /* The two server-wide settings the digest needs are on the Settings view; this

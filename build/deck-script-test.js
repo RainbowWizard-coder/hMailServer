@@ -3716,7 +3716,9 @@ function answer(method, path, headers, raw) {
       const entries = [];
       const results = [];
       ids.forEach((id) => {
-         const m = state.quarantine.filter((x) => x.id === id)[0];
+         // Any held message, as the server acts on one by its id: the list's, or one
+         // held beyond it that only a search's answer brings to the page.
+         const m = state.quarantine.concat(state.quarantineOlder || []).filter((x) => x.id === id)[0];
          if (!m) { results.push({ id, ok: false, outcome: '', error: 'No quarantined message with that id.' }); return; }
          if (lists) {
             const org = from === 'helo' ? m.helo_domain : m.sender_domain;
@@ -3740,13 +3742,18 @@ function answer(method, path, headers, raw) {
       results.forEach((r) => {
          if (!r.ok) { return; }
          r.outcome = body.dry_run ? (releasing ? 'release' : 'delete') : (releasing ? 'released' : 'deleted');
-         if (!body.dry_run) { state.quarantine = state.quarantine.filter((x) => x.id !== r.id); }
+         if (!body.dry_run) {
+            state.quarantine = state.quarantine.filter((x) => x.id !== r.id);
+            if (state.quarantineOlder) { state.quarantineOlder = state.quarantineOlder.filter((x) => x.id !== r.id); }
+         }
       });
       if (!body.dry_run) { entries.forEach((e) => state.quarantineListed.push({ value: e.value, list: e.list, match_on: e.match_on, blocked: body.action === 'block' })); }
       return json(200, { action: body.action, list, domain_from: from, dry_run: !!body.dry_run, entries, results,
                          succeeded: results.filter((r) => r.ok).length, failed: results.filter((r) => !r.ok).length });
    }
-   if (path === '/api/v1/quarantine/expire' && method === 'POST') { return json(200, { removed: 0, retention_days: 30 }); }
+   // The sweep removes nothing here, unless a check says how many it is to answer
+   // that it removed.
+   if (path === '/api/v1/quarantine/expire' && method === 'POST') { return json(200, { removed: state.quarantineExpired || 0, retention_days: 30 }); }
    if (/^\/api\/v1\/quarantine\/\d+\/(headers|preview)$/.test(path) && method === 'GET') {
       const id = Number(segment(path, 4));
       // Any held message, as the server reads one by its id: the list's, or one
@@ -7890,6 +7897,9 @@ async function main() {
       const qText = () => rows().map((r) => r.textContent).join(' | ');
       const qBulk = (from) => called(from, 'POST', '/api/v1/quarantine/bulk').map((r) => JSON.parse(r.body));
       const regroup = async (value) => { setValue('qGroup', value); $('#qGroup').dispatchEvent(makeEvent('change')); await flush(); };
+      // What an action came to, on its line: '' while the line is hidden, or missing.
+      const outcome = () => $('#qOutcome');
+      const outcomeShown = () => (outcome() !== null && outcome().hidden === false ? outcome().textContent : '');
       check('the quarantine view reads what is held, once, as a page that says how many are held in all',
          called(before, 'GET', /^\/api\/v1\/quarantine(\?|$)/).length === 1 && called(before, 'GET', '/api/v1/quarantine?offset=0&limit=1000').length === 1, paths(before));
       check('grouped by the sender\'s organization, as the server names it, the group with the newest message first',
@@ -8142,9 +8152,12 @@ async function main() {
       // The window is a setting the server keeps in its database: a hand edit
       // of hMailServer.ini is put back, so the sentence names where it is set.
       check('and names where the window is set, not a file the server puts back when edited',
-         $('#qSaid').textContent.indexOf('QuarantineRetentionDays') >= 0 && $('#qSaid').textContent.indexOf('hMailServer.ini') < 0 &&
-         $('#qSaid').textContent.indexOf('Anti-spam settings page') >= 0 && $('#qSaid').textContent.indexOf('PUT /api/v1/settings/ini/QuarantineRetentionDays') >= 0,
-         $('#qSaid').textContent);
+         outcomeShown().indexOf('QuarantineRetentionDays') >= 0 && outcomeShown().indexOf('hMailServer.ini') < 0 &&
+         outcomeShown().indexOf('Anti-spam settings page') >= 0 && outcomeShown().indexOf('PUT /api/v1/settings/ini/QuarantineRetentionDays') >= 0,
+         outcomeShown());
+      check('on a line of its own, a status, under the line that says how many are held',
+         outcome() !== null && outcome().hidden === false && outcome().attributes.role === 'status' && $('#qSaid').textContent === '0 messages held.',
+         (outcome() ? JSON.stringify(outcome().attributes) : 'no outcome line') + ' // ' + $('#qSaid').textContent);
 
       // The search of every held message (review finding F261): while the list
       // holds only the newest of what is held, the box asks the server a moment
@@ -8248,6 +8261,140 @@ async function main() {
       await search('');
       fireTimers();
       await flush();
+
+      // What an action came to has a line of its own, which the line over the table
+      // never writes: that one says how many are held and what the search found, and
+      // the search says it again as the reload an action makes asks again. So what a
+      // release left where it was and why, and what Remove expired removed, stay on
+      // screen through that reload and the answer it asks for, with text in the box,
+      // whether the list holds the newest of what is held or every message - and go
+      // when the box's text is changed, when the next action is sent, on Refresh, and
+      // when the view is opened again.
+      const spring = state.quarantine.filter((m) => m.id === 61)[0];
+      const invoice5012 = state.quarantine.filter((m) => m.id === 60)[0];
+      state.quarantineOlder = [
+         { id: 7, sender: 'old@archive.example', recipients: 'anna@example.com', subject: 'An old invoice', reason: 'Score 30 (SURBL)', score: 30, size: 4096, created: '2026-09-01 08:00:00',
+           helo: 'mx.archive.example', sender_domain: 'archive.example', helo_domain: 'archive.example' },
+         { id: 6, sender: 'old@archive.example', recipients: 'anna@example.com', subject: 'Invoice reminder', reason: 'Score 28 (SURBL)', score: 28, size: 4096, created: '2026-08-31 08:00:00',
+           helo: 'mx.archive.example', sender_domain: 'archive.example', helo_domain: 'archive.example' },
+         { id: 5, sender: 'deals@outlet.example', recipients: 'bob@example.com', subject: 'Clearance', reason: 'Score 11 (DNSBL)', score: 11, size: 2048, created: '2026-08-30 08:00:00',
+           helo: 'mx.outlet.example', sender_domain: 'outlet.example', helo_domain: 'outlet.example' }
+      ];
+      click(act('qrefresh'));
+      await flush();
+      await search('invoice');
+      fireTimers();
+      await flush();
+      check('the search of every held message draws the three invoices the server finds, and there is no outcome to say',
+         qRows().length === 3 && qRows().every((r) => !r.hidden) && $('#qSaid').textContent === 'Searched every held message on the server. Matches: 3.' &&
+         outcome() !== null && outcome().hidden === true, qText() + ' // ' + $('#qSaid').textContent);
+      // A release of the three, one of which another administrator released meanwhile.
+      click(act('qcheck', { all: 1 }));
+      await flush();
+      state.quarantineOlder = state.quarantineOlder.filter((m) => m.id !== 7);
+      before = requests.length;
+      click(act('qact', { do: 'release', scope: 'checked' }));
+      await flush();
+      const refusedPartly = 'Released 2 messages to their recipients. Left where they were: 1. The first reason: No quarantined message with that id.';
+      check('a release the server partly refuses says what it left where it was, and why, while the reload asks the search again',
+         qBulk(before).length === 1 && JSON.stringify(qBulk(before)[0].ids.slice().sort((a, b) => a - b)) === '[6,7,60]' && toastText() === 'Released 2 messages to their recipients.' &&
+         outcomeShown() === refusedPartly && $('#qSaid').textContent === 'Searching every held message on the server…',
+         JSON.stringify(qBulk(before)) + ' // ' + outcomeShown() + ' // ' + $('#qSaid').textContent);
+      fireTimers();
+      await flush();
+      check('and still says it once the answer asked again is drawn',
+         outcomeShown() === refusedPartly && $('#qSaid').textContent === 'Searched every held message on the server. Matches: 0.' &&
+         content().textContent.indexOf('No held message matches the search.') >= 0, outcomeShown() + ' // ' + $('#qSaid').textContent);
+      await regroup('none');
+      check('a redraw of the table, here grouped otherwise, keeps it', outcomeShown() === refusedPartly, outcomeShown());
+      await regroup('sender');
+      // Remove expired, with the same text in the box.
+      state.quarantineExpired = 2;
+      before = requests.length;
+      click(act('qexpire'));
+      await flush();
+      check('Remove expired says what it removed while the reload asks the search again',
+         called(before, 'POST', '/api/v1/quarantine/expire').length === 1 && outcomeShown() === '2 message(s) past the retention window were removed.' &&
+         $('#qSaid').textContent === 'Searching every held message on the server…', outcomeShown() + ' // ' + $('#qSaid').textContent);
+      fireTimers();
+      await flush();
+      check('and once the answer is drawn',
+         outcomeShown() === '2 message(s) past the retention window were removed.' && $('#qSaid').textContent === 'Searched every held message on the server. Matches: 0.',
+         outcomeShown() + ' // ' + $('#qSaid').textContent);
+      state.quarantineExpired = 0;
+      await search('invoices');
+      check('a change of the box\'s text takes the outcome away', outcome() !== null && outcome().hidden === true, outcomeShown());
+      fireTimers();
+      await flush();
+      // A list holding every held message, which the box narrows as it is drawn.
+      state.quarantine = [spring, invoice5012,
+         { id: 59, sender: 'billing@supply.example', recipients: 'bob@example.com', subject: 'Invoice 5013', reason: 'Score 21 (SURBL)', score: 21, size: 8192, created: '2026-10-12 08:00:00',
+           helo: 'mx.supply.example', sender_domain: 'supply.example', helo_domain: 'supply.example' }];
+      state.quarantineOlder = [];
+      click(act('qrefresh'));
+      await flush();
+      await search('invoice');
+      fireTimers();
+      await flush();
+      state.quarantine = state.quarantine.filter((m) => m.id !== 60);
+      before = requests.length;
+      click(act('qact', { do: 'release', scope: 'row', id: 60 }));
+      await flush();
+      check('with every held message listed, a release the server refuses says why, the box holding a search',
+         qBulk(before).length === 1 && called(before, 'GET', /\?q=/).length === 0 && $('#qSaid').textContent === '2 messages held.' &&
+         outcomeShown() === 'Released 0 messages to their recipients. Left where they were: 1. The first reason: No quarantined message with that id.',
+         outcomeShown() + ' // ' + $('#qSaid').textContent);
+      before = requests.length;
+      click(act('qexpire'));
+      await flush();
+      check('and so does Remove expired', called(before, 'POST', '/api/v1/quarantine/expire').length === 1 &&
+         outcomeShown().indexOf('Nothing was old enough to remove.') === 0 && $('#qSaid').textContent === '2 messages held.', outcomeShown() + ' // ' + $('#qSaid').textContent);
+      click(act('qrefresh'));
+      await flush();
+      check('Refresh takes the outcome away', outcome() !== null && outcome().hidden === true && $('#qSaid').textContent === '2 messages held.', outcomeShown());
+      click(act('qexpire'));
+      await flush();
+      before = requests.length;
+      holdWhen = (method, path) => path === '/api/v1/quarantine/bulk';
+      click(act('qact', { do: 'release', scope: 'row', id: 59 }));
+      await flush();
+      holdWhen = null;
+      check('the next action takes it away as it is sent, before its answer comes',
+         heldReplies.length === 1 && qBulk(before).length === 1 && outcome() !== null && outcome().hidden === true, heldReplies.length + ' held // ' + outcomeShown());
+      heldReplies.splice(0).forEach((deliver) => deliver());
+      await flush();
+      check('and a release that leaves nothing behind says only its toast',
+         JSON.stringify(qBulk(before)[0].ids) === '[59]' && toastText() === 'Released to its recipients' && outcome() !== null && outcome().hidden === true,
+         outcomeShown() + ' // ' + toastText());
+      // Remove expired takes it away as it is sent too; and an answer that comes after
+      // the view was left is not said when it is opened again: that reload is not the
+      // action's.
+      click(act('qexpire'));
+      await flush();
+      holdWhen = (method, path) => path === '/api/v1/quarantine/expire';
+      click(act('qexpire'));
+      await flush();
+      holdWhen = null;
+      check('Remove expired sent takes the outcome before it away as well', heldReplies.length === 1 && outcome() !== null && outcome().hidden === true,
+         heldReplies.length + ' held // ' + outcomeShown());
+      await goTo('apikeys');
+      heldReplies.splice(0).forEach((deliver) => deliver());
+      await flush();
+      await goTo('quarantine');
+      check('an action answered after the view was left says nothing when the view is opened again',
+         outcome() !== null && outcome().hidden === true && $('#qSaid').textContent === '1 message held.', outcomeShown() + ' // ' + $('#qSaid').textContent);
+      state.quarantine = [];
+      holdWhen = (method, path) => path === '/api/v1/quarantine/bulk';
+      click(act('qact', { do: 'release', scope: 'row', id: 61 }));
+      await flush();
+      holdWhen = null;
+      await goTo('apikeys');
+      heldReplies.splice(0).forEach((deliver) => deliver());
+      await flush();
+      await goTo('quarantine');
+      check('and nor does a release answered after the view was left, though the server refused it',
+         outcome() !== null && outcome().hidden === true && $('#qSaid').textContent === '0 messages held.', outcomeShown() + ' // ' + $('#qSaid').textContent);
+      state.quarantine = [spring];
 
       click(act('qdigest'));
       await flush();
