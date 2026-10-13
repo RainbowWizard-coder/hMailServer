@@ -4682,9 +4682,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `mirror.gcr.io` or `public.ecr.aws`, and keeps the report in GitLab's container-scanning format and Trivy's own; a
   finding is still a warning. Run as the jobs run it, on 10 October it scanned 6.3.6's two published images by digest
   in 18 seconds each. `build/check-release-chain.py` holds the jobs to `dependency-scan`'s image, to the script and
-  to `container-image`'s dotenv report, which names each platform's image by its digest, and fails a CI file that
-  names GitLab's container-scanning analyzer or includes its template again (ContinuousIntegration.md,
-  "container_scanning's scanner").
+  to `container-image`'s dotenv report, which names each platform's image by its digest: each must have one
+  `dependencies` key, `[container-image]`, and one `needs` key, whose entry for `container-image` has one
+  `artifacts` key, `true`, and take no rule with `needs` of its own, since GitLab hands a job that uses `needs` the
+  reports of the needs with artifacts alone, whatever its `dependencies` say, its YAML reader takes the last of two
+  keys, and a rule's `needs` replace the job's. It fails a CI file that names GitLab's container-scanning analyzer
+  or includes its template again (ContinuousIntegration.md, "container_scanning's scanner").
 - **Both secret scans read every path under a directory named `build`, `bin`, `obj`, `target` or `packages`, this
   tree's `build/` among them, which GitLab's rules leave out.** `secret_detection` and `build/scan-secrets.py`, the
   hooks' and the landing's scan, took GitLab's rules whole, and their global allowlist left out those directories:

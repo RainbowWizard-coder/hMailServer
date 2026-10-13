@@ -215,11 +215,19 @@ refuses it. This checker holds them to each other. It fails when:
     image with the command its test script names, on a network of its own; or
     container_scanning does not run build/ci/container-scan.sh over the linux/amd64
     image in dependency-scan's Trivy image, by the same digest (CONTAINER_SCANNER),
-    keeping its report, or container_scanning_arm64 is anything but its twin for the
-    linux/arm64 image, or the script no longer takes each platform's image by its
-    digest, the project's alone, or a CI file names GitLab's container-scanning
-    analyzer or includes its template again (GITLAB_SCANNER) - an image GitLab
-    rebuilds daily and stops serving within days of, which may not be copied; or the
+    keeping its report, or container_scanning_arm64 does not extend it for the
+    linux/arm64 image (HM_SCAN_ARCH: arm64) or has an image, a script, a
+    before_script, artifacts or an allow_failure of its own, or either does not take
+    container-image's dotenv report, which names each platform's image by its
+    digest: each must have one dependencies key, [container-image], and one needs
+    key, whose entry for container-image has one artifacts key, true, and take no
+    rule with needs of its own (GitLab hands a job that uses needs the reports of
+    the needs with artifacts alone, whatever its dependencies say, its YAML reader
+    takes the last of two keys, and a rule's needs replace the job's); or
+    container-scan.sh no longer takes each platform's image by its digest, the
+    project's alone, or a CI file names GitLab's container-scanning analyzer or
+    includes its template again (GITLAB_SCANNER) - an image GitLab rebuilds daily
+    and stops serving within days of, which may not be copied; or the
     switch, the project's own CI/CD variable HM_PUBLISH_IMAGE, is not read as the jobs
     run - container-image-deb.sh, linux-image.sh and container-image-push.sh must
     refuse, exiting non-zero, unless it is "1" - or is read by a rule, which is
@@ -3637,6 +3645,46 @@ def image_platform_problems(texts, jobs, image_jobs):
         problems.append("container_scanning_arm64 does not scan the linux/arm64 image: it must extend container_scanning, "
                         "take container-image's dotenv report (dependencies: [container-image]) and set HM_SCAN_ARCH "
                         "to arm64, by which build/ci/container-scan.sh takes HM_IMAGE_ARM64 from that report")
+    # And each scan's need of container-image must bring that job's artifacts: GitLab
+    # hands a job that uses needs the dotenv reports of the needs with artifacts: true
+    # alone (Ci::BuildDependencies#from_needs), which its dependencies only narrow, so a
+    # need with artifacts: false, the dependencies line kept, is accepted and leaves the
+    # job no image to scan - container-scan.sh exits 2, and the job is allowed to fail.
+    # The job is read as GitLab's YAML reader, Psych, reads it, which takes the last of
+    # two keys and no, off or False for false: its needs and its dependencies must each
+    # be one key, as this checker reads them, and its entry's one artifacts key must say
+    # true. An entry without the key, which GitLab takes for true, is refused as well, as
+    # every need this checker holds to its artifacts is: the key is written out. Each
+    # job's own entry is the one GitLab takes, since IMAGE_JOBS holds both to needs of
+    # their own that name container-image, which replace the needs that
+    # container_scanning_arm64 would otherwise take from container_scanning by extends;
+    # and no rule the job takes may bring needs, since a rule that matches replaces the
+    # job's needs whole (rules:needs).
+    merged = dict(jobs)
+    merged.update(image_jobs)
+    for name, arch in (("container_scanning", "amd64"), ("container_scanning_arm64", "arm64")):
+        scan = image_jobs.get(name, "")
+        for key in ("needs", "dependencies"):
+            count = len(re.findall(r"^  %s:" % key, scan, re.MULTILINE))
+            if count > 1:
+                problems.append("%s has %d %s: keys: GitLab's YAML reader takes the last alone, and the job's needs and "
+                                "dependencies, by which it takes container-image's dotenv report, must each be one key"
+                                % (name, count, key))
+        deciding = [current for current in template_order(name, merged) if re.search(r"^  rules:", merged[current], re.MULTILINE)]
+        if scan and any(re.search(r"^[ \t]*needs:", item, re.MULTILINE)
+                        for item in (rule_items(merged[deciding[0]], merged) if deciding else [])):
+            problems.append("%s takes a rule with needs of its own: a rule that matches replaces the job's needs whole "
+                            "(rules:needs), and the job takes container-image's dotenv report by the needs of its own that "
+                            "this checker holds" % name)
+        said = re.findall(r"^[ \t]*artifacts:[ \t]*(.*?)(?:[ \t]+#.*)?[ \t]*$", need_entries(scan).get("container-image", ""),
+                          re.MULTILINE)
+        if scan and said != ["true"]:
+            problems.append("%s does not need container-image with artifacts: true, its entry's one artifacts key (%s): "
+                            "GitLab hands a job that uses needs the dotenv reports of the needs with artifacts alone, "
+                            "whatever its dependencies say, and container-image's report names the linux/%s image by its "
+                            "digest (HM_IMAGE_%s), which build/ci/container-scan.sh scans"
+                            % (name, "it says " + ", ".join("artifacts: " + value for value in said) if said
+                               else "it says nothing of artifacts", arch, arch.upper()))
     start = image_jobs.get("container-image-start-arm64", "")
     command = re.search(r"^START_COMMAND='([^'\n]+)'$", texts["image-start"], re.MULTILINE)
     if start and not (re.search(r"^  extends: container-image-start\s*$", start, re.MULTILINE)
@@ -4298,6 +4346,27 @@ def self_test(chain, feed):
     broken("the arm64 scan over the amd64 image", "image", "    HM_SCAN_ARCH: arm64\n", "", "container_scanning_arm64 does not scan")
     broken("the arm64 scan without the image's name", "image", "  dependencies: [container-image]\n  rules:\n",
            "  dependencies: []\n  rules:\n", "container_scanning_arm64 does not scan")
+    # Either scan's need of container-image without its artifacts, its dependencies line
+    # kept: artifacts: false; no, one of YAML's other spellings of false; and a second
+    # key, false, after the true one, which GitLab's YAML reader takes. Then a second
+    # dependencies key, [], or needs key, without the artifacts, after the job's own,
+    # which that reader takes in their place; and a rule that matches in a tag's pipeline
+    # with needs of its own, which replace the job's. Each job's entry is found by the
+    # key after its dependencies line, the amd64 job's timeout and the arm64 job's rules,
+    # and its rules by its HM_SCAN_ARCH after them, which is that job's alone.
+    for name, arch, after in (("container_scanning", "amd64", "  timeout:"), ("container_scanning_arm64", "arm64", "  rules:")):
+        need = "    - job: container-image\n      artifacts: true\n  dependencies: [container-image]\n" + after
+        for what, artifacts in (("false", "      artifacts: false\n"), ("no", "      artifacts: no\n"),
+                                ("true, then false", "      artifacts: true\n      artifacts: false\n")):
+            broken("%s's need of container-image with artifacts %s" % (name, what), "image", need,
+                   need.replace("      artifacts: true\n", artifacts, 1), "%s does not need container-image with artifacts: true" % name)
+        for key, second in (("dependencies", "  dependencies: []\n"), ("needs", "  needs:\n    - job: container-image\n      artifacts: false\n")):
+            broken("%s with a second %s key after its own" % (name, key), "image", need, need.replace(after, second + after, 1),
+                   "%s has 2 %s: keys" % (name, key))
+        rule = "    - !reference [.release-rules, rules]\n  variables:\n    HM_SCAN_ARCH: %s\n" % arch
+        broken("%s with a rule that brings needs of its own" % name, "image", rule,
+               "    - if: $CI_COMMIT_TAG\n      needs:\n        - job: container-image\n          artifacts: false\n" + rule,
+               "%s takes a rule with needs of its own" % name)
     broken("the arm64 start gone", "image", "\ncontainer-image-start-arm64:\n", "\ncontainer-image-start-old:\n",
            "has no container-image-start-arm64 job")
     broken("the arm64 start as the host's platform", "image", "      docker:\n        platform: linux/arm64\n", "",

@@ -3873,9 +3873,17 @@ named by a tag, from another registry or by a short digest, a digest the
 registry does not have, and a run with no database. `build/check-release-chain.py`
 fails when `container_scanning` runs in another image than `dependency-scan`'s
 Trivy, by another release or digest, does not run the script, scans another
-platform or keeps no report, when `container_scanning_arm64` is anything but its
-twin for linux/arm64, when the script no longer takes each platform's image by
-its digest, the project's alone, and when a CI file names GitLab's
+platform or keeps no report; when `container_scanning_arm64` does not extend it
+for linux/arm64 (`HM_SCAN_ARCH: arm64`) or has an image, a script, a
+`before_script`, artifacts or an `allow_failure` of its own; when either does not
+take `container-image`'s dotenv report, which names each platform's image by its
+digest: each must have one `dependencies` key, `[container-image]`, and one
+`needs` key, whose entry for `container-image` has one `artifacts` key, `true`,
+and take no rule with `needs` of its own, since GitLab hands a job that uses
+`needs` the reports of the needs with artifacts alone, whatever its
+`dependencies` say, its YAML reader takes the last of two keys, and a rule's
+`needs` replace the job's; when the script no longer takes each platform's image
+by its digest, the project's alone; and when a CI file names GitLab's
 container-scanning analyzer or includes its template again.
 
 `semgrep-sast` passes whatever it found, and holds nothing to a baseline; what
