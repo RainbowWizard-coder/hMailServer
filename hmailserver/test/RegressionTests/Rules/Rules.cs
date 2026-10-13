@@ -2597,6 +2597,294 @@ namespace RegressionTests.Rules
          GC.KeepAlive(itself);
       }
 
+      // An account's rule matching a message whose subject holds the word given, or any
+      // criterion added later: its first action marks the message with X-Rule-Note:
+      // taken, and those after it are made by the steps given, in order. Its id.
+      private static int NewRuleOnTheSubject(Account owner, string name, string word, params Action<RuleAction>[] actions)
+      {
+         var rule = owner.Rules.Add();
+         rule.Name = name;
+         rule.Active = true;
+         rule.UseAND = false;
+
+         var criterion = rule.Criterias.Add();
+         criterion.UsePredefined = false;
+         criterion.HeaderField = "Subject";
+         criterion.MatchType = eRuleMatchType.eMTContains;
+         criterion.MatchValue = word;
+         criterion.Save();
+
+         var note = rule.Actions.Add();
+         note.Type = eRuleActionType.eRASetHeaderValue;
+         note.HeaderName = "X-Rule-Note";
+         note.Value = "taken";
+         note.Save();
+
+         foreach (var make in actions)
+         {
+            var action = rule.Actions.Add();
+            make(action);
+            action.Save();
+         }
+
+         rule.Save();
+         return rule.ID;
+      }
+
+      // The rule as the Control Panel reads it for each change it makes: through
+      // collections of its own, so as the table holds it now.
+      private Rule ReadRuleAfresh(Account owner, int ruleId)
+      {
+         var domain = _application.Domains.get_ItemByName(_domain.Name);
+         var account = domain.Accounts.get_ItemByAddress(owner.Address);
+         return account.Rules.get_ItemByDBID(ruleId);
+      }
+
+      // The first action of the type given, of a rule as read.
+      private static RuleAction ActionOfType(Rule rule, eRuleActionType type)
+      {
+         for (int i = 0; i < rule.Actions.Count; i++)
+         {
+            if (rule.Actions[i].Type == type)
+               return rule.Actions[i];
+         }
+
+         Assert.Fail("The rule " + rule.Name + " has no action of type " + type + ".");
+         return null;
+      }
+
+      // A message on the subject given sent to the owner, as delivered.
+      private static string DeliveredTo(Account owner, string sender, string subject)
+      {
+         SmtpClientSimulator.StaticSend(sender, owner.Address, subject, "Body.");
+         return Pop3ClientSimulator.AssertGetFirstMessageText(owner.Address, "test");
+      }
+
+      // The three changes the Control Panel makes to a rule's parts, each as it makes it -
+      // the rule read afresh, the part saved or removed, then Rule.Save (RuleCriteriaDialog,
+      // RulesView's Remove, RuleActionDialog) - with a delivery after each, which follows
+      // the table only once a save has asked for the owner's rules to be read again.
+      private void ChangeItsPartsAsTheControlPanelDoes(Account owner, string sender, int ruleId)
+      {
+         // Delivery reads the owner's rules here, and holds them until a save asks again.
+         StringAssert.Contains("X-Rule-Note: taken", DeliveredTo(owner, sender, "Alpha"), "The rule did not match before it was changed.");
+
+         var rule = ReadRuleAfresh(owner, ruleId);
+         var added = rule.Criterias.Add();
+         added.UsePredefined = false;
+         added.HeaderField = "Subject";
+         added.MatchType = eRuleMatchType.eMTContains;
+         added.MatchValue = "Beta";
+         added.Save();
+         rule.Save();
+         StringAssert.Contains("X-Rule-Note: taken", DeliveredTo(owner, sender, "Beta"), "Delivery does not hold the criterion added.");
+
+         rule = ReadRuleAfresh(owner, ruleId);
+         int alpha = 0;
+         for (int i = 0; i < rule.Criterias.Count; i++)
+         {
+            if (rule.Criterias[i].MatchValue == "Alpha")
+               alpha = rule.Criterias[i].ID;
+         }
+         Assert.AreNotEqual(0, alpha, "The rule's first criterion is not stored.");
+         rule.Criterias.DeleteByDBID(alpha);
+         rule.Save();
+         StringAssert.DoesNotContain("X-Rule-Note", DeliveredTo(owner, sender, "Alpha"), "Delivery still holds the criterion removed.");
+
+         rule = ReadRuleAfresh(owner, ruleId);
+         var another = rule.Actions.Add();
+         another.Type = eRuleActionType.eRASetHeaderValue;
+         another.HeaderName = "X-Rule-Added";
+         another.Value = "taken too";
+         another.Save();
+         rule.Save();
+         StringAssert.Contains("X-Rule-Added: taken too", DeliveredTo(owner, sender, "Beta"), "Delivery does not hold the action added.");
+
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+      }
+
+      /// <summary>
+      /// Rule.Save held every action of the rule to the save's checks, those stored as
+      /// they were with the one changed, so a rule holding a Run function action whose
+      /// name the save refuses - stored before the check, restored from a backup or
+      /// written to the table, and refused each time the rule fires - could not be saved
+      /// again for any change at all. The Control Panel stores a criterion or an action
+      /// before it saves the rule: the part was stored and told of as not saved, stored
+      /// again at each retry, and delivery went on with the rule as it was, the reload of
+      /// the owner's rules being asked for by the save refused. An action Rule.Save
+      /// writes as its row holds it, under the owner the rule is stored under, is not
+      /// held now, and is left as it is. Scripting is off here, so the firing path runs
+      /// no function whatever the name.
+      ///
+      /// Against the unfixed server the first Rule.Save below throws, refusing the name
+      /// nothing changed.
+      /// </summary>
+      [Test]
+      [Description("A rule holding a stored Run function action whose name the save refuses is still changed over COM as the Control Panel changes it - a criterion added, a criterion removed, an action added - and delivery follows each change; the stored name is left as it was.")]
+      public void ARuleHoldingAStoredFunctionNameTheSaveRefusesIsStillChanged()
+      {
+         var owner = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "storedname@example.test", "test");
+
+         var ruleId = NewRuleOnTheSubject(owner, "Stored name", "Alpha", action =>
+         {
+            action.Type = eRuleActionType.eRARunScriptFunction;
+            action.ScriptFunction = "MarkTheSubject";
+         });
+
+         // As stored before Save refused the name. The save asked for the account's rules
+         // to be read again at the next delivery, which reads the table's name.
+         _application.Database.ExecuteSQL(
+            "update hm_rule_actions set actionscriptfunction = 'MarkTheSubject()' where actionruleid = " + ruleId);
+
+         ChangeItsPartsAsTheControlPanelDoes(owner, "storedname-sender@example.test", ruleId);
+
+         var rule = ReadRuleAfresh(owner, ruleId);
+         Assert.AreEqual("MarkTheSubject()", ActionOfType(rule, eRuleActionType.eRARunScriptFunction).ScriptFunction,
+            "The saves around the stored name changed it.");
+      }
+
+      /// <summary>
+      /// The same for a rule holding a stored Reply from an address its owner may not send
+      /// as and a Set header value of From, which the save has refused an account's rule
+      /// since 7 October 2026 and delivery does not take (AStoredReplyOrFromOfAnotherIsNotApplied).
+      ///
+      /// Against the unfixed server the first Rule.Save below throws, refusing the reply
+      /// nothing changed.
+      /// </summary>
+      [Test]
+      [Description("A rule holding a stored Reply from another's address and a stored Set header value of From is still changed over COM as the Control Panel changes it, and delivery follows each change while taking neither; both are left as they were.")]
+      public void ARuleHoldingAStoredReplyOrFromTheSaveRefusesIsStillChanged()
+      {
+         var sender = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "storedparts-sender@example.test", "test");
+         var owner = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "storedparts-owner@example.test", "test");
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "storedparts-ceo@example.test", "test");
+
+         var ruleId = NewRuleOnTheSubject(owner, "Stored reply and From", "Alpha",
+            action =>
+            {
+               action.Type = eRuleActionType.eRAReply;
+               action.FromAddress = owner.Address;
+               action.Subject = "Autoreply";
+            },
+            action =>
+            {
+               action.Type = eRuleActionType.eRASetHeaderValue;
+               action.HeaderName = "X-From-Placeholder-Kept";
+               action.Value = "storedparts-ceo@example.test";
+            });
+
+         // As stored before Save refused them.
+         _application.Database.ExecuteSQL(
+            "update hm_rule_actions set actionfromaddress = 'storedparts-ceo@example.test' where actionruleid = " + ruleId +
+            " and actionfromaddress = '" + owner.Address + "'");
+         _application.Database.ExecuteSQL(
+            "update hm_rule_actions set actionheader = 'From' where actionruleid = " + ruleId +
+            " and actionheader = 'X-From-Placeholder-Kept'");
+
+         ChangeItsPartsAsTheControlPanelDoes(owner, sender.Address, ruleId);
+
+         var rule = ReadRuleAfresh(owner, ruleId);
+         Assert.AreEqual("storedparts-ceo@example.test", ActionOfType(rule, eRuleActionType.eRAReply).FromAddress,
+            "The saves around the stored reply changed it.");
+         var headers = new List<string>();
+         for (int i = 0; i < rule.Actions.Count; i++)
+         {
+            if (rule.Actions[i].Type == eRuleActionType.eRASetHeaderValue)
+               headers.Add(rule.Actions[i].HeaderName);
+         }
+         CollectionAssert.AreEqual(new[] { "X-Rule-Note", "From", "X-Rule-Added" }, headers,
+            "The saves around the stored Set header value of From changed it.");
+
+         // Neither was taken at any delivery.
+         ImapClientSimulator.AssertMessageCount(sender.Address, "test", "Inbox", 0);
+         Assert.IsTrue(LogHandler.DefaultLogContains("Reply action of rule"),
+            "The reply not sent is not in the application log.");
+         Assert.IsTrue(LogHandler.DefaultLogContains("Set header value action of rule"),
+            "The Set header value not made is not in the application log.");
+      }
+
+      /// <summary>
+      /// What Rule.Save leaves out of its checks is only what it does not change (the two
+      /// tests above): a stored action it changes is held - a Run function name changed,
+      /// a Forward action that carried a name made a Run function action - and neither
+      /// is stored.
+      ///
+      /// Against a server that held no function name when the rule was saved, both are
+      /// stored; against one that left a stored action out whatever type it was made,
+      /// the second is.
+      /// </summary>
+      [Test]
+      [Description("Rule.Save still holds a stored action it changes - a Run function name changed to one that is not plain, a Forward action carrying such a name made a Run function action - and stores neither.")]
+      public void RuleSaveHoldsAStoredActionItChanges()
+      {
+         var owner = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "heldchange@example.test", "test");
+         var other = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "heldchange-other@example.test", "test");
+
+         var ruleId = NewRuleOnTheSubject(owner, "Changed parts", "Alpha",
+            action =>
+            {
+               action.Type = eRuleActionType.eRARunScriptFunction;
+               action.ScriptFunction = "MarkTheSubject";
+            },
+            action =>
+            {
+               // Every action carries every field; a Forward action's name is not one the
+               // save holds, as the firing path never reads it.
+               action.Type = eRuleActionType.eRAForwardEmail;
+               action.To = other.Address;
+               action.ScriptFunction = "Carried()";
+            });
+
+         var rule = ReadRuleAfresh(owner, ruleId);
+         ActionOfType(rule, eRuleActionType.eRARunScriptFunction).ScriptFunction = "Other()";
+         var renamed = Assert.Throws<System.Runtime.InteropServices.COMException>(() => rule.Save(),
+            "The rule was saved with its Run function name changed to Other().");
+         StringAssert.Contains("names 'Other()', which is not a plain function name", renamed.Message, renamed.Message);
+
+         rule = ReadRuleAfresh(owner, ruleId);
+         ActionOfType(rule, eRuleActionType.eRAForwardEmail).Type = eRuleActionType.eRARunScriptFunction;
+         var retyped = Assert.Throws<System.Runtime.InteropServices.COMException>(() => rule.Save(),
+            "The rule was saved with its Forward action, naming Carried(), made a Run function action.");
+         StringAssert.Contains("names 'Carried()', which is not a plain function name", retyped.Message, retyped.Message);
+
+         rule = ReadRuleAfresh(owner, ruleId);
+         Assert.AreEqual("MarkTheSubject", ActionOfType(rule, eRuleActionType.eRARunScriptFunction).ScriptFunction,
+            "A Run function name refused with the rule was stored.");
+         Assert.AreEqual(other.Address, ActionOfType(rule, eRuleActionType.eRAForwardEmail).To,
+            "A Forward action refused with the rule as a Run function action was stored as one.");
+      }
+
+      /// <summary>
+      /// And every action of a rule moved to another account is held to the account it is
+      /// moved to, stored as it is or not: here a reply from the address of the account
+      /// the rule is moved from, which the account it is moved to may not send as. The
+      /// move is not stored.
+      ///
+      /// Against a server that left a stored action out whoever the rule was moved to, the
+      /// rule is moved replying as the account it left.
+      /// </summary>
+      [Test]
+      [Description("Rule.Save holds every action of a rule moved to another account to that account, the stored ones too - a reply from the address of the account it leaves is refused - and the move is not stored.")]
+      public void RuleSaveHoldsEveryActionOfARuleMovedToAnotherAccount()
+      {
+         var owner = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "heldmove@example.test", "test");
+         var other = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "heldmove-other@example.test", "test");
+
+         var movedId = NewRuleOnTheSubject(owner, "Moved", "Alpha", action =>
+         {
+            action.Type = eRuleActionType.eRAReply;
+            action.FromAddress = owner.Address;
+            action.Subject = "Autoreply";
+         });
+
+         var moving = ReadRuleAfresh(owner, movedId);
+         moving.AccountID = other.ID;
+         var moved = Assert.Throws<System.Runtime.InteropServices.COMException>(() => moving.Save(),
+            "A rule replying from " + owner.Address + " was moved to " + other.Address + ".");
+         StringAssert.Contains("is sent only from an address the account may send as", moved.Message, moved.Message);
+         Assert.AreEqual(movedId, ReadRuleAfresh(owner, movedId).ID, "The rule refused its move is not the account's it was.");
+      }
+
       /// <summary>
       /// A new rule's criteria and actions were bound to rule id 0 when they were first
       /// read before its first save - and Rule.Save reads the actions itself, to hold them

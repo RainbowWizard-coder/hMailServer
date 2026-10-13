@@ -266,8 +266,10 @@ namespace HM
       // Why this action may not be stored under a rule of this owner, or nothing: a
       // Set header value action held to WhyHeaderMayNotBeSet, a Reply action to
       // WhyReplyFromMayNotBeUsed, and a Run function action to
-      // WhyScriptFunctionMayNotBeStored. The one question COM's Rule.Save and
-      // RuleAction.Save and the REST API's rule routes ask of every action.
+      // WhyScriptFunctionMayNotBeStored. The one question COM's RuleAction.Save and
+      // the REST API's rule routes ask of every action they store, and COM's Rule.Save
+      // of every action it changes - one it writes as its row holds it, under the owner
+      // the rule is stored under, it does not ask (InterfaceRule::Save).
       static String WhyActionMayNotBeStored(__int64 ruleAccountId, __int64 ruleDomainId, const RuleAction &action);
 
       // The From a rule's reply is written with: the action's name as an RFC 5322

@@ -690,15 +690,25 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   saved, for a rule of every owner, with the reason: a COM error, or a 400 naming the action. It is held to the firing
   path's own test (`RuleGuard::WhyScriptFunctionMayNotBeStored` asks `ScriptServer::IsPlainProcedureName`, which the
   Linux lookup, `ScriptBinding`'s `IsIdentifier_`, now asks too where it held a copy of it), so what is saved is what
-  runs; one stored before, or restored from a backup, is still refused when the rule fires, and a rule holding one is
-  saved again over COM once its name is corrected. Upstream PR 671's save-time half, adapted: upstream's test also
-  refuses `$`, which a JScript or JavaScript function may be named with, and is not taken, nor its second check when
-  the rule fires (`.gitlab/upstream-sync`). `RuleOwnerTester` (`business-object-tests` on Linux) holds the check to
-  examples; `Rules/Rules.cs` saves such names and plain ones through `RuleAction.Save` and `Rule.Save` for a
+  runs; one stored before, or restored from a backup, is still refused when the rule fires. And `Rule.Save`, which
+  writes every action of the rule, holds one to the save's checks only where it changes it - a new action, one changed
+  in any field or made another type, and every action of a rule moved to another account - so that a rule holding an
+  action the save refuses, stored so - such a name, or a *Reply* or a *Set header value* the save has refused a
+  domain's or an account's rule since 7 October 2026 (*Security*, above) - is changed around it as any other, the
+  action left as it is - where in the tree after 6.3.6 every save of it was refused for that action, and the Control
+  Panel, which stores a criterion or an action before it saves the rule, told of the part it had stored as not saved,
+  stored it again at each retry, and left delivery with the rule as it had been, the reload of the owner's rules being
+  asked for by the save refused (found by the check of the fix). Upstream PR 671's save-time half, adapted: upstream's
+  test also refuses `$`, which a JScript or JavaScript function may be named with, and is not taken, nor its second
+  check when the rule fires (`.gitlab/upstream-sync`). `RuleOwnerTester` (`business-object-tests` on Linux) holds the
+  check to examples; `Rules/Rules.cs` saves such names and plain ones through `RuleAction.Save` and `Rule.Save` for a
   server's, a domain's and an account's rule - the last by the administrator and by the account signed in as itself -
   saved and not yet saved; `API/RestApiRules.cs` posts and puts them under the three routes, and
   `API/RestApiAccountRules.cs`, which both benches run, under an account's; and `API/Events.cs` has the firing path
-  still refuse one written to the database.
+  still refuse one written to the database. `Rules/Rules.cs` also changes a rule holding a stored name, and one
+  holding a stored reply and `From`, as the Control Panel changes a rule, with a delivery after each change, and has
+  `Rule.Save` still refuse a stored action it changes and a rule moved to an account that may not send as its reply's
+  address.
 
 ### Downloads and the release
 

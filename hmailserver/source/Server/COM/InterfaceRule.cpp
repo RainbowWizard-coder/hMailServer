@@ -18,6 +18,48 @@
 #include "COMError.h"
 #include "../Common/Util/AuditTrail.h"
 
+namespace
+{
+   // Whether Rule.Save would write the action as its row holds it already: the same
+   // type, and the same value in every field an action carries - its place in the
+   // rule aside, which MoveUp and MoveDown store as they move it, and which none of
+   // RuleGuard's checks reads.
+   bool IsStoredAsItIs(HM::RuleAction &stored, HM::RuleAction &action)
+   {
+      return stored.GetType() == action.GetType() &&
+             stored.GetSubject() == action.GetSubject() &&
+             stored.GetBody() == action.GetBody() &&
+             stored.GetFromName() == action.GetFromName() &&
+             stored.GetFromAddress() == action.GetFromAddress() &&
+             stored.GetIMAPFolder() == action.GetIMAPFolder() &&
+             stored.GetTo() == action.GetTo() &&
+             stored.GetFilename() == action.GetFilename() &&
+             stored.GetScriptFunction() == action.GetScriptFunction() &&
+             stored.GetAbortSpamFlagged() == action.GetAbortSpamFlagged() &&
+             stored.GetHeaderName() == action.GetHeaderName() &&
+             stored.GetValue() == action.GetValue() &&
+             stored.GetRouteID() == action.GetRouteID();
+   }
+
+   // The rule's actions as its rows hold them - or none, so that every action is held,
+   // for a rule not stored yet, and for one whose owner in memory is not the owner it
+   // is stored under: a rule moved to another account (Rule.AccountID) has each of its
+   // actions held to the owner it is moved to.
+   std::shared_ptr<HM::RuleActions> ReadStoredActionsUnderTheSameOwner(HM::Rule &rule)
+   {
+      __int64 storedAccountId = 0;
+      __int64 storedDomainId = 0;
+      if (rule.GetID() <= 0 ||
+          !HM::PersistentRule::ReadOwner(rule.GetID(), storedAccountId, storedDomainId) ||
+          storedAccountId != rule.GetAccountID() || storedDomainId != rule.GetDomainID())
+         return std::shared_ptr<HM::RuleActions>();
+
+      std::shared_ptr<HM::RuleActions> stored = std::shared_ptr<HM::RuleActions>(new HM::RuleActions(rule.GetID()));
+      stored->Refresh();
+      return stored;
+   }
+}
+
 STDMETHODIMP InterfaceRule::get_ID(long *pVal)
 {
    try
@@ -298,8 +340,27 @@ STDMETHODIMP InterfaceRule::Save()
       // addresses it may send from (RuleGuard::WhyActionMayNotBeStored). A Run
       // function action is held here too, whoever owns the rule, to a name the server
       // runs (RuleGuard::WhyScriptFunctionMayNotBeStored).
+      //
+      // An action this save writes as its row holds it already, under the owner the
+      // rule is stored under, is not held: the save changes nothing of it, and one
+      // these checks refuse was stored before them, restored from a backup or written
+      // to the table, and is not taken when the rule fires (RuleApplier skips the header
+      // and the reply, ScriptServer::FireEvent refuses the name). Held here, it refused
+      // every change to the rule around it - a criterion added or removed, another
+      // action, the name - and the Control Panel, which stores a criterion or an action
+      // before it saves the rule, told of the stored part as not saved, stored it again
+      // at each retry, and left delivery with the rule as it was, the reload of the
+      // owner's rules being asked for by the save refused (PersistentRule::SaveObject).
+      std::shared_ptr<HM::RuleActions> storedActions = ReadStoredActionsUnderTheSameOwner(*object_);
       for (std::shared_ptr<HM::RuleAction> action : object_->GetActions()->GetSnapshot())
       {
+         if (storedActions && action->GetID() > 0)
+         {
+            std::shared_ptr<HM::RuleAction> stored = storedActions->GetItemByDBID(action->GetID());
+            if (stored && IsStoredAsItIs(*stored, *action))
+               continue;
+         }
+
          const HM::String refusal = HM::RuleGuard::WhyActionMayNotBeStored(object_->GetAccountID(), object_->GetDomainID(), *action);
          if (!refusal.IsEmpty())
             return COMError::GenerateError(refusal);
