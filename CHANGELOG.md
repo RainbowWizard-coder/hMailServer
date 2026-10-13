@@ -4872,6 +4872,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   takes a finite verb, a session is a сеанс, an event script a скрипт, a resolver a розв'язувач and a server's health
   its справність throughout, and the Control Panel is the Панель керування in prose, as 63 texts call it.
 
+- **Fixed: 115 Japanese texts said what their English does not, or named one thing two ways.** One pass of SPF, DKIM
+  or DMARC read as all three; free software under the AGPLv3 was free of charge (無償), where it is free as in freedom
+  (自由); an account whose recipients are mostly new was one writing to addresses it had almost never written to; and
+  the sendout's notice put its time after the sentence. The Control Panel is コントロールパネル, where eleven texts wrote
+  コントロール パネル and four Control Panel; a stage of the accept pipeline is a ステージ and an entry an エントリ throughout; and a
+  button named in a sentence is in [ ], as the catalogue writes it, where two were set off by spaces.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
