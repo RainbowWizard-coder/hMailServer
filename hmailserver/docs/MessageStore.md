@@ -423,7 +423,10 @@ than from the server's code, and holds each of these claims to its negative cont
 compression on against off, byte for byte; IMAP `BODY[]`, `RFC822`, `RFC822.SIZE` and
 `SEARCH`, POP3 `RETR`, COM's `Body` and a DKIM signature made in the test and checked
 over what IMAP hands out, which also ends with the message as it was sent; an `APPEND`
-fetched back exactly, the literal and the CRLF `APPEND` writes; a literal that begins
+fetched back exactly, the literal and the CRLF `APPEND` writes; its parts as they were
+appended, a part's `BODY[N.MIME]` with its folds and a multipart's `BODY[N]` with its
+preamble and epilogue, cut from the container's original as from the plain file
+beside it, which hands out the same octets; a literal that begins
 with the magic and names another account's blob stored as the client's own bytes,
 fetched back exactly, and letting go of nothing when it is expunged, so the other
 account keeps its part; one blob for two messages, kept through a COM rewrite of one,

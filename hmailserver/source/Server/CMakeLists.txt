@@ -1058,8 +1058,9 @@ set_target_properties(profiles-tests PROPERTIES OUTPUT_NAME profiles-tests)
 # to what 6.3.5's code - kept in the testers - made of the same generated cases,
 # and the time each takes held to a pass over what it reads; and the bytes a
 # FETCH answers for a message's parts, held to the bytes generated messages were
-# written with. No network, configuration or database. Not installed; a bench
-# tool.
+# written with, some of them read back from a file of its own in the system's
+# temporary directory. No network, configuration or database. Not installed; a
+# bench tool.
 add_executable(imap-parse-tests ${SERVER_DIR}/platform/imap_parse_tests_main.cpp)
 target_link_libraries(imap-parse-tests PRIVATE hmailserver_core)
 set_target_properties(imap-parse-tests PROPERTIES OUTPUT_NAME imap-parse-tests)

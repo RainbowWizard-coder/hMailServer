@@ -4435,9 +4435,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   octets appended, over nested multiparts, a missing closing boundary, bare line feeds, 8-bit bytes and multiparts
   with no parts, one whose boundary holds a NUL among them. `IMAPFetchPartBytesTester`, on Windows and Linux, holds
   each part's `BODY[N.MIME]`, `BODY[N]`, `BINARY[N]` of a multipart, `HEADER`, `TEXT` and partial ranges to the bytes
-  written over generated messages, and the structures of messages nested past the depth, and of multiparts with no
-  parts, to ones a client can read, the latter with the size of the octets `BODY[N]` hands out, and `BODY` to no
-  extension data.
+  written over generated messages - a quarter of them parsed from a file as the server parses a stored message, so
+  read through the store - and the structures of messages nested past the depth, and of multiparts with no parts, to
+  ones a client can read, the latter with the size of the octets `BODY[N]` hands out, and `BODY` to no extension data.
 
 ### Operations
 

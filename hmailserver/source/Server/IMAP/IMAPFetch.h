@@ -109,7 +109,7 @@ namespace HM
       // stored_message_, where the sections take their bytes from and which is
       // kept until the message's sections end: the bytes it was parsed from
       // where the body holds them (MimeBody::GetSourceBytes, a body
-      // LoadFromMemory parsed - the testers'), and otherwise the stored
+      // LoadFromMemory parsed - most of the testers'), and otherwise the stored
       // message read once for the message's sections through the store
       // (MessageStore::ReadAll, which answers a container's original from the
       // store's cache of decodes) and counted to their ceiling. IMAP's own parse,
@@ -271,12 +271,17 @@ namespace HM
    // part, and are where BODY[] has them - BINARY[N] of a multipart is its body,
    // HEADER and TEXT of a message/rfc822 part are the header and the body of
    // the message it holds, and of any other part its MIME header and its body;
-   // partial ranges are cut from the same bytes. And a BODYSTRUCTURE of a
-   // message nested past the depth a structure describes is one a client can
-   // read, as is one of a multipart with no parts - one whose boundary holds a
-   // NUL among them - which describes it with the size of the octets its
-   // BODY[N] hands out; BODY carries no extension data. ClassTester runs it on
-   // Windows, imap-parse-tests on Linux.
+   // partial ranges are cut from the same bytes. A quarter of the messages are
+   // parsed from a file as the server parses a stored message, keeping none
+   // of its bytes, so that their sections are cut from the stored message
+   // IMAPFetch reads through the store - read once, counted to the ceiling,
+   // refused past it, and not used when it is not as long as what was parsed.
+   // And a BODYSTRUCTURE of a message nested past the depth a structure
+   // describes is one a client can read, as is one of a multipart with no
+   // parts - one whose boundary holds a NUL among them - which describes it
+   // with the size of the octets its BODY[N] hands out; BODY carries no
+   // extension data. ClassTester runs it on Windows, imap-parse-tests on
+   // Linux.
    class IMAPFetchPartBytesTester
    {
    public:

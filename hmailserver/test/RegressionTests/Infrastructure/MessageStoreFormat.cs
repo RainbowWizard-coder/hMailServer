@@ -247,7 +247,7 @@ namespace RegressionTests.Infrastructure
       }
 
       [Test]
-      [Description("The parts of a message stored as a container are handed out as they were appended - a part's BODY[N.MIME] its header as written, folds and all, and BODY[N] of a multipart its body with its preamble and epilogue - cut from the container's original as from a plain file (IMAP/FetchPartBytes). Negative control: the same message appended with compression off is a plain file, and hands out the same octets.")]
+      [Description("The parts of a message stored as a container are handed out as they were appended - a part's BODY[N.MIME] its header as written, folds and all, and BODY[N] of a multipart its body with its preamble and epilogue - cut from the container's original as from a plain file (IMAP/FetchPartBytes). Beside it, the same message appended with compression off - a plain file - hands out the same octets.")]
       public void ThePartsOfAContainerAreFetchedAsTheyWereAppended()
       {
          Account account = AddAccount("containerparts");

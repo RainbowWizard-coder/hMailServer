@@ -23,6 +23,9 @@
 
 #include "../Common/Persistence/PersistentMessage.h"
 #include "../Common/Persistence/MessageStore.h"
+#include "../Common/Util/FileUtilities.h"
+
+#include <boost/filesystem.hpp>
 
 #include <chrono>
 #include <cstring>
@@ -2762,10 +2765,14 @@ namespace HM
          return pBody;
       }
 
-      // A message's text parsed as the message store parses a message it holds
-      // in memory (MessageStore::LoadMime of a container), which keeps the
-      // bytes: a section a FETCH serves as stored is cut from them, as it is
-      // from the file of a message on the disk.
+      // A message's text parsed with no file: LoadFromMemory keeps the bytes it
+      // parses (MimeBody::GetSourceBytes), and a section a FETCH serves as
+      // stored is cut from them, so the testers need no file. The server's own
+      // parse keeps none - MessageStore::LoadMime parses a file with
+      // LoadFromFile and a container's original with Load - and IMAPFetch reads
+      // the stored message through the store instead (StoredMessage_), which
+      // IMAPFetchPartBytesTester holds to the bytes written over messages it
+      // parses from a file of their own the server's way.
       std::shared_ptr<MimeBody> ParsedMessage_(const std::string &text)
       {
          std::shared_ptr<MimeBody> body(new MimeBody);
@@ -3437,18 +3444,64 @@ namespace HM
       PartWriter_ writer(0x2545F4914F6CDD1DULL);
 
       // A section's bytes, through the IMAPFetch that keeps the bodies of one
-      // message's sections, as DoAction asks for them.
-      auto sectionBytes = [](IMAPFetch &fetch, const std::shared_ptr<MimeBody> &message, const std::string &item)
+      // message's sections, as DoAction asks for them, of the message stored in
+      // file - none, for a message parsed from memory (ParsedMessage_).
+      auto sectionBytesOf = [](IMAPFetch &fetch, const std::shared_ptr<MimeBody> &message, const String &file, const std::string &item)
       {
          IMAPFetchParser parser;
          if (parser.ParseCommand(String(("(" + item + ")").c_str())).GetResult() != IMAPResult::ResultOK || parser.GetPartsToLookAt().size() != 1)
             throw std::logic_error(item + " did not parse");
 
-         std::shared_ptr<ByteBuffer> got = fetch.GetByteBufferByBodyPart_(_T(""), message, parser.GetPartsToLookAt()[0]);
+         std::shared_ptr<ByteBuffer> got = fetch.GetByteBufferByBodyPart_(file, message, parser.GetPartsToLookAt()[0]);
          if (got->GetSize() == 0)
             return std::string();
 
          return std::string(got->GetCharBuffer(), got->GetSize());
+      };
+
+      auto sectionBytes = [&sectionBytesOf](IMAPFetch &fetch, const std::shared_ptr<MimeBody> &message, const std::string &item)
+      {
+         return sectionBytesOf(fetch, message, String(), item);
+      };
+
+      // A file of the test's own, removed however the test ends, for messages
+      // parsed as the server parses a message it stores: from the file, through
+      // MessageStore::LoadMime, which keeps none of the bytes - so that IMAPFetch
+      // reads the stored message through the store (StoredMessage_), as it does
+      // in the server, and not from bytes the parse kept.
+      struct ScratchFile
+      {
+         ScratchFile() :
+            path(boost::filesystem::temp_directory_path() / boost::filesystem::unique_path("hm-fetch-part-bytes-%%%%-%%%%-%%%%.eml"))
+         {
+         }
+
+         ~ScratchFile()
+         {
+            boost::system::error_code ignored;
+            boost::filesystem::remove(path, ignored);
+         }
+
+         boost::filesystem::path path;
+      } scratch;
+
+      const String file = String(scratch.path.wstring());
+
+      auto storedAndParsed = [&file](const std::string &text)
+      {
+         if (!FileUtilities::WriteToFile(file, AnsiString(text)))
+            throw std::logic_error("A message could not be written to a file of the test's own");
+
+         std::shared_ptr<MimeBody> body(new MimeBody);
+         if (MessageStore::LoadMime(AnsiString(file), *body) != MimeLoadResult::Loaded)
+            throw std::logic_error("MessageStore::LoadMime did not parse a message written to a file of the test's own");
+
+         // The server's parse keeps no bytes: the sections cut from the stored
+         // message are cut from what StoredMessage_ reads.
+         if (body->GetSourceBytes())
+            throw std::logic_error("MessageStore::LoadMime kept the bytes of a stored message, so the read the server makes is not what this tests");
+
+         return body;
       };
 
       int parts = 0;
@@ -3456,12 +3509,21 @@ namespace HM
       int messages = 0;
       int headersAlone = 0;
       int multipartsUnclosed = 0;
+      int stored = 0;
 
       for (int number = 0; number < cases; number++)
       {
          std::vector<WrittenPart_> written;
          const std::string text = writer.Message(written);
-         std::shared_ptr<MimeBody> message = ParsedMessage_(text);
+
+         // One message in four from a file, as the server parses it, the rest
+         // from memory.
+         const bool fromFile = number % 4 == 0;
+         std::shared_ptr<MimeBody> message = fromFile ? storedAndParsed(text) : ParsedMessage_(text);
+         if (fromFile)
+            stored++;
+
+         const String messageFile = fromFile ? file : String();
 
          IMAPFetch fetch;
 
@@ -3499,7 +3561,7 @@ namespace HM
 
             for (const Expected &one : expected)
             {
-               const std::string got = sectionBytes(fetch, message, one.item);
+               const std::string got = sectionBytesOf(fetch, message, messageFile, one.item);
                if (got != *one.bytes)
                   throw std::logic_error("Case " + std::to_string(number) + ", " + one.item + ": " + Difference_(got, *one.bytes));
             }
@@ -3507,12 +3569,12 @@ namespace HM
             // Partial ranges, cut from the same bytes.
             const size_t start = body.size() < 3 ? body.size() : 3;
             const std::string partial = body.substr(start, 5);
-            const std::string gotPartial = sectionBytes(fetch, message, "BODY.PEEK[" + part.number + "]<3.5>");
+            const std::string gotPartial = sectionBytesOf(fetch, message, messageFile, "BODY.PEEK[" + part.number + "]<3.5>");
             if (gotPartial != partial)
                throw std::logic_error("Case " + std::to_string(number) + ", BODY.PEEK[" + part.number + "]<3.5>: " + Difference_(gotPartial, partial));
 
             const std::string headerPartial = part.header.substr(0, 7);
-            const std::string gotHeaderPartial = sectionBytes(fetch, message, "BODY.PEEK[" + part.number + ".MIME]<0.7>");
+            const std::string gotHeaderPartial = sectionBytesOf(fetch, message, messageFile, "BODY.PEEK[" + part.number + ".MIME]<0.7>");
             if (gotHeaderPartial != headerPartial)
                throw std::logic_error("Case " + std::to_string(number) + ", BODY.PEEK[" + part.number + ".MIME]<0.7>: " + Difference_(gotHeaderPartial, headerPartial));
 
@@ -3528,11 +3590,91 @@ namespace HM
          }
       }
 
-      // What was compared is something: every kind of part, many times.
-      if (parts < cases * 2 || multiparts < cases / 4 || multipartsUnclosed < cases / 20 || messages < cases / 4 || headersAlone < cases / 50)
+      // What was compared is something: every kind of part, many times, and a
+      // quarter of the messages read from their files.
+      if (parts < cases * 2 || multiparts < cases / 4 || multipartsUnclosed < cases / 20 || messages < cases / 4 || headersAlone < cases / 50 || stored < cases / 4)
          throw std::logic_error("Parts compared: " + std::to_string(parts) + ", of them " + std::to_string(multiparts) + " multiparts (" +
             std::to_string(multipartsUnclosed) + " not closed), " + std::to_string(messages) + " messages and " + std::to_string(headersAlone) +
-            " headers alone");
+            " headers alone; " + std::to_string(stored) + " messages from their files");
+
+      // The stored message as IMAPFetch reads it through the store for a
+      // message the server parsed from its file: read once for the message's
+      // sections and counted to their ceiling as DoAction sets it, refused past
+      // the ceiling, and not used when it is not as long as what was parsed -
+      // the parts were placed in other bytes - when the sections are answered
+      // from the parsed message, as they were before.
+      {
+         const std::string header = "X-Folded: one\r\n two\r\nContent-Type: text/plain\r\n\r\n";
+         const std::string text =
+            "Subject: s\r\nContent-Type: multipart/mixed; boundary=\"b\"\r\n\r\npreamble\r\n"
+            "--b\r\n" + header + "text\r\n"
+            "--b--\r\nepilogue\r\n";
+
+         std::shared_ptr<MimeBody> message = storedAndParsed(text);
+         const size_t ceiling = text.size() * 16 + size_t{1024} * 1024;
+
+         // As DoAction sets the ceiling, with the file's size known.
+         auto ceilingFor = [&file, &text](IMAPFetch &fetch, size_t used)
+         {
+            fetch.ceiling_set_ = true;
+            fetch.ceiling_largest_ = text.size();
+            fetch.ceiling_used_ = used;
+            fetch.ceiling_file_ = file;
+            fetch.ceiling_file_sized_ = true;
+         };
+
+         // Read once, and counted once: the first section that cuts from the
+         // stored message costs the message - and the part list the part number
+         // is found in, a few bytes, for which a little room is left - and the
+         // next does not read it again.
+         {
+            IMAPFetch fetch;
+            ceilingFor(fetch, ceiling - text.size() - 64);
+
+            const std::string mime = sectionBytesOf(fetch, message, file, "BODY.PEEK[1.MIME]");
+            if (mime != header || fetch.section_refused_ || fetch.section_cost_ < text.size())
+               throw std::logic_error("BODY.PEEK[1.MIME] of a message parsed from its file, read through the store under the ceiling: " +
+                  Difference_(mime, header) + ", costing " + std::to_string(fetch.section_cost_) + (fetch.section_refused_ ? ", refused" : ""));
+
+            const std::string again = sectionBytesOf(fetch, message, file, "BODY.PEEK[1.MIME]<0.9>");
+            if (again != header.substr(0, 9) || fetch.section_cost_ >= text.size())
+               throw std::logic_error("A second section of a message parsed from its file read it again, or was not cut from it: " +
+                  Difference_(again, header.substr(0, 9)) + ", costing " + std::to_string(fetch.section_cost_));
+
+            fetch.ForgetMessageSections_();
+         }
+
+         // Past the ceiling by the read alone: refused, and nothing handed out.
+         {
+            IMAPFetch fetch;
+            ceilingFor(fetch, ceiling - text.size() + 1);
+
+            const std::string refused = sectionBytesOf(fetch, message, file, "BODY.PEEK[1.MIME]");
+            if (!refused.empty() || !fetch.section_refused_)
+               throw std::logic_error("BODY.PEEK[1.MIME] whose read of the stored message would pass the ceiling was not refused: " + Difference_(refused, std::string()));
+
+            fetch.ForgetMessageSections_();
+         }
+
+         // A file not as long as what was parsed: the parts are not placed in
+         // it, and the sections are the parsed message's, as before.
+         {
+            if (!FileUtilities::WriteToFile(file, AnsiString(text + "more\r\n")))
+               throw std::logic_error("A message could not be written to a file of the test's own");
+
+            IMAPFetch fetch;
+            ceilingFor(fetch, 0);
+
+            std::shared_ptr<MimeBody> part = message->FindFirstPart();
+            const std::string rebuilt = part ? std::string(AnsiString(part->GetHeaderContents())) : std::string();
+
+            const std::string mime = sectionBytesOf(fetch, message, file, "BODY.PEEK[1.MIME]");
+            if (mime != rebuilt || mime == header || fetch.section_refused_)
+               throw std::logic_error("BODY.PEEK[1.MIME] of a message whose file is no longer as long as what was parsed was not the parsed part's header: " + Difference_(mime, rebuilt));
+
+            fetch.ForgetMessageSections_();
+         }
+      }
 
       // A BODYSTRUCTURE of messages nested in messages 150 deep, which a client
       // can read: it was a message/rfc822 with nothing where its body goes past

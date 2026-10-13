@@ -24,8 +24,9 @@
 // each named again beside itself left out - against a removal that compares
 // every pair, with what they match before and after; and the bytes a FETCH
 // answers for a message's parts, held to the bytes generated messages were
-// written with. Nothing here touches the network, the configuration or a
-// database.
+// written with, some of them read back from a file of its own in the
+// system's temporary directory. Nothing here touches the network, the
+// configuration or a database.
 //
 // One line a tester, and a non-zero exit on the first failure.
 
