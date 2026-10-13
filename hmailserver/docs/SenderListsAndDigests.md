@@ -303,6 +303,24 @@ address, bracketed or not) are one group of their own. The group whose newest me
 newest comes first. A group's row folds and unfolds; folding hides its messages
 and keeps their checks.
 
+### Searching
+
+The search box over the list finds a message whose **sender**, **recipients**,
+**subject** or **reason** - why it was held - holds what is typed, in any case. The
+text is matched as it is written: `%`, `_`, `[` and `/` are the characters they are
+on every database, never wildcards, and the spaces round it are not part of it. A
+text matched across two columns is no match; each column is searched on its own, as
+the row stores it - the envelope sender, the recipients as they were accepted
+(comma separated, cut at 1,000 characters), the subject and the reason, each cut at
+255. Letters outside ASCII are matched in any case as far as the database folds
+them.
+
+An account's own held mail - what the webmail's **Held mail** page lists - is every
+message held for that address, however many others the server holds, and
+`GET /api/v1/me/quarantine?q=` searches it in the sender, the subject and the reason.
+Never in the recipients: they say who else a message was for, which is not the
+account's to learn.
+
 ### The four actions
 
 Every message, every group and the header carry the same four icons:
@@ -367,6 +385,9 @@ Control Panel, the Settings view filtered to them in the Deck.
 GET  /api/v1/quarantine                 each message: id, sender, recipients, subject,
                                         reason, score, size, created, helo,
                                         sender_domain, helo_domain
+GET  /api/v1/quarantine?q=invoice&offset=0&limit=100
+                                        {"query", "held", "total", "offset", "count",
+                                         "messages"}
 POST /api/v1/quarantine/bulk            {"ids": [12, 13], "action": "allow",
                                          "list": "domain", "domain_from": "helo",
                                          "dry_run": false, "confirm_public_suffix": false}
@@ -385,6 +406,21 @@ run - `error`, `ids`) and `results` (`id`, `ok`, `outcome` - `released` or
 is a `400` and changes nothing, and an entry naming a public suffix without
 `confirm_public_suffix` is a `409` naming it and changes nothing.
 
+The list without parameters is the bare array it always was. With any of `q`,
+`offset` and `limit` it is a page of **every** held message, newest first (the
+same second's in the order they were held), as an object: `query`, `held` (every
+message held), `total` (the ones that match), `offset`, `count` (the ones on this
+page) and `messages`, each as the list writes it. `q` is looked for as *Searching*
+above says, and an empty `q` matches every message, so `?offset=1000&limit=1000`
+is the page after the list's. `q` is at most 255 characters; `offset` is a whole
+number from 0 to 999999999 and `limit` one from 1 to 1000 (100 if it is left out);
+anything else is a `400`, never a page quietly cut or moved. The search is the
+list's route: the same permission, and not on the audit trail.
+`GET /api/v1/me/quarantine` takes the same three for the signed-in account's own held
+mail (`limit` 1000 if it is left out) and answers `enabled`, `query`, `total`,
+`offset`, `count` and `messages`, with `q` looked for in the sender, the subject and
+the reason only.
+
 All five are server-wide and refused for a credential confined to named domains.
 The list and the headers and preview need `view_quarantine`, and the headers and
 preview `view_mailbox` beside it, since they are the mail itself; `bulk` and
@@ -394,7 +430,13 @@ the two lists' own routes ask for.
 
 Over COM, `Settings.AntiSpam.Quarantine.Bulk(request)` takes and answers the same
 JSON, `DeleteExpired()` is the sweep, and each `QuarantinedMessage` has `HeloName`,
-`SenderDomain`, `HeloDomain`, `ReadHeaders()` and `ReadPreview()`. Server
+`SenderDomain`, `HeloDomain`, `ReadHeaders()` and `ReadPreview()`.
+`Search(Text, Offset, Count)` loads `Count` (1 to 500) of the messages that match
+`Text` (at most 255 characters, matched as *Searching* says), newest first, after
+the first `Offset` (0 to 999999999), which `Item` then indexes as it indexes the
+page `Refresh` loads, and returns how many match in all; `Search("", 500, 500)` is
+the page after `Refresh`'s, and `Refresh` gives the newest page back. A value out of
+its range is a COM error, and the page loaded before stays as it was. Server
 administrators. The HELO name is `HeloName` and not `Helo`: a type library keeps
 one spelling of a name whatever its case, and `Client.HELO` has it, so a member
 spelled `Helo` would have renamed `Client.HELO` in every early-bound program.

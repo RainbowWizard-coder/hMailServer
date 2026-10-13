@@ -1493,7 +1493,7 @@ namespace HM
       static HttpResponse HandleMePassword_(const Caller &caller, const AnsiString &request);
       static HttpResponse HandleMeVacation_(const Caller &caller, const AnsiString &requestBody);
       static HttpResponse HandlePortalPage_(const AnsiString &request);
-      static HttpResponse HandleMeQuarantineList_(const Caller &caller);
+      static HttpResponse HandleMeQuarantineList_(const Caller &caller, const AnsiString &query);
       static HttpResponse HandleMeQuarantineRelease_(const Caller &caller, __int64 id);
       static HttpResponse HandleMeQuarantineDelete_(const Caller &caller, __int64 id);
       static HttpResponse HandleMeFolders_(const Caller &caller);
@@ -2423,7 +2423,7 @@ namespace HM
       static HttpResponse HandleDiagnosticsRun_(const AnsiString &requestBody);
       static AnsiString QueryParameter_(const AnsiString &query, const AnsiString &name);
 
-      HttpResponse HandleListQuarantine_();
+      HttpResponse HandleListQuarantine_(const AnsiString &query);
       HttpResponse HandleQuarantineRelease_(__int64 id);
       HttpResponse HandleQuarantineDelete_(__int64 id);
       HttpResponse HandleQuarantineBulk_(const Caller &caller, const AnsiString &requestBody);

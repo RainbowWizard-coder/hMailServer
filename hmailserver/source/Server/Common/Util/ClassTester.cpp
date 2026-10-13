@@ -24,6 +24,7 @@
 #include "../Util/ObjectStoreSignature.h"
 #include "../Util/ContentPolicy.h"
 #include "../AntiSpam/QuarantineReview.h"
+#include "../AntiSpam/QuarantineStore.h"
 #include "../AntiSpam/FqdnCheck.h"
 #include "../Idna/Idna.h"
 #include "../Util/WebPush.h"
@@ -382,6 +383,13 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing QuarantineReview\n"));
       QuarantineReviewTester quarantineReviewTester;
       quarantineReviewTester.Test();
+
+      // The quarantine's search (review finding F261): each LIKE with a
+      // parameter of its own, in the order SQL Server binds them by position,
+      // the text's own wildcards escaped, and a recipient found whole.
+      OutputDebugString(_T("hMailServer: Testing QuarantineSearch\n"));
+      QuarantineSearchTester quarantineSearchTester;
+      quarantineSearchTester.Test();
 
       // A HELO name or a sender's domain that is not a fully qualified domain
       // name (GitLab issue 51): addresses in and out of brackets, one label, the

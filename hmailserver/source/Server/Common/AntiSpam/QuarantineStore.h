@@ -39,6 +39,7 @@
 namespace HM
 {
    class Message;
+   class SQLCommand;
 
    struct QuarantinedMessage
    {
@@ -88,6 +89,47 @@ namespace HM
 
       static std::vector<QuarantinedMessage> List(int maxCount);
       static bool GetById(__int64 id, QuarantinedMessage &out_message);
+
+      // A search of the held messages (Search): what it looks for, and which page
+      // of the answer it wants.
+      struct SearchRequest
+      {
+         // Text the sender, the recipients, the subject or the reason holds, in
+         // any case. Empty finds every message.
+         String text;
+
+         // Only the messages held for this address - one of their recipients,
+         // whole and in any case, as IsRecipient reads it - and the text is then
+         // not looked for among the recipients, which say who else a message was
+         // for. Empty for every message.
+         String recipient;
+
+         // count messages after the first offset, newest first.
+         int offset = 0;
+         int count = 100;
+      };
+
+      // The longest text a search takes, the most messages one page holds and the
+      // furthest page it goes to. Every column the text is looked for in is cut at
+      // 255 characters when the row is written but the recipients', at 1,000.
+      static constexpr int MaxSearchText = 255;
+      static constexpr int MaxSearchPage = 1000;
+      static constexpr int MaxSearchOffset = 999999999;
+
+      // The held messages a search finds, newest first: the page asked for in
+      // out_page, and how many match in all in out_matches. Each column is
+      // matched as the row holds it - the envelope sender, the recipients as
+      // they were accepted, the subject and the reason - and the text's own %, _
+      // and [ are matched as they are, on every database. False, with nothing
+      // found, when the request is outside the bounds above or the database could
+      // not be read.
+      static bool Search(const SearchRequest &request, std::vector<QuarantinedMessage> &out_page, int &out_matches);
+
+      // The two statements a search sends - the count of what matches and the
+      // page - for a database that writes a row limit as TOP (SQL Server and
+      // Compact) or as LIMIT (MySQL and PostgreSQL). Public for
+      // QuarantineSearchTester, which reads them without a database.
+      static void BuildSearchCommands(const SearchRequest &request, bool topSyntax, SQLCommand &out_count, SQLCommand &out_page);
 
       // What a reviewer may read of a held message without releasing it: the
       // header block as it is stored, and a plain-text preview - the text part,
@@ -221,5 +263,20 @@ namespace HM
       static String BuildRelativePath_(const StoredMarks &marks);
       static bool ReadRow_(std::shared_ptr<DALRecordset> recordset, QuarantinedMessage &out_message);
       static bool RemoveRecipient_(__int64 id, const QuarantinedMessage &quarantined, const String &recipient);
+   };
+
+   // The statements a search of the quarantine sends (QuarantineStore::
+   // BuildSearchCommands), read without a database: every parameter named once,
+   // in the order the statement names them and none the start of another, which
+   // SQL Server's binding by position needs (ADOConnection::
+   // InitializeCommandParameters); the text's own wildcards escaped and both
+   // sides lowered; the recipients looked in only where no recipient is given;
+   // a recipient found whole; the page newest first with a tie broken by the
+   // id, and as long as the offset and the page together. ClassTester runs it on
+   // Windows, quarantine-search-tests on Linux.
+   class QuarantineSearchTester
+   {
+   public:
+      void Test();
    };
 }

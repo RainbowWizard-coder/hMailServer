@@ -1095,6 +1095,20 @@ add_executable(database-transaction-tests ${SERVER_DIR}/platform/database_transa
 target_link_libraries(database-transaction-tests PRIVATE hmailserver_core)
 set_target_properties(database-transaction-tests PROPERTIES OUTPUT_NAME database-transaction-tests)
 
+# ---------------------------------------------------------------- the quarantine's search
+#
+# QuarantineSearchTester (Common/AntiSpam/QuarantineStore.h) and
+# SQLStatementTester::TestEscapeLikeText as a program of their own, for the
+# reason spf-tests is one: on Windows they run inside the server through
+# ClassTester, which nothing reaches here. A LIKE's text with every wildcard of
+# the four databases escaped, and the statements a search of the held messages
+# sends: each parameter once and in the order SQL Server binds them by position,
+# a recipient found whole and not searched in. No database, configuration or
+# network. Not installed; a bench tool.
+add_executable(quarantine-search-tests ${SERVER_DIR}/platform/quarantine_search_tests_main.cpp)
+target_link_libraries(quarantine-search-tests PRIVATE hmailserver_core)
+set_target_properties(quarantine-search-tests PROPERTIES OUTPUT_NAME quarantine-search-tests)
+
 # ---------------------------------------------------------------- the profiles' lock
 #
 # ProfilesTester (Common/Application/Profiles.h) as a program of its own, for the

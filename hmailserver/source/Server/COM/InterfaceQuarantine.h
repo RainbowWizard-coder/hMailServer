@@ -55,12 +55,14 @@ public:
    STDMETHOD(DeleteByDBID)(/*[in]*/ long DBID);
    STDMETHOD(DeleteExpired)(/*[out, retval]*/ LONG* pVal);
    STDMETHOD(Bulk)(/*[in]*/ BSTR Request, /*[out, retval]*/ BSTR* Result);
+   STDMETHOD(Search)(/*[in]*/ BSTR Text, /*[in]*/ long Offset, /*[in]*/ long Count, /*[out, retval]*/ long* pMatches);
 
 private:
 
    // The page an administrator is looking at, not the whole table. A quarantine on a
    // busy server is unbounded until the retention sweep runs, and a review queue that
    // materialises every row to draw one screen is slowest exactly when it matters.
+   // A page of a search is held to the same.
    static const int max_listed_ = 500;
 
    std::vector<HM::QuarantinedMessage> messages_;

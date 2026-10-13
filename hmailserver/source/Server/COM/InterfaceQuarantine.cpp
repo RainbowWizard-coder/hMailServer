@@ -194,3 +194,50 @@ STDMETHODIMP InterfaceQuarantine::Bulk(BSTR Request, BSTR* Result)
       return COMError::GenerateGenericMessage();
    }
 }
+
+STDMETHODIMP InterfaceQuarantine::Search(BSTR Text, long Offset, long Count, long* pMatches)
+{
+   try
+   {
+      // Every held message, where Refresh reads the newest page of them (review
+      // finding F261): the Control Panel's search found nothing it had not
+      // already listed.
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      HM::String text = Text ? HM::String(Text) : HM::String();
+      text.Trim();
+
+      // Refused rather than cut or clamped: a search cut short finds what was not
+      // asked for, and a page that is quietly not the one asked for is read as
+      // the end of the list.
+      if (text.GetLength() > HM::QuarantineStore::MaxSearchText)
+         return COMError::GenerateError("The search text is longer than 255 characters.");
+
+      if (Offset < 0 || Offset > HM::QuarantineStore::MaxSearchOffset)
+         return COMError::GenerateError("Offset is a whole number from 0 to 999999999.");
+
+      if (Count < 1 || Count > max_listed_)
+         return COMError::GenerateError("Count is a whole number from 1 to 500.");
+
+      HM::QuarantineStore::SearchRequest request;
+      request.text = text;
+      request.offset = (int) Offset;
+      request.count = (int) Count;
+
+      std::vector<HM::QuarantinedMessage> page;
+      int matches = 0;
+
+      if (!HM::QuarantineStore::Search(request, page, matches))
+         return COMError::GenerateError("The quarantine could not be searched.");
+
+      messages_ = page;
+      *pMatches = (long) matches;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}

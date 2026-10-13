@@ -16,6 +16,7 @@
 #include "../SQL/SQLCommand.h"
 #include "../SQL/SQLStatement.h"
 #include "../SQL/DatabaseConnectionManager.h"
+#include "../SQL/DatabaseSettings.h"
 #include "../Util/FileUtilities.h"
 #include "../Util/GUIDCreator.h"
 #include "../Util/Time.h"
@@ -31,6 +32,9 @@
 #include "../Util/Unicode.h"
 #include "../Util/MessageOrigin.h"
 #include "DKIM/DKIMSigner.h"
+
+#include <stdexcept>
+#include <utility>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -792,6 +796,177 @@ namespace HM
       return ReadRow_(recordset, out_message);
    }
 
+   namespace
+   {
+      // The columns ReadRow_ reads, named: the page's statement puts its row
+      // limit in front of them.
+      const TCHAR *const SearchColumns =
+         _T("quarantineid, quarantinefilename, quarantinesender, quarantinerecipients, quarantinesubject, ")
+         _T("quarantinereason, quarantinescore, quarantinesize, quarantinecreated, quarantinehelo");
+   }
+
+   void
+   QuarantineStore::BuildSearchCommands(const SearchRequest &request, bool topSyntax, SQLCommand &out_count, SQLCommand &out_page)
+   {
+      // Both sides lowered: PostgreSQL's LIKE compares case, and the other three
+      // backends' default collations do not, so a search for "Invoice" found
+      // "invoice" on three of them and nothing on the fourth. The text's own
+      // wildcards are written as the characters they are (EscapeLikeText).
+      String text = request.text;
+      text.Trim();
+      text.MakeLower();
+
+      String recipient = request.recipient;
+      recipient.Trim();
+      recipient.MakeLower();
+
+      // Every LIKE has a parameter of its own, added in the order the statement
+      // names them, and no name is the start of another. ADOConnection binds SQL
+      // Server's parameters by position - it writes a ? wherever it finds a name
+      // and adds one value for each parameter - so a name used twice is two
+      // places and one value, and two names added out of order take each other's
+      // values. Compact binds them by name and MySQL and PostgreSQL have them
+      // written in, so SQL Server alone would show the mistake, and no bench runs
+      // on it: QuarantineSearchTester holds the order.
+      String where;
+      std::vector<std::pair<AnsiString, String>> parameters;
+
+      if (!text.IsEmpty())
+      {
+         const String contains = _T("%") + SQLStatement::EscapeLikeText(text) + _T("%");
+
+         where = _T("(lower(quarantinesender) like @QSENDER escape '/'");
+         parameters.push_back(std::make_pair(AnsiString("@QSENDER"), contains));
+
+         // A search confined to one recipient leaves the recipients out: they say
+         // who else a message was for, which is not that recipient's to learn.
+         if (recipient.IsEmpty())
+         {
+            where += _T(" or lower(quarantinerecipients) like @QRECIPIENTS escape '/'");
+            parameters.push_back(std::make_pair(AnsiString("@QRECIPIENTS"), contains));
+         }
+
+         where += _T(" or lower(quarantinesubject) like @QSUBJECT escape '/'");
+         parameters.push_back(std::make_pair(AnsiString("@QSUBJECT"), contains));
+
+         where += _T(" or lower(quarantinereason) like @QREASON escape '/')");
+         parameters.push_back(std::make_pair(AnsiString("@QREASON"), contains));
+      }
+
+      if (!recipient.IsEmpty())
+      {
+         // One of the recipients, whole: the list alone, at its start, at its end
+         // or inside it. The store writes the list comma separated with nothing
+         // between (Quarantine_, RemoveRecipient_), so these four are every place
+         // an address can be, and bob@example.com is not found in
+         // xbob@example.com or bob@example.community. Four patterns rather than a
+         // comma joined on each side of the column, which the four backends each
+         // spell their own way.
+         const String exact = SQLStatement::EscapeLikeText(recipient);
+
+         if (!where.IsEmpty())
+            where += _T(" and ");
+
+         where += _T("(lower(quarantinerecipients) like @QFORONE escape '/'");
+         parameters.push_back(std::make_pair(AnsiString("@QFORONE"), exact));
+
+         where += _T(" or lower(quarantinerecipients) like @QFORFIRST escape '/'");
+         parameters.push_back(std::make_pair(AnsiString("@QFORFIRST"), exact + _T(",%")));
+
+         where += _T(" or lower(quarantinerecipients) like @QFORLAST escape '/'");
+         parameters.push_back(std::make_pair(AnsiString("@QFORLAST"), _T("%,") + exact));
+
+         where += _T(" or lower(quarantinerecipients) like @QFORMIDDLE escape '/')");
+         parameters.push_back(std::make_pair(AnsiString("@QFORMIDDLE"), _T("%,") + exact + _T(",%")));
+      }
+
+      const String filter = where.IsEmpty() ? String() : String(_T(" where ")) + where;
+
+      out_count.SetQueryString(String(_T("select count(*) as quarantinecount from hm_quarantine")) + filter);
+
+      // Newest first, with the id to break a tie: several messages held in one
+      // second must come in one order on every page, or a page could show one
+      // twice and another never. The page is offset + count rows of which the
+      // first offset are passed over, as the audit trail's are: SQL Server
+      // Compact has no OFFSET.
+      const int rows = request.offset + request.count;
+
+      String page;
+      if (topSyntax)
+         page.Format(_T("select top (%d) %s from hm_quarantine%s order by quarantinecreated desc, quarantineid desc"), rows, SearchColumns, filter.c_str());
+      else
+         page.Format(_T("select %s from hm_quarantine%s order by quarantinecreated desc, quarantineid desc limit %d"), SearchColumns, filter.c_str(), rows);
+
+      out_page.SetQueryString(page);
+
+      for (const std::pair<AnsiString, String> &parameter : parameters)
+      {
+         out_count.AddParameter(parameter.first, parameter.second);
+         out_page.AddParameter(parameter.first, parameter.second);
+      }
+   }
+
+   bool
+   QuarantineStore::Search(const SearchRequest &request, std::vector<QuarantinedMessage> &out_page, int &out_matches)
+   {
+      out_page.clear();
+      out_matches = 0;
+
+      String text = request.text;
+      text.Trim();
+
+      String recipient = request.recipient;
+      recipient.Trim();
+
+      if (text.GetLength() > MaxSearchText || request.offset < 0 || request.offset > MaxSearchOffset ||
+          request.count < 1 || request.count > MaxSearchPage)
+         return false;
+
+      const DatabaseSettings::SQLDBType type = IniFileSettings::Instance()->GetDatabaseType();
+      const bool topSyntax = type == DatabaseSettings::TypeMSSQLServer || type == DatabaseSettings::TypeMSSQLCompactEdition;
+
+      SQLCommand countCommand;
+      SQLCommand pageCommand;
+      BuildSearchCommands(request, topSyntax, countCommand, pageCommand);
+
+      std::shared_ptr<DALRecordset> counted = Application::Instance()->GetDBManager()->OpenRecordset(countCommand);
+      if (!counted)
+         return false;
+
+      out_matches = counted->IsEOF() ? 0 : (int) counted->GetLongValue("quarantinecount");
+
+      if (request.offset >= out_matches)
+         return true;
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(pageCommand);
+      if (!recordset)
+      {
+         out_matches = 0;
+         return false;
+      }
+
+      int index = 0;
+      while (!recordset->IsEOF() && (int) out_page.size() < request.count)
+      {
+         if (index >= request.offset)
+         {
+            QuarantinedMessage message;
+
+            // A search confined to a recipient says so again of every row it
+            // sends, as the portal's list did of every row it read: the statement
+            // found the address whole, and a row shown to the wrong person is
+            // somebody else's mail.
+            if (ReadRow_(recordset, message) && (recipient.IsEmpty() || IsRecipient(message, recipient)))
+               out_page.push_back(message);
+         }
+
+         index++;
+         recordset->MoveNext();
+      }
+
+      return true;
+   }
+
    int
    QuarantineStore::GetCount()
    {
@@ -1157,5 +1332,235 @@ namespace HM
       }
 
       return true;
+   }
+
+   namespace
+   {
+      void FailSearch(const std::string &what)
+      {
+         throw std::logic_error("QuarantineSearchTester: " + what);
+      }
+
+      std::string Utf8Of(const String &text)
+      {
+         return std::string(Unicode::ToUtf8(text).c_str());
+      }
+
+      // Every parameter of the command named once in its statement, in the order
+      // the parameters were added, none the start of another, and nothing else
+      // in the statement that ADOConnection would take for a name.
+      void ExpectBindsInOrder(const SQLCommand &command, const std::string &which)
+      {
+         const String query = command.GetQueryString();
+
+         std::vector<String> names;
+         int previous = -1;
+
+         for (const SQLParameter &parameter : command.GetParameters())
+         {
+            const String name = parameter.GetName();
+
+            const int at = query.Find(name.c_str());
+            if (at < 0)
+               FailSearch(which + ": " + Utf8Of(name) + " is not in the statement.");
+
+            if (query.Find(name.c_str(), at + 1) >= 0)
+               FailSearch(which + ": " + Utf8Of(name) + " is in the statement twice, which SQL Server would bind as two values and one parameter.");
+
+            if (at <= previous)
+               FailSearch(which + ": " + Utf8Of(name) + " is added out of the statement's order, which SQL Server would bind to another's place.");
+
+            previous = at;
+            names.push_back(name);
+         }
+
+         for (const String &one : names)
+         {
+            for (const String &other : names)
+            {
+               if (one != other && other.GetLength() > one.GetLength() && other.Left(one.GetLength()) == one)
+                  FailSearch(which + ": " + Utf8Of(one) + " is the start of " + Utf8Of(other) + ".");
+            }
+         }
+
+         int tokens = 0;
+         for (int i = 0; i < query.GetLength(); i++)
+         {
+            if (query[i] == L'@')
+               tokens++;
+         }
+
+         if (tokens != (int) names.size())
+            FailSearch(which + ": the statement names " + std::to_string(tokens) + " parameters and the command carries " + std::to_string(names.size()) + ".");
+      }
+
+      void ExpectParameters(const SQLCommand &command, const std::vector<std::pair<String, String>> &expected, const std::string &which)
+      {
+         const std::list<SQLParameter> &parameters = command.GetParameters();
+         if (parameters.size() != expected.size())
+            FailSearch(which + ": " + std::to_string(parameters.size()) + " parameters, not " + std::to_string(expected.size()) + ".");
+
+         size_t i = 0;
+         for (const SQLParameter &parameter : parameters)
+         {
+            if (parameter.GetName() != expected[i].first || parameter.GetType() != SQLParameter::ParamTypeString ||
+                parameter.GetStringValue() != expected[i].second)
+            {
+               FailSearch(which + ": parameter " + std::to_string(i + 1) + " is " + Utf8Of(parameter.GetName()) + " = [" + Utf8Of(parameter.GetStringValue()) +
+                  "], not " + Utf8Of(expected[i].first) + " = [" + Utf8Of(expected[i].second) + "].");
+            }
+
+            i++;
+         }
+      }
+
+      void ExpectText(const String &actual, const String &expected, const std::string &which)
+      {
+         if (actual != expected)
+            FailSearch(which + " is [" + Utf8Of(actual) + "], not [" + Utf8Of(expected) + "].");
+      }
+   }
+
+   void
+   QuarantineSearchTester::Test()
+   {
+      const String columns = _T("quarantineid, quarantinefilename, quarantinesender, quarantinerecipients, quarantinesubject, ")
+                             _T("quarantinereason, quarantinescore, quarantinesize, quarantinecreated, quarantinehelo");
+      const String order = _T(" order by quarantinecreated desc, quarantineid desc");
+
+      // A text with the wildcards of every backend in it, in capitals, around
+      // spaces: lowered and trimmed, each wildcard escaped, and looked for in all
+      // four columns, each with its own parameter.
+      {
+         QuarantineStore::SearchRequest request;
+         request.text = _T("  A_B%[Promo]  ");
+
+         SQLCommand count;
+         SQLCommand page;
+         QuarantineStore::BuildSearchCommands(request, true, count, page);
+
+         const String where = _T(" where (lower(quarantinesender) like @QSENDER escape '/' or lower(quarantinerecipients) like @QRECIPIENTS escape '/' ")
+                              _T("or lower(quarantinesubject) like @QSUBJECT escape '/' or lower(quarantinereason) like @QREASON escape '/')");
+
+         ExpectText(count.GetQueryString(), _T("select count(*) as quarantinecount from hm_quarantine") + where, "the count of a text search");
+         ExpectText(page.GetQueryString(), _T("select top (100) ") + columns + _T(" from hm_quarantine") + where + order, "the page of a text search");
+
+         const String contains = _T("%a/_b/%/[promo]%");
+         const std::vector<std::pair<String, String>> expected =
+         {
+            { _T("@QSENDER"), contains }, { _T("@QRECIPIENTS"), contains }, { _T("@QSUBJECT"), contains }, { _T("@QREASON"), contains }
+         };
+
+         ExpectParameters(count, expected, "the count of a text search");
+         ExpectParameters(page, expected, "the page of a text search");
+         ExpectBindsInOrder(count, "the count of a text search");
+         ExpectBindsInOrder(page, "the page of a text search");
+      }
+
+      // Confined to one recipient: the recipients are not searched for the text,
+      // and the address is found whole in any of its four places, as LIMIT on
+      // MySQL and PostgreSQL, the page as long as the offset and the count.
+      {
+         QuarantineStore::SearchRequest request;
+         request.text = _T("Invoice");
+         request.recipient = _T(" Bob_1@Example.COM ");
+         request.offset = 200;
+         request.count = 50;
+
+         SQLCommand count;
+         SQLCommand page;
+         QuarantineStore::BuildSearchCommands(request, false, count, page);
+
+         const String where = _T(" where (lower(quarantinesender) like @QSENDER escape '/' or lower(quarantinesubject) like @QSUBJECT escape '/' ")
+                              _T("or lower(quarantinereason) like @QREASON escape '/') and (lower(quarantinerecipients) like @QFORONE escape '/' ")
+                              _T("or lower(quarantinerecipients) like @QFORFIRST escape '/' or lower(quarantinerecipients) like @QFORLAST escape '/' ")
+                              _T("or lower(quarantinerecipients) like @QFORMIDDLE escape '/')");
+
+         ExpectText(count.GetQueryString(), _T("select count(*) as quarantinecount from hm_quarantine") + where, "the count of a recipient's search");
+         ExpectText(page.GetQueryString(), _T("select ") + columns + _T(" from hm_quarantine") + where + order + _T(" limit 250"), "the page of a recipient's search");
+
+         const std::vector<std::pair<String, String>> expected =
+         {
+            { _T("@QSENDER"), _T("%invoice%") }, { _T("@QSUBJECT"), _T("%invoice%") }, { _T("@QREASON"), _T("%invoice%") },
+            { _T("@QFORONE"), _T("bob/_1@example.com") }, { _T("@QFORFIRST"), _T("bob/_1@example.com,%") },
+            { _T("@QFORLAST"), _T("%,bob/_1@example.com") }, { _T("@QFORMIDDLE"), _T("%,bob/_1@example.com,%") }
+         };
+
+         ExpectParameters(count, expected, "the count of a recipient's search");
+         ExpectParameters(page, expected, "the page of a recipient's search");
+         ExpectBindsInOrder(count, "the count of a recipient's search");
+         ExpectBindsInOrder(page, "the page of a recipient's search");
+      }
+
+      // A recipient's every message: the address alone.
+      {
+         QuarantineStore::SearchRequest request;
+         request.recipient = _T("ada@example.test");
+         request.count = 1000;
+
+         SQLCommand count;
+         SQLCommand page;
+         QuarantineStore::BuildSearchCommands(request, true, count, page);
+
+         const String where = _T(" where (lower(quarantinerecipients) like @QFORONE escape '/' or lower(quarantinerecipients) like @QFORFIRST escape '/' ")
+                              _T("or lower(quarantinerecipients) like @QFORLAST escape '/' or lower(quarantinerecipients) like @QFORMIDDLE escape '/')");
+
+         ExpectText(page.GetQueryString(), _T("select top (1000) ") + columns + _T(" from hm_quarantine") + where + order, "the page of a recipient's messages");
+         ExpectBindsInOrder(count, "the count of a recipient's messages");
+         ExpectBindsInOrder(page, "the page of a recipient's messages");
+      }
+
+      // No text and no recipient: every message, with no condition at all, a page
+      // after the first.
+      {
+         QuarantineStore::SearchRequest request;
+         request.text = _T("   ");
+         request.offset = 500;
+         request.count = 500;
+
+         SQLCommand count;
+         SQLCommand page;
+         QuarantineStore::BuildSearchCommands(request, true, count, page);
+
+         ExpectText(count.GetQueryString(), _T("select count(*) as quarantinecount from hm_quarantine"), "the count of every message");
+         ExpectText(page.GetQueryString(), _T("select top (1000) ") + columns + _T(" from hm_quarantine") + order, "the page of every message");
+
+         if (!count.GetParameters().empty() || !page.GetParameters().empty())
+            FailSearch("a search for every message carries parameters.");
+
+         ExpectBindsInOrder(page, "the page of every message");
+      }
+
+      // Every bound is held before a database is asked: the text's length, the
+      // page's size and the offset's range.
+      {
+         std::vector<QuarantinedMessage> found;
+         int matches = 7;
+
+         QuarantineStore::SearchRequest tooLong;
+         tooLong.text = String(QuarantineStore::MaxSearchText + 1, _T('x'));
+         if (QuarantineStore::Search(tooLong, found, matches) || matches != 0)
+            FailSearch("a text longer than MaxSearchText was searched for.");
+
+         QuarantineStore::SearchRequest noPage;
+         noPage.count = 0;
+         if (QuarantineStore::Search(noPage, found, matches))
+            FailSearch("a page of no messages was asked for.");
+
+         QuarantineStore::SearchRequest bigPage;
+         bigPage.count = QuarantineStore::MaxSearchPage + 1;
+         if (QuarantineStore::Search(bigPage, found, matches))
+            FailSearch("a page over MaxSearchPage was asked for.");
+
+         QuarantineStore::SearchRequest before;
+         before.offset = -1;
+         if (QuarantineStore::Search(before, found, matches))
+            FailSearch("a negative offset was asked for.");
+
+         QuarantineStore::SearchRequest beyond;
+         beyond.offset = QuarantineStore::MaxSearchOffset + 1;
+         if (QuarantineStore::Search(beyond, found, matches))
+            FailSearch("an offset over MaxSearchOffset was asked for.");
+      }
    }
 }

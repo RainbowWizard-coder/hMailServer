@@ -132,6 +132,7 @@
     <Compile Include="..\RegressionTests\API\RestApiQueue.cs" Link="API\RestApiQueue.cs" />
     <Compile Include="..\RegressionTests\API\RestApiDirectory.cs" Link="API\RestApiDirectory.cs" />
     <Compile Include="..\RegressionTests\API\RestApiSelfService.cs" Link="API\RestApiSelfService.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiQuarantineSearch.cs" Link="API\RestApiQuarantineSearch.cs" />
     <Compile Include="..\RegressionTests\API\RestApiNumberRanges.cs" Link="API\RestApiNumberRanges.cs" />
     <Compile Include="..\RegressionTests\API\RestApiOffline.cs" Link="API\RestApiOffline.cs" />
     <Compile Include="..\RegressionTests\API\RestApiSessionFollow.cs" Link="API\RestApiSessionFollow.cs" />

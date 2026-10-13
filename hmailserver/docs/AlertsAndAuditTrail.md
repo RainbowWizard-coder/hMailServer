@@ -420,6 +420,7 @@ in the application log; nor an account's reads of its
 own mail through `/api/v1/me`, which are the person's. Nor are the server's
 working lists, which name senders, recipients and subjects but are how the mail
 is run rather than anybody's mailbox: the quarantine's and the review's listings,
+the quarantine's search with them as the message trace's search by address is,
 the delivery queue and the message trace. Nor is a managed list's archive of its
 posts, which every member of the list holds, nor an eDiscovery case read - its
 searches' queries, counts and states, its holds and its exports - which is not

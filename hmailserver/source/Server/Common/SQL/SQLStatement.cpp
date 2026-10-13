@@ -10,6 +10,7 @@
 #include "PGConnection.h"
 #include "../Util/VariantDateTime.h"
 #include "../Util/Time.h"
+#include "../Util/Unicode.h"
 
 #include <stdexcept>
 
@@ -939,6 +940,33 @@ namespace HM
       return input;
    }
 
+   /*
+      Text a LIKE pattern is to find as it is written. The escape character is
+      doubled first, and then every character one of the four backends reads as
+      a wildcard is written after it: % and _ on all four, and [, which opens a
+      character class on SQL Server and Compact and is an ordinary character on
+      the other two. For a LIKE that names ESCAPE '/' - the escape character the
+      greylisting patterns already use, so that the clause is one all four are
+      known to take. MySQL and PostgreSQL read the escape character before any
+      character as that character, and SQL Server and Compact drop it before a
+      character that is not a wildcard, so the pattern finds the same rows on
+      all four. A backslash is left as it is: the clause makes it an ordinary
+      character, and the parameter layer quotes it for the string literal
+      (Escape). A caller wraps the result in % to find text anywhere in a
+      column, and lowers both sides to find it in any case: PostgreSQL's LIKE
+      compares case, and the other three's default collations do not.
+   */
+   String
+   SQLStatement::EscapeLikeText(const String &text)
+   {
+      String escaped = text;
+      escaped.Replace(_T("/"), _T("//"));
+      escaped.Replace(_T("%"), _T("/%"));
+      escaped.Replace(_T("_"), _T("/_"));
+      escaped.Replace(_T("["), _T("/["));
+      return escaped;
+   }
+
    void
    SQLStatementTester::Test()
    {
@@ -951,6 +979,76 @@ namespace HM
       TestGeneratedNamesDoNotCollide_();
       TestColumnStartsEmpty_();
       TestCreateDatabase();
+      TestEscapeLikeText();
+   }
+
+   /*
+      EscapeLikeText, read back as the four backends read a pattern with ESCAPE
+      '/': the escape character takes the character after it as it is, and a %,
+      _ or [ anywhere else is a wildcard. Every text comes back whole, with no
+      wildcard of its own left, including the ones that hold the escape
+      character beside a wildcard - "/%" must not come out as an escaped / and
+      a bare %, which would find every row with a slash in it. The wrapping %
+      of a search is the caller's, so a pattern here has no wildcard at all.
+   */
+   void
+   SQLStatementTester::TestEscapeLikeText()
+   {
+      struct Case
+      {
+         const wchar_t *text;
+         const wchar_t *expected;
+      };
+
+      const Case cases[] =
+      {
+         { L"", L"" },
+         { L"invoice", L"invoice" },
+         { L"100%", L"100/%" },
+         { L"a_b@example.com", L"a/_b@example.com" },
+         { L"[promo]", L"/[promo]" },
+         { L"a/b", L"a//b" },
+         { L"/%", L"///%" },
+         { L"//__%%[[", L"/////_/_/%/%/[/[" },
+         { L"C:\\keys\\", L"C:\\keys\\" },
+         { L"O'Brien", L"O'Brien" },
+         { L"]^-!", L"]^-!" },
+         { L"\x00e9t\x00e9 \x65e5\x672c", L"\x00e9t\x00e9 \x65e5\x672c" },
+      };
+
+      for (const Case &c : cases)
+      {
+         const String actual = SQLStatement::EscapeLikeText(c.text);
+         if (actual != String(c.expected))
+         {
+            throw std::logic_error(std::string("SQLStatementTester: EscapeLikeText of [") + Unicode::ToUtf8(String(c.text)).c_str() +
+               "] is [" + Unicode::ToUtf8(actual).c_str() + "], not [" + Unicode::ToUtf8(String(c.expected)).c_str() + "]");
+         }
+
+         // Read back as a LIKE with ESCAPE '/' reads it.
+         String literal;
+         for (int i = 0; i < actual.GetLength(); i++)
+         {
+            const wchar_t character = actual[i];
+
+            if (character == L'/')
+            {
+               if (i + 1 >= actual.GetLength())
+                  throw std::logic_error(std::string("SQLStatementTester: EscapeLikeText of [") + Unicode::ToUtf8(String(c.text)).c_str() + "] ends with the escape character, which PostgreSQL refuses.");
+
+               literal += actual[++i];
+               continue;
+            }
+
+            if (character == L'%' || character == L'_' || character == L'[')
+               throw std::logic_error(std::string("SQLStatementTester: EscapeLikeText of [") + Unicode::ToUtf8(String(c.text)).c_str() + "] leaves a wildcard of its own in the pattern.");
+
+            literal += character;
+         }
+
+         if (literal != String(c.text))
+            throw std::logic_error(std::string("SQLStatementTester: EscapeLikeText of [") + Unicode::ToUtf8(String(c.text)).c_str() + "] does not read back as itself.");
+      }
    }
 
    /*

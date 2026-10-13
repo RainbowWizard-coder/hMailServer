@@ -3140,7 +3140,7 @@ namespace HM
             return HandleDiagnosticsRun_(GetRequestBody_(request));
 
          case RouteQuarantineList:
-            return HandleListQuarantine_();
+            return HandleListQuarantine_(route.query);
 
          case RouteQuarantineRelease:
             return HandleQuarantineRelease_(route.message_id);
@@ -3672,7 +3672,7 @@ namespace HM
             return HandleMeVacation_(caller, GetRequestBody_(request));
 
          case RouteMeQuarantineList:
-            return HandleMeQuarantineList_(caller);
+            return HandleMeQuarantineList_(caller, route.query);
 
          case RouteMeQuarantineRelease:
             return HandleMeQuarantineRelease_(caller, route.message_id);
@@ -12376,25 +12376,38 @@ namespace HM
       return BuildResponse_(200, "{\"cleared\":true}");
    }
 
-   HttpResponse
-   RestApiServer::HandleListQuarantine_()
+   namespace
    {
-      // The same store call the administration surface uses, bounded the same
-      // way, so what the API reports and what a reviewer sees cannot disagree.
-      const std::vector<QuarantinedMessage> messages = QuarantineStore::List(1000);
-
-      AnsiString body = "[";
-      int count = 0;
-
-      for (const QuarantinedMessage &message : messages)
+      // A number in the quarantine's query string - an offset or a limit: digits
+      // alone, within the bounds, as the sandbox's held list reads its own. A
+      // page quietly moved to the nearest one allowed is read as the end of the
+      // list, so anything else is refused.
+      bool QuarantinePageNumber(const AnsiString &text, int minimum, int maximum, int &value)
       {
-         if (count > 0)
-            body += ",";
+         if (text.IsEmpty() || text.GetLength() > 9)
+            return false;
 
-         // helo is the name the client gave; sender_domain and helo_domain are
-         // the organizations' domains the review pages group by (the Public
-         // Suffix List's registrable domain), computed here so that every
-         // surface groups a message the same way.
+         for (int i = 0; i < text.GetLength(); i++)
+         {
+            if (text[i] < '0' || text[i] > '9')
+               return false;
+         }
+
+         value = atoi(text.c_str());
+         return value >= minimum && value <= maximum;
+      }
+   }
+
+   HttpResponse
+   RestApiServer::HandleListQuarantine_(const AnsiString &query)
+   {
+      // One held message, as the list and the search write it. helo is the name
+      // the client gave; sender_domain and helo_domain are the organizations'
+      // domains the review pages group by (the Public Suffix List's registrable
+      // domain), computed here so that every surface groups a message the same
+      // way.
+      const auto entryJson = [](const QuarantinedMessage &message)
+      {
          AnsiString entry;
          entry.Format("{\"id\":%I64d,\"sender\":\"%hs\",\"recipients\":\"%hs\",\"subject\":\"%hs\",\"reason\":\"%hs\",\"score\":%d,\"size\":%d,\"created\":\"%hs\",\"helo\":\"%hs\",\"sender_domain\":\"%hs\",\"helo_domain\":\"%hs\"}",
             message.id,
@@ -12408,12 +12421,91 @@ namespace HM
             JsonEscape_(Utf8_(message.helo)).c_str(),
             JsonEscape_(Utf8_(QuarantineReview::SenderDomain(message.sender))).c_str(),
             JsonEscape_(Utf8_(QuarantineReview::HeloDomain(message.helo))).c_str());
+         return entry;
+      };
 
-         body += entry;
-         count++;
+      String text;
+      Unicode::MultiByteToWide(QueryParameter_(query, "q"), text);
+      text.Trim();
+
+      const AnsiString offsetText = QueryParameter_(query, "offset");
+      const AnsiString limitText = QueryParameter_(query, "limit");
+
+      // Neither a search nor a page asked for: the list as it always was, a bare
+      // array of the newest thousand - the same store call the administration
+      // surface uses, bounded the same way, so what the API reports and what a
+      // reviewer sees cannot disagree, and every script that reads the array
+      // reads it still.
+      if (text.IsEmpty() && offsetText.IsEmpty() && limitText.IsEmpty())
+      {
+         const std::vector<QuarantinedMessage> messages = QuarantineStore::List(1000);
+
+         AnsiString body = "[";
+         int count = 0;
+
+         for (const QuarantinedMessage &message : messages)
+         {
+            if (count > 0)
+               body += ",";
+
+            body += entryJson(message);
+            count++;
+         }
+
+         body += "]";
+
+         return BuildResponse_(200, body);
       }
 
-      body += "]";
+      // A search, or a page: of every held message, where the list is the newest
+      // thousand and nothing reached the rest (review finding F261). q is looked
+      // for in the sender, the recipients, the subject and the reason, in any
+      // case and as it is written, % and _ included (QuarantineStore::Search).
+      // Refused rather than cut: a search cut short finds what was not asked for.
+      if (text.GetLength() > QuarantineStore::MaxSearchText)
+         return BuildResponse_(400, "{\"error\":\"q is at most 255 characters\"}");
+
+      int offset = 0;
+      if (!offsetText.IsEmpty() && !QuarantinePageNumber(offsetText, 0, QuarantineStore::MaxSearchOffset, offset))
+         return BuildResponse_(400, "{\"error\":\"offset is a whole number, 0 or more\"}");
+
+      int limit = 100;
+      if (!limitText.IsEmpty() && !QuarantinePageNumber(limitText, 1, QuarantineStore::MaxSearchPage, limit))
+         return BuildResponse_(400, "{\"error\":\"limit is a whole number from 1 to 1000\"}");
+
+      QuarantineStore::SearchRequest request;
+      request.text = text;
+      request.offset = offset;
+      request.count = limit;
+
+      std::vector<QuarantinedMessage> found;
+      int matches = 0;
+      if (!QuarantineStore::Search(request, found, matches))
+         return BuildResponse_(500, "{\"error\":\"the quarantine could not be searched\"}");
+
+      // held is every message the quarantine holds, total the ones that match:
+      // one and the same with no words to look for.
+      const int held = text.IsEmpty() ? matches : QuarantineStore::GetCount();
+
+      // Not on the audit trail, as the list is not: the quarantine is one of the
+      // server's working lists - how the mail is run, not anybody's mailbox - as
+      // the review's list, the delivery queue and the message trace are, whose
+      // search by address is not recorded either (docs/AlertsAndAuditTrail.md).
+      // What a held message says is recorded when it is read: its headers and
+      // its text, which ask view_mailbox.
+      AnsiString body;
+      body.Format("{\"query\":\"%hs\",\"held\":%d,\"total\":%d,\"offset\":%d,\"count\":%d,\"messages\":[",
+         JsonEscape_(Utf8_(text)).c_str(), held, matches, offset, (int) found.size());
+
+      for (size_t i = 0; i < found.size(); i++)
+      {
+         if (i > 0)
+            body += ",";
+
+         body += entryJson(found[i]);
+      }
+
+      body += "]}";
 
       return BuildResponse_(200, body);
    }
@@ -14917,20 +15009,52 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleMeQuarantineList_(const Caller &caller)
+   RestApiServer::HandleMeQuarantineList_(const Caller &caller, const AnsiString &query)
    {
       std::shared_ptr<const Account> account = caller.account;
       if (!account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
 
-      // The whole table, filtered here to the rows this address is a recipient
-      // of; nothing about anyone else's mail is computed into the answer, not
-      // even a count. The recipients field is left out for the same reason:
-      // the user learns that a message was held for them, not for whom else.
-      const std::vector<QuarantinedMessage> messages = QuarantineStore::List(1000);
+      String text;
+      Unicode::MultiByteToWide(QueryParameter_(query, "q"), text);
+      text.Trim();
+
+      if (text.GetLength() > QuarantineStore::MaxSearchText)
+         return BuildResponse_(400, "{\"error\":\"q is at most 255 characters\"}");
+
+      int offset = 0;
+      const AnsiString offsetText = QueryParameter_(query, "offset");
+      if (!offsetText.IsEmpty() && !QuarantinePageNumber(offsetText, 0, QuarantineStore::MaxSearchOffset, offset))
+         return BuildResponse_(400, "{\"error\":\"offset is a whole number, 0 or more\"}");
+
+      // A thousand unless a page is asked for, as the list has always held.
+      int limit = QuarantineStore::MaxSearchPage;
+      const AnsiString limitText = QueryParameter_(query, "limit");
+      if (!limitText.IsEmpty() && !QuarantinePageNumber(limitText, 1, QuarantineStore::MaxSearchPage, limit))
+         return BuildResponse_(400, "{\"error\":\"limit is a whole number from 1 to 1000\"}");
+
+      // The rows this address is a recipient of, found by the database: every
+      // one of them, where this read the newest thousand held for anybody and
+      // kept this address's, so that on a server holding more than a thousand
+      // an account's older held mail was never listed. Nothing about anyone
+      // else's mail is computed into the answer, not even a count - total is
+      // this address's. The recipients field is left out for the same reason,
+      // and q is looked for in the sender, the subject and the reason only: the
+      // user learns that a message was held for them, not for whom else.
+      QuarantineStore::SearchRequest request;
+      request.text = text;
+      request.recipient = account->GetAddress();
+      request.offset = offset;
+      request.count = limit;
+
+      std::vector<QuarantinedMessage> messages;
+      int total = 0;
+      if (!QuarantineStore::Search(request, messages, total))
+         return BuildResponse_(500, "{\"error\":\"the held messages could not be read\"}");
 
       AnsiString body;
-      body.Format("{\"enabled\":%hs,\"messages\":[", QuarantineStore::GetEnabled() ? "true" : "false");
+      body.Format("{\"enabled\":%hs,\"query\":\"%hs\",\"total\":%d,\"offset\":%d,\"count\":%d,\"messages\":[",
+         QuarantineStore::GetEnabled() ? "true" : "false", JsonEscape_(Utf8_(text)).c_str(), total, offset, (int) messages.size());
 
       int count = 0;
       for (const QuarantinedMessage &message : messages)
@@ -20966,7 +21090,7 @@ namespace HM
          "\"/api/v1/me/devices\":{\"get\":{\"summary\":\"The clients that have signed in to the account\",\"description\":\"One entry per client, most recently used first: id (thirty-two hex characters, what a revoke names), protocol (smtp, pop3, imap, web, dav, autodiscover or managesieve), address, agent (the user agent where the protocol carries one, else empty), credential (password, app_password, token, certificate or single_sign_on), credential_name (the app password's name, where one was used), first_seen, last_seen, sign_ins, revoked, revoked_at and current - true for the client this request came in on, and for none when the request carried a password rather than a session. At most fifty are kept per account; the least recently seen goes when a fifty-first appears.\",\"responses\":{\"200\":{\"description\":\"devices\"}}}},"
          "\"/api/v1/me/devices/{id}\":{\"delete\":{\"summary\":\"Revoke a client: end what it holds now\",\"description\":\"Its browser session is ended (the token is invalidated, so its next request is refused) and its live IMAP, POP3 and SMTP connections are dropped. credential=revoke in the query also deactivates the app password it signed in with, where it used one - which is what stops a stolen client simply signing in again; forget=true removes the entry rather than marking it revoked. A revoke is NOT a ban: the entry stays, marked, and a later sign-in from that client with a credential that still works clears the mark. Refused (403) to a request authenticated with an app password, or by a session started with one. Answers sessions_ended, connections_dropped and credential_disabled.\",\"responses\":{\"200\":{\"description\":\"revoked, forgotten, sessions_ended, connections_dropped, credential_disabled\"},\"400\":{\"description\":\"The id is not thirty-two hex characters\"},\"403\":{\"description\":\"The request came in on an app password\"},\"404\":{\"description\":\"No such device of this account\"}}}},"
          "\"/api/v1/me/storage\":{\"get\":{\"summary\":\"What the mailbox holds\",\"description\":\"used_bytes and limit_mb (0 = no limit); folders, each with id, path, messages and bytes; largest, the twenty biggest messages with id, folder_id, folder, subject, from, date and size.\",\"responses\":{\"200\":{\"description\":\"The storage view\"}}}},"
-         "\"/api/v1/me/quarantine\":{\"get\":{\"summary\":\"The messages held as suspected spam for the signed-in account\",\"description\":\"Only the entries this address is a recipient of, without the other recipients. enabled says whether the server holds spam at all.\",\"responses\":{\"200\":{\"description\":\"enabled, messages (id, sender, subject, reason, score, size, created)\"}}}},"
+         "\"/api/v1/me/quarantine\":{\"get\":{\"summary\":\"The messages held as suspected spam for the signed-in account\",\"description\":\"Only the entries this address is a recipient of, without the other recipients: every one of them, however many others the server holds, newest first. q narrows them to the ones whose sender, subject or reason contains it, in any case and as it is written - never the recipients. enabled says whether the server holds spam at all; total is how many of this address's match, count how many are on this page.\",\"parameters\":[{\"name\":\"q\",\"in\":\"query\",\"schema\":{\"type\":\"string\",\"maxLength\":255},\"description\":\"Text the sender, the subject or the reason contains, in any case. At most 255 characters.\"},{\"name\":\"offset\",\"in\":\"query\",\"schema\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":999999999},\"description\":\"Messages to pass over, newest first. Default 0.\"},{\"name\":\"limit\",\"in\":\"query\",\"schema\":{\"type\":\"integer\",\"minimum\":1,\"maximum\":1000},\"description\":\"Messages to return, 1 to 1000. Default 1000.\"}],\"responses\":{\"200\":{\"description\":\"enabled, query, total, offset, count, messages (id, sender, subject, reason, score, size, created)\"},\"400\":{\"description\":\"q longer than 255 characters, or an offset or a limit that is not a whole number in its range\"}}}},"
          "\"/api/v1/me/quarantine/{id}/release\":{\"post\":{\"summary\":\"Deliver a held message to the signed-in account\",\"description\":\"Delivered to this address only; the entry stays for its other recipients and goes when this was the last. A message this address was not sent is 404.\",\"responses\":{\"200\":{\"description\":\"Released\"},\"404\":{\"description\":\"Not held for this account\"}}}},"
          "\"/api/v1/me/quarantine/{id}\":{\"delete\":{\"summary\":\"Give up the signed-in account's copy of a held message\",\"description\":\"This address leaves the entry; the entry and its file go when no recipient is left. Nothing is delivered.\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Not held for this account\"}}}},"
          "\"/api/v1/me/folders/{id}/messages\":{"
@@ -21021,7 +21145,7 @@ namespace HM
          "\"/api/v1/queue/{id}\":{\"delete\":{\"summary\":\"Remove a message from the queue\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown id\"},\"409\":{\"description\":\"Held for the sandbox's verdict: {error}, naming /api/v1/sandbox/held/{id}, whose release and discard decide it\"}}}},"
          "\"/api/v1/queue/shaping\":{\"get\":{\"summary\":\"The destinations that asked this server to slow down, and the outbound connections in use\",\"description\":\"backoffs: one per destination in a back-off window - destination (the recipient domain, or the host of a route), since, until, window_minutes, reply (the remote's own words, at most 200 characters), host, deferred (how many deliveries the window has held back) and probing (the window has passed and one delivery is finding out); connections: destinations and tenants, each a map of name to the sessions open right now under a ceiling - a remote domain policy's, max_outbound_connections_per_destination's or max_outbound_connections_per_tenant's. In memory, per process: a restart forgets all of it. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"backoffs and connections\"}}}},"
          "\"/api/v1/queue/shaping/{destination}\":{\"delete\":{\"summary\":\"Clear one destination's back-off, so deliveries to it resume at once\",\"description\":\"For an administrator who has fixed the cause and need not wait for the window. The next slow-down reply opens a new window from the base. Recorded on the audit trail. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Cleared\"},\"404\":{\"description\":\"No back-off is open for that destination\"}}}},"
-         "\"/api/v1/quarantine\":{\"get\":{\"summary\":\"List quarantined messages\",\"description\":\"Server-wide; refused for domain-restricted keys. Bounded to the newest 1000. Each message: id, sender, recipients, subject, reason, score, size, created, helo (the HELO or EHLO name the client gave in the SMTP session that brought it in, as it gave it; empty for a message held before schema 6105 and for one that did not arrive over SMTP), sender_domain and helo_domain (the organizations' domains, the Public Suffix List's registrable domain of the sender's address and of the HELO name, which the review pages group by; empty for the null sender, for no HELO and for a HELO that is an address, bracketed or not).\",\"responses\":{\"200\":{\"description\":\"Array of quarantined messages\"}}}},"
+         "\"/api/v1/quarantine\":{\"get\":{\"summary\":\"List quarantined messages\",\"description\":\"Server-wide; refused for domain-restricted keys. With none of q, offset and limit, a bare array of the newest 1000, as it has always been. With any of them, a page of every held message, newest first, as an object: query, held (every message held), total (the ones that match q), offset, count (the ones on this page) and messages. q is looked for in the sender, the recipients, the subject and the reason, in any case, and matched as it is written, its % and _ included; empty matches every message. Like the list, a search is not on the audit trail: the quarantine is one of the server's working lists. Each message: id, sender, recipients, subject, reason, score, size, created, helo (the HELO or EHLO name the client gave in the SMTP session that brought it in, as it gave it; empty for a message held before schema 6105 and for one that did not arrive over SMTP), sender_domain and helo_domain (the organizations' domains, the Public Suffix List's registrable domain of the sender's address and of the HELO name, which the review pages group by; empty for the null sender, for no HELO and for a HELO that is an address, bracketed or not).\",\"parameters\":[{\"name\":\"q\",\"in\":\"query\",\"schema\":{\"type\":\"string\",\"maxLength\":255},\"description\":\"Text the sender, the recipients, the subject or the reason contains, in any case. At most 255 characters.\"},{\"name\":\"offset\",\"in\":\"query\",\"schema\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":999999999},\"description\":\"Messages to pass over, newest first. Default 0.\"},{\"name\":\"limit\",\"in\":\"query\",\"schema\":{\"type\":\"integer\",\"minimum\":1,\"maximum\":1000},\"description\":\"Messages to return, 1 to 1000. Default 100.\"}],\"responses\":{\"200\":{\"description\":\"Array of quarantined messages; with q, offset or limit, query, held, total, offset, count and messages\"},\"400\":{\"description\":\"q longer than 255 characters, or an offset or a limit that is not a whole number in its range\"}}}},"
          "\"/api/v1/quarantine/{id}/release\":{\"post\":{\"summary\":\"Release a quarantined message to its original recipients\",\"description\":\"Delivery is direct rather than back through the filters: a release is an administrator overruling them.\",\"responses\":{\"200\":{\"description\":\"Released\"},\"404\":{\"description\":\"Unknown id\"}}}},"
          "\"/api/v1/quarantine/{id}\":{\"delete\":{\"summary\":\"Delete a quarantined message\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown id\"}}}},"
          "\"/api/v1/quarantine/bulk\":{\"post\":{\"summary\":\"One review action over many held messages\",\"description\":\"Body: ids (1 to 1000 quarantine ids, required; an id named twice is acted on once), action (release, delete, allow or block, required), and for allow and block: list - address (the default: the sender's address on the server's allow and block list, /api/v1/sender-list, read at delivery for every recipient) or domain (the organization's domain as .example.com, which covers it and everything beneath it, on the domain white and black list, /api/v1/domain-policy-list, read at MAIL FROM) - and with list domain, domain_from - sender (the default: the envelope sender's domain, matched on envelope) or helo (the HELO name's, matched on helo). dry_run (default false) answers what would be written and done and does neither. Allow writes the allow or white entry and then releases; block writes the block or black entry and then deletes; one entry is written per distinct sender or domain in the set, and a list entry already there is rewritten to this action rather than duplicated. A message whose entry could not be written - the null sender, no HELO recorded, a HELO that is an address, a full list - is left where it is and its result says why. An entry naming a public suffix (co.uk, a one-label HELO such as localhost) would cover every domain registered beneath it: without confirm_public_suffix true the request is refused with 409 and nothing is changed. Allow and block need manage_settings beside manage_quarantine, since they change who is let in for everyone. Server-wide; refused for domain-restricted keys. A mutating route, so a browser session must also carry X-Requested-With: hMailServer.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"ids\",\"action\"],\"properties\":{\"ids\":{\"type\":\"array\",\"items\":{\"type\":\"integer\"}},\"action\":{\"type\":\"string\",\"enum\":[\"release\",\"delete\",\"allow\",\"block\"]},\"list\":{\"type\":\"string\",\"enum\":[\"address\",\"domain\"]},\"domain_from\":{\"type\":\"string\",\"enum\":[\"sender\",\"helo\"]},\"dry_run\":{\"type\":\"boolean\"},\"confirm_public_suffix\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"200\":{\"description\":\"action, list, domain_from, dry_run, entries (value, list, match_on, public_suffix, outcome - added, changed or unchanged; add, change or unchanged for a dry run - error, ids), results (id, ok, outcome - released or deleted; release or delete for a dry run - error), succeeded, failed\"},\"400\":{\"description\":\"Not a request: ids or action missing or wrong, list or domain_from where they do not go, an unknown field\"},\"403\":{\"description\":\"allow or block without manage_settings, or a domain-restricted key\"},\"409\":{\"description\":\"An entry names a public suffix and confirm_public_suffix was not sent; error, public_suffix (the names). Nothing was changed\"}}}},"

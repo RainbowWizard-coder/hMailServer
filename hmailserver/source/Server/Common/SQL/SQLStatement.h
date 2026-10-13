@@ -123,6 +123,11 @@ namespace HM
       static String ConvertWildcardToLike(String input);
       static String ConvertLikeToWildcard(String input);
 
+      // Text a LIKE pattern is to find as it is written, for a LIKE that names
+      // ESCAPE '/', the escape character ConvertWildcardToLike's patterns use: the
+      // same rows on all four backends, whatever the text holds.
+      static String EscapeLikeText(const String &text);
+
    private:
 
       static bool IsParameterNameCharacter_(wchar_t character);
@@ -162,6 +167,11 @@ namespace HM
       // the dialect quotes an identifier, its closing quote doubled. Test runs
       // it; connection-string-tests runs it on Linux, where ClassTester does not.
       void TestCreateDatabase();
+
+      // EscapeLikeText: every wildcard any backend reads written after the escape
+      // character, which is doubled, and the text read back whole. Test runs it;
+      // quarantine-search-tests runs it on Linux.
+      void TestEscapeLikeText();
 
    private:
 
