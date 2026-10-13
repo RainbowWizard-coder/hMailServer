@@ -939,6 +939,12 @@ namespace HM
          }
       }
 
+      bool
+      IsIgnored(unsigned int codePoint)
+      {
+         return StatusOf_(codePoint) == IdnaTables::StatusIgnored;
+      }
+
       unsigned int
       ToAscii(const CodePoints &domain, const Options &options, std::string &ascii)
       {

@@ -665,11 +665,11 @@ namespace HM
       // code points UTS 46 ignores were deleted, and nothing was mapped, so a
       // link written in fullwidth letters named nothing, and one to an
       // internationalised name only the labels after its last non-ASCII one.
-      std::wstring HostDecoded_(const std::wstring &hostPart, bool &refused)
+      //
+      // codePoints is the host part percent-decoded (PercentDecodedCodePoints_).
+      std::wstring HostDecoded_(const std::vector<unsigned int> &codePoints, bool &refused)
       {
          refused = false;
-
-         const std::vector<unsigned int> codePoints = PercentDecodedCodePoints_(hostPart);
 
          std::wstring host;
          host.reserve(codePoints.size());
@@ -721,12 +721,36 @@ namespace HM
          return host;
       }
 
-      // The hosts one link's host part hands over (SURBL::FindLinkHosts).
-      void HostsOfHostPart_(const std::wstring &hostPart, std::vector<String> &hosts)
+      // A host part as it is written, as 6.3.6 read every host part:
+      // percent-decoded as UTF-8, the code points UTS 46 ignores deleted -
+      // which a browser deletes before anything else, and which a mail program
+      // shows as nothing - and ASCII in lower case, nothing mapped, so that any
+      // character past ASCII is one a name cannot hold. codePoints is the host
+      // part percent-decoded.
+      std::wstring HostAsWritten_(const std::vector<unsigned int> &codePoints)
       {
-         bool refused = false;
-         const std::wstring host = HostDecoded_(hostPart, refused);
+         std::wstring host;
+         host.reserve(codePoints.size());
 
+         for (unsigned int codePoint : codePoints)
+         {
+            if (Idna::IsIgnored(codePoint))
+               continue;
+
+            if (codePoint >= static_cast<unsigned int>('A') && codePoint <= static_cast<unsigned int>('Z'))
+               codePoint += static_cast<unsigned int>('a' - 'A');
+
+            AppendCodePoint_(codePoint, host);
+         }
+
+         return host;
+      }
+
+      // The hosts a host part read one way hands over: an address, or the name
+      // before the first character a name cannot hold and the labels after the
+      // last label that holds one.
+      void HostsOfReadHost_(const std::wstring &host, std::vector<String> &hosts)
+      {
          // A host whose last label is a number is an address, or nothing a
          // browser can reach.
          if (EndsInANumber_(host))
@@ -782,6 +806,45 @@ namespace HM
          const String registered = Canonical_(suffix);
          if (!registered.empty() && registered != leading)
             hosts.push_back(registered);
+      }
+
+      // The hosts one link's host part hands over (SURBL::FindLinkHosts): those
+      // of the host as a browser reads it (HostDecoded_), and, when it is not
+      // ASCII, those of the host as it is written (HostAsWritten_) that the
+      // first reading did not hand over, after them. A link in running text is
+      // made by the mail program that shows it, and the character after a
+      // link - a closing quotation mark, an apostrophe, a guillemet, a dash, a
+      // CJK bracket, comma or full stop, or the CJK text itself - ends the link
+      // in most of them, where UTS 46 takes it into the host's last label, as
+      // valid as a letter, or makes a label of the text after an ideographic
+      // full stop: read as a browser reads it alone, "Visit
+      // http://evil.example<U+201D> now" named evil.xn--example-b46c, and
+      // http://evil.example<U+3002><CJK> evil.example.xn--..., and the listed
+      // name before the character was never asked about. So every host 6.3.6
+      // handed over for a link is handed over still.
+      void HostsOfHostPart_(const std::wstring &hostPart, std::vector<String> &hosts)
+      {
+         const std::vector<unsigned int> codePoints = PercentDecodedCodePoints_(hostPart);
+
+         bool refused = false;
+         const size_t first = hosts.size();
+         HostsOfReadHost_(HostDecoded_(codePoints, refused), hosts);
+
+         bool ascii = true;
+         for (unsigned int codePoint : codePoints)
+            if (codePoint >= 0x80)
+               ascii = false;
+
+         if (ascii)
+            return;
+
+         std::vector<String> asWritten;
+         HostsOfReadHost_(HostAsWritten_(codePoints), asWritten);
+         for (const String &host : asWritten)
+         {
+            if (std::find(hosts.begin() + static_cast<std::ptrdiff_t>(first), hosts.end(), host) == hosts.end())
+               hosts.push_back(host);
+         }
       }
 
       // The WHATWG URL standard's IPv6 parser, on what is between a host's
@@ -1642,9 +1705,12 @@ namespace HM
       // where a link hands over the name before the character and the labels
       // after it: an entry names one host, and is not widened to another. Nor
       // for a host that is not ASCII with a label UTS 46 refuses, which a
-      // browser fails, whatever its other labels are.
+      // browser fails, whatever its other labels are. The host as it is
+      // written, which a link in text hands over too, is not an entry's: an
+      // entry is a URL its writer gave, not text a mail program cut a link
+      // from.
       bool refused = false;
-      const std::wstring host = HostDecoded_(hostPart, refused);
+      const std::wstring host = HostDecoded_(PercentDecodedCodePoints_(hostPart), refused);
       if (refused)
          return String();
 
@@ -2773,7 +2839,8 @@ namespace HM
 
          // A character a name cannot hold, before the registered name.
          { L"http://a!b.evil.example/", false, L"evil.example", "a '!' in a label" },
-         { L"http://\x0430" L"pple.evil.example/", false, L"xn--pple-43d.evil.example", "a label in Unicode, in its xn-- form (until 6.3.7 the labels after it)" },
+         { L"http://\x0430" L"pple.evil.example/", false, L"xn--pple-43d.evil.example|evil.example",
+           "a label in Unicode, in its xn-- form (until 6.3.7 alone); and as written, as 6.3.6 read it, the labels after it" },
          { L"http://b\x00FC" L"cher.example/", false, L"xn--bcher-kva.example", "an internationalised name, in its xn-- form (until 6.3.7 nothing)" },
          { L"http://evil.example),see.also.example", false, L"evil.example|also.example", "the name before the character and the labels after its label" },
 
@@ -2853,19 +2920,49 @@ namespace HM
          { L"http://evil\uFF61example/", false, L"evil.example", "a halfwidth ideographic full stop" },
          { L"http://evil.example\u3002/", false, L"evil.example", "an ideographic full stop at the end, a trailing dot" },
          { L"http://\uFF11\uFF19\uFF12\uFF0E\uFF10\uFF0E\uFF12\uFF0E\uFF11/", false, L"192.0.2.1", "an address in fullwidth digits, an address once mapped" },
-         { L"http://0x1\uFF0E0000000000000000000000000000000000000000000000000000000000000000000000\uFF0E1/", false, L"1.0.0.1",
-           "an address with a part of seventy zeros beside fullwidth full stops: an ASCII label of any length is read" },
+         { L"http://0x1\uFF0E0000000000000000000000000000000000000000000000000000000000000000000000\uFF0E1/", false, L"1.0.0.1|0.0.0.1",
+           "an address with a part of seventy zeros beside fullwidth full stops: an ASCII label of any length is read; and as written, the address before the first of them" },
          { L"http://b%C3%BCcher.example/", false, L"xn--bcher-kva.example", "an internationalised name, percent-encoded as UTF-8" },
          { L"http://B\u00DCCHER.Example/", false, L"xn--bcher-kva.example", "capitals, mapped to small letters before Punycode" },
          { L"http://bu\u0308cher.example/", false, L"xn--bcher-kva.example", "a u and a combining diaeresis, composed (NFC)" },
          { L"http://fa\u00DF.example/", false, L"xn--fa-hia.example", "a sharp s, kept, as a browser's Nontransitional Processing keeps it" },
          { L"http://xn--bcher-kva.example/", false, L"xn--bcher-kva.example", "a name written in its xn-- form" },
-         { L"http://xn--zz.b\u00FCcher.example/", false, L"xn--zz.xn--bcher-kva.example", "an xn-- label that is not Punycode beside one in Unicode: as written" },
-         { L"http://xn--abc-.b\u00FCcher.example/", false, L"xn--abc-.xn--bcher-kva.example", "an xn-- label that decodes to ASCII alone, which UTS 46 refuses: as written, not decoded" },
+         { L"http://xn--zz.b\u00FCcher.example/", false, L"xn--zz.xn--bcher-kva.example|xn--zz.b",
+           "an xn-- label that is not Punycode beside one in Unicode: as written; and as written, the name before the u-umlaut" },
+         { L"http://xn--abc-.b\u00FCcher.example/", false, L"xn--abc-.xn--bcher-kva.example|xn--abc-.b",
+           "an xn-- label that decodes to ASCII alone, which UTS 46 refuses: as written, not decoded; and as written, the name before the u-umlaut" },
          { L"http://xn--b\u00FC.evil.example/", false, L"evil.example", "an xn-- label with a code point past ASCII: as written, so the labels after it" },
          { L"http://\u4E00\u4E25\u4E4A\u4E6F\u4E94\u4EB9\u4EDE\u4F03\u4F28\u4F4D\u4F72\u4F97\u4FBC\u4FE1\u5006\u502B\u5050\u5075\u509A\u50BF\u50E4\u5109\u512E\u5153\u5178\u519D\u51C2\u51E7\u520C\u5231.evil.example/", false, L"evil.example", "a label whose xn-- form is longer than a label can be: the labels after it" },
          { L"http://a\u05D0.evil.example/", false, L"evil.example", "a label of Latin and Hebrew, which RFC 5893 refuses: the labels after it" },
          { L"http://evil.example\uFF0Fpath", false, L"evil.example", "a fullwidth solidus, mapped to a '/' that no name holds: the name before it" },
+
+         // Punctuation or text past ASCII straight after a link in running
+         // text, which UTS 46 takes into the host's last label - nearly every
+         // mark of punctuation is valid to it, and a fullwidth one maps to
+         // ASCII's - or makes a label of, after an ideographic full stop: the
+         // host as a browser given the whole of it reads it, and then, as 6.3.6
+         // read the host as it is written, the name a mail program that ends
+         // the link at the character goes to. Until 6.3.7 the first alone.
+         { L"Visit http://evil.example\u201D now", false, L"evil.xn--example-b46c|evil.example", "a closing quotation mark" },
+         { L"It is http://evil.example\u2019s offer", false, L"evil.xn--examples-ip3d|evil.example", "an apostrophe, and the text after it" },
+         { L"See \u00ABhttp://evil.example\u00BB now", false, L"evil.xn--example-yna|evil.example", "guillemets" },
+         { L"Go to http://evil.example\u2014 now", false, L"evil.xn--example-816c|evil.example", "an em dash" },
+         { L"\u8BF7\u8BBF\u95EE\u300Chttp://evil.example\u300D\u3002", false, L"evil.xn--example-vr3f|evil.example",
+           "CJK corner brackets and an ideographic full stop" },
+         { L"\u8BBF\u95EE http://evil.example\u3001\u8C22\u8C22", false, L"evil.xn--example-4o3fz496ea|evil.example",
+           "an ideographic comma, then CJK" },
+         { L"\u8BBF\u95EE http://evil.example\uFF0C\u8C22\u8C22", false, L"evil.xn--example|evil.example",
+           "a fullwidth comma - a comma once mapped, which ends the name as a browser reads it - then CJK" },
+         { L"\u8BBF\u95EE http://evil.example\u3002\u8C22\u8C22", false, L"evil.example.xn--lg3aa|evil.example",
+           "an ideographic full stop, then CJK, which UTS 46 makes a label of" },
+         { L"\u8BBF\u95EE http://evil.example\uFF09\u8C22\u8C22", false, L"evil.xn--example|evil.example",
+           "a fullwidth parenthesis, then CJK" },
+         { L"\u8BBF\u95EE http://evil.example\u8C22\u8C22", false, L"evil.xn--example-zp7ua|evil.example", "CJK straight after the host" },
+         { L"\u8BBF\u95EE http://evil.example\uFF0C now", false, L"evil.example", "a fullwidth comma, then a space: the same name either way" },
+         { L"see http://192.0.2.1\u201D now", false, L"192.0.2.xn--1-rhn|192.0.2.1", "an address followed by a closing quotation mark" },
+         { L"<p>\u201CVisit http://evil.example\u201D</p>", true, L"evil.xn--example-b46c|evil.example", "in HTML's text as in a text part" },
+         { L"<p>\u8BF7\u8BBF\u95EE\u300Chttp://evil.example\u300D</p>", true, L"evil.xn--example-vr3f|evil.example",
+           "CJK corner brackets in HTML's text" },
 
          // Where a mail program's script ends a link in running text at a
          // code point its \s matches and a browser given the whole link
@@ -3231,8 +3328,8 @@ namespace HM
 
       // A part of 300 zeros written in fullwidth digits between fullwidth full
       // stops: longer than any label UTS 46 converts, but ASCII once mapped, and
-      // so mapped whole and read whatever its length: the address a browser
-      // reads.
+      // so mapped whole and read whatever its length - the address a browser
+      // reads - and, as written, the address before the first full stop.
       {
          String text = _T("http://0x1");
          text += static_cast<wchar_t>(0xFF0E);
@@ -3242,9 +3339,9 @@ namespace HM
 
          std::vector<String> hosts;
          SURBL::FindLinkHosts(text, false, [&hosts](const String &host) { hosts.push_back(host); return true; });
-         if (Joined_(hosts) != _T("1.0.0.1"))
+         if (Joined_(hosts) != _T("1.0.0.1|0.0.0.1"))
             Fail_("a part of 300 fullwidth zeros is an ASCII label once mapped, however long", _T("http://0x1<U+FF0E><U+FF10 x 300><U+FF0E>1/"),
-               Joined_(hosts), _T("1.0.0.1"));
+               Joined_(hosts), _T("1.0.0.1|0.0.0.1"));
       }
 
       // A text read only as far as its first part (the sender lists' URL

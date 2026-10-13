@@ -878,6 +878,48 @@ namespace RegressionTests.AntiSpam
          surblServer.Save();
       }
 
+      [Test]
+      public void SurblAsksAboutTheNameBeforePunctuationPastAscii()
+      {
+         // A link in running text followed straight away by punctuation past
+         // ASCII - a closing quotation mark, CJK corner brackets, an ideographic
+         // comma - ends there in the mail programs that make the link, while
+         // UTS 46 takes the character into the host's last label, as valid to it
+         // as a letter, or makes a label of what follows an ideographic full
+         // stop. 6.3.6 asked about the name before the character; read by
+         // UTS 46 alone, a listed name so followed was asked about only as, say,
+         // surbl-userinfo.xn--test-jb7a, and escaped the list. Now it is asked
+         // about both ways. surbl-userinfo.test is listed.
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "surbl-punctuation@example.test", "test");
+         var surblServer = ArmSurbl_("");
+
+         LogHandler.DeleteCurrentDefaultLog();
+
+         var messages = new[]
+         {
+            new { What = "a link followed by a closing quotation mark", Type = "text/plain",
+                  Body = "\u201CClaim it at http://surbl-userinfo.test\u201D today" },
+            new { What = "a link in CJK corner brackets, an ideographic full stop after them", Type = "text/plain",
+                  Body = "\u8BF7\u8BBF\u95EE\u300Chttp://surbl-userinfo.test\u300D\u3002" },
+            new { What = "a link followed by an ideographic comma and CJK, in an HTML part's text", Type = "text/html",
+                  Body = "<html><body><p>\u8BBF\u95EE http://surbl-userinfo.test\u3001\u8C22\u8C22</p></body></html>" },
+         };
+
+         foreach (var message in messages)
+         {
+            SmtpClientSimulator.StaticSendRaw(account.Address, account.Address,
+               Utf8Message_(account.Address, "SURBL-Punctuation", message.Type, message.Body));
+            var text = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+            Assert.IsTrue(text.Contains("X-hMailServer-Spam"), message.What + " was not looked up as the listed name before the punctuation.");
+         }
+
+         Assert.IsTrue(LogHandler.DefaultLogContains("SURBL: Lookup: surbl-userinfo.test.multi.surbl.org"),
+            "The name before the punctuation was not asked about.");
+
+         surblServer.Active = false;
+         surblServer.Save();
+      }
+
       // A message of one part in UTF-8, base64-encoded, whose body is the given
       // text: the characters past ASCII reach the server as the sender wrote them.
       private static string Utf8Message_(string address, string subject, string contentType, string body)

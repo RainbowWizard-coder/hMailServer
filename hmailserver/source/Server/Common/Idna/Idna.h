@@ -122,6 +122,11 @@ namespace HM
       // ASCII form. Never fails: the errors are in the labels.
       void ProcessLabels(const CodePoints &domain, const Options &options, std::vector<Label> &labels);
 
+      // Whether UTS 46 ignores the code point: deletes it from a domain name
+      // before anything else (IdnaMappingTable.txt's "ignored" - the soft
+      // hyphen, the zero-width space, the variation selectors and the like).
+      bool IsIgnored(unsigned int codePoint);
+
       // ToASCII (section 4.2): the errors, none when it succeeded, and the name
       // as far as the conversion went.
       unsigned int ToAscii(const CodePoints &domain, const Options &options, std::string &ascii);

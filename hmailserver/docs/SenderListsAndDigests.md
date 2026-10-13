@@ -52,7 +52,11 @@ host after the link's user name, if it has one, without its port,
 percent-decoded as UTF-8, a host that is not ASCII read by UTS 46 as a browser
 reads it (the characters it deletes from a host - a soft hyphen, a zero-width
 space - deleted, fullwidth letters and the ideographic full stop read as ASCII
-ones, a name in Unicode in its `xn--` form), and an address in its own order, an
+ones, a name in Unicode in its `xn--` form) and read as it is written too, as
+6.3.6 read it, so that a link in running text followed by a closing quotation
+mark, a guillemet, a dash or CJK punctuation - which UTS 46 takes into the
+host's last label - also names the host before that character, where the mail
+programs that make the link end it; and an address in its own order, an
 IPv4-mapped IPv6 address (`[::ffff:192.0.2.1]`) as the IPv4 address it carries;
 in a text part also the name before a `)`, `"` or `}` in the user name, where a
 mail program ends the link, and the name before a zero-width no-break space,

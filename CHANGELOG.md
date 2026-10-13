@@ -892,11 +892,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   short enough for a DNS name - its mapping holds a code point past ASCII and more than four times 63 code points,
   which NFC can shorten fourfold at most - is not mapped further, so that a host of a megabyte that UTS 46 maps to
   many times its length (`U+FDFA` is eighteen code points) costs about what 6.3.6's reading of it did, where
-  mapping the whole of it first took ten times the memory and the time. `IdnaTester` holds the
+  mapping the whole of it first took ten times the memory and the time. A host that is not ASCII is read as it is
+  written too, as 6.3.6 read it - percent-decoded, the ignored code points deleted, nothing mapped - and the hosts
+  that reading hands over are handed over after UTS 46's: a link in running text followed by a closing quotation
+  mark, a guillemet, a dash or CJK punctuation, which UTS 46 takes into the host's last label as it takes a letter,
+  or makes a label of after an ideographic full stop, names the host before the character as well, where the mail
+  programs that make the link end it - `Visit http://evil.example” now` is asked about as `evil.example` beside
+  `evil.xn--example-b46c` - and every host 6.3.6 handed over for a link is handed over still. `IdnaTester` holds the
   implementation to every line of Unicode's `IdnaTestV2.txt` (6,396, in ClassTester and, on Linux, in the new
   `idna-tests`), `SURBLTester` (`public-suffix-tests`) holds the links and the entries, and `AntiSpam/Basics.cs`
   delivers a link in fullwidth letters, one with an ideographic full stop, one in fullwidth capitals in an HTML part
-  and one to an internationalised name, each to a listed name, and finds each tagged
+  and one to an internationalised name, each to a listed name, and finds each tagged, and so it does a listed name
+  followed by a closing quotation mark, by CJK corner brackets and an ideographic full stop, and by an ideographic
+  comma in an HTML part's text
   ([SenderListsAndDigests.md](hmailserver/docs/SenderListsAndDigests.md); [Roadmap3.md](Roadmap3.md),
   "Internationalised link hosts").
 

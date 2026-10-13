@@ -187,8 +187,15 @@ namespace HM
       // labels after the last label that holds one (a working link's registered
       // name), where those are a name; a label in Unicode that UTS 46 refuses
       // (a code point it disallows, the bidi or joiner rules broken), or whose
-      // xn-- form is longer than 63 characters, is such a label. Any other
-      // IPv6 address hands over nothing. html: text is HTML,
+      // xn-- form is longer than 63 characters, is such a label. A host that is
+      // not ASCII is read as it is written too, as 6.3.6 read every host -
+      // percent-decoded, the code points UTS 46 ignores deleted, ASCII in lower
+      // case, nothing mapped, so that any character past ASCII is one a name
+      // cannot hold - and the hosts that reading hands over that UTS 46's did
+      // not are handed over after them: a link in running text followed by a
+      // closing quotation mark, a guillemet, a dash or CJK punctuation, which
+      // UTS 46 takes into the host's last label, hands over the name before it
+      // as well. Any other IPv6 address hands over nothing. html: text is HTML,
       // whose character references are read as the browser reads them, and a
       // link opened by a quote runs to the closing quote; and a quoted value of
       // a tag is read again as the URL parser reads it, its tabs and line
@@ -333,10 +340,11 @@ namespace HM
    // userinfo, ports, IPv6 and the IPv4 addresses it carries, percent-encoding
    // as UTF-8, UTS 46 (the code points it ignores, fullwidth letters and
    // digits, the ideographic full stops, NFC, xn-- forms, the labels it
-   // refuses, and a megabyte of a code point it maps to eighteen), the IPv4
-   // forms, backslashes,
+   // refuses, and a megabyte of a code point it maps to eighteen), the host
+   // as it is written beside it, the IPv4 forms, backslashes,
    // links with no scheme, quoted-printable soft line breaks, HTML character
-   // references and quotes, and punctuation after a link; the names asked
+   // references and quotes, and punctuation after a link, past ASCII as well
+   // as in it; the names asked
    // about for each host, the ICANN section's domain among them; which of a
    // message's names are asked - every domain up to MaxDomainsAsked, whatever
    // else the message links to, and a message with more told apart - and that
