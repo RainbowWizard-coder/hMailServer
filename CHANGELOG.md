@@ -4828,6 +4828,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   přijetí beside the page's přijímací řetězec. Clitics stand where Czech puts them, dosáhnout takes the genitive, and
   no comma stands before the nebo that ends a list.
 
+- **Fixed: 86 Danish texts said what their English does not, or named one thing two ways.** "Listed", for an address
+  put on the allow or block list, read as shown in a list (vises), and "intet tælles eller listes" said that nothing
+  sneaks; SNMP managers were administrators, where they are the management stations that poll the agent
+  (administrationsstationer); a timer was reinforced, or armed with weapons (armeres), where it is set (sættes); the
+  sendout's notice gave its time with no kl.; and the default IP ranges were Min computer and Internet, where the
+  server gives them in English and the IP ranges page lists them so. An IP range is an interval, as the IP ranges page
+  calls it, where some texts and the Add range card said område; the stage timings of the stalled-mail page are its
+  trintider; and uanset takes no comma before its clause.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
