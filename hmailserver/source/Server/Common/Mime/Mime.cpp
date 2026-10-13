@@ -2598,8 +2598,17 @@ namespace HM
       if (descend_into_child_parts && MEDIA_MULTIPART == nMediaType)
       {
          // find the begin boundary
+         //
+         // A boundary holding a NUL is no boundary (RFC 2046's bchars has no
+         // NUL), and the multipart is taken whole, as one that names none is.
+         // It was searched for as far as its NUL - the search's needle is a C
+         // string - while the parts below are found by a test of what follows
+         // the boundary, which then never matched: the content was cut at the
+         // first line that began with the boundary's text up to its NUL, and no
+         // part was read, so the multipart held its preamble alone and the rest
+         // of its body was in neither its content nor a part.
          string strBoundary = GetBoundary();
-         if (!strBoundary.empty())
+         if (!strBoundary.empty() && strBoundary.find('\0') == string::npos)
          {
             strBoundary = "\r\n--" + strBoundary + "\r\n";
 

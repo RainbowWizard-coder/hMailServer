@@ -3616,9 +3616,17 @@ namespace HM
             std::string body;
          };
 
+         // A boundary holding a NUL, which a sender can put in a header: no
+         // boundary, as RFC 2046 has it. It was searched for as far as its NUL,
+         // so the content was cut at the first line beginning "--ab" and no part
+         // read: the structure was a multipart with no body, and once that was
+         // mended it gave the preamble's size while BODY[1] handed out the whole
+         // body.
          std::vector<Childless> messages;
          messages.push_back(Childless{ "", "Subject: s\r\nContent-Type: multipart/mixed\r\n\r\n", "no boundary is named\r\n--x\r\n" });
          messages.push_back(Childless{ "", "Subject: s\r\nContent-Type: multipart/alternative; boundary=\"absent\"\r\n\r\n", "a body without it\r\n" });
+         messages.push_back(Childless{ "", std::string("Subject: s\r\nContent-Type: multipart/mixed; boundary=\"ab") + '\0' + "c\"\r\n\r\n",
+            "preamble\r\n--abx\r\nContent-Type: text/plain\r\n\r\ntext\r\n--abx--\r\n" });
          for (Childless &one : messages)
             one.text = one.header + one.body;
 
@@ -3654,9 +3662,10 @@ namespace HM
             if (mime != one.header)
                throw std::logic_error("BODY.PEEK[1.MIME] of a multipart with no parts: " + Difference_(mime, one.header));
 
-            // The size it is described with is that of its body.
+            // The size it is described with is that of its body, which BODY[1]
+            // hands out.
             const std::string size = "\"7bit\" " + std::to_string(one.body.size());
-            if (extensible.find(size) == std::string::npos)
+            if (extensible.find(size) == std::string::npos || plain.find(size) == std::string::npos)
                throw std::logic_error("A multipart with no parts is not described with the size of its body, " + size + ": " + extensible);
          }
 

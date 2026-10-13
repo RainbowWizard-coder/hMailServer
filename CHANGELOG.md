@@ -4411,21 +4411,25 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   holds them.** `BODY[N.MIME]` - and `BODY[N.HEADER]` of a part that is not a message - was each field of the part's
   header as `Name: value` with its folds undone, and `BODY[N]` of a multipart - with its `BINARY[N]` and
   `BODY[N.TEXT]` - was its parts written out again: the boundary lines spelt afresh, the epilogue dropped, and a
-  closing boundary added where the message has none. So the two together were not the part `BODY[]` holds, and `BODY[N]` of a multipart
-  was not as long as the part. Both are now the stored octets, folds, spacing, 8-bit bytes, preamble and epilogue as
-  they are: the parse records where each part lies in the stored message, inside an encapsulated message too, and the
-  sections are cut from it, read once for a message's sections and counted to their ceiling - from a container's
-  original too, when the store compresses. Every other section already was. And `BODYSTRUCTURE` is one a client can
-  read where it was not: a message/rfc822 part whose message could take the structure past the hundred levels it
-  describes - messages nested in messages, which a message of a few kilobytes can do - or whose message does not parse
-  is described as `"APPLICATION" "OCTET-STREAM"` of its size, where it was a message with nothing where its body goes,
-  or left out; a multipart with no parts - no
-  boundary named, or one its body never holds - as the one part `FETCH` serves it as, where it was a multipart with no
-  body. `BODY`, "a form of BODYSTRUCTURE without extension data" (RFC 3501 7.4.2), no longer carries an attachment's
-  disposition and file name. `IMAP/FetchPartBytes` holds `RFC822.SIZE`, `BODY[]`, `HEADER` with `TEXT`, every
-  `BODYSTRUCTURE` size and line count and the octets fetched to agree, and each part to the octets appended, over
-  nested multiparts, a missing closing boundary, bare line feeds and 8-bit bytes; `IMAPFetchPartBytesTester` does the
-  same over generated messages on Windows and Linux.
+  closing boundary added where the message has none. So the two together were not the part `BODY[]` holds, and
+  `BODY[N]` of a multipart was not as long as the part. Both are now the stored octets, folds, spacing, 8-bit bytes,
+  preamble and epilogue as they are: the parse records where each part lies in the stored message, inside an
+  encapsulated message too, and the sections are cut from it, read once for a message's sections and counted to their
+  ceiling - from a container's original too, when the store compresses. Every other section already was. And
+  `BODYSTRUCTURE` is one a client can read where it was not: a message/rfc822 part whose message could take the
+  structure past the hundred levels it describes - messages nested in messages, which a message of a few kilobytes can
+  do - or whose message does not parse is described as `"APPLICATION" "OCTET-STREAM"` of its size, where it was a
+  message with nothing where its body goes, or left out; a multipart with no parts - no boundary named, one its body
+  never holds, one holding a NUL, which is no boundary, or one nested deeper than the parse descends - as the one part
+  `FETCH` serves it as, of the size of the octets `BODY[N]` hands out for it, where it was a multipart with no body. A
+  multipart whose boundary holds a NUL is now taken whole, as one that names none is: the boundary was searched for
+  only as far as its NUL and no part was then found, so the multipart held what came before the first line beginning
+  with that much of it, and the rest of its body was in neither it nor a part. `BODY`, "a form of BODYSTRUCTURE without
+  extension data" (RFC 3501 7.4.2), no longer carries an attachment's disposition and file name. `IMAP/FetchPartBytes`
+  holds `RFC822.SIZE`, `BODY[]`, `HEADER` with `TEXT`, every `BODYSTRUCTURE` size and line count and the octets fetched
+  to agree, and each part to the octets appended, over nested multiparts, a missing closing boundary, bare line feeds,
+  8-bit bytes and multiparts with no parts, one whose boundary holds a NUL among them; `IMAPFetchPartBytesTester` does
+  the same over generated messages on Windows and Linux.
 
 ### Operations
 

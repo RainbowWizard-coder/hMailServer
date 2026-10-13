@@ -301,10 +301,13 @@ namespace RegressionTests.IMAP
             }
          }
 
+         // A message holding a NUL goes as a literal8 (RFC 3516), which may hold
+         // one; a literal may not (RFC 3501's CHAR8).
          public void Append(string folder, string message)
          {
             string tag = "C" + (++_tag);
-            Write(tag + " APPEND " + folder + " {" + Octets.GetByteCount(message) + "}\r\n");
+            string literal = message.IndexOf('\0') >= 0 ? " ~{" : " {";
+            Write(tag + " APPEND " + folder + literal + Octets.GetByteCount(message) + "}\r\n");
             StringAssert.StartsWith("+", ReadLine(), "The APPEND's continuation.");
             Write(message + "\r\n");
 
@@ -845,13 +848,19 @@ namespace RegressionTests.IMAP
       }
 
       [Test]
-      [Description("A multipart with no parts - no boundary named, a boundary its body never holds, one nested past the depth the parse descends - is described as the one part FETCH serves it as, in a structure a client can read.")]
+      [Description("A multipart with no parts - no boundary named, a boundary its body never holds, one holding a NUL, one nested past the depth the parse descends - is described as the one part FETCH serves it as, of the size of the octets it serves, in a structure a client can read.")]
       public void MultipartWithNoPartsIsDescribedAsOnePart()
       {
          var messages = new[]
          {
             "From: sender@example.test\r\nSubject: no boundary\r\nContent-Type: multipart/mixed\r\n\r\nno boundary is named\r\n--x\r\n",
             "From: sender@example.test\r\nSubject: boundary absent\r\nContent-Type: multipart/alternative; boundary=\"absent\"\r\n\r\na body without it\r\n",
+            // A boundary holding a NUL is no boundary (RFC 2046's bchars). It was
+            // searched for as far as its NUL, and the multipart held its preamble
+            // alone: described with the preamble's size, while BODY[1] handed out
+            // the whole body.
+            "From: sender@example.test\r\nSubject: boundary with a NUL\r\nContent-Type: multipart/mixed; boundary=\"ab\0c\"\r\n\r\n" +
+               "preamble\r\n--abx\r\nContent-Type: text/plain\r\n\r\ntext\r\n--abx--\r\n",
             NestedMultiparts(25)
          };
 

@@ -272,9 +272,11 @@ namespace HM
    // HEADER and TEXT of a message/rfc822 part are the header and the body of
    // the message it holds, and of any other part its MIME header and its body;
    // partial ranges are cut from the same bytes. And a BODYSTRUCTURE of a
-   // message nested past the depth a structure describes, or of a multipart
-   // with no parts, is one a client can read, and BODY carries no extension
-   // data. ClassTester runs it on Windows, imap-parse-tests on Linux.
+   // message nested past the depth a structure describes is one a client can
+   // read, as is one of a multipart with no parts - one whose boundary holds a
+   // NUL among them - which describes it with the size of the octets its
+   // BODY[N] hands out; BODY carries no extension data. ClassTester runs it on
+   // Windows, imap-parse-tests on Linux.
    class IMAPFetchPartBytesTester
    {
    public:
