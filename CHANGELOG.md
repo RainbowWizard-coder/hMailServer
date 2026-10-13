@@ -4740,6 +4740,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `build/check-gitleaksignore.py` fails a tree in which any file carries the marker, naming each line. The tree
   carried none but in that check's own fixtures, which now spell it in two parts (ContinuousIntegration.md, "What the
   secret scans read").
+- **`build/check-mnemonics.py` reads the Control Panel's catalogues in one place, so that the `semgrep` job has
+  nothing new to say of it.** Its check of read-only rows' captions had a copy of the catalogue reader its check of
+  the translations already had, and the job, run over batch47's tip as it runs on a batch (on server2, 13 October
+  2026), found 125 known findings and that copy's `ET.parse` as a new one (`use-defused-xml-parse`): its line is the
+  same as the one the baseline holds, a second time in the file. Both checks now take the catalogues, the tree's own
+  `.resx` files, from one `catalogues()`, whose one parse is the baseline's; what the check and its self-test print
+  is the same as before, and the baseline is unchanged.
 
 ### Documentation
 

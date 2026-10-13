@@ -444,14 +444,15 @@ def read_only_captions(path):
             for m in re.finditer(READ_ONLY_ROW, src)]
 
 
-def read_only_problems(captions):
-    """A read-only row's caption with a key, in English or in a catalogue."""
+def catalogues():
+    """Each catalogue in Resources beside Strings.resx, in name order, as its language tag
+    and its texts by name (the English text each translates): what read_only_problems
+    and language_problems map the captions through, read in one place."""
     import xml.etree.ElementTree as ET
-    problems = [f"{location(c)}: \"{c.raw}\" captions a read-only row, which has no editor for a key to reach; "
-                "take its mnemonic out" for c in captions if c.key is not None]
     resources = os.path.join(ROOT, "Resources")
     if not os.path.isdir(resources):
-        return problems
+        return []
+    found = []
     for name in sorted(os.listdir(resources)):
         m = re.fullmatch(r"Strings\.([A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*)\.resx", name)
         if not m:
@@ -461,10 +462,19 @@ def read_only_problems(captions):
             value = data.find("value")
             if value is not None and value.text:
                 catalogue[data.get("name")] = value.text
+        found.append((m.group(1), catalogue))
+    return found
+
+
+def read_only_problems(captions):
+    """A read-only row's caption with a key, in English or in a catalogue."""
+    problems = [f"{location(c)}: \"{c.raw}\" captions a read-only row, which has no editor for a key to reach; "
+                "take its mnemonic out" for c in captions if c.key is not None]
+    for tag, catalogue in catalogues():
         for c in captions:
             raw = catalogue.get(c.raw)
             if raw is not None and parse(raw)[1] is not None:
-                problems.append(f"{location(c)}: [{m.group(1)}] \"{raw}\" captions a read-only row (translation of "
+                problems.append(f"{location(c)}: [{tag}] \"{raw}\" captions a read-only row (translation of "
                                 f"\"{c.raw}\"); take its mnemonic out")
     return problems
 
@@ -664,21 +674,8 @@ def language_problems(captions):
     one - the rule above, applied to each catalogue in Resources with the captions
     mapped through it. A caption the catalogue does not translate is shown in
     English, so it keeps the English key and takes part in the English check only."""
-    import xml.etree.ElementTree as ET
-    resources = os.path.join(ROOT, "Resources")
-    if not os.path.isdir(resources):
-        return []
     problems = []
-    for name in sorted(os.listdir(resources)):
-        m = re.fullmatch(r"Strings\.([A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*)\.resx", name)
-        if not m:
-            continue
-        tag = m.group(1)
-        catalogue = {}
-        for data in ET.parse(os.path.join(resources, name)).getroot().findall("data"):
-            value = data.find("value")
-            if value is not None and value.text:
-                catalogue[data.get("name")] = value.text
+    for tag, catalogue in catalogues():
         translated = []
         for c in captions:
             raw = catalogue.get(c.raw)
