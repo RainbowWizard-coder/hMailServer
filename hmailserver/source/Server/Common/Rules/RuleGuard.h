@@ -299,7 +299,8 @@ namespace HM
       // the action is one of the three on an owned rule, and the caller combines
       // it with its own authority test. That keeps the one judgement the same
       // wherever a rule is saved, as WhyActionMayNotBeStored does for the owner
-      // rules. RuleOwnerTester holds it to examples.
+      // rules. RuleOwnerTester asks it of every action type on a global rule, a
+      // domain's and an account's.
       static bool ActionReachesBeyondRuleOwner(__int64 ruleAccountId, __int64 ruleDomainId, const RuleAction &action);
 
       // The From a rule's reply is written with: the action's name as an RFC 5322

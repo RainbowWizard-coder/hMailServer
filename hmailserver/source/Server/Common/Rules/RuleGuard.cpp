@@ -1922,6 +1922,44 @@ namespace HM
             fail("WhyActionMayNotBeStored refused an account's forward");
       }
 
+      // The three actions that reach past a rule's owner (ActionReachesBeyondRuleOwner):
+      // BindToAddress, SendUsingRoute and ScriptFunction on a domain's or an account's
+      // rule, and none of them on a global rule; no other action on any rule. Every type
+      // the enumeration names is asked of every owner, the forward and the delete a
+      // domain administrator keeps among them, each with a value of the kind it carries,
+      // so that the answer is the type's and the owner's and nothing else's.
+      {
+         struct Owner { __int64 account; __int64 domain; const char *what; };
+         const Owner owners[] =
+         {
+            { 0, 0, "a global rule" }, { 0, 7, "a domain's rule" }, { 5, 0, "an account's rule" },
+            { 5, 7, "a rule naming an account and a domain" },
+         };
+
+         for (int type = RuleAction::Unknown; type <= RuleAction::WarnSender; type++)
+         {
+            RuleAction action;
+            action.SetType((RuleAction::Type) type);
+            action.SetValue(L"93.184.216.34");
+            action.SetRouteID(3);
+            action.SetScriptFunction(L"OnTenantRule");
+            action.SetTo(L"someone@example.net");
+
+            const bool reaches = type == RuleAction::BindToAddress || type == RuleAction::SendUsingRoute ||
+                                 type == RuleAction::ScriptFunction;
+
+            for (const Owner &owner : owners)
+            {
+               const bool global = owner.account == 0 && owner.domain == 0;
+               const bool expected = reaches && !global;
+
+               if (RuleGuard::ActionReachesBeyondRuleOwner(owner.account, owner.domain, action) != expected)
+                  fail("ActionReachesBeyondRuleOwner says " + std::string(expected ? "no" : "yes") + " for action type " +
+                       std::to_string(type) + " on " + owner.what);
+            }
+         }
+      }
+
       // A reply's from address, with the two questions answered as examples: the
       // account may send as its own address and its alias, and the domain's addresses
       // are those at example.test and at its alias domain. Every question is kept, so

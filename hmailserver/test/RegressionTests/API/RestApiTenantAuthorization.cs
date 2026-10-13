@@ -42,15 +42,19 @@ namespace RegressionTests.API
    ///        not rename it;
    ///      * the relay host: delivery connects to it with no address rule, so a
    ///        confined credential's relay host is held to a public address, as a
-   ///        reader's fetch host is;
+   ///        reader's fetch host is - only a change of it is judged, so a domain
+   ///        whose internal smart host the administrator set stays the confined
+   ///        credential's to save;
    ///      * three rule actions - bind_to_address, send_using_route and
    ///        script_function - which reach past a rule's owner into the server's
    ///        own configuration, so a confined credential may not set one on a
    ///        domain's or an account's rule;
    ///      * and cross-site request forgery: a state-changing request a browser
-   ///        reports as cross-site is refused whatever the credential, and the two
-   ///        anonymous posts that carry no token - the subscribe form and the
-   ///        password-reset request - are refused from another site too.
+   ///        reports as cross-site is refused whatever the credential - an Origin
+   ///        that names no host, as a sandboxed frame sends, among them - and the
+   ///        two anonymous posts that carry no token - the subscribe form and the
+   ///        password-reset request - are refused from another site too, where an
+   ///        Origin of null passes, since this server's own form is posted with one.
    ///
    ///    REST only, so the suite runs it against the Windows bench and the Linux
    ///    server alike; the COM half of the same decisions is TenantComAuthorization.
@@ -258,6 +262,36 @@ namespace RegressionTests.API
             "The administrator may set an internal relay host.");
       }
 
+      [Test]
+      [Description("A full key issued for a domain whose administrator set an internal smart host on it keeps saving the domain, the stored host sent back unchanged included; a change to another internal host is refused")]
+      public void AConfinedKeyKeepsSavingADomainWhoseInternalRelayHostTheAdministratorSet()
+      {
+         string confined = CreateKey("tenant-authz relay kept", "full", "example.test");
+
+         // The administrator sets an internal smart host for the tenant.
+         Assert.AreEqual(200, Admin("PUT", "/api/v1/domains/example.test",
+            "{\"active\":true,\"relay_host\":\"10.73.0.5\"}").status,
+            "The administrator may set an internal relay host.");
+
+         // The confined key changes another field and sends the stored host back
+         // with it, as a client that writes back the whole object does: that is no
+         // change of the relay host, and is not refused on it.
+         (int keptStatus, string keptBody) = Bearer(confined, "PUT", "/api/v1/domains/example.test",
+            "{\"active\":true,\"relay_host\":\"10.73.0.5\",\"postmaster\":\"postmaster@example.test\"}");
+         Assert.AreEqual(200, keptStatus, "A confined key that sent the stored relay host back unchanged was refused. Body: " + keptBody);
+
+         // A change to another internal host is the confined key's own, and is
+         // refused; nothing is saved.
+         (int changedStatus, string changedBody) = Bearer(confined, "PUT", "/api/v1/domains/example.test",
+            "{\"active\":true,\"relay_host\":\"10.73.0.6\",\"postmaster\":\"other@example.test\"}");
+         Assert.AreEqual(403, changedStatus, "A confined key changed the internal relay host to another internal one. Body: " + changedBody);
+         StringAssert.Contains("relay_host", changedBody);
+
+         string stored = Admin("GET", "/api/v1/domains/example.test").body;
+         StringAssert.Contains("\"relay_host\":\"10.73.0.5\"", stored, "The confined key's saves changed the administrator's smart host.");
+         StringAssert.Contains("\"postmaster\":\"postmaster@example.test\"", stored, "The confined key's change was not saved, or the refused one was.");
+      }
+
       // -------------------------------------------- W-10(c): rule actions
 
       [Test]
@@ -332,6 +366,32 @@ namespace RegressionTests.API
          Admin("DELETE", "/api/v1/accounts/w2-made@example.test");
       }
 
+      [Test]
+      [Description("With no fetch metadata, a credentialed write whose Origin names no host - null, as a sandboxed frame on another site sends - is refused, and one whose Origin is this server's own passes")]
+      public void ACredentialedWriteWithAnOriginThatNamesNoHostIsRefused()
+      {
+         const string create = "{\"address\":\"w2-null@example.test\",\"password\":\"" + AccountPassword + "\"}";
+
+         // Origin: null is what a browser too old to send Sec-Fetch-Site sends for a
+         // form posted from a sandboxed frame - another site's, with the
+         // administrator's cached Basic credential.
+         (int nullStatus, string nullBody) = AdminWith("POST", "/api/v1/domains/example.test/accounts", create, "Origin: null");
+         Assert.AreEqual(403, nullStatus, "A credentialed write with Origin: null was accepted. Body: " + nullBody);
+         Assert.IsFalse(AccountExists("w2-null@example.test"), "The refused Origin: null write created an account.");
+
+         // Nor does an Origin that cannot be read as a URL pass for this server's.
+         Assert.AreEqual(403, AdminWith("POST", "/api/v1/domains/example.test/accounts", create, "Origin: not-a-url").status,
+            "A credentialed write with an Origin that is not a URL was accepted.");
+         Assert.IsFalse(AccountExists("w2-null@example.test"), "The refused write created an account.");
+
+         // This server's own origin, with no fetch metadata, passes: the Host the
+         // request names is 127.0.0.1, and so is the Origin's host.
+         Assert.AreEqual(201, AdminWith("POST", "/api/v1/domains/example.test/accounts", create,
+            "Origin: http://127.0.0.1:" + RestPort).status,
+            "A credentialed write whose Origin is this server's own was refused.");
+         Admin("DELETE", "/api/v1/accounts/w2-null@example.test");
+      }
+
       // --------------------------------------- W-12: anonymous cross-site posts
 
       [Test]
@@ -357,6 +417,25 @@ namespace RegressionTests.API
          Assert.AreEqual(404, HttpAnon("POST", "/lists/none@example.test/subscribe", "address=someone%40example.test",
             "Sec-Fetch-Site: same-origin").status,
             "A same-origin subscribe post must reach the handler.");
+      }
+
+      [Test]
+      [Description("The two anonymous posts are answered with an Origin of null and no fetch metadata: this server's own subscribe form, sent with Referrer-Policy: no-referrer, is posted with one by such a browser")]
+      public void TheAnonymousPostsAreAnsweredWithAnOriginOfNull()
+      {
+         // The subscribe page is sent with Referrer-Policy: no-referrer, and a browser
+         // that follows the Fetch standard posts its plain form with Origin: null; one
+         // that sends no Sec-Fetch-Site has nothing else to say. The post reaches the
+         // handler - 404 for a list that does not exist - where a credentialed write
+         // with the same Origin is refused (ACredentialedWriteWithAnOriginThatNamesNoHostIsRefused).
+         Assert.AreEqual(404, HttpAnon("POST", "/lists/none@example.test/subscribe", "address=someone%40example.test",
+            "Origin: null").status,
+            "A subscribe post with Origin: null and no fetch metadata must reach the handler.");
+
+         // The reset request is answered as it is without the header.
+         Assert.AreNotEqual(403, HttpAnon("POST", "/api/v1/password-reset", "{\"address\":\"nobody@example.test\"}",
+            "Origin: null").status,
+            "A password-reset request with Origin: null and no fetch metadata must be answered normally.");
       }
 
       // --------------------------------------------------------------- helpers

@@ -18,11 +18,13 @@ namespace RegressionTests.API
    ///    REST API holds a confined key to (RestApiTenantAuthorization).
    ///
    ///    A domain administrator keeps every ordinary change on its own domain -
-   ///    that is the control each test carries - and is refused the three that
+   ///    that is the control each test carries - and is refused the ones that
    ///    reach beyond it: renaming the domain, creating a domain alias, setting an
    ///    internal relay host, and putting bind_to_address, send_using_route or
    ///    script_function on one of its rules. The server administrator does all of
-   ///    them, which is what makes each refusal about the credential.
+   ///    them, which is what makes each refusal about the credential - and a
+   ///    domain whose internal smart host the server administrator set stays its
+   ///    domain administrator's to save, since only a change of the host is judged.
    /// </summary>
    [TestFixture]
    public class TenantComAuthorization : TestFixtureBase
@@ -113,6 +115,48 @@ namespace RegressionTests.API
          Domain asAdmin = _application.Domains.get_ItemByName("example.test");
          asAdmin.RelayHost = "10.73.0.5";
          asAdmin.Save();
+      }
+
+      [Test]
+      [Description("A domain administrator still saves its domain after the server administrator set an internal smart host on it, writing that host back unchanged as the Control Panel does; a change to another internal host is refused and clearing it is not")]
+      public void ADomainAdministratorSavesItsDomainWhoseInternalRelayHostTheServerAdministratorSetOverCom()
+      {
+         // The server administrator sets an internal smart host for the tenant.
+         Domain asAdmin = _application.Domains.get_ItemByName("example.test");
+         asAdmin.RelayHost = "10.73.0.5";
+         asAdmin.Save();
+
+         Application app = AsDomainAdmin();
+         Domain domain = app.Domains.get_ItemByName("example.test");
+
+         // Any other change saves: the relay host the domain has is not the domain
+         // administrator's change, and is not judged.
+         domain.Postmaster = "postmaster@example.test";
+         domain.Save();
+
+         // Writing the loaded host back with another change, as the Control Panel's
+         // domain dialog writes back every field it loaded, saves too.
+         string loaded = domain.RelayHost;
+         Assert.AreEqual("10.73.0.5", loaded, "The domain administrator does not read the smart host it is to write back.");
+         domain.RelayHost = loaded;
+         domain.Postmaster = "admin@example.test";
+         domain.Save();
+
+         Domain stored = _application.Domains.get_ItemByName("example.test");
+         Assert.AreEqual("10.73.0.5", stored.RelayHost, "The domain administrator's saves changed the server administrator's smart host.");
+         Assert.AreEqual("admin@example.test", stored.Postmaster, "The domain administrator's change was not saved.");
+
+         // A change to another internal host is the domain administrator's own, and
+         // is refused; nothing is saved.
+         domain.RelayHost = "10.73.0.6";
+         var ex = Assert.Throws<COMException>(() => domain.Save(), "A domain administrator changed the internal relay host to another internal one over COM.");
+         StringAssert.Contains("public address", ex.Message);
+         Assert.AreEqual("10.73.0.5", _application.Domains.get_ItemByName("example.test").RelayHost, "The refused save changed the relay host.");
+
+         // Clearing it is never refused.
+         domain.RelayHost = "";
+         domain.Save();
+         Assert.AreEqual("", _application.Domains.get_ItemByName("example.test").RelayHost, "The domain administrator could not clear the relay host.");
       }
 
       [Test]
