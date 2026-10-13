@@ -78,17 +78,16 @@ namespace HM
       constraint (547) - and on SQL Server Compact a foreign key's refusal
       (25026 for a row whose parent is not there, 25025 for a delete of a row a
       foreign key refers to; a NULL into a NOT NULL column is an error in the
-      command there, 25005, and a CHECK cannot be declared); and on those two and
-      MySQL an unknown error as well - Compact's NULL among them, and on MySQL a
-      lost connection. Inside a transaction that would commit a unit without a
-      row the database refused, and would hide a deadlock that has already rolled
-      the transaction back. On PostgreSQL, where any failed statement aborts the
-      transaction, a statement that may be ignored runs under a savepoint, so
-      that an ignored duplicate leaves the transaction as it was. A statement
-      marked [IGNORE-ERRORS], whose failure the backend itself answers as a
-      success, fails the scope when that failure has ended the transaction
-      (DALConnection::IsTransactionFailed): on SQL Server a conversion error
-      rolls the transaction back.
+      command there, 25005, and a CHECK cannot be declared). Since unit AA-01 it
+      lets through nothing else on any backend (DALConnection::TryExecute): no
+      unknown error, and on MySQL no lost connection, as it did before. Inside a
+      transaction that would commit a unit without a row the database refused. On
+      PostgreSQL, where any failed statement aborts the transaction, a statement
+      that may be ignored runs under a savepoint, so that an ignored duplicate
+      leaves the transaction as it was. A statement marked [IGNORE-ERRORS], whose
+      failure the backend itself answers as a success, fails the scope when that
+      failure has ended the transaction (DALConnection::IsTransactionFailed): on
+      SQL Server a conversion error rolls the transaction back.
 
       On a MySQL database with a table that is not InnoDB nothing is
       transactional (MySQLConnection::LoadSupportsTransactions_): the scope still
@@ -163,8 +162,11 @@ namespace HM
       // same way; a failure fails the scope. iIgnoreErrors may be
       // DALConnection::DALErrorInSQL, for an insert whose row may be there
       // already: then such a failure is not one, and the insert id is 0.
-      bool Execute(const SQLCommand &command, __int64 *iInsertID = 0, int iIgnoreErrors = 0);
-      bool Execute(const SQLStatement &statement, __int64 *iInsertID = 0, int iIgnoreErrors = 0);
+      // rowsAffected, when given, is the count DatabaseConnectionManager::
+      // ExecuteCount gives (DALConnection::TryExecute): the rows the statement
+      // matched, 0 for a failure that was not one, -1 when it failed.
+      bool Execute(const SQLCommand &command, __int64 *iInsertID = 0, int iIgnoreErrors = 0, __int64 *rowsAffected = nullptr);
+      bool Execute(const SQLStatement &statement, __int64 *iInsertID = 0, int iIgnoreErrors = 0, __int64 *rowsAffected = nullptr);
 
       // A query on the transaction's connection, once - or, on a MySQL database
       // that is not transactional, as the pool runs it. Empty when it failed, which
@@ -304,8 +306,12 @@ namespace HM
 
       // The statement and the query, once, for Execute and for the manager's
       // routing. The audit trail's record is the manager's
-      // (DatabaseConnectionManager::ExecuteInTransaction_).
-      bool Execute_(const SQLCommand &command, __int64 *iInsertID, int iIgnoreErrors, String &sErrorMessage);
+      // (DatabaseConnectionManager::ExecuteInTransaction_). rowsAffected as
+      // Execute says it; reconnected, when given, whether the statement was run
+      // again after a reconnect, which only a scope on a MySQL database that is not
+      // transactional does (DatabaseConnectionManager::ExecuteCount).
+      bool Execute_(const SQLCommand &command, __int64 *iInsertID, int iIgnoreErrors, String &sErrorMessage,
+                    __int64 *rowsAffected = nullptr, bool *reconnected = nullptr);
       std::shared_ptr<DALRecordset> OpenRecordset_(const SQLCommand &command);
 
       // Whether a statement may be sent now, and why not when it may not.
@@ -368,7 +374,8 @@ namespace HM
 
    // The scope held to what it promises, on a real database, through
    // DatabaseConnectionManager and DatabaseTransaction: a rollback discards; the
-   // manager's own Execute joins the transaction and a Suspension does not; two
+   // manager's own Execute joins the transaction and a Suspension does not, and its
+   // ExecuteCount joins it too and counts the transaction's run of the statement; two
    // scopes on one row wait for each other; a deadlock between two units of work
    // is retried by Run and both commit once each, where scopes alone lose one; a
    // connection lost in the middle of a scope commits nothing and the retry
@@ -386,7 +393,10 @@ namespace HM
    // the connection another thread gives back. PostgreSQL also: an ignored
    // duplicate leaves the transaction usable, and a COMMIT that PostgreSQL
    // turned into a ROLLBACK is reported as a failure. MySQL also: a database
-   // with a table that is not InnoDB reports that it is not transactional.
+   // with a table that is not InnoDB reports that it is not transactional, and
+   // on MariaDB a unit of work that its error 4031 failed - a statement's own
+   // refusal there, an idle session closed on MySQL - is failed once and not run
+   // again.
    //
    // On pools and tables of its own (aatxnprobe, aatxnprobeb, aatxnprobec, and on
    // MySQL aatxnprobem), which it makes, empties and removes, so it can be run

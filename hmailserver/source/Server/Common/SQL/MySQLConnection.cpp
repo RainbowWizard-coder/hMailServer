@@ -847,7 +847,6 @@ namespace HM
       case 2055: // CR_SERVER_LOST_EXTENDED
       case 1053: // ER_SERVER_SHUTDOWN
       case 1927: // ER_CONNECTION_KILLED (MariaDB)
-      case 4031: // ER_CLIENT_INTERACTION_TIMEOUT (MySQL 8.0.24 and later)
       // A session the server ended answers the next statement over TLS with the TLS
       // layer's end of file, not 2013 (measured through libmariadb on MySQL 8.4 and
       // MariaDB 11.8, 13 October 2026, a session killed inside a transaction). Here
@@ -855,6 +854,12 @@ namespace HM
       // TLS refusal at connect itself.
       case HM_MYSQL_CR_SSL_CONNECTION_ERROR:
          return LastFailureConnection;
+      case 4031:
+         // ER_CLIENT_INTERACTION_TIMEOUT on MySQL 8.0.24 and later, an idle session
+         // the server closed; on MariaDB ER_REFERENCED_TRG_DOES_NOT_EXIST, a
+         // statement's own refusal, which a unit of work run again would meet
+         // again. The server's fork decides, as in CheckError.
+         return server_is_mysql_ ? LastFailureConnection : LastFailureOther;
       case 1213: // ER_LOCK_DEADLOCK: the transaction was rolled back
       case 1205: // ER_LOCK_WAIT_TIMEOUT: the statement was rolled back
       case 1020: // ER_CHECKREAD: MariaDB's snapshot isolation (11.6 and later)

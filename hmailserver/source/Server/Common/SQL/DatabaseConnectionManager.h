@@ -106,6 +106,13 @@ namespace HM
       // caller that relies on the count reads its row back before it believes a 0
       // or a failure - an insert-or-claim's INSERT among them, whose second run
       // finds the row its first run wrote and is forgiven as a duplicate, 0.
+      //
+      // Made on a thread inside a DatabaseTransaction of this pool, it runs in that
+      // transaction as Execute does, and the count is the transaction's one run of
+      // it (DatabaseTransaction::Execute): a row the caller forgives as a duplicate
+      // counts 0 there as here, and reconnected stays false, since a scope runs no
+      // statement again - except on a MySQL database that is not transactional,
+      // where the scope runs it as the pool does.
       __int64 ExecuteCount(const SQLCommand &command, bool *reconnected = nullptr, int iIgnoreErrors = 0);
 
       std::shared_ptr<DALRecordset> OpenRecordset(const SQLStatement &statement);
@@ -210,8 +217,10 @@ namespace HM
       // a MySQL database that is not transactional as the pool runs it), and
       // recorded by the audit trail as every statement through Execute is: here,
       // in the one file the audit trail's chokepoint lives in
-      // (build/check-audit-choke-point.py).
-      bool ExecuteInTransaction_(DatabaseTransaction &transaction, const SQLCommand &command, __int64 *iInsertID, int iIgnoreErrors, String &sErrorMessage);
+      // (build/check-audit-choke-point.py). rowsAffected and reconnected as
+      // ExecuteCount says them, of the transaction's run of the statement.
+      bool ExecuteInTransaction_(DatabaseTransaction &transaction, const SQLCommand &command, __int64 *iInsertID, int iIgnoreErrors, String &sErrorMessage,
+                                 __int64 *rowsAffected = nullptr, bool *reconnected = nullptr);
    };
 
    // CloseWhenIdle, over stand-in connections that need no database: the idle

@@ -575,9 +575,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   every integrity violation on SQL Server (an insert a foreign key refused for want of the row it refers to, 547; a
   NULL into a NOT NULL column, 515; a CHECK constraint, 547: the provider's `DB_E_INTEGRITYVIOLATION` for each), on
   SQL Server Compact a foreign key's refusal (25026 for a row whose parent is not there, 25025 for a delete of a row
-  a foreign key refers to), an unknown error on those two and MySQL, and on MySQL a lost connection - and on
-  PostgreSQL under a savepoint, so that it leaves the transaction to commit. A statement marked `[IGNORE-ERRORS]`,
-  whose failure the backend answers as a success, fails the scope when that failure has ended the transaction - on
+  a foreign key refers to), and nothing else since the fix of a forgiven duplicate above - and on PostgreSQL under a
+  savepoint, so that it leaves the transaction to commit. A statement marked `[IGNORE-ERRORS]`, whose failure the
+  backend answers as a success, fails the scope when that failure has ended the transaction - on
   SQL Server a conversion error rolls it back - where what followed it would have committed on its own. A MySQL
   database with a table that is not InnoDB has no transactions, and a scope on it says so and is not retried. On SQL
   Server Compact the pool holds the server's one connection, so an open scope holds it and every other thread waits
@@ -593,14 +593,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   made on the thread inside it, and not another thread's; two transactions on one row wait for each other, where two
   statements do not; two units of work that deadlock both commit once under `Run`, where scopes alone lose the
   victim's; a session ended in the middle commits nothing and the retry commits once, where `DALConnection::Execute`
-  commits the next statement on its own (on PostgreSQL, SQL Server and SQL Server Compact; on MySQL and MariaDB over
-  TLS it takes the TLS layer's end of file of a session the server ended for a failed statement, and does not run it
-  again); an insert a foreign key refused and a NULL into a NOT NULL column are not taken for a row that is there
+  commits the next statement on its own (on every engine, MySQL and MariaDB over TLS included, since the fix of
+  their sessions above takes the TLS layer's end of file of a session the server ended for a lost connection); an
+  insert a foreign key refused and a NULL into a NOT NULL column are not taken for a row that is there
   already; a unit with a failed statement marked `[IGNORE-ERRORS]` is committed whole or not at all, and one whose
   marked statement met a row that is there already, which leaves the transaction open on every engine, is committed
-  whole; and on a pool of one connection a failed scope's connection is there for a statement made outside it, and an
+  whole; on a pool of one connection a failed scope's connection is there for a statement made outside it, and an
   open scope's is not waited for, while on a pool of two such a statement waits for the connection another thread
-  gives back, and runs.
+  gives back, and runs; `DatabaseConnectionManager::ExecuteCount` made on a scope's thread runs in the scope and
+  counts the scope's one run of the statement, as `DatabaseTransaction::Execute` counts its own; and on MariaDB,
+  whose error 4031 is a statement's own refusal where MySQL's is an idle session closed, a unit of work it fails is
+  failed once and not run again.
   `RegressionTests.API.Events.AnOnErrorScriptRunsOutsideTheDatabaseTransactionItIsReportedFrom` holds the OnError
   script outside the scope: a message it saves while a statement of a failed scope on the server's own database is
   reported is delivered. A SQL Server Compact connection closed with a transaction open is rolled back first

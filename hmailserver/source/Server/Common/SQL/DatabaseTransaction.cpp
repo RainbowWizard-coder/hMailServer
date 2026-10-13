@@ -372,16 +372,19 @@ namespace HM
    }
 
    bool
-   DatabaseTransaction::Execute(const SQLCommand &command, __int64 *iInsertID, int iIgnoreErrors)
+   DatabaseTransaction::Execute(const SQLCommand &command, __int64 *iInsertID, int iIgnoreErrors, __int64 *rowsAffected)
    {
+      if (rowsAffected != nullptr)
+         *rowsAffected = -1;
+
       String discarded;
-      return manager_ ? manager_->ExecuteInTransaction_(*this, command, iInsertID, iIgnoreErrors, discarded) : false;
+      return manager_ ? manager_->ExecuteInTransaction_(*this, command, iInsertID, iIgnoreErrors, discarded, rowsAffected, nullptr) : false;
    }
 
    bool
-   DatabaseTransaction::Execute(const SQLStatement &statement, __int64 *iInsertID, int iIgnoreErrors)
+   DatabaseTransaction::Execute(const SQLStatement &statement, __int64 *iInsertID, int iIgnoreErrors, __int64 *rowsAffected)
    {
-      return Execute(statement.GetCommand(), iInsertID, iIgnoreErrors);
+      return Execute(statement.GetCommand(), iInsertID, iIgnoreErrors, rowsAffected);
    }
 
    std::shared_ptr<DALRecordset>
@@ -397,10 +400,19 @@ namespace HM
    }
 
    bool
-   DatabaseTransaction::Execute_(const SQLCommand &command, __int64 *iInsertID, int iIgnoreErrors, String &sErrorMessage)
+   DatabaseTransaction::Execute_(const SQLCommand &command, __int64 *iInsertID, int iIgnoreErrors, String &sErrorMessage,
+                                 __int64 *rowsAffected, bool *reconnected)
    {
       if (iInsertID != nullptr)
          *iInsertID = 0;
+
+      // Until the statement has run and what it did is known: a failure counts -1
+      // (DALConnection::TryExecute), and nothing has been run again.
+      if (rowsAffected != nullptr)
+         *rowsAffected = -1;
+
+      if (reconnected != nullptr)
+         *reconnected = false;
 
       if (!Usable_(sErrorMessage))
       {
@@ -432,12 +444,16 @@ namespace HM
          std::chrono::steady_clock::time_point started = std::chrono::steady_clock::now();
 
          String message;
-         const bool executed = connection->Execute(command, message, iInsertID, iIgnoreErrors);
+         __int64 counted = -1;
+         const bool executed = connection->Execute(command, message, iInsertID, iIgnoreErrors, &counted, reconnected);
 
          manager_->MeasureQuery_(command, MicrosecondsSince(started));
 
          if (executed)
          {
+            if (rowsAffected != nullptr)
+               *rowsAffected = counted;
+
             sErrorMessage = _T("");
             return true;
          }
@@ -465,13 +481,15 @@ namespace HM
       connection->ForgetLastFailure();
 
       String message;
+      __int64 counted = -1;
       std::chrono::steady_clock::time_point started = std::chrono::steady_clock::now();
 
       // Once, and with no failure ignored by the backend: its own ignoring lets
-      // through a deadlock that has rolled the transaction back, and on MySQL a
-      // lost connection (DatabaseTransaction.h). What this caller may ignore is
-      // decided below, from what the failure was.
-      DALConnection::ExecutionResult result = connection->TryExecute(toRun, message, iInsertID, 0);
+      // through more than a row that is there already - every integrity violation
+      // on SQL Server, a foreign key's refusal on SQL Server Compact
+      // (DatabaseTransaction.h). What this caller may ignore is decided below,
+      // from what the failure was.
+      DALConnection::ExecutionResult result = connection->TryExecute(toRun, message, iInsertID, 0, &counted);
 
       manager_->MeasureQuery_(command, MicrosecondsSince(started));
 
@@ -508,8 +526,13 @@ namespace HM
             // followed would commit on its own (ADOConnection::IsTransactionFailed).
             if (savepoint)
             {
-               return RunControl_(UndoToSavepoint, sErrorMessage) &&
-                      RunControl_(ReleaseSavepoint, sErrorMessage);
+               // Taken back to the savepoint: the statement changed no row.
+               const bool undone = RunControl_(UndoToSavepoint, sErrorMessage) &&
+                                   RunControl_(ReleaseSavepoint, sErrorMessage);
+               if (undone && rowsAffected != nullptr)
+                  *rowsAffected = 0;
+
+               return undone;
             }
 
             sErrorMessage = _T("A statement failed inside the transaction, and the database has ended the transaction, so nothing of it is committed.");
@@ -518,7 +541,18 @@ namespace HM
          }
 
          if (savepoint)
-            return RunControl_(ReleaseSavepoint, sErrorMessage);
+         {
+            const bool released = RunControl_(ReleaseSavepoint, sErrorMessage);
+            if (released && rowsAffected != nullptr)
+               *rowsAffected = counted;
+
+            return released;
+         }
+
+         // What TryExecute counted: the rows the statement matched, or 0 for a
+         // failure the [IGNORE-ERRORS] marker let through.
+         if (rowsAffected != nullptr)
+            *rowsAffected = counted;
 
          sErrorMessage = _T("");
          return true;
@@ -529,15 +563,23 @@ namespace HM
       if (kind == DALConnection::LastFailureDuplicate && ignoreDuplicate)
       {
          // The row is there already, which this caller does not count as a
-         // failure; it reads the insert id of 0 as just that.
+         // failure; it reads the insert id of 0 as just that, and a count of 0,
+         // since the statement changed no row.
          if (iInsertID != nullptr)
             *iInsertID = 0;
 
          if (savepoint)
          {
-            return RunControl_(UndoToSavepoint, sErrorMessage) &&
-                   RunControl_(ReleaseSavepoint, sErrorMessage);
+            const bool undone = RunControl_(UndoToSavepoint, sErrorMessage) &&
+                                RunControl_(ReleaseSavepoint, sErrorMessage);
+            if (undone && rowsAffected != nullptr)
+               *rowsAffected = 0;
+
+            return undone;
          }
+
+         if (rowsAffected != nullptr)
+            *rowsAffected = 0;
 
          sErrorMessage = _T("");
          return true;

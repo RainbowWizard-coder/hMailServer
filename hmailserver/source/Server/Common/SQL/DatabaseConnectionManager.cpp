@@ -388,10 +388,13 @@ namespace HM
       // but on a MySQL database that is not transactional as the pool runs it - and
       // not on a connection of its own. This is what puts the persistence
       // layer's existing saves inside a transaction without each being rewritten
-      // (DatabaseTransaction.h).
+      // (DatabaseTransaction.h). Here, where Execute and ExecuteCount meet, so that
+      // a count asked for inside a scope is that of the scope's own run of the
+      // statement, and a reconnect is said only where the scope ran it as the pool
+      // does.
       DatabaseTransaction *transaction = DatabaseTransaction::Current_(this);
       if (transaction != nullptr && transaction->Routes_())
-         return ExecuteInTransaction_(*transaction, command, iInsertID, iIgnoreErrors, sErrorMessage);
+         return ExecuteInTransaction_(*transaction, command, iInsertID, iIgnoreErrors, sErrorMessage, rowsAffected, reconnected);
 
       if (SimulateFailureFor_(command))
       {
@@ -431,9 +434,10 @@ namespace HM
    }
 
    bool
-   DatabaseConnectionManager::ExecuteInTransaction_(DatabaseTransaction &transaction, const SQLCommand &command, __int64 *iInsertID, int iIgnoreErrors, String &sErrorMessage)
+   DatabaseConnectionManager::ExecuteInTransaction_(DatabaseTransaction &transaction, const SQLCommand &command, __int64 *iInsertID, int iIgnoreErrors, String &sErrorMessage,
+                                                    __int64 *rowsAffected, bool *reconnected)
    {
-      bool bResult = transaction.Execute_(command, iInsertID, iIgnoreErrors, sErrorMessage);
+      bool bResult = transaction.Execute_(command, iInsertID, iIgnoreErrors, sErrorMessage, rowsAffected, reconnected);
 
       // The audit trail's record, as in Execute. Its row is written through
       // Execute on this thread, so it joins the transaction, commits with the

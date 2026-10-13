@@ -340,6 +340,37 @@ namespace HM
             probe.Say(_T("a rollback discards, the manager's Execute on the thread joins, another thread's and a Suspension's do not"));
          }
 
+         // The row counts inside a scope: the manager's ExecuteCount made on the
+         // transaction's thread runs in the transaction, as its Execute does, and
+         // counts the transaction's one run of the statement; the transaction's own
+         // Execute counts the same way. The control is the rollback: an update
+         // ExecuteCount ran on a connection of its own would have committed there.
+         {
+            probe.Reset();
+            {
+               DatabaseTransaction transaction(pool);
+               Check(transaction.IsOpen(), _T("a transaction did not open on the tester's pool"));
+
+               bool reconnected = true;
+               const __int64 counted = pool->ExecuteCount(Update(_T("aatxnprobeb"), 3), &reconnected);
+               Check(counted == 1 && !reconnected,
+                  Formatter::Format("an update of one row through the manager's ExecuteCount inside a transaction counted {0}, not 1, or said it had reconnected ({1})", counted, reconnected ? 1 : 0));
+
+               const __int64 none = pool->ExecuteCount(SQLCommand(_T("update aatxnprobeb set v = v + 1 where id = 99")));
+               Check(none == 0, Formatter::Format("an update of no row through the manager's ExecuteCount inside a transaction counted {0}, not 0", none));
+
+               __int64 own = -2;
+               const bool updated = transaction.Execute(Update(_T("aatxnprobe"), 4), 0, 0, &own);
+               Check(updated && own == 1, Formatter::Format("an update of one row through the transaction counted {0}, not 1", own));
+
+               // No Commit: the scope rolls back when it ends.
+            }
+            Check(probe.Value(_T("aatxnprobeb"), 1) == 0,
+               _T("an update made through the manager's ExecuteCount on the transaction's thread was not rolled back with it: it ran on a connection of its own"));
+            Check(probe.Value(_T("aatxnprobe"), 1) == 0, _T("an update made through the transaction was not rolled back with it"));
+            probe.Say(_T("ExecuteCount on the transaction's thread runs in it and counts its run, 1 for a row and 0 for none, as the transaction's Execute counts"));
+         }
+
          // A commit commits what the transaction and the manager wrote; a scope
          // opened inside joins, and its Commit commits nothing of its own; a joined
          // scope that ends without its Commit takes the whole transaction back.
@@ -943,22 +974,14 @@ namespace HM
             const bool second = connection->Execute(Insert(21, 1), error);
             pool->RollbackTransaction(connection, error);
             Check(probe.Value(_T("aatxnprobe"), 20) == -1, _T("the control's first insert, made before its session ended, was committed"));
-            if (second || !mysql)
-            {
-               Check(second && probe.Value(_T("aatxnprobe"), 21) == 1,
-                  _T("the control did not show a statement run again after a reconnect committing outside its transaction"));
-            }
-            else
-            {
-               // MySQL and MariaDB over TLS answer a statement on a session the
-               // server ended with the TLS layer's end of file (2026), which
-               // MySQLConnection::CheckError does not take for a lost connection, so
-               // DALConnection::Execute did not reconnect and did not run it again:
-               // C17 does not show on such a session, and does over a plain one
-               // (2013).
-               Check(probe.Value(_T("aatxnprobe"), 21) == -1, _T("the control's second insert failed and was committed all the same"));
-               probe.Say(_T("(the control: DALConnection::Execute took the TLS end of file of a session MySQL ended for a failed statement, not a lost connection, and did not run it again)"));
-            }
+
+            // On every engine: MySQL and MariaDB over TLS answer a statement on a
+            // session the server ended with the TLS layer's end of file (2026), which
+            // MySQLConnection::CheckError takes for a lost connection as it takes
+            // 2013 over a plain one (unit AA-01), so DALConnection::Execute
+            // reconnects and runs it again there too.
+            Check(second && probe.Value(_T("aatxnprobe"), 21) == 1,
+               _T("the control did not show a statement run again after a reconnect committing outside its transaction"));
 
             // A session that ends before the COMMIT: whether the COMMIT reached the
             // database is not known, so the scope says so and is not run again.
@@ -996,9 +1019,61 @@ namespace HM
             for (int i = 0; i < 4; i++)
                Check(pool->Execute(Update(_T("aatxnprobeb"), 1)), _T("a pool connection a transaction lost was not opened again"));
 
-            probe.Say(String(_T("a session lost in the middle: nothing committed and the retry commits once")) +
-               (second ? _T(", where DALConnection::Execute commits the next statement on its own") : _T("")) +
-               _T("; a lost COMMIT is not run again"));
+            probe.Say(_T("a session lost in the middle: nothing committed and the retry commits once, where DALConnection::Execute commits the next statement on its own; a lost COMMIT is not run again"));
+         }
+
+         // MariaDB: its error 4031 is a statement's own refusal (a CREATE TRIGGER that
+         // FOLLOWS a trigger there is not), where MySQL's is an idle session the server
+         // closed (MySQLConnection::ClassifyLastFailure, as CheckError has it since
+         // unit AA-01): a unit of work it fails is failed once, as a statement the
+         // database refused, and not run again as one whose connection was lost.
+         // Which error MariaDB gave is read first with GET DIAGNOSTICS, on the
+         // tester's own connection; refused for another reason (a privilege), the
+         // check is said and left out. It reports HM5032, as any failed statement does.
+         if (mysql && provokeErrors)
+         {
+            std::shared_ptr<DALRecordset> version = probe.raw_->CreateRecordset();
+            String error;
+            Check(version->TryOpen(probe.raw_, SQLCommand(_T("select version() as serverversion")), error) == DALConnection::DALSuccess && !version->IsEOF(),
+               _T("the tester could not read the server's version: ") + error);
+            String fork = version->GetStringValue("serverversion");
+            fork.MakeLower();
+
+            if (fork.Find(_T("mariadb")) >= 0)
+            {
+               const String trigger = _T("create trigger aatxntrigger before insert on aatxnprobe for each row follows aatxnnosuchtrigger set new.v = 1");
+
+               probe.Reset();
+               if (probe.raw_->TryExecute(SQLCommand(trigger), error, 0, 0) == DALConnection::DALSuccess)
+               {
+                  probe.Raw(_T("drop trigger aatxntrigger"));
+                  Check(false, _T("MariaDB made a trigger that FOLLOWS a trigger there is not"));
+               }
+
+               probe.Raw(_T("get diagnostics condition 1 @aatxnerror = mysql_errno"));
+               std::shared_ptr<DALRecordset> diagnosed = probe.raw_->CreateRecordset();
+               Check(diagnosed->TryOpen(probe.raw_, SQLCommand(_T("select @aatxnerror as errorcode")), error) == DALConnection::DALSuccess && !diagnosed->IsEOF(),
+                  _T("the tester could not read the error MariaDB gave: ") + error);
+               const long code = diagnosed->GetLongValue("errorcode");
+
+               if (code != 4031)
+               {
+                  probe.Say(Formatter::Format("MariaDB's error 4031 inside a scope not checked: the server refused the trigger with error {0} first", (int) code));
+               }
+               else
+               {
+                  int calls = 0;
+                  DatabaseTransaction::RunResult result = DatabaseTransaction::Run(pool, [&](DatabaseTransaction &transaction)
+                  {
+                     calls++;
+                     return transaction.Execute(SQLCommand(trigger));
+                  });
+                  Check(result.outcome == DatabaseTransaction::Failed && result.attempts == 1 && calls == 1,
+                     Formatter::Format("a unit of work a statement MariaDB refused with error 4031 failed was not failed once as a statement the database refused: outcome {0}, {1} attempts, {2} calls: {3}",
+                        (int) result.outcome, result.attempts, calls, result.error));
+                  probe.Say(_T("MariaDB's error 4031, a trigger the statement names that does not exist: the unit of work failed once and was not run again"));
+               }
+            }
          }
 
          // MySQL and MariaDB: a database with a table that is not InnoDB has no
@@ -1015,7 +1090,11 @@ namespace HM
             {
                DatabaseTransaction transaction(myisam);
                Check(transaction.IsOpen() && !transaction.IsTransactional(), _T("a scope on a database with a MyISAM table did not say that it is not transactional"));
-               Check(transaction.Execute(Insert(40, 1)), _T("an insert on a database that is not transactional failed"));
+
+               // Run as the pool runs it, and counted as the pool counts it.
+               __int64 inserted = -2;
+               const bool ran = transaction.Execute(Insert(40, 1), 0, 0, &inserted);
+               Check(ran && inserted == 1, Formatter::Format("an insert on a database that is not transactional failed, or counted {0}, not 1", inserted));
                transaction.Rollback();
             }
             Check(probe.Value(_T("aatxnprobe"), 40) == 1, _T("a scope on a database that is not transactional took back what it wrote, which it cannot"));
