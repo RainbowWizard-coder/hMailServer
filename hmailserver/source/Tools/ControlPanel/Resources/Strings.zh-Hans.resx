@@ -9116,7 +9116,7 @@
     <value>粘贴</value>
   </data>
   <data name="Paste the certificate, or two while the provider rolls its key over. It is never shown again: the line below says what is held." xml:space="preserve">
-    <value>粘贴证书；提供商轮换密钥期间可粘贴两个。它不会再次显示：下面一行说明已保存的内容。</value>
+    <value>粘贴证书；提供方轮换密钥期间可粘贴两个。它不会再次显示：下面一行说明已保存的内容。</value>
   </data>
   <data name="Path: https://endpoint/bucket/key" xml:space="preserve">
     <value>路径：https://endpoint/bucket/key</value>
@@ -11830,10 +11830,10 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
     <value>注销</value>
   </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
-    <value>通过 SAML 身份提供方（Entra ID、Okta、ADFS）让用户登录。把本服务器的元数据（网页邮箱的基础地址加上 /saml/metadata）提供给提供商。在实体 ID、登录地址和提供商的证书这三项都设置之前，SAML 处于关闭状态。</value>
+    <value>通过 SAML 身份提供方（Entra ID、Okta、ADFS）让用户登录。把本服务器的元数据（网页邮箱的基础地址加上 /saml/metadata）提供给提供方。在实体 ID、登录地址和提供方的证书这三项都设置之前，SAML 处于关闭状态。</value>
   </data>
   <data name="Sign people in with your identity provider - Entra ID, Okta, Keycloak, Google. Register this server with the provider first, as a web client whose redirect address is the base address below followed by /portal/oidc/callback. Single sign-on is off until the issuer is set." xml:space="preserve">
-    <value>通过您的身份提供方（Entra ID、Okta、Keycloak、Google）让用户登录。请先在提供商处将本服务器注册为 Web 客户端，其重定向地址为下面的基础地址加上 /portal/oidc/callback。在设置颁发者之前，单点登录处于关闭状态。</value>
+    <value>通过您的身份提供方（Entra ID、Okta、Keycloak、Google）让用户登录。请先在提供方处将本服务器注册为 Web 客户端，其重定向地址为下面的基础地址加上 /portal/oidc/callback。在设置颁发者之前，单点登录处于关闭状态。</value>
   </data>
   <data name="Sign-in" xml:space="preserve">
     <value>登录</value>
@@ -14420,7 +14420,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
     <value>令牌内省端点（留空 = 不做吊销检查）</value>
   </data>
   <data name="Tokens are accepted, but {0}: the server applies each of those only when you have set it, and blank is the default. That is wider than it looks. Any token your identity provider signs with this key is accepted - including one it issued to a different application entirely, which is enough to sign in as whichever mailbox that token names. Set both to the exact values your provider puts in its tokens." xml:space="preserve">
-    <value>令牌会被接受，但 {0}: 服务器只在您设置了它们时才逐一应用，而默认为空。这比看起来的范围要宽。您的身份提供方用此密钥签名的任何令牌都会被接受 - 包括它签发给完全不同的应用程序的令牌，而这足以登录该令牌所指定的任何邮箱。请把两者都设为您的提供者放入令牌中的确切值。</value>
+    <value>令牌会被接受，但 {0}: 服务器只在您设置了它们时才逐一应用，而默认为空。这比看起来的范围要宽。您的身份提供方用此密钥签名的任何令牌都会被接受 - 包括它签发给完全不同的应用程序的令牌，而这足以登录该令牌所指定的任何邮箱。请把两者都设为您的提供方放入令牌中的确切值。</value>
   </data>
   <data name="Tokens are also accepted over unencrypted connections, so a recorded one can be replayed until it expires." xml:space="preserve">
     <value>令牌在未加密的连接上同样会被接受，因此被记录下来的令牌在到期之前都可以被重放。</value>
@@ -15017,7 +15017,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
     <value>550 回复告知发件人的内容。</value>
   </data>
   <data name="What the provider knows this server as: Entra ID's Identifier, Okta's Audience URI." xml:space="preserve">
-    <value>提供商用来识别本服务器的名称：Entra ID 的 Identifier，Okta 的 Audience URI。</value>
+    <value>提供方用来识别本服务器的名称：Entra ID 的 Identifier，Okta 的 Audience URI。</value>
   </data>
   <data name="What the receiving server answered" xml:space="preserve">
     <value>接收服务器的应答</value>

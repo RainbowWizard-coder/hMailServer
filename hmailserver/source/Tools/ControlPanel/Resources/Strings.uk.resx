@@ -6081,7 +6081,7 @@
     <value>Ідентичність</value>
   </data>
   <data name="Identity provider that issued the signing certificate (empty = GitHub's or GitLab's)" xml:space="preserve">
-    <value>Постачальник ідентичності, який видав сертифікат підписування (порожньо = провайдер GitHub або GitLab)</value>
+    <value>Постачальник ідентичності, який видав сертифікат підписування (порожньо = постачальник GitHub або GitLab)</value>
   </data>
   <data name="Identity provider's entity ID (empty = no SAML sign-in)" xml:space="preserve">
     <value>Ідентифікатор сутності постачальника ідентичності (порожньо = без входу SAML)</value>
@@ -6443,7 +6443,7 @@
     <value>Ключ відповідає сертифікату</value>
   </data>
   <data name="Key material is present for the algorithms allowed, and both the issuer and the audience are checked, so a token has to have been minted by your provider for this server specifically. The mailbox it names still has to exist as a local account - a valid token for an address this server does not host is refused." xml:space="preserve">
-    <value>Матеріал ключів для дозволених алгоритмів наявний, а видавця та аудиторію перевіряють, тому токен має бути випущений вашим провайдером саме для цього сервера. Названа в ньому поштова скринька все одно має існувати як локальний обліковий запис — дійсний токен для адреси, яку цей сервер не обслуговує, відхиляється.</value>
+    <value>Матеріал ключів для дозволених алгоритмів наявний, а видавця та аудиторію перевіряють, тому токен має бути випущений вашим постачальником саме для цього сервера. Названа в ньому поштова скринька все одно має існувати як локальний обліковий запис — дійсний токен для адреси, яку цей сервер не обслуговує, відхиляється.</value>
   </data>
   <data name="Key prefix (empty = none)" xml:space="preserve">
     <value>Префікс ключа (порожньо = немає)</value>
@@ -8472,7 +8472,7 @@
     <value>OAuth2 для смарт-хоста (Microsoft 365)</value>
   </data>
   <data name="OAuth2 is enabled, the key material its allowed algorithms need is in place, and both the issuer and the audience are checked - so a token has to have been minted by your provider for this server specifically." xml:space="preserve">
-    <value>OAuth2 увімкнено, матеріал ключів, потрібний його дозволеним алгоритмам, на місці, а видавця та аудиторію перевіряють — тому токен має бути випущений вашим провайдером саме для цього сервера.</value>
+    <value>OAuth2 увімкнено, матеріал ключів, потрібний його дозволеним алгоритмам, на місці, а видавця та аудиторію перевіряють — тому токен має бути випущений вашим постачальником саме для цього сервера.</value>
   </data>
   <data name="OAuth2 is off (the default), so no identity provider or key material is required." xml:space="preserve">
     <value>OAuth2 вимкнено (типове значення), тому ані постачальник ідентичності, ані матеріал ключів не потрібні.</value>
@@ -10002,7 +10002,7 @@
     <value>Зареєструйте шлюз як вхідний ретранслятор, щоб його адреса не вважалася клієнтом.</value>
   </data>
   <data name="Register this server as an application with the identity provider, download the provider's public signing key as a PEM file, and choose it as 'RSA/EC public key file' on the Authentication page (or set 'Shared HMAC secret' there for HS256). Set 'Expected token issuer' and 'Expected audience' to the values the provider puts in its tokens, or validation will reject them." xml:space="preserve">
-    <value>Зареєструйте цей сервер як програму у постачальника ідентичності, завантажте відкритий ключ підписування провайдера як файл PEM і виберіть його як «Файл відкритого ключа RSA/EC» на сторінці «Автентифікація» (або задайте там «Спільний секрет HMAC» для HS256). Задайте «Очікуваний видавець токена» і «Очікувана аудиторія» значеннями, які провайдер вміщує у свої токени, інакше перевірка їх відхилить.</value>
+    <value>Зареєструйте цей сервер як програму у постачальника ідентичності, завантажте відкритий ключ підписування постачальника як файл PEM і виберіть його як «Файл відкритого ключа RSA/EC» на сторінці «Автентифікація» (або задайте там «Спільний секрет HMAC» для HS256). Задайте «Очікуваний видавець токена» і «Очікувана аудиторія» значеннями, які постачальник вміщує у свої токени, інакше перевірка їх відхилить.</value>
   </data>
   <data name="Registered in Microsoft Entra with the delegated IMAP.AccessAsUser.All and offline_access permissions, and personal Microsoft accounts allowed for Outlook.com." xml:space="preserve">
     <value>Зареєстровано в Microsoft Entra з делегованими дозволами IMAP.AccessAsUser.All і offline_access та з дозволеними особистими обліковими записами Microsoft для Outlook.com.</value>
@@ -13769,7 +13769,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>Версії протоколу не вдалося прочитати.</value>
   </data>
   <data name="The provider's RFC 7662 endpoint, which says whether a token is still valid." xml:space="preserve">
-    <value>Кінцева точка провайдера за RFC 7662, яка повідомляє, чи токен ще дійсний.</value>
+    <value>Кінцева точка постачальника за RFC 7662, яка повідомляє, чи токен ще дійсний.</value>
   </data>
   <data name="The public address other servers see, when it is not an address of this machine." xml:space="preserve">
     <value>Публічна адреса, яку бачать інші сервери, коли це не адреса цього комп'ютера.</value>
@@ -15324,7 +15324,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>Не вдалося визначити, куди було б записано виданий сертифікат, бо не вдалося прочитати ані папку виводу вище, ані папку даних сервера ([Directories] DataFolder у hMailServer.ini).</value>
   </data>
   <data name="Where the provider publishes its signing keys." xml:space="preserve">
-    <value>Адреса, за якою провайдер публікує свої ключі підписування.</value>
+    <value>Адреса, за якою постачальник публікує свої ключі підписування.</value>
   </data>
   <data name="Where the search starts, e.g. DC=example,DC=local. Required in search mode - that is, when the bind method is Simple and no DN template is set." xml:space="preserve">
     <value>Звідки починається пошук, наприклад DC=example,DC=local. Обов'язковий у режимі пошуку - тобто коли метод прив'язки Simple і шаблон DN не задано.</value>
@@ -18571,7 +18571,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>{0}. Активно: {1} з {2}.</value>
   </data>
   <data name="{0}. Any token the identity provider signs with this key is then accepted, including one it issued to a different application - which is enough to sign in as whichever mailbox that token names. Set both to the exact values the provider puts in its tokens. The values come from the provider, which is why they are on this list." xml:space="preserve">
-    <value>{0}. Тоді приймається будь-який токен, який постачальник ідентичності підписує цим ключем, зокрема виданий іншій програмі, — а цього достатньо, щоб увійти як будь-яка поштова скринька, яку той токен називає. Задайте обидва точними значеннями, які провайдер вміщує у свої токени. Значення надходять від провайдера, тому вони й у цьому списку.</value>
+    <value>{0}. Тоді приймається будь-який токен, який постачальник ідентичності підписує цим ключем, зокрема виданий іншій програмі, — а цього достатньо, щоб увійти як будь-яка поштова скринька, яку той токен називає. Задайте обидва точними значеннями, які постачальник вміщує у свої токени. Значення надходять від постачальника, тому вони й у цьому списку.</value>
   </data>
   <data name="{0}. No entries are configured, so the check does not run." xml:space="preserve">
     <value>{0}. Записів не налаштовано, тому перевірка не виконується.</value>

@@ -4864,13 +4864,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   call them, the message index an indeks, and the Control Panel the Denetim Masası in prose, as 67 texts call it; the
   Alias address caption's key moves to ğ, since the Domains page gives every other letter of it to another caption.
 
-- **Fixed: 154 Ukrainian texts said what their English does not, broke Ukrainian grammar, or named one thing two
+- **Fixed: 158 Ukrainian texts said what their English does not, broke Ukrainian grammar, or named one thing two
   ways.** A fair password's advice to consider adding {0} was the weak password's order to add it; free software under
   the AGPLv3 was free of charge (безкоштовне), where it is free as in freedom (вільне); a device was what allows SMTP
   delivery, where the IP range does; and the default IP ranges were Мій комп’ютер and Internet, where the server gives
   them in English and the IP ranges page lists them so. Слухач is animate, so no listeners are слухачів, доки ... не
-  takes a finite verb, a session is a сеанс, an event script a скрипт, a resolver a розв'язувач and a server's health
-  its справність throughout, and the Control Panel is the Панель керування in prose, as 63 texts call it.
+  takes a finite verb, a session is a сеанс, an event script a скрипт, a resolver a розв'язувач, an identity provider a
+  постачальник ідентичності and a server's health its справність throughout, and the Control Panel is the Панель
+  керування in prose, as 63 texts call it.
 
 - **Fixed: 115 Japanese texts said what their English does not, or named one thing two ways.** One pass of SPF, DKIM
   or DMARC read as all three; free software under the AGPLv3 was free of charge (無償), where it is free as in freedom
@@ -4879,24 +4880,25 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   コントロール パネル and four Control Panel; a stage of the accept pipeline is a ステージ and an entry an エントリ throughout; and a
   button named in a sentence is in [ ], as the catalogue writes it, where two were set off by spaces.
 
-- **Fixed: 176 Chinese texts said what their English does not, stated where their English asks, or named one thing two
+- **Fixed: 178 Chinese texts said what their English does not, stated where their English asks, or named one thing two
   ways.** A published record's value was its time of publication (发布时间); "Not reached" said "Not consulted"; and the
   certificate was what SSL/TLS and STARTTLS need (需要, with nothing after it), where it is required when they are used.
   Sixteen confirmations stated what their English asks, as 停止更新？ did, and ask with 是否, as the rest do; 16 texts called
   the reader 你, where the catalogue says 您; a button named in a sentence is quoted, where two were set off by spaces;
-  no space follows a full-width mark; and an account is a 账户, a hold 暂挂, the accept pipeline the 接收流水线 and the CA
-  bundle the CA 证书包 throughout.
+  no space follows a full-width mark; and an account is a 账户, a hold 暂挂, an identity provider a 身份提供方, the
+  accept pipeline the 接收流水线 and the CA bundle the CA 证书包 throughout.
 
 - **Added: build/check-catalogues.py finds again what the read-back of eight catalogues mended, where a rule can see
   it.** Its read-back rules refuse a Chinese confirmation that does not ask, its English opening with Delete, Remove,
   Stop or another confirming verb and asking, where the Chinese question has none of 是否, 吗 or the other asking words;
   a button set off by spaces in Chinese or Japanese, where Chinese quotes it and Japanese brackets it; a space after a
   Chinese full-width mark, or a half-width question mark after Chinese text; a Finnish subordinate clause after sen
-  sijaan, ennen kuin, kunnes or their kin with no comma before it; and a Norwegian som that stands for the whole
-  clause before it. Run over the catalogues as they were, the rules make 124 findings in 120 texts; the self-test
-  holds each rule against a text the read-back mended, as it was and as it is. `TranslationReadbackTests` holds one
-  mended text of each of the eight catalogues, and the default IP ranges' names, My computer and Internet, which the
-  server gives in English.
+  sijaan, ennen kuin, kunnes or their kin with no comma before it; a Norwegian som that stands for the whole clause
+  before it; and a Ukrainian or Chinese text that names the identity provider two ways. Run over the catalogues as
+  they were, the rules make 151 findings in 138 texts; the self-test holds each rule against a text the read-back
+  mended, as it was and as it is. `TranslationReadbackTests` holds one mended text of each of the eight catalogues;
+  the default IP ranges' names, My computer and Internet, which the server gives in English; and the Ukrainian
+  quarantine's questions for deleting 21 or 31 messages, which speak of the senders as they do for 5.
 
 ### Administration
 

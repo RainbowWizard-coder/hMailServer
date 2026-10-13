@@ -369,7 +369,10 @@ def quotation_findings(tag, target):
 # - a Finnish subordinate clause after a conjunction phrase with no comma (lykkää postia sen
 #   sijaan että palauttaisi, poista näyte ennen kuin palvelin): 67 texts;
 # - a Norwegian relative som that stands for the whole clause before it (hele serveren, som er
-#   grunnen til at), which takes noe som.
+#   grunnen til at), which takes noe som;
+# - an identity provider named two ways in one text: the Ukrainian and Chinese read-backs made it
+#   a постачальник ідентичності and a 身份提供方 and left the English's short "the provider" a
+#   провайдер and a 提供商 or 提供者 in the same texts (repaired after the read-back's check).
 READBACK_CONFIRMING_VERBS = {
    "Apply", "Cancel", "Clear", "Delete", "Discard", "Empty", "Erase", "Keep", "Lift", "Merge", "Overwrite", "Purge",
    "Put", "Release", "Remove", "Replace", "Reset", "Restore", "Revert", "Show", "Stop", "Turn",
@@ -383,11 +386,24 @@ READBACK_FINNISH_PHRASE = re.compile(r"(?<=[\w)\"”]) (sen sijaan|sen jälkeen|
 READBACK_FINNISH_CONJUNCTION = re.compile(r"(\w+) (ennen kuin|kunnes)\b")
 READBACK_FINNISH_COORDINATORS = {"ja", "tai", "eli", "sekä", "mutta", "vaan", "eikä", "taikka", "joten", "koska"}
 READBACK_NORWEGIAN_CLAUSE_SOM = re.compile(r", som er (?:grunnen|årsaken) til\b")
+# The identity provider's one name in a catalogue, and the words a text that names it may not use
+# for it too; a text that names a provider of another kind (a DNS provider) is left alone.
+READBACK_IDENTITY_PROVIDER = re.compile(r"(?i)\bidentity provider")
+READBACK_OTHER_PROVIDER = re.compile(r"(?i)\b(?:DNS|mailbox|mail|e-?mail|hosting|hosted|delivery|push|cloud) providers?\b")
+READBACK_PROVIDER_NAMES = {
+   "uk": ("постачальник ідентичності", re.compile(r"(?i)провайдер\w*")),
+   "zh-Hans": ("身份提供方", re.compile(r"提供商|提供者")),
+}
 
 
 def readback_findings(tag, source, target):
    """What the read-back of 6.3.7 mended, found again in one translation (see above)."""
    findings = []
+   if tag in READBACK_PROVIDER_NAMES and READBACK_IDENTITY_PROVIDER.search(source) and not READBACK_OTHER_PROVIDER.search(source):
+      name, others = READBACK_PROVIDER_NAMES[tag]
+      for match in others.finditer(target):
+         findings.append("the identity provider is a %s in this catalogue, and this text names it %r too; one name"
+                         % (name, match.group(0)))
    if tag == "zh-Hans":
       first = re.split(r"[ ?]", source, maxsplit=1)[0]
       mark = target.find("？")
@@ -721,6 +737,8 @@ def self_test():
    # passing one the text as it was mended, or a text the rule must leave alone.
    stop = "Stop the update? Nothing has been installed yet."
    query = "Type a domain and press Query. The answer lists the servers that receive that domain's mail."
+   register = "Register this server as an application with the identity provider, download the provider's public signing key."
+   saml = "Sign people in with a SAML identity provider. Give the provider this server's metadata."
    readback_cases = {
       ("zh-Hans", stop, "停止更新？尚未安装任何内容。"): True,
       ("zh-Hans", stop, "是否停止更新？尚未安装任何内容。"): False,
@@ -744,6 +762,12 @@ def self_test():
       ("nb", "One slow dependency does this to the whole server, which is why.", "gjør dette mot hele serveren, som er grunnen til at"): True,
       ("nb", "One slow dependency does this to the whole server, which is why.", "gjør dette mot hele serveren, noe som er grunnen til at"): False,
       ("da", query, "Skriv et domæne, og tryk på Forespørgsel, som er grunnen til at"): False,
+      ("uk", register, "Зареєструйте цей сервер у постачальника ідентичності, завантажте ключ підписування провайдера."): True,
+      ("uk", register, "Зареєструйте цей сервер у постачальника ідентичності, завантажте ключ підписування постачальника."): False,
+      ("uk", "Publish it at your DNS provider; the identity provider is not asked.", "Опублікуйте його у свого DNS-провайдера; постачальника ідентичності не питають."): False,
+      ("zh-Hans", saml, "通过 SAML 身份提供方让用户登录。把本服务器的元数据提供给提供商。"): True,
+      ("zh-Hans", saml, "通过 SAML 身份提供方让用户登录。把本服务器的元数据提供给提供方。"): False,
+      ("zh-Hans", "Set both to the exact values your identity provider puts in its tokens.", "请把两者都设为您的提供者放入令牌中的确切值。"): True,
    }
    for (tag, source, value), expected in readback_cases.items():
       found = bool(readback_findings(tag, source, value))
