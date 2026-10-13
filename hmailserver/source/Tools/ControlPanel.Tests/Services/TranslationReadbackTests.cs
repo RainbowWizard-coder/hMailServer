@@ -35,6 +35,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("tr", "Sendout queued {0}.", "Toplu gönderim {0} saatinde kuyruğa alındı.")]
       [InlineData("ja", "Sendout queued {0}.", "{0} に一斉送信をキューに入れました。")]
       [InlineData("fi", "The cipher list could not be read.", "Salauslistaa ei voitu lukea.")]
+      [InlineData("fi", "Only for an archive that was written with a passphrase. Without the right one the archive cannot be opened at all, and the restore is refused before anything on this server is touched.", "Vain arkistolle, joka on kirjoitettu tunnuslauseella. Ilman oikeaa tunnuslausetta arkistoa ei saa auki lainkaan, ja palautus torjutaan, ennen kuin tällä palvelimella kosketaan mihinkään.")]
       [InlineData("uk", "No listeners are configured.", "Слухачів не налаштовано.")]
       [InlineData("uk", "Set the connection security on each listener, then require it for authentication.", "Задайте захист підключення на кожному слухачі, потім вимагайте його для автентифікації.")]
       [InlineData("zh-Hans", "Stop the update? Nothing has been installed yet.", "是否停止更新？尚未安装任何内容。")]

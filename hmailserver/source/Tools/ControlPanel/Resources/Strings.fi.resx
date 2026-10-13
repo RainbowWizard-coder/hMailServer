@@ -8666,7 +8666,7 @@ Mitään jo olemassa olevaa ei poisteta.</value>
     <value>Vain arkistolle, joka kirjoitettiin tunnuslauseella.</value>
   </data>
   <data name="Only for an archive that was written with a passphrase. Without the right one the archive cannot be opened at all, and the restore is refused before anything on this server is touched." xml:space="preserve">
-    <value>Vain arkistolle, joka on kirjoitettu tunnuslauseella. Ilman oikeaa arkistoa ei saa auki lainkaan, ja palautus torjutaan, ennen kuin tällä palvelimella kosketaan mihinkään.</value>
+    <value>Vain arkistolle, joka on kirjoitettu tunnuslauseella. Ilman oikeaa tunnuslausetta arkistoa ei saa auki lainkaan, ja palautus torjutaan, ennen kuin tällä palvelimella kosketaan mihinkään.</value>
   </data>
   <data name="Only needed for HS* algorithms" xml:space="preserve">
     <value>Tarvitaan vain HS*-algoritmeille</value>
