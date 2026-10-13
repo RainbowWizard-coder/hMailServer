@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using hMailServer.ControlPanel.Services;
@@ -395,7 +396,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(search != null, "QuarantineView.SearchServer_ is gone.");
          Assert.Contains("int matches = (int)quarantine.Search(text, 0, ServerSearchPage);", search, StringComparison.Ordinal);
          Assert.Contains("review_.LoadServerSearch(text, found, matches);", search, StringComparison.Ordinal);
-         Assert.Contains("catch (COMException ex) when (ex.HResult == UnknownName)", search, StringComparison.Ordinal);
+         Assert.Contains("catch (Exception ex) when (ComErrorText.IsMissingMember(ex))", search, StringComparison.Ordinal);
+         Assert.DoesNotContain("catch (COMException", search, StringComparison.Ordinal);
          Assert.Contains("serverCannotSearch_ = true;", search, StringComparison.Ordinal);
          Assert.Contains("serverSearchError_ = ServerSession.DescribeComError(ex);", search, StringComparison.Ordinal);
 
@@ -434,6 +436,85 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("private const int ServerSearchLongest = 255;", view, StringComparison.Ordinal);
          Assert.Contains("static const int max_listed_ = 500;", ReadServerFile(Path.Join("COM", "InterfaceQuarantine.h")), StringComparison.Ordinal);
          Assert.Contains("static constexpr int MaxSearchText = 255;", ReadServerFile(Path.Join("Common", "AntiSpam", "QuarantineStore.h")), StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// A server older than the Control Panel is told by what the page's own call
+      /// throws. Through dynamic, as the page calls it, a method the server's
+      /// IDispatch lacks is the binder's RuntimeBinderException - "does not contain a
+      /// definition for" - and not a COMException: the binder asks GetIDsOfNames
+      /// itself. A filter on DISP_E_UNKNOWNNAME alone never saw it, so a real older
+      /// server's missing search was a failure, a Warning in the runtime's English,
+      /// asked again at every pause in the typing. Scripting.Dictionary, on every
+      /// Windows, stands in for a server without Quarantine.Search.
+      /// </summary>
+      [Fact]
+      public void AServerWithoutTheSearch_IsToldByWhatTheCallThrows()
+      {
+         Type dictionaryType = Type.GetTypeFromProgID("Scripting.Dictionary");
+         Assert.True(dictionaryType != null, "Scripting.Dictionary is not registered on this machine.");
+
+         dynamic withoutSearch = Activator.CreateInstance(dictionaryType);
+         try
+         {
+            Exception thrown = Record.Exception(() => { _ = (int)withoutSearch.Search("invoice", 0, 500); });
+
+            Assert.NotNull(thrown);
+            Assert.False(thrown is System.Runtime.InteropServices.COMException, "The binder's failure was a COMException after all: " + thrown);
+            Assert.True(ComErrorText.IsMissingMember(thrown), thrown.GetType().FullName + ": " + thrown.Message);
+         }
+         finally
+         {
+            System.Runtime.InteropServices.Marshal.FinalReleaseComObject((object)withoutSearch);
+         }
+      }
+
+      /// <summary>
+      /// No page tells an older server by DISP_E_UNKNOWNNAME (0x80020006) alone:
+      /// ComErrorText.IsMissingMember is the one test, and knows DISP_E_MEMBERNOTFOUND
+      /// and the binder's words as well. The Quarantine page's search, its Bulk and
+      /// its headers and preview each caught the COMException only.
+      /// </summary>
+      [Fact]
+      public void NoPageTellsAnOlderServerByUnknownNameAlone()
+      {
+         var wrong = new List<string>();
+         string root = ControlPanelDirectory();
+         foreach (string file in Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories))
+         {
+            string name = Path.GetFileName(file);
+            string top = Path.GetRelativePath(root, file).Split(Path.DirectorySeparatorChar)[0];
+            if (top is "obj" or "bin")
+               continue;
+
+            // The two tests themselves.
+            if (name is "ComErrorText.cs" or "SettingApplies.cs")
+               continue;
+
+            string[] lines = File.ReadAllLines(file);
+            for (int i = 0; i < lines.Length; i++)
+            {
+               if (lines[i].Contains("0x80020006", StringComparison.OrdinalIgnoreCase))
+                  wrong.Add(name + ":" + (i + 1) + ": " + lines[i].Trim());
+            }
+         }
+
+         Assert.True(wrong.Count == 0, "Use ComErrorText.IsMissingMember, which knows the binder's RuntimeBinderException too:\n" + string.Join("\n", wrong));
+      }
+
+      private static string ControlPanelDirectory()
+      {
+         var directory = new DirectoryInfo(AppContext.BaseDirectory);
+         while (directory != null)
+         {
+            string candidate = Path.Join(directory.FullName, "ControlPanel");
+            if (File.Exists(Path.Join(candidate, "ControlPanel.csproj")))
+               return candidate;
+            directory = directory.Parent;
+         }
+
+         Assert.Fail("ControlPanel/ could not be found from the test binaries.");
+         return null;
       }
 
       private static string ReadServerFile(string relative)

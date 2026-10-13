@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
@@ -67,10 +66,6 @@ namespace hMailServer.ControlPanel.Views
       // colour for what keeps a message, the danger colour for what removes it.
       private const string KeepColourKey = "AppSuccessBrush";
       private const string RemoveColourKey = "AppDangerBrush";
-
-      // What the server answers COM with for a member it does not have: a Control
-      // Panel newer than the server it is connected to.
-      private const int UnknownName = unchecked((int)0x80020006);
 
       private readonly QuarantineReview review_ = new();
 
@@ -1004,7 +999,7 @@ namespace hMailServer.ControlPanel.Views
 
             return read;
          }
-         catch (COMException ex) when (ex.HResult == UnknownName)
+         catch (Exception ex) when (ComErrorText.IsMissingMember(ex))
          {
             return null;
          }
@@ -1292,7 +1287,7 @@ namespace hMailServer.ControlPanel.Views
             flyout_.IsOpen = true;
             flyoutText_.Focus();
          }
-         catch (COMException ex) when (ex.HResult == UnknownName)
+         catch (Exception ex) when (ComErrorText.IsMissingMember(ex))
          {
             Status_(StatusLevel.Critical, L("This server is older than the Control Panel and cannot show a held message's headers or text. Upgrade the server."));
          }
@@ -1832,9 +1827,12 @@ namespace hMailServer.ControlPanel.Views
                ServerSession.Release(quarantine);
             }
          }
-         catch (COMException ex) when (ex.HResult == UnknownName)
+         catch (Exception ex) when (ComErrorText.IsMissingMember(ex))
          {
-            // A server older than the Control Panel: the search is the page's.
+            // A server older than the Control Panel: the search is the page's. A
+            // member the server's IDispatch lacks reaches here as the binder's
+            // RuntimeBinderException, not as a COMException: dynamic asks
+            // GetIDsOfNames itself and says it found no definition.
             serverCannotSearch_ = true;
             review_.ClearServerSearch();
          }

@@ -4806,6 +4806,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   trail: the quarantine is one of the server's working lists. `QuarantineSearchTests`, the `quarantine-search-tests`
   program and the `QuarantineSearch` and `RestApiQuarantineSearch` fixtures hold it.
 
+- **Fixed: against a server older than the Control Panel, the Quarantine page took a method the server lacks for a
+  failure.** Called through `dynamic`, as the page calls the server, a method the server does not have is the .NET
+  binder's `RuntimeBinderException` ("'System.__ComObject' does not contain a definition for 'Bulk'"), never the
+  COMException `DISP_E_UNKNOWNNAME` the page waited for. So on a server without `Quarantine.Bulk` a release or a delete
+  stopped with that sentence where it goes one message at a time, an allow or a block did not say that the server is
+  older and should be upgraded, and nor did a held message's headers or preview on a server without `ReadHeaders`.
+  The page asks `ComErrorText.IsMissingMember`, which knows both; `QuarantineSearchTests` calls a COM object without
+  the method to show what the binder throws, and holds that no page tells an older server by `DISP_E_UNKNOWNNAME`
+  alone.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
