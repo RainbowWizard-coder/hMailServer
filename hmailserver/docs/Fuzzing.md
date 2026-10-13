@@ -433,7 +433,23 @@ first input on which they differ, printing both answers:
    bracket, where a mail program ends the link before any browser is given it.
 4. **The link reader in HTML**: the same for `<a href="http://<input>/">`,
    unless the input holds the `"` that ends the value or the `&` that begins a
-   character reference.
+   character reference; and again for that link with the input written in
+   character references, which a browser reads before its URL parser - `&` and
+   `"` as `&amp;` and `&quot;`, and each code point past ASCII that HTML has a
+   named reference for as one of its names, picked by its place in the input,
+   without its `;` where HTML reads it so and nothing after it would carry the
+   name on - so that no input is left out of it, and HTML's whole list of names
+   is put to the reader. The names are the harness's own, not the server's
+   table: the script writes them from Python's copy of the HTML standard's list
+   (`html.entities.html5`), held to the `entities.json` the server's table is
+   generated from, so that a name the table lost is a difference.
+5. **What 6.3.6 handed over**: every host 6.3.6's reading of the input as a
+   link's host part hands over - the name before a character a mail program
+   ends a link at, the labels after the last label holding one, an address -
+   `SURBL::FindLinkHosts` hands over too, in the text of 3 and both links of 4,
+   whatever ada makes of the input. The reading is a copy of 6.3.6's, as the
+   `v6.3.6` tag has it (`fuzz/harness/surbl_636_reading.h`), not the server's
+   own, which must not be read to judge itself.
 
 It runs on Linux only, with clang's libFuzzer and AddressSanitizer, in the CI
 image, as a CMake project of its own (`fuzz/idna/`) that builds the server's
@@ -476,7 +492,7 @@ The classes, each a rule in `fuzz/harness/idna_ada_common.h`:
 |---|---|---|
 | A code point, of the input or of a label as UTS 46 decodes it, whose UTS 46 data differ between Unicode 17.0.0 and 18.0.0 (13,010 code points) | ada's mapping table is of 17.0.0, the server's of 18.0.0 | `generate-idna-tables.py --differences` over the two versions' files |
 | A code point whose direction, or whether it is a mark, ada reads otherwise (7,605 code points, 1,441 of them ones a label may hold; most of those - at least 815 - added in Unicode 16.0 or later, 712 in U+1CC00..U+1CEFF alone) | ada's direction and mark data are not of its mapping table's Unicode version: it reads GARAY DIGIT EIGHT (U+10D48, Unicode 16.0, Bidi_Class AN) as left-to-right | six labels put to ada's own `is_label_valid` for every code point, against what they give with the server's data |
-| A domain holding U+200C or U+200D | ada's CONTEXTJ looks for a joining character anywhere before and after a ZERO WIDTH NON-JOINER, from lists of its own, where RFC 5892 allows only Joining_Type T between, and once it has taken a joiner it checks nothing more of the label - its bidi rule neither | 3 lines of `IdnaTestV2.txt` that the file fails and ada takes |
+| A domain holding U+200C or U+200D, as written or in a label decoded from Punycode | ada's CONTEXTJ looks for a joining character anywhere before and after a ZERO WIDTH NON-JOINER, from lists of its own, where RFC 5892 allows only Joining_Type T between, and once it has taken a joiner it checks nothing more of the label - its bidi rule neither, nor a second joiner: `xn--10cl1a0b660pa0b660p` is Sinhala with two ZERO WIDTH JOINERs, the second after the first and not after a virama | 3 lines of `IdnaTestV2.txt` that the file fails and ada takes, and the label written `xn--`, kept in `fuzz/regression/idna_ada_fuzzer/` |
 | A domain the server refuses only for RFC 5893's rule on labels with no R, AL or AN | UTS 46 applies the rule to every label of a bidi domain name; ada only to a label that holds such a character itself | 63 lines the file fails by a B code and ada takes |
 | An answer of ada's with a label that is not in NFC | ada skips normalising a name its quick check passes, and the check passes a precomposed character followed by a mark its own decomposition must be reordered with: `U+212B U+0323` comes out `U+00E5 U+0323`, whose NFC is `U+1EA1 U+030A` | the server's NFC held to `NormalizationTest.txt` first |
 | A domain the server refuses only for an `xn--` label whose Punycode begins with its only delimiter (`xn---ssm4ef`) | RFC 3492 (section 6.2 and its sample code) consumes the delimiter only after basic code points, so the `-` is read as a digit, which it is not; ICU and the Rust `idna` crate refuse the label too; ada, like Python's codec, skips it | RFC 3492's text and sample code |
@@ -488,6 +504,20 @@ name before it and the labels after it, where a browser goes nowhere - the link
 reader looks for every name a list might know.
 
 ### What it found
+
+Two readings of the link reader's that no check could see were found by an
+adversarial check of the code on 13 October 2026, before 6.3.7 shipped it, and
+are now checks of their own. A link in running text followed by punctuation
+past ASCII - a closing quotation mark, a guillemet, CJK brackets, commas or full
+stops - named only the host's last label with the character in it, Punycode and
+all, where 6.3.6 named the listed host before the character, as the mail
+programs that make the link end it there: check 3 asks only for the host a
+browser gets from the whole input, which the server did hand over, so check 5
+now holds the reader to every host 6.3.6 handed over. And a host written in
+HTML's named references to characters UTS 46 maps or takes
+(`&eopf;vil.example`, `b&uuml;cher.example`) named nothing, the reader knowing
+70 names: check 4 left out every input holding an `&`, so it now writes the
+input in references as well.
 
 One defect of the server's, on 12 October 2026, before 6.3.7 shipped the code:
 `0x1.0x000000000000` followed by two parts of over a hundred digits, all zeros
@@ -510,10 +540,31 @@ its first mutations. The one it stopped at, `xn--0ca88g.ßxn--4db`, ada sends to
 `xn--0ca88g.xn--xn--4db-zva` and the old reading nowhere; each of the 388
 replays without a difference against the code as it is.
 
-The run after those, from a fresh build of the code as it is, on server2, 30
-minutes with eight processes: no difference in 1,819 seconds, about 47.9 million
-inputs in 157 jobs, none of them a crash or a timeout under AddressSanitizer,
-and 9,263 inputs in the corpus at the end. A difference a run reports now is
+The run after those, from a fresh build of the code as it then was, on
+server2, 30 minutes with eight processes: no difference in 1,819 seconds, about
+47.9 million inputs in 157 jobs, none of them a crash or a timeout under
+AddressSanitizer, and 9,263 inputs in the corpus at the end.
+
+The runs of 13 October 2026, after the repair of the link reader the check
+above found, each from a fresh copy of the code as it is: the first, 30
+minutes from a fresh build, stopped once, at its end, at check 1 -
+`vww.xn--10cl1a0b660pa0b660p.` and more, whose second label is Sinhala with two
+ZERO WIDTH JOINERs, refused by the server as RFC 5892 has it and taken by ada:
+ada's joiner departure, which the rule for it did not yet look for in a label
+written `xn--`. It does now, and the input is kept in
+`fuzz/regression/idna_ada_fuzzer/`. Two negative controls showed that the new
+checks have teeth: with the reading of a host as it is written taken out of the
+reader, a run stopped at once, at the replay of a kept finding, at check 5 (6.3.6
+handed over `1.0.0.0`); and with 6.3.6's 70 named references put back, at check
+4 in references (`--Ä.ututut` named nothing) - once the harness wrote its
+references from a list of its own: written from the server's own table, as at
+first, they found nothing, a table that lost names reading back alike what it
+wrote.
+
+The last run, 30 minutes with eight processes from the corpus the runs before it
+had left: no difference in 1,807 seconds, about 36.4 million inputs in 159 jobs,
+none of them a crash or a timeout under AddressSanitizer, and 10,228 inputs in
+the corpus at the end. A difference a run reports now is
 either a defect of the server's - its UTS 46 or its link reader - or a further
 departure of ada's, and is not to be set aside until it is shown to be ada's
 against Unicode's own data or the RFC it departs from.

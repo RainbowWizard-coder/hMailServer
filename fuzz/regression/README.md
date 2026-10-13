@@ -5,7 +5,9 @@ One directory per target (`mime_message_fuzzer`, `mime_header_fuzzer`,
 `mime_decode_fuzzer`, and the differential `idna_ada_fuzzer`). Each file in them
 is a libFuzzer input that **used to crash, hang or trip AddressSanitizer** - or,
 for `idna_ada_fuzzer`, made the server read a host otherwise than a browser
-reads it - and no longer does.
+reads it, or stopped the fuzz at one of ada's own departures from UTS 46 that
+the harness's rules did not yet set aside (`ada-contextj-in-a-punycode-label`:
+joiners in a label written `xn--`) - and no longer does.
 
 `run-fuzz.ps1` passes the MIME directories to libFuzzer as read-only seeds, so
 every run — including the seconds-long `-Replay` mode — re-executes all of them;

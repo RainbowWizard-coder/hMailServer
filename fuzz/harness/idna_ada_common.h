@@ -16,7 +16,8 @@
 //     T between; ada looks for any such character anywhere before and after,
 //     from lists of its own, and once it has taken a joiner checks nothing more
 //     of the label, its bidi rule included. A domain that holds U+200C or
-//     U+200D is set aside.
+//     U+200D, as written or in a label UTS 46 decodes from Punycode, is set
+//     aside.
 //   * RFC 5893's rule, which UTS 46 applies to every label of a bidi domain name
 //     (one that holds an R, AL or AN anywhere) and ada only to a label that holds
 //     one itself. A difference where the server refused and every label it
@@ -349,6 +350,17 @@ namespace idna_ada
 
       std::vector<HM::Idna::Label> labels;
       HM::Idna::ProcessLabels(domain, HM::Idna::UrlStandardOptions(), labels);
+
+      // A joiner in a label written "xn--" is checked by ada's CONTEXTJ as one
+      // written so is, once ada has decoded the label: xn--10cl1a0b660pa0b660p
+      // is Sinhala with two ZERO WIDTH JOINERs, the second after the first and
+      // not after a virama, which RFC 5892 refuses and ada, having taken the
+      // first, takes.
+      for (const HM::Idna::Label &label : labels)
+         if (label.punycode)
+            for (unsigned int codePoint : label.unicode)
+               if (codePoint == 0x200C || codePoint == 0x200D)
+                  return joinerDeparture;
 
       const char *why = nullptr;
       for (const HM::Idna::Label &label : labels)

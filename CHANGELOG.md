@@ -4599,20 +4599,25 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   each held to its SHA-256; `checkers` runs it with `--check` beside the other generators, and SonarQube Cloud's scope
   leaves its two files out, as it does theirs (`.sonarcloud.properties`); the data's Unicode License v3 is in
   `hmailserver/docs/Licenses/`, the packages' copyright file, the Windows installer's licence, the source tarball's
-  required files and the SBOM; and so do HTML's named character references, whose table
-  `build/generate-html-references.py` writes from the HTML standard's `entities.json`, held to its SHA-256 likewise,
-  under the BSD 3-Clause terms the standard gives a portion of it incorporated into source code.
+  required files and the SBOM. So are the BSD 3-Clause terms of HTML's list of named character references - the
+  standard's terms for a portion of it incorporated into source code - whose table `build/generate-html-references.py`
+  writes from the standard's own `entities.json`, held to its SHA-256 likewise and run with `--check` in `checkers`.
   `build/ci/idna-differential-fuzz.sh` builds the server's core library with libFuzzer
   and AddressSanitizer beside ada 4.0.0, the URL parser of Node.js, taken from PyPI and Unicode's files from
   unicode.org, each pinned, nothing from GitHub, and puts every input to the domain parser, `SURBL::HostOfAuthority`
-  and the link reader in text and in HTML on both sides; before it fuzzes it holds the server's NFC to
+  and the link reader in text and in HTML - once as written and once in character references, every code point past
+  ASCII that has a named reference written as one - on both sides, and holds the link reader to handing over every
+  host 6.3.6 handed over for the input, by a copy of 6.3.6's reading (`fuzz/harness/surbl_636_reading.h`), whatever
+  ada makes of it; before it fuzzes it holds the server's NFC to
   `NormalizationTest.txt` and ada to `IdnaTestV2.txt`, so that what it sets aside - the code points whose Unicode
   tables differ between the two, and ada's four departures from UTS 46 (its joiner and bidi rules, a name it leaves
   out of NFC, and Punycode that begins with its delimiter) - is shown to be the tables' or ada's, against Unicode's
   own files, RFC 3492 and ada's own label check. The one defect of the server's it found before release is kept in
-  `fuzz/regression/idna_ada_fuzzer` and replayed before every run fuzzes. Its 30-minute run on server2 on the night of
-  12 October 2026, from a fresh build of the code as it is: no difference in 1,819 seconds, about 47.9 million inputs
-  in 157 jobs, none of them a crash or a timeout under AddressSanitizer, and 9,263 inputs in the corpus at the end
+  `fuzz/regression/idna_ada_fuzzer` and replayed before every run fuzzes, beside an input of ada's joiner departure in a
+  label written `xn--`, which the rule for it now covers. Its 30-minute run on server2 on the night of 12 October 2026,
+  from a fresh build: no difference in 1,819 seconds, about 47.9 million inputs; and on 13 October 2026, with the two
+  checks above, from the corpus the runs before had left: no difference in 1,807 seconds, about 36.4 million inputs in
+  159 jobs, none of them a crash or a timeout under AddressSanitizer, and 10,228 inputs in the corpus at the end
   ([Fuzzing.md](hmailserver/docs/Fuzzing.md), "UTS 46 against ada").
 - **Every change is checked before it lands, a maintainer's batch as well as a merge request** (OpenSSF Baseline
   OSPS-VM-05.03 and OSPS-VM-06.02). `semgrep-sast`, `semgrep-sast-gate` and `mr-dependency-check` ran in a merge

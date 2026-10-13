@@ -89,3 +89,16 @@ cjk="\xe4\xb8\x80"
 cyrillic_a="\xd0\xb0"
 greek_omicron="\xce\xbf"
 emoji_coffee="\xe2\x98\x95"
+
+# Punctuation that follows a link in running text, which UTS 46 takes into the
+# host's last label (valid) or maps to ASCII's, and a code point it maps to
+# eighteen (check 5, and the label limit)
+right_double_quotation_mark="\xe2\x80\x9d"
+right_single_quotation_mark="\xe2\x80\x99"
+right_guillemet="\xc2\xbb"
+em_dash="\xe2\x80\x94"
+ideographic_comma="\xe3\x80\x81"
+right_corner_bracket="\xe3\x80\x8d"
+fullwidth_comma="\xef\xbc\x8c"
+fullwidth_right_parenthesis="\xef\xbc\x89"
+arabic_ligature_sallallahou="\xef\xb7\xba"
