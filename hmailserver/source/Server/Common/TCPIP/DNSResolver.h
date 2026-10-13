@@ -29,10 +29,13 @@ namespace HM
       // The names of a domain's exchanges. True with none when the domain
       // publishes no MX, or does not exist (NXDOMAIN) - of a name that does not
       // exist, no CNAME query is made. False when the lookup did not complete:
-      // the MX query failed, or it was answered NODATA and the query that asks
-      // whether the name is an alias failed; and on Windows for a null MX (RFC
-      // 7505), which the MX-record test reads as a lookup that failed. The POSIX
-      // resolver drops a null MX's exchange, so there it is true with none.
+      // the MX query failed, or it found nothing and was not answered NXDOMAIN
+      // (it was answered NODATA, or on Windows the name is an alias, whose
+      // records the DNS client returns under the name it is an alias of) and
+      // the query that asks whether the name is an alias failed; and on Windows
+      // for a null MX (RFC 7505), which the MX-record test reads as a lookup
+      // that failed. The POSIX resolver drops a null MX's exchange, so there it
+      // is true with none.
       bool GetMXRecords(const String &sDomain, std::vector<String> &vecFoundNames);
 
       // The name's IPv4 and IPv6 addresses, A and AAAA (AAAA where IPv6 is
@@ -68,11 +71,13 @@ namespace HM
 
       // The values of one record type, as the bytes they arrived as, following a
       // CNAME where the name holds none of that type. False means the lookup could
-      // not be completed - the query failed, or it was answered NODATA and the
-      // query asking whether the name is an alias failed; true with nothing in
-      // values means the name holds no record of that type, or does not exist
-      // (NXDOMAIN, which no CNAME query follows). resourceType is a DNS_TYPE_
-      // constant, as DNSResolverWinApi takes.
+      // not be completed - the query failed, or it found nothing and was not
+      // answered NXDOMAIN (it was answered NODATA, or on Windows the name is an
+      // alias, whose records the DNS client returns under the name it is an
+      // alias of) and the query asking whether the name is an alias failed; true
+      // with nothing in values means the name holds no record of that type, or
+      // does not exist (NXDOMAIN, which no CNAME query follows). resourceType is
+      // a DNS_TYPE_ constant, as DNSResolverWinApi takes.
       //
       // For SPF, which cannot use the typed methods above because each of them adds
       // something its own callers want and RFC 7208 forbids. GetIpAddresses merges A
@@ -119,15 +124,18 @@ namespace HM
    // answered; NXDOMAIN and NODATA stay "no addresses"; an alias is followed;
    // GetDnsListAnswers asks A alone, and a query that failed once more, and
    // only that one, past the DNS cache; a TXT, MX or other record lookup
-   // answered NODATA fails when the query asking whether the name is an
-   // alias failed (upstream PR 640), and a lookup answered NXDOMAIN - for an
-   // address lookup, by A and AAAA both - asks no such query and has no
-   // records, whatever that query would have met; and GetEmailServers, when
-   // the lookup of one of a domain's exchanges failed, still holds an address
-   // two of the others share once. It runs inside the service with the other
-   // class tests (ClassTester), and on Linux in public-suffix-tests. No DNS,
-   // database or setting. It throws std::logic_error naming the first thing
-   // that is wrong.
+   // that found nothing and was not answered NXDOMAIN - NODATA in the answers
+   // scripted here, and on Windows an alias too, whose records the DNS client
+   // returns under the name it is an alias of - fails when the query asking
+   // whether the name is an alias failed (the shape of upstream PR 640, which
+   // leaves the record lookups as they were), and a lookup answered NXDOMAIN
+   // - for an address lookup, by A and AAAA both - asks no such query and has
+   // no records, whatever that query would have met; and GetEmailServers,
+   // when the lookup of one of a domain's exchanges failed, still holds an
+   // address two of the others share once. It runs inside the service with
+   // the other class tests (ClassTester), and on Linux in public-suffix-tests.
+   // No DNS, database or setting. It throws std::logic_error naming the first
+   // thing that is wrong.
    class DNSResolverTester
    {
    public:

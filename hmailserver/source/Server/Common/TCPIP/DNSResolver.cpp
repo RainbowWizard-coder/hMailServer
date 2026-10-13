@@ -562,10 +562,11 @@ namespace HM
          // Whether the name is an alias of one that holds such records could not
          // be told, so the lookup did not complete - which is not "no records",
          // the answer a DKIM key, a DMARC policy or an SPF record that is not
-         // published gets (upstream PR 640). On Windows this is the path of every
-         // alias: the DNS client follows the CNAME, and the target's records come
-         // back under the target's name, which the query's own name filters out -
-         // a DKIM selector that is a CNAME, as Microsoft 365's are, among them.
+         // published gets (the shape of upstream PR 640, which leaves this
+         // lookup as it was). On Windows this is the path of every alias: the
+         // DNS client follows the CNAME, and the target's records come back
+         // under the target's name, which the query's own name filters out - a
+         // DKIM selector that is a CNAME, as Microsoft 365's are, among them.
          if (!cnameQueryResult)
             return false;
       }

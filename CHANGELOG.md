@@ -657,12 +657,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   application log at most every 15 minutes, as SURBL does. So a lookup the list answered does not fail on an AAAA
   query, one that times out waits for the DNS twice, as its A and AAAA queries made it wait before, and one that
   is answered is one query where it was two. The same shape is gone from two more places: the PTR test scored a
-  reverse name whose address lookup failed, and a TXT, MX or other record lookup answered NODATA whose CNAME query
-  failed read as "no records" - a DKIM key not published, which is a `PermFail`, no DMARC policy, no SPF record, no
-  MX for the MX-record test - where it is now a temporary error, as any other lookup that fails is (a name answered
-  NXDOMAIN is still no records, and asked no CNAME query: a DKIM key that does not exist is a `PermFail`); and
+  reverse name whose address lookup failed, and a TXT, MX or other record lookup that found nothing and whose CNAME
+  query failed read as "no records" - a DKIM key not published, which is a `PermFail`, no DMARC policy, no SPF
+  record, no MX for the MX-record test - where it is now a temporary error, as any other lookup that fails is; and
   the never-ban list read such a forward lookup of a banned address's reverse name as a name that does not resolve
-  back to it, and announced the ban, where it now asks again a minute later, as for any lookup not answered.
+  back to it, and announced the ban, where it now asks again a minute later, as for any lookup not answered. The
+  CNAME query is asked after a query answered NODATA, and on Windows after the query of every alias, whose records
+  the DNS client returns under the name it is an alias of, which the lookup does not take - so on Windows a DKIM
+  selector that is a CNAME, as Microsoft 365's are for a customer's domain, is now a `TempFail` when its CNAME
+  query fails, where it was a `PermFail`. A name answered NXDOMAIN is still no records, and is asked no CNAME
+  query: a DKIM key that does not exist is a `PermFail`.
   Delivery makes the same address lookup of a recipient's mail servers, and of a route's host or the SMTP relay
   server: when none of them had an address and that lookup of one of them failed so - through a route that names
   several hosts, of the last of them - the notice to the sender said `No mail servers appear to exists`
