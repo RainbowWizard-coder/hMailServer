@@ -120,7 +120,34 @@ namespace HM
             return false; // --- already disconnected.
 
          if (cSQLCEConnection->State == 1)
+         {
+            // ADO refuses to close a connection with a transaction open ("Connection
+            // object cannot be explicitly closed while in a transaction", measured
+            // with Compact 4.0 on 13 October 2026), and left so the connection stayed
+            // open under the transaction while this said it was closed: the next
+            // Connect then failed on an object that was still open, and the pool
+            // kept a connection that could never be used again. A connection that is
+            // closed takes back what it had not committed, as a server's session does
+            // when it ends - which is what a DatabaseTransaction that reconnects a
+            // connection it could not roll back relies on. With no transaction open
+            // the provider refuses the rollback, and nothing else happens.
+            bool rolledBack = false;
+            try
+            {
+               cSQLCEConnection->RollbackTrans();
+               rolledBack = true;
+            }
+            catch (...)
+            {
+               // No transaction was open, the usual case.
+               rolledBack = false;
+            }
+
+            if (rolledBack)
+               LOG_DEBUG(_T("SQLCEConnection: a transaction left open was rolled back as the connection was closed."));
+
             cSQLCEConnection->Close();
+         }
       }
       catch ( ... )
       {
@@ -875,12 +902,15 @@ namespace HM
       (formMain.SplitsAtLongPrerequisites).
 
       Separately, and true on every backend: DatabaseConnectionManager::Execute
-      takes no connection, so it borrows a *different* pooled connection for each
-      statement. A transaction opened here therefore covers only the statements
-      routed onto this same connection object - which is exactly the COM API's
-      IInterfaceDatabase.ExecuteSQL / ExecuteSQLScript / EnsurePrerequisites
-      while a transaction is open, and nothing else. Server-internal work done
-      through the object model during that window is outside it.
+      takes no connection, so outside a DatabaseTransaction it borrows a
+      *different* pooled connection for each statement. A transaction begun on a
+      connection the pool handed out (DatabaseConnectionManager::BeginTransaction)
+      therefore covers only the statements routed onto this same connection
+      object - which is exactly the COM API's IInterfaceDatabase.ExecuteSQL /
+      ExecuteSQLScript / EnsurePrerequisites while a transaction is open, and
+      nothing else. Server-internal work done through the object model during that
+      window is outside it. A DatabaseTransaction is the other way round: the
+      statements its thread makes through the pool run on its connection.
 
       What these three did *not* do was report failure. Each returned true
       unconditionally, so a commit that threw - a lost session, a provider error,
@@ -954,6 +984,71 @@ namespace HM
          sErrorMessage = "Failed to roll back a SQL Server Compact transaction. Data written inside it may still be present.";
          LOG_APPLICATION(sErrorMessage);
          return false;
+      }
+   }
+
+   DALConnection::LastFailure
+   SQLCEConnection::ClassifyLastFailure(ExecutionResult result)
+   {
+      if (result == DALConnection::DALConnectionProblem || !connected_ || cSQLCEConnection == NULL)
+         return LastFailureConnection;
+
+      // GetErrorType_'s DALErrorInSQL is an integrity violation, which is what a
+      // caller that ignores DALErrorInSQL means by a row that is there already.
+      LastFailure kind = result == DALConnection::DALErrorInSQL ? LastFailureDuplicate : LastFailureOther;
+
+      // The provider's records of the failure, which ADO keeps on the connection
+      // until another failure replaces them; ForgetLastFailure clears them before
+      // a statement, so that these are that statement's.
+      try
+      {
+         ErrorsPtr errors = cSQLCEConnection->GetErrors();
+         const long count = errors->GetCount();
+
+         for (long i = 0; i < count; i++)
+         {
+            ErrorPtr error = errors->GetItem(_variant_t(i));
+            if (error == NULL)
+               continue;
+
+            switch (error->GetNativeError())
+            {
+            case SSCE_M_LOCKTIMEOUT:
+               // E_FAIL, after the provider's lock timeout (five seconds on a
+               // desktop). The statement fails and the transaction is left as it
+               // was (measured with Compact 4.0, 13 October 2026).
+               return LastFailureRetryable;
+            case SSCE_M_KEYDUPLICATE:
+               // A unique index refused the row: DB_E_INTEGRITYVIOLATION as well
+               // (measured), and named here so that it is the duplicate whatever
+               // HRESULT a provider gives it.
+               kind = LastFailureDuplicate;
+               break;
+            default:
+               break;
+            }
+         }
+      }
+      catch (...)
+      {
+         // No records to read: classified on the result alone.
+         return kind;
+      }
+
+      return kind;
+   }
+
+   void
+   SQLCEConnection::ForgetLastFailure()
+   {
+      try
+      {
+         if (cSQLCEConnection != NULL)
+            cSQLCEConnection->GetErrors()->Clear();
+      }
+      catch (...)
+      {
+         LOG_DEBUG(_T("SQLCEConnection: the provider's error records could not be cleared before a statement."));
       }
    }
 

@@ -18,6 +18,7 @@
 namespace HM
 {
    class SQLCommand;
+   class DatabaseTransaction;
 
    class DatabaseConnectionManager
    {
@@ -196,6 +197,20 @@ namespace HM
       // makes a new manager.
       bool closing_ = false;
 
+      // A DatabaseTransaction takes its connection from the pool and gives it
+      // back, measures its statements and runs the fault injection as the pool's
+      // own statements are, and has its statements recorded by the audit trail
+      // through ExecuteInTransaction_. Its tester fills a pool of its own with
+      // connections to a database of its own.
+      friend class DatabaseTransaction;
+      friend class DatabaseTransactionTester;
+
+      // A statement made inside a DatabaseTransaction - through it, or through
+      // Execute on the thread that opened it - run once on its connection, and
+      // recorded by the audit trail as every statement through Execute is: here,
+      // in the one file the audit trail's chokepoint lives in
+      // (build/check-audit-choke-point.py).
+      bool ExecuteInTransaction_(DatabaseTransaction &transaction, const SQLCommand &command, __int64 *iInsertID, int iIgnoreErrors, String &sErrorMessage);
    };
 
    // CloseWhenIdle, over stand-in connections that need no database: the idle

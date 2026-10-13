@@ -180,6 +180,41 @@ namespace HM
       String GetTransportSecurity() const { return transport_security_; }
       bool GetTransportEncrypted() const { return transport_encrypted_; }
 
+      // What the statement that failed last on this connection failed with, in
+      // the terms a DatabaseTransaction acts on: the connection lost under it; a
+      // deadlock, a serialisation failure or a lock wait that timed out, for which
+      // a unit of work is run again whole (SQL Server 1205, MySQL and MariaDB
+      // 1213, 1205 and 1020, PostgreSQL 40001 and 40P01, SQL Server Compact
+      // 25090); a row that is there already (a unique key, or on SQL Server and
+      // Compact an integrity violation, which is what the backends' own
+      // DALErrorInSQL means); or anything else. Asked straight after the failure,
+      // with what TryExecute, TryOpen or the transaction call returned (DALUnknown
+      // when it said no more than false), before anything else runs on the
+      // connection; ForgetLastFailure before the statement, so that what is read
+      // is that statement's.
+      enum LastFailure
+      {
+         LastFailureOther = 0,
+         LastFailureConnection = 1,
+         LastFailureRetryable = 2,
+         LastFailureDuplicate = 3
+      };
+
+      virtual LastFailure ClassifyLastFailure(ExecutionResult result) { return result == DALConnectionProblem ? LastFailureConnection : LastFailureOther; }
+      virtual void ForgetLastFailure() {}
+
+      // Whether a transaction on this connection is one: false only on MySQL and
+      // MariaDB when a table of the database is not InnoDB, where BeginTransaction
+      // succeeds having begun nothing (MySQLConnection::LoadSupportsTransactions_).
+      virtual bool GetSupportsTransactions() const { return true; }
+
+      // PostgreSQL's: a statement that fails inside a transaction aborts it, and
+      // every statement after it is refused until the rollback - so a failure a
+      // caller means to ignore needs a savepoint there (DatabaseTransaction) - and
+      // whether that has happened to the transaction open now.
+      virtual bool GetFailedStatementEndsTransaction() const { return false; }
+      virtual bool IsTransactionFailed() const { return false; }
+
    protected:
 
       // Records what GetTransportSecurity answers, and notes it for the

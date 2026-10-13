@@ -28,6 +28,7 @@
 #ifndef _ERROR_LOGGING_IN_MESSAGE_BOXES
    #include "../Scripting/ScriptServer.h"
    #include "../Scripting/ScriptObjectContainer.h"
+   #include "../SQL/DatabaseTransaction.h"
 #endif
 
 namespace HM
@@ -475,6 +476,13 @@ namespace HM
       pContainer->AddTextArgument(normalized_description);
 
       OnErrorDispatchGuard on_error_guard(dispatching_on_error_);
+
+      // An error reported inside a database transaction - a statement of the unit
+      // that failed - must not take the script's own reads and writes into that
+      // transaction: they would be refused once it has failed, rolled back with
+      // it, and an alert the script queues would never be sent. The script runs
+      // as it always has, on the pool's connections.
+      DatabaseTransaction::Suspension outsideTheTransaction;
 
       ScriptServer::Instance()->FireEvent(ScriptServer::EventOnError, sEventCaller, pContainer, sScriptLanguage);
    }

@@ -834,6 +834,38 @@ namespace HM
       }
    }
 
+   DALConnection::LastFailure
+   MySQLConnection::ClassifyLastFailure(ExecutionResult result)
+   {
+      if (result == DALConnection::DALConnectionProblem || dbconn_ == 0)
+         return LastFailureConnection;
+
+      switch (MySQLInterface::Instance()->p_mysql_errno(dbconn_))
+      {
+      case 2006: // CR_SERVER_GONE_ERROR, MySQL server has gone away
+      case 2013: // CR_SERVER_LOST, lost connection during the query
+      case 2055: // CR_SERVER_LOST_EXTENDED
+      case 1053: // ER_SERVER_SHUTDOWN
+      case 1927: // ER_CONNECTION_KILLED (MariaDB)
+      case 4031: // ER_CLIENT_INTERACTION_TIMEOUT (MySQL 8.0.24 and later)
+      // A session the server ended answers the next statement over TLS with the TLS
+      // layer's end of file, not 2013 (measured through libmariadb on MySQL 8.4 and
+      // MariaDB 11.8, 13 October 2026, a session killed inside a transaction). Here
+      // only for a statement on a connection already made: ConnectOnce_ answers a
+      // TLS refusal at connect itself.
+      case HM_MYSQL_CR_SSL_CONNECTION_ERROR:
+         return LastFailureConnection;
+      case 1213: // ER_LOCK_DEADLOCK: the transaction was rolled back
+      case 1205: // ER_LOCK_WAIT_TIMEOUT: the statement was rolled back
+      case 1020: // ER_CHECKREAD: MariaDB's snapshot isolation (11.6 and later)
+         return LastFailureRetryable;
+      case 1062: // ER_DUP_ENTRY, the failure GetErrorType_ calls DALErrorInSQL
+         return LastFailureDuplicate;
+      default:
+         return LastFailureOther;
+      }
+   }
+
    void
    MySQLConnection::LoadSupportsTransactions_(const String &database)
    {

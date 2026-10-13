@@ -93,6 +93,11 @@ namespace HM
       // connection with a syntax error.
       static String QuoteIdentifier(const String &name);
 
+      // DALConnection's, from mysql_errno - which still holds the failure's number
+      // after TryExecute returns - and from whether every table is InnoDB.
+      virtual LastFailure ClassifyLastFailure(ExecutionResult result);
+      virtual bool GetSupportsTransactions() const { return supports_transactions_; }
+
    private:
 
       // One attempt at the server: a fresh handle (the one before it closed), the

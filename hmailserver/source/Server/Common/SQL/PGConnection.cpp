@@ -413,6 +413,7 @@ namespace HM
 
             if (iExecResult == PGRES_COMMAND_OK || iExecResult == PGRES_TUPLES_OK) 
             {
+               last_sql_state_.clear();
                result = DALConnection::DALSuccess;
                return result;
             }
@@ -420,6 +421,12 @@ namespace HM
             {
                result = DALConnection::DALErrorInSQL;
             }
+
+            // What the failure was, by its SQLSTATE, for ClassifyLastFailure: a
+            // deadlock or a serialisation failure, a row that is there already, or
+            // a connection that went (DatabaseTransaction acts on each).
+            const char *sqlState = PQresultErrorField(pResult, PG_DIAG_SQLSTATE);
+            last_sql_state_ = sqlState != nullptr ? sqlState : "";
 
             // Retrieve error message
             sErrorMsg  = PQresultErrorMessage(pResult);
@@ -446,6 +453,8 @@ namespace HM
          }
          else
          {
+            last_sql_state_.clear();
+
             sErrorMsg  = PQerrorMessage(dbconn_);
 
             if (sErrorMsg.IsEmpty())
@@ -488,6 +497,21 @@ namespace HM
    bool 
    PGConnection::CommitTransaction(String &sErrorMessage)
    {
+      // A transaction in which a statement has failed is answered, when it is
+      // asked to COMMIT, with success and the command tag ROLLBACK: PostgreSQL
+      // rolls it back. TryExecute looks at the status alone, so this said
+      // committed, and every caller - SchemaUpgrader, COM's
+      // Database.CommitTransaction - reads true as saved. It is rolled back here
+      // instead, and said to be.
+      if (IsTransactionFailed())
+      {
+         String rollbackError;
+         TryExecute(SQLCommand("ROLLBACK TRANSACTION"), rollbackError, 0, 0);
+
+         sErrorMessage = "Postgres: the transaction was rolled back, not committed: a statement in it had failed, and PostgreSQL does not commit a transaction after that.";
+         return false;
+      }
+
       return TryExecute(SQLCommand("COMMIT TRANSACTION"), sErrorMessage, 0, 0) == DALSuccess;
    }
 
@@ -495,6 +519,40 @@ namespace HM
    PGConnection::RollbackTransaction(String &sErrorMessage)
    {
       return TryExecute(SQLCommand("ROLLBACK TRANSACTION"), sErrorMessage, 0, 0) == DALSuccess;
+   }
+
+   DALConnection::LastFailure
+   PGConnection::ClassifyLastFailure(ExecutionResult result)
+   {
+      if (result == DALConnection::DALConnectionProblem || dbconn_ == 0 || PQstatus(dbconn_) != CONNECTION_OK)
+         return LastFailureConnection;
+
+      // Class 08, connection exception.
+      if (last_sql_state_.compare(0, 2, "08") == 0)
+         return LastFailureConnection;
+
+      // serialization_failure and deadlock_detected: the transaction is lost, and
+      // may be run again from the start.
+      if (last_sql_state_ == "40001" || last_sql_state_ == "40P01")
+         return LastFailureRetryable;
+
+      // unique_violation, the one failure TryExecute lets a caller ignore.
+      if (last_sql_state_ == "23505")
+         return LastFailureDuplicate;
+
+      return LastFailureOther;
+   }
+
+   void
+   PGConnection::ForgetLastFailure()
+   {
+      last_sql_state_.clear();
+   }
+
+   bool
+   PGConnection::IsTransactionFailed() const
+   {
+      return dbconn_ != 0 && PQtransactionStatus(dbconn_) == PQTRANS_INERROR;
    }
 
    void

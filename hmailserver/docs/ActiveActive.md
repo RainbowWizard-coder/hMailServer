@@ -1,10 +1,13 @@
 Active-active nodes: a design
 =============================
 
-**Not built.** This is a design, written on 29 September 2026 for 6.3.6. Of what it
-needs, the server has only the first unit's: the database layer's row counts and
-its UTC clock (AA-01, below), which nothing in the server uses yet. There is no
-schema step and no setting. Until it is built, [WarmStandby.md](WarmStandby.md) holds without
+**Not built.** This is a design, written on 29 September 2026 for 6.3.6, and
+active-active itself does not exist in the server: there is no node registry, no
+lease, no schema step and no setting for it. Of the first phase of the work below,
+which makes one node sturdier on its own, the database layer's row counts and its
+UTC clock (AA-01, below) and the transaction scope the persistence layer can use
+(AA-02, `DatabaseTransaction`) are in the tree, and nothing in the server uses them
+yet. Until it is built, [WarmStandby.md](WarmStandby.md) holds without
 exception: **exactly one hMailServer service may run against a database at a
 time.** Two active services on one database lose mail, deliver the same mail
 twice, fetch the same remote mailbox twice, and can give two messages in one
@@ -44,7 +47,7 @@ each goes wrong with two.
 | The delivery queue's start (`SMTPDeliveryManager::DoWork`, `PersistentMessage::UnlockAll`) | `update hm_messages set messagelocked = 0 where messagetype = 1 and messagelocked = 1`, once, when delivery starts: a lock left by a crash would otherwise hold its message for ever | A node that starts releases every message the other node is delivering at that moment |
 | The queue's selection (`SMTPDeliveryManager::LoadPendingMessageList_`, `GetNextMessage_`) | Reads every due, unlocked message into a list, then locks each one as it hands it out. A message being saved is inserted locked until its recipients are written | Both nodes read the same list |
 | The queue's lock (`PersistentMessage::LockObject`) | `update hm_messages set messagelocked = 1 where messageid = @MESSAGEID`, with no condition on the lock, and it does not ask how many rows it changed. The database layer can say since unit AA-01 (`DatabaseConnectionManager::ExecuteCount`, below), and nothing asks it yet | Both nodes "win" the same message |
-| The database layer's retry (`DALConnection::Execute`) | A statement that meets a connection problem is run again after a reconnect, which since AA-01 it says it did (`ExecuteCount`'s `reconnected`) | A claim whose commit reached the database but whose reply was lost runs twice, and the second run finds the row already taken. Inside a transaction, the second run would be on a new connection, outside it |
+| The database layer's retry (`DALConnection::Execute`) | A statement that meets a connection problem is run again after a reconnect, which since AA-01 it says it did (`ExecuteCount`'s `reconnected`) - but not inside a `DatabaseTransaction`, which runs each of its statements once and is itself run again whole (AA-02) | A claim whose commit reached the database but whose reply was lost runs twice, and the second run finds the row already taken. Inside a transaction begun on a connection the pool hands out, the second run is on a new connection, outside it |
 | The database session (`ADOConnection::Connect`) | Every SQL Server session runs at READ UNCOMMITTED, "since we've implemented our own locking mechanism": locks inside the process | A reader on one node sees rows another node's transaction has not committed, and may roll back |
 | The database's clock (`SQLStatement::GetCurrentTimestamp`) | `GETDATE()`, `NOW()` in the system's time zone, and `current_timestamp` stored into columns without a zone: local wall time. The database's clock in UTC, `GetCurrentUtcTimestamp`, is there since AA-01, and nothing uses it yet | A lease measured on it jumps an hour at a daylight-saving change, on SQL Server and MySQL at both changes and on PostgreSQL in the repeated autumn hour |
 | The queue's files | A queued message's file is on the local disk of the node that accepted it. The object store never holds the queue ([ObjectStorage.md](ObjectStorage.md)) | A node that claims a row whose file is on the other node's disk reports HM5006 and **deletes the row** (`SMTPDeliverer::DeliverMessage`). For one local recipient the queue row has already become the mailbox's row (`LocalDelivery::DeliverToLocalAccount_`), so what it deletes is mail already delivered |
@@ -73,11 +76,12 @@ each goes wrong with two.
 | A node's name | There is none. The nearest is the host name, which a container recreated from the shipped Compose file changes every time | Anything keyed to it would lose its queue at a recreate, and at a warm-standby failover onto another machine |
 
 Two smaller facts the work builds on: SQL Server Compact does have transactions
-(`SQLCEConnection::BeginTransaction`), but no backend lets the persistence layer
-run its statements on a transaction's connection, since every `Execute` takes its
-own from the pool; and a MySQL database is transactional only when every one of its
-tables is InnoDB (`MySQLConnection::LoadSupportsTransactions_`), which the create
-script makes them and an old MyISAM database may not be.
+(`SQLCEConnection::BeginTransaction`), and the persistence layer's statements can
+run on a transaction's connection inside a `DatabaseTransaction`
+(`Common/SQL/DatabaseTransaction.h`, AA-02), where outside one every `Execute` takes
+its own connection from the pool; and a MySQL database is transactional only when
+every one of its tables is InnoDB (`MySQLConnection::LoadSupportsTransactions_`),
+which the create script makes them and an old MyISAM database may not be.
 
 What two nodes do today
 -----------------------
@@ -673,7 +677,12 @@ wins every claim, skips its own change-log rows and has no folder to watch.
      and the engine checks run as the server runs (built; nothing uses the counts
      or the clock until AA-03 and AA-06);
    - AA-02, a transaction scope the persistence layer can use, with no statement
-     run again inside it;
+     run again inside it - built, as `DatabaseTransaction`. A statement that fails
+     in it for a reason a retry would not mend is reported as the pool reports one
+     (`HM5032`, `HM5033`), and a `BEGIN` or a `COMMIT` the database refuses so as
+     `HM8502`; `DatabaseTransaction::Run` reports a unit of work it gave up after
+     its attempts (`HM8500`) and one whose connection was lost during its `COMMIT`,
+     which it does not run again since whether it committed is not known (`HM8501`);
    - AA-03, conditional claims on today's lock columns, and a queue delete that
      cannot remove a delivered row;
    - AA-04, UIDs and mod-sequences in one transaction;

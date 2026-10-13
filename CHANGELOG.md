@@ -551,6 +551,49 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the database ended is reconnected, counted 1 and written - where on MariaDB and MySQL it counted 0, was not run
   again and wrote nothing.
 
+- **The database layer has a transaction the persistence code can join, and no statement inside it is run again
+  on a new connection** (ActiveActive.md, unit AA-02). Each `DatabaseConnectionManager::Execute` and
+  `OpenRecordset` borrowed a pooled connection of its own, so a transaction begun on one connection covered none
+  of the statements a save makes, and nothing in the server was one transaction. `DatabaseTransaction`
+  (`Common/SQL/DatabaseTransaction.h`) holds one connection for the thread that opens it: the statements that
+  thread makes through the same pool while it is open run on that connection, an existing save's included, and a
+  scope opened inside it joins it. The database layer runs a statement again after a reconnect
+  (`DALConnection::Execute`, `DALRecordset::Open`), where a statement on the new session commits outside the
+  transaction while what came before it was rolled back with the lost one; inside a scope every statement is sent
+  once, the first failure fails the scope and refuses what follows, and `DatabaseTransaction::Run` runs the whole
+  unit of work again - a bounded number of times, rolled back first - after a deadlock, a serialisation failure, a
+  lock wait that timed out or a connection lost before the `COMMIT` (SQL Server 1205; MySQL and MariaDB 1213, 1205
+  and 1020; PostgreSQL 40001 and 40P01; SQL Server Compact 25090), and never after a connection lost during the
+  `COMMIT`, which it reports instead (`HM8501`), as it reports a unit given up (`HM8500`), nor when the pool had no
+  connection to give, since it has waited for one already (`DBConnectionAcquireTimeout`). A row that is there
+  already, which several inserts ask to be ignored, is ignored only when it is that - outside a scope the backends'
+  own ignoring also lets through an unknown error, and on MySQL a lost connection - and on PostgreSQL under a
+  savepoint, so that it leaves the transaction to commit. A MySQL database with a table that is not InnoDB has no
+  transactions, and a scope on it says so and is not retried. An OnError event script run while a scope is open
+  runs outside it, on the pool's connections, as before. Nothing in the server opens a scope yet - AA-04 puts
+  UIDs and mod-sequences in one - so one node runs as it did. `DatabaseTransactionTester` (in `ClassTester`, on a
+  SQL Server Compact database of its own; `database-transaction-tests` against the Linux suite's PostgreSQL and
+  the database matrix's MySQL and MariaDB) holds it on a real database, each check beside a control that shows the
+  same without it: a rollback discards the pool's own statements made on the thread; two transactions on one row
+  wait for each other; two units of work that deadlock both commit once under `Run`, where scopes alone lose the
+  victim's; a session ended in the middle commits nothing and the retry commits once, where
+  `DALConnection::Execute` commits the next statement on its own (on PostgreSQL and SQL Server Compact; on MySQL and
+  MariaDB over TLS it takes the TLS layer's end of file of a session the server ended for a failed statement, and
+  does not run it again). A SQL Server Compact connection closed with a transaction open is rolled back first
+  (`SQLCEConnection::Disconnect`): ADO refuses to close it otherwise, and the connection stayed open under its
+  transaction while the server took it for closed, so that the next attempt to connect it failed on an object that
+  was still open - which a scope that reconnects a connection it could not roll back would meet. On one node this
+  shows only when the server closes its database (a stop, a reinitialise) while a script holds
+  `Database.BeginTransaction` open: that transaction is now rolled back at the close, where it stayed open past it.
+  The comment in `PersistentDomain.cpp` that said SQL Server Compact has no transactions, and the one in
+  `DatabaseConnectionManager.cpp` that said it has them for data alone, are corrected.
+- **Fixed: on PostgreSQL, a transaction in which a statement had failed was reported as committed.** PostgreSQL
+  answers the `COMMIT` of such a transaction with success and the tag `ROLLBACK`, and `PGConnection` looked at the
+  status alone, so a script that went on past a failed `Database.ExecuteSQL` was told by
+  `Database.CommitTransaction` that its changes were saved when none was, as `SchemaUpgrader` would have been after
+  a failure it ignored. The transaction is now rolled back and the commit reported as failed.
+  `DatabaseTransactionTester` holds it on PostgreSQL with a duplicate ignored inside a transaction begun on a pooled
+  connection, which failed on the code before.
 - **Fixed: a ManageSieve refusal that quoted a script's text with a line break in it was split in two.** RFC 5804's
   quoted string may hold no CR or LF, and `PUTSCRIPT` and `CHECKSCRIPT` quote the script's own text when they refuse
   it - an extension name, a string - which a Sieve string may write across lines. The server sent the text as it

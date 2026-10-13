@@ -8,6 +8,7 @@
 #include "DALConnection.h"
 #include "DALConnectionFactory.h"
 #include "DatabaseSettings.h"
+#include "DatabaseTransaction.h"
 #include "DatabaseUnavailableMarker.h"
 
 #include "../Util/AuditTrail.h"
@@ -382,6 +383,15 @@ namespace HM
       if (reconnected != nullptr)
          *reconnected = false;
 
+      // A statement made on a thread inside a DatabaseTransaction of this pool
+      // belongs to that transaction: it runs on the transaction's connection, once,
+      // and not on a connection of its own. This is what puts the persistence
+      // layer's existing saves inside a transaction without each being rewritten
+      // (DatabaseTransaction.h).
+      DatabaseTransaction *transaction = DatabaseTransaction::Current_(this);
+      if (transaction != nullptr && transaction->Routes_())
+         return ExecuteInTransaction_(*transaction, command, iInsertID, iIgnoreErrors, sErrorMessage);
+
       if (SimulateFailureFor_(command))
       {
          sErrorMessage = "Simulated database failure ([Settings] SimulateDatabaseFailureFor).";
@@ -414,6 +424,20 @@ namespace HM
       // first is how a pool of N deadlocks under N concurrent writers. It does
       // nothing at all unless an interface has installed an actor on this
       // thread, which the server's own writes never do - see AuditTrail.h.
+      AuditTrail::Instance()->RecordStatement(command, bResult);
+
+      return bResult;
+   }
+
+   bool
+   DatabaseConnectionManager::ExecuteInTransaction_(DatabaseTransaction &transaction, const SQLCommand &command, __int64 *iInsertID, int iIgnoreErrors, String &sErrorMessage)
+   {
+      bool bResult = transaction.Execute_(command, iInsertID, iIgnoreErrors, sErrorMessage);
+
+      // The audit trail's record, as in Execute. Its row is written through
+      // Execute on this thread, so it joins the transaction, commits with the
+      // change it records and is rolled back with it - and takes no second
+      // connection from the pool while this one is held.
       AuditTrail::Instance()->RecordStatement(command, bResult);
 
       return bResult;
@@ -470,9 +494,16 @@ namespace HM
       return command.GetQueryString().Find(pattern) >= 0;
    }
 
-   std::shared_ptr<DALRecordset> 
+   std::shared_ptr<DALRecordset>
    DatabaseConnectionManager::OpenRecordset(const SQLCommand &command)
    {
+      // As in Execute: a query made on a thread inside a DatabaseTransaction of
+      // this pool runs on the transaction's connection, once, and reads what the
+      // transaction has written.
+      DatabaseTransaction *transaction = DatabaseTransaction::Current_(this);
+      if (transaction != nullptr && transaction->Routes_())
+         return transaction->OpenRecordset_(command);
+
       std::shared_ptr<DALRecordset> pRecordset;
 
       // Reads as well as writes: several of the defects this exists to test are on the
@@ -795,15 +826,16 @@ namespace HM
 
       SCOPE. The connection is taken out of the pool and handed back to the
       caller, and it stays checked out until Commit or Rollback returns it. Only
-      statements run *on that object* are inside the transaction. Execute() and
-      OpenRecordset() on this class take no connection: they borrow a different
-      pooled connection per statement, so anything routed through them during the
-      window is outside it. In practice the only caller that gets this right is
-      the COM API - InterfaceDatabase keeps the connection in conn_ and sends
-      ExecuteSQL / ExecuteSQLScript / EnsurePrerequisites straight to it. Nothing
-      inside the server uses transactions at all, which is why the message-save
-      and cascade-delete paths are not atomic and why "referential integrity in
-      the schema" is still an open roadmap row.
+      statements run *on that object* are inside the transaction: Execute() and
+      OpenRecordset() on this class borrow a different pooled connection per
+      statement, so anything routed through them during the window is outside it.
+      The COM API uses it so: InterfaceDatabase keeps the connection in conn_ and
+      sends ExecuteSQL / ExecuteSQLScript / EnsurePrerequisites straight to it
+      (SchemaUpgrader begins its own transactions on the connection UpgradeSchema
+      lends it). The server's own units of work use DatabaseTransaction instead,
+      which holds its connection for the thread that opened it, so that Execute()
+      and OpenRecordset() made on that thread run inside it, and which never runs
+      a statement again after a reconnect.
 
       PER BACKEND:
 
@@ -816,7 +848,9 @@ namespace HM
 
       PostgreSQL (PGConnection) - real, and the strongest of the four: DDL is
       transactional, and the session is at the server default (READ COMMITTED)
-      because nothing overrides it.
+      because nothing overrides it. A statement that fails inside the transaction
+      aborts it: everything after it is refused until the rollback, and a COMMIT
+      is answered with a rollback, which CommitTransaction reports as a failure.
 
       MySQL/MariaDB (MySQLConnection) - conditional. BEGIN is issued only if
       every table in the database reported InnoDB when the connection was opened
@@ -827,14 +861,14 @@ namespace HM
       upgrade step that fails half way leaves a half-changed schema whatever this
       returns.
 
-      SQL Server Compact (SQLCEConnection) - DML only, and it is the installer
-      default. See the comment on SQLCEConnection::BeginTransaction.
+      SQL Server Compact (SQLCEConnection) - real, DDL included, and it is the
+      installer default. See the comment on SQLCEConnection::BeginTransaction.
 
-      So: a transaction here is worth having on MSSQL and PostgreSQL, is worth
-      having for DML on SQL CE, is worth having on MySQL only for an all-InnoDB
-      database, and is worth nothing at all for DDL on two of the four. Anything
-      that wraps a cascade in one has to keep working when it silently buys
-      nothing - and file deletions cannot be rolled back on any of them.
+      So: a transaction here is worth having on MSSQL, PostgreSQL and SQL CE, is
+      worth having on MySQL only for an all-InnoDB database, and is worth nothing
+      for DDL on MySQL. Anything that wraps a cascade in one has to keep working
+      when it silently buys nothing - and file deletions cannot be rolled back on
+      any of them.
    */
    std::shared_ptr<DALConnection>
    DatabaseConnectionManager::BeginTransaction(String &sErrorMessage)

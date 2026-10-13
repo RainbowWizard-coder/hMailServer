@@ -651,10 +651,81 @@ namespace HM
       return TryExecute(SQLCommand("COMMIT TRANSACTION"), sErrorMessage, 0, 0) == DALSuccess;
    }
 
-   bool 
+   bool
    ADOConnection::RollbackTransaction(String &sErrorMessage)
    {
       return TryExecute(SQLCommand("ROLLBACK TRANSACTION"), sErrorMessage, 0, 0) == DALSuccess;
+   }
+
+   DALConnection::LastFailure
+   ADOConnection::ClassifyLastFailure(ExecutionResult result)
+   {
+      if (result == DALConnection::DALConnectionProblem || !bConnected || cADOConnection == NULL)
+         return LastFailureConnection;
+
+      // GetErrorType's DALErrorInSQL is an integrity violation, which is what a
+      // caller that ignores DALErrorInSQL means by a row that is there already.
+      LastFailure kind = result == DALConnection::DALErrorInSQL ? LastFailureDuplicate : LastFailureOther;
+
+      // The provider's records of the failure, which ADO keeps on the connection
+      // until another failure replaces them; ForgetLastFailure clears them before
+      // a statement, so that these are that statement's.
+      try
+      {
+         ErrorsPtr errors = cADOConnection->GetErrors();
+         const long count = errors->GetCount();
+
+         for (long i = 0; i < count; i++)
+         {
+            ErrorPtr error = errors->GetItem(_variant_t(i));
+            if (error == NULL)
+               continue;
+
+            // Chosen as a deadlock's victim: SQL Server has rolled the
+            // transaction back (E_FAIL, native 1205, SQLSTATE 40001, and the
+            // session's @@TRANCOUNT 0 after it: measured with SQLOLEDB on SQL
+            // Server 2022, 13 October 2026).
+            const long native = error->GetNativeError();
+            if (native == 1205)
+               return LastFailureRetryable;
+
+            // A primary key's or a unique index's duplicate, whatever the
+            // provider's HRESULT for it (SQLOLEDB's is DB_E_INTEGRITYVIOLATION,
+            // with native 2627 and SQLSTATE 23000, and the transaction goes on).
+            if (native == 2627 || native == 2601)
+               kind = LastFailureDuplicate;
+
+            // SQLSTATE class 08, a connection exception: the session is gone. A
+            // session the server ended (KILL) answers its next statement with
+            // E_FAIL, native 11 and SQLSTATE 08S01 (measured as above), while
+            // bConnected still says connected: this is the one sign of it.
+            const _bstr_t state = error->GetSQLState();
+            const wchar_t *text = (const wchar_t *) state;
+            if (text != nullptr && text[0] == L'0' && text[1] == L'8')
+               return LastFailureConnection;
+         }
+      }
+      catch (...)
+      {
+         // No records to read: classified on the result alone.
+         return kind;
+      }
+
+      return kind;
+   }
+
+   void
+   ADOConnection::ForgetLastFailure()
+   {
+      try
+      {
+         if (cADOConnection != NULL)
+            cADOConnection->GetErrors()->Clear();
+      }
+      catch (...)
+      {
+         LOG_DEBUG(_T("ADOConnection: the provider's error records could not be cleared before a statement."));
+      }
    }
 
    void 

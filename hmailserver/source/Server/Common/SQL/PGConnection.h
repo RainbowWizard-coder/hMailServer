@@ -113,10 +113,21 @@ namespace HM
 
       virtual std::shared_ptr<IMacroExpander> CreateMacroExpander();
 
+      // DALConnection's, from the SQLSTATE CheckError keeps of the last failure,
+      // and from PQstatus and PQtransactionStatus.
+      virtual LastFailure ClassifyLastFailure(ExecutionResult result);
+      virtual void ForgetLastFailure();
+      virtual bool GetFailedStatementEndsTransaction() const { return true; }
+      virtual bool IsTransactionFailed() const;
+
    private:
 
   
       PGconn *dbconn_;
+
+      // The SQLSTATE of the last statement that failed, or empty: kept by
+      // CheckError, which is const and which PGRecordset shares.
+      mutable std::string last_sql_state_;
 
       static std::atomic<bool> standard_conforming_strings_;
 

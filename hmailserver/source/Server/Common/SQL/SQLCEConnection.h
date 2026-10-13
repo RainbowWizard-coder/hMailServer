@@ -59,6 +59,14 @@ namespace HM
       // carry is written as it always was.
       static String MakeConnectionString(const String &databaseFile, const String &password);
 
+      // DALConnection's, from the native errors the provider left in the ADO
+      // connection's Errors collection: 25090 (SSCE_M_LOCKTIMEOUT), a lock waited
+      // for longer than the provider's timeout, is the one a unit of work is run
+      // again for - Compact detects no deadlock, and a lock wait that times out is
+      // how one ends.
+      virtual LastFailure ClassifyLastFailure(ExecutionResult result);
+      virtual void ForgetLastFailure();
+
    private:
 
       friend class SQLCEConnectionTester;

@@ -79,6 +79,12 @@ namespace HM
       // False for any other value.
       static bool QuoteValue(const String &value, String &quoted);
 
+      // DALConnection's, from the records the provider left in the connection's
+      // Errors collection: native error 1205, a deadlock's victim, which a unit of
+      // work is run again for, and an SQLSTATE of class 08, a connection lost.
+      virtual LastFailure ClassifyLastFailure(ExecutionResult result);
+      virtual void ForgetLastFailure();
+
    private:
 
       // What one Open came to: opened; refused by the provider with a COM error,

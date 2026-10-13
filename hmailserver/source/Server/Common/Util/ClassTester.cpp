@@ -105,6 +105,7 @@
 #include "../SQL/DatabaseTls.h"
 #include "../SQL/DatabaseConnectionManager.h"
 #include "../SQL/DatabaseClaimTester.h"
+#include "../SQL/DatabaseTransaction.h"
 #include "Time.h"
 #include "Utilities.h"
 #include "Parsing/AddresslistParser.h"
@@ -617,6 +618,20 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing the database's row counts, claims and UTC clock\n"));
       DatabaseClaimTester databaseClaimTester;
       databaseClaimTester.TestCompact();
+#endif
+
+#ifndef HM_PLATFORM_POSIX
+      // The transaction scope the persistence layer uses (DatabaseTransaction),
+      // on a Compact database and a pool of the tester's own: a rollback
+      // discards, the pool's own statements on the transaction's thread join it,
+      // two transactions on one row wait for each other, a lock wait that times
+      // out is run again whole by Run, and a connection lost in the middle
+      // commits nothing and the retry commits once - each beside the control
+      // that shows the same thing without it. database-transaction-tests runs the
+      // same on PostgreSQL, MySQL and MariaDB.
+      OutputDebugString(_T("hMailServer: Testing the database transaction scope\n"));
+      DatabaseTransactionTester databaseTransactionTester;
+      databaseTransactionTester.TestCompact();
 #endif
 
       // The end of the greylisting key migration (schema 6107): the key against

@@ -445,14 +445,16 @@ namespace HM
                deletedDomainNames.insert(domainAlias->GetAlias().ToLower());
          }
 
-         // Note for whoever picks this up next: the five statements below are not
-         // one transaction and cannot easily be made into one. Every
-         // Persistent*::Execute takes its own connection out of the pool, so a
-         // transaction opened here would not cover them, and the default backend
-         // (SQL Server Compact) does not implement transactions at all - see
-         // SQLCEConnection::BeginTransaction. A failure part way through
-         // therefore still leaves a half-deleted domain, and the message files
-         // already unlinked from disk could not be rolled back in any case.
+         // Note for whoever picks this up next: the statements below are not one
+         // transaction. A DatabaseTransaction opened here would take them in - the
+         // statements this thread makes through the pool while one is open run on
+         // its connection - and every backend has transactions, SQL Server
+         // Compact included (SQLCEConnection::BeginTransaction), MySQL when every
+         // table is InnoDB. What it would not take in is the message files each
+         // account's deletion unlinks from disk, which no rollback brings back;
+         // and a transaction over a whole domain's accounts and messages would
+         // hold their locks for as long as the deletion takes. So a failure part
+         // way through still leaves a half-deleted domain.
          if (!pDomain->GetAccounts()->DeleteAll())
             return false;
 

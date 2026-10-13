@@ -110,6 +110,19 @@ expanders in `SQL/Macros/`, which recognise a deliberately small vocabulary; if 
 need something they do not express, that is a design conversation, not a place to
 special-case.
 
+**A transaction is its thread's.** `DatabaseConnectionManager::Execute` and
+`OpenRecordset` borrow a pooled connection for each statement, so a transaction begun
+on one connection covers nothing the persistence layer does. `DatabaseTransaction`
+(`Common/SQL/DatabaseTransaction.h`) is the scope that does: while it is open, every
+`Execute` and `OpenRecordset` made through the same manager on the thread that opened
+it runs on its connection, so an existing save joins it unchanged, and a scope opened
+inside another joins that one. No statement inside it is run again after a reconnect -
+on a new session it would commit outside the transaction - so the first failure fails
+the scope, and `DatabaseTransaction::Run` runs the whole unit of work again on a
+deadlock, a serialisation failure or a lost connection. Take any lock of the process
+before opening a scope, never inside one, and keep the unit to database work: it may
+run more than once, and an event script run while it is open (OnError) runs outside it.
+
 **The schema is pinned, one way.** `REQUIRED_DB_VERSION` in
 `Common/Application/Constants.h` (6037 on 12 September 2026) must equal
 `hm_dbversion.value`; the server refuses to start on an older *or* newer database

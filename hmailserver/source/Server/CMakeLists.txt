@@ -1059,22 +1059,41 @@ set_target_properties(connection-string-tests PROPERTIES OUTPUT_NAME connection-
 # backends, a claim that recognises itself when it is run again, two connections
 # racing for the same rows and named leases, a reconnect said, a lease on the
 # database's UTC clock, and that clock against this machine's (ActiveActive.md,
-# decisions D1 and D3). The one tester that needs a database: given no
-# configuration file it says SKIPPED and exits 0, which is how every build that
-# finds its testers rather than listing them runs it - linux-build.sh, the CI's
-# per-distro package builds (build/ci/packages/deb-build.sh and rpm-build.sh,
-# where they can run what they built), Alpine's check(), the Nix package's
-# checkPhase and build/ci/linux-coverage.sh. The source packages' builds
-# (debian-src's debian/rules and hmailserver.spec's %check) name their testers
-# and leave it out. build/ci/linux-suite.sh runs it against the suite's
-# PostgreSQL and build/lab/db-suite.sh against the matrix's database, with the
-# server's own hMailServer.ini, of which it reads the [Database] section alone,
-# before the server starts; tables of its own, removed again, and a
-# configuration and logs of its own under the system's temp directory. About ten
-# seconds. Not installed; a bench tool.
+# decisions D1 and D3). One of the two testers that need a database, with
+# database-transaction-tests below: given no configuration file it says SKIPPED and
+# exits 0, which is how every build that finds its testers rather than listing
+# them runs it - linux-build.sh, the CI's per-distro package builds
+# (build/ci/packages/deb-build.sh and rpm-build.sh, where they can run what they
+# built), Alpine's check(), the Nix package's checkPhase and
+# build/ci/linux-coverage.sh. The source packages' builds (debian-src's
+# debian/rules and hmailserver.spec's %check) name their testers and leave it out.
+# build/ci/linux-suite.sh runs it against the suite's PostgreSQL and
+# build/lab/db-suite.sh against the matrix's database, with the server's own
+# hMailServer.ini, of which it reads the [Database] section alone, before the
+# server starts; tables of its own, removed again, and a configuration and logs of
+# its own under the system's temp directory. About ten seconds. Not installed; a
+# bench tool.
 add_executable(database-claim-tests ${SERVER_DIR}/platform/database_claim_tests_main.cpp)
 target_link_libraries(database-claim-tests PRIVATE hmailserver_core)
 set_target_properties(database-claim-tests PROPERTIES OUTPUT_NAME database-claim-tests)
+
+# ---------------------------------------------------------------- the transaction scope
+#
+# DatabaseTransactionTester (Common/SQL/DatabaseTransaction.h) as a program of its
+# own: on Windows it runs inside the server through ClassTester, on a SQL Server
+# Compact database of its own, and this is PostgreSQL's, MySQL's and MariaDB's. A
+# rollback discards, the manager's own statements on the transaction's thread join
+# it, two transactions on one row wait for each other, a deadlock is run again
+# whole, a session ended in the middle commits nothing and the retry commits once,
+# and an ignored duplicate leaves the transaction to commit - each beside its
+# control. Against the database a configuration file's [Database] names
+# (database-transaction-tests <hMailServer.ini>), on tables and a pool of its own;
+# with no file it says SKIPPED, which is what linux-build.sh's run of every tester
+# sees. The Linux suite runs it against its PostgreSQL and the database matrix
+# against MySQL and MariaDB, before the server starts. Not installed; a bench tool.
+add_executable(database-transaction-tests ${SERVER_DIR}/platform/database_transaction_tests_main.cpp)
+target_link_libraries(database-transaction-tests PRIVATE hmailserver_core)
+set_target_properties(database-transaction-tests PROPERTIES OUTPUT_NAME database-transaction-tests)
 
 # ---------------------------------------------------------------- the profiles' lock
 #

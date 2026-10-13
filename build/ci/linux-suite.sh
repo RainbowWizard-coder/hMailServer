@@ -323,6 +323,29 @@ psql -h "$PGH" -d "$DB" -Atc "
 echo "$HMTEST_ADMIN_PASSWORD" | "${server[@]}" --set-admin-password
 set +e
 
+# The database layer's transaction scope on this PostgreSQL (database-transaction-tests,
+# which linux-build makes beside the server), before the server starts: a pool and
+# tables of its own, removed again, and the [Database] section of the server's
+# configuration alone, so that the failures it provokes are reported to a log of its
+# own and not the server's. Beside linux-build's server it must be there; beside
+# another (a package's, as alpine.sh runs the suite) it is run where it is found, or
+# said not to be.
+transactions="${HM_TRANSACTION_TESTS_BINARY:-$(dirname "$BINARY")/database-transaction-tests}"
+if [ -x "$transactions" ]; then
+  echo "== the database layer's transaction scope ($transactions)"
+  if ! "$transactions" "$T/program/hMailServer.ini" > "$OUT/database-transaction-tests.log" 2>&1; then
+    cat "$OUT/database-transaction-tests.log"
+    echo "DATABASE TRANSACTION TESTS FAILED"
+    exit 1
+  fi
+  cat "$OUT/database-transaction-tests.log"
+elif [ -z "${HM_SERVER_BINARY:-}" ] || [ -n "${HM_TRANSACTION_TESTS_BINARY:-}" ]; then
+  echo "REFUSED: no database-transaction-tests at $transactions - linux-build makes it beside the server."
+  exit 2
+else
+  echo "== no database-transaction-tests beside $BINARY: the transaction scope is not checked in this run"
+fi
+
 echo "== start"
 # The cd is a command of its own: "cd && nohup ... &" would put the whole list in the
 # background, and $! would be that subshell's and not the server's.
