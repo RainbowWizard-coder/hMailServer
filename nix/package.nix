@@ -61,8 +61,8 @@ stdenv.mkDerivation {
   # loopback: network-deadline-tests connects to peers of its own on 127.0.0.1 and
   # writes a configuration of its own under $TMPDIR, and http-server-tests answers
   # itself on 127.0.0.1, which the sandbox's loopback and its temporary directory
-  # give them. database-claim-tests, the one that needs a database, is given none
-  # here and says SKIPPED.
+  # give them. database-claim-tests and database-transaction-tests, the two that
+  # need a database, are given none here and say SKIPPED.
   doCheck = true;
   checkPhase = ''
     runHook preCheck

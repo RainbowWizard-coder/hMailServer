@@ -14,8 +14,9 @@
 //   database-claim-tests <hMailServer.ini>    the checks against the database whose
 //                                             [Database] section that file holds
 //
-// The one tester that needs a database, so without one it is skipped: that is how
-// linux-build.sh, which runs every *-tests program with no arguments, runs it.
+// One of the two testers that need a database, with database-transaction-tests, so
+// without one it is skipped: that is how linux-build.sh, which runs every *-tests
+// program with no arguments, runs it.
 // build/ci/linux-suite.sh runs it against the suite's PostgreSQL and
 // build/lab/db-suite.sh against the matrix's MySQL, MariaDB or PostgreSQL, each with
 // the server's own configuration file, after --create-database and before the

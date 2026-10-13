@@ -847,5 +847,5 @@ case "$command" in
   proxy) cmd_proxy "$@" ;;
   status) cmd_status "$@" ;;
   down) cmd_down "$@" ;;
-  *) sed -n '6,65p' "$0"; exit 2 ;;
+  *) sed -n '6,75p' "$0"; exit 2 ;;
 esac

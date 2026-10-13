@@ -76,7 +76,8 @@ build() {
 # static constructor runs before main), then every tester program the build makes
 # beside it: none needs the network, network-deadline-tests and http-server-tests,
 # which connect to peers of their own on 127.0.0.1, need only the loopback, and
-# database-claim-tests, given no database, says SKIPPED.
+# database-claim-tests and database-transaction-tests, given no database, say
+# SKIPPED.
 check() {
 	cd build
 	./hmailserver --version
