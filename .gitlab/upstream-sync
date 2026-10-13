@@ -287,7 +287,9 @@
 #   - 013bf4b41 (#656) the RFC 4616 authzid: decoded and ignored by SMTP, POP3 and
 #     ManageSieve, so a client asking to act as another account was signed in as
 #     itself and told it had succeeded; refused now (AccountLogon::
-#     AuthorizationIdentityIsOwn). IMAP, which uses it for the master user, took an
+#     AuthorizationIdentityIsOwn), the authzid prepared with SASLprep as our
+#     protocols prepare the authcid - upstream, which has no SASLprep, compares
+#     both as they came. IMAP, which uses it for the master user, took an
 #     authzid naming the client itself as a masquerade and answered BAD "No master
 #     user defined."; it is taken as none. #656's parse (tabs in the password, the
 #     split on NUL) was already here: StringParser::DecodeSaslPlain.
@@ -338,7 +340,7 @@
 #     answer (a CR ends the line it is read from), left the literal open and the
 #     handler was not called, and OnDeliveryFailed lost the answer's quotes
 #     (Events.cpp, EscapeForVBScriptLiteral now, as upstream's ToStringLiteral
-#     took all three).
+#     took all three; OnDeliveryFailed's error trimmed as before, below).
 #   - 099f3f3dd/85a89fb1a (#658/#659): hMailServer.Minidump.exe had no version
 #     resource, and nor had hMailServer.Updater.exe beside it; both take one from
 #     Version.h now (hMailServer.Minidump.rc, hMailServer.Updater.rc), and
@@ -516,6 +518,14 @@
 #   - 2ffa859af (#667): one domain pattern for the three address checks, a
 #     refactor with no change of behaviour; PreSaveLimitationsCheck::
 #     IsValidAccountAddress_ and StringParser carry the same pattern here.
+#   - 4c03c0bb8 (#671), OnDeliveryFailed's error trimmed whole before it is
+#     quoted: upstream trims it first for both languages, which on VBScript
+#     takes off the CR LF that ends the error's last line - given to a VBScript
+#     handler until now, since the call joined each CR LF pair in before it
+#     trimmed. Ours trims VBScript's as before, the white space outside the
+#     first pair and the last (ScriptServer::TrimKeepingCrLfPairs), then quotes
+#     it whole (Events.cpp; API/Events.cs); JScript's is trimmed whole, as it
+#     has been since 24 September.
 #   - 6ac3c58fd (#666), COPY's held expunge left for the next command: ours sends
 #     it in the COPY's, and the MOVE's, own response once the set is read - RFC
 #     2180 4.4: "Pending EXPUNGE response(s) MUST be returned to the COPY
