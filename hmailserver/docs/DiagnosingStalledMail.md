@@ -121,35 +121,38 @@ Common causes, in the order they actually occur:
 
 A spam test that cannot complete a DNS lookup lets the message through without
 its verdict: it does not score, refuse or reject for a lookup that failed. From
-6.3.7 a lookup has failed when it found nothing and any of its queries failed -
-a SERVFAIL, a timeout, no DNS server answering - and not only when all of them
-did (upstream PR 640). An address lookup asks A and AAAA (AAAA where IPv6 is
-available, which is everywhere in practice), and the name's CNAME when neither
-found anything; a record lookup - a DKIM key, an SPF record, a DMARC policy, the
-MX-record test's MX - asks the CNAME when it found nothing. Neither asks it of
-a name that does not exist - NXDOMAIN, for an address lookup from A and AAAA
-both - because such a name is no alias, so a failure of that query cannot make
-the lookup one that failed. The CNAME query is asked of a name answered NODATA,
-which is there and may be an alias, and on Windows of every alias the DNS
-client is asked about, because it returns an alias's records under the name it
-is an alias of, which the lookup does not take - a DKIM selector that is a
-CNAME, as Microsoft 365's are for a customer's domain, among them. When that
-query fails, the lookup has failed. The DNS blacklists and SURBL ask the A
-record alone: a list answers with A records, for an IPv6 address as for an IPv4
-one (RFC 5782), and until 6.3.7 they asked AAAA as well. Before 6.3.7 an A
-query that failed beside an AAAA query answered "no AAAA records" - the answer
-of every IPv4-only host, and of every address a DNS blacklist does not list -
-was read as "this name has no addresses". NXDOMAIN and NODATA are answers, and
-still mean "no addresses".
+6.3.7 an address lookup has failed when it found nothing and its A or its AAAA
+query failed - a SERVFAIL, a timeout, no DNS server answering - and not only
+when both did (upstream PR 640); a record lookup has, as before, when its query
+failed. An address lookup asks A and AAAA (AAAA where IPv6 is available, which
+is everywhere in practice), and the name's CNAME when neither found anything; a
+record lookup - a DKIM key, an SPF record, a DMARC policy, the MX-record test's
+MX - asks the CNAME when it found nothing. Neither asks it of a name that does
+not exist - NXDOMAIN, for an address lookup from A and AAAA both - because such
+a name is no alias, and after NODATA a failure of that query changes nothing:
+the name holds nothing of the type, as before. The CNAME query decides the
+lookup on Windows, where the DNS client answers the query of an alias with the
+CNAME and the records of the name it is an alias of, under that name - or with
+the CNAME alone when that name holds none - which the lookup does not take, so
+that the CNAME query is its way to the records: when that query fails, the
+lookup has failed. A DKIM selector that is a CNAME, as Microsoft 365's are for a
+customer's domain, is such an alias. On Linux the server's resolver follows an
+alias within the answer, so there a CNAME query that fails never fails a lookup.
+The DNS blacklists and SURBL ask the A record alone: a list answers with A
+records, for an IPv6 address as for an IPv4 one (RFC 5782), and until 6.3.7 they
+asked AAAA as well. Before 6.3.7 an A query that failed beside an AAAA query
+answered "no AAAA records" - the answer of every IPv4-only host, and of every
+address a DNS blacklist does not list - was read as "this name has no
+addresses". NXDOMAIN and NODATA are answers, and still mean "no addresses".
 
 | Test | When its lookup fails | Before 6.3.7 |
 |---|---|---|
-| The HELO host (`CheckHostInHelo`) | not scored | scored when one of A and AAAA failed and the other was answered without an address, or when both were - not both NXDOMAIN - and the CNAME query failed |
+| The HELO host (`CheckHostInHelo`) | not scored | scored when one of A and AAAA failed and the other was answered without an address, or, on Windows, when the name is an alias whose CNAME query failed |
 | PTR (`CheckPTR`) | not scored, whether the PTR lookup or the address lookup of the name it gives failed | a failed address lookup of the reverse name was scored |
-| MX records (`UseMXChecks`) | not scored | scored when the MX query found nothing - it was answered NODATA, or on Windows the domain is an alias - and the CNAME query failed |
+| MX records (`UseMXChecks`) | not scored | scored when, on Windows, the domain is an alias whose CNAME query failed |
 | A DNS blacklist | asked for the A record alone, and once more, past the DNS cache, when that query fails; when it fails twice, the client is not checked against that list, and the log says so | asked once, for A and AAAA; a lookup that failed was "not listed", logged as `0 addresses found` like a list's answer |
 | SURBL | asked for the A record alone, and once more, past the DNS cache, when that query fails; when it fails twice, the name is passed over and the message's other names are asked | asked once, for A and AAAA; the first lookup that failed ended the list for the message, so a listed link after it was never asked about |
-| DKIM keys, DMARC policies, SPF records | a temporary error, as for any lookup that fails: DKIM `TempFail`, DMARC and SPF `temperror`. A name that does not exist (NXDOMAIN) has nothing published, as before: for a DKIM key a `PermFail`, no key for signature (RFC 6376 section 6.1.2), and for SPF `none` | a lookup that found nothing - it was answered NODATA, or on Windows the name is an alias, as a DKIM selector that is a CNAME is - and whose CNAME query failed read as "not published" - for a DKIM key, a `PermFail` |
+| DKIM keys, DMARC policies, SPF records | a temporary error, as for any lookup that fails: DKIM `TempFail`, DMARC and SPF `temperror`. A name that does not exist (NXDOMAIN), or holds nothing of the type (NODATA), has nothing published, as before, whatever its CNAME query meets: for a DKIM key a `PermFail`, no key for signature (RFC 6376 section 6.1.2), and for SPF `none` | on Windows, the lookup of an alias - a DKIM selector that is a CNAME is one - whose CNAME query failed read as "not published": for a DKIM key, a `PermFail` |
 
 The second attempt of a DNS blacklist or SURBL lookup bypasses the Windows DNS
 cache, which would otherwise answer it from the first; on Linux the server keeps
@@ -374,12 +377,14 @@ lines were checked on 7 October 2026 against `ExternalDelivery::DeliverToSingleD
 (`QueryValidatedRrset_`, `ValidateRrset`, `ValidateZoneKeys`, `FetchDsRecords`,
 `WhereUnproven` and `DescribeCheck`, which word every reason). The lookups a spam
 test cannot complete were checked on 12 October 2026, and again on 13 October
-for a name that does not exist, for an alias on Windows and for the timeouts,
-against `DNSResolver::GetIpAddressesRecursive_`, `GetDnsListAnswers`,
-`GetRecordsOfTypeRecursive_` and `GetMXRecordsRecursive_` (what counts as a failed
-lookup, the CNAME query not made of a name answered NXDOMAIN, and the second
-attempt), `DNSResolverWinApi::RunQuery_` (a record is kept only under the name
-asked, so on Windows every alias goes to the CNAME query),
+for a name that does not exist, for a name answered NODATA, for an alias on
+Windows and for the timeouts, against `DNSResolver::GetIpAddressesRecursive_`,
+`GetDnsListAnswers`, `GetRecordsOfTypeRecursive_` and `GetMXRecordsRecursive_`
+(what counts as a failed lookup, the CNAME query not made of a name answered
+NXDOMAIN, and the second attempt), `DNSResolverWinApi::RunQuery_` (a record is
+kept only under the name asked, so on Windows every alias goes to the CNAME
+query; what the Windows DNS client answers for an alias was measured with
+`DnsQuery` on 13 October),
 `DNSResolverWinApi::Query` (the cache bypass, and `DNSQueryTimeout`, read on the
 Windows DNS client's path alone), `DnssecResolver.cpp`'s `RunQuery`,
 `DnsTimeoutMilliseconds`, `GetDnsServers` and `ChooseNameServers` (the five

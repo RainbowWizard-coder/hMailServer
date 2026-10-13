@@ -323,30 +323,41 @@ namespace HM
 
       std::vector<DNSRecord> foundRecords;
 
-      // Whether every query made here was answered - with records or without. A
-      // query answered NXDOMAIN or NODATA says the name holds no address of that
-      // family; one that failed - a SERVFAIL, a timeout - says nothing at all.
-      // Until upstream PR 640 the two results were joined by OR, so a failed A
-      // query beside an AAAA query answered NODATA, which is the answer of every
-      // IPv4-only host, made "this host has no addresses": the HELO test scored
-      // the message for a name it could not look up, and a DNS blacklist or SURBL
-      // lookup read a failure as "not listed".
+      // Whether every A and AAAA query made here was answered - with records or
+      // without. A query answered NXDOMAIN or NODATA says the name holds no
+      // address of that family; one that failed - a SERVFAIL, a timeout - says
+      // nothing at all. Until upstream PR 640 the two results were joined by OR,
+      // so a failed A query beside an AAAA query answered NODATA, which is the
+      // answer of every IPv4-only host, made "this host has no addresses": the
+      // HELO test scored the message for a name it could not look up, and a DNS
+      // blacklist or SURBL lookup read a failure as "not listed".
       bool everyQueryAnswered = true;
 
       // Whether every one of them answered NXDOMAIN. Then the name does not
       // exist - or the name at the end of the aliases the answers came through
       // does not (RFC 6604) - so it holds no record of any type, a CNAME among
       // them (RFC 2308 section 2.1): there is no alias to follow, and the CNAME
-      // query below is not made. Made, a failure of it - one packet lost -
-      // turned "this name has no addresses" into a lookup that did not
-      // complete, and a HELO host that does not exist went unscored. When one
+      // query below is not made, for it could only say so or fail. When one
       // family answered NXDOMAIN and the other NODATA, the name is there by one
-      // of the answers, and the question is asked.
+      // of the answers, and the question is asked, as before.
       bool nameDoesNotExist = true;
+
+      // Whether a query was answered with records that were not kept: status 0,
+      // and nothing of the family asked for under the name asked. That is how
+      // the Windows DNS client answers the query of an alias - with the CNAME,
+      // and the records of the name it is an alias of under that name, or the
+      // CNAME alone when that name holds none - and DNSResolverWinApi::RunQuery_
+      // keeps none of them, so the CNAME query below is the lookup's only way
+      // to the addresses. A name that is no alias and holds no address is
+      // answered NODATA there. The POSIX resolver follows an alias within the
+      // answer and says NODATA when it found nothing, so on Linux this is never
+      // so.
+      bool answeredWithNothingKept = false;
 
       // Each query with a status of its own, read before the next is asked.
       auto askForAddresses = [&](int resourceType)
       {
+         const size_t keptBefore = foundRecords.size();
          int queryStatus = 0;
          const bool answered = Ask_(hostName, resourceType, foundRecords, queryStatus, false);
 
@@ -355,6 +366,9 @@ namespace HM
 
          if (!answered || queryStatus != DNS_ERROR_RCODE_NAME_ERROR)
             nameDoesNotExist = false;
+
+         if (answered && queryStatus == 0 && foundRecords.size() == keptBefore)
+            answeredWithNothingKept = true;
       };
 
       // if IPv6 is preferred first do IPv6 DNS Lookup(s)
@@ -386,9 +400,14 @@ namespace HM
             return GetIpAddressesRecursive_(cnameHostName, addresses, recursionLevel + 1, followCnameRecords);
          }
 
-         // Whether the name is an alias of one that has addresses is not known
-         // either, so neither is whether it has any.
-         if (!cnameQueryResult)
+         // After a query answered with records that were not kept - on Windows,
+         // an alias (above) - whether the name is an alias of one that has
+         // addresses is not known either, so neither is whether it has any.
+         // After NODATA - a name that holds no address, or on Linux an alias
+         // whose target holds none, read in the same answer - a failure of this
+         // query changes nothing, as it changed nothing before upstream PR 640,
+         // which does not count this query at all: the name has no addresses.
+         if (!cnameQueryResult && answeredWithNothingKept)
             everyQueryAnswered = false;
       }
 
@@ -537,13 +556,17 @@ namespace HM
       // NXDOMAIN: the name does not exist - or the name at the end of the
       // aliases the answer came through does not (RFC 6604) - so it holds no
       // record of any type, a CNAME among them (RFC 2308 section 2.1), and there
-      // is no alias to follow. The CNAME query is not made: a failure of it
-      // turned "no records" - a DKIM key that does not exist, which RFC 6376
-      // section 6.1.2 makes a PERMFAIL, no SPF record (RFC 7208 section 4.3:
-      // none), no DMARC policy - into a lookup that did not complete. A name
-      // answered NODATA is there, and may be an alias: the question below is
-      // asked of it.
+      // is no alias to follow. The CNAME query is not made, for it could only
+      // say so or fail: the answer is "no records" - a DKIM key that does not
+      // exist, which RFC 6376 section 6.1.2 makes a PERMFAIL, no SPF record (RFC
+      // 7208 section 4.3: none), no DMARC policy. A name answered NODATA is
+      // there: the question below is asked of it, as before.
       const bool nameDoesNotExist = result && status == DNS_ERROR_RCODE_NAME_ERROR;
+
+      // Answered with records that were not kept: status 0, and nothing of the
+      // type asked for under the name asked - the Windows DNS client's answer
+      // for an alias (GetIpAddressesRecursive_).
+      const bool answeredWithNothingKept = result && status == 0 && records.empty();
 
       if (records.size() == 0 && !nameDoesNotExist)
       {
@@ -559,15 +582,18 @@ namespace HM
             return GetRecordsOfTypeRecursive_(cnameHostName, resourceType, records, recursionLevel + 1);
          }
 
-         // Whether the name is an alias of one that holds such records could not
-         // be told, so the lookup did not complete - which is not "no records",
-         // the answer a DKIM key, a DMARC policy or an SPF record that is not
-         // published gets (the shape of upstream PR 640, which leaves this
-         // lookup as it was). On Windows this is the path of every alias: the
-         // DNS client follows the CNAME, and the target's records come back
-         // under the target's name, which the query's own name filters out - a
-         // DKIM selector that is a CNAME, as Microsoft 365's are, among them.
-         if (!cnameQueryResult)
+         // After an answer whose records were not kept, whether the name is an
+         // alias of one that holds such records could not be told, so the
+         // lookup did not complete - which is not "no records", the answer a
+         // DKIM key, a DMARC policy or an SPF record that is not published gets
+         // (the shape of upstream PR 640, which leaves this lookup as it was).
+         // On Windows this is the path of every alias: the DNS client follows
+         // the CNAME, and the target's records come back under the target's
+         // name, which the query's own name filters out - a DKIM selector that
+         // is a CNAME, as Microsoft 365's are, among them. After NODATA a
+         // failure of this query changes nothing, as before: the name holds no
+         // record of the type.
+         if (!cnameQueryResult && answeredWithNothingKept)
             return false;
       }
 
@@ -817,6 +843,10 @@ namespace HM
       // is not made (GetRecordsOfTypeRecursive_).
       const bool nameDoesNotExist = result && status == DNS_ERROR_RCODE_NAME_ERROR;
 
+      // Answered with records that were not kept - on Windows, an alias
+      // (GetRecordsOfTypeRecursive_).
+      const bool answeredWithNothingKept = result && status == 0 && foundMxRecords.empty();
+
       if (foundMxRecords.size() == 0 && !nameDoesNotExist)
       {
          // The queries for MX didn't return any records. Attempt to look up via CNAME
@@ -831,10 +861,12 @@ namespace HM
             return GetMXRecordsRecursive_(cnameHostName, vecFoundNames, recursionLevel + 1);
          }
 
-         // Whether the name is an alias of one with MX records could not be told:
-         // the lookup did not complete, which the MX-record spam test reads as a
-         // failure and not as a domain with no MX (GetRecordsOfTypeRecursive_).
-         if (!cnameQueryResult)
+         // After such an answer whether the name is an alias of one with MX
+         // records could not be told: the lookup did not complete, which the
+         // MX-record spam test reads as a failure and not as a domain with no
+         // MX (GetRecordsOfTypeRecursive_). After NODATA the domain has no MX,
+         // whatever this query met, as before.
+         if (!cnameQueryResult && answeredWithNothingKept)
             result = false;
       }
 
@@ -937,6 +969,12 @@ namespace HM
          return answer;
       };
 
+      // How the Windows DNS client answers the query of an alias, as
+      // DNSResolverWinApi::Query hands it on: status 0, and nothing kept - the
+      // CNAME, and the records of the name it is an alias of under that name
+      // or the CNAME alone, are owned by names RunQuery_ does not take.
+      const Answer keptNothing = noRecords(0);
+
       // Installs a zone on this thread for as long as it lives.
       struct Installed
       {
@@ -999,9 +1037,19 @@ namespace HM
          { "both records",
            { { a, withRecord(a, "192.0.2.1") }, { aaaa, withRecord(aaaa, "2001:db8::1") } }, false, true, "192.0.2.1,2001:db8::1" },
 
-         // The CNAME query, made when A and AAAA found nothing, is a query too.
-         { "NODATA for both and a failed CNAME query: the lookup failed",
-           { { a, noRecords(nodata) }, { aaaa, noRecords(nodata) }, { cname, failed(servfail) } }, true, false, "" },
+         // The CNAME query, made when A and AAAA found nothing, decides the
+         // lookup when it fails after a query answered with records that were
+         // not kept - on Windows, an alias: then whether the name has addresses
+         // is not known. After NODATA its failure changes nothing, as before
+         // upstream PR 640: the name has no addresses.
+         { "an alias - A and AAAA answered with records that were not kept - and a failed CNAME query: the lookup failed",
+           { { a, keptNothing }, { aaaa, keptNothing }, { cname, failed(servfail) } }, true, false, "" },
+         { "the A query answered with records that were not kept, NODATA for AAAA, and a failed CNAME query: the lookup failed",
+           { { a, keptNothing }, { aaaa, noRecords(nodata) }, { cname, failed(servfail) } }, true, false, "" },
+         { "an alias, and a CNAME query that answers: the alias's target's addresses",
+           { { a, keptNothing }, { aaaa, keptNothing }, { cname, withRecord(cname, "target.test") } }, true, true, "192.0.2.9" },
+         { "NODATA for both and a failed CNAME query: no addresses, as before",
+           { { a, noRecords(nodata) }, { aaaa, noRecords(nodata) }, { cname, failed(servfail) } }, true, true, "" },
          { "NODATA for both and NODATA for the CNAME: no addresses",
            { { a, noRecords(nodata) }, { aaaa, noRecords(nodata) }, { cname, noRecords(nodata) } }, true, true, "" },
          { "a failed A query and an alias: the alias's target's addresses",
@@ -1068,8 +1116,7 @@ namespace HM
 
       // A name that does not exist - NXDOMAIN for every address query made - is
       // no alias: no CNAME query is made of it, and whatever one would have met,
-      // the name has no addresses. Asked, a failed one made the lookup fail, and
-      // a HELO host that does not exist went unscored.
+      // the name has no addresses.
       for (const bool ipv6 : { true, false })
       {
          ScriptedDns zone;
@@ -1092,8 +1139,9 @@ namespace HM
       }
 
       // NXDOMAIN for one family and NODATA for the other: the name is there by
-      // one of the answers, so whether it is an alias is asked, and a failure of
-      // that query fails the lookup.
+      // one of the answers, so whether it is an alias is asked, as before - and
+      // a failure of that query after two answers, neither with records that
+      // were not kept, changes nothing: no addresses.
       {
          ScriptedDns zone;
          zone.answers[QuestionKey_(a, _T("half.test"))].push_back(noRecords(nxdomain));
@@ -1103,8 +1151,8 @@ namespace HM
          Installed installed(zone);
          DNSResolver resolver;
          std::vector<String> found;
-         expect(!resolver.GetIpAddresses(_T("half.test"), found, true) && found.empty(),
-                "NXDOMAIN for A, NODATA for AAAA and a failed CNAME query: the lookup failed; asked " + askedOf(zone));
+         expect(resolver.GetIpAddresses(_T("half.test"), found, true) && found.empty(),
+                "NXDOMAIN for A, NODATA for AAAA and a failed CNAME query: true, no addresses; asked " + askedOf(zone));
          expect(askedOf(zone) == "1/half.test, 28/half.test, 5/half.test",
                 "NXDOMAIN for A and NODATA for AAAA: the CNAME query is made; asked " + askedOf(zone));
       }
@@ -1176,25 +1224,48 @@ namespace HM
                 "a list lookup that fails is asked twice, no more; asked " + askedOf(zone));
       }
 
-      // The record lookups that follow an alias: nothing of the type and a
-      // failed CNAME query is a lookup that did not complete, and not "no
-      // records" - a DKIM key, a DMARC policy or an SPF record not published.
-      // GetRecordsOfType is asked for MX here, which shares the path with TXT
-      // and has no DNSSEC gate in front of it.
+      // The record lookups that follow an alias: an answer whose records were
+      // not kept - on Windows, the query of an alias - and a failed CNAME query
+      // is a lookup that did not complete, and not "no records" - a DKIM key, a
+      // DMARC policy or an SPF record not published. GetRecordsOfType is asked
+      // for MX here, which shares the path with TXT and has no DNSSEC gate in
+      // front of it.
       {
          ScriptedDns zone;
-         zone.answers[QuestionKey_(DNS_TYPE_MX, _T("alias.test"))].push_back(noRecords(nodata));
+         zone.answers[QuestionKey_(DNS_TYPE_MX, _T("alias.test"))].push_back(keptNothing);
          zone.answers[QuestionKey_(cname, _T("alias.test"))].push_back(failed(servfail));
 
          Installed installed(zone);
          DNSResolver resolver;
          std::vector<AnsiString> values;
          expect(!resolver.GetRecordsOfType("alias.test", DNS_TYPE_MX, values) && values.empty(),
-                "a record lookup that found nothing, with a failed CNAME query: false; asked " + askedOf(zone));
+                "a record lookup of an alias - answered with records that were not kept - with a failed CNAME query: false; asked " + askedOf(zone));
 
          std::vector<String> names;
          expect(!resolver.GetMXRecords(_T("alias.test"), names) && names.empty(),
-                "an MX lookup that found nothing, with a failed CNAME query: false; asked " + askedOf(zone));
+                "an MX lookup of an alias - answered with records that were not kept - with a failed CNAME query: false; asked " + askedOf(zone));
+      }
+
+      // After NODATA a failed CNAME query changes nothing, as before: the name
+      // holds no such record - for a DKIM key a PERMFAIL (RFC 6376 section
+      // 6.1.2), for SPF none (RFC 7208 section 4.3). The CNAME query is still
+      // asked.
+      {
+         ScriptedDns zone;
+         zone.answers[QuestionKey_(DNS_TYPE_MX, _T("empty.test"))].push_back(noRecords(nodata));
+         zone.answers[QuestionKey_(cname, _T("empty.test"))].push_back(failed(servfail));
+
+         Installed installed(zone);
+         DNSResolver resolver;
+         std::vector<AnsiString> values;
+         expect(resolver.GetRecordsOfType("empty.test", DNS_TYPE_MX, values) && values.empty(),
+                "a record lookup answered NODATA, with a failed CNAME query: true, none; asked " + askedOf(zone));
+
+         std::vector<String> names;
+         expect(resolver.GetMXRecords(_T("empty.test"), names) && names.empty(),
+                "an MX lookup answered NODATA, with a failed CNAME query: true, none; asked " + askedOf(zone));
+         expect(askedOf(zone) == "15/empty.test, 5/empty.test, 15/empty.test, 5/empty.test",
+                "a record lookup answered NODATA asks the CNAME query; asked " + askedOf(zone));
       }
 
       {
@@ -1216,9 +1287,9 @@ namespace HM
       // A record lookup answered NXDOMAIN - for MX here and for A, the never-ban
       // list's lookup; GetTXTRecords goes the same way, behind its DNSSEC gate -
       // and an MX lookup: no records, whatever a CNAME query would have met, for
-      // none is made of a name that does not exist. Asked, a failed one made a
-      // DKIM key that does not exist a TempFail, where RFC 6376 section 6.1.2
-      // makes it a PERMFAIL, and an SPF record that is not there a temperror.
+      // none is made of a name that does not exist - a DKIM key that does not
+      // exist is a PERMFAIL (RFC 6376 section 6.1.2), an SPF record that is not
+      // there none.
       {
          ScriptedDns zone;
          zone.answers[QuestionKey_(DNS_TYPE_MX, _T("gone.test"))].push_back(noRecords(nxdomain));
@@ -1240,17 +1311,21 @@ namespace HM
                 "no CNAME query is made of a name that does not exist; asked " + askedOf(zone));
       }
 
+      for (const bool windowsAlias : { true, false })
       {
          ScriptedDns zone;
-         zone.answers[QuestionKey_(DNS_TYPE_MX, _T("alias.test"))].push_back(noRecords(nodata));
+         zone.answers[QuestionKey_(DNS_TYPE_MX, _T("alias.test"))].push_back(windowsAlias ? keptNothing : noRecords(nodata));
          zone.answers[QuestionKey_(cname, _T("alias.test"))].push_back(withRecord(cname, "target.test"));
          zone.answers[QuestionKey_(DNS_TYPE_MX, _T("target.test"))].push_back(withRecord(DNS_TYPE_MX, "mx.target.test"));
 
          Installed installed(zone);
          DNSResolver resolver;
          std::vector<String> names;
+         const std::string why = windowsAlias
+            ? "an MX lookup of an alias, answered with records that were not kept"
+            : "an MX lookup answered NODATA whose CNAME query finds an alias";
          expect(resolver.GetMXRecords(_T("alias.test"), names) && joined(names) == "mx.target.test",
-                "an MX lookup of an alias: the target's exchange; found \"" + joined(names) + "\"");
+                why + ": the target's exchange; found \"" + joined(names) + "\"");
       }
 
       // Delivery's lookup of a domain's mail servers (GetEmailServers): an

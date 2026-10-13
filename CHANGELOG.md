@@ -646,27 +646,26 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   DNS blacklist does not list - succeeds, so an A query that failed, a SERVFAIL or a timeout, was hidden behind it.
   The HELO test then scored the message for a name it could not look up, a DNS blacklist and SURBL read the failure
   as "not listed", and SURBL's first failed lookup ended the list for the message, so a listed link after it was
-  never asked about. A lookup now fails unless addresses were found or every query - A, AAAA, and the CNAME query
-  made when neither found anything - was answered; NXDOMAIN and NODATA still mean no addresses, and a name that
-  does not exist, which is no alias, is asked no CNAME query, so that one failed query cannot make it a lookup that
-  did not complete. The DNS blacklists
-  and SURBL ask the A record alone, the only record a list answers with, for an IPv6 address as for an IPv4 one
-  (RFC 5782), where they asked AAAA too, and ask it once more, past the Windows DNS cache, when it fails; SURBL then
-  passes over the name and asks the others; a blacklist writes `DNS lookup failed: <name>. The client could not be
-  checked against this blacklist.` to the TCP/IP log in place of `0 addresses found`, and says so in the
-  application log at most every 15 minutes, as SURBL does. So a lookup the list answered does not fail on an AAAA
-  query, one that times out waits for the DNS twice, as its A and AAAA queries made it wait before, and one that
-  is answered is one query where it was two. The same shape is gone from two more places: the PTR test scored a
-  reverse name whose address lookup failed, and a TXT, MX or other record lookup that found nothing and whose CNAME
+  never asked about. A lookup now fails unless addresses were found or every A and AAAA query was answered; NXDOMAIN
+  and NODATA still mean no addresses. When neither found anything the lookup asks whether the name is an alias, and
+  that CNAME query's failure fails it after the answer the Windows DNS client gives for an alias - the CNAME, and
+  the records of the name it is an alias of under that name, neither of which the lookup takes - but changes nothing
+  after NODATA, as before; a name that does not exist, which is no alias, is asked no CNAME query. The DNS
+  blacklists and SURBL ask the A record alone, the only record a list answers with, for an IPv6 address as for an
+  IPv4 one (RFC 5782), where they asked AAAA too, and ask it once more, past the Windows DNS cache, when it fails;
+  SURBL then passes over the name and asks the others; a blacklist writes `DNS lookup failed: <name>. The client
+  could not be checked against this blacklist.` to the TCP/IP log in place of `0 addresses found`, and says so in
+  the application log at most every 15 minutes, as SURBL does. So a lookup the list answered does not fail on an
+  AAAA query, one that times out waits for the DNS twice, as its A and AAAA queries made it wait before, and one
+  that is answered is one query where it was two. The same shape is gone from two more places: the PTR test scored a
+  reverse name whose address lookup failed, and on Windows a TXT, MX or other record lookup of an alias whose CNAME
   query failed read as "no records" - a DKIM key not published, which is a `PermFail`, no DMARC policy, no SPF
-  record, no MX for the MX-record test - where it is now a temporary error, as any other lookup that fails is; and
-  the never-ban list read such a forward lookup of a banned address's reverse name as a name that does not resolve
-  back to it, and announced the ban, where it now asks again a minute later, as for any lookup not answered. The
-  CNAME query is asked after a query answered NODATA, and on Windows after the query of every alias, whose records
-  the DNS client returns under the name it is an alias of, which the lookup does not take - so on Windows a DKIM
-  selector that is a CNAME, as Microsoft 365's are for a customer's domain, is now a `TempFail` when its CNAME
-  query fails, where it was a `PermFail`. A name answered NXDOMAIN is still no records, and is asked no CNAME
-  query: a DKIM key that does not exist is a `PermFail`.
+  record, no MX for the MX-record test - where it is now a temporary error, as any other lookup that fails is: a
+  DKIM selector that is a CNAME, as Microsoft 365's are for a customer's domain, is then a `TempFail`, where it was
+  a `PermFail`; and the never-ban list read such a forward lookup of a banned address's reverse name as a name that
+  does not resolve back to it, and announced the ban, where it now asks again a minute later, as for any lookup not
+  answered. A name answered NODATA or NXDOMAIN is still no records whatever its CNAME query meets, and one answered
+  NXDOMAIN is asked none: a DKIM key that is not published, or whose name does not exist, is a `PermFail`.
   Delivery makes the same address lookup of a recipient's mail servers, and of a route's host or the SMTP relay
   server: when none of them had an address and that lookup of one of them failed so - through a route that names
   several hosts, of the last of them - the notice to the sender said `No mail servers appear to exists`
@@ -679,8 +678,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   servers, where it now says that the lookup failed. `DNSResolverTester` (`public-suffix-tests` on Linux) holds the
   rules to answers scripted on its own thread, `SURBLTester` the passing over, and `AntiSpam/DnsLookupFailures.cs`
   the HELO, PTR, MX-record, DKIM key, DNS blacklist and SURBL tests, the delivery notice and the MX query against
-  the suite's zone answering SERVFAIL, timing out, NXDOMAIN and NODATA; DiagnosingStalledMail.md, "When a spam test
-  cannot look a name up", has the table. Found by upstream.
+  the suite's zone answering SERVFAIL, timing out, NXDOMAIN, NODATA and an alias whose CNAME query fails;
+  DiagnosingStalledMail.md, "When a spam test cannot look a name up", has the table. Found by upstream.
 
 ### Downloads and the release
 

@@ -176,5 +176,52 @@
 #     in pieces through FileUtilities::WriteToFileAtomically, the writer every
 #     rewrite of a message here goes through.
 #
+# Ported 2026-10-12 (branch dns-failed-lookup): 8141d66af, upstream PR #640,
+# adapted - a DNS lookup that failed was read as "no records". An address lookup
+# asks A and AAAA and was true when either query was answered, so a SERVFAIL or
+# a timeout on A beside AAAA answered NODATA - every IPv4-only host's answer -
+# was a name with no addresses: the HELO test scored what it could not look up,
+# and a DNS blacklist or SURBL read the failure as "not listed". Upstream's rule
+# is written into DNSResolver::GetIpAddressesRecursive_, with a status for each
+# query: false unless addresses were found or every A and AAAA query was
+# answered. The DNS blacklists and SURBL ask through
+# DNSResolver::GetDnsListAnswers - the A record alone (RFC 5782), asked once
+# more past the DNS cache when it fails, which is upstream's second attempt -
+# and DNSResolverWinApi::Query takes upstream's bypassCache on our DnsQueryEx
+# path (the POSIX resolver keeps no cache). SURBL passes over a name it could
+# not look up in our concurrent SURBL::Run, as upstream's loop skips it; BLCheck
+# writes upstream's "DNS lookup failed" line in place of "0 addresses found",
+# where upstream writes both, and reports to AntiSpamDiagnostics. Beyond
+# upstream: a CNAME query that fails after an answer whose records were not kept
+# (on Windows the answer for an alias, which DNSResolverWinApi::RunQuery_ does
+# not keep under the name asked) fails the address lookup,
+# GetRecordsOfTypeRecursive_ and GetMXRecordsRecursive_, where upstream counts
+# the CNAME query in none of them and leaves the record lookups as they were;
+# after NODATA it changes nothing, as before, and a name answered NXDOMAIN is
+# asked none. SpamTestPTR scores no reverse name whose forward lookup failed, as
+# it scores no PTR lookup that failed (upstream leaves SpamTestPTR as it was;
+# the owner kept it on 13 October 2026). GetEmailServersRecursive_ takes an
+# address two exchanges share out on its failure return too, which the rule
+# sends more exchanges to. AntiSpam/DnsLookupFailures.cs holds the spam tests,
+# the delivery notice and the MX query to it, its cases of the defect failing on
+# 74aed9ab8, and DNSResolverTester the lookups, where each part of the fix has a
+# case that fails with it taken out.
+#
+#   DELIBERATELY NOT TAKEN:
+#   - 8141d66af (#640), DNSResolver::GetIpAddressesWithRetry, which asks A and
+#     AAAA twice: GetDnsListAnswers serves the only callers that retry, BLCheck
+#     and SURBL, and asks the A record alone. Under the new rule an AAAA query
+#     that failed beside a list's answer would fail a lookup the list answered,
+#     and a list that does not answer would be waited for four timeouts where
+#     two were waited for before.
+#   - 8141d66af (#640), GetIpAddresses' bypassCache parameter: no other caller
+#     asks an address lookup past the cache, and GetDnsListAnswers passes
+#     bypassCache to DNSResolverWinApi::Query itself.
+#
+#   NOT APPLICABLE:
+#   - 8141d66af (#640), VMTestRunner.Console/TestEnvironments.json: it enables
+#     the machines of upstream's own test lab. Ours lists those of the 6.0
+#     baseline, and is neither its pre-image nor its post-image.
+#
 # Update this SHA (and only this SHA) when a batch has been triaged.
 d5e087066fa8ba5382787739ba61a9abc8975d99

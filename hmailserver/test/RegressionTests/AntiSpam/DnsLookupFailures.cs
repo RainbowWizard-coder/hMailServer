@@ -24,14 +24,15 @@ namespace RegressionTests.AntiSpam
    ///    for a name it could not look up, a DNS blacklist and SURBL read the failure
    ///    as "not listed", and the PTR and MX-record tests scored what they could
    ///    not look up as well. A lookup now fails unless addresses were found or
-   ///    every query was answered; a failure is not scored; the DNS blacklists and
-   ///    SURBL ask the A record alone - the only record a list answers with (RFC
-   ///    5782), so that an AAAA query cannot fail a lookup the list answered - and
-   ///    ask a query that failed once more, past the DNS cache; SURBL passes over a
-   ///    name it could not look up and asks the rest, where one failure used to end
-   ///    the list for the message; and a blacklist says in the log that it could
-   ///    not check the client. Delivery and the Control Panel's MX query make the
-   ///    same address lookup of a domain's mail servers, and say that it failed.
+   ///    every A and AAAA query was answered; a failure is not scored; the DNS
+   ///    blacklists and SURBL ask the A record alone - the only record a list
+   ///    answers with (RFC 5782), so that an AAAA query cannot fail a lookup the
+   ///    list answered - and ask a query that failed once more, past the DNS
+   ///    cache; SURBL passes over a name it could not look up and asks the rest,
+   ///    where one failure used to end the list for the message; and a blacklist
+   ///    says in the log that it could not check the client. Delivery and the
+   ///    Control Panel's MX query make the same address lookup of a domain's mail
+   ///    servers, and say that it failed.
    ///
    ///    The suite's own zone (SuiteDns) serves every name, so each case is the
    ///    answer it describes - a SERVFAIL, a timeout, NXDOMAIN, NODATA - and not
@@ -40,7 +41,16 @@ namespace RegressionTests.AntiSpam
    ///    is not mistaken for a test that stopped scoring anything. A name that
    ///    does not exist is no alias, and is not asked about as one: the NXDOMAIN
    ///    cases whose CNAME query would fail show that one failed query of a
-   ///    question that need not be asked does not make the answer unknown.
+   ///    question that need not be asked does not make the answer unknown. Nor
+   ///    does a CNAME query that fails after NODATA, which is still scored: the
+   ///    name holds nothing of the type, as before.
+   ///
+   ///    That query decides the answer after the one the Windows DNS client gives
+   ///    for an alias - the CNAME, and the target's records under the target's
+   ///    name, which the lookup does not keep - and when it fails then, the lookup
+   ///    has failed: the alias cases. The Linux resolver follows the alias within
+   ///    that answer and asks no CNAME query, so each alias's target is chosen to
+   ///    give the same verdict there.
    ///
    ///    The HELO, PTR and MX-record tests connect from the machine's own address,
    ///    because the HELO test passes over a client in the loopback range.
@@ -52,6 +62,11 @@ namespace RegressionTests.AntiSpam
       private const string HeloReason = "The host name specified in HELO does not match IP address.";
       private const string PtrReason = "No valid rDNS/PTR record found.";
       private const string SurblZone = "multi.surbl.org";
+
+      // SERVFAIL for a question more times than a test asks it. The zone answers
+      // an alias's CNAME query with the CNAME, and that answer wins over
+      // WithServFail(name, type); WithServFailFirst wins over it while it lasts.
+      private const int MoreTimesThanAsked = 50;
 
       private hMailServer.AntiSpam _antiSpam;
 
@@ -134,16 +149,41 @@ namespace RegressionTests.AntiSpam
       }
 
       [Test]
-      [Description("A HELO host with NODATA for A and AAAA whose CNAME query fails is not scored: whether it is an alias is not known.")]
-      public void HeloHostWhoseCnameQueryFailsIsNotScored()
+      [Description("A HELO host that is an alias, whose CNAME query fails, is not scored: on Windows the DNS client answers its A and AAAA queries with the alias and its target's records under the target's name, which the lookup does not keep, so whether it has addresses is not known.")]
+      public void HeloHostThatIsAnAliasWhoseCnameQueryFailsIsNotScored()
       {
-         string host = "helo-cname-servfail." + Zone;
+         // The target's address is the client's: on Linux the resolver follows
+         // the alias within the A query's answer, and the HELO host matches the
+         // client - not scored, as on Windows, where the lookup failed. Before
+         // 6.3.7 the failed CNAME query was ignored on Windows, and the alias was
+         // a name with no addresses: scored.
+         string host = "helo-alias-cname-servfail." + Zone;
+         string target = "helo-alias-target." + Zone;
+         SuiteDns.Zone.WithCname(host, target)
+            .WithA(target, TestSetup.GetLocalIpAddress().ToString())
+            .WithServFailFirst(host, FakeDnsServer.TypeCname, MoreTimesThanAsked);
+
+         ArmHelo_();
+         string message = SendWithHelo_(host, "helo-alias-cname");
+
+         AssertNotScored_(message, HeloReason, "a HELO host that is an alias, whose CNAME query failed");
+         AssertAsked_(host, FakeDnsServer.TypeA);
+         if (OnWindows_)
+            AssertAsked_(host, FakeDnsServer.TypeCname);
+      }
+
+      [Test]
+      [Description("A HELO host that answers NODATA for A and AAAA has no address whatever its CNAME query meets, and is scored, as before: a CNAME query that fails after NODATA does not make the answer unknown.")]
+      public void HeloHostWithNoAddressIsScoredWhateverItsCnameQueryMeets()
+      {
+         string host = "helo-nodata-cname-servfail." + Zone;
          SuiteDns.Zone.WithServFail(host, FakeDnsServer.TypeCname);
 
          ArmHelo_();
-         string message = SendWithHelo_(host, "helo-cname-servfail");
+         string message = SendWithHelo_(host, "helo-nodata-cname");
 
-         AssertNotScored_(message, HeloReason, "a HELO host with NODATA for A and AAAA whose CNAME query failed");
+         AssertScored_(message, HeloReason, "a HELO host answered NODATA for A and AAAA, whose CNAME query failed");
+         AssertAsked_(host, FakeDnsServer.TypeA, FakeDnsServer.TypeAaaa, FakeDnsServer.TypeCname);
       }
 
       [Test]
@@ -188,8 +228,8 @@ namespace RegressionTests.AntiSpam
       [Description("A HELO host that does not exist (NXDOMAIN for A and AAAA) is scored whatever a CNAME query would meet: a name that does not exist is no alias, and is not asked about as one.")]
       public void HeloHostThatDoesNotExistIsScoredWhateverItsCnameQueryWouldMeet()
       {
-         // Asked, a CNAME query that failed made the lookup one that did not
-         // complete, and the HELO host went unscored: one lost packet sufficed.
+         // The CNAME query scripted to fail is not asked: whatever it would meet,
+         // the HELO host has no address.
          string host = "helo-nxdomain-cname-servfail." + Zone;
          SuiteDns.Zone.WithNxDomain(host)
             .WithServFail(host, FakeDnsServer.TypeCname);
@@ -255,18 +295,46 @@ namespace RegressionTests.AntiSpam
       // ------------------------------------------------------------------ MX records
 
       [Test]
-      [Description("A sender's domain with no MX record whose CNAME query fails is not scored by the MX-record test: whether it is an alias is not known.")]
-      public void SenderDomainWhoseCnameQueryFailsIsNotScoredForMx()
+      [Description("A sender's domain that is an alias, whose CNAME query fails, is not scored by the MX-record test: on Windows the DNS client answers its MX query with the alias and its target's MX under the target's name, which the lookup does not keep, so whether it has MX records is not known.")]
+      public void SenderDomainThatIsAnAliasWhoseCnameQueryFailsIsNotScoredForMx()
       {
-         string domain = "mx-cname-servfail." + Zone;
+         // On Linux the resolver follows the alias within the MX query's answer
+         // and finds the target's MX - not scored, as on Windows, where the
+         // lookup failed. Before 6.3.7 the failed CNAME query was ignored on
+         // Windows, and the alias was a domain with no MX: scored, its
+         // registrable domain answering NODATA too.
+         string domain = "mx-alias-cname-servfail." + Zone;
+         string target = "mx-alias-target." + Zone;
+         SuiteDns.Zone.WithCname(domain, target)
+            .WithMx(target, 10, "mx." + target)
+            .WithServFailFirst(domain, FakeDnsServer.TypeCname, MoreTimesThanAsked);
+
+         _antiSpam.UseMXChecks = true;
+         _antiSpam.UseMXChecksScore = 5;
+
+         string message = SendWithHelo_("client.example.test", "mx-alias-cname", "sender@" + domain);
+
+         AssertNotScored_(message, "X-hMailServer-Reason-", "a sender's domain that is an alias, whose CNAME query failed");
+         AssertAsked_(domain, FakeDnsServer.TypeMx);
+         if (OnWindows_)
+            AssertAsked_(domain, FakeDnsServer.TypeCname);
+      }
+
+      [Test]
+      [Description("A sender's domain answered NODATA for MX is scored by the MX-record test whatever its CNAME query meets, as before.")]
+      public void SenderDomainWithNoMxIsScoredWhateverItsCnameQueryMeets()
+      {
+         string domain = "mx-nodata-cname-servfail." + Zone;
          SuiteDns.Zone.WithServFail(domain, FakeDnsServer.TypeCname);
 
          _antiSpam.UseMXChecks = true;
          _antiSpam.UseMXChecksScore = 5;
 
-         string message = SendWithHelo_("client.example.test", "mx-cname-servfail", "sender@" + domain);
+         string message = SendWithHelo_("client.example.test", "mx-nodata-cname", "sender@" + domain);
 
-         AssertNotScored_(message, "X-hMailServer-Reason-", "a sender's domain with no MX whose CNAME query failed");
+         AssertScored_(message, "Sender domain does not have any MX records.",
+            "a sender's domain answered NODATA for MX, whose CNAME query failed, and its registrable domain NODATA");
+         AssertAsked_(domain, FakeDnsServer.TypeMx, FakeDnsServer.TypeCname);
       }
 
       [Test]
@@ -309,34 +377,55 @@ namespace RegressionTests.AntiSpam
       [Description("A DKIM signature whose key does not exist (NXDOMAIN) fails permanently - no key for signature, RFC 6376 section 6.1.2 - whatever a CNAME query of the key's name would meet: it is not asked.")]
       public void DkimKeyThatDoesNotExistIsAPermanentFailure()
       {
-         // Asked, a CNAME query that failed made the key's lookup one that did
-         // not complete: a TempFail, and the message accepted without a verdict.
-         // The key is looked up before the body hash is checked, so the
-         // signature's placeholder hashes are never reached.
+         // The CNAME query scripted to fail is not asked: whatever it would meet,
+         // no key is published under a name that does not exist.
          const string selector = "dkim-nxdomain";
          string keyName = selector + "._domainkey." + Zone;
          SuiteDns.Zone.WithNxDomain(keyName)
             .WithServFail(keyName, FakeDnsServer.TypeCname);
 
-         _antiSpam.DKIMVerificationEnabled = true;
-         _antiSpam.DKIMVerificationFailureScore = 5;
-
-         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "dkim-nxdomain@example.test", "test");
-         string raw = "DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=" + Zone + ";\r\n" +
-                      "\ts=" + selector + "; h=from:subject;\r\n" +
-                      "\tbh=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=; b=AAAAAAAAAAAA\r\n" +
-                      "From: <" + account.Address + ">\r\n" +
-                      "To: <" + account.Address + ">\r\n" +
-                      "Subject: DNS lookup failures\r\n" +
-                      "\r\n" +
-                      "A message.\r\n";
-         SmtpClientSimulator.StaticSendRaw(account.Address, account.Address, raw);
-         string message = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+         string message = SendDkimSigned_(selector);
 
          AssertScored_(message, "Rejected by DKIM.", "a DKIM signature whose key's name answered NXDOMAIN, whose CNAME query would have failed");
          AssertAsked_(keyName, FakeDnsServer.TypeTxt);
          ClassicAssert.AreEqual(0, AskedOf_(keyName, FakeDnsServer.TypeCname),
             "A DKIM key's name that does not exist was asked whether it is an alias. Asked: " + string.Join(", ", SuiteDns.Zone.Queries));
+      }
+
+      [Test]
+      [Description("A DKIM signature whose key's name answers NODATA - no key is published - fails permanently, no key for signature (RFC 6376 section 6.1.2), whatever a CNAME query of the name meets, as before.")]
+      public void DkimKeyThatIsNotPublishedIsAPermanentFailureWhateverItsCnameQueryMeets()
+      {
+         const string selector = "dkim-nodata";
+         string keyName = selector + "._domainkey." + Zone;
+         SuiteDns.Zone.WithServFail(keyName, FakeDnsServer.TypeCname);
+
+         string message = SendDkimSigned_(selector);
+
+         AssertScored_(message, "Rejected by DKIM.", "a DKIM signature whose key's name answered NODATA, whose CNAME query failed");
+         AssertAsked_(keyName, FakeDnsServer.TypeTxt, FakeDnsServer.TypeCname);
+      }
+
+      [Test]
+      [Description("Windows: a DKIM signature whose key's name is an alias - as Microsoft 365's selectors are for a customer's domain - and whose CNAME query fails is a temporary failure, not scored: the DNS client answers the TXT query with the alias and its target's key under the target's name, which the lookup does not keep, so whether a key is published is not known.")]
+      public void DkimKeyThatIsAnAliasWhoseCnameQueryFailsIsATemporaryFailure()
+      {
+         // Before 6.3.7 the failed CNAME query was ignored on Windows, and the
+         // key was one not published: a PermFail, scored.
+         if (!OnWindows_)
+            Assert.Ignore("The Windows DNS client's path: the Linux resolver follows the alias within the TXT query's answer, finds the key and asks no CNAME query.");
+
+         const string selector = "dkim-alias";
+         string keyName = selector + "._domainkey." + Zone;
+         string target = "dkim-alias-target._domainkey." + Zone;
+         SuiteDns.Zone.WithCname(keyName, target)
+            .WithTxt(target, "v=DKIM1; k=rsa; p=AAAAAAAA")
+            .WithServFailFirst(keyName, FakeDnsServer.TypeCname, MoreTimesThanAsked);
+
+         string message = SendDkimSigned_(selector);
+
+         AssertNotScored_(message, "Rejected by DKIM.", "a DKIM signature whose key's name is an alias, whose CNAME query failed");
+         AssertAsked_(keyName, FakeDnsServer.TypeTxt, FakeDnsServer.TypeCname);
       }
 
       // ------------------------------------------------------------------ DNS blacklists
@@ -559,8 +648,10 @@ namespace RegressionTests.AntiSpam
       public void DeliveryToADomainThatDoesNotExistSaysThereAreNoMailServers()
       {
          // With no MX the domain's own addresses are its mail servers (RFC 5321
-         // section 5.1), and that address lookup asked the CNAME too: failed, it
-         // made the domain's lookup one that did not complete (4.4.4).
+         // section 5.1). That address lookup asks no CNAME query of a name A and
+         // AAAA answer NXDOMAIN, and the one delivery's MX lookup asks first is
+         // read only for an alias to follow: whatever the CNAME query meets, the
+         // domain has no mail servers (4.1.2).
          string domain = "deliver-nxdomain-cname-servfail." + Zone;
          SuiteDns.Zone.WithNxDomain(domain)
             .WithServFail(domain, FakeDnsServer.TypeCname);
@@ -715,6 +806,28 @@ namespace RegressionTests.AntiSpam
          return surblServer;
       }
 
+      // A message DKIM-signed at the zone with the selector given, from a new
+      // local account to itself, read back from its mailbox, DKIM verification
+      // scoring a failure. The key is looked up before the body hash is checked,
+      // so the signature's placeholder hashes are reached only with a key found.
+      private string SendDkimSigned_(string selector)
+      {
+         _antiSpam.DKIMVerificationEnabled = true;
+         _antiSpam.DKIMVerificationFailureScore = 5;
+
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, selector + "@example.test", "test");
+         string raw = "DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=" + Zone + ";\r\n" +
+                      "\ts=" + selector + "; h=from:subject;\r\n" +
+                      "\tbh=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=; b=AAAAAAAAAAAA\r\n" +
+                      "From: <" + account.Address + ">\r\n" +
+                      "To: <" + account.Address + ">\r\n" +
+                      "Subject: DNS lookup failures\r\n" +
+                      "\r\n" +
+                      "A message.\r\n";
+         SmtpClientSimulator.StaticSendRaw(account.Address, account.Address, raw);
+         return Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+      }
+
       // A message from 127.0.0.1, read back from the mailbox it was delivered to.
       private string SendFromLoopback_(string local, string body = "A message.")
       {
@@ -754,6 +867,12 @@ namespace RegressionTests.AntiSpam
       {
          ClassicAssert.IsTrue(reply != null && reply.StartsWith(code), "Expected " + code + ", the server said: " + reply);
       }
+
+      // The alias cases go to the CNAME query on the Windows DNS client's path
+      // alone. Spelt out rather than with "using System": that brings
+      // MemoryExtensions.Reverse in, which ReverseLookupName_'s Reverse would
+      // then call on the address's bytes as a span.
+      private static bool OnWindows_ => System.Environment.OSVersion.Platform == System.PlatformID.Win32NT;
 
       private static string ReverseLookupName_(IPAddress address)
       {
