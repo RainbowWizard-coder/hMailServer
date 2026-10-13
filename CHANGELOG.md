@@ -4837,6 +4837,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   calls it, where some texts and the Add range card said område; the stage timings of the stalled-mail page are its
   trintider; and uanset takes no comma before its clause.
 
+- **Fixed: 256 Finnish texts said what their English does not, left out a comma Finnish requires, or named one thing
+  two ways.** Free software under the AGPLv3 was free of charge (ilmainen), where it is free as in freedom (vapaa);
+  leavers that the directory sync disables were deleted; "jokainen ... ei käynnisty" said that not every port starts,
+  where none does; once a certificate expired, the ports did; the log scheduled each stage (ajastaa), where it records
+  how long each took; and the default IP ranges were Oma tietokone and Internet, where the server gives them in
+  English. A mail domain is a verkkotunnus, as in the rest of the catalogue, where some texts said toimialue, which
+  the catalogue keeps for a Windows domain; the cipher list is a salauslista and the message store a viestivarasto
+  throughout; and 82 texts have their punctuation mended, most of them with the comma Finnish puts before every
+  subordinate clause, after sen sijaan, before ennen kuin and kunnes, and round a relative clause.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
