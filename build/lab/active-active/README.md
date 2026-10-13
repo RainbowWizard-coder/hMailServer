@@ -198,7 +198,14 @@ into one mailbox through both, eight connections at a time. Measured on 12 Octob
 | Relayed: **never delivered** | **106** | **122** | **29** |
 | Into one mailbox: **left in the mailbox** | **118 of 1,000** (`UIDNEXT` 930) | **226** (`UIDNEXT` 918) | **82** (`UIDNEXT` 986) |
 | UIDs given to two messages | 0 | 5 (10 rows): `SELECT` showed 221 where `STATUS` said 226 | 0 |
-| Served as a placeholder by one of the two nodes | all 118 | all 221 | all 82 |
+| Served as a placeholder by one of the two nodes | all 118 | 98 + 123 for the 221 listed | all 82 |
+
+Every message's file is on one disk, so with one row to a UID each message is a
+placeholder on exactly the other node, and the two nodes' counts adding up to the
+messages listed (PostgreSQL, MySQL) shows that every one was. Where UIDs were given
+twice (MariaDB here) the sum is consistent with that and no more: a UID on two rows
+is a placeholder on both nodes when each reads the row whose file is on the other,
+and on neither when each reads its own.
 
 Why:
 
@@ -261,8 +268,16 @@ gave the lab, both with other roles. It is driven from the machine that hosts th
 | Machine | What it is | What the lab put there |
 |---|---|---|
 | W1 | The installer smoke VM, Windows Server 2025 (4 vCPU, 8 GB), its address by DHCP (`aa-win.py` asks `vmrun`) | The server as a real installation has it: `C:\hmlab-aa` (Bin, DBScripts, Languages, Events, WebAdmin, Data, Logs, Temp), `/RegisterTypeLib` and `/Register` (service `hMailServer`, LocalSystem, the COM server), `InstallLocation`; the service set to Manual; MSOLEDBSQL 18.7.6; a firewall rule `hmlab-aa: hMailServer lab ports` (TCP 2525, 2587, 1110, 1143 to `hMailServer.exe`, local subnet) |
-| W2 | The AD lab's domain controller, Windows Server 2025 (6 vCPU, 5 GB), 192.168.11.149, which runs an hMailServer of its own (`C:\Program Files\hMailServer`, on SQL Server Compact) | The same `C:\hmlab-aa`, as a second service `hMailServerAA` (made as `/Register` makes one: own process, `"<exe>" RunAsService`, after RPCSS, LocalSystem; Manual), not registered with COM; MSOLEDBSQL 18.7.6. Its firewall is off, and stays as it was |
+| W2 | The AD lab's domain controller, Windows Server 2025 (6 vCPU, 5 GB), 192.168.11.149, which runs an hMailServer of its own (`C:\Program Files\hMailServer`, on SQL Server Compact) | The same `C:\hmlab-aa`, as a second service `hMailServerAA` (made as `/Register` makes one: own process, `"<exe>" RunAsService` with the path quoted, after RPCSS, LocalSystem; Disabled outside the lab's turns, below), not registered with COM; the scheduled task `\hmlab-aa\hmlab-aa turn watchdog`; MSOLEDBSQL 18.7.6. Its firewall is off, and stays as it was |
 | server2 | 10.0.0.19 | `hmlab-aa-mssql`: SQL Server 2022 CU27 Developer edition (the image `build/lab/docker-compose.yml` pins), long-lived (`--restart unless-stopped`, 4 GB, volume `hmlab-aa-mssql-data`), published on `10.0.0.19:14330`, in `TZ=Europe/London`, the zone of the nodes. During a run, `hmlab-aa-sink` (`sink.py`) on `10.0.0.19:14325`. `~/hmlab/aa-win` holds the scripts, the runs and python-tds for the checks |
+
+On both nodes `C:\hmlab-aa` is hardened as setup hardens an installation, by the
+server's own `hMailServer.exe /ProtectFolders`: the program folder and Bin are
+SYSTEM's and the Administrators' to change (Users may read and run them), and Data,
+Logs, Temp, Database, Events and `hMailServer.ini` are private to SYSTEM and the
+Administrators. So nothing a LocalSystem service runs there, or the watchdog trusts
+(`lab\node.ps1`, `lab\turn.json`), can be changed by an account that is not an
+administrator, and no such account can read the sealed database password.
 
 **One installation per machine.** On Windows the server finds `hMailServer.ini`
 through `HKLM\SOFTWARE\hMailServer\InstallLocation` (the 32-bit view the installer
@@ -270,15 +285,30 @@ writes) before its own folder (`Utilities::GetBinDirectory`). A second installat
 on a machine that has one reads the first's configuration, and runs on the first's
 database; the first run on W2 did exactly that, and W2 was reverted to its snapshot.
 So the node on W2 runs in **turns**: while its service runs, and for the server's own
-verbs (`--set-admin-password`, `--upgrade-database`), the AD lab's service is stopped
-and Disabled and `InstallLocation` names `C:\hmlab-aa`; when it stops, both are put
-back and the AD lab's service is started again. `node.ps1` keeps what a turn changed
-in `C:\hmlab-aa\lab\turn.json` before it changes it, and `node.ps1 release` (or
-`aa-win.py stop W2`) puts it back after any failure, a driver cut off part of the way
-through included; `baseline` stops W2 however it ends. Disabled, not Manual: during a
-turn a COM activation of `hMailServer.Application` would otherwise start the AD lab's
-service, which would read the lab's INI. The AD lab's hMailServer is down for as long
-as the W2 node runs.
+verbs (`--set-admin-password`, `--upgrade-database`, `/ProtectFolders`), the AD lab's
+service is stopped and Disabled and `InstallLocation` names `C:\hmlab-aa`; when it
+stops, both are put back and the AD lab's service is started again. Disabled, not
+Manual: during a turn a COM activation of `hMailServer.Application` would otherwise
+start the AD lab's service, which would read the lab's INI. The lab's own service is
+Disabled outside a turn for the same reason the other way round: started by hand it
+would read the AD lab's INI and run on its database (the first run on W2 did), so a
+start outside a turn is refused (1058, the service is disabled). The AD lab's
+hMailServer is down for as long as the W2 node runs.
+
+`node.ps1` keeps what a turn changed in `C:\hmlab-aa\lab\turn.json` before it
+changes it. `node.ps1 release`, or `aa-win.py stop W2`, gives a turn back after any
+failure, and `baseline` stops W2 however it ends. And a turn ends by itself: a start
+opens it for 30 minutes (`--turn-minutes`, `AA_WIN_TURN_MINUTES`; a start of a node
+already in its turn renews it), and the task `\hmlab-aa\hmlab-aa turn watchdog`,
+which runs `node.ps1 watchdog` as SYSTEM at W2's start and every five minutes, gives
+the turn back when its time has run out (the driver cut off part of the way through:
+a usage limit, the laptop asleep) or when W2 has started again since it was opened (a
+reboot for updates), and says so in `C:\hmlab-aa\lab\watchdog.log`. The commands
+that open, use or close a turn hold `lab\turn.lock` while they run, so the watchdog
+never gives a turn back in the middle of one. Both were tried on 13 October: a turn
+opened for one minute was given back by the watchdog's first run after that minute,
+and a turn open when W2 was rebooted was given back by the task's start-up run, 43
+seconds after W2 started.
 
 The lab database, `hmlab_aa`, is **made by the server itself**: `aa-win.py provision`
 has W1's server create it over COM, as DBSetup does (`Database.CreateExternalDatabase`,
@@ -293,21 +323,21 @@ left it is what `reset` restores. The new-installation defaults are not applied,
 the Linux lab: the listeners have no TLS.
 
 **Secrets** are in `~/.config/hmailserver/aa-lab-mssql` on the driving machine
-(owner-only), made by `aa-win.py secrets`, and in each node's INI as the server keeps
-them: the database password sealed with DPAPI for that machine
-(`PasswordEncryption=6`; W1's written by `CreateExternalDatabase`, W2's by `node.ps1
-set-database` in the same format, and both checked to open to the same password), the
-administrator's as a PBKDF2 hash written by `--set-admin-password`. Each reaches the
-machine that needs it on standard input, never as an argument; server2 is given only
-the database's. sa's first password, which the container's environment shows, is a
-throwaway replaced at the first start.
+(owner-only), made by `aa-win.py secrets` (which leaves a file that lacks nothing as
+it is), and in each node's INI as the server keeps them: the database password sealed
+with DPAPI for that machine (`PasswordEncryption=6`; W1's written by
+`CreateExternalDatabase`, W2's by `node.ps1 set-database` in the same format, and both
+checked to open to the same password), the administrator's as a PBKDF2 hash written
+by `--set-admin-password`. Each reaches the machine that needs it on standard input,
+never as an argument; server2 is given only the database's. sa's first password,
+which the container's environment shows, is a throwaway replaced at the first start.
 
 ```
 python build/lab/active-active/windows/aa-win.py secrets
 python build/lab/active-active/windows/aa-win.py kit --server1 <commit>      # make-kit.ps1 on server1
 python build/lab/active-active/windows/aa-win.py provision --kit <zip> --msi <msoledbsql.msi>
 python build/lab/active-active/windows/aa-win.py deploy-build --kit <zip> [--node W1|W2|all] [--upgrade-database] [--start]
-python build/lab/active-active/windows/aa-win.py start W1|W2 | stop W1|W2|all | status
+python build/lab/active-active/windows/aa-win.py start W1|W2 [--turn-minutes N] | stop W1|W2|all | status
 python build/lab/active-active/windows/aa-win.py reset [--recreate]
 python build/lab/active-active/windows/aa-win.py smoke W1|W2
 python build/lab/active-active/windows/aa-win.py baseline
@@ -318,20 +348,30 @@ python build/lab/active-active/windows/aa-win.py ado-probe W1|W2
 `start` refuses a node while the other runs or holds a session on the database:
 until the units land, WarmStandby.md holds. `start all --both` and `baseline` are the
 controlled measurements that break that rule on purpose; `baseline` ends with W2
-stopped and W1 alone. A kit is a build of the Windows server laid out as the installer
-lays out an installation (`make-kit.ps1`: `build\build.ps1 -Configuration Release`,
-post-build events off, on the build machine; the C++ runtime app-local, OpenSSL,
-libpq, the MariaDB client, `SHA256SUMS.txt`, which the nodes check). `deploy-build`
-keeps each node's INI, and with `--upgrade-database` stops both nodes and moves the
-schema through `hMailServer.exe --upgrade-database` on W1. The VMs have snapshots
-`before-aa-lab` (each as it was) and `aa-lab-base` (the lab provisioned, both services
-stopped, the database at its golden backup); after a revert to `aa-lab-base`, run
-`aa-win.py reset`, since the database is on server2 and not in the snapshot. W1's
-`firstsnapshot` is the installer smoke test's and is not the lab's.
+stopped and W1 alone. A start fails unless the node listens on all four lab ports
+within 90 seconds, and then the node is stopped and a turn given back: a node that
+did not come up (a schema the build refuses, a port taken) is never left holding
+sessions on the database. A kit is a build of the Windows server laid out as the
+installer lays out an installation (`make-kit.ps1`: `build\build.ps1 -Configuration
+Release`, post-build events off, on the build machine; the C++ runtime app-local,
+OpenSSL, libpq, the MariaDB client, `SHA256SUMS.txt`, which the nodes check); a build
+of the commit already on the build machine is reused. `provision` run again changes
+only what is not as it should be - a login's password is set again only when it is not
+the one given, the firewall rule is left as it is, the administrator password is
+written only when the INI's hash does not verify against it, `[Database]` only when it
+differs - so on a provisioned lab it takes no turn on W2 and changes nothing.
+`deploy-build` keeps each node's INI, and with `--upgrade-database` stops both nodes
+and moves the schema through `hMailServer.exe --upgrade-database` on W1, so W1 must be
+among the nodes it deploys (it refuses otherwise: W1's old build would move the
+schema). The VMs have snapshots `before-aa-lab` (each as it was) and `aa-lab-base`
+(the lab provisioned, both services stopped, the database at its golden backup);
+after a revert to `aa-lab-base`, run `aa-win.py reset`, since the database is on
+server2 and not in the snapshot. W1's `firstsnapshot` is the installer smoke test's
+and is not the lab's.
 
-Measured on 13 October 2026 (master 74aed9ab8, schema 6108; results in
-`~/.cache/hmlab-aa-win/runs/` on the driving machine and `~/hmlab/aa-win/runs/` on
-server2):
+Measured on 13 October 2026 (master 74aed9ab8, schema 6108; the third baseline by the
+verification of the lab; results in `~/.cache/hmlab-aa-win/runs/` on the driving
+machine and `~/hmlab/aa-win/runs/` on server2):
 
 - **Each node alone** (`smoke`): the service starts, 5 sessions from its host, a
   message delivered over SMTP to `account2@` and read back over IMAP from the
@@ -354,19 +394,48 @@ server2):
   writers that roll back every third number, the reader at READ UNCOMMITTED saw 109
   rows that were rolled back and never saw 108 committed ones, the reader with the
   `READCOMMITTED` hint neither.
-- **Scenario S0** (`baseline`), two runs: of 2,000 relayed, 314 and 316 never
-  delivered and none twice; of 1,000 into one mailbox, 218 and 260 left (`UIDNEXT`
-  863 and 839), 14 and 18 UIDs given to two messages each (`SELECT` showed 204 and
-  242 where `STATUS` said 218 and 260), and every message a placeholder on one of the
-  two nodes; HM5006 logged 2,273 and 2,240 times. Worse than any Linux engine.
+- **Scenario S0** (`baseline`), three runs: of 2,000 relayed, 314, 316 and 239 never
+  delivered and none twice; of 1,000 into one mailbox, 218, 260 and 288 left
+  (`UIDNEXT` 863, 839 and 882), 14, 18 and 21 UIDs given to two messages each
+  (`SELECT` showed 204, 242 and 267 where `STATUS` said 218, 260 and 288); the two
+  nodes served 95 + 110, 123 + 121 and 137 + 133 placeholders for the 204, 242 and
+  267 messages listed, so about every message was a placeholder on one of them (with
+  UIDs given twice the counts show no more, as for MariaDB above); HM5006 logged
+  2,273, 2,240 and 2,264 times.
+- **Against the Linux engines** (above): worse on relayed mail, 239 to 316 never
+  delivered against 29 to 122 - two to three times PostgreSQL's and MariaDB's losses,
+  eight to eleven times MySQL's - and on UIDs given twice, 14 to 21 against 0 to 5;
+  into one mailbox about as many kept as on MariaDB (226), the Linux engine that kept
+  the most, and more than on PostgreSQL (118) and MySQL (82). It is not a controlled
+  comparison: Windows VMs on the laptop behind VMware's NAT, loaded from the laptop,
+  against Linux containers on server2 loaded from beside them; and the load's pace
+  moved the result here (the mailbox load took 32.7, 18.1 and 15.4 seconds in the
+  three runs, which kept 218, 260 and 288).
 
-What the Windows lab cannot show yet: the faults (a node killed or frozen, cut off
-from the database: `Stop-Process`, a debugger's suspend and a firewall rule would
-make them, and AA-24 adds them), a balancer in front of the Windows nodes, the
-object store (MinIO is on the Linux lab's own network), clock skew (both VMs keep
-the laptop's time) and a machine renamed. The laptop has little memory to spare with
-four VMs running, so the Windows nodes are for runs like these, not for the long
-suites.
+What the Windows lab cannot show yet, and how far it can:
+
+- **The faults** are AA-24's. A node killed (`Stop-Process -Force`) or frozen (its
+  process suspended past its lease) can be either node. **The database cut is W1's
+  alone**: an outbound block rule on W1 against server2's port 14330, removed to heal
+  (tried on 13 October: W1's connections dropped at once and new ones were refused,
+  HM5033 and HM5028, and with the rule removed the next message was accepted and its
+  sessions came back). W2's firewall is off on every profile and stays so; server2
+  sees both nodes as the laptop's address (VMware's NAT), so a cut made there cannot
+  pick one node; and a host route on W1 to an address that does not answer does not
+  cut (Windows sends by its default route instead). So the lab cuts a node off at
+  once, and does not make the other kind of cut, statements left to time out.
+- **A balancer** in front of the Windows nodes cannot be on server2, which has no
+  route to the VMs' network behind the laptop's NAT (TCP from server2 to both nodes
+  and to the laptop's side of that network fails). It goes on the laptop, the one
+  machine that reaches both nodes, as AA-24 plans; or server2 reaches them through
+  VMware NAT port forwards, a change to the laptop's VMware network and firewall that
+  is the owner's to make.
+- **The object store**: MinIO is on the Linux lab's own network; published on
+  server2, as SQL Server is, the nodes would reach it.
+- **Clock skew** (both VMs keep the laptop's time) and **a machine renamed**.
+
+The laptop has little memory to spare with four VMs running, so the Windows nodes are
+for runs like these, not for the long suites.
 
 What it cannot show yet
 -----------------------

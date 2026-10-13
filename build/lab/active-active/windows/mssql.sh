@@ -25,7 +25,8 @@
 #                       gets a throwaway password, replaced at once by AA_MSSQL_SA_PASSWORD
 #   logins              the nodes' login, with dbcreator while the lab database does
 #                       not exist (so that the server's own CreateExternalDatabase can
-#                       make it), and the checks' login with its database
+#                       make it), and the checks' login with its database; a login
+#                       whose password is already the one given is left as it is
 #   finish              once the lab database exists: the nodes' login loses dbcreator
 #                       and keeps only the database it owns; a golden backup is taken
 #   reset [--recreate]  restore the golden backup (the lab database as provisioning left
@@ -157,9 +158,11 @@ cmd_logins() {
   running || die "$CONTAINER is not running - run: up"
   sa_sql > /dev/null <<SQL || die "making the logins failed"
 set nocount on;
+-- A login is made once, and its password set again only when it is not the one given
+-- (PWDCOMPARE): run again, this changes nothing.
 IF NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = N'$(q "$AA_NODE_LOGIN")')
   CREATE LOGIN [$AA_NODE_LOGIN] WITH PASSWORD = N'$(q "$AA_NODE_PASSWORD")', CHECK_POLICY = ON, CHECK_EXPIRATION = OFF;
-ELSE
+ELSE IF NOT EXISTS (SELECT * FROM sys.sql_logins WHERE name = N'$(q "$AA_NODE_LOGIN")' AND PWDCOMPARE(N'$(q "$AA_NODE_PASSWORD")', password_hash) = 1)
   ALTER LOGIN [$AA_NODE_LOGIN] WITH PASSWORD = N'$(q "$AA_NODE_PASSWORD")';
 -- The server's CreateExternalDatabase runs CREATE DATABASE as the login it is given,
 -- which then owns the database; it needs dbcreator for that and for nothing after.
@@ -167,11 +170,13 @@ IF DB_ID(N'$(q "$AA_DB_NAME")') IS NULL
   ALTER SERVER ROLE dbcreator ADD MEMBER [$AA_NODE_LOGIN];
 IF NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = N'$(q "$AA_CHECK_LOGIN")')
   CREATE LOGIN [$AA_CHECK_LOGIN] WITH PASSWORD = N'$(q "$AA_CHECK_PASSWORD")', CHECK_POLICY = ON, CHECK_EXPIRATION = OFF;
-ELSE
+ELSE IF NOT EXISTS (SELECT * FROM sys.sql_logins WHERE name = N'$(q "$AA_CHECK_LOGIN")' AND PWDCOMPARE(N'$(q "$AA_CHECK_PASSWORD")', password_hash) = 1)
   ALTER LOGIN [$AA_CHECK_LOGIN] WITH PASSWORD = N'$(q "$AA_CHECK_PASSWORD")';
 IF DB_ID(N'hmlab_aa_sqlcheck') IS NULL CREATE DATABASE hmlab_aa_sqlcheck;
 GO
-ALTER AUTHORIZATION ON DATABASE::hmlab_aa_sqlcheck TO [$AA_CHECK_LOGIN];
+IF SUSER_SNAME((SELECT owner_sid FROM sys.databases WHERE name = N'hmlab_aa_sqlcheck')) IS NULL
+   OR SUSER_SNAME((SELECT owner_sid FROM sys.databases WHERE name = N'hmlab_aa_sqlcheck')) <> N'$(q "$AA_CHECK_LOGIN")'
+  ALTER AUTHORIZATION ON DATABASE::hmlab_aa_sqlcheck TO [$AA_CHECK_LOGIN];
 GO
 SQL
   say "logins: $AA_NODE_LOGIN ($( [ "$(db_exists)" = 1 ] && echo 'owns its database' || echo 'dbcreator until its database exists')), $AA_CHECK_LOGIN (owns hmlab_aa_sqlcheck)"
@@ -185,7 +190,7 @@ cmd_finish() {
   read_secrets
   need AA_MSSQL_SA_PASSWORD AA_NODE_LOGIN AA_DB_NAME
   running || die "$CONTAINER is not running - run: up"
-  [ "$(db_exists)" = 1 ] || die "$AA_DB_NAME does not exist yet: the server makes it (aa-win.ps1 provision)"
+  [ "$(db_exists)" = 1 ] || die "$AA_DB_NAME does not exist yet: the server makes it (aa-win.py provision)"
   local owner
   owner=$(printf "set nocount on; select suser_sname(owner_sid) from sys.databases where name = N'%s';\nGO\n" "$(q "$AA_DB_NAME")" | sa_sql | tr -d '\r ')
   [ "$owner" = "$AA_NODE_LOGIN" ] || die "$AA_DB_NAME is owned by '$owner', not $AA_NODE_LOGIN"
@@ -206,7 +211,7 @@ cmd_reset() {
   running || die "$CONTAINER is not running - run: up"
   local sessions
   sessions=$(printf "set nocount on; select count(*) from sys.dm_exec_sessions where database_id = db_id(N'%s') and session_id <> @@spid;\nGO\n" "$(q "$AA_DB_NAME")" | sa_sql | tr -d '\r ')
-  [ "${sessions:-0}" = 0 ] || die "$sessions sessions are open on $AA_DB_NAME: stop the nodes first (aa-win.ps1 stop all)"
+  [ "${sessions:-0}" = 0 ] || die "$sessions sessions are open on $AA_DB_NAME: stop the nodes first (aa-win.py stop all)"
   if [ "${1:-}" = --recreate ]; then
     sa_sql > /dev/null <<SQL || die "dropping $AA_DB_NAME failed"
 set nocount on;

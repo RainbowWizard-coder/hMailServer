@@ -16,6 +16,13 @@ standard input, up to a line '%%' or the end of the input:
                        create-database, configure)
   AA_ACCOUNT_PASSWORD  the lab accounts' password (configure)
 
+The folders are a real installation's: hMailServer.exe /ProtectFolders, which setup
+runs at every installation and upgrade, hardens C:\hmlab-aa and Bin (SYSTEM and the
+Administrators full control, Users Read & execute) and makes Data, Logs, Temp,
+Database, Events and hMailServer.ini private to SYSTEM and the Administrators. Nothing
+here that a LocalSystem service runs or this file trusts - Bin, lab\node.ps1,
+lab\turn.json - can be changed by an account that is not an administrator.
+
 One installation per machine. On Windows the server finds hMailServer.INI through
 HKLM\SOFTWARE\hMailServer\InstallLocation (the 32-bit view, which the installer
 writes) before its own folder (Utilities::GetBinDirectory), so a second installation
@@ -28,7 +35,18 @@ is started again if it was running. What a turn changed is kept in
 C:\hmlab-aa\lab\turn.json first, so that 'release' puts it back after any failure.
 Disabled and not Manual: during a turn a COM activation of hMailServer.Application
 would otherwise start the other installation's service, which would read the lab's
-INI.
+INI. The lab's own service is Disabled outside a turn for the same reason the other
+way round - started by hand, it would read the other installation's INI and run on its
+database - and Manual only while a turn is open.
+
+A turn ends by itself. It is given a time when it is opened (-TurnMinutes, 30 by
+default; a start of the node while a turn is open renews it), and the scheduled task
+'\hmlab-aa\hmlab-aa turn watchdog', which runs 'watchdog' as SYSTEM at the machine's
+start and every five minutes, gives a turn back when its time has run out (the driver
+cut off part of the way through: a usage limit, a laptop asleep) or when the machine
+has started again since it was opened (a reboot for updates). The commands that open,
+use or close a turn hold C:\hmlab-aa\lab\turn.lock while they run, so the watchdog
+never gives a turn back in the middle of one.
 
 Commands:
   install -Kit <zip> -Service <name> [-Register]
@@ -37,25 +55,38 @@ Commands:
         as the installer does, and make the service: with -Register the way a real
         installation does (hMailServer.exe /RegisterTypeLib and /Register - the
         service 'hMailServer' and the COM server - and InstallLocation, as the
-        installer writes it); without it a second service of the given name, made as
-        /Register makes one, beside the installation the machine has (turns, above).
-        Either way the service starts manually.
+        installer writes it), Manual; without it a second service of the given name,
+        made as /Register makes one ("<exe>" RunAsService, own process, after RPCSS,
+        LocalSystem), beside the installation the machine has (turns, above), Disabled.
+        Then, as 'fit' does, the folders hardened and, beside another installation,
+        the watchdog task registered.
+  fit                      the node made what install makes now, changing only what
+                           differs: the service's binary path quoted, its start type
+                           (Manual, or Disabled outside a turn beside another
+                           installation), the folders hardened (/ProtectFolders, in a
+                           turn beside another installation), and beside another
+                           installation the watchdog task
   release                  the lab's service stopped and a turn, if one is open,
                            given back
+  watchdog                 a turn given back when its time has run out or the machine
+                           has started again since it was opened (the scheduled task)
   deploy -Kit <zip>
         the service stopped, Bin's files (hMailServer.ini kept), DBScripts,
         Languages and WebAdmin replaced by the kit's; the service is left stopped
   msoledbsql -Msi <path>   the Microsoft OLE DB Driver 18, unless it is installed
   firewall                 inbound TCP for the lab's ports to hMailServer.exe, from the
-                           local subnet, when a firewall profile is on; nothing otherwise
+                           local subnet, when a firewall profile is on (a rule already
+                           as it should be is left as it is); nothing otherwise
   set-database -DbServer <host,port> -Database <name> -Login <name>
         [Database] as the server writes it: Type=MSSQL, the password sealed with DPAPI
         for this machine (CryptProtectData, CRYPTPROTECT_LOCAL_MACHINE, described
         "hMailServer secret", base64; PasswordEncryption=6), as
-        IniFileSettings::SetPassword does
+        IniFileSettings::SetPassword does; nothing is written when [Database] is
+        already so and its password opens to the one given
   check-database           [Database] as the INI has it, the password left out, and
                            whether the sealed password opens to AA_NODE_PASSWORD
-  set-admin-password       hMailServer.exe --set-admin-password, the password on its input
+  set-admin-password       hMailServer.exe --set-admin-password, the password on its
+                           input, unless the INI's hash already verifies against it
   upgrade-database         hMailServer.exe --upgrade-database (every node stopped first)
   create-database -DbServer <host,port> -Database <name> -Login <name>
         through COM, as DBSetup does: Database.CreateExternalDatabase (the server's own
@@ -63,7 +94,10 @@ Commands:
   configure -SinkHost <address> -SinkPort <port>
         through COM: the listeners moved to 2525, 2587, 1110 and 1143, auto-ban off, the
         domain example.test with account1..4, and the route sinking sink.test
-  start | stop | status [-Service <name>]
+  start [-TurnMinutes <n>]  the service started, in a turn beside another installation;
+                           fails, with the service stopped and the turn given back,
+                           unless it listens on all four lab ports within 90 seconds
+  stop | status [-Service <name>]
   clear-data               the service stopped: the data and log folders emptied
   errors                   the error log's codes and how often each appears
   ado-probe -DbServer <host,port> -Database <name> -Login <name>
@@ -76,13 +110,13 @@ param(
     [string]$Kit,
     [string]$Service,
     [switch]$Register,
-    [switch]$UpgradeDatabase,
     [string]$Msi,
     [string]$DbServer,
     [string]$Database,
     [string]$Login,
     [string]$SinkHost,
     [int]$SinkPort = 14325,
+    [int]$TurnMinutes = 30,
     [string]$Root = 'C:\hmlab-aa'
 )
 
@@ -94,9 +128,17 @@ $Exe = Join-Path $Bin 'hMailServer.exe'
 $Ini = Join-Path $Bin 'hMailServer.ini'
 $StateFile = Join-Path $Root 'lab\node.json'
 $TurnFile = Join-Path $Root 'lab\turn.json'
+$LockFile = Join-Path $Root 'lab\turn.lock'
+$WatchdogLog = Join-Path $Root 'lab\watchdog.log'
+$WatchdogTask = 'hmlab-aa turn watchdog'
+$WatchdogPath = '\hmlab-aa\'
 $AnchorKey = 'HKLM:\SOFTWARE\WOW6432Node\hMailServer'
 $LabPorts = @(2525, 2587, 1110, 1143)
 $PortMoves = @{ 25 = 2525; 587 = 2587; 110 = 1110; 143 = 1143 }
+
+# The watchdog runs every five minutes: with no turn open it has nothing to do, and
+# leaves before the native helpers below are compiled.
+if ($Command -eq 'watchdog' -and -not (Test-Path $TurnFile)) { exit 0 }
 
 function Say([string]$text) { [Console]::Out.WriteLine($text) }
 function Fail([string]$text) { [Console]::Error.WriteLine("node.ps1: $text"); exit 1 }
@@ -207,6 +249,50 @@ public static class HmLabNative
         }
     }
 
+    // HashCreator::ValidatePBKDF2: "$h1$<iterations>$<salt hex>$<key hex>", PBKDF2 with
+    // HMAC-SHA256 over the password's UTF-8, compared in constant time.
+    public static bool Pbkdf2Verifies(string stored, string password)
+    {
+        if (stored == null || !stored.StartsWith("$h1$")) return false;
+        string[] parts = stored.Split('$');
+        if (parts.Length != 5) return false;
+        int iterations;
+        if (!int.TryParse(parts[2], out iterations) || iterations <= 0) return false;
+        byte[] salt = FromHex(parts[3]);
+        byte[] expected = FromHex(parts[4]);
+        if (salt == null || expected == null || salt.Length == 0 || expected.Length == 0) return false;
+        byte[] plain = Encoding.UTF8.GetBytes(password);
+        try
+        {
+            using (var kdf = new System.Security.Cryptography.Rfc2898DeriveBytes(plain, salt, iterations,
+                       System.Security.Cryptography.HashAlgorithmName.SHA256))
+            {
+                byte[] actual = kdf.GetBytes(expected.Length);
+                int difference = 0;
+                for (int i = 0; i < expected.Length; i++) difference |= actual[i] ^ expected[i];
+                Array.Clear(actual, 0, actual.Length);
+                return difference == 0;
+            }
+        }
+        finally
+        {
+            Array.Clear(plain, 0, plain.Length);
+        }
+    }
+
+    private static byte[] FromHex(string text)
+    {
+        if (text.Length % 2 != 0) return null;
+        byte[] bytes = new byte[text.Length / 2];
+        for (int i = 0; i < bytes.Length; i++)
+        {
+            int high = Convert.ToInt32(text.Substring(2 * i, 1), 16);
+            int low = Convert.ToInt32(text.Substring(2 * i + 1, 1), 16);
+            bytes[i] = (byte) (high * 16 + low);
+        }
+        return bytes;
+    }
+
     // What the server writes its INI with (IniFileSettings::WriteIniSetting_).
     public static void SetIni(string file, string section, string key, string value)
     {
@@ -242,6 +328,25 @@ function Get-ServiceName {
     Fail "no service is known for this node: run install first, or give -Service"
 }
 
+# The command's hold on the turn, for as long as it runs: the file is opened for this
+# process alone, and Windows closes it when the process ends, however it ends.
+$script:TurnLock = $null
+function Lock-Turn([int]$seconds) {
+    $folder = Split-Path $LockFile
+    if (-not (Test-Path $folder)) { New-Item -ItemType Directory -Force -Path $folder | Out-Null }
+    $deadline = (Get-Date).AddSeconds($seconds)
+    while ($true) {
+        try {
+            $script:TurnLock = [System.IO.File]::Open($LockFile, [System.IO.FileMode]::OpenOrCreate, [System.IO.FileAccess]::ReadWrite, [System.IO.FileShare]::None)
+            return $true
+        }
+        catch {
+            if ((Get-Date) -ge $deadline) { return $false }
+            Start-Sleep -Milliseconds 500
+        }
+    }
+}
+
 function Wait-Stopped([string]$name, [int]$seconds = 180) {
     $deadline = (Get-Date).AddSeconds($seconds)
     while ((Get-Date) -lt $deadline) {
@@ -264,6 +369,40 @@ function Stop-Node([string]$name) {
     Wait-Stopped $name
 }
 
+# ---------------------------------------------------------------- the service
+
+function Get-StartConfig([string]$name) {
+    $key = Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Services\$name"
+    $delayed = 0
+    if ($key.PSObject.Properties.Name -contains 'DelayedAutostart') { $delayed = [int]$key.DelayedAutostart }
+    return @{ start = [int]$key.Start; delayed = $delayed }
+}
+
+function Set-StartConfig([string]$name, [int]$start, [int]$delayed) {
+    $word = switch ($start) { 2 { if ($delayed) { 'delayed-auto' } else { 'auto' } } 3 { 'demand' } 4 { 'disabled' } default { 'demand' } }
+    & sc.exe config $name start= $word | Out-Null
+    if ($LASTEXITCODE -ne 0) { Fail "sc config $name start= $word failed ($LASTEXITCODE)" }
+    $global:LASTEXITCODE = 0
+}
+
+# The binary path /Register writes (ServiceManager::RegisterService), quoted. It is
+# set through the service controller (Win32_Service.Change, ChangeServiceConfig), not
+# sc.exe: Windows PowerShell 5.1 drops the quotes inside an argument it passes to a
+# program, and an unquoted path with a space in it is one Windows reads as several.
+function Get-WantedPath { return ('"{0}" RunAsService' -f $Exe) }
+
+function Repair-ServicePath([string]$name) {
+    $svc = Get-CimInstance Win32_Service -Filter "Name = '$name'"
+    $want = Get-WantedPath
+    if ($svc.PathName -eq $want) { return $false }
+    $result = Invoke-CimMethod -InputObject $svc -MethodName Change -Arguments @{ PathName = $want }
+    if ($result.ReturnValue -ne 0) { Fail "the binary path of $name could not be set (Win32_Service.Change returned $($result.ReturnValue))" }
+    $now = (Get-CimInstance Win32_Service -Filter "Name = '$name'").PathName
+    if ($now -ne $want) { Fail "the binary path of $name is $now, not $want" }
+    Say "service ${name}: binary path $want (it was $($svc.PathName))"
+    return $true
+}
+
 # ---------------------------------------------------------------- turns (one installation per machine)
 
 function Get-Anchor {
@@ -283,18 +422,26 @@ function Get-Beside {
     return $null
 }
 
-function Get-StartConfig([string]$name) {
-    $key = Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Services\$name"
-    $delayed = 0
-    if ($key.PSObject.Properties.Name -contains 'DelayedAutostart') { $delayed = [int]$key.DelayedAutostart }
-    return @{ start = [int]$key.Start; delayed = $delayed }
+function Read-Turn {
+    if (-not (Test-Path $TurnFile)) { return $null }
+    return (Get-Content -Raw $TurnFile | ConvertFrom-Json)
 }
 
-function Set-StartConfig([string]$name, [int]$start, [int]$delayed) {
-    $word = switch ($start) { 2 { if ($delayed) { 'delayed-auto' } else { 'auto' } } 3 { 'demand' } 4 { 'disabled' } default { 'demand' } }
-    & sc.exe config $name start= $word | Out-Null
-    if ($LASTEXITCODE -ne 0) { Fail "sc config $name start= $word failed ($LASTEXITCODE)" }
-    $global:LASTEXITCODE = 0
+function Get-TurnField($turn, [string]$name) {
+    if ($turn -and ($turn.PSObject.Properties.Name -contains $name)) { return $turn.$name }
+    return $null
+}
+
+# A time turn.json holds, as UTC: written as ISO 8601 ('o'); Windows PowerShell keeps it
+# a string, PowerShell 7 makes it a date.
+function ConvertTo-Utc($value) {
+    if ($null -eq $value -or [string]$value -eq '') { return $null }
+    if ($value -is [DateTime]) { return $value.ToUniversalTime() }
+    return [DateTime]::Parse([string]$value, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::RoundtripKind).ToUniversalTime()
+}
+
+function Write-Turn($fields) {
+    $fields | ConvertTo-Json | Set-Content -Path $TurnFile -Encoding ASCII
 }
 
 function Enter-Turn {
@@ -302,13 +449,17 @@ function Enter-Turn {
     if (-not $beside) { return $false }
     if (Test-Path $TurnFile) { return $false }
     $other = [string]$beside.service
+    $lab = Get-ServiceName
     $svc = Get-Service -Name $other -ErrorAction SilentlyContinue
     $config = Get-StartConfig $other
-    # Written before anything changes, so that release can put back whatever a
-    # failure part of the way through left.
-    @{ install_location = (Get-Anchor); service = $other; start = $config.start; delayed = $config.delayed
-        was_running = [bool]($svc -and $svc.Status -eq 'Running'); since = (Get-Date).ToString('s') } |
-        ConvertTo-Json | Set-Content -Path $TurnFile -Encoding ASCII
+    $now = Get-Date
+    # Written before anything changes, so that release (or the watchdog) can put back
+    # whatever a failure part of the way through left. The machine's start time is
+    # kept so that the watchdog knows when the machine has started again since.
+    Write-Turn ([ordered]@{ install_location = (Get-Anchor); service = $other; start = $config.start; delayed = $config.delayed
+        was_running = [bool]($svc -and $svc.Status -eq 'Running'); since = $now.ToString('s')
+        since_utc = $now.ToUniversalTime().ToString('o'); until_utc = $now.ToUniversalTime().AddMinutes($TurnMinutes).ToString('o')
+        boot_utc = (Get-CimInstance Win32_OperatingSystem).LastBootUpTime.ToUniversalTime().ToString('o'); opened_by = $Command })
     Set-StartConfig $other 4 0
     if ($svc -and $svc.Status -ne 'Stopped') {
         & sc.exe stop $other | Out-Null
@@ -323,14 +474,32 @@ function Enter-Turn {
         if ((Get-Service -Name $other).Status -ne 'Stopped') { Fail "$other did not stop; run release" }
     }
     Set-Anchor $Root
-    Say "turn: the lab's - $other stopped and disabled, InstallLocation $Root"
+    # The lab's service may be started from now on, and only now: InstallLocation names
+    # its own folder.
+    Set-StartConfig $lab 3 0
+    Say ("turn: the lab's until {0:HH:mm} - {1} stopped and disabled, InstallLocation {2}, {3} startable" -f $now.AddMinutes($TurnMinutes), $other, $Root, $lab)
     return $true
 }
 
+# A start of the node while its turn is open renews the turn's time.
+function Set-TurnDeadline {
+    $turn = Read-Turn
+    if (-not $turn) { return }
+    $fields = [ordered]@{}
+    foreach ($p in $turn.PSObject.Properties) { $fields[$p.Name] = $p.Value }
+    $fields['until_utc'] = (Get-Date).ToUniversalTime().AddMinutes($TurnMinutes).ToString('o')
+    Write-Turn $fields
+    Say ("turn: renewed until {0:HH:mm}" -f (Get-Date).AddMinutes($TurnMinutes))
+}
+
 function Exit-Turn {
-    if (-not (Test-Path $TurnFile)) { return }
-    $turn = Get-Content -Raw $TurnFile | ConvertFrom-Json
-    Stop-Node (Get-ServiceName)
+    $turn = Read-Turn
+    if (-not $turn) { return }
+    $lab = Get-ServiceName
+    Stop-Node $lab
+    # Disabled before InstallLocation moves back, so that there is no moment in which
+    # the lab's service could start and read the other installation's INI.
+    Set-StartConfig $lab 4 0
     if ($turn.install_location) { Set-Anchor ([string]$turn.install_location) }
     Set-StartConfig ([string]$turn.service) ([int]$turn.start) ([int]$turn.delayed)
     if ($turn.was_running) {
@@ -338,13 +507,132 @@ function Exit-Turn {
         (Get-Service -Name ([string]$turn.service)).WaitForStatus('Running', [TimeSpan]::FromSeconds(120))
     }
     Remove-Item -Force $TurnFile
-    Say ("turn: given back - InstallLocation {0}, {1} {2}" -f $turn.install_location, $turn.service, $(if ($turn.was_running) { 'running again' } else { 'left stopped, as it was' }))
+    Say ("turn: given back - InstallLocation {0}, {1} {2}, {3} disabled" -f $turn.install_location, $turn.service,
+        $(if ($turn.was_running) { 'running again' } else { 'left stopped, as it was' }), $lab)
 }
 
-# The lab's service stopped, and the machine given back to the other installation.
+# The lab's service stopped, and the machine given back to the other installation;
+# beside one, the lab's service is left Disabled whether a turn was open or not.
 function Stop-LabNode([string]$name) {
     Stop-Node $name
     Exit-Turn
+    if (Get-Beside) {
+        if ((Get-StartConfig $name).start -ne 4) {
+            Set-StartConfig $name 4 0
+            Say "service ${name}: disabled (outside the lab's turn)"
+        }
+    }
+}
+
+function Write-WatchdogLog([string]$text) {
+    Add-Content -Path $WatchdogLog -Value ('{0} {1}' -f (Get-Date).ToString('s'), $text) -Encoding ASCII
+}
+
+function Invoke-Watchdog {
+    # Another command holds the turn: it is in the middle of opening, using or closing
+    # it, and the next round looks again.
+    if (-not (Lock-Turn 5)) { return }
+    $turn = Read-Turn
+    if (-not $turn) { return }
+    $since = ConvertTo-Utc (Get-TurnField $turn 'since_utc')
+    if (-not $since) { $since = ([DateTime]::Parse([string]$turn.since, [Globalization.CultureInfo]::InvariantCulture)).ToUniversalTime() }
+    $until = ConvertTo-Utc (Get-TurnField $turn 'until_utc')
+    if (-not $until) { $until = $since.AddMinutes(30) }
+    # The machine's start time now against the one the turn was opened in: a reboot
+    # moves it by the whole uptime there was. (Windows keeps it as the clock less the
+    # time since the start, so a clock set far forward - a VM resumed after hours -
+    # moves it too, and a turn whose driver slept that long is given back as well.)
+    $boot = (Get-CimInstance Win32_OperatingSystem).LastBootUpTime.ToUniversalTime()
+    $bootThen = ConvertTo-Utc (Get-TurnField $turn 'boot_utc')
+    $now = (Get-Date).ToUniversalTime()
+    $why = $null
+    if ($bootThen -and [Math]::Abs(($boot - $bootThen).TotalMinutes) -gt 2) {
+        $why = 'the machine has started again since it was opened (its start {0:s} UTC, {1:s} UTC then)' -f $boot, $bootThen
+    }
+    elseif (-not $bootThen -and $boot -gt $since) { $why = 'the machine started again at {0:s} UTC, after it was opened' -f $boot }
+    elseif ($now -gt $until) { $why = 'its time ran out at {0:s} UTC' -f $until }
+    if (-not $why) { return }
+    Write-WatchdogLog ('the turn opened at {0:s} UTC by {1} is given back: {2}' -f $since, (Get-TurnField $turn 'opened_by'), $why)
+    try {
+        Stop-LabNode (Get-ServiceName)
+        Write-WatchdogLog ('given back: InstallLocation {0}, {1} {2}' -f (Get-Anchor), $turn.service, (Get-Service -Name ([string]$turn.service)).Status)
+    }
+    catch {
+        Write-WatchdogLog ('giving it back failed: {0}' -f $_.Exception.Message)
+        throw
+    }
+}
+
+function Register-Watchdog {
+    $powershell = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+    $arguments = '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "{0}" watchdog' -f (Join-Path $Root 'lab\node.ps1')
+    $task = Get-ScheduledTask -TaskName $WatchdogTask -TaskPath $WatchdogPath -ErrorAction SilentlyContinue
+    if ($task) {
+        $action = @($task.Actions)
+        $triggers = @($task.Triggers)
+        $startup = @($triggers | Where-Object { $_.CimClass.CimClassName -eq 'MSFT_TaskBootTrigger' })
+        $repeat = @($triggers | Where-Object { $_.CimClass.CimClassName -eq 'MSFT_TaskTimeTrigger' -and $_.Repetition.Interval -eq 'PT5M' -and -not $_.Repetition.Duration })
+        if ($action.Count -eq 1 -and $action[0].Execute -eq $powershell -and $action[0].Arguments -eq $arguments -and
+            $triggers.Count -eq 2 -and $startup.Count -eq 1 -and $repeat.Count -eq 1 -and
+            $task.Principal.UserId -eq 'SYSTEM' -and [string]$task.Principal.RunLevel -eq 'Highest' -and [string]$task.State -ne 'Disabled') {
+            Say "watchdog: $WatchdogPath$WatchdogTask is registered as it should be"
+            return
+        }
+    }
+    $taskAction = New-ScheduledTaskAction -Execute $powershell -Argument $arguments
+    $taskTriggers = @((New-ScheduledTaskTrigger -AtStartup),
+        (New-ScheduledTaskTrigger -Once -At (Get-Date).Date -RepetitionInterval (New-TimeSpan -Minutes 5)))
+    $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest
+    $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable `
+        -ExecutionTimeLimit (New-TimeSpan -Minutes 10) -MultipleInstances IgnoreNew
+    Register-ScheduledTask -TaskName $WatchdogTask -TaskPath $WatchdogPath -Action $taskAction -Trigger $taskTriggers -Principal $principal `
+        -Settings $settings -Force -Description ('Gives the active-active lab node''s turn back (build/lab/active-active/windows/node.ps1 watchdog): at the start ' +
+        'of the machine, and every five minutes once the turn''s time has run out.') | Out-Null
+    Say "watchdog: $WatchdogPath$WatchdogTask registered (SYSTEM, at start-up and every five minutes: node.ps1 watchdog)"
+}
+
+# ---------------------------------------------------------------- the folders
+
+function Test-FoldersProtected {
+    foreach ($path in @($Root, $Bin, $Ini, (Join-Path $Root 'Data'), (Join-Path $Root 'Logs'), (Join-Path $Root 'Temp'),
+            (Join-Path $Root 'Database'), (Join-Path $Root 'Events'))) {
+        if ((Test-Path $path) -and -not (Get-Acl $path).AreAccessRulesProtected) { return $false }
+    }
+    return $true
+}
+
+# hMailServer.exe /ProtectFolders, as setup runs it at every installation and upgrade.
+# It finds the folders from where the program is, but reads hMailServer.INI and the
+# database InstallLocation names, so beside another installation it runs in a turn.
+function Protect-Folders {
+    if (Test-FoldersProtected) { Say "folders: hardened already (/ProtectFolders)"; return }
+    $entered = Enter-Turn
+    $anchor = Get-Anchor
+    if ($anchor -and ($anchor.TrimEnd('\') -ne $Root.TrimEnd('\'))) { Fail "InstallLocation is $anchor, not ${Root}: /ProtectFolders would read that installation's INI" }
+    $out = Join-Path $Root 'lab\protect-folders.out'
+    $p = Start-Process -FilePath $Exe -ArgumentList '/ProtectFolders' -Wait -PassThru -NoNewWindow -RedirectStandardOutput $out -RedirectStandardError ($out + '.err')
+    Get-Content $out, ($out + '.err') -ErrorAction SilentlyContinue | Where-Object { $_ -match '^(  (made private|hardened|already|CHECK)|Done:)' } | ForEach-Object { Say "  $_" }
+    if ($entered) { Exit-Turn }
+    if ($p.ExitCode -ne 0) { Fail "/ProtectFolders returned $($p.ExitCode) (1 a folder failed, 2 not in a Bin folder, 3 not elevated): $out" }
+    if (-not (Test-FoldersProtected)) { Fail "/ProtectFolders returned 0, and a folder still inherits its permissions: $out" }
+    Say 'folders: hardened by /ProtectFolders'
+}
+
+# What install makes now, on a node installed before: only what differs is changed.
+function Set-NodeFit {
+    $name = Get-ServiceName
+    if (-not (Get-Service -Name $name -ErrorAction SilentlyContinue)) { Fail "no service ${name}: run install" }
+    $null = Repair-ServicePath $name
+    $beside = Get-Beside
+    $want = if ($beside -and -not (Test-Path $TurnFile)) { 4 } else { 3 }
+    if ((Get-StartConfig $name).start -ne $want) {
+        if ($want -eq 4) { Stop-Node $name }
+        Set-StartConfig $name $want 0
+        Say ("service {0}: {1}" -f $name, $(if ($want -eq 4) { 'Disabled (outside the lab''s turn)' } else { 'Manual' }))
+    }
+    Protect-Folders
+    if ($beside) { Register-Watchdog }
+    Say "fit: $name as install makes it"
 }
 
 function Expand-Kit([string]$zip, [string]$into) {
@@ -428,21 +716,26 @@ function Install-Node {
     }
     elseif (-not (Get-Service -Name $Service -ErrorAction SilentlyContinue)) {
         # What ServiceManager::RegisterService makes, under another name: its own
-        # process, "<exe>" RunAsService, after RPCSS, LocalSystem.
-        & sc.exe create $Service binPath= "`"$Exe`" RunAsService" type= own start= demand error= normal depend= RPCSS DisplayName= "hMailServer (active-active lab node)" | Out-Null
-        if ($LASTEXITCODE -ne 0) { Fail "sc create $Service failed ($LASTEXITCODE)" }
-        & sc.exe description $Service "hMailServer for the active-active lab (build/lab/active-active/windows), on the lab's SQL Server. Started by hand only." | Out-Null
+        # process, "<exe>" RunAsService (quoted: New-Service passes the path to the
+        # service controller as it is), after RPCSS, LocalSystem. Disabled: outside
+        # the lab's turn it would read the other installation's INI.
+        New-Service -Name $Service -BinaryPathName (Get-WantedPath) -DisplayName 'hMailServer (active-active lab node)' -StartupType Disabled `
+            -DependsOn 'RPCSS' -Description ('hMailServer for the active-active lab (build/lab/active-active/windows), on the lab''s SQL Server. ' +
+            'Started by node.ps1 alone, in the lab''s turn; Disabled outside it.') | Out-Null
     }
-    # Manual: until the active-active units land, WarmStandby.md holds - one service
-    # against a database at a time, and the lab starts each node itself.
-    & sc.exe config $Service start= demand | Out-Null
-    if ($LASTEXITCODE -ne 0) { Fail "sc config $Service failed ($LASTEXITCODE)" }
-    $global:LASTEXITCODE = 0
+    $null = Repair-ServicePath $Service
+    # Manual on a machine of its own: until the active-active units land,
+    # WarmStandby.md holds - one service against a database at a time, and the lab
+    # starts each node itself. Beside another installation: Disabled outside a turn.
+    Set-StartConfig $Service $(if ($beside) { 4 } else { 3 }) 0
     @{ service = $Service; registered = [bool]$Register; root = $Root; beside = $beside } | ConvertTo-Json | Set-Content -Path $StateFile -Encoding ASCII
     Remove-Item -Recurse -Force $staging
-    Say ("installed: {0} ({1}), service {2}{3}, manual start{4}" -f $Root, ((Get-Content (Join-Path $Root 'deployed.txt') | Select-Object -First 1)), $Service,
+    Say ("installed: {0} ({1}), service {2}{3}, {4}{5}" -f $Root, ((Get-Content (Join-Path $Root 'deployed.txt') | Select-Object -First 1)), $Service,
         $(if ($Register) { ', registered with COM, InstallLocation ' + $Root } else { ', not registered with COM' }),
+        $(if ($beside) { 'Disabled outside the lab''s turn' } else { 'manual start' }),
         $(if ($beside) { '; beside the installation at ' + $beside.install_location + ', so it runs in turns' } else { '' }))
+    Protect-Folders
+    if ($beside) { Register-Watchdog }
 }
 
 function Publish-Node {
@@ -504,11 +797,31 @@ function Install-Msoledbsql {
     Say "MSOLEDBSQL $have installed (msiexec $($p.ExitCode))"
 }
 
+# The lab's rule as it should be: one rule of that name, inbound TCP to the lab's four
+# ports for hMailServer.exe from the local subnet, on every profile, enabled.
+function Test-FirewallRule($rule) {
+    if ([string]$rule.Direction -ne 'Inbound' -or [string]$rule.Action -ne 'Allow' -or [string]$rule.Enabled -ne 'True' -or
+        [string]$rule.Profile -ne 'Any' -or [string]$rule.Group -ne 'hmlab-aa') { return $false }
+    $port = $rule | Get-NetFirewallPortFilter
+    $application = $rule | Get-NetFirewallApplicationFilter
+    $address = $rule | Get-NetFirewallAddressFilter
+    if ([string]$port.Protocol -ne 'TCP') { return $false }
+    if (((@($port.LocalPort) | ForEach-Object { [int]$_ } | Sort-Object) -join ',') -ne ((@($LabPorts) | Sort-Object) -join ',')) { return $false }
+    if ([string]$application.Program -ne $Exe) { return $false }
+    if ((@($address.RemoteAddress) -join ',') -ne 'LocalSubnet') { return $false }
+    return $true
+}
+
 function Open-Firewall {
     $on = @(Get-NetFirewallProfile | Where-Object { $_.Enabled })
     if (-not $on.Count) { Say 'firewall: every profile is off; nothing opened'; return }
     $rule = 'hmlab-aa: hMailServer lab ports'
-    Get-NetFirewallRule -DisplayName $rule -ErrorAction SilentlyContinue | Remove-NetFirewallRule
+    $have = @(Get-NetFirewallRule -DisplayName $rule -ErrorAction SilentlyContinue)
+    if ($have.Count -eq 1 -and (Test-FirewallRule $have[0])) {
+        Say ("firewall: the rule for TCP {0} to {1} from the local subnet is there as it should be ({2} profile(s) on)" -f ($LabPorts -join ','), $Exe, $on.Count)
+        return
+    }
+    $have | Remove-NetFirewallRule
     New-NetFirewallRule -DisplayName $rule -Group 'hmlab-aa' -Direction Inbound -Action Allow -Protocol TCP `
         -LocalPort $LabPorts -Program $Exe -RemoteAddress LocalSubnet -Profile Any | Out-Null
     Say ("firewall: inbound TCP {0} to {1} from the local subnet ({2} profile(s) on)" -f ($LabPorts -join ','), $Exe, $on.Count)
@@ -518,6 +831,13 @@ function Set-Database {
     $secrets = Read-Secrets
     Need $secrets @('AA_NODE_PASSWORD')
     if (-not ($DbServer -and $Database -and $Login)) { Fail 'set-database needs -DbServer, -Database and -Login' }
+    $want = [ordered]@{ Type = 'MSSQL'; Username = $Login; PasswordEncryption = '6'; Port = '0'; Server = $DbServer; Database = $Database; Internal = '0' }
+    $same = $true
+    foreach ($key in $want.Keys) { if ([HmLabNative]::GetIni($Ini, 'Database', $key) -ne $want[$key]) { $same = $false } }
+    if ($same -and [HmLabNative]::Opens([HmLabNative]::GetIni($Ini, 'Database', 'Password'), $secrets['AA_NODE_PASSWORD'])) {
+        Say "[Database]: MSSQL $DbServer, database $Database, login $Login, the sealed password opens to the one given: unchanged"
+        return
+    }
     $sealed = [HmLabNative]::Protect($secrets['AA_NODE_PASSWORD'])
     foreach ($pair in @(@('Type', 'MSSQL'), @('Username', $Login), @('Password', $sealed), @('PasswordEncryption', '6'),
             @('Port', '0'), @('Server', $DbServer), @('Database', $Database), @('Internal', '0'))) {
@@ -532,6 +852,11 @@ function Set-Database {
 function Set-AdminPassword {
     $secrets = Read-Secrets
     Need $secrets @('AA_ADMIN_PASSWORD')
+    # The lab's own INI, read where it is: no turn is needed to read it.
+    if ((Test-Path $Ini) -and [HmLabNative]::Pbkdf2Verifies([HmLabNative]::GetIni($Ini, 'Security', 'AdministratorPassword'), $secrets['AA_ADMIN_PASSWORD'])) {
+        Say "administrator password: the hash in $Ini already verifies against it: unchanged"
+        return
+    }
     # The verb writes the INI it finds through InstallLocation: beside another
     # installation, that is the other's unless this is the lab's turn.
     $entered = Enter-Turn
@@ -631,23 +956,49 @@ function Set-LabConfiguration {
     Say ("configured: listeners {0}; auto-ban off; example.test with account1..4; route sink.test -> {1}:{2}" -f ($list -join ','), $SinkHost, $SinkPort)
 }
 
+function Get-ListeningLabPorts {
+    return @(Get-NetTCPConnection -State Listen -LocalPort $LabPorts -ErrorAction SilentlyContinue |
+            Where-Object { (Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue).Path -eq $Exe } |
+            ForEach-Object { [int]$_.LocalPort } | Sort-Object -Unique)
+}
+
 function Start-Node {
     $name = Get-ServiceName
     $s = Get-Service -Name $name
+    $opened = $false
     if ($s.Status -ne 'Running') {
-        $null = Enter-Turn
+        $opened = Enter-Turn
         $anchor = Get-Anchor
         if ($anchor -and ($anchor.TrimEnd('\') -ne $Root.TrimEnd('\'))) { Fail "InstallLocation is $anchor, not ${Root}: the service would read that installation's INI" }
-        Start-Service -Name $name
+        if ((Get-StartConfig $name).start -eq 4) { Fail "$name is Disabled: it is started in the lab's turn only (a turn left half made? run release)" }
+        try { Start-Service -Name $name }
+        catch {
+            [Console]::Error.WriteLine("node.ps1: $name did not start: $($_.Exception.Message)")
+            Stop-LabNode $name
+            Fail "$name did not start; stopped, and the machine given back (see $Root\Logs)"
+        }
     }
+    if (-not $opened -and (Test-Path $TurnFile)) { Set-TurnDeadline }
+    # Each of the four ports, whichever addresses it is bound on: a port on IPv4 and
+    # IPv6 is still one port.
     $deadline = (Get-Date).AddSeconds(90)
+    $up = @()
     while ((Get-Date) -lt $deadline) {
-        $listening = @(Get-NetTCPConnection -State Listen -LocalPort $LabPorts -ErrorAction SilentlyContinue |
-                Where-Object { (Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue).Path -eq $Exe })
-        if ($listening.Count -ge $LabPorts.Count) { break }
+        $up = @(Get-ListeningLabPorts)
+        if ($up.Count -ge $LabPorts.Count) { break }
         Start-Sleep -Seconds 1
     }
     Show-Status $name
+    $missing = @($LabPorts | Where-Object { $up -notcontains $_ })
+    if ($missing.Count) {
+        # A node that is not listening is not left running: it would hold sessions on
+        # the database and deliver beside the other, and beside another installation
+        # it would keep that one's service down.
+        [Console]::Error.WriteLine("node.ps1: $name is not listening on $($missing -join ', ') after 90 s")
+        Stop-LabNode $name
+        Show-Status $name
+        Fail "$name did not come up: not listening on $($missing -join ', ') within 90 s; stopped (see $Root\Logs)"
+    }
 }
 
 function Show-Status([string]$name) {
@@ -668,8 +1019,10 @@ function Show-Status([string]$name) {
     $beside = Get-Beside
     if ($beside) {
         $other = Get-Service -Name ([string]$beside.service) -ErrorAction SilentlyContinue
+        $open = Read-Turn
+        $until = ConvertTo-Utc (Get-TurnField $open 'until_utc')
         $turn = "; beside {0} ({1} {2}), {3}" -f $beside.install_location, $beside.service, $(if ($other) { $other.Status } else { 'absent' }),
-            $(if (Test-Path $TurnFile) { "the lab's turn (InstallLocation " + (Get-Anchor) + ')' } else { 'not the lab''s turn' })
+            $(if ($open) { "the lab's turn (InstallLocation " + (Get-Anchor) + $(if ($until) { (', until {0:HH:mm})' -f $until.ToLocalTime()) } else { ')' }) } else { 'not the lab''s turn' })
     }
     Say ("{0}: service {1} {2} ({3}), pid {4}, listening {5}; build {6}{7}" -f $env:COMPUTERNAME, $name,
         $(if ($s) { $s.Status } else { 'absent' }), $startType, $(if ($proc) { $proc.ProcessId } else { '-' }),
@@ -758,8 +1111,15 @@ function Invoke-AdoProbe {
     }
 }
 
+# The commands that open, use or close a turn, or change the service, hold the turn's
+# lock while they run; the watchdog takes it only when it is free.
+if (@('install', 'fit', 'deploy', 'start', 'stop', 'release', 'set-admin-password', 'upgrade-database', 'clear-data') -contains $Command) {
+    if (-not (Lock-Turn 900)) { Fail "another node.ps1 has held $LockFile for 15 minutes" }
+}
+
 switch ($Command) {
     'install' { Install-Node }
+    'fit' { Set-NodeFit }
     'deploy' { Publish-Node }
     'msoledbsql' { Install-Msoledbsql }
     'firewall' { Open-Firewall }
@@ -772,10 +1132,11 @@ switch ($Command) {
     'start' { Start-Node }
     'stop' { $n = Get-ServiceName; Stop-LabNode $n; Show-Status $n }
     'release' { $n = Get-ServiceName; Stop-LabNode $n; Show-Status $n }
+    'watchdog' { Invoke-Watchdog }
     'status' { Show-Status (Get-ServiceName) }
     'clear-data' { Clear-Data }
     'errors' { Show-Errors }
     'ado-probe' { Invoke-AdoProbe }
-    default { Fail "no command '$Command' (install, release, deploy, msoledbsql, firewall, set-database, check-database, set-admin-password, upgrade-database, create-database, configure, start, stop, status, clear-data, errors, ado-probe)" }
+    default { Fail "no command '$Command' (install, fit, release, watchdog, deploy, msoledbsql, firewall, set-database, check-database, set-admin-password, upgrade-database, create-database, configure, start, stop, status, clear-data, errors, ado-probe)" }
 }
 exit 0

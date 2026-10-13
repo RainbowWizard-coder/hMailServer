@@ -14,29 +14,40 @@ what it has measured and what it cannot show.
 
   W1  the installer smoke VM: the node's server is the machine's only hMailServer,
       registered as a real installation is (service hMailServer, the COM server)
-  W2  the AD lab's domain controller: it has an hMailServer of its own, which the lab
-      never touches, so the node is a second service beside it, hMailServerAA, not
-      registered with COM
+  W2  the AD lab's domain controller: it has an hMailServer of its own, so the node is
+      a second service beside it, hMailServerAA, not registered with COM, which runs
+      in turns with the AD lab's: while the node runs, and for the server's own verbs
+      there, the AD lab's hMailServer is stopped and disabled, and given back after
+      (node.ps1 says how a turn is opened, given back, and ended by itself)
   server2  SQL Server 2022 Developer in the long-lived container hmlab-aa-mssql
 
   kit --server1 <commit>      build the Windows server of <commit> on server1
                               (make-kit.ps1; the commit must be in server1's
-                              C:\\bench\\hmailserver) and fetch its kit here
+                              C:\\bench\\hmailserver; a build of that commit already
+                              there is reused) and fetch its kit here
   provision --kit <zip> --msi <msoledbsql.msi>
-                              everything, idempotently: SQL Server and its logins,
-                              each node's server, the OLE DB driver, the firewall,
-                              the lab database made by the server itself through
-                              COM on W1 (CreateExternalDatabase), its domain,
-                              accounts, route and listeners, and W2 pointed at it
+                              everything: SQL Server and its logins, each node's
+                              server (made what install makes now: node.ps1 fit), the
+                              OLE DB driver, the firewall, the administrator password,
+                              the lab database made by the server itself through COM
+                              on W1 (CreateExternalDatabase), its domain, accounts,
+                              route and listeners, and W2 pointed at it. Run again,
+                              it changes only what is not as it should be, and takes
+                              no turn on W2 when nothing there needs one
   deploy-build --kit <zip> [--node W1|W2|all] [--upgrade-database] [--start]
                               a build's binaries onto the nodes, each INI kept; the
                               nodes that were running are started again (--start:
                               all of them); --upgrade-database stops every node
-                              first and moves the schema from W1
-  start <W1|W2|all> [--both]  start a node's service. One node at a time: the other
+                              first and moves the schema with W1's server, so W1 must
+                              be among the nodes deployed
+  start <W1|W2|all> [--both] [--turn-minutes N]
+                              start a node's service. One node at a time: the other
                               must be stopped and hold no session on the database,
                               because until the active-active units land
-                              WarmStandby.md holds. --both is for a lab measurement
+                              WarmStandby.md holds. --both is for a lab measurement.
+                              On W2 the start opens the node's turn for N minutes
+                              (AA_WIN_TURN_MINUTES, 30), after which W2 gives it back
+                              by itself; a start while it runs renews it
   stop <W1|W2|all>
   status                      the nodes, the container, and who holds sessions
   reset [--recreate]          every node stopped and its data folder emptied, the lab
@@ -57,8 +68,9 @@ Environment (all optional): AA_WIN_SECRETS (default ~/.config/hmailserver/aa-lab
 AA_WIN_KEY (~/.ssh/hmail_ad), AA_WIN_STATE (~/.cache/hmlab-aa-win: kits and runs),
 AA_WIN_W1 and AA_WIN_W2 (the nodes' addresses; W1's is asked of vmrun when unset,
 since DHCP gives it), AA_WIN_SERVER2 (chris@10.0.0.19), AA_WIN_SERVER1
-(chris@10.0.0.20), AA_WIN_DB_ADDRESS (10.0.0.19), AA_SETTLE_SECONDS (90),
-AA_SINK_COUNT (2000), AA_MAILBOX_COUNT (1000), AA_LOAD_THREADS (8).
+(chris@10.0.0.20), AA_WIN_DB_ADDRESS (10.0.0.19), AA_WIN_TURN_MINUTES (30),
+AA_SETTLE_SECONDS (90), AA_SINK_COUNT (2000), AA_MAILBOX_COUNT (1000),
+AA_LOAD_THREADS (8).
 
 The secrets file holds KEY=VALUE lines: AA_MSSQL_SA_PASSWORD, AA_NODE_LOGIN,
 AA_NODE_PASSWORD, AA_DB_NAME, AA_ADMIN_PASSWORD, AA_ACCOUNT_PASSWORD, AA_CHECK_LOGIN,
@@ -92,6 +104,9 @@ SERVER1 = os.environ.get("AA_WIN_SERVER1", "chris@10.0.0.20")
 DB_ADDRESS = os.environ.get("AA_WIN_DB_ADDRESS", "10.0.0.19")
 MSSQL_PORT = int(os.environ.get("AA_WIN_MSSQL_PORT", "14330"))
 SINK_PORT = int(os.environ.get("AA_WIN_SINK_PORT", "14325"))
+# How long a start opens W2's turn for: past it, the watchdog on W2 gives the turn back
+# (the AD lab's own server running again) if this driver has not.
+TURN_MINUTES = int(os.environ.get("AA_WIN_TURN_MINUTES", "30"))
 # VMware Workstation's own place for it, and no other: a program this script runs is
 # never named by the environment. Elsewhere, give the nodes' addresses instead.
 VMRUN = r"C:\Program Files (x86)\VMware\VMware Workstation\vmrun.exe"
@@ -135,6 +150,9 @@ def cmd_secrets(_args):
               "AA_DB_NAME": lambda: "hmlab_aa", "AA_ADMIN_PASSWORD": strong, "AA_ACCOUNT_PASSWORD": lambda: strong(20),
               "AA_CHECK_LOGIN": lambda: "hmlab_aa_check", "AA_CHECK_PASSWORD": strong}
     added = [k for k in SECRET_KEYS if k not in have]
+    if not added and os.path.exists(SECRETS_FILE):
+        say("secrets: %s; made: none (all there, and the file is left as it is)" % SECRETS_FILE)
+        return 0
     for k in added:
         have[k] = makers[k]()
     os.makedirs(os.path.dirname(SECRETS_FILE), exist_ok=True)
@@ -143,6 +161,10 @@ def cmd_secrets(_args):
         f.write("# The active-active Windows lab (build/lab/active-active/windows). Never print or commit.\n")
         for k in SECRET_KEYS:
             f.write("%s=%s\n" % (k, have[k]))
+        # A line of the file's that this script does not know is kept, not dropped.
+        for k in have:
+            if k not in SECRET_KEYS:
+                f.write("%s=%s\n" % (k, have[k]))
     if new and os.name == "nt":
         # Only the owner, as the other files in ~/.config/hmailserver.
         subprocess.run(["icacls", SECRETS_FILE, "/inheritance:r", "/grant:r",
@@ -358,6 +380,9 @@ def cmd_provision(args):
         if args.reinstall or not node_state(name)["installed"]:
             node_ps(name, "install", r"-Kit %s\kit.zip -Service %s%s" % (NODE_LAB, node["service"], " -Register" if node["register"] else ""),
                     timeout=900)
+        # A node installed by an older node.ps1 made what install makes now: the
+        # service's path quoted, its start type, the folders hardened, W2's watchdog.
+        node_ps(name, "fit", timeout=900)
         node_ps(name, "firewall")
         node_ps(name, "set-admin-password", keys=["AA_ADMIN_PASSWORD"])
     say("== the lab database")
@@ -377,6 +402,11 @@ def cmd_provision(args):
 def cmd_deploy_build(args):
     kit = args.kit or latest_kit()
     targets = list(NODES) if args.node == "all" else [args.node]
+    if args.upgrade_database and "W1" not in targets:
+        # The schema is moved by W1's server: with W1 not deployed, that would be
+        # the build W1 already had, not the one being deployed.
+        raise Failure("--upgrade-database moves the schema with W1's server, which would be its old build: "
+                      "deploy W1 too (--node W1 or --node all)")
     was_running = [n for n in NODES if node_state(n)["running"]]
     if args.upgrade_database:
         for n in NODES:
@@ -395,7 +425,7 @@ def cmd_deploy_build(args):
     return 0
 
 
-def start_node(name, both=False):
+def start_node(name, both=False, turn_minutes=None):
     other = [n for n in NODES if n != name]
     if not both:
         for o in other:
@@ -409,15 +439,19 @@ def start_node(name, both=False):
         if foreign:
             raise Failure("sessions of %s are open on the database from %s: another server runs against it"
                           % (S["AA_NODE_LOGIN"], ", ".join("%s (%d)" % kv for kv in foreign.items())))
-    node_ps(name, "start", timeout=300)
+    # node.ps1 start fails, with the node stopped and a turn given back, unless the
+    # node listens on all four lab ports.
+    node_ps(name, "start", "-TurnMinutes %d" % (turn_minutes or TURN_MINUTES), timeout=300)
 
 
 def cmd_start(args):
     targets = list(NODES) if args.node == "all" else [args.node]
     if len(targets) > 1 and not args.both:
         raise Failure("starting both nodes is a lab measurement: give --both")
+    if args.turn_minutes is not None and args.turn_minutes < 1:
+        raise Failure("--turn-minutes: at least 1")
     for name in targets:
-        start_node(name, both=args.both)
+        start_node(name, both=args.both, turn_minutes=args.turn_minutes)
     return 0
 
 
@@ -641,6 +675,7 @@ def main():
     p = sub.add_parser("start")
     p.add_argument("node", choices=["W1", "W2", "all"])
     p.add_argument("--both", action="store_true")
+    p.add_argument("--turn-minutes", type=int, metavar="N")
     p = sub.add_parser("stop")
     p.add_argument("node", choices=["W1", "W2", "all"])
     sub.add_parser("status")
