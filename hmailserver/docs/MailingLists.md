@@ -120,13 +120,18 @@ whether or not the address was already there, so it tells nobody who is on the
 list.
 
 The page's form carries no token, since whoever is asking has none, so since
-6.3.7 a post the browser reports as cross-site — a `Sec-Fetch-Site` of
-`cross-site` or `same-site`, or an `Origin` that names another host than this
-server's — is refused before it reaches the list, so another site cannot have a
-visitor's browser send a confirmation to an address it names. The form this
-server serves posts to itself (`same-origin`) and is unaffected, as is the same
-post from a browser too old to send `Sec-Fetch-Site`, which can send it with
-`Origin: null` since the page is served with `Referrer-Policy: no-referrer`
+6.3.7 a post the browser reports as cross-site - a `Sec-Fetch-Site` of
+`cross-site` or `same-site`, which every current browser sends, or, where that is
+absent, an `Origin` that names another host than this server's - is refused
+before it reaches the list, so another site cannot have a current browser send a
+confirmation to an address it names. The form this server serves posts to itself
+(`same-origin`) and is unaffected, as is the same post from a browser too old to
+send `Sec-Fetch-Site`, which can send it with `Origin: null` since the page is
+served with `Referrer-Policy: no-referrer`. So a post that carries neither
+`Sec-Fetch-Site` nor an `Origin` naming a host is let through, and from a browser
+that old another site can still have one sent: a form in a sandboxed frame is
+posted with `Origin: null` too. The confirmation, which subscribes nobody until it
+is answered, and the budgets above stand behind that
 ([DevicesAndSessions.md](DevicesAndSessions.md)).
 
 An account the list's membership query answers is a member already: a request in

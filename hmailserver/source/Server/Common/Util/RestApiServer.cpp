@@ -1523,7 +1523,7 @@ namespace HM
    }
 
    bool
-   RestApiServer::RequestIsCrossSite_(const AnsiString &request, bool credentialed)
+   RestApiServer::RequestIsCrossSite_(const AnsiString &request, bool hostlessOriginIsCrossSite)
    {
       // The request line's method: GET and HEAD change nothing, so they are
       // never treated as a cross-site write however they arrive.
@@ -1559,19 +1559,21 @@ namespace HM
       // An Origin that names no host - "null", which a browser sends for a
       // sandboxed frame, a file, or a post that crossed origins on a redirect,
       // or anything that cannot be read as a URL - is no page of this server's.
-      // A request that carries a credential is refused on one: a sandboxed
-      // frame on another site would otherwise act with a cached HTTP Basic
-      // credential in a browser that sends no fetch metadata, and no page of
-      // this server makes a credentialed request with one - its pages write
-      // through their own script, whose requests carry the page's origin. The
-      // two anonymous posts let it pass: this server's own subscribe form is a
-      // plain form post from a page sent with Referrer-Policy: no-referrer, and
-      // a browser that follows the Fetch standard sends such a post with
-      // Origin: null - from a browser that sends no fetch metadata, the only
-      // kind this part reads, that is the form itself.
+      // The caller says whether it is another site. It is for a request that
+      // carries a credential and for the password-reset request: in a browser
+      // that sends no fetch metadata, a sandboxed frame on another site would
+      // otherwise act with a cached HTTP Basic credential, or have this server
+      // send reset mail, and no page of this server makes either request with
+      // one - its pages write through their own script, a fetch in cors mode,
+      // which the Fetch standard sends with the page's origin whatever the
+      // page's referrer policy. The subscribe form lets it pass: this server's
+      // own form is a plain form post from a page sent with Referrer-Policy:
+      // no-referrer, and a browser that follows the Fetch standard sends such
+      // a post with Origin: null - from a browser that sends no fetch
+      // metadata, the only kind this part reads, that is the form itself.
       const AnsiString originHost = HostFromUrl(origin);
       if (originHost.IsEmpty())
-         return credentialed;
+         return hostlessOriginIsCrossSite;
 
       const AnsiString requestHost = HostName(GetHeader_(request, "host"));
       return originHost != requestHost;
@@ -2652,9 +2654,11 @@ namespace HM
          // server send reset mail to an address the page names. A browser that
          // reports the post as cross-site is refused; a real request comes from
          // this server's own reset page (same-origin) or from a script (no
-         // fetch-metadata), which both pass. W-12. Anonymous: an Origin of
-         // null passes, as it does for the subscribe form below.
-         if (RequestIsCrossSite_(request, false))
+         // fetch-metadata), which both pass. W-12. An Origin of null is
+         // another site here, as it is for a credentialed request: this
+         // server's reset page asks from its own script, whose request carries
+         // the page's origin, so no page of this server's posts it with one.
+         if (RequestIsCrossSite_(request, true))
             return BuildResponse_(403, "{\"error\":\"a password-reset request is not accepted from another site\"}");
 
          return HandlePasswordResetRequest_(GetRequestBody_(request), peer_address);
@@ -2701,7 +2705,11 @@ namespace HM
             // refused; the form this server serves posts to itself (same-origin)
             // and passes, an Origin of null among them: the page is sent with
             // Referrer-Policy: no-referrer, so a browser that sends no fetch
-            // metadata may post the form with one (RequestIsCrossSite_). W-12.
+            // metadata may post the form with one (RequestIsCrossSite_). This is
+            // the one place a hostless Origin passes, so in such a browser
+            // another site's sandboxed frame can still post the form; the
+            // confirmation the list sends, and its budgets, stand behind that.
+            // W-12.
             if (method == "POST" && RequestIsCrossSite_(request, false))
                return BuildResponse_(403, "{\"error\":\"a request to join a list is not accepted from another site\"}");
 

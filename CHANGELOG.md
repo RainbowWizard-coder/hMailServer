@@ -124,14 +124,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 
 - **Fixed: a credentialed REST request a browser made from another site was accepted (cross-site request
   forgery).** A session's write already needed `X-Requested-With: hMailServer` and the session cookie is
-  `SameSite=Strict`, but HTTP Basic — which a browser keeps once it has answered the sign-in box — was not held to
+  `SameSite=Strict`, but HTTP Basic - which a browser keeps once it has answered the sign-in box - was not held to
   anything, so a form on another site could act with it. A state-changing request that carries a credential is now
   refused when the browser reports it as cross-site (`Sec-Fetch-Site`, or an `Origin` that is not this server's,
-  `Origin: null` among them), and the two anonymous posts that carry no token — the mailing-list subscribe form and
-  the password-reset request — are held to the same rule, so another site cannot have a visitor's browser drive them
-  (`Origin: null` aside: this server's own subscribe form can be posted with it). Scripts, `hmctl` and the
-  PowerShell module send no such header and are unaffected, as are the Deck and the webmail, which act on their own
-  origin. Found by the project's own web-surface review; handled under [SECURITY.md](SECURITY.md).
+  `Origin: null` among them), and the two anonymous posts that carry no token - the mailing-list subscribe form and
+  the password-reset request - are held to the same rule, so another site cannot have a current browser drive them.
+  The subscribe form alone still takes `Origin: null`, as this server's own form can be posted with it by a browser
+  too old to send `Sec-Fetch-Site`. Scripts, `hmctl` and the PowerShell module send no such header and are
+  unaffected, as are the Deck and the webmail, which act on their own origin. Found by the project's own web-surface
+  review; handled under [SECURITY.md](SECURITY.md).
   [DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md).
 
 - **Fixed: the ACME HTTP-01 challenge responder served one connection at a time.** During a certificate

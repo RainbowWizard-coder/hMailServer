@@ -53,8 +53,10 @@ namespace RegressionTests.API
    ///        reports as cross-site is refused whatever the credential - an Origin
    ///        that names no host, as a sandboxed frame sends, among them - and the
    ///        two anonymous posts that carry no token - the subscribe form and the
-   ///        password-reset request - are refused from another site too, where an
-   ///        Origin of null passes, since this server's own form is posted with one.
+   ///        password-reset request - are refused from another site too. An
+   ///        Origin of null is another site at the reset request, which this
+   ///        server's page makes from its own script, and passes at the subscribe
+   ///        form, whose own page a browser posts with one.
    ///
    ///    REST only, so the suite runs it against the Windows bench and the Linux
    ///    server alike; the COM half of the same decisions is TenantComAuthorization.
@@ -420,22 +422,57 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("The two anonymous posts are answered with an Origin of null and no fetch metadata: this server's own subscribe form, sent with Referrer-Policy: no-referrer, is posted with one by such a browser")]
-      public void TheAnonymousPostsAreAnsweredWithAnOriginOfNull()
+      [Description("With no fetch metadata, a password-reset request whose Origin names no host - null, as a sandboxed frame on another site sends - is refused; one whose Origin is this server's own, and a same-origin one whatever its Origin, are answered as a script's request is")]
+      public void ThePasswordResetRequestIsRefusedWithAnOriginThatNamesNoHost()
+      {
+         const string reset = "{\"address\":\"nobody@example.test\"}";
+
+         // How the route answers a request with no browser metadata, as a script
+         // sends it: 202, or 503 where this server offers no self-service reset.
+         // Every request below that is not refused must be answered the same.
+         int answered = HttpAnon("POST", "/api/v1/password-reset", reset, null).status;
+         Assert.IsTrue(answered == 202 || answered == 503,
+            "A password-reset request with no browser metadata was not answered as a script's is. Status: " + answered);
+
+         // Origin: null is what a browser too old to send Sec-Fetch-Site sends for a
+         // form posted from a sandboxed frame - another site's. This server's own
+         // sign-in card asks from its script, whose request a browser sends with the
+         // page's own origin, so nothing of this server's posts the request with one.
+         (int nullStatus, string nullBody) = HttpAnon("POST", "/api/v1/password-reset", reset, "Origin: null");
+         Assert.AreEqual(403, nullStatus, "A password-reset request with Origin: null and no fetch metadata was accepted. Body: " + nullBody);
+         StringAssert.Contains("not accepted from another site", nullBody);
+
+         // Nor does an Origin that cannot be read as a URL pass for this server's.
+         Assert.AreEqual(403, HttpAnon("POST", "/api/v1/password-reset", reset, "Origin: not-a-url").status,
+            "A password-reset request with an Origin that is not a URL was accepted.");
+
+         // This server's own origin, with no fetch metadata, is answered: the Host
+         // the request names is 127.0.0.1, and so is the Origin's host.
+         Assert.AreEqual(answered, HttpAnon("POST", "/api/v1/password-reset", reset,
+            "Origin: http://127.0.0.1:" + RestPort).status,
+            "A password-reset request whose Origin is this server's own was not answered as a script's is.");
+
+         // The fetch metadata decides first: a current browser on this server's
+         // own page reports same-origin, and is answered whatever the Origin says.
+         Assert.AreEqual(answered, HttpAnon("POST", "/api/v1/password-reset", reset,
+            "Sec-Fetch-Site: same-origin\r\nOrigin: null").status,
+            "A same-origin password-reset request was refused for its Origin.");
+      }
+
+      [Test]
+      [Description("A subscribe post with an Origin of null and no fetch metadata reaches the list: this server's own subscribe form, sent with Referrer-Policy: no-referrer, is posted with one by such a browser")]
+      public void TheSubscribeFormIsAnsweredWithAnOriginOfNull()
       {
          // The subscribe page is sent with Referrer-Policy: no-referrer, and a browser
          // that follows the Fetch standard posts its plain form with Origin: null; one
          // that sends no Sec-Fetch-Site has nothing else to say. The post reaches the
-         // handler - 404 for a list that does not exist - where a credentialed write
-         // with the same Origin is refused (ACredentialedWriteWithAnOriginThatNamesNoHostIsRefused).
+         // handler - 404 for a list that does not exist - where the reset request and
+         // a credentialed write with the same Origin are refused
+         // (ThePasswordResetRequestIsRefusedWithAnOriginThatNamesNoHost,
+         // ACredentialedWriteWithAnOriginThatNamesNoHostIsRefused).
          Assert.AreEqual(404, HttpAnon("POST", "/lists/none@example.test/subscribe", "address=someone%40example.test",
             "Origin: null").status,
             "A subscribe post with Origin: null and no fetch metadata must reach the handler.");
-
-         // The reset request is answered as it is without the header.
-         Assert.AreNotEqual(403, HttpAnon("POST", "/api/v1/password-reset", "{\"address\":\"nobody@example.test\"}",
-            "Origin: null").status,
-            "A password-reset request with Origin: null and no fetch metadata must be answered normally.");
       }
 
       // --------------------------------------------------------------- helpers

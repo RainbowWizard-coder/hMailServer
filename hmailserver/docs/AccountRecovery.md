@@ -196,10 +196,14 @@ The forgotten password
 
 Because it takes none, another site could otherwise have each of its visitors'
 browsers post it and have this server mail a reset link to an address the page
-names. Since 6.3.7 the request is refused when the browser reports it as
-cross-site — a `Sec-Fetch-Site` of `cross-site` or `same-site`, or an `Origin`
-that names another host than this server's — so only this server's own sign-in
-card, and a script that sends no such header, reach it
+names. Since 6.3.7 the request is refused when the browser reports it as coming
+from another site: a `Sec-Fetch-Site` of `cross-site` or `same-site`, which every
+current browser sends, or - where that is absent - an `Origin` that names another
+host than this server's, or no host at all (`Origin: null`, which a browser sends
+for a form in a sandboxed frame). The sign-in card asks from its own script, whose
+request a browser sends with the page's own origin, so it is unaffected, and so is
+a script, which sends neither header. A browser too old to send either reports
+nothing, and its request is answered as a script's is, whichever page made it
 ([DevicesAndSessions.md](DevicesAndSessions.md)).
 The double opt-in, the single answer for every address, and the rate limits
 below all stand behind that.

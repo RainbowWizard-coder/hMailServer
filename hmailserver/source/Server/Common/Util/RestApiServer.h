@@ -2252,11 +2252,13 @@ namespace HM
       // the two anonymous posts that carry no token - the public subscribe form
       // and the password-reset request - which another site could otherwise have
       // a visitor's browser send. GET and HEAD are never cross-site here: they
-      // change nothing. credentialed says which of the two the request is: with
-      // no fetch metadata, an Origin that names no host ("null") is another site
-      // for a request that carries a credential and passes for an anonymous
-      // post, whose own form a browser can send with it. See ProcessRequest_.
-      static bool RequestIsCrossSite_(const AnsiString &request, bool credentialed);
+      // change nothing. hostlessOriginIsCrossSite says what, with no fetch
+      // metadata, an Origin that names no host ("null") is. It is another site
+      // for a request that carries a credential and for the password-reset
+      // request, which this server's pages make only from their own script,
+      // with the page's own origin. It passes for the subscribe form, whose own
+      // page a browser posts with it. See ProcessRequest_.
+      static bool RequestIsCrossSite_(const AnsiString &request, bool hostlessOriginIsCrossSite);
 
       // suppressChallenge leaves out WWW-Authenticate, for a request a page's
       // own script made: see the definition, and IsPageScriptRequest_ below.

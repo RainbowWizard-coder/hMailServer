@@ -165,15 +165,22 @@ which a browser that once answered the `WWW-Authenticate: Basic` box keeps and
 would otherwise send with a top-level form post from another site. The Deck and
 the webmail act on their own origin (`same-origin`) and are unaffected, and a
 script, `hmctl` and the PowerShell module send no fetch-metadata and no `Origin`
-and are never treated as cross-site. The two anonymous posts that carry no
-token, the mailing-list subscribe form (`POST /lists/{list}/subscribe`) and the
+and are never treated as cross-site - nor is a browser too old to send either,
+which reports nothing. The two anonymous posts that carry no token, the
+mailing-list subscribe form (`POST /lists/{list}/subscribe`) and the
 password-reset request (`POST /api/v1/password-reset`), are held to the same
-rule, so another site cannot have a visitor's browser ask this server to send
-confirmation or reset mail to an address it names. `Origin: null` alone passes
-there: the subscribe page is served with `Referrer-Policy: no-referrer`, and a
-browser that follows the Fetch standard posts that page's own form with
-`Origin: null` - which, from a browser too old to send `Sec-Fetch-Site`, is all
-there is to read.
+rule, so another site cannot have a current browser ask this server to send
+confirmation or reset mail to an address it names. An `Origin` that names no
+host - from a browser, `Origin: null` - passes at the subscribe form alone: its
+page is served with `Referrer-Policy: no-referrer`, and a browser that follows
+the Fetch standard posts that page's own form with `Origin: null` - which, from
+a browser too old to send `Sec-Fetch-Site`, is all there is to read - so from
+such a browser a form in another site's sandboxed frame is let through there
+too, and the confirmation the list sends stands behind it
+([MailingLists.md](MailingLists.md)). A reset request with `Origin: null` is
+refused, as a credentialed request is: the sign-in card asks from its own
+script, whose request a browser sends with the page's own origin whatever the
+page's referrer policy.
 
 | Policy | Server-wide (`hm_settings`, `Settings.*` over COM, the settings group over REST) | Per domain (a field of the domain over REST and the Deck; `Utilities.SetDomainSessionPolicy` over COM) | What it does |
 |---|---|---|---|
