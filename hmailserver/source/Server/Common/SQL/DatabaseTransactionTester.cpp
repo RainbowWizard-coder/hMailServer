@@ -495,6 +495,80 @@ namespace HM
             probe.Say(_T("on a pool of one connection, a failed transaction gives it back before the failure is reported, and a statement outside an open one on its own thread is refused at once"));
          }
 
+         // On a pool of two connections, one held by an open scope and the other by
+         // a transaction of another thread, a statement the scope's own thread makes
+         // outside it (under a Suspension) waits for the connection the other thread
+         // gives back, and runs. The refusal above is for a pool whose every
+         // connection lent out is held by the thread's own transactions, which only
+         // that thread could give back; one that refused whenever the thread held a
+         // scope and no connection was free would refuse here, and an OnError script
+         // or a second transaction with it on a busy server engine, where the pool
+         // waits. The wait it measures says that no connection was free when the
+         // statement was made, so that the guard was asked.
+         {
+            probe.Reset();
+            std::shared_ptr<DatabaseConnectionManager> two = OpenPool(settings, 2);
+            {
+               DatabaseTransaction transaction(two);
+               Check(transaction.IsOpen() && transaction.Execute(Update(_T("aatxnprobe"), 1)), _T("a transaction on a pool of two connections did not open, or its update failed"));
+
+               std::atomic<bool> holding(false);
+               std::exception_ptr otherFailed;
+               std::thread other([&]()
+               {
+                  try
+                  {
+                     DatabaseTransaction held(two);
+                     Check(held.IsOpen(), _T("another thread's transaction on a pool of two connections did not open"));
+                     holding = true;
+                     std::this_thread::sleep_for(std::chrono::milliseconds(1200));
+
+                     // Ended without a commit: its connection goes back to the pool.
+                  }
+                  catch (...)
+                  {
+                     otherFailed = std::current_exception();
+                     holding = true;
+                  }
+               });
+
+               bool ran = false;
+               long long waited = 0;
+               std::exception_ptr outsideFailed;
+               try
+               {
+                  while (!holding)
+                     std::this_thread::sleep_for(std::chrono::milliseconds(5));
+
+                  DatabaseTransaction::Suspension outside;
+                  const std::chrono::steady_clock::time_point started = std::chrono::steady_clock::now();
+                  ran = two->Execute(Update(_T("aatxnprobeb"), 5));
+                  waited = (long long) std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - started).count();
+               }
+               catch (...)
+               {
+                  // Joined first: a thread destroyed while it can still be joined
+                  // ends the process.
+                  outsideFailed = std::current_exception();
+               }
+
+               other.join();
+               if (otherFailed)
+                  std::rethrow_exception(otherFailed);
+               if (outsideFailed)
+                  std::rethrow_exception(outsideFailed);
+
+               Check(ran, Formatter::Format("a statement under a Suspension, made while an open transaction of its thread held one connection of a pool of two and another thread's the other, was refused after {0} ms where it was to wait for the other thread's", (__int64) waited));
+               Check(waited >= 300, Formatter::Format("a statement under a Suspension on a pool of two connections both held found one free after {0} ms, so the check did not see it wait", (__int64) waited));
+               Check(transaction.Commit(), _T("the open transaction on a pool of two connections did not commit after a statement outside it waited and ran"));
+            }
+            Check(probe.Value(_T("aatxnprobe"), 1) == 1 && probe.Value(_T("aatxnprobeb"), 1) == 5,
+               _T("on a pool of two connections, the transaction's update or the statement made outside it while it was open did not stay"));
+
+            two->Disconnect();
+            probe.Say(_T("on a pool of two connections, a statement outside an open transaction on its own thread waits for the connection another thread gives back, and runs"));
+         }
+
          // A row that is there already, with DALErrorInSQL, is not a failure and
          // leaves the transaction as it was - on PostgreSQL by a savepoint, without
          // which the failed insert aborts the transaction and the COMMIT rolls back.
@@ -624,6 +698,37 @@ namespace HM
                      value, (int) failure));
                probe.Say(_T("a statement marked [IGNORE-ERRORS] that failed: the database ended the transaction, and the scope failed with nothing committed"));
             }
+
+            // And a marked statement whose failure leaves the transaction open on
+            // every engine - a row that is there already, which is what the marker
+            // is for - after which the unit commits whole, wherever it is run. The
+            // conversion error above cannot tell a scope that reads whether the
+            // transaction is still open from one that takes every swallowed failure
+            // for its end, since that error does end it on SQL Server: there the
+            // scope goes on because ADOConnection::IsTransactionFailed reads
+            // @@TRANCOUNT 1 after the duplicate (2627), and one that answered
+            // "ended" would roll back every unit whose marked statement found its
+            // row in place. PostgreSQL takes the failure back to the savepoint;
+            // MySQL, MariaDB and SQL Server Compact take back the statement alone.
+            probe.Reset();
+            committed = false;
+            failure = DatabaseTransaction::FailureNone;
+            String error;
+            {
+               DatabaseTransaction transaction(pool);
+               committed = transaction.Execute(Update(_T("aatxnprobe"), 1)) &&
+                           transaction.Execute(SQLCommand(_T("insert into aatxnprobe (id, v) values (1, 50) /* [IGNORE-ERRORS] */"))) &&
+                           transaction.Execute(Update(_T("aatxnprobe"), 10)) &&
+                           transaction.Commit();
+               failure = transaction.GetFailure();
+               error = transaction.GetErrorMessage();
+            }
+
+            const int whole = probe.Value(_T("aatxnprobe"), 1);
+            Check(committed && whole == 11,
+               Formatter::Format("a unit of work whose statement marked [IGNORE-ERRORS] met a row that is there already, which leaves the transaction open, was not committed whole: it left {0}, not 11, and failed as {1}: {2}",
+                  whole, (int) failure, error));
+            probe.Say(_T("a statement marked [IGNORE-ERRORS] that met a row there already: the transaction went on, and the unit committed whole"));
          }
 
          // Two transactions on one row: the second waits for the first's commit, and

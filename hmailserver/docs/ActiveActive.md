@@ -516,10 +516,12 @@ Nor is file replication, which gives no read-after-write across nodes.
 
 The lab proves the design on PostgreSQL, MySQL and MariaDB with whole nodes. The
 Linux server has no SQL Server backend, and the Windows gate runs on SQL Server
-Compact, so on SQL Server only the engine's own behaviour has been checked, not the
-server's code that talks to it. Active-active is not offered on SQL Server until two
-Windows nodes have been run on it; until then a SQL Server installation keeps the
-warm standby, with the guard.
+Compact, so the lab's checks on SQL Server are of the engine's own behaviour, not of
+the server's code that talks to it. Of that code, AA-02's transaction scope has
+been run on SQL Server: its checks and their controls, through the server's own ADO
+code (MSOLEDBSQL 18) on a Windows node against SQL Server 2022, on 13 October 2026.
+Active-active is not offered on SQL Server until two Windows nodes have been run on
+it; until then a SQL Server installation keeps the warm standby, with the guard.
 
 ### Upgrades
 
@@ -676,19 +678,22 @@ wins every claim, skips its own change-log rows and has no folder to watch.
    - AA-01, the database layer's row counts on all four backends, the UTC clock,
      and the engine checks run as the server runs (built; nothing uses the counts
      or the clock until AA-03 and AA-06);
-   - AA-02, a transaction scope the persistence layer can use, with no statement
-     run again inside it - built, as `DatabaseTransaction`. A statement that fails
-     in it for a reason a retry would not mend is reported as the pool reports one
-     (`HM5032`, `HM5033`), and a `BEGIN` or a `COMMIT` the database refuses so as
-     `HM8502`; `DatabaseTransaction::Run` reports a unit of work it gave up after
-     its attempts (`HM8500`) and one whose connection was lost during its `COMMIT`,
+   - AA-02, a transaction scope the persistence layer can use - built, as
+     `DatabaseTransaction`. No statement inside it is run again after a reconnect,
+     except on a MySQL database that is not transactional, where a scope runs its
+     statements as the pool does. A statement that fails in it for a reason a
+     retry would not mend is reported as the pool reports one (`HM5032`,
+     `HM5033`), and a `BEGIN` or a `COMMIT` the database refuses so as `HM8502`;
+     `DatabaseTransaction::Run` reports a unit of work it gave up after its
+     attempts (`HM8500`) and one whose connection was lost during its `COMMIT`,
      which it does not run again since whether it committed is not known (`HM8501`).
      On SQL Server Compact the pool holds the server's one connection, so an open
      scope holds it: a scope that fails gives it back before the failure is
      reported, and a statement its own thread makes outside it while it is open
      (an OnError script's) is refused at once (`HM8503`), where it would have waited
      for a connection only that thread could give back. Its SQL Server half was run
-     on the Windows lab's node through the server's own ADO code (MSOLEDBSQL 18);
+     on a Windows node through the server's own ADO code (MSOLEDBSQL 18; "SQL
+     Server", above);
    - AA-03, conditional claims on today's lock columns, and a queue delete that
      cannot remove a delivered row;
    - AA-04, UIDs and mod-sequences in one transaction;

@@ -9,17 +9,17 @@
 //
 //   database-transaction-tests <hMailServer.ini>
 //
-// against the database the file's [Database] section names, on a pool and tables
-// of the tester's own (aatxnprobe, aatxnprobeb, and aatxnprobem on MySQL), which it
-// makes, empties and removes. So it can run against a database the server has made,
-// before the server starts on it - the Linux suite against its PostgreSQL
-// (build/ci/linux-suite.sh), the database matrix against MySQL and MariaDB
-// (build/lab/db-suite.sh) - and never against one a server is using: it ends its
-// own pool's sessions on purpose. It provokes failures, which are reported to an
-// error log as any failed statement is, so it reads the [Database] section alone
-// into a configuration of its own, in a directory of its own under the system's
-// temp directory, whose folders - the log folder among them - are that directory,
-// removed again at the end; the server's log folder is never written.
+// against the database the file's [Database] section names, on pools and tables of
+// the tester's own (aatxnprobe, aatxnprobeb, aatxnprobec, and aatxnprobem on
+// MySQL), which it makes, empties and removes. So it can run against a database the
+// server has made, before the server starts on it - the Linux suite against its
+// PostgreSQL (build/ci/linux-suite.sh), the database matrix against MySQL and
+// MariaDB (build/lab/db-suite.sh) - and never against one a server is using: it
+// ends its own pool's sessions on purpose. It provokes failures, which are reported
+// to an error log as any failed statement is, so it reads the [Database] section
+// alone into a configuration of its own, in a directory of its own under the
+// system's temp directory, whose folders - the log folder among them - are that
+// directory, removed again at the end; the server's log folder is never written.
 //
 // Without a file it says SKIPPED and exits 0: linux-build.sh runs every tester with
 // no arguments, and there is no database there. One line a check, and a non-zero

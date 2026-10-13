@@ -714,9 +714,8 @@ namespace HM
             // what the failure was. MSOLEDBSQL 18 answered the next statement and
             // the COMMIT of a session the server had ended (KILL) with E_FAIL and one
             // such record, "Unspecified error", in some runs and with SQLSTATE 08S01
-            // in others (measured on the Windows lab's node W1, 13 October 2026;
-            // SQLOLEDB gives native 11 or 0 and 08S01): then the result decides,
-            // below.
+            // in others (measured on a Windows node, 13 October 2026; SQLOLEDB
+            // gives native 11 or 0 and 08S01): then the result decides, below.
             if (native == 0 && !stated)
                continue;
 

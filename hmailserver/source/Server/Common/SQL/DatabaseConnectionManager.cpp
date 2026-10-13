@@ -384,8 +384,9 @@ namespace HM
          *reconnected = false;
 
       // A statement made on a thread inside a DatabaseTransaction of this pool
-      // belongs to that transaction: it runs on the transaction's connection, once,
-      // and not on a connection of its own. This is what puts the persistence
+      // belongs to that transaction: it runs on the transaction's connection - once,
+      // but on a MySQL database that is not transactional as the pool runs it - and
+      // not on a connection of its own. This is what puts the persistence
       // layer's existing saves inside a transaction without each being rewritten
       // (DatabaseTransaction.h).
       DatabaseTransaction *transaction = DatabaseTransaction::Current_(this);
@@ -498,7 +499,8 @@ namespace HM
    DatabaseConnectionManager::OpenRecordset(const SQLCommand &command)
    {
       // As in Execute: a query made on a thread inside a DatabaseTransaction of
-      // this pool runs on the transaction's connection, once, and reads what the
+      // this pool runs on the transaction's connection - once, but on a MySQL
+      // database that is not transactional as the pool runs it - and reads what the
       // transaction has written.
       DatabaseTransaction *transaction = DatabaseTransaction::Current_(this);
       if (transaction != nullptr && transaction->Routes_())
@@ -861,8 +863,10 @@ namespace HM
       (SchemaUpgrader begins its own transactions on the connection UpgradeSchema
       lends it). The server's own units of work use DatabaseTransaction instead,
       which holds its connection for the thread that opened it, so that Execute()
-      and OpenRecordset() made on that thread run inside it, and which never runs
-      a statement again after a reconnect.
+      and OpenRecordset() made on that thread run inside it, and which sends each
+      statement once, not again after a reconnect - except on a MySQL database
+      that is not transactional, where it runs them as the pool does
+      (DatabaseTransaction.h).
 
       PER BACKEND:
 

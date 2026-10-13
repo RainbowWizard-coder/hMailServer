@@ -206,7 +206,8 @@ namespace HM
       friend class DatabaseTransactionTester;
 
       // A statement made inside a DatabaseTransaction - through it, or through
-      // Execute on the thread that opened it - run once on its connection, and
+      // Execute on the thread that opened it - run on its connection, once (but on
+      // a MySQL database that is not transactional as the pool runs it), and
       // recorded by the audit trail as every statement through Execute is: here,
       // in the one file the audit trail's chokepoint lives in
       // (build/check-audit-choke-point.py).

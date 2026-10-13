@@ -188,13 +188,15 @@ namespace HM
       // 25090); a row that is there already, which is a primary key's or a unique
       // index's duplicate the backend names (SQL Server 2627 and 2601, MySQL and
       // MariaDB 1062, PostgreSQL 23505, SQL Server Compact 25016) and no other
-      // integrity violation - the backends' own DALErrorInSQL is every one of them
-      // on SQL Server and Compact, a foreign key's, a NULL's and a CHECK's
-      // included; or anything else. Asked straight after the failure,
-      // with what TryExecute, TryOpen or the transaction call returned (DALUnknown
-      // when it said no more than false), before anything else runs on the
-      // connection; ForgetLastFailure before the statement, so that what is read
-      // is that statement's.
+      // integrity violation - the backends' own DALErrorInSQL is every integrity
+      // violation on SQL Server (a foreign key's 547, a NULL's 515, a CHECK's
+      // 547), and on SQL Server Compact a duplicate (25016) or a foreign key's
+      // refusal (25026, or 25025 for a delete of a row a foreign key refers to);
+      // or anything else. Asked straight after the failure, with what TryExecute,
+      // TryOpen or the transaction call returned (DALUnknown when it said no more
+      // than false), before anything else runs on the connection;
+      // ForgetLastFailure before the statement, so that what is read is that
+      // statement's.
       enum LastFailure
       {
          LastFailureOther = 0,

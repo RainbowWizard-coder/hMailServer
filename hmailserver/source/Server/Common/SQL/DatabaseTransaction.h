@@ -72,19 +72,23 @@ namespace HM
       when it is that: a primary key's or a unique index's duplicate the backend
       names (DALConnection::ClassifyLastFailure: SQL Server 2627 and 2601, MySQL
       and MariaDB 1062, PostgreSQL 23505, SQL Server Compact 25016). Outside a
-      scope the backends' own ignoring is wider: on SQL Server and SQL Server
-      Compact it lets through every integrity violation - an insert a foreign key
-      refused for want of the row it refers to, a NULL into a NOT NULL column, a
-      CHECK constraint - and on those two and MySQL an unknown error as well, a
-      lost connection included on MySQL. Inside a transaction that would commit
-      a unit without a row the database refused, and would hide a deadlock that
-      has already rolled the transaction back. On PostgreSQL, where any failed
-      statement aborts the transaction, a statement that may be ignored runs
-      under a savepoint, so that an ignored duplicate leaves the transaction as it
-      was. A statement marked [IGNORE-ERRORS], whose failure the backend itself
-      answers as a success, fails the scope when that failure has ended the
-      transaction (DALConnection::IsTransactionFailed): on SQL Server a
-      conversion error rolls the transaction back.
+      scope the backends' own ignoring is wider: on SQL Server it lets through
+      every integrity violation - an insert a foreign key refused for want of the
+      row it refers to (547), a NULL into a NOT NULL column (515), a CHECK
+      constraint (547) - and on SQL Server Compact a foreign key's refusal
+      (25026 for a row whose parent is not there, 25025 for a delete of a row a
+      foreign key refers to; a NULL into a NOT NULL column is an error in the
+      command there, 25005, and a CHECK cannot be declared); and on those two and
+      MySQL an unknown error as well - Compact's NULL among them, and on MySQL a
+      lost connection. Inside a transaction that would commit a unit without a
+      row the database refused, and would hide a deadlock that has already rolled
+      the transaction back. On PostgreSQL, where any failed statement aborts the
+      transaction, a statement that may be ignored runs under a savepoint, so
+      that an ignored duplicate leaves the transaction as it was. A statement
+      marked [IGNORE-ERRORS], whose failure the backend itself answers as a
+      success, fails the scope when that failure has ended the transaction
+      (DALConnection::IsTransactionFailed): on SQL Server a conversion error
+      rolls the transaction back.
 
       On a MySQL database with a table that is not InnoDB nothing is
       transactional (MySQLConnection::LoadSupportsTransactions_): the scope still
@@ -152,16 +156,18 @@ namespace HM
       // database with a table that is not InnoDB.
       bool IsTransactional() const;
 
-      // A statement on the transaction's connection, once. The same as
+      // A statement on the transaction's connection, sent once and not run again
+      // after a reconnect - except on a MySQL database that is not transactional,
+      // where it runs as the pool runs it (above). Otherwise the same as
       // DatabaseConnectionManager::Execute, and recorded by the audit trail in the
-      // same way, but never run again after a reconnect; a failure fails the
-      // scope. iIgnoreErrors may be DALConnection::DALErrorInSQL, for an insert
-      // whose row may be there already: then such a failure is not one, and the
-      // insert id is 0.
+      // same way; a failure fails the scope. iIgnoreErrors may be
+      // DALConnection::DALErrorInSQL, for an insert whose row may be there
+      // already: then such a failure is not one, and the insert id is 0.
       bool Execute(const SQLCommand &command, __int64 *iInsertID = 0, int iIgnoreErrors = 0);
       bool Execute(const SQLStatement &statement, __int64 *iInsertID = 0, int iIgnoreErrors = 0);
 
-      // A query on the transaction's connection, once. Empty when it failed, which
+      // A query on the transaction's connection, once - or, on a MySQL database
+      // that is not transactional, as the pool runs it. Empty when it failed, which
       // fails the scope and marks the thread as DatabaseUnavailableMarker says, so
       // that "the database did not answer" is not read as "nothing was found".
       std::shared_ptr<DALRecordset> OpenRecordset(const SQLCommand &command);
@@ -373,23 +379,28 @@ namespace HM
    // for a row that is there already, with DALErrorInSQL or without; a statement
    // marked [IGNORE-ERRORS] that failed leaves the unit committed whole or not at
    // all (on SQL Server, where a conversion error rolls the transaction back, not
-   // at all). PostgreSQL also: an ignored duplicate leaves the transaction usable,
-   // and a COMMIT that PostgreSQL turned into a ROLLBACK is reported as a failure.
-   // MySQL also: a database with a table that is not InnoDB reports that it is
-   // not transactional.
+   // at all), and one that met a row there already, which leaves the transaction
+   // open on every engine, committed whole; on a pool of one connection a failed
+   // scope's connection is there for a statement made outside it and an open
+   // scope's is not waited for, and on a pool of two such a statement waits for
+   // the connection another thread gives back. PostgreSQL also: an ignored
+   // duplicate leaves the transaction usable, and a COMMIT that PostgreSQL
+   // turned into a ROLLBACK is reported as a failure. MySQL also: a database
+   // with a table that is not InnoDB reports that it is not transactional.
    //
-   // On a pool and tables of its own (aatxnprobe, aatxnprobeb, aatxnprobec), which
-   // it makes, empties and removes, so it can be run against a database a server
-   // has made before the server starts on it; never against one a server is using
-   // as a node of a set. On Windows ClassTester runs TestCompact, on a SQL Server
-   // Compact database of the tester's own in the temp folder - the Windows gate's
-   // engine. On Linux the program database-transaction-tests runs Test against the
-   // database its configuration file names: PostgreSQL in the Linux suite, MySQL
-   // and MariaDB in the database matrix. SQL Server is the Windows lab's
-   // (ActiveActive.md, D18): Test against its database, through the server's ADO
-   // code on a node, with a login that may end a session there (KILL needs ALTER
-   // ANY CONNECTION, and seeing it gone VIEW SERVER STATE). It says what failed by
-   // throwing std::logic_error with a sentence.
+   // On pools and tables of its own (aatxnprobe, aatxnprobeb, aatxnprobec, and on
+   // MySQL aatxnprobem), which it makes, empties and removes, so it can be run
+   // against a database a server has made before the server starts on it; never
+   // against one a server is using as a node of a set. On Windows ClassTester runs
+   // TestCompact, on a SQL Server Compact database of the tester's own in the temp
+   // folder - the Windows gate's engine. On Linux the program
+   // database-transaction-tests runs Test against the database its configuration
+   // file names: PostgreSQL in the Linux suite, MySQL and MariaDB in the database
+   // matrix. SQL Server's is run on a Windows node whose own database it is
+   // (ActiveActive.md, "SQL Server"): Test against that database, through the
+   // server's ADO code, with a login that may end a session there (KILL needs
+   // ALTER ANY CONNECTION, and seeing it gone VIEW SERVER STATE). It says what
+   // failed by throwing std::logic_error with a sentence.
    class DatabaseTransactionTester
    {
    public:
