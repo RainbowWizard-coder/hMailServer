@@ -39,6 +39,11 @@ namespace hMailServer.ControlPanel.Views
          private CheckBox remove_;
          private bool hasStored_;
 
+         // What the last save of this build wrote from the box, which keeps it there to
+         // be copied: a later save writes it again only once it has been changed, as the
+         // INI-only view's secret does, where every save of another row wrote it again.
+         private string written_;
+
          public override bool WantsInitialValue => false;
 
          // The box's own words, since a password box shows no value: whether a secret
@@ -55,6 +60,7 @@ namespace hMailServer.ControlPanel.Views
             // there is none (IniFeatureStore.Read): a remote Control Panel knows
             // whether a secret is stored as well as one on the server does.
             hasStored_ = IniStore != null && IniStore.SettingsReachable && !string.IsNullOrEmpty(IniStore.Read(Path, "").Trim());
+            written_ = null;
 
             box_ = new PasswordField { FontSize = Typography.Body, HorizontalAlignment = HorizontalAlignment.Stretch };
             Describe(box_, Path);
@@ -154,6 +160,7 @@ namespace hMailServer.ControlPanel.Views
             {
                IniStore.Write(Path, "");
                hasStored_ = false;
+               written_ = null;
                remove_.IsChecked = false;
                remove_.Visibility = Visibility.Collapsed;
                ShowWhatABlankBoxDoes_();
@@ -164,7 +171,12 @@ namespace hMailServer.ControlPanel.Views
             if (string.IsNullOrEmpty(typed))
                return false;   // blank keeps the stored secret
 
+            // The value the last save wrote, still in the box, is the one stored.
+            if (typed == written_)
+               return false;
+
             IniStore.Write(Path, typed);
+            written_ = typed;
             hasStored_ = true;
             remove_.Visibility = Visibility.Visible;
             ShowWhatABlankBoxDoes_();

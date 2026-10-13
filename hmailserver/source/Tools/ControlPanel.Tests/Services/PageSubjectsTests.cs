@@ -321,6 +321,10 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Matches(new System.Text.RegularExpressions.Regex(@"remove_\.Checked \+= \(s, e\) =>\s*\{\s*box_\.Password = """";\s*box_\.IsEnabled = false;"), secret);
          Assert.Contains("return false;   // blank keeps the stored secret", secret, StringComparison.Ordinal);
          Assert.Contains("IniStore.SettingsReachable", secret, StringComparison.Ordinal);
+         // A value a save wrote stays in the box and is not written again by the next
+         // save of another row; a new build of the card, or a removal, forgets it.
+         Assert.Matches(new System.Text.RegularExpressions.Regex(@"if \(typed == written_\)\s*return false;\s*IniStore\.Write\(Path, typed\);\s*written_ = typed;"), secret);
+         Assert.Equal(2, System.Text.RegularExpressions.Regex.Matches(secret, @"\bwritten_ = null;").Count);
 
          string server = ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.xaml.cs"));
          string build = WithheldRowTests.MemberText(server, "private void BuildMonitoring()");
