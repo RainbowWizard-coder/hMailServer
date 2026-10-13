@@ -5649,6 +5649,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `docker` group, could have Fulcio certify a key as that release's pipeline while the token is valid. Those machines
   build the release's Linux packages already, and only a protected ref's pipeline reaches them (the same section,
   "What it trusts").
+- **`build/land-via-mr.py` lands a batch of any size from Windows.** It gave glab every field of a request as an
+  argument of its command line, and the description of `batch47`'s merge request, 200 commit lines and 50,565
+  characters, made one longer than the 32,767 characters Windows takes: on 13 October 2026 the landing pushed the
+  branch and then died opening the merge request (`[WinError 206] The filename or extension is too long`), which was
+  opened by hand. The merge request, the landing record and the merge now go to glab as a JSON body on its standard
+  input (`glab api --input -`), each boolean a JSON boolean and each integer a number, as before, and the self-test
+  sends a 60,000-character description through a stand-in for glab that reads what it is given; with the fields put
+  back on the command line it fails, on Windows with that same error. A landing runs `master`'s copy of the script,
+  so the batch that brings this one opens its merge request before it lands, or lands with `--own-copies`.
 - **The message indexer's stop and start, as fixed above (*Correctness*), leave `static-analysis` nothing new to
   say.** Run over them as the job runs it, cppcheck and clang-tidy found four findings in `MessageIndexer.cpp` that
   no baseline holds, none of them a defect in what the code does, and each is now written so that the tools have

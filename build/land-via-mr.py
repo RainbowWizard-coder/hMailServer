@@ -96,7 +96,9 @@ refusal:
      branch, remote and local, where it can.
 
 It needs glab, logged in to gitlab.com as a Maintainer (only Maintainers may
-push a batch* branch or merge into master), and git.
+push a batch* branch or merge into master), and git. What it writes to GitLab - the
+merge request, its landing record, the merge - goes to glab as a JSON body on its
+standard input, never on its command line (Glab, below).
 
 Usage:
   python3 build/land-via-mr.py BRANCH [--remote NAME] [--dry-run] [--no-wait]
@@ -305,21 +307,49 @@ class Git(object):
 
 
 class Glab(object):
-    """GitLab's REST API through glab, which holds the maintainer's login."""
+    """GitLab's REST API through glab, which holds the maintainer's login.
 
-    def __init__(self, host):
+    A request's fields go to glab as one JSON object on its standard input
+    (glab api --input -, with Content-Type: application/json), never on its command
+    line: each was an -f or -F argument until 13 October 2026, and batch47's merge
+    request description - 200 commit lines, 50,565 characters - made a command line
+    longer than the 32,767 characters Windows takes, so that the landing died after
+    it had pushed (WinError 206) and the merge request was opened by hand. A boolean
+    stays a JSON boolean and an integer a JSON number, as -F made them; every other
+    value goes as its text, as -f sent it. A GET's fields stay -f and -F arguments,
+    which glab makes query parameters of: no GET here has any. program is the command
+    glab is started as; the self-test gives it a stand-in that reads what it is sent."""
+
+    def __init__(self, host, program=None):
         self.host = host
+        self.program = list(program or ["glab"])
+
+    def request(self, method, path, fields=None):
+        """The command line and the body (bytes, or None) a request is sent with."""
+        argv = self.program + ["api", "--hostname", self.host, "-X", method, path]
+        if not fields:
+            return argv, None
+        if method == "GET":
+            for key, value in fields.items():
+                if isinstance(value, bool):
+                    argv += ["-F", "%s=%s" % (key, "true" if value else "false")]
+                elif isinstance(value, int):
+                    argv += ["-F", "%s=%d" % (key, value)]
+                else:
+                    argv += ["-f", "%s=%s" % (key, value)]
+            return argv, None
+        body = {}
+        for key, value in fields.items():
+            body[key] = value if isinstance(value, (bool, int)) else "%s" % (value,)
+        return (argv + ["-H", "Content-Type: application/json", "--input", "-"],
+                json.dumps(body, ensure_ascii=False).encode("utf-8"))
 
     def __call__(self, method, path, fields=None):
-        argv = ["glab", "api", "--hostname", self.host, "-X", method, path]
-        for key, value in (fields or {}).items():
-            if isinstance(value, bool):
-                argv += ["-F", "%s=%s" % (key, "true" if value else "false")]
-            elif isinstance(value, int):
-                argv += ["-F", "%s=%d" % (key, value)]
-            else:
-                argv += ["-f", "%s=%s" % (key, value)]
-        done = subprocess.run(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        argv, body = self.request(method, path, fields)
+        if body is None:
+            done = subprocess.run(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        else:
+            done = subprocess.run(argv, input=body, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out = done.stdout.decode("utf-8", "replace")
         if done.returncode != 0:
             raise ApiError("%s %s: %s %s" % (method, path, done.stderr.decode("utf-8", "replace").strip(), out.strip()[:300]))
@@ -327,7 +357,7 @@ class Glab(object):
 
     def text(self, path):
         """What a GET of path answers, as text: a job's log, which is not JSON."""
-        done = subprocess.run(["glab", "api", "--hostname", self.host, "-X", "GET", path], stdout=subprocess.PIPE,
+        done = subprocess.run(self.program + ["api", "--hostname", self.host, "-X", "GET", path], stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE)
         if done.returncode != 0:
             raise ApiError("GET %s: %s" % (path, done.stderr.decode("utf-8", "replace").strip()[:300]))
@@ -1082,6 +1112,68 @@ def self_test():
         with io.open(os.environ["GIT_CONFIG_GLOBAL"], "w") as f:
             f.write("[user]\n\tname = Christopher Holloway\n\temail = chris.holloway@progressiverobot.com\n"
                     "[init]\n\tdefaultBranch = master\n[advice]\n\tdetachedHead = false\n")
+
+        # The requests themselves, through a stand-in for glab that writes down the command
+        # line it was started with and what it read on its standard input - only when it was
+        # told to read it (--input), as glab does - and answers as GitLab would.
+        stand_in = os.path.join(tmp, "glab-stand-in.py")
+        seen_at = os.path.join(tmp, "glab-seen.json")
+        with io.open(stand_in, "w", encoding="utf-8", newline="\n") as f:
+            f.write("import io, json, sys\n"
+                    "seen, args = sys.argv[1], sys.argv[2:]\n"
+                    "body = sys.stdin.buffer.read() if '--input' in args else None\n"
+                    "with io.open(seen, 'w', encoding='utf-8') as f:\n"
+                    "    json.dump({'argv': args, 'body': None if body is None else body.decode('utf-8')}, f)\n"
+                    "if any('refused' in a for a in args):\n"
+                    "    sys.stderr.write('HTTP 403: 403 Forbidden\\n')\n"
+                    "    sys.exit(1)\n"
+                    "sys.stdout.write(json.dumps({'iid': 7, 'web_url': 'https://example.invalid/mr/7'}))\n")
+        glab = Glab("gitlab.example", program=[sys.executable, stand_in, seen_at])
+
+        def sent():
+            with io.open(seen_at, encoding="utf-8") as f:
+                return json.load(f)
+
+        # batch47's description was 50,565 characters; this one is 60,000, and not ASCII.
+        description = ("- 1df1dc3e7 A SEARCH asks each of its criteria of a message once \u2014 \u00e9t\u00e9\n" * 2000)[:60000]
+        expect("the description is over Windows' command line as one -f argument, as it was sent",
+               len("description=" + description) > 32767, True)
+        fields = {"source_branch": "batch48", "target_branch": "master", "title": "Land batch48: 250 commit(s)",
+                  "description": description, "remove_source_branch": True, "squash": False, "milestone_id": 12}
+        try:
+            answer = glab("POST", "projects/86730559/merge_requests", fields)
+        except OSError as error:
+            # Windows' "[WinError 206] The filename or extension is too long", as batch47's landing met it.
+            raise RuntimeError("a 60,000-character description could not be sent: %s" % error)
+        got = sent()
+        expect("a 60,000-character description: GitLab's answer is read", answer, {"iid": 7, "web_url": "https://example.invalid/mr/7"})
+        expect("a 60,000-character description: the command line holds no field",
+               any(description[:40] in a or a.startswith(("description=", "title=")) for a in got["argv"]), False)
+        expect("a 60,000-character description: the command line is short",
+               sum(len(a) + 1 for a in [sys.executable, stand_in, seen_at] + got["argv"]) < 1000, True)
+        expect("a 60,000-character description: the body goes on standard input as JSON",
+               got["argv"][-4:], ["-H", "Content-Type: application/json", "--input", "-"])
+        body = json.loads(got["body"] or "null")
+        expect("a 60,000-character description: every field arrives, the description whole", body, fields)
+        expect("a 60,000-character description: booleans stay booleans and an integer a number",
+               [type(body.get(k)).__name__ for k in ("remove_source_branch", "squash", "milestone_id")], ["bool", "bool", "int"])
+        record = "**Landing record** (`build/land-via-mr.py`)\n\n" + description
+        glab("POST", "projects/86730559/merge_requests/7/notes", {"body": record})
+        expect("the landing record goes the same way", (sent()["argv"][-1], json.loads(sent()["body"])), ("-", {"body": record}))
+        glab("PUT", "projects/86730559/merge_requests/7/merge", {"sha": "a" * 40, "squash": False, "should_remove_source_branch": True})
+        expect("the merge's fields, typed", json.loads(sent()["body"]),
+               {"sha": "a" * 40, "squash": False, "should_remove_source_branch": True})
+        glab("GET", "projects/86730559/merge_requests/7")
+        expect("a GET without fields: no body, and glab is not told to read one", (sent()["body"], "--input" in sent()["argv"]),
+               (None, False))
+        glab("GET", "projects/86730559/merge_requests", {"state": "opened", "per_page": 100, "wip": False})
+        expect("a GET's fields stay query parameters, as -f and -F made them", (sent()["body"], sent()["argv"][-6:]),
+               (None, ["-f", "state=opened", "-F", "per_page=100", "-F", "wip=false"]))
+        try:
+            glab("POST", "projects/86730559/refused", {"body": "x"})
+            expect("a request glab fails is an ApiError", "no error", "ApiError")
+        except ApiError as error:
+            expect("a request glab fails is an ApiError naming what glab said", "403 Forbidden" in str(error), True)
 
         def run(cwd, *args):
             done = subprocess.run(["git", "-C", cwd] + list(args), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
