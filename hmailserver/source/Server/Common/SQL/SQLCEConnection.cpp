@@ -630,7 +630,13 @@ namespace HM
             *rowsAffected = -1;
 
          ExecutionResult dbErr = GetErrorType_(_com_error::WCodeToHRESULT(err.WCode()));
-         if (iIgnoreErrors > 0 && iIgnoreErrors & dbErr)
+
+         // A caller that passes DALErrorInSQL forgives an integrity violation and
+         // nothing else (DALConnection::TryExecute), as ADOConnection does. This was
+         // "iIgnoreErrors & dbErr": ExecutionResult is not a set of bits - DALUnknown,
+         // 3, has DALErrorInSQL's bit - and every failure here but an integrity
+         // violation is DALUnknown, so every failure was forgiven and answered as done.
+         if ((iIgnoreErrors & DALConnection::DALErrorInSQL) != 0 && dbErr == DALConnection::DALErrorInSQL)
          {
             if (rowsAffected != nullptr)
                *rowsAffected = 0;

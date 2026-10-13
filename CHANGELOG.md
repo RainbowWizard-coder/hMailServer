@@ -518,16 +518,38 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 
 - **Fixed: on MySQL and MariaDB, the statement after the database had ended a TLS session, or after MySQL had closed
   one for being idle, failed instead of being run again on a new connection.** The database layer runs a statement
-  again on a new connection when the old one turns out to be gone, which it recognised by the client's errors 2006
-  and 2013 alone. A session the database ends - a restart of it, a failover, a `KILL` - is reported over TLS, which
-  libmariadb negotiates by default with any MySQL 8 or MariaDB 11 that offers it, as TLS's error 2026; and MySQL
-  8.0.24 and later answer the first statement after closing an idle session (`wait_timeout`, eight hours as
-  shipped) with error 4031, TLS or not. So after either, the next statement on each connection of the pool failed,
-  and what it was for with it (HM5032), and only the one after it, which read 2006, reconnected. Both now
-  mean what 2013 means (`MySQLConnection::CheckError`). Measured through the server's own connections with
-  `database-claim-tests` on MySQL 8.4.11 and MariaDB 11.8.9 on 13 October 2026, each case with its negative control:
-  without 2026 the statement after a `KILL` failed on both, without 4031 the statement after an idle close failed on
-  MySQL.
+  again on a new connection when the old one turns out to be gone, which it recognised by the client's errors 2006 and
+  2013 alone. A session the database ends - a restart of it, a failover, a `KILL` - is reported over TLS, which the
+  server asks for by default (`[Database] TlsMode` prefer) from any MySQL 8 or MariaDB 11 that offers it, as TLS's
+  error 2026 (with `TlsMode` disable it is 2013, which was reconnected already); and MySQL 8.0.24 and later answer the
+  first statement after closing an idle session (`wait_timeout`, eight hours as shipped) with error 4031, TLS or not.
+  So after either, the next statement on each connection of the pool failed, and what it was for with it (HM5032), and
+  only the one after it, which read 2006, reconnected. 2026 now means what 2013 means, and so does 4031 from MySQL
+  (`MySQLConnection::CheckError`) - not from MariaDB, where 4031 is another error, a trigger that a `CREATE TRIGGER`
+  follows and that does not exist, which still fails at once: the server's fork is read from `VERSION()` at each
+  connection. Measured through the server's own connections with `database-claim-tests` on MySQL 8.4.11 and MariaDB
+  11.8.9 on 13 October 2026, each case with its negative control: without 2026 the statement after a `KILL` failed on
+  both, without 4031 the statement after an idle close failed on MySQL, and with 4031 taken for a lost connection from
+  MariaDB as well a statement MariaDB refused with it was run again on new connections before it failed.
+
+- **Fixed: on MySQL, MariaDB, SQL Server and SQL Server Compact, a write whose caller forgives a duplicate key was
+  taken as done when it failed for any other reason, a lost connection on MySQL and MariaDB among them.** The
+  greylisting triplet, a known sender, a complaint and the complaint volume, an address's bounce count and its
+  suppression, a DKIM rotation's row, a DMARC or TLS-RPT report, the out-of-office reply's record, SNMP's engine seed
+  and the sandbox's verdict are inserted forgiving the refusal of their unique index, since two connections may insert
+  the same row at once. The test of what to forgive was a bitwise AND with the failure's kind, which is not a set of
+  bits, so every failure the backend did not call a lost connection was forgiven and answered as success with no row
+  written - a table that does not exist, a syntax error, a value of the wrong type, a timeout - and on MySQL and
+  MariaDB, where the failure's kind knows no lost connection, a lost connection too, with no reconnect. PostgreSQL
+  alone forgave the duplicate and nothing else. Each backend now forgives what it names a row its rules refused, and
+  only that: on PostgreSQL a unique violation (23505), on MySQL and MariaDB a duplicate key (1062), on SQL Server any
+  integrity violation (a duplicate, a `NULL` in a `NOT NULL` column, a foreign key's or a `CHECK`'s refusal), on SQL
+  Server Compact a duplicate or a foreign key's refusal, as measured on SQL Server 2022 and Compact 4.0 on 13 October
+  2026. Any other failure is reported (HM5032), as it was on PostgreSQL, and a lost connection is reconnected and the
+  statement run again. `database-claim-tests` and the Windows suite's internal tests hold it: an insert into a table
+  that does not exist counts -1, one of a `NULL` into a `NOT NULL` column -1 (0 on SQL Server), and one on a session
+  the database ended is reconnected, counted 1 and written - where on MariaDB and MySQL it counted 0, was not run
+  again and wrote nothing.
 
 - **Fixed: a ManageSieve refusal that quoted a script's text with a line break in it was split in two.** RFC 5804's
   quoted string may hold no CR or LF, and `PUTSCRIPT` and `CHECKSCRIPT` quote the script's own text when they refuse
@@ -4835,31 +4857,32 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the corpus at the end; and after the second check's repairs, with the check of where a mail program ends a link: no
   difference in 1,807 seconds, about 39.9 million inputs in 160 jobs, none a crash or a timeout
   ([Fuzzing.md](hmailserver/docs/Fuzzing.md), "UTS 46 against ada").
-- **The database layer counts the rows a statement matched, on all four backends, and has the database's clock in
-  UTC: the first unit of active-active (AA-01 in ActiveActive.md), which nothing in the server uses yet.**
+- **The database layer counts the rows a statement matched, on all four backends, and has the database's clock in UTC:
+  the first unit of active-active (AA-01 in ActiveActive.md), which nothing in the server uses yet.**
   `DatabaseConnectionManager::ExecuteCount` runs a statement as `Execute` does - the same fault injection, measuring
-  and audit - and answers the rows it matched, or -1 when it failed, and whether the connection was lost while it
-  ran, after which the layer runs it again: ADO's `RecordsAffected` on SQL Server and SQL Server Compact,
-  `mysql_affected_rows` on MySQL and MariaDB, now connected with `CLIENT_FOUND_ROWS` so that an update which sets
-  what a row already holds counts the row as the other engines do, and `PQcmdTuples` on PostgreSQL. SQL Server's
-  sessions are opened with `NOCOUNT` off, as a session is unless the server's `user options` turn it on, since under
-  it there is no count. `SQLStatement::GetCurrentUtcTimestamp` and `GetCurrentUtcTimestampPlusSeconds` give
-  `SYSUTCDATETIME()`, `UTC_TIMESTAMP(6)` and PostgreSQL's `statement_timestamp() at time zone 'utc'` - the
-  statement's time, not the transaction's, which `now()` is - and on SQL Server Compact, which has no UTC function
-  (its provider refuses all four it might have), the node's own UTC clock. `DatabaseClaimTester` holds them on a
-  real database through the server's own connections: in the Windows suite's internal tests on a SQL Server Compact
-  database of its own, and as `database-claim-tests`, which `linux-build` makes beside the server and the Linux
-  suite and the database matrix run against their PostgreSQL, MySQL or MariaDB before the server starts (it says
-  SKIPPED with no database) - the counts, a claim run again as a reconnect runs it, two connections racing for the
-  same rows and for named leases that have no row yet, a connection closed, ended and timed out under a claim, a
-  lease on the UTC clock refused, renewed, taken and fenced, and the UTC clock against the machine's. The lab's
-  engine checks (`build/lab/active-active/sqlcheck.py`) gained the same claim run twice, named leases, SQL Server at
-  READ UNCOMMITTED with writers that roll back - where a reader saw rows that were then rolled back, and with the
-  `READCOMMITTED` hint none - and a lease on the local wall clock and one on the UTC clock across both
-  daylight-saving changes, on a database in `Europe/London` whose clock libfaketime moves (`aa-lab.sh up-dst` and
-  `dst`): on PostgreSQL, MariaDB and MySQL the wall-clock lease was taken an hour early in spring and held an hour
-  late in autumn, the UTC one neither. A unit runs a lab of its own
-  with `AA_PREFIX` and `AA_HOME`.
+  and audit - and answers the rows it matched, or -1 when it failed, and whether the connection was lost while it ran,
+  after which the layer runs it again: ADO's `RecordsAffected` on SQL Server and SQL Server Compact,
+  `mysql_affected_rows` on MySQL and MariaDB, now connected with `CLIENT_FOUND_ROWS` so that an update which sets what
+  a row already holds counts the row as the other engines do, and `PQcmdTuples` on PostgreSQL. SQL Server's sessions
+  are opened with `NOCOUNT` off, as a session is unless the server's `user options` turn it on, since under it there
+  is no count. `SQLStatement::GetCurrentUtcTimestamp` and `GetCurrentUtcTimestampPlusSeconds` give `SYSUTCDATETIME()`,
+  `UTC_TIMESTAMP(6)` and PostgreSQL's `statement_timestamp() at time zone 'utc'` - the statement's time, not the
+  transaction's, which `now()` is - and on SQL Server Compact, which has no UTC function (its provider refuses all
+  four it might have), the node's own UTC clock. `DatabaseClaimTester` holds them on a real database through the
+  server's own connections: in the Windows suite's internal tests on a SQL Server Compact database of its own, and as
+  `database-claim-tests`, which `linux-build` makes beside the server and the Linux suite and the database matrix run
+  against their PostgreSQL, MySQL or MariaDB before the server starts (it says SKIPPED with no database) - the counts,
+  a claim run again as a reconnect runs it, two connections racing for the same rows and for named leases that have no
+  row yet, a connection closed, ended and timed out under a claim, a lease on the UTC clock refused, renewed, taken
+  and fenced, and the UTC clock against the machine's. On SQL Server 2022 the same checks held inside the server,
+  through `ADOConnection`, on a node of the active-active lab's Windows half; with the server's `user options` turning
+  `NOCOUNT` on, a build without the `NOCOUNT` statement counted -1 there and this one did not. The lab's engine checks
+  (`build/lab/active-active/sqlcheck.py`) gained the same claim run twice, named leases, SQL Server at READ
+  UNCOMMITTED with writers that roll back - where a reader saw rows that were then rolled back, and with the
+  `READCOMMITTED` hint none - and a lease on the local wall clock and one on the UTC clock across both daylight-saving
+  changes, on a database in `Europe/London` whose clock libfaketime moves (`aa-lab.sh up-dst` and `dst`): on
+  PostgreSQL, MariaDB and MySQL the wall-clock lease was taken an hour early in spring and held an hour late in
+  autumn, the UTC one neither. A unit runs a lab of its own with `AA_PREFIX` and `AA_HOME`.
 
 - **Every change is checked before it lands, a maintainer's batch as well as a merge request** (OpenSSF Baseline
   OSPS-VM-05.03 and OSPS-VM-06.02). `semgrep-sast`, `semgrep-sast-gate` and `mr-dependency-check` ran in a merge

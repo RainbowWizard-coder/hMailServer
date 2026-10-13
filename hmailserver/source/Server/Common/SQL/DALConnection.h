@@ -116,6 +116,20 @@ namespace HM
       // UPDATE or DELETE alone: what the engines answer for a SELECT, for DDL or
       // for several statements in one command differs from one to the next
       // (measured on SQL Server Compact 4.0: a SELECT 0, DDL -1).
+      //
+      // iIgnoreErrors is 0 or DALErrorInSQL, the one failure a caller may forgive:
+      // a row the database's own rules refused, which each backend knows by its
+      // own code - on PostgreSQL a unique violation (SQLSTATE 23505) and nothing
+      // else; on MySQL and MariaDB a duplicate key (1062) and nothing else; on SQL
+      // Server any integrity violation (DB_E_INTEGRITYVIOLATION), which is a
+      // duplicate key, a NULL in a NOT NULL column, a foreign key's or a CHECK's
+      // refusal alike; on SQL Server Compact a duplicate key or a foreign key's
+      // refusal, a NOT NULL refusal being another error there (measured on SQL
+      // Server 2022 and Compact 4.0, 13 October 2026). Forgiven, it answers
+      // DALSuccess, a count of 0 and no insert id. Every other failure fails as
+      // it would without the flag, and a lost connection is DALConnectionProblem
+      // whatever the flag says, so DALConnection::Execute reconnects and runs the
+      // statement again.
       virtual ExecutionResult TryExecute(const SQLCommand &command, String &sErrorMessage, __int64 *iInsertID = 0, int iIgnoreErrors = 0, __int64 *rowsAffected = nullptr) = 0;
       virtual bool IsConnected() const = 0;
       virtual void OnConnected() = 0;

@@ -134,6 +134,12 @@ namespace HM
       String timeout_variable_;
       bool timeout_variable_is_seconds_;
 
+      // Whether VERSION(), read at each Connect (LoadTimeoutMechanism_), said MySQL
+      // rather than MariaDB: error 4031 is a closed idle session on MySQL 8.0.24
+      // and later and an ordinary refusal on MariaDB, so CheckError takes it for a
+      // lost connection only when this is true. False until it is known.
+      bool server_is_mysql_;
+
       ColumnPositionCache column_position_cache_;
 
    };

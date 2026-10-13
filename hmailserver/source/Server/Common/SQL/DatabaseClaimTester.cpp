@@ -240,15 +240,25 @@ namespace HM
                const String versionQuery = dialect_.VersionQuery();
                String version = DatabaseSettings::GetDatabaseTypeName(dialect_.Type());
                if (!versionQuery.IsEmpty())
-                  version += _T(" ") + Text_(versionQuery, "engineversion");
+               {
+                  engine_version_ = Text_(versionQuery, "engineversion");
+                  version += _T(" ") + engine_version_;
+               }
 
                report_(_T("database: ") + version);
 
                Counts_();
                Failures_();
+               Forgiven_();
                Claims_();
                Races_();
                Reconnect_();
+
+               String lowered = engine_version_;
+               lowered.MakeLower();
+               if (dialect_.Is(DatabaseSettings::TypeMYSQLServer) && lowered.Find(_T("mariadb")) >= 0)
+                  MariaDbError4031_();
+
                Lease_();
                Clock_();
 
@@ -261,7 +271,11 @@ namespace HM
                throw;
             }
 
-            Close_();
+            // A run whose checks all held still fails when its tables stay behind:
+            // the suites that run it promise a database with nothing of its own left.
+            const String left = Close_();
+            if (!left.IsEmpty())
+               Fail(_T("The tester's tables aaclaimprobe and aaclaimlock could not be dropped at the end: ") + left);
          }
 
       private:
@@ -276,38 +290,53 @@ namespace HM
             return connection;
          }
 
-         void Close_()
+         // The tables go, whatever happened before: each drop checked, and what was
+         // refused said, and answered (empty when both went). Nothing here throws but
+         // by a fault of its own, and such a fault must not take the place of the
+         // failure that brought a run here, so it is said instead.
+         String Close_()
          {
-            // Best effort: the tables go, whatever happened to the connection. Nothing
-            // here throws but by a fault of its own, and such a fault must not take the
-            // place of the failure that brought a run here, so it is said instead.
-            bool removed = false;
+            String left;
             try
             {
-               String error;
-               if (side_ && !side_->IsConnected())
-                  side_->Connect(error);
-
                if (side_)
                {
-                  DropTables_();
-                  removed = true;
+                  String error;
+                  if (!side_->IsConnected() && side_->Connect(error) != DALConnection::Connected)
+                  {
+                     left = _T("the tester's own connection could not connect again: ") + error;
+                  }
+                  else
+                  {
+                     // Execute, which reconnects a connection the database has ended
+                     // under it and runs the drop again: on MySQL IsConnected still
+                     // says true of such a connection.
+                     const String tables[] = { _T("aaclaimprobe"), _T("aaclaimlock") };
+                     for (const String &table : tables)
+                     {
+                        if (!side_->Execute(SQLCommand(_T("drop table ") + table), error, 0, 0))
+                           left += (left.IsEmpty() ? String() : String(_T("; "))) + table + _T(": ") + error;
+                     }
+                  }
                }
             }
             catch (...)
             {
-               removed = false;
+               left = _T("the clean-up failed in a way of its own");
             }
 
-            if (!removed)
-               report_(_T("the tester's tables aaclaimprobe and aaclaimlock may be left on the database: drop them by hand"));
+            if (!left.IsEmpty())
+               report_(_T("the tester's tables aaclaimprobe and aaclaimlock may be left on the database (") + left + _T("): drop them by hand"));
 
             if (side_)
                side_->Disconnect();
 
             pool_.Disconnect();
+            return left;
          }
 
+         // At the start, where either may not exist: what a run cut off before its
+         // end left.
          void DropTables_()
          {
             String error;
@@ -441,6 +470,61 @@ namespace HM
             }
 
             report_(_T("a statement that fails counts -1 (") + through + _T(")"));
+         }
+
+         // DALErrorInSQL forgives a row the database's own rules refused, and that
+         // only (DALConnection::TryExecute): a duplicate key everywhere (Counts_), a
+         // NULL in a NOT NULL column on SQL Server alone, where it is an integrity
+         // violation as a duplicate is, and nothing else - an INSERT into a table
+         // that does not exist fails as it would without the flag. Until AA-01's
+         // repair MySQL, SQL Server and Compact forgave every failure but SQL
+         // Server's lost connection, counting 0, since the test was a bitwise AND
+         // with an ExecutionResult that is not a set of bits.
+         void Forgiven_()
+         {
+            Side_(_T("delete from aaclaimprobe where probeid = 50"));
+
+            const String missingTable = _T("insert into aaclaimnosuchtable (probeid, probeowner, probeepoch, probecounter) values (50, 0, 0, 0)");
+            const String nullOwner = _T("insert into aaclaimprobe (probeid, probeowner, probeepoch, probecounter) values (50, NULL, 0, 0)");
+            const bool nullIsIntegrity = dialect_.Is(DatabaseSettings::TypeMSSQLServer);
+
+            String error;
+            __int64 count = -2;
+            if (side_->TryExecute(SQLCommand(missingTable), error, 0, DALConnection::DALErrorInSQL, &count) == DALConnection::DALSuccess)
+               Fail(_T("An INSERT into a table that does not exist, told to forgive a duplicate, was forgiven."));
+            Expect_(_T("TryExecute's count of an INSERT into a table that does not exist, told to forgive a duplicate"), count, -1);
+
+            count = -2;
+            const bool nullForgiven = side_->TryExecute(SQLCommand(nullOwner), error, 0, DALConnection::DALErrorInSQL, &count) == DALConnection::DALSuccess;
+            if (nullForgiven != nullIsIntegrity)
+               Fail(nullIsIntegrity
+                  ? String(_T("An INSERT of a NULL into a NOT NULL column, told to forgive a duplicate, failed on SQL Server, where that is an integrity violation as a duplicate is: ")) + error
+                  : String(_T("An INSERT of a NULL into a NOT NULL column, told to forgive a duplicate, was forgiven.")));
+            Expect_(_T("TryExecute's count of an INSERT of a NULL into a NOT NULL column, told to forgive a duplicate"), count, nullIsIntegrity ? 0 : -1);
+            Expect_(_T("Rows that INSERT wrote"), Value_(_T("select count(*) as held from aaclaimprobe where probeid = 50"), "held"), 0);
+
+            String through = _T("TryExecute");
+            if (provoke_errors_)
+            {
+               // Each reports HM5032 to the error log, as any failed statement does.
+               bool reconnected = true;
+               Expect_(_T("ExecuteCount of an INSERT into a table that does not exist, told to forgive a duplicate"),
+                  pool_.ExecuteCount(SQLCommand(missingTable), &reconnected, DALConnection::DALErrorInSQL), -1);
+               if (reconnected)
+                  Fail(_T("ExecuteCount reconnected for an INSERT into a table that does not exist."));
+
+               reconnected = true;
+               Expect_(_T("ExecuteCount of an INSERT of a NULL into a NOT NULL column, told to forgive a duplicate"),
+                  pool_.ExecuteCount(SQLCommand(nullOwner), &reconnected, DALConnection::DALErrorInSQL), nullIsIntegrity ? 0 : -1);
+               if (reconnected)
+                  Fail(_T("ExecuteCount reconnected for an INSERT of a NULL into a NOT NULL column."));
+
+               through += _T(" and ExecuteCount");
+            }
+
+            report_(Formatter::Format(_T("told to forgive a duplicate (DALErrorInSQL): an INSERT into a table that does not exist -1, of a NULL into a NOT NULL column {0} ({1}), "),
+                  nullIsIntegrity ? 0 : -1, nullIsIntegrity ? _T("forgiven: an integrity violation on SQL Server, as a duplicate is") : _T("not forgiven")) +
+               _T("each by ") + through);
          }
 
          String Claim_(int id, int owner, __int64 epoch, bool recognisesItself)
@@ -632,26 +716,9 @@ namespace HM
             // The database ends the pool's own session, as a restart or a failover of
             // the database ends every session: ExecuteCount reconnects, counts the
             // claim and says that it reconnected.
-            const String sessionIdQuery = dialect_.SessionId();
-            if (!sessionIdQuery.IsEmpty())
+            if (!dialect_.SessionId().IsEmpty())
             {
-               std::shared_ptr<DALRecordset> session = pool_.OpenRecordset(SQLCommand(sessionIdQuery));
-               if (!session || session->IsEOF())
-                  Fail(_T("The pool's session id could not be read: ") + sessionIdQuery);
-               const __int64 sessionId = session->GetInt64Value("sessionid");
-               session.reset();
-
-               Side_(dialect_.EndSession(sessionId));
-
-               bool gone = false;
-               for (int wait = 0; wait < 100 && !gone; wait++)
-               {
-                  gone = Value_(dialect_.SessionsWithId(sessionId), "sessions") == 0;
-                  if (!gone)
-                     Sleep(100);
-               }
-               if (!gone)
-                  Fail(Formatter::Format(_T("The pool's session {0} was still there ten seconds after it was ended."), sessionId));
+               EndPoolSession_();
 
                const __int64 epochTwo = epochs_.Next();
                bool poolReconnected = false;
@@ -664,6 +731,22 @@ namespace HM
 
                line += Formatter::Format(_T("; after the database ended the pool's session ({0}), ExecuteCount reconnected, said so and counted 1"),
                   dialect_.Is(DatabaseSettings::TypePGServer) ? _T("pg_terminate_backend") : _T("KILL"));
+
+               // An INSERT told to forgive a duplicate, on a session the database has
+               // ended: DALErrorInSQL never forgives a lost connection
+               // (DALConnection::TryExecute), so it is reconnected and run as the
+               // claim was. On MySQL and MariaDB it was forgiven until AA-01's repair:
+               // counted 0, not run again, and no row written.
+               EndPoolSession_();
+
+               bool insertReconnected = false;
+               const __int64 insertCount = pool_.ExecuteCount(SQLCommand(ProbeRow_(4)), &insertReconnected, DALConnection::DALErrorInSQL);
+               if (!insertReconnected)
+                  Fail(_T("ExecuteCount ran an INSERT told to forgive a duplicate on a session the database had ended and did not say it reconnected."));
+               Expect_(_T("ExecuteCount's count of an INSERT told to forgive a duplicate, after the database ended its session"), insertCount, 1);
+               Expect_(_T("Rows that INSERT wrote"), Value_(_T("select count(*) as held from aaclaimprobe where probeid = 4"), "held"), 1);
+
+               line += _T("; an INSERT told to forgive a duplicate the same, the lost connection not forgiven");
 
                // The database closes the pool's session once it has been idle for two
                // seconds (idle_session_timeout, wait_timeout), as it closes any left idle
@@ -692,6 +775,81 @@ namespace HM
             }
 
             report_(line);
+         }
+
+         // The database ends the pool's own session, as a restart or a failover of the
+         // database ends every session, and the tester waits until it is gone. Only
+         // where an application's own login may end its own sessions (Dialect).
+         void EndPoolSession_()
+         {
+            const String sessionIdQuery = dialect_.SessionId();
+            std::shared_ptr<DALRecordset> session = pool_.OpenRecordset(SQLCommand(sessionIdQuery));
+            if (!session || session->IsEOF())
+               Fail(_T("The pool's session id could not be read: ") + sessionIdQuery);
+            const __int64 sessionId = session->GetInt64Value("sessionid");
+            session.reset();
+
+            Side_(dialect_.EndSession(sessionId));
+
+            bool gone = false;
+            for (int wait = 0; wait < 100 && !gone; wait++)
+            {
+               gone = Value_(dialect_.SessionsWithId(sessionId), "sessions") == 0;
+               if (!gone)
+                  Sleep(100);
+            }
+            if (!gone)
+               Fail(Formatter::Format(_T("The pool's session {0} was still there ten seconds after it was ended."), sessionId));
+         }
+
+         // MariaDB's error 4031 is ER_REFERENCED_TRG_DOES_NOT_EXIST, the refusal of a
+         // CREATE TRIGGER that FOLLOWS a trigger there is not, where MySQL's 4031 is
+         // the close of an idle session (Reconnect_): a statement MariaDB refuses
+         // with it fails at once, counted -1, and is not run again on a new
+         // connection (MySQLConnection::CheckError). Which error the server answered
+         // is read with GET DIAGNOSTICS, whose number no translation of the message
+         // text changes; a server that refuses the trigger for another reason first
+         // (a privilege) is said, and the check left out.
+         void MariaDbError4031_()
+         {
+            const String trigger = _T("create trigger aaclaimtrigger before insert on aaclaimprobe for each row follows aaclaimnosuchtrigger set new.probecounter = 1");
+
+            String error;
+            __int64 count = -2;
+            const DALConnection::ExecutionResult result = side_->TryExecute(SQLCommand(trigger), error, 0, 0, &count);
+            if (result == DALConnection::DALSuccess)
+            {
+               Side_(_T("drop trigger aaclaimtrigger"));
+               Fail(_T("MariaDB made a trigger that FOLLOWS a trigger there is not."));
+            }
+
+            Side_(_T("get diagnostics condition 1 @aaclaimerror = mysql_errno"));
+            const __int64 code = Value_(_T("select @aaclaimerror as errorcode"), "errorcode");
+            if (code != 4031)
+            {
+               report_(Formatter::Format(_T("MariaDB's error 4031 not checked: the server refused the trigger with error {0} first"), code));
+               return;
+            }
+
+            if (result == DALConnection::DALConnectionProblem)
+               Fail(_T("TryExecute took MariaDB's error 4031, a trigger the statement names that does not exist, for a lost connection."));
+            Expect_(_T("TryExecute's count of a statement MariaDB refused with error 4031"), count, -1);
+
+            String through = _T("TryExecute");
+            if (provoke_errors_)
+            {
+               // Reports HM5032 to the error log, as any failed statement does. Taken
+               // for a lost connection it would be run six times on eight new
+               // connections first, about six seconds.
+               bool reconnected = true;
+               const __int64 executed = pool_.ExecuteCount(SQLCommand(trigger), &reconnected);
+               if (reconnected)
+                  Fail(_T("ExecuteCount took MariaDB's error 4031 for a lost connection: it reconnected and ran the statement again."));
+               Expect_(_T("ExecuteCount's count of a statement MariaDB refused with error 4031"), executed, -1);
+               through += _T(" and ExecuteCount");
+            }
+
+            report_(_T("MariaDB's error 4031 (a trigger the statement names that does not exist): the statement failed at once, counted -1 and was not run again (") + through + _T(")"));
          }
 
          void Lease_()
@@ -886,6 +1044,7 @@ namespace HM
          Dialect dialect_;
          DatabaseClaimTester::Report report_;
          bool provoke_errors_;
+         String engine_version_;
          DatabaseConnectionManager pool_;
          std::shared_ptr<DALConnection> side_;
          Epochs epochs_;

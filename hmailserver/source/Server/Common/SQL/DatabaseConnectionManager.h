@@ -87,9 +87,14 @@ namespace HM
       // differ from the old, on all four backends (DALConnection::TryExecute) - so
       // that a conditional UPDATE can be judged by its count: won when it matched
       // one row (ActiveActive.md, decision D1). For one INSERT, UPDATE or DELETE;
-      // what an engine answers for anything else is not to be read. A failure the
-      // caller asked to ignore (iIgnoreErrors: DALConnection::DALErrorInSQL for a
-      // row a unique index refused) counts 0, since it changed no row.
+      // what an engine answers for anything else is not to be read. iIgnoreErrors
+      // DALConnection::DALErrorInSQL forgives a row the database's own rules
+      // refused, and that only: a duplicate key on all four backends, and on SQL
+      // Server also a NULL in a NOT NULL column and a foreign key's or a CHECK's
+      // refusal, on SQL Server Compact also a foreign key's
+      // (DALConnection::TryExecute). Forgiven, it counts 0, since it changed no
+      // row; any other failure counts -1 and is reported as one, and a lost
+      // connection is reconnected and the statement run again, as without it.
       //
       // The same statement as Execute, with the same fault injection, measuring and
       // audit, and the same error reported when it fails. Execute runs a statement
@@ -98,7 +103,8 @@ namespace HM
       // been committed with only its answer lost: an UPDATE that recognises itself
       // (a claim matching its own epoch, D1) counts 1 either way, and any other
       // caller that relies on the count reads its row back before it believes a 0
-      // or a failure.
+      // or a failure - an insert-or-claim's INSERT among them, whose second run
+      // finds the row its first run wrote and is forgiven as a duplicate, 0.
       __int64 ExecuteCount(const SQLCommand &command, bool *reconnected = nullptr, int iIgnoreErrors = 0);
 
       std::shared_ptr<DALRecordset> OpenRecordset(const SQLStatement &statement);

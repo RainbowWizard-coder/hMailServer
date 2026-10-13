@@ -167,9 +167,14 @@ lease. `ExecuteCount` also says whether the connection was lost while the statem
 ran, after which the layer runs it again. On MySQL and MariaDB that is also so,
 since AA-01, for a session the database ended under TLS - a restart, a failover, a
 `KILL` - which the client reports as TLS's error 2026 rather than 2013, and for one
-MySQL 8.0.24 and later closed for being idle (`wait_timeout`, error 4031): until
-then the statement after either failed, once on each connection of the pool, where
-it is now run again on a new connection. Every claim below is a conditional
+MySQL 8.0.24 and later closed for being idle (`wait_timeout`, error 4031; MariaDB's
+4031 is another error, and is not taken for one): until then the statement after
+either failed, once on each connection of the pool, where it is now run again on a
+new connection. A caller may forgive one failure, a row the database's own rules
+refused (`DALErrorInSQL`), which then counts 0: a duplicate key on all four engines,
+and on SQL Server also a `NULL` in a `NOT NULL` column and a foreign key's or a
+`CHECK`'s refusal, on SQL Server Compact also a foreign key's. Every other failure
+counts -1, and a lost connection is never forgiven. Every claim below is a conditional
 `UPDATE` that counts as won only when it matched exactly one row. On 12 October
 2026 the lab raced two connections over 300 rows on each of the four engines,
 claiming each row with `... where id = @ID and owner = 0`: every row was won
@@ -294,7 +299,10 @@ another message.
 **Longer holds** go in a lease table, `hm_locks`: a unique name, the node that
 holds it, the time it expires and an epoch. A claim is the same conditional update
 as the queue's, and a name that has no row yet is taken by an insert that only one
-node can win. These use it:
+node can win: it counts 1 when it took the name and 0 when the unique name refused
+it, and any other failure counts -1. An insert the layer ran again after a
+reconnect counts 0 when its first run took the name, so after a reconnect the row is
+read back and its epoch decides. These use it:
 
 - the guard's `active` lease (above) and the scheduler's leadership (below);
 - POP3's mailbox lock (`pop3:<account>`). Held for the session, and renewed while

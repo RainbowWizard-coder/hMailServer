@@ -25,6 +25,7 @@ namespace HM
       dbconn_ = 0;
       supports_transactions_ = false;
       timeout_variable_is_seconds_ = false;
+      server_is_mysql_ = false;
    }
 
    MySQLConnection::~MySQLConnection()
@@ -515,8 +516,17 @@ namespace HM
                bool ignoreByMarker = result != DALConnection::DALConnectionProblem &&
                                      HasIgnoreErrorsMarker(SQL);
 
-               bool ignoreByCaller = iIgnoreErrors != 0 &&
-                                     (GetErrorType_(dbconn_) & iIgnoreErrors) != 0;
+               // A caller that passes DALErrorInSQL forgives a row the unique index
+               // refused (1062) and nothing else (DALConnection::TryExecute), and
+               // never a lost connection, which CheckError has said is one. This
+               // was "GetErrorType_ & iIgnoreErrors": ExecutionResult is not a set
+               // of bits - DALUnknown, 3, has DALErrorInSQL's bit - so every failure
+               // but 1062 was forgiven too, a lost connection among them, and the
+               // statement was answered as done, with no reconnect and no row
+               // written (measured on MySQL 8.4 and MariaDB 11.8, 13 October 2026).
+               bool ignoreByCaller = result != DALConnection::DALConnectionProblem &&
+                                     (iIgnoreErrors & DALConnection::DALErrorInSQL) != 0 &&
+                                     GetErrorType_(dbconn_) == DALConnection::DALErrorInSQL;
 
                if (!ignoreByMarker && !ignoreByCaller)
                {
@@ -656,17 +666,28 @@ namespace HM
          case 2013: // Lost connection to MySQL server during query
          // A session the server has ended - killed, restarted, failed over - answers
          // the next statement over TLS with the TLS layer's end of file rather than
-         // 2013, and MySQL 8.0.24 and later answer the first statement after closing
-         // an idle session (wait_timeout) with ER_CLIENT_INTERACTION_TIMEOUT, TLS or
-         // not; the statement after that reads 2006. Measured through libmariadb on
-         // MySQL 8.4 and MariaDB 11.8, 13 October 2026. Each means the connection is
-         // gone, as 2013 does, so the statement is run again on a new one
-         // (DALConnection::Execute) where it used to fail. CheckError is reached
-         // only for a statement or a connection already made, so 2026 here is never
-         // the TLS refusal of a connect, which ConnectOnce_ answers itself.
+         // 2013 (measured through libmariadb on MySQL 8.4 and MariaDB 11.8, 13
+         // October 2026). It means the connection is gone, as 2013 does, so the
+         // statement is run again on a new one (DALConnection::Execute) where it
+         // used to fail. CheckError is reached only for a statement or a connection
+         // already made, so 2026 here is never the TLS refusal of a connect, which
+         // ConnectOnce_ answers itself.
          case HM_MYSQL_CR_SSL_CONNECTION_ERROR:
-         case 4031: // ER_CLIENT_INTERACTION_TIMEOUT
             result = DALConnection::DALConnectionProblem;
+            break;
+         case 4031:
+            // MySQL 8.0.24 and later, and not MariaDB: ER_CLIENT_INTERACTION_TIMEOUT,
+            // which MySQL answers the first statement after closing an idle session
+            // with (wait_timeout), TLS or not; the statement after that reads 2006.
+            // The same, so the statement is run again on a new connection. On
+            // MariaDB 4031 is ER_REFERENCED_TRG_DOES_NOT_EXIST, a statement's own
+            // error (a CREATE TRIGGER that FOLLOWS a trigger there is not), which
+            // must fail at once and not be run again six times on eight new
+            // connections - so the server's fork, read from VERSION() at connect
+            // (LoadTimeoutMechanism_), decides, and a server not known to be MySQL
+            // has 4031 taken as the statement's failure.
+            if (server_is_mysql_)
+               result = DALConnection::DALConnectionProblem;
             break;
          }
 
@@ -904,11 +925,16 @@ namespace HM
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
    // Decides which session variable this server uses to bound statement execution
-   // time, and in which unit. See the comment on MySQLConnection::SetTimeout.
+   // time, and in which unit. See the comment on MySQLConnection::SetTimeout. The
+   // fork it reads for that is also kept for CheckError (server_is_mysql_).
    //---------------------------------------------------------------------------()
    {
       timeout_variable_ = "";
       timeout_variable_is_seconds_ = false;
+
+      // Not MySQL until VERSION() says so: CheckError takes error 4031 for a lost
+      // connection on MySQL alone, since on MariaDB the number is another error.
+      server_is_mysql_ = false;
 
       // The fork is read from VERSION() rather than from
       // mysql_get_server_version, on purpose. MariaDB still announces itself in the
@@ -926,6 +952,7 @@ namespace HM
          version.MakeLower();
 
          is_maria_db = version.Find(_T("mariadb")) >= 0;
+         server_is_mysql_ = !is_maria_db;
       }
       else
       {

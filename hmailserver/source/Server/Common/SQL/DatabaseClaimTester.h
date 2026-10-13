@@ -23,6 +23,11 @@ namespace HM
                    with CLIENT_FOUND_ROWS), two rows 2; an INSERT 1; a DELETE 1, and 0
                    when there is nothing to delete; an INSERT a unique key refuses,
                    with that failure ignored, 0; a statement that fails -1.
+        forgiven   DALErrorInSQL forgives a row the database's rules refused and
+                   nothing else: an INSERT into a table that does not exist, told
+                   to forgive a duplicate, counts -1, and so does one of a NULL into
+                   a NOT NULL column - but on SQL Server, where that is an integrity
+                   violation as a duplicate is, 0 (DALConnection::TryExecute).
         claims     a conditional UPDATE that also matches its own epoch counts 1 when
                    it is run a second time, as DALConnection::Execute runs it after a
                    reconnect; without that match the second run counts 0 (the
@@ -38,7 +43,14 @@ namespace HM
                    failover of the database ends it, and then closes it for being
                    idle (idle_session_timeout, wait_timeout), and ExecuteCount says
                    the same each time - over TLS too, where MySQL and MariaDB answer
-                   with the TLS layer's error (MySQLConnection::CheckError).
+                   with the TLS layer's error (MySQLConnection::CheckError) - and
+                   for an INSERT told to forgive a duplicate as well, which a lost
+                   connection is never forgiven for: it is reconnected, counted 1
+                   and its row written.
+        MariaDB    a statement MariaDB refuses with its error 4031 (a CREATE
+                   TRIGGER that FOLLOWS a trigger there is not), the number MySQL
+                   gives an idle session's close, fails at once, counted -1, and is
+                   not taken for a lost connection.
         leases     a named lease taken by insert-or-claim where no row exists yet,
                    refused to another epoch before it expires, renewed by its holder,
                    taken by another once it has expired, and its old holder fenced -
@@ -58,9 +70,10 @@ namespace HM
       On a pool and connections of its own, over two tables of its own (aaclaimprobe,
       aaclaimlock) that it makes, empties and removes - never a table of the
       server's - so it can be run against a database a server has made, before the
-      server starts on it (build/ci/linux-suite.sh, build/lab/db-suite.sh). It ends
-      the sessions of its own pool and none other. Two of it at once on one database
-      would share those tables.
+      server starts on it (build/ci/linux-suite.sh, build/lab/db-suite.sh). A run
+      whose tables cannot be removed at the end says so and fails, whatever its
+      checks said. It ends the sessions of its own pool and none other. Two of it at
+      once on one database would share those tables.
 
       Two callers. On Windows, ClassTester (Utilities.RunTestSuite) through
       TestCompact: a SQL Server Compact database of its own in the temp folder,
