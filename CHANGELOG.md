@@ -4643,13 +4643,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   client had when it sent them, and the `EXPUNGE` renumbered the mailbox under them, so `COPY 2` copied the message
   after the one meant - or found no message of that number. The expunge is held back while a `COPY` or a `MOVE` reads
   its set, and reported in the command's own response before its `OK` - after `MOVE`'s own `EXPUNGE` - as RFC 2180
-  section 4.4 has it; `UID COPY` and `UID MOVE` name UIDs and were never at risk. A set that names the message the
-  other session expunged - `1:*` among them - is now refused whole, `NO [EXPUNGEISSUED]` with the `EXPUNGE` before it,
-  before anything is copied or moved (RFC 2180 section 4.4.1), so that the client sends it again in the numbering it
-  then has, where it was read in the numbering the `EXPUNGE` made. `IMAP/SessionMessageNumbering.cs` copies and moves
-  message 2 after another session expunged message 1, and finds the second message in the destination and the
-  `EXPUNGE` before the `OK`, and has `COPY 1:*` refused once and taken the second time; its `COPY` test had asserted
-  the old order. Found by upstream's UIDPLUS work (upstream PR 666), which holds the expunge for the next command.
+  section 4.4 has it, and before the `NO` or `BAD` of one refused before it reads its set, as before; `UID COPY` and
+  `UID MOVE` name UIDs and were never at risk. A set that names the message the other session expunged - `1:*` among
+  them - is now refused whole, `NO [EXPUNGEISSUED]` with the `EXPUNGE` before it, before anything is copied or moved
+  (RFC 2180 section 4.4.1), so that the client sends it again in the numbering it then has, where it was read in the
+  numbering the `EXPUNGE` made. `IMAP/SessionMessageNumbering.cs` copies and moves message 2 after another session
+  expunged message 1, and finds the second message in the destination and the `EXPUNGE` before the `OK`, has
+  `COPY 1:*` refused once and taken the second time, and finds the `EXPUNGE` before the `NO` of a `COPY` and a `MOVE`
+  to a mailbox that is not there; its `COPY` test had asserted the old order. Found by upstream's UIDPLUS work
+  (upstream PR 666), which holds the expunge for the next command.
 
 - **Fixed: an IMAP session that copied messages into the folder it had selected was never told of the copies, and a
   flag change on a message another session had just added was reported before the message itself.** The server

@@ -316,9 +316,10 @@
 #     client had sent - "COPY 2" copied message 3 (IMAPConnection::
 #     NotifyFolderChange now holds it back for both while they read their set,
 #     and ReportExpungesHeldForCommand sends it in their own response before the
-#     tagged one, as RFC 2180 4.4 asks; upstream held COPY alone, to the next
-#     command, below); a COPY or UID COPY into the selected folder never
-#     reported to the session that made it (IMAPCopy::
+#     tagged one, as RFC 2180 4.4 asks - IMAPConnection::AnswerCommand before
+#     the NO or BAD of one refused before it read its set; upstream held COPY
+#     alone, to the next command, below); a COPY or UID COPY into the
+#     selected folder never reported to the session that made it (IMAPCopy::
 #     ReportCopiesInTheSelectedFolder, as APPEND and MOVE report theirs, and
 #     claiming no \Recent in a session that has the folder open with EXAMINE,
 #     as IMAPNotificationClient::ClaimRecentMessages_ claims none there); the
@@ -518,9 +519,11 @@
 #   - 6ac3c58fd (#666), COPY's held expunge left for the next command: ours sends
 #     it in the COPY's, and the MOVE's, own response once the set is read - RFC
 #     2180 4.4: "Pending EXPUNGE response(s) MUST be returned to the COPY
-#     command" - as this server's COPY response carried it before; only its
-#     moment moves, from before the set is read to after. A set naming the
-#     message expunged is refused NO [EXPUNGEISSUED] with it (4.4.1).
+#     command" - as this server's COPY response carried it before, and before
+#     the NO or BAD of one refused before it reads its set (a mailbox that is
+#     not there, a read-only selection, a missing right); only its moment
+#     moves, from before the set is read to after. A set naming the message
+#     expunged is refused NO [EXPUNGEISSUED] with it (4.4.1).
 #   - 6ac3c58fd (#666), BAD for a set holding 0 or a parenthesised set: ours reads
 #     a number it cannot use as one no message has (IMAPCommandRangeAction.cpp:38-
 #     49, ParseSetUid_) and answers OK with nothing done. A lenient parse that has

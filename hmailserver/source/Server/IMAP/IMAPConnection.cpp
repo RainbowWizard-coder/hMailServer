@@ -932,6 +932,19 @@ namespace HM
 
       IMAPResult result = pCommand->ExecuteCommand(std::dynamic_pointer_cast<IMAPConnection>(shared_from_this()),  pArgument);
 
+      // What NotifyFolderChange held back from a COPY or a MOVE by number goes out in
+      // its own response, whatever it answers, as it did when it went out at the
+      // start of every COPY and MOVE. The commands report it themselves once they
+      // have read their set (ReportExpungesHeldForCommand); one refused before that -
+      // a mailbox that is not there, a read-only selection, a missing right, a
+      // malformed command - has it reported here, before its NO or BAD. After a
+      // command that reported it already there is nothing left to send.
+      if ((result.GetResult() == IMAPResult::ResultNo || result.GetResult() == IMAPResult::ResultBad) &&
+          (eCommand == IMAP_COPY || eCommand == IMAP_MOVE))
+      {
+         ReportExpungesHeldForCommand();
+      }
+
       if (result.GetResult() == IMAPResult::ResultOK)
       {
          // If a delayed notification has been specified by the command, and the
@@ -1013,8 +1026,9 @@ namespace HM
       // the client meant - or found no message 3 and refused. The EXPUNGE goes out
       // in the command's own response once its messages are identified, before its
       // tagged reply (ReportExpungesHeldForCommand), as RFC 2180 4.4 has it and as
-      // COPY's response always carried it here; upstream #666 holds it for the next
-      // command. UID COPY and UID MOVE name UIDs and are not held.
+      // COPY's response always carried it here - and before the NO or BAD of one
+      // refused before it read its set (AnswerCommand); upstream #666 holds it for
+      // the next command. UID COPY and UID MOVE name UIDs and are not held.
       bool send_expunge = active_command != IMAP_FETCH &&
                           active_command != IMAP_STORE &&
                           active_command != IMAP_SEARCH &&
@@ -1037,7 +1051,8 @@ namespace HM
    // response. RFC 2180 4.4: "Pending EXPUNGE response(s) MUST be returned to the
    // COPY command", and they "can't take place until after the messages from the
    // COPY command are identified". The numbers are the view's as the command left
-   // it, so they follow MOVE's own EXPUNGE responses.
+   // it, so they follow MOVE's own EXPUNGE responses. AnswerCommand calls it too,
+   // before the NO or BAD of a COPY or a MOVE refused before it read its set.
    //---------------------------------------------------------------------------()
    {
       if (current_folder_)

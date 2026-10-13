@@ -289,6 +289,44 @@ namespace RegressionTests.IMAP
       }
 
       [Test]
+      [Description("A COPY or a MOVE by number refused before it reads its set - here for a mailbox that is not " +
+                   "there - still reports, before its NO, an expunge made elsewhere that was held back from it, as " +
+                   "every COPY and MOVE did when the expunge went out at the start of the command. The hold, while " +
+                   "the set is read, is upstream #666's.")]
+      public void CopyAndMoveRefusedBeforeReadingTheirSetReportTheExpungeBeforeTheirNo()
+      {
+         var account = CreateAccountWithMessages(3);
+
+         var sim1 = SelectInbox(account);
+         ExpungeMessageInSeparateSession(account, 1);
+
+         var copy = sim1.SendSingleCommand("A60 COPY 2 \"NoSuchFolder\"");
+         int copyNo = copy.IndexOf("A60 NO [TRYCREATE]", StringComparison.Ordinal);
+         int copyExpunge = copy.IndexOf("* 1 EXPUNGE", StringComparison.Ordinal);
+         Assert.IsTrue(copyNo >= 0, copy);
+         Assert.IsTrue(copyExpunge >= 0 && copyExpunge < copyNo,
+            "A COPY to a mailbox that is not there did not report the expunge made elsewhere before its NO. " + copy);
+
+         // The other session's message 1 is this one's message 1 again now that it has been told.
+         ExpungeMessageInSeparateSession(account, 1);
+
+         var move = sim1.SendSingleCommand("A61 MOVE 1 \"NoSuchFolder\"");
+         int moveNo = move.IndexOf("A61 NO [TRYCREATE]", StringComparison.Ordinal);
+         int moveExpunge = move.IndexOf("* 1 EXPUNGE", StringComparison.Ordinal);
+         Assert.IsTrue(moveNo >= 0, move);
+         Assert.IsTrue(moveExpunge >= 0 && moveExpunge < moveNo,
+            "A MOVE to a mailbox that is not there did not report the expunge made elsewhere before its NO. " + move);
+
+         // Reported once each: the next command has nothing more to say of them.
+         var noop = sim1.SendSingleCommand("A62 NOOP");
+         AssertNoUntaggedExpunge(noop, "the NOOP after them");
+
+         sim1.Disconnect();
+
+         ImapClientSimulator.AssertMessageCount(account.Address, "test", "INBOX", 1);
+      }
+
+      [Test]
       public void SearchResultsMustUseTheSessionsOwnNumbering()
       {
          var account = CreateAccountWithMessages(3);

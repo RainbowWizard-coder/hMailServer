@@ -126,7 +126,8 @@ namespace HM
 
       // The EXPUNGE responses NotifyFolderChange held back from a COPY or a MOVE by
       // sequence number, sent once the command has read its set and acted on it and
-      // before its tagged response (RFC 2180 4.4).
+      // before its tagged response (RFC 2180 4.4) - and by AnswerCommand before the
+      // NO or BAD of one refused before it read its set.
       void ReportExpungesHeldForCommand();
 
       std::shared_ptr<IMAPFolders> GetAccountFolders() const { return imap_folders_;}
