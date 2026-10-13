@@ -904,7 +904,7 @@ namespace
          : std::wstring(L"the database step changed the database, or could not show it left it unchanged"));
       text += L"; " + previous + L" was not put back, since it may not run on that database; the service is " + StateName(ServiceState(service)) + says;
       const std::wstring where = backup.empty()
-         ? std::wstring(L"the backup taken before the update, if one was taken (UpdateBackupBeforeApply) - the newest HMBackup archive in the backup destination Backup & restore names -")
+         ? std::wstring(L"the backup taken before the update, if one was taken (UpdateBackupBeforeApply) - the newest HMBackup archive in the backup destination Backup, restore & migration names -")
          : L"the backup taken before the update, in " + backup + L",";
       if (step.partWay)
          text += L"; the database upgrade stopped part-way: once its cause is put right, run DBSetupQuick.exe in the Bin folder to finish it, or restore " + where + L" and reinstall " + previous;

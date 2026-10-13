@@ -1175,7 +1175,7 @@ namespace HM
          summary = Formatter::Format("The certificate {0} expires in {1} day(s).", worst, (int) (worstRemaining / (24 * 60 * 60)));
 
       Raise(ConditionCertificateExpiring, worstRemaining <= 0 ? ErrorManager::High : ErrorManager::Medium, summary,
-         _T("Replace the certificate file on the SSL certificates page, or let ACME renew it if this host is reachable on port 80. A listener keeps serving an expired certificate; it does not stop."));
+         _T("Replace the certificate file on the TLS certificates page, or let ACME renew it if this host is reachable on port 80. A listener keeps serving an expired certificate; it does not stop."));
 
       return 1;
    }

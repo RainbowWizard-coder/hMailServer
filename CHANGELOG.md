@@ -4746,6 +4746,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   its page first, as it does the classic Administrator's paths. `NavigationMapTests` holds every route, and
   `PageSubjectsTests` the search.
 
+- **Changed: the server's own texts name the renamed pages.** The alert that a certificate is expiring or has expired
+  tells the administrator to replace the file on the TLS certificates page, and the unattended update that could not
+  put the previous release back names the backup destination that Backup, restore & migration sets, where both used
+  the pages' old titles, which only a search alias still found.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
