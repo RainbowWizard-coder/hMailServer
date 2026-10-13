@@ -769,8 +769,10 @@ namespace HM
       // so that Search("", 500, 500) is the page after the one Refresh loads, and
       // ?offset=1000&limit=1000 the page after the list's, where a group held in
       // the second at the edge of a page could come in another order here and show
-      // a message on both pages or on neither.
-      SQLCommand command("select * from hm_quarantine order by quarantinecreated desc, quarantineid desc");
+      // a message on both pages or on neither. BuildListCommand writes the
+      // statement, and QuarantineSearchTester holds its order.
+      SQLCommand command;
+      BuildListCommand(command);
 
       std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
 
@@ -808,6 +810,18 @@ namespace HM
       const TCHAR *const SearchColumns =
          _T("quarantineid, quarantinefilename, quarantinesender, quarantinerecipients, quarantinesubject, ")
          _T("quarantinereason, quarantinescore, quarantinesize, quarantinecreated, quarantinehelo");
+
+      // The one order of every list of held messages - the list Refresh and
+      // GET /api/v1/quarantine read, and each page of a search: newest first,
+      // with the id to break a tie, so that messages held in one second come in
+      // one order everywhere and a page after another starts where it ended.
+      const TCHAR *const NewestFirst = _T(" order by quarantinecreated desc, quarantineid desc");
+   }
+
+   void
+   QuarantineStore::BuildListCommand(SQLCommand &out_command)
+   {
+      out_command.SetQueryString(String(_T("select * from hm_quarantine")) + NewestFirst);
    }
 
    void
@@ -910,18 +924,18 @@ namespace HM
 
       out_count.SetQueryString(String(_T("select count(*) as quarantinecount from hm_quarantine")) + filter);
 
-      // Newest first, with the id to break a tie: several messages held in one
-      // second must come in one order on every page, or a page could show one
-      // twice and another never. The page is offset + count rows of which the
-      // first offset are passed over, as the audit trail's are: SQL Server
-      // Compact has no OFFSET.
+      // Newest first, with the id to break a tie (NewestFirst): several messages
+      // held in one second must come in one order on every page, or a page could
+      // show one twice and another never. The page is offset + count rows of
+      // which the first offset are passed over, as the audit trail's are: SQL
+      // Server Compact has no OFFSET.
       const int rows = request.offset + request.count;
 
       String page;
       if (topSyntax)
-         page.Format(_T("select top (%d) %s from hm_quarantine%s order by quarantinecreated desc, quarantineid desc"), rows, SearchColumns, filter.c_str());
+         page.Format(_T("select top (%d) %s from hm_quarantine%s%s"), rows, SearchColumns, filter.c_str(), NewestFirst);
       else
-         page.Format(_T("select %s from hm_quarantine%s order by quarantinecreated desc, quarantineid desc limit %d"), SearchColumns, filter.c_str(), rows);
+         page.Format(_T("select %s from hm_quarantine%s%s limit %d"), SearchColumns, filter.c_str(), NewestFirst, rows);
 
       out_page.SetQueryString(page);
 
@@ -1585,6 +1599,23 @@ namespace HM
             FailSearch("a search for every message carries parameters.");
 
          ExpectBindsInOrder(page, "the page of every message");
+      }
+
+      // The list Refresh and GET /api/v1/quarantine read (List): every held
+      // message in the pages' order above, newest first with a tie broken by the
+      // id, so that the search for every message from offset 500 is the page
+      // after the one Refresh loads. The bench's SQL Server Compact returns
+      // messages held in one second newest id first without the id as well, and
+      // the Linux suite cannot seed rows held in one second, so in both gates only
+      // the statement shows the order.
+      {
+         SQLCommand list;
+         QuarantineStore::BuildListCommand(list);
+
+         ExpectText(list.GetQueryString(), _T("select * from hm_quarantine") + order, "the list's statement");
+
+         if (!list.GetParameters().empty())
+            FailSearch("the list's statement carries parameters.");
       }
 
       // Every bound is held before a database is asked: the text's length, the

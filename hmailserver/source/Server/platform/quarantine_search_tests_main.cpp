@@ -17,8 +17,9 @@
 // search sends name each parameter once, in the order SQL Server binds them by
 // position, none the start of another, lower both sides, leave the recipients
 // out of a search confined to one recipient and find that recipient whole, and
-// page newest first with the id breaking a tie. Nothing here touches the
-// network, the configuration or a database.
+// page newest first with the id breaking a tie, as the list's statement orders
+// every held message. Nothing here touches the network, the configuration or a
+// database.
 //
 // One line a tester, and a non-zero exit on a failure.
 
@@ -49,7 +50,7 @@ main(int /*argc*/, char * /*argv*/[])
    {
       HM::QuarantineSearchTester tester;
       tester.Test();
-      printf("ok    the quarantine search: each parameter once and in order, the text escaped and lowered, a recipient found whole and not searched in, the page newest first\n");
+      printf("ok    the quarantine search: each parameter once and in order, the text escaped and lowered, a recipient found whole and not searched in, the page and the list newest first with a tie broken by the id\n");
    }
    catch (const std::exception &failure)
    {

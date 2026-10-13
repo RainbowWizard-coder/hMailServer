@@ -422,15 +422,16 @@ is a `400` and changes nothing, and an entry naming a public suffix without
 `confirm_public_suffix` is a `409` naming it and changes nothing.
 
 The list without parameters is the bare array it always was. With any of `q`,
-`offset` and `limit` it is a page of **every** held message, newest first (the
-same second's in the order they were held), as an object: `query`, `held` (every
-message held), `total` (the ones that match), `offset`, `count` (the ones on this
-page) and `messages`, each as the list writes it. `q` is looked for as *Searching*
-above says, and an empty `q` matches every message, so `?offset=1000&limit=1000`
-is the page after the list's. `q` is at most 255 characters; `offset` is a whole
-number from 0 to 999999999 and `limit` one from 1 to 1000 (100 if it is left out);
-anything else is a `400`, never a page quietly cut or moved. The search is the
-list's route: the same permission, and not on the audit trail.
+`offset` and `limit` it is a page of **every** held message, newest first (of
+those held in one second, the last held first), as an object: `query`, `held`
+(every message held), `total` (the ones that match), `offset`, `count` (the ones
+on this page) and `messages`, each as the list writes it. `q` is looked for as
+*Searching* above says, and an empty `q` matches every message, so
+`?offset=1000&limit=1000` is the page after the list's, which is in the same
+order. `q` is at most 255 characters; `offset` is a whole number from 0 to
+999999999 and `limit` one from 1 to 1000 (100 if it is left out); anything else
+is a `400`, never a page quietly cut or moved. The search is the list's route:
+the same permission, and not on the audit trail.
 `GET /api/v1/me/quarantine` takes the same three for the signed-in account's own held
 mail (`limit` 1000 if it is left out) and answers `enabled`, `query`, `total`,
 `offset`, `count` and `messages`, with `q` looked for in the sender, the subject and

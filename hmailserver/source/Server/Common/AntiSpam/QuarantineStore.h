@@ -131,6 +131,15 @@ namespace HM
       // QuarantineSearchTester, which reads them without a database.
       static void BuildSearchCommands(const SearchRequest &request, bool topSyntax, SQLCommand &out_count, SQLCommand &out_page);
 
+      // The statement List sends: every held message, newest first, with the id
+      // breaking a tie as it does in the search's pages, so that Search("", 500,
+      // 500) is the page after the one Refresh loads. Public for
+      // QuarantineSearchTester, which holds the order without a database: the
+      // bench's SQL Server Compact returns messages held in one second newest id
+      // first with or without the id, and the Linux suite cannot seed rows held in
+      // one second, so no test that reads rows shows it in either gate.
+      static void BuildListCommand(SQLCommand &out_command);
+
       // What a reviewer may read of a held message without releasing it: the
       // header block as it is stored, and a plain-text preview - the text part,
       // decoded, or failing that the HTML part with its markup taken out. The
@@ -275,7 +284,8 @@ namespace HM
    // as it lowers the column's; the recipients looked in only where no
    // recipient is given;
    // a recipient found whole; the page newest first with a tie broken by the
-   // id, and as long as the offset and the page together. ClassTester runs it on
+   // id, and as long as the offset and the page together; and the list's
+   // statement (BuildListCommand) in the pages' order. ClassTester runs it on
    // Windows, quarantine-search-tests on Linux.
    class QuarantineSearchTester
    {
