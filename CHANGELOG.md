@@ -4802,9 +4802,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   why, on a failure or on a server without the search. The Deck's quarantine view does the same over REST, and its
   line says how many are held where it said how many it had listed. The webmail's own list of held mail read the
   newest thousand held for anybody and kept the account's, so that on a server holding more an account's older held
-  mail was never listed; it is every message held for the address now. Like the list, a search is not on the audit
-  trail: the quarantine is one of the server's working lists. `QuarantineSearchTests`, the `quarantine-search-tests`
-  program and the `QuarantineSearch` and `RestApiQuarantineSearch` fixtures hold it.
+  mail was never listed; it is the newest thousand held for the address now, its `total` how many are, and a search
+  of it looks through every one. Like the list, a search is not on the audit trail: the quarantine is one of the
+  server's working lists. `QuarantineSearchTests`, the `quarantine-search-tests` program and the `QuarantineSearch`
+  and `RestApiQuarantineSearch` fixtures hold it.
 
 - **Fixed: against a server older than the Control Panel, the Quarantine page took a method the server lacks for a
   failure.** Called through `dynamic`, as the page calls the server, a method the server does not have is the .NET

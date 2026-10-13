@@ -328,11 +328,13 @@ search is the list's, and is not on the audit trail, as the list is not
 ([AlertsAndAuditTrail.md](AlertsAndAuditTrail.md)): the quarantine is one of the
 server's working lists. Reading a held message's headers or its text is recorded.
 
-An account's own held mail - what the webmail's **Held mail** page lists - is every
-message held for that address, however many others the server holds, and
-`GET /api/v1/me/quarantine?q=` searches it in the sender, the subject and the reason.
-Never in the recipients: they say who else a message was for, which is not the
-account's to learn.
+An account's own held mail - what the webmail's **Held mail** page lists - is the
+newest thousand messages held for that address, however many others the server
+holds (its `total` says how many are held for it; `offset` and `limit` page through
+the rest), where it was the newest thousand held for anybody with the account's
+kept. `GET /api/v1/me/quarantine?q=` searches every message held for the address,
+in the sender, the subject and the reason. Never in the recipients: they say who
+else a message was for, which is not the account's to learn.
 
 ### The four actions
 
