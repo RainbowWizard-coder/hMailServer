@@ -353,6 +353,38 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("Capitals outside ASCII are matched in any case, as the database folds them: on PostgreSQL its lower() folds the text as it folds the column, where the server's own lowering left them capitals and found nothing, not even the text itself")]
+      public void CapitalsOutsideAsciiAreMatchedInAnyCase()
+      {
+         Hold("transfers@spam-sender.test", Encoded("Überweisung erhalten"), Ada);
+         Hold("transfers@spam-sender.test", Encoded("Счёт на оплату"), Ada);
+         Hold("transfers@spam-sender.test", "Ueberweisung, spelt out", Ada);
+
+         foreach (string text in new[] { "Überweisung", "ÜBERWEISUNG", "überweisung" })
+         {
+            Dictionary<string, object> found = Page(Q(text));
+            Assert.AreEqual(1, Number(found, "total"), text + ": " + MiniJson.Text(found, "body"));
+            Assert.AreEqual(new[] { "Überweisung erhalten" }, Subjects(found).ToArray(), text);
+         }
+
+         Dictionary<string, object> cyrillic = Page(Q("СЧЁТ"));
+         Assert.AreEqual(new[] { "Счёт на оплату" }, Subjects(cyrillic).ToArray(), MiniJson.Text(cyrillic, "body"));
+
+         // The account's own search, and the address it is confined to, are lowered
+         // the same way.
+         Dictionary<string, object> own = Page(Q("ÜBERWEISUNG"), BasicHeader(Ada, UserPassword), "/api/v1/me/quarantine");
+         Assert.AreEqual(1, Number(own, "total"), MiniJson.Text(own, "body"));
+         Assert.AreEqual(new[] { "Überweisung erhalten" }, Subjects(own).ToArray());
+      }
+
+      // A header value outside ASCII as a sender writes it: an RFC 2047 encoded word,
+      // which the store decodes when it records the subject.
+      private static string Encoded(string text)
+      {
+         return "=?utf-8?B?" + Convert.ToBase64String(Encoding.UTF8.GetBytes(text)) + "?=";
+      }
+
+      [Test]
       [Description("A search pages newest first, counting every match, with held beside it; no q and a page is every message")]
       public void ASearchPagesNewestFirstAndCountsEveryMatch()
       {

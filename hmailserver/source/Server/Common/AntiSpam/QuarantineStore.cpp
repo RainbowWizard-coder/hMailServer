@@ -810,15 +810,36 @@ namespace HM
    {
       // Both sides lowered: PostgreSQL's LIKE compares case, and the other three
       // backends' default collations do not, so a search for "Invoice" found
-      // "invoice" on three of them and nothing on the fourth. The text's own
-      // wildcards are written as the characters they are (EscapeLikeText).
+      // "invoice" on three of them and nothing on the fourth. On MySQL and
+      // PostgreSQL, whose values are written into the statement, the database
+      // lowers the text as it lowers the column - lower(@QSENDER) - where
+      // MakeLower lowered it here: MakeLower goes by the classic locale the
+      // server runs in, which leaves a capital outside ASCII as it is (every one
+      // on Linux, the Latin ones on Windows), while PostgreSQL's lower() folds
+      // the column's, so a text with a capital U umlaut (U+00DC) in it found
+      // nothing there, not even itself. SQL Server and Compact compare without
+      // case, and their text is lowered here as the rest of the tree lowers a
+      // LIKE's: nothing puts lower() on a parameter that Compact binds by name.
+      // The text's own wildcards are written as the characters they are
+      // (EscapeLikeText).
+      const bool databaseLowers = !topSyntax;
+
       String text = request.text;
       text.Trim();
-      text.MakeLower();
+      if (!databaseLowers)
+         text.MakeLower();
 
       String recipient = request.recipient;
       recipient.Trim();
-      recipient.MakeLower();
+      if (!databaseLowers)
+         recipient.MakeLower();
+
+      // One column's LIKE, the pattern the named parameter's value.
+      const auto like = [databaseLowers](const TCHAR *column, const TCHAR *name)
+      {
+         const String pattern = databaseLowers ? String(_T("lower(")) + name + _T(")") : String(name);
+         return String(_T("lower(")) + column + _T(") like ") + pattern + _T(" escape '/'");
+      };
 
       // Every LIKE has a parameter of its own, added in the order the statement
       // names them, and no name is the start of another. ADOConnection binds SQL
@@ -835,21 +856,21 @@ namespace HM
       {
          const String contains = _T("%") + SQLStatement::EscapeLikeText(text) + _T("%");
 
-         where = _T("(lower(quarantinesender) like @QSENDER escape '/'");
+         where = _T("(") + like(_T("quarantinesender"), _T("@QSENDER"));
          parameters.push_back(std::make_pair(AnsiString("@QSENDER"), contains));
 
          // A search confined to one recipient leaves the recipients out: they say
          // who else a message was for, which is not that recipient's to learn.
          if (recipient.IsEmpty())
          {
-            where += _T(" or lower(quarantinerecipients) like @QRECIPIENTS escape '/'");
+            where += _T(" or ") + like(_T("quarantinerecipients"), _T("@QRECIPIENTS"));
             parameters.push_back(std::make_pair(AnsiString("@QRECIPIENTS"), contains));
          }
 
-         where += _T(" or lower(quarantinesubject) like @QSUBJECT escape '/'");
+         where += _T(" or ") + like(_T("quarantinesubject"), _T("@QSUBJECT"));
          parameters.push_back(std::make_pair(AnsiString("@QSUBJECT"), contains));
 
-         where += _T(" or lower(quarantinereason) like @QREASON escape '/')");
+         where += _T(" or ") + like(_T("quarantinereason"), _T("@QREASON")) + _T(")");
          parameters.push_back(std::make_pair(AnsiString("@QREASON"), contains));
       }
 
@@ -867,16 +888,16 @@ namespace HM
          if (!where.IsEmpty())
             where += _T(" and ");
 
-         where += _T("(lower(quarantinerecipients) like @QFORONE escape '/'");
+         where += _T("(") + like(_T("quarantinerecipients"), _T("@QFORONE"));
          parameters.push_back(std::make_pair(AnsiString("@QFORONE"), exact));
 
-         where += _T(" or lower(quarantinerecipients) like @QFORFIRST escape '/'");
+         where += _T(" or ") + like(_T("quarantinerecipients"), _T("@QFORFIRST"));
          parameters.push_back(std::make_pair(AnsiString("@QFORFIRST"), exact + _T(",%")));
 
-         where += _T(" or lower(quarantinerecipients) like @QFORLAST escape '/'");
+         where += _T(" or ") + like(_T("quarantinerecipients"), _T("@QFORLAST"));
          parameters.push_back(std::make_pair(AnsiString("@QFORLAST"), _T("%,") + exact));
 
-         where += _T(" or lower(quarantinerecipients) like @QFORMIDDLE escape '/')");
+         where += _T(" or ") + like(_T("quarantinerecipients"), _T("@QFORMIDDLE")) + _T(")");
          parameters.push_back(std::make_pair(AnsiString("@QFORMIDDLE"), _T("%,") + exact + _T(",%")));
       }
 
@@ -1459,7 +1480,9 @@ namespace HM
 
       // Confined to one recipient: the recipients are not searched for the text,
       // and the address is found whole in any of its four places, as LIMIT on
-      // MySQL and PostgreSQL, the page as long as the offset and the count.
+      // MySQL and PostgreSQL, the page as long as the offset and the count. The
+      // database lowers both sides there, so the text and the address go as they
+      // were typed, trimmed and escaped.
       {
          QuarantineStore::SearchRequest request;
          request.text = _T("Invoice");
@@ -1471,25 +1494,53 @@ namespace HM
          SQLCommand page;
          QuarantineStore::BuildSearchCommands(request, false, count, page);
 
-         const String where = _T(" where (lower(quarantinesender) like @QSENDER escape '/' or lower(quarantinesubject) like @QSUBJECT escape '/' ")
-                              _T("or lower(quarantinereason) like @QREASON escape '/') and (lower(quarantinerecipients) like @QFORONE escape '/' ")
-                              _T("or lower(quarantinerecipients) like @QFORFIRST escape '/' or lower(quarantinerecipients) like @QFORLAST escape '/' ")
-                              _T("or lower(quarantinerecipients) like @QFORMIDDLE escape '/')");
+         const String where = _T(" where (lower(quarantinesender) like lower(@QSENDER) escape '/' or lower(quarantinesubject) like lower(@QSUBJECT) escape '/' ")
+                              _T("or lower(quarantinereason) like lower(@QREASON) escape '/') and (lower(quarantinerecipients) like lower(@QFORONE) escape '/' ")
+                              _T("or lower(quarantinerecipients) like lower(@QFORFIRST) escape '/' or lower(quarantinerecipients) like lower(@QFORLAST) escape '/' ")
+                              _T("or lower(quarantinerecipients) like lower(@QFORMIDDLE) escape '/')");
 
          ExpectText(count.GetQueryString(), _T("select count(*) as quarantinecount from hm_quarantine") + where, "the count of a recipient's search");
          ExpectText(page.GetQueryString(), _T("select ") + columns + _T(" from hm_quarantine") + where + order + _T(" limit 250"), "the page of a recipient's search");
 
          const std::vector<std::pair<String, String>> expected =
          {
-            { _T("@QSENDER"), _T("%invoice%") }, { _T("@QSUBJECT"), _T("%invoice%") }, { _T("@QREASON"), _T("%invoice%") },
-            { _T("@QFORONE"), _T("bob/_1@example.com") }, { _T("@QFORFIRST"), _T("bob/_1@example.com,%") },
-            { _T("@QFORLAST"), _T("%,bob/_1@example.com") }, { _T("@QFORMIDDLE"), _T("%,bob/_1@example.com,%") }
+            { _T("@QSENDER"), _T("%Invoice%") }, { _T("@QSUBJECT"), _T("%Invoice%") }, { _T("@QREASON"), _T("%Invoice%") },
+            { _T("@QFORONE"), _T("Bob/_1@Example.COM") }, { _T("@QFORFIRST"), _T("Bob/_1@Example.COM,%") },
+            { _T("@QFORLAST"), _T("%,Bob/_1@Example.COM") }, { _T("@QFORMIDDLE"), _T("%,Bob/_1@Example.COM,%") }
          };
 
          ExpectParameters(count, expected, "the count of a recipient's search");
          ExpectParameters(page, expected, "the page of a recipient's search");
          ExpectBindsInOrder(count, "the count of a recipient's search");
          ExpectBindsInOrder(page, "the page of a recipient's search");
+      }
+
+      // A capital outside ASCII, as LIMIT on MySQL and PostgreSQL: left to the
+      // database to lower, which folds it as it folds the column's, where lowered
+      // here by the classic locale it stayed a capital and PostgreSQL found
+      // nothing, not even the text itself.
+      {
+         QuarantineStore::SearchRequest request;
+         request.text = _T("\u00DCBERWEISUNG");
+
+         SQLCommand count;
+         SQLCommand page;
+         QuarantineStore::BuildSearchCommands(request, false, count, page);
+
+         const String where = _T(" where (lower(quarantinesender) like lower(@QSENDER) escape '/' or lower(quarantinerecipients) like lower(@QRECIPIENTS) escape '/' ")
+                              _T("or lower(quarantinesubject) like lower(@QSUBJECT) escape '/' or lower(quarantinereason) like lower(@QREASON) escape '/')");
+
+         ExpectText(count.GetQueryString(), _T("select count(*) as quarantinecount from hm_quarantine") + where, "the count of a search with a capital outside ASCII");
+
+         const String contains = _T("%\u00DCBERWEISUNG%");
+         const std::vector<std::pair<String, String>> expected =
+         {
+            { _T("@QSENDER"), contains }, { _T("@QRECIPIENTS"), contains }, { _T("@QSUBJECT"), contains }, { _T("@QREASON"), contains }
+         };
+
+         ExpectParameters(count, expected, "the count of a search with a capital outside ASCII");
+         ExpectParameters(page, expected, "the page of a search with a capital outside ASCII");
+         ExpectBindsInOrder(page, "the page of a search with a capital outside ASCII");
       }
 
       // A recipient's every message: the address alone.

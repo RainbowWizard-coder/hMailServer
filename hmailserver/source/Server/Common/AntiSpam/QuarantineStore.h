@@ -270,7 +270,10 @@ namespace HM
    // in the order the statement names them and none the start of another, which
    // SQL Server's binding by position needs (ADOConnection::
    // InitializeCommandParameters); the text's own wildcards escaped and both
-   // sides lowered; the recipients looked in only where no recipient is given;
+   // sides lowered, by the database where the text is written into the
+   // statement (MySQL and PostgreSQL), so that it lowers a capital outside ASCII
+   // as it lowers the column's; the recipients looked in only where no
+   // recipient is given;
    // a recipient found whole; the page newest first with a tie broken by the
    // id, and as long as the offset and the page together. ClassTester runs it on
    // Windows, quarantine-search-tests on Linux.
