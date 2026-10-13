@@ -439,8 +439,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `RCPT TO` would have had, and the SMTP log says why. Such an address keeps its transaction to itself: a recipient
   named after it is answered `452 4.5.3`, which asks the client to send to it in a transaction of its own, rather than
   lost with it at `DATA`, and named after a recipient already taken it is refused at once, as any outside address is.
-  `SMTP/Srs.cs` holds each. Found by upstream's review of its own SRS (upstream PR 649), which shared the shape and
-  refuses the `RCPT TO` itself.
+  `SMTP/Srs.cs` holds each, the refusal at `BDAT` as well as at `DATA`. Found by upstream's review of its own SRS
+  (upstream PR 649), which shared the shape and refuses the `RCPT TO` itself.
 
 - **Fixed: an SRS address or a BATV tag almost a whole cycle old was accepted as fresh, and a signature was compared
   in a time that said how much of it was right.** Both carry their day as a number that wraps - every 1024 days for

@@ -2,9 +2,12 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using hMailServer;
 using NUnit.Framework;
+using RegressionTests.Infrastructure;
 using RegressionTests.Shared;
 
 namespace RegressionTests.SMTP
@@ -256,6 +259,135 @@ namespace RegressionTests.SMTP
 
             string delivered = Pop3ClientSimulator.AssertGetFirstMessageText(local.Address, "test");
             StringAssert.Contains("Subject: Taken", delivered);
+         }
+         finally
+         {
+            range.RequireSMTPAuthExternalToExternal = requiredExternalToExternal;
+            range.Save();
+
+            WriteSetting("SRSEnabled", "0");
+            WriteSetting("SRSSecret", "");
+            _application.Reinitialize();
+         }
+      }
+
+      [Test]
+      [Description("Mail with a sender of its own to an SRS0 address this server handed out, which the relay " +
+                   "rules refuse, is refused at BDAT as it is at DATA, since CHUNKING (RFC 3030) is offered to " +
+                   "every EHLO and a BDAT completes a message as a DATA does. The BDAT is answered with the reply " +
+                   "its RCPT TO would have had, a zero-length last chunk's as well, and the chunk the client sends " +
+                   "behind the command is read and dropped, so that the session goes on in step and nothing " +
+                   "reaches the address the SRS address stands for. A bounce sent to the address over BDAT is " +
+                   "still passed back, and is the one message to reach it.")]
+      public void TestSrsAddressRelaysOnlyBouncesOverBdat()
+      {
+         var range = _application.Settings.SecurityRanges.get_ItemByName("My computer");
+         bool requiredExternalToExternal = range.RequireSMTPAuthExternalToExternal;
+
+         try
+         {
+            WriteSetting("SRSEnabled", "1");
+            WriteSetting("SRSSecret", "regression-srs-secret");
+            _application.Reinitialize();
+
+            var forwarder = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "srsbdatfwd@example.test", "test");
+            var destination = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "srsbdatdest@example.test", "test");
+
+            forwarder.ForwardAddress = destination.Address;
+            forwarder.ForwardEnabled = true;
+            forwarder.Save();
+
+            // The original sender is at the domain the suite's routes go to
+            // (TestSetup.AddRoutePointingAtLocalhost), so that whatever this server passes
+            // back to it reaches the simulator below rather than the outside.
+            const string originalSender = "alice@dummy-example.com";
+            SmtpClientSimulator.StaticSend(originalSender, forwarder.Address, "SRS BDAT test", "Body");
+            _application.SubmitEMail();
+
+            string returnPath = ExtractReturnPath(Pop3ClientSimulator.AssertGetFirstMessageText(destination.Address, "test"));
+            Assert.IsNotNull(returnPath);
+            Assert.IsTrue(returnPath.StartsWith("SRS0="), "The forwarded message's sender was not rewritten: " + returnPath);
+
+            // External to external needs a sign-in from this machine, as in TestSrsAddressRelaysOnlyBounces.
+            range.RequireSMTPAuthExternalToExternal = true;
+            range.Save();
+
+            // From the ports set aside for this file's unit (47100-47119).
+            const int port = 47103;
+
+            using (var server = new SmtpServerSimulator(1, port))
+            {
+               server.AddRecipientResult(new Dictionary<string, int> { [originalSender] = 250 });
+               server.StartListen();
+               TestSetup.AddRoutePointingAtLocalhost(0, port, false);
+
+               var socket = new TcpConnection();
+               Assert.IsTrue(socket.Connect(25));
+               Assert.IsTrue(socket.Receive().StartsWith("220"));
+               socket.Send("EHLO example.com\r\n");
+               string ehlo = socket.ReadUntil("250 HELP");
+               Assert.IsTrue(ehlo.Contains("CHUNKING"), "EHLO did not offer CHUNKING. Got: " + ehlo);
+
+               Assert.IsTrue(socket.SendAndReceive("MAIL FROM:<mallory@attacker.example>\r\n").StartsWith("250"));
+
+               var relayRcpt = socket.SendAndReceive("RCPT TO:<" + returnPath + ">\r\n");
+               Assert.IsTrue(relayRcpt.StartsWith("250"),
+                  "A RCPT TO an SRS address of this server must still be answered for a server verifying it. Got: " + relayRcpt);
+
+               // The client sends the chunk behind its command without waiting for a reply (RFC
+               // 3030). Its last line is a command that a chunk read as commands would have obeyed:
+               // QUIT, after which nothing would be left to answer the RSET below.
+               const string relayed = "Subject: Relayed over BDAT\r\n\r\nmarker-SRS-BDAT-RELAYED\r\nQUIT\r\n";
+               socket.Send("BDAT " + Encoding.ASCII.GetByteCount(relayed) + " LAST\r\n" + relayed);
+
+               // 530 asks for the sign-in; 550 would be a range that refuses the relay outright.
+               var relayBdat = socket.Receive();
+               Assert.IsTrue(relayBdat.StartsWith("530") || relayBdat.StartsWith("550"),
+                  "Mail over BDAT with a sender of its own to an SRS address must be held to the relay rules. Got: " + relayBdat);
+
+               var rset = socket.SendAndReceive("RSET\r\n");
+               Assert.IsTrue(rset.StartsWith("250"),
+                  "The chunk of the refused BDAT must be read and dropped, and the session go on in step. Got: " + rset);
+
+               // A zero-length last chunk, which ends a message with nothing to read, is refused
+               // the same: the refusal comes before a chunk of no octets can complete the message.
+               Assert.IsTrue(socket.SendAndReceive("MAIL FROM:<mallory@attacker.example>\r\n").StartsWith("250"));
+               Assert.IsTrue(socket.SendAndReceive("RCPT TO:<" + returnPath + ">\r\n").StartsWith("250"));
+
+               var emptyBdat = socket.SendAndReceive("BDAT 0 LAST\r\n");
+               Assert.IsTrue(emptyBdat.StartsWith("530") || emptyBdat.StartsWith("550"),
+                  "A zero-length last chunk with a sender of its own to an SRS address must be held to the relay " +
+                  "rules. Got: " + emptyBdat);
+               Assert.IsTrue(socket.SendAndReceive("RSET\r\n").StartsWith("250"));
+
+               // A bounce to the same address is passed back to the original sender, over BDAT as
+               // over DATA.
+               Assert.IsTrue(socket.SendAndReceive("MAIL FROM:<>\r\n").StartsWith("250"));
+
+               var bounceRcpt = socket.SendAndReceive("RCPT TO:<" + returnPath + ">\r\n");
+               Assert.IsTrue(bounceRcpt.StartsWith("250"),
+                  "A bounce to a valid SRS address must still be accepted. Got: " + bounceRcpt);
+
+               const string bounce = "Subject: Bounced over BDAT\r\n\r\nmarker-SRS-BDAT-BOUNCE\r\n";
+               socket.Send("BDAT " + Encoding.ASCII.GetByteCount(bounce) + " LAST\r\n" + bounce);
+
+               var bounceBdat = socket.Receive();
+               Assert.IsTrue(bounceBdat.StartsWith("250"),
+                  "A bounce over BDAT to a valid SRS address must be taken. Got: " + bounceBdat);
+
+               socket.Send("QUIT\r\n");
+               socket.Disconnect();
+
+               _application.SubmitEMail();
+               server.WaitForCompletion();
+               CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+               // The bounce reached the original sender's domain, and nothing else did.
+               Assert.IsTrue(server.Messages.Count == 1,
+                  "The bounce, and only the bounce, should have reached the original sender; " +
+                  server.Messages.Count + " messages did.");
+               StringAssert.Contains("marker-SRS-BDAT-BOUNCE", server.MessageData);
+            }
          }
          finally
          {
