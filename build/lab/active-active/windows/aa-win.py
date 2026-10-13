@@ -92,7 +92,9 @@ SERVER1 = os.environ.get("AA_WIN_SERVER1", "chris@10.0.0.20")
 DB_ADDRESS = os.environ.get("AA_WIN_DB_ADDRESS", "10.0.0.19")
 MSSQL_PORT = int(os.environ.get("AA_WIN_MSSQL_PORT", "14330"))
 SINK_PORT = int(os.environ.get("AA_WIN_SINK_PORT", "14325"))
-VMRUN = os.environ.get("AA_WIN_VMRUN", r"C:\Program Files (x86)\VMware\VMware Workstation\vmrun.exe")
+# VMware Workstation's own place for it, and no other: a program this script runs is
+# never named by the environment. Elsewhere, give the nodes' addresses instead.
+VMRUN = r"C:\Program Files (x86)\VMware\VMware Workstation\vmrun.exe"
 VMS = os.path.join(HOME, "Documents", "Virtual Machines")
 NODE_ROOT = r"C:\hmlab-aa"
 NODE_LAB = NODE_ROOT + r"\lab"
@@ -600,6 +602,9 @@ def cmd_baseline(args):
         summary["sessions_with_w1_alone"] = db_sessions()
         say(json.dumps({"queue_with_w1_alone": summary["queue_with_w1_alone"], "sessions": summary["sessions_with_w1_alone"]}))
     finally:
+        # Whatever stopped the run, it does not leave two nodes on the database, nor
+        # W2's turn open: W2 is stopped, which gives the AD lab its own server back.
+        node_ps("W2", "stop", show=False, check=False)
         mssql("sink-stop", show=False, check=False)
         with open(os.path.join(out, "summary.json"), "w", encoding="utf-8") as f:
             json.dump(summary, f, indent=2)

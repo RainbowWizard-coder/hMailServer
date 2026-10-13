@@ -273,10 +273,12 @@ So the node on W2 runs in **turns**: while its service runs, and for the server'
 verbs (`--set-admin-password`, `--upgrade-database`), the AD lab's service is stopped
 and Disabled and `InstallLocation` names `C:\hmlab-aa`; when it stops, both are put
 back and the AD lab's service is started again. `node.ps1` keeps what a turn changed
-in `C:\hmlab-aa\lab\turn.json` before it changes it, and `node.ps1 release` puts it
-back after any failure. Disabled, not Manual: during a turn a COM activation of
-`hMailServer.Application` would otherwise start the AD lab's service, which would read
-the lab's INI. The AD lab's hMailServer is down for as long as the W2 node runs.
+in `C:\hmlab-aa\lab\turn.json` before it changes it, and `node.ps1 release` (or
+`aa-win.py stop W2`) puts it back after any failure, a driver cut off part of the way
+through included; `baseline` stops W2 however it ends. Disabled, not Manual: during a
+turn a COM activation of `hMailServer.Application` would otherwise start the AD lab's
+service, which would read the lab's INI. The AD lab's hMailServer is down for as long
+as the W2 node runs.
 
 The lab database, `hmlab_aa`, is **made by the server itself**: `aa-win.py provision`
 has W1's server create it over COM, as DBSetup does (`Database.CreateExternalDatabase`,
@@ -337,6 +339,10 @@ server2):
   same mailbox logged HM4403 (its file is on W1's disk), and HM5080 is logged at
   every start there (`CoResumeClassObjects`: `CO_E_WRONG_SERVER_IDENTITY`, the COM
   classes being the AD lab's service's).
+- **The server's own sessions, as SQL Server sees them** (`sys.dm_exec_sessions` and
+  `sys.dm_exec_connections`, W1 running): five, `program_name` `hMailServer` (the
+  OLE DB driver's default, the executable's name), TDS 7.4 (MSOLEDBSQL, which the
+  server picked itself), encrypted, at READ UNCOMMITTED.
 - **`RecordsAffected` through ADO** (`ado-probe`), on both nodes, through
   MSOLEDBSQL and SQLOLEDB, at READ UNCOMMITTED: 0, 1, 1 for a row matched and left
   unchanged, 2, 1 for an insert, 1 for a delete; a claim that recognises itself 1
