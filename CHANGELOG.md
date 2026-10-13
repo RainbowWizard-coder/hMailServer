@@ -4864,7 +4864,7 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   call them, the message index an indeks, and the Control Panel the Denetim Masası in prose, as 67 texts call it; the
   Alias address caption's key moves to ğ, since the Domains page gives every other letter of it to another caption.
 
-- **Fixed: 165 Ukrainian texts said what their English does not, broke Ukrainian grammar, or named one thing two
+- **Fixed: 166 Ukrainian texts said what their English does not, broke Ukrainian grammar, or named one thing two
   ways.** A fair password's advice to consider adding {0} was the weak password's order to add it; free software under
   the AGPLv3 was free of charge (безкоштовне), where it is free as in freedom (вільне); a device was what allows SMTP
   delivery, where the IP range does; and the default IP ranges were Мій комп’ютер and Internet, where the server gives
@@ -4880,7 +4880,7 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   コントロール パネル and four Control Panel; a stage of the accept pipeline is a ステージ and an entry an エントリ throughout; and a
   button named in a sentence is in [ ], as the catalogue writes it, where two were set off by spaces.
 
-- **Fixed: 197 Chinese texts said what their English does not, stated where their English asks, or named one thing
+- **Fixed: 198 Chinese texts said what their English does not, stated where their English asks, or named one thing
   two ways.** A published record's value was its time of publication (发布时间); "Not reached" said "Not consulted"; and
   the certificate was what SSL/TLS and STARTTLS need (需要, with nothing after it), where it is required when they are
   used. Nineteen confirmations stated what their English asks, as 停止更新？ did, and ask with 是否, as the rest do; 16
@@ -4895,13 +4895,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   a Chinese full-width mark, or a half-width question mark after Chinese text; a Finnish subordinate clause with no
   comma before it, after sen sijaan, aina or their kin, before ennen kuin or kunnes, or opened by kun or että after
   any other word, and a Finnish relative clause after kaikki, mitään or siellä with none; a Norwegian som that stands
-  for the whole clause before it; a Ukrainian or Chinese text that names the identity provider two ways; a word for a
-  thing the entries above say a catalogue names one way throughout - a hold, a resolver, a server's health, an event
-  script, a mail header, the message index - where that catalogue's other word for it is back; and, in any catalogue,
-  a sentence that opens in lower case where its English opens with a capital, a name the server writes in lower case
-  excepted. Run over the catalogues as they were, the rules make 209 findings in 190 texts; the self-test holds each
-  rule against a text the read-back mended, as it was and as it is. `TranslationReadbackTests` holds one mended text
-  of each of the eight catalogues; the default IP ranges' names, My computer and Internet, which the server gives in
+  for the whole clause before it; a Ukrainian or Chinese text that names the identity provider two ways, or names it
+  the other way on one of its own cards, where the English says only "the provider"; a word for a thing the entries
+  above say a catalogue names one way throughout - a hold, a resolver, a server's health, an event script, a mail
+  header, the message index - where that catalogue's other word for it is back; and, in any catalogue, a sentence
+  that opens in lower case where its English opens with a capital, a name the server writes in lower case excepted.
+  Run over the catalogues as they were, the rules make 217 findings in 198 texts; the self-test holds each rule
+  against a text the read-back mended, as it was and as it is. `TranslationReadbackTests` holds one mended text of
+  each of the eight catalogues; the default IP ranges' names, My computer and Internet, which the server gives in
   English; and the Ukrainian quarantine's questions for deleting 21 or 31 messages, which speak of the senders as
   they do for 5.
 

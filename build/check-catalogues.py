@@ -375,7 +375,9 @@ def quotation_findings(tag, target):
 #   grunnen til at), which takes noe som;
 # - an identity provider named two ways in one text: the Ukrainian and Chinese read-backs made it
 #   a постачальник ідентичності and a 身份提供方 and left the English's short "the provider" a
-#   провайдер and a 提供商 or 提供者 in the same texts (repaired after the read-back's check);
+#   провайдер and a 提供商 or 提供者 in the same texts (repaired after the read-back's check) -
+#   and on its cards, where a text's English calls it only "the provider": the OpenID Connect
+#   card's label for the webmail's base address still said провайдер and 提供商 after the repair;
 # - in every catalogue, a sentence that opens in lower case where its English opens with a
 #   capital: six began the MTA-STS caveat with the key's name, "mode a max_age načtené ...", when
 #   the read-back held the word to the texts beside it, which write it mid-sentence;
@@ -412,6 +414,20 @@ READBACK_NORWEGIAN_CLAUSE_SOM = re.compile(r", som er (?:grunnen|årsaken) til\b
 # for it too; a text that names a provider of another kind (a DNS provider) is left alone.
 READBACK_IDENTITY_PROVIDER = re.compile(r"(?i)\bidentity provider")
 READBACK_OTHER_PROVIDER = re.compile(r"(?i)\b(?:DNS|mailbox|mail|e-?mail|hosting|hosted|delivery|push|cloud) providers?\b")
+# The texts of the identity provider's cards (OpenID Connect, SAML, OAuth2) whose English calls it
+# only "the provider" or "your provider", by how the English begins: nothing in them says which
+# provider, their card does. The import sign-in's "as the providers reach it" is Google's and
+# Microsoft's, mail providers, and is not among them.
+READBACK_IDENTITY_PROVIDER_TEXTS = (
+   "Base address of the webmail, as the provider reaches it",
+   "Paste the certificate, or two while the provider rolls its key over.",
+   "What the provider knows this server as:",
+   "Where the provider publishes its signing keys.",
+   "The provider's RFC 7662 endpoint",
+   "Issued by the provider together with the client ID",
+   "Key material is present for the algorithms allowed",
+   "OAuth2 is enabled, the key material its allowed algorithms need is in place",
+)
 READBACK_PROVIDER_NAMES = {
    "uk": ("постачальник ідентичності", re.compile(r"(?i)провайдер\w*")),
    "zh-Hans": ("身份提供方", re.compile(r"提供商|提供者")),
@@ -469,6 +485,11 @@ def readback_findings(tag, source, target):
       for match in others.finditer(target):
          findings.append("the identity provider is a %s in this catalogue, and this text names it %r too; one name"
                          % (name, match.group(0)))
+   elif tag in READBACK_PROVIDER_NAMES and source.startswith(READBACK_IDENTITY_PROVIDER_TEXTS):
+      name, others = READBACK_PROVIDER_NAMES[tag]
+      for match in others.finditer(target):
+         findings.append("this text is on a card of the identity provider, which this catalogue calls a %s, and it "
+                         "names it %r; one name" % (name, match.group(0)))
    if tag == "zh-Hans":
       first = re.split(r"[ ?]", source, maxsplit=1)[0]
       mark = target.find("？")
@@ -815,6 +836,8 @@ def self_test():
    query = "Type a domain and press Query. The answer lists the servers that receive that domain's mail."
    register = "Register this server as an application with the identity provider, download the provider's public signing key."
    saml = "Sign people in with a SAML identity provider. Give the provider this server's metadata."
+   oidc_base = "Base address of the webmail, as the provider reaches it"
+   import_base = "Base address of the webmail, as the providers reach it (empty = no import sign-in)"
    mode = "Mode and max_age read from hMailServer.ini on this machine."
    dropped = "Entries queue, and the oldest are dropped once 4,096 are waiting."
    revoke = "Revoke the API key {0}? Anything using it stops working on its very next request."
@@ -848,6 +871,12 @@ def self_test():
       ("zh-Hans", saml, "通过 SAML 身份提供方让用户登录。把本服务器的元数据提供给提供商。"): True,
       ("zh-Hans", saml, "通过 SAML 身份提供方让用户登录。把本服务器的元数据提供给提供方。"): False,
       ("zh-Hans", "Set both to the exact values your identity provider puts in its tokens.", "请把两者都设为您的提供者放入令牌中的确切值。"): True,
+      ("uk", oidc_base, "Базова адреса вебпошти, за якою до неї дістається провайдер"): True,
+      ("uk", oidc_base, "Базова адреса вебпошти, за якою до неї дістається постачальник"): False,
+      ("zh-Hans", oidc_base, "提供商访问网页邮箱的基础地址"): True,
+      ("zh-Hans", oidc_base, "提供方访问网页邮箱的基础地址"): False,
+      ("uk", import_base, "Базова адреса вебпошти, за якою до неї дістаються провайдери (порожньо = без імпорту зі входом)"): False,
+      ("zh-Hans", import_base, "提供商访问网页邮箱的基础地址（空 = 不提供登录导入）"): False,
       ("cs", mode, "mode a max_age načtené z hMailServer.ini na tomto počítači."): True,
       ("cs", mode, "Hodnoty mode a max_age byly načteny z hMailServer.ini na tomto počítači."): False,
       ("uk", mode, "mode і max_age прочитано з hMailServer.ini на цьому комп’ютері."): True,

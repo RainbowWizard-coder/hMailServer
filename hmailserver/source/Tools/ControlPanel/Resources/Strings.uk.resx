@@ -2162,7 +2162,7 @@
     <value>Базова адреса сторінок списку (порожньо = без посилань)</value>
   </data>
   <data name="Base address of the webmail, as the provider reaches it" xml:space="preserve">
-    <value>Базова адреса вебпошти, за якою до неї дістається провайдер</value>
+    <value>Базова адреса вебпошти, за якою до неї дістається постачальник</value>
   </data>
   <data name="Base address of the webmail, as the providers reach it (empty = no import sign-in)" xml:space="preserve">
     <value>Базова адреса вебпошти, за якою до неї дістаються провайдери (порожньо = без імпорту зі входом)</value>
