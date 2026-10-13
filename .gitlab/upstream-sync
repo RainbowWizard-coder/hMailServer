@@ -223,15 +223,16 @@
 #     the machines of upstream's own test lab. Ours lists those of the 6.0
 #     baseline, and is neither its pre-image nor its post-image.
 #
-# 2026-10-12, 4c03c0bb8 (#671), its save-time half: PORTED, adapted. A rule's Run
-# function action is refused when it is saved naming no function or a name that
-# is not a plain function name - by COM's RuleAction.Save and Rule.Save and by the
-# REST API's rule routes, with the reason - where it was stored as given and
-# refused only each time the rule fired. RuleGuard::WhyScriptFunctionMayNotBeStored
-# asks ScriptServer::IsPlainProcedureName, the test the firing path holds the name
-# to (FireEvent on Windows, and ScriptBinding's IsIdentifier_ on Linux, which asks
+# Ported 2026-10-12 (branch script-function-name-at-save): 4c03c0bb8, upstream
+# PR #671, its save-time half, adapted. A rule's Run function action is refused
+# when it is saved naming no function or a name that is not a plain function
+# name - by COM's RuleAction.Save and Rule.Save and by the REST API's rule
+# routes, with the reason - where it was stored as given and refused only each
+# time the rule fired. RuleGuard::WhyScriptFunctionMayNotBeStored asks
+# ScriptServer::IsPlainProcedureName, the test the firing path holds the name to
+# (FireEvent on Windows, and ScriptBinding's IsIdentifier_ on Linux, which asks
 # it too); RuleOwnerTester, Rules/Rules.cs, API/RestApiRules.cs and
-# API/RestApiAccountRules.cs test it.
+# API/RestApiAccountRules.cs test it, and each fails without the check.
 #
 #   DELIBERATELY NOT TAKEN:
 #   - 4c03c0bb8 (#671), RuleAction::IsValidScriptFunctionName and
