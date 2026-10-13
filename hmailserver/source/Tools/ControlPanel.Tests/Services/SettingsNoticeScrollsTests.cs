@@ -66,9 +66,11 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void ANoticeToActOn_IsScrolledIntoView()
       {
          // Above the tab's first card, a save made far down a long tab said which
-         // row it could not write out of sight.
+         // row it could not write out of sight. A section shown on another page does
+         // not scroll its page to the notice of a read, as its cards are read: the
+         // Rules page opened on its limits' notice, the rules out of sight.
          string show = Member(Read(Path.Join("Views", "ServerSettingsView.xaml.cs")), "private void ShowNotice_(string sentence, StatusLevel level, Action tryAgain = null)");
-         Assert.Matches(new Regex(@"if \(level >= StatusLevel\.Warning\)\s*Dispatcher\.BeginInvoke\(DispatcherPriority\.Loaded, new Action\(\(\) => StatusNotice\.BringIntoView\(\)\)\);"), show);
+         Assert.Matches(new Regex(@"if \(level >= StatusLevel\.Warning && !\(embedded_ && building_\)\)\s*Dispatcher\.BeginInvoke\(DispatcherPriority\.Loaded, new Action\(\(\) => StatusNotice\.BringIntoView\(\)\)\);"), show);
       }
 
       [Fact]

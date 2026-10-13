@@ -6460,8 +6460,12 @@ namespace hMailServer.ControlPanel.Views
          // the first card of the tab (PlaceNotice_), so a save made far down a long
          // tab said which row it could not write above the fold, with only the
          // pill and the toast in sight. Once laid out, so that the tab knows where
-         // the notice is.
-         if (level >= StatusLevel.Warning)
+         // the notice is. Not on another page as the cards are read (an embedded
+         // section, building_): there the notice is under the host's own content,
+         // which the reader opened the page for, and scrolling to it took the page
+         // from it - the Rules page opened on its limits' unread setting, its list of
+         // rules scrolled out of sight. A save's notice comes into view there too.
+         if (level >= StatusLevel.Warning && !(embedded_ && building_))
             Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() => StatusNotice.BringIntoView()));
       }
 
