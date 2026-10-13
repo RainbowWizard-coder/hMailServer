@@ -257,8 +257,17 @@ namespace HM
       if (!pMessage)
          return pMessageData;
 
+      // Header only when the message is too large to be read whole
+      // (MessageData::MaxParseBytes): every field written below is a header
+      // field, and the body is copied behind them as it is when the caller
+      // writes the message. The SMTP session hands this MessageData on to the
+      // signature and the disclaimer, which then see such a message for what it
+      // is and say in the log that they were not appended to it. Until the
+      // large-message row the load failed, the caller's write of it was refused
+      // (HM6010), and the message went without its spam headers - and without a
+      // word from either footer.
       pMessageData = std::shared_ptr<MessageData>(new MessageData);
-      if (!pMessageData->LoadFromMessage(MessageStore::WorkingFile(pMessage), pMessage))
+      if (!pMessageData->LoadFromMessage(MessageStore::WorkingFile(pMessage), pMessage, MessageData::LargeMessage::HeaderOnly))
          return pMessageData;
 
       if (classifiedAsSpam)

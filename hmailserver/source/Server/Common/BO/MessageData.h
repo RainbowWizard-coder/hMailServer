@@ -239,13 +239,19 @@ namespace HM
    public:
       // Refuse answers false; HeaderOnly reads the header, raises the loop count
       // and writes it back with the body byte for byte, to the same name and to
-      // another. Reports nothing.
+      // another. And MimeBody's two header-only reads on small messages: from a
+      // file, a header that ends past the first step it is read in, and one
+      // whose blank line falls across a step's edge at each place it can; and
+      // from memory, as an object store hands a message over, written into
+      // memory and to a file. Reports nothing.
       void Test(const String &directory);
 
       // What is refused, each reported: a changed body (HM7840, and HM6011 from
       // Write), with the message left as it was; a body source cut short
       // (HM7842 and HM6011); a header with no end in the bytes read (HM7841),
-      // and a write of what that load left (HM6010). The caller counts them.
+      // and a write of what that load left (HM6010); and a changed body of a
+      // message held in memory, written into memory (HM7840 again). The caller
+      // counts them.
       void TestRefusals(const String &directory);
    };
 

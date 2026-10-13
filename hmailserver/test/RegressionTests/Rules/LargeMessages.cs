@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using hMailServer;
 using NUnit.Framework;
@@ -31,8 +32,8 @@ namespace RegressionTests.Rules
    ///    (hmailserver/docs/MailFlowRules.md, DomainTransforms.md).
    ///
    ///    Every message here is generated, just over the limit, and none is
-   ///    committed. The server takes no message over 20 MB by default, so the
-   ///    fixture raises the limit; PerformBasicSetup puts it back.
+   ///    committed. The SMTP session takes no message over 20 MB by default, so
+   ///    the fixture raises the limit; PerformBasicSetup puts it back.
    /// </summary>
    [TestFixture]
    public class LargeMessages : TestFixtureBase
@@ -90,13 +91,35 @@ namespace RegressionTests.Rules
          return header;
       }
 
-      // The first message of an account's folder, read from its file - a byte for
-      // each character, as the message is ASCII - whole.
+      // The header of the one message of an account's folder, after asserting that
+      // the generated body follows it byte for byte.
       private static string AssertStoredBodyWhole(Account account, string folder = "Inbox")
       {
-         Message stored = CustomAsserts.AssertGetFirstMessage(account, folder);
-         string text = Encoding.GetEncoding(28591).GetString(File.ReadAllBytes(stored.Filename));
-         return AssertBodyWhole(text, "The message in " + account.Address + "'s " + folder);
+         return AssertStoredBodiesWhole(account, 1, folder)[0];
+      }
+
+      // The headers of the messages an account's folder holds once it holds count
+      // of them, each read from its file - a byte for each character, as the
+      // message is ASCII - after asserting that the generated body follows it byte
+      // for byte. Waited for longer than CustomAsserts waits for a message: each
+      // here is 81 MB, written on the disk once for every recipient and copy.
+      private static List<string> AssertStoredBodiesWhole(Account account, int count, string folder = "Inbox")
+      {
+         IMAPFolder stored = account.IMAPFolders.get_ItemByName(folder);
+
+         DateTime until = DateTime.UtcNow.AddSeconds(120);
+         while (stored.Messages.Count < count && DateTime.UtcNow < until)
+            System.Threading.Thread.Sleep(250);
+
+         ClassicAssert.AreEqual(count, stored.Messages.Count, "The number of messages in " + account.Address + "'s " + folder + ".");
+
+         var headers = new List<string>();
+         for (int i = 0; i < count; i++)
+         {
+            string text = Encoding.GetEncoding(28591).GetString(File.ReadAllBytes(stored.Messages[i].Filename));
+            headers.Add(AssertBodyWhole(text, "Message " + (i + 1) + " in " + account.Address + "'s " + folder));
+         }
+         return headers;
       }
 
       private Account AddAccount(string address)
@@ -358,6 +381,180 @@ namespace RegressionTests.Rules
          CustomAsserts.AssertRecipientsInDeliveryQueue(0);
          CustomAsserts.AssertReportedError("HM4404", "Auto-Submitted header");
          Pop3ClientSimulator.AssertMessageCount(sender.Address, Password, 0);
+      }
+
+      [Test]
+      [Description("A Sieve redirect of a message over 80 MB raises its rule-loop count and carries its whole body. Until the large-message row the redirected copy's count could not be written (HM6010).")]
+      public void ASieveRedirectOfALargeMessageCarriesItsLoopCountAndItsWholeBody()
+      {
+         Account source = AddAccount("large-sieve@example.test");
+         Account target = AddAccount("large-sieve-target@example.test");
+
+         // Late-bound, as the Sieve fixtures set a script (Sieve/SieveDelivery.cs).
+         source.GetType().InvokeMember("SieveScript", BindingFlags.SetProperty, null, source,
+            new object[] { "redirect \"" + target.Address + "\";\r\n" });
+
+         SmtpClientSimulator.StaticSendRaw(Correspondent, source.Address, LargeMessage(Correspondent, source.Address, "large-sieve-redirect"));
+
+         string redirected = AssertStoredBodyWhole(target);
+         StringAssert.Contains("X-hMailServer-LoopCount: 1\r\n", redirected, "The redirected copy of the large message does not carry its loop count.");
+         CustomAsserts.AssertNoReportedError();
+      }
+
+      [Test]
+      [Description("An account's rule copies a message over 80 MB: the copy carries X-CopyRule and its rule-loop count raised, the original neither, and both their whole body. Until the large-message row no rule ran on such a message (HM6040), so no copy was made.")]
+      public void ARuleCopiesALargeMessageWithItsLoopCountAndItsWholeBody()
+      {
+         Account account = AddAccount("large-copier@example.test");
+
+         // The size, and a loop count under 1, so that the copy - which carries 1 -
+         // is not copied again (as Rules.cs's copy tests do it).
+         Rule rule = NewRule(account.Rules, "Copy large", eRulePredefinedField.eFTMessageSize, eRuleMatchType.eMTGreaterThan, "0");
+         rule.UseAND = true;
+         RuleCriteria once = rule.Criterias.Add();
+         once.UsePredefined = false;
+         once.HeaderField = "X-hMailServer-LoopCount";
+         once.MatchType = eRuleMatchType.eMTLessThan;
+         once.MatchValue = "1";
+         once.Save();
+         AddAction(rule, eRuleActionType.eRACreateCopy);
+         rule.Save();
+
+         SmtpClientSimulator.StaticSendRaw(Correspondent, account.Address, LargeMessage(Correspondent, account.Address, "large-rule-copy"));
+
+         List<string> headers = AssertStoredBodiesWhole(account, 2);
+         string copy = headers.Find(header => header.Contains("X-CopyRule: Copy large\r\n"));
+         string original = headers.Find(header => !header.Contains("X-CopyRule"));
+         ClassicAssert.IsNotNull(copy, "Neither message is the rule's copy: " + string.Join(" | ", headers));
+         ClassicAssert.IsNotNull(original, "Neither message is the original: " + string.Join(" | ", headers));
+         StringAssert.Contains("X-hMailServer-LoopCount: 1\r\n", copy, "The rule's copy of the large message does not carry its loop count.");
+         StringAssert.DoesNotContain("X-hMailServer-LoopCount", original, "The original was given a loop count.");
+         CustomAsserts.AssertNoReportedError();
+      }
+
+      [Test]
+      [Description("A rule that rejects refuses a message over 80 MB at the end of DATA, with 550 and the rule's words, on the header it matched; nothing is delivered. Until the large-message row the SMTP session could not read the header, accepted the message, and no rule ran on it at delivery (HM6040).")]
+      public void ARejectRuleRefusesALargeMessageAtTheEndOfData()
+      {
+         Account account = AddAccount("large-rejected@example.test");
+
+         Rule rule = NewRule(_application.Rules, "No large invoices", eRulePredefinedField.eFTSubject, eRuleMatchType.eMTContains, "large-invoice");
+         AddAction(rule, eRuleActionType.eRAReject, value: "Large invoices go to accounts@example.test.");
+         rule.Save();
+
+         var refused = Assert.Throws<DeliveryFailedException>(() =>
+            SmtpClientSimulator.StaticSendRaw(Correspondent, account.Address, LargeMessage(Correspondent, account.Address, "large-invoice")));
+         StringAssert.Contains("550", refused.Message, "Refused, not accepted. Got: " + refused.Message);
+         StringAssert.Contains("Large invoices go to accounts@example.test.", refused.Message, "In the rule's words. Got: " + refused.Message);
+
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         Pop3ClientSimulator.AssertMessageCount(account.Address, Password, 0);
+         CustomAsserts.AssertNoReportedError();
+      }
+
+      [Test]
+      [Description("A rule's script function is not run on a message over 80 MB - a script reads the message through the COM API's Message, which does not read one of that size, so its Subject and its other fields would read as empty and its Save would be refused (HM6010) - and the log says so; the rule's other action is taken. The same function runs on a message under the limit. Until the large-message row no rule ran on such a message at all (HM6040).")]
+      public void ARulesScriptFunctionIsNotRunOnALargeMessageAndTheLogSaysWhy()
+      {
+         Account small = AddAccount("small-scripted@example.test");
+         Account large = AddAccount("large-scripted@example.test");
+
+         _settings.Scripting.Enabled = true;
+         File.WriteAllText(_settings.Scripting.CurrentScriptFile,
+            "Sub MarkLargeMessage(message)" + Environment.NewLine +
+            " Call EventLog.Write(\"MarkLargeMessage ran on [\" & message.Subject & \"]\")" + Environment.NewLine +
+            " message.HeaderValue(\"X-Large-Script\") = \"ran\"" + Environment.NewLine +
+            " message.Save" + Environment.NewLine +
+            "End Sub");
+         _settings.Scripting.Reload();
+
+         Rule rule = NewRule(_application.Rules, "Large script", eRulePredefinedField.eFTSubject, eRuleMatchType.eMTContains, "large-script-rule");
+         RuleAction function = rule.Actions.Add();
+         function.Type = eRuleActionType.eRARunScriptFunction;
+         function.ScriptFunction = "MarkLargeMessage";
+         function.Save();
+         AddAction(rule, eRuleActionType.eRASetHeaderValue, value: "taken", header: "X-Large-Rule-Action");
+         rule.Save();
+
+         // The control: under the limit the function runs and its change is saved.
+         LogHandler.DeleteEventLog();
+         SmtpClientSimulator.StaticSend(Correspondent, small.Address, "small large-script-rule", "A message the function can read.");
+         string smallMessage = Pop3ClientSimulator.AssertGetFirstMessageText(small.Address, Password);
+         StringAssert.Contains("X-Large-Script: ran", smallMessage, "The function did not run on a message under the limit, so its absence below would prove nothing.");
+         StringAssert.Contains("MarkLargeMessage ran on [small large-script-rule]", LogHandler.ReadEventLog());
+
+         LogHandler.DeleteEventLog();
+         SmtpClientSimulator.StaticSendRaw(Correspondent, large.Address, LargeMessage(Correspondent, large.Address, "large-script-rule"));
+
+         string header = AssertStoredBodyWhole(large);
+         StringAssert.Contains("X-Large-Rule-Action: taken", header, "The rule's other action was not taken on the large message.");
+         StringAssert.DoesNotContain("X-Large-Script", header, "The script function ran on the large message.");
+         ClassicAssert.IsTrue(LogHandler.DefaultLogContains("so the script function MarkLargeMessage of rule \"Large script\" was not run"),
+            "The log does not say why the script function was not run: " + LogHandler.ReadCurrentDefaultLog());
+         StringAssert.DoesNotContain("MarkLargeMessage ran", LogHandler.ReadEventLog(), "The script function ran on the large message.");
+         CustomAsserts.AssertNoReportedError();
+      }
+
+      [Test]
+      [Description("A message over 80 MB that the SMTP session marks as spam carries the spam headers and the subject's tag, written with its header alone and the body copied behind it byte for byte, and an account with spam filtering off gets its copy without them; its sender's domain's signature is not appended, and the log says so. Until the large-message row the headers' write was refused (HM6010), the signature was left off without a word, and the account's copy could not be rid of them (HM6351).")]
+      public void ALargeMessageMarkedAsSpamCarriesTheSpamHeaders()
+      {
+         hMailServer.AntiSpam antiSpam = _settings.AntiSpam;
+         bool addHeaderSpam = antiSpam.AddHeaderSpam;
+         bool addHeaderReason = antiSpam.AddHeaderReason;
+         bool prependSubject = antiSpam.PrependSubject;
+         string prependSubjectText = antiSpam.PrependSubjectText;
+
+         try
+         {
+            _domain.SignatureEnabled = true;
+            _domain.SignaturePlainText = "The domain's signature.";
+            _domain.AddSignaturesToLocalMail = true;
+            _domain.Save();
+
+            Account sender = AddAccount("large-spam-sender@example.test");
+            Account reader = AddAccount("large-spam-reader@example.test");
+            Account optedOut = AddAccount("large-spam-optout@example.test");
+            optedOut.AntiSpamEnabled = false;
+            optedOut.Save();
+
+            // Marked, not refused, by a test the session runs before the message:
+            // example.test has no MX in the suite's zone (SuiteDns).
+            antiSpam.SpamMarkThreshold = 5;
+            antiSpam.SpamDeleteThreshold = 100;
+            antiSpam.UseMXChecks = true;
+            antiSpam.UseMXChecksScore = 5;
+            antiSpam.AddHeaderSpam = true;
+            antiSpam.AddHeaderReason = true;
+            antiSpam.PrependSubject = true;
+            antiSpam.PrependSubjectText = "[SPAM]";
+
+            // Not signed in, from an address that is an account here: the session
+            // tests it for spam, and the sender's domain signs it.
+            new SmtpClientSimulator().SendRaw(sender.Address, new List<string> { reader.Address, optedOut.Address },
+               LargeMessage(sender.Address, reader.Address, "large-spam"));
+
+            string marked = AssertStoredBodyWhole(reader);
+            StringAssert.Contains("X-hMailServer-Spam: YES\r\n", marked, "The large message marked as spam does not carry the spam header.");
+            StringAssert.Contains("Subject: [SPAM] large-spam\r\n", marked, "The large message marked as spam does not carry the subject's tag.");
+            StringAssert.Contains("X-hMailServer-Reason-Score: 5\r\n", marked, "The large message marked as spam does not carry its score.");
+
+            string unmarked = AssertStoredBodyWhole(optedOut);
+            StringAssert.DoesNotContain("X-hMailServer-Spam", unmarked, "The copy of an account with spam filtering off kept the spam header.");
+            StringAssert.DoesNotContain("X-hMailServer-Reason", unmarked, "The copy of an account with spam filtering off kept the reasons.");
+            StringAssert.Contains("Subject: large-spam\r\n", unmarked, "The copy of an account with spam filtering off kept the subject's tag.");
+
+            ClassicAssert.IsTrue(LogHandler.DefaultLogContains("so the signature was not appended"),
+               "The log does not say why the signature was not appended: " + LogHandler.ReadCurrentDefaultLog());
+            CustomAsserts.AssertNoReportedError();
+         }
+         finally
+         {
+            antiSpam.AddHeaderSpam = addHeaderSpam;
+            antiSpam.AddHeaderReason = addHeaderReason;
+            antiSpam.PrependSubject = prependSubject;
+            antiSpam.PrependSubjectText = prependSubjectText;
+         }
       }
    }
 }

@@ -700,25 +700,43 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   resolver then keeps for a minute (30 seconds for a lookup that did not complete). The application log lines that
   report a skipped host - "the MX RRset for ... failed DNSSEC validation", the TLSA one and the two indeterminate
   ones - end with the same reason in brackets ([DiagnosingStalledMail.md](hmailserver/docs/DiagnosingStalledMail.md)).
-- **Fixed: a message over 80 MB went through the rules, a forward, a bounce and the footers as if it had no header
-  (upstream issue 683, upstream PR 686).** The server reads a message whole up to 80 MB and refused a larger one's
-  load on every path, so no rule ran on it (HM6040); an account's forward, a Sieve redirect and a rule's forward or
-  copy read its rule-loop count as 0 and could not write it on the copy (HM6010 at every hop), so two accounts
-  forwarding to each other passed it back and forth without end; a bounce read neither the count nor
-  `Auto-Submitted`; and the signature and the disclaimers were left off without a word. Those paths now read its
-  header alone and write it back with the body copied behind it from the file byte for byte, in pieces, never whole
-  in memory. The rules' header conditions and actions apply to it; the five conditions that need the body - the
-  body, the attachment name and type, sensitive content and readable text - do not match, whichever way round they
-  are phrased, with one line in the application log per rule; a forward at the rule loop limit is not made (HM4333)
-  and an `Auto-Submitted` message that fails is not bounced (HM4404); and a rule's disclaimer, the domain's
-  disclaimer and the signature are not appended - finding the text part means reading the whole message - each with
-  a line in the application log, the message sent as written. Everything else that reads messages refuses one over
-  80 MB as before. New errors: HM7841 (a header with no end in its first 10 MB), HM7842 (the file changed under a
-  header being written back) and HM7840 (a change to such a message's body), each leaving the message as it was. A
-  message that large reaches the server only where its message size limit was raised (20 MB by default)
-  ([MailFlowRules.md](hmailserver/docs/MailFlowRules.md), [DomainTransforms.md](hmailserver/docs/DomainTransforms.md)).
-  `Rules/LargeMessages.cs` sends 81 MB messages the test makes through each path, and `LargeMessageTester`
-  (`file-utilities-tests` on Linux) reads, changes and writes back the header of one and refuses each of the three.
+- **Fixed: a message over 80 MB went through the rules, a forward, a bounce, the spam headers and the footers as if it
+  had no header (upstream issue 683, upstream PR 686).** The server reads a message whole up to 80 MB and refused a
+  larger one's load on every path, so no rule ran on it (HM6040) and a reject rule did not refuse it at the SMTP
+  session; an account's forward, a Sieve redirect and a rule's forward or copy read its rule-loop count as 0 and could
+  not write it on the copy (HM6010 at every hop), so two accounts forwarding to each other passed it back and forth
+  without end; a bounce read neither the count nor `Auto-Submitted`; the spam headers of one the SMTP session or an
+  external account's fetch marked as spam could not be written (HM6010), nor the copy of an account that asks for it
+  unmarked be read to take them off (HM6351); and the signature and the disclaimers were left off without a word.
+  Those paths now read its header alone and write it back with the body copied behind it from the file byte for byte,
+  in pieces, never whole in memory - but for a message an object store holds, which the store hands over whole in
+  memory and which is written from there. The rules' header conditions and actions apply to it; the five conditions
+  that need the body - the body, the attachment name and type, sensitive content and readable text - do not match,
+  whichever way round they are phrased, with one line in the application log per rule; a forward at the rule loop
+  limit is not made (HM4333 for an account's forward or a Sieve redirect, HM5064 for a rule's) and an `Auto-Submitted`
+  message that fails is not bounced (HM4404); a rule's script function is not run on it - a script reads the message
+  through the COM API, which refuses one over 80 MB as before, so that its header and its body would read as empty and
+  its `Save` would be refused - and the log says so; and a rule's disclaimer, the domain's disclaimer and the
+  signature are not appended - finding the text part means reading the whole message - each with a line in the
+  application log, the message sent as written. Everything else that reads messages refuses one over 80 MB as before.
+  New errors: HM7841 (a header with no end in its first 10 MB or with a field the parser refuses, or a file that could
+  not be opened or read), HM7842 (the file changed under a header being written back) and HM7840 (a change to such a
+  message's body), each leaving the message as it was. The SMTP session takes a message that large only where its
+  message size limit was raised (20 MB by default); an external account's fetch is held to no size limit, so it takes
+  one whatever the setting, and the webmail's send, held to 16 MB a request, never does
+  ([MailFlowRules.md](hmailserver/docs/MailFlowRules.md),
+  [DomainTransforms.md](hmailserver/docs/DomainTransforms.md)). `Rules/LargeMessages.cs` sends 81 MB messages the test
+  makes through a header rule, a body condition, an account's forward, a rule's forward and copy, a Sieve redirect, an
+  account's forward at the rule loop limit, a reject rule at the end of DATA, a rule's script function, a rule's
+  disclaimer, the domain's disclaimer, the signature, the failure of an `Auto-Submitted` one, and the spam headers of
+  one the session marks as spam and an account with spam filtering off; `LargeMessageTester` (`file-utilities-tests`
+  on Linux) reads, changes and writes back the header of one, of small ones whose header ends past the first 64 KB
+  step it is read in or whose last line end and blank line fall just before, across or just after a step's edge, and
+  of a small one held in memory as an object store hands a message over, and refuses each of the three. No test sends
+  one through an external account's fetch of one marked as spam, the removal of the spam headers from the copy of an
+  account with a mark threshold of 0 or with the sender on its allow list, a rule's reply or its notice to the sender,
+  an inbound webhook's return of a kept copy, a function that makes a message that large or an object store holding
+  one.
 
 ### Control Panel
 

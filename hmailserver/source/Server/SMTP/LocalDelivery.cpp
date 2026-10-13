@@ -2001,8 +2001,12 @@ namespace HM
 
       const String fileName = MessageStore::WorkingFile(account, message);
 
+      // Header only when the copy is too large to be read whole, as
+      // SpamProtection::AddSpamScoreHeaders wrote the headers this removes: each
+      // is a header field, and the body is copied behind them as it is. Refused,
+      // such a copy kept the spam headers its account had asked to be rid of.
       MessageData data;
-      if (!data.LoadFromMessage(fileName, message))
+      if (!data.LoadFromMessage(fileName, message, MessageData::LargeMessage::HeaderOnly))
       {
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6351, "LocalDelivery::RemoveSpamClassification_",
             Formatter::Format("Message {0} could not be loaded while removing its spam classification for {1}. The copy is delivered with its spam flag cleared but with the spam headers still present.",

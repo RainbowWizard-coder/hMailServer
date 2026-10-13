@@ -698,7 +698,9 @@ namespace
 
    // A message over MessageData::MaxParseBytes read header only (LargeMessageTester,
    // Common/BO/MessageData.cpp): the header read, changed and written back with the
-   // body byte for byte; and what is refused, each reported once.
+   // body byte for byte - and so a header longer than the first step it is read in,
+   // one whose blank line falls across a step's edge, and a message held in memory;
+   // and what is refused, each reported as many times as it is refused.
    void LargeMessageCase()
    {
       const boost::filesystem::path directory = boost::filesystem::temp_directory_path() /
@@ -710,17 +712,19 @@ namespace
       const int cutShort = ReportsOf("HM7842");
       const int notWritten = ReportsOf("HM6011");
       const int emptyRefused = ReportsOf("HM6010");
+      const int bodyNotRead = ReportsOf("HM6000");
 
       std::string failure;
       try
       {
          HM::LargeMessageTester tester;
          tester.Test(Wide(directory));
-         Check(ReportsOf("HM7840") == changedBody && ReportsOf("HM7842") == cutShort && ReportsOf("HM6011") == notWritten,
-               "reading, changing and writing the header of a large message reported an error");
+         Check(ReportsOf("HM7840") == changedBody && ReportsOf("HM7841") == notRead && ReportsOf("HM7842") == cutShort &&
+               ReportsOf("HM6011") == notWritten && ReportsOf("HM6000") == bodyNotRead,
+               "reading, changing and writing the header of a large message, of headers read in steps and of a message held in memory reported an error");
 
          tester.TestRefusals(Wide(directory));
-         Check(ReportsOf("HM7840") == changedBody + 1, "a changed body of a header-only message was not reported once as HM7840");
+         Check(ReportsOf("HM7840") == changedBody + 2, "a changed body of a header-only message, from a file and held in memory, was not reported twice as HM7840");
          Check(ReportsOf("HM7842") == cutShort + 1, "a header-only message whose source was cut short was not reported once as HM7842");
          Check(ReportsOf("HM7841") == notRead + 1, "a header with no end in the bytes read was not reported once as HM7841");
          Check(ReportsOf("HM6011") == notWritten + 2, "the two refused writes were not each reported once as HM6011");
@@ -845,7 +849,7 @@ int main()
    failed += Run("FileUtilities::CopyOver puts the whole of a file in another's place and leaves nothing beside it", CopyOverCase);
    failed += Run("a backup restore's member list" + ADownload() + " and MoveOver where the disk takes them: each whole, and MoveOver's result in the message's place with nothing beside it", WritersWithRoomCase);
    failed += Run("FileUtilities::WriteToFileAtomically with the body copied from a file: the head and the whole range, onto another file and onto the one it came from, and a range past the source's end refused with the file as it was", BodyCopiedFromFileCase);
-   failed += Run("a message over 80 MB read header only when asked: its loop count read, raised and written back with the body byte for byte, and a changed body, a source cut short and a header with no end refused and reported", LargeMessageCase);
+   failed += Run("a message over 80 MB read header only when asked: its loop count read, raised and written back with the body byte for byte, as are a header past the first step it is read in, one ending across a step's edge and a message held in memory; and a changed body, a source cut short and a header with no end refused and reported", LargeMessageCase);
    failed += Run("a quota (RLIMIT_FSIZE): File::Close, WriteToFile, TraceHeaderWriter::Write, the message store's WriteAtomically, the spool, CopyOver, a backup restore's member list" + ADownload() + " and MoveOver from another file system refuse a file short of its last bytes, and leave the stored message as it was", QuotaCase);
    if (SocketsRefused)
       std::printf("not run: a download (HttpsClient::Download into a file that takes it whole, under the quota and on the full disk) - this process may make no IPv4 socket (EACCES), as under build/ci/packages/offline.c, and the download's server is a loopback one; every other writer runs without it\n");

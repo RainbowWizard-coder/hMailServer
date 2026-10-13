@@ -149,10 +149,11 @@
 # fixed in our code for the paths it names, with tests that fail on 74aed9ab8:
 # the rule-loop count that an account's forward, a Sieve redirect, a rule's
 # forward and copy and a bounce read and raise, the rules' header conditions and
-# header actions, and the signature and the disclaimers, which are not appended
-# to such a message and say so in the log (hmailserver/docs/MailFlowRules.md, "A
-# message over 80 MB"). Upstream's SignatureAdder refusal is taken, with the log
-# line beside it.
+# header actions, the spam headers of a message marked as spam and their removal
+# from an account's copy, and the signature and the disclaimers, which are not
+# appended to such a message and say so in the log
+# (hmailserver/docs/MailFlowRules.md, "A message over 80 MB"). Upstream's
+# SignatureAdder refusal is taken, with the log line beside it.
 #
 #   DELIBERATELY NOT TAKEN:
 #   - The header-only load for EVERY caller once the file is over 80 MB
@@ -167,7 +168,9 @@
 #     still refuses a message over 80 MB, so the change is not saved (HM6010) and
 #     the message is kept as it was. Reading it header only there would change what
 #     every script sees of such a message - its header, where it now sees none -
-#     which is the owner's to decide.
+#     which is the owner's to decide. Until then a rule's Run function is not run
+#     on such a message - its Message would show the script an empty one - and
+#     the log says so (RuleApplier::ApplyAction_).
 #   - Upstream's error numbers 5736-5738 (ours are HM7840-HM7842) and its own
 #     temporary-file copy of the body in MimeBody::SaveAllToFile: ours copies it
 #     in pieces through FileUtilities::WriteToFileAtomically, the writer every

@@ -1522,6 +1522,171 @@ namespace HM
       {
          data.SetRuleLoopCount(LoopCountOf_(data) + 1);
       }
+
+      void ExpectLarge_(bool condition, const std::string &what)
+      {
+         ExpectLarge_(condition, what.c_str());
+      }
+
+      // A field's value as the header holds it, empty when it holds none.
+      AnsiString FieldOf_(const MimeHeader &header, const char *name)
+      {
+         const char *value = header.GetRawFieldValue(name);
+         return value ? AnsiString(value) : AnsiString();
+      }
+
+      // The whole of a small file, byte for byte.
+      bool ReadWholeFile_(const String &fileName, AnsiString &bytes)
+      {
+         bytes = "";
+
+         File file;
+         if (!file.Open(fileName, File::OTReadOnly))
+            return false;
+
+         std::shared_ptr<ByteBuffer> read = file.ReadFile();
+         if (!read)
+            return false;
+
+         bytes = AnsiString(read->GetCharBuffer(), read->GetSize());
+         return true;
+      }
+
+      // What a message read header only must be once a field was set on it and
+      // it was written back: a header holding that field and the fields it was
+      // read with, and after the blank line that ends it the body it had, byte
+      // for byte.
+      void ExpectWrittenBack_(const AnsiString &written, const AnsiString &header, const AnsiString &body, const std::string &what)
+      {
+         const int end = written.Find("\r\n\r\n");
+         ExpectLarge_(end > 0, what + ": what was written has no end of its header");
+
+         const AnsiString writtenHeader = written.Mid(0, end + 4);
+         ExpectLarge_(writtenHeader.Find("X-Large-Message-Test: set\r\n") >= 0, what + ": the field set is not in the header written");
+         ExpectLarge_(writtenHeader.Find(header.Mid(0, header.GetLength() - 2)) == 0, what + ": the header written does not begin with the fields it was read with");
+         ExpectLarge_(written.Mid(end + 4) == body, what + ": the body written is not the body read, byte for byte");
+      }
+
+      // A header whose last field's line ends at lineEnd - the CRLF that ends it
+      // begins there, and the blank line follows - with fields before it that
+      // fill the bytes up to it; lastValue is that last field's value.
+      AnsiString HeaderWithLastLineEndingAt_(size_t lineEnd, AnsiString &lastValue)
+      {
+         AnsiString header = "Subject: A header read in steps\r\n";
+         const AnsiString filler = "X-Filler: 0123456789012345678901234567890123456789012345678901234567890123456789\r\n";
+         while ((size_t) header.GetLength() + (size_t) filler.GetLength() + 100 < lineEnd)
+            header += filler;
+
+         const AnsiString name = "X-Last: ";
+         lastValue = AnsiString(std::string(lineEnd - (size_t) header.GetLength() - (size_t) name.GetLength(), 'x').c_str());
+         header += name + lastValue + "\r\n\r\n";
+         return header;
+      }
+
+      // A header that ends past the first step MimeBody::LoadHeaderFromFile reads
+      // a file in, and one whose blank line falls across the edge of a step at
+      // each place it can: read whole, with the field after the edge, and written
+      // back - to another file - with the body after it byte for byte. The
+      // messages are small: what is read in steps is the header, whatever the
+      // size of the message, and only MessageData asks for it by size.
+      void HeaderReadInSteps_(const String &directory)
+      {
+         const String fileName = FileUtilities::Combine(directory, GUIDCreator::GetGUID() + _T(".eml"));
+         const String copyName = FileUtilities::Combine(directory, GUIDCreator::GetGUID() + _T(".eml"));
+
+         // The CRLF that ends the last field half a step past the first edge, and
+         // four, three, two and one bytes before it and on it: the four bytes of
+         // the line end and the blank line all before the edge, three, two or one
+         // of them before it, and all after it.
+         const size_t step = MimeBody::HeaderOnlyReadStep;
+         const size_t lineEnds[] = { step + step / 2, step - 4, step - 3, step - 2, step - 1, step };
+         const AnsiString body = "The body after a header read in steps.\r\nIts last line.\r\n";
+
+         try
+         {
+            for (size_t lineEnd : lineEnds)
+            {
+               const std::string what = std::string("a header whose last line ends at byte ") + std::to_string(lineEnd);
+
+               AnsiString lastValue;
+               const AnsiString header = HeaderWithLastLineEndingAt_(lineEnd, lastValue);
+               ExpectLarge_((size_t) header.GetLength() == lineEnd + 4, what + ": the test's header is not the length it was made to be");
+               ExpectLarge_(FileUtilities::WriteToFile(fileName, header + body), what + ": the test message could not be written");
+
+               std::shared_ptr<MimeBody> read = std::shared_ptr<MimeBody>(new MimeBody);
+               ExpectLarge_(read->LoadHeaderFromFile(fileName) == MimeLoadResult::Loaded && read->IsHeaderOnly(), what + ": the header was not read");
+               ExpectLarge_(FieldOf_(*read, "Subject") == "A header read in steps", what + ": the first field was not read");
+               ExpectLarge_(FieldOf_(*read, "X-Last") == lastValue, what + ": the last field was not read whole");
+
+               read->SetRawFieldValue("X-Large-Message-Test", "set", "");
+               ExpectLarge_(read->SaveAllToFile(copyName), what + ": the header was not written back");
+
+               AnsiString written;
+               ExpectLarge_(ReadWholeFile_(copyName, written), what + ": what was written could not be read");
+               ExpectWrittenBack_(written, header, body, what);
+            }
+         }
+         catch (...)
+         {
+            FileUtilities::DeleteFile(fileName);
+            FileUtilities::DeleteFile(copyName);
+            throw;
+         }
+
+         FileUtilities::DeleteFile(fileName);
+         FileUtilities::DeleteFile(copyName);
+      }
+
+      const char *const HeldHeader_ =
+         "Subject: A message held in memory\r\n"
+         "X-hMailServer-LoopCount: 1\r\n"
+         "\r\n";
+
+      const char *const HeldBody_ = "The body of a message held in memory.\r\nIts last line.\r\n";
+
+      // A message held in memory, as an object store hands one over
+      // (MessageStoreParseSource), read header only.
+      std::shared_ptr<MimeBody> HeldHeaderOnly_()
+      {
+         std::shared_ptr<const std::string> held = std::shared_ptr<const std::string>(new std::string(std::string(HeldHeader_) + HeldBody_));
+
+         std::shared_ptr<MimeBody> read = std::shared_ptr<MimeBody>(new MimeBody);
+         ExpectLarge_(read->LoadHeaderFromMemory(held) == MimeLoadResult::Loaded && read->IsHeaderOnly(), "the header of a message held in memory was not read");
+         return read;
+      }
+
+      // That message's header read and a field set on it, and the message
+      // written into memory and to a file, each with the body copied from the
+      // bytes it was read from.
+      void HeaderHeldInMemory_(const String &directory)
+      {
+         const String fileName = FileUtilities::Combine(directory, GUIDCreator::GetGUID() + _T(".eml"));
+
+         try
+         {
+            std::shared_ptr<MimeBody> read = HeldHeaderOnly_();
+            ExpectLarge_(FieldOf_(*read, "Subject") == "A message held in memory", "the subject of a message held in memory was not read");
+
+            read->SetRawFieldValue("X-Large-Message-Test", "set", "");
+
+            std::shared_ptr<const std::string> written;
+            ExpectLarge_(read->SaveAllToMemory(_T("a message held in memory"), written) && written, "a message held in memory, read header only, was not written into memory");
+            ExpectWrittenBack_(AnsiString(written->data(), written->size()), HeldHeader_, HeldBody_, "a message held in memory, written into memory");
+
+            ExpectLarge_(read->SaveAllToFile(fileName), "a message held in memory, read header only, was not written to a file");
+
+            AnsiString inFile;
+            ExpectLarge_(ReadWholeFile_(fileName, inFile), "the message written to a file could not be read");
+            ExpectWrittenBack_(inFile, HeldHeader_, HeldBody_, "a message held in memory, written to a file");
+         }
+         catch (...)
+         {
+            FileUtilities::DeleteFile(fileName);
+            throw;
+         }
+
+         FileUtilities::DeleteFile(fileName);
+      }
    }
 
    void
@@ -1582,6 +1747,12 @@ namespace HM
 
       FileUtilities::DeleteFile(fileName);
       FileUtilities::DeleteFile(copyName);
+
+      // The two reads the message above does not take: a header longer than
+      // the first step it is read in, or ending across a step's edge, and a
+      // message an object store holds in memory.
+      HeaderReadInSteps_(directory);
+      HeaderHeldInMemory_(directory);
    }
 
    void
@@ -1628,6 +1799,13 @@ namespace HM
          MessageData longData;
          ExpectLarge_(!longData.LoadFromMessage(longHeaderName, message, MessageData::LargeMessage::HeaderOnly), "a message whose header has no end in the bytes read was loaded");
          ExpectLarge_(!longData.Write(longHeaderName), "a message whose header could not be read was written");
+
+         // A changed body of a message held in memory, read header only: refused
+         // when written into memory (HM7840), and nothing handed back.
+         std::shared_ptr<MimeBody> held = HeldHeaderOnly_();
+         held->SetRawText("A body that would replace the one never read.");
+         std::shared_ptr<const std::string> written;
+         ExpectLarge_(!held->SaveAllToMemory(_T("a message held in memory"), written) && !written, "a message held in memory, read header only, was written with its body changed");
       }
       catch (...)
       {

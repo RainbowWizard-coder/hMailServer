@@ -218,17 +218,19 @@ describes the move, which the signature shares.
   authenticated, or from an address that is an account here. Attaching a
   company's legal text to a forgery would be worse than attaching it to nothing.
 * **A message over 80 MB** — larger than the server reads a message whole at,
-  which it takes only where its message size limit was raised past that (20 MB
-  by default). Its header alone is read, so the exclusions above are decided as
-  for any message, but not its body, and finding the text part to append to
-  would mean reading all of it: appending blind at the end of the file would put
-  the footer after a multipart message's closing boundary, or inside an encoded
-  part, where no client shows it. **What happens instead: the message is sent as
-  written, with no footer**, and the application log says so (`DisclaimerAdder -
-  Message ... is larger than the 80 MB a message is read whole at, so the
-  domain's disclaimer was not appended`). A rule's disclaimer is not appended to
-  it either ([MailFlowRules.md](MailFlowRules.md)). Until 13 October 2026 such a
-  message was not read at all, and the footer was left off without a word.
+  which a sender can submit only by SMTP (the webmail's send takes 16 MB a
+  request at most), and there only where the message size limit was raised past
+  that (20 MB by default). Its header alone is read, so the exclusions above are
+  decided as for any message, but not its body, and finding the text part to
+  append to would mean reading all of it: appending blind at the end of the file
+  would put the footer after a multipart message's closing boundary, or inside
+  an encoded part, where no client shows it. **What happens instead: the message
+  is sent as written, with no footer**, and the application log says so
+  (`DisclaimerAdder - Message ... is larger than the 80 MB a message is read
+  whole at, so the domain's disclaimer was not appended`). A rule's disclaimer
+  is not appended to it either ([MailFlowRules.md](MailFlowRules.md)). Until 13
+  October 2026 such a message was not read at all, and the footer was left off
+  without a word.
 
 ### Once, not once per hop
 

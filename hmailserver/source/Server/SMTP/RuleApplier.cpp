@@ -467,6 +467,25 @@ namespace HM
             if (RepeatsAttempt_(account, pMsgData, _T("script function")))
                break;
 
+            // A message too large to be read whole has only its header read here
+            // (ApplyRules), and a function reads the message through the COM API's
+            // Message, which does not read one of that size at all: its Subject,
+            // its other header fields and its body would read as empty, though
+            // the rule matched on them, and its Save is refused (HM6010). Until
+            // the large-message row no rule ran on such a message, so no function
+            // ran on one; until a script can read it, none does, and the log says
+            // so where an administrator missing the function's work will look.
+            if (pMsgData->IsHeaderOnly())
+            {
+               std::shared_ptr<Message> message = pMsgData->GetMessage();
+               LOG_APPLICATION(Formatter::Format("RuleApplier - Message {0} is larger than the {1} MB a message is read whole at, so the script function {2} of rule \"{3}\" was not run: a script reads the message through the COM API, which does not read a message of that size - its header and its body would read as empty, and its Save would be refused. The rule's other actions are taken.",
+                  message ? message->GetID() : 0,
+                  (int) (MessageData::MaxParseBytes / (1024 * 1024)),
+                  pAction->GetScriptFunction(),
+                  pRule->GetName()));
+               break;
+            }
+
             ApplyAction_ScriptFunction(pAction, account, pMsgData);
             break;
          }
@@ -1219,8 +1238,11 @@ namespace HM
       // The script may have modified the message. We need to reload it. We could
       // do a CRC check or something similar to determine whether it has changed,
       // but performance-wise we can probably just as well reload it - as ApplyRules
-      // loaded it, header only when it is too large to be read whole, so that the
-      // rules after this one still have its header.
+      // loads it, header only when it is too large to be read whole. No function
+      // is run on a message of that size (ApplyAction_), but one can make a
+      // message that size, by adding an attachment, and the rules after this one
+      // then still have its header, where a refused load left them an empty
+      // message to compare their criteria with.
       pMsgData->LoadFromMessage(account, pMsgData->GetMessage(), MessageData::LargeMessage::HeaderOnly);
    }
 
