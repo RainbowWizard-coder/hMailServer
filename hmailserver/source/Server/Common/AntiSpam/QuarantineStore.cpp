@@ -764,8 +764,13 @@ namespace HM
 
       // Newest first, and bounded. A review queue is worked from the top, and an
       // unbounded select on a table nobody has pruned is how an administration tool
-      // hangs on the one server that most needs looking at.
-      SQLCommand command("select * from hm_quarantine order by quarantinecreated desc");
+      // hangs on the one server that most needs looking at. The id breaks a tie, as
+      // it does in Search: messages held in one second come in one order in both,
+      // so that Search("", 500, 500) is the page after the one Refresh loads, and
+      // ?offset=1000&limit=1000 the page after the list's, where a group held in
+      // the second at the edge of a page could come in another order here and show
+      // a message on both pages or on neither.
+      SQLCommand command("select * from hm_quarantine order by quarantinecreated desc, quarantineid desc");
 
       std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
 

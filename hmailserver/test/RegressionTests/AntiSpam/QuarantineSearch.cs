@@ -23,8 +23,9 @@ namespace RegressionTests.AntiSpam
    ///    underscore in it, a reason with a bracket - which is what the LIKE has to
    ///    get right. No file stands behind any of them; nothing here releases one.
    ///    The time each was held is counted back from now in seconds, through
-   ///    DATEADD and GETDATE, which SQL Server and Compact both take: the two
-   ///    databases a Windows bench runs.
+   ///    DATEADD and GETDATE, or given whole through CAST where several must share
+   ///    a second, which SQL Server and Compact both take: the two databases a
+   ///    Windows bench runs.
    /// </summary>
    [TestFixture]
    public class QuarantineSearch : TestFixtureBase
@@ -72,6 +73,35 @@ namespace RegressionTests.AntiSpam
             "insert into hm_quarantine (quarantinefilename, quarantinesender, quarantinerecipients, quarantinesubject, quarantinereason, quarantinescore, quarantinesize, quarantinecreated) values (" +
             Literal(FilePrefix + Guid.NewGuid().ToString("N") + ".eml") + ", " + Literal(sender) + ", " + Literal(recipients) + ", " +
             Literal(subject) + ", " + Literal(reason) + ", 12, 345, DATEADD(second, -" + secondsAgo + ", GETDATE()))");
+      }
+
+      // One row held at a time given whole, so that several share it to the second.
+      // The first of January reads the same in every date format SQL Server's
+      // language settles on.
+      private int SeedAt(string heldAt, string subject)
+      {
+         return _application.Database.ExecuteSQLWithReturn(
+            "insert into hm_quarantine (quarantinefilename, quarantinesender, quarantinerecipients, quarantinesubject, quarantinereason, quarantinescore, quarantinesize, quarantinecreated) values ('" +
+            FilePrefix + Guid.NewGuid().ToString("N") + ".eml', 'tie@spam-sender.test', 'ada@example.test', '" + subject + "', 'Score 21', 12, 345, CAST('" + heldAt + "' AS datetime))");
+      }
+
+      // The ids of the page the collection holds, in its order.
+      private static List<int> Ids(hMailServer.Quarantine quarantine)
+      {
+         var ids = new List<int>();
+         for (int i = 0; ; i++)
+         {
+            try
+            {
+               ids.Add(quarantine[i].ID);
+            }
+            catch (COMException)
+            {
+               break;
+            }
+         }
+
+         return ids;
       }
 
       // hMailServer's Quarantine, named whole: in this namespace the bare name is the
@@ -217,6 +247,35 @@ namespace RegressionTests.AntiSpam
 
          Assert.AreEqual(7, quarantine.Search("page", 7, 3));
          Assert.AreEqual(0, Subjects(quarantine).Count);
+      }
+
+      [Test]
+      [Description("Refresh and Search order messages held in one second alike, by id, so that Search(\"\", 500, 500) is the page after the one Refresh loads where the page's edge falls among them")]
+      public void RefreshAndSearchOrderATieAlike()
+      {
+         // 503 held in one second: the edge of the page Refresh loads falls among them.
+         var seeded = new List<int>();
+         for (int i = 0; i < 503; i++)
+            seeded.Add(SeedAt("2026-01-01 12:00:00", "Tie " + i));
+
+         var quarantine = _application.Settings.AntiSpam.Quarantine;
+         quarantine.Refresh();
+         List<int> first = Ids(quarantine);
+         Assert.AreEqual(500, first.Count);
+
+         Assert.AreEqual(503, quarantine.Search("", 500, 500));
+         List<int> second = Ids(quarantine);
+
+         // Every message once, across the two pages, newest id first.
+         seeded.Sort();
+         seeded.Reverse();
+         var both = new List<int>(first);
+         both.AddRange(second);
+         Assert.AreEqual(seeded.ToArray(), both.ToArray(), "A message held in the second at the page's edge came on both pages or on neither.");
+
+         // The list's order is the search's from the first row.
+         Assert.AreEqual(503, quarantine.Search("", 0, 500));
+         Assert.AreEqual(first.ToArray(), Ids(quarantine).ToArray());
       }
 
       [Test]
