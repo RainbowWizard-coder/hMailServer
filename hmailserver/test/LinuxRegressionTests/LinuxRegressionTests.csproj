@@ -278,6 +278,7 @@
     <Compile Include="..\RegressionTests\POP3\Pipelining.cs" Link="POP3\Pipelining.cs" />
     <Compile Include="..\RegressionTests\POP3\ProtocolConformance.cs" Link="POP3\ProtocolConformance.cs" />
     <Compile Include="..\RegressionTests\POP3\RfcConformance.cs" Link="POP3\RfcConformance.cs" />
+    <Compile Include="..\RegressionTests\POP3\Utf8Command.cs" Link="POP3\Utf8Command.cs" />
     <Compile Include="..\RegressionTests\SMTP\AWStatsLoggingTests.cs" Link="SMTP\AWStatsLoggingTests.cs" />
     <Compile Include="..\RegressionTests\SMTP\AbortedTransfers.cs" Link="SMTP\AbortedTransfers.cs" />
     <Compile Include="..\RegressionTests\SMTP\BareLineFeedEndOfData.cs" Link="SMTP\BareLineFeedEndOfData.cs" />

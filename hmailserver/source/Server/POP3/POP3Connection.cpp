@@ -69,6 +69,7 @@ namespace HM
       sasl_bearer_pending_(false),
       sasl_external_pending_(false),
       utf8_enabled_(false),
+      maildrop_used_(false),
       mailbox_locked_(false)
    {
 
@@ -244,6 +245,10 @@ namespace HM
             case RSET:
             case DELE:
             case UIDL:
+            // RFC 6856 names AUTHORIZATION as UTF8's state, and classic Outlook sends it
+            // after PASS: handed to ProtocolUTF8_, which decides whether it is still
+            // in time.
+            case UTF8:
                return resolvedCommand;
             default:
                return INVALID;
@@ -377,6 +382,13 @@ namespace HM
          EnqueueWrite_("-ERR [SYS/PERM] This mailbox has been encrypted at rest since this session began. Sign in again with the account's own password.");
          return ResultDisconnect;
       }
+
+      // The first command that reads or changes the maildrop ends the time in which the
+      // session can still switch to UTF-8 mode (ProtocolUTF8_). It is the command that
+      // counts, whatever its answer: the client has begun on the maildrop.
+      if (command == STAT || command == LIST || command == UIDL || command == RETR ||
+          command == TOP || command == DELE || command == RSET)
+         maildrop_used_ = true;
 
       switch (command)
       {
@@ -592,14 +604,32 @@ namespace HM
    void
    POP3Connection::ProtocolUTF8_()
    {
-      // RFC 6856: the UTF8 command is only valid in the AUTHORIZATION state, before
-      // a mailbox is selected. It tells the server the client can handle UTF-8 in
-      // responses (and may send UTF-8 in the USER name). hMailServer already stores
-      // and transmits message data verbatim as bytes, so enabling the mode simply
-      // records the client's intent and acknowledges it.
-      if (current_state_ != AUTHORIZATION)
+      // RFC 6856 section 2 makes UTF8 a command of the AUTHORIZATION state alone
+      // ("Commands valid in states: AUTHORIZATION"), and RFC 1939 section 3 has a command
+      // sent in the wrong state refused ("A server MUST respond to a command issued when
+      // the session is in an incorrect state by responding with a negative status
+      // indicator").
+      //
+      // Classic Outlook for Windows (2016 to 2024) sends it after USER and PASS instead.
+      // It was answered "-ERR Invalid command in current state." from GetCommand's table,
+      // and Outlook then gave up with 0x800CCC90 before downloading anything (GitLab work
+      // item #85). Accepting it there departs from both RFCs, on purpose and narrowly:
+      // after login it is accepted only while the session has issued none of STAT, LIST,
+      // UIDL, RETR, TOP, DELE and RSET, before which nothing the mode could change has
+      // been sent. After one of them it is refused, as it was, because the mode has to
+      // hold for every message the session lists or sends - a size LIST reports matches
+      // what RETR then sends (section 2.1). NOOP, CAPA and HELP leave it open.
+      //
+      // The mode changes nothing in what is sent: a message goes out as it is stored,
+      // in UTF-8 mode or not. Section 2.1's downgrade for a client that never sends
+      // UTF8 - a surrogate message, or -ERR, for one with UTF-8 in its header - is not
+      // done (Roadmap.md, POP3, the UTF8 command's row).
+      const bool beforeTheMaildropIsUsed =
+         current_state_ == AUTHORIZATION || (current_state_ == TRANSACTION && !maildrop_used_);
+
+      if (!beforeTheMaildropIsUsed)
       {
-         EnqueueWrite_("-ERR UTF8 command only valid in AUTHORIZATION state.");
+         EnqueueWrite_("-ERR UTF8 command only valid before the first STAT, LIST, UIDL, RETR, TOP, DELE or RSET.");
          return;
       }
 
@@ -681,6 +711,11 @@ namespace HM
          // relying on the name surviving.
          username_.Empty();
          password_.Empty();
+
+         // A UTF8 sent before STLS is kept. RFC 6856 section 2.1 tells a client not to
+         // send STLS after UTF8 and lets a server refuse it; neither matters while the
+         // mode changes nothing in what is sent (ProtocolUTF8_). Once it does, the mode
+         // was asked for in the clear, as the name above was given, and goes with it.
 
          EnqueueWrite_("+OK Begin TLS negotiation");
          EnqueueHandshake();

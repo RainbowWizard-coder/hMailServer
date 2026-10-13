@@ -4709,6 +4709,22 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   take into the session's view any message it has not been told of yet, say so with an `EXISTS` before an `EXPUNGE`
   can give one of their numbers. `IMAP/SelectedFolderReports.cs` holds the first two. Found by upstream's UIDPLUS
   work (upstream PR 666).
+- **Fixed: classic Outlook for Windows, Outlook 2016 to 2024, downloaded nothing over POP3 and reported 0x800CCC90
+  (reported in work item 85).** Since 6.2.0 the server's `CAPA` has listed `UTF8` (RFC 6856), and Outlook, finding it
+  there, sends the `UTF8` command after `USER` and `PASS`. RFC 6856 makes `UTF8` a command of the AUTHORIZATION
+  state, before the login, and the server took it there alone: after the login it was answered `-ERR Invalid command
+  in current state.`, Outlook gave up there, and no mail came down, over TLS or not. Taking it after the login departs
+  from the RFCs on purpose - RFC 6856 lists `UTF8` for the AUTHORIZATION state alone, and RFC 1939 has a server
+  answer a command sent in the wrong state with `-ERR` - but at that point nothing has been listed or sent that the
+  mode could change, so `UTF8` is now accepted after the login as well, until the session's first `STAT`, `LIST`,
+  `UIDL`, `RETR`, `TOP`, `DELE` or `RSET`. After one of those it is still refused, because the mode has to hold for
+  every message the session lists or sends, now with a reply that says so (`-ERR UTF8 command only valid before the
+  first STAT, LIST, UIDL, RETR, TOP, DELE or RSET.`); `NOOP`, `CAPA` and `HELP` leave it open. `UTF8` before the login
+  is answered as it was, and `STLS`, which a client must not send after `UTF8`, is refused after the login as it
+  always was. There is no setting. IMAP has no such refusal: its `ENABLE UTF8=ACCEPT` belongs after the login
+  (RFC 6855), and is accepted there. The mode still changes nothing in what is sent, a message going out as it is
+  stored with `UTF8` or without, and RFC 6856's downgrade for a client that never sends `UTF8` (a surrogate message,
+  or a refusal, for a message with UTF-8 in its header fields) is not done (Roadmap.md, POP3).
 
 ### Operations
 

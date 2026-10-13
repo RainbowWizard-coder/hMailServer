@@ -821,6 +821,7 @@
     <Compile Include="POP3\LoginDelay.cs" />
     <Compile Include="POP3\AuthRespCode.cs" />
     <Compile Include="POP3\Pipelining.cs" />
+    <Compile Include="POP3\Utf8Command.cs" />
     <Compile Include="Security\AppPasswords.cs" />
     <Compile Include="Security\AutoBanFirewall.cs" />
     <Compile Include="Security\AutoBanNeverBanNames.cs" />

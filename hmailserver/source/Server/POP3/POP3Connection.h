@@ -137,7 +137,8 @@ namespace HM
       void ProtocolQUIT_();
       bool ProtocolSTLS_();
       void ProtocolCAPA_();
-      // RFC 6856: switch the session to UTF-8 mode (AUTHORIZATION state only).
+      // RFC 6856: switch the session to UTF-8 mode - in the AUTHORIZATION state, and
+      // after login until the session's first STAT, LIST, UIDL, RETR, TOP, DELE or RSET.
       void ProtocolUTF8_();
 
       // responseOnceOpen, when set, is sent only after the file has been opened
@@ -181,8 +182,14 @@ namespace HM
       std::shared_ptr<ScramSha256> scram_session_;
       std::shared_ptr<GssapiAcceptor> gssapi_session_;
 
-      // RFC 6856 UTF8 mode: set by the UTF8 command, advertised via CAPA.
+      // RFC 6856 UTF8 mode: set by the UTF8 command, advertised via CAPA. Nothing reads
+      // it yet: a message is sent as it is stored whether the mode is on or not.
       bool utf8_enabled_;
+
+      // Whether the session has issued one of the commands that read or change the
+      // maildrop - STAT, LIST, UIDL, RETR, TOP, DELE or RSET - after which the UTF8
+      // mode can no longer be switched on (ProtocolUTF8_).
+      bool maildrop_used_;
 
       // True only when THIS session acquired the mailbox lock. A session that was
       // refused the lock must not release it on disconnect - doing so handed the
