@@ -272,7 +272,7 @@
             <!-- The migrations and the PST import, a tab of Advanced until review
                  finding F273: the server's settings drawn by ServerSettingsView's
                  Migrations section, with its own Save (BackupView.EnterMigrations_). -->
-            <ContentControl x:Name="MigrationsHost" Focusable="False" IsTabStop="False" />
+            <ContentControl x:Name="MigrationsHost" Focusable="False" IsTabStop="False" Margin="0,12,0,0" />
         </scaffold:FormColumnPanel>
     </ScrollViewer>
 </UserControl>
