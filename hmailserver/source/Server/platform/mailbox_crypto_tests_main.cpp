@@ -47,8 +47,15 @@
 // stood. Every piece of text is watched for as a String holds it and in
 // UTF-16LE as well as in narrow characters - which found, in a GCC build, the
 // String Crypt::DeCrypt copied the opened key line into on its way out until
-// 6.3.7, its source, the key in hex, freed as it stood. Last,
+// 6.3.7, its source, the key in hex, freed as it stood. Then
 // StoredSecrets::Test, which the Windows server's self-test runs, runs here too.
+// And last, the key this node then holds is watched for to the end of the
+// process: StoredSecrets keeps a copy of it for as long as the process runs,
+// and until 6.3.7 that copy went back to the heap as it stood when the process
+// ended - the whole key, at every stop of the service and as each key verb
+// returned. The watch goes on through main's return and the static destructors
+// after it, and its line is the program's last, written by a destructor
+// function, which runs after them.
 //
 // Every block is handed out zeroed: a block can be memory freed before the
 // watch began - this program's own copies of the key file - and a buffer
@@ -94,6 +101,10 @@ namespace
    std::atomic<bool> g_watching(false);
    const std::string *g_markers[4] = {nullptr, nullptr, nullptr, nullptr};
    std::atomic<int> g_freedWithMarker(0);
+
+   // The same from the last check to the end of the process (StartWatchingTheEnd),
+   // set once and cleared only by the verdict (JudgeTheEnd).
+   std::atomic<bool> g_watchingTheEnd(false);
 
    bool HoldsAMarker(const char *begin, std::size_t size)
    {
@@ -148,6 +159,19 @@ namespace
          key[i] = static_cast<char>(0xA5 ^ (i * 29 + 7));
       return key;
    }
+
+   // The key in lower-case hex, as the key's line holds it ("HMK1KEY " and this).
+   std::string HexOf(const std::string &key)
+   {
+      static const char *digits = "0123456789abcdef";
+      std::string hex;
+      for (std::size_t i = 0; i < key.size(); i++)
+      {
+         hex += digits[(static_cast<unsigned char>(key[i]) >> 4) & 0x0F];
+         hex += digits[static_cast<unsigned char>(key[i]) & 0x0F];
+      }
+      return hex;
+   }
 }
 
 void *
@@ -170,7 +194,7 @@ operator delete(void *pointer) noexcept
       return;
 
    char *block = static_cast<char *>(pointer) - BlockHeader;
-   if (g_watching.load())
+   if (g_watching.load() || g_watchingTheEnd.load())
    {
       const std::size_t size = *reinterpret_cast<const std::size_t *>(block);
       if (HoldsAMarker(static_cast<const char *>(pointer), size))
@@ -396,13 +420,7 @@ namespace
          }
 
          std::string key = TestKey();
-         static const char *digits = "0123456789abcdef";
-         std::string hex;
-         for (std::size_t i = 0; i < key.size(); i++)
-         {
-            hex += digits[(static_cast<unsigned char>(key[i]) >> 4) & 0x0F];
-            hex += digits[static_cast<unsigned char>(key[i]) & 0x0F];
-         }
+         std::string hex = HexOf(key);
 
          if (failed.empty())
          {
@@ -514,6 +532,76 @@ namespace
       return "";
    }
 
+   // The markers of the watch over the end of the process: a piece of the key
+   // this node holds in hex, as its line holds it - narrow, as a String and in
+   // UTF-16LE - and a piece of its bytes, as StoredSecrets holds it. Made with
+   // new and never freed, since a marker's own block given back while the
+   // watch runs would be found holding it; what they are made from is given
+   // back before the watch begins.
+   void MakeMarkersOfTheEnd()
+   {
+      std::string key = TestKey();
+      std::string hex = HexOf(key);
+      const std::string hexPiece = hex.substr(16, 16);
+      const std::wstring wide(hexPiece.begin(), hexPiece.end());
+      std::string utf16Piece;
+      for (const char c : hexPiece)
+      {
+         utf16Piece += c;
+         utf16Piece += '\0';
+      }
+
+      g_markers[0] = new std::string(hexPiece);
+      g_markers[1] = new std::string(key.substr(8, 16));
+      g_markers[2] = new std::string(reinterpret_cast<const char *>(wide.data()), wide.size() * sizeof(wchar_t));
+      g_markers[3] = new std::string(utf16Piece);
+
+      HM::MailboxCrypto::Forget(hex);
+      HM::MailboxCrypto::Forget(key);
+   }
+
+   // The key this node holds - the one the check reading the key from its line
+   // left held - watched for from here to the end of the process, in every
+   // block given back to the heap: main's last, then the static destructors',
+   // StoredSecrets' own copy of the key among them, which went back as it
+   // stood until 6.3.7. A destructor function gives the verdict (JudgeTheEnd).
+   // Refused when this node holds no key: the watch would find nothing to find.
+   std::string StartWatchingTheEnd()
+   {
+      if (HM::StoredSecrets::State() != HM::StoredSecrets::KeyHeld)
+         return "this node holds no key to watch for, where the check that read the key from its line left one held";
+
+      MakeMarkersOfTheEnd();
+      g_freedWithMarker = 0;
+      (void) std::fflush(stdout);
+      g_watchingTheEnd = true;
+      return "";
+   }
+
+   // The verdict on the end of the process. A destructor function runs after
+   // every static destructor - glibc runs the static destructors from the
+   // atexit list and this from _dl_fini, which that list runs last, and musl
+   // runs it from __libc_exit_fini, after the list - and before the standard
+   // streams are flushed. A block found ends the program with exit 1, whatever
+   // main returned.
+   __attribute__((destructor)) void JudgeTheEnd()
+   {
+      if (!g_watchingTheEnd.load())
+         return;
+
+      g_watchingTheEnd = false;
+      const int freed = g_freedWithMarker.load();
+      if (freed == 0)
+      {
+         printf("ok    the key this node holds, as the process ends: no buffer that held it in hex or its bytes freed as it stood, main's return and the static destructors included\n");
+         return;
+      }
+
+      printf("FAIL  the key this node holds, as the process ends: %d buffer(s) holding the key in hex or its bytes were freed as they stood\n", freed);
+      (void) std::fflush(stdout);
+      ::_exit(1);
+   }
+
    // One check, one line; false when it failed.
    bool Run(const char *what, std::string (*check)(), const char *held)
    {
@@ -568,6 +656,14 @@ main(int /*argc*/, char * /*argv*/[])
 
    if (!Run("the stored-secrets seal and key files", CheckStoredSecretsSelfTest, "StoredSecrets::Test, as the Windows server's self-test runs it"))
       return 1;
+
+   // Last, and judged after everything else has ended (JudgeTheEnd).
+   const std::string notWatched = StartWatchingTheEnd();
+   if (!notWatched.empty())
+   {
+      printf("FAIL  the key this node holds, as the process ends: %s\n", notWatched.c_str());
+      return 1;
+   }
 
    return 0;
 }

@@ -327,14 +327,17 @@ reads the file with the operating system's own reads into one buffer, and that b
 every copy made of the key on its way to the line under the machine's store - its base64,
 its bytes, its hex, the line, and the line opened again to read the key back - are written
 over (`OPENSSL_cleanse`) before they are freed, an error or an exception on the way included;
-the export does the same with the file's text. Until 6.3.7 the import read the file through
+the export does the same with the file's text. The one copy kept, the key a process holds
+once it has read it from its line - the service for as long as it runs, a verb until it
+returns - is written over as the process ends. Until 6.3.7 the import read the file through
 the C runtime and the server's text-file reader, and their buffers and the copies of the
 whole file made on the way to the one that was written over - the key's line in each - went
-back to the heap as they stood. And on Windows, and in a build made with GCC, the line opened
-by the machine's store was copied on its way out of `Crypt::DeCrypt`, and the copy's source -
-the key in hex - freed as it stood: at every start, and whenever a verb read the key. On
-Linux the scratch buffer in which a conversion of the line to or from UTF-8 is measured, on
-the stack, is written over as the measure ends too.
+back to the heap as they stood; so did the key the process held, the whole of it, at every
+stop of the service and as each verb returned. And on Windows, and in a build made with
+GCC, the line opened by the machine's store was copied on its way out of `Crypt::DeCrypt`,
+and the copy's source - the key in hex - freed as it stood: at every start, and whenever a
+verb read the key. On Linux the scratch buffer in which a conversion of the line to or from
+UTF-8 is measured, on the stack, is written over as the measure ends too.
 
 A node set up on a new, empty database of its own before it was pointed at the shared one
 holds a key of its own: the shared database refuses it at the next start (`HM7495`). Remove
@@ -593,7 +596,9 @@ self-test, and watches every block of memory the key verbs' code gives back to t
 key file read by `--import-stored-secrets-key` in each of those three forms, the key read from
 its line, exported by `--export-stored-secrets-key` and the exported file read back - for a
 piece of the key in base64 or hex, as narrow text, as a `String` and in UTF-16LE, or of its
-bytes: none may hold one. The import's last step, the key protected and written into the
-line, runs only with a database open, which that program has not; what it copies - the hex,
-the line, the line's UTF-8 that the machine's store protects - is written over by the same
-guards, as the code shows (`StoredSecrets::StoreKey_`, `Crypt::EnCrypt`).
+bytes: none may hold one. It goes on watching to the end of the process, through the static
+destructors that free the key the process held, and fails if one gives back a block holding
+a piece of it. The import's last step, the key protected and written into the line, runs
+only with a database open, which that program has not; what it copies - the hex, the line,
+the line's UTF-8 that the machine's store protects - is written over by the same guards, as
+the code shows (`StoredSecrets::StoreKey_`, `Crypt::EnCrypt`).

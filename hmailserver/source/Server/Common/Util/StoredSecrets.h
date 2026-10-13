@@ -191,11 +191,12 @@ namespace HM
       // so that no C runtime buffer, no ByteBuffer and no wide String holds a
       // copy of the key; that buffer, and every copy ImportText makes, is
       // written over (OPENSSL_cleanse) before it goes back to the heap, however
-      // this ends - an exception included. A file with a UTF-16LE byte order
-      // mark - what Windows PowerShell 5's Out-File and > write - is narrowed in
-      // the same buffer; a UTF-8 one is stepped over by ImportText. Refused as
-      // ImportText refuses, and when the file cannot be read or is larger than a
-      // key file can be.
+      // this ends - an exception included. The one copy kept, the key this
+      // process holds once it has read it from its line, is written over as
+      // the process ends. A file with a UTF-16LE byte order mark - what Windows
+      // PowerShell 5's Out-File and > write - is narrowed in the same buffer; a
+      // UTF-8 one is stepped over by ImportText. Refused as ImportText refuses,
+      // and when the file cannot be read or is larger than a key file can be.
       static bool ImportFile(const String &path, AnsiString &keyId, String &problem);
 
       // The most of a key file ImportFile reads: an exported one is about a

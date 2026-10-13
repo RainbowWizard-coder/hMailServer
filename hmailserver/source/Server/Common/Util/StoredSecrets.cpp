@@ -70,6 +70,29 @@ namespace HM
       std::string held_key;
       AnsiString held_key_id;
 
+      // Set as the process ends, below: from then on this node holds no key, and
+      // none is read from the line again.
+      bool held_ended = false;
+
+      // The key this node holds, written over as the process ends. Defined after
+      // the statics above, this is destroyed before them, so that held_key goes
+      // back to the heap holding nothing; until 6.3.7 it went back as it stood,
+      // the whole key, whenever a process that had read the key ended - the
+      // service at every stop, a key verb as it returned. Under the lock, so that
+      // no thread still running then is copying it; and the key then counts as
+      // not held, so that such a thread is told there is none rather than given
+      // what is left, and reads none back into held_key.
+      struct ForgetHeldAtProcessEnd_
+      {
+         ~ForgetHeldAtProcessEnd_()
+         {
+            std::lock_guard<std::mutex> guard(held_mutex);
+            MailboxCrypto::Forget(held_key);
+            held_state = StoredSecrets::KeyNone;
+            held_ended = true;
+         }
+      } forget_held_at_process_end;
+
       // Whether this node's key is the database's: judged by EnsureAtStart at a
       // start, and by the first seal in a process that never ran it - a verb.
       enum DatabaseCheck
@@ -289,7 +312,7 @@ namespace HM
 
          {
             std::lock_guard<std::mutex> guard(held_mutex);
-            if (held_loaded && held_from == line)
+            if (held_ended || (held_loaded && held_from == line))
                return;
          }
 
@@ -335,6 +358,12 @@ namespace HM
          }
 
          std::lock_guard<std::mutex> guard(held_mutex);
+
+         // The process began to end while the line was read: what was read is
+         // forgotten on the way out (forgetKey), and held_key stays empty.
+         if (held_ended)
+            return;
+
          MailboxCrypto::Forget(held_key);
          held_key = key;
          held_key_id = keyId;
@@ -593,8 +622,10 @@ namespace HM
             ::close(descriptor);
          }
 #else
-         // Shared as File::Open's _SH_DENYNO shares: the import never stood in
-         // the way of anything else that had the file open.
+         // Shared for reading and writing, as File::Open's _SH_DENYNO shares the
+         // file (the C runtime gives it FILE_SHARE_READ | FILE_SHARE_WRITE), and
+         // for deletion as well: the import stands in the way of nothing else
+         // that has the file open, nor of the file's removal or renaming.
          HANDLE file = ::CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
                                      nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
          if (file == INVALID_HANDLE_VALUE)

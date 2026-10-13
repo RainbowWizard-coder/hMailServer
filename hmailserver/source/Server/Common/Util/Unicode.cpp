@@ -9,7 +9,11 @@
 #include <iconv.h>
 #include <langinfo.h>
 #include <cerrno>
-#include <openssl/crypto.h>
+// explicit_bzero, for the measuring scratch below: a write the compiler may not
+// remove, as it may a memset over storage nothing reads again. Not OpenSSL's
+// cleanse: the MIME fuzz harnesses (build/ci/linux-fuzz.sh) build this file
+// and link no libcrypto, which a fuzz target has no business carrying.
+#include <string.h>
 #endif
 
 #ifdef _DEBUG
@@ -133,7 +137,7 @@ namespace HM
             {
                char *bytes;
                size_t size;
-               ~ScratchWipe() { OPENSSL_cleanse(bytes, size); }
+               ~ScratchWipe() { ::explicit_bzero(bytes, size); }
             } wipeScratch = {scratch, sizeof(scratch)};
             size_t total = 0;
 

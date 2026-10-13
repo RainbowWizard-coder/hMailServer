@@ -410,15 +410,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   back to the heap as it stood at every start of the service and whenever a verb read the key (from 6.3.4); the 6.3.6
   change to that read left it. The line is now built where it is returned. On Linux the scratch buffer in which iconv
   measures a conversion - the key's line among what it measures, on its way into the machine's store and out of it -
-  is written over as the measure ends, where the last of what it converted stayed on the thread's stack. A key file
-  saved with a UTF-8 byte order mark, which the import refused as not a key file, is now read as one, as a UTF-16LE
-  file with its mark already was; a file larger than 64 KiB is refused, as no key file is that large; and one that
-  cannot be read says so, where it was called not a key file. `mailbox-crypto-tests` watches every block the import,
-  the export and the reading of the key from its line give back to the heap - the key file saved with LF, CRLF and a
-  UTF-8 mark, and in UTF-16LE - for a piece of the key as narrow text, as a `String`, in UTF-16LE or as its bytes, and
-  finds none; with the import's old read it finds three blocks for a key file, and built with GCC before the change,
-  the copy of the line. The server's self-test (`StoredSecrets::Test`, run on Linux by the same program) reads each of
-  those files through to its key, refuses one over 64 KiB and says one that is not there is unreadable, and
+  is written over as the measure ends, where the last of what it converted stayed on the thread's stack. And the key a
+  process holds once it has read it from its line - the service's for as long as it runs, a verb's until it returns -
+  is written over as the process ends, where it went back to the heap as it stood, the whole key, at every stop of the
+  service and as each verb that read it returned (from 6.3.4). A key file saved with a UTF-8 byte order mark, which
+  the import refused as not a key file, is now read as one, as a UTF-16LE file with its mark already was; a file
+  larger than 64 KiB is refused, as no key file is that large; and one that cannot be read says so, where it was
+  called not a key file. `mailbox-crypto-tests` watches every block the import, the export and the reading of the key
+  from its line give back to the heap - the key file saved with LF, CRLF and a UTF-8 mark, and in UTF-16LE - for a
+  piece of the key as narrow text, as a `String`, in UTF-16LE or as its bytes, and finds none, the blocks the process
+  gives back as it ends included; with the import's old read it finds three blocks for a key file; built with GCC
+  before the change, the copy of the line; and without the wipe at the end of the process, the block of the key the
+  process held. The server's self-test (`StoredSecrets::Test`, run on Linux by the same program) reads each of those
+  files through to its key, refuses one over 64 KiB and says one that is not there is unreadable, and
   `Security/SecretsAtRest.cs` imports the key file saved again with a UTF-8 mark and in UTF-16LE, and refuses it with
   64 KiB of blanks after it. Found by the project's own review. [SecretsAtRest.md](hmailserver/docs/SecretsAtRest.md),
   "Carrying it to another node".
