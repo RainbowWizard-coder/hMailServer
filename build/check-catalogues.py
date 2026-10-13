@@ -367,7 +367,10 @@ def quotation_findings(tag, target):
 #   入力して 照会 を押して), a space after a full-width mark (配置： {0}), and a half-width
 #   question mark after Han characters (您想做什么?);
 # - a Finnish subordinate clause after a conjunction phrase with no comma (lykkää postia sen
-#   sijaan että palauttaisi, poista näyte ennen kuin palvelin): 67 texts;
+#   sijaan että palauttaisi, poista näyte ennen kuin palvelin): 67 texts; and, from the check of
+#   the read-back, kun or että after any other word with no comma (vanhimmat hylätään kun jonossa),
+#   aina kun and myös että, and a relative clause after kaikki, mitään or siellä (Kaikki mikä
+#   käyttää sitä lakkaa), which the read-back's comma pass had left in ten texts;
 # - a Norwegian relative som that stands for the whole clause before it (hele serveren, som er
 #   grunnen til at), which takes noe som;
 # - an identity provider named two ways in one text: the Ukrainian and Chinese read-backs made it
@@ -385,9 +388,21 @@ READBACK_CHINESE_SPACED_BUTTON = re.compile(r"(?:点击|单击) (?![“\"「（(
 READBACK_CHINESE_SPACE_AFTER_MARK = re.compile(r"[，。：；！？、] (?=\S)")
 READBACK_CHINESE_HALF_WIDTH_ASK = re.compile(r"[一-鿿][?!]")
 READBACK_JAPANESE_SPACED_BUTTON = re.compile(r"[぀-ゟ゠-ヿ一-鿿] を(?:押|クリック)")
-READBACK_FINNISH_PHRASE = re.compile(r"(?<=[\w)\"”]) (sen sijaan|sen jälkeen|silloin|silloinkin|heti|vasta|samalla) (että|kun)\b")
+READBACK_FINNISH_PHRASE = re.compile(r"(?<=[\w)\"”]) (sen sijaan|sen jälkeen|silloin|silloinkin|heti|vasta|samalla|aina|myös) (että|kun)\b")
 READBACK_FINNISH_CONJUNCTION = re.compile(r"(\w+) (ennen kuin|kunnes)\b")
 READBACK_FINNISH_COORDINATORS = {"ja", "tai", "eli", "sekä", "mutta", "vaan", "eikä", "taikka", "joten", "koska"}
+# kun and että open a subordinate clause, which takes a comma before it - or before the adverb
+# that opens the clause with it (", heti kun", ", sen sijaan että"), so a word of these before the
+# conjunction is the phrase rule's to judge, or left alone; "kuin että" compares, "sekä ... että"
+# pairs two words.
+READBACK_FINNISH_SUBORDINATE = re.compile(r"(\w+) (kun|että)\b")
+READBACK_FINNISH_OPENERS = {
+   "aina", "myös", "vain", "juuri", "heti", "vasta", "silloin", "silloinkin", "samalla", "sijaan", "jälkeen", "aikaan",
+   "mukaa", "lisäksi", "varsinkin", "etenkin", "jopa", "ainakin", "paitsi", "niin", "siten", "nyt", "jo", "edes",
+   "kuten", "sitten", "kuin",
+}
+READBACK_FINNISH_RELATIVE = re.compile(r"(?i)\b(kaikki|kaikkea|mitään|jotain|jotakin|siellä|sinne|sieltä) "
+                                       r"(mikä|mitä|mihin|missä|mistä|joka|jota|jonka|jotka)\b(?! tahansa)")
 READBACK_NORWEGIAN_CLAUSE_SOM = re.compile(r", som er (?:grunnen|årsaken) til\b")
 # The identity provider's one name in a catalogue, and the words a text that names it may not use
 # for it too; a text that names a provider of another kind (a DNS provider) is left alone.
@@ -460,6 +475,17 @@ def readback_findings(tag, source, target):
          if match.group(1).lower() not in READBACK_FINNISH_COORDINATORS:
             findings.append("no comma before the subordinate clause (%r); write %s, %s"
                             % (match.group(0), match.group(1), match.group(2)))
+      for match in READBACK_FINNISH_SUBORDINATE.finditer(target):
+         word = match.group(1).lower()
+         if word in READBACK_FINNISH_COORDINATORS or word in READBACK_FINNISH_OPENERS:
+            continue
+         if match.group(2) == "että" and "sekä" in target[max(0, match.start() - 80):match.start() + 1].lower():
+            continue
+         findings.append("no comma before the subordinate clause (%r); write %s, %s"
+                         % (match.group(0), match.group(1), match.group(2)))
+      for match in READBACK_FINNISH_RELATIVE.finditer(target):
+         findings.append("no comma before the relative clause (%r); write %s, %s"
+                         % (match.group(0), match.group(1), match.group(2)))
    elif tag == "nb":
       for match in READBACK_NORWEGIAN_CLAUSE_SOM.finditer(target):
          findings.append("som stands for the whole clause before it (%r); write noe som"
@@ -767,6 +793,8 @@ def self_test():
    register = "Register this server as an application with the identity provider, download the provider's public signing key."
    saml = "Sign people in with a SAML identity provider. Give the provider this server's metadata."
    mode = "Mode and max_age read from hMailServer.ini on this machine."
+   dropped = "Entries queue, and the oldest are dropped once 4,096 are waiting."
+   revoke = "Revoke the API key {0}? Anything using it stops working on its very next request."
    readback_cases = {
       ("zh-Hans", stop, "停止更新？尚未安装任何内容。"): True,
       ("zh-Hans", stop, "是否停止更新？尚未安装任何内容。"): False,
@@ -803,6 +831,19 @@ def self_test():
       ("pl", "Windows did not run it as an administrator", "system Windows nie uruchomił go jako administrator"): False,
       ("fi", "Could not write to hMailServer.ini: {0}.", "hMailServer.ini-tiedostoon ei voitu kirjoittaa: {0}."): False,
       ("da", "Autodiscover and autoconfig are served by the built-in HTTP listener.", "autoconfig og Autodiscover leveres af den indbyggede HTTP-lytter."): False,
+      ("fi", dropped, "Vanhimmat hylätään kun jonossa on 4 096."): True,
+      ("fi", dropped, "Vanhimmat hylätään, kun jonossa on 4 096."): False,
+      ("fi", "Finds the rest of the members each time a message is sent to the list.", "Etsii loput jäsenet aina kun listalle lähetetään viesti."): True,
+      ("fi", "Finds the rest of the members each time a message is sent to the list.", "Etsii loput jäsenet aina, kun listalle lähetetään viesti."): False,
+      ("fi", "It also checks that the published key is the right one.", "Se tarkistaa myös että julkaistu avain on oikea."): True,
+      ("fi", "It also checks that the published key is the right one.", "Se tarkistaa myös, että julkaistu avain on oikea."): False,
+      ("fi", revoke, "Kumotaanko API-avain {0}? Kaikki mikä käyttää sitä lakkaa toimimasta."): True,
+      ("fi", revoke, "Kumotaanko API-avain {0}? Kaikki, mikä käyttää sitä, lakkaa toimimasta."): False,
+      ("fi", "Prefer the header where the reader can show it.", "Suosi otsaketta siellä missä lukija osaa näyttää sen."): True,
+      ("fi", "Any of them will do.", "Kaikki mikä tahansa käy."): False,
+      ("fi", "The certificate and the key must both be set.", "Sekä varmenteen että avaimen on oltava asetettuina."): False,
+      ("fi", "At most it marks the account inactive, and only when you ask.", "Enintään se merkitsee tilin, ja vain kun pyydät sitä."): False,
+      ("fi", "Less strict on purpose until you are sure the list is complete.", "Lievempi tarkoituksella, kunnes olet varma että lista on täydellinen."): True,
    }
    for (tag, source, value), expected in readback_cases.items():
       found = bool(readback_findings(tag, source, value))

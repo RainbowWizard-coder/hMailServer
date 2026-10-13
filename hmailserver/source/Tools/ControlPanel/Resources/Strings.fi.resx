@@ -496,7 +496,7 @@
     <value>Sähköpostiohjelma kirjautuu salasanalla, ja muusta kuin tämän tietokoneen osoitteesta salasanan pitäisi kulkea verkon yli vain TLS:n sisällä.</value>
   </data>
   <data name="A marked message is changed in no visible way: no X-hMailServer-Spam header, no reason header and no subject prefix, so a mail client has nothing to file on. The internal spam flag is still set, which suppresses auto-replies and forwarding for accounts configured that way." xml:space="preserve">
-    <value>Merkittyä viestiä ei muuteta näkyvästi millään tavalla: ei X-hMailServer-Spam-otsaketta, ei syyotsaketta eikä aiheen etuliitettä, joten sähköpostiohjelmalla ei ole mitään mihin lajittelun voisi perustaa. Sisäinen roskapostimerkintä asetetaan silti, ja se estää automaattivastaukset ja edelleenlähetyksen niin määritetyillä tileillä.</value>
+    <value>Merkittyä viestiä ei muuteta näkyvästi millään tavalla: ei X-hMailServer-Spam-otsaketta, ei syyotsaketta eikä aiheen etuliitettä, joten sähköpostiohjelmalla ei ole mitään, mihin lajittelun voisi perustaa. Sisäinen roskapostimerkintä asetetaan silti, ja se estää automaattivastaukset ja edelleenlähetyksen niin määritetyillä tileillä.</value>
   </data>
   <data name="A message above this is passed without being sent to the engine, because sending a large attachment across the network costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine." xml:space="preserve">
     <value>Tätä suurempi viesti päästetään läpi lähettämättä sitä moottorille, koska suuren liitteen siirtäminen verkon yli maksaa enemmän kuin vastaus on arvoinen. 0 poistaa ylärajan, mikä on järkevää tällä koneella sijaitsevalle moottorille.</value>
@@ -547,7 +547,7 @@
     <value>Uusi palvelutilin salasana on kirjoitettu, ja sen alla on rastitettu "Poista tallennettu palvelutilin salasana tallennettaessa". Tyhjennä salasana tai poista rasti - tämän sivun ei kuulu arvata, kumpi oli tarkoitus.</value>
   </data>
   <data name="A new value has been typed for &quot;{0}&quot;, and &quot;Remove the stored secret when saving&quot; is ticked under it. Clear the value or untick the box - guessing which was meant is not this page's decision to make." xml:space="preserve">
-    <value>Kohteelle "{0}" on kirjoitettu uusi arvo, ja sen alla on rastitettu "Poista tallennettu salaisuus tallennettaessa". Tyhjennä arvo tai poista rasti - tämän sivun ei kuulu arvata kumpi oli tarkoitus.</value>
+    <value>Kohteelle "{0}" on kirjoitettu uusi arvo, ja sen alla on rastitettu "Poista tallennettu salaisuus tallennettaessa". Tyhjennä arvo tai poista rasti - tämän sivun ei kuulu arvata, kumpi oli tarkoitus.</value>
   </data>
   <data name="A notice is sent to the envelope sender of every infected message. Virus senders forge that address almost without exception, so this mostly delivers mail to people who did not send anything - which is backscatter, and it is what gets a server onto a block list." xml:space="preserve">
     <value>Ilmoitus lähetetään jokaisen saastuneen viestin kuoren lähettäjälle. Virusten lähettäjät väärentävät tuon osoitteen lähes poikkeuksetta, joten tämä toimittaa postia enimmäkseen ihmisille, jotka eivät ole lähettäneet mitään - se on backscatter-postia, ja juuri se vie palvelimen estolistalle.</value>
@@ -727,7 +727,7 @@
     <value>Versiota 6.2.17 vanhempi; päivitä, koska juuri se versio lisäsi nämä rivit.</value>
   </data>
   <data name="A virus scanner that stops responding. ClamAV is contacted after the message is accepted, so a wedged clamd shows up as accepted-but-never-delivered. Each socket operation is bounded by the ClamAV minimum and maximum timeouts on the Anti-virus settings page - a deadline on one read or write, armed afresh each time, so a large message streamed in chunks can take longer than the maximum timeout in total." xml:space="preserve">
-    <value>Virustarkistin, joka lakkaa vastaamasta. ClamAV:hen otetaan yhteys sen jälkeen, kun viesti on hyväksytty, joten jumittunut clamd näkyy viestinä, joka hyväksyttiin mutta jota ei koskaan toimitettu. Jokaista soketin toimintoa rajaavat ClamAV:n vähimmäis- ja enimmäisaikakatkaisu sivulla Virustorjunnan asetukset - määräaika yhdelle luku- tai kirjoitustapahtumalle, viritettynä joka kerta uudelleen, joten paloissa siirretty suuri viesti voi kestää kokonaisuudessaan pidempään kuin enimmäisaikakatkaisu.</value>
+    <value>Virustarkistin, joka lakkaa vastaamasta. ClamAV:hen otetaan yhteys sen jälkeen, kun viesti on hyväksytty, joten jumittunut clamd näkyy viestinä, joka hyväksyttiin, mutta jota ei koskaan toimitettu. Jokaista soketin toimintoa rajaavat ClamAV:n vähimmäis- ja enimmäisaikakatkaisu sivulla Virustorjunnan asetukset - määräaika yhdelle luku- tai kirjoitustapahtumalle, viritettynä joka kerta uudelleen, joten paloissa siirretty suuri viesti voi kestää kokonaisuudessaan pidempään kuin enimmäisaikakatkaisu.</value>
   </data>
   <data name="A way back from a profile is held and cannot be read, so it cannot be put back. Discard it to apply a profile; the audit trail names each value the profile replaced." xml:space="preserve">
     <value>Profiilin paluutie on tallessa, mutta sitä ei voi lukea, joten sitä ei voi palauttaa. Hylkää se, jotta voit ottaa profiilin käyttöön; valvontaloki nimeää jokaisen profiilin korvaaman arvon.</value>
@@ -1090,7 +1090,7 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
     <value>Lisää laitteelle IP-alue, joka sallii SMTP-toimituksen ilman todennusta.</value>
   </data>
   <data name="Add an IP range with everything denied - ranges are matched most specific first." xml:space="preserve">
-    <value>Lisää IP-alue jossa kaikki on kielletty - alueista täsmätään tarkin ensin.</value>
+    <value>Lisää IP-alue, jossa kaikki on kielletty - alueista täsmätään tarkin ensin.</value>
   </data>
   <data name="Add an X-AuthUser header with the authenticated account" xml:space="preserve">
     <value>Lisää X-AuthUser-otsake, jossa on todennettu tili</value>
@@ -1552,7 +1552,7 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
     <value>SPF-tietue - mitkä palvelimet saavat lähettää tämän verkkotunnuksen postia</value>
   </data>
   <data name="An SPF record is live at {0} and it is not the suggested one. That may well be deliberate - the suggestion cannot know your other senders. Published: {1} - just confirm everything that really sends mail as {0} is covered." xml:space="preserve">
-    <value>Osoitteessa {0} on julkaistuna SPF-tietue, eikä se ole ehdotettu tietue. Se voi hyvinkin olla tarkoituksellista - ehdotus ei voi tietää muita lähettäjiäsi. Julkaistu: {1} - varmista vain, että kaikki mikä todella lähettää postia nimellä {0} on katettu.</value>
+    <value>Osoitteessa {0} on julkaistuna SPF-tietue, eikä se ole ehdotettu tietue. Se voi hyvinkin olla tarkoituksellista - ehdotus ei voi tietää muita lähettäjiäsi. Julkaistu: {1} - varmista vain, että kaikki, mikä todella lähettää postia nimellä {0}, on katettu.</value>
   </data>
   <data name="An absolute path on the server. A PST job names a file in the subfolder for the target account's domain, such as example.com\archive.pst, and nowhere else." xml:space="preserve">
     <value>Palvelimen absoluuttinen polku. PST-työ nimeää tiedoston kohdetilin verkkotunnuksen alikansiosta, kuten example.com\archive.pst, eikä mistään muualta.</value>
@@ -1892,7 +1892,7 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
     <value>Julkaise DNS-palveluntarjoajallasi verkkotunnukseen TXT-tietue, esimerkiksi v=spf1 mx -all, joka nimeää sen postia lähettävät palvelimet. Sivu DNS-tietueet näyttää julkaistavan tietueen.</value>
   </data>
   <data name="At your DNS host, publish a TXT record named &lt;selector&gt;._domainkey.&lt;domain&gt; containing the public key (v=DKIM1; k=rsa; p=...). This page looks the record up through the Windows resolver, and where the key file is readable it also checks that the published key is the right one - a wrong value cannot be fixed by waiting." xml:space="preserve">
-    <value>Julkaise DNS-palveluntarjoajallasi TXT-tietue nimeltä &lt;selector&gt;._domainkey.&lt;domain&gt;, joka sisältää julkisen avaimen (v=DKIM1; k=rsa; p=...). Tämä sivu hakee tietueen Windowsin nimiselvittimen kautta, ja jos avaintiedosto on luettavissa, se tarkistaa myös että julkaistu avain on oikea avain - väärää arvoa ei korjaa odottamalla.</value>
+    <value>Julkaise DNS-palveluntarjoajallasi TXT-tietue nimeltä &lt;selector&gt;._domainkey.&lt;domain&gt;, joka sisältää julkisen avaimen (v=DKIM1; k=rsa; p=...). Tämä sivu hakee tietueen Windowsin nimiselvittimen kautta, ja jos avaintiedosto on luettavissa, se tarkistaa myös, että julkaistu avain on oikea avain - väärää arvoa ei korjaa odottamalla.</value>
   </data>
   <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
     <value>Julkaise DNS-palveluntarjoajallasi TXT-tietue nimellä _dmarc.&lt;domain&gt;, aluksi muodossa v=DMARC1; p=none raporttien lukemisen ajaksi ja sitten p=quarantine tai p=reject. Sivu DNS-tietueet näyttää julkaistavan tietueen.</value>
@@ -4583,7 +4583,7 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
     <value>Tyhjä tarkoittaa postmasteria tämän palvelimen konenimellä.</value>
   </data>
   <data name="Empty means the systemd journal on Linux, and means nothing is sent on Windows. A collector that stops answering never delays mail: entries queue, the oldest are dropped once 4,096 are waiting, and the application log says so once when it starts and once when the collector comes back." xml:space="preserve">
-    <value>Tyhjä tarkoittaa Linuxissa systemd:n journalia ja Windowsissa sitä, ettei mitään lähetetä. Keräin, joka lakkaa vastaamasta, ei koskaan viivytä postia: merkinnät jonottavat, vanhimmat hylätään kun jonossa on 4 096, ja sovelluslokiin tulee siitä yksi rivi alussa ja yksi, kun keräin palaa.</value>
+    <value>Tyhjä tarkoittaa Linuxissa systemd:n journalia ja Windowsissa sitä, ettei mitään lähetetä. Keräin, joka lakkaa vastaamasta, ei koskaan viivytä postia: merkinnät jonottavat, vanhimmat hylätään, kun jonossa on 4 096, ja sovelluslokiin tulee siitä yksi rivi alussa ja yksi, kun keräin palaa.</value>
   </data>
   <data name="Empty, the default, answers nobody. Name the managers one by one: UDP does not prove where a request came from." xml:space="preserve">
     <value>Tyhjä, oletus, ei vastaa kenellekään. Nimeä hallintapisteet yksi kerrallaan: UDP ei todista, mistä pyyntö tuli.</value>
@@ -5333,7 +5333,7 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
     <value>Etsii DMARC:n väljän kohdistuksen organisaatioverkkotunnuksen kysymällä DNS:ltä (RFC 9989) käännetyn Public Suffix Listin sijaan; listaa käytetään edelleen, kun DNS ei pysty vastaamaan. Enintään kahdeksan kyselyä verkkotunnusta kohden, välimuistissa viisi minuuttia.</value>
   </data>
   <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server." xml:space="preserve">
-    <value>Etsii loput jäsenet palvelimen tileistä aina kun listalle lähetetään viesti, joten kenenkään ei tarvitse ylläpitää listaa käsin. Jätä tyhjäksi, jos listan jäseniä ovat vain sen vastaanottajat; domain tarkoittaa jokaista tämän verkkotunnuksen aktiivista tiliä; domain:other.example toista tämän palvelimen verkkotunnusta; pattern:sales-*@example.com jokerimerkkiin täsmääviä osoitteita, joissa * on mikä tahansa merkkijono ja ? yksi merkki; everyone jokaista palvelimen aktiivista tiliä.</value>
+    <value>Etsii loput jäsenet palvelimen tileistä aina, kun listalle lähetetään viesti, joten kenenkään ei tarvitse ylläpitää listaa käsin. Jätä tyhjäksi, jos listan jäseniä ovat vain sen vastaanottajat; domain tarkoittaa jokaista tämän verkkotunnuksen aktiivista tiliä; domain:other.example toista tämän palvelimen verkkotunnusta; pattern:sales-*@example.com jokerimerkkiin täsmääviä osoitteita, joissa * on mikä tahansa merkkijono ja ? yksi merkki; everyone jokaista palvelimen aktiivista tiliä.</value>
   </data>
   <data name="Finish" xml:space="preserve">
     <value>Valmis</value>
@@ -10441,7 +10441,7 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
     <value>Kumoa API-avain {0}</value>
   </data>
   <data name="Revoke the API key {0}? Anything using it stops working on its very next request, and the key cannot be restored - only replaced with a new one." xml:space="preserve">
-    <value>Kumotaanko API-avain {0}? Kaikki mikä käyttää sitä lakkaa toimimasta heti seuraavassa pyynnössään, eikä avainta voi palauttaa - vain korvata uudella.</value>
+    <value>Kumotaanko API-avain {0}? Kaikki, mikä käyttää sitä, lakkaa toimimasta heti seuraavassa pyynnössään, eikä avainta voi palauttaa - vain korvata uudella.</value>
   </data>
   <data name="Revoke the API key {0}? It is already expired, so nothing is using it successfully; revoking removes it from this list." xml:space="preserve">
     <value>Kumotaanko API-avain {0}? Se on jo vanhentunut, joten mikään ei käytä sitä onnistuneesti; kumoaminen poistaa sen tästä luettelosta.</value>
@@ -13982,7 +13982,7 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
     <value>Tallennettujen salaisuuksien avain {0} vietiin {1}; säilytä tiedosto tietokannan varmuuskopioiden kanssa.</value>
   </data>
   <data name="The subject tag breaks any DKIM signature the sender made over their subject, exactly as the anti-spam subject prefix does. The header does not, so prefer the header where the reader can show it." xml:space="preserve">
-    <value>Aiheen merkintä rikkoo kaikki DKIM-allekirjoitukset, jotka lähettäjä on tehnyt aiheestaan, aivan kuten roskapostisuojauksen aihe-etuliite. Otsake ei riko, joten suosi otsaketta siellä missä lukija osaa näyttää sen.</value>
+    <value>Aiheen merkintä rikkoo kaikki DKIM-allekirjoitukset, jotka lähettäjä on tehnyt aiheestaan, aivan kuten roskapostisuojauksen aihe-etuliite. Otsake ei riko, joten suosi otsaketta siellä, missä lukija osaa näyttää sen.</value>
   </data>
   <data name="The tag text must be 100 characters or fewer." xml:space="preserve">
     <value>Merkintätekstin on oltava enintään 100 merkkiä.</value>

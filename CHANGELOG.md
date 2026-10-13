@@ -4837,14 +4837,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   calls it, where some texts and the Add range card said område; the stage timings of the stalled-mail page are its
   trintider; and uanset takes no comma before its clause.
 
-- **Fixed: 256 Finnish texts said what their English does not, left out a comma Finnish requires, or named one thing
+- **Fixed: 264 Finnish texts said what their English does not, left out a comma Finnish requires, or named one thing
   two ways.** Free software under the AGPLv3 was free of charge (ilmainen), where it is free as in freedom (vapaa);
   leavers that the directory sync disables were deleted; "jokainen ... ei käynnisty" said that not every port starts,
   where none does; once a certificate expired, the ports did; the log scheduled each stage (ajastaa), where it records
   how long each took; and the default IP ranges were Oma tietokone and Internet, where the server gives them in
   English. A mail domain is a verkkotunnus, as in the rest of the catalogue, where some texts said toimialue, which
   the catalogue keeps for a Windows domain; the cipher list is a salauslista and the message store a viestivarasto
-  throughout; and 84 texts have their punctuation mended, most of them with the comma Finnish puts before every
+  throughout; and 94 texts have their punctuation mended, most of them with the comma Finnish puts before every
   subordinate clause, after sen sijaan, before ennen kuin and kunnes, and round a relative clause.
 
 - **Fixed: 166 Norwegian texts said what their English does not, broke Norwegian grammar, or named one thing two
@@ -4891,16 +4891,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 - **Added: build/check-catalogues.py finds again what the read-back of eight catalogues mended, where a rule can see
   it.** Its read-back rules refuse a Chinese confirmation that does not ask, its English opening with Delete, Remove,
   Stop or another confirming verb and asking, where the Chinese question has none of 是否, 吗 or the other asking words;
-  a button set off by spaces in Chinese or Japanese, where Chinese quotes it and Japanese brackets it; a space after a
-  Chinese full-width mark, or a half-width question mark after Chinese text; a Finnish subordinate clause after sen
-  sijaan, ennen kuin, kunnes or their kin with no comma before it; a Norwegian som that stands for the whole clause
-  before it; a Ukrainian or Chinese text that names the identity provider two ways; and, in any catalogue, a sentence
-  that opens in lower case where its English opens with a capital, a name the server writes in lower case excepted.
-  Run over the catalogues as they were, the rules make 151 findings in 138 texts; the self-test holds each rule
-  against a text the read-back mended, as it was and as it is. `TranslationReadbackTests` holds one mended text of
-  each of the eight catalogues; the default IP ranges' names, My computer and Internet, which the server gives in
-  English; and the Ukrainian quarantine's questions for deleting 21 or 31 messages, which speak of the senders as
-  they do for 5.
+  a button set off by spaces in Chinese or Japanese, where Chinese quotes it and Japanese brackets it; a space after
+  a Chinese full-width mark, or a half-width question mark after Chinese text; a Finnish subordinate clause with no
+  comma before it, after sen sijaan, aina or their kin, before ennen kuin or kunnes, or opened by kun or että after
+  any other word, and a Finnish relative clause after kaikki, mitään or siellä with none; a Norwegian som that stands
+  for the whole clause before it; a Ukrainian or Chinese text that names the identity provider two ways; and, in any
+  catalogue, a sentence that opens in lower case where its English opens with a capital, a name the server writes in
+  lower case excepted. Run over the catalogues as they were, the rules make 161 findings in 147 texts; the self-test
+  holds each rule against a text the read-back mended, as it was and as it is. `TranslationReadbackTests` holds one
+  mended text of each of the eight catalogues; the default IP ranges' names, My computer and Internet, which the
+  server gives in English; and the Ukrainian quarantine's questions for deleting 21 or 31 messages, which speak of
+  the senders as they do for 5.
 
 ### Administration
 
