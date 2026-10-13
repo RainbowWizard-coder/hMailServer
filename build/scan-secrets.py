@@ -36,10 +36,10 @@ the flag, would take the marker as a waiver, and build/check-gitleaksignore.py f
 tree that carries it. So the range chooses neither the scanner nor its rules, and what
 it waives is shown. That holds when this script runs from a tree whose copies of OWN
 are the range's base's, as the landing's are: build/land-via-mr.py refuses to run from a
-checkout whose copies are not master's. Run from a tree whose copies are the range's
-own (a batch's worktree), the batch's copies judge the batch; from one whose copies are
-neither (a checkout behind the base, or edited), that tree's do; and the scan says
-which. Where it runs:
+checkout whose copies are not master's, but on --own-copies, from the worktree of a batch
+that repairs them. Run from a tree whose copies are the range's own (a batch's worktree),
+the batch's copies judge the batch; from one whose copies are neither (a checkout behind
+the base, or edited), that tree's do; and the scan says which. Where it runs:
 
   docker    Docker on this machine: the image, with the repository's git directory
             mounted read-only.
@@ -581,8 +581,8 @@ def scan(repo, what, engine, say=print):
         if own:
             say("scan-secrets: this scan ran from a tree whose %s %s the range's own, which the range changes: the range "
                 "was judged by its own copies. A landing refuses such a tree (build/land-via-mr.py), and runs from a "
-                "checkout of master (ContinuousIntegration.md, \"What the secret scans read\")"
-                % (named(own), "is" if len(own) == 1 else "are"))
+                "checkout of master, but on --own-copies, for a batch that repairs what master's copies cannot land "
+                "(ContinuousIntegration.md, \"What the secret scans read\")" % (named(own), "is" if len(own) == 1 else "are"))
         neither = judged_by_neither(repo, log_opts)
         if neither:
             say("scan-secrets: this scan ran from a tree whose %s %s neither the range's base's nor its tip's (the CI "

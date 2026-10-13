@@ -1009,7 +1009,16 @@ in to gitlab.com as a Maintainer. In order, and stopping at the first refusal:
    `gitlab-security.yml` - are the remote `master`'s, working tree and all,
    which it checks once it has fetched `master`, before it loads the sign-off
    check or runs the scan, so that a checkout behind `master`, an edited one,
-   or the batch's own worktree is not what judges the batch. A `batch*` branch's pipeline does not run
+   or the batch's own worktree is not what judges the batch. The one way past
+   it is `--own-copies "<who, why>"`, for a batch that repairs what `master`'s
+   copies cannot land - the analyzer image `master` pins no longer pulled, a
+   scan or the landing script broken: run from the batch's own worktree, every
+   one of those files as the batch's tip has it - a checkout behind `master`,
+   an edited one, or one that has `master`'s copy of a file the batch changes
+   beside the batch's of another is refused all the same - the batch is judged
+   by its own copies, which the scan says, and the landing record and its log
+   keep the reason and the files; without it, such a batch could land only by
+   a merge outside the script, which checks nothing. A `batch*` branch's pipeline does not run
    `secret_detection`, and its merge request runs no pipeline, so this is the
    scan that reads a batch before it is on GitLab. A batch that changes the
    gates' own files - `GATE_FILES`: the five gate scripts; `.gitlab-ci.yml`,
@@ -1077,8 +1086,10 @@ in to gitlab.com as a Maintainer. In order, and stopping at the first refusal:
    the remote's `master` is now that tip.
 8. It records the landing in a note on the merge request - the tip, the
    pipeline, its gate jobs, the gates' base, whether the gates' own files
-   changed and who read them, the sign-off, the approvals and who landed it - and
-   in `land-via-mr.log` in the repository's git directory. It moves the local
+   changed and who read them, whose copies of the files it runs judged the
+   batch (`master`'s, or the batch's own on `--own-copies` and why), the
+   sign-off, the approvals and who landed it - and in `land-via-mr.log` in the
+   repository's git directory. It moves the local
    `master` to the tip when no worktree has it checked out, and deletes the
    branch on GitLab and locally where it can, saying when it cannot.
 
@@ -1122,7 +1133,14 @@ base's copy of a gate is not its own), and a batch that changes a gate script
 whose gates' logs say nothing of the base's copy, only the copy's own line, or
 that it failed - each refused - or that it passed, or that the base has none,
 and one that changes `no-github.yml` alone, which needs `--gates-read` and no
-word of the base's copy. On GitLab, the
+word of the base's copy; a checkout whose copies of the files a landing runs
+are not `master`'s, refused before the sign-off check is loaded, and `land()`
+run as `main()` runs it, with its own checkout check and scan; and
+`--own-copies`, which lands a batch from a checkout whose every copy is the
+batch's tip's, the reason and the files in the landing record and its log, and
+is refused without a reason, with a blank one, and from a checkout with a copy
+that is neither `master`'s nor the batch's, or with `master`'s copy of a file
+the batch changes. On GitLab, the
 four landings above ran the merge request, its head pipeline, the approvals and
 diff-versions endpoints on the Free tier, the merge and the deletion of a
 protected branch. The check of the gate jobs came with the change checks, and
@@ -4163,7 +4181,10 @@ What each scan trusts:
   and all. So a batch is scanned with `master`'s scan, `master`'s rules script
   and `master`'s analyzer, and nothing of the batch runs in it: neither a
   checkout behind `master`, nor an edited one, nor the batch's own worktree,
-  whose copies would be the batch's, can judge it. A landing leaves a worktree
+  whose copies would be the batch's, can judge it - but on
+  `--own-copies "<who, why>"`, for a batch that repairs what `master`'s copies
+  cannot land, run from the batch's own worktree and recorded ([Landing on
+  master](#landing-on-master), step 1). A landing leaves a worktree
   that has `master` checked out as it is, and says that it is to be brought to
   the new `master` before the next landing, which refuses it if the batch
   changed one of those files.

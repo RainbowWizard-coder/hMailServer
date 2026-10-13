@@ -684,8 +684,9 @@ LANDING_REQUIRED = {"GATE_JOBS": sorted(CHANGE_GATES) + [GATE_SCAN, "checkers"],
 # too - which its GATE_FILES must name with the CI files the gates run in.
 LANDING_RUNS = ("build/sign-off.py", "build/scan-secrets.py", "build/ci/secret-detection-rules.sh")
 # What a landing runs from its own checkout, which its CHECKOUT_COPIES must hold to the
-# base before it runs any: those scripts, the landing script itself, and the CI file
-# whose secret_detection image the secret scan runs in.
+# base - or, on --own-copies, to the batch's tip - before it runs any: those scripts, the
+# landing script itself, and the CI file whose secret_detection image the secret scan
+# runs in.
 LANDING_CHECKOUT = LANDING_RUNS + ("build/land-via-mr.py", ".gitlab/ci/gitlab-security.yml")
 LANDING_DOCUMENTS = "documents_only"
 # Paths beside the tree's own on which documents_only and the CI files must agree: a
@@ -2614,8 +2615,8 @@ def change_gate_problems(texts, jobs, security_jobs, security_gate=None):
     # workflow, defaults and includes), every CI file the gate jobs are in or reach with
     # extends or !reference (gate_job_files), the scripts the landing runs, and the source
     # scans' scripts (security-gate.py's SCAN_SCRIPTS); its CHECKOUT_COPIES, which it holds
-    # to the base before it runs any, name what it runs from its own checkout
-    # (LANDING_CHECKOUT); its GATE_CODE is
+    # to the base (or, on --own-copies, to the batch's tip) before it runs any, name what
+    # it runs from its own checkout (LANDING_CHECKOUT); its GATE_CODE is
     # security-gate.py's; its BASE_GATES, whose logs it reads for the base, are the change
     # gates; and its BASE_COPY_SCRIPTS, whose base's copy each gate's log must say passed
     # a batch that changes GATE_CODE, name each gate's own script. No other CI file

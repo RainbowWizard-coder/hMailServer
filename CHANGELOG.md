@@ -4703,10 +4703,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   (`CHECKOUT_COPIES`), which `build/check-release-chain.py` holds to what it runs - a checkout left behind `master`
   after a landing, an edited one, or the batch's own worktree would have judged the batch by its own copies with no
   word, or a word that blamed the batch - and names a worktree with `master` checked out, which it leaves as it is,
-  to be brought to the new `master` before the next landing. The
-  script refuses when GitLab's table does not hash to the one it was written for, so that new rules that change what
-  GitLab leaves out are read first, and when either entry it changes is not on exactly one line of the table; it is
-  one of the gates' own files (`build/land-via-mr.py`'s `GATE_FILES`), which a batch changes only with
+  to be brought to the new `master` before the next landing; and a batch that repairs what `master`'s copies cannot
+  land - an analyzer image no longer pulled, a scan broken - lands from its own worktree with
+  `--own-copies "<who, why>"`, every one of those files as its tip has it, which the landing record keeps with the
+  files. The script refuses when GitLab's table does not hash to the one it was written for, so that new rules that
+  change what GitLab leaves out are read first, and when either entry it changes is not on exactly one line of the
+  table; it is one of the gates' own files (`build/land-via-mr.py`'s `GATE_FILES`), which a batch changes only with
   `--gates-read`. Over every branch and tag on GitLab (2,873 commits) and `master`'s tree the widened rules found
   everything GitLab's had and five more, none a secret - the OpenPGP fixtures' two test keys and three lines that
   test a text for a key's armour header - which `.gitleaksignore` names, with four of its directory-scan lines that

@@ -871,8 +871,9 @@ rewrites. To sign off without remembering the flag, `git config alias.cs "commit
    over every commit it adds, which must run: see [Secrets](#secrets); the checkout's own copy of it and of its
    rules script, in the analyzer image the checkout's `secret_detection` names, so that the batch chooses neither
    what scans it nor how - and it refuses to run from a checkout whose copies of those files, of itself or of
-   `build/sign-off.py` are not the remote `master`'s, working tree and all), pushes it, opens the merge request,
-   waits for the branch's pipeline, and
+   `build/sign-off.py` are not the remote `master`'s, working tree and all, but for a batch that repairs them, which
+   a maintainer lands from its own worktree with `--own-copies "<who, why>"`, recorded), pushes it, opens the merge
+   request, waits for the branch's pipeline, and
    merges only when it passed, with each of its gate jobs - *semgrep-sast*, *semgrep-sast-gate*,
    *mr-dependency-check* and *checkers*, and *static-analysis* and *semgrep* unless the batch changes only Markdown
    at the root or under a dot-directory - succeeding itself, in a pipeline of this project whose gates each say in

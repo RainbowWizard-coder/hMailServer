@@ -27,6 +27,14 @@ refusal:
      changes one. So the batch has no say in what scans it or how, but for the
      .gitleaksignore lines it adds, which the scan prints; a line that carries
      gitleaks' inline allow marker is a finding of the scan like any other.
+     The one way past that refusal is --own-copies REASON, for a batch that
+     repairs what master's copies cannot land - an analyzer image no longer
+     pulled, the scan or this script broken: run from the batch's own worktree,
+     every one of those files as the batch's tip has it (a checkout behind
+     master, an edited one, or one that has master's copy of a file the batch
+     changes beside the batch's of another is refused all the same), the batch
+     is judged by its own copies, which the scan says, and the landing record
+     keeps REASON and the files.
      A batch branch's pipeline does not run the
      secret_detection job and its merge request runs none, so this scan is the
      one that reads a batch before it is on GitLab. And a batch that changes the
@@ -94,6 +102,7 @@ Usage:
   python3 build/land-via-mr.py BRANCH [--remote NAME] [--dry-run] [--no-wait]
                                [--force-push] [--timeout-hours H] [--poll-seconds S]
                                [--land-without-approval REASON] [--gates-read REASON]
+                               [--own-copies REASON]
   python3 build/land-via-mr.py --self-test
 
   --dry-run      the checks of step 1 and what would happen; no push, no API write
@@ -108,11 +117,18 @@ Usage:
                  the batch changes the gates' own files (GATE_FILES), and a person
                  has read that change whole: REASON says who and what, and is
                  recorded
+  --own-copies REASON
+                 master's copies of the files a landing runs (CHECKOUT_COPIES)
+                 cannot land anything, and the batch repairs them: this runs from
+                 the batch's own worktree, every one of them as its tip has it,
+                 and the batch is judged by them; REASON says who and why, and is
+                 recorded with the files
 
 Exit codes: 0 landed (or the dry run or --no-wait passed), 2 usage, a git or
 GitLab error, or a checkout whose files the landing runs are not master's
-(CHECKOUT_COPIES), 3 the branch cannot land by fast-forward, 4 a commit is not signed
-off, 5 the merge request, its pipeline or a gate job in it did not pass, 6
+(CHECKOUT_COPIES), or on --own-copies not the batch's tip's, 3 the branch
+cannot land by fast-forward, 4 a commit is not signed off, 5 the merge
+request, its pipeline or a gate job in it did not pass, 6
 GitLab would not merge, 7 no second person approved and the owner gave no
 override, or the override was refused, 8 the secret scan found a possible
 secret in the batch's commits or could not run, 9 the batch changes the gates' own
@@ -214,8 +230,9 @@ GATE_FILES = GATE_CODE + (".gitlab-ci.yml", ".gitlab/ci/mr-checks.yml", ".gitlab
 # (build/scan-secrets.py's OWN). They judge the batch, so each must be as the base has
 # it, working tree and all: a checkout behind master, or edited, would judge the batch
 # by other code than master's without a word, and the batch's own worktree by the
-# batch's (checkout_differs). build/check-release-chain.py holds this list to the
-# scripts the landing runs and the CI file.
+# batch's (checkout_differs) - unless --own-copies says who lands a batch that repairs
+# them by its own, and why, every one as its tip has it. build/check-release-chain.py
+# holds this list to the scripts the landing runs and the CI file.
 CHECKOUT_COPIES = ("build/land-via-mr.py", "build/sign-off.py", "build/scan-secrets.py",
                    "build/ci/secret-detection-rules.sh", ".gitlab/ci/gitlab-security.yml")
 # A pipeline's jobs are read a page at a time; a batch's has more than a hundred.
@@ -544,14 +561,40 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_sca
     base = git.sha("refs/remotes/%s/%s" % (remote, TARGET))
     if not base:
         raise Refused(2, "%s/%s cannot be read" % (remote, TARGET))
-    # What judges the batch here is this checkout's: it must be the base's, unedited.
+    # What judges the batch here is this checkout's: it must be the base's, unedited - or, on
+    # --own-copies, for a batch that repairs what master's copies cannot land, the batch's
+    # own, every one as its tip has it.
     stale = checkout(git.repo, base)
-    if stale:
+    own_copies = (getattr(opts, "own_copies", None) or "").strip()
+    if stale and not own_copies:
         raise Refused(2, "REFUSED: this landing runs from %s, whose %s %s not as %s/%s (%s) has %s, so the batch would be "
                          "judged by other code than %s's: bring that checkout to %s, with nothing in %s edited, and run "
-                         "this again from it" % (ROOT, ", ".join(stale), "is" if len(stale) == 1 else "are", remote, TARGET,
-                                                 base[:12], "it" if len(stale) == 1 else "them", TARGET, base[:12],
-                                                 "it" if len(stale) == 1 else "them"))
+                         "this again from it - or, for a batch that repairs what %s's copies cannot land, run it from the "
+                         "batch's own worktree with --own-copies \"<who, why>\" (docs/ContinuousIntegration.md, \"Landing "
+                         "on master\")" % (ROOT, ", ".join(stale), "is" if len(stale) == 1 else "are", remote, TARGET,
+                                           base[:12], "it" if len(stale) == 1 else "them", TARGET, base[:12],
+                                           "it" if len(stale) == 1 else "them", TARGET))
+    if stale:
+        # The batch's own copies, then, and nothing else: every one as its tip has it, so
+        # that a checkout behind master, an edited one, or one that has master's copy of a
+        # file the batch changes beside the batch's of another, is refused all the same.
+        mixed = checkout(git.repo, tip)
+        if mixed:
+            raise Refused(2, "REFUSED: --own-copies lands a batch only from its own worktree, every file a landing runs as "
+                             "the batch's tip has it, and this landing runs from %s, whose %s %s not as %s (%s) has %s: "
+                             "bring that checkout to %s, with nothing in %s edited, and run this again from it"
+                             % (ROOT, ", ".join(mixed), "is" if len(mixed) == 1 else "are", branch, tip[:12],
+                                "it" if len(mixed) == 1 else "them", tip[:12], "it" if len(mixed) == 1 else "them"))
+        checkout_line = ("the batch's own, not %s's (%s), on --own-copies: %s - the batch was judged by its own copies "
+                         "of what judges it" % (TARGET, ", ".join(stale), own_copies))
+        say("WARNING: this landing runs from the batch's own copies of %s, not %s/%s's, on --own-copies: %s. The batch is "
+            "judged by its own copies of what judges it, and the landing record keeps the reason."
+            % (", ".join(stale), remote, TARGET, own_copies))
+    else:
+        checkout_line = "%s's" % TARGET
+        if own_copies:
+            checkout_line += " (--own-copies was given, and not needed: %s)" % own_copies
+            say("--own-copies is not needed: this checkout's copies of the files a landing runs are %s/%s's." % (remote, TARGET))
     # The sign-off check is one of those copies: loaded, which runs its code, only now.
     sign_off = _load_sign_off()
     if not git.ok("merge-base", "--is-ancestor", base, tip):
@@ -774,6 +817,7 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_sca
             "- The gates' base: `%s`, where the batch leaves master, as %s said" % (base[:12], " and ".join(BASE_GATES)),
             "- The gates' own files: %s" % (("changed (%s), read: %s" % (", ".join(gate_files), gates_read))
                                             if gate_files else "not changed"),
+            "- The checkout's copies of what the landing runs: %s" % checkout_line,
             "- Master's copy of the gates' code: %s" % copies_line,
             "- Sign-off: %s" % signoff_line,
             "- Second-person approval (from %s): %s%s" % (
@@ -791,8 +835,9 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_sca
             common = git.run("rev-parse", "--git-common-dir").strip()
             common = common if os.path.isabs(common) else os.path.join(git.repo, common)
             with io.open(os.path.join(common, "land-via-mr.log"), "a", encoding="utf-8") as log:
-                log.write("%s\t%s\t!%d\t%s\t%s\tpipeline %s\tgate jobs: %s\tsecond-person approval: %s\n" % (
-                    now, branch, iid, tip, outcome, pipeline_line, jobs_line, verdict))
+                log.write("%s\t%s\t!%d\t%s\t%s\tpipeline %s\tgate jobs: %s\tsecond-person approval: %s\t"
+                          "the checkout's copies: %s\n" % (now, branch, iid, tip, outcome, pipeline_line, jobs_line, verdict,
+                                                           checkout_line))
         except (IOError, OSError, Refused):
             pass
 
@@ -1098,7 +1143,8 @@ def self_test():
         def attempt(work, api, **kw):
             opts = argparse.Namespace(branch=kw.get("branch", "batch1"), remote="origin", project="1", dry_run=kw.get("dry_run", False),
                                       no_wait=False, force_push=False, timeout_hours=1, poll_seconds=0,
-                                      land_without_approval=kw.get("override"), gates_read=kw.get("gates_read"))
+                                      land_without_approval=kw.get("override"), gates_read=kw.get("gates_read"),
+                                      own_copies=kw.get("own_copies"))
             # The branch is left checked out in no worktree, as a batch is folded in its own.
             run(work, "checkout", "-q", "--detach")
             sink = io.StringIO()
@@ -1142,6 +1188,8 @@ def self_test():
         expect("happy: the landing record gives each gate job's status", len(api.notes) == 1 and (
             "- Gate jobs: semgrep-sast success, semgrep-sast-gate success, mr-dependency-check success, checkers success, "
             "static-analysis success, semgrep success") in api.notes[0], True)
+        expect("happy: the landing record says that the checkout's copies were master's", len(api.notes) == 1 and
+               "- The checkout's copies of what the landing runs: master's\n" in api.notes[0], True)
 
         # 2. A commit without its sign-off: nothing leaves the machine.
         bare, work = scenario("unsigned")
@@ -1173,7 +1221,8 @@ def self_test():
         expect("a failed scan: no API call", api.calls, [])
 
         # 2b. A checkout whose copies of the files a landing runs are not master's - behind
-        #     it, edited, or the batch's own worktree - refuses before anything else runs.
+        #     it, edited, or the batch's own worktree - refuses before the sign-off check, the
+        #     scan or any API call.
         bare, work = scenario("stale-checkout")
         commit(work, "signed")
         api = FakeGitLab(bare, approved_by=[zain])
@@ -1239,6 +1288,60 @@ def self_test():
         code, text = attempt(work, FakeGitLab(bare, approved_by=[zain]), branch="batch2",
                              checkout=lambda repo, base: checkout_differs(repo, base, root=root))
         expect("a root with the base's copies: exit", code, 0)
+        # A batch that repairs what master's copies cannot land: --own-copies lands it from
+        # its own worktree, every copy its tip's, the reason and the files kept in the
+        # landing record and the log; it is refused without a reason, with a blank one,
+        # from a root with a copy that is neither master's nor the batch's, and from one
+        # with master's copy of a file the batch changes beside the batch's of another.
+        repaired = {"build/scan-secrets.py": "the batch's scan-secrets.py\n",
+                    "build/ci/secret-detection-rules.sh": "the batch's rules script\n"}
+        run(work, "checkout", "-q", "-b", "batch3", "master")
+        tip3 = commit_files(work, repaired, "the scan repaired, signed")
+        own_root = dict(held_copies, **repaired)
+        why = "the owner: master's secret_detection image can no longer be pulled, 13 October 2026"
+        read = "read whole by the owner, 13 October 2026"
+        on_root = lambda repo, rev: checkout_differs(repo, rev, root=root)
+        for what, copies, given, said in (
+                ("the batch's own copies without --own-copies", own_root, None, "with --own-copies \"<who, why>\""),
+                ("the batch's own copies with a blank reason", own_root, "   ", "with --own-copies \"<who, why>\""),
+                ("--own-copies from a root with a copy neither master's nor the batch's",
+                 dict(own_root, **{"build/land-via-mr.py": "edited\n"}), why, "whose build/land-via-mr.py is not as batch3"),
+                ("--own-copies from a root with master's copy of a file the batch changes",
+                 dict(own_root, **{"build/ci/secret-detection-rules.sh": held_copies["build/ci/secret-detection-rules.sh"]}),
+                 why, "whose build/ci/secret-detection-rules.sh is not as batch3")):
+            root_with(copies)
+            api = FakeGitLab(bare, approved_by=[zain])
+            del scans[:]
+            code, text = attempt(work, api, branch="batch3", own_copies=given, gates_read=read, checkout=on_root)
+            expect("%s: exit" % what, code, 2)
+            expect("%s: nothing pushed, no API call, no scan" % what,
+                   (remote_ref(bare, "refs/heads/batch3"), api.calls, scans), (None, [], []))
+            expect("%s: said so" % what, said in text, True)
+        root_with(own_root)
+        api = FakeGitLab(bare, approved_by=[zain])
+        code, text = attempt(work, api, branch="batch3", own_copies=why, gates_read=read, checkout=on_root)
+        expect("the batch's own copies on --own-copies: exit", code, 0)
+        expect("the batch's own copies on --own-copies: master is the tip", remote_ref(bare, "refs/heads/master"), tip3)
+        expect("the batch's own copies on --own-copies: warned, with the reason",
+               "WARNING: this landing runs from the batch's own copies" in text and why in text, True)
+        expect("the batch's own copies on --own-copies: the landing record keeps the files and the reason",
+               len(api.notes) == 1 and ("- The checkout's copies of what the landing runs: the batch's own, not master's "
+                                        "(build/scan-secrets.py, build/ci/secret-detection-rules.sh), on --own-copies: %s"
+                                        % why) in api.notes[0], True)
+        with io.open(os.path.join(work, ".git", "land-via-mr.log"), encoding="utf-8") as f:
+            logged = f.read().splitlines()
+        expect("the batch's own copies on --own-copies: so does the log", bool(logged) and "\tbatch3\t" in logged[-1] and
+               ("the checkout's copies: the batch's own, not master's (build/scan-secrets.py, "
+                "build/ci/secret-detection-rules.sh), on --own-copies: %s" % why) in logged[-1], True)
+        # --own-copies from master's copies changes nothing, and says so.
+        run(work, "checkout", "-q", "-b", "batch4", "master")
+        commit(work, "signed")
+        root_with(own_root)
+        code, text = attempt(work, FakeGitLab(bare, approved_by=[zain]), branch="batch4", own_copies=why, dry_run=True,
+                             checkout=on_root)
+        expect("--own-copies from master's copies: exit", code, 0)
+        expect("--own-copies from master's copies: not needed, and said so",
+               "--own-copies is not needed" in text and "WARNING" not in text, True)
         # What the landing runs from its checkout: this script and the sign-off check, and
         # everything build/scan-secrets.py takes from its own tree.
         scanner = importlib.util.spec_from_file_location("scan_secrets_own", os.path.join(ROOT, "build", "scan-secrets.py"))
@@ -1631,6 +1734,10 @@ def main(argv):
                         help="the owner's override of the approval rule for this one landing; REASON is recorded")
     parser.add_argument("--gates-read", metavar="REASON",
                         help="the batch changes the gates' own files, and a person has read that change whole; REASON is "
+                             "recorded")
+    parser.add_argument("--own-copies", metavar="REASON",
+                        help="this checkout is the batch's own worktree, whose copies of the files a landing runs judge it, "
+                             "since master's cannot land it and the batch repairs them; REASON says who and why, and is "
                              "recorded")
     opts = parser.parse_args(argv)
     repo = subprocess.run(["git", "rev-parse", "--show-toplevel"], stdout=subprocess.PIPE).stdout.decode().strip() or os.getcwd()
