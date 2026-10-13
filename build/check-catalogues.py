@@ -371,7 +371,11 @@ def quotation_findings(tag, target):
 #   sijaan että palauttaisi, poista näyte ennen kuin palvelin): 67 texts; and, from the check of
 #   the read-back, kun or että after any other word with no comma (vanhimmat hylätään kun jonossa),
 #   aina kun and myös että, and a relative clause after kaikki, mitään or siellä (Kaikki mikä
-#   käyttää sitä lakkaa), which the read-back's comma pass had left in ten texts;
+#   käyttää sitä lakkaa), which the read-back's comma pass had left in ten texts. As its re-check
+#   found, a phrase whose comma may stand before the whole of it (, ilman että, edellyttäen että,
+#   olettaen että, sillä aikaa kun, siitä huolimatta että) takes it there or inside it and is
+#   refused only with neither, and joka before a word of time, number or place is every, not a
+#   relative (kaikki joka päivä, joka kerta);
 # - a Norwegian relative som that stands for the whole clause before it (hele serveren, som er
 #   grunnen til at), which takes noe som;
 # - an identity provider named two ways in one text: the Ukrainian and Chinese read-backs made it
@@ -390,7 +394,8 @@ def quotation_findings(tag, target):
 #   found left beside texts that say so: the two-factor prompt's heading, Kód administrátora
 #   serveru, over a description that says správce, and the Backup page's Salauksen salasanalaus_e,
 #   a word its access key split, between texts that say tunnuslause. A term is read in the value
-#   and its English with the access key's underscore taken out.
+#   and its English with the access key's underscore taken out; a Norwegian word is read whole,
+#   hyphens and all, and a table's column headers, kolonneoverskrifter, are not mail headers.
 READBACK_CONFIRMING_VERBS = {
    "Apply", "Cancel", "Clear", "Delete", "Discard", "Empty", "Erase", "Keep", "Lift", "Merge", "Overwrite", "Purge",
    "Put", "Release", "Remove", "Replace", "Reset", "Restore", "Revert", "Show", "Stop", "Turn",
@@ -411,10 +416,25 @@ READBACK_FINNISH_SUBORDINATE = re.compile(r"(\w+) (kun|että)\b")
 READBACK_FINNISH_OPENERS = {
    "aina", "myös", "vain", "juuri", "heti", "vasta", "silloin", "silloinkin", "samalla", "sijaan", "jälkeen", "aikaan",
    "mukaa", "lisäksi", "varsinkin", "etenkin", "jopa", "ainakin", "paitsi", "niin", "siten", "nyt", "jo", "edes",
-   "kuten", "sitten", "kuin",
+   "kuten", "sitten", "kuin", "ilman", "edellyttäen", "olettaen",
 }
+# An opener of two words, by its second and the word that has to stand before it: aikaa and
+# huolimatta open the clause only as sillä aikaa and siitä huolimatta - "menee aikaa kun" still
+# wants its comma.
+READBACK_FINNISH_OPENER_PAIRS = {"aikaa": "sillä", "huolimatta": "siitä"}
+# The phrases whose comma stands before the whole phrase (", ilman että", ", sillä aikaa kun") or,
+# where its first part is stressed, inside it; with neither, the clause has no comma at all.
+READBACK_FINNISH_WHOLE_PHRASE = re.compile(r"(?<=[\w)\"”]) (ilman|edellyttäen|olettaen|sillä aikaa|siitä huolimatta) (että|kun)\b")
 READBACK_FINNISH_RELATIVE = re.compile(r"(?i)\b(kaikki|kaikkea|mitään|jotain|jotakin|siellä|sinne|sieltä) "
                                        r"(mikä|mitä|mihin|missä|mistä|joka|jota|jonka|jotka)\b(?! tahansa)")
+# joka before a word of time, number or place is every (joka päivä, joka kerta, joka tapauksessa,
+# joka sivulla, joka toinen), not the relative pronoun: "Tarkistetaan kaikki joka päivä" has no
+# clause to set off. The forms are written out, so that a verb (kertoo, toimii, sivuuttaa) is not one.
+READBACK_FINNISH_EVERY = re.compile(r"(?i)\s+(?:päivä\w*|viikko\w*|viikon\w*|kuukau\w*|vuosi|vuoden|vuonna|tunti|tunnin|"
+                                    r"minuut\w*|sekun\w*|yö|yön|yönä|aamu|aamuna|ilta|illan|iltana|hetki|hetken|kerta|"
+                                    r"kerran|kerralla|tapau\w*|sivu|sivun|sivulla|sivulle|sivulta|sivua|paikassa|paikkaan|"
+                                    r"paikasta|puolella|puolelle|puolelta|kohdassa|vaiheessa|toinen|toisen|toista|ainoa|"
+                                    r"ainoan|ainoaa)\b")
 READBACK_NORWEGIAN_CLAUSE_SOM = re.compile(r", som er (?:grunnen|årsaken) til\b")
 # The identity provider's one name in a catalogue, and the words a text that names it may not use
 # for it too; a text that names a provider of another kind (a DNS provider) is left alone.
@@ -452,7 +472,10 @@ READBACK_TERMS = {
       (re.compile(r"(?i)\bevent[- ]scripts?\b|\bscript events\b|\bevent-scripting\b"), None, re.compile(r"(?i)сценар\w*"),
        "скрипт (an event script)"),
    ],
-   "nb": [(re.compile(r"(?i)\bheaders?\b(?! row)"), None, re.compile(r"(?i)\w*overskrift\w*"), "header (a mail header)")],
+   # A table's column headers are overskrifter, kolonneoverskrifter, as Norwegian has it; a word is read
+   # whole, hyphens and all, so that a header named before it (Received-overskriften) is still refused.
+   "nb": [(re.compile(r"(?i)(?<!column )(?<!table )\bheaders?\b(?! rows?\b)"), None,
+           re.compile(r"(?i)(?<![\w-])(?!kolonne|tabell)[\w-]*overskrift\w*"), "header (a mail header)")],
    "tr": [(re.compile(r"(?i)\bindex(?:es|ing|er)?\b"), re.compile(r"(?i)\bdirector(?:y|ies)\b"), re.compile(r"(?i)\bdizin\w*"),
            "indeks (the message index)")],
 }
@@ -592,15 +615,23 @@ def readback_findings(tag, source, target):
          if match.group(1).lower() not in READBACK_FINNISH_COORDINATORS:
             findings.append("no comma before the subordinate clause (%r); write %s, %s"
                             % (match.group(0), match.group(1), match.group(2)))
+      for match in READBACK_FINNISH_WHOLE_PHRASE.finditer(target):
+         findings.append("no comma before the subordinate clause (%r); put it before the whole phrase (, %s %s)"
+                         % (match.group(0).strip(), match.group(1), match.group(2)))
       for match in READBACK_FINNISH_SUBORDINATE.finditer(target):
          word = match.group(1).lower()
          if word in READBACK_FINNISH_COORDINATORS or word in READBACK_FINNISH_OPENERS:
+            continue
+         first = READBACK_FINNISH_OPENER_PAIRS.get(word)
+         if first and re.search(r"(?i)(?<!\w)%s\s+$" % first, target[:match.start()]):
             continue
          if match.group(2) == "että" and "sekä" in target[max(0, match.start() - 80):match.start() + 1].lower():
             continue
          findings.append("no comma before the subordinate clause (%r); write %s, %s"
                          % (match.group(0), match.group(1), match.group(2)))
       for match in READBACK_FINNISH_RELATIVE.finditer(target):
+         if match.group(2).lower() == "joka" and READBACK_FINNISH_EVERY.match(target, match.end()):
+            continue
          findings.append("no comma before the relative clause (%r); write %s, %s"
                          % (match.group(0), match.group(1), match.group(2)))
    elif tag == "nb":
@@ -992,6 +1023,26 @@ def self_test():
       ("fi", "Encryption _passphrase", "Salauksen salasanalaus_e"): True,
       ("fi", "Encryption _passphrase", "Salauksen tunnuslaus_e"): False,
       ("uk", "Script _events", "Події сцена_ріїв"): True,
+      ("fi", "It is sent without anyone being asked.", "Se lähetetään, ilman että keneltäkään kysytään."): False,
+      ("fi", "It is sent without anyone being asked.", "Se lähetetään ilman, että keneltäkään kysytään."): False,
+      ("fi", "It is sent without anyone being asked.", "Se lähetetään ilman että keneltäkään kysytään."): True,
+      ("fi", "The key is used, provided that it is valid.", "Avainta käytetään, edellyttäen että se on voimassa."): False,
+      ("fi", "The key is used, provided that it is valid.", "Avainta käytetään edellyttäen että se on voimassa."): True,
+      ("fi", "It is used, assuming that it is valid.", "Sitä käytetään, olettaen että se on voimassa."): False,
+      ("fi", "Wait while the server starts.", "Odota, sillä aikaa kun palvelin käynnistyy."): False,
+      ("fi", "Wait while the server starts.", "Odota sillä aikaa, kun palvelin käynnistyy."): False,
+      ("fi", "Wait while the server starts.", "Odota sillä aikaa kun palvelin käynnistyy."): True,
+      ("fi", "It takes time when the server starts.", "Siihen menee aikaa kun palvelin käynnistyy."): True,
+      ("fi", "It came although the address was wrong.", "Viesti tuli, siitä huolimatta että osoite oli väärä."): False,
+      ("fi", "It came although the address was wrong.", "Viesti tuli siitä huolimatta että osoite oli väärä."): True,
+      ("fi", "All of them are checked every day.", "Tarkistetaan kaikki joka päivä."): False,
+      ("fi", "Everything is listed in every case.", "Luetellaan kaikki joka tapauksessa."): False,
+      ("fi", "Anything that uses it stops.", "Kaikki joka käyttää sitä lakkaa."): True,
+      ("nb", "Column headers of the table", "Kolonneoverskrifter i tabellen"): False,
+      ("nb", "Column headers name the mail headers they show.", "Kolonneoverskriftene navngir headerne de viser."): False,
+      ("nb", "Column headers name the mail headers they show.", "Kolonneoverskriftene navngir overskriftene de viser."): True,
+      ("nb", "Date each message by its Received header", "Dater hver melding etter Received-overskriften"): True,
+      ("nb", "Date each message by its Received header", "Dater hver melding etter Received-headeren"): False,
    }
    for (tag, source, value), expected in readback_cases.items():
       found = bool(readback_findings(tag, source, value))
