@@ -114,8 +114,11 @@ Personal access tokens, because project and group access tokens are a Premium
 feature on GitLab.com. A personal access token acts for its account across every
 project that account can reach, so the safest holder is an account made for this
 alone and given the role in this project only. The owner's own account works too;
-then the `api` token of the second row can change anything the owner can, and it
-is readable by any job on a protected branch. Leaving `HM_EXPORT_FULL_TOKEN` unset
+then the `api` token of the second row can change anything the owner can. Each
+variable is scoped to the environment `forge-export`, which `forge-export` alone
+names, so that no other job of a protected branch's pipeline is given it - one that
+a switch sends to GitLab's hosted runners among them ([ContinuousIntegration.md](ContinuousIntegration.md),
+"GitLab's hosted runners beside the project's"). Leaving `HM_EXPORT_FULL_TOKEN` unset
 and making the project export by hand from time to time (*Settings*, *General*,
 *Advanced*, *Export project*) keeps no such token anywhere.
 
@@ -174,7 +177,7 @@ The owner's checklist
    the scopes `read_api` and `read_repository` and an expiry date. Note the date.
 7. Add it on GitLab: *Settings*, *CI/CD*, *Variables*, *Add variable*: key
    `HM_EXPORT_TOKEN`; visibility *Masked and hidden*; flags *Protect variable*
-   ticked and *Expand variable reference* unticked.
+   ticked and *Expand variable reference* unticked; *Environments* `forge-export`.
 8. Optionally, the same for `HM_EXPORT_FULL_TOKEN`, with the scope `api`, from an
    account with the Maintainer role.
 9. Make the schedule: *Build*, *Pipeline schedules*, *New schedule*: description

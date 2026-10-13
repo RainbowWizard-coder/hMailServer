@@ -19,7 +19,11 @@ since then every job of a pipeline for a protected ref that is not a merge
 request's runs on the project's runners, and only a merge request's pipeline and
 an unprotected branch's run their checks on GitLab's hosted runners, which the
 project's take nothing of ([Every job on the project's own
-runners](#every-job-on-the-projects-own-runners)).
+runners](#every-job-on-the-projects-own-runners)). Since 13 October 2026, with the
+group on GitLab's open-source plan, the owner can send a class of the jobs on the
+project's runners that need nothing of the project's to GitLab's hosted runners as
+well, by a project variable, and nothing goes there until one is set ([GitLab's hosted
+runners beside the project's](#gitlabs-hosted-runners-beside-the-projects)).
 
 **The jobs have run since 26 September 2026.** The first pipeline, 2884863496
 on `master`, failed eleven of its jobs ([What the first pipeline found](#what-the-first-pipeline-found));
@@ -44,6 +48,10 @@ such a job runs on whichever of the two takes it first ([The runners](#the-runne
 A job that names no runner of its own takes `linix` from `default:`; in a merge
 request's pipeline and an unprotected branch's that is GitLab's hosted runner
 instead ([Every job on the project's own runners](#every-job-on-the-projects-own-runners)).
+For a job of a class - the builds and checks in the CI image, the package builds and
+their install jobs, the jobs in an arm64 container, the two suites - `linix` is where
+its switch leaves it: one of GitLab's hosted machines once the owner sets the switch
+([GitLab's hosted runners beside the project's](#gitlabs-hosted-runners-beside-the-projects)).
 The other tables on this page name runners the same way.
 
 | Job | Stage | Runs on | Runs for | What it does |
@@ -60,7 +68,7 @@ The other tables on this page name runners the same way.
 | `cli-powershell` | check | linix | the same | The PowerShell module's manifest and PSScriptAnalyzer from the Gallery, under pwsh (`build/ci/cli-powershell.ps1`), and the module's half of `build/check-cli.py` against its recorded server |
 | `linux-build` | build | linix | a protected ref | The Linux server with clang, every `*-tests` program the CMake build makes, the OpenPGP writer against GnuPG, and the `.deb` and the `.rpm` (`build/ci/linux-build.sh`) |
 | `linux-build-gcc` | test | linix | `master` or a `batch*` branch; never a tag | The same server and tester programs built with GCC, the distribution's default compiler, and the testers and the OpenPGP round trip run; no packages (`.gitlab/ci/gcc.yml`; [The GCC build](#the-gcc-build)) |
-| `nix` | build | linix | `master` or a `batch*` branch; never a tag | The project's Nix flake: `flake.lock` held to releases.nixos.org, every output evaluated for both systems, `nix build .#hmailserver` with its tester programs, and the NixOS test under QEMU's TCG, since linix has no KVM (`.gitlab/ci/nix.yml`, `build/ci/nix.sh`; [Nix.md](Nix.md)) |
+| `nix` | build | server2, by the tags `linix` and `kvm` | `master` or a `batch*` branch; never a tag | The project's Nix flake: `flake.lock` held to releases.nixos.org, every output evaluated for both systems, `nix build .#hmailserver` with its tester programs, and the NixOS test, with KVM where server2's runner passes `/dev/kvm` into the job and under QEMU's TCG until it does; linix and s1-linux have no KVM (`.gitlab/ci/nix.yml`, `build/ci/nix.sh`; [Nix.md](Nix.md)) |
 | `alpine-package` | build | linix | `master` or a `batch*` branch; never a tag | The server built with musl by its APKBUILD and abuild on Alpine 3.24 from the source tarball, `check()` running its tester programs, and `apkbuild-lint` (`.gitlab/ci/alpine.yml`, `build/ci/alpine.sh`; [Alpine.md](Alpine.md)) |
 | `alpine-install` | test | linix | the same | Those packages installed in a clean Alpine container, the server started with `rc-service` against PostgreSQL, SMTP (with STARTTLS) and IMAP asked, then a reload and a stop |
 | `alpine-suite` | test | linix | the same | The whole of `LinuxRegressionTests` against the installed Alpine server, in Alpine, on PostgreSQL 18 |
@@ -114,6 +122,8 @@ The other tables on this page name runners the same way.
 | `renovate` | check | linix | the schedule described `renovate`, and nothing else | Renovate's dependency updates ([Dependency updates](#dependency-updates)) |
 | `image-pins` | check | linix | the schedule described `renovate`, and nothing else | Every image the CI files and the build scripts pin by digest, asked of its registry as a runner asks it; a pin the registry no longer serves fails the pipeline, named with every place that names it (`build/check-image-pins.py`; [Image pins](#image-pins)) |
 | `forge-export` | check | linix | the pipeline schedule for `master` whose description is `export`, and nothing else | The issues, merge requests, labels, milestones, boards and releases as JSON and the wiki as a git bundle, and GitLab's project export when its token is set: what a push mirror does not carry, kept on linix and as an artifact for Developers only (`.gitlab/ci/forge-export.yml`, `build/ci/forge-export.py`; [Mirroring.md](Mirroring.md)) |
+| `hosted-runners` | check | linix | `master` or a `batch*` branch for which a switch or a lane is set; never a tag | Each switch names a runner of its class's kind, each lane goes with its class, and no credential is given to a job that names no environment, as every job a switch moves is; it names what such a job is given (`.gitlab/ci/hosted-runners.yml`, `build/ci/hosted-runners.py check`; [GitLab's hosted runners beside the project's](#gitlabs-hosted-runners-beside-the-projects)) |
+| `compute-quota` | check | linix | the same | The namespace's compute minutes this month against its quota and what the pipeline is expected to use at its switches, in the environment `compute-quota`; a warning under a quarter of the quota or ten such pipelines left, a failure under a twentieth or two, with how the switches are set back; says "not configured" until `HM_QUOTA_TOKEN` exists (`build/ci/hosted-runners.py quota`) |
 | `scorecard` | check | linix | the schedule described `scorecard`, and nothing else | OpenSSF Scorecard 5.5.0 from cache.nixos.org over the project, its result kept for `package-repos` to publish with a badge; says "not configured" and passes until the owner's `GITLAB_AUTH_TOKEN` exists (`.gitlab/ci/scorecard.yml`, `build/ci/scorecard.sh`; [OpenSSF Scorecard](#openssf-scorecard)) |
 
 `linux-build`, `windows-gate`, `windows-dotnet`, `linux-cross`, `linux-sanitize`
@@ -285,7 +295,11 @@ checks and publishers, the release channels' checks and publishers but
 on 9 October 2026: `batch46`'s pipeline 2931387790 could not start
 `semgrep-sast-gate` (`stuck_pending_no_matching_runners`, and once retried
 `ci_quota_exceeded`), and a change gate that cannot run holds every landing. The
-owner decided that the project's CI depends on no minutes of GitLab's.
+owner decided that the project's CI depends on no minutes of GitLab's. On 13
+October 2026, with the group on GitLab's open-source plan and its 50,000 minutes a
+month, the owner asked for GitLab's runners to be used as well: a class of the jobs
+on the project's runners can be sent there by a switch, and none is until the owner
+sets one ([GitLab's hosted runners beside the project's](#gitlabs-hosted-runners-beside-the-projects)).
 
 **How.** `.gitlab-ci.yml`'s `default:` names the tags `[$HM_RUNNER]`, which every
 job that names no runner of its own takes, GitLab's templates' jobs among them
@@ -344,7 +358,8 @@ names its own tags names none, a variable other than `HM_RUNNER`, tags no runner
 of the project's carries, or none of `linix`, `linix-systemd` and `bench150` (a
 runner anywhere may carry `linux` or `docker`) - or names the project's and has
 rules that make it in a merge request's or an unprotected ref's pipeline, where
-it would wait for a runner that never takes it. It reads every CI file, the
+it would wait for a runner that never takes it. A job of a class names its class's
+switch instead, which the same rules hold as they hold a job on `linix`. It reads every CI file, the
 included ones too; its self-test breaks each of those in a copy, in
 `.gitlab-ci.yml` and in an included file, and each break is caught. GitLab's
 templates are not in the tree, so a job one of them adds is read only where a CI
@@ -387,6 +402,251 @@ they build the Linux packages it carries - and only a protected ref's pipeline
 reaches them. Nothing else is handed to them that was not: every job of a
 protected ref's pipeline is given every protected variable, on these machines as
 before; what is new on them is the tag's signing identity.
+
+GitLab's hosted runners beside the project's
+--------------------------------------------
+
+Since 13 October 2026 the group is on GitLab's open-source plan: 50,000 compute
+minutes a month on GitLab's hosted runners, Premium's and Ultimate's machines among
+them. The owner asked the same day for those runners to be used as well, "so we have
+more". The jobs on the project's own runners that need nothing of the project's are
+in four classes, and each class takes its tags from a switch. Every switch is `linix`
+in `.gitlab-ci.yml`'s `variables:`, so nothing moves until the owner sets one: a
+**protected** project CI/CD variable of the switch's name, which stands above the
+file's value, sends its class to one of GitLab's hosted Linux machines in every
+pipeline of a protected ref - `master`, a `batch*` branch, a `v*` tag. A merge
+request's pipeline has none of these jobs and is given no protected variable, and is
+as it was.
+
+| Switch | Its jobs | The machine to name | Lane |
+|---|---|---|---|
+| `HM_RUNNER_BUILD` | The builds and checks in the CI image or a distribution's own amd64 image, 21 jobs: `linux-build`, `linux-build-gcc`, `linux-cross`, `linux-sanitize`, `linux-repro`, `linux-sbom`, `linux-live-update`, both upgrade gates, `linux-package-deb` and `linux-package-rpm`, `linux-image`, `static-analysis`, `semgrep`, `ci-image-packages`, `dependency-scan`, `repo-hygiene`, `source-tarball`, `release-packages`, and the two AArch64 SBOM jobs | `saas-linux-large-amd64` | none |
+| `HM_RUNNER_PACKAGES` | The package builds and their install jobs in amd64 containers, 45 jobs: every `.deb` build (the arm64 ones are cross-compiled in amd64 containers) and the amd64 install jobs, the x86_64 `.rpm` builds and their install jobs, the seven source packages and their install jobs, `alpine-package` and `alpine-install`, the AppImages' amd64 jobs (`appimage-aarch64-compile` among them), and `snap-build-amd64` | `saas-linux-large-amd64` | `HM_LANE_PACKAGES`, `linix-package-build` |
+| `HM_RUNNER_ARM64` | The jobs in an arm64 container, which linix and server2 run under qemu-user, 15 jobs: the four arm64 `.deb` and six aarch64 `.rpm` install jobs, `appimage-runtime-aarch64`, `appimage-aarch64`, `appimage-test-aarch64`, `snap-build-arm64` and `linux-image-arm64` | `saas-linux-medium-arm64`, where they run natively | none |
+| `HM_RUNNER_SUITE` | `linux-suite` and `alpine-suite` | `saas-linux-large-amd64` | `HM_LANE_SUITE`, `linix-suite` |
+
+`build/check-release-chain.py` holds each class to the jobs it names: a job takes a
+switch only when its class names it, and every job a class names takes it; nothing in
+the CI files but `variables:` sets a switch or a lane, and there at its default; a
+job of a class names no environment, `id_tokens` or `secrets`, asks for a pull policy
+GitLab's runners allow (`[if-not-present, always]`: they allow `always` alone, and
+fail a job that asks for `if-not-present` only), runs in a container of its class's
+architecture (the CI image is amd64 alone) and waits in its class's lane or in none;
+and no job outside a class waits in a lane.
+
+**The lanes.** The package builds and the two suites each wait for one another in a
+resource group, so that the project's machines run one of their kind at a time
+(`linix-package-build`, `linix-suite`; [linix](#linix)). On GitLab's runners every
+job has a machine of its own, and a group of one name would hold them back for
+nothing: the 28 package builds of a batch's pipeline ran one after another for 7.7
+to 8.3 hours in October 2026, and made each such pipeline take about eight. So a class
+with a lane takes its resource group from a second variable, `HM_LANE_PACKAGES` or
+`HM_LANE_SUITE`, the group's name in `.gitlab-ci.yml`, which the owner sets beside the
+switch to `hosted-$CI_JOB_NAME`, with *Expand variable reference* on: GitLab expands
+a resource group's name with the job's variables, the nested ones too, as it makes
+the job, so each job then has a lane of its own name. A class on GitLab's runners left
+in its shared lane runs, one job at a time; one on the project's runners with lanes of
+its own runs side by side on linix; `hosted-runners` warns of both. The six aarch64
+`.rpm` builds and `nix` stay in `linix-package-build` on the project's runners.
+
+**What stays on the project's runners whatever a switch says.** Every Windows job,
+on bench150; `package-systemd-ubuntu26.04` and `package-systemd-fedora44`, on
+`linix-systemd`'s privileged entry; the six aarch64 `.rpm` builds, each of which runs
+its testers under qemu-user, which GitLab's amd64 machines have not; `nix`, which
+boots a QEMU machine and asks for the tags `linix` and `kvm`, which server2 alone
+carries ([server2](#server2)); `db-matrix`, which reaches the lab on linix;
+`linux-fuzz` and `linux-coverage`, the one keeping its corpus in linix's own cache and
+the other longer than GitLab's three hours; `forge-export`, whose archives are kept in
+linix's cache, off GitLab; `renovate`, `scorecard` and every publisher of the release
+channels and the command-line packages, each holding a credential; every job of the
+release and of its rehearsal, which sign with the pipeline's ID token or collect,
+verify and publish what it signs; `pages` and `package-repos`; and every job that
+takes `default:`'s tags - the checks, the change gates and the jobs of GitLab's
+templates - which runs on GitLab's small runner in a merge request's pipeline already.
+
+### What a job on GitLab's runners is given
+
+In a pipeline of a protected ref GitLab gives every job each protected variable of
+the project and the group whose environment scope matches the job's environment,
+whichever runner takes it; a variable of scope `*`, the default, matches every job.
+The project's variables on 13 October 2026, by name:
+
+| Variable | Protected, masked | Used by | What it is |
+|---|---|---|---|
+| `ARTIFACT_SIGNING_ACCOUNT`, `ARTIFACT_SIGNING_ENDPOINT`, `ARTIFACT_SIGNING_PROFILE`, `AZURE_CLIENT_ID`, `AZURE_TENANT_ID` | protected | `release-authenticode`, on bench150 | The names of the Artifact Signing account, profile and endpoint and of the Entra application the job's ID token is exchanged with: no secret, the federated credential holds none |
+| `HM_PUBLISH_IMAGE` | protected | the container image's jobs | The switch that lets a release's image be pushed |
+| `RENOVATE_TOKEN` | protected, masked | `renovate` | Renovate's GitLab token: a credential |
+| `SNAPCRAFT_STORE_CREDENTIALS` | protected, masked and hidden | `snap-upload` | The Snap Store's upload credentials: a credential |
+| `GITLAB_OBSERVABILITY_EXPORT` | neither (the group's too) | GitLab | GitLab's CI/CD observability export |
+
+Every job that uses a credential names an environment of its own - `renovate`
+`renovate`, `snap-upload` `snap-store`, `scorecard` `scorecard`, `forge-export`
+`forge-export`, `db-matrix` `test-lab`, `compute-quota` `compute-quota`, and each
+channel's publisher its channel's (`container-registries`, `aur`, `launchpad`,
+`copr`, `obs`, `chocolatey`, `psgallery`, `pypi`) - and a variable scoped to that
+environment reaches that job alone. No job of a class names one. So once the owner
+has scoped `RENOVATE_TOKEN` to `renovate` and `SNAPCRAFT_STORE_CREDENTIALS` to
+`snap-store`, **a job on GitLab's runners is given** GitLab's own variables, among them
+`CI_JOB_TOKEN` and `CI_REGISTRY_PASSWORD` - the job's own token, valid while it runs,
+with what a job token may do in this project as the pipeline's user: the package and
+container registries and the releases, as on the project's runners -; the CI files'
+variables; the five identifiers and the switch of the table's first two rows; and
+`GITLAB_OBSERVABILITY_EXPORT`, which every job is given. No ID token: no job of a
+class asks for one. Until the two are scoped, they are given to
+it too, and `hosted-runners` fails every pipeline a switch is set for, naming each
+credential it is given and the environment to scope it to, never a value. The
+signing key `package-repos` would read, `HM_REPO_SIGNING_KEY` with its passphrase,
+does not exist yet, and `package-repos` names no environment: until it names one to
+scope the key to, a switch hands the key to GitLab's runners, and `hosted-runners`
+says so.
+
+### The checks of a pipeline a switch is set for
+
+`.gitlab/ci/hosted-runners.yml` runs two jobs on linix, where they cost no minute and
+run when the minutes are spent, in every pipeline of `master` or a `batch*` branch for
+which a switch or a lane is not its default (`.hosted-switched`, then `.own-runners`'
+rules), and never for a `v*` tag, whose batch and `master` pipelines have run them:
+
+- **`hosted-runners`** (`build/ci/hosted-runners.py check`): each switch names `linix`
+  or one of GitLab's Linux machines of its class's architecture - any other value is a
+  tag no runner carries, and the class's jobs would wait until GitLab failed them -
+  and no credential is given to a job that names no environment, which this job is, as
+  is every job a switch moves. Either fails it. A lane that does not go with its class
+  is a warning (exit 3). It prints every variable it is given beside GitLab's own and
+  the CI files', by name: that is what a job on GitLab's runners is given.
+- **`compute-quota`** (`build/ci/hosted-runners.py quota`), in the environment
+  `compute-quota`: the namespace's compute minutes this month against its quota
+  (`GET /namespaces/hmailserver`'s `ci_minutes_usage`, `GET /groups/hmailserver`'s
+  `shared_runners_minutes_limit` and any purchased), and what a pipeline of its kind
+  is expected to use at the switches set (the table below). Fewer minutes left than two
+  such pipelines need, or a twentieth of the quota, fail it, and the failure says how
+  the switches are set back; fewer than ten such pipelines, or a quarter of the quota,
+  is a warning. It reads with `HM_QUOTA_TOKEN`, a token with `read_api` of an Owner of
+  the group (only an Owner may read the usage): a group access token with the Owner
+  role, a protected, masked and hidden project variable scoped to `compute-quota`.
+  Without it the job says "not configured", a warning. A GitLab that cannot be asked
+  is tried twice more, then a warning. It also prints this month's minutes against the
+  job-minutes they were charged for (GraphQL's `ciMinutesUsage`), which shows the
+  factor GitLab charges.
+
+### What it costs, and which classes to switch on
+
+GitLab charges a job its minutes times a cost factor. For a public project of the
+open-source programme that is the lower of the machine's factor (small 1, medium 2,
+large 3, xlarge 6, 2xlarge 12; arm64 small 1, medium 2, large 3) and 0.5
+(`ee/lib/gitlab/ci/minutes/cost_factor.rb`, `apply_discount`, read on 13 October
+2026): 0.5 a minute on any Linux machine. GitLab's documentation lists 0.5 beside the
+machines' factors, which can also be read as half of each; the first pipeline with a
+switch set shows which in `compute-quota`'s log, and the estimates below are three
+times as large for the amd64 classes on a large machine if it is half. October's
+minutes so far, 415 for 413 job-minutes on the small runner before the plan, say 1.00.
+
+The minutes a pipeline is expected to use on GitLab's runners, by class - the job
+times of the pipelines of 5 to 13 October 2026 on linix (six CPUs, near a large
+machine's eight; the builds use six compilers), a minute more a job for its machine
+and image, the arm64 jobs at four tenths of their time under qemu-user, at 0.5 a
+minute (`build/ci/hosted-runners.py`'s `EXPECTED`):
+
+| Class | A `batch*` branch's pipeline | `master`'s | A `v*` tag's | The project's runners' job-minutes it takes off a batch's |
+|---|---|---|---|---|
+| `HM_RUNNER_BUILD` | 95 | 90 | 75 | 166 |
+| `HM_RUNNER_PACKAGES` | 280 | 120 (the source packages and Alpine's; the other builds wait for a press there) | 140 | 512 |
+| `HM_RUNNER_ARM64` | 15 | 0 | 15 | 32 |
+| `HM_RUNNER_SUITE` | 145 | 145 | 75 | 286 |
+
+A landing runs a `batch*` pipeline and then `master`'s. In a release week of five
+batch pipelines and three of `master`'s a day, the packages and the arm64 jobs use
+about 1,800 minutes a day, 12,800 a week; with the builds too, 2,600 a day; with the
+suites as well, 3,700. A month of one such week and three of a batch and a landing
+on each working day comes to about 19,000 of the 50,000 for the packages and the
+arm64 jobs, 27,000 with the builds and 40,000 with everything; two release weeks, about
+30,000, 42,000 and 61,000.
+
+**What it buys.** On the project's runners a batch's pipeline took 7.9 to 8.5 hours
+in October 2026, the package builds one after another its longest path, and
+`windows-gate` 3.5 hours, bench150's whole path about four. With the packages on
+GitLab's runners, each build in a lane of its own, the builds run side by side and
+are done within the hour; the longest Linux path is then the two suites, which
+`linix-suite` keeps one after the other on the project's runners: `linux-suite` after
+`linux-build`, then `alpine-suite`, about five hours from the start. With the suites
+on GitLab's runners too, each in a lane of its own, they run side by side and the
+pipeline ends with bench150's path, about four hours. The builds' class frees the
+project's runners for what must stay there, and makes no path shorter. A suite takes
+as long anywhere: `linux-suite` ran 135 to 140 minutes on server2's 28 CPUs and 139
+to 146 on linix's six, `alpine-suite` 137 to 146 - they wait on their fixtures'
+timeouts, not on a CPU - and GitLab's runners stop a job at three hours, before the
+suites' own 3 h 50 min, without its `after_script`.
+
+**The recommendation.** `HM_RUNNER_PACKAGES` with `HM_LANE_PACKAGES`, and
+`HM_RUNNER_ARM64`, always: about 300 minutes a batch's pipeline, which takes it from
+eight hours to five, and the arm64 jobs on real arm64 - some 19,000 to 30,000 minutes
+in a month of one or two release weeks. `HM_RUNNER_SUITE` with `HM_LANE_SUITE` for a
+release week, when the hour it saves matters, for 145 more a pipeline, `master`'s
+included, and for a day the project's runners cannot take the suites; with it, a month
+of one release week comes to about 31,500, and one of two to about 49,000, too close
+to the quota. `HM_RUNNER_BUILD` when the project's Linux runners are short - linix
+paused, server2 busy -, for 95 more. Should GitLab charge half of each machine's factor
+after all, the packages cost three times as much, about 840 a batch: then the arm64
+jobs alone, on a medium machine at 1 a minute, and the packages for a release week.
+
+### Switching on, and back
+
+1. Scope the credentials first (Settings, CI/CD, Variables, edit each, *Environments*):
+   `RENOVATE_TOKEN` to `renovate`, `SNAPCRAFT_STORE_CREDENTIALS` to `snap-store`. Any
+   credential made later goes in scoped to its job's environment ([Dependency
+   updates](#dependency-updates), [Mirroring.md](Mirroring.md),
+   [Channels.md](Channels.md), [TestLab.md](TestLab.md)).
+2. For `compute-quota`, a group access token (the group's Settings, Access tokens):
+   role Owner, scope `read_api`, a year's expiry, stored as the project variable
+   `HM_QUOTA_TOKEN`, protected, masked and hidden, *Environments* `compute-quota`.
+3. The switches, each a project variable, protected, not masked, *Expand variable
+   reference* on - from a checkout, signed in to `glab` as a maintainer:
+
+   ```sh
+   glab variable set HM_RUNNER_PACKAGES saas-linux-large-amd64 --protected
+   glab variable set HM_LANE_PACKAGES 'hosted-$CI_JOB_NAME' --protected
+   glab variable set HM_RUNNER_ARM64 saas-linux-medium-arm64 --protected
+   ```
+
+   and, when wanted, `HM_RUNNER_BUILD` (`saas-linux-large-amd64`), `HM_RUNNER_SUITE`
+   (`saas-linux-large-amd64`) with `HM_LANE_SUITE` (`hosted-$CI_JOB_NAME`). A
+   variable takes effect from the next pipeline made; a pipeline keeps the runners it
+   was made with.
+4. **Back**: delete the variables (`glab variable delete HM_RUNNER_PACKAGES`, and the
+   rest) and run the pipeline again; every class is then on the project's runners, as
+   before. That is also what `compute-quota`'s failure says to do when the minutes run
+   low.
+
+### The arm64 jobs on arm64
+
+On GitLab's arm64 machines the arm64 jobs run natively. Each one's image is pinned by
+its arm64 manifest's digest with `platform: linux/arm64`, and kaniko's, which
+`linux-image-arm64` takes, is one index of both platforms, so each runs the same
+image as under qemu-user. Their scripts hold nothing that only emulation needs: the
+AppImage test and the runtime's proof run a copy without the AppImage's magic bytes
+only where the file itself does not start, which under qemu-user it does not
+(`appimage-test.sh`, `appimage-runtime.sh`); natively the real file is run. The
+builds whose install jobs these are - the arm64 `.deb` builds and
+`appimage-aarch64-compile`, in amd64 containers - ask whether their machine runs
+aarch64 programs (`build/ci/arm64-emulation.sh`) only when the arm64 jobs run on a
+machine of that kind, as on the project's runners, where both switches are `linix`
+(`deb-build.sh`, `appimage-cross.sh`); on GitLab's amd64 machines there is no
+emulation to ask about, and the install jobs need none. What a job makes is what its
+tools write from its inputs, and qemu-user runs the same programs: a runtime or an
+AppImage made natively is byte for byte the emulated one where the packages it was
+made from were the same, which each job's records say (`runtime-aarch64-linked.txt`,
+`built-against-aarch64/`).
+
+### What GitLab's runners do not have
+
+No KVM (so `nix` stays on server2), no aarch64 emulation on the amd64 machines (so the
+aarch64 `.rpm` builds stay), no way into the project's network (so `db-matrix` stays),
+nothing of the project's runners' caches - a job there starts from GitLab's own
+cache, shared by its runners and emptied after 14 days, so the Boost tarball and the
+built Boost are fetched or built again at first - and no job longer than three
+hours. They pull every image with the pull policy `always`, the CI image from the
+project's registry by its digest, as the project's runners pull it; and they are
+privileged, which no job here asks for.
 
 Change checks
 -------------
@@ -1206,10 +1466,12 @@ refuses a skipped pipeline whatever the setting (step 4).
 The runners
 -----------
 
-Three machines take the project's own jobs: linix and server2, whose runners
-carry the same three tags and share the jobs of the tag `linix` between them
-(linix has a second entry of its own, `linix-systemd`), and bench150, the
-Windows bench.
+Four machines take the project's own jobs: linix, server2 and s1-linux, whose
+runners carry the same three tags and share the jobs of the tag `linix` between them
+(linix has a second entry of its own, `linix-systemd`, and server2 the tag `kvm`
+beside the three), and bench150, the Windows bench. s1-linux is an Ubuntu 26.04
+virtual machine on server1 with 16 vCPUs and no KVM, runner 57371020, registered as
+the others are, which has taken jobs of the tag `linix` since 13 October 2026.
 
 ### linix
 
@@ -1230,7 +1492,10 @@ so with a `resource_group` - `linix-suite` for the two whole suites
 (`linux-suite` and `alpine-suite`), `linix-package-build` for the package builds
 (the distribution releases' `.deb` and `.rpm` files, the Alpine package, the
 source packages and the Nix build) - and wait for one another across pipelines;
-the rest take whichever of the three places is free.
+the rest take whichever of the three places is free. Each of the two is a class's
+lane: a class a switch sends to GitLab's runners waits in a lane of each job's own
+there, where every job has a machine of its own ([GitLab's hosted runners beside
+the project's](#gitlabs-hosted-runners-beside-the-projects)).
 
 What the host needs:
 
@@ -1289,6 +1554,17 @@ runs there in a container of its own, with the docker executor, 28 CPUs and
 entry is - a project runner, `ref_protected`,
 `run_untagged` off, `locked`, a four-hour `maximum_timeout` - and with the same
 tags, `linux`, `docker` and `linix`.
+
+**It carries `kvm` too.** Its machine has `/dev/kvm`, and linix and s1-linux,
+virtual machines themselves, have none, so `nix`, whose NixOS test boots a QEMU
+machine, asks for the tags `linix` and `kvm`, which server2 alone carries: on linix,
+under QEMU's TCG, the test's PostgreSQL timed out at boot on 13 October 2026 (job
+17129125235), where server2 passed it in about 20 minutes. The owner gives runner
+57072507 the tag (`glab api -X PUT runners/57072507 -f tag_list=linux,docker,linix,kvm`)
+before a pipeline with the job runs, or the job waits for a runner until GitLab fails
+it; and `devices = ["/dev/kvm"]` under the entry's `[runners.docker]` in its
+`config.toml` passes the device into its jobs, so that the test runs with KVM, where
+without it the job runs it under TCG ([Nix.md](Nix.md)).
 
 **It shares the tag `linix`.** No job names server2 alone: every job tagged
 `linix` - each job of `.linix`, every job that takes `default:`'s tags, and the
@@ -3402,11 +3678,14 @@ Each merge request carries its own note of these steps.
    Ultimate plans only. The free alternative is a separate GitLab account for the
    bot, made a Developer of the project, with a personal token of its own.
 2. **The CI variable.** In the project, open Settings, then CI/CD, then
-   Variables, and choose Add variable. Set the type to Variable, the environments
-   to all, and the visibility to **Masked** (or Masked and hidden). Turn **Protect
+   Variables, and choose Add variable. Set the type to Variable, the environment
+   to `renovate`, and the visibility to **Masked** (or Masked and hidden). Turn **Protect
    variable** on and Expand variable reference off. Set the key to
    `RENOVATE_TOKEN` and the value to the token. A protected variable reaches only
-   a protected ref, and the job asks for one.
+   a protected ref, and the job asks for one; the environment, which `renovate`
+   alone names, keeps it from every other job of such a pipeline, those a switch
+   sends to GitLab's hosted runners among them ([GitLab's hosted runners beside the
+   project's](#gitlabs-hosted-runners-beside-the-projects)).
 3. **The schedule.** Open Build, then Pipeline schedules, and choose New
    schedule. Set the description to exactly `renovate` (the job's rule compares
    the whole description, so put nothing else in the field), a custom interval

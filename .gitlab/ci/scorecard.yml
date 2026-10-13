@@ -37,7 +37,7 @@ scorecard:
   tags: [linix]
   image:
     name: nixos/nix:2.35.2@sha256:7a007c766426c1877758ddc5cb87a965ac131fc78c582ce0083d922d51ae945c
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
   needs: []
   timeout: 30 minutes
   # A push to master while it runs does not cut the week's score short.

@@ -30,7 +30,8 @@
 #                                         adds what the image bundles)
 #
 # The environment it reads: HM_BUILD_DIR (/tmp/hm-appimage-aarch64), HM_BUILD_JOBS (6),
-# HM_OUT_DIR (appimage).
+# HM_OUT_DIR (appimage), and HM_RUNNER_PACKAGES and HM_RUNNER_ARM64, the runner tags of
+# this job's class and of the arm64 jobs' (.gitlab-ci.yml, variables:; linix when unset).
 set -euo pipefail
 
 build_dir="${HM_BUILD_DIR:-/tmp/hm-appimage-aarch64}"
@@ -49,8 +50,14 @@ if [ "$ID" != "ubuntu" ] || [ "$VERSION_ID" != "24.04" ] || [ "$(uname -m)" != "
 fi
 # appimage-aarch64 packs this server, and appimage-test-aarch64 runs it, in arm64
 # containers, which start only where this machine's kernel runs aarch64 programs and
-# whose own shells cannot ask. Asked here, first (build/ci/arm64-emulation.sh).
-sh build/ci/arm64-emulation.sh "appimage-aarch64, which packs and runs this server in an arm64 container," || exit 2
+# whose own shells cannot ask. Asked here, first (build/ci/arm64-emulation.sh), where
+# those jobs run on a machine of this one's kind: on the project's runners, where both
+# classes are linix. On GitLab's runners they have arm64 machines of their own.
+if [ "${HM_RUNNER_ARM64:-linix}" = "${HM_RUNNER_PACKAGES:-linix}" ]; then
+  sh build/ci/arm64-emulation.sh "appimage-aarch64, which packs and runs this server in an arm64 container," || exit 2
+else
+  echo "appimage-aarch64 runs on ${HM_RUNNER_ARM64:-linix}, this job on ${HM_RUNNER_PACKAGES:-linix}: whether that machine runs aarch64 programs is not asked here."
+fi
 mkdir -p "$out"
 
 export DEBIAN_FRONTEND=noninteractive

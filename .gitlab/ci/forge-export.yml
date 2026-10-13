@@ -24,9 +24,12 @@
 #
 # The tokens: HM_EXPORT_TOKEN (required; read_api and read_repository) and
 # HM_EXPORT_FULL_TOKEN (optional; api, a Maintainer's), CI/CD variables of the
-# project, protected and masked. Nothing here names a value. Without the first the
-# job fails, saying where the steps are, before it asks GitLab anything, and the
-# schedule's owner is told of the failed pipeline.
+# project, protected and masked, and scoped to the environment forge-export, which this
+# job alone names, so that no other job of a protected ref's pipeline is given them -
+# one a switch sends to GitLab's runners among them (.gitlab-ci.yml, variables:).
+# Nothing here names a value. Without the first the job fails, saying where the steps
+# are, before it asks GitLab anything, and the schedule's owner is told of the failed
+# pipeline. On linix whatever the switches say: its cache there is the point (below).
 #
 # Where the result goes, and why there:
 #
@@ -52,13 +55,17 @@ forge-export:
   tags: [linix]
   image:
     name: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
   needs: []
   timeout: 1 hour
   # A push to master while it runs does not cut the week's export short.
   interruptible: false
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "export" && $CI_COMMIT_REF_PROTECTED == "true"
+  # The tokens' scope: a job that names no environment is not given them.
+  environment:
+    name: forge-export
+    action: access
   variables:
     HM_EXPORT_KEEP: "4"
   cache:

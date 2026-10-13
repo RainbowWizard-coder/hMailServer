@@ -13,7 +13,10 @@
 #   linux-image-arm64     linix: the linux/arm64 image built with kaniko from
 #                         deb-ubuntu26.04-arm64's .deb, under qemu-user, checked as
 #                         linux-image checks its own, and not pushed
-#                         (build/ci/linux-image.sh with HM_IMAGE_ARCH=arm64).
+#                         (build/ci/linux-image.sh with HM_IMAGE_ARCH=arm64); or,
+#                         when HM_RUNNER_ARM64 sends it there (.gitlab-ci.yml,
+#                         variables:), natively on GitLab's arm64 machines, kaniko's
+#                         image being one index of both platforms.
 #
 # In every protected v* tag's pipeline, once release-publish has published the
 # release, a maintainer starts the first job by hand, and the rest follow it:
@@ -153,7 +156,7 @@
 linux-image-arm64:
   extends: .own-runners
   stage: test
-  tags: [linix]
+  tags: [$HM_RUNNER_ARM64]
   image: !reference [linux-image, image]
   needs:
     - job: deb-ubuntu26.04-arm64
@@ -467,7 +470,7 @@ container-image-start:
     # The same PostgreSQL the Linux suite runs against, by digest.
     - name: postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
       alias: db
-      pull_policy: if-not-present
+      pull_policy: [if-not-present, always]
     - name: $HM_IMAGE
       alias: mail
       command: ["bash", "-c", "hmailserver --config /etc/hmailserver/hMailServer.ini --apply-new-install-defaults && exec hmailserver --config /etc/hmailserver/hMailServer.ini --foreground"]
@@ -500,7 +503,7 @@ container-image-start-arm64:
   services:
     - name: postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
       alias: db
-      pull_policy: if-not-present
+      pull_policy: [if-not-present, always]
     - name: $HM_IMAGE_ARM64
       alias: mail
       docker:

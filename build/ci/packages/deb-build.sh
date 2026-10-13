@@ -63,6 +63,11 @@
 #                    debian12 only: where the Boost tarball is kept between runs
 #                    (.cache/boost-tarball in the checkout, which the job caches
 #                    under the tarball's SHA-256): fetch-boost.sh
+#   HM_RUNNER_PACKAGES, HM_RUNNER_ARM64
+#                    the runner tags of this job's class and of the arm64 install
+#                    job's (.gitlab-ci.yml, variables:; linix for both when unset):
+#                    an arm64 build asks whether this machine runs aarch64 programs
+#                    only when the two are one, as on the project's runners
 set -uo pipefail
 
 distro="${HM_DEB_DISTRO:-}"
@@ -123,10 +128,18 @@ fi
 # which starts only where this machine's kernel runs aarch64 programs; that container's
 # shell is an aarch64 program too, so it cannot ask. Asked here, before the build, so
 # that a missing qemu-aarch64 handler is named here rather than met there as "exec
-# format error" (build/ci/arm64-emulation.sh).
+# format error" (build/ci/arm64-emulation.sh) - where the install job runs on a machine
+# of this one's kind: on the project's runners, where both classes are linix. On
+# GitLab's runners the install job has an arm64 machine of its own and needs no
+# emulation, and an amd64 one there has none to ask about (HM_RUNNER_ARM64 and
+# HM_RUNNER_PACKAGES, .gitlab-ci.yml).
 if [ "$route" = cross ]; then
-  sh build/ci/arm64-emulation.sh "deb-$distro-arm64-install, which installs this package in an arm64 container," \
-    || refuse "this machine cannot run the arm64 container the install job needs (above)."
+  if [ "${HM_RUNNER_ARM64:-linix}" = "${HM_RUNNER_PACKAGES:-linix}" ]; then
+    sh build/ci/arm64-emulation.sh "deb-$distro-arm64-install, which installs this package in an arm64 container," \
+      || refuse "this machine cannot run the arm64 container the install job needs (above)."
+  else
+    echo "deb-$distro-arm64-install runs on ${HM_RUNNER_ARM64:-linix}, this build on ${HM_RUNNER_PACKAGES:-linix}: whether that machine runs aarch64 programs is not asked here."
+  fi
 fi
 
 version=$(sed -n 's/^#define[[:space:]]*HMAILSERVER_VERSION[[:space:]]*"\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\)".*/\1/p' \

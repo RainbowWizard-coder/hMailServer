@@ -346,7 +346,7 @@ snap-upload:
   tags: [linix]
   image:
     name: ubuntu:24.04@sha256:496754492fb28b4d3049432f2ca787449331e23fb14f0dd3fffea86bf5a93eb4
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
   needs:
     - job: snap-build-amd64
       artifacts: true

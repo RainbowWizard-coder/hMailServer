@@ -362,6 +362,23 @@ refuses it. This checker holds them to each other. It fails when:
     name a runner of the project's (every tag one runner's, one of them linix,
     linix-systemd or bench150: not none, not GitLab's, not another variable), and then
     its rules may make it in no pipeline of a merge request or an unprotected ref.
+    A class of the jobs that need nothing of the project's takes its tags from a switch
+    instead (RUNNER_CLASSES; docs/ContinuousIntegration.md, "GitLab's hosted runners
+    beside the project's"): HM_RUNNER_BUILD, HM_RUNNER_PACKAGES, HM_RUNNER_ARM64 and
+    HM_RUNNER_SUITE, which variables: must set to linix and nothing else in the CI files
+    may set - the owner's protected project variable of the same name moves the class -
+    and a class with a lane takes its resource group from HM_LANE_PACKAGES or
+    HM_LANE_SUITE, set there to linix-package-build and linix-suite. A job takes a
+    switch only when its class names it, every job a class names takes it, and its
+    rules are held as a job's on linix are; a classed job names no environment,
+    id_tokens or secrets, asks for a pull policy GitLab's runners allow (always, after
+    if-not-present), runs in a container of its class's architecture (the CI image is
+    amd64 alone) and in its class's lane or in none; no other job waits in a lane; nix
+    asks for the tags linix and kvm, which server2 alone carries; and
+    .gitlab/ci/hosted-runners.yml, which .gitlab-ci.yml includes, runs
+    build/ci/hosted-runners.py's check and quota on linix in a pipeline any switch or
+    lane is set for, compute-quota in the environment compute-quota and hosted-runners
+    in none, with the script's classes the CI files' (runner_class_problems).
 
 Usage:
   python build/check-release-chain.py              the tree as it is
@@ -2348,7 +2365,8 @@ def check(texts, chain, feed):
     for name in sorted(jobs):
         if name.startswith(".") or name in RESERVED or name in RELEASE_JOBS or name in SCHEDULE_ONLY_JOBS:
             continue
-        if not re.search(r"^  tags: \[(linix|bench150)\]", inherited(name, jobs), re.MULTILINE):
+        if not re.search(r"^  tags: \[(linix|bench150|%s)\]" % "|".join(re.escape("$" + v) for v in sorted(RUNNER_CLASSES)),
+                         inherited(name, jobs), re.MULTILINE):
             continue
         rules = rules_text(name, jobs)
         if "paths: &%s" % NOT_DOCS_ONLY not in rules and "paths: *%s" % NOT_DOCS_ONLY not in rules:
@@ -2480,6 +2498,7 @@ def check(texts, chain, feed):
     found, said = runner_problems(texts)
     problems.extend(found)
     notes.extend(said)
+    problems.extend(runner_class_problems(texts))
     return problems, notes
 
 
@@ -2852,8 +2871,12 @@ def ci_override_problems(texts):
 # runners/<id>; 9 October 2026): each a project runner, ref_protected, run_untagged off,
 # locked. A job reaches one only when every tag it names is one of that runner's; and one
 # of them must be a tag GitLab's hosted runners do not carry, which the runners' names
-# are (linux, docker and windows are generic words a runner anywhere may carry).
-PROJECT_RUNNERS = (("linix (56743206) and server2 (57072507)", ("linux", "docker", "linix")),
+# are (linux, docker and windows are generic words a runner anywhere may carry). s1-linux,
+# a virtual machine on server1, carries linix's tags since 13 October 2026, and server2
+# carries kvm beside them, which the owner adds (runner 57072507's tags): its machine has
+# /dev/kvm, and linix and s1-linux, virtual machines themselves, have none (KVM_JOBS).
+PROJECT_RUNNERS = (("linix (56743206) and s1-linux (57371020)", ("linux", "docker", "linix")),
+                   ("server2 (57072507)", ("linux", "docker", "linix", "kvm")),
                    ("linix-systemd (56932743)", ("linix-systemd",)),
                    ("bench150 (56743216)", ("windows", "bench", "bench150")))
 PROJECT_ONLY_TAGS = ("linix", "linix-systemd", "bench150")
@@ -2865,6 +2888,65 @@ PROJECT_ONLY_TAGS = ("linix", "linix-systemd", "bench150")
 RUNNER_VARIABLE = "HM_RUNNER"
 DEFAULT_RUNNER = "linix"
 HOSTED_RUNNER = "saas-linux-small-amd64"
+# GitLab's hosted runners beside the project's own (docs/ContinuousIntegration.md,
+# "GitLab's hosted runners beside the project's"). A class of the jobs on the project's
+# runners that need nothing of the project's takes its tags from a switch: a variable
+# that .gitlab-ci.yml's variables: set to linix and nothing else in the CI files sets,
+# which a protected project variable of the same name - the owner's - sets to one of
+# GitLab's hosted Linux machines of the class's architecture, in a pipeline of a
+# protected ref alone (a merge request's has none of these jobs, and no protected
+# variable). A class whose jobs wait for each other on the project's machines takes its
+# resource group from a lane, a variable set there to the group's name, which the owner
+# sets to hosted-$CI_JOB_NAME beside the switch, a lane of each job's own. Each class
+# names its jobs here, so that a job joins one, or leaves it, by an edit here as well.
+_DEB_AMD64 = ("debian12", "debian13", "ubuntu24.04")
+_DEB_ARM64 = ("debian12", "debian13", "ubuntu24.04", "ubuntu26.04")
+_RPM_TARGETS = ("fedora44", "fedora43", "el10", "el9", "leap16", "tumbleweed")
+_SRCPKG_TARGETS = ("debian13", "ubuntu24.04", "ubuntu26.04", "fedora44", "el10", "leap16", "tumbleweed")
+RUNNER_CLASSES = {
+    # The builds and checks in the CI image or in a distribution's own amd64 image.
+    "HM_RUNNER_BUILD": {"arch": "amd64", "lane": None, "jobs": (
+        "linux-build", "linux-build-gcc", "linux-cross", "linux-sanitize", "linux-repro", "linux-sbom", "linux-live-update",
+        "linux-db-upgrade-pgsql", "linux-db-upgrade-mysql", "linux-package-deb", "linux-package-rpm", "linux-image",
+        "static-analysis", "semgrep", "ci-image-packages", "dependency-scan", "repo-hygiene", "source-tarball",
+        "release-packages", "deb-ubuntu26.04-arm64-sbom", "rpm-fedora44-aarch64-sbom")},
+    # The package builds and their install jobs in amd64 containers: every .deb, the
+    # arm64 ones cross-compiled; the x86_64 .rpm files, since an aarch64 one's build runs
+    # its testers under qemu-user, which GitLab's amd64 machines have not; the source
+    # packages; Alpine's; the AppImages' amd64 jobs; and the amd64 snap.
+    "HM_RUNNER_PACKAGES": {"arch": "amd64", "lane": ("HM_LANE_PACKAGES", "linix-package-build"), "jobs": tuple(
+        ["deb-%s-amd64" % d for d in _DEB_AMD64] + ["deb-%s-arm64" % d for d in _DEB_ARM64] +
+        ["deb-%s-amd64-install" % d for d in _DEB_AMD64] +
+        ["rpm-%s-x86_64" % t for t in _RPM_TARGETS] + ["rpm-%s-x86_64-install" % t for t in _RPM_TARGETS] +
+        ["srcpkg-%s" % t for t in _SRCPKG_TARGETS] + ["srcpkg-%s-install" % t for t in _SRCPKG_TARGETS] +
+        ["alpine-package", "alpine-install", "appimage-runtime-x86_64", "appimage-x86_64", "appimage-test-x86_64",
+         "appimage-runtime-sources", "appimage-bundled-sources", "appimage-aarch64-compile", "snap-build-amd64"])},
+    # The jobs in an arm64 container, which linix and server2 run under qemu-user.
+    "HM_RUNNER_ARM64": {"arch": "arm64", "lane": None, "jobs": tuple(
+        ["deb-%s-arm64-install" % d for d in _DEB_ARM64] + ["rpm-%s-aarch64-install" % t for t in _RPM_TARGETS] +
+        ["appimage-runtime-aarch64", "appimage-aarch64", "appimage-test-aarch64", "snap-build-arm64", "linux-image-arm64"])},
+    # The two whole suites.
+    "HM_RUNNER_SUITE": {"arch": "amd64", "lane": ("HM_LANE_SUITE", "linix-suite"), "jobs": ("linux-suite", "alpine-suite")},
+}
+# Each switch and lane by its default in .gitlab-ci.yml's variables:.
+SWITCH_DEFAULTS = dict([(variable, DEFAULT_RUNNER) for variable in RUNNER_CLASSES] +
+                       [spec["lane"] for spec in RUNNER_CLASSES.values() if spec["lane"]])
+# GitLab's hosted Linux machines (docs.gitlab.com, "Hosted runners on Linux"), by
+# architecture: the tags a switch may name.
+HOSTED_MACHINES = {
+    "amd64": ("saas-linux-small-amd64", "saas-linux-medium-amd64", "saas-linux-large-amd64", "saas-linux-xlarge-amd64",
+              "saas-linux-2xlarge-amd64"),
+    "arm64": ("saas-linux-small-arm64", "saas-linux-medium-arm64", "saas-linux-large-arm64"),
+}
+# The checks of a pipeline a switch is set for, each by its subcommand of HOSTED_SCRIPT;
+# compute-quota alone names an environment, the one its token is scoped to.
+HOSTED_CHECKS_FILE = ".gitlab/ci/hosted-runners.yml"
+HOSTED_SCRIPT = os.path.join("build", "ci", "hosted-runners.py")
+HOSTED_CHECKS = {"hosted-runners": "check", "compute-quota": "quota"}
+HOSTED_QUOTA_ENVIRONMENT = "compute-quota"
+# The jobs that boot a QEMU machine, which wants KVM, and the tags that put each on
+# server2, the one runner of the project's whose machine has it.
+KVM_JOBS = {"nix": ["linix", "kvm"]}
 # CI_PIPELINE_SOURCE's values (GitLab's predefined variables), and one for any other.
 PIPELINE_SOURCES = ("push", "web", "api", "trigger", "schedule", "pipeline", "parent_pipeline", "merge_request_event",
                     "external", "external_pull_request_event", "chat", "webide", "ondemand_dast_scan",
@@ -3223,6 +3305,30 @@ def runner_problems(texts):
                 problems.append("%s sets %s in %s (%s): only .gitlab-ci.yml's variables: and a workflow rule may, or a "
                                 "job could take default:'s tags to a runner nothing here holds it to" % (
                                     path, RUNNER_VARIABLE, top, line.strip()[:60]))
+    # The switches and the lanes: .gitlab-ci.yml's variables: alone set them, each to its
+    # default, the project's runners'; the owner's project variable, which stands above,
+    # moves a class (RUNNER_CLASSES).
+    for variable, default in sorted(SWITCH_DEFAULTS.items()):
+        set_to = re.findall(r"""^  ["']?%s["']?[ \t]*:[ \t]*(.*?)[ \t]*$""" % variable, variables, re.MULTILINE)
+        value = yaml_scalar(set_to[0]) if len(set_to) == 1 else None
+        if value != default:
+            problems.append(".gitlab-ci.yml's variables: %s: it must be %s, so that its class's jobs run where they always "
+                            "have unless the owner's project variable %s says otherwise" % (
+                                "do not set %s" % variable if not set_to else "set %s to %r" % (variable, value), default,
+                                variable))
+    for path in order:
+        top = None
+        for line in (every_ci[path] or "").replace("\r\n", "\n").split("\n"):
+            if line[:1] not in ("", " ", "\t", "#"):
+                top = line.split(":", 1)[0].strip().strip("'\"")
+            code = re.split(r"(?:^|\s)#", line, maxsplit=1)[0]
+            for variable in sorted(SWITCH_DEFAULTS):
+                if not re.search(r"""(?:^|[\s{,\[])["']?%s["']?[ \t]*:""" % variable, code):
+                    continue
+                if path == ".gitlab-ci.yml" and top == "variables" and re.match(r"^  %s:" % variable, line):
+                    continue
+                problems.append("%s sets %s in %s (%s): only .gitlab-ci.yml's variables: may, at its default, so that the "
+                                "owner's project variable alone moves its class" % (path, variable, top, line.strip()[:60]))
     for name, defs in sorted(definitions.items()):
         for path, body in defs:
             if re.search(r"^  inherit:", body, re.MULTILINE):
@@ -3275,7 +3381,7 @@ def runner_problems(texts):
                         "be told" % error)
 
     # The jobs.
-    chosen_runner, own = [], []
+    chosen_runner, own, classed = [], [], {}
     for name in sorted(definitions):
         if name.startswith("."):
             continue
@@ -3313,9 +3419,20 @@ def runner_problems(texts):
                             "on 9 October 2026 - a job takes default:'s [$%s] or names a runner of the project's"
                             % (name, where, RUNNER_VARIABLE))
             continue
+        if len(tags) == 1 and tags[0].startswith("$") and tags[0][1:] in RUNNER_CLASSES:
+            variable = tags[0][1:]
+            if name not in RUNNER_CLASSES[variable]["jobs"]:
+                problems.append("%s (%s) takes its tags from %s, and that class does not name it (RUNNER_CLASSES): a job goes "
+                                "to GitLab's runners with a class only once it is known to need nothing of the project's"
+                                % (name, where, variable))
+                continue
+            classed.setdefault(variable, []).append(name)
+            # Its rules are held as a job's on linix, where its switch leaves it: for a
+            # protected ref that is not a merge request's alone.
+            tags = [DEFAULT_RUNNER]
         if any("$" in t for t in tags):
-            problems.append("%s (%s) names its tags %s by a variable other than %s alone: where it runs cannot be told"
-                            % (name, where, tags, RUNNER_VARIABLE))
+            problems.append("%s (%s) names its tags %s by a variable other than %s alone, or a class's switch alone: where it "
+                            "runs cannot be told" % (name, where, tags, RUNNER_VARIABLE))
             continue
         if not any(set(tags) <= set(carried) for _, carried in PROJECT_RUNNERS):
             problems.append("%s (%s) names the tags %s, which no runner of the project's carries all of (%s): it would "
@@ -3360,12 +3477,168 @@ def runner_problems(texts):
                                 name, where, tags, index + 1, rule["text"][:90],
                                 "for a merge request" if kind["CI_PIPELINE_SOURCE"] == "merge_request_event" else
                                 "for an unprotected ref", kind["CI_COMMIT_REF_PROTECTED"], kind["CI_PIPELINE_SOURCE"]))
+    for variable, spec in sorted(RUNNER_CLASSES.items()):
+        for job in spec["jobs"]:
+            if job not in classed.get(variable, []):
+                problems.append("%s is one of %s's jobs (RUNNER_CLASSES), and %s" % (
+                    job, variable, "no CI file defines it" if job not in definitions else
+                    "it does not take its tags from that switch alone: tags: [$%s]" % variable))
     templates = sorted(set(re.findall(r"^\s*-\s*template:\s*(\S+)", "\n".join(every_ci.values()), re.MULTILINE)))
     notes.append("runners: %d job(s) take [$%s] (default: or their own) - %s for a protected ref that is not a merge "
                  "request's, %s for any other pipeline - and %d name a runner of the project's and run only for such a "
-                 "ref; the jobs of GitLab's templates (%s) take default:'s" % (
-                     len(chosen_runner), RUNNER_VARIABLE, DEFAULT_RUNNER, HOSTED_RUNNER, len(own), ", ".join(templates)))
+                 "ref, %d of them by a class's switch (%s), on linix unless the owner's project variable sends the class "
+                 "to GitLab's runners; the jobs of GitLab's templates (%s) take default:'s" % (
+                     len(chosen_runner), RUNNER_VARIABLE, DEFAULT_RUNNER, HOSTED_RUNNER, len(own),
+                     sum(len(v) for v in classed.values()),
+                     ", ".join("%s %d" % (v, len(classed.get(v, []))) for v in sorted(RUNNER_CLASSES)), ", ".join(templates)))
     return problems, notes
+
+
+def runner_class_problems(texts, script=None):
+    """[problem] for each way a class of jobs a switch moves to GitLab's hosted runners
+    (RUNNER_CLASSES) could take a credential there, fail there, or run where it must not:
+    a classed job that names an environment (a credential scoped to it would go with
+    it), id_tokens or secrets; one that asks for a pull policy without always, which
+    GitLab's runners refuse; one of an amd64 class in an arm64 container, which they
+    cannot run, or of the arm64 class in the CI image, which is amd64 alone; one that
+    waits in a resource group other than its class's lane, or in any for a class
+    without one; a job outside a class in a class's lane; a job that boots a QEMU
+    machine without the tags that put it on server2 (KVM_JOBS); the checks of
+    HOSTED_CHECKS_FILE missing, not included, not run as HOSTED_SCRIPT runs them, not
+    on linix, or not asking of every switch and lane whether it is at its default; and
+    the script's classes not these. script stands in for HOSTED_SCRIPT, for the
+    self-test."""
+    problems = []
+    every_ci = ci_files(texts)
+    order = [p for p in sorted(every_ci) if p != ".gitlab-ci.yml"] + [".gitlab-ci.yml"]
+    jobs = {}
+    for path in order:
+        for name, body in blocks(every_ci[path] or "").items():
+            jobs[name] = body
+    lanes = dict((spec["lane"][0], variable) for variable, spec in RUNNER_CLASSES.items() if spec["lane"])
+    for variable, spec in sorted(RUNNER_CLASSES.items()):
+        for name in spec["jobs"]:
+            if name not in jobs:
+                continue
+            taken = template_order(name, jobs)
+            parts = [jobs[n] for n in taken]
+            for part in list(parts):
+                for other in re.findall(r"!reference \[\s*([^,\]\s]+)\s*,\s*(?:image|services)\s*\]", part):
+                    parts += [jobs[n] for n in template_order(other, jobs)]
+            joined = "\n".join(parts)
+            for key in ("environment", "id_tokens", "secrets"):
+                holder = next((n for n in taken if re.search(r"^  %s:" % key, jobs[n], re.MULTILINE)), None)
+                if holder:
+                    problems.append("%s, one of %s's jobs, says %s: (%s): %s, and %s's switch can send it to GitLab's runners - "
+                                    "a job that needs it stays on the project's, out of the class" % (
+                                        name, variable, key, holder, "a credential scoped to an environment goes to every job "
+                                        "that names it" if key == "environment" else "it would be handed a credential or a "
+                                        "token that signs as the pipeline", variable))
+            for policy in re.findall(r"pull_policy:[ \t]*([^\n]*)", joined):
+                value = re.split(r"\s#", policy, maxsplit=1)[0].strip()
+                items = [v.strip() for v in value.strip("[]").split(",")] if value.startswith("[") else [value]
+                if "always" not in items:
+                    problems.append("%s, one of %s's jobs, asks for the pull policy %s: GitLab's hosted runners allow always "
+                                    "alone and fail a job that asks for none of it; [if-not-present, always] keeps "
+                                    "if-not-present on the project's runners" % (name, variable, value))
+                    break
+            in_ci_image = ".linix" in taken or re.search(r"!reference \[\s*\.linix\s*,\s*image\s*\]", joined)
+            if spec["arch"] == "arm64" and in_ci_image:
+                problems.append("%s, one of %s's jobs, runs in the CI image, which is amd64 alone: on GitLab's arm64 machines "
+                                "it would not start" % (name, variable))
+            if spec["arch"] != "arm64" and re.search(r"platform:[ \t]*linux/arm64", joined):
+                problems.append("%s, one of %s's jobs, runs an arm64 container: GitLab's amd64 machines have no aarch64 "
+                                "emulation, and its class is HM_RUNNER_ARM64" % (name, variable))
+            group = None
+            for n in taken:
+                found = re.search(r"^  resource_group:[ \t]*(.*?)[ \t]*$", jobs[n], re.MULTILINE)
+                if found:
+                    group = yaml_scalar(found.group(1))
+                    break
+            lane = spec["lane"]
+            if group is not None and (not lane or group != "$" + lane[0]):
+                problems.append("%s, one of %s's jobs, waits in the resource group %s: %s" % (
+                    name, variable, group, "a job of its class waits in the class's lane, $%s, which the owner gives each "
+                    "job a lane of its own with on GitLab's runners" % lane[0] if lane else "its class has no lane, and "
+                    "on GitLab's runners a group of one name holds back jobs that share no machine"))
+    classed = set(job for spec in RUNNER_CLASSES.values() for job in spec["jobs"])
+    for name in sorted(jobs):
+        if name.startswith(".") or name in RESERVED or name in classed:
+            continue
+        for n in template_order(name, jobs):
+            found = re.search(r"^  resource_group:[ \t]*(.*?)[ \t]*$", jobs[n], re.MULTILINE)
+            if not found:
+                continue
+            lane = re.match(r"^\$\{?([A-Za-z0-9_]+)\}?$", yaml_scalar(found.group(1)))
+            if lane and lane.group(1) in lanes:
+                problems.append("%s waits in $%s, %s's lane, and is none of its jobs: on the project's runners it waits with "
+                                "them, and with none once the owner gives each of them a lane of its own" % (
+                                    name, lane.group(1), lanes[lane.group(1)]))
+            break
+    for name, wanted in sorted(KVM_JOBS.items()):
+        found = None
+        try:
+            for n in template_order(name, jobs):
+                found = tag_values(jobs[n])
+                if found is not None:
+                    break
+        except ValueError:
+            found = None
+        if found != wanted:
+            problems.append("%s boots a QEMU machine, which wants KVM, and asks for the tags %s, not %s: on linix and s1-linux, "
+                            "virtual machines without nested KVM, its NixOS test falls back to QEMU's TCG and timed out "
+                            "(job 17129125235, 13 October 2026); server2 alone carries kvm" % (name, found, wanted))
+        if not any(set(wanted) <= set(carried) for _, carried in PROJECT_RUNNERS):
+            problems.append("no runner of the project's carries %s, which %s asks for (PROJECT_RUNNERS)" % (wanted, name))
+    hosted = every_ci.get(HOSTED_CHECKS_FILE)
+    if hosted is None:
+        problems.append("%s is not in the tree: no pipeline a switch is set for would check the switches, the credentials "
+                        "a job there is given or the namespace's compute minutes" % HOSTED_CHECKS_FILE)
+    else:
+        if not re.search(r"^  - local: %s\s*$" % re.escape(HOSTED_CHECKS_FILE), texts["ci"], re.MULTILINE):
+            problems.append(".gitlab-ci.yml does not include %s: no pipeline a switch is set for would run its checks"
+                            % HOSTED_CHECKS_FILE)
+        found = blocks(hosted)
+        refusal = found.get(".hosted-switched", "")
+        for variable, default in sorted(SWITCH_DEFAULTS.items()):
+            if '$%s == "%s"' % (variable, default) not in refusal:
+                problems.append(".hosted-switched (%s) does not ask whether %s is %s: in a pipeline for which it alone is "
+                                "set, neither check would run" % (HOSTED_CHECKS_FILE, variable, default))
+        if not refusal.rstrip().endswith("- !reference [.own-runners, rules]"):
+            problems.append(".hosted-switched (%s) does not end with .own-runners' rules: its checks would run where the "
+                            "project's runners must take nothing, or for a push of documents alone" % HOSTED_CHECKS_FILE)
+        for job, command in sorted(HOSTED_CHECKS.items()):
+            body = found.get(job, "")
+            if not body:
+                problems.append("%s defines no job %s" % (HOSTED_CHECKS_FILE, job))
+                continue
+            if not re.search(r"^  tags: \[linix\]\s*$", body, re.MULTILINE):
+                problems.append("%s (%s) does not run on linix alone: a check of the switches must not depend on them, and on "
+                                "linix it runs when the minutes have run out" % (job, HOSTED_CHECKS_FILE))
+            if "    - !reference [.hosted-switched, rules]" not in body:
+                problems.append("%s (%s) does not take .hosted-switched's rules" % (job, HOSTED_CHECKS_FILE))
+            if not re.search(r"^    - python3 build/ci/hosted-runners\.py %s\s*$" % command, body, re.MULTILINE):
+                problems.append("%s (%s) does not run python3 build/ci/hosted-runners.py %s" % (job, HOSTED_CHECKS_FILE, command))
+            environment = re.search(r"^  environment:\s*\n    name: (\S+)", body, re.MULTILINE)
+            if job == "compute-quota" and (not environment or environment.group(1) != HOSTED_QUOTA_ENVIRONMENT):
+                problems.append("compute-quota (%s) does not name the environment %s, the one HM_QUOTA_TOKEN is scoped to: it "
+                                "would read no usage, or the token would be given to every job" % (
+                                    HOSTED_CHECKS_FILE, HOSTED_QUOTA_ENVIRONMENT))
+            if job != "compute-quota" and re.search(r"^  environment:", body, re.MULTILINE):
+                problems.append("%s (%s) names an environment: it must be given what a job that names none is given, as every "
+                                "job a switch moves is" % (job, HOSTED_CHECKS_FILE))
+    try:
+        module = script if script is not None else _load(HOSTED_SCRIPT, "hosted_runners")
+        theirs = dict((c[0], (c[1], (c[2], c[3]) if c[2] else None)) for c in module.CLASSES)
+        ours = dict((variable, (spec["arch"], spec["lane"])) for variable, spec in RUNNER_CLASSES.items())
+        if theirs != ours:
+            problems.append("%s's CLASSES are not RUNNER_CLASSES' switches, architectures and lanes: %s, where the CI files "
+                            "have %s" % (HOSTED_SCRIPT.replace(os.sep, "/"), sorted(theirs.items()), sorted(ours.items())))
+        if dict(module.HOSTED) != dict(HOSTED_MACHINES):
+            problems.append("%s's HOSTED machines are not HOSTED_MACHINES" % HOSTED_SCRIPT.replace(os.sep, "/"))
+    except Exception as error:
+        problems.append("%s could not be read: %s" % (HOSTED_SCRIPT.replace(os.sep, "/"), error))
+    return problems
 
 
 # What each Python script of build/land-via-mr.py's GATE_FILES runs before it imports
@@ -4125,6 +4398,10 @@ def self_test(chain, feed):
            "paths match none of")
     broken("every Markdown file counted as code", "ci", '          - "[!.]*/**/*.md"\n', '          - "**/*.md"\n',
            "so a push changing only documentation would start the gates")
+    broken("a job on a class's switch without the paths", "ci", "linux-sbom:\n  extends: .linix\n",
+           "linux-sbom:\n  extends: .linix\n  rules:\n    - if: $CI_PIPELINE_SOURCE == \"schedule\" || $CI_PIPELINE_SOURCE == "
+           "\"pipeline\"\n      when: never\n    - if: $CI_PIPELINE_SOURCE != \"merge_request_event\" && $CI_COMMIT_REF_PROTECTED == "
+           "\"true\"\n", "linux-sbom runs on the project's own runners for a push that changes only documentation")
     broken("a job on linix without the paths", "ci", "      changes:\n        paths: *not-docs-only\n      when: manual", "      when: manual",
            "db-matrix runs on the project's own runners for a push that changes only documentation")
     broken("a pattern GitLab would read otherwise", "ci", '          - "**/*[!d]"', '          - "**/*{[!d],x}"', "braces are not read here")
@@ -4919,7 +5196,7 @@ def self_test(chain, feed):
             ("an included job on extends as a block list", channels, "", "\nprobe-job:\n  extends:\n    - .linix\n  script: [echo]\n",
              "gives extends: as a block list"),
             ("a template of the project's jobs on a tag any runner may carry", ".gitlab-ci.yml",
-             ".linix:\n  extends: .own-runners\n  tags: [linix]\n", ".linix:\n  extends: .own-runners\n  tags: [docker]\n",
+             ".linix:\n  extends: .own-runners\n  tags: [$HM_RUNNER_BUILD]\n", ".linix:\n  extends: .own-runners\n  tags: [docker]\n",
              "linux-build (.gitlab-ci.yml) names the tags ['docker']"),
             ("an included job on linix whose merge requests are sent to never only when a file changed", channels, "",
              '\nprobe-job:\n  tags: [linix]\n  rules:\n    - if: $CI_PIPELINE_SOURCE == "merge_request_event"\n'
@@ -4951,6 +5228,132 @@ def self_test(chain, feed):
     found, _ = runner_problems(copy)
     if not any("editorconfig names its tags in" in p for p in found):
         failures.append("a job naming its tags in two CI files is caught: %s" % found)
+    # GitLab's hosted runners beside the project's: the tree's classes hold, and each of
+    # their rules broken in a copy - in .gitlab-ci.yml or in an included file, one that
+    # FILES names through its key - is caught (runner_problems, runner_class_problems).
+    found = runner_class_problems(texts)
+    if found:
+        failures.append("the tree's classes of jobs for GitLab's runners hold: %s" % found)
+    files_key = dict((relative.replace(os.sep, "/"), key) for key, relative in FILES.items())
+
+    def both(copy):
+        return runner_problems(copy)[0] + runner_class_problems(copy)
+
+    def class_broken(what, path, old, new, needle, judge=both):
+        copy = dict(texts)
+        key = "ci" if path == ".gitlab-ci.yml" else files_key.get(path)
+        source = copy.get(key) if key else copy["ci-includes"].get(path)
+        if not source or old not in source:
+            failures.append("%s: the text to break is not in %s (%r)" % (what, path, old))
+            return
+        changed = source.replace(old, new, 1)
+        if key:
+            copy[key] = changed
+        else:
+            copy["ci-includes"] = dict(copy["ci-includes"], **{path: changed})
+        found = judge(copy)
+        if not any(needle in p for p in found):
+            failures.append("%s is caught: %s" % (what, found))
+
+    hosted_file = HOSTED_CHECKS_FILE
+    sbom_job = "linux-sbom:\n  extends: .linix\n"
+    for what, path, old, new, needle in (
+            ("a job that takes a class's switch its class does not name", ".gitlab/ci/snap.yml", "\nsnap-build-arm64:\n",
+             "\nprobe-classed:\n  extends: .snap-build\n  needs: []\n\nsnap-build-arm64:\n",
+             "probe-classed (.gitlab/ci/snap.yml) takes its tags from HM_RUNNER_PACKAGES, and that class does not name it"),
+            ("a job its class names taken out of it", ".gitlab/ci/packages-appimage.yml",
+             "appimage-test-x86_64:\n  extends: [.appimage, .appimage-follow-rules]\n",
+             "appimage-test-x86_64:\n  extends: [.appimage, .appimage-follow-rules]\n  tags: [linix]\n",
+             "appimage-test-x86_64 is one of HM_RUNNER_PACKAGES's jobs (RUNNER_CLASSES), and it does not take its tags"),
+            ("a job on a switch beside another tag", ".gitlab-ci.yml", sbom_job, sbom_job + "  tags: [$HM_RUNNER_BUILD, linix]\n",
+             "or a class's switch alone"),
+            ("a switch whose default is GitLab's runner", ".gitlab-ci.yml", "  HM_RUNNER_PACKAGES: linix\n",
+             "  HM_RUNNER_PACKAGES: saas-linux-large-amd64\n", "set HM_RUNNER_PACKAGES to 'saas-linux-large-amd64': it must be linix"),
+            ("a lane's default changed", ".gitlab-ci.yml", "  HM_LANE_SUITE: linix-suite\n", "  HM_LANE_SUITE: hosted-$CI_JOB_NAME\n",
+             "set HM_LANE_SUITE to 'hosted-$CI_JOB_NAME': it must be linix-suite"),
+            ("a switch set nowhere", ".gitlab-ci.yml", "  HM_RUNNER_ARM64: linix\n", "", "do not set HM_RUNNER_ARM64"),
+            ("a job that sends itself to GitLab's runners", ".gitlab/ci/source-tarball.yml",
+             "  variables:\n    DEBIAN_FRONTEND: noninteractive\n",
+             "  variables:\n    DEBIAN_FRONTEND: noninteractive\n    HM_RUNNER_BUILD: saas-linux-large-amd64\n",
+             ".gitlab/ci/source-tarball.yml sets HM_RUNNER_BUILD in source-tarball"),
+            ("a workflow rule that sets a switch", ".gitlab-ci.yml",
+             '    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"\n    - if: $CI_COMMIT_BRANCH\n',
+             '    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"\n      variables:\n'
+             '        HM_RUNNER_SUITE: saas-linux-large-amd64\n    - if: $CI_COMMIT_BRANCH\n', ".gitlab-ci.yml sets HM_RUNNER_SUITE in workflow"),
+            ("a classed job that names an environment", ".gitlab-ci.yml", sbom_job,
+             sbom_job + "  environment:\n    name: probe\n    action: access\n", "linux-sbom, one of HM_RUNNER_BUILD's jobs, says environment:"),
+            ("a classed job given an ID token", ".gitlab-ci.yml", sbom_job,
+             sbom_job + "  id_tokens:\n    PROBE_ID_TOKEN:\n      aud: probe\n", "linux-sbom, one of HM_RUNNER_BUILD's jobs, says id_tokens:"),
+            ("a classed job's image GitLab's runners would not pull", ".gitlab-ci.yml",
+             "    pull_policy: [if-not-present, always]\n  before_script:\n    - python3 build/check-ci-image.py --job\n",
+             "    pull_policy: if-not-present\n  before_script:\n    - python3 build/check-ci-image.py --job\n",
+             "linux-build, one of HM_RUNNER_BUILD's jobs, asks for the pull policy if-not-present"),
+            ("a classed job's service GitLab's runners would not pull", ".gitlab-ci.yml",
+             "      alias: mariadb\n      pull_policy: [if-not-present, always]\n", "      alias: mariadb\n      pull_policy: if-not-present\n",
+             "linux-db-upgrade-mysql, one of HM_RUNNER_BUILD's jobs, asks for the pull policy if-not-present"),
+            ("an arm64 job in the CI image", ".gitlab/ci/packages-deb.yml",
+             "deb-ubuntu26.04-arm64-install:\n  extends: [.deb-install-arm64, .deb-image-ubuntu26.04-arm64]\n",
+             "deb-ubuntu26.04-arm64-install:\n  extends: [.deb-image-ubuntu26.04-arm64, .linix, .deb-install-arm64]\n",
+             "deb-ubuntu26.04-arm64-install, one of HM_RUNNER_ARM64's jobs, runs in the CI image"),
+            ("an amd64 class's job in an arm64 container", ".gitlab/ci/packages-deb.yml",
+             "deb-debian12-amd64-install:\n  extends: [.deb-install, .deb-image-debian12-amd64]\n",
+             "deb-debian12-amd64-install:\n  extends: [.deb-install, .deb-image-debian12-arm64]\n",
+             "deb-debian12-amd64-install, one of HM_RUNNER_PACKAGES's jobs, runs an arm64 container"),
+            ("a laned job out of its lane", ".gitlab/ci/alpine.yml", "  resource_group: $HM_LANE_SUITE\n", "  resource_group: linix-suite\n",
+             "alpine-suite, one of HM_RUNNER_SUITE's jobs, waits in the resource group linix-suite"),
+            ("a job of a class without a lane in a resource group", ".gitlab-ci.yml", sbom_job, sbom_job + "  resource_group: probe\n",
+             "linux-sbom, one of HM_RUNNER_BUILD's jobs, waits in the resource group probe: its class has no lane"),
+            ("a job outside the class in its lane", ".gitlab/ci/nix.yml", "  resource_group: linix-package-build\n",
+             "  resource_group: $HM_LANE_PACKAGES\n", "nix waits in $HM_LANE_PACKAGES, HM_RUNNER_PACKAGES's lane"),
+            ("the emulated aarch64 builds out of their lane on linix", ".gitlab/ci/packages-rpm.yml",
+             "  tags: [linix]\n  resource_group: linix-package-build\n", "  tags: [linix]\n",
+             "rpm-el10-aarch64 waits in $HM_LANE_PACKAGES, HM_RUNNER_PACKAGES's lane"),
+            ("nix without KVM", ".gitlab/ci/nix.yml", "  tags: [linix, kvm]\n", "  tags: [linix]\n", "nix boots a QEMU machine"),
+            ("the checks not included", ".gitlab-ci.yml", "  - local: .gitlab/ci/hosted-runners.yml\n", "",
+             ".gitlab-ci.yml does not include .gitlab/ci/hosted-runners.yml"),
+            ("a switch the checks do not ask of", hosted_file, ' && $HM_RUNNER_SUITE == "linix"', "",
+             ".hosted-switched (.gitlab/ci/hosted-runners.yml) does not ask whether HM_RUNNER_SUITE is linix"),
+            ("a lane the checks do not ask of", hosted_file, ' && $HM_LANE_PACKAGES == "linix-package-build"', "",
+             "does not ask whether HM_LANE_PACKAGES is linix-package-build"),
+            ("the checks' rules without .own-runners'", hosted_file, "    - !reference [.own-runners, rules]\n", "    - when: on_success\n",
+             "does not end with .own-runners' rules"),
+            ("a check off linix", hosted_file, "hosted-runners:\n  stage: check\n  tags: [linix]\n",
+             "hosted-runners:\n  stage: check\n  tags: [$HM_RUNNER_BUILD]\n",
+             "hosted-runners (.gitlab/ci/hosted-runners.yml) does not run on linix alone"),
+            ("compute-quota out of its token's environment", hosted_file, "    name: compute-quota\n", "    name: quota\n",
+             "compute-quota (.gitlab/ci/hosted-runners.yml) does not name the environment compute-quota"),
+            ("hosted-runners given an environment", hosted_file, "  script:\n    - python3 build/ci/hosted-runners.py --self-test\n",
+             "  environment:\n    name: compute-quota\n  script:\n    - python3 build/ci/hosted-runners.py --self-test\n",
+             "hosted-runners (.gitlab/ci/hosted-runners.yml) names an environment"),
+            ("a check that runs another command", hosted_file, "    - python3 build/ci/hosted-runners.py quota\n",
+             "    - python3 build/ci/hosted-runners.py --self-test\n",
+             "compute-quota (.gitlab/ci/hosted-runners.yml) does not run python3 build/ci/hosted-runners.py quota"),
+            ("a classed job a merge request's pipeline makes", ".gitlab-ci.yml", sbom_job,
+             sbom_job + '  rules:\n    - if: $CI_PIPELINE_SOURCE == "merge_request_event"\n',
+             "linux-sbom (.gitlab-ci.yml) is tagged ['linix'], for a runner of the project's, and its rule 1")):
+        class_broken(what, path, old, new, needle)
+    held_runners = PROJECT_RUNNERS
+    try:
+        globals()["PROJECT_RUNNERS"] = tuple((who, tuple(t for t in carried if t != "kvm")) for who, carried in held_runners)
+        found = runner_class_problems(texts)
+        if not any("no runner of the project's carries ['linix', 'kvm']" in p for p in found):
+            failures.append("kvm carried by no runner of the project's is caught: %s" % found)
+    finally:
+        globals()["PROJECT_RUNNERS"] = held_runners
+
+    class Script(object):
+        CLASSES = (("HM_RUNNER_BUILD", "amd64", None, None), ("HM_RUNNER_PACKAGES", "amd64", "HM_LANE_PACKAGES", "linix-package-build"),
+                   ("HM_RUNNER_ARM64", "arm64", None, None), ("HM_RUNNER_SUITE", "amd64", "HM_LANE_SUITE", "linix-suite"))
+        HOSTED = dict(HOSTED_MACHINES)
+    if runner_class_problems(texts, Script):
+        failures.append("hosted-runners.py's classes as the CI files have them pass: %s" % runner_class_problems(texts, Script))
+    Script.CLASSES = Script.CLASSES[:3]
+    if not any("CLASSES are not RUNNER_CLASSES'" in p for p in runner_class_problems(texts, Script)):
+        failures.append("hosted-runners.py without the suites' class is caught")
+    Script.CLASSES, Script.HOSTED = Script.CLASSES + (("HM_RUNNER_SUITE", "amd64", "HM_LANE_SUITE", "linix-suite"),), \
+        dict(HOSTED_MACHINES, arm64=("saas-linux-small-arm64",))
+    if not any("HOSTED machines are not HOSTED_MACHINES" in p for p in runner_class_problems(texts, Script)):
+        failures.append("hosted-runners.py naming other machines is caught")
     # Each Python script of GATE_FILES keeps its own directory off sys.path before it
     # imports anything but os and sys.
     sources = gate_python_sources(landing)

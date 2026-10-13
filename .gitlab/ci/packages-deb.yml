@@ -19,6 +19,14 @@
 #                                package here a release carries
 #                                (build/ci/packages/package-sbom.sh)
 #
+# linix above is where each job's class leaves it (.gitlab-ci.yml, variables:): the
+# builds and the amd64 install jobs are HM_RUNNER_PACKAGES's, the builds waiting in its
+# lane, HM_LANE_PACKAGES; the arm64 install jobs, whose containers are arm64, are
+# HM_RUNNER_ARM64's, and run natively on GitLab's arm64 machines when it sends them
+# there; the SBOM job is HM_RUNNER_BUILD's. An arm64 build asks whether its machine runs
+# aarch64 programs only where its install job will run on one of that kind
+# (deb-build.sh).
+#
 # for debian12, debian13 and ubuntu24.04, amd64 and arm64, and for ubuntu26.04
 # arm64 only. The names: ubuntu26.04 arm64 makes the generic
 # hmailserver_<v>_arm64.deb the update checker looks for, which the release
@@ -57,31 +65,31 @@
 .deb-image-debian12-amd64:
   image:
     name: debian:12@sha256:704583dbf243593da87cf949fc0543ffeca24a28d36c2760dc9545410cb8ed02
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
 .deb-image-debian12-arm64:
   image:
     name: debian:12@sha256:9a2bafc2cebc397fc253a4b80c6d4bc425eb5a2a819cd25ada003c7facd48f1d
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
     docker:
       platform: linux/arm64
 .deb-image-debian13-amd64:
   image:
     name: debian:13@sha256:d5ce19d4736f0ebbacd686d1040271a5aeb0cc920f5990c1bfae1717627f0674
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
 .deb-image-debian13-arm64:
   image:
     name: debian:13@sha256:1808211ab6f37c6fc6a75368651697536f7bf47993f2797befa8908b1254979d
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
     docker:
       platform: linux/arm64
 .deb-image-ubuntu24.04-amd64:
   image:
     name: ubuntu:24.04@sha256:496754492fb28b4d3049432f2ca787449331e23fb14f0dd3fffea86bf5a93eb4
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
 .deb-image-ubuntu24.04-arm64:
   image:
     name: ubuntu:24.04@sha256:11dc1ccb427f0464a2369e645454c272bb0baece7357c892ba69d313b3a332cf
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
     docker:
       platform: linux/arm64
 # The same Ubuntu 26.04 image as the CI image and linux-package-deb (their index
@@ -89,11 +97,11 @@
 .deb-image-ubuntu26.04-amd64:
   image:
     name: ubuntu:26.04@sha256:e5a4d6262ab5dbc25a85e60550dd7c87fd41a74fe43881534ed8288b2a7a3f8d
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
 .deb-image-ubuntu26.04-arm64:
   image:
     name: ubuntu:26.04@sha256:a6757b311b671e9379ac0548b5abf7a7e68d33bff51f6044bbd60f68f781489a
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
     docker:
       platform: linux/arm64
 
@@ -124,14 +132,14 @@
 
 .deb-build:
   stage: build
-  tags: [linix]
+  tags: [$HM_RUNNER_PACKAGES]
   needs: []
   timeout: 1 hour
   # One of these builds at a time on linix, across pipelines: each runs six
   # compilers at once (it had 16 cores and 11 GB on 26 September 2026), and
   # linux-build and linux-suite need the machine too. The other package files'
   # builds join this group only if they name it too.
-  resource_group: linix-package-build
+  resource_group: $HM_LANE_PACKAGES
   rules:
     - !reference [.deb-rules, rules]
   variables:
@@ -147,7 +155,7 @@
 # Its needs are the build of the same release and architecture, with its artifacts.
 .deb-install:
   stage: test
-  tags: [linix]
+  tags: [$HM_RUNNER_PACKAGES]
   timeout: 20 minutes
   rules:
     - !reference [.deb-install-rules, rules]
@@ -158,6 +166,13 @@
     expire_in: 14 days
     paths:
       - packages-deb/*/install-*.txt
+
+# An arm64 install job: its container is arm64, which linix and server2 run under
+# qemu-user and GitLab's arm64 machines natively, so its class is HM_RUNNER_ARM64's, not
+# its build's (.gitlab-ci.yml, variables:).
+.deb-install-arm64:
+  extends: .deb-install
+  tags: [$HM_RUNNER_ARM64]
 
 # ------------------------------------------------------------------ Debian 12 (bookworm)
 # Boost 1.74 in the archive: 1.83.0 is built from boost.org's tarball in the job
@@ -191,7 +206,7 @@ deb-debian12-amd64-install:
   variables: {HM_DEB_DISTRO: debian12, HM_DEB_ARCH: amd64}
 
 deb-debian12-arm64-install:
-  extends: [.deb-install, .deb-image-debian12-arm64]
+  extends: [.deb-install-arm64, .deb-image-debian12-arm64]
   needs: [deb-debian12-arm64]
   variables: {HM_DEB_DISTRO: debian12, HM_DEB_ARCH: arm64}
 
@@ -210,7 +225,7 @@ deb-debian13-amd64-install:
   variables: {HM_DEB_DISTRO: debian13, HM_DEB_ARCH: amd64}
 
 deb-debian13-arm64-install:
-  extends: [.deb-install, .deb-image-debian13-arm64]
+  extends: [.deb-install-arm64, .deb-image-debian13-arm64]
   needs: [deb-debian13-arm64]
   variables: {HM_DEB_DISTRO: debian13, HM_DEB_ARCH: arm64}
 
@@ -229,7 +244,7 @@ deb-ubuntu24.04-amd64-install:
   variables: {HM_DEB_DISTRO: ubuntu24.04, HM_DEB_ARCH: amd64}
 
 deb-ubuntu24.04-arm64-install:
-  extends: [.deb-install, .deb-image-ubuntu24.04-arm64]
+  extends: [.deb-install-arm64, .deb-image-ubuntu24.04-arm64]
   needs: [deb-ubuntu24.04-arm64]
   variables: {HM_DEB_DISTRO: ubuntu24.04, HM_DEB_ARCH: arm64}
 
@@ -246,7 +261,7 @@ deb-ubuntu26.04-arm64:
   variables: {HM_DEB_DISTRO: ubuntu26.04, HM_DEB_ARCH: arm64}
 
 deb-ubuntu26.04-arm64-install:
-  extends: [.deb-install, .deb-image-ubuntu26.04-arm64]
+  extends: [.deb-install-arm64, .deb-image-ubuntu26.04-arm64]
   needs: [deb-ubuntu26.04-arm64]
   variables: {HM_DEB_DISTRO: ubuntu26.04, HM_DEB_ARCH: arm64}
 

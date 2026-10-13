@@ -5649,6 +5649,36 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `docker` group, could have Fulcio certify a key as that release's pipeline while the token is valid. Those machines
   build the release's Linux packages already, and only a protected ref's pipeline reaches them (the same section,
   "What it trusts").
+- **GitLab's hosted runners can take a class of jobs beside the project's own, by a switch the owner sets.** The
+  group is on GitLab's open-source plan since 13 October 2026, with 50,000 compute minutes a month. The jobs on the
+  project's runners that need nothing of the project's are in four classes, each of which takes its tags from a
+  variable that `.gitlab-ci.yml` sets to `linix` and a protected project variable of the same name sends to one of
+  GitLab's hosted Linux machines in a protected ref's pipeline: `HM_RUNNER_BUILD`, the 21 builds and checks in the CI
+  image or a distribution's (`linux-build`, the scans, `linux-repro` and the rest); `HM_RUNNER_PACKAGES`, the 45
+  package builds and install jobs in amd64 containers; `HM_RUNNER_ARM64`, the 15 jobs in an arm64 container, which
+  linix and server2 run under qemu-user and GitLab's arm64 machines natively; and `HM_RUNNER_SUITE`, the two suites.
+  The package builds and the suites take their resource groups from `HM_LANE_PACKAGES` and `HM_LANE_SUITE`
+  (`linix-package-build` and `linix-suite`), which the owner sets to `hosted-$CI_JOB_NAME` beside a switch, so that
+  jobs that each have a machine of their own do not wait for one another: one after another, the 28 package builds
+  made each batch's pipeline about eight hours long in October 2026. Nothing moves until a switch is set. Every image
+  and service asks for the pull policy `[if-not-present, always]`, since GitLab's runners allow `always` alone. What
+  holds a credential, signs or needs a machine of the project's stays whatever a switch says: the Windows jobs, the
+  privileged systemd jobs, the release's and its rehearsal's, the channels', `renovate`, `scorecard`,
+  `forge-export`, `db-matrix`, `linux-fuzz`, `linux-coverage`, the aarch64 `.rpm` builds, whose testers run under
+  qemu-user, and `nix`, which now asks for the tags `linix` and `kvm`: its NixOS test timed out under QEMU's TCG on
+  linix, which has no KVM, and server2, whose machine has it, is to carry the tag. `renovate`, `forge-export` and
+  `db-matrix` name environments of their own, as the channels' jobs and `scorecard` do, so that each credential can be
+  scoped to its one job and reaches no job on GitLab's runners. In every pipeline of `master` or a `batch*` branch a
+  switch is set for, `hosted-runners` and `compute-quota` (`.gitlab/ci/hosted-runners.yml`,
+  `build/ci/hosted-runners.py`), on linix, check that each switch names a machine of its class's kind and each lane
+  goes with its class, fail while a job that names no environment is given a credential, naming it, and read the
+  namespace's compute minutes against what the pipeline is expected to use: a warning under a quarter of the quota or
+  ten such pipelines left, a failure under a twentieth or two, which says how the switches are set back.
+  `build/check-release-chain.py` holds each class to the jobs it names, the switches and lanes to their defaults, a
+  classed job to no environment, `id_tokens` or `secrets`, a pull policy GitLab allows, its class's architecture and
+  lane, `nix` to `kvm` and the two checks to how they run, each rule with a case of its self-test that fails without
+  it (ContinuousIntegration.md, "GitLab's hosted runners beside the project's", says what each class costs, at 0.5 a
+  job-minute on any of GitLab's Linux machines, which classes to switch on, and what a job there is given).
 - **`build/land-via-mr.py` lands a batch of any size from Windows.** It gave glab every field of a request as an
   argument of its command line, and the description of `batch47`'s merge request, 200 commit lines and 50,565
   characters, made one longer than the 32,767 characters Windows takes: on 13 October 2026 the landing pushed the

@@ -1,0 +1,87 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# GitLab's hosted runners beside the project's own: the two checks of a pipeline in
+# which a switch sends a class of jobs there. Included by .gitlab-ci.yml, whose
+# variables: hold the switches and their defaults (HM_RUNNER_BUILD, HM_RUNNER_PACKAGES
+# with HM_LANE_PACKAGES, HM_RUNNER_ARM64, HM_RUNNER_SUITE with HM_LANE_SUITE: linix,
+# linix-package-build and linix-suite); hmailserver/docs/ContinuousIntegration.md,
+# "GitLab's hosted runners beside the project's", says which jobs each class takes,
+# what a job there is given and what each costs.
+#
+#   hosted-runners  linix: each switch names a runner of its class's kind - linix, or
+#                   one of GitLab's hosted Linux machines of that class's architecture -
+#                   and each lane goes with its class; and no credential is given to a
+#                   job that names no environment, which this job is, as is every job a
+#                   switch moves (build/ci/hosted-runners.py check). A switch that names
+#                   no such runner, whose jobs would wait for one that never takes them,
+#                   fails it, and so does a credential, named - never its value - with
+#                   the environment to scope it to; a lane that disagrees with its
+#                   class is a warning (exit 3), since the jobs then run, one at a time
+#                   on GitLab's machines or side by side on linix.
+#   compute-quota   linix: the namespace's compute minutes this month, against its quota
+#                   and what this pipeline is expected to use at the switches it was
+#                   made with (build/ci/hosted-runners.py quota), so that they do not
+#                   run out unseen, as they did on 9 October 2026. It asks GitLab with
+#                   HM_QUOTA_TOKEN, a read_api token of the group's owner, a protected and
+#                   masked project variable scoped to the environment compute-quota,
+#                   which this job alone names, so that no other job is given it.
+#                   Without the token it says so, a warning. A quarter of the quota left,
+#                   or ten pipelines like this one, is a warning; a twentieth, or two, a
+#                   failure, which says how the switches are set back. A GitLab that
+#                   cannot be asked is tried twice more (exit 2), then a warning.
+#
+# On linix both, whatever the switches say: a check of the switches must not depend on
+# them, and on linix it costs no minute and runs when the minutes have run out. When:
+# in a pipeline of master or a batch* branch for which a switch or a lane is not its
+# default - a project variable is set - and .own-runners' rules make the job, so never
+# for a merge request, an unprotected ref, a schedule, or a push of documentation alone.
+# Never for a v* tag: the batch and master pipelines of the tagged commit have run them,
+# and release waits for no check that a switch makes or unmakes.
+.hosted-switched:
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - if: $HM_RUNNER_BUILD == "linix" && $HM_RUNNER_PACKAGES == "linix" && $HM_RUNNER_ARM64 == "linix" && $HM_RUNNER_SUITE == "linix" && $HM_LANE_PACKAGES == "linix-package-build" && $HM_LANE_SUITE == "linix-suite"
+      when: never
+    - !reference [.own-runners, rules]
+
+hosted-runners:
+  stage: check
+  tags: [linix]
+  image:
+    name: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
+    pull_policy: [if-not-present, always]
+  needs: []
+  timeout: 5 minutes
+  rules:
+    - !reference [.hosted-switched, rules]
+  allow_failure:
+    exit_codes: [3]
+  script:
+    - python3 build/ci/hosted-runners.py --self-test
+    - python3 build/ci/hosted-runners.py check
+
+compute-quota:
+  stage: check
+  tags: [linix]
+  image:
+    name: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
+    pull_policy: [if-not-present, always]
+  needs: []
+  timeout: 5 minutes
+  rules:
+    - !reference [.hosted-switched, rules]
+  # The token's scope: a job that names no environment is not given it.
+  environment:
+    name: compute-quota
+    action: access
+  retry:
+    max: 2
+    when: !reference [.gate-retry, retry, when]
+    exit_codes: [2]
+  allow_failure:
+    exit_codes: [2, 3]
+  script:
+    - python3 build/ci/hosted-runners.py quota

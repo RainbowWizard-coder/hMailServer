@@ -11,7 +11,9 @@
 #                    the list by build/check-source-tarball.py, which also checks
 #                    the commit it records is this one. Its artifact, source-tarball/,
 #                    is what linux-build and linux-suite build and test from
-#                    (HM_SOURCE_TARBALL), and what the release collects.
+#                    (HM_SOURCE_TARBALL), and what the release collects. On linix
+#                    unless HM_RUNNER_BUILD sends it to GitLab's runners
+#                    (.gitlab-ci.yml, variables:).
 #
 # When: wherever linux-build runs, and nowhere else. It takes .own-runners' rules,
 # which linux-build takes through .linix, so a pipeline that has one has the other,
@@ -23,10 +25,10 @@
 # own. Nothing is fetched from GitHub.
 source-tarball:
   extends: .own-runners
-  tags: [linix]
+  tags: [$HM_RUNNER_BUILD]
   image:
     name: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
   stage: build
   needs: []
   timeout: 15 minutes

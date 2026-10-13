@@ -208,7 +208,7 @@ takes the `linux-build` job's server and runs `build/lab/db-suite.sh` with:
 | `HM_SUITE_FILTER` | `db` | `db`, `all`, or a `dotnet test --filter` expression |
 | `HM_LAB_DB_HOST` | `192.168.11.154` | linix's own address |
 | `HM_LAB_DB_NAME` | `hmlab_ci` | Dropped and made again at every run |
-| `HM_LAB_DB_PASSWORD` | (none) | **A protected, masked CI/CD variable** holding `HMLAB_DB_PASSWORD` |
+| `HM_LAB_DB_PASSWORD` | (none) | **A protected, masked CI/CD variable** holding `HMLAB_DB_PASSWORD`, for the environment `test-lab` |
 
 The job's container is on the runner's default bridge network, and reaches the lab on
 linix's address and the port the lab publishes (10310, 10311, 10312). That was proved
@@ -592,7 +592,8 @@ image pulled, every volume made. What is left needs a credential the lab does no
 have, or a decision that is not the lab's:
 
 1. **The `db-matrix` job's password.** In GitLab, *Settings*, *CI/CD*, *Variables*:
-   add `HM_LAB_DB_PASSWORD`, protected and masked, with the value of
+   add `HM_LAB_DB_PASSWORD`, protected and masked, for the environment `test-lab`,
+   which `db-matrix` alone names, with the value of
    `HMLAB_DB_PASSWORD` from `~/hmlab/secrets.env` on linix (read it there; do not
    paste it anywhere else).
 2. **The runner monitors.** Put a `read_api` token of a maintainer of the project in

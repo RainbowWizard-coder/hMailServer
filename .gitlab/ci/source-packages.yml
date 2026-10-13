@@ -37,8 +37,10 @@
 # is .own-runners' own, taken by !reference, so a job here exists only where
 # source-tarball, which takes the same rules, exists to be needed.
 #
-# The builds join linix-package-build, the resource group of the package files, so
-# that one package build runs on linix at a time. The images are the ones the
+# The jobs are HM_RUNNER_PACKAGES's (.gitlab-ci.yml, variables:), on linix unless the
+# owner's switch sends them to GitLab's runners, and the builds wait in its lane,
+# HM_LANE_PACKAGES: linix-package-build, the resource group of the package files, so
+# that one package build runs on linix at a time, or a lane of each job's own there. The images are the ones the
 # package files pin, by the digest of each's x86-64 manifest, taken from those files
 # so that one digest is kept in one place, and AlmaLinux 10's, which is new here:
 # the EL package jobs build Boost themselves in Red Hat's UBI 10, which carries no
@@ -52,7 +54,7 @@
 .srcpkg-image-el10:
   image:
     name: almalinux:10@sha256:7b3a2db3971727029b6aed0e6c30ad0f3812229ac5447520acea308cb535800d
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
 
 # ------------------------------------------------------------------ templates
 # Never on a tag, and on no protected branch but master and batch*; then
@@ -69,12 +71,12 @@
 
 .srcpkg-build:
   stage: build
-  tags: [linix]
+  tags: [$HM_RUNNER_PACKAGES]
   needs:
     - job: source-tarball
       artifacts: true
   timeout: 1 hour 30 minutes
-  resource_group: linix-package-build
+  resource_group: $HM_LANE_PACKAGES
   rules:
     - !reference [.srcpkg-rules, rules]
   # Four compilers, not the package files' six: these builds carry the debug
@@ -104,7 +106,7 @@
 # Its needs are the build of the same release, with its artifacts.
 .srcpkg-install:
   stage: test
-  tags: [linix]
+  tags: [$HM_RUNNER_PACKAGES]
   timeout: 30 minutes
   rules:
     - !reference [.srcpkg-rules, rules]

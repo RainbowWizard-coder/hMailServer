@@ -37,6 +37,12 @@
 #       linix, fedora:44: the AppImage run on a distribution it was not built on,
 #       with nothing the build installed (build/ci/packages/appimage-test.sh)
 #
+# linix above is where each job's class leaves it (.gitlab-ci.yml, variables:): the
+# jobs in amd64 containers, the aarch64 compile among them, are HM_RUNNER_PACKAGES's;
+# the aarch64 runtime, packing and test, in arm64 containers, are HM_RUNNER_ARM64's, and
+# run natively on GitLab's arm64 machines when it sends them there - where the real
+# AppImage starts, and the copy without its magic bytes (below) is not needed.
+#
 # The aarch64 runtime, packing and test jobs run in arm64 containers on linix,
 # which is x86-64, under qemu-user: the image's platform is named below, and the
 # host must have qemu-user registered with binfmt_misc for aarch64
@@ -95,7 +101,14 @@
 
 .appimage:
   extends: .own-runners
-  tags: [linix]
+  tags: [$HM_RUNNER_PACKAGES]
+
+# The jobs whose container is arm64 - the aarch64 runtime, the packing and the test -
+# run natively on GitLab's arm64 machines when HM_RUNNER_ARM64 sends them there, and
+# under qemu-user on linix otherwise; the compile job is x86-64's, with the rest.
+.appimage-arm64:
+  extends: .appimage
+  tags: [$HM_RUNNER_ARM64]
 
 # ---------------------------------------------------------------- the runtime
 
@@ -106,7 +119,7 @@ appimage-runtime-x86_64:
   image:
     # alpine:3.24, linux/amd64
     name: alpine:3.24@sha256:d56c381f961d307a21b3ca004cf1e3910f106644aefb1f43e654c8a56c4fd395
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
     docker:
       platform: linux/amd64
   timeout: 15 minutes
@@ -118,13 +131,13 @@ appimage-runtime-x86_64:
       - appimage/
 
 appimage-runtime-aarch64:
-  extends: [.appimage, .appimage-start-rules]
+  extends: [.appimage-arm64, .appimage-start-rules]
   stage: build
   needs: []
   image:
     # alpine:3.24, linux/arm64/v8, under qemu-user on linix
     name: alpine:3.24@sha256:260479a1cfaf304c4c20da7f8405d3ce313513dcd534bb743257bdd2fe0f3e2d
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
     docker:
       platform: linux/arm64
   timeout: 45 minutes
@@ -154,7 +167,7 @@ appimage-runtime-sources:
   image:
     # alpine:3.24, linux/amd64: appimage-runtime-x86_64's
     name: alpine:3.24@sha256:d56c381f961d307a21b3ca004cf1e3910f106644aefb1f43e654c8a56c4fd395
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
     docker:
       platform: linux/amd64
   timeout: 20 minutes
@@ -184,7 +197,7 @@ appimage-x86_64:
   image:
     # ubuntu:24.04, linux/amd64
     name: ubuntu:24.04@sha256:496754492fb28b4d3049432f2ca787449331e23fb14f0dd3fffea86bf5a93eb4
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
     docker:
       platform: linux/amd64
   timeout: 1 hour
@@ -207,7 +220,7 @@ appimage-aarch64-compile:
   image:
     # ubuntu:24.04, linux/amd64
     name: ubuntu:24.04@sha256:496754492fb28b4d3049432f2ca787449331e23fb14f0dd3fffea86bf5a93eb4
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
     docker:
       platform: linux/amd64
   timeout: 1 hour
@@ -220,13 +233,13 @@ appimage-aarch64-compile:
       - appimage/
 
 appimage-aarch64:
-  extends: [.appimage, .appimage-follow-rules]
+  extends: [.appimage-arm64, .appimage-follow-rules]
   stage: build
   needs: [appimage-runtime-aarch64, appimage-aarch64-compile, appimage-runtime-sources]
   image:
     # ubuntu:24.04, linux/arm64/v8, under qemu-user on linix
     name: ubuntu:24.04@sha256:11dc1ccb427f0464a2369e645454c272bb0baece7357c892ba69d313b3a332cf
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
     docker:
       platform: linux/arm64
   timeout: 1 hour
@@ -259,7 +272,7 @@ appimage-bundled-sources:
   image:
     # ubuntu:24.04, linux/amd64: appimage-x86_64's
     name: ubuntu:24.04@sha256:496754492fb28b4d3049432f2ca787449331e23fb14f0dd3fffea86bf5a93eb4
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
     docker:
       platform: linux/amd64
   timeout: 30 minutes
@@ -289,7 +302,7 @@ appimage-test-x86_64:
   image:
     # registry.fedoraproject.org/fedora:44, linux/amd64
     name: registry.fedoraproject.org/fedora:44@sha256:0ee3afdf450deaeb3bddd66e74ae78a2c6804820b2658d52a04fe6f79cc5a703
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
     docker:
       platform: linux/amd64
   timeout: 15 minutes
@@ -297,13 +310,13 @@ appimage-test-x86_64:
     - bash build/ci/packages/appimage-test.sh appimage/hMailServer-*-x86_64.AppImage
 
 appimage-test-aarch64:
-  extends: [.appimage, .appimage-follow-rules]
+  extends: [.appimage-arm64, .appimage-follow-rules]
   stage: test
   needs: [appimage-aarch64]
   image:
     # registry.fedoraproject.org/fedora:44, linux/arm64, under qemu-user on linix
     name: registry.fedoraproject.org/fedora:44@sha256:c61b46d9d6a76b37a765368fb78149e220bccf14019605846cb8558e983dc131
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
     docker:
       platform: linux/arm64
   timeout: 30 minutes

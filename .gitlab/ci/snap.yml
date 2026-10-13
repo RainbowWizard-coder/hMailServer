@@ -9,6 +9,10 @@
 #   snap-build-arm64   linix: the same in Ubuntu 24.04, arm64, under qemu-user through
 #                      linix's qemu-aarch64 binfmt handler, from deb-ubuntu24.04-arm64's
 #
+# linix above is where each job's class leaves it (.gitlab-ci.yml, variables:):
+# snap-build-amd64 is HM_RUNNER_PACKAGES's, and snap-build-arm64 HM_RUNNER_ARM64's,
+# natively on GitLab's arm64 machines when it sends it there.
+#
 # Each leaves snap/hmailserver_<v>_<arch>.snap, which snap-upload
 # (.gitlab/ci/channels.yml) takes on master, and snap-build/<arch>/: the snap's
 # meta/snap.yaml, its file list, its SHA-256 and SHA3-384 and snapcraft's log.
@@ -32,7 +36,7 @@
 .snap-build:
   extends: .no-github
   stage: test
-  tags: [linix]
+  tags: [$HM_RUNNER_PACKAGES]
   timeout: 45 minutes
   rules:
     - if: $CI_COMMIT_TAG
@@ -53,4 +57,5 @@ snap-build-amd64:
 
 snap-build-arm64:
   extends: [.snap-build, .deb-image-ubuntu24.04-arm64]
+  tags: [$HM_RUNNER_ARM64]
   needs: [deb-ubuntu24.04-arm64]

@@ -5,17 +5,35 @@
 # The checks GitLab runs on a push, on a merge request and on a release tag.
 #
 # Every job runs on the project's own runners - bench150, linix's second entry
-# linix-systemd, and linix or server2, which share the tag linix - in every pipeline
-# for a protected ref that is not a merge request's: master, a batch* branch, a v* tag
-# and the schedules on master. None runs on GitLab's shared runners, whose compute
-# minutes ran out on 9 October 2026 and left batch46's change gate without a runner
-# (docs/ContinuousIntegration.md, "Every job on the project's own runners"). A job that
-# names no runner itself takes default:'s tags, [$HM_RUNNER]: linix (variables:,
-# below) in such a pipeline, and GitLab's hosted runner in any other - a merge
-# request's, an unprotected branch's - where its workflow rule says so, since the
-# project's runners, registered ref_protected, take nothing of that pipeline.
-# build/check-release-chain.py holds every job of the CI files to a runner of the
-# project's in the first and to one that takes it in the second.
+# linix-systemd, and linix, server2 or s1-linux, which share the tag linix, server2
+# with kvm beside it - in every pipeline for a protected ref that is not a merge
+# request's: master, a batch* branch, a v* tag and the schedules on master, unless the
+# owner sends a class of them to GitLab's hosted runners (below). None goes to GitLab's
+# shared runners by itself: their compute minutes ran out on 9 October 2026 and left
+# batch46's change gate without a runner (docs/ContinuousIntegration.md, "Every job on
+# the project's own runners"). A job that names no runner itself takes default:'s tags,
+# [$HM_RUNNER]: linix (variables:, below) in such a pipeline, and GitLab's hosted
+# runner in any other - a merge request's, an unprotected branch's - where its workflow
+# rule says so, since the project's runners, registered ref_protected, take nothing of
+# that pipeline.
+#
+# GitLab's hosted runners beside the project's, since the group's open-source plan of
+# 13 October 2026 (50,000 compute minutes a month): a class of the jobs on the
+# project's runners that need nothing of the project's - the builds and checks, the
+# package builds and their install jobs, the jobs in an arm64 container, the two
+# suites - takes its tags from a switch, a variable below that is linix here, and that
+# a protected project CI/CD variable of the same name, which the owner sets, sends to
+# one of GitLab's hosted Linux machines in a pipeline of a protected ref (variables:,
+# HM_RUNNER_BUILD and the rest). The jobs that hold a credential or sign, the
+# release's, the Windows ones, the privileged systemd ones, nix (KVM: server2, by the
+# tag kvm), the lab's and those that keep a runner's own cache stay on the project's
+# runners whatever a switch says. hosted-runners and compute-quota
+# (.gitlab/ci/hosted-runners.yml) check the switches, what a job there is given and the
+# namespace's minutes in every pipeline a switch is set for (docs/ContinuousIntegration.md,
+# "GitLab's hosted runners beside the project's"). build/check-release-chain.py holds
+# every job of the CI files to a runner of the project's in a protected ref's pipeline -
+# or to its class's switch - and to one that takes it in any other, and each class to
+# its jobs.
 #
 # In every pipeline:
 #
@@ -36,7 +54,8 @@
 #   package-templates     the winget and Chocolatey templates render, when they change.
 #
 # And these, each on the runner it names, for a protected ref only - master, a batch*
-# branch, a v* tag - and never for a merge request:
+# branch, a v* tag - and never for a merge request (linix, for a job of a class, is
+# where its switch leaves it: variables:, below):
 #
 #   linux-build   linix: the Linux server with clang, its tester programs, the
 #                 OpenPGP writer against GnuPG, and the .deb and the .rpm
@@ -163,6 +182,8 @@ include:
   - local: .gitlab/ci/package-systemd.yml
   # The snap, from the Ubuntu 24.04 .debs, built on linix for amd64 and arm64 with snapcraft from the Snap Store; batch* and master (docs/Snap.md).
   - local: .gitlab/ci/snap.yml
+  # The two checks of a pipeline in which a switch sends a class of jobs to GitLab's hosted runners: the switches and the credentials a job there is given, and the namespace's compute minutes (docs/ContinuousIntegration.md, "GitLab's hosted runners beside the project's").
+  - local: .gitlab/ci/hosted-runners.yml
 
 stages:
   - check
@@ -235,6 +256,33 @@ variables:
   # (build/check-release-chain.py). A project CI/CD variable of this name would stand
   # above both: none is made.
   HM_RUNNER: linix
+  # The switches: where each class of the jobs on the project's own runners that need
+  # nothing of the project's runs, as a runner tag. Each is linix here - the jobs run
+  # where they always have - and a PROTECTED project CI/CD variable of the same name,
+  # which only the owner sets (Settings, CI/CD, Variables), stands above this line and
+  # sends the class to GitLab's hosted runners in a pipeline of a protected ref: a merge
+  # request's pipeline has none of these jobs, and is given no protected variable. A lane
+  # is the resource group that keeps a class's jobs one at a time on the project's
+  # machines; a class sent to GitLab's runners, whose every job has a machine of its own,
+  # is given a lane of its own per job by its variable (hosted-$CI_JOB_NAME). Nothing
+  # else in the CI files sets them (build/check-release-chain.py, which holds each class
+  # to its jobs); docs/ContinuousIntegration.md, "GitLab's hosted runners beside the
+  # project's", says which jobs each takes, what a job there is given, what each costs,
+  # and how the switch is set back. hosted-runners and compute-quota, below, check them
+  # in every pipeline a switch is set for.
+  #   HM_RUNNER_BUILD     the builds and checks in the CI image or a distribution's own
+  #                       (linux-build, the scans, linux-repro, ...): saas-linux-large-amd64
+  #   HM_RUNNER_PACKAGES  the package builds and their install jobs in amd64 containers,
+  #                       with their lane HM_LANE_PACKAGES: saas-linux-large-amd64
+  #   HM_RUNNER_ARM64     the jobs in an arm64 container, which on linix and server2 run
+  #                       under qemu-user: natively on saas-linux-medium-arm64
+  #   HM_RUNNER_SUITE     linux-suite and alpine-suite, with their lane HM_LANE_SUITE
+  HM_RUNNER_BUILD: linix
+  HM_RUNNER_PACKAGES: linix
+  HM_LANE_PACKAGES: linix-package-build
+  HM_RUNNER_ARM64: linix
+  HM_RUNNER_SUITE: linix
+  HM_LANE_SUITE: linix-suite
   # None of the checks reads history; the sign-off job asks for all of it.
   GIT_DEPTH: "1"
   # The image release-sign runs cosign in: cosign's own, from Google's registry (never
@@ -377,6 +425,10 @@ checkers:
       check python3 build/ci/dependency-scan.py --self-test
       # The Scorecard result's publication on the feed site, against a site it serves on the loopback.
       check python3 build/ci/scorecard-pages.py --self-test
+      # The checks of a pipeline a switch sends jobs to GitLab's hosted runners in: the switches,
+      # the credentials and the compute minutes, against answers in memory and a GitLab API it
+      # serves on the loopback, and the switches' defaults in this tree's .gitlab-ci.yml.
+      check python3 build/ci/hosted-runners.py --self-test
       # The release channels' publishers, against a feed, a release, a registry and their tools in memory.
       for s in release-files registry-mirror aur-publish ppa-upload copr-build obs-publish snap-upload fake-sigstore; do
         check python3 "build/ci/channels/$s.py" --self-test
@@ -542,7 +594,9 @@ pages:
 # [$HM_RUNNER]. These rules keep a job that names one of them out of any pipeline
 # that is not for a protected ref, and out of every merge request pipeline whatever
 # its source; the jobs that take default:'s tags, the workflow sends to GitLab's
-# hosted runner there.
+# hosted runner there. A job of a class (variables:, HM_RUNNER_BUILD and the rest)
+# takes these rules too: its switch can send it to GitLab's runners, in a pipeline of
+# a protected ref alone, and it stays out of every other one, as on linix.
 # A scheduled pipeline runs the one job its description names (linux-fuzz and renovate
 # here, with rules of their own): it must not start the gates.
 #
@@ -580,12 +634,17 @@ pages:
 # the tag linix pulls by the digest below: its tag is made from the Dockerfile's own hash,
 # build/check-ci-image.py holds the line below to it, and its --job step stops a job
 # started in an image named any other way (docs/ContinuousIntegration.md, "The image").
+# The tag is HM_RUNNER_BUILD's, linix unless the switch sends the class to GitLab's
+# runners, which pull the image from the project's registry by the same digest; a job
+# that extends this and needs a machine of the project's names [linix] itself
+# (linux-fuzz, linux-coverage, db-matrix, release-verify, release-rehearsal-verify),
+# and linux-suite names HM_RUNNER_SUITE.
 .linix:
   extends: .own-runners
-  tags: [linix]
+  tags: [$HM_RUNNER_BUILD]
   image:
     name: registry.gitlab.com/hmailserver/hmailserver/ci-linux:26.04-52e9976e73bf@sha256:350484026f1ade2f1c8bb0b9248fcbb32bf45394c40e9a89af4f92445e31d2d6
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
   before_script:
     - python3 build/check-ci-image.py --job
 
@@ -609,23 +668,32 @@ linux-build:
 
 linux-suite:
   extends: .linix
+  # The suites' class: linix, or GitLab's runners when HM_RUNNER_SUITE says so
+  # (variables:). It took 135 to 146 minutes on every runner of the project's in
+  # October 2026, on linix's six CPUs as on server2's 28: it waits on its fixtures'
+  # timeouts, not on the CPU (docs/ContinuousIntegration.md, "GitLab's hosted runners
+  # beside the project's").
+  tags: [$HM_RUNNER_SUITE]
   stage: test
   needs: [linux-build, source-tarball]
   # The runners' maximum. The suite took 2 h 7 min in the first pipeline, on 26
   # September 2026, and the 29 fixtures linked that day add about 20 minutes: under
   # three hours, but with too little to spare for a suite that grows every batch.
+  # GitLab's hosted runners stop every job at three hours, after_script and all.
   timeout: 4 hours
   # A later push does not cut the suite off half-way (default:, above).
   interruptible: false
   # One whole suite at a time on linix, this one or alpine-suite's
   # (.gitlab/ci/alpine.yml): the runner takes more than one job, and two suites side
-  # by side would share its CPUs for hours, which the suite's timed fixtures feel.
-  resource_group: linix-suite
+  # by side would share its CPUs for hours, which the suite's timed fixtures feel. The
+  # lane is HM_LANE_SUITE's, linix-suite unless the class is on GitLab's runners, where
+  # each suite has a machine, and a lane, of its own.
+  resource_group: $HM_LANE_SUITE
   services:
     # PostgreSQL 18, by digest: the one every job here that needs PostgreSQL runs against.
     - name: postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
       alias: postgres
-      pull_policy: if-not-present
+      pull_policy: [if-not-present, always]
       variables:
         POSTGRES_USER: hmailserver
         POSTGRES_PASSWORD: hmtest
@@ -659,13 +727,20 @@ linux-suite:
 # mariadb or postgresql) when starting it. The database has to be up in the lab first
 # (bash build/lab/lab.sh up <db> on linix: the lab's databases start on demand), and
 # HM_LAB_DB_PASSWORD is a protected, masked CI/CD variable of the project holding the
-# lab's HMLAB_DB_PASSWORD. The job's container reaches the lab on linix's own address
-# and the port the lab publishes (10310 mysql, 10311 mariadb, 10312 postgresql).
+# lab's HMLAB_DB_PASSWORD, scoped to the environment test-lab, which this job alone
+# names, so that no other job of a protected ref's pipeline is given it - one on
+# GitLab's runners among them. The job's container reaches the lab on linix's own
+# address and the port the lab publishes (10310 mysql, 10311 mariadb, 10312
+# postgresql): it runs on linix, whatever HM_RUNNER_BUILD says.
 db-matrix:
   extends: .linix
+  tags: [linix]
   stage: test
   needs: [linux-build]
   timeout: 3 hours
+  environment:
+    name: test-lab
+    action: access
   # .own-runners' rules, started by hand: the same paths, or a docs-only push would
   # have this job without the linux-build it needs.
   rules:
@@ -1162,7 +1237,7 @@ linux-db-upgrade-pgsql:
   services:
     - name: postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
       alias: postgres
-      pull_policy: if-not-present
+      pull_policy: [if-not-present, always]
       variables:
         POSTGRES_USER: hmailserver
         POSTGRES_PASSWORD: hmtest
@@ -1178,7 +1253,7 @@ linux-db-upgrade-mysql:
     # build/ci/linux-db-upgrade.sh logs in as root with none.
     - name: mariadb:13@sha256:2fd6d83be13d6f95119fe7823c4a445a771d973ce15a4f4621e3c14898f9f1ab
       alias: mariadb
-      pull_policy: if-not-present
+      pull_policy: [if-not-present, always]
       variables:
         MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: "1"
   script:
@@ -1194,16 +1269,16 @@ linux-db-upgrade-mysql:
 linux-package-deb:
   extends: .own-runners
   stage: test
-  tags: [linix]
+  tags: [$HM_RUNNER_BUILD]
   image:
     name: ubuntu:26.04@sha256:da6fc2be547864451aa253836dd926da33623312df4a9a243e35dc877c378a78
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
   needs: [linux-build]
   timeout: 20 minutes
   services:
     - name: postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
       alias: postgres
-      pull_policy: if-not-present
+      pull_policy: [if-not-present, always]
       variables:
         POSTGRES_USER: hmailserver
         POSTGRES_PASSWORD: hmtest
@@ -1214,10 +1289,10 @@ linux-package-deb:
 linux-package-rpm:
   extends: .own-runners
   stage: test
-  tags: [linix]
+  tags: [$HM_RUNNER_BUILD]
   image:
     name: registry.fedoraproject.org/fedora:44@sha256:2cdfedd312a3c92e0d9932ee18d9d2dd80b00fa0bb4ebdaa86736195b5eaa974
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
   needs: [linux-build]
   timeout: 10 minutes
   script:
@@ -1232,11 +1307,11 @@ linux-package-rpm:
 linux-image:
   extends: .own-runners
   stage: test
-  tags: [linix]
+  tags: [$HM_RUNNER_BUILD]
   image:
     name: gcr.io/kaniko-project/executor:v1.24.0-debug@sha256:2562c4fe551399514277ffff7dcca9a3b1628c4ea38cb017d7286dc6ea52f4cd
     entrypoint: [""]
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
   needs: [linux-build]
   timeout: 30 minutes
   script:
@@ -1354,6 +1429,7 @@ windows-dotnet:
 # not been fixed yet, and the project's jobs are public.
 linux-fuzz:
   extends: .linix
+  tags: [linix]
   stage: test
   needs: []
   timeout: 2 hours
@@ -1391,6 +1467,7 @@ linux-fuzz:
 # below) for the pipeline's coverage.
 linux-coverage:
   extends: .linix
+  tags: [linix]
   stage: test
   needs: []
   timeout: 4 hours
@@ -1400,7 +1477,7 @@ linux-coverage:
   services:
     - name: postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
       alias: postgres
-      pull_policy: if-not-present
+      pull_policy: [if-not-present, always]
       variables:
         POSTGRES_USER: hmailserver
         POSTGRES_PASSWORD: hmtest
@@ -1507,10 +1584,10 @@ semgrep:
   extends: .own-runners
   rules:
     - !reference [.scans-on-the-whole-change, rules]
-  tags: [linix]
+  tags: [$HM_RUNNER_BUILD]
   image:
     name: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
   stage: test
   needs: []
   timeout: 30 minutes
@@ -1554,11 +1631,11 @@ dependency-scan:
   extends: .own-runners
   rules:
     - !reference [.scans-on-the-whole-change, rules]
-  tags: [linix]
+  tags: [$HM_RUNNER_BUILD]
   image:
     name: aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969
     entrypoint: [""]
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
   stage: test
   needs: [ci-image-packages]
   timeout: 30 minutes
@@ -1581,10 +1658,10 @@ dependency-scan:
 
 repo-hygiene:
   extends: .own-runners
-  tags: [linix]
+  tags: [$HM_RUNNER_BUILD]
   image:
     name: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
   stage: test
   needs: []
   timeout: 10 minutes
@@ -1610,10 +1687,12 @@ repo-hygiene:
 # pipeline and in nothing else. It reads renovate.json from the default branch, opens
 # and updates its merge requests on GitLab with RENOVATE_TOKEN, and keeps its dashboard
 # issue current. The owner creates the three things it needs once: the token, the
-# masked and protected CI variable RENOVATE_TOKEN that holds it, and a pipeline
-# schedule for master whose description is "renovate", with no variable (the project
-# refuses a schedule's variables; .not-a-fuzz-pipeline says why). A protected variable
-# reaches a protected ref only, and the rules ask for one.
+# masked and protected CI variable RENOVATE_TOKEN that holds it, scoped to the
+# environment renovate, which this job alone names, and a pipeline schedule for master
+# whose description is "renovate", with no variable (the project refuses a schedule's
+# variables; .not-a-fuzz-pipeline says why). A protected variable reaches a protected
+# ref only, and the rules ask for one; the scope keeps it from every other job of such
+# a pipeline, those a switch sends to GitLab's runners among them (variables:).
 #
 # Nothing it downloads comes from GitHub. The advisories behind renovate.json's
 # osvVulnerabilityAlerts are built from OSV's own export on Google Cloud Storage by
@@ -1626,13 +1705,17 @@ renovate:
   tags: [linix]
   image:
     name: renovate/renovate:44.115.13@sha256:0c04185c9e7ea5284da22ea0b2a2c88dcd3687badd8feb6c71691659b380df9b
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
   needs: []
   timeout: 1 hour
   # A push to master while it runs does not stop it halfway through its branches.
   interruptible: false
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "renovate" && $CI_COMMIT_REF_PROTECTED == "true"
+  # The token's scope: a job that names no environment is not given it.
+  environment:
+    name: renovate
+    action: access
   variables:
     RENOVATE_PLATFORM: gitlab
     RENOVATE_ENDPOINT: $CI_API_V4_URL
@@ -2038,6 +2121,7 @@ release-sign:
 # --verify-update.
 release-verify:
   extends: .linix
+  tags: [linix]
   stage: release
   needs:
     - job: release

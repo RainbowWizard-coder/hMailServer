@@ -275,10 +275,20 @@ autoban4`; the range deleted, it leaves the set.
 
 A NixOS test wants KVM. **linix has none**: it is a virtual machine itself, with no
 `/dev/kvm` and no `vmx` or `svm` flag (29 September 2026), and its runner passes no
-device into a job. So the `nix` job runs the test under QEMU's TCG, which needs no
-KVM and is about ten times slower (`HM_NIXOS_TEST_TCG=1`: Nix is told the machine
-has the `kvm` feature the test asks for, and QEMU, finding no KVM, falls back to
-TCG). A runner with `/dev/kvm` runs it with KVM and nothing changes: `build/ci/nix.sh`
+device into a job; nor has s1-linux, a virtual machine on server1. Under QEMU's TCG
+on linix the test's PostgreSQL timed out at boot on 13 October 2026 and failed the
+job (17129125235), where server2 passed it in about 20 minutes. So since then the
+`nix` job asks for the tags `linix` and `kvm`, which server2 alone carries - its
+machine has `/dev/kvm`, and the owner gives its runner (57072507) the tag - and it
+stays on the project's runners whatever the switches that send other jobs to
+GitLab's hosted runners say ([ContinuousIntegration.md](ContinuousIntegration.md),
+"GitLab's hosted runners beside the project's"). Until server2's runner passes the
+device into its jobs (`devices = ["/dev/kvm"]` under `[runners.docker]` in its
+`config.toml`), the job runs the test there under QEMU's TCG, which needs no KVM and
+is about ten times slower (`HM_NIXOS_TEST_TCG=1`: Nix is told the machine has the
+`kvm` feature the test asks for, and QEMU, finding no KVM, falls back to TCG), and
+server2's CPUs carry in minutes. With the device, it runs with KVM and nothing else
+changes: `build/ci/nix.sh`
 opens the job's own device node to Nix's build users, who are not in the host's
 `kvm` group - without that, QEMU is refused KVM and falls back to TCG without a
 word, which is what the first run below did. By hand, with KVM:

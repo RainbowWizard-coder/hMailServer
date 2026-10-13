@@ -23,6 +23,14 @@
 #                                 package here a release carries, the generic
 #                                 aarch64 one (build/ci/packages/package-sbom.sh)
 #
+# linix above is where each job's class leaves it (.gitlab-ci.yml, variables:): the
+# x86_64 builds and install jobs are HM_RUNNER_PACKAGES's, the builds waiting in its
+# lane, HM_LANE_PACKAGES; the aarch64 install jobs are HM_RUNNER_ARM64's, natively on
+# GitLab's arm64 machines when it sends them there; the SBOM job is HM_RUNNER_BUILD's.
+# The aarch64 builds stay on linix and server2 whatever the switches say, in the lane
+# linix-package-build there: each runs its testers under qemu-user, which GitLab's
+# amd64 machines have not (.rpm-build-aarch64).
+#
 # The release collects generic/hmailserver-<v>-1.aarch64.rpm from 6.3.6 with its
 # SBOM, and release waits for rpm-fedora44-aarch64, its install job and its SBOM
 # job. The release carries the other packages here from 6.3.6: release-packages
@@ -85,61 +93,61 @@
 .rpm-image-fedora44-x86_64:
   image:
     name: registry.fedoraproject.org/fedora:44@sha256:7ab582427716ae32b2e4aa593cdef8f5708d8ec3ab8e3488e1b5e2da28dd9283
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
 .rpm-image-fedora44-aarch64:
   image:
     name: registry.fedoraproject.org/fedora:44@sha256:e75c580674741c20556f49c24e2d1417b0455abcbda807ce9e3e3acd8765379a
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
     docker:
       platform: linux/arm64
 .rpm-image-fedora43-x86_64:
   image:
     name: registry.fedoraproject.org/fedora:43@sha256:57c64ac4b0cd8bd9cde6e8a8337a2435f1308f192bc5f88015e25c5d2f0fbc9a
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
 .rpm-image-fedora43-aarch64:
   image:
     name: registry.fedoraproject.org/fedora:43@sha256:4afedb55e33c909aa1241c112ba6447170c06b1ad1042b9ff83a241cc13b3d6e
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
     docker:
       platform: linux/arm64
 .rpm-image-el10-x86_64:
   image:
     name: registry.access.redhat.com/ubi10/ubi:latest@sha256:bd8e226cde9bd8ada5be5855cd5f15d29af127d50d889a69cc9a82ed7de3ffaf
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
 .rpm-image-el10-aarch64:
   image:
     name: registry.access.redhat.com/ubi10/ubi:latest@sha256:88b644ab99ba96bbc12e823d52aebb6914ad84dd68736991f3a07f3062cd961c
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
     docker:
       platform: linux/arm64
 .rpm-image-el9-x86_64:
   image:
     name: registry.access.redhat.com/ubi9/ubi:latest@sha256:abdef1603c7dd3281d9223b0419e3cc59446e4a8137f2a7ed5cc5bd7da981f8b
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
 .rpm-image-el9-aarch64:
   image:
     name: registry.access.redhat.com/ubi9/ubi:latest@sha256:e3592b3a358542945b2fe547a59d2d8bc6de7a2b855c2d92e4dfe2adff79979d
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
     docker:
       platform: linux/arm64
 .rpm-image-leap16-x86_64:
   image:
     name: registry.opensuse.org/opensuse/leap:16.0@sha256:64de8a3cd5caabcfc24d64dd6717e0e9634468d2335d303deeedc7db19ea7620
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
 .rpm-image-leap16-aarch64:
   image:
     name: registry.opensuse.org/opensuse/leap:16.0@sha256:5e1f0dd90e302255329e54afad636a2a2211345890a57e15679dffe6dfd2013d
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
     docker:
       platform: linux/arm64
 .rpm-image-tumbleweed-x86_64:
   image:
     name: registry.gitlab.com/hmailserver/hmailserver/mirror/opensuse-tumbleweed:20261006-amd64@sha256:cca499cd74a25e6597d1a73651fac116354843198e83ae7abf9e9481bea097db
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
 .rpm-image-tumbleweed-aarch64:
   image:
     name: registry.gitlab.com/hmailserver/hmailserver/mirror/opensuse-tumbleweed:20261006-arm64@sha256:1f990d926eb1e35d5bb69311ca96902e0092b8d7a35914af2b4977d4dd3fb9a9
-    pull_policy: if-not-present
+    pull_policy: [if-not-present, always]
     docker:
       platform: linux/arm64
 
@@ -169,13 +177,13 @@
 
 .rpm-build:
   stage: build
-  tags: [linix]
+  tags: [$HM_RUNNER_PACKAGES]
   needs: []
   timeout: 1 hour
   # One package build at a time on linix, across pipelines and across the
   # package files that name this group (packages-deb.yml does): each runs six
   # compilers at once, and linux-build and linux-suite need the machine too.
-  resource_group: linix-package-build
+  resource_group: $HM_LANE_PACKAGES
   rules:
     - !reference [.rpm-rules, rules]
   variables:
@@ -187,6 +195,15 @@
     expire_in: 14 days
     paths:
       - packages-rpm/
+
+# An aarch64 build is cross-compiled in the x86_64 container, as every build here is,
+# but then runs its testers there under qemu-user (rpm-build.sh): GitLab's hosted amd64
+# machines have no aarch64 emulation, so these stay on the project's runners whatever
+# HM_RUNNER_PACKAGES says, one at a time in the package builds' lane there.
+.rpm-build-aarch64:
+  extends: .rpm-build
+  tags: [linix]
+  resource_group: linix-package-build
 
 # The Boost tarball of the targets that build Boost (el10, el9, leap16,
 # tumbleweed), kept in linix's runner cache under its SHA-256 - rpm-build.sh's
@@ -205,12 +222,18 @@
 # Its needs are the build of the same release and architecture, with its artifacts.
 .rpm-install:
   stage: test
-  tags: [linix]
+  tags: [$HM_RUNNER_PACKAGES]
   timeout: 30 minutes
   rules:
     - !reference [.rpm-install-rules, rules]
   script:
     - bash build/ci/packages/rpm-install-test.sh "$HM_RPM_TARGET" "$HM_RPM_ARCH"
+
+# An aarch64 install job: its container is aarch64, which linix and server2 run under
+# qemu-user and GitLab's arm64 machines natively (HM_RUNNER_ARM64).
+.rpm-install-aarch64:
+  extends: .rpm-install
+  tags: [$HM_RUNNER_ARM64]
 
 # ------------------------------------------------------------------ Fedora 44: and the generic aarch64 name
 # rpm-fedora44-aarch64 also leaves hmailserver-<v>-1.aarch64.rpm, the name
@@ -223,7 +246,7 @@ rpm-fedora44-x86_64:
   variables: {HM_RPM_TARGET: fedora44, HM_RPM_ARCH: x86_64}
 
 rpm-fedora44-aarch64:
-  extends: [.rpm-build, .rpm-image-fedora44-x86_64]
+  extends: [.rpm-build-aarch64, .rpm-image-fedora44-x86_64]
   variables: {HM_RPM_TARGET: fedora44, HM_RPM_ARCH: aarch64}
 
 rpm-fedora44-x86_64-install:
@@ -232,7 +255,7 @@ rpm-fedora44-x86_64-install:
   variables: {HM_RPM_TARGET: fedora44, HM_RPM_ARCH: x86_64}
 
 rpm-fedora44-aarch64-install:
-  extends: [.rpm-install, .rpm-image-fedora44-aarch64]
+  extends: [.rpm-install-aarch64, .rpm-image-fedora44-aarch64]
   needs: [rpm-fedora44-aarch64]
   variables: {HM_RPM_TARGET: fedora44, HM_RPM_ARCH: aarch64}
 
@@ -267,7 +290,7 @@ rpm-fedora43-x86_64:
   variables: {HM_RPM_TARGET: fedora43, HM_RPM_ARCH: x86_64}
 
 rpm-fedora43-aarch64:
-  extends: [.rpm-build, .rpm-image-fedora43-x86_64]
+  extends: [.rpm-build-aarch64, .rpm-image-fedora43-x86_64]
   variables: {HM_RPM_TARGET: fedora43, HM_RPM_ARCH: aarch64}
 
 rpm-fedora43-x86_64-install:
@@ -276,7 +299,7 @@ rpm-fedora43-x86_64-install:
   variables: {HM_RPM_TARGET: fedora43, HM_RPM_ARCH: x86_64}
 
 rpm-fedora43-aarch64-install:
-  extends: [.rpm-install, .rpm-image-fedora43-aarch64]
+  extends: [.rpm-install-aarch64, .rpm-image-fedora43-aarch64]
   needs: [rpm-fedora43-aarch64]
   variables: {HM_RPM_TARGET: fedora43, HM_RPM_ARCH: aarch64}
 
@@ -287,7 +310,7 @@ rpm-el10-x86_64:
   variables: {HM_RPM_TARGET: el10, HM_RPM_ARCH: x86_64}
 
 rpm-el10-aarch64:
-  extends: [.rpm-build, .rpm-boost-tarball, .rpm-image-el10-x86_64]
+  extends: [.rpm-build-aarch64, .rpm-boost-tarball, .rpm-image-el10-x86_64]
   variables: {HM_RPM_TARGET: el10, HM_RPM_ARCH: aarch64}
 
 rpm-el10-x86_64-install:
@@ -296,7 +319,7 @@ rpm-el10-x86_64-install:
   variables: {HM_RPM_TARGET: el10, HM_RPM_ARCH: x86_64}
 
 rpm-el10-aarch64-install:
-  extends: [.rpm-install, .rpm-image-el10-aarch64]
+  extends: [.rpm-install-aarch64, .rpm-image-el10-aarch64]
   needs: [rpm-el10-aarch64]
   variables: {HM_RPM_TARGET: el10, HM_RPM_ARCH: aarch64}
 
@@ -307,7 +330,7 @@ rpm-el9-x86_64:
   variables: {HM_RPM_TARGET: el9, HM_RPM_ARCH: x86_64}
 
 rpm-el9-aarch64:
-  extends: [.rpm-build, .rpm-boost-tarball, .rpm-image-el9-x86_64]
+  extends: [.rpm-build-aarch64, .rpm-boost-tarball, .rpm-image-el9-x86_64]
   variables: {HM_RPM_TARGET: el9, HM_RPM_ARCH: aarch64}
 
 rpm-el9-x86_64-install:
@@ -316,7 +339,7 @@ rpm-el9-x86_64-install:
   variables: {HM_RPM_TARGET: el9, HM_RPM_ARCH: x86_64}
 
 rpm-el9-aarch64-install:
-  extends: [.rpm-install, .rpm-image-el9-aarch64]
+  extends: [.rpm-install-aarch64, .rpm-image-el9-aarch64]
   needs: [rpm-el9-aarch64]
   variables: {HM_RPM_TARGET: el9, HM_RPM_ARCH: aarch64}
 
@@ -327,7 +350,7 @@ rpm-leap16-x86_64:
   variables: {HM_RPM_TARGET: leap16, HM_RPM_ARCH: x86_64}
 
 rpm-leap16-aarch64:
-  extends: [.rpm-build, .rpm-boost-tarball, .rpm-image-leap16-x86_64]
+  extends: [.rpm-build-aarch64, .rpm-boost-tarball, .rpm-image-leap16-x86_64]
   variables: {HM_RPM_TARGET: leap16, HM_RPM_ARCH: aarch64}
 
 rpm-leap16-x86_64-install:
@@ -336,7 +359,7 @@ rpm-leap16-x86_64-install:
   variables: {HM_RPM_TARGET: leap16, HM_RPM_ARCH: x86_64}
 
 rpm-leap16-aarch64-install:
-  extends: [.rpm-install, .rpm-image-leap16-aarch64]
+  extends: [.rpm-install-aarch64, .rpm-image-leap16-aarch64]
   needs: [rpm-leap16-aarch64]
   variables: {HM_RPM_TARGET: leap16, HM_RPM_ARCH: aarch64}
 
@@ -346,7 +369,7 @@ rpm-tumbleweed-x86_64:
   variables: {HM_RPM_TARGET: tumbleweed, HM_RPM_ARCH: x86_64}
 
 rpm-tumbleweed-aarch64:
-  extends: [.rpm-build, .rpm-boost-tarball, .rpm-image-tumbleweed-x86_64]
+  extends: [.rpm-build-aarch64, .rpm-boost-tarball, .rpm-image-tumbleweed-x86_64]
   variables: {HM_RPM_TARGET: tumbleweed, HM_RPM_ARCH: aarch64}
 
 rpm-tumbleweed-x86_64-install:
@@ -355,6 +378,6 @@ rpm-tumbleweed-x86_64-install:
   variables: {HM_RPM_TARGET: tumbleweed, HM_RPM_ARCH: x86_64}
 
 rpm-tumbleweed-aarch64-install:
-  extends: [.rpm-install, .rpm-image-tumbleweed-aarch64]
+  extends: [.rpm-install-aarch64, .rpm-image-tumbleweed-aarch64]
   needs: [rpm-tumbleweed-aarch64]
   variables: {HM_RPM_TARGET: tumbleweed, HM_RPM_ARCH: aarch64}

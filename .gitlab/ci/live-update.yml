@@ -21,7 +21,7 @@ linux-live-update:
   services:
     - name: postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
       alias: postgres
-      pull_policy: if-not-present
+      pull_policy: [if-not-present, always]
       variables:
         POSTGRES_USER: hmailserver
         POSTGRES_PASSWORD: hmtest

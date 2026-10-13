@@ -985,10 +985,13 @@ def check_token_permissions(files):
         """Why a job can be started for unreviewed code, or None."""
         return ("its YAML: %s" % unreadable(name)) if unreadable(name) else admits(rules_of(name))
 
-    # A tag of one of the project's runners, or a variable, which could be one. The
-    # runners are registered with more tags than their names (glab api runners/<id>,
-    # 26 September 2026): linix with linux, docker and linix, bench150 with windows,
-    # bench and bench150. A job asking for any of them can land on one.
+    # A tag of one of the project's runners, or a variable, which could be one: default:'s
+    # [$HM_RUNNER], or a class's switch (HM_RUNNER_BUILD and the rest), which is linix in
+    # the CI file and which the owner's protected project variable may set to one of
+    # GitLab's hosted runners - a job on a switch is judged by its own rules, as a job on
+    # linix is. The runners are registered with more tags than their names (glab api
+    # runners/<id>, 26 September 2026): linix with linux, docker and linix, bench150 with
+    # windows, bench and bench150. A job asking for any of them can land on one.
     own = re.compile(r"\b(linix|linux|docker|bench150|bench|windows)\b|\$", re.I)
     # default:'s tags, which a job that names none - itself or through extends - takes.
     default_tags = values(jobs.get("default", ""), "tags")

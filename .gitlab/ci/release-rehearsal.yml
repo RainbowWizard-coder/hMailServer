@@ -110,6 +110,7 @@ release-rehearsal-sign:
 
 release-rehearsal-verify:
   extends: .linix
+  tags: [linix]
   stage: release
   needs:
     - job: release-rehearsal
