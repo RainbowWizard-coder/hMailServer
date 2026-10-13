@@ -5305,6 +5305,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   counted SMTP. Each now asks that the count it read has not grown. Found by upstream's 1cf0bcd63, which
   corrected the first and the last.
 
+- **The IMAP numbering test that sends `SORT` turns `SORT` on.** `SessionMessageNumbering`'s
+  `SequenceNumbersAreStableAcrossFetchStoreSearchSort` sent it with whatever `IMAPSortEnabled` the tests before it had
+  left, which the suite's per-test reset does not put back, and `IMAP.Basics.TestCapability` ends with it off; the
+  setting is kept in the database from one run to the next, so a run of the fixture without one that turns it on was
+  answered `NO IMAP SORT is not enabled.` Found by the upstream triage's regression run on the bench.
+
 - **Upstream is triaged to a843921bb (11 October 2026).** The 85 commits after the previous baseline, read from a
   clone of upstream against the functions in this tree; `.gitlab/upstream-sync` holds the verdict for each and has
   advanced its baseline from d5e087066, and Roadmap.md's row on them says what was ported, what was already here and

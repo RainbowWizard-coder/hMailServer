@@ -113,6 +113,10 @@ namespace RegressionTests.IMAP
                    "so the numbering those commands use must not change either.")]
       public void SequenceNumbersAreStableAcrossFetchStoreSearchSort()
       {
+         // SORT answers NO with the setting off, and TestSetup does not put it back:
+         // IMAP.Basics.TestCapability ends with it off, and the database keeps it.
+         _settings.IMAPSortEnabled = true;
+
          var account = CreateAccountWithMessages(5);
 
          var sim1 = SelectInbox(account);
