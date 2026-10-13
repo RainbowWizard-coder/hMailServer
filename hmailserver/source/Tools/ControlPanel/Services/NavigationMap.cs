@@ -1147,16 +1147,20 @@ namespace hMailServer.ControlPanel.Services
                N("Housekeeping, tuning, and the settings that still have no better home."),
                "Housekeeping|Backup|Tuning|Advanced|Scripting|INI",
 
-               Page("backup", N("Backup & restore"),
-                  N("Back up or restore the configuration, the domains and the messages."),
-                  aliases: "Backup|Restore|Export|Import|Disaster recovery|Copy to another server|Migrate",
+               // "Backup, restore & migration" since review finding F273: the mailbox
+               // migrations and the PST import, a tab of Advanced until then, are a card
+               // here. The old title is an alias, and the key is unchanged.
+               Page("backup", N("Backup, restore & migration"),
+                  N("Back up or restore the configuration, the domains and the messages, and set how mailbox migrations and PST imports bring mail in from another server or an Outlook data file."),
+                  aliases: "Backup & restore|Backup|Restore|Export|Import|Disaster recovery|Copy to another server|Migrate|" +
+                           "Migration|Migrations|Mailbox migration|IMAP migration|PST import|Import a PST file|Outlook data file",
                   // The Updates page beside it, whose unattended apply backs up first.
                   seeAlso: "hardening|domains|updates"),
 
                // Its own page since review finding F272: Check, Download and Install
                // were on Server status and the policy that drives them a card on API
                // & monitoring, nothing was called Updates, and Ctrl+K "update" found
-               // only setting rows ranked last. Beside Backup & restore, because an
+               // only setting rows ranked last. Beside the backup page, because an
                // unattended apply backs up first. Server status, the Dashboard and
                // About say in one line when a release is waiting, with the way here.
                Page("updates", N("Updates"),
@@ -1176,8 +1180,8 @@ namespace hMailServer.ControlPanel.Services
                // calls itself, and its description says where the switch is. The old
                // title stays as an alias; the key is unchanged, so links still arrive.
                Page("advanced", N("Advanced"),
-                  N("Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, mailbox migrations and PST import, and the switch that turns the event-scripting engine on."),
-                  aliases: "Advanced & scripting|Archive|Archiving|Mirror|Default domain|Scripting engine|Enable scripting|VBScript|JScript|JavaScript|IPv6 preference|Prefer IPv6|Disk space|Low disk space|Free disk space|Migration|Migrations|Mailbox migration|IMAP migration|PST import|Import a PST file|Outlook data file",
+                  N("Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, and the switch that turns the event-scripting engine on."),
+                  aliases: "Advanced & scripting|Archive|Archiving|Mirror|Default domain|Scripting engine|Enable scripting|VBScript|JScript|JavaScript|IPv6 preference|Prefer IPv6|Disk space|Low disk space|Free disk space",
                   seeAlso: "scripts|hardening"),
 
                Page("scripts", N("Event scripts"),

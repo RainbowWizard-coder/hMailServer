@@ -269,7 +269,7 @@ the same counters the metrics endpoint pushes rather than a second tally.
 prepared (an unreadable file, a key that does not match), the health probes stay on
 plain HTTP and /metrics answers 503 rather than serving the exposition in the clear.
 
-## Backup & restore
+## Backup, restore & migration
 
 *Verify each backup by extracting its message store.* After the archive is written
 its message store is extracted to the temp folder through the same code a restore

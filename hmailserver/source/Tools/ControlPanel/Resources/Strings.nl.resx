@@ -1825,8 +1825,8 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Archiving writes a copy of every message to a folder you choose." xml:space="preserve">
     <value>Archiveren schrijft een kopie van elk bericht naar een map die u kiest.</value>
   </data>
-  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, mailbox migrations and PST import, and the switch that turns the event-scripting engine on." xml:space="preserve">
-    <value>Archiveren, spiegelen, het standaarddomein, bezorging via IPv6, schijfruimtelimieten, postvakmigraties en PST-import, en de schakelaar die de gebeurtenisscript-engine inschakelt.</value>
+  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, and the switch that turns the event-scripting engine on." xml:space="preserve">
+    <value>Archiveren, spiegelen, het standaarddomein, bezorging via IPv6, schijfruimtelimieten en de schakelaar die de gebeurtenisscript-engine inschakelt.</value>
   </data>
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id (geheugenintensief, aanbevolen)</value>
@@ -2038,14 +2038,14 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Back up _settings" xml:space="preserve">
     <value>Back-up van _instellingen</value>
   </data>
-  <data name="Back up domains, messages and settings to a folder; restore from a previous backup." xml:space="preserve">
-    <value>Maak een back-up van domeinen, berichten en instellingen naar een map; herstel vanuit een eerdere back-up.</value>
+  <data name="Back up domains, messages and settings to a folder, restore from a previous backup, and set how mailbox migrations and PST imports run." xml:space="preserve">
+    <value>Maak een back-up van domeinen, berichten en instellingen naar een map, herstel vanuit een eerdere back-up en stel in hoe postvakmigraties en PST-imports verlopen.</value>
   </data>
   <data name="Back up here and restore on the new machine." xml:space="preserve">
     <value>Maak hier een back-up en herstel die op de nieuwe machine.</value>
   </data>
-  <data name="Back up or restore the configuration, the domains and the messages." xml:space="preserve">
-    <value>Maak een back-up van de configuratie, de domeinen en de berichten, of herstel die.</value>
+  <data name="Back up or restore the configuration, the domains and the messages, and set how mailbox migrations and PST imports bring mail in from another server or an Outlook data file." xml:space="preserve">
+    <value>Maak een back-up van de configuratie, de domeinen en de berichten, of herstel die, en stel in hoe postvakmigraties en PST-imports e-mail binnenhalen van een andere server of uit een Outlook-gegevensbestand.</value>
   </data>
   <data name="Back up the configuration and the mail" xml:space="preserve">
     <value>Back-up van de configuratie en de mail</value>
@@ -2106,6 +2106,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Backup started {0} - runs in the background on the server." xml:space="preserve">
     <value>Back-up gestart {0} - draait op de achtergrond op de server.</value>
+  </data>
+  <data name="Backup, restore &amp; migration" xml:space="preserve">
+    <value>Back-up, herstel en migratie</value>
   </data>
   <data name="Backups go to {0}." xml:space="preserve">
     <value>Back-ups gaan naar {0}.</value>
@@ -7720,8 +7723,8 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No backup first: 'Back up to the configured destination before an unattended apply' is off." xml:space="preserve">
     <value>Eerst geen back-up: 'Een back-up naar het geconfigureerde doel maken vóór een onbeheerde installatie' staat uit.</value>
   </data>
-  <data name="No backup first: no backup destination is set (Backup &amp; restore). A rollback puts the previous program back, not the database." xml:space="preserve">
-    <value>Eerst geen back-up: er is geen back-upbestemming ingesteld (Back-up en herstel). Een rollback zet het vorige programma terug, niet de database.</value>
+  <data name="No backup first: no backup destination is set (Backup, restore &amp; migration). A rollback puts the previous program back, not the database." xml:space="preserve">
+    <value>Eerst geen back-up: er is geen back-upbestemming ingesteld (Back-up, herstel en migratie). Een rollback zet het vorige programma terug, niet de database.</value>
   </data>
   <data name="No backup first: you chose to install without one." xml:space="preserve">
     <value>Eerst geen back-up: u hebt gekozen om zonder back-up te installeren.</value>
@@ -8542,8 +8545,8 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="On the Anti-spam settings page, list the sealing domains you trust (the mailing-list and forwarding services your users rely on) and turn on the ARC offset. Naming who you trust is a judgement only you can make, which is why there is no default." xml:space="preserve">
     <value>Som op de pagina Antispaminstellingen de verzegelende domeinen op die u vertrouwt (de mailinglijst- en doorstuurdiensten waarvan uw gebruikers afhankelijk zijn) en zet de ARC-offset aan. Benoemen wie u vertrouwt is een afweging die alleen u kunt maken, en daarom is er geen standaard.</value>
   </data>
-  <data name="On the Backup &amp; restore page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
-    <value>Stel op de pagina Back-up en herstel de map in waarnaar de back-up wordt geschreven, op een andere schijf dan die van de berichtenopslag.</value>
+  <data name="On the Backup, restore &amp; migration page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
+    <value>Stel op de pagina Back-up, herstel en migratie de map in waarnaar de back-up wordt geschreven, op een andere schijf dan die van de berichtenopslag.</value>
   </data>
   <data name="On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for." xml:space="preserve">
     <value>Stel op het tabblad SMTP van de pagina Protocollen Hostnaam in op de volledige DNS-naam van deze server, zoals mail.example.com. Vraag daarna degene die het publieke adres van de server bezit om een PTR-record dat die naam noemt; de pagina DNS-records toont waarom u moet vragen.</value>
@@ -10757,6 +10760,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Save _levels now" xml:space="preserve">
     <value>_Niveaus nu opslaan</value>
+  </data>
+  <data name="Save _migration settings" xml:space="preserve">
+    <value>_Migratie-instellingen opslaan</value>
   </data>
   <data name="Save _passphrase" xml:space="preserve">
     <value>Wachtwoordzin o_pslaan</value>

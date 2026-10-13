@@ -17,7 +17,7 @@
         <!-- The form's column, as on every settings page (FormColumnPanel, F295). -->
         <scaffold:FormColumnPanel MaxWidth="{StaticResource AppFormWidth}" HorizontalAlignment="Left">
             <scaffold:PageHeader x:Name="Header" PageKey="backup"
-                                 Subtitle="{loc:L 'Back up domains, messages and settings to a folder; restore from a previous backup.'}" />
+                                 Subtitle="{loc:L 'Back up domains, messages and settings to a folder, restore from a previous backup, and set how mailbox migrations and PST imports run.'}" />
 
             <!-- A read that failed (Services/ReadFailure). What an action did is
                  said in its own card, by the buttons that did it: said here, it was
@@ -269,6 +269,10 @@
                     </StackPanel>
                 </scaffold:Card.Footer>
             </scaffold:Card>
+            <!-- The migrations and the PST import, a tab of Advanced until review
+                 finding F273: the server's settings drawn by ServerSettingsView's
+                 Migrations section, with its own Save (BackupView.EnterMigrations_). -->
+            <ContentControl x:Name="MigrationsHost" Focusable="False" IsTabStop="False" />
         </scaffold:FormColumnPanel>
     </ScrollViewer>
 </UserControl>

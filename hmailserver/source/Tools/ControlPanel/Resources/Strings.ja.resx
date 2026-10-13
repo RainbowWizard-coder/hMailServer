@@ -1836,8 +1836,8 @@
   <data name="Archiving writes a copy of every message to a folder you choose." xml:space="preserve">
     <value>アーカイブは、すべてのメッセージのコピーを指定したフォルダーに書き出します。</value>
   </data>
-  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, mailbox migrations and PST import, and the switch that turns the event-scripting engine on." xml:space="preserve">
-    <value>アーカイブ、ミラーリング、既定のドメイン、IPv6 での配信、ディスク領域の制限、メールボックスの移行と PST のインポート、およびイベント スクリプト エンジンを有効にするスイッチです。</value>
+  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, and the switch that turns the event-scripting engine on." xml:space="preserve">
+    <value>アーカイブ、ミラーリング、既定のドメイン、IPv6 での配信、ディスク領域の制限、およびイベント スクリプト エンジンを有効にするスイッチです。</value>
   </data>
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id (メモリ ハード、推奨)</value>
@@ -2049,14 +2049,14 @@
   <data name="Back up _settings" xml:space="preserve">
     <value>設定をバックアップする(_S)</value>
   </data>
-  <data name="Back up domains, messages and settings to a folder; restore from a previous backup." xml:space="preserve">
-    <value>ドメイン、メッセージ、設定をフォルダーにバックアップし、以前のバックアップから復元します。</value>
+  <data name="Back up domains, messages and settings to a folder, restore from a previous backup, and set how mailbox migrations and PST imports run." xml:space="preserve">
+    <value>ドメイン、メッセージ、設定をフォルダーにバックアップし、以前のバックアップから復元し、メールボックスの移行と PST のインポートの動作を設定します。</value>
   </data>
   <data name="Back up here and restore on the new machine." xml:space="preserve">
     <value>ここでバックアップし、新しいコンピューターで復元します。</value>
   </data>
-  <data name="Back up or restore the configuration, the domains and the messages." xml:space="preserve">
-    <value>設定、ドメイン、メッセージをバックアップまたは復元します。</value>
+  <data name="Back up or restore the configuration, the domains and the messages, and set how mailbox migrations and PST imports bring mail in from another server or an Outlook data file." xml:space="preserve">
+    <value>設定、ドメイン、メッセージをバックアップまたは復元し、メールボックスの移行と PST のインポートが別のサーバーや Outlook データ ファイルからメールを取り込む方法を設定します。</value>
   </data>
   <data name="Back up the configuration and the mail" xml:space="preserve">
     <value>設定とメールをバックアップする</value>
@@ -2117,6 +2117,9 @@
   </data>
   <data name="Backup started {0} - runs in the background on the server." xml:space="preserve">
     <value>バックアップを {0} に開始しました。サーバー上でバックグラウンドで実行されます。</value>
+  </data>
+  <data name="Backup, restore &amp; migration" xml:space="preserve">
+    <value>バックアップ、復元、移行</value>
   </data>
   <data name="Backups go to {0}." xml:space="preserve">
     <value>バックアップは {0} に保存されます。</value>
@@ -7731,8 +7734,8 @@
   <data name="No backup first: 'Back up to the configured destination before an unattended apply' is off." xml:space="preserve">
     <value>事前のバックアップなし: 「無人での適用の前に、設定されている保存先へバックアップする」がオフです。</value>
   </data>
-  <data name="No backup first: no backup destination is set (Backup &amp; restore). A rollback puts the previous program back, not the database." xml:space="preserve">
-    <value>事前のバックアップなし: バックアップ先が設定されていません (バックアップと復元)。ロールバックで戻るのは以前のプログラムで、データベースは戻りません。</value>
+  <data name="No backup first: no backup destination is set (Backup, restore &amp; migration). A rollback puts the previous program back, not the database." xml:space="preserve">
+    <value>事前のバックアップなし: バックアップ先が設定されていません (バックアップ、復元、移行)。ロールバックで戻るのは以前のプログラムで、データベースは戻りません。</value>
   </data>
   <data name="No backup first: you chose to install without one." xml:space="preserve">
     <value>事前のバックアップなし: バックアップなしでインストールすることを選択しました。</value>
@@ -8553,8 +8556,8 @@
   <data name="On the Anti-spam settings page, list the sealing domains you trust (the mailing-list and forwarding services your users rely on) and turn on the ARC offset. Naming who you trust is a judgement only you can make, which is why there is no default." xml:space="preserve">
     <value>スパム対策の設定ページで、信頼するシール付与ドメイン (ユーザーが頼っているメーリング リストや転送サービス) を列挙し、ARC の相殺をオンにしてください。誰を信頼するかを決めるのはあなたにしかできない判断であり、だからこそ既定値がありません。</value>
   </data>
-  <data name="On the Backup &amp; restore page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
-    <value>[バックアップと復元] ページで、バックアップの書き出し先フォルダーを、メッセージストアとは別のディスクに設定します。</value>
+  <data name="On the Backup, restore &amp; migration page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
+    <value>[バックアップ、復元、移行] ページで、バックアップの書き出し先フォルダーを、メッセージストアとは別のディスクに設定します。</value>
   </data>
   <data name="On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for." xml:space="preserve">
     <value>プロトコル ページの SMTP タブで、ホスト名にこのサーバーの完全な DNS 名 (mail.example.com など) を設定します。次に、サーバーの公開アドレスの所有者に、その名前を指す PTR レコードを依頼します。何を依頼すればよいかは DNS レコード ページに表示されます。</value>
@@ -10768,6 +10771,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Save _levels now" xml:space="preserve">
     <value>レベルを今すぐ保存(_L)</value>
+  </data>
+  <data name="Save _migration settings" xml:space="preserve">
+    <value>移行の設定を保存(_M)</value>
   </data>
   <data name="Save _passphrase" xml:space="preserve">
     <value>パスフレーズを保存(_P)</value>

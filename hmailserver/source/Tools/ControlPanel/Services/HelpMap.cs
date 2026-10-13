@@ -216,7 +216,6 @@ namespace hMailServer.ControlPanel.Services
             ["performance#Message store"] = new HelpTarget("MessageStore.md"),
 
             ["advanced#Scripting"] = new HelpTarget("EventScripts.md", "The engine"),
-            ["advanced#Migrations"] = new HelpTarget("Migration.md"),
 
             ["webmail#Browser sessions"] = new HelpTarget("DevicesAndSessions.md", "The session policies"),
             ["webmail#What people may do"] = new HelpTarget("Directory.md", "The two switches"),

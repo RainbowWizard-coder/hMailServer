@@ -332,7 +332,7 @@ written: **7-Zip AES-256, with the archive's headers encrypted too** (`-mhe=on`)
 so that an archive without its passphrase cannot even be *listed*. Whoever finds
 the file learns neither the mailboxes in it nor that it is an hMailServer backup.
 
-Set it in the Control Panel (**Backup & restore → Encryption**), in the Control
+Set it in the Control Panel (**Backup, restore & migration → Encryption**), in the Control
 Deck's Backup view, over REST (`encryption_passphrase` in
 `PUT /api/v1/settings/backup`), or with `hmctl backup passphrase set`. Clearing
 it — an empty passphrase — goes back to unencrypted archives.

@@ -15,8 +15,13 @@ using static hMailServer.ControlPanel.Services.Loc;
 
 namespace hMailServer.ControlPanel.Views
 {
-   public partial class BackupView : UserControl, IPageLifecycle
+   public partial class BackupView : UserControl, IPageLifecycle, IRevealSetting
    {
+      // The migrations' card, the server's settings for moving mailboxes in from
+      // another server or a PST file (review finding F273), made as the page is first
+      // entered, with its own Save, captioned in this page's scope.
+      private ServerSettingsView migrations_;
+
       // BackupMessagesDBOnly changes what a backup and a restore do, but it lives
       // in hMailServer.ini rather than in the COM backup settings, so it needs its
       // own store alongside the COM properties on this page. The four schedule and
@@ -66,6 +71,8 @@ namespace hMailServer.ControlPanel.Views
 
       public void OnEnter()
       {
+         EnterMigrations_();
+
          // What the buttons did on a last visit is not news on this one.
          foreach (InlineNotice outcome in new[] { BackupOutcome, ScheduleOutcome, RestoreOutcome, MailboxOutcome, MessageOutcome })
             outcome.Visibility = Visibility.Collapsed;
@@ -204,6 +211,34 @@ namespace hMailServer.ControlPanel.Views
       public void OnLeave()
       {
       }
+
+      /// <summary>
+      /// The migrations' card, read as the page is entered: a section of the settings
+      /// pages embedded here, with its own Save (review finding F273).
+      /// </summary>
+      private void EnterMigrations_()
+      {
+         if (migrations_ == null)
+         {
+            migrations_ = new ServerSettingsView(ServerSettingsView.Section.Migrations, embedded: true) { SaveCaption = L("Save _migration settings") };
+            System.Windows.Automation.AutomationProperties.SetAutomationId(migrations_, "backup-migrations");
+            MigrationsHost.Content = migrations_;
+         }
+
+         migrations_.OnEnter();
+      }
+
+      /// <summary>
+      /// An edit of the migrations' card is the page's unsaved change: the backup's own
+      /// cards save themselves with their own buttons and keep no unsaved state.
+      /// </summary>
+      public bool HasUnsavedChanges => migrations_?.HasUnsavedChanges == true;
+
+      /// <summary>Saves the migrations' card, as its own Save does.</summary>
+      public bool SaveChanges() => migrations_ == null || migrations_.SaveChanges();
+
+      /// <summary>A setting of the migrations' card, found by Ctrl+K, is shown on it.</summary>
+      public bool RevealSetting(string key, string label) => migrations_ != null && migrations_.RevealSetting(key, label);
 
       /// <summary>
       ///    The passphrase to write, decided before anything is saved: null when

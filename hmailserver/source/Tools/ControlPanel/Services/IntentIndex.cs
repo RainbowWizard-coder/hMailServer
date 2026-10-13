@@ -349,11 +349,11 @@ namespace hMailServer.ControlPanel.Services
             N("Prometheus metrics, health endpoints and the REST API are enabled here.")),
          // Four subjects that were filed on pages whose names did not say so (review
          // finding F273): the countries on Auto-ban, which stayed and is in its purpose,
-         // the PST import, the alerts and webhooks, now on Monitoring & alerts, and the
-         // PROXY protocol.
+         // the PST import, now on Backup, restore & migration, the alerts and webhooks,
+         // now on Monitoring & alerts, and the PROXY protocol, now on Incoming relays.
          new IntentEntry(N("block mail from a country"), "autoban",
             N("Refuse or allow connections by the country a MaxMind database places the address in; nothing is judged by country until you supply the database.")),
-         new IntentEntry(N("import a pst file"), "advanced",
+         new IntentEntry(N("import a pst file"), "backup",
             N("Set the folder PST files are copied into; the import job itself is started in the Control Deck or over the REST API.")),
          new IntentEntry(N("send an alert to another system"), "api",
             N("Alert rules, outbound webhooks and the SNMP agent tell another system what happened.")),

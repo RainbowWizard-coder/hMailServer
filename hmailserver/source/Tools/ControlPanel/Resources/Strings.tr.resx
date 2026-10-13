@@ -1825,8 +1825,8 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Archiving writes a copy of every message to a folder you choose." xml:space="preserve">
     <value>Arşivleme, her iletinin bir kopyasını seçtiğiniz bir klasöre yazar.</value>
   </data>
-  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, mailbox migrations and PST import, and the switch that turns the event-scripting engine on." xml:space="preserve">
-    <value>Arşivleme, yansılama, varsayılan etki alanı, IPv6 üzerinden teslim, disk alanı sınırları, posta kutusu geçişleri ve PST içe aktarma ve olay betiği motorunu açan anahtar.</value>
+  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, and the switch that turns the event-scripting engine on." xml:space="preserve">
+    <value>Arşivleme, yansılama, varsayılan etki alanı, IPv6 üzerinden teslim, disk alanı sınırları ve olay betiği motorunu açan anahtar.</value>
   </data>
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id (bellek yoğun, önerilir)</value>
@@ -2038,14 +2038,14 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Back up _settings" xml:space="preserve">
     <value>_Ayarları yedekle</value>
   </data>
-  <data name="Back up domains, messages and settings to a folder; restore from a previous backup." xml:space="preserve">
-    <value>Etki alanlarını, iletileri ve ayarları bir klasöre yedekleyin; önceki bir yedekten geri yükleyin.</value>
+  <data name="Back up domains, messages and settings to a folder, restore from a previous backup, and set how mailbox migrations and PST imports run." xml:space="preserve">
+    <value>Etki alanlarını, iletileri ve ayarları bir klasöre yedekleyin, önceki bir yedekten geri yükleyin ve posta kutusu geçişlerinin ve PST içe aktarmalarının nasıl çalışacağını ayarlayın.</value>
   </data>
   <data name="Back up here and restore on the new machine." xml:space="preserve">
     <value>Burada yedekleyin ve yeni makinede geri yükleyin.</value>
   </data>
-  <data name="Back up or restore the configuration, the domains and the messages." xml:space="preserve">
-    <value>Yapılandırmayı, etki alanlarını ve iletileri yedekleyin veya geri yükleyin.</value>
+  <data name="Back up or restore the configuration, the domains and the messages, and set how mailbox migrations and PST imports bring mail in from another server or an Outlook data file." xml:space="preserve">
+    <value>Yapılandırmayı, etki alanlarını ve iletileri yedekleyin veya geri yükleyin; posta kutusu geçişlerinin ve PST içe aktarmalarının postayı başka bir sunucudan veya bir Outlook veri dosyasından nasıl getireceğini ayarlayın.</value>
   </data>
   <data name="Back up the configuration and the mail" xml:space="preserve">
     <value>Yapılandırmayı ve postayı yedekle</value>
@@ -2106,6 +2106,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Backup started {0} - runs in the background on the server." xml:space="preserve">
     <value>Yedekleme {0} başlatıldı - sunucuda arka planda çalışır.</value>
+  </data>
+  <data name="Backup, restore &amp; migration" xml:space="preserve">
+    <value>Yedekleme, geri yükleme ve geçiş</value>
   </data>
   <data name="Backups go to {0}." xml:space="preserve">
     <value>Yedekler {0} hedefine gidiyor.</value>
@@ -7720,8 +7723,8 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="No backup first: 'Back up to the configured destination before an unattended apply' is off." xml:space="preserve">
     <value>Önce yedek yok: 'Gözetimsiz bir uygulamadan önce yapılandırılmış hedefe yedekle' kapalı.</value>
   </data>
-  <data name="No backup first: no backup destination is set (Backup &amp; restore). A rollback puts the previous program back, not the database." xml:space="preserve">
-    <value>Önce yedek yok: yedekleme hedefi ayarlanmamış (Yedekleme ve geri yükleme). Geri alma önceki programı geri koyar, veritabanını değil.</value>
+  <data name="No backup first: no backup destination is set (Backup, restore &amp; migration). A rollback puts the previous program back, not the database." xml:space="preserve">
+    <value>Önce yedek yok: yedekleme hedefi ayarlanmamış (Yedekleme, geri yükleme ve geçiş). Geri alma önceki programı geri koyar, veritabanını değil.</value>
   </data>
   <data name="No backup first: you chose to install without one." xml:space="preserve">
     <value>Önce yedek yok: yedeksiz yüklemeyi seçtiniz.</value>
@@ -8542,8 +8545,8 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="On the Anti-spam settings page, list the sealing domains you trust (the mailing-list and forwarding services your users rely on) and turn on the ARC offset. Naming who you trust is a judgement only you can make, which is why there is no default." xml:space="preserve">
     <value>Spam önleme ayarları sayfasında güvendiğiniz mühürleyen etki alanlarını (kullanıcılarınızın güvendiği posta listesi ve iletme hizmetleri) listeleyin ve ARC dengelemesini açın. Kime güvendiğinizi adlandırmak yalnızca sizin verebileceğiniz bir yargıdır; varsayılan olmamasının nedeni budur.</value>
   </data>
-  <data name="On the Backup &amp; restore page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
-    <value>Yedekleme ve geri yükleme sayfasında yedeğin yazılacağı klasörü, ileti deposunun bulunduğu diskten farklı bir diskte ayarlayın.</value>
+  <data name="On the Backup, restore &amp; migration page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
+    <value>Yedekleme, geri yükleme ve geçiş sayfasında yedeğin yazılacağı klasörü, ileti deposunun bulunduğu diskten farklı bir diskte ayarlayın.</value>
   </data>
   <data name="On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for." xml:space="preserve">
     <value>Protokoller sayfasının SMTP sekmesinde Ana bilgisayar adı alanını bu sunucunun tam DNS adına, örneğin mail.example.com olarak ayarlayın. Ardından sunucunun genel adresinin sahibinden bu adı gösteren bir PTR kaydı isteyin; ne isteneceğini DNS kayıtları sayfası gösterir.</value>
@@ -10757,6 +10760,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Save _levels now" xml:space="preserve">
     <value>_Düzeyleri şimdi kaydet</value>
+  </data>
+  <data name="Save _migration settings" xml:space="preserve">
+    <value>_Geçiş ayarlarını kaydet</value>
   </data>
   <data name="Save _passphrase" xml:space="preserve">
     <value>Parola i_fadesini kaydet</value>

@@ -991,7 +991,7 @@ nothing it can write decides what the administrator's side runs.
 5. **The service prepares, on the administrator's request** (COM
    `Status.PrepareUpdateForAdministrator`, asked from this computer only): it
    checks its own download again, takes the backup (`UpdateBackupBeforeApply`, to
-   the destination *Backup & restore* sets) and fetches the running version's
+   the destination *Backup, restore & migration* sets) and fetches the running version's
    installer as the rollback image. The stage copies the rollback image out and
    checks it as it checked the installer, held to the running version. A backup
    that fails asks the administrator whether to install without one; with no

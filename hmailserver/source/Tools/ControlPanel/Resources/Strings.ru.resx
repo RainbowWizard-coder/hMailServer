@@ -1846,8 +1846,8 @@ Control Panel может читать файлы сообщений только
   <data name="Archiving writes a copy of every message to a folder you choose." xml:space="preserve">
     <value>Архивирование записывает копию каждого сообщения в выбранную вами папку.</value>
   </data>
-  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, mailbox migrations and PST import, and the switch that turns the event-scripting engine on." xml:space="preserve">
-    <value>Архивирование, зеркалирование, домен по умолчанию, доставка по IPv6, ограничения дискового пространства, миграции почтовых ящиков и импорт PST, а также переключатель, включающий движок сценариев событий.</value>
+  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, and the switch that turns the event-scripting engine on." xml:space="preserve">
+    <value>Архивирование, зеркалирование, домен по умолчанию, доставка по IPv6, ограничения дискового пространства, а также переключатель, включающий движок сценариев событий.</value>
   </data>
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id (требователен к памяти, рекомендуется)</value>
@@ -2065,14 +2065,14 @@ Control Panel может читать файлы сообщений только
   <data name="Back up _settings" xml:space="preserve">
     <value>_Резервное копирование параметров</value>
   </data>
-  <data name="Back up domains, messages and settings to a folder; restore from a previous backup." xml:space="preserve">
-    <value>Резервное копирование доменов, сообщений и параметров в папку; восстановление из ранее созданной копии.</value>
+  <data name="Back up domains, messages and settings to a folder, restore from a previous backup, and set how mailbox migrations and PST imports run." xml:space="preserve">
+    <value>Резервное копирование доменов, сообщений и параметров в папку, восстановление из ранее созданной копии и настройка того, как идут миграции почтовых ящиков и импорт PST.</value>
   </data>
   <data name="Back up here and restore on the new machine." xml:space="preserve">
     <value>Создайте здесь резервную копию и восстановите её на новом компьютере.</value>
   </data>
-  <data name="Back up or restore the configuration, the domains and the messages." xml:space="preserve">
-    <value>Создавайте резервные копии конфигурации, доменов и сообщений или восстанавливайте их из копии.</value>
+  <data name="Back up or restore the configuration, the domains and the messages, and set how mailbox migrations and PST imports bring mail in from another server or an Outlook data file." xml:space="preserve">
+    <value>Создавайте резервные копии конфигурации, доменов и сообщений или восстанавливайте их из копии и задавайте, как миграции почтовых ящиков и импорт PST переносят почту с другого сервера или из файла данных Outlook.</value>
   </data>
   <data name="Back up the configuration and the mail" xml:space="preserve">
     <value>Резервное копирование конфигурации и почты</value>
@@ -2133,6 +2133,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Backup started {0} - runs in the background on the server." xml:space="preserve">
     <value>Резервное копирование запущено {0} — выполняется в фоне на сервере.</value>
+  </data>
+  <data name="Backup, restore &amp; migration" xml:space="preserve">
+    <value>Резервное копирование, восстановление и миграция</value>
   </data>
   <data name="Backups go to {0}." xml:space="preserve">
     <value>Резервные копии сохраняются в {0}.</value>
@@ -7808,8 +7811,8 @@ Control Panel может читать файлы сообщений только
   <data name="No backup first: 'Back up to the configured destination before an unattended apply' is off." xml:space="preserve">
     <value>Без резервной копии: «Создавать резервную копию в настроенное расположение перед автоматической установкой» выключено.</value>
   </data>
-  <data name="No backup first: no backup destination is set (Backup &amp; restore). A rollback puts the previous program back, not the database." xml:space="preserve">
-    <value>Без резервной копии: не задано место для резервных копий (Резервное копирование и восстановление). Откат возвращает прежнюю программу, но не базу данных.</value>
+  <data name="No backup first: no backup destination is set (Backup, restore &amp; migration). A rollback puts the previous program back, not the database." xml:space="preserve">
+    <value>Без резервной копии: не задано место для резервных копий (Резервное копирование, восстановление и миграция). Откат возвращает прежнюю программу, но не базу данных.</value>
   </data>
   <data name="No backup first: you chose to install without one." xml:space="preserve">
     <value>Без резервной копии: вы выбрали установку без неё.</value>
@@ -8648,8 +8651,8 @@ Control Panel может читать файлы сообщений только
   <data name="On the Anti-spam settings page, list the sealing domains you trust (the mailing-list and forwarding services your users rely on) and turn on the ARC offset. Naming who you trust is a judgement only you can make, which is why there is no default." xml:space="preserve">
     <value>На странице «Параметры антиспама» перечислите домены-запечатыватели, которым вы доверяете (службы списков рассылки и пересылки, на которые полагаются ваши пользователи), и включите поправку оценки ARC. Назвать тех, кому вы доверяете, — это суждение, которое можете вынести только вы, поэтому значения по умолчанию здесь нет.</value>
   </data>
-  <data name="On the Backup &amp; restore page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
-    <value>На странице «Резервное копирование и восстановление» задайте папку, в которую записывается резервная копия, на другом диске, чем тот, где лежит хранилище сообщений.</value>
+  <data name="On the Backup, restore &amp; migration page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
+    <value>На странице «Резервное копирование, восстановление и миграция» задайте папку, в которую записывается резервная копия, на другом диске, чем тот, где лежит хранилище сообщений.</value>
   </data>
   <data name="On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for." xml:space="preserve">
     <value>На вкладке SMTP страницы «Протоколы» задайте в поле «Имя узла» полное DNS-имя этого сервера, например mail.example.com. Затем попросите владельца публичного адреса сервера создать запись PTR с этим именем; страница «Записи DNS» показывает, о чём просить.</value>
@@ -10878,6 +10881,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Save _levels now" xml:space="preserve">
     <value>Сохранить _уровни сейчас</value>
+  </data>
+  <data name="Save _migration settings" xml:space="preserve">
+    <value>Сохранить настройки _миграции</value>
   </data>
   <data name="Save _passphrase" xml:space="preserve">
     <value>_Сохранить парольную фразу</value>

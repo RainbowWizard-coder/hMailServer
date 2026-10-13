@@ -1846,8 +1846,8 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Archiving writes a copy of every message to a folder you choose." xml:space="preserve">
     <value>Archivace zapisuje kopii každé zprávy do složky, kterou zvolíte.</value>
   </data>
-  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, mailbox migrations and PST import, and the switch that turns the event-scripting engine on." xml:space="preserve">
-    <value>Archivace, zrcadlení, výchozí doména, doručování přes IPv6, limity místa na disku, migrace poštovních schránek a import PST a přepínač, který zapíná engine skriptování událostí.</value>
+  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, and the switch that turns the event-scripting engine on." xml:space="preserve">
+    <value>Archivace, zrcadlení, výchozí doména, doručování přes IPv6, limity místa na disku a přepínač, který zapíná engine skriptování událostí.</value>
   </data>
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id (náročný na paměť, doporučeno)</value>
@@ -2065,14 +2065,14 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Back up _settings" xml:space="preserve">
     <value>Zálohovat _nastavení</value>
   </data>
-  <data name="Back up domains, messages and settings to a folder; restore from a previous backup." xml:space="preserve">
-    <value>Zálohujte domény, zprávy a nastavení do složky; obnovte z předchozí zálohy.</value>
+  <data name="Back up domains, messages and settings to a folder, restore from a previous backup, and set how mailbox migrations and PST imports run." xml:space="preserve">
+    <value>Zálohujte domény, zprávy a nastavení do složky, obnovte z předchozí zálohy a nastavte, jak probíhají migrace schránek a importy PST.</value>
   </data>
   <data name="Back up here and restore on the new machine." xml:space="preserve">
     <value>Zálohujte zde a obnovte na novém počítači.</value>
   </data>
-  <data name="Back up or restore the configuration, the domains and the messages." xml:space="preserve">
-    <value>Zálohujte nebo obnovte konfiguraci, domény a zprávy.</value>
+  <data name="Back up or restore the configuration, the domains and the messages, and set how mailbox migrations and PST imports bring mail in from another server or an Outlook data file." xml:space="preserve">
+    <value>Zálohujte nebo obnovte konfiguraci, domény a zprávy a nastavte, jak migrace schránek a importy PST přinášejí poštu z jiného serveru nebo z datového souboru Outlooku.</value>
   </data>
   <data name="Back up the configuration and the mail" xml:space="preserve">
     <value>Zálohovat konfiguraci a poštu</value>
@@ -2133,6 +2133,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Backup started {0} - runs in the background on the server." xml:space="preserve">
     <value>Záloha spuštěna {0} – běží na pozadí na serveru.</value>
+  </data>
+  <data name="Backup, restore &amp; migration" xml:space="preserve">
+    <value>Zálohování, obnovení a migrace</value>
   </data>
   <data name="Backups go to {0}." xml:space="preserve">
     <value>Zálohy jdou do {0}.</value>
@@ -7808,8 +7811,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No backup first: 'Back up to the configured destination before an unattended apply' is off." xml:space="preserve">
     <value>Nejdřív bez zálohy: „Před bezobslužnou instalací zálohovat do nakonfigurovaného cíle“ je vypnuto.</value>
   </data>
-  <data name="No backup first: no backup destination is set (Backup &amp; restore). A rollback puts the previous program back, not the database." xml:space="preserve">
-    <value>Nejdřív bez zálohy: není nastaveno žádné umístění záloh (Zálohování a obnovení). Návrat vrátí předchozí program, ne databázi.</value>
+  <data name="No backup first: no backup destination is set (Backup, restore &amp; migration). A rollback puts the previous program back, not the database." xml:space="preserve">
+    <value>Nejdřív bez zálohy: není nastaveno žádné umístění záloh (Zálohování, obnovení a migrace). Návrat vrátí předchozí program, ne databázi.</value>
   </data>
   <data name="No backup first: you chose to install without one." xml:space="preserve">
     <value>Nejdřív bez zálohy: zvolili jste instalaci bez ní.</value>
@@ -8648,8 +8651,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="On the Anti-spam settings page, list the sealing domains you trust (the mailing-list and forwarding services your users rely on) and turn on the ARC offset. Naming who you trust is a judgement only you can make, which is why there is no default." xml:space="preserve">
     <value>Na stránce Nastavení antispamu uveďte pečetící domény, kterým důvěřujete (konferenční a přeposílací služby, na které vaši uživatelé spoléhají), a zapněte offset ARC. Pojmenovat, komu důvěřujete, je úsudek, který můžete udělat jen vy – proto zde není žádná výchozí hodnota.</value>
   </data>
-  <data name="On the Backup &amp; restore page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
-    <value>Na stránce Zálohování a obnovení nastavte složku, do níž se záloha zapisuje, na jiném disku, než na kterém je úložiště zpráv.</value>
+  <data name="On the Backup, restore &amp; migration page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
+    <value>Na stránce Zálohování, obnovení a migrace nastavte složku, do níž se záloha zapisuje, na jiném disku, než na kterém je úložiště zpráv.</value>
   </data>
   <data name="On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for." xml:space="preserve">
     <value>Na kartě SMTP stránky Protokoly nastavte Název hostitele na úplný název DNS tohoto serveru, například mail.example.com. Pak požádejte vlastníka veřejné adresy serveru o záznam PTR, který tento název uvádí; stránka Záznamy DNS ukazuje, o co požádat.</value>
@@ -10878,6 +10881,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Save _levels now" xml:space="preserve">
     <value>Uložit _úrovně nyní</value>
+  </data>
+  <data name="Save _migration settings" xml:space="preserve">
+    <value>Uložit nastavení _migrace</value>
   </data>
   <data name="Save _passphrase" xml:space="preserve">
     <value>Uložit _přístupové heslo</value>

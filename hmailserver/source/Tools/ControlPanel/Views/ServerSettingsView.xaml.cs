@@ -88,7 +88,14 @@ namespace hMailServer.ControlPanel.Views
          /// embedded section): a card of Server limits &amp; expert settings until review
          /// finding F273, where the page that is about upstream gateways did not have it.
          /// </summary>
-         FrontEndProxies
+         FrontEndProxies,
+
+         /// <summary>
+         /// The mailbox migrations and the PST import, a card on the Backup, restore &amp;
+         /// migration page (an embedded section): a tab of Advanced until review finding
+         /// F273, where nothing named them.
+         /// </summary>
+         Migrations
       }
 
       // ---- editor model ------------------------------------------------------
@@ -2181,6 +2188,7 @@ namespace hMailServer.ControlPanel.Views
             case Section.Monitoring: BuildMonitoring(); break;
             case Section.RuleLimits: BuildRuleLimits(); break;
             case Section.FrontEndProxies: BuildFrontEndProxies(); break;
+            case Section.Migrations: BuildMigrations(); break;
          }
       }
 
@@ -4591,6 +4599,43 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
+      /// The migrations, a card on the Backup, restore &amp; migration page
+      /// (Section.Migrations, embedded there by BackupView) since review finding F273:
+      /// moving mailboxes in from another server or a PST file is the page's subject as
+      /// much as a backup restored is, and the card was a tab of Advanced, a page named
+      /// for nothing in particular. The two settings are the server's, kept with no COM
+      /// property and reached over the REST API, as they were.
+      /// </summary>
+      private void BuildMigrations()
+      {
+         // No PageKey: the section's header is not drawn, and the backup page's own names the page.
+         // Migrations from another server and PST imports (docs/Migration.md): the
+         // jobs are started in the Control Deck or over the REST API; these two are
+         // the server's. Kept with no COM property.
+         var migration = Card(L("Migrations"),
+            L("Mailbox migrations from another server, and imports of Outlook data files (PST). The jobs are started in the Control Deck or over the REST API."));
+         migration.Settings.Add(new DeckLinkRow());
+         migration.Settings.Add(new RestNumber
+         {
+            Path = "MigrationConnectionsPerHost",
+            Label = L("Connections to one source host, across every running migration (1 to 64)"),
+            Key = "migration_connections_per_host",
+            Minimum = 1,
+            Maximum = 64,
+            Blurb = L("4 by default. A provider counts sessions per client address, and too many at once gets an address throttled for the rest of the day.")
+         });
+         migration.Settings.Add(new RestText
+         {
+            Path = "PstImportDirectory",
+            Label = L("Folder PST files are copied into for import (empty = no PST import)"),
+            Key = "pst_import_directory",
+            BrowseFolder = true,
+            Blurb = L("An absolute path on the server. A PST job names a file in the subfolder for the target account's domain, such as example.com\\archive.pst, and nowhere else.")
+         });
+         Tab(L("Migrations")).Cards.Add(migration);
+      }
+
+      /// <summary>
       /// A Warning under the COM allow-list while it is "*", which lets an event
       /// script create any object with the service account's rights - the
       /// shipped value, so that upgrading breaks no script, and the one to narrow
@@ -5137,31 +5182,6 @@ namespace hMailServer.ControlPanel.Views
          script.Settings.Add(allowedObjects);
          afterBuildUi_ = () => WireAnyObjectWarning_(allowedObjects);
          Tab(L("Scripting")).Cards.Add(script);
-
-         // Migrations from another server and PST imports (docs/Migration.md): the
-         // jobs are started in the Control Deck or over the REST API; these two are
-         // the server's. Kept with no COM property.
-         var migration = Card(L("Migrations"),
-            L("Mailbox migrations from another server, and imports of Outlook data files (PST). The jobs are started in the Control Deck or over the REST API."));
-         migration.Settings.Add(new DeckLinkRow());
-         migration.Settings.Add(new RestNumber
-         {
-            Path = "MigrationConnectionsPerHost",
-            Label = L("Connections to one source host, across every running migration (1 to 64)"),
-            Key = "migration_connections_per_host",
-            Minimum = 1,
-            Maximum = 64,
-            Blurb = L("4 by default. A provider counts sessions per client address, and too many at once gets an address throttled for the rest of the day.")
-         });
-         migration.Settings.Add(new RestText
-         {
-            Path = "PstImportDirectory",
-            Label = L("Folder PST files are copied into for import (empty = no PST import)"),
-            Key = "pst_import_directory",
-            BrowseFolder = true,
-            Blurb = L("An absolute path on the server. A PST job names a file in the subfolder for the target account's domain, such as example.com\\archive.pst, and nowhere else.")
-         });
-         Tab(L("Migrations")).Cards.Add(migration);
       }
 
       /// <summary>

@@ -24,8 +24,9 @@ namespace hMailServer.ControlPanel.Tests.Services
    /// Auto-ban; the default domain, IPv6 and the disk space on Advanced; the
    /// per-account sending limits and the script timeout on Server limits. Delivery of
    /// e-mail's Rules tab, one sidebar row from the Rules page, is a Rule limits card
-   /// under the rules, and the PROXY protocol and XCLIENT, a card of Server limits, a
-   /// card under the incoming relays.
+   /// under the rules, the PROXY protocol and XCLIENT, a card of Server limits, a card
+   /// under the incoming relays, and the migrations and the PST import, a tab of
+   /// Advanced, a card on the backup page, which is Backup, restore &amp; migration.
    /// </summary>
    [Collection("Loc")]
    public class PageSubjectsTests : IDisposable
@@ -48,8 +49,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("advanced", "Default domain")]
       [InlineData("advanced", "Prefer IPv6")]
       [InlineData("advanced", "Disk space")]
-      [InlineData("advanced", "Migrations")]
-      [InlineData("advanced", "PST import")]
+      [InlineData("backup", "Migrations")]
+      [InlineData("backup", "PST import")]
       [InlineData("relays", "PROXY protocol")]
       [InlineData("relays", "XCLIENT")]
       [InlineData("hardening", "Sending limits per account")]
@@ -69,7 +70,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// <summary>The tasks an administrator types for those subjects open the pages that hold them.</summary>
       [Theory]
       [InlineData("block mail from a country", "autoban")]
-      [InlineData("import a pst file", "advanced")]
+      [InlineData("import a pst file", "backup")]
       [InlineData("send an alert to another system", "api")]
       [InlineData("put a proxy in front of the server", "relays")]
       public void TheTaskForASubjectOpensThePageThatHoldsIt(string phrase, string key)
@@ -90,6 +91,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("rules", "Sieve")]
       [InlineData("hardening", "PROXY protocol")]
       [InlineData("hardening", "XCLIENT")]
+      [InlineData("advanced", "Migrations")]
+      [InlineData("advanced", "PST import")]
       public void AnAliasForASubjectThePageDoesNotHoldIsGone(string key, string alias)
       {
          Assert.DoesNotContain(alias, NavigationMap.Find(key).Aliases);
@@ -105,8 +108,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("protocols", "ManageSieve")]
       [InlineData("autoban", "countries")]
       [InlineData("autoban", "taken over")]
-      [InlineData("advanced", "PST import")]
-      [InlineData("advanced", "migrations")]
+      [InlineData("backup", "PST imports")]
+      [InlineData("backup", "mailbox migrations")]
       [InlineData("advanced", "IPv6")]
       [InlineData("relays", "PROXY protocol")]
       [InlineData("relays", "XCLIENT")]
@@ -294,6 +297,47 @@ namespace hMailServer.ControlPanel.Tests.Services
          string build = WithheldRowTests.MemberText(server, "private void BuildMonitoring()");
          Assert.Contains("var metricsToken = new IniSecret", build, StringComparison.Ordinal);
          Assert.Contains("afterBuildUi_ = () => WireMetricsWarnings_(rows);", build, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The migrations and the PST import are a card on the backup page, which is named
+      /// for them too: the settings pages' Migrations section shown on the page with its
+      /// own Save, in the card's footer, so that on a page whose cards answer their own
+      /// access keys its key is the card's; and Advanced, whose tab they were, has none.
+      /// </summary>
+      [Fact]
+      public void TheMigrationsAreACardOnTheBackupPage()
+      {
+         string server = ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.xaml.cs"));
+         string migrations = WithheldRowTests.MemberText(server, "private void BuildMigrations()");
+         Assert.True(migrations != null, "ServerSettingsView.BuildMigrations is gone.");
+         foreach (string key in new[] { "MigrationConnectionsPerHost", "PstImportDirectory" })
+            Assert.Contains("Path = \"" + key + "\"", migrations, StringComparison.Ordinal);
+         Assert.Contains("Tab(L(\"Migrations\")).Cards.Add(migration);", migrations, StringComparison.Ordinal);
+         Assert.DoesNotContain("Header.PageKey", migrations, StringComparison.Ordinal);
+         Assert.Contains("case Section.Migrations: BuildMigrations(); break;", server, StringComparison.Ordinal);
+
+         string advanced = WithheldRowTests.MemberText(server, "private void BuildAdvanced()");
+         Assert.True(advanced != null, "ServerSettingsView.BuildAdvanced is gone.");
+         Assert.DoesNotContain("PstImportDirectory", advanced, StringComparison.Ordinal);
+         Assert.DoesNotContain("Tab(L(\"Migrations\"))", advanced, StringComparison.Ordinal);
+
+         string code = ReadControlPanelFile(Path.Join("Views", "BackupView.xaml.cs"));
+         Assert.Contains("public partial class BackupView : UserControl, IPageLifecycle, IRevealSetting", code, StringComparison.Ordinal);
+         Assert.Contains("new ServerSettingsView(ServerSettingsView.Section.Migrations, embedded: true) { SaveCaption = L(\"Save _migration settings\") }", code, StringComparison.Ordinal);
+         Assert.Contains("MigrationsHost.Content = migrations_;", code, StringComparison.Ordinal);
+         Assert.Contains("public bool HasUnsavedChanges => migrations_?.HasUnsavedChanges == true;", code, StringComparison.Ordinal);
+         Assert.Contains("public bool SaveChanges() => migrations_ == null || migrations_.SaveChanges();", code, StringComparison.Ordinal);
+         Assert.Contains("migrations_.RevealSetting(key, label)", code, StringComparison.Ordinal);
+         string enter = WithheldRowTests.MemberText(code, "public void OnEnter()");
+         Assert.True(enter != null && enter.Contains("EnterMigrations_();", StringComparison.Ordinal), "The backup page does not read the migrations' card as it is entered.");
+
+         // The card is the page's last, after the restore of one message.
+         string xaml = ReadControlPanelFile(Path.Join("Views", "BackupView.xaml"));
+         int host = xaml.IndexOf("<ContentControl x:Name=\"MigrationsHost\"", StringComparison.Ordinal);
+         Assert.True(host > xaml.LastIndexOf("</scaffold:Card>", StringComparison.Ordinal), "The migrations' card is not after the backup page's own cards.");
+         Assert.Contains("local:AccessKeyScope.ByCard=\"True\"", xaml, StringComparison.Ordinal);
+         Assert.Equal("Backup, restore & migration", NavigationMap.Find("backup").Title);
       }
 
       private static string ReadControlPanelFile(string relativePath)

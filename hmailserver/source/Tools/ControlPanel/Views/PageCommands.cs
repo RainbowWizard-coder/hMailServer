@@ -52,7 +52,7 @@ namespace hMailServer.ControlPanel.Views
    /// A page's buttons are found by their captions: Refresh on a list page and
    /// Reload on a settings page (the owner's decision of 9 October 2026, one fixed
    /// access key each), and Save changes. A button whose caption says more - the
-   /// scripts page's "Reload from disk", Backup &amp; restore's "Save settings"
+   /// scripts page's "Reload from disk", Backup, restore &amp; migration's "Save settings"
    /// and "Save schedule", IP ranges' "Save permissions" - carries
    /// <see cref="CommandProperty"/> instead, and a page with no such button that
    /// is read again on F5 is an <see cref="IRefreshablePage"/>.
@@ -205,7 +205,7 @@ namespace hMailServer.ControlPanel.Views
          if (found.Count > 1 && focused != null && Ancestors_(focused).Contains(page))
          {
             // The innermost part of the page that holds the keyboard and a
-            // button: on Backup & restore, the card the keyboard is in.
+            // button: on Backup, restore & migration, the card the keyboard is in.
             foreach (DependencyObject container in Ancestors_(focused))
             {
                List<ButtonBase> near = found.Where(b => Ancestors_(b).Contains(container)).ToList();

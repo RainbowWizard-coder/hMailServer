@@ -12,7 +12,7 @@ using static hMailServer.ControlPanel.Services.Loc;
 namespace hMailServer.ControlPanel.Services
 {
    /// <summary>
-   /// What the Backup &amp; restore page reads and says about archives and restore
+   /// What the Backup, restore &amp; migration page reads and says about archives and restore
    /// jobs, without WPF, so the tests hold it (review finding F257).
    ///
    /// The page put every outcome in one notice above its first card, a screen or more

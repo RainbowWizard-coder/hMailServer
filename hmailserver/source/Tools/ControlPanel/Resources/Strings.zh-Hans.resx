@@ -1825,8 +1825,8 @@
   <data name="Archiving writes a copy of every message to a folder you choose." xml:space="preserve">
     <value>存档会把每一封邮件的副本写入您选择的文件夹。</value>
   </data>
-  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, mailbox migrations and PST import, and the switch that turns the event-scripting engine on." xml:space="preserve">
-    <value>存档、镜像、默认域、通过 IPv6 投递、磁盘空间限制、邮箱迁移和 PST 导入，以及打开事件脚本引擎的那个开关。</value>
+  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, and the switch that turns the event-scripting engine on." xml:space="preserve">
+    <value>存档、镜像、默认域、通过 IPv6 投递、磁盘空间限制，以及打开事件脚本引擎的那个开关。</value>
   </data>
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id（内存硬，推荐）</value>
@@ -2038,14 +2038,14 @@
   <data name="Back up _settings" xml:space="preserve">
     <value>备份设置(_S)</value>
   </data>
-  <data name="Back up domains, messages and settings to a folder; restore from a previous backup." xml:space="preserve">
-    <value>把域、邮件和设置备份到一个文件夹；从以前的备份还原。</value>
+  <data name="Back up domains, messages and settings to a folder, restore from a previous backup, and set how mailbox migrations and PST imports run." xml:space="preserve">
+    <value>把域、邮件和设置备份到一个文件夹，从以前的备份还原，并设置邮箱迁移和 PST 导入的运行方式。</value>
   </data>
   <data name="Back up here and restore on the new machine." xml:space="preserve">
     <value>在此处备份，然后在新机器上还原。</value>
   </data>
-  <data name="Back up or restore the configuration, the domains and the messages." xml:space="preserve">
-    <value>备份或还原配置、域和邮件。</value>
+  <data name="Back up or restore the configuration, the domains and the messages, and set how mailbox migrations and PST imports bring mail in from another server or an Outlook data file." xml:space="preserve">
+    <value>备份或还原配置、域和邮件，并设置邮箱迁移和 PST 导入从其他服务器或 Outlook 数据文件引入邮件的方式。</value>
   </data>
   <data name="Back up the configuration and the mail" xml:space="preserve">
     <value>备份配置和邮件</value>
@@ -2106,6 +2106,9 @@
   </data>
   <data name="Backup started {0} - runs in the background on the server." xml:space="preserve">
     <value>备份已于 {0} 开始 - 在服务器上后台运行。</value>
+  </data>
+  <data name="Backup, restore &amp; migration" xml:space="preserve">
+    <value>备份、还原与迁移</value>
   </data>
   <data name="Backups go to {0}." xml:space="preserve">
     <value>备份保存到 {0}。</value>
@@ -7720,8 +7723,8 @@
   <data name="No backup first: 'Back up to the configured destination before an unattended apply' is off." xml:space="preserve">
     <value>不先备份：“在无人值守安装之前先备份到已配置的目标位置”已关闭。</value>
   </data>
-  <data name="No backup first: no backup destination is set (Backup &amp; restore). A rollback puts the previous program back, not the database." xml:space="preserve">
-    <value>不先备份：未设置备份目标（备份与还原）。回滚会恢复之前的程序，而不会恢复数据库。</value>
+  <data name="No backup first: no backup destination is set (Backup, restore &amp; migration). A rollback puts the previous program back, not the database." xml:space="preserve">
+    <value>不先备份：未设置备份目标（备份、还原与迁移）。回滚会恢复之前的程序，而不会恢复数据库。</value>
   </data>
   <data name="No backup first: you chose to install without one." xml:space="preserve">
     <value>不先备份：你选择了不备份直接安装。</value>
@@ -8542,8 +8545,8 @@
   <data name="On the Anti-spam settings page, list the sealing domains you trust (the mailing-list and forwarding services your users rely on) and turn on the ARC offset. Naming who you trust is a judgement only you can make, which is why there is no default." xml:space="preserve">
     <value>在“反垃圾邮件设置”页列出您信任的签封域（您的用户依赖的邮件列表和转发服务），并打开 ARC 抵消。指明信任谁是只有您才能作出的判断，这就是没有默认值的原因。</value>
   </data>
-  <data name="On the Backup &amp; restore page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
-    <value>在“备份与还原”页上设置备份写入的文件夹，放在与邮件存储不同的磁盘上。</value>
+  <data name="On the Backup, restore &amp; migration page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
+    <value>在“备份、还原与迁移”页上设置备份写入的文件夹，放在与邮件存储不同的磁盘上。</value>
   </data>
   <data name="On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for." xml:space="preserve">
     <value>在“协议”页面的 SMTP 选项卡上，把主机名设置为本服务器的完整 DNS 名称，例如 mail.example.com。然后请服务器公共地址的所有者添加一条指向该名称的 PTR 记录；DNS 记录页面会显示需要请求什么。</value>
@@ -10757,6 +10760,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Save _levels now" xml:space="preserve">
     <value>立即保存级别(_L)</value>
+  </data>
+  <data name="Save _migration settings" xml:space="preserve">
+    <value>保存迁移设置(_M)</value>
   </data>
   <data name="Save _passphrase" xml:space="preserve">
     <value>保存密码短语(_P)</value>

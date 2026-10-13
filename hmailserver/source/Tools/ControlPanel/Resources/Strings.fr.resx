@@ -1825,8 +1825,8 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Archiving writes a copy of every message to a folder you choose." xml:space="preserve">
     <value>L'archivage écrit une copie de chaque message dans un dossier de votre choix.</value>
   </data>
-  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, mailbox migrations and PST import, and the switch that turns the event-scripting engine on." xml:space="preserve">
-    <value>Archivage, mise en miroir, domaine par défaut, distribution en IPv6, limites d'espace disque, migrations de boîtes et import PST, et le commutateur qui active le moteur de scripts d'événements.</value>
+  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, and the switch that turns the event-scripting engine on." xml:space="preserve">
+    <value>Archivage, mise en miroir, domaine par défaut, distribution en IPv6, limites d'espace disque et le commutateur qui active le moteur de scripts d'événements.</value>
   </data>
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id (gourmand en mémoire, recommandé)</value>
@@ -2038,14 +2038,14 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Back up _settings" xml:space="preserve">
     <value>Sauvegarder les _réglages</value>
   </data>
-  <data name="Back up domains, messages and settings to a folder; restore from a previous backup." xml:space="preserve">
-    <value>Sauvegarder les domaines, les messages et les réglages dans un dossier ; restaurer depuis une sauvegarde précédente.</value>
+  <data name="Back up domains, messages and settings to a folder, restore from a previous backup, and set how mailbox migrations and PST imports run." xml:space="preserve">
+    <value>Sauvegarder les domaines, les messages et les réglages dans un dossier, restaurer depuis une sauvegarde précédente et régler le déroulement des migrations de boîtes et des imports PST.</value>
   </data>
   <data name="Back up here and restore on the new machine." xml:space="preserve">
     <value>Sauvegardez ici et restaurez sur la nouvelle machine.</value>
   </data>
-  <data name="Back up or restore the configuration, the domains and the messages." xml:space="preserve">
-    <value>Sauvegarder ou restaurer la configuration, les domaines et les messages.</value>
+  <data name="Back up or restore the configuration, the domains and the messages, and set how mailbox migrations and PST imports bring mail in from another server or an Outlook data file." xml:space="preserve">
+    <value>Sauvegarder ou restaurer la configuration, les domaines et les messages, et régler la façon dont les migrations de boîtes et les imports PST font entrer le courrier depuis un autre serveur ou un fichier de données Outlook.</value>
   </data>
   <data name="Back up the configuration and the mail" xml:space="preserve">
     <value>Sauvegarder la configuration et le courrier</value>
@@ -2106,6 +2106,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   </data>
   <data name="Backup started {0} - runs in the background on the server." xml:space="preserve">
     <value>Sauvegarde démarrée {0} - s'exécute en arrière-plan sur le serveur.</value>
+  </data>
+  <data name="Backup, restore &amp; migration" xml:space="preserve">
+    <value>Sauvegarde, restauration et migration</value>
   </data>
   <data name="Backups go to {0}." xml:space="preserve">
     <value>Les sauvegardes vont dans {0}.</value>
@@ -7720,8 +7723,8 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="No backup first: 'Back up to the configured destination before an unattended apply' is off." xml:space="preserve">
     <value>Pas de sauvegarde préalable : « Sauvegarder vers la destination configurée avant une installation sans surveillance » est désactivé.</value>
   </data>
-  <data name="No backup first: no backup destination is set (Backup &amp; restore). A rollback puts the previous program back, not the database." xml:space="preserve">
-    <value>Pas de sauvegarde préalable : aucune destination de sauvegarde n'est définie (Sauvegarde et restauration). Une restauration de version remet en place le programme précédent, pas la base de données.</value>
+  <data name="No backup first: no backup destination is set (Backup, restore &amp; migration). A rollback puts the previous program back, not the database." xml:space="preserve">
+    <value>Pas de sauvegarde préalable : aucune destination de sauvegarde n'est définie (Sauvegarde, restauration et migration). Une restauration de version remet en place le programme précédent, pas la base de données.</value>
   </data>
   <data name="No backup first: you chose to install without one." xml:space="preserve">
     <value>Pas de sauvegarde préalable : vous avez choisi d'installer sans sauvegarde.</value>
@@ -8542,8 +8545,8 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="On the Anti-spam settings page, list the sealing domains you trust (the mailing-list and forwarding services your users rely on) and turn on the ARC offset. Naming who you trust is a judgement only you can make, which is why there is no default." xml:space="preserve">
     <value>Sur la page Réglages anti-spam, listez les domaines de scellement auxquels vous faites confiance (les services de listes de diffusion et de transfert dont vos utilisateurs dépendent) et activez la compensation ARC. Nommer ceux à qui vous faites confiance est un jugement que vous seul pouvez porter, et c'est pourquoi il n'y a pas de valeur par défaut.</value>
   </data>
-  <data name="On the Backup &amp; restore page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
-    <value>Sur la page Sauvegarde et restauration, définissez le dossier où la sauvegarde est écrite, sur un disque autre que celui du magasin de messages.</value>
+  <data name="On the Backup, restore &amp; migration page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
+    <value>Sur la page Sauvegarde, restauration et migration, définissez le dossier où la sauvegarde est écrite, sur un disque autre que celui du magasin de messages.</value>
   </data>
   <data name="On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for." xml:space="preserve">
     <value>Sur l'onglet SMTP de la page Protocoles, réglez Nom d'hôte sur le nom DNS complet de ce serveur, par exemple mail.example.com. Demandez ensuite au propriétaire de l'adresse publique du serveur un enregistrement PTR qui le nomme ; la page Enregistrements DNS indique quoi demander.</value>
@@ -10757,6 +10760,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="Save _levels now" xml:space="preserve">
     <value>Enregistrer les _niveaux maintenant</value>
+  </data>
+  <data name="Save _migration settings" xml:space="preserve">
+    <value>Enregistrer les réglages de _migration</value>
   </data>
   <data name="Save _passphrase" xml:space="preserve">
     <value>Enregistrer la _phrase secrète</value>

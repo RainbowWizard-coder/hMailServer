@@ -107,7 +107,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          string backup = ReadControlPanelFile(Path.Join("Views", "BackupView.xaml"));
          Assert.True(backup.IndexOf("x:Name=\"MailboxRestoreStatusButton\"", StringComparison.Ordinal) < backup.IndexOf("'Restore the mailbo_x'", StringComparison.Ordinal),
-            "Backup & restore's Restore the mailbox is not after Re-read the outcome.");
+            "Backup, restore & migration's Restore the mailbox is not after Re-read the outcome.");
       }
 
       private static string ControlPanelDirectory(string relative)

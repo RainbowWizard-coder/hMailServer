@@ -1825,8 +1825,8 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Archiving writes a copy of every message to a folder you choose." xml:space="preserve">
     <value>Arkivering skriver en kopi af hver meddelelse til en mappe, du vælger.</value>
   </data>
-  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, mailbox migrations and PST import, and the switch that turns the event-scripting engine on." xml:space="preserve">
-    <value>Arkivering, spejling, standarddomænet, levering over IPv6, grænser for diskplads, migrering af postkasser og PST-import, og kontakten, der slår motoren til hændelsesscripts til.</value>
+  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, and the switch that turns the event-scripting engine on." xml:space="preserve">
+    <value>Arkivering, spejling, standarddomænet, levering over IPv6, grænser for diskplads og kontakten, der slår motoren til hændelsesscripts til.</value>
   </data>
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id (hukommelseskrævende, anbefales)</value>
@@ -2038,14 +2038,14 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Back up _settings" xml:space="preserve">
     <value>Sikkerhedskopiér _indstillinger</value>
   </data>
-  <data name="Back up domains, messages and settings to a folder; restore from a previous backup." xml:space="preserve">
-    <value>Sikkerhedskopiér domæner, meddelelser og indstillinger til en mappe; gendan fra en tidligere sikkerhedskopi.</value>
+  <data name="Back up domains, messages and settings to a folder, restore from a previous backup, and set how mailbox migrations and PST imports run." xml:space="preserve">
+    <value>Sikkerhedskopiér domæner, meddelelser og indstillinger til en mappe, gendan fra en tidligere sikkerhedskopi, og angiv, hvordan migreringer af postkasser og PST-import kører.</value>
   </data>
   <data name="Back up here and restore on the new machine." xml:space="preserve">
     <value>Sikkerhedskopiér her og gendan på den nye maskine.</value>
   </data>
-  <data name="Back up or restore the configuration, the domains and the messages." xml:space="preserve">
-    <value>Sikkerhedskopiér eller gendan konfigurationen, domænerne og meddelelserne.</value>
+  <data name="Back up or restore the configuration, the domains and the messages, and set how mailbox migrations and PST imports bring mail in from another server or an Outlook data file." xml:space="preserve">
+    <value>Sikkerhedskopiér eller gendan konfigurationen, domænerne og meddelelserne, og angiv, hvordan migreringer af postkasser og PST-import henter post ind fra en anden server eller en Outlook-datafil.</value>
   </data>
   <data name="Back up the configuration and the mail" xml:space="preserve">
     <value>Sikkerhedskopiér konfigurationen og posten</value>
@@ -2106,6 +2106,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   </data>
   <data name="Backup started {0} - runs in the background on the server." xml:space="preserve">
     <value>Sikkerhedskopiering startet {0} - kører i baggrunden på serveren.</value>
+  </data>
+  <data name="Backup, restore &amp; migration" xml:space="preserve">
+    <value>Sikkerhedskopiering, gendannelse og migrering</value>
   </data>
   <data name="Backups go to {0}." xml:space="preserve">
     <value>Sikkerhedskopier går til {0}.</value>
@@ -7720,8 +7723,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No backup first: 'Back up to the configured destination before an unattended apply' is off." xml:space="preserve">
     <value>Ingen sikkerhedskopi først: 'Sikkerhedskopiér til det konfigurerede mål før en uovervåget installation' er slået fra.</value>
   </data>
-  <data name="No backup first: no backup destination is set (Backup &amp; restore). A rollback puts the previous program back, not the database." xml:space="preserve">
-    <value>Ingen sikkerhedskopi først: der er ikke angivet noget mål for sikkerhedskopier (Sikkerhedskopiering og gendannelse). En tilbagerulning lægger det tidligere program tilbage, ikke databasen.</value>
+  <data name="No backup first: no backup destination is set (Backup, restore &amp; migration). A rollback puts the previous program back, not the database." xml:space="preserve">
+    <value>Ingen sikkerhedskopi først: der er ikke angivet noget mål for sikkerhedskopier (Sikkerhedskopiering, gendannelse og migrering). En tilbagerulning lægger det tidligere program tilbage, ikke databasen.</value>
   </data>
   <data name="No backup first: you chose to install without one." xml:space="preserve">
     <value>Ingen sikkerhedskopi først: du valgte at installere uden.</value>
@@ -8542,8 +8545,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="On the Anti-spam settings page, list the sealing domains you trust (the mailing-list and forwarding services your users rely on) and turn on the ARC offset. Naming who you trust is a judgement only you can make, which is why there is no default." xml:space="preserve">
     <value>Angiv på siden Antispam-indstillinger de forseglende domæner, du stoler på (de mailingliste- og videresendelsestjenester, dine brugere er afhængige af), og slå ARC-udligningen til. At nævne, hvem du stoler på, er en vurdering, kun du kan foretage, og derfor er der ingen standard.</value>
   </data>
-  <data name="On the Backup &amp; restore page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
-    <value>Angiv på siden Sikkerhedskopiering og gendannelse den mappe, sikkerhedskopien skrives til, på en anden disk end den, meddelelseslageret ligger på.</value>
+  <data name="On the Backup, restore &amp; migration page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
+    <value>Angiv på siden Sikkerhedskopiering, gendannelse og migrering den mappe, sikkerhedskopien skrives til, på en anden disk end den, meddelelseslageret ligger på.</value>
   </data>
   <data name="On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for." xml:space="preserve">
     <value>På siden Protokoller, fanen SMTP, skal du sætte Værtsnavn til denne servers fulde DNS-navn, for eksempel mail.example.com. Bed derefter den, der ejer serverens offentlige adresse, om en PTR-post, der nævner navnet; siden DNS-poster viser, hvad du skal bede om.</value>
@@ -10757,6 +10760,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   </data>
   <data name="Save _levels now" xml:space="preserve">
     <value>Gem _niveauer nu</value>
+  </data>
+  <data name="Save _migration settings" xml:space="preserve">
+    <value>Gem _migreringsindstillinger</value>
   </data>
   <data name="Save _passphrase" xml:space="preserve">
     <value>_Gem adgangssætning</value>

@@ -1825,8 +1825,8 @@ Los detalles completos se escribieron en:
   <data name="Archiving writes a copy of every message to a folder you choose." xml:space="preserve">
     <value>El archivado escribe una copia de cada mensaje en una carpeta que usted elige.</value>
   </data>
-  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, mailbox migrations and PST import, and the switch that turns the event-scripting engine on." xml:space="preserve">
-    <value>Archivado, réplica, el dominio por defecto, la entrega por IPv6, límites de espacio en disco, migraciones de buzones e importación de PST, y el interruptor que activa el motor de scripts de eventos.</value>
+  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, and the switch that turns the event-scripting engine on." xml:space="preserve">
+    <value>Archivado, réplica, el dominio por defecto, la entrega por IPv6, límites de espacio en disco y el interruptor que activa el motor de scripts de eventos.</value>
   </data>
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id (intensivo en memoria, recomendado)</value>
@@ -2038,14 +2038,14 @@ Los detalles completos se escribieron en:
   <data name="Back up _settings" xml:space="preserve">
     <value>Copiar _ajustes</value>
   </data>
-  <data name="Back up domains, messages and settings to a folder; restore from a previous backup." xml:space="preserve">
-    <value>Copiar dominios, mensajes y ajustes a una carpeta; restaurar desde una copia anterior.</value>
+  <data name="Back up domains, messages and settings to a folder, restore from a previous backup, and set how mailbox migrations and PST imports run." xml:space="preserve">
+    <value>Copiar dominios, mensajes y ajustes a una carpeta, restaurar desde una copia anterior y establecer cómo se ejecutan las migraciones de buzones y las importaciones de PST.</value>
   </data>
   <data name="Back up here and restore on the new machine." xml:space="preserve">
     <value>Haga la copia aquí y restaure en la máquina nueva.</value>
   </data>
-  <data name="Back up or restore the configuration, the domains and the messages." xml:space="preserve">
-    <value>Copiar o restaurar la configuración, los dominios y los mensajes.</value>
+  <data name="Back up or restore the configuration, the domains and the messages, and set how mailbox migrations and PST imports bring mail in from another server or an Outlook data file." xml:space="preserve">
+    <value>Copiar o restaurar la configuración, los dominios y los mensajes, y establecer cómo las migraciones de buzones y las importaciones de PST traen el correo desde otro servidor o desde un archivo de datos de Outlook.</value>
   </data>
   <data name="Back up the configuration and the mail" xml:space="preserve">
     <value>Copiar la configuración y el correo</value>
@@ -2106,6 +2106,9 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Backup started {0} - runs in the background on the server." xml:space="preserve">
     <value>Copia iniciada {0} - se ejecuta en segundo plano en el servidor.</value>
+  </data>
+  <data name="Backup, restore &amp; migration" xml:space="preserve">
+    <value>Copia de seguridad, restauración y migración</value>
   </data>
   <data name="Backups go to {0}." xml:space="preserve">
     <value>Las copias de seguridad van a {0}.</value>
@@ -7720,8 +7723,8 @@ No se elimina nada de lo que ya está.</value>
   <data name="No backup first: 'Back up to the configured destination before an unattended apply' is off." xml:space="preserve">
     <value>Sin copia de seguridad previa: 'Hacer una copia de seguridad en el destino configurado antes de una instalación desatendida' está desactivado.</value>
   </data>
-  <data name="No backup first: no backup destination is set (Backup &amp; restore). A rollback puts the previous program back, not the database." xml:space="preserve">
-    <value>Sin copia de seguridad previa: no hay ningún destino de copia de seguridad (Copia de seguridad y restauración). Una reversión restaura el programa anterior, no la base de datos.</value>
+  <data name="No backup first: no backup destination is set (Backup, restore &amp; migration). A rollback puts the previous program back, not the database." xml:space="preserve">
+    <value>Sin copia de seguridad previa: no hay ningún destino de copia de seguridad (Copia de seguridad, restauración y migración). Una reversión restaura el programa anterior, no la base de datos.</value>
   </data>
   <data name="No backup first: you chose to install without one." xml:space="preserve">
     <value>Sin copia de seguridad previa: eligió instalar sin ella.</value>
@@ -8542,8 +8545,8 @@ No se elimina nada de lo que ya está.</value>
   <data name="On the Anti-spam settings page, list the sealing domains you trust (the mailing-list and forwarding services your users rely on) and turn on the ARC offset. Naming who you trust is a judgement only you can make, which is why there is no default." xml:space="preserve">
     <value>En la página Ajustes antispam, enumere los dominios selladores en los que confía (los servicios de listas de correo y de reenvío de los que dependen sus usuarios) y active la compensación ARC. Nombrar en quién confía es un juicio que solo usted puede hacer, y por eso no hay valor por defecto.</value>
   </data>
-  <data name="On the Backup &amp; restore page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
-    <value>En la página Copia de seguridad y restauración, establezca la carpeta en la que se escribe la copia de seguridad, en un disco distinto del que aloja el almacén de mensajes.</value>
+  <data name="On the Backup, restore &amp; migration page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
+    <value>En la página Copia de seguridad, restauración y migración, establezca la carpeta en la que se escribe la copia de seguridad, en un disco distinto del que aloja el almacén de mensajes.</value>
   </data>
   <data name="On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for." xml:space="preserve">
     <value>En la pestaña SMTP de la página Protocolos, establezca Nombre de host en el nombre DNS completo de este servidor, como mail.example.com. Después pida a quien sea el propietario de la dirección pública del servidor un registro PTR que lo nombre; la página Registros DNS muestra qué pedir.</value>
@@ -10757,6 +10760,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Save _levels now" xml:space="preserve">
     <value>Guardar _niveles ahora</value>
+  </data>
+  <data name="Save _migration settings" xml:space="preserve">
+    <value>Guardar la configuración de _migración</value>
   </data>
   <data name="Save _passphrase" xml:space="preserve">
     <value>Guardar la _frase de contraseña</value>

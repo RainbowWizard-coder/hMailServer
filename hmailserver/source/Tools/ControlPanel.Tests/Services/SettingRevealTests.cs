@@ -38,7 +38,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("CompromiseDetectionMode", "autoban", "Compromised accounts", "Compromised accounts")]
       [InlineData("JsonLogging", "logging", "Logging", "Log categories")]
       [InlineData("MirrorEMailAddress", "advanced", "Copies of mail", "Mirroring")]
-      [InlineData("PstImportDirectory", "advanced", "Migrations", "Migrations")]
+      [InlineData("PstImportDirectory", "backup", "Migrations", "Migrations")]
       [InlineData("DlpAccountNumberPattern", "rules", "Rule limits", "Rule limits")]
       [InlineData("AntiSpam.SpamAssassinHost", "antispam", "Content filters", "SpamAssassin")]
       [InlineData("UpdateWindow", "updates", null, "How this server updates")]

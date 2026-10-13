@@ -310,10 +310,11 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(pages.Count > 40, "The shell's pages were not found: " + string.Join(", ", pages));
 
          // A page that has no Reload, and whose settings reading again would throw
-         // away unasked, has no F5: Backup & restore keeps no unsaved state.
+         // away unasked, has no F5: the backup page's own cards keep no unsaved state
+         // (its migrations' card, an embedded section, does, and saves on Ctrl+S).
          var noRefresh = new Dictionary<string, string>(StringComparer.Ordinal)
          {
-            ["BackupView"] = "a settings page with no Reload, which does not know what is unsaved",
+            ["BackupView"] = "a settings page with no Reload, whose own cards do not know what is unsaved",
          };
 
          var refresh = new Regex(@"L\(""_(?:Refresh|Reload)""\)|\{loc:L '_(?:Refresh|Reload)'\}|PageCommand\.Refresh\)|\bIRefreshablePage\b|CollectionEditorView");

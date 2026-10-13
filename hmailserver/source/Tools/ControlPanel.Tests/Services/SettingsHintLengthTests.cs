@@ -115,7 +115,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("Directory authentication (LDAP)", "let one wrong password trigger a directory lockout policy")]
       [InlineData("Incoming relays", "a proxy that does not send one will have its connections dropped")]
       [InlineData("Advanced", "is a security decision rather than a convenience")]
-      [InlineData("Backup & restore", "so a failed backup never deletes anything")]
+      [InlineData("Backup, restore & migration", "so a failed backup never deletes anything")]
       [InlineData("Delivery of e-mail", "says so in the error log once an hour")]
       [InlineData("Logging", "this sends a copy, it does not move anything")]
       [InlineData("Monitoring & alerts", "rather than a second tally")]

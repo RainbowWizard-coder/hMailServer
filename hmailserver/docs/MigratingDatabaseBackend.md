@@ -173,7 +173,7 @@ database and will not be in the new one.
 
 ### 2. Take the backup
 
-In the Control Panel, under **Maintenance → Backup & restore**, tick all three of
+In the Control Panel, under **Maintenance → Backup, restore & migration**, tick all three of
 **Back up domains**, **Back up messages** and **Back up settings**, set a destination
 with room for it, and click **Start backup now**. Or from a script:
 

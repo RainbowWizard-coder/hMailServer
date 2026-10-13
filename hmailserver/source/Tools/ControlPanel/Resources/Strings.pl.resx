@@ -1846,8 +1846,8 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Archiving writes a copy of every message to a folder you choose." xml:space="preserve">
     <value>Archiwizacja zapisuje kopię każdej wiadomości do wskazanego folderu.</value>
   </data>
-  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, mailbox migrations and PST import, and the switch that turns the event-scripting engine on." xml:space="preserve">
-    <value>Archiwizacja, kopiowanie lustrzane, domena domyślna, dostarczanie przez IPv6, limity miejsca na dysku, migracje skrzynek pocztowych i import PST oraz przełącznik włączający silnik skryptów zdarzeń.</value>
+  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, and the switch that turns the event-scripting engine on." xml:space="preserve">
+    <value>Archiwizacja, kopiowanie lustrzane, domena domyślna, dostarczanie przez IPv6, limity miejsca na dysku oraz przełącznik włączający silnik skryptów zdarzeń.</value>
   </data>
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id (wymagający dużej pamięci, zalecany)</value>
@@ -2065,14 +2065,14 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Back up _settings" xml:space="preserve">
     <value>Kopia zapasowa _ustawień</value>
   </data>
-  <data name="Back up domains, messages and settings to a folder; restore from a previous backup." xml:space="preserve">
-    <value>Kopia zapasowa domen, wiadomości i ustawień do wskazanego folderu; przywracanie z wcześniejszej kopii zapasowej.</value>
+  <data name="Back up domains, messages and settings to a folder, restore from a previous backup, and set how mailbox migrations and PST imports run." xml:space="preserve">
+    <value>Kopia zapasowa domen, wiadomości i ustawień do wskazanego folderu, przywracanie z wcześniejszej kopii zapasowej oraz ustawienia przebiegu migracji skrzynek i importów PST.</value>
   </data>
   <data name="Back up here and restore on the new machine." xml:space="preserve">
     <value>Należy wykonać tu kopię zapasową i przywrócić ją na nowym komputerze.</value>
   </data>
-  <data name="Back up or restore the configuration, the domains and the messages." xml:space="preserve">
-    <value>Kopia zapasowa i przywracanie konfiguracji, domen oraz wiadomości.</value>
+  <data name="Back up or restore the configuration, the domains and the messages, and set how mailbox migrations and PST imports bring mail in from another server or an Outlook data file." xml:space="preserve">
+    <value>Kopia zapasowa i przywracanie konfiguracji, domen oraz wiadomości, a także ustawienia tego, jak migracje skrzynek pocztowych i importy PST sprowadzają pocztę z innego serwera lub z pliku danych programu Outlook.</value>
   </data>
   <data name="Back up the configuration and the mail" xml:space="preserve">
     <value>Kopia zapasowa konfiguracji i poczty</value>
@@ -2133,6 +2133,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Backup started {0} - runs in the background on the server." xml:space="preserve">
     <value>Kopia zapasowa rozpoczęta {0} - działa w tle na serwerze.</value>
+  </data>
+  <data name="Backup, restore &amp; migration" xml:space="preserve">
+    <value>Kopia zapasowa, przywracanie i migracja</value>
   </data>
   <data name="Backups go to {0}." xml:space="preserve">
     <value>Kopie zapasowe trafiają do {0}.</value>
@@ -7808,8 +7811,8 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="No backup first: 'Back up to the configured destination before an unattended apply' is off." xml:space="preserve">
     <value>Najpierw bez kopii zapasowej: „Wykonuj kopię zapasową do skonfigurowanego miejsca docelowego przed nienadzorowaną instalacją” jest wyłączone.</value>
   </data>
-  <data name="No backup first: no backup destination is set (Backup &amp; restore). A rollback puts the previous program back, not the database." xml:space="preserve">
-    <value>Najpierw bez kopii zapasowej: nie ustawiono miejsca docelowego kopii (Kopia zapasowa i przywracanie). Wycofanie przywraca poprzedni program, a nie bazę danych.</value>
+  <data name="No backup first: no backup destination is set (Backup, restore &amp; migration). A rollback puts the previous program back, not the database." xml:space="preserve">
+    <value>Najpierw bez kopii zapasowej: nie ustawiono miejsca docelowego kopii (Kopia zapasowa, przywracanie i migracja). Wycofanie przywraca poprzedni program, a nie bazę danych.</value>
   </data>
   <data name="No backup first: you chose to install without one." xml:space="preserve">
     <value>Najpierw bez kopii zapasowej: wybrano instalację bez niej.</value>
@@ -8648,8 +8651,8 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="On the Anti-spam settings page, list the sealing domains you trust (the mailing-list and forwarding services your users rely on) and turn on the ARC offset. Naming who you trust is a judgement only you can make, which is why there is no default." xml:space="preserve">
     <value>Na stronie Ustawienia antyspamowe należy wypisać domeny pieczętujące, którym się ufa (usługi list dyskusyjnych i przekazywania poczty, na których polegają użytkownicy), i włączyć korektę punktacji ARC. Wskazanie, komu się ufa, to ocena, której nikt inny dokonać nie może, i dlatego nie ma tu wartości domyślnej.</value>
   </data>
-  <data name="On the Backup &amp; restore page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
-    <value>Na stronie Kopia zapasowa i przywracanie ustaw folder, do którego zapisywana jest kopia zapasowa, na innym dysku niż ten z magazynem wiadomości.</value>
+  <data name="On the Backup, restore &amp; migration page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
+    <value>Na stronie Kopia zapasowa, przywracanie i migracja ustaw folder, do którego zapisywana jest kopia zapasowa, na innym dysku niż ten z magazynem wiadomości.</value>
   </data>
   <data name="On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for." xml:space="preserve">
     <value>Na karcie SMTP strony Protokoły ustaw w polu Nazwa hosta pełną nazwę DNS tego serwera, na przykład mail.example.com. Następnie poproś właściciela publicznego adresu serwera o rekord PTR wskazujący tę nazwę; strona Rekordy DNS pokazuje, o co poprosić.</value>
@@ -10878,6 +10881,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="Save _levels now" xml:space="preserve">
     <value>Zapisz _poziomy teraz</value>
+  </data>
+  <data name="Save _migration settings" xml:space="preserve">
+    <value>Zapisz ustawienia _migracji</value>
   </data>
   <data name="Save _passphrase" xml:space="preserve">
     <value>Zapisz _hasło klucza</value>

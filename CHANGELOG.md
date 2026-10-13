@@ -4726,6 +4726,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   relays opens their reasons, under Incoming relays in the reasons document. `PageSubjectsTests` holds the card on the
   page and the signpost.
 
+- **Changed: the mailbox migrations and the PST import are a card on the backup page, which is Backup, restore &
+  migration.** The two settings the server keeps for them - how many connections every running migration may hold to
+  one source host, and the folder PST files are copied into for import - were the Migrations tab of Advanced, a page
+  named for nothing in particular, and bringing mail in from another server or an Outlook data file is the backup
+  page's subject as much as a restore is. They are a Migrations card under the restore cards now, with the Control
+  Deck's button the jobs are started from, its own Save migration settings in the card's footer, which Ctrl+S presses
+  while the keyboard is in the card, its pill, and the page's question before it is left with an unsaved edit of the
+  card; Advanced has no Migrations tab, a search for Migrations or PST import opens the backup page, and so does the
+  task "import a pst file". The page's old title, Backup & restore, is a search alias, and the setup checklist's
+  backup folder, the update's no-backup reason and the documents name the page by its new one (review finding F273,
+  the owner's decision of 12 October 2026). `PageSubjectsTests` holds the card on the page and Advanced without it.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

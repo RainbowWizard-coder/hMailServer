@@ -375,8 +375,8 @@ Three ceilings, each applied when a job is started:
 - A migration runs at most `concurrency` of its jobs at once.
 - Every migration from the same source host shares `MigrationConnectionsPerHost` (4
   by default, 1 to 64; `migration_connections_per_host` on `PUT /api/v1/settings`, or
-  the Control Panel's Maintenance > Advanced page, the Migrations tab, over the REST
-  API).
+  the Control Panel's Maintenance > Backup, restore & migration page, the Migrations
+  card, over the REST API).
   Two migrations from one server never hold more sessions there between them than
   that, because a provider counts sessions per client address, not per migration.
 - The server never runs more than 64 jobs in all.
@@ -600,7 +600,7 @@ A job names a file; it never gives a path. The file is looked for only in the
 subdirectory, named for the target account's domain, of the directory the setting
 `pst_import_directory` names (`PstImportDirectory` in `hm_settings`, empty as shipped,
 set with `PUT /api/v1/settings`, on the Control Deck's Settings page, or on the Control
-Panel's Advanced page, the Migrations tab, over the REST API):
+Panel's Backup, restore & migration page, the Migrations card, over the REST API):
 
     D:\PstImport\                       <- pst_import_directory
     D:\PstImport\example.com\archive.pst <- a job for anna@example.com names archive.pst

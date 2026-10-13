@@ -763,7 +763,7 @@ namespace hMailServer.ControlPanel.Services
                {
                   Title = L("A backup destination - until one is set there is no backup"),
                   Purpose = L("The backup writes the database and the message store to a folder; until one is set there is no backup."),
-                  Action = L("On the Backup & restore page, set the folder the backup is written to, on a disk other than the one the message store is on."),
+                  Action = L("On the Backup, restore & migration page, set the folder the backup is written to, on a disk other than the one the message store is on."),
                   Page = "backup"
                };
             case "second_factor":
