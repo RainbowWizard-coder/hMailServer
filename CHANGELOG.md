@@ -901,19 +901,30 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   MB to read where 6.3.6 took 0.007 s and 12.5 MB, and now takes 0.015 s and 14 MB; and a megabyte of links whose hosts
   are each a thousand code points of `U+FDFA`, each under that bound, took 0.21 s where 6.3.6 took 0.010 s, and now
   takes 0.011 s. A host that is not ASCII is read as
-  it is written too, as 6.3.6 read it - percent-decoded, the ignored code points deleted, nothing mapped - and the hosts
-  that reading hands over are handed over after UTS 46's: a link in running text followed by a closing quotation mark, a
-  guillemet, a dash or CJK punctuation, which UTS 46 takes into the host's last label as it takes a letter, or makes a
-  label of after an ideographic full stop, names the host before the character as well, where the mail programs that
-  make the link end it - `Visit http://evil.example” now` is asked about as `evil.example` beside
-  `evil.xn--example-b46c` - and every host 6.3.6 handed over for a link is handed over still. `IdnaTester` holds the
-  implementation to every line of Unicode's `IdnaTestV2.txt` (6,396, in ClassTester and, on Linux, in the new
-  `idna-tests`), `SURBLTester` (`public-suffix-tests`) holds the links and the entries, and `AntiSpam/Basics.cs`
-  delivers a link in fullwidth letters, one with an ideographic full stop, one in fullwidth capitals in an HTML part and
-  one to an internationalised name, each to a listed name, and finds each tagged, and so it does a listed name followed
-  by a closing quotation mark, by CJK corner brackets and an ideographic full stop, and by an ideographic comma in an
-  HTML part's text ([SenderListsAndDigests.md](hmailserver/docs/SenderListsAndDigests.md); [Roadmap3.md](Roadmap3.md),
-  "Internationalised link hosts").
+  it is written too, as 6.3.6 read it - percent-decoded, the ignored code points deleted, nothing mapped - so that every
+  host 6.3.6 handed over for a link is handed over still; and by UTS 46 again as far as each place where a mail program
+  may end a link in running text - mail programs differ in what they end a link at, but each ends it at the first of
+  those characters, so the places are the first character past ASCII, in the text as it is written and not
+  percent-encoded, of each of five kinds (punctuation that UTS 46 maps to a full stop, to a name's characters or to
+  anything else, and a symbol it maps to a name's characters or to anything else), where the run of punctuation the host
+  part ends with begins, and the first ideographic or fullwidth full stop with text past ASCII after it: seven at most,
+  however many such characters the host holds. The hosts those readings hand over are handed over after UTS 46's: a link
+  followed by a closing quotation mark, a guillemet, a dash or CJK punctuation, which UTS 46 takes into the host's last
+  label as it takes a letter, or by CJK text after an ideographic full stop, which it makes a label of, names the host
+  before the character as well, whatever that host is written in and whatever symbols it or a label before it holds -
+  `Visit http://evil.example” now` and `Visit http://ｅｖｉｌ.example” now` are each asked about as `evil.example` beside
+  `evil.xn--example-b46c`, `http://bücher.example”` as `xn--bcher-kva.example` and `http://i♥.ws”` as `xn--i-n3p.ws` -
+  where as written alone a host not in ASCII before the character named nothing. `IdnaTester` holds the implementation
+  to every line of Unicode's `IdnaTestV2.txt` (6,396, in ClassTester and, on Linux, in the new `idna-tests`),
+  `SURBLTester` (`public-suffix-tests`) holds the links and the entries, and `AntiSpam/Basics.cs` delivers a link in
+  fullwidth letters, one with an ideographic full stop, one in fullwidth capitals in an HTML part and one to an
+  internationalised name, each to a listed name, and finds each tagged, and so it does a listed name followed by a
+  closing quotation mark, by CJK corner brackets and an ideographic full stop, and by an ideographic comma in an HTML
+  part's text, and the listed names written in fullwidth letters, in double-struck named references and in Unicode,
+  followed by a closing quotation mark, an ideographic comma, an ideographic full stop and CJK, and `&rdquo;`, and one
+  in fullwidth letters with a label of a heart before it, followed by a closing quotation mark
+  ([SenderListsAndDigests.md](hmailserver/docs/SenderListsAndDigests.md); [Roadmap3.md](Roadmap3.md), "Internationalised
+  link hosts").
 
 - **An HTML part's character references are read as a browser reads them: every named one HTML defines, and in the
   text between tags one without its `;` whatever follows it.** The SURBL test and the sender lists' URL entries read

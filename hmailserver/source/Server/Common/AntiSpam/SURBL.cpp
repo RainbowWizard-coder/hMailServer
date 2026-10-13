@@ -24,6 +24,7 @@
 #include <condition_variable>
 #include <cstring>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <random>
 #include <set>
@@ -794,6 +795,24 @@ namespace HM
          return true;
       }
 
+      // A label of a host part that is not ASCII, as HostDecoded_ writes it,
+      // with the errors UTS 46 recorded against it in the name it is read in:
+      // one it took, its ASCII form, unless that is longer than a label can be;
+      // one it refused, as written (as mapped), if it was written "xn--", and
+      // otherwise as UTS 46 mapped it.
+      void AppendLabel_(const Idna::Label &label, unsigned int errors, std::wstring &host)
+      {
+         if (errors == 0 && !label.ascii.empty() && label.ascii.size() <= maxLabelLength)
+         {
+            for (char character : label.ascii)
+               host += static_cast<wchar_t>(static_cast<unsigned char>(character));
+            return;
+         }
+
+         for (unsigned int codePoint : label.punycode ? label.mapped : label.unicode)
+            AppendCodePoint_(codePoint, host);
+      }
+
       // A host part as a browser reads it before it looks the name up - the URL
       // standard's host parser, whose domain parser is UTS 46's ToASCII (Idna.h):
       // percent-decoded as UTF-8 (%C2%AD is a soft hyphen); then, when it is
@@ -862,26 +881,11 @@ namespace HM
 
          for (size_t i = 0; i < labels.size(); i++)
          {
-            const Idna::Label &label = labels[i];
             if (i > 0)
                host += L'.';
-
-            if (label.errors != 0)
+            if (labels[i].errors != 0)
                refused = true;
-
-            // A label UTS 46 took: its ASCII form, unless that is longer than
-            // a label can be. One it refused: as written (as mapped), if it was
-            // written "xn--", and otherwise as UTS 46 mapped it.
-            if (label.errors == 0 && !label.ascii.empty() && label.ascii.size() <= maxLabelLength)
-            {
-               for (char character : label.ascii)
-                  host += static_cast<wchar_t>(static_cast<unsigned char>(character));
-            }
-            else
-            {
-               for (unsigned int codePoint : label.punycode ? label.mapped : label.unicode)
-                  AppendCodePoint_(codePoint, host);
-            }
+            AppendLabel_(labels[i], labels[i].errors, host);
          }
 
          return host;
@@ -974,43 +978,458 @@ namespace HM
             hosts.push_back(registered);
       }
 
+      // Where a mail program that makes a link of a host part that is not ASCII
+      // may end it, before the part's own end: places, in order, as indexes
+      // into the host part as it is written - a mail program sees the
+      // characters of the text, and one percent-encoded is ASCII to it, so
+      // http://%C2%A9x.example<U+201D> ends at the quotation mark, not at the
+      // copyright sign the browser decodes. Mail programs differ in what they
+      // end a link at - at punctuation and symbols alike, at punctuation but
+      // not at a symbol, which linkify-it takes for a letter and a name such as
+      // i<U+2665>.ws needs to be one, at an ideographic full stop or not, at a
+      // fullwidth hyphen-minus or a circled letter or not - but each ends it at
+      // the first of the characters it ends a link at, and so at the first
+      // character of one of five kinds: punctuation past ASCII that UTS 46
+      // maps to a full stop (U+3002, U+FF0E, U+FF61), to a name's characters
+      // alone (a fullwidth hyphen-minus or low line), or to anything else (a
+      // closing quotation mark, a guillemet, a dash, CJK punctuation), and a
+      // symbol past ASCII that it maps to a name's characters alone (a circled
+      // letter, the trade mark sign) or to anything else (a heart, the
+      // copyright sign, an emoji). The first of each kind is a place. A code
+      // point UTS 46 ignores, which a mail program shows as nothing, is of no
+      // kind, nor one it disallows - it refuses the label, which HostDecoded_
+      // writes as it is, so that the reading of the whole hands over the name
+      // before it - nor a separator or other: Unicode's spaces end a link in
+      // running text before the host part gets here, a no-break space in an
+      // attribute's value is mapped to a space the reading of the whole stops
+      // at, and the two joiners are the only code points of Other UTS 46
+      // takes. Two places more: where the run of characters the host part
+      // ends with that are no letter, mark or number (punctuation, symbols, the
+      // others, ASCII ones among them) begins, when it holds a character of one
+      // of the kinds - where a mail program that takes the punctuation off a
+      // link's end ends it, whatever the host holds before it - and the first
+      // full stop past ASCII followed by a code point UTS 46 maps past ASCII
+      // and takes, which it makes a label of: CJK text after a sentence's full
+      // stop, where one between the name's own labels came first. So a host
+      // part is read at seven places at most, however many such characters it
+      // holds. ASCII ends nothing here: UTS 46 leaves an ASCII character other
+      // than a name's as it is, and the name before it is the one the reading
+      // of the whole hands over.
+      void LinkEnds_(const std::wstring &hostPart, std::vector<size_t> &ends)
+      {
+         ends.clear();
+
+         const size_t none = static_cast<size_t>(-1);
+
+         // The first character of each kind: punctuation, then symbols, each
+         // mapped to a full stop, to a name's characters alone, or to anything
+         // else (no symbol is mapped to a full stop).
+         size_t first[2][3] = { { none, none, none }, { none, none, none } };
+         size_t fullStopBeforeText = none;
+         size_t trailingRun = none;
+         bool trailingRunHoldsAKind = false;
+
+         size_t i = 0;
+         while (i < hostPart.size())
+         {
+            const size_t at = i;
+            size_t units = 1;
+            const unsigned int codePoint = CodePointAt_(hostPart, i, units);
+            i += units;
+
+            if (codePoint < 0x80)
+            {
+               if (IsAsciiAlphanumeric_(static_cast<wchar_t>(codePoint)))
+               {
+                  trailingRun = none;
+                  trailingRunHoldsAKind = false;
+               }
+               else if (trailingRun == none)
+                  trailingRun = at;
+               continue;
+            }
+
+            const Idna::MappingKind kind = Idna::KindOfMapping(codePoint);
+            const Idna::CategoryGroup group = Idna::CategoryGroupOf(codePoint);
+
+            if (kind != Idna::MapsToNothing && group == Idna::CategoryLetterMarkOrNumber)
+            {
+               trailingRun = none;
+               trailingRunHoldsAKind = false;
+               continue;
+            }
+
+            if (trailingRun == none)
+               trailingRun = at;
+
+            if (kind == Idna::MapsToNothing || Idna::IsDisallowed(codePoint) ||
+                (group != Idna::CategoryPunctuation && group != Idna::CategorySymbol))
+               continue;
+
+            trailingRunHoldsAKind = true;
+
+            const size_t mapping = kind == Idna::MapsToFullStop ? 0 : kind == Idna::MapsToNameCharacters ? 1 : 2;
+            size_t &place = first[group == Idna::CategoryPunctuation ? 0 : 1][mapping];
+            if (place == none)
+               place = at;
+
+            if (kind == Idna::MapsToFullStop && fullStopBeforeText == none)
+            {
+               // The code point after it that UTS 46 does not ignore.
+               size_t next = i;
+               unsigned int following = 0;
+               Idna::MappingKind followingKind = Idna::MapsToNothing;
+               while (next < hostPart.size() && followingKind == Idna::MapsToNothing)
+               {
+                  size_t nextUnits = 1;
+                  following = CodePointAt_(hostPart, next, nextUnits);
+                  followingKind = Idna::KindOfMapping(following);
+                  next += nextUnits;
+               }
+               if (followingKind == Idna::MapsPastAscii && !Idna::IsDisallowed(following))
+                  fullStopBeforeText = at;
+            }
+         }
+
+         for (const auto &kinds : first)
+            for (size_t place : kinds)
+               if (place != none)
+                  ends.push_back(place);
+         if (fullStopBeforeText != none)
+            ends.push_back(fullStopBeforeText);
+         if (trailingRun != none && trailingRunHoldsAKind)
+            ends.push_back(trailingRun);
+
+         std::sort(ends.begin(), ends.end());
+         ends.erase(std::unique(ends.begin(), ends.end()), ends.end());
+         if (!ends.empty() && ends.front() == 0)
+            ends.erase(ends.begin());
+      }
+
+      // HostDecoded_ of parts of one host part as it is written - the whole, and
+      // the part before each place where a mail program may end a link
+      // (LinkEnds_) - with UTS 46 run once, over the longest part that is
+      // mapped, and each shorter part's labels taken from it but for the one
+      // the part ends inside, which is processed alone. UTS 46 processes a name
+      // a label at a time but for RFC 5893's rule, which a label meets or fails
+      // alone and which applies when any label of the name holds an R, AL or
+      // AN (Idna::Label's rightToLeft and failsBidiRule; IdnaTester holds every
+      // line of IdnaTestV2.txt to that), so a part's labels before the one it
+      // ends inside are the longer part's, ErrorBidi as the part's own labels
+      // say. So the readings of a host part to its eight places at most cost
+      // about one and a half of one: read each from nothing, a megabyte of
+      // links whose host parts of a thousand code points each held a character
+      // of every kind took seven times what one reading of them takes. A code
+      // point is looked up when a part needs it, and none past where the code
+      // points before can lead nowhere whatever follows them, the place every
+      // longer part is not mapped from. ends are indexes into hostPart, the
+      // last of them its size; codePoints is hostPart percent-decoded
+      // (PercentDecodedCodePoints_); decoded is given, for each end, what
+      // HostDecoded_ makes of the part before it,
+      // PercentDecodedCodePoints_(hostPart.substr(0, end)). A part whose
+      // percent-decoding is not the whole's up to where it ends - one that ends
+      // inside an escape or a pair of surrogates, which no place does - is read
+      // by HostDecoded_ itself.
+      void PartsDecoded_(const std::wstring &hostPart, const std::vector<unsigned int> &codePoints, const std::vector<size_t> &ends,
+                         std::vector<std::wstring> &decoded)
+      {
+         decoded.assign(ends.size(), std::wstring());
+         const size_t count = codePoints.size();
+
+         // A byte for each code point, looked up when a part needs it: what
+         // UTS 46 writes it as, and whether it maps it to text a domain may not
+         // hold.
+         const unsigned char forbiddenBit = 0x80;
+         const unsigned char notLookedUp = 0x7F;
+         std::vector<unsigned char> kinds(count, notLookedUp);
+         auto lookUp = [&](size_t i)
+         {
+            if (kinds[i] == notLookedUp)
+               kinds[i] = static_cast<unsigned char>(static_cast<unsigned char>(Idna::KindOfMapping(codePoints[i])) |
+                                                     (Idna::MapsToAForbiddenDomainCodePoint(codePoints[i]) ? forbiddenBit : 0));
+            return kinds[i];
+         };
+         auto kindAt = [&](size_t i) { return static_cast<Idna::MappingKind>(lookUp(i) & ~forbiddenBit); };
+
+         // Where the code points before can lead nowhere whatever follows
+         // them: one is mapped to text a domain may not hold, or more than the
+         // bound are left with one mapped past ASCII or five full stops - so
+         // that every part that holds them is not mapped, and none is looked up
+         // past them for it.
+         size_t hopeless = count + 1;
+         {
+            size_t weight = 0;
+            size_t fullStops = 0;
+            bool mappedPastAscii = false;
+            for (size_t i = 0; i < count && hopeless > count; i++)
+            {
+               const unsigned char looked = lookUp(i);
+               const Idna::MappingKind kind = static_cast<Idna::MappingKind>(looked & ~forbiddenBit);
+               if (kind == Idna::MapsToNothing)
+                  continue;
+               weight++;
+               if (kind == Idna::MapsToFullStop)
+                  fullStops++;
+               else if (kind == Idna::MapsPastAscii)
+                  mappedPastAscii = true;
+               if ((looked & forbiddenBit) != 0 ||
+                   (weight > IdnaTables::LongestDecomposition * maxNameLength && (mappedPastAscii || fullStops > 4)))
+                  hopeless = i + 1;
+            }
+         }
+
+         auto kept = [&](size_t from, size_t to)
+         {
+            std::vector<unsigned int> points;
+            for (size_t i = from; i < to; i++)
+               if (kindAt(i) != Idna::MapsToNothing)
+                  points.push_back(codePoints[i]);
+            return points;
+         };
+
+         // Each part as CodePointsToMap_ weighs it - its code points the
+         // whole's up to its length, less the full stops and the ignored code
+         // points it ends with but for two full stops (run, emptyLabels) - and
+         // where the label it ends inside begins, after how many full stops;
+         // and whether it is read by HostDecoded_ itself, as ASCII, not at all,
+         // or here, mapped.
+         enum Reading { ByItself, Ascii, NotMapped, Mapped };
+         struct Part
+         {
+            Reading reading;
+            size_t run;
+            size_t emptyLabels;
+            size_t lastLabel;
+            size_t fullStops;
+         };
+         std::vector<Part> parts(ends.size(), Part{ ByItself, 0, 0, 0, 0 });
+         size_t longest = count + 1;
+
+         for (size_t index = 0; index < ends.size(); index++)
+         {
+            Part &part = parts[index];
+
+            size_t length = count;
+            if (ends[index] < hostPart.size())
+            {
+               const std::vector<unsigned int> own = PercentDecodedCodePoints_(hostPart.substr(0, ends[index]));
+               length = own.size();
+               if (length > count || !std::equal(own.begin(), own.end(), codePoints.begin()))
+                  continue;
+            }
+
+            bool pastAscii = false;
+            for (size_t i = 0; i < length && !pastAscii; i++)
+               pastAscii = codePoints[i] >= 0x80;
+            if (!pastAscii)
+            {
+               part.reading = Ascii;
+               part.run = length;
+               continue;
+            }
+
+            size_t run = length;
+            size_t trailingFullStops = 0;
+            while (run > 0 && (kindAt(run - 1) == Idna::MapsToFullStop || kindAt(run - 1) == Idna::MapsToNothing))
+            {
+               if (kindAt(run - 1) == Idna::MapsToFullStop)
+                  trailingFullStops++;
+               run--;
+            }
+
+            // A part that holds the code points that can lead nowhere.
+            if (run >= hopeless)
+            {
+               part.reading = NotMapped;
+               continue;
+            }
+
+            size_t weight = 0;
+            size_t fullStops = 0;
+            size_t lastLabel = 0;
+            bool mappedPastAscii = false;
+            bool forbidden = false;
+            for (size_t i = 0; i < run; i++)
+            {
+               const Idna::MappingKind kind = kindAt(i);
+               if (kind == Idna::MapsToNothing)
+                  continue;
+               weight++;
+               forbidden = forbidden || (kinds[i] & forbiddenBit) != 0;
+               if (kind == Idna::MapsToFullStop)
+               {
+                  fullStops++;
+                  lastLabel = i + 1;
+               }
+               else if (kind == Idna::MapsPastAscii)
+                  mappedPastAscii = true;
+            }
+
+            part.run = run;
+            part.emptyLabels = std::min<size_t>(trailingFullStops, 2);
+            part.lastLabel = lastLabel;
+            part.fullStops = fullStops;
+
+            const bool mayBeAnAddress = !mappedPastAscii && fullStops + part.emptyLabels <= 4;
+            if ((weight > IdnaTables::LongestDecomposition * maxNameLength && !mayBeAnAddress) || forbidden)
+            {
+               part.reading = NotMapped;
+               continue;
+            }
+
+            part.reading = Mapped;
+            if (longest > count || run > longest)
+               longest = run;
+         }
+
+         // UTS 46 over the longest part that is mapped: its labels, one for each
+         // full stop before its end and one more.
+         std::vector<Idna::Label> labels;
+         if (longest <= count)
+         {
+            Idna::ProcessLabels(kept(0, longest), LinkHostOptions_(), labels);
+            size_t fullStops = 0;
+            for (size_t i = 0; i < longest; i++)
+               if (kindAt(i) == Idna::MapsToFullStop)
+                  fullStops++;
+            if (labels.size() != fullStops + 1)
+            {
+               // Not a label for each full stop, which the data rule out (a
+               // mapping that holds a full stop is a full stop alone).
+               for (Part &part : parts)
+                  if (part.reading == Mapped)
+                     part.reading = ByItself;
+            }
+         }
+
+         const Idna::Label empty;
+         for (size_t index = 0; index < parts.size(); index++)
+         {
+            const Part &part = parts[index];
+            std::wstring &host = decoded[index];
+
+            if (part.reading == ByItself)
+            {
+               bool refused = false;
+               host = HostDecoded_(PercentDecodedCodePoints_(hostPart.substr(0, std::min(ends[index], hostPart.size()))), refused);
+               continue;
+            }
+
+            // An ASCII part: in lower case, and nothing more.
+            if (part.reading == Ascii)
+            {
+               host.reserve(part.run);
+               for (size_t i = 0; i < part.run; i++)
+               {
+                  unsigned int codePoint = codePoints[i];
+                  if (codePoint >= static_cast<unsigned int>('A') && codePoint <= static_cast<unsigned int>('Z'))
+                     codePoint += static_cast<unsigned int>('a' - 'A');
+                  host += static_cast<wchar_t>(codePoint);
+               }
+               continue;
+            }
+
+            if (part.reading == NotMapped)
+               continue;
+
+            // The part's labels: the longest's before the one it ends inside,
+            // that one as far as the part goes - the longest's own, when the
+            // part ends where the longest does - and the empty ones after it.
+            std::vector<Idna::Label> last;
+            if (part.run == longest)
+               last.push_back(labels[part.fullStops]);
+            else
+               Idna::ProcessLabels(kept(part.lastLabel, part.run), LinkHostOptions_(), last);
+            if (last.size() != 1)
+            {
+               bool refused = false;
+               host = HostDecoded_(PercentDecodedCodePoints_(hostPart.substr(0, std::min(ends[index], hostPart.size()))), refused);
+               continue;
+            }
+
+            std::vector<const Idna::Label *> read;
+            read.reserve(part.fullStops + 1 + part.emptyLabels);
+            for (size_t i = 0; i < part.fullStops; i++)
+               read.push_back(&labels[i]);
+            read.push_back(&last.front());
+            for (size_t i = 0; i < part.emptyLabels; i++)
+               read.push_back(&empty);
+
+            // RFC 5893's rule applies when a label of the part holds an R, AL
+            // or AN.
+            bool bidiDomain = false;
+            for (const Idna::Label *label : read)
+               bidiDomain = bidiDomain || label->rightToLeft;
+
+            for (size_t i = 0; i < read.size(); i++)
+            {
+               if (i > 0)
+                  host += L'.';
+               const unsigned int errors = (read[i]->errors & ~static_cast<unsigned int>(Idna::ErrorBidi)) |
+                                           (bidiDomain && read[i]->failsBidiRule ? static_cast<unsigned int>(Idna::ErrorBidi) : 0u);
+               AppendLabel_(*read[i], errors, host);
+            }
+         }
+      }
+
       // The hosts one link's host part hands over (SURBL::FindLinkHosts): those
       // of the host as a browser reads it (HostDecoded_), and, when it is not
-      // ASCII, those of the host as it is written (HostAsWritten_) that the
-      // first reading did not hand over, after them. A link in running text is
-      // made by the mail program that shows it, and the character after a
-      // link - a closing quotation mark, an apostrophe, a guillemet, a dash, a
-      // CJK bracket, comma or full stop, or the CJK text itself - ends the link
-      // in most of them, where UTS 46 takes it into the host's last label, as
-      // valid as a letter, or makes a label of the text after an ideographic
-      // full stop: read as a browser reads it alone, "Visit
-      // http://evil.example<U+201D> now" named evil.xn--example-b46c, and
-      // http://evil.example<U+3002><CJK> evil.example.xn--..., and the listed
-      // name before the character was never asked about. So every host 6.3.6
-      // handed over for a link is handed over still.
+      // ASCII, after them those the first reading did not hand over of the host
+      // as it is written (HostAsWritten_), and of each part of the host before a
+      // place where a mail program ends a link (LinkEnds_), read as a browser
+      // reads it. A link in running text is made by the mail program that shows
+      // it, and the character after a link - a closing quotation mark, an
+      // apostrophe, a guillemet, a dash, a CJK bracket, comma or full stop, or
+      // the CJK text itself - ends the link in most of them, where UTS 46 takes
+      // it into the host's last label, as valid as a letter, or makes a label of
+      // the text after an ideographic full stop: read as a browser reads it
+      // alone, "Visit http://evil.example<U+201D> now" named
+      // evil.xn--example-b46c, and http://evil.example<U+3002><CJK>
+      // evil.example.xn--..., and the listed name before the character was never
+      // asked about. Read as it is written, as 6.3.6 read it, such a link names
+      // that name again when the name is written in ASCII, and so every host
+      // 6.3.6 handed over for a link is handed over still; read to the
+      // character, it names it whatever the name is written in - fullwidth
+      // letters, U+3002 between its labels, an internationalised name - which
+      // as written is no name at all.
       void HostsOfHostPart_(const std::wstring &hostPart, std::vector<String> &hosts)
       {
          const std::vector<unsigned int> codePoints = PercentDecodedCodePoints_(hostPart);
-
-         bool refused = false;
-         const size_t first = hosts.size();
-         HostsOfReadHost_(HostDecoded_(codePoints, refused), hosts);
 
          bool ascii = true;
          for (unsigned int codePoint : codePoints)
             if (codePoint >= 0x80)
                ascii = false;
 
+         // The whole, and, when it is not ASCII, the part before each place.
+         std::vector<size_t> ends;
+         if (!ascii)
+            LinkEnds_(hostPart, ends);
+         ends.push_back(hostPart.size());
+         std::vector<std::wstring> parts;
+         PartsDecoded_(hostPart, codePoints, ends, parts);
+
+         const size_t first = hosts.size();
+         HostsOfReadHost_(parts.back(), hosts);
+
          if (ascii)
             return;
 
-         std::vector<String> asWritten;
-         HostsOfReadHost_(HostAsWritten_(codePoints), asWritten);
-         for (const String &host : asWritten)
+         auto handOverNew = [&](const std::wstring &host)
          {
-            if (std::find(hosts.begin() + static_cast<std::ptrdiff_t>(first), hosts.end(), host) == hosts.end())
-               hosts.push_back(host);
-         }
+            std::vector<String> found;
+            HostsOfReadHost_(host, found);
+            for (const String &name : found)
+            {
+               if (std::find(hosts.begin() + static_cast<std::ptrdiff_t>(first), hosts.end(), name) == hosts.end())
+                  hosts.push_back(name);
+            }
+         };
+
+         handOverNew(HostAsWritten_(codePoints));
+
+         for (size_t i = 0; i + 1 < parts.size(); i++)
+            handOverNew(parts[i]);
       }
 
       // The WHATWG URL standard's IPv6 parser, on what is between a host's
@@ -3085,7 +3504,9 @@ namespace HM
          { L"http://evil\u3002example/", false, L"evil.example", "an ideographic full stop" },
          { L"http://evil\uFF61example/", false, L"evil.example", "a halfwidth ideographic full stop" },
          { L"http://evil.example\u3002/", false, L"evil.example", "an ideographic full stop at the end, a trailing dot" },
-         { L"http://\uFF11\uFF19\uFF12\uFF0E\uFF10\uFF0E\uFF12\uFF0E\uFF11/", false, L"192.0.2.1", "an address in fullwidth digits, an address once mapped" },
+         { L"http://\uFF11\uFF19\uFF12\uFF0E\uFF10\uFF0E\uFF12\uFF0E\uFF11/", false, L"192.0.2.1|0.0.0.192",
+           "an address in fullwidth digits, an address once mapped; and 192 alone before its first fullwidth full stop, where a mail "
+           "program that ends a link at punctuation ends it, an address too" },
          { L"http://0x1\uFF0E0000000000000000000000000000000000000000000000000000000000000000000000\uFF0E1/", false, L"1.0.0.1|0.0.0.1",
            "an address with a part of seventy zeros beside fullwidth full stops: an ASCII label of any length is read; and as written, the address before the first of them" },
          { L"http://b%C3%BCcher.example/", false, L"xn--bcher-kva.example", "an internationalised name, percent-encoded as UTF-8" },
@@ -3130,6 +3551,76 @@ namespace HM
          { L"<p>\u8BF7\u8BBF\u95EE\u300Chttp://evil.example\u300D</p>", true, L"evil.xn--example-vr3f|evil.example",
            "CJK corner brackets in HTML's text" },
          { L"<p>Visit http://evil.example&rdquo; now</p>", true, L"evil.xn--example-b46c|evil.example", "a closing quotation mark written as a named reference" },
+
+         // The same when the name before the character is not written in
+         // ASCII - fullwidth letters, an ideographic full stop between its
+         // labels, an internationalised name, circled letters, a fullwidth
+         // address, named references - which as written is no name at all: the
+         // part of the host before the character, read as a browser reads it
+         // (LinkEnds_). Until then UTS 46's reading of the whole alone, where a
+         // mail program that ends the link at the character never goes.
+         { L"Visit http://\uFF45\uFF56\uFF49\uFF4C.example\u201D now", false, L"evil.xn--example-b46c|evil.example",
+           "fullwidth letters, then a closing quotation mark" },
+         { L"Claim it at http://\uFF45\uFF56\uFF49\uFF4C.com\u201D today", false, L"evil.xn--com-9o0a|evil.com",
+           "fullwidth letters before .com, then a closing quotation mark" },
+         { L"\u8BBF\u95EE http://\uFF45\uFF56\uFF49\uFF4C.example\u3001\u8C22\u8C22", false,
+           L"evil.xn--example-4o3fz496ea|evil.example", "fullwidth letters, then an ideographic comma and CJK" },
+         { L"\u8BF7\u8BBF\u95EE\u300Chttp://\uFF45\uFF56\uFF49\uFF4C.example\u300D\u3002", false,
+           L"evil.xn--example-vr3f|evil.example", "fullwidth letters in CJK corner brackets" },
+         { L"Visit http://b\u00FCcher.example\u201D now", false, L"xn--bcher-kva.xn--example-b46c|xn--bcher-kva.example",
+           "an internationalised name, then a closing quotation mark" },
+         { L"Visit http://evil\u3002example\u201D now", false, L"evil.xn--example-b46c|evil.example",
+           "an ideographic full stop between the labels, then a closing quotation mark" },
+         { L"Visit http://\u24D4\u24E5\u24D8\u24DB.example\u201D now", false, L"evil.xn--example-b46c|evil.example",
+           "circled letters, symbols a browser reads as a name's letters, then a closing quotation mark" },
+         { L"see http://\uFF11\uFF19\uFF12\uFF0E\uFF10\uFF0E\uFF12\uFF0E\uFF11\u201D now", false,
+           L"192.0.2.xn--1-rhn|0.0.0.192|192.0.2.1",
+           "an address in fullwidth digits, then a closing quotation mark; and 192 alone before its first fullwidth full stop, where a "
+           "mail program that ends a link at punctuation ends it, an address too" },
+         { L"\u8BBF\u95EE http://\uFF45\uFF56\uFF49\uFF4C.example\u3002\u8C22\u8C22", false,
+           L"evil.example.xn--lg3aa|evil.example", "fullwidth letters, then an ideographic full stop and CJK, which UTS 46 makes a label of" },
+         { L"\u8BBF\u95EE http://\uFF45\uFF56\uFF49\uFF4C\u3002\uFF45\uFF58\uFF41\uFF4D\uFF50\uFF4C\uFF45\u3002\u8C22\u8C22",
+           false, L"evil.example.xn--lg3aa|evil.example",
+           "an ideographic full stop before a fullwidth label is the name's own, and the one before CJK its end" },
+         { L"Visit http://i\u2665.example now", false, L"xn--i-n3p.example",
+           "a symbol inside a name: the part before it, one label, hands over nothing more" },
+         { L"<p>Visit http://&eopf;vil.example&rdquo; now</p>", true, L"evil.xn--example-b46c|evil.example",
+           "a host in named references, then a closing quotation mark written as one, in HTML's text" },
+         { L"<p>Visit http://\uFF45\uFF56\uFF49\uFF4C.example&rdquo; now</p>", true, L"evil.xn--example-b46c|evil.example",
+           "fullwidth letters, then &rdquo;, in HTML's text" },
+         { L"<p>\u8BBF\u95EE http://\uFF45\uFF56\uFF49\uFF4C.example\u3001\u8C22\u8C22</p>", true,
+           L"evil.xn--example-4o3fz496ea|evil.example", "fullwidth letters, then an ideographic comma, in HTML's text" },
+         { L"<a href=\"http://\uFF45\uFF56\uFF49\uFF4C.example\u201D\">", true, L"evil.xn--example-b46c|evil.example",
+           "in an attribute's value too, which a browser is given whole: one more name asked about" },
+         { L"Visit http://%C2%A9evil.example\u201D now", false, L"xn--evil-4fa.xn--example-b46c|xn--evil-4fa.example",
+           "a symbol percent-encoded before the name, which a mail program sees as ASCII and ends no link at: the end is the quotation mark" },
+
+         // A mail program ends a link at the first of the characters it ends
+         // links at, and they differ: one that takes a symbol for a letter, as
+         // linkify-it does, makes a link of a name with a symbol in it or of a
+         // label of symbols before the name, and ends it at the punctuation
+         // after; one that ends a link at every symbol ends it at the trade mark
+         // sign, which UTS 46 makes "tm"; one that ends it at all punctuation, at
+         // a fullwidth hyphen-minus and an ideographic full stop; one that takes
+         // the punctuation off a link's end, at the last closing quotation mark
+         // whatever comes before it. Each is a place LinkEnds_ reads the host to.
+         { L"Visit http://i\u2665.ws\u201D now", false, L"xn--i-n3p.xn--ws-02t|xn--i-n3p.ws",
+           "a name with a symbol in it, then a closing quotation mark: the name, xn--i-n3p.ws, before the punctuation" },
+         { L"Visit http://\u2665.\uFF45\uFF56\uFF49\uFF4C.example\u201D now", false, L"xn--g6h.evil.xn--example-b46c|xn--g6h.evil.example",
+           "a label of a symbol before a name in fullwidth letters, then a closing quotation mark" },
+         { L"\u8BBF\u95EE http://\u2665.\uFF45\uFF56\uFF49\uFF4C.example\u3001\u8C22\u8C22", false,
+           L"xn--g6h.evil.xn--example-4o3fz496ea|xn--g6h.evil.example", "the same, then an ideographic comma and CJK" },
+         { L"Visit http://\uFF45\uFF56\uFF49\uFF4C.example\u2122 now", false, L"evil.exampletm|evil.example",
+           "fullwidth letters, then the trade mark sign, which UTS 46 makes tm, where a mail program that ends a link at a symbol ends it" },
+         { L"Visit http://\uFF45\uFF56\uFF49\uFF4C.example\uFF0Dok now", false, L"evil.example-ok|evil.example",
+           "fullwidth letters, then a fullwidth hyphen-minus, where a mail program that ends a link at punctuation ends it" },
+         { L"Visit http://\uFF45\uFF56\uFF49\uFF4C.example\u3002Next now", false, L"evil.example.next|evil.example",
+           "fullwidth letters, then an ideographic full stop before ASCII text, where such a mail program ends it too" },
+         { L"Visit http://a\u201Db.\uFF45\uFF56\uFF49\uFF4C.example\u201D now", false, L"xn--ab-z2t.evil.xn--example-b46c|xn--ab-z2t.evil.example",
+           "a closing quotation mark in a label before the name and one after it: the name before the last, where a mail program "
+           "that takes the punctuation off a link's end ends it" },
+         { L"<p>Visit http://\u2665.&eopf;vil.example&rdquo; now</p>", true, L"xn--g6h.evil.xn--example-b46c|xn--g6h.evil.example",
+           "a label of a symbol before a name in named references, then &rdquo;, in HTML's text" },
 
          // Every named character reference HTML defines, read as a browser
          // reads it before its URL parser maps what the reference stands for -
@@ -3599,6 +4090,126 @@ namespace HM
                Fail_(test.why, String(test.hostPart.substr(0, 16).c_str()) + _T("..."),
                   StringParser::IntToString(static_cast<int>(seconds * 1000)) + _T(" ms"),
                   String(_T("well under ")) + StringParser::IntToString(static_cast<int>(bound)) + _T(" ms"));
+         }
+      }
+
+      // PartsDecoded_ reads each part of a host part as HostDecoded_ reads it
+      // from nothing: every part, ended at every place of the part as it is
+      // written - inside an escape and a label too - of host parts of every
+      // shape the reader meets: labels in Unicode, fullwidth, refused, xn--,
+      // bidi names whose right-to-left label comes after a part ends,
+      // joiners, ignored code points, escapes, full stops past ASCII and
+      // trailing ones, addresses, a host that can lead nowhere.
+      {
+         std::vector<std::wstring> hostParts =
+         {
+            L"\uFF45\uFF56\uFF49\uFF4C.example\u201D",
+            L"i\u2665.ws\u201D",
+            L"a\u201Db.\uFF45\uFF56\uFF49\uFF4C.example\u201D\u3001\u8C22",
+            L"\u2665.&eopf;vil.example\u3002\u8C22\u8C22",
+            L"1a.\uFF45xample\u201D\u05D0\u05D1",
+            L"\u05D0\u05D1.1a\u201D.example",
+            L"a\u05D0.b\u3002c\u201D",
+            L"\u0627\u0644\u0639\u0631\u0628\u064A\u0629.\u0661\u0662\u201D",
+            L"xn--bcher-kva.\uFF45\u201D",
+            L"xn--zz.b\u00FCcher.example\u201D",
+            L"xn--abc-.b\u00FCcher.example",
+            L"xn--10cl1a0b660pa0b660p.example\u201D",
+            L"\u00E9.example\u3002\u3002\u3002",
+            L"\u00E9...\u201D..",
+            L"\u3002\u3002\u201D",
+            L"ev\u00ADil.\uFF45xample\u200B\u201D\uFE0F",
+            L"%C2%A9evil.example\u201D",
+            L"%E2%80%9Devil.\uFF45\u2122x",
+            L"%C2%A\u201D.b\u00FC",
+            L"\uFF11\uFF19\uFF12\uFF0E\uFF10\uFF0E\uFF12\uFF0E\uFF11\u201D",
+            L"0x1\uFF0E000000000000000000000000000000000000000000000000000000000000000000000000\uFF0E1\u201D",
+            L"\u0915\u094D\u200D.\uFF45\u201D",
+            L"a\u200Db.\uFF45\uFF0Dc\u201D",
+            L"EVIL.\uFF25XAMPLE\u201D\u2122",
+            L"\uFDFA\uFDFA.evil.\uFF45\u201D",
+            L"\u24D4\u24E5\u24D8\u24DB.example\u201D\u00A0x",
+            L"\U0001D556vil.example\u201D",
+         };
+
+         std::wstring heavy(1013, static_cast<wchar_t>(0x00E9));
+         heavy += L".evil.example\u201D";
+         hostParts.push_back(heavy);
+         std::wstring longLabel(70, static_cast<wchar_t>(0x00E9));
+         longLabel += L".evil.example\u201D\u2665";
+         hostParts.push_back(longLabel);
+
+         for (const std::wstring &hostPart : hostParts)
+         {
+            const std::vector<unsigned int> codePoints = PercentDecodedCodePoints_(hostPart);
+            std::vector<size_t> ends;
+            for (size_t end = 0; end <= hostPart.size(); end++)
+               ends.push_back(end);
+
+            std::vector<std::wstring> parts;
+            PartsDecoded_(hostPart, codePoints, ends, parts);
+
+            for (size_t end = 0; end <= hostPart.size(); end++)
+            {
+               bool refused = false;
+               const std::wstring expected = HostDecoded_(PercentDecodedCodePoints_(hostPart.substr(0, end)), refused);
+               if (parts[end] != expected)
+                  Fail_("PartsDecoded_ reads a part as HostDecoded_ does", String(hostPart.substr(0, end).c_str()),
+                     String(parts[end].c_str()), String(expected.c_str()));
+            }
+         }
+      }
+
+      // Where LinkEnds_ takes a mail program to end a link: the first
+      // character of each of its five kinds, where the run of punctuation the
+      // host part ends with begins, and the first full stop past ASCII before
+      // text past ASCII - seven places at most, however many such characters
+      // the host part holds, so that a host part is read seven times more at
+      // most. Held by the places, not by a time.
+      {
+         struct EndsCase
+         {
+            std::wstring hostPart;
+            std::vector<size_t> ends;
+            const char *why;
+         };
+
+         // a U+3002 b U+3002 U+00FC c U+FF0D d U+2122 e U+2665 f U+201D g U+201D
+         const std::wstring everyKind = L"a\u3002b\u3002\u00FCc\uFF0Dd\u2122e\u2665f\u201Dg\u201D";
+         std::wstring manyOfEach;
+         for (int i = 0; i < 70000; i++)
+            manyOfEach += everyKind;
+         std::wstring quotes;
+         for (int i = 0; i < 500000; i++)
+            quotes += L"a\u201D";
+
+         const EndsCase endsCases[] =
+         {
+            { everyKind, { 1, 3, 6, 8, 10, 12, 14 },
+              "every kind once: the first full stop, the one before text past ASCII, the hyphen-minus, the trade mark sign, the heart, "
+              "the first quotation mark and the last" },
+            { manyOfEach, { 1, 3, 6, 8, 10, 12, manyOfEach.size() - 1 }, "70,000 of each kind: the first of each and the last" },
+            { quotes, { 1, quotes.size() - 1 }, "500,000 closing quotation marks: the first and the last" },
+            { L"\uFF45\uFF56\uFF49\uFF4C.example", {}, "no punctuation and no symbol: none" },
+            { L"\u2665\uFF45\uFF56\uFF49\uFF4C", {}, "a symbol first, where a link ending there is empty: none" },
+            { L"\uFF45\uFF56\uFF49\uFF4C.example\u00AD\u2024", {}, "a code point UTS 46 ignores and one it disallows: none" },
+            { L"\uFF45\uFF56\uFF49\uFF4C.example.\u201D", { 12, 13 }, "the run the host part ends with begins at its full stop, and the quotation mark is the first of its kind" },
+            { L"\uFF45\uFF56\uFF49\uFF4C.example%C2%A9\u201D", { 18 }, "a symbol percent-encoded is ASCII to a mail program" },
+         };
+
+         for (const EndsCase &test : endsCases)
+         {
+            std::vector<size_t> ends;
+            LinkEnds_(test.hostPart, ends);
+            if (ends != test.ends)
+            {
+               String got, expected;
+               for (size_t end : ends)
+                  got += (got.IsEmpty() ? String() : String(_T(","))) + StringParser::IntToString(static_cast<int>(end));
+               for (size_t end : test.ends)
+                  expected += (expected.IsEmpty() ? String() : String(_T(","))) + StringParser::IntToString(static_cast<int>(end));
+               Fail_(test.why, String(test.hostPart.substr(0, 16).c_str()) + _T("..."), got, expected);
+            }
          }
       }
 

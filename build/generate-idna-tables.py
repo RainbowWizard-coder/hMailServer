@@ -16,8 +16,12 @@ hmailserver/source/Server/Common/Idna/ucd:
   IdnaMappingTable.txt       each code point's status (valid, ignored, mapped,
                              deviation, disallowed) and what it maps to
   UnicodeData.txt            the canonical decompositions and combining
-                             classes NFC needs, and the marks a label may not
-                             begin with (General_Category M*)
+                             classes NFC needs, the marks a label may not
+                             begin with (General_Category M*), and the
+                             punctuation, symbols, separators and others
+                             (P*, S*, Z*, C*), whose group SURBL's reading of
+                             a link in running text tells where a mail
+                             program ends a link by
   DerivedBidiClass.txt       every code point's Bidi_Class, for RFC 5893's rule -
                              an unassigned one's too, the default its @missing
                              lines give, which UnicodeData.txt does not
@@ -346,6 +350,9 @@ def collect(directory, pinned):
     joining = read_joining_types(texts["DerivedJoiningType.txt"])
     decompositions, classes, compositions = normalisation_data(records, exclusions)
     marks = {cp: True for cp, record in records.items() if record[0].startswith("M")}
+    # Punctuation 1, Symbol 2, Separator 3, Other 4 (Idna::CategoryGroup).
+    category_groups = {cp: "PSZC".index(record[0][0]) + 1 for cp, record in records.items()
+                       if record[0][0] in "PSZC"}
     classes_of_all = read_bidi_classes(texts["DerivedBidiClass.txt"])
     for cp, record in records.items():
         if classes_of_all[cp] != record[2]:
@@ -361,6 +368,7 @@ def collect(directory, pinned):
         "classes": classes,
         "compositions": compositions,
         "marks": marks,
+        "category_groups": category_groups,
         "bidi": bidi,
         "joining": joining,
         "longest_decomposition": longest,
@@ -523,6 +531,17 @@ def tables_source(data):
     out.append(wrap(["{ %s, %s, 1 }" % (hex_cp(a), hex_cp(b)) for a, b, _ in marks], "         ") + "\n")
     out.append("      };\n\n")
     out.append("      const size_t MarkCount = sizeof(Marks) / sizeof(Marks[0]);\n\n")
+
+    category_groups = value_ranges(data["category_groups"], 0)
+    out.append("      // UnicodeData.txt: the group of the General_Category of each code point\n"
+               "      // the file gives one of Punctuation, Symbol, Separator or Other (P*, S*,\n"
+               "      // Z*, C*) - 1, 2, 3 and 4 (Idna::CategoryGroup); an unassigned code\n"
+               "      // point (Cn), which the file does not list, is none of them here. Sorted.\n")
+    out.append("      const ValueRange CategoryGroups[] =\n      {\n")
+    out.append(wrap(["{ %s, %s, %d }" % (hex_cp(a), hex_cp(b), value) for a, b, value in category_groups],
+                    "         ") + "\n")
+    out.append("      };\n\n")
+    out.append("      const size_t CategoryGroupCount = sizeof(CategoryGroups) / sizeof(CategoryGroups[0]);\n\n")
 
     bidi = value_ranges(data["bidi"], "L")
     out.append("      // DerivedBidiClass.txt: Bidi_Class, for every code point whose class is\n"

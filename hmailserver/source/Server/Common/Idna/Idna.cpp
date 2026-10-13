@@ -541,7 +541,9 @@ namespace HM
 
       Label::Label() :
          punycode(false),
-         errors(0)
+         errors(0),
+         rightToLeft(false),
+         failsBidiRule(false)
       {
       }
 
@@ -905,21 +907,26 @@ namespace HM
 
          // 4.1's ninth criterion: in a bidi domain name - one that holds an R,
          // AL or AN anywhere, in the part of a label left unmapped too - every
-         // label meets RFC 5893's rule.
+         // label meets RFC 5893's rule. Whether each label holds one, and
+         // whether each it checks fails the rule, is told of every label
+         // (Label::rightToLeft, Label::failsBidiRule).
          if (options.checkBidi)
          {
-            for (size_t index = 0; index < labels.size() && !bidiDomain; index++)
+            for (size_t index = 0; index < labels.size(); index++)
             {
-               bidiDomain = labelsRightToLeftUnmapped[index];
-               for (size_t i = 0; i < labels[index].unicode.size() && !bidiDomain; i++)
-                  bidiDomain = IsRightToLeft_(BidiClass_(labels[index].unicode[i]));
+               Label &label = labels[index];
+               label.rightToLeft = labelsRightToLeftUnmapped[index];
+               for (size_t i = 0; i < label.unicode.size() && !label.rightToLeft; i++)
+                  label.rightToLeft = IsRightToLeft_(BidiClass_(label.unicode[i]));
+               label.failsBidiRule = checked[index] && !SatisfiesBidiRule_(label.unicode);
+               bidiDomain = bidiDomain || label.rightToLeft;
             }
 
             if (bidiDomain)
             {
-               for (size_t index = 0; index < labels.size(); index++)
-                  if (checked[index] && !SatisfiesBidiRule_(labels[index].unicode))
-                     labels[index].errors |= ErrorBidi;
+               for (Label &label : labels)
+                  if (label.failsBidiRule)
+                     label.errors |= ErrorBidi;
             }
          }
 
@@ -996,6 +1003,18 @@ namespace HM
             if (IsForbiddenInADomain_(IdnaTables::MappingData[range.offset + i]))
                return true;
          return false;
+      }
+
+      bool
+      IsDisallowed(unsigned int codePoint)
+      {
+         return StatusOf_(codePoint) == IdnaTables::StatusDisallowed;
+      }
+
+      CategoryGroup
+      CategoryGroupOf(unsigned int codePoint)
+      {
+         return static_cast<CategoryGroup>(ValueOf_(IdnaTables::CategoryGroups, IdnaTables::CategoryGroupCount, codePoint));
       }
 
       unsigned int

@@ -921,6 +921,60 @@ namespace RegressionTests.AntiSpam
       }
 
       [Test]
+      public void SurblAsksAboutTheNameBeforePunctuationWhateverTheNameIsWrittenIn()
+      {
+         // The same punctuation after a name that is not written in ASCII -
+         // fullwidth letters, named references, an internationalised name -
+         // which as it is written, as 6.3.6 read it, is no name at all, while
+         // UTS 46 takes the character into the name's last label. Read to the
+         // character, as a browser reads it, it is the listed name; until then
+         // such a link was asked about only as, say, surbl-userinfo.xn--test-jb7a,
+         // and a listed name in fullwidth letters escaped the list again with a
+         // closing quotation mark after it - and so did one with a label of a
+         // symbol before it, which a mail program that takes a symbol for a
+         // letter, as linkify-it does, makes a link of up to the quotation mark,
+         // where the first rule written for it read the host to the symbol
+         // only. surbl-userinfo.test and xn--bcher-kva.test are listed.
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "surbl-punctuation-uts46@example.test", "test");
+         var surblServer = ArmSurbl_("");
+
+         LogHandler.DeleteCurrentDefaultLog();
+
+         const string fullwidthName = "\uFF53\uFF55\uFF52\uFF42\uFF4C\uFF0D\uFF55\uFF53\uFF45\uFF52\uFF49\uFF4E\uFF46\uFF4F\uFF0E\uFF54\uFF45\uFF53\uFF54";
+         var messages = new[]
+         {
+            new { What = "a link in fullwidth letters followed by a closing quotation mark", Type = "text/plain",
+                  Body = "\u201CClaim it at http://" + fullwidthName + "\u201D today" },
+            new { What = "a link in fullwidth letters followed by an ideographic comma and CJK", Type = "text/plain",
+                  Body = "\u8BBF\u95EE http://" + fullwidthName + "\u3001\u8C22\u8C22" },
+            new { What = "a link in fullwidth letters followed by an ideographic full stop and CJK", Type = "text/plain",
+                  Body = "\u8BBF\u95EE http://" + fullwidthName + "\u3002\u8C22\u8C22" },
+            new { What = "a link in double-struck letters followed by &rdquo;, in an HTML part's text", Type = "text/html",
+                  Body = "<html><body><p>Visit http://&sopf;&uopf;&ropf;&bopf;&lopf;-userinfo.test&rdquo; now</p></body></html>" },
+            new { What = "an internationalised name followed by a closing quotation mark", Type = "text/plain",
+                  Body = "Visit http://b\u00FCcher.test\u201D now" },
+            new { What = "a label of a symbol before a link in fullwidth letters, then a closing quotation mark", Type = "text/plain",
+                  Body = "Visit http://\u2665." + fullwidthName + "\u201D now" },
+         };
+
+         foreach (var message in messages)
+         {
+            SmtpClientSimulator.StaticSendRaw(account.Address, account.Address,
+               Utf8Message_(account.Address, "SURBL-Punctuation-UTS46", message.Type, message.Body));
+            var text = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+            Assert.IsTrue(text.Contains("X-hMailServer-Spam"), message.What + " was not looked up as the listed name before the punctuation.");
+         }
+
+         Assert.IsTrue(LogHandler.DefaultLogContains("SURBL: Lookup: surbl-userinfo.test.multi.surbl.org"),
+            "The name before the punctuation was not asked about.");
+         Assert.IsTrue(LogHandler.DefaultLogContains("SURBL: Lookup: xn--bcher-kva.test.multi.surbl.org"),
+            "The internationalised name before the punctuation was not asked about in its xn-- form.");
+
+         surblServer.Active = false;
+         surblServer.Save();
+      }
+
+      [Test]
       public void SurblReadsAHostWrittenInNamedCharacterReferences()
       {
          // A browser reads an HTML part's character references before its URL

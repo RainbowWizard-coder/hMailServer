@@ -229,6 +229,61 @@ namespace HM
             Fail_(what, "IsNfc is wrong");
       }
 
+      // ProcessLabels of domain and of each of its labels alone - the name
+      // broken where the mapping makes a full stop, the code points it ignores
+      // deleted - agree label by label, but for ErrorBidi, which the labels' own
+      // rightToLeft and failsBidiRule give: a label is in error under RFC 5893's
+      // rule exactly when it fails the rule and some label of the name holds an
+      // R, AL or AN. A reader that processes the labels of several parts of one
+      // name once rests on it (SURBL.cpp's PartsDecoded_).
+      void ExpectLabelAtATime_(const CodePoints &domain, const Idna::Options &options, const std::string &where, const char *flags)
+      {
+         std::vector<Idna::Label> whole;
+         Idna::ProcessLabels(domain, options, whole);
+
+         std::vector<Idna::Label> alone;
+         CodePoints label;
+         auto processAlone = [&]()
+         {
+            std::vector<Idna::Label> processed;
+            Idna::ProcessLabels(label, options, processed);
+            if (processed.size() != 1)
+               Fail_(where, std::string("a label processed alone with ") + flags + " made " + std::to_string(processed.size()) + " labels");
+            alone.push_back(processed.front());
+            label.clear();
+         };
+
+         for (unsigned int codePoint : domain)
+         {
+            const Idna::MappingKind kind = Idna::KindOfMapping(codePoint);
+            if (kind == Idna::MapsToFullStop)
+               processAlone();
+            else if (kind != Idna::MapsToNothing)
+               label.push_back(codePoint);
+         }
+         processAlone();
+
+         if (alone.size() != whole.size())
+            Fail_(where, std::string("with ") + flags + ", " + std::to_string(alone.size()) + " labels a label at a time, " +
+                            std::to_string(whole.size()) + " for the whole");
+
+         bool bidiDomain = false;
+         for (const Idna::Label &each : alone)
+            bidiDomain = bidiDomain || each.rightToLeft;
+
+         for (size_t i = 0; i < whole.size(); i++)
+         {
+            const Idna::Label &one = alone[i];
+            const Idna::Label &all = whole[i];
+            const unsigned int errors = (one.errors & ~static_cast<unsigned int>(Idna::ErrorBidi)) |
+                                        (bidiDomain && one.failsBidiRule ? static_cast<unsigned int>(Idna::ErrorBidi) : 0u);
+            if (one.unicode != all.unicode || one.mapped != all.mapped || one.ascii != all.ascii || one.punycode != all.punycode ||
+                errors != all.errors || one.rightToLeft != all.rightToLeft || one.failsBidiRule != all.failsBidiRule)
+               Fail_(where, std::string("with ") + flags + ", label " + std::to_string(i + 1) + " processed alone is not what the "
+                               "whole's processing makes of it: errors " + ErrorsOf_(errors) + " against " + ErrorsOf_(all.errors));
+         }
+      }
+
       void ExpectDomain_(const CodePoints &domain, bool succeeds, const std::string &expected, const char *what)
       {
          std::string ascii;
@@ -258,6 +313,8 @@ namespace HM
       Idna::Options transitional = conformance;
       transitional.transitionalProcessing = true;
       const Idna::Options url = Idna::UrlStandardOptions();
+      Idna::Options link = url;
+      link.longestLabel = 63;
 
       // The status codes of the checks the URL standard's flags leave off, which
       // the file says to set aside when they are off (CheckHyphens: V2 and V3;
@@ -327,6 +384,13 @@ namespace HM
          if ((urlErrors != 0) != HasErrorBeyond_(toAsciiNStatus, urlAside))
             Fail_(where, "ToASCII with the URL standard's flags: errors " + ErrorsOf_(urlErrors) + ", expected " + Joined_(toAsciiNStatus) +
                             " less V2, V3, U1, A4_1, A4_2 and X4_2");
+
+         // A label at a time, as one reader of several parts of a name does:
+         // with every check, with the URL standard's flags, and with those and
+         // the limit on a label SURBL sets.
+         ExpectLabelAtATime_(source, conformance, where, "every check");
+         ExpectLabelAtATime_(source, url, where, "the URL standard's flags");
+         ExpectLabelAtATime_(source, link, where, "the URL standard's flags and a limit of 63 on a label");
 
          linesRun_++;
       }
@@ -468,49 +532,59 @@ namespace HM
          Fail_("an xn-- label that decodes to ASCII", "was not kept as written beside the label it decodes to");
 
       // What the mapping writes a code point as, told without writing it
-      // (KindOfMapping).
+      // (KindOfMapping), whether UTS 46 disallows it (IsDisallowed), and the
+      // group of its General_Category, by which a reader of links tells where
+      // a mail program ends a link (CategoryGroupOf).
       struct KindCase
       {
          unsigned int codePoint;
          Idna::MappingKind kind;
+         Idna::CategoryGroup group;
+         bool disallowed;
          const char *what;
       };
 
       const KindCase kindCases[] =
       {
-         { 0x00AD, Idna::MapsToNothing, "a soft hyphen, ignored (Cf)" },
-         { 0xFE0F, Idna::MapsToNothing, "a variation selector, ignored (Mn)" },
-         { 0x002E, Idna::MapsToFullStop, "a full stop" },
-         { 0x3002, Idna::MapsToFullStop, "an ideographic full stop" },
-         { 0xFF0E, Idna::MapsToFullStop, "a fullwidth full stop" },
-         { 0xFF61, Idna::MapsToFullStop, "a halfwidth ideographic full stop" },
-         { 'a', Idna::MapsToNameCharacters, "a small letter" },
-         { 'A', Idna::MapsToNameCharacters, "a capital, mapped to a small letter" },
-         { '-', Idna::MapsToNameCharacters, "a hyphen-minus" },
-         { 0xFF45, Idna::MapsToNameCharacters, "a fullwidth e" },
-         { 0xFF0D, Idna::MapsToNameCharacters, "a fullwidth hyphen-minus" },
-         { 0xFF3F, Idna::MapsToNameCharacters, "a fullwidth low line" },
-         { 0x24D4, Idna::MapsToNameCharacters, "a circled e (So)" },
-         { 0x2122, Idna::MapsToNameCharacters, "the trade mark sign, tm (So)" },
-         { 0x2167, Idna::MapsToNameCharacters, "the Roman numeral eight, viii (Nl)" },
-         { '!', Idna::MapsToOtherAscii, "an exclamation mark" },
-         { 0xFF0F, Idna::MapsToOtherAscii, "a fullwidth solidus, a '/'" },
-         { 0x00A0, Idna::MapsToOtherAscii, "a no-break space, a space (Zs)" },
-         { 0x2100, Idna::MapsToOtherAscii, "the account-of sign, a/c" },
-         { 0x00FC, Idna::MapsPastAscii, "a u with diaeresis" },
-         { 0xFDFA, Idna::MapsPastAscii, "an Arabic ligature mapped to eighteen code points (Lo)" },
-         { 0x201D, Idna::MapsPastAscii, "a right double quotation mark, valid (Pf)" },
-         { 0x3001, Idna::MapsPastAscii, "an ideographic comma (Po)" },
-         { 0x300D, Idna::MapsPastAscii, "a right corner bracket (Pe)" },
-         { 0x2011, Idna::MapsPastAscii, "a non-breaking hyphen, mapped to U+2010 (Pd)" },
-         { 0x200D, Idna::MapsPastAscii, "a zero-width joiner, a deviation kept (Cf)" },
-         { 0x2665, Idna::MapsPastAscii, "a black heart suit, valid (So)" },
-         { 0x0378, Idna::MapsPastAscii, "an unassigned code point, disallowed" },
-         { 0xE000, Idna::MapsPastAscii, "a private-use code point (Co)" },
-         { 0xD800, Idna::MapsPastAscii, "a surrogate (Cs)" },
-         { 0x0301, Idna::MapsPastAscii, "a combining acute accent (Mn)" },
-         { 0x0661, Idna::MapsPastAscii, "an Arabic-Indic digit one (Nd)" },
-         { 0x110000, Idna::MapsPastAscii, "past Unicode's last code point" },
+         { 0x00AD, Idna::MapsToNothing, Idna::CategoryOther, false, "a soft hyphen, ignored (Cf)" },
+         { 0xFE0F, Idna::MapsToNothing, Idna::CategoryLetterMarkOrNumber, false, "a variation selector, ignored (Mn)" },
+         { 0x002E, Idna::MapsToFullStop, Idna::CategoryPunctuation, false, "a full stop" },
+         { 0x3002, Idna::MapsToFullStop, Idna::CategoryPunctuation, false, "an ideographic full stop (Po)" },
+         { 0xFF0E, Idna::MapsToFullStop, Idna::CategoryPunctuation, false, "a fullwidth full stop" },
+         { 0xFF61, Idna::MapsToFullStop, Idna::CategoryPunctuation, false, "a halfwidth ideographic full stop" },
+         { 'a', Idna::MapsToNameCharacters, Idna::CategoryLetterMarkOrNumber, false, "a small letter" },
+         { 'A', Idna::MapsToNameCharacters, Idna::CategoryLetterMarkOrNumber, false, "a capital, mapped to a small letter" },
+         { '-', Idna::MapsToNameCharacters, Idna::CategoryPunctuation, false, "a hyphen-minus (Pd)" },
+         { 0xFF45, Idna::MapsToNameCharacters, Idna::CategoryLetterMarkOrNumber, false, "a fullwidth e" },
+         { 0xFF0D, Idna::MapsToNameCharacters, Idna::CategoryPunctuation, false, "a fullwidth hyphen-minus (Pd)" },
+         { 0xFF3F, Idna::MapsToNameCharacters, Idna::CategoryPunctuation, false, "a fullwidth low line (Pc)" },
+         { 0x24D4, Idna::MapsToNameCharacters, Idna::CategorySymbol, false, "a circled e (So)" },
+         { 0x2122, Idna::MapsToNameCharacters, Idna::CategorySymbol, false, "the trade mark sign, tm (So)" },
+         { 0x2167, Idna::MapsToNameCharacters, Idna::CategoryLetterMarkOrNumber, false, "the Roman numeral eight, viii (Nl)" },
+         { '!', Idna::MapsToOtherAscii, Idna::CategoryPunctuation, false, "an exclamation mark" },
+         { 0x0020, Idna::MapsToOtherAscii, Idna::CategorySeparator, false, "a space (Zs)" },
+         { 0x0000, Idna::MapsToOtherAscii, Idna::CategoryOther, false, "a null (Cc)" },
+         { 0xFF0F, Idna::MapsToOtherAscii, Idna::CategoryPunctuation, false, "a fullwidth solidus, a '/'" },
+         { 0x00A0, Idna::MapsToOtherAscii, Idna::CategorySeparator, false, "a no-break space, a space (Zs)" },
+         { 0x2100, Idna::MapsToOtherAscii, Idna::CategorySymbol, false, "the account-of sign, a/c (So)" },
+         { 0x00FC, Idna::MapsPastAscii, Idna::CategoryLetterMarkOrNumber, false, "a u with diaeresis" },
+         { 0xFDFA, Idna::MapsPastAscii, Idna::CategoryLetterMarkOrNumber, false, "an Arabic ligature mapped to eighteen code points (Lo)" },
+         { 0x201D, Idna::MapsPastAscii, Idna::CategoryPunctuation, false, "a right double quotation mark, valid (Pf)" },
+         { 0x3001, Idna::MapsPastAscii, Idna::CategoryPunctuation, false, "an ideographic comma (Po)" },
+         { 0x300D, Idna::MapsPastAscii, Idna::CategoryPunctuation, false, "a right corner bracket (Pe)" },
+         { 0x2011, Idna::MapsPastAscii, Idna::CategoryPunctuation, false, "a non-breaking hyphen, mapped to U+2010 (Pd)" },
+         { 0x2024, Idna::MapsPastAscii, Idna::CategoryPunctuation, true, "a one dot leader, disallowed (Po)" },
+         { 0x200D, Idna::MapsPastAscii, Idna::CategoryOther, false, "a zero-width joiner, a deviation kept (Cf)" },
+         { 0x2665, Idna::MapsPastAscii, Idna::CategorySymbol, false, "a black heart suit, valid (So)" },
+         { 0x00A9, Idna::MapsPastAscii, Idna::CategorySymbol, false, "a copyright sign, valid (So)" },
+         { 0x20AC, Idna::MapsPastAscii, Idna::CategorySymbol, false, "a euro sign, valid (Sc)" },
+         { 0x2FF0, Idna::MapsPastAscii, Idna::CategorySymbol, true, "an ideographic description character, disallowed (So)" },
+         { 0x0378, Idna::MapsPastAscii, Idna::CategoryLetterMarkOrNumber, true, "an unassigned code point, disallowed (Cn, no group here)" },
+         { 0xE000, Idna::MapsPastAscii, Idna::CategoryOther, true, "a private-use code point, disallowed (Co)" },
+         { 0xD800, Idna::MapsPastAscii, Idna::CategoryOther, true, "a surrogate, disallowed (Cs)" },
+         { 0x0301, Idna::MapsPastAscii, Idna::CategoryLetterMarkOrNumber, false, "a combining acute accent (Mn)" },
+         { 0x0661, Idna::MapsPastAscii, Idna::CategoryLetterMarkOrNumber, false, "an Arabic-Indic digit one (Nd)" },
+         { 0x110000, Idna::MapsPastAscii, Idna::CategoryLetterMarkOrNumber, true, "past Unicode's last code point" },
       };
 
       for (const KindCase &test : kindCases)
@@ -518,6 +592,11 @@ namespace HM
          if (Idna::KindOfMapping(test.codePoint) != test.kind)
             Fail_(test.what, "KindOfMapping gave " + std::to_string(static_cast<int>(Idna::KindOfMapping(test.codePoint))) +
                      ", expected " + std::to_string(static_cast<int>(test.kind)));
+         if (Idna::CategoryGroupOf(test.codePoint) != test.group)
+            Fail_(test.what, "CategoryGroupOf gave " + std::to_string(static_cast<int>(Idna::CategoryGroupOf(test.codePoint))) +
+                     ", expected " + std::to_string(static_cast<int>(test.group)));
+         if (Idna::IsDisallowed(test.codePoint) != test.disallowed)
+            Fail_(test.what, std::string("IsDisallowed gave ") + (test.disallowed ? "false" : "true"));
       }
 
       // Which code points UTS 46 maps to text a domain may not hold

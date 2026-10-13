@@ -52,11 +52,17 @@ host after the link's user name, if it has one, without its port,
 percent-decoded as UTF-8, a host that is not ASCII read by UTS 46 as a browser
 reads it (the characters it deletes from a host - a soft hyphen, a zero-width
 space - deleted, fullwidth letters and the ideographic full stop read as ASCII
-ones, a name in Unicode in its `xn--` form) and read as it is written too, as
-6.3.6 read it, so that a link in running text followed by a closing quotation
-mark, a guillemet, a dash or CJK punctuation - which UTS 46 takes into the
-host's last label - also names the host before that character, where the mail
-programs that make the link end it; a host in Unicode longer than any
+ones, a name in Unicode in its `xn--` form), and read as it is written too, as
+6.3.6 read it, and read by UTS 46 again as far as each place a mail program may
+end a link in running text at - the first character past ASCII, as it is
+written, of each kind of punctuation and symbol by what UTS 46 maps it to, where
+the punctuation the host ends with begins, and the first ideographic full stop
+before text past ASCII - so that a link in running text followed by a closing
+quotation mark, a guillemet, a dash or CJK punctuation - which UTS 46 takes into
+the host's last label - also names the host before that character, where the
+mail programs that make the link end it, whatever that host is written in
+(ASCII, fullwidth letters, an internationalised name) and whatever symbols it
+holds (`http://i♥.ws”` names `xn--i-n3p.ws`); a host in Unicode longer than any
 name can be (more than four times 253 code points once the ones a browser
 deletes are gone), or holding a character UTS 46 maps to one a host may not
 hold (`U+FDFA`'s spaces, a no-break space), is not read by UTS 46 at all; an HTML part's character references read

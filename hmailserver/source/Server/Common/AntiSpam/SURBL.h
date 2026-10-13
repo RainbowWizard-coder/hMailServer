@@ -188,22 +188,44 @@ namespace HM
       // name), where those are a name; a label in Unicode that UTS 46 refuses
       // (a code point it disallows, the bidi or joiner rules broken), or whose
       // xn-- form is longer than 63 characters, is such a label. A host that is
-      // not ASCII is read as it is written too, as 6.3.6 read every host -
-      // percent-decoded, the code points UTS 46 ignores deleted, ASCII in lower
-      // case, nothing mapped, so that any character past ASCII is one a name
-      // cannot hold - and the hosts that reading hands over that UTS 46's did
-      // not are handed over after them: a link in running text followed by a
-      // closing quotation mark, a guillemet, a dash or CJK punctuation, which
-      // UTS 46 takes into the host's last label, hands over the name before it
-      // as well. A host that is not ASCII and can lead nowhere - more than
-      // 1,012 code points UTS 46 neither deletes nor makes a trailing full stop
-      // of, one of them mapped past ASCII or five full stops among them, so that
-      // its ASCII form would be longer than any name and it is no address, or a
-      // code point past ASCII that UTS 46 maps to text a domain may not hold
-      // (U+FDFA's spaces, a no-break space, U+2100's '/'), which the URL
-      // standard's host parser fails - is not read by UTS 46 at all, and hands
-      // over what it does as written. Any
-      // other IPv6 address hands over nothing. html: text is HTML,
+      // not ASCII is read in more ways than a browser's, and the hosts each
+      // reading hands over that those before it did not are handed over after
+      // them: as it is written, as 6.3.6 read every host - percent-decoded, the
+      // code points UTS 46 ignores deleted, ASCII in lower case, nothing
+      // mapped, so that any character past ASCII is one a name cannot hold -
+      // so that every host 6.3.6 handed over for a link is handed over still;
+      // and, read by UTS 46, the part of the host before each place where a
+      // mail program may end a link in running text, which UTS 46 would take
+      // into the host's last label or make a label of - a closing quotation
+      // mark, a guillemet, a dash, CJK punctuation, CJK text after U+3002. A
+      // mail program ends a link at the first of the characters it ends links
+      // at, and they differ, so the places are the first character past ASCII,
+      // written as itself (not percent-encoded, which a mail program sees as
+      // ASCII), of each of five kinds - punctuation that UTS 46 maps to a full
+      // stop (U+3002), to a name's characters alone (a fullwidth hyphen-minus)
+      // or to anything else (a quotation mark, a guillemet, a dash, CJK
+      // punctuation), and a symbol it maps to a name's characters alone (the
+      // trade mark sign, a circled letter) or to anything else (a heart, the
+      // copyright sign, an emoji) - where the run of punctuation and symbols
+      // the host part ends with begins, and the first full stop past ASCII
+      // before text past ASCII: seven at most, however many such characters
+      // the host holds (SURBL.cpp's LinkEnds_). So a link followed by such a
+      // character hands over the name before it, whatever the name is written
+      // in and whatever symbols it or a label before it holds -
+      // http://<fullwidth evil>.example<U+201D> hands over
+      // evil.xn--example-b46c and evil.example, and http://i<U+2665>.ws<U+201D>
+      // xn--i-n3p.ws - and so does such a host in an attribute's value, which a
+      // browser is given whole: one more name asked about, as for an ASCII
+      // one. A host that
+      // is not ASCII and can lead nowhere - more than 1,012 code points UTS 46
+      // neither deletes nor makes a trailing full stop of, one of them mapped
+      // past ASCII or five full stops among them, so that its ASCII form would
+      // be longer than any name and it is no address, or a code point past
+      // ASCII that UTS 46 maps to text a domain may not hold (U+FDFA's spaces,
+      // a no-break space, U+2100's '/'), which the URL standard's host parser
+      // fails - is not read by UTS 46 at all, and hands over what it does as
+      // written and before such a
+      // character. Any other IPv6 address hands over nothing. html: text is HTML,
       // whose character references are read as the browser reads them - every
       // named one HTML defines (HtmlReferences.h), and one HTML reads without
       // its ';' read so but in an attribute's value before an '=' or a letter
@@ -353,7 +375,11 @@ namespace HM
    // digits, the ideographic full stops, NFC, xn-- forms, the labels it
    // refuses, a megabyte of a code point it maps to eighteen, and a host that
    // can lead nowhere weighed and not mapped, a megabyte of short or empty
-   // labels among them), the host as it is written beside it, the IPv4 forms,
+   // labels among them, and one that holds a code point mapped to text a
+   // domain may not hold), the host as it is written beside it, the host
+   // before each place a mail program may end a link however it is written -
+   // seven places at most, and each part read as it is read from nothing -
+   // the IPv4 forms,
    // backslashes,
    // links with no scheme, quoted-printable soft line breaks, HTML character
    // references - every named one HTML defines, read as the tokenizer reads

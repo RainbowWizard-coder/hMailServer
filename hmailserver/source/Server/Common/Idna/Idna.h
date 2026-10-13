@@ -120,6 +120,17 @@ namespace HM
 
          // The errors recorded against this label (bits of Error).
          unsigned int errors;
+
+         // With Options::checkBidi, whether the label holds an R, AL or AN (in
+         // the part of it left unmapped too), which makes a name holding it a
+         // bidi domain name, and whether it fails RFC 5893's rule - told of
+         // every label the validity criteria were run on, whether or not this
+         // name is a bidi domain name, so that a reader can tell what the rule
+         // says of the label in a name of other labels: ErrorBidi is among its
+         // errors exactly when it fails the rule and some label of the name
+         // holds one.
+         bool rightToLeft;
+         bool failsBidiRule;
       };
 
       // Processing (section 4) of domain, label by label, with each label's
@@ -161,6 +172,27 @@ namespace HM
       // domain whose ASCII form holds one (DomainToAscii). False for ASCII.
       bool MapsToAForbiddenDomainCodePoint(unsigned int codePoint);
 
+      // Whether UTS 46 disallows the code point (IdnaMappingTable.txt's status
+      // disallowed): a label holding one fails the validity criteria (V7).
+      bool IsDisallowed(unsigned int codePoint);
+
+      // The group of the General_Category UnicodeData.txt gives a code point:
+      // Punctuation (P*), Symbol (S*), Separator (Z*) or Other (C*) - a control
+      // or format character, a surrogate, one for private use - or none of
+      // them, for a letter, a mark or a number, and for an unassigned code
+      // point (Cn), which the file does not list. Not UTS 46's: for SURBL's
+      // reading of where a mail program ends a link (IdnaTables.h).
+      enum CategoryGroup
+      {
+         CategoryLetterMarkOrNumber = 0,
+         CategoryPunctuation = 1,
+         CategorySymbol = 2,
+         CategorySeparator = 3,
+         CategoryOther = 4
+      };
+
+      CategoryGroup CategoryGroupOf(unsigned int codePoint);
+
       // ToASCII (section 4.2): the errors, none when it succeeded, and the name
       // as far as the conversion went.
       unsigned int ToAscii(const CodePoints &domain, const Options &options, std::string &ascii);
@@ -198,12 +230,15 @@ namespace HM
    // UTS 46 held to IdnaTestV2.txt - every line, ToUnicode, ToASCII
    // Nontransitional and Transitional with every check on, and ToASCII again
    // with the URL standard's flags, the status codes of the checks it leaves off
-   // set aside as the file says - and to cases of its own: Punycode against
+   // set aside as the file says, and ProcessLabels a label at a time against
+   // the whole name's - and to cases of its own: Punycode against
    // RFC 3492's samples, NFC, the URL standard's domain to ASCII (fullwidth
    // letters, ideographic full stops, forbidden code points), the time a long
    // label takes, a label as written beside the label it decodes to, and what
-   // KindOfMapping says of a code point, held to the mapping at both ends of
-   // every range of the mapping table. It
+   // KindOfMapping, MapsToAForbiddenDomainCodePoint, IsDisallowed and
+   // CategoryGroupOf say of a code point - the first two held to the mapping
+   // and the domain parser at both ends of every range of the mapping table.
+   // It
    // runs inside the service with the other class tests (ClassTester), and on
    // Linux in idna-tests. No file, DNS, database or setting: the test data is
    // compiled in. It throws std::logic_error naming the first thing that is
