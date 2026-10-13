@@ -209,7 +209,10 @@ namespace hMailServer.ControlPanel.Views
          if (notices.Any(notice => notice?.Notice == null) || rows.Port?.Box == null)
          {
             foreach (FollowingNoticeRow notice in notices.Where(notice => notice?.Notice != null))
+            {
                Shown_(notice).Visibility = Visibility.Collapsed;
+               TrimCardEnd_(notice);
+            }
             return;
          }
 
@@ -244,6 +247,7 @@ namespace hMailServer.ControlPanel.Views
                   certSet ? L("the certificate") : L("the private key")));
             Say_(rows.ClearTextCredential, on && bindParsed && !loopback && (tokenSet || basicSet) && !(certSet && keySet),
                L("A credential is set but the listener has no TLS, so the credential crosses the network in clear text on every scrape and can be replayed by anyone on the path. Set the certificate and key files, or bind to 127.0.0.1. The server still starts - it logs this same warning."));
+            TrimCardEnd_(rows.ClearTextCredential);
          }
 
          rows.Port.Box.TextChanged += (s, e) => Refresh();
@@ -262,6 +266,27 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>The row a following notice stands in: its FieldRow, or the notice where it has none.</summary>
       private static FrameworkElement Shown_(FollowingNoticeRow notice)
          => notice.Notice.Parent as Scaffold.FieldRow ?? (FrameworkElement)notice.Notice;
+
+      /// <summary>
+      /// The card's last row on screen gives up its gap, as BuildUi gives the last row
+      /// its own: the warnings at the foot of a card come and go as the fields are
+      /// edited, and the field above a collapsed one kept its gap inside the card's
+      /// padding, which made the card taller than its fields by a field's gap.
+      /// </summary>
+      private static void TrimCardEnd_(FollowingNoticeRow notice)
+      {
+         if (Shown_(notice).Parent is not Panel fields)
+            return;
+
+         FrameworkElement last = fields.Children.OfType<FrameworkElement>().LastOrDefault(row => row.Visibility == Visibility.Visible);
+         foreach (Scaffold.FieldRow row in fields.Children.OfType<Scaffold.FieldRow>())
+         {
+            if (ReferenceEquals(row, last))
+               row.Margin = new Thickness(0);
+            else
+               row.ClearValue(MarginProperty);
+         }
+      }
 
       /// <summary>Shows a warning's notice with its words while it holds, and collapses its row while it does not.</summary>
       private static void Say_(FollowingNoticeRow notice, bool holds, string text, StatusLevel level = StatusLevel.Warning)
@@ -314,6 +339,7 @@ namespace hMailServer.ControlPanel.Views
          if (port?.Box == null)
          {
             Shown_(notice).Visibility = Visibility.Collapsed;
+            TrimCardEnd_(notice);
             return;
          }
 
@@ -323,6 +349,7 @@ namespace hMailServer.ControlPanel.Views
             string address = bind?.Box == null ? "127.0.0.1" : (bind.Box.Text ?? "").Trim();
             (StatusLevel level, string text) = on ? ManageSieveTlsState_(address) : (StatusLevel.Information, null);
             Say_(notice, text != null, text, level);
+            TrimCardEnd_(notice);
          }
 
          port.Box.TextChanged += (s, e) => Refresh();
