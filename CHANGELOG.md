@@ -4755,20 +4755,31 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   put the previous release back names the backup destination that Backup, restore & migration sets, where both used
   the pages' old titles, which only a search alias still found.
 
-- **Fixed: a Control Panel signed in to a server on another machine shows the server's hMailServer.ini values on the
-  settings pages that hold them beside the server's other settings, and saves them.** On Protocols, Delivery of
-  e-mail, Logging, Monitoring & alerts, Advanced and the other pages of that kind, the switches, texts, choices and
-  numbers kept under [Settings] were read and written only when hMailServer.ini was on this computer, so that a remote
-  Control Panel showed each at its default as though it were the server's value, and a save left it unwritten and said
-  it was saved. Among them were the rows this release moves onto those pages and onto Incoming relays, whose INI-only
-  page had refused to show what it could not read: the metrics listener's bind address read 127.0.0.1 on a server
-  bound to 0.0.0.0, without the warning that /metrics answers 503 there, ManageSieve on every address was said to be
-  kept on this machine, and PROXY and XCLIENT were off whatever the server had. They ask the server now, as the moved
-  ports and secrets already did, and read the file only without a session; a value that falls back to the file is
-  marked Not read and left alone by a save, and the [Database] rows, which the server does not answer over COM, are
-  still the file's. The INI-only pages, such as Server limits & expert settings, still say that they can be edited
-  only on the server. `RemoteIniRowsTests` holds the rows to the rule, and the store to the server's values and writes
-  with no file on this computer.
+- **Fixed: a Control Panel signed in to a server on another machine shows the server's hMailServer.ini [Settings]
+  values on the settings pages that hold them beside the server's other settings, and saves them.** On Protocols,
+  Delivery of e-mail, Logging, Monitoring & alerts, Advanced and the other pages of that kind, the switches, texts,
+  choices and numbers kept under [Settings] were read and written only when hMailServer.ini was on this computer, so
+  that a remote Control Panel showed each at its default as though it were the server's value, and a save left it
+  unwritten and said it was saved. Among them were the rows this release moves onto those pages and onto Incoming
+  relays, whose INI-only page had refused to show what it could not read: the metrics listener's bind address read
+  127.0.0.1 on a server bound to 0.0.0.0, without the warning that /metrics answers 503 there, ManageSieve on every
+  address was said to be kept on this machine, and PROXY and XCLIENT were off whatever the server had. They ask the
+  server now, as the moved ports and secrets already did, and read the file only without a session; a value that falls
+  back to the file is marked Not read and left alone by a save. The [Database] rows of Performance's Database
+  connections card, which the server does not answer over COM, are the file's alone, and a Control Panel that cannot
+  read the file marks them Not read. The INI-only pages, such as Server limits & expert settings, still say that they
+  can be edited only on the server. `RemoteIniRowsTests` holds the rows to the rule, and the store to the server's
+  values and writes with no file on this computer.
+
+- **Fixed: Performance's Database connections card marks its hMailServer.ini [Database] settings Not read where this
+  Control Panel cannot read the file, and a save leaves them alone.** The connections in the pool, the attempts to
+  reach the database at start-up and the seconds between them are read from the file on this computer, as the server
+  does not answer that section over COM. A Control Panel on another machine, and one on the server that was not run as
+  administrator - the file is the administrators' alone from 6.3.6 - had no value to read, showed each at its default
+  as a live, editable value, and on a save said that an edit of one was saved, where nothing was written. Each is
+  marked Not read now, the card says at its top why, and how to see and change the three, and a save neither writes
+  nor counts them. `RemoteIniRowsTests` holds the rows and the card to it, and the store to the default it answers for
+  [Database] with no file on this computer and with a file this user may not read.
 
 ### Administration
 

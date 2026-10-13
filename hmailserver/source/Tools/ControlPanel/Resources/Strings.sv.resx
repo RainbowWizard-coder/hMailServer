@@ -13918,6 +13918,12 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="The setting levels were saved." xml:space="preserve">
     <value>Inställningsnivåerna sparades.</value>
   </data>
+  <data name="The settings marked Not read are kept in the [Database] section of hMailServer.ini, which could not be read: {0} No COM property carries them, and from 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change them; saving leaves them as they are on the server." xml:space="preserve">
+    <value>Inställningarna som är markerade Inte läst finns i avsnittet [Database] i hMailServer.ini, som inte kunde läsas: {0} Ingen COM-egenskap bär dem, och från 6.3.6 tillhör filen administratörerna. Stäng kontrollpanelen och starta den med Kör som administratör för att se och ändra dem; när du sparar lämnas de som de är på servern.</value>
+  </data>
+  <data name="The settings marked Not read are kept in the [Database] section of hMailServer.ini, which was not found on this computer, and no COM property carries them. Start the Control Panel on the computer the server runs on to see and change them; saving leaves them as they are on the server." xml:space="preserve">
+    <value>Inställningarna som är markerade Inte läst finns i avsnittet [Database] i hMailServer.ini, som inte hittades på den här datorn, och ingen COM-egenskap bär dem. Starta kontrollpanelen på datorn där servern körs för att se och ändra dem; när du sparar lämnas de som de är på servern.</value>
+  </data>
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>Inställningarna som begränsar varje steg</value>
   </data>

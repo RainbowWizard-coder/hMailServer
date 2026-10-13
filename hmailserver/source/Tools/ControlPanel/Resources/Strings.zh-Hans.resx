@@ -13918,6 +13918,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The setting levels were saved." xml:space="preserve">
     <value>设置级别已保存。</value>
   </data>
+  <data name="The settings marked Not read are kept in the [Database] section of hMailServer.ini, which could not be read: {0} No COM property carries them, and from 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change them; saving leaves them as they are on the server." xml:space="preserve">
+    <value>标为“未读取”的设置保存在 hMailServer.ini 的 [Database] 节中，而该文件无法读取：{0} 没有任何 COM 属性携带它们，并且从 6.3.6 起，该文件属于管理员。请关闭控制面板，并以“以管理员身份运行”启动它，以查看和更改它们；保存时它们在服务器上保持不变。</value>
+  </data>
+  <data name="The settings marked Not read are kept in the [Database] section of hMailServer.ini, which was not found on this computer, and no COM property carries them. Start the Control Panel on the computer the server runs on to see and change them; saving leaves them as they are on the server." xml:space="preserve">
+    <value>标为“未读取”的设置保存在 hMailServer.ini 的 [Database] 节中，而这台计算机上找不到该文件，也没有任何 COM 属性携带它们。请在服务器所在的计算机上启动控制面板来查看和更改它们；保存时它们在服务器上保持不变。</value>
+  </data>
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>限制各阶段的设置</value>
   </data>

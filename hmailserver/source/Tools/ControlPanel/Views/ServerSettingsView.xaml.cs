@@ -699,7 +699,9 @@ namespace hMailServer.ControlPanel.Views
       /// those rows came from refused to show values it could not read. A value that
       /// fell back to the file is marked Not read and left alone by a save (BuildUi).
       /// A [Database] row (SectionIniNumber) is the file's alone, as the server does
-      /// not answer that section over COM, by design.
+      /// not answer that section over COM, by design: where this Control Panel cannot
+      /// read the file it is marked Not read, left alone by a save, and its card says
+      /// why (SectionIniNumber.Unreadable).
       /// </summary>
       private interface IIniSetting
       {
@@ -881,6 +883,28 @@ namespace hMailServer.ControlPanel.Views
 
          // The file on this computer alone: the server does not answer [Database] over COM (IIniSetting).
          protected override bool Reachable => IniStore != null && IniStore.IsAvailable;
+
+         /// <summary>
+         /// Why this Control Panel can neither read the row nor write it, or null when it
+         /// can: hMailServer.ini is not on this computer - a Control Panel signed in to a
+         /// server on another machine - or it is and this user may not read it, as only
+         /// the administrators may from 6.3.6 (hMailServer.exe /ProtectFolders), where a
+         /// read answers the default and a write fails without a word. The server does not
+         /// answer the section over COM, so there is nobody else to ask: BuildUi marks the
+         /// row Not read and leaves it out of a save, and its card says this once. Before,
+         /// the row was a live box at its default, and a save said an edit of it was saved
+         /// and wrote nothing.
+         /// </summary>
+         public string Unreadable()
+         {
+            if (!Reachable)
+               return L("The settings marked Not read are kept in the [Database] section of hMailServer.ini, which was not found on this computer, and no COM property carries them. Start the Control Panel on the computer the server runs on to see and change them; saving leaves them as they are on the server.");
+
+            string denied = IniStore.ReadDenied();
+            return denied == null
+               ? null
+               : F("The settings marked Not read are kept in the [Database] section of hMailServer.ini, which could not be read: {0} No COM property carries them, and from 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change them; saving leaves them as they are on the server.", denied);
+         }
 
          protected override string ReadRaw() => IniStore.ReadFrom(Section, Path, Default.ToString());
 
@@ -6144,6 +6168,10 @@ namespace hMailServer.ControlPanel.Views
                // once, at the top of the card, in place of them.
                string restProblem = null;
 
+               // Why this card's [Database] rows are marked Not read, when this Control
+               // Panel cannot read hMailServer.ini: said once, at the top of the card.
+               string fileProblem = null;
+
                // How many of this card's settings could not be read. Each keeps its
                // caption with "Not read" where its editor would be, and the card says
                // how many at its top and that saving leaves them as they are, so that
@@ -6214,6 +6242,21 @@ namespace hMailServer.ControlPanel.Views
                      }
                   }
 
+                  // A [Database] row this Control Panel can neither read nor write - the
+                  // file is not on this computer, or this user may not read it - is marked
+                  // Not read, left out of what a save writes and counts, and its card says
+                  // why (SectionIniNumber.Unreadable). It is not counted among the settings
+                  // that could not be read: the server was not asked, and Try again would
+                  // find the same, as a tab whose REST API cannot be used says so once and
+                  // does not count its rows. It was a live box at its default, and a save
+                  // said an edit of it was saved and wrote nothing.
+                  if (setting is SectionIniNumber databaseRow && databaseRow.Unreadable() is string unreadable)
+                  {
+                     fileProblem ??= unreadable;
+                     fields.Children.Add(lastRow = UnreadRow_(setting));
+                     continue;
+                  }
+
                   // A row kept in hMailServer.ini reads its value as its editor is
                   // built, from the server, and from the file on this computer when
                   // the server cannot be asked (IniFeatureStore.Read). A value that
@@ -6264,6 +6307,18 @@ namespace hMailServer.ControlPanel.Views
                else if (unread > 0)
                {
                   unreadCards.Add((fields, unread));
+               }
+
+               if (fileProblem != null)
+               {
+                  var fileNotice = new Scaffold.InlineNotice
+                  {
+                     Level = StatusLevel.Warning,
+                     Text = fileProblem,
+                     Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md)
+                  };
+                  System.Windows.Automation.AutomationProperties.SetAutomationId(fileNotice, "settings-database-unread");
+                  fields.Children.Insert(0, fileNotice);
                }
 
                // The card is the surface; the section inside it is the heading, the

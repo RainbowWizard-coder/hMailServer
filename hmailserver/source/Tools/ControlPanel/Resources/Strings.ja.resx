@@ -13929,6 +13929,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The setting levels were saved." xml:space="preserve">
     <value>設定レベルを保存しました。</value>
   </data>
+  <data name="The settings marked Not read are kept in the [Database] section of hMailServer.ini, which could not be read: {0} No COM property carries them, and from 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change them; saving leaves them as they are on the server." xml:space="preserve">
+    <value>「未読み取り」と表示されている設定は hMailServer.ini の [Database] セクションに保存されていますが、このファイルを読み取れませんでした: {0} これらの設定を扱う COM プロパティはなく、6.3.6 以降、このファイルは管理者のものです。表示・変更するには、コントロール パネルを閉じて「管理者として実行」で起動してください。保存しても、サーバー上のこれらの設定は変わりません。</value>
+  </data>
+  <data name="The settings marked Not read are kept in the [Database] section of hMailServer.ini, which was not found on this computer, and no COM property carries them. Start the Control Panel on the computer the server runs on to see and change them; saving leaves them as they are on the server." xml:space="preserve">
+    <value>「未読み取り」と表示されている設定は hMailServer.ini の [Database] セクションに保存されていますが、このコンピューターに hMailServer.ini が見つからず、これらの設定を扱う COM プロパティもありません。表示・変更するには、サーバーが動作しているコンピューターでコントロール パネルを起動してください。保存しても、サーバー上のこれらの設定は変わりません。</value>
+  </data>
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>各ステージを制限する設定</value>
   </data>

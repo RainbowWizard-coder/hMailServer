@@ -14102,6 +14102,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The setting levels were saved." xml:space="preserve">
     <value>Уровни параметров сохранены.</value>
   </data>
+  <data name="The settings marked Not read are kept in the [Database] section of hMailServer.ini, which could not be read: {0} No COM property carries them, and from 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change them; saving leaves them as they are on the server." xml:space="preserve">
+    <value>Параметры, помеченные «Не прочитано», хранятся в разделе [Database] файла hMailServer.ini, который не удалось прочитать: {0} Ни одно свойство COM их не передаёт, а начиная с 6.3.6 файл принадлежит администраторам. Закройте панель управления и запустите её через «Запуск от имени администратора», чтобы увидеть и изменить их; при сохранении они остаются на сервере без изменений.</value>
+  </data>
+  <data name="The settings marked Not read are kept in the [Database] section of hMailServer.ini, which was not found on this computer, and no COM property carries them. Start the Control Panel on the computer the server runs on to see and change them; saving leaves them as they are on the server." xml:space="preserve">
+    <value>Параметры, помеченные «Не прочитано», хранятся в разделе [Database] файла hMailServer.ini, который на этом компьютере не найден, и ни одно свойство COM их не передаёт. Запустите панель управления на компьютере, где работает сервер, чтобы увидеть и изменить их; при сохранении они остаются на сервере без изменений.</value>
+  </data>
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>Параметры, ограничивающие каждый этап</value>
   </data>

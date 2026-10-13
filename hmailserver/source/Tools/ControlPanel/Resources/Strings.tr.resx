@@ -13918,6 +13918,12 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="The setting levels were saved." xml:space="preserve">
     <value>Ayar düzeyleri kaydedildi.</value>
   </data>
+  <data name="The settings marked Not read are kept in the [Database] section of hMailServer.ini, which could not be read: {0} No COM property carries them, and from 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change them; saving leaves them as they are on the server." xml:space="preserve">
+    <value>Okunmadı olarak işaretlenen ayarlar hMailServer.ini dosyasının [Database] bölümünde tutulur; bu dosya okunamadı: {0} Hiçbir COM özelliği bu ayarları taşımaz ve 6.3.6'dan itibaren dosya yöneticilere aittir. Onları görmek ve değiştirmek için Denetim Masası'nı kapatıp Yönetici olarak çalıştır ile başlatın; kaydetmek onları sunucuda olduğu gibi bırakır.</value>
+  </data>
+  <data name="The settings marked Not read are kept in the [Database] section of hMailServer.ini, which was not found on this computer, and no COM property carries them. Start the Control Panel on the computer the server runs on to see and change them; saving leaves them as they are on the server." xml:space="preserve">
+    <value>Okunmadı olarak işaretlenen ayarlar hMailServer.ini dosyasının [Database] bölümünde tutulur; bu dosya bu bilgisayarda bulunamadı ve hiçbir COM özelliği bu ayarları taşımaz. Onları görmek ve değiştirmek için Denetim Masası'nı sunucunun çalıştığı bilgisayarda başlatın; kaydetmek onları sunucuda olduğu gibi bırakır.</value>
+  </data>
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>Her aşamayı sınırlayan ayarlar</value>
   </data>

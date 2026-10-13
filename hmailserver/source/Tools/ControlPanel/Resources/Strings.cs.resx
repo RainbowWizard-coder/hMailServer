@@ -14102,6 +14102,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="The setting levels were saved." xml:space="preserve">
     <value>Úrovně nastavení byly uloženy.</value>
   </data>
+  <data name="The settings marked Not read are kept in the [Database] section of hMailServer.ini, which could not be read: {0} No COM property carries them, and from 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change them; saving leaves them as they are on the server." xml:space="preserve">
+    <value>Nastavení označená „Nepřečteno“ jsou uložena v oddílu [Database] souboru hMailServer.ini, který se nepodařilo přečíst: {0} Žádná vlastnost COM je nenese a od verze 6.3.6 soubor patří správcům. Zavřete Ovládací panel a spusťte jej pomocí Spustit jako správce, abyste je viděli a mohli měnit; uložení je na serveru ponechá beze změny.</value>
+  </data>
+  <data name="The settings marked Not read are kept in the [Database] section of hMailServer.ini, which was not found on this computer, and no COM property carries them. Start the Control Panel on the computer the server runs on to see and change them; saving leaves them as they are on the server." xml:space="preserve">
+    <value>Nastavení označená „Nepřečteno“ jsou uložena v oddílu [Database] souboru hMailServer.ini, který nebyl na tomto počítači nalezen, a žádná vlastnost COM je nenese. Abyste je viděli a mohli měnit, spusťte Ovládací panel na počítači, na kterém server běží; uložení je na serveru ponechá beze změny.</value>
+  </data>
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>Nastavení, která omezují každou fázi</value>
   </data>

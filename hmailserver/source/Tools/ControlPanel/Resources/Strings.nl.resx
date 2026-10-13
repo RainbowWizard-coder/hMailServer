@@ -13918,6 +13918,12 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="The setting levels were saved." xml:space="preserve">
     <value>De instellingsniveaus zijn opgeslagen.</value>
   </data>
+  <data name="The settings marked Not read are kept in the [Database] section of hMailServer.ini, which could not be read: {0} No COM property carries them, and from 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change them; saving leaves them as they are on the server." xml:space="preserve">
+    <value>De instellingen die als Niet gelezen zijn gemarkeerd, staan in de sectie [Database] van hMailServer.ini, dat niet kon worden gelezen: {0} Geen COM-eigenschap draagt ze, en vanaf 6.3.6 is het bestand van de beheerders. Sluit het Configuratiescherm en start het met Als administrator uitvoeren om ze te zien en te wijzigen; opslaan laat ze op de server zoals ze zijn.</value>
+  </data>
+  <data name="The settings marked Not read are kept in the [Database] section of hMailServer.ini, which was not found on this computer, and no COM property carries them. Start the Control Panel on the computer the server runs on to see and change them; saving leaves them as they are on the server." xml:space="preserve">
+    <value>De instellingen die als Niet gelezen zijn gemarkeerd, staan in de sectie [Database] van hMailServer.ini, dat op deze computer niet is gevonden, en geen COM-eigenschap draagt ze. Start het Configuratiescherm op de computer waarop de server draait om ze te zien en te wijzigen; opslaan laat ze op de server zoals ze zijn.</value>
+  </data>
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>De instellingen die elke fase begrenzen</value>
   </data>
