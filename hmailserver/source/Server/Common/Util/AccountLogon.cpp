@@ -283,9 +283,19 @@ namespace HM
       if (authzid.IsEmpty())
          return true;
 
+      // Prepared with SASLprep, as every caller prepares the authcid it passes (RFC
+      // 4013), so that an authzid spelt exactly as the authcid was - with a soft
+      // hyphen, which SASLprep maps to nothing, or a letter NFKC composes - is taken
+      // as the client's own and signs in, as it did when every authzid was set
+      // aside, rather than refused as somebody else's. An authzid SASLprep refuses,
+      // or prepares to nothing, is compared as it came.
+      String preparedAuthzid;
+      if (!StringParser::SaslPrep(authzid, preparedAuthzid) || preparedAuthzid.IsEmpty())
+         preparedAuthzid = authzid;
+
       std::shared_ptr<DomainAliases> aliases = ObjectCache::Instance()->GetDomainAliases();
 
-      const String authorization = DefaultDomain::ApplyDefaultDomain(aliases->ApplyAliasesOnAddress(authzid));
+      const String authorization = DefaultDomain::ApplyDefaultDomain(aliases->ApplyAliasesOnAddress(preparedAuthzid));
       const String authentication = DefaultDomain::ApplyDefaultDomain(aliases->ApplyAliasesOnAddress(authcid));
 
       return authorization.CompareNoCase(authentication) == 0;

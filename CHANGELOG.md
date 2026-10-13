@@ -458,10 +458,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 - **Fixed: a SASL PLAIN client that asked to act as another account was signed in as itself and told it had
   succeeded.** RFC 4616 has a PLAIN message name the identity to act as (the authzid) beside the one to sign in as,
   and the server verify that the credentials permit the first. SMTP, POP3 and ManageSieve read it and set it aside;
-  they refuse it now unless it names the account signing in (domain aliases and the default domain applied, case
-  aside), before the password is looked at and without counting it as a guess at one. IMAP, which lets the master
-  user act as another account, answered an authzid naming the client itself `BAD No master user defined.`; it takes
-  it as none. `Security/SaslPlainAuthorizationIdentity.cs` asks each of the four. Found by upstream issue 652 (upstream PR 656).
+  they refuse it now unless it names the account signing in (prepared with SASLprep as the authentication identity
+  is, domain aliases and the default domain applied, case aside), before the password is looked at and without
+  counting it as a guess at one. IMAP, which lets the master user act as another account, answered an authzid
+  naming the client itself `BAD No master user defined.`; it takes it as none.
+  `Security/SaslPlainAuthorizationIdentity.cs` asks each of the four. Found by upstream issue 652 (upstream PR 656).
 
 - **Fixed: the SMTP log wrote some credentials in the clear.** The server hid the credential of `AUTH PLAIN` only when
   it came after `EHLO` and in one exact form, and the password line of `AUTH LOGIN`. An `AUTH PLAIN` sent before

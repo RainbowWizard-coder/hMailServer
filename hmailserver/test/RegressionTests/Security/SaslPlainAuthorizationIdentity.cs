@@ -26,7 +26,9 @@ namespace RegressionTests.Security
    /// user defined." It is taken as no authzid now.
    ///
    /// The refusals are made before the password is looked at and are charged to no
-   /// lockout: they are not guesses at a password.
+   /// lockout: they are not guesses at a password. The authzid is compared prepared
+   /// with SASLprep, as the authcid is, so one spelt as the authcid is never refused
+   /// as another account's.
    /// </summary>
    [TestFixture]
    public class SaslPlainAuthorizationIdentity : TestFixtureBase
@@ -34,6 +36,10 @@ namespace RegressionTests.Security
       private const string Me = "authzid-me@example.test";
       private const string Other = "authzid-other@example.test";
       private const string Password = "test";
+
+      // Me with a soft hyphen (U+00AD) in it, which SASLprep maps to nothing (RFC 3454
+      // table B.1): the authcid it is sent as signs in as Me.
+      private static readonly string MeWithASoftHyphen = "authzid-" + (char) 0x00AD + "me@example.test";
 
       // From the ports set aside for this file's unit (47100-47119).
       private const int ManageSievePort = 47100;
@@ -290,6 +296,49 @@ namespace RegressionTests.Security
       {
          string completion = ManageSieveAuthenticatePlain(Me, Me, Password);
          StringAssert.StartsWith("OK", completion, "An authzid naming the client itself must sign in. Got: " + completion);
+      }
+
+      // An authzid sent byte for byte as the authcid, which SASLprep changes. Each
+      // protocol prepares the authcid before it asks AccountLogon::AuthorizationIdentityIsOwn,
+      // and the authzid was compared as it came: the client's own name, refused as
+      // another account's. On SMTP, POP3 and ManageSieve that signed in while every
+      // authzid was set aside.
+
+      [Test]
+      [Description("SMTP: an authzid spelt as the authcid, with a soft hyphen SASLprep takes out of both, is the " +
+                   "client's own and signs in. It was compared unprepared with the prepared authcid and refused.")]
+      public void SmtpAnAuthzidSpeltAsTheAuthcidIsTheClientsOwnOncePrepared()
+      {
+         string reply = SmtpAuthPlain(MeWithASoftHyphen, MeWithASoftHyphen, Password);
+         StringAssert.StartsWith("235", reply, "The authzid names the client itself once prepared. Got: " + reply);
+      }
+
+      [Test]
+      [Description("POP3: an authzid spelt as the authcid, with a soft hyphen SASLprep takes out of both, is the " +
+                   "client's own and signs in. It was compared unprepared with the prepared authcid and refused.")]
+      public void Pop3AnAuthzidSpeltAsTheAuthcidIsTheClientsOwnOncePrepared()
+      {
+         string reply = Pop3AuthPlain(MeWithASoftHyphen, MeWithASoftHyphen, Password);
+         StringAssert.StartsWith("+OK", reply, "The authzid names the client itself once prepared. Got: " + reply);
+      }
+
+      [Test]
+      [Description("IMAP: an authzid spelt as the authcid, with a soft hyphen SASLprep takes out of both, is the " +
+                   "client's own and signs in, as one spelt plainly does. It was compared unprepared with the " +
+                   "prepared authcid, fell into the master-user path and was answered BAD.")]
+      public void ImapAnAuthzidSpeltAsTheAuthcidIsTheClientsOwnOncePrepared()
+      {
+         string result = ImapAuthenticatePlain(MeWithASoftHyphen, MeWithASoftHyphen, Password);
+         StringAssert.Contains("A01 OK", result, "The authzid names the client itself once prepared. Got: " + result);
+      }
+
+      [Test]
+      [Description("ManageSieve: an authzid spelt as the authcid, with a soft hyphen SASLprep takes out of both, is " +
+                   "the client's own and signs in. It was compared unprepared with the prepared authcid and refused.")]
+      public void ManageSieveAnAuthzidSpeltAsTheAuthcidIsTheClientsOwnOncePrepared()
+      {
+         string completion = ManageSieveAuthenticatePlain(MeWithASoftHyphen, MeWithASoftHyphen, Password);
+         StringAssert.StartsWith("OK", completion, "The authzid names the client itself once prepared. Got: " + completion);
       }
    }
 }

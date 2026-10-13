@@ -110,7 +110,8 @@ namespace HM
       // verify that the authentication credentials permit the client to act as" it.
       // Where no master-user grant applies, the only identity a password permits is
       // its own: true when authzid is empty or names the same address as authcid -
-      // domain aliases and the default domain applied to both, case aside. SMTP,
+      // the authzid prepared with SASLprep as the callers prepare the authcid, domain
+      // aliases and the default domain applied to both, case aside. SMTP,
       // POP3 and ManageSieve refuse the message otherwise (they had decoded the
       // authzid and signed the client in as the authcid, whatever it asked to be);
       // IMAP takes an authzid of the client's own as none, so that it does not fall
