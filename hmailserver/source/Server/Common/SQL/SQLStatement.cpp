@@ -461,11 +461,15 @@ namespace HM
       return (int) vecColumns.size(); 
    }
 
-   String 
+   String
    SQLStatement::GetCurrentTimestamp()
    {
-      HM::DatabaseSettings::SQLDBType DBType = IniFileSettings::Instance()->GetDatabaseType();
-      
+      return GetCurrentTimestamp(IniFileSettings::Instance()->GetDatabaseType());
+   }
+
+   String
+   SQLStatement::GetCurrentTimestamp(DatabaseSettings::SQLDBType DBType)
+   {
       switch (DBType)
       {
       case DatabaseSettings::TypeMSSQLServer:
@@ -483,7 +487,90 @@ namespace HM
       return "";
    }
 
-   String 
+   namespace
+   {
+      // SQL Server Compact's stand-in for a UTC function (SQLStatement.h): this
+      // node's UTC clock as a datetime, in the ODBC canonical form that CONVERT's
+      // style 121 reads whatever the language and date format of the session.
+      String CompactUtcLiteral_(int secondsAhead)
+      {
+         SYSTEMTIME now;
+         GetSystemTime(&now);
+
+         String literal;
+         literal.Format(_T("CONVERT(datetime, '%04d-%02d-%02d %02d:%02d:%02d.%03d', 121)"),
+            (int) now.wYear, (int) now.wMonth, (int) now.wDay, (int) now.wHour, (int) now.wMinute, (int) now.wSecond, (int) now.wMilliseconds);
+
+         if (secondsAhead == 0)
+            return literal;
+
+         String plus;
+         plus.Format(_T("DATEADD(second, %d, %s)"), secondsAhead, literal.c_str());
+         return plus;
+      }
+   }
+
+   String
+   SQLStatement::GetCurrentUtcTimestamp()
+   {
+      return GetCurrentUtcTimestamp(IniFileSettings::Instance()->GetDatabaseType());
+   }
+
+   String
+   SQLStatement::GetCurrentUtcTimestamp(DatabaseSettings::SQLDBType DBType)
+   {
+      switch (DBType)
+      {
+      case DatabaseSettings::TypeMSSQLServer:
+         return _T("SYSUTCDATETIME()");
+      case DatabaseSettings::TypeMSSQLCompactEdition:
+         return CompactUtcLiteral_(0);
+      case DatabaseSettings::TypePGServer:
+         return _T("(statement_timestamp() at time zone 'utc')");
+      case DatabaseSettings::TypeMYSQLServer:
+         return _T("UTC_TIMESTAMP(6)");
+      default:
+         ErrorManager::Instance()->ReportError(ErrorManager::Critical, 5407, "SQLStatement::GetCurrentUtcTimestamp()", Formatter::Format("Unknown database type: {0}", DBType));
+      }
+
+      HM_ASSERT(0);
+      return "";
+   }
+
+   String
+   SQLStatement::GetCurrentUtcTimestampPlusSeconds(int seconds)
+   {
+      return GetCurrentUtcTimestampPlusSeconds(IniFileSettings::Instance()->GetDatabaseType(), seconds);
+   }
+
+   String
+   SQLStatement::GetCurrentUtcTimestampPlusSeconds(DatabaseSettings::SQLDBType DBType, int seconds)
+   {
+      String sRetVal;
+
+      switch (DBType)
+      {
+      case DatabaseSettings::TypeMSSQLServer:
+         sRetVal.Format(_T("DATEADD(second, %d, SYSUTCDATETIME())"), seconds);
+         break;
+      case DatabaseSettings::TypeMSSQLCompactEdition:
+         sRetVal = CompactUtcLiteral_(seconds);
+         break;
+      case DatabaseSettings::TypePGServer:
+         sRetVal.Format(_T("((statement_timestamp() at time zone 'utc') + interval '%d seconds')"), seconds);
+         break;
+      case DatabaseSettings::TypeMYSQLServer:
+         sRetVal.Format(_T("DATE_ADD(UTC_TIMESTAMP(6), INTERVAL %d SECOND)"), seconds);
+         break;
+      default:
+         ErrorManager::Instance()->ReportError(ErrorManager::Critical, 5407, "SQLStatement::GetCurrentUtcTimestampPlusSeconds()", Formatter::Format("Unknown database type: {0}", DBType));
+         break;
+      }
+
+      return sRetVal;
+   }
+
+   String
    SQLStatement::GetLeftFunction(const String &sParamName, int iLength)
    {
       HM::DatabaseSettings::SQLDBType DBType = IniFileSettings::Instance()->GetDatabaseType();

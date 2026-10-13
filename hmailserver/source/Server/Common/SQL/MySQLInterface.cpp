@@ -31,6 +31,7 @@ namespace HM
       p_mysql_store_result(0),
       p_mysql_free_result(0),
       p_mysql_insert_id(0),
+      p_mysql_affected_rows(0),
       p_mysql_errno(0),
       p_mysql_num_rows(0),
       p_mysql_fetch_row(0),
@@ -224,6 +225,7 @@ namespace HM
       p_mysql_store_result = (hm_mysql_store_result*) ::dlsym(library_instance_, "mysql_store_result");
       p_mysql_free_result = (hm_mysql_free_result*) ::dlsym(library_instance_, "mysql_free_result");
       p_mysql_insert_id = (hm_mysql_insert_id*) ::dlsym(library_instance_, "mysql_insert_id");
+      p_mysql_affected_rows = (hm_mysql_affected_rows*) ::dlsym(library_instance_, "mysql_affected_rows");
       p_mysql_errno = (hm_mysql_errno*) ::dlsym(library_instance_, "mysql_errno");
       p_mysql_num_rows = (hm_mysql_num_rows*) ::dlsym(library_instance_, "mysql_num_rows");
       p_mysql_fetch_row = (hm_mysql_fetch_row*) ::dlsym(library_instance_, "mysql_fetch_row");
@@ -276,6 +278,7 @@ namespace HM
       p_mysql_store_result = (hm_mysql_store_result*) GetProcAddress( (HMODULE)library_instance_, "mysql_store_result" );
       p_mysql_free_result = (hm_mysql_free_result*) GetProcAddress( (HMODULE)library_instance_, "mysql_free_result" );
       p_mysql_insert_id = (hm_mysql_insert_id*) GetProcAddress( (HMODULE)library_instance_, "mysql_insert_id" );
+      p_mysql_affected_rows = (hm_mysql_affected_rows*) GetProcAddress( (HMODULE)library_instance_, "mysql_affected_rows" );
       p_mysql_errno = (hm_mysql_errno*) GetProcAddress( (HMODULE)library_instance_, "mysql_errno" );
       p_mysql_num_rows = (hm_mysql_num_rows*) GetProcAddress( (HMODULE)library_instance_, "mysql_num_rows" );
       p_mysql_fetch_row = (hm_mysql_fetch_row*) GetProcAddress( (HMODULE)library_instance_, "mysql_fetch_row" );

@@ -27,7 +27,7 @@ namespace HM
 
       virtual ConnectionResult Connect(String &sErrorMessage);
       virtual bool Disconnect();
-      virtual ExecutionResult TryExecute(const SQLCommand &command, String &sErrorMessage, __int64 *iInsertID = 0, int iIgnoreErrors = 0); 
+      virtual ExecutionResult TryExecute(const SQLCommand &command, String &sErrorMessage, __int64 *iInsertID = 0, int iIgnoreErrors = 0, __int64 *rowsAffected = nullptr);
       virtual bool IsConnected() const;
 
       hm_MYSQL *GetConnection() const;

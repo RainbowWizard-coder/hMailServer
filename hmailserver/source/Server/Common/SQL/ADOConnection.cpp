@@ -249,6 +249,19 @@ namespace HM
       SQLCommand command2(sIsolationLevel);
       TryExecute(command2, sErrorMsg, 0, 0);
 
+      // The row count TryExecute hands back is the RecordsAffected ADO reads from
+      // the count in SQL Server's DONE token, which NOCOUNT leaves out: under it
+      // every statement counts -1, and a claim judged by its count (ActiveActive.md)
+      // would never be won. A session starts with NOCOUNT off unless the server's
+      // 'user options' turn it on for every session, so it is turned off here, as a
+      // session normally is - which is what every batch this server sends was
+      // written against. ReadEncryptOption_ below turns it on for its own batch and
+      // puts back what it found.
+      sErrorMsg = "";
+
+      SQLCommand command3(_T("SET NOCOUNT OFF"));
+      TryExecute(command3, sErrorMsg, 0, 0);
+
       // What the session is. The provider has refused before the login whatever it
       // was asked to encrypt and could not, so a session opened with the keywords -
       // or by MSOLEDBSQL 19 left to its own default, which encrypts - is encrypted.
@@ -400,9 +413,46 @@ namespace HM
       return cADOConnection;
    }
 
-   DALConnection::ExecutionResult
-   ADOConnection::TryExecute(const SQLCommand &command, String &sErrorMessage, __int64 *iInsertID, int iIgnoreErrors)
+   __int64
+   ADOConnection::ReadRecordsAffected(const VARIANT &recordsAffected)
    {
+      __int64 count = -1;
+
+      switch (recordsAffected.vt)
+      {
+      case VT_I4:
+         count = recordsAffected.lVal;
+         break;
+      case VT_I8:
+         count = recordsAffected.llVal;
+         break;
+      case VT_I2:
+         count = recordsAffected.iVal;
+         break;
+      case VT_UI4:
+         count = recordsAffected.ulVal;
+         break;
+      case VT_EMPTY:
+      case VT_NULL:
+         break;
+      default:
+         {
+            _variant_t converted;
+            if (SUCCEEDED(VariantChangeType(&converted, &recordsAffected, 0, VT_I8)))
+               count = converted.llVal;
+         }
+         break;
+      }
+
+      return count < 0 ? -1 : count;
+   }
+
+   DALConnection::ExecutionResult
+   ADOConnection::TryExecute(const SQLCommand &command, String &sErrorMessage, __int64 *iInsertID, int iIgnoreErrors, __int64 *rowsAffected)
+   {
+      if (rowsAffected != nullptr)
+         *rowsAffected = -1;
+
       if (!bConnected)
          return DALConnectionProblem; // --- already disconnected.
 
@@ -418,7 +468,13 @@ namespace HM
          adoCommand->CommandType = adCmdText;
          adoCommand->CommandText = _bstr_t(queryString);
          adoCommand->ActiveConnection = cADOConnection;
-         adoCommand->Execute(NULL, NULL, adCmdText);
+
+         // RecordsAffected: the rows the statement matched (DALConnection.h).
+         _variant_t recordsAffected;
+         adoCommand->Execute(&recordsAffected, NULL, adCmdText);
+
+         if (rowsAffected != nullptr)
+            *rowsAffected = ReadRecordsAffected(recordsAffected);
 
          // Check what unique ID we got back (if we're interested). Callers treat 0
          // as "no identity available" - which is what an empty identity recordset
@@ -444,9 +500,19 @@ namespace HM
       }
       catch ( _com_error &err )
       {
+         // A failure, ignored or not, leaves no count of its own: a statement
+         // that fails changes no row (DALConnection.h).
+         if (rowsAffected != nullptr)
+            *rowsAffected = -1;
+
          ExecutionResult dbErr = GetErrorType(_com_error::WCodeToHRESULT(err.WCode()));
          if (iIgnoreErrors > 0 && iIgnoreErrors & dbErr)
+         {
+            if (rowsAffected != nullptr)
+               *rowsAffected = 0;
+
             return DALConnection::DALSuccess;
+         }
 
          // The marker means "this object may already exist". It must not also
          // discard a lost connection - see DALConnection::HasIgnoreErrorsMarker.
@@ -454,7 +520,12 @@ namespace HM
          // and tries again, and reports the statement as failed if it cannot.
          if (dbErr != DALConnection::DALConnectionProblem &&
              HasIgnoreErrorsMarker(queryString))
+         {
+            if (rowsAffected != nullptr)
+               *rowsAffected = 0;
+
             return DALConnection::DALSuccess;
+         }
 
          _bstr_t bstrSource( err.Source() );
          _bstr_t bstrDescription( err.Description() );
@@ -476,6 +547,8 @@ namespace HM
       }
       catch ( ... )
       {
+         if (rowsAffected != nullptr)
+            *rowsAffected = -1;
 
          sErrorMessage = "Source: ADOConnection::Execute(), Code: HM10045, Description: Unknown error when executing SQL statement: \n";
          sErrorMessage.append(queryString);

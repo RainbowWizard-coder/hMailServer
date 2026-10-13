@@ -35,7 +35,17 @@ namespace HM
          DALUnknown = 3
       };
 
-      bool Execute(const SQLCommand &command, String &sErrorMessage, __int64 *iInsertID = 0, int iIgnoreErrors = 0);
+      // A statement, run again after a reconnect when the connection was lost under
+      // it (up to SetTryCount times). rowsAffected, when given, is what TryExecute
+      // says of the run that succeeded, and -1 when none did. reconnected, when
+      // given, says whether the connection was lost while the statement ran. A run
+      // that lost its connection may still have been committed, with only its answer
+      // lost, and the next attempt sends the statement again: so after a reconnect a
+      // failure may hide a committed first run, and a 0 from an UPDATE that is not
+      // idempotent may be its own first run's doing (ActiveActive.md: a claim
+      // recognises itself by its epoch for this reason).
+      bool Execute(const SQLCommand &command, String &sErrorMessage, __int64 *iInsertID = 0, int iIgnoreErrors = 0,
+                   __int64 *rowsAffected = nullptr, bool *reconnected = nullptr);
 
       bool Reconnect(String &sErrorMessage);
 
@@ -89,7 +99,24 @@ namespace HM
 
       virtual ConnectionResult Connect(String &sErrorMessage) = 0;
       virtual bool Disconnect() = 0;
-      virtual ExecutionResult TryExecute(const SQLCommand &command, String &sErrorMessage, __int64 *iInsertID = 0, int iIgnoreErrors = 0) = 0;
+
+      // One run of a statement on this connection, nothing run again.
+      //
+      // rowsAffected, when given, is set to the number of rows the statement
+      // matched: for an UPDATE every row its WHERE clause matched, whether or not
+      // the new values differ from the old - on all four backends, MySQL and
+      // MariaDB included because the connection is opened with CLIENT_FOUND_ROWS
+      // (MySQLConnection::ConnectOnce_) - and for an INSERT or a DELETE the rows
+      // inserted or deleted. ADO's RecordsAffected on SQL Server and SQL Server
+      // Compact, mysql_affected_rows on MySQL, PQcmdTuples on PostgreSQL. -1 when
+      // the statement failed, or when the engine gave no count (SQL Server with
+      // NOCOUNT on, which ADOConnection::Connect turns off). A failure the caller
+      // asked to ignore (iIgnoreErrors, or the [IGNORE-ERRORS] marker) counts 0: a
+      // statement that fails changes no row. A count is to be read for one INSERT,
+      // UPDATE or DELETE alone: what the engines answer for a SELECT, for DDL or
+      // for several statements in one command differs from one to the next
+      // (measured on SQL Server Compact 4.0: a SELECT 0, DDL -1).
+      virtual ExecutionResult TryExecute(const SQLCommand &command, String &sErrorMessage, __int64 *iInsertID = 0, int iIgnoreErrors = 0, __int64 *rowsAffected = nullptr) = 0;
       virtual bool IsConnected() const = 0;
       virtual void OnConnected() = 0;
 

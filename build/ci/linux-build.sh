@@ -13,7 +13,11 @@
 #
 # What it leaves in the checkout, for the job's artifacts (and nothing else):
 #   linux-build/hmailserver     the server binary the linux-suite job tests
-#   linux-build/build-info.txt  its SHA-256 and what --version says
+#   linux-build/database-claim-tests
+#                               the one tester program that needs a database, which
+#                               the jobs that lay one out run against it
+#                               (build/ci/linux-suite.sh, build/lab/db-suite.sh)
+#   linux-build/build-info.txt  the server's SHA-256 and what its --version says
 #   linux-build/build.log       the whole ninja output
 #   linux-build/packages/       the .deb and the .rpm CPack made from that build,
 #                               each with its own SBOM beside it (<package>.cdx.json,
@@ -161,6 +165,11 @@ fi
 
 server="$build_dir/hmailserver"
 cp "$server" "$out/hmailserver"
+# The one tester that needs a database, beside the server in the artifact: the jobs
+# that lay a database out run it against theirs before the server starts
+# (build/ci/linux-suite.sh, build/lab/db-suite.sh). Below it is run as every tester
+# is, with no database, and says it is skipped.
+cp "$build_dir/database-claim-tests" "$out/database-claim-tests"
 {
   echo "sha256 $(sha256sum "$server" | cut -d' ' -f1)"
   echo "version $("$server" --version 2>&1 | head -n 1)"
@@ -181,7 +190,8 @@ fi
 # script-binding-tests, and any added later), found rather than listed, so a new
 # one runs here the day it is added. They need no server, no database and no
 # network but the loopback, which network-deadline-tests and http-server-tests
-# connect over to peers of their own.
+# connect over to peers of their own; database-claim-tests, the one that needs a
+# database, is given none here and says it is skipped.
 testers=$(find "$build_dir" -maxdepth 1 -type f -name '*-tests' -perm -u+x | sort)
 if [ -z "$testers" ]; then
   echo "No *-tests program in $build_dir: the CMake build no longer makes the testers it did."

@@ -24,7 +24,7 @@ namespace HM
 
       ConnectionResult Connect(String &sErrorMessage);
       bool Disconnect();
-      ExecutionResult TryExecute(const SQLCommand &command, String &sErrorMessage, __int64 *iInsertID = 0, int iIgnoreErrors = 0);
+      ExecutionResult TryExecute(const SQLCommand &command, String &sErrorMessage, __int64 *iInsertID = 0, int iIgnoreErrors = 0, __int64 *rowsAffected = nullptr);
       bool IsConnected() const;
   
       virtual bool GetSupportsCommandParameters() const {return true; }

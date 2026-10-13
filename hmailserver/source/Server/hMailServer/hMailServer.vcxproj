@@ -630,6 +630,7 @@ EXIT 0
     <ClCompile Include="..\Common\Sql\DALConnectionFactory.cpp" />
     <ClCompile Include="..\Common\Sql\DALRecordset.cpp" />
     <ClCompile Include="..\Common\Sql\DALRecordsetFactory.cpp" />
+    <ClCompile Include="..\Common\SQL\DatabaseClaimTester.cpp" />
     <ClCompile Include="..\Common\Sql\DatabaseConnectionManager.cpp" />
     <ClCompile Include="..\Common\SQL\DatabaseSettings.cpp" />
     <ClCompile Include="..\Common\SQL\DatabaseTls.cpp" />
@@ -1645,6 +1646,7 @@ EXIT 0
     <ClInclude Include="..\Common\Sql\DALConnectionFactory.h" />
     <ClInclude Include="..\Common\Sql\DALRecordset.h" />
     <ClInclude Include="..\Common\Sql\DALRecordsetFactory.h" />
+    <ClInclude Include="..\Common\SQL\DatabaseClaimTester.h" />
     <ClInclude Include="..\Common\Sql\DatabaseConnectionManager.h" />
     <ClInclude Include="..\Common\SQL\DatabaseSettings.h" />
     <ClInclude Include="..\Common\SQL\DatabaseTls.h" />

@@ -4,9 +4,10 @@
 
 #pragma once
 
+#include "DatabaseSettings.h"
+
 namespace HM
 {
-   class DatabaseSettings;
    class DateTime;
    class SQLCommand;
 
@@ -76,8 +77,43 @@ namespace HM
 
       String GenerateFromCommand(const SQLCommand &command);
 
+      // The database's clock as local wall time - GETDATE(), NOW() in the session's
+      // time zone, current_timestamp stored into a column without a zone - which is
+      // what every date column the server writes today holds. It jumps an hour at a
+      // daylight-saving change (ActiveActive.md, C16). Without a type, the
+      // configured database's ([Database] Type); with one, that engine's, for a
+      // tester on a database of its own.
       static String GetCurrentTimestamp();
+      static String GetCurrentTimestamp(DatabaseSettings::SQLDBType type);
       static String GetCurrentTimestampPlusMinutes(int iMinutes);
+
+      // The database's clock in UTC, for every lease, heartbeat and expiry two
+      // nodes compare (ActiveActive.md, decision D3), into columns that hold UTC
+      // and nothing else; GetCurrentTimestamp and the columns it fills keep their
+      // local time. Two nodes whose own clocks disagree read the one clock, and no
+      // daylight-saving change moves it.
+      //
+      //   SQL Server           SYSUTCDATETIME(), a datetime2
+      //   MySQL and MariaDB    UTC_TIMESTAMP(6), to the microsecond (since MySQL 5.6.4
+      //                        and MariaDB 5.3; the server needs 5.7.9 and 10.2.2)
+      //   PostgreSQL           (statement_timestamp() at time zone 'utc'), a timestamp
+      //                        without a zone. The statement's start and not now(),
+      //                        which is the transaction's: inside a transaction now()
+      //                        stands still, and a lease taken there would be shorter
+      //                        than it says. The other two engines' functions are the
+      //                        statement's time already.
+      //   SQL Server Compact   has no UTC function (GETUTCDATE, SYSUTCDATETIME,
+      //                        SYSDATETIME and CURRENT_TIMESTAMP all refused, measured
+      //                        on 4.0.8876.1 on 12 October 2026), and is one node by
+      //                        definition (D2): the node's own UTC clock, to the
+      //                        millisecond, as a literal - so the statement is to be
+      //                        built when it is run, not kept and run later.
+      //
+      // Without a type, the configured database's; with one, that engine's.
+      static String GetCurrentUtcTimestamp();
+      static String GetCurrentUtcTimestamp(DatabaseSettings::SQLDBType type);
+      static String GetCurrentUtcTimestampPlusSeconds(int seconds);
+      static String GetCurrentUtcTimestampPlusSeconds(DatabaseSettings::SQLDBType type, int seconds);
       static String GetCreateDatabase(std::shared_ptr<DatabaseSettings> pSettings, const String &sDatabaseName);
       static String GetLeftFunction(const String &sParamName, int iLength);
       static String GetTopRows(const String &tableName, int rows);

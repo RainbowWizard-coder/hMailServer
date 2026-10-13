@@ -19,7 +19,12 @@ namespace HM
 
       virtual ConnectionResult Connect(String &sErrorMessage);
       virtual bool Disconnect();
-      virtual ExecutionResult TryExecute(const SQLCommand &command, String &sErrorMessage, __int64 *iInsertID = 0, int iIgnoreErrors = 0); 
+      virtual ExecutionResult TryExecute(const SQLCommand &command, String &sErrorMessage, __int64 *iInsertID = 0, int iIgnoreErrors = 0, __int64 *rowsAffected = nullptr);
+
+      // PQcmdTuples' text as TryExecute's rowsAffected: the digits as a number, and
+      // -1 for the empty text it gives a command that counts nothing (CREATE, SET)
+      // or for anything that is not digits.
+      static __int64 ReadCommandTuples(const char *text);
       virtual bool IsConnected() const;
 
       DALConnection::ExecutionResult CheckError(PGresult *pResult, const String &sAdditionalInfo, String &sOutputErrorMessage) const;

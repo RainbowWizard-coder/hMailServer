@@ -247,9 +247,36 @@ namespace HM
       return true;
    }
 
-   DALConnection::ExecutionResult
-   PGConnection::TryExecute(const SQLCommand &command, String &sErrorMessage, __int64 *iInsertID, int iIgnoreErrors) 
+   __int64
+   PGConnection::ReadCommandTuples(const char *text)
    {
+      if (text == nullptr || text[0] == 0)
+         return -1;
+
+      const __int64 largest = 0x7FFFFFFFFFFFFFFFLL;
+
+      __int64 count = 0;
+      for (const char *digit = text; *digit != 0; digit++)
+      {
+         if (*digit < '0' || *digit > '9')
+            return -1;
+
+         // No count reaches this; a text that would overflow is no count either.
+         if (count > (largest - 9) / 10)
+            return -1;
+
+         count = count * 10 + (*digit - '0');
+      }
+
+      return count;
+   }
+
+   DALConnection::ExecutionResult
+   PGConnection::TryExecute(const SQLCommand &command, String &sErrorMessage, __int64 *iInsertID, int iIgnoreErrors, __int64 *rowsAffected)
+   {
+      if (rowsAffected != nullptr)
+         *rowsAffected = -1;
+
       NoteServerParameters(dbconn_);
       String SQL = command.GetQueryString();
 
@@ -283,6 +310,8 @@ namespace HM
          String checkErrorMessage;
          DALConnection::ExecutionResult result = CheckError(pResult, SQL, checkErrorMessage);
 
+         bool failureIgnored = false;
+
          if (result != DALSuccess)
          {
             // A caller that passes DALErrorInSQL is saying that a row which already
@@ -301,6 +330,11 @@ namespace HM
             if (ignoreByCaller)
             {
                PQclear(pResult);
+
+               // The refused insert changed no row (DALConnection.h).
+               if (rowsAffected != nullptr)
+                  *rowsAffected = 0;
+
                return DALConnection::DALSuccess;
             }
 
@@ -316,7 +350,14 @@ namespace HM
 
                return result;
             }
+
+            failureIgnored = true;
          }
+
+         // PQcmdTuples: the rows the command counted - for an UPDATE every row it
+         // matched (DALConnection.h) - and empty for a command that counts none.
+         if (rowsAffected != nullptr)
+            *rowsAffected = failureIgnored ? 0 : ReadCommandTuples(PQcmdTuples(pResult));
 
          ExecStatusType iExecResult = PQresultStatus(pResult);
 
@@ -335,6 +376,9 @@ namespace HM
       }
       catch (...)
       {
+         if (rowsAffected != nullptr)
+            *rowsAffected = -1;
+
          sErrorMessage = "Source: PGConnection::TryExecute, Code: HM5084, Description: An unhanded error occurred while executing: " + SQL;
          return DALConnection::DALUnknown;
       }

@@ -1050,6 +1050,27 @@ add_executable(connection-string-tests ${SERVER_DIR}/platform/connection_string_
 target_link_libraries(connection-string-tests PRIVATE hmailserver_core)
 set_target_properties(connection-string-tests PROPERTIES OUTPUT_NAME connection-string-tests)
 
+# ---------------------------------------------------------------- the database's row counts and UTC clock
+#
+# DatabaseClaimTester (Common/SQL/DatabaseClaimTester.h) as a program of its own:
+# on Windows it runs inside the server through ClassTester, on a SQL Server
+# Compact database of its own, and here against a real PostgreSQL, MySQL or
+# MariaDB, through the server's own connections - the row counts of the four
+# backends, a claim that recognises itself when it is run again, two connections
+# racing for the same rows and named leases, a reconnect said, a lease on the
+# database's UTC clock, and that clock against this machine's (ActiveActive.md,
+# decisions D1 and D3). The one tester that needs a database: given no
+# configuration file it says SKIPPED and exits 0, which is how linux-build.sh and
+# the packages' builds run it. build/ci/linux-suite.sh runs it against the
+# suite's PostgreSQL and build/lab/db-suite.sh against the matrix's database,
+# with the server's own hMailServer.ini, of which it reads the [Database] section
+# alone, before the server starts; tables of its own, removed again, and a
+# configuration and logs of its own under the system's temp directory. About ten
+# seconds. Not installed; a bench tool.
+add_executable(database-claim-tests ${SERVER_DIR}/platform/database_claim_tests_main.cpp)
+target_link_libraries(database-claim-tests PRIVATE hmailserver_core)
+set_target_properties(database-claim-tests PROPERTIES OUTPUT_NAME database-claim-tests)
+
 # ---------------------------------------------------------------- the profiles' lock
 #
 # ProfilesTester (Common/Application/Profiles.h) as a program of its own, for the

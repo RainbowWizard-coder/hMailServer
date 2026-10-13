@@ -570,8 +570,11 @@ namespace HM
    }
 
    DALConnection::ExecutionResult
-   SQLCEConnection::TryExecute(const SQLCommand &command, String &sErrorMessage, __int64 *iInsertID, int iIgnoreErrors)
+   SQLCEConnection::TryExecute(const SQLCommand &command, String &sErrorMessage, __int64 *iInsertID, int iIgnoreErrors, __int64 *rowsAffected)
    {
+      if (rowsAffected != nullptr)
+         *rowsAffected = -1;
+
       if (!connected_)
          return DALConnection::DALConnectionProblem; // --- already disconnected.
 
@@ -589,8 +592,16 @@ namespace HM
          adoCommand->CommandText = _bstr_t(queryString);
          adoCommand->ActiveConnection = cSQLCEConnection;
          adoCommand->NamedParameters = true;
-         adoCommand->Execute(NULL, NULL, adCmdText);
+
+         // RecordsAffected: the rows the statement matched (DALConnection.h). The
+         // Compact provider counts a row an UPDATE matched and left as it was, as
+         // SQL Server does (measured on 4.0.8876.1, 12 October 2026).
+         _variant_t recordsAffected;
+         adoCommand->Execute(&recordsAffected, NULL, adCmdText);
          adoCommand->ActiveConnection = NULL;
+
+         if (rowsAffected != nullptr)
+            *rowsAffected = ADOConnection::ReadRecordsAffected(recordsAffected);
 
          if (iInsertID > 0)
          {
@@ -613,9 +624,19 @@ namespace HM
       }
       catch ( _com_error &err )
       {
+         // A failure, ignored or not, leaves no count of its own: a statement
+         // that fails changes no row (DALConnection.h).
+         if (rowsAffected != nullptr)
+            *rowsAffected = -1;
+
          ExecutionResult dbErr = GetErrorType_(_com_error::WCodeToHRESULT(err.WCode()));
          if (iIgnoreErrors > 0 && iIgnoreErrors & dbErr)
+         {
+            if (rowsAffected != nullptr)
+               *rowsAffected = 0;
+
             return DALConnection::DALSuccess;
+         }
 
          // The marker means "this object may already exist". It must not also
          // discard a lost connection - see DALConnection::HasIgnoreErrorsMarker.
@@ -624,7 +645,12 @@ namespace HM
          // person who adds a mapping from re-opening the hole.
          if (dbErr != DALConnection::DALConnectionProblem &&
              HasIgnoreErrorsMarker(queryString))
+         {
+            if (rowsAffected != nullptr)
+               *rowsAffected = 0;
+
             return DALConnection::DALSuccess;
+         }
 
          _bstr_t bstrSource( err.Source() );
          _bstr_t bstrDescription( err.Description() );
@@ -646,6 +672,8 @@ namespace HM
       }
       catch ( ... )
       {
+         if (rowsAffected != nullptr)
+            *rowsAffected = -1;
 
          sErrorMessage = "Source: SQLCEConnection::Execute(), Code: HM10045, Description: Unknown error when executing SQL statement: \n";
          sErrorMessage.append(queryString);

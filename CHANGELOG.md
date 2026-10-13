@@ -516,6 +516,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 
 ### Correctness
 
+- **Fixed: on MySQL and MariaDB, the statement after the database had ended a TLS session, or after MySQL had closed
+  one for being idle, failed instead of being run again on a new connection.** The database layer runs a statement
+  again on a new connection when the old one turns out to be gone, which it recognised by the client's errors 2006
+  and 2013 alone. A session the database ends - a restart of it, a failover, a `KILL` - is reported over TLS, which
+  libmariadb negotiates by default with any MySQL 8 or MariaDB 11 that offers it, as TLS's error 2026; and MySQL
+  8.0.24 and later answer the first statement after closing an idle session (`wait_timeout`, eight hours as
+  shipped) with error 4031, TLS or not. So after either, the next statement on each connection of the pool failed,
+  and what it was for with it (HM5032), and only the one after it, which read 2006, reconnected. Both now
+  mean what 2013 means (`MySQLConnection::CheckError`). Measured through the server's own connections with
+  `database-claim-tests` on MySQL 8.4.11 and MariaDB 11.8.9 on 13 October 2026, each case with its negative control:
+  without 2026 the statement after a `KILL` failed on both, without 4031 the statement after an idle close failed on
+  MySQL.
+
 - **Fixed: a ManageSieve refusal that quoted a script's text with a line break in it was split in two.** RFC 5804's
   quoted string may hold no CR or LF, and `PUTSCRIPT` and `CHECKSCRIPT` quote the script's own text when they refuse
   it - an extension name, a string - which a Sieve string may write across lines. The server sent the text as it
@@ -4822,6 +4835,25 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the corpus at the end; and after the second check's repairs, with the check of where a mail program ends a link: no
   difference in 1,807 seconds, about 39.9 million inputs in 160 jobs, none a crash or a timeout
   ([Fuzzing.md](hmailserver/docs/Fuzzing.md), "UTS 46 against ada").
+- **The database layer counts the rows a statement matched, on all four backends, and has the database's clock in
+  UTC: the first unit of active-active (AA-01 in ActiveActive.md), which nothing in the server uses yet.**
+  `DatabaseConnectionManager::ExecuteCount` runs a statement as `Execute` does - the same fault injection, measuring
+  and audit - and answers the rows it matched, or -1 when it failed, and whether the connection was lost while it
+  ran, after which the layer runs it again: ADO's `RecordsAffected` on SQL Server and SQL Server Compact,
+  `mysql_affected_rows` on MySQL and MariaDB, now connected with `CLIENT_FOUND_ROWS` so that an update which sets
+  what a row already holds counts the row as the other engines do, and `PQcmdTuples` on PostgreSQL. SQL Server's
+  sessions are opened with `NOCOUNT` off, as a session is unless the server's `user options` turn it on, since under
+  it there is no count. `SQLStatement::GetCurrentUtcTimestamp` and `GetCurrentUtcTimestampPlusSeconds` give
+  `SYSUTCDATETIME()`, `UTC_TIMESTAMP(6)` and PostgreSQL's `statement_timestamp() at time zone 'utc'` - the
+  statement's time, not the transaction's, which `now()` is - and on SQL Server Compact, which has no UTC function
+  (its provider refuses all four it might have), the node's own UTC clock. `DatabaseClaimTester` holds them on a
+  real database through the server's own connections: in the Windows suite's internal tests on a SQL Server Compact
+  database of its own, and as `database-claim-tests`, which `linux-build` makes beside the server and the Linux
+  suite and the database matrix run against their PostgreSQL, MySQL or MariaDB before the server starts (it says
+  SKIPPED with no database) - the counts, a claim run again as a reconnect runs it, two connections racing for the
+  same rows and for named leases that have no row yet, a connection closed, ended and timed out under a claim, a
+  lease on the UTC clock refused, renewed, taken and fenced, and the UTC clock against the machine's.
+
 - **Every change is checked before it lands, a maintainer's batch as well as a merge request** (OpenSSF Baseline
   OSPS-VM-05.03 and OSPS-VM-06.02). `semgrep-sast`, `semgrep-sast-gate` and `mr-dependency-check` ran in a merge
   request's pipeline alone, and a maintainer's `batch*` branch, whose merge request runs no pipeline of its own, landed

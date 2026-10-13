@@ -1,9 +1,10 @@
 Active-active nodes: a design
 =============================
 
-**Not built.** This is a design, written on 29 September 2026 for 6.3.6, and
-nothing in it exists in the server. There is no code for it, no schema step and
-no setting. Until it is built, [WarmStandby.md](WarmStandby.md) holds without
+**Not built.** This is a design, written on 29 September 2026 for 6.3.6. Of what it
+needs, the server has only the first unit's: the database layer's row counts and
+its UTC clock (AA-01, below), which nothing in the server uses yet. There is no
+schema step and no setting. Until it is built, [WarmStandby.md](WarmStandby.md) holds without
 exception: **exactly one hMailServer service may run against a database at a
 time.** Two active services on one database lose mail, deliver the same mail
 twice, fetch the same remote mailbox twice, and can give two messages in one
@@ -42,10 +43,10 @@ each goes wrong with two.
 |---|---|---|
 | The delivery queue's start (`SMTPDeliveryManager::DoWork`, `PersistentMessage::UnlockAll`) | `update hm_messages set messagelocked = 0 where messagetype = 1 and messagelocked = 1`, once, when delivery starts: a lock left by a crash would otherwise hold its message for ever | A node that starts releases every message the other node is delivering at that moment |
 | The queue's selection (`SMTPDeliveryManager::LoadPendingMessageList_`, `GetNextMessage_`) | Reads every due, unlocked message into a list, then locks each one as it hands it out. A message being saved is inserted locked until its recipients are written | Both nodes read the same list |
-| The queue's lock (`PersistentMessage::LockObject`) | `update hm_messages set messagelocked = 1 where messageid = @MESSAGEID`, with no condition on the lock and no count of the rows it changed. No backend's `TryExecute` returns a count: ADO's `Execute` is called with no `RecordsAffected`, `mysql_affected_rows` is not loaded and the MySQL connection is opened without `CLIENT_FOUND_ROWS`, and `PQcmdTuples` is not called | Both nodes "win" the same message |
-| The database layer's retry (`DALConnection::Execute`) | A statement that meets a connection problem is run again after a reconnect | A claim whose commit reached the database but whose reply was lost runs twice, and the second run finds the row already taken. Inside a transaction, the second run would be on a new connection, outside it |
+| The queue's lock (`PersistentMessage::LockObject`) | `update hm_messages set messagelocked = 1 where messageid = @MESSAGEID`, with no condition on the lock, and it does not ask how many rows it changed. The database layer can say since unit AA-01 (`DatabaseConnectionManager::ExecuteCount`, below), and nothing asks it yet | Both nodes "win" the same message |
+| The database layer's retry (`DALConnection::Execute`) | A statement that meets a connection problem is run again after a reconnect, which since AA-01 it says it did (`ExecuteCount`'s `reconnected`) | A claim whose commit reached the database but whose reply was lost runs twice, and the second run finds the row already taken. Inside a transaction, the second run would be on a new connection, outside it |
 | The database session (`ADOConnection::Connect`) | Every SQL Server session runs at READ UNCOMMITTED, "since we've implemented our own locking mechanism": locks inside the process | A reader on one node sees rows another node's transaction has not committed, and may roll back |
-| The database's clock (`SQLStatement::GetCurrentTimestamp`) | `GETDATE()`, `NOW()` in the system's time zone, and `current_timestamp` stored into columns without a zone: local wall time | A lease measured on it jumps an hour at a daylight-saving change, on SQL Server and MySQL at both changes and on PostgreSQL in the repeated autumn hour |
+| The database's clock (`SQLStatement::GetCurrentTimestamp`) | `GETDATE()`, `NOW()` in the system's time zone, and `current_timestamp` stored into columns without a zone: local wall time. The database's clock in UTC, `GetCurrentUtcTimestamp`, is there since AA-01, and nothing uses it yet | A lease measured on it jumps an hour at a daylight-saving change, on SQL Server and MySQL at both changes and on PostgreSQL in the repeated autumn hour |
 | The queue's files | A queued message's file is on the local disk of the node that accepted it. The object store never holds the queue ([ObjectStorage.md](ObjectStorage.md)) | A node that claims a row whose file is on the other node's disk reports HM5006 and **deletes the row** (`SMTPDeliverer::DeliverMessage`). For one local recipient the queue row has already become the mailbox's row (`LocalDelivery::DeliverToLocalAccount_`), so what it deletes is mail already delivered |
 | A missing message file (`PersistentMessage::EnsureFileExistance`) | With the file system as the store, a message whose file is missing is given a placeholder ("message undeliverable"), written under its name, and the row takes the placeholder's size | A node asked for a message whose file is on the other node's disk replaces it, on its own disk, with a placeholder, and serves that from then on |
 | The other state in the data directory | Sieve scripts, includes and the vacation and duplicate records (`SieveStorage`), the keys the DKIM rotation makes (`<Data>/DKIM`; the domain row stores a path), the quarantine, recoverable items under legal hold, protected and confidential messages, shared files, list archives, eDiscovery exports, and ACME's certificates and account key are files under the data directory | Each exists on the node that wrote it. A Sieve script uploaded on one node does not filter mail delivered on another, mail relayed by another node is not signed with the rotated key, and a quarantine release that reaches another node fails |
@@ -107,9 +108,15 @@ this run of the process, its build, the lease protocol it speaks, when it starte
 a heartbeat it renews every ten seconds, and its state. A node whose heartbeat is
 older than its lease, 60 seconds for example, is taken for dead. Every lease below
 is compared with **the database's clock in UTC** (`SYSUTCDATETIME()`,
-`UTC_TIMESTAMP(6)`, `now() at time zone 'utc'`), never a node's own clock and never
-the database's local time, so two nodes whose clocks disagree still agree on who
-holds what, and a daylight-saving change moves no lease.
+`UTC_TIMESTAMP(6)`, `statement_timestamp() at time zone 'utc'`), never a node's own
+clock and never the database's local time, so two nodes whose clocks disagree still
+agree on who holds what, and a daylight-saving change moves no lease. It is the
+statement's time on all three, not the transaction's: PostgreSQL's `now()` is the
+start of the transaction, and a lease taken inside one would be shorter than it says.
+`SQLStatement::GetCurrentUtcTimestamp` writes it (AA-01). SQL Server Compact has no
+UTC function at all (its provider refuses `GETUTCDATE()`, `SYSUTCDATETIME()`,
+`SYSDATETIME()` and `CURRENT_TIMESTAMP`), and is one node, so there it is the node's
+own UTC clock, written into the statement.
 
 A node's **identity** is a random number kept in a file in its data directory,
 `node.id`, written at its first start, so that it follows the disk. A container
@@ -147,13 +154,22 @@ rule into a refusal. It is not a failover. A standby left running takes the leas
 once it has expired, with its data directory as replication left it, and the
 warm-standby runbook still applies.
 
-The database layer needs one thing it does not have: **the number of rows a
-statement matched**, from all four backends. ADO gives it as `RecordsAffected`
-(SQL Server and SQL Server Compact), MySQL as `mysql_affected_rows` with the
-connection opened with `CLIENT_FOUND_ROWS`, and PostgreSQL as `PQcmdTuples`.
-Without `CLIENT_FOUND_ROWS`, MySQL and MariaDB count only the rows a statement
-*changed*: a renewal or a fenced write that sets a value the row already holds
-counts 0, and would read as a lost lease. Every claim below is a conditional
+The database layer has, since AA-01, the one thing it lacked: **the number of rows
+a statement matched**, from all four backends (`DatabaseConnectionManager::ExecuteCount`).
+ADO gives it as `RecordsAffected` (SQL Server and SQL Server Compact; under SQL
+Server's `NOCOUNT` there is no count, so the server sets `NOCOUNT` off in every
+session it opens, which only a server whose `user options` turn it on for every
+session notices), MySQL as `mysql_affected_rows` with the connection opened with
+`CLIENT_FOUND_ROWS`, and PostgreSQL as `PQcmdTuples`. Without `CLIENT_FOUND_ROWS`,
+MySQL and MariaDB count only the rows a statement *changed*: a renewal or a fenced
+write that sets a value the row already holds counts 0, and would read as a lost
+lease. `ExecuteCount` also says whether the connection was lost while the statement
+ran, after which the layer runs it again. On MySQL and MariaDB that is also so,
+since AA-01, for a session the database ended under TLS - a restart, a failover, a
+`KILL` - which the client reports as TLS's error 2026 rather than 2013, and for one
+MySQL 8.0.24 and later closed for being idle (`wait_timeout`, error 4031): until
+then the statement after either failed, once on each connection of the pool, where
+it is now run again on a new connection. Every claim below is a conditional
 `UPDATE` that counts as won only when it matched exactly one row. On 12 October
 2026 the lab raced two connections over 300 rows on each of the four engines,
 claiming each row with `... where id = @ID and owner = 0`: every row was won
@@ -573,7 +589,11 @@ in containers on a Linux host. It has:
 The Linux server has no SQL Server backend, so SQL Server takes part through the
 engine checks, run as the server's sessions run, at READ UNCOMMITTED. Testers that
 race two connection pools in one process run in the Windows gate, whose database
-is SQL Server Compact. Faults are made on purpose:
+is SQL Server Compact. The engine checks are also run through the server's own
+database layer: `database-claim-tests` against the Linux suite's PostgreSQL and the
+database matrix's MySQL and MariaDB before the server starts, and the same checks
+inside the Windows server on a SQL Server Compact database of their own
+(`DatabaseClaimTester`). Faults are made on purpose:
 - a node killed (`docker kill`);
 - a node frozen past its lease (`docker pause`, then `unpause`);
 - a node cut off from the database;
@@ -642,7 +662,8 @@ wins every claim, skips its own change-log rows and has no folder to watch.
 
 1. **One node, sturdier** (no schema step):
    - AA-01, the database layer's row counts on all four backends, the UTC clock,
-     and the engine checks run as the server runs;
+     and the engine checks run as the server runs (built; nothing uses the counts
+     or the clock until AA-03 and AA-06);
    - AA-02, a transaction scope the persistence layer can use, with no statement
      run again inside it;
    - AA-03, conditional claims on today's lock columns, and a queue delete that

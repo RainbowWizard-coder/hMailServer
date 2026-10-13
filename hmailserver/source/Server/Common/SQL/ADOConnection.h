@@ -29,11 +29,19 @@ namespace HM
 
       ConnectionResult Connect(String &sErrorMessage);
       bool Disconnect();
-      ExecutionResult TryExecute(const SQLCommand &command, String &sErrorMessage, __int64 *iInsertID = 0, int iIgnoreErrors = 0);
+      ExecutionResult TryExecute(const SQLCommand &command, String &sErrorMessage, __int64 *iInsertID = 0, int iIgnoreErrors = 0, __int64 *rowsAffected = nullptr);
       bool IsConnected() const;
-   
+
       virtual bool GetSupportsCommandParameters() const {return true; }
       _ConnectionPtr GetConnection() const;
+
+      // What Command.Execute handed back as RecordsAffected, as TryExecute's
+      // rowsAffected: the count, or -1 when there is none - a negative count, which
+      // is ADO's own "unknown" (a statement that counts nothing, or SQL Server under
+      // NOCOUNT), or a value that is no number. A long in practice (VT_I4, measured
+      // on SQL Server Compact 4.0 on 12 October 2026); any integer type is read.
+      // SQLCEConnection, which calls ADO the same way, reads it here too.
+      static __int64 ReadRecordsAffected(const VARIANT &recordsAffected);
 
       virtual void OnConnected();
 

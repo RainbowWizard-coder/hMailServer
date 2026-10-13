@@ -300,6 +300,33 @@ if [ "$MODE" = create ]; then
   exit 0
 fi
 
+# The database layer's row counts, claims, leases and UTC clock on this engine,
+# through the server's own connections (database-claim-tests, which linux-build
+# makes beside the server), before the server starts: two tables of its own,
+# removed again, and the [Database] section of the server's configuration alone
+# (build/ci/linux-suite.sh does the same on the suite's PostgreSQL). Beside
+# linux-build's server it must be there; beside another it is run where it is found.
+if [ "$MODE" = run ]; then
+  claims="${HM_CLAIM_TESTS_BINARY:-$(dirname "$BINARY")/database-claim-tests}"
+  if [ -x "$claims" ]; then
+    echo "== the database's row counts, claims, leases and UTC clock ($claims)"
+    "$claims" "$T/program/hMailServer.ini" > "$OUT/database-claim-tests.log" 2>&1
+    claimed=$?
+    cat "$OUT/database-claim-tests.log"
+    if [ "$claimed" -ne 0 ]; then
+      echo "DATABASE CLAIM TESTS FAILED on $KIND (exit $claimed)"
+      hand_back
+      exit 1
+    fi
+  elif [ -z "${HM_SERVER_BINARY:-}" ] || [ -n "${HM_CLAIM_TESTS_BINARY:-}" ]; then
+    echo "REFUSED: no database-claim-tests at $claims - linux-build makes it beside the server."
+    hand_back
+    exit 2
+  else
+    echo "== no database-claim-tests beside $BINARY: the database's row counts are not checked in this run"
+  fi
+fi
+
 echo "== the layout"
 # The listeners are rows. SMTP, POP3 and IMAP move to the ports the suite expects;
 # submission keeps 587, which root can bind in a container. The test domain is made

@@ -273,6 +273,28 @@ set -e
 "${server[@]}" --version
 "${server[@]}" --create-database
 psql -h "$PGH" -d "$DB" -Atc "select 'schema ' || value from hm_dbversion"
+# The database layer's row counts, claims, leases and UTC clock on this PostgreSQL,
+# through the server's own connections (database-claim-tests, which linux-build
+# makes beside the server), before the server starts: two tables of its own,
+# removed again, and the [Database] section of the server's configuration alone,
+# so that the error it provokes on purpose is logged where the suite does not look.
+# Beside linux-build's server it must be there; beside another (a package's, as
+# alpine.sh runs the suite) it is run where it is found, or said not to be.
+claims="${HM_CLAIM_TESTS_BINARY:-$(dirname "$BINARY")/database-claim-tests}"
+if [ -x "$claims" ]; then
+  echo "== the database's row counts, claims, leases and UTC clock ($claims)"
+  if ! "$claims" "$T/program/hMailServer.ini" > "$OUT/database-claim-tests.log" 2>&1; then
+    cat "$OUT/database-claim-tests.log"
+    echo "DATABASE CLAIM TESTS FAILED"
+    exit 1
+  fi
+  cat "$OUT/database-claim-tests.log"
+elif [ -z "${HM_SERVER_BINARY:-}" ] || [ -n "${HM_CLAIM_TESTS_BINARY:-}" ]; then
+  echo "REFUSED: no database-claim-tests at $claims - linux-build makes it beside the server."
+  exit 2
+else
+  echo "== no database-claim-tests beside $BINARY: the database's row counts are not checked in this run"
+fi
 # The listeners are rows. SMTP, POP3 and IMAP move to the ports the suite expects
 # (HMTEST_* above); the submission listener stays on 587.
 psql -h "$PGH" -d "$DB" -Atc "

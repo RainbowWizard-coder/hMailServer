@@ -104,6 +104,7 @@
 #include "../TCPIP/SslContextInitializer.h"
 #include "../SQL/DatabaseTls.h"
 #include "../SQL/DatabaseConnectionManager.h"
+#include "../SQL/DatabaseClaimTester.h"
 #include "Time.h"
 #include "Utilities.h"
 #include "Parsing/AddresslistParser.h"
@@ -603,6 +604,20 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing SchemaUpgrader\n"));
       SchemaUpgraderTester schemaUpgraderTester;
       schemaUpgraderTester.Test();
+
+#ifndef HM_PLATFORM_POSIX
+      // The database layer's row counts and its UTC clock (ActiveActive.md, D1 and
+      // D3), on a SQL Server Compact database of the tester's own - the engine the
+      // Windows gate runs on - and on the server's own database when it is SQL
+      // Server: what an UPDATE that matches a row and leaves it as it was counts, a
+      // claim that recognises its own epoch when it is run again, two connections
+      // racing for the same rows and named leases, a reconnect said, a lease on the
+      // UTC clock refused, renewed, taken and fenced, and whether Compact's
+      // provider has a UTC function of its own.
+      OutputDebugString(_T("hMailServer: Testing the database's row counts, claims and UTC clock\n"));
+      DatabaseClaimTester databaseClaimTester;
+      databaseClaimTester.TestCompact();
+#endif
 
       // The end of the greylisting key migration (schema 6107): the key against
       // MD5 vectors, what becomes of a row without one, which copy of a triplet

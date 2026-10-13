@@ -302,12 +302,20 @@ namespace HM
       ClientBytes(password, passwordText);
       ClientBytes(database, databaseText);
 
+      // CLIENT_FOUND_ROWS: mysql_affected_rows counts the rows an UPDATE matched, as
+      // ADO and libpq count them, where without it MySQL and MariaDB count only the
+      // rows whose values it changed - and an UPDATE that sets what a row already
+      // holds (a lease renewed by its holder, a claim run again after a reconnect)
+      // counts 0, which a claim reads as lost (measured on MySQL 8.4 and MariaDB
+      // 11.8 on 12 October 2026, build/lab/active-active/sqlcheck.py). It changes
+      // nothing else the server reads: only the count, which until TryExecute's
+      // rowsAffected nothing asked for, and not mysql_insert_id.
       hm_MYSQL *result = client->p_mysql_real_connect(
                   dbconn_,
                   serverText.c_str(),
                   usernameText.c_str(),
                   passwordText.c_str(),
-                  databaseText.c_str(), port, 0, 0);
+                  databaseText.c_str(), port, 0, HM_MYSQL_CLIENT_FOUND_ROWS);
 
       if (result == 0)
       {
@@ -456,8 +464,11 @@ namespace HM
    }
 
    DALConnection::ExecutionResult
-   MySQLConnection::TryExecute(const SQLCommand &command, String &sErrorMessage, __int64 *iInsertID, int iIgnoreErrors)
+   MySQLConnection::TryExecute(const SQLCommand &command, String &sErrorMessage, __int64 *iInsertID, int iIgnoreErrors, __int64 *rowsAffected)
    {
+      if (rowsAffected != nullptr)
+         *rowsAffected = -1;
+
       String SQL = command.GetQueryString();
       try
       {
@@ -489,7 +500,8 @@ namespace HM
             // Classified first, because whether the marker may discard this
             // failure depends on what the failure is. CheckError is the only
             // thing on this backend that recognises a dropped connection (2006
-            // "server has gone away" / 2013 "lost connection"); GetErrorType_
+            // "server has gone away", 2013 "lost connection", and the TLS and
+            // idle-timeout forms of the same); GetErrorType_
             // does not, so it cannot be used for that test. Its own error text
             // goes into a local so that a discarded failure does not leave a
             // message behind in the caller's buffer.
@@ -516,10 +528,29 @@ namespace HM
             }
          }
 
+         // The count, before mysql_store_result, which for a statement with a result
+         // set puts that set's row count in its place. A failure the caller asked to
+         // ignore changed no row (DALConnection.h); mysql_affected_rows says -1 after
+         // one.
+         __int64 count = -1;
+         if (failureIgnored)
+         {
+            count = 0;
+         }
+         else if (MySQLInterface::Instance()->p_mysql_affected_rows != nullptr)
+         {
+            const unsigned long long affected = MySQLInterface::Instance()->p_mysql_affected_rows(dbconn_);
+            if (affected != ~0ull)
+               count = (__int64) affected;
+         }
+
          hm_MYSQL_RES *pRes = MySQLInterface::Instance()->p_mysql_store_result(dbconn_); // should always be called after mysql_query
 
          if (pRes)
             MySQLInterface::Instance()->p_mysql_free_result(pRes);
+
+         if (rowsAffected != nullptr)
+            *rowsAffected = count;
 
          // Fetch insert id.
          //
@@ -544,6 +575,9 @@ namespace HM
       }
       catch (...)
       {
+         if (rowsAffected != nullptr)
+            *rowsAffected = -1;
+
          sErrorMessage = "Source: MySQLConnection::TryExecute, Code: HM10048, Description: An unhandled error occurred while executing: " + SQL;
          return DALConnection::DALUnknown;
       }
@@ -620,6 +654,18 @@ namespace HM
          {
          case 2006: // MySQL server has gone away
          case 2013: // Lost connection to MySQL server during query
+         // A session the server has ended - killed, restarted, failed over - answers
+         // the next statement over TLS with the TLS layer's end of file rather than
+         // 2013, and MySQL 8.0.24 and later answer the first statement after closing
+         // an idle session (wait_timeout) with ER_CLIENT_INTERACTION_TIMEOUT, TLS or
+         // not; the statement after that reads 2006. Measured through libmariadb on
+         // MySQL 8.4 and MariaDB 11.8, 13 October 2026. Each means the connection is
+         // gone, as 2013 does, so the statement is run again on a new one
+         // (DALConnection::Execute) where it used to fail. CheckError is reached
+         // only for a statement or a connection already made, so 2026 here is never
+         // the TLS refusal of a connect, which ConnectOnce_ answers itself.
+         case HM_MYSQL_CR_SSL_CONNECTION_ERROR:
+         case 4031: // ER_CLIENT_INTERACTION_TIMEOUT
             result = DALConnection::DALConnectionProblem;
             break;
          }

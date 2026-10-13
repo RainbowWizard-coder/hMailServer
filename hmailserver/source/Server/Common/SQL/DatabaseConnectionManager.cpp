@@ -74,16 +74,39 @@ namespace HM
    }
 
    bool
+   DatabaseConnectionManager::CreateConnections(std::shared_ptr<DatabaseSettings> settings, int connections, String &sErrorMessage)
+   {
+      if (!settings || connections < 1)
+      {
+         sErrorMessage = "A pool needs the database's settings and at least one connection.";
+         return false;
+      }
+
+      if (Connect_(settings, connections, sErrorMessage) != DALConnection::Connected)
+         return false;
+
+      sErrorMessage = "";
+      return true;
+   }
+
+   bool
    DatabaseConnectionManager::CreateConnections(String &sErrorMessage)
    {
       int iNoOfConnectionAttempts = IniFileSettings::Instance()->GetNumberOfDatabaseConnectionAttempts();
       int iDelayBetweenConnectionAttempt = IniFileSettings::Instance()->GetDBConnectionAttemptsDelay() * 1000;
 
-
       bool bConnectionOK = false;
       for (int iTry = 1; iTry <= iNoOfConnectionAttempts ; iTry++)
-      {     
-         DALConnection::ConnectionResult iResult = Connect_(sErrorMessage);
+      {
+         // [Database] read at every attempt, as it always was.
+         IniFileSettings *pIniFileSettings = IniFileSettings::Instance();
+
+         std::shared_ptr<DatabaseSettings> pSettings = std::shared_ptr<DatabaseSettings>
+            (new DatabaseSettings(pIniFileSettings->GetDatabaseProvider(), pIniFileSettings->GetDatabaseServer(), pIniFileSettings->GetDatabaseName(),
+                                  pIniFileSettings->GetUsername(), pIniFileSettings->GetPassword(), pIniFileSettings->GetDatabaseDirectory(),
+                                  pIniFileSettings->GetDatabaseServerFailoverPartner(), pIniFileSettings->GetDatabaseType(), pIniFileSettings->GetDatabasePort()));
+
+         DALConnection::ConnectionResult iResult = Connect_(pSettings, pIniFileSettings->GetNumberOfDatabaseConnections(), sErrorMessage);
 
          switch (iResult)
          {
@@ -111,26 +134,8 @@ namespace HM
    }
 
    DALConnection::ConnectionResult
-   DatabaseConnectionManager::Connect_(String &sErrorMessage)
+   DatabaseConnectionManager::Connect_(std::shared_ptr<DatabaseSettings> pSettings, int iNoOfConnections, String &sErrorMessage)
    {
-      int iNoOfConnections = IniFileSettings::Instance()->GetNumberOfDatabaseConnections();
-
-      IniFileSettings *pIniFileSettings = IniFileSettings::Instance();
-
-      String sProvider = pIniFileSettings->GetDatabaseProvider();
-      String sServer = pIniFileSettings->GetDatabaseServer();
-      String sUsername = pIniFileSettings->GetUsername();
-      String sPassword = pIniFileSettings->GetPassword();
-      String sDatabase = pIniFileSettings->GetDatabaseName();
-      String sDatabaseDirectory = pIniFileSettings->GetDatabaseDirectory();
-      String sDatabaseServerFailoverPartner = pIniFileSettings->GetDatabaseServerFailoverPartner();
-      long lDBPort = pIniFileSettings->GetDatabasePort();
-
-      HM::DatabaseSettings::SQLDBType dbType = IniFileSettings::Instance()->GetDatabaseType();
-
-      std::shared_ptr<DatabaseSettings> pSettings = std::shared_ptr<DatabaseSettings> 
-         (new DatabaseSettings(sProvider, sServer, sDatabase, sUsername, sPassword, sDatabaseDirectory, sDatabaseServerFailoverPartner, dbType, lDBPort));
-
       for (int i = 0; i < iNoOfConnections; i++)
       {
          std::shared_ptr<DALConnection> pConnection = DALConnectionFactory::CreateConnection(pSettings);
@@ -349,9 +354,34 @@ namespace HM
       return Execute(statement.GetCommand(), iInsertID, iIgnoreErrors, sErrorMessage);
    }
 
-   bool 
+   bool
    DatabaseConnectionManager::Execute(const SQLCommand &command, __int64 *iInsertID, int iIgnoreErrors, String &sErrorMessage)
    {
+      return Execute_(command, iInsertID, iIgnoreErrors, sErrorMessage, nullptr, nullptr);
+   }
+
+   __int64
+   DatabaseConnectionManager::ExecuteCount(const SQLCommand &command, bool *reconnected, int iIgnoreErrors)
+   {
+      String discarded;
+      __int64 rows = -1;
+
+      if (!Execute_(command, nullptr, iIgnoreErrors, discarded, &rows, reconnected))
+         return -1;
+
+      return rows;
+   }
+
+   bool
+   DatabaseConnectionManager::Execute_(const SQLCommand &command, __int64 *iInsertID, int iIgnoreErrors, String &sErrorMessage,
+                                       __int64 *rowsAffected, bool *reconnected)
+   {
+      if (rowsAffected != nullptr)
+         *rowsAffected = -1;
+
+      if (reconnected != nullptr)
+         *reconnected = false;
+
       if (SimulateFailureFor_(command))
       {
          sErrorMessage = "Simulated database failure ([Settings] SimulateDatabaseFailureFor).";
@@ -370,7 +400,7 @@ namespace HM
 
       boost::chrono::steady_clock::time_point queryStart = boost::chrono::steady_clock::now();
 
-      bool bResult = pDALConn->Execute(command, sErrorMessage, iInsertID, iIgnoreErrors);
+      bool bResult = pDALConn->Execute(command, sErrorMessage, iInsertID, iIgnoreErrors, rowsAffected, reconnected);
 
       unsigned __int64 elapsedMicros = (unsigned __int64) boost::chrono::duration_cast<boost::chrono::microseconds>(
          boost::chrono::steady_clock::now() - queryStart).count();

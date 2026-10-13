@@ -52,6 +52,12 @@ struct hm_st_mysql_field {
 // The client error both clients raise when TLS cannot be set up (CR_SSL_CONNECTION_ERROR).
 #define HM_MYSQL_CR_SSL_CONNECTION_ERROR 2026u
 
+// mysql_real_connect's client flag CLIENT_FOUND_ROWS, the same number in both clients
+// and in the protocol: mysql_affected_rows then counts the rows an UPDATE matched,
+// as the other three backends count them, and not only the rows whose values it
+// changed (MySQLConnection::ConnectOnce_).
+#define HM_MYSQL_CLIENT_FOUND_ROWS 2ul
+
 typedef hm_MYSQL* STDCALL hm_mysql_real_connect(hm_MYSQL *,const char *,const char *,const char *,const char *, unsigned int,const char *,unsigned long);
 typedef void STDCALL hm_mysql_close(hm_MYSQL *);
 typedef hm_MYSQL* STDCALL hm_mysql_init(hm_MYSQL *);
@@ -61,6 +67,9 @@ typedef int STDCALL hm_mysql_query(hm_MYSQL *mysql, const char *q);
 typedef hm_MYSQL_RES * STDCALL hm_mysql_store_result(hm_MYSQL *mysql);
 typedef void STDCALL hm_mysql_free_result(hm_MYSQL_RES *result);
 typedef unsigned long long STDCALL hm_mysql_insert_id(hm_MYSQL *mysql);
+// The rows the last statement counted, read before mysql_store_result; (unsigned
+// long long) -1 when it has no count (an error, or a statement with a result set).
+typedef unsigned long long STDCALL hm_mysql_affected_rows(hm_MYSQL *mysql);
 typedef unsigned int STDCALL hm_mysql_errno(hm_MYSQL *mysql);
 typedef unsigned long long STDCALL hm_mysql_num_rows(hm_MYSQL_RES *res);
 typedef hm_MYSQL_ROW STDCALL hm_mysql_fetch_row(hm_MYSQL_RES *result);
@@ -109,6 +118,7 @@ namespace HM
       hm_mysql_store_result *p_mysql_store_result;
       hm_mysql_free_result *p_mysql_free_result;
       hm_mysql_insert_id *p_mysql_insert_id;
+      hm_mysql_affected_rows *p_mysql_affected_rows;
       hm_mysql_errno *p_mysql_errno;
       hm_mysql_num_rows *p_mysql_num_rows;
       hm_mysql_fetch_row *p_mysql_fetch_row;

@@ -39,9 +39,15 @@ namespace HM
       DatabaseTls::NoteConnection(description);
    }
 
-   bool 
-   DALConnection::Execute(const SQLCommand &command, String &sErrorMessage, __int64 *iInsertID, int iIgnoreErrors) 
+   bool
+   DALConnection::Execute(const SQLCommand &command, String &sErrorMessage, __int64 *iInsertID, int iIgnoreErrors, __int64 *rowsAffected, bool *reconnected)
    {
+      if (rowsAffected != nullptr)
+         *rowsAffected = -1;
+
+      if (reconnected != nullptr)
+         *reconnected = false;
+
       SQLCommand commandCopy = command;
 
       if (!GetSupportsCommandParameters() && command.GetParameters().size() > 0)
@@ -62,20 +68,29 @@ namespace HM
             Reconnect(sErrorMessage);
          }
 
-         DALConnection::ExecutionResult result = TryExecute(commandCopy, sErrorMessage, iInsertID, iIgnoreErrors);
+         DALConnection::ExecutionResult result = TryExecute(commandCopy, sErrorMessage, iInsertID, iIgnoreErrors, rowsAffected);
          if (result == DALConnection::DALSuccess)
          {
-            sErrorMessage = "";           
+            sErrorMessage = "";
             return true;
          }
 
          if (result != DALConnection::DALConnectionProblem)
             break;
 
-         // There's been a connection problem. Try to reconnect.
+         // There's been a connection problem. Try to reconnect. Whatever happens
+         // next, the statement may already have been run: the connection can have
+         // gone after the database committed it and before its answer arrived, and
+         // the next attempt sends it again (Execute's declaration).
+         if (reconnected != nullptr)
+            *reconnected = true;
+
          Sleep(1000);
          Reconnect(sErrorMessage);
       }
+
+      if (rowsAffected != nullptr)
+         *rowsAffected = -1;
 
       // We've reached the maximum number of 
       // reties without success. Time to give up.

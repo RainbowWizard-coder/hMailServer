@@ -27,6 +27,14 @@ namespace HM
 
       bool CreateConnections(String &sErrorMessage);
 
+      // A pool of its own over the database the settings name, with this many
+      // connections and one attempt, for a tester that needs a pool beside the
+      // server's - on a database of its own, or as a second node would be, since two
+      // pools in one process race on the database as two nodes do (ActiveActive.md,
+      // D18). The server's own pool is CreateConnections(String &), from the
+      // configuration file.
+      bool CreateConnections(std::shared_ptr<DatabaseSettings> settings, int connections, String &sErrorMessage);
+
       // Every connection closed, those in use included: a reinitialise's,
       // which opens the database again at once, and a command-line verb's.
       void Disconnect();
@@ -73,7 +81,26 @@ namespace HM
       bool Execute(const SQLStatement &statement, __int64 *iInsertID, int iIgnoreErrors, String &sErrorMessage);
       bool Execute(const SQLCommand &command, __int64 *iInsertID = 0, int iIgnoreErrors = 0);
       bool Execute(const SQLCommand &command, __int64 *iInsertID, int iIgnoreErrors, String &sErrorMessage);
-      
+
+      // The number of rows the statement matched, or -1 when it failed - for an
+      // UPDATE, every row its WHERE clause matched, whether or not the new values
+      // differ from the old, on all four backends (DALConnection::TryExecute) - so
+      // that a conditional UPDATE can be judged by its count: won when it matched
+      // one row (ActiveActive.md, decision D1). For one INSERT, UPDATE or DELETE;
+      // what an engine answers for anything else is not to be read. A failure the
+      // caller asked to ignore (iIgnoreErrors: DALConnection::DALErrorInSQL for a
+      // row a unique index refused) counts 0, since it changed no row.
+      //
+      // The same statement as Execute, with the same fault injection, measuring and
+      // audit, and the same error reported when it fails. Execute runs a statement
+      // again after a reconnect (DALConnection::Execute); reconnected, when given,
+      // says whether that happened while this one ran. A first run may then have
+      // been committed with only its answer lost: an UPDATE that recognises itself
+      // (a claim matching its own epoch, D1) counts 1 either way, and any other
+      // caller that relies on the count reads its row back before it believes a 0
+      // or a failure.
+      __int64 ExecuteCount(const SQLCommand &command, bool *reconnected = nullptr, int iIgnoreErrors = 0);
+
       std::shared_ptr<DALRecordset> OpenRecordset(const SQLStatement &statement);
       std::shared_ptr<DALRecordset> OpenRecordset(const SQLCommand &command);
 
@@ -102,7 +129,13 @@ namespace HM
 
       friend class DatabaseConnectionManagerTester;
 
-      DALConnection::ConnectionResult Connect_(String &sErrorMessage);
+      DALConnection::ConnectionResult Connect_(std::shared_ptr<DatabaseSettings> settings, int connections, String &sErrorMessage);
+
+      // The one path Execute and ExecuteCount share: the fault injection, a pooled
+      // connection, the statement (DALConnection::Execute), its measuring, and the
+      // audit trail's record of it.
+      bool Execute_(const SQLCommand &command, __int64 *iInsertID, int iIgnoreErrors, String &sErrorMessage,
+                    __int64 *rowsAffected, bool *reconnected);
 
       // A connection Connect_ has made, put in the pool under mutex_ - or,
       // once CloseWhenIdle has begun, closed instead, and false answered. A
