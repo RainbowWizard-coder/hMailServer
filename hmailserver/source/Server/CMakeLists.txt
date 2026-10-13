@@ -1060,11 +1060,16 @@ set_target_properties(connection-string-tests PROPERTIES OUTPUT_NAME connection-
 # racing for the same rows and named leases, a reconnect said, a lease on the
 # database's UTC clock, and that clock against this machine's (ActiveActive.md,
 # decisions D1 and D3). The one tester that needs a database: given no
-# configuration file it says SKIPPED and exits 0, which is how linux-build.sh and
-# the packages' builds run it. build/ci/linux-suite.sh runs it against the
-# suite's PostgreSQL and build/lab/db-suite.sh against the matrix's database,
-# with the server's own hMailServer.ini, of which it reads the [Database] section
-# alone, before the server starts; tables of its own, removed again, and a
+# configuration file it says SKIPPED and exits 0, which is how every build that
+# finds its testers rather than listing them runs it - linux-build.sh, the CI's
+# per-distro package builds (build/ci/packages/deb-build.sh and rpm-build.sh,
+# where they can run what they built), Alpine's check(), the Nix package's
+# checkPhase and build/ci/linux-coverage.sh. The source packages' builds
+# (debian-src's debian/rules and hmailserver.spec's %check) name their testers
+# and leave it out. build/ci/linux-suite.sh runs it against the suite's
+# PostgreSQL and build/lab/db-suite.sh against the matrix's database, with the
+# server's own hMailServer.ini, of which it reads the [Database] section alone,
+# before the server starts; tables of its own, removed again, and a
 # configuration and logs of its own under the system's temp directory. About ten
 # seconds. Not installed; a bench tool.
 add_executable(database-claim-tests ${SERVER_DIR}/platform/database_claim_tests_main.cpp)

@@ -74,9 +74,9 @@ build() {
 
 # The server itself first, which has to get as far as printing its version (every
 # static constructor runs before main), then every tester program the build makes
-# beside it: none needs a database or the network, and network-deadline-tests and
-# http-server-tests, which connect to peers of their own on 127.0.0.1, need only
-# the loopback.
+# beside it: none needs the network, network-deadline-tests and http-server-tests,
+# which connect to peers of their own on 127.0.0.1, need only the loopback, and
+# database-claim-tests, given no database, says SKIPPED.
 check() {
 	cd build
 	./hmailserver --version
