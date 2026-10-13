@@ -4038,3 +4038,46 @@ exceptions:
     reviewed-by: Progressiverobot
     reviewed: 2026-10-05
     expires: 2027-10-04
+
+  # The four semgrep-sast findings in batch47's Control Panel code that its change gate held
+  # when the batch was pre-gated (13 October 2026). Three are TryRestartService's lines,
+  # accepted above in FeatureSettingsView.xaml.cs (367dce7d1426591b4bd1, 3a98ec300b45c7a6ab8c,
+  # 361005ce906b3d763429), which batch47 moves unchanged into ServiceRestart.TryRestart, the
+  # restart that the window's pending bar and the pages a save leaves waiting for a restart now
+  # share: a fingerprint names the file, so theirs are new. The fourth is the Open the Control
+  # Deck button's ShellExecute of the Deck's address. Each was read against the code of batch47
+  # at 8f098865b by an AI agent, which then tried to show it exploitable and could not, under
+  # the owner's delegation and not line by line by the owner, so reviewed-by names the owner,
+  # who delegated the reading. They land on master before batch47, in a change of their own.
+  # Once batch47 is on master the three entries above accept nothing, the method gone from
+  # FeatureSettingsView.xaml.cs, and are to be taken out.
+  # hmailserver/source/Tools/ControlPanel/Services/ServiceRestart.cs
+  - scan: semgrep-sast
+    finding: 0376f275140223bb1f6d
+    what: FileName of the elevated cmd.exe in ServiceRestart.TryRestart
+    reason: 'In ServiceRestart.TryRestart, FileName is Path.Combine(system, "cmd.exe"), where system is Environment.SystemDirectory (line 97), which comes from GetSystemDirectoryW, not from the environment; WorkingDirectory is System32 too (line 103), so ShellExecuteEx searches nothing and nothing in the current directory can stand in for cmd.exe. No user or file text reaches this line. It is TryRestartService''s line (367dce7d1426591b4bd1), moved with its method from FeatureSettingsView.xaml.cs unchanged.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-13
+    expires: 2027-10-12
+  - scan: semgrep-sast
+    finding: 1a5b94ee86ee3748e0e8
+    what: Arguments of the elevated cmd.exe (net stop and start hMailServer) in ServiceRestart.TryRestart
+    reason: 'In ServiceRestart.TryRestart, the argument line is constant text and net, which is Path.Combine(Environment.SystemDirectory, "net.exe") (lines 97-98): a GetSystemDirectoryW path with no quote in it, quoted in the line. /d skips Command Processor AutoRun, and with /s cmd takes off only the outer pair of quotes, so what runs is exactly "<System32>\net.exe" stop hMailServer & "<System32>\net.exe" start hMailServer. It is TryRestartService''s line (3a98ec300b45c7a6ab8c), moved unchanged.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-13
+    expires: 2027-10-12
+  - scan: semgrep-sast
+    finding: 0f4256888b707f95b86d
+    what: Process.Start of the elevated restart start info in ServiceRestart.TryRestart
+    reason: 'In ServiceRestart.TryRestart, this starts the ProcessStartInfo built at lines 99-107, only when this Control Panel is not elevated: its FileName is System32''s cmd.exe by its full path, its WorkingDirectory is System32, and its arguments are constant but for System32''s net.exe path, so nothing variable is interpreted by the shell and no bare name is searched for. The elevation prompt it raises is for the restart the administrator asked for. It is TryRestartService''s line (361005ce906b3d763429), moved unchanged.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-13
+    expires: 2027-10-12
+  # hmailserver/source/Tools/ControlPanel/Views/ControlDeckLink.cs
+  - scan: semgrep-sast
+    finding: 77fe7403cc8c67740ede
+    what: 'ShellExecute of the Control Deck''s address in ControlDeckLink.Open_, the Open the Control Deck button''s click'
+    reason: 'Open_ returns on null and otherwise opens deck.AbsoluteUri, where deck is the button''s Tag, which only ControlDeckLink.Update sets, from Find: ControlDeck.Address, which returns RestSettings.Endpoint''s Uri or null. Endpoint builds it as new Uri(scheme + "://" + target + ":" + port + "/"), with scheme the constant https or http, port an integer from 1 to 65535 and target the REST API''s bind address from hMailServer.ini, which only administrators can write, or the host this Control Panel signed in to; a target new Uri refuses ends in Find''s catch, with no address. So ShellExecute is only ever handed an absolute http or https URI, which it passes to the browser registered for the scheme, and runs no program the address names. Nothing a mail sender or a REST client sends reaches it.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-13
+    expires: 2027-10-12
