@@ -139,7 +139,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          var drawn = Enumerable.Range(0, spam.Children.Count).Select(i => NavigationMap.SectionBefore(spam.Children, i)).ToList();
          Assert.Equal("Lists", drawn[first]);
-         Assert.Single(drawn.Where(section => section != null));
+         Assert.Single(drawn, section => section != null);
       }
 
       /// <summary>

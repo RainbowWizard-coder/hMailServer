@@ -1389,13 +1389,6 @@ namespace hMailServer.ControlPanel.Views
          public StatusLevel Level = StatusLevel.Information;
          public string Text;
 
-         /// <summary>
-         /// The navigation key of the page the notice's subject is on, or null: the
-         /// notice then carries Open and that page's title (Services/NoticeActions),
-         /// as a card that names another page offers the way there.
-         /// </summary>
-         public string Page;
-
          public override bool WantsInitialValue => false;
 
          protected override bool CaptionOnRow => false;
@@ -1405,8 +1398,7 @@ namespace hMailServer.ControlPanel.Views
             {
                Level = Level,
                Text = Text,
-               Margin = new Thickness(0),
-               Content = Page == null ? null : NoticeActions.OpenPage(Page, "settings-open-" + Page)
+               Margin = new Thickness(0)
             };
 
          public override object ReadEditor() => null;
