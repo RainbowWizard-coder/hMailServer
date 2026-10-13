@@ -362,7 +362,7 @@ def quotation_findings(tag, target):
 # What the read-back of 6.3.7 (batch53, row 53.6) mended in the Czech, Danish, Finnish,
 # Norwegian, Turkish, Ukrainian, Japanese and Chinese catalogues, where a rule can see it:
 # - a Chinese confirmation that does not ask: the English asks (Stop the update?) and the
-#   Chinese stated it (停止更新？) - sixteen did, and ask with 是否 now, as the rest do;
+#   Chinese stated it (停止更新？) - nineteen did, and ask with 是否 now, as the rest do;
 # - a button set off by spaces where Chinese quotes it and Japanese brackets it (点击 查询。,
 #   入力して 照会 を押して), a space after a full-width mark (配置： {0}), and a half-width
 #   question mark after Han characters (您想做什么?);
@@ -378,7 +378,11 @@ def quotation_findings(tag, target):
 #   провайдер and a 提供商 or 提供者 in the same texts (repaired after the read-back's check);
 # - in every catalogue, a sentence that opens in lower case where its English opens with a
 #   capital: six began the MTA-STS caveat with the key's name, "mode a max_age načtené ...", when
-#   the read-back held the word to the texts beside it, which write it mid-sentence.
+#   the read-back held the word to the texts beside it, which write it mid-sentence;
+# - a term the read-back's CHANGELOG entries say a catalogue uses throughout, named the other way
+#   again: a hold is 暂挂 in Chinese, a resolver a розв’язувач, a server's health its справність and
+#   an event script a скрипт in Ukrainian, a mail header a header in Norwegian and the message
+#   index an indeks in Turkish - the check of the read-back found each left in a text or two.
 READBACK_CONFIRMING_VERBS = {
    "Apply", "Cancel", "Clear", "Delete", "Discard", "Empty", "Erase", "Keep", "Lift", "Merge", "Overwrite", "Purge",
    "Put", "Release", "Remove", "Replace", "Reset", "Restore", "Revert", "Show", "Stop", "Turn",
@@ -414,6 +418,20 @@ READBACK_PROVIDER_NAMES = {
 }
 # A first word that is a literal as it is written: a capital, a digit or a mark inside it.
 READBACK_LITERAL_MARK = re.compile(r"[A-Z0-9_=@./:<>]")
+# Each catalogue's terms: (the English a text names the thing with, or None for every text; the
+# English that leaves the text alone, or None; the word refused; what the catalogue calls it).
+READBACK_TERMS = {
+   "zh-Hans": [(None, None, re.compile(r"扣留|暂扣|暂留"), "暂挂 (a held message)")],
+   "uk": [
+      (None, None, re.compile(r"(?i)резолвер\w*"), "розв’язувач (a resolver)"),
+      (None, None, re.compile(r"(?i)стан\w* здоров\S*"), "справність (a server's health)"),
+      (re.compile(r"(?i)\bevent[- ]scripts?\b|\bscript events\b|\bevent-scripting\b"), None, re.compile(r"(?i)сценар\w*"),
+       "скрипт (an event script)"),
+   ],
+   "nb": [(re.compile(r"(?i)\bheaders?\b(?! row)"), None, re.compile(r"(?i)\w*overskrift\w*"), "header (a mail header)")],
+   "tr": [(re.compile(r"(?i)\bindex(?:es|ing|er)?\b"), re.compile(r"(?i)\bdirector(?:y|ies)\b"), re.compile(r"(?i)\bdizin\w*"),
+           "indeks (the message index)")],
+}
 
 
 def readback_opens_lower(source, target):
@@ -441,6 +459,11 @@ def readback_findings(tag, source, target):
    if readback_opens_lower(source, target):
       findings.append("the sentence opens with %r in lower case, where its English opens with a capital; let a "
                       "word open it and keep the name as the server writes it" % target.split()[0])
+   for english, unless, refused, says in READBACK_TERMS.get(tag, ()):
+      if (english is not None and not english.search(source)) or (unless is not None and unless.search(source)):
+         continue
+      for match in refused.finditer(target):
+         findings.append("%r names what this catalogue calls %s throughout" % (match.group(0), says))
    if tag in READBACK_PROVIDER_NAMES and READBACK_IDENTITY_PROVIDER.search(source) and not READBACK_OTHER_PROVIDER.search(source):
       name, others = READBACK_PROVIDER_NAMES[tag]
       for match in others.finditer(target):
@@ -795,6 +818,7 @@ def self_test():
    mode = "Mode and max_age read from hMailServer.ini on this machine."
    dropped = "Entries queue, and the oldest are dropped once 4,096 are waiting."
    revoke = "Revoke the API key {0}? Anything using it stops working on its very next request."
+   resolver = "No MX record was found for {0} through this machine's resolver."
    readback_cases = {
       ("zh-Hans", stop, "停止更新？尚未安装任何内容。"): True,
       ("zh-Hans", stop, "是否停止更新？尚未安装任何内容。"): False,
@@ -844,6 +868,21 @@ def self_test():
       ("fi", "The certificate and the key must both be set.", "Sekä varmenteen että avaimen on oltava asetettuina."): False,
       ("fi", "At most it marks the account inactive, and only when you ask.", "Enintään se merkitsee tilin, ja vain kun pyydät sitä."): False,
       ("fi", "Less strict on purpose until you are sure the list is complete.", "Lievempi tarkoituksella, kunnes olet varma että lista on täydellinen."): True,
+      ("zh-Hans", "Message held for review", "扣留待审查的邮件"): True,
+      ("zh-Hans", "Message held for review", "暂挂待审核的邮件"): False,
+      ("uk", resolver, "Резолвер цього комп’ютера не знайшов MX-запису для {0}."): True,
+      ("uk", resolver, "Розв’язувач цього комп’ютера не знайшов MX-запису для {0}."): False,
+      ("uk", "The health probes keep answering either way.", "Перевірки стану здоров'я відповідають у будь-якому разі."): True,
+      ("uk", "The health probes keep answering either way.", "Зонди справності відповідають у будь-якому разі."): False,
+      ("uk", "The event-script timeout among them.", "Серед них тайм-аут сценаріїв подій."): True,
+      ("uk", "The event-script timeout among them.", "Серед них тайм-аут скриптів подій."): False,
+      ("uk", "Applied when a password is chosen by a script or by the API.", "Застосовується, коли пароль обирають сценарієм або через API."): False,
+      ("nb", "Headers those addresses are read from", "Overskrifter som adressene leses fra"): True,
+      ("nb", "Headers those addresses are read from", "Headere som adressene leses fra"): False,
+      ("nb", "Headings", "Overskrifter"): False,
+      ("tr", "Shortest search string the index answers for (3 to 64)", "Dizinin yanıt verdiği en kısa arama dizesi (3 ile 64 arası)"): True,
+      ("tr", "Shortest search string the index answers for (3 to 64)", "İndeksin yanıt verdiği en kısa arama dizesi (3 ile 64 arası)"): False,
+      ("tr", "It is indexed in Active Directory, and it is what the Windows directory tab holds.", "Active Directory'de indekslidir ve Windows dizini sekmesinin sakladığı budur."): False,
    }
    for (tag, source, value), expected in readback_cases.items():
       found = bool(readback_findings(tag, source, value))

@@ -1261,7 +1261,7 @@
     <value>所有账户想要或不想要的地址和域名，排在每个账户自己的名单及其域名的名单之后。</value>
   </data>
   <data name="Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted." xml:space="preserve">
-    <value>所有账户想要或不想要的地址和整个域名。被允许的发件人的邮件会跳过垃圾邮件判定；被拦截的发件人的邮件在开启隔离时被扣留在隔离区，未开启时被标记为垃圾邮件 - 永远不会被删除。</value>
+    <value>所有账户想要或不想要的地址和整个域名。被允许的发件人的邮件会跳过垃圾邮件判定；被拦截的发件人的邮件在开启隔离时被暂挂在隔离区，未开启时被标记为垃圾邮件 - 永远不会被删除。</value>
   </data>
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>{0} 的账户想要或不想要的地址和整个域名。在账户自己的名单之后、服务器的名单之前参考。</value>
@@ -1501,7 +1501,7 @@
     <value>允许：不做灰名单处理，不按垃圾邮件分数拒绝</value>
   </data>
   <data name="Allowed: the spam verdict is skipped. Blocked: held in the quarantine where that is on, otherwise marked as spam." xml:space="preserve">
-    <value>允许：跳过垃圾邮件判定。拦截：在启用了隔离区的地方保留在隔离区，否则标记为垃圾邮件。</value>
+    <value>允许：跳过垃圾邮件判定。拦截：在启用了隔离区的地方暂挂在隔离区，否则标记为垃圾邮件。</value>
   </data>
   <data name="Allows for this server's clock differing from the signer's. Without it, a clock running a few minutes fast turns other people's valid mail into DKIM failures." xml:space="preserve">
     <value>容许本服务器的时钟与签名方的时钟存在偏差。没有它，快了几分钟的时钟会把别人的有效邮件变成 DKIM 失败。</value>
@@ -3736,7 +3736,7 @@
     <value>投诉保留的天数（最多 3,650；0 = 永久）</value>
   </data>
   <data name="Days a held message waits for review (1 to 90)" xml:space="preserve">
-    <value>被扣留的邮件等待审核的天数（1 到 90）</value>
+    <value>被暂挂的邮件等待审核的天数（1 到 90）</value>
   </data>
   <data name="Days a password-protected message is kept for its reader (1 to 365)" xml:space="preserve">
     <value>受密码保护的邮件为其读者保留的天数（1 到 365）</value>
@@ -3898,13 +3898,13 @@
     <value>是否删除超过 {0} 天的所有邮件跟踪事件？它们所描述的邮件将无法再在此处跟踪。</value>
   </data>
   <data name="Delete every quarantined message held longer than a day? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
-    <value>是否删除在隔离区中保留超过一天的所有邮件？发件人已被告知邮件已被接受，因此不会重试，也没有其他副本。</value>
+    <value>是否删除在隔离区中暂挂超过一天的所有邮件？发件人已被告知邮件已被接受，因此不会重试，也没有其他副本。</value>
   </data>
   <data name="Delete every quarantined message held longer than {0} day? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
-    <value>是否删除在隔离区中保留超过 {0} 天的所有邮件？发件人已被告知邮件已被接受，因此不会重试，也没有其他副本。</value>
+    <value>是否删除在隔离区中暂挂超过 {0} 天的所有邮件？发件人已被告知邮件已被接受，因此不会重试，也没有其他副本。</value>
   </data>
   <data name="Delete every quarantined message held longer than {0} days? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
-    <value>是否删除在隔离区中保留超过 {0} 天的所有邮件？发件人已被告知邮件已被接受，因此不会重试，也没有其他副本。</value>
+    <value>是否删除在隔离区中暂挂超过 {0} 天的所有邮件？发件人已被告知邮件已被接受，因此不会重试，也没有其他副本。</value>
   </data>
   <data name="Delete folder" xml:space="preserve">
     <value>删除文件夹</value>
@@ -4703,7 +4703,7 @@
     <value>结束</value>
   </data>
   <data name="Enforce: hold the mail and lock the account" xml:space="preserve">
-    <value>强制执行：扣留邮件并锁定账户</value>
+    <value>强制执行：暂挂邮件并锁定账户</value>
   </data>
   <data name="Engine URL (empty = no external engine)" xml:space="preserve">
     <value>引擎 URL（留空 = 无外部引擎）</value>
@@ -5765,7 +5765,7 @@
     <value>暂挂绝不会投递未扫描的邮件：邮件会按下方的间隔再次扫描，并在达到下方的暂挂次数后退回给发件人。</value>
   </data>
   <data name="Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious." xml:space="preserve">
-    <value>保留附有可执行文件或文档的外部邮件，直到沙箱打开文件并答复干净或恶意。</value>
+    <value>暂挂附有可执行文件或文档的外部邮件，直到沙箱打开文件并答复干净或恶意。</value>
   </data>
   <data name="Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed sign-ins costs the server nothing but the sockets they arrive on." xml:space="preserve">
     <value>在发送错误密码的拒绝应答之前先等待一段时间：连接上的第一次失败等待这么多秒，第二次等待两倍时间，依此类推，最多 30 秒，SMTP、POP3 和 IMAP 一视同仁。正确的密码永远不会被延迟。这个等待是连接上的定时器，而不是休眠的线程，因此大量失败登录除了它们所到达的套接字之外不会给服务器带来任何开销。</value>
@@ -6343,7 +6343,7 @@
     <value>保留多代邮件需要压缩：如果没有“压缩目标文件（zip）”，每次备份都会把邮件文件写入同一个 DataBackup 文件夹，覆盖上一次运行的文件，因此保留策略只能保留较小的设置和域存档的多个版本。</value>
   </data>
   <data name="Keeps a copy of every message received over SMTP in a folder tree, in addition to delivering it as normal - it does not divert or hold back mail. Mail from a local sender is filed under &lt;domain&gt;\&lt;mailbox&gt;, mail from elsewhere under Inbound, and messages with no envelope sender (bounces and delivery reports) under Error, plus a copy in the folder of each local recipient." xml:space="preserve">
-    <value>除了正常投递之外，还会在一个文件夹树中保留通过 SMTP 收到的每封邮件的副本 - 它不会转移或扣留邮件。来自本地发件人的邮件归档到 &lt;domain&gt;\&lt;mailbox&gt; 下，来自其他地方的邮件归档到 Inbound 下，没有信封发件人的邮件（退信和投递报告）归档到 Error 下，此外还会在每个本地收件人的文件夹中保留一份副本。</value>
+    <value>除了正常投递之外，还会在一个文件夹树中保留通过 SMTP 收到的每封邮件的副本 - 它不会转移或暂挂邮件。来自本地发件人的邮件归档到 &lt;domain&gt;\&lt;mailbox&gt; 下，来自其他地方的邮件归档到 Inbound 下，没有信封发件人的邮件（退信和投递报告）归档到 Error 下，此外还会在每个本地收件人的文件夹中保留一份副本。</value>
   </data>
   <data name="Kept with the entry, for whoever reads the list next." xml:space="preserve">
     <value>与条目一起保存，留给下一个查看列表的人。</value>
@@ -6661,7 +6661,7 @@
     <value>在多少次失败后锁定用户名（0 = 关闭）</value>
   </data>
   <data name="Lock out an address that keeps failing to sign in - and let one back in that should not have been locked out; refuse or allow whole countries, and hold the mail of an account that looks taken over." xml:space="preserve">
-    <value>把反复登录失败的地址锁定在外 - 并放行那些本不应被锁定的地址；拒绝或允许整个国家，并扣留看起来已被盗用的账户的邮件。</value>
+    <value>把反复登录失败的地址锁定在外 - 并放行那些本不应被锁定的地址；拒绝或允许整个国家，并暂挂看起来已被盗用的账户的邮件。</value>
   </data>
   <data name="Lockout duration (minutes)" xml:space="preserve">
     <value>锁定时长（分钟）</value>
@@ -7193,10 +7193,10 @@
     <value>给本地发件人的消息(_E)（留空 = 与上面相同）</value>
   </data>
   <data name="Message held by the sandbox" xml:space="preserve">
-    <value>被沙箱扣留的邮件</value>
+    <value>被沙箱暂挂的邮件</value>
   </data>
   <data name="Message held for review" xml:space="preserve">
-    <value>扣留待审查的邮件</value>
+    <value>暂挂待审核的邮件</value>
   </data>
   <data name="Message indexing" xml:space="preserve">
     <value>邮件索引</value>
@@ -8630,7 +8630,7 @@
     <value>九项检查的一份清单：哪些已打开，以及每一项在两个阶段中的哪一个运行。</value>
   </data>
   <data name="One message to each account of this domain that has something newly held for it, listing what was held with a link that delivers it. A link works once and stops working after the hours set on the Quarantine page, which is also where the address the links point at is set - without that address nothing is sent. An empty digest is never sent, and each message says how to stop it." xml:space="preserve">
-    <value>给本域中新近有邮件被扣留的每个账户发送一封邮件，列出被扣留的邮件，并附上投递它们的链接。链接只能用一次，并在“隔离”页面设置的小时数过后失效；链接指向的地址也在该页面设置 - 没有这个地址就不会发送任何内容。空的摘要永远不会发送，每封邮件都会说明如何停止接收。</value>
+    <value>给本域中新近有邮件被暂挂的每个账户发送一封邮件，列出被暂挂的邮件，并附上投递它们的链接。链接只能用一次，并在“隔离”页面设置的小时数过后失效；链接指向的地址也在该页面设置 - 没有这个地址就不会发送任何内容。空的摘要永远不会发送，每封邮件都会说明如何停止接收。</value>
   </data>
   <data name="One point per {0}, from the {1}-day history the server keeps. Throughput is the change in the processed-messages total per minute." xml:space="preserve">
     <value>每 {0} 一个数据点，取自服务器保留的 {1} 天历史。吞吐量是已处理邮件总数每分钟的变化量。</value>
@@ -9511,7 +9511,7 @@
     <value>隔离而不是拒绝</value>
   </data>
   <data name="Quarantine: hold the copy until it is released" xml:space="preserve">
-    <value>隔离：扣留副本直到放行</value>
+    <value>隔离：暂挂副本直到放行</value>
   </data>
   <data name="Quarantined message" xml:space="preserve">
     <value>已隔离的邮件</value>
@@ -10432,7 +10432,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
     <value>已撤销</value>
   </data>
   <data name="Review settings changed" xml:space="preserve">
-    <value>已更改审查设置</value>
+    <value>已更改审核设置</value>
   </data>
   <data name="Revoke" xml:space="preserve">
     <value>吊销</value>
@@ -11005,7 +11005,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
     <value>分数和阈值、SPF、DKIM、DMARC、灰名单和 SpamAssassin 都在这里。</value>
   </data>
   <data name="Scores each account's submissions for the shape of a takeover: far more mail than its busiest hour, mostly to addresses it has never written to, at an hour it never sends, from a network it never used. Watch raises the account.compromised alert; enforce also holds the message for review, holds the account's other queued mail and locks the account until an administrator unlocks it. Held messages are reviewed in the Control Deck." xml:space="preserve">
-    <value>按被盗用的特征为每个账户的发送评分：邮件远多于其最繁忙的一小时，大多发往它从未写信过的地址，在它从不发送的时段，从它从未用过的网络。监视会触发 account.compromised 警报；强制执行还会扣留该邮件以供审核，扣留该账户队列中的其他邮件，并锁定账户直到管理员解锁。被扣留的邮件在 Control Deck 中审核。</value>
+    <value>按被盗用的特征为每个账户的发送评分：邮件远多于其最繁忙的一小时，大多发往它从未写信过的地址，在它从不发送的时段，从它从未用过的网络。监视会触发 account.compromised 警报；强制执行还会暂挂该邮件以供审核，暂挂该账户队列中的其他邮件，并锁定账户直到管理员解锁。被暂挂的邮件在 Control Deck 中审核。</value>
   </data>
   <data name="Scores only a permanent failure - a signature that is present and wrong. An unsigned message scores nothing." xml:space="preserve">
     <value>只对永久性失败评分 - 即存在但错误的签名。未签名的邮件不得分。</value>
@@ -11341,7 +11341,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
     <value>发送警报的地址</value>
   </data>
   <data name="Send each account a daily _digest of what the quarantine holds for it" xml:space="preserve">
-    <value>每天给每个账户发送隔离区为它扣留内容的摘要(_D)</value>
+    <value>每天给每个账户发送隔离区为它暂挂内容的摘要(_D)</value>
   </data>
   <data name="Send entries at least this severe" xml:space="preserve">
     <value>发送不低于此严重级别的条目</value>
@@ -13687,7 +13687,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
     <value>与日志文件所得的行、类别和掩码相同，只要记录日志的线程上有活动的跨度，就会附加跟踪 id 和跨度 id。导出器永远不会导出自己的失败行，否则一个失效的收集器会自我喂养。</value>
   </data>
   <data name="The sandbox is off, which is the default: nothing is held and nothing is submitted." xml:space="preserve">
-    <value>沙箱已关闭，这是默认设置：不保留任何邮件，也不提交任何文件。</value>
+    <value>沙箱已关闭，这是默认设置：不暂挂任何邮件，也不提交任何文件。</value>
   </data>
   <data name="The sandbox is on but an address is empty, so nothing is held and nothing is submitted until both are set - the application log says so at every start. Set both addresses, or turn it off." xml:space="preserve">
     <value>沙箱已开启，但有一个地址为空，因此在两个地址都设置之前不会暂挂或提交任何内容 - 每次启动时应用程序日志都会说明。请设置两个地址，或将其关闭。</value>
@@ -14537,7 +14537,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
     <value>两种绑定方法，差别比看起来更重要: 一种把密码发送给目录，另一种根本不把密码放到线路上。</value>
   </data>
   <data name="Two checks on mail from outside, judged as the tagging tab judges outside: a sender whose display name is the name of an active account here or of a protected person, while the address is not theirs; and a sender domain one edit or one look-alike character from a domain this server hosts or a protected partner. Flag adds a header the webmail shows as a warning; quarantine holds the copy as a spam verdict would, and an administrator's release delivers it without checking again. A sender the reader marked safe is exempt, and so is a sender domain that is itself hosted here or a partner." xml:space="preserve">
-    <value>对来自外部的邮件做两项检查，外部的判定与标记选项卡一致：发件人的显示名称是此处某个有效账户或受保护人员的姓名，而地址却不是其本人的；以及发件人域与本服务器承载的域或受保护合作方之间仅相差一次编辑或一个形似字符。标记会添加一个网页邮箱显示为警告的邮件头；隔离会像垃圾邮件判定那样扣留副本，管理员放行后将其投递且不再检查。读者标记为安全的发件人不受影响，本服务器承载的域或合作方作为发件人域时也不受影响。</value>
+    <value>对来自外部的邮件做两项检查，外部的判定与标记选项卡一致：发件人的显示名称是此处某个有效账户或受保护人员的姓名，而地址却不是其本人的；以及发件人域与本服务器承载的域或受保护合作方之间仅相差一次编辑或一个形似字符。标记会添加一个网页邮箱显示为警告的邮件头；隔离会像垃圾邮件判定那样暂挂副本，管理员放行后将其投递且不再检查。读者标记为安全的发件人不受影响，本服务器承载的域或合作方作为发件人域时也不受影响。</value>
   </data>
   <data name="Two halves: a TXT record that tells senders a policy exists, and the policy itself, fetched from https://mta-sts.{0}/.well-known/mta-sts.txt. This server serves that policy itself - there is no file to upload - when 'Serve MTA-STS policies for local domains' is on and an HTTPS web-services listener is running (RFC 8461 section 3.3 allows HTTPS only). The name mta-sts.{0} also needs an A or CNAME record pointing at this server, and the listener's certificate must cover that name." xml:space="preserve">
     <value>两个部分: 一条告诉发件方存在策略的 TXT 记录，以及从 https://mta-sts.{0}/.well-known/mta-sts.txt 获取的策略本身。当“为本地域提供 MTA-STS 策略”开启且 HTTPS Web 服务监听器在运行时，本服务器会自己提供该策略 - 没有需要上传的文件 (RFC 8461 第 3.3 节只允许 HTTPS)。名称 mta-sts.{0} 还需要一条指向本服务器的 A 或 CNAME 记录，且监听器的证书必须覆盖该名称。</value>
@@ -15290,7 +15290,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
     <value>原因</value>
   </data>
   <data name="Why it was held" xml:space="preserve">
-    <value>保留原因</value>
+    <value>暂挂原因</value>
   </data>
   <data name="Widen a ban to its neighbours" xml:space="preserve">
     <value>将封禁扩展到相邻地址</value>

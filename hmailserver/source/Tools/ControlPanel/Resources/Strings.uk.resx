@@ -2645,7 +2645,7 @@
     <value>Перегляньте чергу, щоб побачити помилку, про яку повідомив віддалений сервер.</value>
   </data>
   <data name="Check the server is healthy" xml:space="preserve">
-    <value>Перевірити працездатність сервера</value>
+    <value>Перевірити справність сервера</value>
   </data>
   <data name="Check this message" xml:space="preserve">
     <value>Позначити це повідомлення</value>
@@ -3493,7 +3493,7 @@
     <value>Не вдалося розблокувати поштову скриньку: {0}</value>
   </data>
   <data name="Could not write the script file: {0}" xml:space="preserve">
-    <value>Не вдалося записати файл сценарію: {0}</value>
+    <value>Не вдалося записати файл скрипту: {0}</value>
   </data>
   <data name="Could not write to hMailServer.ini: {0}" xml:space="preserve">
     <value>Не вдалося записати до hMailServer.ini: {0}</value>
@@ -7725,7 +7725,7 @@
     <value>Автентифікація через LDAP не виконується. Пов’язані з каталогом облікові записи й далі перевіряються через вхід Windows, і сервер повідомляє про це (помилка сервера 5922) раз на хвилину, щоб це не могло завершитися невдачею мовчки.</value>
   </data>
   <data name="No MX record was found for {0} through this machine's resolver." xml:space="preserve">
-    <value>Резолвер цього комп’ютера не знайшов MX-запису для {0}.</value>
+    <value>Розв’язувач цього комп’ютера не знайшов MX-запису для {0}.</value>
   </data>
   <data name="No MX records were found from this machine, so the server would fall back to its own host name." xml:space="preserve">
     <value>З цього комп’ютера MX-записів не знайдено, тому сервер повернувся б до власного імені вузла.</value>
@@ -11165,7 +11165,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>_Функція скрипту</value>
   </data>
   <data name="Script events" xml:space="preserve">
-    <value>Події сценаріїв</value>
+    <value>Події скриптів</value>
   </data>
   <data name="Scripting" xml:space="preserve">
     <value>Скрипти</value>
@@ -13007,7 +13007,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>Блокування з {0} знято.</value>
   </data>
   <data name="The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way." xml:space="preserve">
-    <value>Адреса прив'язки - не loopback-адреса, і облікові дані не задано, тому /metrics відповідає 503 (Service Unavailable) на кожен збір. Задайте bearer-токен, або обидва поля HTTP Basic, або прив'яжіться до 127.0.0.1. Перевірки стану здоров'я відповідають у будь-якому разі.</value>
+    <value>Адреса прив'язки - не loopback-адреса, і облікові дані не задано, тому /metrics відповідає 503 (Service Unavailable) на кожен збір. Задайте bearer-токен, або обидва поля HTTP Basic, або прив'яжіться до 127.0.0.1. Зонди справності відповідають у будь-якому разі.</value>
   </data>
   <data name="The blank-keeps-it rule above means there would otherwise be no way to delete a stored password from this page - for instance after switching to Negotiate or a DN template, neither of which needs one." xml:space="preserve">
     <value>Правило «порожнє залишає як є» вище означає, що інакше не було б способу видалити збережений пароль з цієї сторінки - наприклад, після переходу на Negotiate або шаблон DN, жоден з яких його не потребує.</value>

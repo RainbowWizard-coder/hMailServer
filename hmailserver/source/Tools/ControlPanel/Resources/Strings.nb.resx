@@ -5708,7 +5708,7 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
     <value>Headerne for meldingen fra {0}</value>
   </data>
   <data name="Headers those addresses are read from" xml:space="preserve">
-    <value>Overskrifter som adressene leses fra</value>
+    <value>Headere som adressene leses fra</value>
   </data>
   <data name="Headings" xml:space="preserve">
     <value>Overskrifter</value>

@@ -11731,7 +11731,7 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
     <value>Daha kısa dizeler taramaya geri döner.</value>
   </data>
   <data name="Shortest search string the index answers for (3 to 64)" xml:space="preserve">
-    <value>Dizinin yanıt verdiği en kısa arama dizesi (3 ile 64 arası)</value>
+    <value>İndeksin yanıt verdiği en kısa arama dizesi (3 ile 64 arası)</value>
   </data>
   <data name="Show chart" xml:space="preserve">
     <value>Grafiği göster</value>
@@ -14339,7 +14339,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>İş parçacığı havuzu boyutlandırması. Varsayılanlar çoğu kuruluma uyar; çok yoğun sunucular için artırın.</value>
   </data>
   <data name="Thread pools, in-memory caches and message indexing." xml:space="preserve">
-    <value>İş parçacığı havuzları, bellek içi önbellekler ve ileti dizinleme.</value>
+    <value>İş parçacığı havuzları, bellek içi önbellekler ve ileti indeksleme.</value>
   </data>
   <data name="Threads" xml:space="preserve">
     <value>İş parçacıkları</value>
