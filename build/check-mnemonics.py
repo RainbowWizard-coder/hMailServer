@@ -66,6 +66,11 @@ What is checked
     "_Open Monitoring & alerts" was Alt+O there beside Rules' Rem_ove
     criterion, each in a scope the other was not in; embedded, it carries no
     key, the branch "embedded_ ? A : B" draws A, and B stays the section's.
+    Coverage passes A without a key, as a card's row buttons carry none, and
+    only A: the first branch of such a choice in a method EMBEDDED_DRAWN
+    names (embedded_only). B and the same words anywhere else are held to
+    their key, where the words themselves were exempt and B could lose its
+    Alt+O with nothing reported.
   * The button a confirmation names - Dialogs.Confirm(text, title, "Re_move")
     - and the fixed answers of Dialogs' own questions (new Choice("_Save", ...)
     for unsaved changes). A confirmation is a window of its own, its button
@@ -146,14 +151,7 @@ EXEMPT = {"Cancel", "OK", "Close", "…", "...",
           # restore's archive - which one key would only move between, so it carries
           # none and is reached by Tab after its box; a dialog's single picker is
           # "_Browse…".
-          "Browse…",
-          # The REST API's notice on a settings section shown on another page
-          # (ServerSettingsView.RestTabNotice_, embedded): a row of the host's card,
-          # whose row buttons carry no key, as the Control Deck's does not on a card.
-          # With its key it was Alt+O beside the Rules page's Rem_ove criterion and
-          # the backup page's Message metadata _only; on a settings page of its own
-          # it is "_Open Monitoring & alerts", whose key every catalogue is held to.
-          "Open Monitoring & alerts"}
+          "Browse…"}
 
 # Shared helpers, each with the call that places its captions on a page: every
 # caption of the helper joins the scope of every page whose code makes the call.
@@ -197,9 +195,13 @@ def unescape_cs(literal):
 
 
 class Caption:
-    def __init__(self, file, line, scope, raw, class_name=None, page=None, via=None, target=None, field=False):
+    def __init__(self, file, line, scope, raw, class_name=None, page=None, via=None, target=None, field=False, at=None):
         self.file, self.line, self.scope, self.raw = file, line, scope, raw
         self.class_name = class_name
+        # Where the literal starts in its file, for a caption that is one branch of a
+        # choice ("c ? A : B"), so that the two branches are told apart when their
+        # words are the same; None for every other caption.
+        self.at = at
         # The control a "<target>.Content = ..." assignment sets the caption on.
         self.target = target
         # A field's caption (a FieldRow's label), as opposed to a verb or an option.
@@ -397,7 +399,7 @@ def cs_captions(path):
             method = (builders or users or [None])[0]
         return (method[0] if method else class_name), class_name
 
-    def add(out, pos, literal, field=None, end=None, target=None, labels=False, window=None):
+    def add(out, pos, literal, field=None, end=None, target=None, labels=False, window=None, at=None):
         line = line_of(src, pos)
         # a caption repeated per row, card, record or setting cannot have a unique key, and says so
         # in a comment on the initialiser or on the literal; the rows are reached with the arrow keys
@@ -409,7 +411,7 @@ def cs_captions(path):
             scope, class_name = window, None
         else:
             scope, class_name = scope_for(pos, field)
-        out.append(Caption(path, line, scope, unescape_cs(literal), class_name, target=target, field=labels))
+        out.append(Caption(path, line, scope, unescape_cs(literal), class_name, target=target, field=labels, at=at))
 
     out = []
     kinds = r"(?:Button|CheckBox|RadioButton|ToggleButton)"
@@ -444,9 +446,9 @@ def cs_captions(path):
         add(out, m.start(), m.group(1), window="Choice@" + (method[0] if method else "?"))
     # something.Content = "..." (a button or check box whose caption changes with state)
     for m in re.finditer(r"\b(\w+)\.Content\s*=\s*(?:[^;\"]*\?\s*)?" + LITERAL + r"(?:\s*:\s*" + LITERAL + r")?", src):
-        for g in (m.group(2), m.group(3)):
-            if g is not None:
-                add(out, m.start(), g, target=m.group(1))
+        for g in (2, 3):
+            if m.group(g) is not None:
+                add(out, m.start(), m.group(g), target=m.group(1), at=m.start(g))
     return out
 
 
@@ -594,6 +596,9 @@ EMBEDDED = (r"new\s+ServerSettingsView\(\s*ServerSettingsView\.Section\.(\w+)\s*
             r"\{(?:[^{}]|\{[^{}]*\})*?\bSaveCaption\s*=\s*" + LITERAL)
 EMBEDDED_VIEW = os.path.join("Views", "ServerSettingsView.xaml.cs")
 EMBEDDED_DRAWN = ("RestTabNotice_",)
+# The choice by which such a method draws one caption on a host's page and another on a
+# page of its own: "embedded_ ? A : B", A on the host and B on the section's own page.
+EMBEDDED_BRANCH = r"\bembedded_?\s*\?\s*" + LITERAL + r"\s*:\s*" + LITERAL
 
 
 def embedded_captions(captions, files, view):
@@ -611,10 +616,10 @@ def embedded_captions(captions, files, view):
         for name, a, b in body_ranges(src, METHOD):
             if name not in EMBEDDED_DRAWN:
                 continue
-            hidden = {unescape_cs(m.group(2)) for m in
-                      re.finditer(r"\bembedded_?\s*\?\s*" + LITERAL + r"\s*:\s*" + LITERAL, src[a:b])}
+            # B by where it starts, not by its words, which may be A's as well
+            hidden = {a + m.start(2) for m in re.finditer(EMBEDDED_BRANCH, src[a:b])}
             first, last = line_of(src, a), line_of(src, b)
-            drawn += [c for c in captions if c.file == view and first <= c.line <= last and c.raw not in hidden]
+            drawn += [c for c in captions if c.file == view and first <= c.line <= last and c.at not in hidden]
     own, placed = [], []
     for path in files:
         if not path.endswith(".cs") or os.path.normcase(path) == os.path.normcase(view):
@@ -647,6 +652,32 @@ def embedded_captions(captions, files, view):
             for c in drawn:
                 placed.append(Caption(c.file, c.line, scope, c.raw, scoped_class, page=page, via=via))
     return own, placed
+
+
+def embedded_only(captions, view):
+    """The captions an EMBEDDED_DRAWN method draws on a host's page alone - the first
+    branch of its "embedded_ ? A : B", the REST API notice's "Open Monitoring & alerts" -
+    which carry no key, as a card's row buttons carry none: the coverage rule passes
+    exactly these without one. The words were exempt wherever they stood until the
+    adversarial re-check of batch53's navigation unit found that the second branch, the
+    page of its own's "_Open Monitoring & alerts", could then lose its key unreported."""
+    if not os.path.exists(view):
+        return []
+    with open(view, encoding="utf-8") as handle:
+        src = handle.read()
+    firsts = set()
+    for name, a, b in body_ranges(src, METHOD):
+        if name in EMBEDDED_DRAWN:
+            firsts |= {a + m.start(1) for m in re.finditer(EMBEDDED_BRANCH, src[a:b])}
+    return [c for c in captions if c.file == view and c.at is not None and c.at in firsts]
+
+
+def coverage_problems(captions, keyless=()):
+    """Every caption carries a key but the exempt words and the captions that carry none by
+    design, keyless (embedded_only)."""
+    passed = {id(c) for c in keyless}
+    return [f"{location(c)}: no mnemonic in \"{c.raw}\"" for c in captions
+            if c.key is None and c.text not in EXEMPT and id(c) not in passed]
 
 
 def element_span(src, name):
@@ -764,7 +795,7 @@ def language_problems(captions):
         for c in captions:
             raw = catalogue.get(c.raw)
             # An exempt caption carries no key; one with the same words that carries one
-            # - "_Open Monitoring & alerts" beside the embedded notice's - is held to it.
+            # - a dialog's "_Browse…" beside a settings page's Browse… - is held to it.
             if raw is None or (c.text in EXEMPT and c.key is None):
                 continue
             t = Caption(c.file, c.line, c.scope, raw, c.class_name, page=c.page, via=c.via)
@@ -845,12 +876,14 @@ def suffix_problems(resources=None):
     return problems
 
 
-def tally(captions):
-    """How many captions carry a key, how many are exempt and carry none, and how many
-    lack one: an exempt caption that carries a key is counted once, as keyed, where it
-    was counted in both and the summary said "-4 missing" (the final check of Tier 2)."""
+def tally(captions, keyless=()):
+    """How many captions carry a key, how many are exempt and carry none - the exempt
+    words, and keyless, the captions that carry none by design (embedded_only) - and how
+    many lack one: an exempt caption that carries a key is counted once, as keyed, where
+    it was counted in both and the summary said "-4 missing" (the final check of Tier 2)."""
+    passed = {id(c) for c in keyless}
     covered = sum(1 for c in captions if c.key)
-    exempt = sum(1 for c in captions if c.text in EXEMPT and not c.key)
+    exempt = sum(1 for c in captions if not c.key and (c.text in EXEMPT or id(c) in passed))
     return covered, exempt, len(captions) - covered - exempt
 
 
@@ -1064,6 +1097,43 @@ def self_test():
         expect("an embedded Save as Alt+R beside the code-built host's _Refresh",
                [p for p in embedded("code-save", "Save p_roxy settings", keyless)[1] if "Save p_roxy settings" in p], True)
         expect("an embedded Save as Alt+X on the code-built host", embedded("code-fixed", "Save pro_xy settings", keyless)[1], False)
+
+        # Coverage passes the host's own branch of an embedded choice without a key, and only
+        # that: the section's own branch without its key, the words keyless outside the choice,
+        # a choice on anything but embedded_, and one in a method EMBEDDED_DRAWN does not name
+        # are reported, where the words were exempt and every one of them passed (the
+        # adversarial re-check of batch53's navigation unit).
+        def drawn_coverage(tag, statement, method="RestTabNotice_"):
+            folder = os.path.join(root, "drawn-" + tag)
+            os.mkdir(folder)
+            view = os.path.join(folder, "ServerSettingsView.xaml.cs")
+            with open(view, "w", encoding="utf-8") as handle:
+                handle.write("namespace T\n{\n   public partial class ServerSettingsView\n   {\n"
+                             "      public ServerSettingsView()\n      {\n         tabs.Items.Add(new TabItem());\n      }\n\n"
+                             f"      private Scaffold.InlineNotice {method}(string reason, bool offerApiPage)\n      {{\n"
+                             "         var open = new Wpf.Ui.Controls.Button { Appearance = Secondary };\n"
+                             f"         {statement}\n"
+                             "         return null;\n      }\n   }\n}\n")
+            caps = cs_captions(view)
+            bare = embedded_only(caps, view)
+            return coverage_problems(caps, bare), tally(caps, bare)
+
+        passed, counted = drawn_coverage("fixed", f"open.Content = {keyless};")
+        expect("the host's own branch of the embedded notice without a key", passed, False)
+        expect("the host's own keyless branch counted as exempt", [] if counted == (1, 1, 0) else [f"tally {counted}, wanted (1, 1, 0)"], False)
+        own = drawn_coverage("own-nokey", 'open.Content = embedded_ ? L("Open Monitoring & alerts") : L("Open Monitoring & alerts");')[0]
+        expect("the section's own branch without its key, reported once", own if len(own) == 1 else [], True)
+        expect("the notice's words without a key and without the choice",
+               drawn_coverage("plain", 'open.Content = L("Open Monitoring & alerts");')[0], True)
+        expect("a keyless first branch of a choice on another condition",
+               drawn_coverage("other", 'open.Content = busy_ ? L("Open Monitoring & alerts") : L("_Open Monitoring & alerts");')[0], True)
+        expect("a keyless first branch in a method EMBEDDED_DRAWN does not name",
+               drawn_coverage("method", f"open.Content = {keyless};", "OtherNotice_")[0], True)
+        # and one verb, one key holds the section's own caption, its words no longer exempt
+        notice = cs_captions(page("Notice.cs", "namespace T\n{\n   public class NoticeHost\n   {\n      private void Show_()\n      {\n"
+                                  "         open.Content = L(\"_Open Monitoring & alerts\");\n"
+                                  "         other.Content = L(\"Open _Monitoring & alerts\");\n      }\n   }\n}\n"))
+        expect("the notice's caption as Alt+O and Alt+M", [p for p in one_key_per_caption(notice) if "Open Monitoring" in p], True)
         # a CJK key suffix with a space before it (F302), and one written against the caption
         resources = os.path.join(root, "Resources")
         os.makedirs(resources)
@@ -1116,12 +1186,9 @@ def main():
     hosts, drawn = embedded_captions(all_captions, files, os.path.join(ROOT, EMBEDDED_VIEW))
     all_captions += hosts
     placed += drawn
-    # coverage
-    for c in all_captions:
-        if c.text in EXEMPT:
-            continue
-        if c.key is None:
-            problems.append(f"{location(c)}: no mnemonic in \"{c.raw}\"")
+    # coverage: every caption but the exempt words and a host's own branch of an embedded choice
+    keyless = embedded_only(all_captions, os.path.join(ROOT, EMBEDDED_VIEW))
+    problems += coverage_problems(all_captions, keyless)
     # uniqueness per scope, with the shared helpers' captions on the pages that call them
     problems += collisions(all_captions + placed)
     problems += one_key_per_caption(all_captions)
@@ -1134,7 +1201,7 @@ def main():
     if listing:
         for c in all_captions + placed:
             print(f"{location(c)}: [{c.scope}] {'Alt+' + c.key if c.key else '   -'}  {c.text}" + (f"  (from {os.path.relpath(c.file, ROOT)})" if c.via else ""))
-    covered, exempt, missing = tally(all_captions)
+    covered, exempt, missing = tally(all_captions, keyless)
     print(f"{len(all_captions)} static captions: {covered} with a mnemonic, {exempt} exempt, {missing} missing")
     if problems:
         # one line per problem, deduplicated, in file order
