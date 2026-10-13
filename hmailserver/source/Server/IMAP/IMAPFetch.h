@@ -105,16 +105,18 @@ namespace HM
       bool BodyAsStored_(const String &messageFileName, const std::shared_ptr<MimeBody> &part, const char *&data, size_t &size);
       bool MimeHeaderAsStored_(const String &messageFileName, const std::shared_ptr<MimeBody> &part, const char *&data, size_t &size);
 
-      // The stored message the bodies are of, as the parse read it: the bytes
-      // it was parsed from where the body holds them (MimeBody::GetSourceBytes,
-      // a body LoadFromMemory parsed - the testers'), and otherwise the stored
+      // The stored message the bodies are of, as the parse read it, into
+      // stored_message_, where the sections take their bytes from and which is
+      // kept until the message's sections end: the bytes it was parsed from
+      // where the body holds them (MimeBody::GetSourceBytes, a body
+      // LoadFromMemory parsed - the testers'), and otherwise the stored
       // message read once for the message's sections through the store
       // (MessageStore::ReadAll, which answers a container's original from the
       // store's cache of decodes) and counted to their ceiling. IMAP's own parse,
       // MessageStore::LoadMime, keeps no bytes, so in the server it is always
-      // the read. Null when it cannot be read, or what is read is not as long as
-      // what was parsed - not the bytes the parts were placed in.
-      const std::string *StoredMessage_(const String &messageFileName);
+      // the read. False when it cannot be read, or what is read is not as long
+      // as what was parsed - not the bytes the parts were placed in.
+      bool StoredMessage_(const String &messageFileName);
 
       // Bytes of the stored message with the client's <start.count> applied,
       // into a buffer.

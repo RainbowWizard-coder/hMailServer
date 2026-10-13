@@ -829,11 +829,11 @@ namespace HM
       stored_message_.reset();
    }
 
-   const std::string *
+   bool
    IMAPFetch::StoredMessage_(const String &messageFileName)
    {
       if (stored_message_asked_)
-         return stored_message_.get();
+         return stored_message_ != nullptr;
 
       stored_message_asked_ = true;
 
@@ -843,7 +843,7 @@ namespace HM
       size_t headerEnd = 0;
       size_t parsed = 0;
       if (!navigated_message_ || !navigated_message_->GetStoredBounds(start, headerEnd, parsed) || start != 0)
-         return nullptr;
+         return false;
 
       std::shared_ptr<const std::string> stored = navigated_message_->GetSourceBytes();
 
@@ -854,7 +854,7 @@ namespace HM
          if (!WithinCeiling_(section_cost_ + parsed))
          {
             section_refused_ = true;
-            return nullptr;
+            return false;
          }
 
          section_cost_ += parsed;
@@ -867,7 +867,7 @@ namespace HM
          // answered from the parsed message, as they were before.
          AnsiString bytes;
          if (!MessageStore::ReadAll(messageFileName, bytes))
-            return nullptr;
+            return false;
 
          stored = std::shared_ptr<const std::string>(new std::string(std::move(static_cast<std::string &>(bytes))));
       }
@@ -875,10 +875,10 @@ namespace HM
       // The parts were placed in bytes of this length; bytes of another are not
       // what was parsed.
       if (stored->size() != parsed)
-         return nullptr;
+         return false;
 
       stored_message_ = stored;
-      return stored_message_.get();
+      return true;
    }
 
    bool
@@ -906,11 +906,10 @@ namespace HM
          return true;
       }
 
-      const std::string *stored = StoredMessage_(messageFileName);
-      if (!stored || entityEnd > stored->size() || bodyStart > entityEnd)
+      if (!StoredMessage_(messageFileName) || entityEnd > stored_message_->size() || bodyStart > entityEnd)
          return false;
 
-      data = stored->data() + bodyStart;
+      data = stored_message_->data() + bodyStart;
       size = entityEnd - bodyStart;
       return true;
    }
@@ -927,11 +926,10 @@ namespace HM
       if (!part || !part->GetStoredBounds(entityStart, bodyStart, entityEnd))
          return false;
 
-      const std::string *stored = StoredMessage_(messageFileName);
-      if (!stored || bodyStart > stored->size() || entityStart > bodyStart)
+      if (!StoredMessage_(messageFileName) || bodyStart > stored_message_->size() || entityStart > bodyStart)
          return false;
 
-      data = stored->data() + entityStart;
+      data = stored_message_->data() + entityStart;
       size = bodyStart - entityStart;
       return true;
    }
@@ -3237,7 +3235,7 @@ namespace HM
                "X-No-Space:value\r\n",
                "X-Tab:\tvalue\r\n",
                "X-Before-Colon : v\r\n",
-               "X-Eight: caf\xE9 cr\xC3\xA8" "me\r\n",
+               "X-Eight: caf\xE9 cr\xC3\xA8me\r\n",
                "X-Bare-LF: a\nb\r\n",
                "X-Empty:\r\n",
                "x-lower: v\r\n"
@@ -3261,7 +3259,7 @@ namespace HM
             {
                "line\r\n",
                "",
-               "8-bit caf\xE9 cr\xC3\xA8" "me\r\nmore\r\n",
+               "8-bit caf\xE9 cr\xC3\xA8me\r\nmore\r\n",
                "bare\nline\nfeeds\n",
                "mixed\r\nline\nends\r\n",
                "no final line break",
@@ -3624,46 +3622,54 @@ namespace HM
          for (Childless &one : messages)
             one.text = one.header + one.body;
 
-         // The nested message, and what each of its parts down to the one the
-         // parse took whole was written as.
-         const std::string nested = entities.back().first + entities.back().second;
-
-         for (size_t which = 0; which <= messages.size(); which++)
+         // The structures of a message with a multipart with no parts in it, which
+         // a client can read and which describe it as a part of bytes; written
+         // into extensible and plain.
+         auto describedAsBytes = [](IMAPFetch &fetch, const std::shared_ptr<MimeBody> &message, std::string &extensible, std::string &plain)
          {
-            const bool isNested = which == messages.size();
-            const std::string text = isNested ? nested : messages[which].text;
-
-            std::shared_ptr<MimeBody> message = ParsedMessage_(text);
-
-            IMAPFetch fetch;
-            const std::string extensible = AnsiString(fetch.IteratePartRecursive_(message, true, 0));
-            const std::string plain = AnsiString(fetch.IteratePartRecursive_(message, false, 0));
+            extensible = AnsiString(fetch.IteratePartRecursive_(message, true, 0));
+            plain = AnsiString(fetch.IteratePartRecursive_(message, false, 0));
 
             if (!StructureReadable_(extensible) || !StructureReadable_(plain))
                throw std::logic_error("The structure of a multipart with no parts is not one a client can read: " + extensible.substr(extensible.size() > 400 ? extensible.size() - 400 : 0));
 
             if (extensible.find("\"APPLICATION\" \"OCTET-STREAM\"") == std::string::npos)
                throw std::logic_error("A multipart with no parts is not described as a part of bytes: " + extensible.substr(extensible.size() > 400 ? extensible.size() - 400 : 0));
+         };
 
-            if (!isNested)
-            {
-               const std::string body = sectionBytes(fetch, message, "BODY.PEEK[1]");
-               if (body != messages[which].body)
-                  throw std::logic_error("BODY.PEEK[1] of a multipart with no parts: " + Difference_(body, messages[which].body));
+         for (const Childless &one : messages)
+         {
+            std::shared_ptr<MimeBody> message = ParsedMessage_(one.text);
 
-               const std::string mime = sectionBytes(fetch, message, "BODY.PEEK[1.MIME]");
-               if (mime != messages[which].header)
-                  throw std::logic_error("BODY.PEEK[1.MIME] of a multipart with no parts: " + Difference_(mime, messages[which].header));
+            IMAPFetch fetch;
+            std::string extensible;
+            std::string plain;
+            describedAsBytes(fetch, message, extensible, plain);
 
-               // The size it is described with is that of its body.
-               const std::string size = "\"7bit\" " + std::to_string(messages[which].body.size());
-               if (extensible.find(size) == std::string::npos)
-                  throw std::logic_error("A multipart with no parts is not described with the size of its body, " + size + ": " + extensible);
+            const std::string body = sectionBytes(fetch, message, "BODY.PEEK[1]");
+            if (body != one.body)
+               throw std::logic_error("BODY.PEEK[1] of a multipart with no parts: " + Difference_(body, one.body));
 
-               continue;
-            }
+            const std::string mime = sectionBytes(fetch, message, "BODY.PEEK[1.MIME]");
+            if (mime != one.header)
+               throw std::logic_error("BODY.PEEK[1.MIME] of a multipart with no parts: " + Difference_(mime, one.header));
 
-            // Each multipart down to the one taken whole, by its part number.
+            // The size it is described with is that of its body.
+            const std::string size = "\"7bit\" " + std::to_string(one.body.size());
+            if (extensible.find(size) == std::string::npos)
+               throw std::logic_error("A multipart with no parts is not described with the size of its body, " + size + ": " + extensible);
+         }
+
+         // The nested multiparts, and each of them down to the one the parse
+         // took whole, by its part number, against what it was written as.
+         {
+            std::shared_ptr<MimeBody> message = ParsedMessage_(entities.back().first + entities.back().second);
+
+            IMAPFetch fetch;
+            std::string extensible;
+            std::string plain;
+            describedAsBytes(fetch, message, extensible, plain);
+
             std::string number;
             for (int depth = 1; depth <= (int) MimeBody::MaxNestingDepth; depth++)
             {
