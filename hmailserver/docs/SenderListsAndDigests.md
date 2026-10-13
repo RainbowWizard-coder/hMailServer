@@ -58,7 +58,8 @@ mark, a guillemet, a dash or CJK punctuation - which UTS 46 takes into the
 host's last label - also names the host before that character, where the mail
 programs that make the link end it; a host in Unicode longer than any
 name can be (more than four times 253 code points once the ones a browser
-deletes are gone) is not read by UTS 46 at all; an HTML part's character references read
+deletes are gone), or holding a character UTS 46 maps to one a host may not
+hold (`U+FDFA`'s spaces, a no-break space), is not read by UTS 46 at all; an HTML part's character references read
 first, as a browser reads them - every named one HTML defines (`&eopf;vil.example`
 is `evil.example`, `b&uuml;cher.example` is `xn--bcher-kva.example`); and an
 address in its own order, an

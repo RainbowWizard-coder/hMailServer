@@ -891,12 +891,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   stored as `xn--bcher-kva.example/`). A host that can lead nowhere is not mapped at all - when more than four times 253
   of its code points are left once those UTS 46 ignores and the full stops it ends with are put aside, and one of them
   maps past ASCII or five are full stops, its ASCII form would be longer than any DNS name, since no code point maps to
-  nothing and NFC can shorten a text fourfold at most, and it is no IPv4 address, so no browser reaches it - and a label
-  that can never be short enough, its mapping holding a code point past ASCII and more than four times 63 code points,
-  is not mapped further. So a host of a megabyte, in one label or in many, costs about the memory 6.3.6's reading of it
+  nothing and NFC can shorten a text fourfold at most, and it is no IPv4 address, so no browser reaches it; nor is one
+  that holds a code point past ASCII UTS 46 maps to text a domain may not hold - `U+FDFA`, eighteen code points with
+  spaces among them, a no-break space, `U+2100`'s `a/c` - which the URL standard's host parser fails - and a label that
+  can never be short enough, its mapping holding a code point past ASCII and more than four times 63 code points, is
+  not mapped further. So a host of a megabyte, in one label or in many, costs about the memory 6.3.6's reading of it
   did and a few hundredths of a second, where mapped label by label it took up to nine times that memory and twenty-five
   times the time: a megabyte of short labels of `U+FDFA`, which UTS 46 maps to eighteen code points, took 0.15 s and 105
-  MB to read where 6.3.6 took 0.007 s and 12.5 MB, and now takes 0.015 s and 14 MB. A host that is not ASCII is read as
+  MB to read where 6.3.6 took 0.007 s and 12.5 MB, and now takes 0.015 s and 14 MB; and a megabyte of links whose hosts
+  are each a thousand code points of `U+FDFA`, each under that bound, took 0.21 s where 6.3.6 took 0.010 s, and now
+  takes 0.011 s. A host that is not ASCII is read as
   it is written too, as 6.3.6 read it - percent-decoded, the ignored code points deleted, nothing mapped - and the hosts
   that reading hands over are handed over after UTS 46's: a link in running text followed by a closing quotation mark, a
   guillemet, a dash or CJK punctuation, which UTS 46 takes into the host's last label as it takes a letter, or makes a

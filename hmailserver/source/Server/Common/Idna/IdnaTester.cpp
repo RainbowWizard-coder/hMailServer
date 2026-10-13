@@ -520,6 +520,27 @@ namespace HM
                      ", expected " + std::to_string(static_cast<int>(test.kind)));
       }
 
+      // Which code points UTS 46 maps to text a domain may not hold
+      // (MapsToAForbiddenDomainCodePoint): a host holding one fails the
+      // domain parser, here at both ends of every range of the mapping table.
+      const unsigned int forbidden[] = { 0xFDFA, 0xFDFB, 0x00A0, 0x3000, 0x00A8, 0x00B4, 0x2100, 0xFF0F, 0xFF1A, 0xFF5C, 0xFF05 };
+      const unsigned int allowed[] = { ' ', '/', 'a', 0x00E9, 0x201D, 0x2122, 0x3316, 0xFF0D, 0x3002, 0x00AD, 0x2024, 0x110000 };
+      for (unsigned int codePoint : forbidden)
+         if (!Idna::MapsToAForbiddenDomainCodePoint(codePoint))
+            Fail_(Hex_({ codePoint }), "is mapped to text a domain may not hold, and MapsToAForbiddenDomainCodePoint said not");
+      for (unsigned int codePoint : allowed)
+         if (Idna::MapsToAForbiddenDomainCodePoint(codePoint))
+            Fail_(Hex_({ codePoint }), "is not mapped to text a domain may not hold, and MapsToAForbiddenDomainCodePoint said so");
+      for (size_t range = 0; range < IdnaTables::MappingRangeCount; range++)
+      {
+         for (unsigned int codePoint : { IdnaTables::MappingRanges[range].first, IdnaTables::MappingRanges[range].last })
+         {
+            std::string ascii;
+            if (Idna::MapsToAForbiddenDomainCodePoint(codePoint) && Idna::DomainToAscii({ 'a', codePoint, '.', 'b' }, ascii))
+               Fail_(Hex_({ codePoint }), "MapsToAForbiddenDomainCodePoint said a domain holding it fails, and the domain parser gave " + ascii);
+         }
+      }
+
       // KindOfMapping says what ProcessLabels' mapping writes, at both ends of
       // every range of IdnaMappingTable.txt the tables hold: nothing exactly
       // when it deletes the code point, a full stop exactly when it ends a

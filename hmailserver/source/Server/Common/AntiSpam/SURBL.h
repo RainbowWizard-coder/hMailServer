@@ -198,8 +198,11 @@ namespace HM
       // as well. A host that is not ASCII and can lead nowhere - more than
       // 1,012 code points UTS 46 neither deletes nor makes a trailing full stop
       // of, one of them mapped past ASCII or five full stops among them, so that
-      // its ASCII form would be longer than any name and it is no address - is
-      // not read by UTS 46 at all, and hands over what it does as written. Any
+      // its ASCII form would be longer than any name and it is no address, or a
+      // code point past ASCII that UTS 46 maps to text a domain may not hold
+      // (U+FDFA's spaces, a no-break space, U+2100's '/'), which the URL
+      // standard's host parser fails - is not read by UTS 46 at all, and hands
+      // over what it does as written. Any
       // other IPv6 address hands over nothing. html: text is HTML,
       // whose character references are read as the browser reads them - every
       // named one HTML defines (HtmlReferences.h), and one HTML reads without

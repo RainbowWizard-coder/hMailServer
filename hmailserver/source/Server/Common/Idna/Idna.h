@@ -153,6 +153,14 @@ namespace HM
 
       MappingKind KindOfMapping(unsigned int codePoint);
 
+      // Whether UTS 46's mapping (Nontransitional) writes a code point past
+      // ASCII as text holding one the URL standard forbids in a domain - a
+      // space (U+FDFA, a no-break space, the spacing accents), a '/' (U+2100,
+      // a fullwidth solidus), a ':', a '|' and the like - so that no browser
+      // reaches a host holding it: the URL standard's host parser fails a
+      // domain whose ASCII form holds one (DomainToAscii). False for ASCII.
+      bool MapsToAForbiddenDomainCodePoint(unsigned int codePoint);
+
       // ToASCII (section 4.2): the errors, none when it succeeded, and the name
       // as far as the conversion went.
       unsigned int ToAscii(const CodePoints &domain, const Options &options, std::string &ascii);

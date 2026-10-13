@@ -67,6 +67,14 @@ namespace HM
             return IdnaTables::MappingRanges[low];
          }
 
+         // The URL standard's forbidden domain code points: the forbidden host
+         // code points, the C0 controls, '%' and DELETE.
+         bool IsForbiddenInADomain_(unsigned int c)
+         {
+            return c <= 0x20 || c == 0x7F || c == '#' || c == '%' || c == '/' || c == ':' || c == '<' || c == '>' ||
+                   c == '?' || c == '@' || c == '[' || c == '\\' || c == ']' || c == '^' || c == '|';
+         }
+
          unsigned int StatusOf_(unsigned int codePoint)
          {
             return MappingOf_(codePoint).status;
@@ -974,6 +982,22 @@ namespace HM
          return nameCharacters ? MapsToNameCharacters : MapsToOtherAscii;
       }
 
+      bool
+      MapsToAForbiddenDomainCodePoint(unsigned int codePoint)
+      {
+         if (codePoint < 0x80)
+            return false;
+
+         const IdnaTables::MappingRange &range = MappingOf_(codePoint);
+         if (range.status != IdnaTables::StatusMapped)
+            return false;
+
+         for (unsigned int i = 0; i < range.length; i++)
+            if (IsForbiddenInADomain_(IdnaTables::MappingData[range.offset + i]))
+               return true;
+         return false;
+      }
+
       unsigned int
       ToAscii(const CodePoints &domain, const Options &options, std::string &ascii)
       {
@@ -1063,15 +1087,10 @@ namespace HM
          if (ascii.empty())
             return false;
 
-         // The forbidden domain code points: the forbidden host code points,
-         // the C0 controls, '%' and DELETE.
+         // The forbidden domain code points.
          for (char character : ascii)
-         {
-            const unsigned char c = static_cast<unsigned char>(character);
-            if (c <= 0x20 || c == 0x7F || c == '#' || c == '%' || c == '/' || c == ':' || c == '<' || c == '>' ||
-                c == '?' || c == '@' || c == '[' || c == '\\' || c == ']' || c == '^' || c == '|')
+            if (IsForbiddenInADomain_(static_cast<unsigned char>(character)))
                return false;
-         }
 
          return true;
       }

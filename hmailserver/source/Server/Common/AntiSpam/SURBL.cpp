@@ -731,7 +731,12 @@ namespace HM
       // to nothing, NFC makes a text that many times shorter at most, and each
       // label's ASCII form is as long as its code points at least (Idna.h) - and
       // a code point it maps past ASCII, or a fifth full stop, makes it no IPv4
-      // address either. One that maps to ASCII alone with four full stops at
+      // address either; and when one of them is a code point past ASCII that
+      // UTS 46 maps to text a domain may not hold (a space, a '/', U+FDFA's
+      // spaces; Idna::MapsToAForbiddenDomainCodePoint), whose ASCII form the
+      // URL standard's host parser fails, whatever its length - U+FDFA, the
+      // costliest code point to map, eighteen code points for one, among them.
+      // One that maps to ASCII alone with four full stops at
       // most may be an address, a part of any length (0x1<U+FF0E>000...0<U+FF0E>1),
       // and is mapped whatever its length: five labels at most, and four ASCII
       // code points at most for each code point (U+2167 is viii). So any other
@@ -766,6 +771,8 @@ namespace HM
             const Idna::MappingKind kind = Idna::KindOfMapping(codePoints[i]);
             if (kind == Idna::MapsToNothing)
                continue;
+            if (Idna::MapsToAForbiddenDomainCodePoint(codePoints[i]))
+               return false;
             if (kind == Idna::MapsToFullStop)
                fullStops++;
             else if (kind == Idna::MapsPastAscii)
@@ -3561,6 +3568,10 @@ namespace HM
               "a name and 2,000 ideographic full stops after it, two of them kept, which reads it alike" },
             { eAcute + repeated(L".", 100000), true, 3, L"",
               "one code point and 100,000 full stops after it, two of them kept" },
+            { fdfa + L".evil.example", false, 0, L"evil.example",
+              "one U+FDFA, whose mapping holds spaces no browser takes in a host: not mapped, and as written the name after it" },
+            { L"\uFF45\uFF56\uFF49\uFF4C.example\u00A0x", false, 0, L"",
+              "a no-break space, a space once mapped: not mapped, and as written no name" },
             { L"0x1" + fullwidthFullStop + repeated(std::wstring(1, static_cast<wchar_t>(0xFF10)), 2000) + fullwidthFullStop + L"1", true, 2006,
               L"1.0.0.1|0.0.0.1", "an address with a part of 2,000 fullwidth zeros, which may be an address however long" },
          };
