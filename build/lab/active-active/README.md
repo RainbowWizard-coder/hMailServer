@@ -41,6 +41,8 @@ bash build/lab/active-active/aa-lab.sh image                # the node image (CI
 bash build/lab/active-active/aa-lab.sh build                # the server of this tree (about 4 minutes)
 bash build/lab/active-active/aa-lab.sh up postgresql mariadb mysql mssql
 bash build/lab/active-active/aa-lab.sh sqlcheck <db>        # the engine checks, below
+bash build/lab/active-active/aa-lab.sh up-dst <db>          # postgresql, mariadb or mysql in Europe/London, its clock movable
+bash build/lab/active-active/aa-lab.sh dst <db> autumn|spring   # a lease on each clock across that change
 bash build/lab/active-active/aa-lab.sh baseline <db> [--shared-data]   # scenario S0
 bash build/lab/active-active/aa-lab.sh nodes <db> [n] [--shared-data]
 bash build/lab/active-active/aa-lab.sh load <tag> <count> <to> [hosts]
@@ -48,6 +50,10 @@ bash build/lab/active-active/aa-lab.sh check <tag> | queue | imap <account> | er
 bash build/lab/active-active/aa-lab.sh fault kill|freeze|thaw|cutdb|heal|restart <node>
 bash build/lab/active-active/aa-lab.sh down [all]           # 'all' takes the databases and the networks too
 ```
+
+A unit of the build plan runs a lab of its own beside the others: `AA_PREFIX` names
+everything it makes (it must begin `hmlab-`; `hmlab-p-aa` by default) and `AA_HOME`
+is where it keeps its credentials and results (`~/hmlab/aa` by default).
 
 `down all` leaves the volumes (`docker volume ls --filter name=hmlab-p-aa`); remove
 them by name when the lab is finished with. `~/hmlab/aa/runs/` keeps every run's
@@ -77,10 +83,55 @@ Two limits of these runs. They used each engine's default isolation, which for S
 Server is READ COMMITTED, where the server's own sessions run at READ UNCOMMITTED
 (`ADOConnection::Connect`); and the databases' clocks were in UTC, so the local
 time the server's `GETDATE()`, `NOW()` and `current_timestamp` give never crossed a
-daylight-saving change. Unit AA-01 of the build plan adds both: the SQL Server
-checks at READ UNCOMMITTED with writers that roll back, and a lease across a change
-on a database whose zone has one (libfaketime). It also adds named leases taken on
-rows that do not exist yet, where these runs inserted every row in advance.
+daylight-saving change. Unit AA-01 of the build plan added both, below.
+
+### What AA-01 added (13 October 2026)
+
+In the same `sqlcheck` run against the same four engines (`counts`, `named`,
+`rollback`; AA-01's own instance, `AA_PREFIX=hmlab-aa-aa-01`, results in its
+`runs/`):
+
+| Check | PostgreSQL | MariaDB | MySQL | SQL Server |
+|---|---|---|---|---|
+| A claim that recognises itself (`... and (owner = 0 or token = @epoch)`), run a second time as the database layer runs a statement again after a reconnect | 1 | 1 with `CLIENT_FOUND_ROWS`, 0 without | 1 with `CLIENT_FOUND_ROWS`, 0 without | 1 |
+| The same claim without its own epoch, run again; another epoch's | 0; 0 | 0; 0 | 0; 0 | 0; 0 |
+| `SET NOCOUNT ON`, then an update of one row | | | | no count (`None`), 1 again with it off |
+| 300 rows claimed by two connections both at READ UNCOMMITTED | | | | every row won once |
+| 100 named leases with no row yet, taken by insert-or-claim by two connections | every name won once | every name won once | every name won once | every name won once, at READ UNCOMMITTED too |
+| A lease on the UTC clock + 2 s: refused before, taken after | yes | yes | yes | yes |
+| UIDs in one transaction, every fourth rolled back, a reader at the engine's own isolation: rows seen that were never committed / rows never seen | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0 |
+| The same reader at READ UNCOMMITTED, as the server's sessions run | | | | **89** seen that were rolled back, 88 of their numbers then given to another row, 88 never seen (the negative control) |
+| The same reader at READ UNCOMMITTED with the `READCOMMITTED` hint | | | | 0 / 0 |
+
+And across a daylight-saving change (`up-dst`, `dst`): the database in
+`Europe/London`, its whole clock put by libfaketime (0.9.10, built by the lab, its
+threaded form) a minute before the change of 25 October 2026 or of 28 March 2027,
+a lease of 120 seconds taken on the local wall clock (`NOW(6)`, `localtimestamp`)
+and one on the UTC clock, and both looked at 30 seconds after the change and again
+after the lease's length. On PostgreSQL 17.11, MariaDB 11.8.9 and MySQL 8.4.11, in
+both seasons, the local clock moved by the hour and the UTC lease was held for its
+length and no longer; the wall-clock lease was expired 30 seconds after the spring
+change and still held after its length in autumn - an hour early and an hour late
+(`runs/sqlcheck-<db>-dst-<season>-*.jsonl`). On PostgreSQL the server's own
+`current_timestamp` is compared as an instant, so there only the repeated autumn
+hour is wrong; the check reads the wall clock to show the shape MySQL's `NOW()` and
+SQL Server's `GETDATE()` have. SQL Server was not taken across a change: `up-dst`
+makes the three Linux engines only, libfaketime was not tried under SQL Server's
+own platform layer, and the Windows lab's `hmlab-aa-mssql`, in `Europe/London`,
+first crosses one on 25 October 2026.
+
+Through the server's own database layer, `database-claim-tests` (built by
+`linux-build` beside the server) against the same PostgreSQL, MariaDB and MySQL,
+over TLS where the engine offers it as libmariadb's default asks: every count as
+above, a claim run again 1, 200 rows and 50 named leases raced by two connections
+each won once, a connection closed, ended (`pg_terminate_backend`, `KILL`) and
+closed for idling under a claim each reconnected, said and counted 1, the UTC lease
+refused, renewed, taken and fenced, and the UTC clock 0 s from the machine's. Its
+negative controls, each a build with one line of `MySQLConnection.cpp` taken out:
+without `CLIENT_FOUND_ROWS` an update that leaves its row as it was counted 0 on
+MariaDB and MySQL; without TLS's error 2026 among the connection problems the
+statement after a `KILL` failed on both; without 4031 the statement after MySQL
+closed an idle session failed there.
 
 Scenario S0: what two nodes do today
 -----------------------------------
@@ -134,4 +185,7 @@ What it cannot show yet
 - **A database failover that loses its last commit**, unless a PostgreSQL replica
   is added to promote.
 - **SQL Server through the server's own code.** The Linux server has no SQL Server
-  backend, so SQL Server takes part through `sqlcheck` alone.
+  backend, so SQL Server takes part through `sqlcheck` alone here.
+  `DatabaseClaimTester` runs inside a Windows server (ClassTester): on SQL Server
+  Compact in the Windows gate, and on the server's own database when that is SQL
+  Server.

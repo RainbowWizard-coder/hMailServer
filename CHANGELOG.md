@@ -4852,7 +4852,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   suite and the database matrix run against their PostgreSQL, MySQL or MariaDB before the server starts (it says
   SKIPPED with no database) - the counts, a claim run again as a reconnect runs it, two connections racing for the
   same rows and for named leases that have no row yet, a connection closed, ended and timed out under a claim, a
-  lease on the UTC clock refused, renewed, taken and fenced, and the UTC clock against the machine's.
+  lease on the UTC clock refused, renewed, taken and fenced, and the UTC clock against the machine's. The lab's
+  engine checks (`build/lab/active-active/sqlcheck.py`) gained the same claim run twice, named leases, SQL Server at
+  READ UNCOMMITTED with writers that roll back - where a reader saw rows that were then rolled back, and with the
+  `READCOMMITTED` hint none - and a lease on the local wall clock and one on the UTC clock across both
+  daylight-saving changes, on a database in `Europe/London` whose clock libfaketime moves (`aa-lab.sh up-dst` and
+  `dst`): on PostgreSQL, MariaDB and MySQL the wall-clock lease was taken an hour early in spring and held an hour
+  late in autumn, the UTC one neither. A unit runs a lab of its own
+  with `AA_PREFIX` and `AA_HOME`.
 
 - **Every change is checked before it lands, a maintainer's batch as well as a merge request** (OpenSSF Baseline
   OSPS-VM-05.03 and OSPS-VM-06.02). `semgrep-sast`, `semgrep-sast-gate` and `mr-dependency-check` ran in a merge

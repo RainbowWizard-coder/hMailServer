@@ -25,8 +25,16 @@
 #                           application user hmlab on each
 #   store                   MinIO behind the lab CA, with the bucket hmlab-aa
 #   sqlcheck <db> [check]   sqlcheck.py against that database: row counts, claims,
-#                           a lease on the database's clock, UIDs with and without
-#                           a transaction
+#                           a lease on the database's clock and on its UTC clock,
+#                           named leases with no row yet, UIDs with and without a
+#                           transaction and with rollbacks (SQL Server also at
+#                           READ UNCOMMITTED, as the server's sessions run)
+#   up-dst <db>             postgresql, mariadb or mysql in a zone with daylight
+#                           saving (Europe/London), whose clock libfaketime moves:
+#                           container <prefix>-<db>-dst, no volume
+#   dst <db> autumn|spring  that database's clock put a minute before the change,
+#                           then sqlcheck's dst check: a lease on its local clock
+#                           and one on its UTC clock across the change
 #   nodes <db> [n] [--shared-data]
 #                           the sink, then n nodes (2 by default) of the server built
 #                           from this tree on database hmlab_aa of <db>; node1 lays it
@@ -53,13 +61,23 @@
 #
 # The databases are reached only on the lab's back network, the nodes, the sink and
 # the balancer on the front one; a node is on both. No port is published on the host.
+# AA_PREFIX (hmlab-p-aa) names everything it makes, AA_HOME (~/hmlab/aa) is where it
+# keeps its credentials and results: a unit runs an instance of its own with both.
 set -uo pipefail
 
 AA_DIR="$(cd "$(dirname "$0")" && pwd)"
 TREE="$(cd "$AA_DIR/../../.." && pwd)"
 AA_HOME="${AA_HOME:-$HOME/hmlab/aa}"
 SECRETS="$AA_HOME/secrets.env"
-P=hmlab-p-aa
+# Everything the lab makes is named $P-*: hmlab-p-aa by default, and a unit of the
+# build plan runs an instance of its own beside the others with AA_PREFIX (which
+# must begin hmlab-) and an AA_HOME of its own.
+P="${AA_PREFIX:-hmlab-p-aa}"
+case "$P" in
+  *[!a-z0-9-]*) printf 'aa-lab.sh: AA_PREFIX may hold only a-z, 0-9 and - (it is %s)\n' "$P" >&2; exit 2 ;;
+  hmlab-[a-z0-9]*) ;;
+  *) printf 'aa-lab.sh: AA_PREFIX must begin hmlab- (it is %s)\n' "$P" >&2; exit 2 ;;
+esac
 FRONT="$P-front"
 BACK="$P-back"
 DB_NAME=hmlab_aa
@@ -239,31 +257,32 @@ cmd_up() {
   done
 }
 
+# $1 the database, $2 its container ($P-<db> by default).
 wait_db() {
-  local db="$1" ok=""
+  local db="$1" container="${2:-$P-$1}" ok=""
   for _ in $(seq 1 120); do
     case "$db" in
-      postgresql) docker exec "$P-$db" pg_isready -U postgres -h 127.0.0.1 > /dev/null 2>&1 && ok=yes ;;
-      mariadb) docker exec "$P-$db" healthcheck.sh --connect --innodb_initialized > /dev/null 2>&1 && ok=yes ;;
-      mysql) docker exec -e MYSQL_PWD="$AA_MYSQL_ROOT_PASSWORD" "$P-$db" mysqladmin ping -uroot -h 127.0.0.1 --silent > /dev/null 2>&1 && ok=yes ;;
-      mssql) SQLCMDPASSWORD="$AA_MSSQL_SA_PASSWORD" docker exec -e SQLCMDPASSWORD "$P-$db" /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -Q 'select 1' -b -o /dev/null > /dev/null 2>&1 && ok=yes ;;
+      postgresql) docker exec "$container" pg_isready -U postgres -h 127.0.0.1 > /dev/null 2>&1 && ok=yes ;;
+      mariadb) docker exec "$container" healthcheck.sh --connect --innodb_initialized > /dev/null 2>&1 && ok=yes ;;
+      mysql) docker exec -e MYSQL_PWD="$AA_MYSQL_ROOT_PASSWORD" "$container" mysqladmin ping -uroot -h 127.0.0.1 --silent > /dev/null 2>&1 && ok=yes ;;
+      mssql) SQLCMDPASSWORD="$AA_MSSQL_SA_PASSWORD" docker exec -e SQLCMDPASSWORD "$container" /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -Q 'select 1' -b -o /dev/null > /dev/null 2>&1 && ok=yes ;;
     esac
     [ -n "$ok" ] && break
     sleep 2
   done
-  [ -n "$ok" ] || die "$db did not come up in four minutes: docker logs $P-$db"
-  say "$db: up"
+  [ -n "$ok" ] || die "$db did not come up in four minutes: docker logs $container"
+  say "$db: up ($container)"
 }
 
 # The application user hmlab, allowed to make and drop the lab's databases, and the
 # database sqlcheck uses. The SQL goes to the client on standard input.
 ensure_user() {
-  local db="$1"
+  local db="$1" container="${2:-$P-$1}"
   case "$db" in
     mysql|mariadb)
       local client=mariadb root="$AA_MARIADB_ROOT_PASSWORD"
       if [ "$db" = mysql ]; then client=mysql; root="$AA_MYSQL_ROOT_PASSWORD"; fi
-      MYSQL_PWD="$root" docker exec -i -e MYSQL_PWD "$P-$db" "$client" -uroot -h 127.0.0.1 > /dev/null <<SQL
+      MYSQL_PWD="$root" docker exec -i -e MYSQL_PWD "$container" "$client" -uroot -h 127.0.0.1 > /dev/null <<SQL
 CREATE USER IF NOT EXISTS 'hmlab'@'%' IDENTIFIED BY '$AA_DB_PASSWORD';
 ALTER USER 'hmlab'@'%' IDENTIFIED BY '$AA_DB_PASSWORD';
 GRANT ALL PRIVILEGES ON \`hmlab\\_%\`.* TO 'hmlab'@'%';
@@ -272,17 +291,17 @@ CREATE DATABASE IF NOT EXISTS hmlab_aa_sqlcheck;
 SQL
       ;;
     postgresql)
-      docker exec -i -u postgres "$P-$db" psql -q -v ON_ERROR_STOP=1 > /dev/null <<SQL
+      docker exec -i -u postgres "$container" psql -q -v ON_ERROR_STOP=1 > /dev/null <<SQL
 DO \$\$ BEGIN
   IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'hmlab') THEN CREATE ROLE hmlab; END IF;
 END \$\$;
 ALTER ROLE hmlab WITH LOGIN CREATEDB PASSWORD '$AA_DB_PASSWORD';
 SQL
-      docker exec -u postgres "$P-$db" psql -tAq -c "select 1 from pg_database where datname = 'hmlab_aa_sqlcheck'" | grep -q 1 \
-        || docker exec -u postgres "$P-$db" psql -q -c "create database hmlab_aa_sqlcheck owner hmlab" > /dev/null
+      docker exec -u postgres "$container" psql -tAq -c "select 1 from pg_database where datname = 'hmlab_aa_sqlcheck'" | grep -q 1 \
+        || docker exec -u postgres "$container" psql -q -c "create database hmlab_aa_sqlcheck owner hmlab" > /dev/null
       ;;
     mssql)
-      SQLCMDPASSWORD="$AA_MSSQL_SA_PASSWORD" docker exec -i -e SQLCMDPASSWORD "$P-$db" \
+      SQLCMDPASSWORD="$AA_MSSQL_SA_PASSWORD" docker exec -i -e SQLCMDPASSWORD "$container" \
         /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -b > /dev/null <<SQL
 IF NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = 'hmlab')
   CREATE LOGIN hmlab WITH PASSWORD = '$AA_DB_PASSWORD', CHECK_POLICY = OFF;
@@ -325,13 +344,113 @@ cmd_store() {
 cmd_sqlcheck() {
   load_secrets
   local db="${1:-}" which="${2:-all}"
-  [ -n "$db" ] || die "usage: sqlcheck <db> [counts|claims|lease|uids|all]"
+  [ -n "$db" ] || die "usage: sqlcheck <db> [counts|claims|lease|named|uids|rollback|all]"
   docker ps -q --filter "name=^$P-$db\$" | grep -q . || die "$db is not up - run: bash $0 up $db"
   local results="$AA_HOME/runs/sqlcheck-$db-$(date -u +%Y%m%dT%H%M%SZ).jsonl"
   docker run --rm --network "$BACK" -e AA_DB_PASSWORD -e AA_DB_HOST="$P-$db" -e AA_DB_PORT="$(db_port "$db")" \
     -e AA_DB_USER=hmlab -e AA_DB_NAME=hmlab_aa_sqlcheck -v "$AA_DIR:/aa:ro" "$(node_image)" \
     python3 /aa/sqlcheck.py "$db" "$which" | tee "$results"
   local code=${PIPESTATUS[0]}
+  say "results: $results"
+  return "$code"
+}
+
+# libfaketime for the databases' own containers: upstream 0.9.10, checked against its
+# SHA-256, built in Red Hat's UBI 9 (glibc 2.34) so that it loads in every database
+# image the lab pins - MySQL's is Oracle Linux 9, where the node image's Ubuntu build,
+# which asks for glibc 2.38, does not load. Its threaded form (libfaketimeMT), which
+# reads the offset under a lock: the other reads it in each thread at once, and
+# MySQL's threads then read half a spec and end the server.
+FAKETIME_SOURCE=https://github.com/wolfcw/libfaketime/archive/refs/tags/v0.9.10.tar.gz
+FAKETIME_SHA256=729ad33b9c750a50d9c68e97b90499680a74afd1568d859c574c0fe56fe7947f
+FAKETIME_BUILDER=registry.access.redhat.com/ubi9/ubi@sha256:abdef1603c7dd3281d9223b0419e3cc59446e4a8137f2a7ed5cc5bd7da981f8b
+
+faketime_library() {
+  local dir="$1"
+  [ -s "$dir/libfaketimeMT.so.1" ] && return 0
+  say "== building libfaketime 0.9.10 in UBI 9" >&2
+  docker run --rm --platform linux/amd64 --name "$P-faketime" -e FAKETIME_SOURCE="$FAKETIME_SOURCE" \
+    -e FAKETIME_SHA256="$FAKETIME_SHA256" -e OWNER="$(id -u):$(id -g)" \
+    -v "$dir:/out" "$FAKETIME_BUILDER" bash -c '
+      set -e
+      dnf -q -y install gcc make tar gzip > /dev/null
+      cd /tmp
+      curl -fsSL -o faketime.tar.gz "$FAKETIME_SOURCE"
+      echo "$FAKETIME_SHA256  faketime.tar.gz" | sha256sum -c - > /dev/null
+      tar -xzf faketime.tar.gz
+      make -s -C libfaketime-0.9.10/src libfaketimeMT.so.1 > /dev/null 2>&1
+      install -m 644 libfaketime-0.9.10/src/libfaketimeMT.so.1 /out/libfaketimeMT.so.1
+      chown "$OWNER" /out/libfaketimeMT.so.1' || die "building libfaketime failed"
+}
+
+# A database whose zone has daylight saving and whose clock can be moved: the image
+# build/lab/docker-compose.yml pins, with TZ=Europe/London (PostgreSQL's timezone
+# too), and libfaketime preloaded, reading its offset from a file under
+# $AA_HOME/dst that `dst` writes - each process of the database reads it again once
+# a second, so the whole server moves at once. The monotonic clock and the files'
+# times are left alone. Run as the database's own user (999 in all three images)
+# from the first process: libfaketime's shared memory, which the first process
+# makes, could not otherwise be opened by the user the entrypoints change to, and
+# every server process would end at its first look at the clock. No volume: it is
+# made for the check and removed by down all.
+cmd_up_dst() {
+  load_secrets
+  networks
+  local db="${1:-}" image dir="$AA_HOME/dst" container
+  case "$db" in postgresql|mariadb|mysql) ;; *) die "usage: up-dst postgresql|mariadb|mysql" ;; esac
+  image=$(pinned_image "$db")
+  container="$P-$db-dst"
+  mkdir -p "$dir"
+  faketime_library "$dir"
+  printf '+0\n' > "$dir/$db.rc"
+  chmod 755 "$dir"
+  chmod 644 "$dir/libfaketimeMT.so.1" "$dir/$db.rc"
+  docker rm -f "$container" > /dev/null 2>&1 || true
+  local fake=(--user 999:999 -e TZ=Europe/London -e LD_PRELOAD=/faketime/libfaketimeMT.so.1
+              -e "FAKETIME_TIMESTAMP_FILE=/faketime/$db.rc" -e FAKETIME_CACHE_DURATION=1 -e DONT_FAKE_MONOTONIC=1
+              -e NO_FAKE_STAT=1 -v "$dir:/faketime:ro")
+  case "$db" in
+    postgresql)
+      POSTGRES_PASSWORD="$AA_POSTGRES_PASSWORD" docker run -d --rm --name "$container" --network "$BACK" --memory 1g --cpus 2 \
+        -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD "${fake[@]}" "$image" -c timezone=Europe/London > /dev/null ;;
+    mariadb)
+      MARIADB_ROOT_PASSWORD="$AA_MARIADB_ROOT_PASSWORD" docker run -d --rm --name "$container" --network "$BACK" --memory 1g --cpus 2 \
+        -e MARIADB_ROOT_PASSWORD "${fake[@]}" "$image" --innodb-buffer-pool-size=128M > /dev/null ;;
+    mysql)
+      MYSQL_ROOT_PASSWORD="$AA_MYSQL_ROOT_PASSWORD" docker run -d --rm --name "$container" --network "$BACK" --memory 1g --cpus 2 \
+        -e MYSQL_ROOT_PASSWORD "${fake[@]}" "$image" --innodb-buffer-pool-size=128M --performance-schema=OFF > /dev/null ;;
+  esac || die "starting $container failed"
+  wait_db "$db" "$container"
+  ensure_user "$db" "$container"
+}
+
+# The daylight-saving check (E0 of the build plan): the database of up-dst put a
+# minute before the change of the season (01:00 UTC on 25 October 2026, or on 28
+# March 2027), then sqlcheck's dst check, which watches a lease on its local clock
+# and one on its UTC clock across it; the clock is put back afterwards.
+cmd_dst() {
+  load_secrets
+  local db="${1:-}" season="${2:-}" change now offset container
+  case "$db" in postgresql|mariadb|mysql) ;; *) die "usage: dst postgresql|mariadb|mysql autumn|spring" ;; esac
+  case "$season" in
+    autumn) change=$(date -u -d '2026-10-25 01:00:00' +%s) ;;
+    spring) change=$(date -u -d '2027-03-28 01:00:00' +%s) ;;
+    *) die "usage: dst <db> autumn|spring" ;;
+  esac
+  container="$P-$db-dst"
+  docker ps -q --filter "name=^$container\$" | grep -q . || die "$container is not up - run: bash $0 up-dst $db"
+  now=$(date +%s)
+  offset=$(( change - 60 - now ))
+  printf '+%d\n' "$offset" > "$AA_HOME/dst/$db.rc"
+  # Read again by the database within a second (FAKETIME_CACHE_DURATION).
+  sleep 3
+  local results
+  results="$AA_HOME/runs/sqlcheck-$db-dst-$season-$(date -u +%Y%m%dT%H%M%SZ).jsonl"
+  docker run --rm --network "$BACK" -e AA_DB_PASSWORD -e AA_DB_HOST="$container" -e AA_DB_PORT="$(db_port "$db")" \
+    -e AA_DB_USER=hmlab -e AA_DB_NAME=hmlab_aa_sqlcheck -e AA_DST_SEASON="$season" -v "$AA_DIR:/aa:ro" "$(node_image)" \
+    python3 /aa/sqlcheck.py "$db" dst | tee "$results"
+  local code=${PIPESTATUS[0]}
+  printf '+0\n' > "$AA_HOME/dst/$db.rc"
   say "results: $results"
   return "$code"
 }
@@ -557,7 +676,7 @@ cmd_down() {
   cmd_down_nodes
   if [ "${1:-}" = all ]; then
     local c
-    for c in $(docker ps -a --format '{{.Names}}' --filter "name=^$P-(postgresql|mariadb|mysql|mssql|minio)\$"); do
+    for c in $(docker ps -a --format '{{.Names}}' --filter "name=^$P-(postgresql|mariadb|mysql|mssql|minio|postgresql-dst|mariadb-dst|mysql-dst)\$"); do
       docker rm -f "$c" > /dev/null 2>&1 || true
     done
     docker network rm "$FRONT" "$BACK" > /dev/null 2>&1 || true
@@ -574,6 +693,8 @@ case "$command" in
   up) cmd_up "$@" ;;
   store) cmd_store "$@" ;;
   sqlcheck) cmd_sqlcheck "$@" ;;
+  up-dst) cmd_up_dst "$@" ;;
+  dst) cmd_dst "$@" ;;
   nodes) cmd_nodes "$@" ;;
   balancer) cmd_balancer "$@" ;;
   load) cmd_load "$@" ;;
@@ -585,5 +706,5 @@ case "$command" in
   baseline) cmd_baseline "$@" ;;
   status) cmd_status "$@" ;;
   down) cmd_down "$@" ;;
-  *) sed -n '6,55p' "$0"; exit 2 ;;
+  *) sed -n '6,65p' "$0"; exit 2 ;;
 esac
