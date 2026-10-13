@@ -772,8 +772,7 @@ def self_test():
     return 1 if failures else 0
 
 
-# throwaway_range's commits, each made on the one before it but the last, "stale", which
-# is made on "tip":
+# throwaway_range's commits, made in this order, each on the one RANGE_PARENTS names:
 #   base      a secret_detection image, a rules script and a .gitleaksignore of its own;
 #   tip       base..tip moves the image, changes the rules script and adds a line to
 #             .gitleaksignore (RANGE_IMAGES, RANGE_RULES, RANGE_IGNORED);
@@ -784,14 +783,23 @@ def self_test():
 #             usual range, scanned from a checkout of master, over a batch that leaves
 #             OWN alone;
 #   unpinned  same..unpinned names no image pinned by digest for secret_detection;
+#   moved     own..moved changes all three files of OWN - the image to RANGE_IMAGES[1], a
+#             line added to the rules script and one to this script (RANGE_MOVED_LINES)
+#             - its base this tree's: the landing of a batch that changes the scan's own
+#             files, scanned from a checkout of master, whose copies are the range's
+#             base's and not its tip's;
 #   stale     tip..stale changes build/x.txt alone, both its ends naming an image and
 #             carrying a rules script that are not this tree's: a scan from a checkout
 #             behind the range's base.
-RANGE_COMMITS = ("base", "tip", "own", "same", "unpinned", "stale")
+RANGE_COMMITS = ("base", "tip", "own", "same", "unpinned", "moved", "stale")
+RANGE_PARENTS = {"base": None, "tip": "base", "own": "tip", "same": "own", "unpinned": "same", "moved": "own",
+                 "stale": "tip"}
 RANGE_IMAGES = ("registry.example/base/secrets:1.0.0-%s@sha256:%s" % ("3" * 12, "3" * 64),
                 "registry.example/tip/secrets:2.0.0-%s@sha256:%s" % ("4" * 12, "4" * 64))
 RANGE_RULES = ("#!/bin/sh\necho the base's rules\n", "#!/bin/sh\necho the range's own rules\n")
 RANGE_IGNORED = "%s:build/x.txt:gitlab_personal_access_token:1" % ("5" * 40)
+RANGE_MOVED_LINES = {RULES_SCRIPT: "# a line the batch adds to the rules script\n",
+                     OWN[0]: "# a line the batch adds to the scan\n"}
 
 
 def throwaway_range(work):
@@ -811,11 +819,12 @@ def throwaway_range(work):
              "stale": {"build/x.txt": "nothing to find, behind the base\n"},
              "own": own,
              "same": {"build/x.txt": "nothing to find, from this tree\n"},
-             "unpinned": {SECURITY_YML: "secret_detection:\n  needs: []\n"}}
-    parents = {"base": None, "tip": "base", "stale": "tip", "own": "tip", "same": "own", "unpinned": "same"}
+             "unpinned": {SECURITY_YML: "secret_detection:\n  needs: []\n"},
+             "moved": dict([(SECURITY_YML, job % RANGE_IMAGES[1])] +
+                           [(path, own[path] + line) for path, line in RANGE_MOVED_LINES.items()])}
     made = {}
     for name in RANGE_COMMITS:
-        parent = made.get(parents[name])
+        parent = made.get(RANGE_PARENTS[name])
         git(work, "read-tree", *([parent] if parent else ["--empty"]))
         for path, text in sorted(files[name].items()):
             blob = git(work, "hash-object", "-w", "--stdin", input=text.encode("utf-8")).stdout.decode("ascii").strip()
@@ -837,10 +846,14 @@ def range_self_test(repo, commits, expect):
     asked = []
     between = lambda base, tip: "%s..%s" % (commits[base], commits[tip])
     # What the scan says of the image the range's tip names, of a range judged by its own
-    # copies, and of one judged by copies that are neither its base's nor its tip's.
+    # copies, and of one judged by copies that are neither its base's nor its tip's: that
+    # note naming all three files of OWN (neither), which a range is wanted to have, and
+    # in any form (neither_any), which a range is not, so that one naming fewer files
+    # shows too.
     moved = "for secret_detection, where this tree names"
     judged = "judged by its own"
     neither = "whose %s, %s and %s are neither the range's base's nor its tip's" % OWN
+    neither_any = "neither the range's base's nor its tip's"
     try:
         for name in held:
             globals()[name] = (lambda engine: lambda *a: asked.append((engine,) + a) or (0, "[]", ""))(name[len("run_"):])
@@ -887,30 +900,43 @@ def range_self_test(repo, commits, expect):
                    % (engine, shown))
             expect(neither in shown, "with %s the reader is shown that this tree's copies are neither the range's base's "
                    "nor its tip's: %s" % (engine, shown))
-        for (base, tip), (wanted, what) in (
+        tip_moves = "the range's tip names %s %s %s, which this scan ran" % (RANGE_IMAGES[1], moved, own_image)
+        for log_opts, wanted, what in (
                 # Both ends name an image and carry a rules script that are not this
                 # tree's: the image is not the range's move, and the scan says that this
                 # tree's copies judged the range.
-                (("tip", "stale"), ((neither,), "a range that leaves OWN alone, scanned from a tree whose copies are "
-                                                "not its base's")),
+                (between("tip", "stale"), (neither,), "a range that leaves OWN alone, scanned from a tree whose copies are "
+                                                      "not its base's"),
                 # Run from a tree whose copies of OWN are the range's own - here the range
                 # brings this tree's - the scan says that the range was judged by them.
-                (("tip", "own"), (("whose %s, %s and %s are the range's own" % OWN, judged),
-                                  "a range scanned from a tree whose copies are the range's own")),
+                (between("tip", "own"), ("whose %s, %s and %s are the range's own" % OWN, judged),
+                 "a range scanned from a tree whose copies are the range's own"),
                 # A landing's usual range: both ends and this tree alike, nothing to say.
-                (("own", "same"), ((), "a range that leaves OWN alone, scanned from a tree whose copies are its base's")),
+                (between("own", "same"), (), "a range that leaves OWN alone, scanned from a tree whose copies are its base's"),
                 # The tip names no image pinned by digest: shown, as any other.
-                (("same", "unpinned"), (("the range's tip names no image pinned by digest %s %s" % (moved, own_image),),
-                                        "a range whose tip names no image pinned by digest"))):
+                (between("same", "unpinned"), ("the range's tip names no image pinned by digest %s %s" % (moved, own_image),),
+                 "a range whose tip names no image pinned by digest"),
+                # The landing of a batch that changes all three files of OWN, from a
+                # checkout of master - this tree's copies are the range's base's, not its
+                # tip's: the image it moves to and the line it adds to the rules script
+                # are shown, and nothing says that the range was judged by its own
+                # copies, or by copies that are neither its base's nor its tip's.
+                (between("own", "moved"), (tip_moves, "changes 1 line(s) of %s" % RULES_SCRIPT,
+                                           "+" + RANGE_MOVED_LINES[RULES_SCRIPT].strip()),
+                 "a landing's range that changes OWN, scanned from a tree whose copies are its base's"),
+                # The same commit pushed as a new branch: a range with no base, whose
+                # tip's image is shown, as nothing tells that the range did not move it.
+                ("%s --not %s" % (commits["moved"], commits["own"]), (tip_moves,),
+                 "a range with no base whose tip names another image than this tree")):
             del asked[:]
             said = []
             try:
-                code = scan(repo, ("range", between(base, tip)), "docker", say=said.append)
+                code = scan(repo, ("range", log_opts), "docker", say=said.append)
             except ScanError as e:
                 expect(False, "%s: %s" % (what, e))
                 continue
             shown = "\n".join(said)
-            unwanted = [note for note in (moved, judged, neither) if note in shown and not any(note in w for w in wanted)]
+            unwanted = [note for note in (moved, judged, neither_any) if note in shown and not any(note in w for w in wanted)]
             expect(code == 0 and len(asked) == 1 and all(w in shown for w in wanted) and not unwanted,
                    "%s: %s, and nothing of %s: exit %s, %s" % (what, wanted, unwanted, code, shown))
         # With no scanner the scan refuses, exit 3.
