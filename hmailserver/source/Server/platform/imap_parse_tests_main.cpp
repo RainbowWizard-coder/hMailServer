@@ -20,8 +20,10 @@
 // a STORE keeps; a FETCH's HEADER.FIELDS sections, each message's header
 // read once against the names asked; and the bodies a FETCH's part numbers
 // name, each part list read and each encapsulated message parsed once for a
-// message's sections. Nothing here touches the network, the configuration or a
-// database.
+// message's sections; and the criteria a SEARCH, SORT or THREAD is parsed
+// into, each named again beside itself left out - against a removal that
+// compares every pair, with what they match before and after. Nothing here
+// touches the network, the configuration or a database.
 //
 // One line a tester, and a non-zero exit on the first failure.
 
@@ -35,6 +37,7 @@
 #include "../IMAP/IMAPThread.h"
 #include "../IMAP/IMAPCommandRangeAction.h"
 #include "../IMAP/IMAPStore.h"
+#include "../IMAP/IMAPSearchParser.h"
 
 namespace
 {
@@ -67,7 +70,8 @@ main(int /*argc*/, char * /*argv*/[])
       Run_("a message set: 6.3.5's messages, each once, the view's UIDs found by halving; SEARCH and UID sets by halving; \"$\" once", [cases]() { HM::IMAPSequenceSetTester().Test(cases / 4); }) &&
       Run_("a STORE's keywords: as 6.3.5 kept them, in one pass", [cases]() { HM::IMAPStoreKeywordsTester().Test(cases); }) &&
       Run_("a FETCH's HEADER.FIELDS sections: as 6.3.5's, each header read once", [cases]() { HM::IMAPFetchHeaderFieldsTester().Test(cases / 4); }) &&
-      Run_("the bodies a FETCH's part numbers name: as 6.3.5's, each part list read and each encapsulated message parsed once a message", [cases]() { HM::IMAPFetchSectionsTester().Test(cases / 20); });
+      Run_("the bodies a FETCH's part numbers name: as 6.3.5's, each part list read and each encapsulated message parsed once a message", [cases]() { HM::IMAPFetchSectionsTester().Test(cases / 20); }) &&
+      Run_("the criteria of a SEARCH, SORT or THREAD: each named again beside itself left out, nothing else, what they match the same", [cases]() { HM::IMAPSearchParserTester().Test(cases / 10); });
 
    return passed ? 0 : 1;
 }

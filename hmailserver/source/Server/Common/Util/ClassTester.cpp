@@ -111,6 +111,7 @@
 #include "../../IMAP/IMAPThread.h"
 #include "../../IMAP/IMAPCommandRangeAction.h"
 #include "../../IMAP/IMAPStore.h"
+#include "../../IMAP/IMAPSearchParser.h"
 #include "LegacyBlowfish.h"
 #ifndef HM_PLATFORM_POSIX
 #include "AdminUpdate.h"
@@ -2564,8 +2565,9 @@ namespace HM
       // 6.3.5 over generated cases, and the time they take held to one pass:
       // String's case-ignoring search and replace, the items of a FETCH, the
       // base subject SORT and THREAD read, a message set, a STORE's keywords,
-      // a FETCH's HEADER.FIELDS sections and the bodies its part numbers name.
-      // imap-parse-tests runs the same on Linux.
+      // a FETCH's HEADER.FIELDS sections and the bodies its part numbers name;
+      // and the criteria of a SEARCH, SORT or THREAD, each named again beside
+      // itself asked of a message once. imap-parse-tests runs the same on Linux.
       OutputDebugString(_T("hMailServer: Testing the IMAP parsers' time\n"));
       StringNoCaseTester stringNoCaseTester;
       stringNoCaseTester.Test();
@@ -2581,6 +2583,8 @@ namespace HM
       imapFetchHeaderFieldsTester.Test();
       IMAPFetchSectionsTester imapFetchSectionsTester;
       imapFetchSectionsTester.Test();
+      IMAPSearchParserTester imapSearchParserTester;
+      imapSearchParserTester.Test();
 
       // A message's keywords, changed and read by several threads at once. A
       // message in an IMAP folder is one object every session on the mailbox

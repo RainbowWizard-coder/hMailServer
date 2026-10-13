@@ -4182,6 +4182,29 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   take 12.5 and 9.8 seconds. On SQL Server Compact a lookup costs about what reading a small message from a fast local
   disk does, so there the index spares reads without making a search faster; it pays where reading a message is slow.
   [Performance.md](hmailserver/docs/Performance.md), "Searching".
+- **Fixed: a criterion a `SEARCH`, `SORT` or `THREAD` named over and over was asked of every message as often as it
+  was named, so that one command could hold an IMAP thread for the whole of `IMAPSearchTimeout`.** 6.3.6 made the `$`
+  of one command - the saved search result, named a hundred thousand times in a command line - share one copy of the
+  saved result, but each was still a criterion of its own, and each criterion is asked of each message: a hundred
+  thousand `$` over a hundred messages were ten million questions. On server2 they took 0.44 seconds; on linix, one of
+  the CI's Linux runners, the search ran out of `IMAPSearchTimeout` after 70 and then 63 of the 100 messages and was
+  answered `NO [LIMIT]`, and the linux-suite job failed `SavedResultNamedOverAndOverAsASearchKeyIsAnsweredInSeconds`
+  twice. The search reads the clock before each criterion, so where the clock is slow to read each question costs
+  microseconds: server2, held to one core and with every clock read made 9 microseconds slower, failed the same way,
+  after 64 of the 100. That reproduces linix's failure; linix's own clock was not measured. Criteria named again
+  beside themselves are now left out as the command is parsed - among the command's own, every one of which a message
+  must match, and between the two of an `OR` - the first staying where it stands, so that each is asked of a message
+  once and every answer is what it was. The same means the same as written: the key's name in any case (`SEEN`,
+  `seen`), the same `NOT`, the same value character for character, the same set, an `OR` of the same two in the same
+  order. Nothing is merged that matches alike only by the key's own comparison - `SUBJECT foo` and `SUBJECT FOO`,
+  `UID 1:3` and `UID 1,2,3` are both still asked - and nothing is rewritten. The hundred thousand `$` are now answered
+  in 32 ms on server2, 30 ms on one core and 31 ms on one core with the slowed clock, and as the criteria of a `SORT`
+  (whose slowed run had run out of the timeout too) and of a `THREAD` in 39 to 51 ms. Different criteria,
+  however many, are each still asked of every message, under the same ceiling. Leaving the repeats out is one pass
+  over the parsed command, and costs most where there are none to leave: a command near the largest a client can send,
+  650,000 different `OR`s of two keys, is parsed in 1.2 seconds on server2 where it took 0.67 without the pass, with a
+  tenth more memory at its peak. README.md's line for `IMAPSearchTimeout` said that a search which reaches it returns
+  the matches found so far; it is answered `NO [LIMIT]`, with none of them.
 
 ### Operations
 

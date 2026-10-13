@@ -99,30 +99,34 @@ namespace HM
          is_or_(false),
          type_(CTUnknown) {};
 
-      long GetUIDLower() {return uidlower_; }
+      // What a criterion is made of - and so what makes two criteria the same
+      // (IMAPSearchParser::RemoveRepeatedCriteria): a part added here is a part
+      // RepeatedCriteria, in IMAPSearchParser.cpp, has to compare as well.
+      long GetUIDLower() const {return uidlower_; }
       void SetUIDLower(long lNewVal) {uidlower_ = lNewVal; }
 
-      long GetUIDUpper() {return uidupper_; }
+      long GetUIDUpper() const {return uidupper_; }
       void SetUIDUpper(long lNewVal) {uidupper_ = lNewVal; }
 
-      String GetText() {return text_; }
+      const String &GetText() const {return text_; }
       void SetText(const String &sText) {text_ = sText; }
 
-      bool GetPositive() {return positive_; }
+      bool GetPositive() const {return positive_; }
       void SetPositive(bool bNewVal) {positive_ = bNewVal; }
 
-      bool GetIsOR() {return is_or_; }
+      bool GetIsOR() const {return is_or_; }
       void SetIsOR(bool bNewVal) {is_or_ = bNewVal; }
 
       void SetHeaderField(const String &sField) {header_field_ = sField;}
-      String GetHeaderField() {return header_field_;}
+      const String &GetHeaderField() const {return header_field_;}
 
-      CriteriaType GetType() {return type_;}
+      CriteriaType GetType() const {return type_;}
       void SetType(CriteriaType newVal) {type_ = newVal; }
 
       static CriteriaType GetCriteriaTypeByName(const String &sName);
 
       std::vector<std::shared_ptr<IMAPSearchCriteria> > &GetSubCriterias() {return sub_criterias_;}
+      const std::vector<std::shared_ptr<IMAPSearchCriteria> > &GetSubCriterias() const {return sub_criterias_;}
 
       // The elements of the set, held shared: every "$" of one SEARCH holds the
       // one copy of the saved result (IMAPSearchParser::ParseWord_), where each
@@ -176,6 +180,14 @@ namespace HM
 
       IMAPResult ParseCommand(std::shared_ptr<IMAPCommandArgument> pArgument, IMAPSearchCommandMode mode);
 
+      // Of criteria named more than once side by side - among the keys of the
+      // command, every one of which a message must match, and between the two of an
+      // OR - the first stays where it stands and the others are left out, so that each
+      // is asked of a message once. ParseCommand does it to every SEARCH, SORT and
+      // THREAD it parses; IMAPSearchParser.cpp (RepeatedCriteria) says what the same
+      // is.
+      static void RemoveRepeatedCriteria(IMAPSearchCriteria &criteria);
+
       // RFC 5182 (SEARCHRES): the UIDs saved by an earlier SEARCH RETURN (SAVE), so the
       // "$" search key can be resolved during parsing. Must be set before ParseCommand.
       void SetSavedSearchResult(const std::vector<__int64> &uids) { saved_search_result_ = uids; }
@@ -217,6 +229,17 @@ namespace HM
       // The saved result as a set's elements, made for the first "$" of the
       // command and shared by every one after it.
       std::shared_ptr<const std::vector<String> > saved_set_;
+   };
+
+   // The criteria a SEARCH, SORT or THREAD is parsed into, with each criterion
+   // named again beside itself left out (IMAPSearchParser::RemoveRepeatedCriteria):
+   // commands with the tree each makes, generated trees against a removal that
+   // compares every pair, and what they match, before and after, and the time.
+   // Runs in ClassTester on Windows and imap-parse-tests on Linux.
+   class IMAPSearchParserTester
+   {
+   public:
+      void Test(int cases = 2000);
    };
 
 }

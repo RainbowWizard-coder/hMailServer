@@ -28,7 +28,12 @@ namespace RegressionTests.IMAP
    ///    - A SORT criterion named over and over, which made a key of each for every
    ///      message.
    ///    - "$" named over and over as a SEARCH key, which copied the saved result
-   ///      into each.
+   ///      into each - and then, sharing one copy, was still asked of every
+   ///      message as often as it was named: a hundred thousand "$" over a hundred
+   ///      messages were ten million questions, which ran into IMAPSearchTimeout on
+   ///      linix, one of the CI's Linux runners. The same as the criteria of a SORT
+   ///      and of a THREAD, and a criterion named again beside itself answering as
+   ///      named once - and different criteria as different - however it is named.
    ///    - A SEARCH TEXT key sent as a long literal, over a message that holds its
    ///      beginning everywhere: the case-ignoring search compared afresh at each
    ///      position, the product of the two lengths, in one call.
@@ -343,6 +348,89 @@ namespace RegressionTests.IMAP
          Assert.AreEqual(100, result.Split(' ').Length - 2, "Every saved message matches. Got: " + result);
          Assert.That(elapsed, Is.LessThan(SearchBound),
             "A SEARCH of 100,000 \"$\" over 100 messages took " + (long) elapsed.TotalMilliseconds + " ms.");
+
+         socket.Disconnect();
+      }
+
+      [Test]
+      [Description("\"$\" named 100,000 times as the criteria of a SORT and of a THREAD is answered in seconds, as \"$\" named once.")]
+      public void SavedResultNamedOverAndOverInASortAndAThreadIsAnsweredInSeconds()
+      {
+         var socket = LogOn(CreateAccount("sortreskeys@example.test"));
+         AppendAndSelect(socket, 100);
+
+         string save = Command(socket, "A1", "SEARCH RETURN (SAVE) ALL", 30);
+         StringAssert.Contains("A1 OK", save, Tail(save));
+
+         // SORT and THREAD take their criteria from SEARCH's parser, and each was
+         // asked of every message as often as it was named.
+         string sortOnce = Command(socket, "A2", "SORT (REVERSE ARRIVAL) US-ASCII $", 30);
+         StringAssert.Contains("A2 OK", sortOnce, Tail(sortOnce));
+         string sorted = Regex.Match(sortOnce, @"^\* SORT.*$", RegexOptions.Multiline).Value.TrimEnd('\r');
+         Assert.AreEqual(100, sorted.Split(' ').Length - 2, "Every saved message is sorted. Got: " + sorted);
+
+         TimeSpan elapsed;
+         string response = Timed(socket, "T1 SORT (REVERSE ARRIVAL) US-ASCII " + RepeatJoined("$", " ", 100000) + "\r\n", out elapsed);
+
+         StringAssert.Contains("T1 OK", response, Tail(response));
+         Assert.AreEqual(sorted, Regex.Match(response, @"^\* SORT.*$", RegexOptions.Multiline).Value.TrimEnd('\r'),
+            "\"$\" named again sorts as \"$\" named once.");
+         Assert.That(elapsed, Is.LessThan(SearchBound),
+            "A SORT of 100,000 \"$\" over 100 messages took " + (long) elapsed.TotalMilliseconds + " ms.");
+
+         string threadOnce = Command(socket, "A3", "THREAD REFERENCES US-ASCII $", 30);
+         StringAssert.Contains("A3 OK", threadOnce, Tail(threadOnce));
+         string threads = Regex.Match(threadOnce, @"^\* THREAD.*$", RegexOptions.Multiline).Value.TrimEnd('\r');
+         Assert.AreEqual(100, CountMatches(threads, @"\(\d+\)"), "Every saved message is its own thread. Got: " + threads);
+
+         response = Timed(socket, "T1 THREAD REFERENCES US-ASCII " + RepeatJoined("$", " ", 100000) + "\r\n", out elapsed);
+
+         StringAssert.Contains("T1 OK", response, Tail(response));
+         Assert.AreEqual(threads, Regex.Match(response, @"^\* THREAD.*$", RegexOptions.Multiline).Value.TrimEnd('\r'),
+            "\"$\" named again threads as \"$\" named once.");
+         Assert.That(elapsed, Is.LessThan(SearchBound),
+            "A THREAD of 100,000 \"$\" over 100 messages took " + (long) elapsed.TotalMilliseconds + " ms.");
+
+         socket.Disconnect();
+      }
+
+      [Test]
+      [Description("A criterion named again beside itself answers as named once, in any case and in lists; a NOT or another value makes another.")]
+      public void CriteriaNamedAgainAnswerAsNamedOnce()
+      {
+         var socket = LogOn(CreateAccount("searchrepeat@example.test"));
+         AppendAndSelect(socket, 6);
+
+         // Messages 1 to 3 seen, 2 flagged, and 2 to 5 the saved result.
+         StringAssert.Contains("F1 OK", Command(socket, "F1", "STORE 1:3 +FLAGS (\\Seen)", 30));
+         StringAssert.Contains("F2 OK", Command(socket, "F2", "STORE 2 +FLAGS (\\Flagged)", 30));
+         StringAssert.Contains("A1 OK", Command(socket, "A1", "SEARCH RETURN (SAVE) 2:5", 30));
+
+         string[][] searches =
+         {
+            new[] { "SEEN SEEN seen Seen", "* SEARCH 1 2 3" },
+            new[] { "NOT SEEN not seen", "* SEARCH 4 5 6" },
+            new[] { "SEEN NOT SEEN", "* SEARCH" },
+            new[] { "$ $ $", "* SEARCH 2 3 4 5" },
+            new[] { "$ NOT $ $", "* SEARCH" },
+            new[] { "OR $ $", "* SEARCH 2 3 4 5" },
+            new[] { "OR SEEN FLAGGED OR SEEN FLAGGED $ $", "* SEARCH 2 3" },
+            new[] { "OR FLAGGED $ OR $ FLAGGED SEEN", "* SEARCH 2 3" },
+            new[] { "($ ($ SEEN)) (SEEN)", "* SEARCH 2 3" },
+            new[] { "UID 1:3 UID 1:3 UID 3:6", "* SEARCH 3" },
+            new[] { "SUBJECT \"message 4\" SUBJECT \"MESSAGE 4\" subject \"message 4\"", "* SEARCH 4" },
+            new[] { "SUBJECT \"message 4\" SUBJECT \"message 5\"", "* SEARCH" },
+         };
+
+         int number = 0;
+         foreach (string[] search in searches)
+         {
+            string tag = "S" + ++number;
+            string response = Command(socket, tag, "SEARCH " + search[0], 30);
+            StringAssert.Contains(tag + " OK", response, Tail(response));
+            Assert.AreEqual(search[1], Regex.Match(response, @"^\* SEARCH.*$", RegexOptions.Multiline).Value.TrimEnd('\r'),
+               "SEARCH " + search[0]);
+         }
 
          socket.Disconnect();
       }

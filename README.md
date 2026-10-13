@@ -872,7 +872,8 @@ Administration and monitoring:
                                  ; the scan; clamped to 3-64
    IndexerFullTextMaxTokensPerMessage=2048 ; distinct terms per message before it is marked always-scanned
                                  ; instead of indexed; clamped to 64-1000000
-   IMAPSearchTimeout=60          ; seconds one IMAP SEARCH may run before returning the matches found so far (0 = no limit)
+   IMAPSearchTimeout=60          ; seconds one IMAP SEARCH, SORT or THREAD may run before it is answered NO [LIMIT],
+                                 ; with none of the matches found so far (0 = no limit)
    IMAPSearchMaxMegabytes=2048   ; message content one IMAP SEARCH may read and parse (0 = no limit)
                                  ; SEARCH BODY/TEXT reads every message in the mailbox, so these bound what a single
                                  ; authenticated command can cost; raise them for mailboxes of several hundred thousand messages
