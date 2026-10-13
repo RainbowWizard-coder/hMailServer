@@ -121,10 +121,12 @@ list.
 
 The page's form carries no token, since whoever is asking has none, so since
 6.3.7 a post the browser reports as cross-site — a `Sec-Fetch-Site` of
-`cross-site` or `same-site`, or an `Origin` that is not this server's — is
-refused before it reaches the list, so another site cannot have a visitor's
-browser send a confirmation to an address it names. The form this server serves
-posts to itself (`same-origin`) and is unaffected
+`cross-site` or `same-site`, or an `Origin` that names another host than this
+server's — is refused before it reaches the list, so another site cannot have a
+visitor's browser send a confirmation to an address it names. The form this
+server serves posts to itself (`same-origin`) and is unaffected, as is the same
+post from a browser too old to send `Sec-Fetch-Site`, which can send it with
+`Origin: null` since the page is served with `Referrer-Policy: no-referrer`
 ([DevicesAndSessions.md](DevicesAndSessions.md)).
 
 An account the list's membership query answers is a member already: a request in

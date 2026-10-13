@@ -230,14 +230,34 @@ STDMETHODIMP InterfaceDomain::Save()
       // to it with no address rule (SMTP/ServerTargetResolver), so an internal
       // name or address here would be a way for a domain administrator to have
       // the server reach its own network. The server administrator may still set
-      // an internal smart host. Judged only when a host is set, so clearing it,
-      // or saving a domain that has none, is never refused on it.
+      // an internal smart host, and the domain stays its domain administrator's
+      // to save: only a CHANGE of the relay host is judged, against the domain
+      // as it is stored, as put_PlusAddressingEnabled judges only a change. A
+      // save that writes back the host the domain already has - the Control
+      // Panel's domain dialog writes back every field it loaded - is never
+      // refused on it and resolves nothing, and neither is one that clears it.
       if (!authentication_->GetIsServerAdmin())
       {
          const HM::String relayHost = object_->GetRelayHost();
-         HM::String relayRefusal;
-         if (!relayHost.IsEmpty() && !HM::HttpsClient::HostIsPublic(HM::AnsiString(relayHost), relayRefusal))
-            return COMError::GenerateError(L"The relay host must be a public address: " + relayRefusal);
+         if (!relayHost.IsEmpty())
+         {
+            // A domain not saved yet has no stored host; any it is given is a change.
+            HM::String storedHost;
+            if (object_->GetID() > 0)
+            {
+               std::shared_ptr<HM::Domain> stored = std::shared_ptr<HM::Domain>(new HM::Domain());
+               if (!HM::PersistentDomain::ReadObject(stored, object_->GetID()))
+                  return COMError::GenerateError("The domain as it is stored could not be read, so it was not saved. See hMailServer error log.");
+
+               storedHost = stored->GetRelayHost();
+            }
+
+            // A host name is the same host in any case, as the resolver reads it.
+            HM::String relayRefusal;
+            if (relayHost.CompareNoCase(storedHost) != 0 &&
+                !HM::HttpsClient::HostIsPublic(HM::AnsiString(relayHost), relayRefusal))
+               return COMError::GenerateError(L"The relay host must be a public address: " + relayRefusal);
+         }
       }
 
       // Save object in the database.

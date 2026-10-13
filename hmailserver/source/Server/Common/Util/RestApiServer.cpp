@@ -1523,7 +1523,7 @@ namespace HM
    }
 
    bool
-   RestApiServer::RequestIsCrossSite_(const AnsiString &request)
+   RestApiServer::RequestIsCrossSite_(const AnsiString &request, bool credentialed)
    {
       // The request line's method: GET and HEAD change nothing, so they are
       // never treated as a cross-site write however they arrive.
@@ -1551,16 +1551,27 @@ namespace HM
       // this server was configured with, so that a reverse proxy forwarding the
       // browser's Host and Origin (both the outside name) reads as same-origin,
       // while a form on another site (its own Origin, this server's Host) does
-      // not. An Origin that is absent, or that cannot be read as a URL, is left
-      // to pass: a script sends none, and the fetch-metadata above is what
-      // carries the protection for a browser.
+      // not. An absent Origin passes: a script sends none.
       const AnsiString origin = GetHeader_(request, "origin");
       if (origin.IsEmpty())
          return false;
 
+      // An Origin that names no host - "null", which a browser sends for a
+      // sandboxed frame, a file, or a post that crossed origins on a redirect,
+      // or anything that cannot be read as a URL - is no page of this server's.
+      // A request that carries a credential is refused on one: a sandboxed
+      // frame on another site would otherwise act with a cached HTTP Basic
+      // credential in a browser that sends no fetch metadata, and no page of
+      // this server makes a credentialed request with one - its pages write
+      // through their own script, whose requests carry the page's origin. The
+      // two anonymous posts let it pass: this server's own subscribe form is a
+      // plain form post from a page sent with Referrer-Policy: no-referrer, and
+      // a browser that follows the Fetch standard sends such a post with
+      // Origin: null - from a browser that sends no fetch metadata, the only
+      // kind this part reads, that is the form itself.
       const AnsiString originHost = HostFromUrl(origin);
       if (originHost.IsEmpty())
-         return false;
+         return credentialed;
 
       const AnsiString requestHost = HostName(GetHeader_(request, "host"));
       return originHost != requestHost;
@@ -2641,8 +2652,9 @@ namespace HM
          // server send reset mail to an address the page names. A browser that
          // reports the post as cross-site is refused; a real request comes from
          // this server's own reset page (same-origin) or from a script (no
-         // fetch-metadata), which both pass. W-12.
-         if (RequestIsCrossSite_(request))
+         // fetch-metadata), which both pass. W-12. Anonymous: an Origin of
+         // null passes, as it does for the subscribe form below.
+         if (RequestIsCrossSite_(request, false))
             return BuildResponse_(403, "{\"error\":\"a password-reset request is not accepted from another site\"}");
 
          return HandlePasswordResetRequest_(GetRequestBody_(request), peer_address);
@@ -2687,8 +2699,10 @@ namespace HM
             // post it from a visitor's browser to have this server send a
             // confirmation to an address the page names. A cross-site post is
             // refused; the form this server serves posts to itself (same-origin)
-            // and passes. W-12.
-            if (method == "POST" && RequestIsCrossSite_(request))
+            // and passes, an Origin of null among them: the page is sent with
+            // Referrer-Policy: no-referrer, so a browser that sends no fetch
+            // metadata may post the form with one (RequestIsCrossSite_). W-12.
+            if (method == "POST" && RequestIsCrossSite_(request, false))
                return BuildResponse_(403, "{\"error\":\"a request to join a list is not accepted from another site\"}");
 
             return HandleListSubscribePage_(method, listAddress, method == "POST" ? GetRequestBody_(request) : AnsiString(), peer_address);
@@ -2808,8 +2822,9 @@ namespace HM
          // session. A script, hmctl and the PowerShell module send no
          // fetch-metadata and no Origin, so none of them is ever refused here;
          // the Deck and the webmail act on their own origin (same-origin), which
-         // passes. See RequestIsCrossSite_.
-         if (RequestIsCrossSite_(request))
+         // passes. An Origin of null, which no page of this server sends with a
+         // credential, is refused here. See RequestIsCrossSite_.
+         if (RequestIsCrossSite_(request, true))
          {
             if (scimPath)
                return BuildScimError_(403, "", _T("a request that changes something is not accepted from another site; a browser reports it as cross-site"));

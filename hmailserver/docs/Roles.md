@@ -205,8 +205,13 @@ and over COM (`COMAuthentication`, `InterfaceDomain`, `InterfaceDomainAlias`,
   domain's mail leaves, with no address rule, so a confined credential's relay
   host is held to a public address, as a reader's fetch host is
   ([RestrictedDelivery.md](RestrictedDelivery.md) names the reader rule): an
-  internal name or address is the server administrator's to set, and a `PUT` that
-  does not name the relay host is never refused on it.
+  internal name or address is the server administrator's to set. Only a change of
+  the relay host is judged, against the domain as stored: a save that leaves it as
+  it is - a `PUT` that does not name it or sends it back unchanged, and
+  `Domain.Save` after the Control Panel's domain dialog, which writes back every
+  field it loaded - is never refused on it, so a domain whose server administrator
+  set an internal smart host stays the confined credential's to administer, and
+  clearing the host is never refused either.
 * **Three rule actions.** On a domain's or an account's rule, `bind_to_address`,
   `send_using_route` and `script_function` reach past the rule's owner — to one
   of the server's addresses, a configured route's stored credentials, or a

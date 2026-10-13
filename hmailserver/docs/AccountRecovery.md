@@ -198,8 +198,9 @@ Because it takes none, another site could otherwise have each of its visitors'
 browsers post it and have this server mail a reset link to an address the page
 names. Since 6.3.7 the request is refused when the browser reports it as
 cross-site — a `Sec-Fetch-Site` of `cross-site` or `same-site`, or an `Origin`
-that is not this server's — so only this server's own sign-in card, and a script
-that sends no such header, reach it ([DevicesAndSessions.md](DevicesAndSessions.md)).
+that names another host than this server's — so only this server's own sign-in
+card, and a script that sends no such header, reach it
+([DevicesAndSessions.md](DevicesAndSessions.md)).
 The double opt-in, the single answer for every address, and the rate limits
 below all stand behind that.
 

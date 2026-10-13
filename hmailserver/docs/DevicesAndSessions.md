@@ -155,18 +155,25 @@ the server's out (`proxy_hide_header Strict-Transport-Security` in nginx).
 Since 6.3.7 a request that changes something and carries a credential is refused
 when the browser reports it as coming from another site: a `Sec-Fetch-Site` of
 `cross-site` or `same-site`, which every current browser sends, or - where that
-is absent - an `Origin` whose host is not the one in the request's `Host`. The
-session cookie is already `SameSite=Strict` and a session's write already needs
+is absent - an `Origin` whose host is not the one in the request's `Host`, or
+that names no host at all (`Origin: null`, which a browser sends for a form in a
+sandboxed frame or a file, and for a post that crossed origins on a redirect; no
+page of this server sends one with a credential). The session cookie is already
+`SameSite=Strict` and a session's write already needs
 `X-Requested-With: hMailServer`; this extends the same protection to HTTP Basic,
 which a browser that once answered the `WWW-Authenticate: Basic` box keeps and
 would otherwise send with a top-level form post from another site. The Deck and
 the webmail act on their own origin (`same-origin`) and are unaffected, and a
 script, `hmctl` and the PowerShell module send no fetch-metadata and no `Origin`
-and are never treated as cross-site. The two anonymous posts that carry no token
-- the mailing-list subscribe form (`POST /lists/{list}/subscribe`) and the
-password-reset request (`POST /api/v1/password-reset`) - are held to the same
+and are never treated as cross-site. The two anonymous posts that carry no
+token, the mailing-list subscribe form (`POST /lists/{list}/subscribe`) and the
+password-reset request (`POST /api/v1/password-reset`), are held to the same
 rule, so another site cannot have a visitor's browser ask this server to send
-confirmation or reset mail to an address it names.
+confirmation or reset mail to an address it names. `Origin: null` alone passes
+there: the subscribe page is served with `Referrer-Policy: no-referrer`, and a
+browser that follows the Fetch standard posts that page's own form with
+`Origin: null` - which, from a browser too old to send `Sec-Fetch-Site`, is all
+there is to read.
 
 | Policy | Server-wide (`hm_settings`, `Settings.*` over COM, the settings group over REST) | Per domain (a field of the domain over REST and the Deck; `Utilities.SetDomainSessionPolicy` over COM) | What it does |
 |---|---|---|---|

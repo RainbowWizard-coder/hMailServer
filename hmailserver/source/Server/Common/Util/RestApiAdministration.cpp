@@ -1024,14 +1024,18 @@ namespace HM
       // are (HttpsClient::HostIsPublic): delivery connects to it with no address
       // rule (SMTP/ServerTargetResolver), so an internal name or address here
       // would be a way for one tenant to have the server reach its own network.
-      // The server administrator may still set an internal smart host. Judged
-      // only when the body names relay_host and it is not empty, so a PUT of
-      // another field, or one that clears the host, is never refused on it.
+      // The server administrator may still set an internal smart host, and the
+      // domain stays the confined credential's to save: only a CHANGE of the
+      // host is judged, against the domain as stored (InterfaceDomain::Save
+      // judges the same), so a PUT of another field, one that sends the stored
+      // host back unchanged - a client that writes back the whole object - or
+      // one that clears it is never refused on it and resolves nothing.
       if (body.Get("relay_host") && !HoldsServerAuthority_(caller))
       {
          const String relayHost = domain->GetRelayHost();
          String relayRefusal;
-         if (!relayHost.IsEmpty() && !HttpsClient::HostIsPublic(AnsiString(relayHost), relayRefusal))
+         if (!relayHost.IsEmpty() && relayHost.CompareNoCase(stored->GetRelayHost()) != 0 &&
+             !HttpsClient::HostIsPublic(AnsiString(relayHost), relayRefusal))
             return BuildResponse_(403, ErrorBody(quote, String("relay_host: ") + relayRefusal));
       }
 
