@@ -4717,7 +4717,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   rules judge, is not thereby trusted to name IMAP and POP3 ones, nor the reverse. The country policy and
   `OnClientConnect` are still asked at the accept, before the header, about the balancer, as on SMTP
   ([CountryBlocking.md](hmailserver/docs/CountryBlocking.md), [EventScripts.md](hmailserver/docs/EventScripts.md)).
-  In the fixtures `IMAP.ProxyProtocol` and `POP3.ProxyProtocol` (10 and 9 tests), four in each assert a refusal that
+  [HighAvailabilityRunbook.md](hmailserver/docs/HighAvailabilityRunbook.md) says which of a balancer's health checks
+  carry the header: a check of a mail listener must, as every connection of a listed peer must, and the `/readyz`
+  check of the metrics listener must not, since that listener reads no header and answers a request behind one
+  `404 Not Found` (`Infrastructure.HealthProbes.AProbeBehindAProxyProtocolHeaderIsAnswered404`). In the fixtures `IMAP.ProxyProtocol` and `POP3.ProxyProtocol` (10 and 9 tests), four in each assert a refusal that
   only the named client's range or ban can give - a version 1 and a version 2 header, a range that refuses the
   protocol, and the auto-ban; the rest hold the refusal of an untrusted peer's PROXY line and of a listed peer's
   missing header, the headers that name no client, the lists kept apart, the switch off and, on IMAP, a command

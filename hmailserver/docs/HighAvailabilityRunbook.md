@@ -86,17 +86,24 @@ message-store directory.
   `IMAPProxyProtocolEnabled` and `IMAPProxyProtocolTrustedIPs`,
   `POP3ProxyProtocolEnabled` and `POP3ProxyProtocolTrustedIPs` (the Control
   Panel's Protocols page has the IMAP and POP3 pairs). A listed peer must then
-  send the header on every connection, health checks included. HAProxy sends it
-  on its checks by itself when the server line has `send-proxy` or
-  `send-proxy-v2` and the check names no `port` or `addr` - with `send-proxy` a
-  version 1 header that names the balancer itself, with `send-proxy-v2` a
-  version 2 header with the LOCAL command - and the node takes either as a
-  connection of the balancer's own. A check that names a `port` or an `addr`
-  needs `check-send-proxy`, or it waits for a greeting that never comes and
-  times out: the balancer marks the node down, and the node's error log says
-  nothing. Only a check that sends before the server speaks, with no header, is
-  an invalid header (`HM6280` in the error log). A plain TCP check closes before
-  the header is due and is only noted in the TCP/IP log.
+  send the header on every connection to that listener, its health checks of
+  the listener included. HAProxy sends it on its checks by itself when the
+  server line has `send-proxy` or `send-proxy-v2` and the check names no `port`
+  or `addr` - with `send-proxy` a version 1 header that names the balancer
+  itself, with `send-proxy-v2` a version 2 header with the LOCAL command - and
+  the node takes either as a connection of the balancer's own. A check of the
+  listener itself that names a `port` or an `addr` needs `check-send-proxy`, or
+  it waits for a greeting that never comes and times out: the balancer marks
+  the node down, and the node's error log says nothing. Only a check that sends
+  before the server speaks, with no header, is an invalid header (`HM6280` in
+  the error log). A plain TCP check closes before the header is due and is only
+  noted in the TCP/IP log.
+* The `/readyz` check of section 3 is not a check of those listeners. It names
+  the metrics listener's port, and must not have `check-send-proxy`: that
+  listener reads no PROXY header, and answers a request with one in front
+  `404 Not Found` (with TLS on, the handshake fails and the connection is
+  closed unanswered), which marks the node down. Without `check-send-proxy`, a
+  check that names a port sends no header.
 
 ---
 
@@ -166,6 +173,14 @@ passive node's service is stopped, its `/readyz` connection is refused (unhealth
 and it will never be routed to. During a graceful stop, the active node flips
 `/readyz` to 503 *before* tearing down listeners, so the load balancer drains it
 cleanly.
+
+The check names the metrics listener's port, and sends no PROXY protocol header
+even where the mail listeners take one (section 2.3): this listener reads none,
+and answers a request with one in front `404 Not Found` - or, with
+`MetricsServerCertificateFile` set, fails the TLS handshake and closes the
+connection. In HAProxy, for example,
+`server n1 10.0.0.1:143 send-proxy-v2 check port 8080` with
+`option httpchk GET /readyz`, and no `check-send-proxy` on the line.
 
 ---
 

@@ -255,7 +255,10 @@ What it cannot show yet
   there is a new host. Unit AA-05 adds a node recreated without one.
 - **`/readyz`.** The balancer's check is a TCP connect (`haproxy.cfg`), because the
   nodes do not open the metrics listener that serves `/readyz`. Unit AA-05 opens it
-  and switches the check.
+  and switches the check, which then names the metrics port and must not have
+  `check-send-proxy`: the metrics listener reads no PROXY header
+  ([HighAvailabilityRunbook.md](../../../hmailserver/docs/HighAvailabilityRunbook.md),
+  section 3).
 - **Clock skew between nodes.** The containers share server2's clock; a faketime
   offset per node is the nearest the lab can come.
 - **A database failover that loses its last commit**, unless a PostgreSQL replica

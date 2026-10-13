@@ -44,8 +44,10 @@ namespace RegressionTests.Infrastructure
       // parsed status code and body. Retries the initial connect briefly to absorb
       // the listener bind race right after a server restart. readTimeoutMilliseconds
       // bounds each read of the answer (an IOException when it passes); by default
-      // a read waits as long as the listener takes.
-      private static (int status, string body) HttpGet(string path, int readTimeoutMilliseconds = System.Threading.Timeout.Infinite)
+      // a read waits as long as the listener takes. prefix, when given, is sent in
+      // the same write just before the request line, as a PROXY protocol header
+      // would be.
+      private static (int status, string body) HttpGet(string path, int readTimeoutMilliseconds = System.Threading.Timeout.Infinite, byte[] prefix = null)
       {
          using (var client = new TcpClient())
          {
@@ -73,6 +75,8 @@ namespace RegressionTests.Infrastructure
                stream.ReadTimeout = readTimeoutMilliseconds;
 
                byte[] request = Encoding.ASCII.GetBytes("GET " + path + " HTTP/1.0\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n");
+               if (prefix != null)
+                  request = prefix.Concat(request).ToArray();
                stream.Write(request, 0, request.Length);
 
                byte[] buffer = new byte[4096];
@@ -333,6 +337,50 @@ namespace RegressionTests.Infrastructure
          finally
          {
             WriteSetting("MetricsServerBindAddress", "127.0.0.1");
+            WriteSetting("MetricsServerPort", "0");
+            _application.Reinitialize();
+         }
+      }
+
+      /// <summary>
+      ///    The metrics listener reads no PROXY protocol header: it has an accept loop of
+      ///    its own, and only the SMTP, IMAP and POP3 listeners read the header. A request
+      ///    with one in front is not a probe - in version 1 its first line is the header's,
+      ///    and a version 2 header opens with two empty lines (CR LF CR LF), the first
+      ///    skipped as a leading empty line and the second ending the request before its
+      ///    request line - and is answered 404. HighAvailabilityRunbook.md says so in
+      ///    sections 2.3 and 3: a balancer's health check of /readyz must send no header
+      ///    (HAProxy: no check-send-proxy on a check that names the metrics port), or it
+      ///    marks every node down. This test holds the listener to what the runbook says
+      ///    of it.
+      /// </summary>
+      [Test]
+      [Description("A probe of the metrics listener with a PROXY protocol header in front, version 1 or 2, is answered 404 Not Found: the listener reads no header, so a health check of /readyz must not send one.")]
+      public void AProbeBehindAProxyProtocolHeaderIsAnswered404()
+      {
+         WriteSetting("MetricsServerBindAddress", "127.0.0.1");
+         WriteSetting("MetricsServerPort", MetricsPort.ToString());
+         _application.Reinitialize();
+
+         try
+         {
+            (int status, string body) plain = HttpGet("/readyz");
+            Assert.AreEqual(200, plain.status, "/readyz without a header. Body: " + plain.body);
+
+            // The two forms HAProxy's own checks were measured to carry (HAProxy 3.2): a
+            // version 1 header, which names the balancer itself, and the version 2 LOCAL
+            // command, which carries no address.
+            byte[] version1 = Encoding.ASCII.GetBytes("PROXY TCP4 192.0.2.10 127.0.0.1 45200 " + MetricsPort + "\r\n");
+            byte[] version2 = { 0x0D, 0x0A, 0x0D, 0x0A, 0x00, 0x0D, 0x0A, 0x51, 0x55, 0x49, 0x54, 0x0A, 0x20, 0x00, 0x00, 0x00 };
+
+            (int status, string body) behindVersion1 = HttpGet("/readyz", 15000, version1);
+            Assert.AreEqual(404, behindVersion1.status, "/readyz behind a version 1 header. Body: " + behindVersion1.body);
+
+            (int status, string body) behindVersion2 = HttpGet("/readyz", 15000, version2);
+            Assert.AreEqual(404, behindVersion2.status, "/readyz behind a version 2 header. Body: " + behindVersion2.body);
+         }
+         finally
+         {
             WriteSetting("MetricsServerPort", "0");
             _application.Reinitialize();
          }

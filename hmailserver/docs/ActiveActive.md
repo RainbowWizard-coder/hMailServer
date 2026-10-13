@@ -484,9 +484,9 @@ since unit AA-23 `IMAPProxyProtocolTrustedIPs` and `POP3ProxyProtocolTrustedIPs`
 each with its switch. The country policy and `OnClientConnect` are asked at the
 accept, before the header, so they see the balancer; in this topology the
 geographic policy belongs on the balancer ([CountryBlocking.md](CountryBlocking.md)).
-The balancer's health check is `/readyz`
-([HighAvailabilityRunbook.md](HighAvailabilityRunbook.md)), which a drained or
-standby node answers with 503.
+The balancer's health check is `/readyz` on the metrics listener
+([HighAvailabilityRunbook.md](HighAvailabilityRunbook.md)), which reads no PROXY
+header, so that the check sends none; a drained or standby node answers it with 503.
 
 ### The message store
 
