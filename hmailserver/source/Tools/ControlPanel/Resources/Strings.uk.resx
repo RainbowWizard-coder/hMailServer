@@ -4096,7 +4096,7 @@
   <data name="Delete the {0} checked message permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Видалити {0} позначене повідомлення назавжди?
 
-Відправнику сказали, що його прийнято, тому ніщо не повторить спробу, а іншої копії немає.</value>
+Відправникам сказали, що їх прийнято, тому ніщо не повторить спробу, а іншої копії немає.</value>
   </data>
   <data name="Delete the {0} checked messages permanently?&#10;&#10;The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Видалити {0} позначених повідомлень назавжди?
@@ -4111,7 +4111,7 @@
   <data name="Delete the {0} message from {1} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Видалити {0} повідомлення від {1} назавжди?
 
-Відправнику сказали, що його прийнято, тому ніщо не повторить спробу, а іншої копії немає.</value>
+Відправникам сказали, що їх прийнято, тому ніщо не повторить спробу, а іншої копії немає.</value>
   </data>
   <data name="Delete the {0} messages from {1} permanently?&#10;&#10;The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Видалити {0} повідомлень від {1} назавжди?

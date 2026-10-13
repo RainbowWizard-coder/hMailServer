@@ -4,9 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+using hMailServer.ControlPanel.Services;
 using Xunit;
 
 namespace hMailServer.ControlPanel.Tests.Services
@@ -21,8 +23,11 @@ namespace hMailServer.ControlPanel.Tests.Services
    /// read-back rules find the kinds a rule can see again; these hold one mended text of each
    /// catalogue as it now reads, and the default IP ranges' names.
    /// </summary>
-   public class TranslationReadbackTests
+   [Collection("Loc")]
+   public class TranslationReadbackTests : IDisposable
    {
+      public void Dispose() => Loc.Reset();
+
       [Theory]
       [InlineData("cs", "Sendout queued {0}.", "Hromadné odeslání bylo zařazeno do fronty v {0}.")]
       [InlineData("da", "Sendout queued {0}.", "Udsendelsen blev sat i kø kl. {0}.")]
@@ -66,6 +71,41 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          Assert.Equal(2 * tags.Length, texts);
          Assert.True(offenders.Count == 0, "A text translates the default ranges' names, which the server gives in English:\n" + string.Join("\n", offenders));
+      }
+
+      /// <summary>
+      /// The quarantine asks about one message with a question of its own (its subject and sender,
+      /// or "this message"), and about the checked messages, or a group's, with a plural pair whose
+      /// "one" form it never shows for one (QuarantineView's ConfirmDelete_). Ukrainian says 21, 31
+      /// and 101 as it says 1, so it shows that form for them: the read-back made its senders one
+      /// sender told it was accepted (Відправнику ... його), which said of 21 messages that they had
+      /// one sender, and the adversarial check of the read-back put the senders back.
+      /// </summary>
+      [Theory]
+      [InlineData(2)]
+      [InlineData(5)]
+      [InlineData(21)]
+      [InlineData(31)]
+      [InlineData(101)]
+      public void TheUkrainianDeleteQuestionsSpeakOfTheSendersForEveryCountTheyAreAskedFor(long count)
+      {
+         Dictionary<string, string> catalogue = ReadCatalogueForReadback("uk");
+         Loc.Use((text, culture) => catalogue.TryGetValue(text, out string value) && value.Length > 0 ? value : null, CultureInfo.GetCultureInfo("uk"));
+
+         string checkedMessages = Loc.Plural(count,
+            "Delete the {0} checked message permanently?\n\nThe sender was told it was accepted, so nothing will retry and there is no other copy.",
+            "Delete the {0} checked messages permanently?\n\nThe senders were told they were accepted, so nothing will retry and there is no other copy.");
+         string groupMessages = Loc.PluralF(count,
+            "Delete the {0} message from {1} permanently?\n\nThe sender was told it was accepted, so nothing will retry and there is no other copy.",
+            "Delete the {0} messages from {1} permanently?\n\nThe senders were told they were accepted, so nothing will retry and there is no other copy.",
+            count, "example.com");
+
+         foreach (string question in new[] { checkedMessages, groupMessages })
+         {
+            Assert.StartsWith("Видалити " + count.ToString(CultureInfo.InvariantCulture) + " ", question);
+            Assert.Contains("Відправникам сказали, що їх прийнято", question);
+            Assert.DoesNotContain("Відправнику", question);
+         }
       }
 
       private static Dictionary<string, string> ReadCatalogueForReadback(string tag)
