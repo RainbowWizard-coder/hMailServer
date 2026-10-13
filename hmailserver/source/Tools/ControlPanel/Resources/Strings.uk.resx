@@ -17011,10 +17011,10 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>перейти на новий сервер</value>
   </data>
   <data name="mx lines are derived from {0}'s live MX records at request time; the lookup below is this machine's view of the same answer." xml:space="preserve">
-    <value>рядки mx формуються з чинних MX-записів домену {0} на момент запиту; пошук нижче — це погляд цього комп’ютера на ту саму відповідь.</value>
+    <value>Рядки mx формуються з чинних MX-записів домену {0} на момент запиту; пошук нижче — це погляд цього комп’ютера на ту саму відповідь.</value>
   </data>
   <data name="mx lines from 'Policy MX host patterns' on the Web services &amp; autoconfiguration page." xml:space="preserve">
-    <value>рядки mx походять з «Шаблони вузлів MX політики» на сторінці «Вебслужби та автоконфігурація».</value>
+    <value>Рядки mx походять з «Шаблони вузлів MX політики» на сторінці «Вебслужби та автоконфігурація».</value>
   </data>
   <data name="my certificate has expired" xml:space="preserve">
     <value>у мене минув термін дії сертифіката</value>

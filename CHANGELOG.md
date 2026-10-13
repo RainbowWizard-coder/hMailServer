@@ -4819,14 +4819,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the method to show what the binder throws, and holds that no page tells an older server by `DISP_E_UNKNOWNNAME`
   alone.
 
-- **Fixed: 96 Czech texts said what their English does not, or named one thing two ways.** A read-back of every
+- **Fixed: 98 Czech texts said what their English does not, or named one thing two ways.** A read-back of every
   explanatory text against its English found the sendout's notice saying that the sendout had queued {0}, where {0} is
   the time it was queued; a number of scanners read as a scanner's name; "0 = vůbec" (0 = at all) for a limit that 0
   closes; four DNS checks still saying what their English said before it was reworded; the default IP ranges named Můj
   počítač and Internet, where the server gives them in English and the IP ranges page lists them so; the administrator
   an administrátor in the two-factor dialog, where the catalogue says správce; and the accept pipeline a pipeline
   přijetí beside the page's přijímací řetězec. Clitics stand where Czech puts them, dosáhnout takes the genitive, and
-  no comma stands before the nebo that ends a list.
+  no comma stands before the nebo that ends a list; the MTA-STS card's note on its mx lines, a sentence of its own,
+  opens with a capital, Řádky, and z before živých is ze.
 
 - **Fixed: 86 Danish texts said what their English does not, or named one thing two ways.** "Listed", for an address
   put on the allow or block list, read as shown in a list (vises), and "intet tælles eller listes" said that nothing
@@ -4864,14 +4865,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   call them, the message index an indeks, and the Control Panel the Denetim Masası in prose, as 67 texts call it; the
   Alias address caption's key moves to ğ, since the Domains page gives every other letter of it to another caption.
 
-- **Fixed: 166 Ukrainian texts said what their English does not, broke Ukrainian grammar, or named one thing two
+- **Fixed: 168 Ukrainian texts said what their English does not, broke Ukrainian grammar, or named one thing two
   ways.** A fair password's advice to consider adding {0} was the weak password's order to add it; free software under
   the AGPLv3 was free of charge (безкоштовне), where it is free as in freedom (вільне); a device was what allows SMTP
   delivery, where the IP range does; and the default IP ranges were Мій комп’ютер and Internet, where the server gives
   them in English and the IP ranges page lists them so. Слухач is animate, so no listeners are слухачів, доки ... не
   takes a finite verb, a session is a сеанс, an event script a скрипт, a resolver a розв'язувач, an identity provider a
   постачальник ідентичності and a server's health its справність throughout, and the Control Panel is the Панель
-  керування in prose, as 63 texts call it.
+  керування in prose, as 63 texts call it; the MTA-STS card's note on its mx lines, a sentence of its own, opens with
+  a capital, Рядки.
 
 - **Fixed: 115 Japanese texts said what their English does not, or named one thing two ways.** One pass of SPF, DKIM
   or DMARC read as all three; free software under the AGPLv3 was free of charge (無償), where it is free as in freedom
@@ -4903,8 +4905,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Run over the catalogues as they were, the rules make 217 findings in 198 texts; the self-test holds each rule
   against a text the read-back mended, as it was and as it is. `TranslationReadbackTests` holds one mended text of
   each of the eight catalogues; the default IP ranges' names, My computer and Internet, which the server gives in
-  English; and the Ukrainian quarantine's questions for deleting 21 or 31 messages, which speak of the senders as
-  they do for 5.
+  English; the Ukrainian quarantine's questions for deleting 21 or 31 messages, which speak of the senders as they do
+  for 5; and the MTA-STS card's note on its mx lines, which opens in each of the eight with the literal mx or with a
+  capital.
 
 ### Administration
 

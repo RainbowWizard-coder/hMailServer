@@ -110,6 +110,37 @@ namespace hMailServer.ControlPanel.Tests.Services
          }
       }
 
+      /// <summary>
+      /// The DNS records page's MTA-STS card sets its note on the policy's mx lines after the
+      /// caveat's full stop (DnsRecordsView: Sentences(caveat, mxNote, extra)), so the note is a
+      /// sentence of its own. Its English opens with the literal mx, as a translation may; one that
+      /// opens with a word of its own opens with a capital - the Czech and Ukrainian notes began
+      /// with řádky and рядки, in lower case, after the caveat the read-back's check had mended.
+      /// </summary>
+      [Fact]
+      public void TheMxLinesNoteOpensWithTheLiteralOrWithACapital()
+      {
+         string[] tags = { "cs", "da", "fi", "nb", "tr", "uk", "ja", "zh-Hans" };
+         string[] keys =
+         {
+            "mx lines are derived from {0}'s live MX records at request time; the lookup below is this machine's view of the same answer.",
+            "mx lines from 'Policy MX host patterns' on the Web services & autoconfiguration page.",
+         };
+         var offenders = new List<string>();
+         foreach (string tag in tags)
+         {
+            Dictionary<string, string> catalogue = ReadCatalogueForReadback(tag);
+            foreach (string key in keys)
+            {
+               string value = catalogue[key];
+               if (!value.StartsWith("mx", StringComparison.Ordinal) && !char.IsUpper(value[0]))
+                  offenders.Add(tag + ": " + value);
+            }
+         }
+
+         Assert.True(offenders.Count == 0, "A note on the mx lines opens with a word of its own in lower case:\n" + string.Join("\n", offenders));
+      }
+
       private static Dictionary<string, string> ReadCatalogueForReadback(string tag)
       {
          var result = new Dictionary<string, string>(StringComparer.Ordinal);

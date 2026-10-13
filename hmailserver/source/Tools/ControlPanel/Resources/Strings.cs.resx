@@ -17011,10 +17011,10 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
     <value>přejít na nový server</value>
   </data>
   <data name="mx lines are derived from {0}'s live MX records at request time; the lookup below is this machine's view of the same answer." xml:space="preserve">
-    <value>řádky mx se odvozují z živých MX záznamů domény {0} v okamžiku požadavku; vyhledání níže je pohled tohoto počítače na tutéž odpověď.</value>
+    <value>Řádky mx se odvozují ze živých MX záznamů domény {0} v okamžiku požadavku; vyhledání níže je pohled tohoto počítače na tutéž odpověď.</value>
   </data>
   <data name="mx lines from 'Policy MX host patterns' on the Web services &amp; autoconfiguration page." xml:space="preserve">
-    <value>řádky mx z „Vzory MX hostitelů v politice“ na stránce Webové služby a autokonfigurace.</value>
+    <value>Řádky mx z „Vzory MX hostitelů v politice“ na stránce Webové služby a autokonfigurace.</value>
   </data>
   <data name="my certificate has expired" xml:space="preserve">
     <value>můj certifikát vypršel</value>
