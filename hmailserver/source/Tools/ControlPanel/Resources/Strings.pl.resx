@@ -8825,6 +8825,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Open Logging settings" xml:space="preserve">
     <value>Otwórz Ustawienia dzienników</value>
   </data>
+  <data name="Open Monitoring &amp; alerts" xml:space="preserve">
+    <value>Otwórz Monitorowanie i alerty</value>
+  </data>
   <data name="Open Monitoring &amp; alerts, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>Otwórz Monitorowanie i alerty, gdzie znajdują się port nasłuchu REST i ustawienia TLS</value>
   </data>

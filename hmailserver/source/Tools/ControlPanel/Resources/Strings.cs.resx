@@ -8825,6 +8825,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Open Logging settings" xml:space="preserve">
     <value>Otevřít nastavení logování</value>
   </data>
+  <data name="Open Monitoring &amp; alerts" xml:space="preserve">
+    <value>Otevřít Monitorování a upozornění</value>
+  </data>
   <data name="Open Monitoring &amp; alerts, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>Otevřít Monitorování a upozornění, kde se spravuje port a nastavení TLS REST listeneru</value>
   </data>

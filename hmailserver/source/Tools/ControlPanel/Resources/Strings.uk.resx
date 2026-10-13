@@ -8825,6 +8825,9 @@
   <data name="Open Logging settings" xml:space="preserve">
     <value>Відкрити параметри журналювання</value>
   </data>
+  <data name="Open Monitoring &amp; alerts" xml:space="preserve">
+    <value>Відкрити «Моніторинг та оповіщення»</value>
+  </data>
   <data name="Open Monitoring &amp; alerts, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>Відкрити «Моніторинг та оповіщення», де задаються порт і параметри TLS слухача REST</value>
   </data>

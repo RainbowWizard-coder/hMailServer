@@ -8719,6 +8719,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Open Logging settings" xml:space="preserve">
     <value>Ouvrir Réglages de journalisation</value>
   </data>
+  <data name="Open Monitoring &amp; alerts" xml:space="preserve">
+    <value>Ouvrir Surveillance et alertes</value>
+  </data>
   <data name="Open Monitoring &amp; alerts, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>Ouvrir Surveillance et alertes, où se trouvent le port et les réglages TLS de l'écouteur REST</value>
   </data>

@@ -4712,8 +4712,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Rules tab, whose rules are the account's, has no card. Delivery of e-mail has no Rules tab, and the reasons document
   keeps the pattern's under Rules (review finding F273, the owner's decision of 12 October 2026). The card is the
   settings pages' own, shown on another page with no frame of its own, its Save captioned in the page's words so that
-  its access key is free there in every language. `PageSubjectsTests` holds the card on the page, the page's questions
-  to it and the frame it does not draw.
+  its access key is free there in every language, and the REST API's notice, while the API cannot be used - as
+  shipped, with its port 0 - the card's first row, whose button carries no access key and is reached by Tab, where
+  above the card its Alt+O was Remove criterion's too. `check-mnemonics.py` holds the Save and the notice to the
+  page's keys in every language. `PageSubjectsTests` holds the card on the page, the page's questions to it and the
+  frame it does not draw.
 
 - **Changed: the PROXY protocol and XCLIENT are a card on the Incoming relays page.** Both let a named upstream - a
   load balancer, a TLS terminator, a Postfix relay - pass on the real client address, which is what the Incoming
@@ -4732,11 +4735,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   named for nothing in particular, and bringing mail in from another server or an Outlook data file is the backup
   page's subject as much as a restore is. They are a Migrations card under the restore cards now, with the Control
   Deck's button the jobs are started from, its own Save migration settings in the card's footer, which Ctrl+S presses
-  while the keyboard is in the card, its pill, and the page's question before it is left with an unsaved edit of the
-  card; Advanced has no Migrations tab, a search for Migrations or PST import opens the backup page, and so does the
-  task "import a pst file". The page's old title, Backup & restore, is a search alias, and the setup checklist's
-  backup folder, the update's no-backup reason and the documents name the page by its new one (review finding F273,
-  the owner's decision of 12 October 2026). `PageSubjectsTests` holds the card on the page and Advanced without it.
+  while the keyboard is in the card, its pill, the REST API's notice as the card's first row while the API cannot be
+  used, its button without an access key, and the page's question before it is left with an unsaved edit of the card;
+  Advanced has no Migrations tab, a search for Migrations or PST import opens the backup page, and so does the task
+  "import a pst file". The page's old title, Backup & restore, is a search alias, and the setup checklist's backup
+  folder, the update's no-backup reason and the documents name the page by its new one (review finding F273, the
+  owner's decision of 12 October 2026). `PageSubjectsTests` holds the card on the page and Advanced without it.
 
 - **Changed: a route written before the sidebar's moves still opens its page.** The documents and an administrator's
   notes name pages by their sidebar route, as *Maintenance → Backup & restore* or *Spam & virus filtering → Anti-virus

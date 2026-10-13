@@ -55,6 +55,17 @@ What is checked
     and the header, cannot share a key: the Auto-ban tab's Add address... and
     Add name... were both Alt+A, and in Russian Lift ban was Save changes'
     Alt+С, each pair never compared while each class was a scope alone.
+  * A section of the settings pages shown as cards on another page - the
+    Rules page's Rule limits, Incoming relays' front-end proxies, the backup
+    page's Migrations (ServerSettingsView's embedded sections) - draws its
+    Save, which the host names (new ServerSettingsView(Section.X, embedded:
+    true) { SaveCaption = L("...") }), and its REST API notice on the host's
+    page. Both join the host's scope: the XAML file's, or on a page whose
+    cards answer their own keys a card's of its own, held to the captions
+    outside every card; for a page built in code, its class's. The notice's
+    "_Open Monitoring & alerts" was Alt+O there beside Rules' Rem_ove
+    criterion, each in a scope the other was not in; embedded, it carries no
+    key, the branch "embedded_ ? A : B" draws A, and B stays the section's.
   * The button a confirmation names - Dialogs.Confirm(text, title, "Re_move")
     - and the fixed answers of Dialogs' own questions (new Choice("_Save", ...)
     for unsaved changes). A confirmation is a window of its own, its button
@@ -135,7 +146,14 @@ EXEMPT = {"Cancel", "OK", "Close", "…", "...",
           # restore's archive - which one key would only move between, so it carries
           # none and is reached by Tab after its box; a dialog's single picker is
           # "_Browse…".
-          "Browse…"}
+          "Browse…",
+          # The REST API's notice on a settings section shown on another page
+          # (ServerSettingsView.RestTabNotice_, embedded): a row of the host's card,
+          # whose row buttons carry no key, as the Control Deck's does not on a card.
+          # With its key it was Alt+O beside the Rules page's Rem_ove criterion and
+          # the backup page's Message metadata _only; on a settings page of its own
+          # it is "_Open Monitoring & alerts", whose key every catalogue is held to.
+          "Open Monitoring & alerts"}
 
 # Shared helpers, each with the call that places its captions on a page: every
 # caption of the helper joins the scope of every page whose code makes the call.
@@ -565,6 +583,72 @@ def row_captions(captions, files):
     return out
 
 
+# A section of the settings pages shown as cards on another page (ServerSettingsView's
+# embedded sections, review finding F273): the host names the section's Save,
+# new ServerSettingsView(ServerSettingsView.Section.X, embedded: true) { SaveCaption = L("...") },
+# which is drawn in the section's last card on the host's page, and the section draws
+# there the captions of the methods EMBEDDED_DRAWN names - the REST API's notice, a row
+# of the card - but those it draws only when it is not embedded, the second branch of
+# an "embedded_ ? A : B".
+EMBEDDED = (r"new\s+ServerSettingsView\(\s*ServerSettingsView\.Section\.(\w+)\s*,\s*embedded:\s*true\s*\)\s*"
+            r"\{(?:[^{}]|\{[^{}]*\})*?\bSaveCaption\s*=\s*" + LITERAL)
+EMBEDDED_VIEW = os.path.join("Views", "ServerSettingsView.xaml.cs")
+EMBEDDED_DRAWN = ("RestTabNotice_",)
+
+
+def embedded_captions(captions, files, view):
+    """Each host's Save caption for an embedded section, a caption of the host's scope,
+    and the captions the section draws on the host, copied into that scope: for a XAML
+    page the file's, or on a page whose cards answer their own keys
+    (AccessKeyScope.ByCard) a card's of its own, held to the page's captions outside
+    every card as the page's cards are; for a page built in code its class's. Neither
+    was in any scope until the Rules page's Rem_ove criterion and the REST API notice's
+    _Open Monitoring & alerts were both Alt+O there."""
+    drawn = []
+    if os.path.exists(view):
+        with open(view, encoding="utf-8") as handle:
+            src = handle.read()
+        for name, a, b in body_ranges(src, METHOD):
+            if name not in EMBEDDED_DRAWN:
+                continue
+            hidden = {unescape_cs(m.group(2)) for m in
+                      re.finditer(r"\bembedded_?\s*\?\s*" + LITERAL + r"\s*:\s*" + LITERAL, src[a:b])}
+            first, last = line_of(src, a), line_of(src, b)
+            drawn += [c for c in captions if c.file == view and first <= c.line <= last and c.raw not in hidden]
+    own, placed = [], []
+    for path in files:
+        if not path.endswith(".cs") or os.path.normcase(path) == os.path.normcase(view):
+            continue
+        with open(path, encoding="utf-8") as handle:
+            src = handle.read()
+        classes = body_ranges(src, CLASS)
+        methods = body_ranges(src, METHOD)
+        for m in re.finditer(EMBEDDED, src, re.S):
+            section, line = m.group(1), line_of(src, m.start())
+            cls = innermost(classes, m.start())
+            class_name = cls[0] if cls else ""
+            scope = class_name
+            if cls and "new TabItem" in src[cls[1]:cls[2]]:
+                method = innermost(methods, m.start())
+                scope = method[0] if method else class_name
+            page, scoped_class = path, class_name
+            xaml = path[:-3] if path.endswith(".xaml.cs") else None
+            if xaml and os.path.exists(xaml):
+                with open(xaml, encoding="utf-8") as handle:
+                    page_src = handle.read()
+                base = os.path.basename(xaml)
+                page = xaml
+                if card_spans(page_src):
+                    scope, scoped_class = f"{base}#embedded {section}", base
+                else:
+                    scope, scoped_class = base, None
+            own.append(Caption(path, line, scope, unescape_cs(m.group(2)), scoped_class, page=page))
+            via = (path, line, f"new ServerSettingsView(Section.{section}, embedded: true)")
+            for c in drawn:
+                placed.append(Caption(c.file, c.line, scope, c.raw, scoped_class, page=page, via=via))
+    return own, placed
+
+
 def element_span(src, name):
     """(start, end) of the XAML element whose x:Name is name, by counting the
     opening and closing tags of its own type; None when there is none."""
@@ -679,7 +763,9 @@ def language_problems(captions):
         translated = []
         for c in captions:
             raw = catalogue.get(c.raw)
-            if raw is None or c.text in EXEMPT:
+            # An exempt caption carries no key; one with the same words that carries one
+            # - "_Open Monitoring & alerts" beside the embedded notice's - is held to it.
+            if raw is None or (c.text in EXEMPT and c.key is None):
                 continue
             t = Caption(c.file, c.line, c.scope, raw, c.class_name, page=c.page, via=c.via)
             if c.key is not None and t.key is None and not c.via:
@@ -908,6 +994,76 @@ def self_test():
                [p for p in settings("header", "A_dd address…", "_Save ban", "Auto-ban")[1] if "Save ban" in p], True)
         expect("A_dd address…, _Lift ban, _Add name… and the header on one tab",
                settings("fixed", "A_dd address…", "_Lift ban", "Auto-ban")[1], False)
+
+        # A settings section shown on another page draws its Save, which the host names,
+        # and its REST API notice there, in the host's scope - by card on a page whose
+        # cards answer their own keys: the notice's _Open Monitoring & alerts and the
+        # Rules page's Rem_ove criterion were both Alt+O, each in a scope the other was
+        # not in (the adversarial check of batch53's navigation unit).
+        keyed = 'L("_Open Monitoring & alerts")'
+        keyless = 'embedded_ ? L("Open Monitoring & alerts") : L("_Open Monitoring & alerts")'
+        one_page = ('<ui:Button Content="{loc:L \'_Refresh\'}" />\n'
+                    '<ui:Button Content="{loc:L \'Rem_ove criterion\'}" />\n')
+        card_page = ('<ui:Button Content="{loc:L \'_Refresh\'}" />\n'
+                     '<scaffold:Card Title="A">\n<ui:CheckBox Content="{loc:L \'Message metadata _only\'}" />\n'
+                     '<ui:Button Content="{loc:L \'_Merge\'}" />\n</scaffold:Card>\n')
+
+        def embedded(tag, save, notice, host_xaml=None):
+            folder = os.path.join(root, "embedded-" + tag)
+            os.mkdir(folder)
+            view = os.path.join(folder, "ServerSettingsView.xaml.cs")
+            with open(view, "w", encoding="utf-8") as handle:
+                handle.write("namespace T\n{\n   public partial class ServerSettingsView\n   {\n"
+                             "      public ServerSettingsView()\n      {\n         tabs.Items.Add(new TabItem());\n      }\n\n"
+                             "      private Scaffold.InlineNotice RestTabNotice_(string reason, bool offerApiPage)\n      {\n"
+                             "         var open = new Wpf.Ui.Controls.Button { Appearance = Secondary };\n"
+                             f"         open.Content = {notice};\n"
+                             "         return null;\n      }\n   }\n}\n")
+            if host_xaml is None:
+                host = os.path.join(folder, "UtilityViews.cs")
+                with open(host, "w", encoding="utf-8") as handle:
+                    handle.write("namespace T\n{\n   public class RelaysView : UserControl\n   {\n"
+                                 "      private readonly ServerSettingsView proxies_ = new ServerSettingsView(ServerSettingsView.Section.FrontEndProxies, embedded: true)\n"
+                                 f"      {{\n         SaveCaption = L(\"{save}\")\n      }};\n\n"
+                                 "      public RelaysView()\n      {\n"
+                                 "         var refresh = new Wpf.Ui.Controls.Button { Content = L(\"_Refresh\") };\n"
+                                 "      }\n   }\n}\n")
+                found = [view, host]
+            else:
+                xaml = os.path.join(folder, "HostView.xaml")
+                with open(xaml, "w", encoding="utf-8") as handle:
+                    handle.write(host_xaml + "</UserControl>\n")
+                with open(xaml + ".cs", "w", encoding="utf-8") as handle:
+                    handle.write("namespace T\n{\n   public partial class HostView\n   {\n"
+                                 "      private void Enter_()\n      {\n"
+                                 "         limits_ = new ServerSettingsView(ServerSettingsView.Section.RuleLimits, embedded: true)"
+                                 f" {{ SaveCaption = L(\"{save}\") }};\n"
+                                 "      }\n   }\n}\n")
+                found = [view, xaml, xaml + ".cs"]
+            caps = []
+            for path in found:
+                caps += xaml_captions(path) if path.endswith(".xaml") else cs_captions(path)
+            caps = onto_xaml_pages(caps)
+            hosts, drawn = embedded_captions(caps, found, view)
+            return hosts, collisions(caps + hosts + drawn)
+
+        rules = head.format("") + one_page
+        expect("the embedded notice's _Open Monitoring & alerts beside the host's Rem_ove criterion",
+               [p for p in embedded("rules-keyed", "Sa_ve rule limits", keyed, rules)[1] if "Open Monitoring" in p], True)
+        expect("the embedded notice without a key and Sa_ve rule limits on the host",
+               embedded("rules-fixed", "Sa_ve rule limits", keyless, rules)[1], False)
+        expect("the host's Save rule limits as Alt+R beside its _Refresh",
+               [p for p in embedded("rules-save", "Save _rule limits", keyless, rules)[1] if "Save _rule limits" in p], True)
+        hosts, _ = embedded("rules-nokey", "Save rule limits", keyless, rules)
+        expect("a host's Save caption with no key is read", [c for c in hosts if c.text == "Save rule limits" and c.key is None], True)
+        by_card = head.format(' local:AccessKeyScope.ByCard="True"') + card_page
+        expect("an embedded Save as Alt+R beside the header's _Refresh, outside every card",
+               [p for p in embedded("card-save", "_Run migrations", keyless, by_card)[1] if "_Run migrations" in p], True)
+        expect("an embedded Save as Alt+M beside another card's _Merge",
+               embedded("card-fixed", "Save _migration settings", keyless, by_card)[1], False)
+        expect("an embedded Save as Alt+R beside the code-built host's _Refresh",
+               [p for p in embedded("code-save", "Save p_roxy settings", keyless)[1] if "Save p_roxy settings" in p], True)
+        expect("an embedded Save as Alt+X on the code-built host", embedded("code-fixed", "Save pro_xy settings", keyless)[1], False)
         # a CJK key suffix with a space before it (F302), and one written against the caption
         resources = os.path.join(root, "Resources")
         os.makedirs(resources)
@@ -955,6 +1111,11 @@ def main():
     placed += bar_captions(files)
     # A settings page's row classes: on the tab their card is placed on, under the header.
     placed += row_captions(all_captions, files)
+    # A settings section shown on another page: its Save, which the host names, and the
+    # captions the section draws there, in the host's scope.
+    hosts, drawn = embedded_captions(all_captions, files, os.path.join(ROOT, EMBEDDED_VIEW))
+    all_captions += hosts
+    placed += drawn
     # coverage
     for c in all_captions:
         if c.text in EXEMPT:

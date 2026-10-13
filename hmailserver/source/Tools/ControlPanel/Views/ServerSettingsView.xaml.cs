@@ -6107,6 +6107,10 @@ namespace hMailServer.ControlPanel.Views
          // to find.
          var unreadCards = new List<(StackPanel Fields, int Unread)>();
 
+         // On another page (an embedded section), the REST API's notice and the card it
+         // goes in: the first card whose settings it is about (RestTabNotice_).
+         var cardRestNotices = new List<(StackPanel Fields, Scaffold.InlineNotice Notice)>();
+
          foreach (TabDef tab in tabs_)
          {
             // Cap the settings form to a readable column instead of letting cards
@@ -6128,6 +6132,7 @@ namespace hMailServer.ControlPanel.Views
             // be used at all: said once, under the strip, where it was said on every
             // card that held one - three times on the Sign-in tab.
             string tabRestProblem = null;
+            StackPanel tabRestFields = null;
 
             foreach (CardDef card in tab.Cards)
             {
@@ -6160,6 +6165,7 @@ namespace hMailServer.ControlPanel.Views
                         if (group != null && group.SessionWide)
                         {
                            tabRestProblem ??= group.Refusal;
+                           tabRestFields ??= fields;
                            if (setting.WantsInitialValue)
                               fields.Children.Add(lastRow = UnreadRow_(setting));
                         }
@@ -6278,8 +6284,18 @@ namespace hMailServer.ControlPanel.Views
                });
             }
 
+            // On another page the notice is the first row of the card whose settings it is
+            // about, under its heading: above the cards it stood between the host's own,
+            // outside every card, where on a page whose cards answer their own access keys
+            // (AccessKeyScope.ByCard, the backup page) a caption shares no card's key.
             if (tabRestProblem != null)
-               panel.Children.Insert(0, RestTabNotice_(tabRestProblem, section_ != Section.Monitoring));
+            {
+               Scaffold.InlineNotice restNotice = RestTabNotice_(tabRestProblem, section_ != Section.Monitoring);
+               if (embedded_ && tabRestFields != null)
+                  cardRestNotices.Add((tabRestFields, restNotice));
+               else
+                  panel.Children.Insert(0, restNotice);
+            }
 
             // The page's notice, when this tab is on screen, above everything.
             var noticeSlot = new ContentControl { Focusable = false, IsTabStop = false };
@@ -6318,6 +6334,16 @@ namespace hMailServer.ControlPanel.Views
                   Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md)
                });
             }
+         }
+
+         // The REST API's notice of an embedded section above everything else on its
+         // card, the count of the card's unread settings included, as it is above every
+         // card of a page of its own; with no gap under it on a card it is the whole of.
+         foreach ((StackPanel fields, Scaffold.InlineNotice notice) in cardRestNotices)
+         {
+            if (fields.Children.Count == 0)
+               notice.Margin = new Thickness(0);
+            fields.Children.Insert(0, notice);
          }
 
          if (SettingsTabs.Items.Count > 0)
@@ -6376,8 +6402,14 @@ namespace hMailServer.ControlPanel.Views
       /// the page where the API's listener is set one press away, on every page but
       /// that one (<paramref name="offerApiPage"/>), whose REST API tab is beside the
       /// tab that says it. Its rows are marked Not read on their cards (UnreadRow_).
+      /// On another page (an embedded section) the notice is a row of the host's card
+      /// and its button carries no access key, as a card's row buttons carry none
+      /// (ControlDeckLink.Button): the host's captions take their keys in its own scope,
+      /// and Alt+O was the Rules page's Rem_ove criterion and the backup page's Message
+      /// metadata _only, which WPF, given two targets for one key, presses neither of.
+      /// build/check-mnemonics.py puts the captions drawn here on every host's page.
       /// </summary>
-      private static Scaffold.InlineNotice RestTabNotice_(string reason, bool offerApiPage)
+      private Scaffold.InlineNotice RestTabNotice_(string reason, bool offerApiPage)
       {
          var notice = new Scaffold.InlineNotice
          {
@@ -6392,10 +6424,10 @@ namespace hMailServer.ControlPanel.Views
          {
             var open = new Wpf.Ui.Controls.Button
             {
-               Content = L("_Open Monitoring & alerts"),
                Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary,
                VerticalAlignment = VerticalAlignment.Center
             };
+            open.Content = embedded_ ? L("Open Monitoring & alerts") : L("_Open Monitoring & alerts");
             System.Windows.Automation.AutomationProperties.SetAutomationId(open, "settings-open-api");
             open.Click += (_, _) => (Application.Current?.MainWindow as MainWindow)?.NavigateTo("api");
             notice.Content = open;

@@ -8719,6 +8719,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Open Logging settings" xml:space="preserve">
     <value>Åpne Logging-innstillingene</value>
   </data>
+  <data name="Open Monitoring &amp; alerts" xml:space="preserve">
+    <value>Åpne Overvåking og alarmer</value>
+  </data>
   <data name="Open Monitoring &amp; alerts, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>Åpne Overvåking og alarmer, som eier REST-lytterens port og TLS-innstillinger</value>
   </data>

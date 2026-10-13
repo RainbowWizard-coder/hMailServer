@@ -8719,6 +8719,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Open Logging settings" xml:space="preserve">
     <value>Logboekinstellingen openen</value>
   </data>
+  <data name="Open Monitoring &amp; alerts" xml:space="preserve">
+    <value>Monitoring en waarschuwingen openen</value>
+  </data>
   <data name="Open Monitoring &amp; alerts, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>Monitoring en waarschuwingen openen, waar de poort- en TLS-instellingen van de REST-listener zijn ondergebracht</value>
   </data>

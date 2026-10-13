@@ -8719,6 +8719,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Open Logging settings" xml:space="preserve">
     <value>Avaa Lokitus-asetukset</value>
   </data>
+  <data name="Open Monitoring &amp; alerts" xml:space="preserve">
+    <value>Avaa Valvonta ja hälytykset</value>
+  </data>
   <data name="Open Monitoring &amp; alerts, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>Avaa Valvonta ja hälytykset, joka omistaa REST-kuuntelijan portin ja TLS-asetukset</value>
   </data>

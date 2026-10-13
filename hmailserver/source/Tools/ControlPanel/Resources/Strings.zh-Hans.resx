@@ -8719,6 +8719,9 @@
   <data name="Open Logging settings" xml:space="preserve">
     <value>打开“日志记录”设置</value>
   </data>
+  <data name="Open Monitoring &amp; alerts" xml:space="preserve">
+    <value>打开监控与警报</value>
+  </data>
   <data name="Open Monitoring &amp; alerts, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>打开“监控与警报”，它拥有 REST 监听器的端口和 TLS 设置</value>
   </data>

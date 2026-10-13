@@ -8730,6 +8730,9 @@
   <data name="Open Logging settings" xml:space="preserve">
     <value>「ログ設定」を開く</value>
   </data>
+  <data name="Open Monitoring &amp; alerts" xml:space="preserve">
+    <value>監視とアラートを開く</value>
+  </data>
   <data name="Open Monitoring &amp; alerts, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>「監視とアラート」を開く - REST リスナーのポートと TLS の設定はそこにあります</value>
   </data>

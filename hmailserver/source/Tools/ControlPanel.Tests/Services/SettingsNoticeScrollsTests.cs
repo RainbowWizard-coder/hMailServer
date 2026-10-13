@@ -47,7 +47,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          int detach = build.IndexOf("tabNoticeSlots_.Clear();", StringComparison.Ordinal);
          int clear = build.IndexOf("SettingsTabs.Items.Clear();", StringComparison.Ordinal);
          Assert.True(detach >= 0 && detach < clear, "BuildUi clears the tabs before taking the notice out of them.");
-         int rest = build.IndexOf("panel.Children.Insert(0, RestTabNotice_(tabRestProblem, section_ != Section.Monitoring));", StringComparison.Ordinal);
+         int rest = build.IndexOf("panel.Children.Insert(0, restNotice);", StringComparison.Ordinal);
          int slot = build.IndexOf("panel.Children.Insert(0, noticeSlot);", StringComparison.Ordinal);
          Assert.True(rest >= 0 && slot > rest, "The notice's slot is not the first part of the tab.");
          Assert.Contains("tabNoticeSlots_.Add(noticeSlot);", build, StringComparison.Ordinal);
