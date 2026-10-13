@@ -888,7 +888,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   disallows, the bidi or joiner rules broken, an `xn--` label that is not Punycode - still hands over the name before
   it and the labels after it, as every label in Unicode did; a URL entry whose host is not ASCII and has such a label
   is refused, as a browser fails it; and an entry written in Unicode covers a link written in its `xn--` form and the
-  other way round (`https://bücher.example/` is stored as `xn--bcher-kva.example/`). `IdnaTester` holds the
+  other way round (`https://bücher.example/` is stored as `xn--bcher-kva.example/`). A label that can never be
+  short enough for a DNS name - its mapping holds a code point past ASCII and more than four times 63 code points,
+  which NFC can shorten fourfold at most - is not mapped further, so that a host of a megabyte that UTS 46 maps to
+  many times its length (`U+FDFA` is eighteen code points) costs about what 6.3.6's reading of it did, where
+  mapping the whole of it first took ten times the memory and the time. `IdnaTester` holds the
   implementation to every line of Unicode's `IdnaTestV2.txt` (6,396, in ClassTester and, on Linux, in the new
   `idna-tests`), `SURBLTester` (`public-suffix-tests`) holds the links and the entries, and `AntiSpam/Basics.cs`
   delivers a link in fullwidth letters, one with an ideographic full stop, one in fullwidth capitals in an HTML part

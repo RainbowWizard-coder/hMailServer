@@ -416,6 +416,47 @@ namespace HM
       if (labels.size() != 3 || labels[1].errors != 0 || labels[1].ascii != std::string(100, '0') || labels[2].ascii != "1")
          Fail_("a long ASCII label", "was not processed as any other ASCII label is");
 
+      // So is one written in fullwidth digits, which map to ASCII ones: however
+      // long, it is mapped whole, and is an ASCII label like any other.
+      CodePoints fullwidthZeros = { '0', 'x', '1', 0xFF0E };
+      fullwidthZeros.insert(fullwidthZeros.end(), 300, 0xFF10);
+      fullwidthZeros.push_back(0xFF0E);
+      fullwidthZeros.push_back('1');
+      Idna::ProcessLabels(fullwidthZeros, limited, labels);
+      if (labels.size() != 3 || labels[1].errors != 0 || labels[1].ascii != std::string(300, '0') || labels[2].ascii != "1")
+         Fail_("a long label of fullwidth digits", "was not mapped whole into the ASCII label it is");
+
+      // A label that can never be short enough is not mapped whole: U+FDFA maps
+      // to eighteen code points, and a megabyte of it in one label was mapped
+      // into some seven million, and put in NFC, before its length was looked
+      // at. Now no more of it is mapped than LongestDecomposition times
+      // longestLabel and one mapping, and the labels after it are read as ever.
+      CodePoints expanding(350000, 0xFDFA);
+      const CodePoints evilExample = { '.', 'e', 'v', 'i', 'l', '.', 'e', 'x', 'a', 'm', 'p', 'l', 'e' };
+      expanding.insert(expanding.end(), evilExample.begin(), evilExample.end());
+      Idna::ProcessLabels(expanding, limited, labels);
+      const size_t mappedAtMost = IdnaTables::LongestDecomposition * limited.longestLabel + 18;
+      if (labels.size() != 3 || !(labels[0].errors & Idna::ErrorLabelTooLong) || !labels[0].ascii.empty() ||
+          labels[0].unicode.size() > mappedAtMost || labels[0].mapped.size() > mappedAtMost ||
+          labels[1].ascii != "evil" || labels[2].ascii != "example" || labels[1].errors != 0 || labels[2].errors != 0)
+         Fail_("a label of 350,000 U+FDFA", "was mapped further than its length could ever allow (" +
+                  std::to_string(labels.empty() ? 0 : labels[0].unicode.size()) + " code points kept), or the labels after it were not read");
+
+      // What is left unmapped still counts towards a bidi domain name: a Hebrew
+      // letter at the end of a label cut short makes "1a" - a label that begins
+      // with a digit - break RFC 5893's rule, as it does when the label is
+      // mapped whole.
+      CodePoints rightToLeftAtTheEnd = { '1', 'a', '.' };
+      rightToLeftAtTheEnd.insert(rightToLeftAtTheEnd.end(), 300, 0x00E9);
+      rightToLeftAtTheEnd.push_back(0x05D0);
+      Idna::ProcessLabels(rightToLeftAtTheEnd, limited, labels);
+      if (labels.size() != 2 || !(labels[0].errors & Idna::ErrorBidi) || !(labels[1].errors & Idna::ErrorLabelTooLong))
+         Fail_("a bidi domain name whose R is in the part of a label left unmapped",
+               "did not hold the label before it to RFC 5893's rule");
+      Idna::ProcessLabels(rightToLeftAtTheEnd, url, labels);
+      if (labels.size() != 2 || !(labels[0].errors & Idna::ErrorBidi))
+         Fail_("the same name with no limit on a label", "did not hold \"1a\" to RFC 5893's rule");
+
       // Each label as written beside the label as Processing leaves it: an
       // "xn--" label that decodes to ASCII alone is refused, decoded; the
       // label it was is kept, as the mapping left it (in small letters).

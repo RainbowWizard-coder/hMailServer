@@ -743,9 +743,68 @@ namespace HM
       {
          labels.clear();
 
-         // 1. Map.
-         CodePoints mapped;
-         mapped.reserve(domain.size());
+         // 1. Map, 2. Normalize and 3. Break, a label at a time: the same as
+         // UTS 46's steps over the whole name, since a label ends at a full stop
+         // wherever the mapping makes one (U+3002, U+FF0E and U+FF61 map to
+         // '.'), and NFC neither makes nor moves a full stop, nor composes
+         // anything across one (build/generate-idna-tables.py holds the data to
+         // that). So a label that can never be short enough for
+         // Options::longestLabel is not mapped whole: once its mapping holds a
+         // code point past ASCII and more than LongestDecomposition times
+         // longestLabel code points, its NFC holds more than longestLabel, and
+         // it is refused for its length whatever follows. The rest of it is only
+         // looked up, for the full stop that ends it and for a code point that
+         // is R, AL or AN, which makes the whole name a bidi domain name below -
+         // whether a text holds one NFC does not change, the generator shows.
+         const size_t mappedLimit = options.longestLabel > 0 ? IdnaTables::LongestDecomposition * options.longestLabel : 0;
+
+         Label current;
+         bool pastAscii = false;
+         bool cutShort = false;
+         bool rightToLeftUnmapped = false;
+         std::vector<bool> labelsCutShort;
+         std::vector<bool> labelsRightToLeftUnmapped;
+
+         auto endLabel = [&]()
+         {
+            ToNfc(current.unicode);
+            current.mapped = current.unicode;
+            labels.push_back(std::move(current));
+            labelsCutShort.push_back(cutShort);
+            labelsRightToLeftUnmapped.push_back(rightToLeftUnmapped);
+
+            current = Label();
+            pastAscii = cutShort = rightToLeftUnmapped = false;
+         };
+
+         auto add = [&](unsigned int codePoint)
+         {
+            if (codePoint == fullStop)
+            {
+               endLabel();
+               return;
+            }
+
+            if (cutShort)
+            {
+               if (!rightToLeftUnmapped && IsRightToLeft_(BidiClass_(codePoint)))
+                  rightToLeftUnmapped = true;
+               return;
+            }
+
+            current.unicode.push_back(codePoint);
+            if (codePoint >= 0x80)
+               pastAscii = true;
+            if (mappedLimit > 0 && pastAscii && current.unicode.size() > mappedLimit)
+               cutShort = true;
+         };
+
+         auto addAll = [&](const IdnaTables::MappingRange &range)
+         {
+            for (unsigned int i = 0; i < range.length; i++)
+               add(IdnaTables::MappingData[range.offset + i]);
+         };
+
          for (unsigned int codePoint : domain)
          {
             const IdnaTables::MappingRange &range = MappingOf_(codePoint);
@@ -756,45 +815,26 @@ namespace HM
             case IdnaTables::StatusMapped:
                if (options.transitionalProcessing && codePoint == capitalSharpS)
                {
-                  mapped.push_back('s');
-                  mapped.push_back('s');
+                  add('s');
+                  add('s');
                   break;
                }
-               mapped.insert(mapped.end(), IdnaTables::MappingData + range.offset, IdnaTables::MappingData + range.offset + range.length);
+               addAll(range);
                break;
             case IdnaTables::StatusDeviation:
                if (options.transitionalProcessing)
-                  mapped.insert(mapped.end(), IdnaTables::MappingData + range.offset, IdnaTables::MappingData + range.offset + range.length);
+                  addAll(range);
                else
-                  mapped.push_back(codePoint);
+                  add(codePoint);
                break;
             default:
                // Valid, and disallowed, which the validity criteria find.
-               mapped.push_back(codePoint);
+               add(codePoint);
                break;
             }
          }
 
-         // 2. Normalize.
-         ToNfc(mapped);
-
-         // 3. Break.
-         size_t start = 0;
-         for (;;)
-         {
-            size_t end = start;
-            while (end < mapped.size() && mapped[end] != fullStop)
-               end++;
-
-            Label label;
-            label.unicode.assign(mapped.begin() + static_cast<std::ptrdiff_t>(start), mapped.begin() + static_cast<std::ptrdiff_t>(end));
-            label.mapped = label.unicode;
-            labels.push_back(std::move(label));
-
-            if (end >= mapped.size())
-               break;
-            start = end + 1;
-         }
+         endLabel();
 
          // 4. Convert/Validate.
          bool bidiDomain = false;
@@ -807,9 +847,11 @@ namespace HM
             // The limit is for Punycode's cost: an ASCII label not written
             // "xn--" is checked whatever its length, which costs a pass over it,
             // so that an address in one of a browser's forms with a long run of
-            // zeros (0x1.000...0.1) stays an address.
-            if (options.longestLabel > 0 && label.unicode.size() > options.longestLabel &&
-                (!IsAscii_(label.unicode) || StartsWithXn_(label.unicode)))
+            // zeros (0x1.000...0.1) stays an address - fullwidth digits among
+            // them, since they map to ASCII ones.
+            if (labelsCutShort[index] ||
+                (options.longestLabel > 0 && label.unicode.size() > options.longestLabel &&
+                 (!IsAscii_(label.unicode) || StartsWithXn_(label.unicode))))
             {
                label.errors |= ErrorLabelTooLong;
                label.punycode = StartsWithXn_(label.unicode);
@@ -854,22 +896,15 @@ namespace HM
          }
 
          // 4.1's ninth criterion: in a bidi domain name - one that holds an R,
-         // AL or AN anywhere - every label meets RFC 5893's rule.
+         // AL or AN anywhere, in the part of a label left unmapped too - every
+         // label meets RFC 5893's rule.
          if (options.checkBidi)
          {
-            for (const Label &label : labels)
+            for (size_t index = 0; index < labels.size() && !bidiDomain; index++)
             {
-               for (unsigned int codePoint : label.unicode)
-               {
-                  if (IsRightToLeft_(BidiClass_(codePoint)))
-                  {
-                     bidiDomain = true;
-                     break;
-                  }
-               }
-
-               if (bidiDomain)
-                  break;
+               bidiDomain = labelsRightToLeftUnmapped[index];
+               for (size_t i = 0; i < labels[index].unicode.size() && !bidiDomain; i++)
+                  bidiDomain = IsRightToLeft_(BidiClass_(labels[index].unicode[i]));
             }
 
             if (bidiDomain)

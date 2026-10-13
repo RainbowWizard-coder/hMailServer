@@ -89,8 +89,11 @@ namespace HM
       // of more code points than a DNS label has characters converted - no
       // such label has an ASCII form DNS carries, and Punycode takes time that
       // grows with the square of a label's length, which a link of a megabyte
-      // would make seconds. An ASCII label is read whatever its length, as an
-      // address's part may be (0x1.000...0.1).
+      // would make seconds - nor mapped further than it could ever be short
+      // enough, so that a host of a megabyte that maps to many times its
+      // length (U+FDFA is eighteen code points) costs what its length does.
+      // An ASCII label is read whatever its length, as an address's part may
+      // be (0x1.000...0.1).
       Idna::Options LinkHostOptions_()
       {
          Idna::Options options = Idna::UrlStandardOptions();
@@ -3196,6 +3199,52 @@ namespace HM
             Fail_("a long user name is read in time proportional to its length", _T("http://a0.example)@...x.example/"),
                StringParser::IntToString(static_cast<int>(seconds)) + _T(" s"),
                String(_T("well under ")) + StringParser::IntToString(static_cast<int>(bound / 1000)) + _T(" s"));
+      }
+
+      // A megabyte of a code point UTS 46 maps to eighteen (U+FDFA) in one label
+      // of a link's host - 340,000 of them are a megabyte in UTF-8, what the
+      // anti-spam scan reads of a message by default - hands over the labels
+      // after it, in time proportional to its length: the label is mapped no
+      // further than it could ever be short enough (Idna.h). Mapped whole
+      // first, it took about thirty-five times the time the reading of 6.3.6
+      // took, and ten times the memory.
+      {
+         String text = _T("<a href=\"http://");
+         text += String(340000, static_cast<wchar_t>(0xFDFA));
+         text += _T(".evil.example/\">a link</a>");
+
+         std::vector<String> hosts;
+         const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+         SURBL::FindLinkHosts(text, true, [&hosts](const String &host) { hosts.push_back(host); return true; });
+         const double seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
+
+         if (Joined_(hosts) != _T("evil.example"))
+            Fail_("a host with a megabyte of U+FDFA in a label hands over the labels after it", _T("http://<U+FDFA x 340000>.evil.example/"),
+               Joined_(hosts), _T("evil.example"));
+
+         const double bound = HM_TEST_TIME_BOUND(2000);
+         if (seconds * 1000 > bound)
+            Fail_("a megabyte of U+FDFA in a host is read in time proportional to its length", _T("http://<U+FDFA x 340000>.evil.example/"),
+               StringParser::IntToString(static_cast<int>(seconds * 1000)) + _T(" ms"),
+               String(_T("well under ")) + StringParser::IntToString(static_cast<int>(bound)) + _T(" ms"));
+      }
+
+      // A part of 300 zeros written in fullwidth digits between fullwidth full
+      // stops: longer than any label UTS 46 converts, but ASCII once mapped, and
+      // so mapped whole and read whatever its length: the address a browser
+      // reads.
+      {
+         String text = _T("http://0x1");
+         text += static_cast<wchar_t>(0xFF0E);
+         text += String(300, static_cast<wchar_t>(0xFF10));
+         text += static_cast<wchar_t>(0xFF0E);
+         text += _T("1/");
+
+         std::vector<String> hosts;
+         SURBL::FindLinkHosts(text, false, [&hosts](const String &host) { hosts.push_back(host); return true; });
+         if (Joined_(hosts) != _T("1.0.0.1"))
+            Fail_("a part of 300 fullwidth zeros is an ASCII label once mapped, however long", _T("http://0x1<U+FF0E><U+FF10 x 300><U+FF0E>1/"),
+               Joined_(hosts), _T("1.0.0.1"));
       }
 
       // A text read only as far as its first part (the sender lists' URL

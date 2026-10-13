@@ -71,6 +71,12 @@ namespace HM
       extern const size_t DecompositionCount;
       extern const unsigned int DecompositionData[];
 
+      // The length of the longest full canonical decomposition (a Hangul
+      // syllable's is three): NFC makes a text this many times shorter at most.
+      // The generator holds the data to the other things ProcessLabels rests
+      // on when it maps a name a label at a time (Idna.cpp).
+      extern const unsigned int LongestDecomposition;
+
       // A primary composite, by the two code points it is composed of.
       struct Composition
       {

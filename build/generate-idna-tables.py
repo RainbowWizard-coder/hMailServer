@@ -352,6 +352,7 @@ def collect(directory, pinned):
             raise InputError("U+%04X: UnicodeData.txt gives Bidi_Class %s and DerivedBidiClass.txt %s"
                              % (cp, record[2], classes_of_all[cp]))
     bidi = {cp: value for cp, value in enumerate(classes_of_all) if value != "L"}
+    longest = processing_invariants(decompositions, classes, compositions, classes_of_all)
     return {
         "texts": texts,
         "mapping": mapping,
@@ -361,7 +362,40 @@ def collect(directory, pinned):
         "marks": marks,
         "bidi": bidi,
         "joining": joining,
+        "longest_decomposition": longest,
     }
+
+
+def processing_invariants(decompositions, classes, compositions, bidi_classes):
+    """The length of the longest full canonical decomposition, once the data is held to
+    what Idna.cpp's ProcessLabels rests on when it maps, normalises and breaks a name a
+    label at a time, and stops mapping a label that can never be short enough:
+
+      - NFC neither makes nor moves a full stop, nor composes anything across one: U+002E
+        is a starter, in no canonical decomposition and in no composition pair;
+      - NFC does not change whether a text holds a code point that is R, AL or AN (which
+        makes a name a bidi domain name): a code point is one exactly when its full
+        canonical decomposition holds one;
+      - NFC makes a text at most LongestDecomposition times shorter, which this returns
+        (a Hangul syllable decomposes to three jamo at most)."""
+    full_stop = 0x2E
+    if classes.get(full_stop, 0) != 0:
+        raise InputError("U+002E has a combining class: NFC could move a full stop")
+    for cp, target in decompositions.items():
+        if full_stop in target:
+            raise InputError("U+%04X decomposes to a full stop: NFC could make one inside a label" % cp)
+    for (first, second), composite in compositions.items():
+        if full_stop in (first, second):
+            raise InputError("U+%04X is composed with a full stop: NFC could compose across one" % composite)
+
+    def right_to_left(cp):
+        return bidi_classes[cp] in ("R", "AL", "AN")
+
+    for cp, target in decompositions.items():
+        if right_to_left(cp) != any(right_to_left(part) for part in target):
+            raise InputError("U+%04X is %s and its canonical decomposition is not, or the other way round: NFC could "
+                             "make or unmake a bidi domain name" % (cp, bidi_classes[cp]))
+    return max([3] + [len(target) for target in decompositions.values()])
 
 
 def hex_cp(cp):
@@ -454,6 +488,9 @@ def tables_source(data):
     out.append("      const unsigned int DecompositionData[] =\n      {\n")
     out.append(wrap([hex_cp(cp) for cp in decomposition_data], "         ") + "\n")
     out.append("      };\n\n")
+    out.append("      // The longest of them, and of a Hangul syllable's (three jamo): NFC makes a\n"
+               "      // text this many times shorter at most.\n")
+    out.append("      const unsigned int LongestDecomposition = %d;\n\n" % data["longest_decomposition"])
 
     out.append("      // The primary composites: each canonical decomposition of two code points\n"
                "      // that is not excluded from composition (CompositionExclusions.txt, and\n"

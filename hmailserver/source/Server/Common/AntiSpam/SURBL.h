@@ -332,8 +332,9 @@ namespace HM
    // SURBL's reading of links held to what a browser does with them: the
    // userinfo, ports, IPv6 and the IPv4 addresses it carries, percent-encoding
    // as UTF-8, UTS 46 (the code points it ignores, fullwidth letters and
-   // digits, the ideographic full stops, NFC, xn-- forms, and the labels it
-   // refuses), the IPv4 forms, backslashes,
+   // digits, the ideographic full stops, NFC, xn-- forms, the labels it
+   // refuses, and a megabyte of a code point it maps to eighteen), the IPv4
+   // forms, backslashes,
    // links with no scheme, quoted-printable soft line breaks, HTML character
    // references and quotes, and punctuation after a link; the names asked
    // about for each host, the ICANN section's domain among them; which of a

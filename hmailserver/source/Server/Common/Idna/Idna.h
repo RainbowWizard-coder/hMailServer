@@ -48,6 +48,17 @@ namespace HM
          // is a character of it at least - and Punycode takes time that grows
          // with the square of a label's length, so a reader of untrusted text
          // that only wants names it can look up (SURBL) says 63.
+         //
+         // Nor is such a label mapped whole: once its mapping holds a code point
+         // past ASCII and more than four times this many code points, it can
+         // never be short enough - NFC makes a label four times shorter at most,
+         // no code point's canonical decomposition being longer than four - and
+         // the rest of it is only looked up for the full stop that ends it and
+         // for the direction of its code points (ProcessLabels). Its unicode and
+         // mapped then hold the label as far as it was mapped, in NFC. So a host
+         // of a megabyte costs time and memory in proportion to its length,
+         // where a mapping of up to 18 code points for one (U+FDFA) and NFC
+         // over the whole of it made both many times that.
          size_t longestLabel;
       };
 

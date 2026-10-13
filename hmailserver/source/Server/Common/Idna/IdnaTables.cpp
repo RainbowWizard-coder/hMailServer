@@ -9938,6 +9938,10 @@ namespace HM
          0x9F05, 0x9F0F, 0x9F16, 0x9F3B, 0x2A600,
       };
 
+      // The longest of them, and of a Hangul syllable's (three jamo): NFC makes a
+      // text this many times shorter at most.
+      const unsigned int LongestDecomposition = 4;
+
       // The primary composites: each canonical decomposition of two code points
       // that is not excluded from composition (CompositionExclusions.txt, and
       // the non-starter decompositions), as (first, second, composite). Sorted
