@@ -741,25 +741,25 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   sequence, or have a message refused, as often as it liked (upstream issue 653).** Those replies were sent past the
   count that `MaxNumberOfInvalidCommands` limits, while a verb the server does not know or a HELO without a name was
   counted and the session closed at the limit. Counted now, as upstream PR 664 counts them: the `500` to a command
-  line over 510 octets; the `502` to TURN and VRFY; the `503` to a MAIL inside a transaction, a RCPT before MAIL and
-  a DATA or BDAT without a sender and a recipient, and this server's own `503` to a DATA after BDAT or after
-  `BODY=BINARYMIME`; the `552` to a `SIZE=` over the maximum and to a message over it; the `554` to a message with
-  bare line feeds and to one whose transmission was cancelled (a line over 100,000 octets); the spam score's `550` and
-  `554`; an event script's `554` from `OnHELO`, `OnAcceptMessage` and `OnSMTPData` (its `453` is not counted); the
-  `501` to ETRN for a domain that is not a route; and, of this server's own, the `550` to XCLIENT from a peer not
-  permitted to use it and the `501` and `503` to a malformed XCLIENT or one inside a transaction. Each keeps its code,
-  its enhanced code and its text; the one that passes the limit is answered `421 4.7.0 Too many invalid commands.
-  Bye!` in its place and fires `OnTooManyInvalidCommands`, and a message refused so ends its accept stage without
-  arming a read on the closing connection. Not counted, as before: the refusals that close the session themselves,
-  and those this server's own policies make of a command that is in order - a remote domain's inbound TLS policy,
-  the authenticated-sender check, the sending quota's stop, the suppression list, BINARYMIME relay, greylisting's
-  refusal of a sender that retried too soon too often, the backup MX's recipient callout, the domain policy list, the
-  FQDN checks, restricted delivery, a null sender's second recipient, a rule's rejection, an XCLIENT `LOGIN` naming
-  a room. The count is still the connection's, and RSET, a command that succeeds and a message accepted leave it as
-  it is; `OnRecipientUnknown` still fires only when a recipient is refused as one the server does not have, and not
-  for a script's or a spam test's refusal whose text reads `Unknown user`. `DisconnectInvalidClients` is off by
-  default; the office profile turns it on with a limit of 20 ([EventScripts.md](hmailserver/docs/EventScripts.md),
-  [Profiles.md](hmailserver/docs/Profiles.md)).
+  line over 510 octets (12,288 for AUTH and a SASL response); the `502` to TURN and VRFY; the `503` to a MAIL inside a
+  transaction, a RCPT before MAIL and a DATA or BDAT without a sender and a recipient, and this server's own `503` to
+  a DATA after BDAT or after `BODY=BINARYMIME`; the `552` to a `SIZE=` over the maximum and to a message over it; the
+  `554` to a message with bare line feeds and to one whose transmission was cancelled (a line over 100,000 octets);
+  the spam score's `550` and `554`; an event script's `554` from `OnHELO`, `OnAcceptMessage` and `OnSMTPData` (its
+  `453` is not counted); the `501` to ETRN for a domain that is not a route; and, of this server's own, the `550` to
+  XCLIENT from a peer not permitted to use it and the `501` and `503` to a malformed XCLIENT or one inside a
+  transaction. Each keeps its code, its enhanced code and its text; the one that passes the limit is answered `421
+  4.7.0 Too many invalid commands. Bye!` in its place and fires `OnTooManyInvalidCommands`, and a message refused so
+  ends its accept stage without arming a read on the closing connection. Not counted, as before: the refusals that
+  close the session themselves, and those this server's own policies make of a command that is in order - a remote
+  domain's inbound TLS policy, the authenticated-sender check, the sending quota's stop, the suppression list,
+  BINARYMIME relay, greylisting's refusal of a sender that retried too soon too often, the backup MX's recipient
+  callout, the domain policy list, the FQDN checks, restricted delivery, a null sender's second recipient, a rule's
+  rejection, an XCLIENT `LOGIN` naming a room. The count is still the connection's, and RSET, a command that succeeds
+  and a message accepted leave it as it is; `OnRecipientUnknown` still fires only when a recipient is refused as one
+  the server does not have, and not for a script's or a spam test's refusal whose text reads `Unknown user`.
+  `DisconnectInvalidClients` is off by default; the office profile turns it on with a limit of 20
+  ([EventScripts.md](hmailserver/docs/EventScripts.md), [Profiles.md](hmailserver/docs/Profiles.md)).
   `SMTP/InvalidCommandLimit.cs` holds each counted reply to the limit and the session closed after it, where the
   count starts again, and as controls a `453`, a session with the limit off and such a script's text; the spam case
   needs an incoming relay, which the Linux suite's REST API does not have, and runs on Windows. Found by upstream.
