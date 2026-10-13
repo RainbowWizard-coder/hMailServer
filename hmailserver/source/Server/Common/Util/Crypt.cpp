@@ -6,6 +6,7 @@
 #include "Crypt.h"
 #include "LegacyBlowfish.h"
 #include "DataProtector.h"
+#include "MailboxCrypto.h"
 #include "Unicode.h"
 #include "Hashing/HashCreator.h"
 #include "../Application/IniFileSettings.h"
@@ -86,6 +87,31 @@ namespace HM
       {
          std::fill(bytes.begin(), bytes.end(), '\0');
       }
+
+      // DeCrypt's ETDPAPI arm: the secret this machine's store - DPAPI, or the
+      // Linux key file - opens, made a String. Every return here returns the
+      // one String, so that an optimising compiler builds it where the caller
+      // receives it, as GCC, clang and MSVC do. The string class has no move,
+      // and until 6.3.7 the arm returned its result beside DeCrypt's other
+      // returns, which GCC 15 and MSVC 19.51 at /O2 answer with a copy -
+      // measured - and the result the copy was made from went back to the heap
+      // as it stood. Among what comes here is the stored-secrets key's line, the
+      // key in hex, opened at every start and by the key verbs, which write over
+      // every other copy they make of it.
+      String OpenWithMachineStore(const String &sInput)
+      {
+         String opened;
+         if (sInput.IsEmpty())
+            return opened;
+
+         AnsiString protectedBase64 = sInput;
+         AnsiString utf8;
+         MailboxCrypto::ForgetOnExit forgetUtf8(utf8);
+         if (DataProtector::Unprotect(protectedBase64, utf8))
+            Unicode::MultiByteToWide(utf8, opened);
+         MailboxCrypto::Forget(utf8);
+         return opened;
+      }
    }
 
    Crypt::Crypt()
@@ -160,15 +186,16 @@ namespace HM
             if (sInput.IsEmpty())
                return "";
 
+            // The narrow copy of the secret - the stored-secrets key's line among
+            // the secrets that come here - written over before it goes back to
+            // the heap, as DataProtector wipes its own, however this ends.
             AnsiString utf8;
+            MailboxCrypto::ForgetOnExit forgetUtf8(utf8);
             Unicode::WideToMultiByte(sInput, utf8);
 
             AnsiString protectedBase64;
             const bool protectedIt = DataProtector::Protect(utf8, protectedBase64);
-
-            // The narrow copy of the secret wiped before it goes back to the heap,
-            // as DataProtector wipes its own.
-            std::fill(utf8.begin(), utf8.end(), '\0');
+            MailboxCrypto::Forget(utf8);
 
             if (!protectedIt)
                return "";
@@ -390,21 +417,8 @@ namespace HM
             }
             break;
          case ETDPAPI:
-            {
-               if (sInput.IsEmpty())
-                  return "";
-
-               AnsiString protectedBase64 = sInput;
-               AnsiString utf8;
-               if (!DataProtector::Unprotect(protectedBase64, utf8))
-                  return "";
-
-               String result;
-               Unicode::MultiByteToWide(utf8, result);
-               std::fill(utf8.begin(), utf8.end(), '\0');
-               return result;
-            }
-            break;
+            // Returned as it is made, never copied: OpenWithMachineStore.
+            return OpenWithMachineStore(sInput);
          default:
             HM_ASSERT(0);
       }

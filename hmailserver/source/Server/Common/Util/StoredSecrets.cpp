@@ -8,7 +8,9 @@
 #include "MailboxCrypto.h"
 #include "Crypt.h"
 #include "DataProtector.h"
+#include "File.h"
 #include "FileUtilities.h"
+#include "ProtectedFile.h"
 #include "Unicode.h"
 #include "../Application/Application.h"
 #include "../Application/IniFileSettings.h"
@@ -19,13 +21,19 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cerrno>
 #include <cstdio>
 #include <ctime>
 #include <map>
 #include <mutex>
+#include <stdexcept>
 #include <string>
 
+#include <boost/filesystem.hpp>
+#include <openssl/crypto.h>
+
 #ifdef HM_PLATFORM_POSIX
+#include <fcntl.h>
 #include <unistd.h>
 #endif
 
@@ -77,15 +85,39 @@ namespace HM
       bool collecting_notes = false;
       std::vector<String> notes;
 
-      void Wipe_(AnsiString &text)
+      // A copy of the key, or of its line, written over before it goes back to
+      // the heap: with OPENSSL_cleanse, which is there to be a store no optimiser
+      // drops, as the fill over a buffer about to be freed that this was before
+      // may be.
+      void Wipe_(AnsiString &text) noexcept
       {
-         std::fill(text.begin(), text.end(), '\0');
+         std::string &bytes = text;
+         if (!bytes.empty())
+            OPENSSL_cleanse(&bytes[0], bytes.size());
       }
 
-      void Wipe_(String &text)
+      void Wipe_(String &text) noexcept
       {
-         std::fill(text.begin(), text.end(), String::value_type());
+         std::wstring &wide = text;
+         if (!wide.empty())
+            OPENSSL_cleanse(&wide[0], wide.size() * sizeof(wchar_t));
       }
+
+      // Wipe_ when the scope ends, however it ends: a return, or an exception
+      // thrown through it - an allocation's, the machine store's, a logger's.
+      template <typename Text>
+      class WipeOnExit_
+      {
+      public:
+         explicit WipeOnExit_(Text &text) noexcept : text_(text) {}
+         ~WipeOnExit_() { Wipe_(text_); }
+
+         WipeOnExit_(const WipeOnExit_ &) = delete;
+         WipeOnExit_ &operator=(const WipeOnExit_ &) = delete;
+
+      private:
+         Text &text_;
+      };
 
       std::string BytesOfText_(const AnsiString &text)
       {
@@ -110,10 +142,14 @@ namespace HM
          return wide;
       }
 
-      AnsiString HexOf_(const std::string &bytes)
+      // Into the caller's string, which watches it, rather than returned: the
+      // string class has no move, so a copy made on the way back - wherever the
+      // compiler does not build the result in place - would be freed as it stood.
+      void HexOf_(const std::string &bytes, AnsiString &hex)
       {
          static const char *digits = "0123456789abcdef";
-         AnsiString hex;
+         Wipe_(hex);
+         hex.clear();
          hex.reserve(bytes.size() * 2);
          for (size_t i = 0; i < bytes.size(); i++)
          {
@@ -121,7 +157,6 @@ namespace HM
             hex += digits[value >> 4];
             hex += digits[value & 0x0F];
          }
-         return hex;
       }
 
       int HexDigitValue_(char c)
@@ -271,8 +306,12 @@ namespace HM
             // this server wrote, and the legacy Blowfish reading of it would be noise.
             if (Crypt::IsSecretEnvelope(line))
             {
+               // Both copies of the opened line are written over however this
+               // scope ends, as well as where it is done with them.
                String openedWide = Crypt::Instance()->UnprotectSecret(line);
+               WipeOnExit_<String> wipeOpenedWide(openedWide);
                AnsiString opened(openedWide);
+               WipeOnExit_<AnsiString> wipeOpened(opened);
                Wipe_(openedWide);
 
                const AnsiString label(KeyLineLabel);
@@ -466,10 +505,15 @@ namespace HM
          }
 #endif
 
-         // Built a character at a time, so that no temporary copy of the key in hex
-         // is left behind unwiped.
-         AnsiString hex = HexOf_(key);
+         // Built a character at a time into buffers reserved first, so that no
+         // temporary copy of the key in hex is left behind unwiped, and both are
+         // written over however this ends - the machine store's protect, which
+         // takes the line, included.
+         AnsiString hex;
+         WipeOnExit_<AnsiString> wipeHex(hex);
+         HexOf_(key, hex);
          String line = String(AnsiString(KeyLineLabel));
+         WipeOnExit_<String> wipeLine(line);
          line.reserve(line.size() + hex.size());
          for (size_t i = 0; i < hex.size(); i++)
             line += (String::value_type) hex.c_str()[i];
@@ -494,6 +538,126 @@ namespace HM
 
          written = protectedLine;
          return true;
+      }
+
+      // ---- the key file ----------------------------------------------------------
+
+      // The bytes of the key file at path, read into text - which the caller
+      // watches - by the operating system's own reads, so that no C runtime
+      // buffer holds them, and no further than StoredSecrets::KeyFileMaxBytes:
+      // one byte past it is asked for, so that a larger file is known for one.
+      // The whole buffer is made before the first byte goes into it, so that it
+      // never grows: a string that grows copies itself into a larger buffer and
+      // frees the old one as it stood. False, with a clause in problem, when the
+      // file cannot be opened or read, or is larger than a key file can be.
+      bool ReadKeyFile_(const String &path, AnsiString &text, String &problem)
+      {
+         std::string &bytes = text;
+         Wipe_(text);
+         bytes.clear();
+
+         const size_t room = StoredSecrets::KeyFileMaxBytes + 1;
+         bytes.resize(room, '\0');
+
+         size_t total = 0;
+         bool failed = false;
+         int error = 0;
+
+#ifdef HM_PLATFORM_POSIX
+         // The path narrowed as File::Open narrows it, so that the file named is
+         // the file FileUtilities::Exists found.
+         const AnsiString narrowPath = path;
+         const int descriptor = ::open(narrowPath.c_str(), O_RDONLY | O_CLOEXEC | O_NOCTTY);
+         if (descriptor < 0)
+         {
+            error = errno;
+            failed = true;
+         }
+         else
+         {
+            while (total < room)
+            {
+               const ssize_t count = ::read(descriptor, &bytes[total], room - total);
+               if (count < 0 && errno == EINTR)
+                  continue;
+               if (count < 0)
+               {
+                  error = errno;
+                  failed = true;
+                  break;
+               }
+               if (count == 0)
+                  break;
+               total += (size_t) count;
+            }
+            ::close(descriptor);
+         }
+#else
+         // Shared as File::Open's _SH_DENYNO shares: the import never stood in
+         // the way of anything else that had the file open.
+         HANDLE file = ::CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                                     nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+         if (file == INVALID_HANDLE_VALUE)
+         {
+            error = (int) ::GetLastError();
+            failed = true;
+         }
+         else
+         {
+            while (total < room)
+            {
+               DWORD count = 0;
+               if (!::ReadFile(file, &bytes[total], (DWORD) (room - total), &count, nullptr))
+               {
+                  error = (int) ::GetLastError();
+                  failed = true;
+                  break;
+               }
+               if (count == 0)
+                  break;
+               total += (size_t) count;
+            }
+            ::CloseHandle(file);
+         }
+#endif
+
+         if (failed || total > StoredSecrets::KeyFileMaxBytes)
+         {
+            Wipe_(text);
+            bytes.clear();
+            problem = failed
+               ? Formatter::Format(_T("{0} could not be read (error {1})"), path, error)
+               : String(_T("the file is not a stored-secrets key that --export-stored-secrets-key wrote: it is larger than one can be"));
+            return false;
+         }
+
+         // Shorter, never moved: nothing past total was written.
+         bytes.resize(total);
+         return true;
+      }
+
+      // A key file with a UTF-16LE byte order mark - what Windows PowerShell 5's
+      // Out-File and > write - narrowed in the buffer it was read into, a code
+      // unit to a character, and the half it no longer needs written over: as
+      // FileUtilities::ReadCompleteTextFile decoded such a file for the import
+      // before 6.3.7, and without the wide copy it made. Every character of a
+      // key file is ASCII; a unit that is not becomes '?', which no key file
+      // holds, so the file is refused as not one, as it was.
+      void NarrowUtf16Le_(AnsiString &text)
+      {
+         std::string &bytes = text;
+         if (bytes.size() < 2 || (unsigned char) bytes[0] != 0xFF || (unsigned char) bytes[1] != 0xFE)
+            return;
+
+         size_t narrowed = 0;
+         for (size_t i = 2; i + 1 < bytes.size(); i += 2)
+         {
+            const unsigned int unit = (unsigned int) (unsigned char) bytes[i] | ((unsigned int) (unsigned char) bytes[i + 1] << 8);
+            bytes[narrowed++] = unit < 0x80 ? (char) unit : '?';
+         }
+
+         OPENSSL_cleanse(&bytes[narrowed], bytes.size() - narrowed);
+         bytes.resize(narrowed);
       }
 
       // The line put back as it was before a verb wrote one, when the database
@@ -1138,6 +1302,29 @@ namespace HM
    }
 
    bool
+   StoredSecrets::ExportFile(const String &path, AnsiString &keyId, String &problem, String &writeError)
+   {
+      problem.Empty();
+      writeError.Empty();
+
+      // The key in base64 is written over however this ends. Until 6.3.7 the
+      // verbs filled it with zeros after the write, which an exception between
+      // the two - an allocation, the sentence of a failed write - stepped past.
+      AnsiString text;
+      MailboxCrypto::ForgetOnExit forgetText(text);
+      if (!ExportText(text, keyId, problem))
+         return false;
+
+      const bool written = ProtectedFile::WriteNew(path, text, writeError);
+      MailboxCrypto::Forget(text);
+
+      if (!written && writeError.IsEmpty())
+         writeError = Formatter::Format(_T("{0} could not be written."), path);
+
+      return written;
+   }
+
+   bool
    StoredSecrets::RecordExport(const AnsiString &keyId)
    {
       if (!Application::Instance()->GetDBManager())
@@ -1333,6 +1520,30 @@ namespace HM
 
       keyId = computed;
       return true;
+   }
+
+   bool
+   StoredSecrets::ImportFile(const String &path, AnsiString &keyId, String &problem)
+   {
+      keyId.Empty();
+      problem.Empty();
+
+      // Until 6.3.7 the verbs read the file with FileUtilities::ReadCompleteTextFile
+      // and narrowed the String it returned, and wrote over only the narrowed
+      // copy: the C runtime's buffer, the ByteBuffer the file was read into, the
+      // narrow copy made of that and the String returned - each the whole file,
+      // the key's line in base64 among it - went back to the heap as they stood,
+      // and an exception out of the import freed the last copy too.
+      AnsiString text;
+      MailboxCrypto::ForgetOnExit forgetText(text);
+      if (!ReadKeyFile_(path, text, problem))
+         return false;
+
+      NarrowUtf16Le_(text);
+
+      const bool imported = ImportText(text, keyId, problem);
+      MailboxCrypto::Forget(text);
+      return imported;
    }
 
    bool
@@ -1542,9 +1753,137 @@ namespace HM
 #endif
    }
 
+   namespace
+   {
+      // Throws with every case that failed, where a bare throw would name none.
+      void FailKeyFiles_(const std::vector<std::string> &failures)
+      {
+         std::string what = "StoredSecrets::Test, the key files read by ImportFile:";
+         for (const std::string &failure : failures)
+            what += " " + failure + ";";
+         throw std::logic_error(what);
+      }
+
+      // The bytes written to path as they are, as an administrator's tools may
+      // have saved a key file.
+      bool WriteBytes_(const String &path, const std::string &bytes)
+      {
+         File file;
+         if (!file.Open(path, File::OTCreate))
+            return false;
+         const bool written = bytes.empty() || file.Write((const unsigned char *) bytes.data(), bytes.size());
+         return file.Close() && written;
+      }
+
+      // ImportFile reads a key file through to its key whatever line ends and
+      // byte order mark it was saved with: LF, CRLF with a UTF-8 mark, and
+      // UTF-16LE with its mark, as Windows PowerShell 5 writes it. Each names
+      // another key on its id line, so that it is refused at the check of the id
+      // against the key - after its key line was read and decoded, and before a
+      // database is asked or anything is written. A file one byte larger than
+      // KeyFileMaxBytes is refused for its size, though it is a key file with
+      // blanks after it, which ImportText forgives; one of exactly that size is
+      // read; and a file that is not there is said to be unreadable. Until 6.3.7
+      // the file was read with ReadCompleteTextFile, and the one with a UTF-8
+      // mark was refused as not a key file: the mark came back as a character
+      // that narrowing could not keep. Every case is tried, and every one that
+      // fails is named.
+      void TestImportFile_()
+      {
+         std::string key = MailboxCrypto::RandomBytes(MailboxCrypto::KeyBytes);
+         MailboxCrypto::ForgetOnExit forgetKey(key);
+         std::string base64 = MailboxCrypto::Base64(key);
+         MailboxCrypto::ForgetOnExit forgetBase64(base64);
+         std::vector<std::string> failures;
+         if (key.size() != MailboxCrypto::KeyBytes || base64.empty())
+         {
+            failures.push_back("no key could be made for the test");
+            FailKeyFiles_(failures);
+         }
+
+         // An id that is not this key's, the chance of a random key's having it aside.
+         const std::string otherId = KeyIdOf_(key) == AnsiString("0123456789abcdef") ? "fedcba9876543210" : "0123456789abcdef";
+
+         const std::string lf = std::string(KeyFileTitle) + "\nid " + otherId + "\nkey " + base64 + "\n";
+         const std::string crlf = std::string(KeyFileTitle) + "\r\nid " + otherId + "\r\nkey " + base64 + "\r\n";
+         const std::string utf8Marked = std::string("\xEF\xBB\xBF") + crlf;
+         std::string utf16Marked("\xFF\xFE", 2);
+         for (const char c : crlf)
+         {
+            utf16Marked += c;
+            utf16Marked += '\0';
+         }
+
+         std::string atTheLimit = lf;
+         atTheLimit.resize(StoredSecrets::KeyFileMaxBytes, ' ');
+         std::string overTheLimit = lf;
+         overTheLimit.resize(StoredSecrets::KeyFileMaxBytes + 1, ' ');
+
+         const boost::filesystem::path directory = boost::filesystem::temp_directory_path() /
+            boost::filesystem::unique_path("hm-stored-secrets-%%%%-%%%%-%%%%");
+         boost::filesystem::create_directories(directory);
+
+         try
+         {
+            struct Case
+            {
+               const char *name;
+               const std::string *bytes;
+               const char *refusal;
+            };
+            const Case cases[] =
+            {
+               {"lf.key", &lf, "is not the key its id line names"},
+               {"crlf-utf8-mark.key", &utf8Marked, "is not the key its id line names"},
+               {"crlf-utf16le-mark.key", &utf16Marked, "is not the key its id line names"},
+               {"at-the-limit.key", &atTheLimit, "is not the key its id line names"},
+               {"over-the-limit.key", &overTheLimit, "it is larger than one can be"},
+            };
+
+            for (const Case &one : cases)
+            {
+               const String path = String((directory / one.name).wstring());
+               if (!WriteBytes_(path, *one.bytes))
+               {
+                  failures.push_back(std::string(one.name) + " could not be written");
+                  continue;
+               }
+
+               AnsiString keyId;
+               String problem;
+               const bool imported = StoredSecrets::ImportFile(path, keyId, problem);
+               const std::string why(AnsiString(problem).c_str());
+               if (imported)
+                  failures.push_back(std::string(one.name) + " was imported, though its id line names another key");
+               else if (why.find(one.refusal) == std::string::npos)
+                  failures.push_back(std::string(one.name) + " was refused for another reason than \"" + one.refusal + "\": " + why);
+            }
+
+            AnsiString keyId;
+            String problem;
+            const bool imported = StoredSecrets::ImportFile(String((directory / "not-there.key").wstring()), keyId, problem);
+            const std::string why(AnsiString(problem).c_str());
+            if (imported || why.find("could not be read") == std::string::npos)
+               failures.push_back("a file that is not there was not said to be unreadable: " + why);
+         }
+         catch (const std::exception &failure)
+         {
+            failures.push_back(failure.what());
+         }
+
+         boost::system::error_code ignored;
+         boost::filesystem::remove_all(directory, ignored);
+
+         if (!failures.empty())
+            FailKeyFiles_(failures);
+      }
+   }
+
    void
    StoredSecrets::Test()
    {
+      TestImportFile_();
+
       const std::string key = MailboxCrypto::RandomBytes(MailboxCrypto::KeyBytes);
       if (key.size() != MailboxCrypto::KeyBytes)
          throw 0;

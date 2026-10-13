@@ -9,6 +9,7 @@
 #include <iconv.h>
 #include <langinfo.h>
 #include <cerrno>
+#include <openssl/crypto.h>
 #endif
 
 #ifdef _DEBUG
@@ -123,7 +124,17 @@ namespace HM
             // converted into a scratch buffer that is emptied as it fills and only
             // the total is kept. E2BIG is that buffer filling up, which is the
             // expected outcome here rather than an error; anything else is not.
+            // The scratch is written over however the measure ends: what is
+            // measured may be a secret - the stored-secrets key's line is, on its
+            // way into the machine's store and out of it - and until 6.3.7 the
+            // last of it converted stayed on the thread's stack.
             char scratch[512];
+            struct ScratchWipe
+            {
+               char *bytes;
+               size_t size;
+               ~ScratchWipe() { OPENSSL_cleanse(bytes, size); }
+            } wipeScratch = {scratch, sizeof(scratch)};
             size_t total = 0;
 
             while (inputRemaining > 0)

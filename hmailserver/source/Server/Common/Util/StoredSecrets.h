@@ -168,6 +168,13 @@ namespace HM
       // and when the database records another.
       static bool ExportText(AnsiString &text, AnsiString &keyId, String &problem);
 
+      // --export-stored-secrets-key FILE: ExportText's text written to path by
+      // ProtectedFile::WriteNew - a new file, never over one - and the text
+      // written over (OPENSSL_cleanse) however this ends. False with problem
+      // when ExportText refused, nothing written; false with writeError when
+      // the file could not be written.
+      static bool ExportFile(const String &path, AnsiString &keyId, String &problem, String &writeError);
+
       // The export recorded in the database, for the setup checklist.
       static bool RecordExport(const AnsiString &keyId);
 
@@ -177,6 +184,23 @@ namespace HM
       // deliberately. Importing the key this node already holds changes nothing
       // and succeeds. On a database that records no key it is recorded.
       static bool ImportText(const AnsiString &text, AnsiString &keyId, String &problem);
+
+      // --import-stored-secrets-key FILE: the key file at path read and given to
+      // ImportText. It is read by the operating system's own reads - ReadFile,
+      // read() - straight into one buffer, and no further than KeyFileMaxBytes,
+      // so that no C runtime buffer, no ByteBuffer and no wide String holds a
+      // copy of the key; that buffer, and every copy ImportText makes, is
+      // written over (OPENSSL_cleanse) before it goes back to the heap, however
+      // this ends - an exception included. A file with a UTF-16LE byte order
+      // mark - what Windows PowerShell 5's Out-File and > write - is narrowed in
+      // the same buffer; a UTF-8 one is stepped over by ImportText. Refused as
+      // ImportText refuses, and when the file cannot be read or is larger than a
+      // key file can be.
+      static bool ImportFile(const String &path, AnsiString &keyId, String &problem);
+
+      // The most of a key file ImportFile reads: an exported one is about a
+      // hundred bytes, twice that in UTF-16.
+      static const size_t KeyFileMaxBytes = 65536;
 
       // --forget-sealed-secrets KEYID, for a key nobody holds any more: every
       // envelope that names that key is cleared - an account's second factor

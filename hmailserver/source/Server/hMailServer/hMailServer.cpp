@@ -928,20 +928,19 @@ static int ExportStoredSecretsKeyFromCommandLine(const HM::String &file)
    HM::String error;
    const bool databaseOpen = HM::Application::Instance()->OpenDatabase(error);
 
-   HM::AnsiString text;
+   // The key file's text made and written by StoredSecrets::ExportFile, which
+   // writes it over however it ends.
    HM::AnsiString keyId;
    HM::String problem;
-   if (!HM::StoredSecrets::ExportText(text, keyId, problem))
+   HM::String writeError;
+   const bool written = HM::StoredSecrets::ExportFile(file, keyId, problem, writeError);
+   if (!written && writeError.IsEmpty())
    {
       if (databaseOpen)
          HM::Application::Instance()->CloseDatabase();
       WriteVerbError((NarrowForVerb(problem) + ". Nothing was written.\r\n").c_str());
       return 1;
    }
-
-   HM::String writeError;
-   const bool written = HM::ProtectedFile::WriteNew(file, text, writeError);
-   std::fill(text.begin(), text.end(), '\0');
 
    const bool recorded = written && databaseOpen && HM::StoredSecrets::RecordExport(keyId);
    if (databaseOpen)
@@ -995,11 +994,11 @@ static int ImportStoredSecretsKeyFromCommandLine(const HM::String &file)
    if (!OpenDatabaseForKeyVerb())
       return 1;
 
-   HM::AnsiString text(HM::FileUtilities::ReadCompleteTextFile(file));
+   // Read and imported by StoredSecrets::ImportFile, which reads the file into
+   // one buffer and writes it, and every copy made of it, over however it ends.
    HM::AnsiString keyId;
    HM::String problem;
-   const bool imported = HM::StoredSecrets::ImportText(text, keyId, problem);
-   std::fill(text.begin(), text.end(), '\0');
+   const bool imported = HM::StoredSecrets::ImportFile(file, keyId, problem);
    HM::Application::Instance()->CloseDatabase();
 
    if (!imported)

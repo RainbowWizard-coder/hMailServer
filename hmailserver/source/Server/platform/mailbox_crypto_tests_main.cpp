@@ -35,9 +35,20 @@
 // base64. And so is StoredSecrets reading the key this node holds from its line
 // in the configuration file, for the key in hex, which the line holds, and for
 // its bytes: until 6.3.6 the hex was copied out of the line through a temporary
-// freed as it stood. That check, the last, writes a configuration and the
-// machine store's key file of its own, in a directory of its own under the
-// system's temp directory, and removes them.
+// freed as it stood. That check writes a configuration and the machine store's
+// key file of its own, in a directory of its own under the system's temp
+// directory, and removes them; it then exports that key with
+// StoredSecrets::ExportFile, as --export-stored-secrets-key does, and reads the
+// file back with StoredSecrets::ImportFile, as --import-stored-secrets-key does,
+// watched the same way. ImportFile is watched on its own too, over key files
+// saved with LF, with CRLF and a UTF-8 byte order mark, and in UTF-16LE: until
+// 6.3.7 the verbs read the file with ReadCompleteTextFile, whose ByteBuffer,
+// narrow copy and returned String - the whole file each - were freed as they
+// stood. Every piece of text is watched for as a String holds it and in
+// UTF-16LE as well as in narrow characters - which found, in a GCC build, the
+// String Crypt::DeCrypt copied the opened key line into on its way out until
+// 6.3.7, its source, the key in hex, freed as it stood. Last,
+// StoredSecrets::Test, which the Windows server's self-test runs, runs here too.
 //
 // Every block is handed out zeroed: a block can be memory freed before the
 // watch began - this program's own copies of the key file - and a buffer
@@ -59,6 +70,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
+#include <iterator>
 #include <new>
 #include <stdexcept>
 #include <string>
@@ -77,10 +89,10 @@ namespace
    const std::size_t BlockHeader = alignof(std::max_align_t) > sizeof(std::size_t) ? alignof(std::max_align_t) : sizeof(std::size_t);
 
    // While watching is set, each block freed is searched for the markers: a
-   // piece of the key as text - its base64, or its hex - and a piece of its
-   // bytes.
+   // piece of the key as text - its base64, or its hex - in narrow characters,
+   // in a String's wide ones and in UTF-16LE, and a piece of its bytes.
    std::atomic<bool> g_watching(false);
-   const std::string *g_markers[2] = {nullptr, nullptr};
+   const std::string *g_markers[4] = {nullptr, nullptr, nullptr, nullptr};
    std::atomic<int> g_freedWithMarker(0);
 
    bool HoldsAMarker(const char *begin, std::size_t size)
@@ -96,18 +108,35 @@ namespace
 
    // The markers watched while the call runs, and the count of blocks freed
    // with one of them in it. The first is the key as text: its base64, or
-   // its hex where that is what the code under watch reads.
+   // its hex where that is what the code under watch reads. It is watched in
+   // the two other forms text takes here as well: a String's, a wchar_t a
+   // character, which a narrow piece is not found in - the String
+   // ReadCompleteTextFile returned, which the import verbs read the key file
+   // into until 6.3.7, was one, and so was the opened key line Crypt::DeCrypt
+   // returned by a copy - and UTF-16LE, a key file's bytes as Windows
+   // PowerShell 5 saves it.
    template <typename Call>
    int FreedWithMarker(const std::string &base64Piece, const std::string &keyPiece, Call call)
    {
+      const std::wstring wide(base64Piece.begin(), base64Piece.end());
+      const std::string widePiece(reinterpret_cast<const char *>(wide.data()), wide.size() * sizeof(wchar_t));
+      std::string utf16Piece;
+      for (const char c : base64Piece)
+      {
+         utf16Piece += c;
+         utf16Piece += '\0';
+      }
+
       g_markers[0] = &base64Piece;
       g_markers[1] = &keyPiece;
+      g_markers[2] = &widePiece;
+      g_markers[3] = &utf16Piece;
       g_freedWithMarker = 0;
       g_watching = true;
       call();
       g_watching = false;
-      g_markers[0] = nullptr;
-      g_markers[1] = nullptr;
+      for (const std::string *&marker : g_markers)
+         marker = nullptr;
       return g_freedWithMarker.load();
    }
 
@@ -242,6 +271,95 @@ namespace
       return "";
    }
 
+   // The bytes written to a file of the scratch directory as they are.
+   bool WriteScratchFile(const boost::filesystem::path &file, const std::string &bytes)
+   {
+      std::ofstream out(file.string().c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
+      out.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+      return static_cast<bool>(out);
+   }
+
+   // --import-stored-secrets-key's read of the key file, StoredSecrets::
+   // ImportFile, gives no buffer that held a piece of the key back to the heap
+   // unwritten - from the file's bytes to ImportText's lines - for a file saved
+   // with LF line ends, with CRLF and a UTF-8 byte order mark, and in UTF-16LE
+   // with its mark. Each names another key on its id line, so that it is
+   // refused at the check of the id against the key, after the key was read
+   // and decoded, and before a database is asked. Until 6.3.7 the verbs read
+   // it with ReadCompleteTextFile: the ByteBuffer the file was read into, the
+   // narrow copy made of it and the String returned - the whole file each time
+   // - were freed as they stood, and a file with a UTF-8 mark was refused as
+   // not a key file.
+   std::string CheckImportFileFreesNoKey()
+   {
+      const std::string key = TestKey();
+      const std::string encoded = HM::MailboxCrypto::Base64(key);
+      if (encoded.size() < 40)
+         return "the key's base64 could not be made";
+
+      const std::string base64Piece = encoded.substr(0, 16);
+      const std::string keyPiece = key.substr(8, 16);
+
+      boost::system::error_code error;
+      const boost::filesystem::path scratch = boost::filesystem::temp_directory_path(error) /
+         ("hm-mailbox-crypto-tests-files-" + std::to_string(static_cast<long long>(::getpid())));
+      if (!error)
+         boost::filesystem::create_directories(scratch, error);
+      if (error)
+         return "no scratch directory could be made under the system's temp directory";
+
+      const std::string crlf = "hMailServer stored secrets key\r\nid 0123456789abcdef\r\nkey " + encoded + "\r\n";
+      std::string utf16("\xFF\xFE", 2);
+      for (const char c : crlf)
+      {
+         utf16 += c;
+         utf16 += '\0';
+      }
+
+      struct Saved
+      {
+         const char *name;
+         std::string bytes;
+      };
+      const Saved files[] =
+      {
+         {"lf.key", "hMailServer stored secrets key\nid 0123456789abcdef\nkey " + encoded + "\n"},
+         {"crlf-utf8-mark.key", std::string("\xEF\xBB\xBF") + crlf},
+         {"crlf-utf16le-mark.key", utf16},
+      };
+
+      std::string failed;
+      for (const Saved &file : files)
+      {
+         const boost::filesystem::path path = scratch / file.name;
+         if (!WriteScratchFile(path, file.bytes))
+         {
+            failed = std::string(file.name) + " could not be written";
+            break;
+         }
+
+         const HM::String name(path.string().c_str());
+         HM::AnsiString keyId;
+         HM::String problem;
+         bool imported = false;
+         const int freed = FreedWithMarker(base64Piece, keyPiece, [&]() { imported = HM::StoredSecrets::ImportFile(name, keyId, problem); });
+
+         const std::string why(HM::AnsiString(problem).c_str());
+         if (imported)
+            failed = std::string(file.name) + ": a key file whose id line names another key was imported";
+         else if (why.find("is not the key its id line names") == std::string::npos)
+            failed = std::string(file.name) + ": the file was refused before its key was read: " + why;
+         else if (freed != 0)
+            failed = std::string(file.name) + ": " + std::to_string(freed) + " buffer(s) holding the key's base64 or its bytes were freed as they stood";
+
+         if (!failed.empty())
+            break;
+      }
+
+      boost::filesystem::remove_all(scratch, error);
+      return failed;
+   }
+
    // The key this node holds, read from its line in the configuration file -
    // "HMK1KEY " and the key in hex, under this machine's store, as
    // --create-stored-secrets-key and --import-stored-secrets-key write it - gives
@@ -317,12 +435,83 @@ namespace
                failed = std::to_string(freed) + " buffer(s) holding the key in hex or its bytes were freed as they stood";
          }
 
+         // And --export-stored-secrets-key's write of the key this node holds,
+         // StoredSecrets::ExportFile, gives nothing that held the key's base64 or
+         // its bytes back to the heap unwritten either; the file it writes holds
+         // the key; and --import-stored-secrets-key's read of that file goes
+         // through to the database's record - which this program has none of,
+         // so that the import stops there - again freeing nothing unwritten.
+         std::string encoded = HM::MailboxCrypto::Base64(key);
+         if (failed.empty())
+         {
+            const std::string base64Piece = encoded.substr(0, 16);
+            const std::string keyPiece = key.substr(8, 16);
+            const boost::filesystem::path exported = scratch / "exported.key";
+            const HM::String exportedName(exported.string().c_str());
+
+            HM::AnsiString keyId;
+            HM::String problem;
+            HM::String writeError;
+            bool written = false;
+            int freed = FreedWithMarker(base64Piece, keyPiece, [&]() { written = HM::StoredSecrets::ExportFile(exportedName, keyId, problem, writeError); });
+
+            std::string bytes;
+            {
+               std::ifstream in(exported.string().c_str(), std::ios::in | std::ios::binary);
+               bytes.assign(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>());
+            }
+
+            if (!written)
+               failed = "the key this node holds was not exported: " + std::string(HM::AnsiString(problem + writeError).c_str());
+            else if (freed != 0)
+               failed = std::to_string(freed) + " buffer(s) holding the key's base64 or its bytes were freed as they stood by the export";
+            else if (bytes.find("\r\nkey " + encoded + "\r\n") == std::string::npos || bytes.find("\r\nid " + std::string(keyId.c_str()) + "\r\n") == std::string::npos)
+               failed = "the exported file does not hold the key under its id";
+
+            if (failed.empty())
+            {
+               bool imported = false;
+               freed = FreedWithMarker(base64Piece, keyPiece, [&]() { imported = HM::StoredSecrets::ImportFile(exportedName, keyId, problem); });
+               const std::string why(HM::AnsiString(problem).c_str());
+
+               if (imported)
+                  failed = "the exported file was imported with no database to check it against";
+               else if (why.find("the database is not open") == std::string::npos)
+                  failed = "the exported file was refused before its key was checked against the database: " + why;
+               else if (freed != 0)
+                  failed = std::to_string(freed) + " buffer(s) holding the key's base64 or its bytes were freed as they stood by the import of the exported file";
+            }
+
+            HM::MailboxCrypto::Forget(bytes);
+         }
+
+         HM::MailboxCrypto::Forget(encoded);
          HM::MailboxCrypto::Forget(hex);
          HM::MailboxCrypto::Forget(key);
       }
 
       boost::filesystem::remove_all(scratch, error);
       return failed;
+   }
+
+   // The seal the stored-secrets key makes, and ImportFile's reading of a key
+   // file whatever it was saved with, as the Windows server's self-test runs
+   // them (ClassTester, StoredSecrets::Test).
+   std::string CheckStoredSecretsSelfTest()
+   {
+      try
+      {
+         HM::StoredSecrets::Test();
+      }
+      catch (const std::exception &failure)
+      {
+         return failure.what();
+      }
+      catch (...)
+      {
+         return "StoredSecrets::Test failed";
+      }
+      return "";
    }
 
    // One check, one line; false when it failed.
@@ -370,7 +559,14 @@ main(int /*argc*/, char * /*argv*/[])
    if (!Run("a stored-secrets key file read", CheckImportTextFreesNoKey, "no buffer that held a piece of the key freed as it stood"))
       return 1;
 
-   if (!Run("the stored-secrets key read from its line", CheckHeldKeyReadFreesNoKey, "no buffer that held the key in hex or its bytes freed as it stood"))
+   if (!Run("a stored-secrets key file read from disk", CheckImportFileFreesNoKey, "LF, CRLF with a UTF-8 mark and UTF-16LE read through to the key, and no buffer that held a piece of it freed as it stood"))
+      return 1;
+
+   if (!Run("the stored-secrets key read from its line, exported and imported again", CheckHeldKeyReadFreesNoKey,
+            "no buffer that held the key in hex, in base64 or its bytes freed as it stood"))
+      return 1;
+
+   if (!Run("the stored-secrets seal and key files", CheckStoredSecretsSelfTest, "StoredSecrets::Test, as the Windows server's self-test runs it"))
       return 1;
 
    return 0;

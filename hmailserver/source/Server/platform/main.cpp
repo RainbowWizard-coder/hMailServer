@@ -1383,20 +1383,19 @@ namespace
 
       const bool databaseOpen = OpenDatabaseForKeyVerb(false, true);
 
-      HM::AnsiString text;
+      // The key file's text made and written by StoredSecrets::ExportFile, which
+      // writes it over however it ends.
       HM::AnsiString keyId;
       HM::String problem;
-      if (!HM::StoredSecrets::ExportText(text, keyId, problem))
+      HM::String writeError;
+      const bool written = HM::StoredSecrets::ExportFile(path, keyId, problem, writeError);
+      if (!written && writeError.IsEmpty())
       {
          if (databaseOpen)
             HM::Application::Instance()->CloseDatabase();
          (void) std::fprintf(stderr, "%s. Nothing was written.\n", HM::AnsiString(problem).c_str());
          return 1;
       }
-
-      HM::String writeError;
-      const bool written = HM::ProtectedFile::WriteNew(path, text, writeError);
-      std::fill(text.begin(), text.end(), '\0');
 
       const bool recorded = written && databaseOpen && HM::StoredSecrets::RecordExport(keyId);
       if (databaseOpen)
@@ -1441,11 +1440,11 @@ namespace
          return 1;
       }
 
-      HM::AnsiString text(HM::FileUtilities::ReadCompleteTextFile(path));
+      // Read and imported by StoredSecrets::ImportFile, which reads the file into
+      // one buffer and writes it, and every copy made of it, over however it ends.
       HM::AnsiString keyId;
       HM::String problem;
-      const bool imported = HM::StoredSecrets::ImportText(text, keyId, problem);
-      std::fill(text.begin(), text.end(), '\0');
+      const bool imported = HM::StoredSecrets::ImportFile(path, keyId, problem);
       HM::Application::Instance()->CloseDatabase();
 
       if (!imported)

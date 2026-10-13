@@ -640,6 +640,60 @@ namespace RegressionTests.Security
       }
 
       [Test]
+      [Description("--import-stored-secrets-key reads the key file as the export wrote it or as an editor saved it again: with a UTF-8 byte order mark, which it refused as not a key file until 6.3.7, and in UTF-16LE with its mark, which Windows PowerShell 5's Out-File writes. Each holds the key this node holds, so that the import changes nothing and names the key. A file larger than 64 KiB - the same key file with blanks after it, which the import read until 6.3.7 - is refused for its size. The key line is left as it was throughout.")]
+      public void AKeyFileIsReadHoweverItWasSavedAndOneTooLargeIsRefused()
+      {
+         RequireProtectedStore();
+
+         string keyLine = IniFileSetting.Read("Security", "StoredSecretsKey");
+         string recorded = RecordedKeyId();
+
+         string directory = Paths.Combine(Path.GetTempPath(), TestSetup.UniqueString());
+         Directory.CreateDirectory(directory);
+         string keyFile = Paths.Combine(directory, "stored-secrets.key");
+
+         try
+         {
+            Verb exported = RunServerVerb("--export-stored-secrets-key \"" + keyFile + "\"", null, null);
+            ClassicAssert.AreEqual(0, exported.ExitCode, exported.Output);
+            string[] lines = File.ReadAllLines(keyFile);
+            ClassicAssert.AreEqual(3, lines.Length, "Three lines: the format, the id and the key.");
+
+            var saved = new[]
+            {
+               new KeyValuePair<string, Encoding>("utf8-mark.key", new UTF8Encoding(true)),
+               new KeyValuePair<string, Encoding>("utf16le-mark.key", new UnicodeEncoding(false, true)),
+            };
+            foreach (KeyValuePair<string, Encoding> one in saved)
+            {
+               string path = Paths.Combine(directory, one.Key);
+               // settings-store-exempt: a stored-secrets key file in a temporary directory, for the import verb; it is not hMailServer.ini.
+               File.WriteAllLines(path, lines, one.Value);
+               byte[] mark = one.Value.GetPreamble();
+               ClassicAssert.AreEqual(mark, File.ReadAllBytes(path).Take(mark.Length).ToArray(), one.Key + ": the file begins with its byte order mark.");
+
+               Verb imported = RunServerVerb("--import-stored-secrets-key \"" + path + "\"", null, null);
+               ClassicAssert.AreEqual(0, imported.ExitCode, one.Key + ": " + imported.Output);
+               StringAssert.Contains("The stored-secrets key " + recorded + " is this server's", imported.Output, one.Key + ": the key it holds, named.");
+               StringAssert.DoesNotContain(lines[2].Substring(4), imported.Output, "The verb never prints the key.");
+               ClassicAssert.AreEqual(keyLine, IniFileSetting.Read("Security", "StoredSecretsKey"), one.Key + ": the key line is left as it was.");
+            }
+
+            string large = Paths.Combine(directory, "large.key");
+            // settings-store-exempt: a stored-secrets key file in a temporary directory, for the import verb; it is not hMailServer.ini.
+            File.WriteAllText(large, string.Join("\r\n", lines) + "\r\n" + new string(' ', 65536), new UTF8Encoding(false));
+            Verb refused = RunServerVerb("--import-stored-secrets-key \"" + large + "\"", null, null);
+            ClassicAssert.AreEqual(1, refused.ExitCode, refused.Output);
+            StringAssert.Contains("larger than one can be", refused.Output);
+            ClassicAssert.AreEqual(keyLine, IniFileSetting.Read("Security", "StoredSecretsKey"), "The key line is left as it was.");
+         }
+         finally
+         {
+            try { Directory.Delete(directory, true); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+         }
+      }
+
+      [Test]
       [Description("The key is recorded in the database as it is made, and the database is the arbiter: every envelope names the recorded key; --create-stored-secrets-key on the node that holds it changes nothing; on a node without it - its line taken out - it is refused, naming the import, and neither a line nor a second record is made.")]
       public void TheKeyIsRecordedInTheDatabaseAndASecondIsRefused()
       {

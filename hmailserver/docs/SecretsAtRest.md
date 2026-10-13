@@ -316,6 +316,26 @@ opening there. Importing the key the node already holds changes nothing. Never c
 `[Security] StoredSecretsKey` line from one machine's file to another's: it is sealed under
 the first machine's own DPAPI and opens nowhere else.
 
+The import takes the file as the export wrote it or as an editor saved it again: LF or CRLF
+line ends, with or without a UTF-8 byte order mark, or UTF-16LE with its mark, which is what
+Windows PowerShell 5's `Out-File` and `>` write. A file larger than 64 KiB is refused, since
+no key file is that large, and one that cannot be read says so. Until 6.3.7 a file with a
+UTF-8 mark was refused as not a key file, and so was a file that could not be read.
+
+Neither verb leaves a copy of the key in the memory it gives back to the heap. The import
+reads the file with the operating system's own reads into one buffer, and that buffer and
+every copy made of the key on its way to the line under the machine's store - its base64,
+its bytes, its hex, the line, and the line opened again to read the key back - are written
+over (`OPENSSL_cleanse`) before they are freed, an error or an exception on the way included;
+the export does the same with the file's text. Until 6.3.7 the import read the file through
+the C runtime and the server's text-file reader, and their buffers and the copies of the
+whole file made on the way to the one that was written over - the key's line in each - went
+back to the heap as they stood. And on Windows, and in a build made with GCC, the line opened
+by the machine's store was copied on its way out of `Crypt::DeCrypt`, and the copy's source -
+the key in hex - freed as it stood: at every start, and whenever a verb read the key. On
+Linux the scratch buffer in which a conversion of the line to or from UTF-8 is measured, on
+the stack, is written over as the measure ends too.
+
 A node set up on a new, empty database of its own before it was pointed at the shared one
 holds a key of its own: the shared database refuses it at the next start (`HM7495`). Remove
 its `[Security] StoredSecretsKey` line, then import the database's key.
@@ -552,6 +572,9 @@ fixture makes with `--create-stored-secrets-key` when it has none:
   and refusing every code of a sealed second factor, which stays enrolled; a damaged key file
   and another key refused, the other key by the database's record; and the code verifying
   again once the key is imported;
+* the key file saved again with a UTF-8 byte order mark, and in UTF-16LE with its mark,
+  imported as the key the node holds, which changes nothing, and the same file with blanks
+  after it to more than 64 KiB refused for its size;
 * `--forget-sealed-secrets` refused without a key id, while the service runs, and for the
   key the server holds; and with the lost key's id clearing a second factor and a `[Settings]`
   secret sealed under it - the account enrols again, the setting reads as not set - while one
@@ -562,4 +585,15 @@ fixture makes with `--create-stored-secrets-key` when it has none:
 entry for the password, and to handing it over in the environment only, before the database
 step. `API/RestApiSetupChecklist.cs` holds the checklist to its ten items. The seal itself -
 round trip, another purpose, another account, another key, a changed byte - is in the
-server's self-test (`StoredSecrets::Test`).
+server's self-test (`StoredSecrets::Test`), and so is the import's reading of a key file: one
+saved with LF line ends, with CRLF and a UTF-8 byte order mark, and in UTF-16LE with its mark
+read through to its key, one of 64 KiB read, one a byte larger refused for its size, and one
+that is not there said to be unreadable. On Linux `mailbox-crypto-tests` runs the same
+self-test, and watches every block of memory the key verbs' code gives back to the heap - the
+key file read by `--import-stored-secrets-key` in each of those three forms, the key read from
+its line, exported by `--export-stored-secrets-key` and the exported file read back - for a
+piece of the key in base64 or hex, as narrow text, as a `String` and in UTF-16LE, or of its
+bytes: none may hold one. The import's last step, the key protected and written into the
+line, runs only with a database open, which that program has not; what it copies - the hex,
+the line, the line's UTF-8 that the machine's store protects - is written over by the same
+guards, as the code shows (`StoredSecrets::StoreKey_`, `Crypt::EnCrypt`).

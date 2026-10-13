@@ -394,6 +394,35 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `libmariadb.so.3`, which the distribution patches; the Docker image and the snap stage Ubuntu 24.04's, which
   predates the flaw. Renovate work item 47; CVE on the GitLab dashboard (record 404650204).
 
+- **Fixed: `--import-stored-secrets-key` left copies of the stored-secrets key in memory freed without being written
+  over, and on Windows every read of the key from its line left one.** The verb read the key file with the server's
+  general text-file reader and wrote over only the last copy it made: the C runtime's buffer for the file, the buffer
+  the file was read into, a narrow copy of that and the wide string returned - each the whole file, the key's line in
+  base64 among it - went back to the heap as they stood, on Windows and Linux alike, and an exception out of the
+  import freed the last one too (from 6.3.4, which brought the verb). The file is now read by the operating system's
+  own reads into one buffer, never grown, and that buffer and every copy made of the key on the way to its line under
+  the machine's store - its base64, its bytes, its hex, the line itself - are written over with `OPENSSL_cleanse`
+  however the import ends; `--export-stored-secrets-key` writes over the file's text the same way, an exception
+  between the text and the write included, where the verb's fill came after the write. And the key's line, opened by
+  the machine's store - DPAPI, or the Linux key file - was returned by `Crypt::DeCrypt` beside its other returns,
+  which a compiler answers with a copy where it does not build the string where it is returned: MSVC 19.51 as the
+  Windows server is built does not, nor does GCC 15, and clang does. So the opened line, the whole key in hex, went
+  back to the heap as it stood at every start of the service and whenever a verb read the key (from 6.3.4); the 6.3.6
+  change to that read left it. The line is now built where it is returned. On Linux the scratch buffer in which iconv
+  measures a conversion - the key's line among what it measures, on its way into the machine's store and out of it -
+  is written over as the measure ends, where the last of what it converted stayed on the thread's stack. A key file
+  saved with a UTF-8 byte order mark, which the import refused as not a key file, is now read as one, as a UTF-16LE
+  file with its mark already was; a file larger than 64 KiB is refused, as no key file is that large; and one that
+  cannot be read says so, where it was called not a key file. `mailbox-crypto-tests` watches every block the import,
+  the export and the reading of the key from its line give back to the heap - the key file saved with LF, CRLF and a
+  UTF-8 mark, and in UTF-16LE - for a piece of the key as narrow text, as a `String`, in UTF-16LE or as its bytes, and
+  finds none; with the import's old read it finds three blocks for a key file, and built with GCC before the change,
+  the copy of the line. The server's self-test (`StoredSecrets::Test`, run on Linux by the same program) reads each of
+  those files through to its key, refuses one over 64 KiB and says one that is not there is unreadable, and
+  `Security/SecretsAtRest.cs` imports the key file saved again with a UTF-8 mark and in UTF-16LE, and refuses it with
+  64 KiB of blanks after it. Found by the project's own review. [SecretsAtRest.md](hmailserver/docs/SecretsAtRest.md),
+  "Carrying it to another node".
+
 ### Correctness
 
 - **Fixed: a ManageSieve refusal that quoted a script's text with a line break in it was split in two.** RFC 5804's
