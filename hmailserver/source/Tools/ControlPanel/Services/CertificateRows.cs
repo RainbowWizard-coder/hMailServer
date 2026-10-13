@@ -9,7 +9,7 @@ using static hMailServer.ControlPanel.Services.Loc;
 namespace hMailServer.ControlPanel.Services
 {
    /// <summary>
-   /// What the SSL certificates page's rows say beyond the two files (review findings
+   /// What the TLS certificates page's rows say beyond the two files (review findings
    /// F235 and F236), with no WPF so that CertificatesEditTests holds it: which TCP/IP
    /// ports present each certificate, the order the Certificate column sorts in, the
    /// file name a path column shows, and whether the passphrase editor is offered.

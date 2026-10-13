@@ -3343,7 +3343,7 @@ namespace hMailServer.ControlPanel.Views
       private void BuildTls()
       {
          Header.PageKey = "tls";
-         Header.Subtitle = L("Which TLS versions and ciphers this server negotiates, for its own listeners and for the connections it makes when delivering. Certificates are on the SSL certificates page; DANE and MTA-STS are on Transport security; brute-force lockout is on Auto-ban.");
+         Header.Subtitle = L("Which TLS versions and ciphers this server negotiates, for its own listeners and for the connections it makes when delivering. Certificates are on the TLS certificates page; DANE and MTA-STS are on Transport security; brute-force lockout is on Auto-ban.");
 
          var ver = Card(L("Protocol versions"), L("TLS 1.2 and 1.3 are the recommended baseline; older versions exist only for legacy clients."));
          var tls10 = new ComBool { Path = "TlsVersion10Enabled", Label = L("TLS 1.0 (legacy)") };
@@ -3451,7 +3451,7 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// Brute-force lockout, which used to be the third tab of the SSL/TLS page.
+      /// Brute-force lockout, which used to be the third tab of the SSL/TLS page (TLS versions &amp; ciphers since F301).
       ///
       /// The two subjects shared a page and nothing else: you arrive at one of them
       /// because somebody is guessing passwords and at the other because a client

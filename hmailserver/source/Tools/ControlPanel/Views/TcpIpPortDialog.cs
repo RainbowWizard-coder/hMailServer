@@ -81,7 +81,7 @@ namespace hMailServer.ControlPanel.Views
          security_.Items.Add(DialogFields.Combo(L("STARTTLS (required)"), 3));
          body.Children.Add(Label(L("_Connection security"), security_));
 
-         certificateRow_ = Label(L("SSL c_ertificate"), certificate_).WithHint(L("Required for SSL/TLS and STARTTLS."));
+         certificateRow_ = Label(L("TLS c_ertificate"), certificate_).WithHint(L("Required for SSL/TLS and STARTTLS."));
          body.Children.Add(certificateRow_);
          security_.SelectionChanged += (s, e) => UpdateCertificate_();
          certificate_.SelectionChanged += (s, e) => certificateRow_.Error = null;

@@ -582,8 +582,8 @@
   <data name="A plain (unencrypted) PEM, so no passphrase is needed." xml:space="preserve">
     <value>Obyčejný (nešifrovaný) PEM, takže přístupové heslo není potřeba.</value>
   </data>
-  <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
-    <value>Port s SSL/TLS nebo STARTTLS předkládá certifikát a server zatím žádný nemá: nejprve jej přidejte na stránce Certifikáty SSL.</value>
+  <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the TLS certificates page first." xml:space="preserve">
+    <value>Port s SSL/TLS nebo STARTTLS předkládá certifikát a server zatím žádný nemá: nejprve jej přidejte na stránce Certifikáty TLS.</value>
   </data>
   <data name="A profile for this server" xml:space="preserve">
     <value>Profil pro tento server</value>
@@ -5483,8 +5483,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="For a record of who corresponds with whom, keeping it for ever should be a decision rather than a default - which is why 0 is offered as an option instead of being one." xml:space="preserve">
     <value>U záznamu o tom, kdo si s kým dopisuje, by mělo být uchovávání navždy rozhodnutím, ne výchozím stavem - proto se 0 nabízí jako volba, místo aby jí byla.</value>
   </data>
-  <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the SSL certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
-    <value>Pro každý certifikát, jehož soubor klíče je šifrovaný PEM, nastavte heslo soukromého klíče certifikátu na stránce Certifikáty SSL (přístupové heslo nastavil ten, kdo klíč vytvořil, takže ho můžete zadat jen vy) - nebo soubor nahraďte nešifrovaným klíčem.</value>
+  <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the TLS certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
+    <value>Pro každý certifikát, jehož soubor klíče je šifrovaný PEM, nastavte heslo soukromého klíče certifikátu na stránce Certifikáty TLS (přístupové heslo nastavil ten, kdo klíč vytvořil, takže ho můžete zadat jen vy) - nebo soubor nahraďte nešifrovaným klíčem.</value>
   </data>
   <data name="For example 03:00, Sun 03:00 or Sat,Sun 02:00-05:00." xml:space="preserve">
     <value>Například 03:00, Sun 03:00 nebo Sat,Sun 02:00-05:00.</value>
@@ -7718,14 +7718,14 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No SMTP listener is on port 25, so no delivery port takes a password." xml:space="preserve">
     <value>Na portu 25 nenaslouchá žádný SMTP posluchač, takže žádný doručovací port nepřijímá heslo.</value>
   </data>
-  <data name="No SSL certificates are configured, so there are no key files to check." xml:space="preserve">
-    <value>Nejsou nastaveny žádné SSL certifikáty, takže neexistují žádné soubory klíčů ke kontrole.</value>
-  </data>
   <data name="No SURBL servers, so the links in a message body are not looked up in any list." xml:space="preserve">
     <value>Žádné servery SURBL, takže odkazy v těle zprávy se v žádném seznamu nevyhledávají.</value>
   </data>
   <data name="No TCP/IP port presents this certificate." xml:space="preserve">
     <value>Žádný port TCP/IP tento certifikát nepředkládá.</value>
+  </data>
+  <data name="No TLS certificates are configured, so there are no key files to check." xml:space="preserve">
+    <value>Nejsou nastaveny žádné TLS certifikáty, takže neexistují žádné soubory klíčů ke kontrole.</value>
   </data>
   <data name="No TLS version is enabled anywhere on this server, so no handshake on this port can succeed." xml:space="preserve">
     <value>Na tomto serveru není nikde zapnuta žádná verze TLS, takže na tomto portu nemůže uspět žádný handshake.</value>
@@ -8651,8 +8651,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="On the Setting profiles page, compare the four with this server and apply the one that fits; what it replaces is kept, so that it can be put back." xml:space="preserve">
     <value>Na stránce Profily nastavení porovnejte čtyři profily s tímto serverem a použijte ten vhodný; co nahradí, se uschová, aby to šlo vrátit.</value>
   </data>
-  <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
-    <value>Na stránce Porty TCP/IP dejte portu pro odesílání (587) STARTTLS s certifikátem ze stránky Certifikáty SSL, nebo přidejte port 465 s implicitním TLS.</value>
+  <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the TLS certificates page, or add port 465 with implicit TLS." xml:space="preserve">
+    <value>Na stránce Porty TCP/IP dejte portu pro odesílání (587) STARTTLS s certifikátem ze stránky Certifikáty TLS, nebo přidejte port 465 s implicitním TLS.</value>
   </data>
   <data name="On the TCP/IP ports page, open the SMTP port 25 and set its SMTP authentication to Honeypot or Off, then reinitialise. Mail clients that still sign in on 25 are refused and banned from then on, so move them to 587 first." xml:space="preserve">
     <value>Na stránce Porty TCP/IP otevřete SMTP port 25, nastavte jeho ověřování SMTP na Návnada nebo Vypnuto a pak server reinicializujte. Poštovní klienti, kteří se na portu 25 stále přihlašují, budou od té chvíle odmítnuti a zablokováni, proto je nejprve přesuňte na port 587.</value>
@@ -8822,17 +8822,17 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Open Protocols, whose SMTP tab has the Host name" xml:space="preserve">
     <value>Otevřít Protokoly, kde je na kartě SMTP Název hostitele</value>
   </data>
-  <data name="Open SSL certificates, which owns the certificate and key file paths" xml:space="preserve">
-    <value>Otevřít Certifikáty SSL, kde se spravují cesty k souborům certifikátu a klíče</value>
-  </data>
-  <data name="Open SSL/TLS, which owns the protocol versions and cipher lists" xml:space="preserve">
-    <value>Otevřít SSL/TLS, kde se spravují verze protokolů a seznamy šifer</value>
-  </data>
   <data name="Open Setup _checklist" xml:space="preserve">
     <value>Otevřít _Kontrolní seznam nastavení</value>
   </data>
   <data name="Open TCP/IP ports, which owns the per-listener security setting" xml:space="preserve">
     <value>Otevřít Porty TCP/IP, kde se spravuje nastavení zabezpečení jednotlivých listenerů</value>
+  </data>
+  <data name="Open TLS certificates, which owns the certificate and key file paths" xml:space="preserve">
+    <value>Otevřít Certifikáty TLS, kde se spravují cesty k souborům certifikátu a klíče</value>
+  </data>
+  <data name="Open TLS versions &amp; ciphers, which owns the protocol versions and cipher lists" xml:space="preserve">
+    <value>Otevřít Verze TLS a šifry, kde se spravují verze protokolů a seznamy šifer</value>
   </data>
   <data name="Open _log folder" xml:space="preserve">
     <value>_Otevřít složku logů</value>
@@ -10810,15 +10810,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="SRS, BATV and the plain envelope-sender rewrite for forwarded mail" xml:space="preserve">
     <value>SRS, BATV a jednoduché přepisování odesílatele obálky u přeposílané pošty</value>
   </data>
-  <data name="SSL c_ertificate" xml:space="preserve">
-    <value>SSL c_ertifikát</value>
-  </data>
-  <data name="SSL certificate" xml:space="preserve">
-    <value>Certifikát SSL</value>
-  </data>
-  <data name="SSL certificates" xml:space="preserve">
-    <value>Certifikáty SSL</value>
-  </data>
   <data name="SSL/TLS" xml:space="preserve">
     <value>SSL/TLS</value>
   </data>
@@ -10831,8 +10822,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="STARTTLS (required)" xml:space="preserve">
     <value>STARTTLS (vyžadované)</value>
   </data>
-  <data name="STARTTLS is expected to be offered, using the certificate '{0}' borrowed from a TLS-capable mailbox port - this listener has no certificate setting of its own, by design: the client editing Sieve filters is the client reading the mailbox, so the certificate it already trusts is the right one to present. Whether the files actually load is decided when the service starts; if they do not, the listener runs in plain text and says so in the application log, and the SSL certificates page checks the files themselves." xml:space="preserve">
-    <value>Očekává se, že se bude nabízet STARTTLS s certifikátem '{0}' vypůjčeným od portu poštovní schránky s podporou TLS – tento listener záměrně nemá vlastní nastavení certifikátu: klient upravující filtry Sieve je tentýž klient, který čte poštovní schránku, takže certifikát, kterému už důvěřuje, je ten správný k předložení. Zda se soubory skutečně načtou, se rozhodne při startu služby; pokud ne, listener běží v otevřeném textu, oznámí to v aplikačním logu a stránka Certifikáty SSL soubory samotné zkontroluje.</value>
+  <data name="STARTTLS is expected to be offered, using the certificate '{0}' borrowed from a TLS-capable mailbox port - this listener has no certificate setting of its own, by design: the client editing Sieve filters is the client reading the mailbox, so the certificate it already trusts is the right one to present. Whether the files actually load is decided when the service starts; if they do not, the listener runs in plain text and says so in the application log, and the TLS certificates page checks the files themselves." xml:space="preserve">
+    <value>Očekává se, že se bude nabízet STARTTLS s certifikátem '{0}' vypůjčeným od portu poštovní schránky s podporou TLS – tento listener záměrně nemá vlastní nastavení certifikátu: klient upravující filtry Sieve je tentýž klient, který čte poštovní schránku, takže certifikát, kterému už důvěřuje, je ten správný k předložení. Zda se soubory skutečně načtou, se rozhodne při startu služby; pokud ne, listener běží v otevřeném textu, oznámí to v aplikačním logu a stránka Certifikáty TLS soubory samotné zkontroluje.</value>
   </data>
   <data name="STARTTLS is offered and not required, which is the correct arrangement for port 25: requiring it would refuse mail from senders that cannot offer it." xml:space="preserve">
     <value>STARTTLS se nabízí a nevyžaduje, což je pro port 25 správné uspořádání: jeho vyžadování by odmítlo poštu od odesílatelů, kteří jej nabídnout neumějí.</value>
@@ -12466,11 +12457,20 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="TLS 1.3 is off. It is faster to negotiate than 1.2 and removes the older key exchanges outright; there is rarely a reason to leave it off." xml:space="preserve">
     <value>TLS 1.3 je vypnuto. Vyjednává se rychleji než 1.2 a starší způsoby výměny klíčů odstraňuje úplně; jen zřídka je důvod nechat je vypnuté.</value>
   </data>
+  <data name="TLS c_ertificate" xml:space="preserve">
+    <value>TLS c_ertifikát</value>
+  </data>
+  <data name="TLS certificate" xml:space="preserve">
+    <value>Certifikát TLS</value>
+  </data>
   <data name="TLS certificate file (PEM, optional)" xml:space="preserve">
     <value>Soubor certifikátu TLS (PEM, nepovinné)</value>
   </data>
   <data name="TLS certificate file for the metrics listener (PEM)" xml:space="preserve">
     <value>Soubor certifikátu TLS pro listener metrik (PEM)</value>
+  </data>
+  <data name="TLS certificates" xml:space="preserve">
+    <value>Certifikáty TLS</value>
   </data>
   <data name="TLS for the metrics listener needs both the certificate and the private key. Only {0} is set, so TLS is not enabled and scrapes stay plain HTTP." xml:space="preserve">
     <value>TLS na listeneru metrik vyžaduje certifikát i soukromý klíč. Nastaveno je pouze {0}, takže TLS není zapnuto a odběry metrik zůstávají nešifrovaným HTTP.</value>
@@ -12504,6 +12504,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="TLS session tickets, session cache size, resumption lifetime and ticket-key rotation" xml:space="preserve">
     <value>Session tickety TLS, velikost cache relací, životnost obnovení relace a rotace klíčů pro tickety</value>
+  </data>
+  <data name="TLS versions &amp; ciphers" xml:space="preserve">
+    <value>Verze TLS a šifry</value>
   </data>
   <data name="TLS-RPT" xml:space="preserve">
     <value>TLS-RPT</value>
@@ -12787,9 +12790,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="The SNMP agent, alerts, outbound webhooks and the audit trail" xml:space="preserve">
     <value>Agent SNMP, upozornění, odchozí webhooky a auditní záznam</value>
   </data>
-  <data name="The SSL certificate list could not be read: {0}" xml:space="preserve">
-    <value>Seznam certifikátů SSL nelze načíst: {0}</value>
-  </data>
   <data name="The Service Control Manager could not be queried, so the account the service runs as is unknown: {0}" xml:space="preserve">
     <value>Správce řízení služeb se nepodařilo dotázat, takže účet, pod kterým služba běží, není znám: {0}</value>
   </data>
@@ -12801,6 +12801,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="The TCP/IP ports that present it read its files again when the server is next reinitialised." xml:space="preserve">
     <value>Porty TCP/IP, které ho předkládají, načtou jeho soubory znovu při příští reinicializaci serveru.</value>
+  </data>
+  <data name="The TLS certificate list could not be read: {0}" xml:space="preserve">
+    <value>Seznam certifikátů TLS nelze načíst: {0}</value>
   </data>
   <data name="The TLS report sender address could not be read: {0}" xml:space="preserve">
     <value>Adresu odesílatele hlášení TLS nešlo přečíst: {0}</value>
@@ -15320,8 +15323,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Whether this port is being listened on could not be determined from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Zda se na tomto portu naslouchá, odsud nešlo určit. Otevřete Control Panel na samotném serveru, abyste to viděli.</value>
   </data>
-  <data name="Which TLS versions and ciphers this server negotiates, for its own listeners and for the connections it makes when delivering. Certificates are on the SSL certificates page; DANE and MTA-STS are on Transport security; brute-force lockout is on Auto-ban." xml:space="preserve">
-    <value>Které verze TLS a šifry tento server vyjednává, pro vlastní listenery i pro spojení, která navazuje při doručování. Certifikáty jsou na stránce Certifikáty SSL; DANE a MTA-STS jsou na stránce Transportní zabezpečení; blokování hrubé síly je na stránce Auto-ban.</value>
+  <data name="Which TLS versions and ciphers this server negotiates, for its own listeners and for the connections it makes when delivering. Certificates are on the TLS certificates page; DANE and MTA-STS are on Transport security; brute-force lockout is on Auto-ban." xml:space="preserve">
+    <value>Které verze TLS a šifry tento server vyjednává, pro vlastní listenery i pro spojení, která navazuje při doručování. Certifikáty jsou na stránce Certifikáty TLS; DANE a MTA-STS jsou na stránce Transportní zabezpečení; blokování hrubé síly je na stránce Auto-ban.</value>
   </data>
   <data name="Which TLS versions and ciphers this server will negotiate, and whether it verifies the certificate of the server it delivers to." xml:space="preserve">
     <value>Které verze TLS a šifry bude tento server vyjednávat a zda ověřuje certifikát serveru, kterému doručuje.</value>

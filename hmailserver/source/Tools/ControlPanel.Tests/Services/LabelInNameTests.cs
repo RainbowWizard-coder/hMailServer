@@ -201,7 +201,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("Show what a synchronisation would do, changing nothing", "_Preview", false)]
       [InlineData("Why it is listed", "N_ote", false)]
       [InlineData("Add distribution list", "Add lis_t", false)]
-      [InlineData("SSL/TLS: Open SSL/TLS, which owns the protocol versions and cipher lists", "SSL/TLS →", true)]
+      [InlineData("TLS versions & ciphers: Open TLS versions & ciphers, which owns the protocol versions and cipher lists", "TLS versions & ciphers →", true)]
       public void TheRule(string name, string caption, bool keeps)
       {
          Assert.Equal(keeps, StartsWithCaption(name, caption));

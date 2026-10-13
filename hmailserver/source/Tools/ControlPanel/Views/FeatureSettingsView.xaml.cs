@@ -1731,7 +1731,7 @@ namespace hMailServer.ControlPanel.Views
             return new WarningState
             {
                Level = StatusLevel.Good,
-               Text = F("STARTTLS is expected to be offered, using the certificate '{0}' borrowed from a TLS-capable mailbox port - this listener has no certificate setting of its own, by design: the client editing Sieve filters is the client reading the mailbox, so the certificate it already trusts is the right one to present. Whether the files actually load is decided when the service starts; if they do not, the listener runs in plain text and says so in the application log, and the SSL certificates page checks the files themselves.", certificate)
+               Text = F("STARTTLS is expected to be offered, using the certificate '{0}' borrowed from a TLS-capable mailbox port - this listener has no certificate setting of its own, by design: the client editing Sieve filters is the client reading the mailbox, so the certificate it already trusts is the right one to present. Whether the files actually load is decided when the service starts; if they do not, the listener runs in plain text and says so in the application log, and the TLS certificates page checks the files themselves.", certificate)
             };
          }
 

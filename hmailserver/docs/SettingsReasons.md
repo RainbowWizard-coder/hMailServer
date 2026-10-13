@@ -72,7 +72,7 @@ on its next delivery attempt.
 *Read delivery reports that arrive for this server's senders.* Turning this off stops
 reports being read at all; refusals met while delivering are still counted.
 
-## SSL/TLS
+## TLS versions & ciphers
 
 *Key exchange groups, in order of preference.* An empty list, or one OpenSSL rejects
 or that would leave no group enabled, is not applied: the server logs it and uses

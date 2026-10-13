@@ -60,7 +60,7 @@ namespace hMailServer.ControlPanel.Services
             return null;
          return certificatesOnServer > 0
             ? L("Choose the certificate this port presents.")
-            : L("A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first.");
+            : L("A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the TLS certificates page first.");
       }
    }
 }

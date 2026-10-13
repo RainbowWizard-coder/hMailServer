@@ -109,7 +109,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       [Theory]
       [InlineData("Protocols", "a mailbox sitting at 95% is not warned about again on every delivery")]
-      [InlineData("SSL/TLS", "which is why the shipped list is shown rather than a blank")]
+      [InlineData("TLS versions & ciphers", "which is why the shipped list is shown rather than a blank")]
       [InlineData("Transport security", "The list is not an option of the feature - it is the feature.")]
       [InlineData("Administrative access", "Active Directory accounts are exempt")]
       [InlineData("Directory authentication (LDAP)", "let one wrong password trigger a directory lockout policy")]
@@ -132,7 +132,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       [Theory]
       [InlineData("delivery", "Delivery of e-mail")]
-      [InlineData("tls", "SSL/TLS")]
+      [InlineData("tls", "TLS versions & ciphers")]
       [InlineData("security", "Transport security")]
       [InlineData("webservices", "Web services & autoconfiguration")]
       [InlineData("dns", "DNS resolver")]

@@ -150,7 +150,7 @@ namespace hMailServer.ControlPanel.Services
             ["certs"] = new HelpTarget("SecureDefaults.md", "The certificate"),
             ["acme"] = new HelpTarget("SecureDefaults.md", "The certificate"),
             ["tlsoverview"] = new HelpTarget("SecureDefaults.md", "What a new installation starts with"),
-            ["tls"] = new HelpTarget("SettingsReasons.md", "SSL/TLS"),
+            ["tls"] = new HelpTarget("SettingsReasons.md", "TLS versions & ciphers"),
             ["security"] = new HelpTarget("SettingsReasons.md", "Transport security"),
 
             // Authentication and access. Directory.md is the organisation's

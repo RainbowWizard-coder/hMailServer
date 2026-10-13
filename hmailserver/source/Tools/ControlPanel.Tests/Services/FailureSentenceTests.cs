@@ -97,11 +97,11 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       /// <summary>
       /// A reason joined to what failed is introduced by a colon, as the server's own
-      /// refusals have always been: "The SSL certificate list could not be read -
+      /// refusals have always been: "The TLS certificate list could not be read -
       /// The connection ..." put a capital after a dash.
       /// </summary>
       [Theory]
-      [InlineData("Services/ExternalSetupChecks.cs", "F(\"The SSL certificate list could not be read: {0}\", firstError_)")]
+      [InlineData("Services/ExternalSetupChecks.cs", "F(\"The TLS certificate list could not be read: {0}\", firstError_)")]
       [InlineData("Services/ExternalSetupChecks.cs", "F(\"The TCP/IP port list could not be read: {0}\", firstError_)")]
       [InlineData("Services/ActiveDirectoryService.cs", "F(\"Active Directory cannot be reached from this computer, so its accounts cannot be browsed here. Windows reported: {0}\", ServerSession.DescribeComError(ex))")]
       [InlineData("Views/DashboardView.xaml.cs", "F(\"The external setup could not be checked: {0}\", ServerSession.DescribeComError(ex))")]

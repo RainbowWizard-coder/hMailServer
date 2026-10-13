@@ -51,7 +51,7 @@ namespace hMailServer.ControlPanel.Services
       public bool CertificateUnread { get; set; }
    }
 
-   /// <summary>A certificate as the SSL certificates page has already inspected it.</summary>
+   /// <summary>A certificate as the TLS certificates page has already inspected it.</summary>
    public sealed class TlsCertificate
    {
       /// <summary>
@@ -82,20 +82,20 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>
       /// When it becomes valid, in local time, while that is still to come; null once it
       /// is valid, or when it could not be read. Clients refuse it until then, and the
-      /// SSL certificates page says so as a Warning.
+      /// TLS certificates page says so as a Warning.
       /// </summary>
       public DateTime? NotValidUntil { get; set; }
 
       /// <summary>
       /// A problem with the files themselves - missing, not a PEM certificate, a key that
-      /// does not match - in the SSL certificates page's sentence for it. Null when there
+      /// does not match - in the TLS certificates page's sentence for it. Null when there
       /// is none; an expiry is not one (<see cref="TlsPosture.TakeInspection"/>), since
       /// the days say it.
       /// </summary>
       public string Problem { get; set; }
 
       /// <summary>
-      /// The problem's short word, the one the SSL certificates page shows in its grid -
+      /// The problem's short word, the one the TLS certificates page shows in its grid -
       /// "File missing" - for the state pill of the certificate's row; null when there
       /// is no problem.
       /// </summary>
@@ -448,7 +448,7 @@ namespace hMailServer.ControlPanel.Services
       public static bool NotesSayTheVerdict(TlsPostureConfig config)
          => VerdictLevel(config) >= StatusLevel.Warning;
 
-      /// <summary>The page a note is about unless it names another: SSL/TLS, which owns the versions and ciphers.</summary>
+      /// <summary>The page a note is about unless it names another: TLS versions &amp; ciphers, which owns the versions and ciphers.</summary>
       public const string NotesPage = "tls";
 
       /// <summary>
@@ -528,7 +528,7 @@ namespace hMailServer.ControlPanel.Services
 
          if (versions && config.WasRead(nameof(config.CipherList)) && IsAeadOnlyPreset(config.CipherList) && (config.Tls10Enabled || config.Tls11Enabled))
          {
-            // From the cipher-list blurb on the SSL/TLS page, which says so in prose;
+            // From the cipher-list blurb on the TLS versions & ciphers page, which says so in prose;
             // this is the same statement made about the configuration in front of you.
             notes.Add(new TlsPostureNote(StatusLevel.Warning,
                L("The cipher list is the AEAD-ONLY preset while TLS 1.0 or 1.1 is enabled. Those versions have no AEAD suite at all, so they are advertised and then cannot complete a handshake - which looks to the client like a broken server rather than a policy.")));
@@ -701,7 +701,7 @@ namespace hMailServer.ControlPanel.Services
       /// What a certificate's row on the overview says, as a listener's row does (review
       /// finding F326): the state's level and word for the pill on the right, the
       /// sentence about the certificate's files or its expiry, and whether a listener
-      /// uses it. A problem with the files is the SSL certificates page's own word and
+      /// uses it. A problem with the files is the TLS certificates page's own word and
       /// sentence for it, Critical while a listener uses the certificate; past its date
       /// it Has expired, Critical while in use; before its date of validity it is Not
       /// valid yet, a Warning while in use and Information otherwise, where it said Valid

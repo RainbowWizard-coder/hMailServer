@@ -716,7 +716,7 @@ namespace hMailServer.ControlPanel.Services
                {
                   Title = L("TLS on the submission port - the port mail clients send through"),
                   Purpose = L("Mail clients send through the submission port, and without TLS their passwords cross the network in the clear."),
-                  Action = L("On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS."),
+                  Action = L("On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the TLS certificates page, or add port 465 with implicit TLS."),
                   Page = "ports"
                };
             // docs/SecureDefaults.md: a new installation starts with this done; an
@@ -1458,7 +1458,7 @@ namespace hMailServer.ControlPanel.Services
          {
             Title = L("TLS private keys - a passphrase-protected key needs its passphrase configured"),
             Purpose = L("Every listener with TLS loads a certificate and its private key at startup; an encrypted key without its passphrase does not load, and the listener never starts."),
-            Action = L("For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the SSL certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key."),
+            Action = L("For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the TLS certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key."),
             Page = "certs"
          };
 
@@ -1471,7 +1471,7 @@ namespace hMailServer.ControlPanel.Services
             int count = (int)certs.Count;
 
             if (count == 0)
-               item.Add(SetupItemState.NotNeeded, L("No SSL certificates are configured, so there are no key files to check."));
+               item.Add(SetupItemState.NotNeeded, L("No TLS certificates are configured, so there are no key files to check."));
 
             for (int i = 0; i < count; i++)
             {
@@ -1557,7 +1557,7 @@ namespace hMailServer.ControlPanel.Services
             failedReads_++;
             firstError_ ??= ServerSession.DescribeComError(ex);
             linkLost_ |= ServerSession.IsTransportFailure(ex);
-            item.Add(SetupItemState.CannotTell, F("The SSL certificate list could not be read: {0}", firstError_));
+            item.Add(SetupItemState.CannotTell, F("The TLS certificate list could not be read: {0}", firstError_));
          }
          finally
          {

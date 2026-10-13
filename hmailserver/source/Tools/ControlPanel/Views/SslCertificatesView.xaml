@@ -118,7 +118,7 @@
                           EnableRowVirtualization="False"
                           SelectionMode="Single" SelectionChanged="CertGrid_SelectionChanged" Sorting="CertGrid_Sorting"
                           ColumnHeaderStyle="{StaticResource CertificateGridHeader}"
-                          AutomationProperties.Name="{loc:L 'SSL certificates'}">
+                          AutomationProperties.Name="{loc:L 'TLS certificates'}">
                     <DataGrid.Columns>
                         <!-- The name takes a share and a floor, and the two path columns the
                              file's name alone, the whole path in its tool tip: the name was

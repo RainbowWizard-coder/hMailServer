@@ -4663,6 +4663,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   fold, as the owner accepted (review findings F152 and F153, decision of 12 October 2026). `SidebarStructureTests`
   holds the two groups, their glyphs, their pages and the auditor's sidebar.
 
+- **Changed: the two TLS pages are TLS certificates and TLS versions & ciphers.** The glossary says TLS in prose and
+  SSL only for what is named so, and the two pages kept SSL in their titles until the page names were decided again:
+  SSL certificates, and SSL/TLS, which was also the name of the connection security that encrypts from the first byte,
+  so that a port's SSL/TLS and the page of that name read alike. By the owner's decision of 12 October 2026 they are
+  TLS certificates and TLS versions & ciphers, in the sidebar, the breadcrumb, the page heading and every text that
+  names them, in every language, and so are a port's TLS certificate box, the certificate list's failed read, the
+  setup checklist's certificate items and the audit trail's word for a certificate; the old titles are search aliases,
+  SSL/TLS stays the connection security's name, and the help opens the section of SettingsReasons.md now headed TLS
+  versions & ciphers (review finding F301). `GlossaryTests` holds SSL to SSL/TLS and OpenSSL alone, and the two titles
+  and their aliases.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

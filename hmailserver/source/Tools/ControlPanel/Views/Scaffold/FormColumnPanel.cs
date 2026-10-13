@@ -15,7 +15,7 @@ namespace hMailServer.ControlPanel.Views.Scaffold
    /// and of each of its tabs ends at one right edge. A StackPanel aligned left with a
    /// MaxWidth is as wide as its widest card's content, and the cards' right edges
    /// jumped from tab to tab: 761 pixels on Transport security's Encryption tab, 526 on
-   /// the SSL/TLS page's Ciphers tab (review finding F295). It stays aligned left, so
+   /// the TLS versions &amp; ciphers page's Ciphers tab (review finding F295). It stays aligned left, so
    /// that in a window wider than the form the cards keep to the form width at the
    /// left, as they did.
    ///

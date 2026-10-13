@@ -579,8 +579,8 @@
   <data name="A plain (unencrypted) PEM, so no passphrase is needed." xml:space="preserve">
     <value>Düz (şifrelenmemiş) bir PEM; bu yüzden parola ifadesi gerekmez.</value>
   </data>
-  <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
-    <value>SSL/TLS veya STARTTLS kullanan bir port bir sertifika sunar ve sunucuda henüz hiç sertifika yok: önce SSL sertifikaları sayfasında bir tane ekleyin.</value>
+  <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the TLS certificates page first." xml:space="preserve">
+    <value>SSL/TLS veya STARTTLS kullanan bir port bir sertifika sunar ve sunucuda henüz hiç sertifika yok: önce TLS sertifikaları sayfasında bir tane ekleyin.</value>
   </data>
   <data name="A profile for this server" xml:space="preserve">
     <value>Bu sunucu için bir profil</value>
@@ -5401,8 +5401,8 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="For a record of who corresponds with whom, keeping it for ever should be a decision rather than a default - which is why 0 is offered as an option instead of being one." xml:space="preserve">
     <value>Kimin kiminle yazıştığının kaydını sonsuza dek saklamak varsayılan değil, bir karar olmalı - 0'ın varsayılan olmak yerine bir seçenek olarak sunulmasının nedeni budur.</value>
   </data>
-  <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the SSL certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
-    <value>Anahtar dosyası şifreli bir PEM olan her sertifika için, sertifikanın özel anahtar parolasını SSL sertifikaları sayfasında ayarlayın (parola ifadesini anahtarı oluşturan kişi belirledi; bu yüzden onu yalnızca siz sağlayabilirsiniz) - ya da dosyayı şifrelenmemiş bir anahtarla değiştirin.</value>
+  <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the TLS certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
+    <value>Anahtar dosyası şifreli bir PEM olan her sertifika için, sertifikanın özel anahtar parolasını TLS sertifikaları sayfasında ayarlayın (parola ifadesini anahtarı oluşturan kişi belirledi; bu yüzden onu yalnızca siz sağlayabilirsiniz) - ya da dosyayı şifrelenmemiş bir anahtarla değiştirin.</value>
   </data>
   <data name="For example 03:00, Sun 03:00 or Sat,Sun 02:00-05:00." xml:space="preserve">
     <value>Örneğin 03:00, Sun 03:00 veya Sat,Sun 02:00-05:00.</value>
@@ -7630,14 +7630,14 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="No SMTP listener is on port 25, so no delivery port takes a password." xml:space="preserve">
     <value>Port 25'te SMTP dinleyicisi yok, bu nedenle hiçbir teslim portu parola kabul etmiyor.</value>
   </data>
-  <data name="No SSL certificates are configured, so there are no key files to check." xml:space="preserve">
-    <value>Hiç SSL sertifikası yapılandırılmamış; bu yüzden denetlenecek anahtar dosyası yok.</value>
-  </data>
   <data name="No SURBL servers, so the links in a message body are not looked up in any list." xml:space="preserve">
     <value>SURBL sunucusu yok; bu nedenle ileti gövdesindeki bağlantılar hiçbir listede sorgulanmaz.</value>
   </data>
   <data name="No TCP/IP port presents this certificate." xml:space="preserve">
     <value>Bu sertifikayı sunan hiçbir TCP/IP portu yok.</value>
+  </data>
+  <data name="No TLS certificates are configured, so there are no key files to check." xml:space="preserve">
+    <value>Hiç TLS sertifikası yapılandırılmamış; bu yüzden denetlenecek anahtar dosyası yok.</value>
   </data>
   <data name="No TLS version is enabled anywhere on this server, so no handshake on this port can succeed." xml:space="preserve">
     <value>Bu sunucuda hiçbir yerde hiçbir TLS sürümü etkin değil; bu yüzden bu porttaki hiçbir el sıkışma başarılı olamaz.</value>
@@ -8545,8 +8545,8 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="On the Setting profiles page, compare the four with this server and apply the one that fits; what it replaces is kept, so that it can be put back." xml:space="preserve">
     <value>Ayar profilleri sayfasında dördünü bu sunucuyla karşılaştırın ve uyanı uygulayın; yerine koyduğu şey, geri alınabilmesi için saklanır.</value>
   </data>
-  <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
-    <value>TCP/IP portları sayfasında gönderim bağlantı noktasına (587) SSL sertifikaları sayfasından bir sertifikayla STARTTLS verin veya örtük TLS ile 465 numaralı bağlantı noktasını ekleyin.</value>
+  <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the TLS certificates page, or add port 465 with implicit TLS." xml:space="preserve">
+    <value>TCP/IP portları sayfasında gönderim bağlantı noktasına (587) TLS sertifikaları sayfasından bir sertifikayla STARTTLS verin veya örtük TLS ile 465 numaralı bağlantı noktasını ekleyin.</value>
   </data>
   <data name="On the TCP/IP ports page, open the SMTP port 25 and set its SMTP authentication to Honeypot or Off, then reinitialise. Mail clients that still sign in on 25 are refused and banned from then on, so move them to 587 first." xml:space="preserve">
     <value>TCP/IP portları sayfasında SMTP port 25'i açın, SMTP kimlik doğrulamasını Bal küpü veya Kapalı yapın ve ardından sunucuyu yeniden başlatın (Reinitialize). Hâlâ 25'te oturum açan e-posta istemcileri o andan itibaren reddedilir ve yasaklanır; bu yüzden önce onları 587'ye taşıyın.</value>
@@ -8716,17 +8716,17 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Open Protocols, whose SMTP tab has the Host name" xml:space="preserve">
     <value>SMTP sekmesinde Ana bilgisayar adının bulunduğu Protokoller sayfasını aç</value>
   </data>
-  <data name="Open SSL certificates, which owns the certificate and key file paths" xml:space="preserve">
-    <value>Sertifika ve anahtar dosyası yollarının sahibi olan SSL sertifikaları sayfasını aç</value>
-  </data>
-  <data name="Open SSL/TLS, which owns the protocol versions and cipher lists" xml:space="preserve">
-    <value>Protokol sürümlerinin ve şifre listelerinin sahibi olan SSL/TLS sayfasını aç</value>
-  </data>
   <data name="Open Setup _checklist" xml:space="preserve">
     <value>Kurulum _kontrol listesini aç</value>
   </data>
   <data name="Open TCP/IP ports, which owns the per-listener security setting" xml:space="preserve">
     <value>Dinleyici başına güvenlik ayarının sahibi olan TCP/IP portları sayfasını aç</value>
+  </data>
+  <data name="Open TLS certificates, which owns the certificate and key file paths" xml:space="preserve">
+    <value>Sertifika ve anahtar dosyası yollarının sahibi olan TLS sertifikaları sayfasını aç</value>
+  </data>
+  <data name="Open TLS versions &amp; ciphers, which owns the protocol versions and cipher lists" xml:space="preserve">
+    <value>Protokol sürümlerinin ve şifre listelerinin sahibi olan TLS sürümleri ve şifreler sayfasını aç</value>
   </data>
   <data name="Open _log folder" xml:space="preserve">
     <value>_Günlük klasörünü aç</value>
@@ -10689,15 +10689,6 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="SRS, BATV and the plain envelope-sender rewrite for forwarded mail" xml:space="preserve">
     <value>İletilen posta için SRS, BATV ve basit zarf gönderen yeniden yazması</value>
   </data>
-  <data name="SSL c_ertificate" xml:space="preserve">
-    <value>SSL s_ertifikası</value>
-  </data>
-  <data name="SSL certificate" xml:space="preserve">
-    <value>SSL sertifikası</value>
-  </data>
-  <data name="SSL certificates" xml:space="preserve">
-    <value>SSL sertifikaları</value>
-  </data>
   <data name="SSL/TLS" xml:space="preserve">
     <value>SSL/TLS</value>
   </data>
@@ -10710,8 +10701,8 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="STARTTLS (required)" xml:space="preserve">
     <value>STARTTLS (zorunlu)</value>
   </data>
-  <data name="STARTTLS is expected to be offered, using the certificate '{0}' borrowed from a TLS-capable mailbox port - this listener has no certificate setting of its own, by design: the client editing Sieve filters is the client reading the mailbox, so the certificate it already trusts is the right one to present. Whether the files actually load is decided when the service starts; if they do not, the listener runs in plain text and says so in the application log, and the SSL certificates page checks the files themselves." xml:space="preserve">
-    <value>STARTTLS'nin, TLS yapabilen bir posta kutusu portundan ödünç alınan '{0}' sertifikasıyla sunulması bekleniyor - bu dinleyicinin bilinçli olarak kendi sertifika ayarı yoktur: Sieve filtrelerini düzenleyen istemci posta kutusunu okuyan istemcidir; bu yüzden onun zaten güvendiği sertifika sunulacak doğru sertifikadır. Dosyaların gerçekten yüklenip yüklenmediğine hizmet başlarken karar verilir; yüklenmezlerse dinleyici düz metin çalışır ve bunu uygulama günlüğünde söyler; SSL sertifikaları sayfası ise dosyaların kendisini denetler.</value>
+  <data name="STARTTLS is expected to be offered, using the certificate '{0}' borrowed from a TLS-capable mailbox port - this listener has no certificate setting of its own, by design: the client editing Sieve filters is the client reading the mailbox, so the certificate it already trusts is the right one to present. Whether the files actually load is decided when the service starts; if they do not, the listener runs in plain text and says so in the application log, and the TLS certificates page checks the files themselves." xml:space="preserve">
+    <value>STARTTLS'nin, TLS yapabilen bir posta kutusu portundan ödünç alınan '{0}' sertifikasıyla sunulması bekleniyor - bu dinleyicinin bilinçli olarak kendi sertifika ayarı yoktur: Sieve filtrelerini düzenleyen istemci posta kutusunu okuyan istemcidir; bu yüzden onun zaten güvendiği sertifika sunulacak doğru sertifikadır. Dosyaların gerçekten yüklenip yüklenmediğine hizmet başlarken karar verilir; yüklenmezlerse dinleyici düz metin çalışır ve bunu uygulama günlüğünde söyler; TLS sertifikaları sayfası ise dosyaların kendisini denetler.</value>
   </data>
   <data name="STARTTLS is offered and not required, which is the correct arrangement for port 25: requiring it would refuse mail from senders that cannot offer it." xml:space="preserve">
     <value>STARTTLS sunuluyor ve zorunlu değil; port 25 için doğru düzenleme budur: zorunlu kılmak, onu sunamayan gönderenlerden gelen postayı reddederdi.</value>
@@ -12309,11 +12300,20 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="TLS 1.3 is off. It is faster to negotiate than 1.2 and removes the older key exchanges outright; there is rarely a reason to leave it off." xml:space="preserve">
     <value>TLS 1.3 kapalı. 1.2'den daha hızlı uzlaşır ve eski anahtar değişimlerini tamamen kaldırır; kapalı bırakmak için nadiren bir neden vardır.</value>
   </data>
+  <data name="TLS c_ertificate" xml:space="preserve">
+    <value>TLS s_ertifikası</value>
+  </data>
+  <data name="TLS certificate" xml:space="preserve">
+    <value>TLS sertifikası</value>
+  </data>
   <data name="TLS certificate file (PEM, optional)" xml:space="preserve">
     <value>TLS sertifika dosyası (PEM, isteğe bağlı)</value>
   </data>
   <data name="TLS certificate file for the metrics listener (PEM)" xml:space="preserve">
     <value>Ölçüm dinleyicisi için TLS sertifika dosyası (PEM)</value>
+  </data>
+  <data name="TLS certificates" xml:space="preserve">
+    <value>TLS sertifikaları</value>
   </data>
   <data name="TLS for the metrics listener needs both the certificate and the private key. Only {0} is set, so TLS is not enabled and scrapes stay plain HTTP." xml:space="preserve">
     <value>Ölçüm dinleyicisi için TLS hem sertifikayı hem de özel anahtarı gerektirir. Yalnızca {0} ayarlı, bu yüzden TLS etkin değil ve toplamalar düz HTTP olarak kalıyor.</value>
@@ -12347,6 +12347,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="TLS session tickets, session cache size, resumption lifetime and ticket-key rotation" xml:space="preserve">
     <value>TLS oturum biletleri, oturum önbelleği boyutu, sürdürme ömrü ve bilet anahtarı döndürmesi</value>
+  </data>
+  <data name="TLS versions &amp; ciphers" xml:space="preserve">
+    <value>TLS sürümleri ve şifreler</value>
   </data>
   <data name="TLS-RPT" xml:space="preserve">
     <value>TLS-RPT</value>
@@ -12630,9 +12633,6 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="The SNMP agent, alerts, outbound webhooks and the audit trail" xml:space="preserve">
     <value>SNMP aracısı, uyarılar, giden webhook'lar ve denetim izi</value>
   </data>
-  <data name="The SSL certificate list could not be read: {0}" xml:space="preserve">
-    <value>SSL sertifika listesi okunamadı: {0}</value>
-  </data>
   <data name="The Service Control Manager could not be queried, so the account the service runs as is unknown: {0}" xml:space="preserve">
     <value>Hizmet Denetim Yöneticisi sorgulanamadı, bu yüzden hizmetin çalıştığı hesap bilinmiyor: {0}</value>
   </data>
@@ -12644,6 +12644,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="The TCP/IP ports that present it read its files again when the server is next reinitialised." xml:space="preserve">
     <value>Onu sunan TCP/IP portları, sunucu bir sonraki yeniden başlatmada (Reinitialize) dosyalarını yeniden okur.</value>
+  </data>
+  <data name="The TLS certificate list could not be read: {0}" xml:space="preserve">
+    <value>TLS sertifika listesi okunamadı: {0}</value>
   </data>
   <data name="The TLS report sender address could not be read: {0}" xml:space="preserve">
     <value>TLS rapor gönderen adresi okunamadı: {0}</value>
@@ -15130,8 +15133,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="Whether this port is being listened on could not be determined from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Bu portun dinlenip dinlenmediği buradan belirlenemedi. Görmek için Denetim Masası'nı sunucunun kendisinde açın.</value>
   </data>
-  <data name="Which TLS versions and ciphers this server negotiates, for its own listeners and for the connections it makes when delivering. Certificates are on the SSL certificates page; DANE and MTA-STS are on Transport security; brute-force lockout is on Auto-ban." xml:space="preserve">
-    <value>Bu sunucunun hem kendi dinleyicileri hem de teslim ederken kurduğu bağlantılar için hangi TLS sürümlerini ve şifreleri uzlaştığı. Sertifikalar SSL sertifikaları sayfasında; DANE ve MTA-STS Taşıma güvenliği sayfasında; kaba kuvvet kilitlemesi Otomatik yasaklama sayfasında.</value>
+  <data name="Which TLS versions and ciphers this server negotiates, for its own listeners and for the connections it makes when delivering. Certificates are on the TLS certificates page; DANE and MTA-STS are on Transport security; brute-force lockout is on Auto-ban." xml:space="preserve">
+    <value>Bu sunucunun hem kendi dinleyicileri hem de teslim ederken kurduğu bağlantılar için hangi TLS sürümlerini ve şifreleri uzlaştığı. Sertifikalar TLS sertifikaları sayfasında; DANE ve MTA-STS Taşıma güvenliği sayfasında; kaba kuvvet kilitlemesi Otomatik yasaklama sayfasında.</value>
   </data>
   <data name="Which TLS versions and ciphers this server will negotiate, and whether it verifies the certificate of the server it delivers to." xml:space="preserve">
     <value>Bu sunucunun hangi TLS sürümlerini ve şifreleri uzlaşacağı ve teslim ettiği sunucunun sertifikasını doğrulayıp doğrulamadığı.</value>

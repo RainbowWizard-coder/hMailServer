@@ -178,7 +178,7 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// Certificates, with the expiry and file checks the SSL certificates page
+      /// Certificates, with the expiry and file checks the TLS certificates page
       /// already performs. Reused rather than reimplemented so the two pages cannot
       /// disagree about whether a certificate is healthy.
       /// </summary>
@@ -602,7 +602,7 @@ namespace hMailServer.ControlPanel.Views
                Typography.Caption));
          }
 
-         content.Children.Add(PageLink("certs", F("{0} →", L(NavigationMap.TitleOf("certs"))), L("Open SSL certificates, which owns the certificate and key file paths")));
+         content.Children.Add(PageLink("certs", F("{0} →", L(NavigationMap.TitleOf("certs"))), L("Open TLS certificates, which owns the certificate and key file paths")));
 
          return card;
       }
@@ -682,7 +682,7 @@ namespace hMailServer.ControlPanel.Views
             DataTextBlock.Fill(cipherLine, L("Cipher list for TLS 1.2 and below: {0}. TLS 1.3 suites are configured separately and are not restricted by this."), config.CipherList, breakAfterColons: true);
          content.Children.Add(cipherLine);
 
-         content.Children.Add(PageLink("tls", F("{0} →", L(NavigationMap.TitleOf("tls"))), L("Open SSL/TLS, which owns the protocol versions and cipher lists")));
+         content.Children.Add(PageLink("tls", F("{0} →", L(NavigationMap.TitleOf("tls"))), L("Open TLS versions & ciphers, which owns the protocol versions and cipher lists")));
 
          return card;
       }

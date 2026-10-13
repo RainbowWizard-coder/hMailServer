@@ -73,7 +73,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          Match body = Regex.Match(code, @"private WarningState ComputeAcmeCertificateState_\(\)\s*\{(.*?)\n      \}", RegexOptions.Singleline);
          Assert.True(body.Success);
-         Assert.True(Regex.Matches(body.Groups[1].Value, @"Page = ""certs""").Count >= 4, "The issued certificate's states do not open the SSL certificates page.");
+         Assert.True(Regex.Matches(body.Groups[1].Value, @"Page = ""certs""").Count >= 4, "The issued certificate's states do not open the TLS certificates page.");
          Assert.Contains("row.Action = NoticeActions.OpenPage(state.Page,", code, StringComparison.Ordinal);
       }
 

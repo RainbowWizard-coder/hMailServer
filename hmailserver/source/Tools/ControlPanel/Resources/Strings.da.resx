@@ -579,8 +579,8 @@
   <data name="A plain (unencrypted) PEM, so no passphrase is needed." xml:space="preserve">
     <value>En almindelig (ukrypteret) PEM, så ingen adgangssætning er nødvendig.</value>
   </data>
-  <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
-    <value>En port med SSL/TLS eller STARTTLS præsenterer et certifikat, og serveren har endnu ingen: tilføj først et på siden SSL-certifikater.</value>
+  <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the TLS certificates page first." xml:space="preserve">
+    <value>En port med SSL/TLS eller STARTTLS præsenterer et certifikat, og serveren har endnu ingen: tilføj først et på siden TLS-certifikater.</value>
   </data>
   <data name="A profile for this server" xml:space="preserve">
     <value>En profil til denne server</value>
@@ -5401,8 +5401,8 @@ Ingen post røres - indekset er udledt af den - men indtil genopbygningen har in
   <data name="For a record of who corresponds with whom, keeping it for ever should be a decision rather than a default - which is why 0 is offered as an option instead of being one." xml:space="preserve">
     <value>For en fortegnelse over, hvem der korresponderer med hvem, bør det at beholde den for evigt være en beslutning snarere end en standard - og derfor tilbydes 0 som en mulighed i stedet for at være standarden.</value>
   </data>
-  <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the SSL certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
-    <value>For hvert certifikat, hvis nøglefil er en krypteret PEM, skal certifikatets adgangskode til den private nøgle angives på siden SSL-certifikater (adgangssætningen blev sat af den, der oprettede nøglen, så kun du kan levere den) - eller erstat filen med en ukrypteret nøgle.</value>
+  <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the TLS certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
+    <value>For hvert certifikat, hvis nøglefil er en krypteret PEM, skal certifikatets adgangskode til den private nøgle angives på siden TLS-certifikater (adgangssætningen blev sat af den, der oprettede nøglen, så kun du kan levere den) - eller erstat filen med en ukrypteret nøgle.</value>
   </data>
   <data name="For example 03:00, Sun 03:00 or Sat,Sun 02:00-05:00." xml:space="preserve">
     <value>For eksempel 03:00, Sun 03:00 eller Sat,Sun 02:00-05:00.</value>
@@ -7630,14 +7630,14 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No SMTP listener is on port 25, so no delivery port takes a password." xml:space="preserve">
     <value>Ingen SMTP-lytter er på port 25, så ingen leveringsport tager imod en adgangskode.</value>
   </data>
-  <data name="No SSL certificates are configured, so there are no key files to check." xml:space="preserve">
-    <value>Der er ikke konfigureret nogen SSL-certifikater, så der er ingen nøglefiler at kontrollere.</value>
-  </data>
   <data name="No SURBL servers, so the links in a message body are not looked up in any list." xml:space="preserve">
     <value>Ingen SURBL-servere, så linkene i en meddelelses brødtekst slås ikke op i nogen liste.</value>
   </data>
   <data name="No TCP/IP port presents this certificate." xml:space="preserve">
     <value>Ingen TCP/IP-port præsenterer dette certifikat.</value>
+  </data>
+  <data name="No TLS certificates are configured, so there are no key files to check." xml:space="preserve">
+    <value>Der er ikke konfigureret nogen TLS-certifikater, så der er ingen nøglefiler at kontrollere.</value>
   </data>
   <data name="No TLS version is enabled anywhere on this server, so no handshake on this port can succeed." xml:space="preserve">
     <value>Ingen TLS-version er aktiveret nogen steder på denne server, så intet handshake på denne port kan lykkes.</value>
@@ -8545,8 +8545,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="On the Setting profiles page, compare the four with this server and apply the one that fits; what it replaces is kept, so that it can be put back." xml:space="preserve">
     <value>Sammenlign de fire med denne server på siden Indstillingsprofiler, og anvend den, der passer; det, den erstatter, gemmes, så det kan sættes tilbage.</value>
   </data>
-  <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
-    <value>Giv på siden TCP/IP-porte indleveringsporten (587) STARTTLS med et certifikat fra siden SSL-certifikater, eller tilføj port 465 med implicit TLS.</value>
+  <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the TLS certificates page, or add port 465 with implicit TLS." xml:space="preserve">
+    <value>Giv på siden TCP/IP-porte indleveringsporten (587) STARTTLS med et certifikat fra siden TLS-certifikater, eller tilføj port 465 med implicit TLS.</value>
   </data>
   <data name="On the TCP/IP ports page, open the SMTP port 25 and set its SMTP authentication to Honeypot or Off, then reinitialise. Mail clients that still sign in on 25 are refused and banned from then on, so move them to 587 first." xml:space="preserve">
     <value>Åbn SMTP-port 25 på siden TCP/IP-porte, sæt dens SMTP-godkendelse til Honeypot eller Fra, og reinitialiser derefter. Mailklienter, der stadig logger på port 25, bliver fra da af afvist og blokeret, så flyt dem først til 587.</value>
@@ -8716,17 +8716,17 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Open Protocols, whose SMTP tab has the Host name" xml:space="preserve">
     <value>Åbn Protokoller, hvor Værtsnavn står på fanen SMTP</value>
   </data>
-  <data name="Open SSL certificates, which owns the certificate and key file paths" xml:space="preserve">
-    <value>Åbn SSL-certifikater, som ejer stierne til certifikat- og nøglefilerne</value>
-  </data>
-  <data name="Open SSL/TLS, which owns the protocol versions and cipher lists" xml:space="preserve">
-    <value>Åbn SSL/TLS, som ejer protokolversionerne og cipher-listerne</value>
-  </data>
   <data name="Open Setup _checklist" xml:space="preserve">
     <value>Åbn _Tjekliste til opsætning</value>
   </data>
   <data name="Open TCP/IP ports, which owns the per-listener security setting" xml:space="preserve">
     <value>Åbn TCP/IP-porte, som ejer sikkerhedsindstillingen pr. lytter</value>
+  </data>
+  <data name="Open TLS certificates, which owns the certificate and key file paths" xml:space="preserve">
+    <value>Åbn TLS-certifikater, som ejer stierne til certifikat- og nøglefilerne</value>
+  </data>
+  <data name="Open TLS versions &amp; ciphers, which owns the protocol versions and cipher lists" xml:space="preserve">
+    <value>Åbn TLS-versioner og ciphers, som ejer protokolversionerne og cipher-listerne</value>
   </data>
   <data name="Open _log folder" xml:space="preserve">
     <value>Åbn _logmappen</value>
@@ -10689,15 +10689,6 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="SRS, BATV and the plain envelope-sender rewrite for forwarded mail" xml:space="preserve">
     <value>SRS, BATV og den simple omskrivning af konvolutafsenderen for videresendt post</value>
   </data>
-  <data name="SSL c_ertificate" xml:space="preserve">
-    <value>SSL-c_ertifikat</value>
-  </data>
-  <data name="SSL certificate" xml:space="preserve">
-    <value>SSL-certifikat</value>
-  </data>
-  <data name="SSL certificates" xml:space="preserve">
-    <value>SSL-certifikater</value>
-  </data>
   <data name="SSL/TLS" xml:space="preserve">
     <value>SSL/TLS</value>
   </data>
@@ -10710,8 +10701,8 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="STARTTLS (required)" xml:space="preserve">
     <value>STARTTLS (påkrævet)</value>
   </data>
-  <data name="STARTTLS is expected to be offered, using the certificate '{0}' borrowed from a TLS-capable mailbox port - this listener has no certificate setting of its own, by design: the client editing Sieve filters is the client reading the mailbox, so the certificate it already trusts is the right one to present. Whether the files actually load is decided when the service starts; if they do not, the listener runs in plain text and says so in the application log, and the SSL certificates page checks the files themselves." xml:space="preserve">
-    <value>STARTTLS forventes at blive tilbudt med certifikatet '{0}', lånt fra en TLS-egnet postkasseport - denne lytter har med vilje ingen egen certifikatindstilling: den klient, der redigerer Sieve-filtre, er den klient, der læser postkassen, så det certifikat, den allerede stoler på, er det rigtige at fremvise. Om filerne rent faktisk indlæses, afgøres, når tjenesten starter; gør de det ikke, kører lytteren i klartekst og siger det i programloggen, og siden SSL-certifikater kontrollerer selve filerne.</value>
+  <data name="STARTTLS is expected to be offered, using the certificate '{0}' borrowed from a TLS-capable mailbox port - this listener has no certificate setting of its own, by design: the client editing Sieve filters is the client reading the mailbox, so the certificate it already trusts is the right one to present. Whether the files actually load is decided when the service starts; if they do not, the listener runs in plain text and says so in the application log, and the TLS certificates page checks the files themselves." xml:space="preserve">
+    <value>STARTTLS forventes at blive tilbudt med certifikatet '{0}', lånt fra en TLS-egnet postkasseport - denne lytter har med vilje ingen egen certifikatindstilling: den klient, der redigerer Sieve-filtre, er den klient, der læser postkassen, så det certifikat, den allerede stoler på, er det rigtige at fremvise. Om filerne rent faktisk indlæses, afgøres, når tjenesten starter; gør de det ikke, kører lytteren i klartekst og siger det i programloggen, og siden TLS-certifikater kontrollerer selve filerne.</value>
   </data>
   <data name="STARTTLS is offered and not required, which is the correct arrangement for port 25: requiring it would refuse mail from senders that cannot offer it." xml:space="preserve">
     <value>STARTTLS tilbydes og kræves ikke, hvilket er den rigtige ordning for port 25: at kræve det ville afvise post fra afsendere, der ikke kan tilbyde det.</value>
@@ -12309,11 +12300,20 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="TLS 1.3 is off. It is faster to negotiate than 1.2 and removes the older key exchanges outright; there is rarely a reason to leave it off." xml:space="preserve">
     <value>TLS 1.3 er slået fra. Det er hurtigere at forhandle end 1.2 og fjerner de ældre nøgleudvekslinger helt; der er sjældent en grund til at lade det være slået fra.</value>
   </data>
+  <data name="TLS c_ertificate" xml:space="preserve">
+    <value>TLS-c_ertifikat</value>
+  </data>
+  <data name="TLS certificate" xml:space="preserve">
+    <value>TLS-certifikat</value>
+  </data>
   <data name="TLS certificate file (PEM, optional)" xml:space="preserve">
     <value>TLS-certifikatfil (PEM, valgfri)</value>
   </data>
   <data name="TLS certificate file for the metrics listener (PEM)" xml:space="preserve">
     <value>TLS-certifikatfil til metriklytteren (PEM)</value>
+  </data>
+  <data name="TLS certificates" xml:space="preserve">
+    <value>TLS-certifikater</value>
   </data>
   <data name="TLS for the metrics listener needs both the certificate and the private key. Only {0} is set, so TLS is not enabled and scrapes stay plain HTTP." xml:space="preserve">
     <value>TLS for metriklytteren kræver både certifikatet og den private nøgle. Kun {0} er sat, så TLS er ikke aktiveret, og scrapes forbliver almindelig HTTP.</value>
@@ -12347,6 +12347,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   </data>
   <data name="TLS session tickets, session cache size, resumption lifetime and ticket-key rotation" xml:space="preserve">
     <value>TLS session tickets, sessionscachestørrelse, genoptagelseslevetid og rotation af ticketnøgler</value>
+  </data>
+  <data name="TLS versions &amp; ciphers" xml:space="preserve">
+    <value>TLS-versioner og ciphers</value>
   </data>
   <data name="TLS-RPT" xml:space="preserve">
     <value>TLS-RPT</value>
@@ -12630,9 +12633,6 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="The SNMP agent, alerts, outbound webhooks and the audit trail" xml:space="preserve">
     <value>SNMP-agenten, advarslerne, de udgående webhooks og revisionsloggen</value>
   </data>
-  <data name="The SSL certificate list could not be read: {0}" xml:space="preserve">
-    <value>SSL-certifikatlisten kunne ikke læses: {0}</value>
-  </data>
   <data name="The Service Control Manager could not be queried, so the account the service runs as is unknown: {0}" xml:space="preserve">
     <value>Service Control Manager kunne ikke forespørges, så den konto, tjenesten kører som, er ukendt: {0}</value>
   </data>
@@ -12644,6 +12644,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   </data>
   <data name="The TCP/IP ports that present it read its files again when the server is next reinitialised." xml:space="preserve">
     <value>De TCP/IP-porte, der præsenterer det, læser dets filer igen, næste gang serveren reinitialiseres.</value>
+  </data>
+  <data name="The TLS certificate list could not be read: {0}" xml:space="preserve">
+    <value>TLS-certifikatlisten kunne ikke læses: {0}</value>
   </data>
   <data name="The TLS report sender address could not be read: {0}" xml:space="preserve">
     <value>Afsenderadressen for TLS-rapporter kunne ikke læses: {0}</value>
@@ -15130,8 +15133,8 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="Whether this port is being listened on could not be determined from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Om der lyttes på denne port, kunne ikke afgøres herfra. Åbn Control Panel på selve serveren for at se det.</value>
   </data>
-  <data name="Which TLS versions and ciphers this server negotiates, for its own listeners and for the connections it makes when delivering. Certificates are on the SSL certificates page; DANE and MTA-STS are on Transport security; brute-force lockout is on Auto-ban." xml:space="preserve">
-    <value>Hvilke TLS-versioner og ciphers denne server forhandler, for sine egne lyttere og for de forbindelser, den laver ved levering. Certifikater er på siden SSL-certifikater; DANE og MTA-STS er på Transportsikkerhed; brute-force-udelukkelse er på Automatisk blokering.</value>
+  <data name="Which TLS versions and ciphers this server negotiates, for its own listeners and for the connections it makes when delivering. Certificates are on the TLS certificates page; DANE and MTA-STS are on Transport security; brute-force lockout is on Auto-ban." xml:space="preserve">
+    <value>Hvilke TLS-versioner og ciphers denne server forhandler, for sine egne lyttere og for de forbindelser, den laver ved levering. Certifikater er på siden TLS-certifikater; DANE og MTA-STS er på Transportsikkerhed; brute-force-udelukkelse er på Automatisk blokering.</value>
   </data>
   <data name="Which TLS versions and ciphers this server will negotiate, and whether it verifies the certificate of the server it delivers to." xml:space="preserve">
     <value>Hvilke TLS-versioner og ciphers denne server vil forhandle, og om den verificerer certifikatet for den server, den leverer til.</value>

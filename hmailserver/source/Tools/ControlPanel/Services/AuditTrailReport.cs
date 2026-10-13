@@ -183,7 +183,7 @@ namespace hMailServer.ControlPanel.Services
          ["route address"] = N("Route address"),
          ["ip range"] = N("IP range"),
          ["tcp/ip port"] = N("TCP/IP port"),
-         ["ssl certificate"] = N("SSL certificate"),
+         ["ssl certificate"] = N("TLS certificate"),
          ["incoming relay"] = N("Incoming relay"),
          ["dns blacklist"] = N("DNS block list"),
          ["surbl server"] = N("SURBL server"),

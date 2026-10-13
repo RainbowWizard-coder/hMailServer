@@ -56,7 +56,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData(1, 0, 2, "Choose the certificate this port presents.")]
       [InlineData(2, 0, 2, "Choose the certificate this port presents.")]
       [InlineData(3, 0, 1, "Choose the certificate this port presents.")]
-      [InlineData(1, 0, 0, "A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first.")]
+      [InlineData(1, 0, 0, "A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the TLS certificates page first.")]
       public void APortWithConnectionSecurity_NeedsItsCertificate(int security, int certificate, int onServer, string problem)
          => Assert.Equal(problem, PortChanges.CertificateProblem(security, certificate, onServer));
 

@@ -579,8 +579,8 @@
   <data name="A plain (unencrypted) PEM, so no passphrase is needed." xml:space="preserve">
     <value>Ein einfaches (unverschlüsseltes) PEM, es wird also keine Passphrase gebraucht.</value>
   </data>
-  <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
-    <value>Ein Port mit SSL/TLS oder STARTTLS legt ein Zertifikat vor, und der Server hat noch keines: Fügen Sie zuerst eines auf der Seite SSL-Zertifikate hinzu.</value>
+  <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the TLS certificates page first." xml:space="preserve">
+    <value>Ein Port mit SSL/TLS oder STARTTLS legt ein Zertifikat vor, und der Server hat noch keines: Fügen Sie zuerst eines auf der Seite TLS-Zertifikate hinzu.</value>
   </data>
   <data name="A profile for this server" xml:space="preserve">
     <value>Ein Profil für diesen Server</value>
@@ -5401,8 +5401,8 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="For a record of who corresponds with whom, keeping it for ever should be a decision rather than a default - which is why 0 is offered as an option instead of being one." xml:space="preserve">
     <value>Bei einer Aufzeichnung, wer mit wem korrespondiert, sollte das Aufbewahren für immer eine Entscheidung sein und keine Vorgabe - weshalb 0 als Option angeboten wird, statt eine zu sein.</value>
   </data>
-  <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the SSL certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
-    <value>Setzen Sie für jedes Zertifikat, dessen Schlüsseldatei eine verschlüsselte PEM ist, das Passwort des privaten Schlüssels auf der Seite SSL-Zertifikate (die Passphrase wurde von demjenigen gesetzt, der den Schlüssel erzeugt hat, nur Sie können sie also liefern) - oder ersetzen Sie die Datei durch einen unverschlüsselten Schlüssel.</value>
+  <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the TLS certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
+    <value>Setzen Sie für jedes Zertifikat, dessen Schlüsseldatei eine verschlüsselte PEM ist, das Passwort des privaten Schlüssels auf der Seite TLS-Zertifikate (die Passphrase wurde von demjenigen gesetzt, der den Schlüssel erzeugt hat, nur Sie können sie also liefern) - oder ersetzen Sie die Datei durch einen unverschlüsselten Schlüssel.</value>
   </data>
   <data name="For example 03:00, Sun 03:00 or Sat,Sun 02:00-05:00." xml:space="preserve">
     <value>Zum Beispiel 03:00, Sun 03:00 oder Sat,Sun 02:00-05:00.</value>
@@ -7630,14 +7630,14 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="No SMTP listener is on port 25, so no delivery port takes a password." xml:space="preserve">
     <value>Auf Port 25 lauscht kein SMTP-Listener, also nimmt kein Zustellport ein Passwort an.</value>
   </data>
-  <data name="No SSL certificates are configured, so there are no key files to check." xml:space="preserve">
-    <value>Es sind keine SSL-Zertifikate konfiguriert, es gibt also keine Schlüsseldateien zu prüfen.</value>
-  </data>
   <data name="No SURBL servers, so the links in a message body are not looked up in any list." xml:space="preserve">
     <value>Keine SURBL-Server, daher werden die Links im Nachrichtentext in keiner Liste nachgeschlagen.</value>
   </data>
   <data name="No TCP/IP port presents this certificate." xml:space="preserve">
     <value>Kein TCP/IP-Port legt dieses Zertifikat vor.</value>
+  </data>
+  <data name="No TLS certificates are configured, so there are no key files to check." xml:space="preserve">
+    <value>Es sind keine TLS-Zertifikate konfiguriert, es gibt also keine Schlüsseldateien zu prüfen.</value>
   </data>
   <data name="No TLS version is enabled anywhere on this server, so no handshake on this port can succeed." xml:space="preserve">
     <value>Auf diesem Server ist nirgends eine TLS-Version aktiviert, kein Handshake auf diesem Port kann also gelingen.</value>
@@ -8545,8 +8545,8 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="On the Setting profiles page, compare the four with this server and apply the one that fits; what it replaces is kept, so that it can be put back." xml:space="preserve">
     <value>Vergleichen Sie auf der Seite Einstellungsprofile die vier mit diesem Server und wenden Sie das passende an; was es ersetzt, wird aufbewahrt, damit es zurückgesetzt werden kann.</value>
   </data>
-  <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
-    <value>Geben Sie auf der Seite TCP/IP-Ports dem Submission-Port (587) STARTTLS mit einem Zertifikat von der Seite SSL-Zertifikate, oder fügen Sie Port 465 mit implizitem TLS hinzu.</value>
+  <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the TLS certificates page, or add port 465 with implicit TLS." xml:space="preserve">
+    <value>Geben Sie auf der Seite TCP/IP-Ports dem Submission-Port (587) STARTTLS mit einem Zertifikat von der Seite TLS-Zertifikate, oder fügen Sie Port 465 mit implizitem TLS hinzu.</value>
   </data>
   <data name="On the TCP/IP ports page, open the SMTP port 25 and set its SMTP authentication to Honeypot or Off, then reinitialise. Mail clients that still sign in on 25 are refused and banned from then on, so move them to 587 first." xml:space="preserve">
     <value>Öffnen Sie auf der Seite TCP/IP-Ports den SMTP-Port 25, stellen Sie seine SMTP-Authentifizierung auf Honeypot oder Aus und reinitialisieren Sie dann. Mailclients, die sich noch auf Port 25 anmelden, werden von da an abgelehnt und gebannt; stellen Sie sie also zuerst auf 587 um.</value>
@@ -8716,17 +8716,17 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="Open Protocols, whose SMTP tab has the Host name" xml:space="preserve">
     <value>Protokolle öffnen - dort liegt der Hostname im Reiter SMTP</value>
   </data>
-  <data name="Open SSL certificates, which owns the certificate and key file paths" xml:space="preserve">
-    <value>SSL-Zertifikate öffnen - dort liegen die Pfade der Zertifikat- und der Schlüsseldatei</value>
-  </data>
-  <data name="Open SSL/TLS, which owns the protocol versions and cipher lists" xml:space="preserve">
-    <value>SSL/TLS öffnen - dort liegen die Protokollversionen und die Cipher-Listen</value>
-  </data>
   <data name="Open Setup _checklist" xml:space="preserve">
     <value>Einrichtungs-_Checkliste öffnen</value>
   </data>
   <data name="Open TCP/IP ports, which owns the per-listener security setting" xml:space="preserve">
     <value>TCP/IP-Ports öffnen - dort liegt die Sicherheitseinstellung je Listener</value>
+  </data>
+  <data name="Open TLS certificates, which owns the certificate and key file paths" xml:space="preserve">
+    <value>TLS-Zertifikate öffnen - dort liegen die Pfade der Zertifikat- und der Schlüsseldatei</value>
+  </data>
+  <data name="Open TLS versions &amp; ciphers, which owns the protocol versions and cipher lists" xml:space="preserve">
+    <value>TLS-Versionen und Cipher-Suiten öffnen - dort liegen die Protokollversionen und die Cipher-Listen</value>
   </data>
   <data name="Open _log folder" xml:space="preserve">
     <value>_Protokollordner öffnen</value>
@@ -10689,15 +10689,6 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="SRS, BATV and the plain envelope-sender rewrite for forwarded mail" xml:space="preserve">
     <value>SRS, BATV und das einfache Umschreiben des Umschlagabsenders bei weitergeleiteter Mail</value>
   </data>
-  <data name="SSL c_ertificate" xml:space="preserve">
-    <value>SSL-_Zertifikat</value>
-  </data>
-  <data name="SSL certificate" xml:space="preserve">
-    <value>SSL-Zertifikat</value>
-  </data>
-  <data name="SSL certificates" xml:space="preserve">
-    <value>SSL-Zertifikate</value>
-  </data>
   <data name="SSL/TLS" xml:space="preserve">
     <value>SSL/TLS</value>
   </data>
@@ -10710,8 +10701,8 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="STARTTLS (required)" xml:space="preserve">
     <value>STARTTLS (erforderlich)</value>
   </data>
-  <data name="STARTTLS is expected to be offered, using the certificate '{0}' borrowed from a TLS-capable mailbox port - this listener has no certificate setting of its own, by design: the client editing Sieve filters is the client reading the mailbox, so the certificate it already trusts is the right one to present. Whether the files actually load is decided when the service starts; if they do not, the listener runs in plain text and says so in the application log, and the SSL certificates page checks the files themselves." xml:space="preserve">
-    <value>STARTTLS wird voraussichtlich angeboten, mit dem Zertifikat '{0}', das von einem TLS-fähigen Postfach-Port geborgt ist - dieser Listener hat absichtlich keine eigene Zertifikateinstellung: der Client, der Sieve-Filter bearbeitet, ist der Client, der das Postfach liest, das Zertifikat, dem er bereits vertraut, ist also das richtige zum Vorlegen. Ob die Dateien tatsächlich geladen werden, entscheidet sich beim Start des Dienstes; tun sie es nicht, läuft der Listener im Klartext und sagt das im Anwendungsprotokoll, und die Seite SSL-Zertifikate prüft die Dateien selbst.</value>
+  <data name="STARTTLS is expected to be offered, using the certificate '{0}' borrowed from a TLS-capable mailbox port - this listener has no certificate setting of its own, by design: the client editing Sieve filters is the client reading the mailbox, so the certificate it already trusts is the right one to present. Whether the files actually load is decided when the service starts; if they do not, the listener runs in plain text and says so in the application log, and the TLS certificates page checks the files themselves." xml:space="preserve">
+    <value>STARTTLS wird voraussichtlich angeboten, mit dem Zertifikat '{0}', das von einem TLS-fähigen Postfach-Port geborgt ist - dieser Listener hat absichtlich keine eigene Zertifikateinstellung: der Client, der Sieve-Filter bearbeitet, ist der Client, der das Postfach liest, das Zertifikat, dem er bereits vertraut, ist also das richtige zum Vorlegen. Ob die Dateien tatsächlich geladen werden, entscheidet sich beim Start des Dienstes; tun sie es nicht, läuft der Listener im Klartext und sagt das im Anwendungsprotokoll, und die Seite TLS-Zertifikate prüft die Dateien selbst.</value>
   </data>
   <data name="STARTTLS is offered and not required, which is the correct arrangement for port 25: requiring it would refuse mail from senders that cannot offer it." xml:space="preserve">
     <value>STARTTLS wird angeboten und nicht verlangt, was die richtige Anordnung für Port 25 ist: es zu verlangen würde Mail von Absendern ablehnen, die es nicht anbieten können.</value>
@@ -12309,11 +12300,20 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="TLS 1.3 is off. It is faster to negotiate than 1.2 and removes the older key exchanges outright; there is rarely a reason to leave it off." xml:space="preserve">
     <value>TLS 1.3 ist aus. Es lässt sich schneller aushandeln als 1.2 und entfernt die älteren Schlüsselaustauschverfahren vollständig; es gibt selten einen Grund, es aus zu lassen.</value>
   </data>
+  <data name="TLS c_ertificate" xml:space="preserve">
+    <value>TLS-_Zertifikat</value>
+  </data>
+  <data name="TLS certificate" xml:space="preserve">
+    <value>TLS-Zertifikat</value>
+  </data>
   <data name="TLS certificate file (PEM, optional)" xml:space="preserve">
     <value>TLS-Zertifikatdatei (PEM, optional)</value>
   </data>
   <data name="TLS certificate file for the metrics listener (PEM)" xml:space="preserve">
     <value>TLS-Zertifikatdatei für den Metrik-Listener (PEM)</value>
+  </data>
+  <data name="TLS certificates" xml:space="preserve">
+    <value>TLS-Zertifikate</value>
   </data>
   <data name="TLS for the metrics listener needs both the certificate and the private key. Only {0} is set, so TLS is not enabled and scrapes stay plain HTTP." xml:space="preserve">
     <value>TLS für den Metrik-Listener braucht sowohl das Zertifikat als auch den privaten Schlüssel. Nur {0} ist gesetzt, TLS ist also nicht aktiv und Abrufe bleiben einfaches HTTP.</value>
@@ -12347,6 +12347,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   </data>
   <data name="TLS session tickets, session cache size, resumption lifetime and ticket-key rotation" xml:space="preserve">
     <value>TLS-Session-Tickets, Größe des Sitzungs-Cache, Lebensdauer der Wiederaufnahme und Rotation der Ticket-Schlüssel</value>
+  </data>
+  <data name="TLS versions &amp; ciphers" xml:space="preserve">
+    <value>TLS-Versionen und Cipher-Suiten</value>
   </data>
   <data name="TLS-RPT" xml:space="preserve">
     <value>TLS-RPT</value>
@@ -12630,9 +12633,6 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="The SNMP agent, alerts, outbound webhooks and the audit trail" xml:space="preserve">
     <value>Der SNMP-Agent, die Warnungen, die ausgehenden Webhooks und das Prüfprotokoll</value>
   </data>
-  <data name="The SSL certificate list could not be read: {0}" xml:space="preserve">
-    <value>Die Liste der SSL-Zertifikate konnte nicht gelesen werden: {0}</value>
-  </data>
   <data name="The Service Control Manager could not be queried, so the account the service runs as is unknown: {0}" xml:space="preserve">
     <value>Der Dienststeuerungs-Manager konnte nicht abgefragt werden, das Konto, unter dem der Dienst läuft, ist also unbekannt: {0}</value>
   </data>
@@ -12644,6 +12644,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   </data>
   <data name="The TCP/IP ports that present it read its files again when the server is next reinitialised." xml:space="preserve">
     <value>Die TCP/IP-Ports, die es vorlegen, lesen seine Dateien erneut, wenn der Server das nächste Mal reinitialisiert wird.</value>
+  </data>
+  <data name="The TLS certificate list could not be read: {0}" xml:space="preserve">
+    <value>Die Liste der TLS-Zertifikate konnte nicht gelesen werden: {0}</value>
   </data>
   <data name="The TLS report sender address could not be read: {0}" xml:space="preserve">
     <value>Die Absenderadresse für TLS-Berichte konnte nicht gelesen werden: {0}</value>
@@ -15130,8 +15133,8 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="Whether this port is being listened on could not be determined from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Ob auf diesem Port gelauscht wird, konnte von hier aus nicht ermittelt werden. Öffnen Sie das Control Panel auf dem Server selbst, um es zu sehen.</value>
   </data>
-  <data name="Which TLS versions and ciphers this server negotiates, for its own listeners and for the connections it makes when delivering. Certificates are on the SSL certificates page; DANE and MTA-STS are on Transport security; brute-force lockout is on Auto-ban." xml:space="preserve">
-    <value>Welche TLS-Versionen und Ciphers dieser Server aushandelt, für seine eigenen Listener und für die Verbindungen, die er bei der Zustellung aufbaut. Zertifikate stehen auf der Seite SSL-Zertifikate; DANE und MTA-STS auf Transportsicherheit; der Schutz gegen Brute-Force auf Auto-Bann.</value>
+  <data name="Which TLS versions and ciphers this server negotiates, for its own listeners and for the connections it makes when delivering. Certificates are on the TLS certificates page; DANE and MTA-STS are on Transport security; brute-force lockout is on Auto-ban." xml:space="preserve">
+    <value>Welche TLS-Versionen und Ciphers dieser Server aushandelt, für seine eigenen Listener und für die Verbindungen, die er bei der Zustellung aufbaut. Zertifikate stehen auf der Seite TLS-Zertifikate; DANE und MTA-STS auf Transportsicherheit; der Schutz gegen Brute-Force auf Auto-Bann.</value>
   </data>
   <data name="Which TLS versions and ciphers this server will negotiate, and whether it verifies the certificate of the server it delivers to." xml:space="preserve">
     <value>Welche TLS-Versionen und Ciphers dieser Server aushandelt und ob er das Zertifikat des Servers prüft, an den er zustellt.</value>

@@ -56,6 +56,11 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// certificates (ACME), as its page was headed, with the old title an alias
       /// and its legacy path kept (PageTitlesTests).
       ///
+      /// And two by the owner's decision of 12 October 2026 on review finding F301:
+      /// SSL certificates is TLS certificates and SSL/TLS is TLS versions &amp;
+      /// ciphers, the glossary's word in their titles, each with its old title an
+      /// alias (PageTitlesTests).
+      ///
       /// Fails against the unfixed code because NavigationMap does not exist
       /// there; from now on it fails whenever a title moves.
       /// </summary>
@@ -80,7 +85,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("antivirus", "Anti-virus settings")]
       [InlineData("blockedattachments", "Blocked attachments")]
       [InlineData("logging", "Logging")]
-      [InlineData("tls", "SSL/TLS")]
+      [InlineData("tls", "TLS versions & ciphers")]
       [InlineData("autoban", "Auto-ban")]
       [InlineData("performance", "Performance")]
       [InlineData("advanced", "Advanced")]
@@ -91,7 +96,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("authentication", "Authentication")]
       [InlineData("adminaccess", "Administrative access")]
       [InlineData("ipranges", "IP ranges")]
-      [InlineData("certs", "SSL certificates")]
+      [InlineData("certs", "TLS certificates")]
       [InlineData("security", "Transport security")]
       [InlineData("acme", "Automatic certificates (ACME)")]
       [InlineData("ports", "TCP/IP ports")]

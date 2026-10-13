@@ -688,9 +688,12 @@ namespace hMailServer.ControlPanel.Services
                N("Is transport security correct, and will it still be correct next month?"),
                "TLS & certificates|TLS|SSL|Certificates|Encryption|MTA-STS|DANE|Transport security",
 
-               Page("certs", N("SSL certificates"),
+               // "TLS certificates" since review finding F301, the glossary's word for what
+               // the prose calls them (the owner's decision of 12 October 2026); the old
+               // title is an alias, and the key is unchanged.
+               Page("certs", N("TLS certificates"),
                   N("The certificates this server presents, which port uses which, and when each expires."),
-                  aliases: "Certificate|SSL certificate|TLS certificate|PFX|P12|Convert a PFX|PEM|Expiry|Renew|Install a certificate|Chain|Private key",
+                  aliases: "SSL certificates|Certificate|SSL certificate|TLS certificate|PFX|P12|Convert a PFX|PEM|Expiry|Renew|Install a certificate|Chain|Private key",
                   seeAlso: "acme|ports|security"),
 
                Page("acme", N("Automatic certificates (ACME)"),
@@ -720,9 +723,12 @@ namespace hMailServer.ControlPanel.Services
                   aliases: "TLS overview|SSL overview|Encryption overview|Is my mail encrypted|Plaintext password|Passwords in the clear|Unencrypted port|Certificate expiry|Certificate expiring|What TLS am I using|STARTTLS not required",
                   seeAlso: "tls|certs|ports"),
 
-               Page("tls", N("SSL/TLS"),
+               // "TLS versions & ciphers" since review finding F301, which says what the
+               // page holds where "SSL/TLS" was also the name of a connection security; the
+               // old title is an alias, beside the older one.
+               Page("tls", N("TLS versions & ciphers"),
                   N("Which TLS versions and ciphers this server will negotiate, and whether it verifies the certificate of the server it delivers to."),
-                  aliases: "Auto-ban & SSL/TLS|TLS versions|TLS 1.0|TLS 1.1|TLS 1.2|TLS 1.3|Ciphers|Cipher list|Cipher suites|OpenSSL cipher string|Disable old TLS|Weak ciphers|ChaCha20|Verify remote certificate",
+                  aliases: "SSL/TLS|Auto-ban & SSL/TLS|TLS versions|TLS 1.0|TLS 1.1|TLS 1.2|TLS 1.3|Ciphers|Cipher list|Cipher suites|OpenSSL cipher string|Disable old TLS|Weak ciphers|ChaCha20|Verify remote certificate",
                   // autoban stays in this list. This page and Auto-ban are the two
                   // halves of the old "Auto-ban & SSL/TLS", and PageSplitTests holds
                   // them to signposting each other so a reader who followed the old
@@ -924,7 +930,7 @@ namespace hMailServer.ControlPanel.Services
                Page("autoban", N("Auto-ban"),
                   N("Lock out an address that keeps failing to sign in - and let one back in that should not have been locked out; refuse or allow whole countries, and hold the mail of an account that looks taken over."),
                   aliases: "Auto-ban & SSL/TLS|Autoban|Banned now|Banned addresses|Lift a ban|Lift ban|Unban|Countries|Country blocking|Block a country|GeoIP|MaxMind|Compromised accounts|Account takeover|Hijacked account|Brute force|Bruteforce|Lockout|Locked out|Failed logons|Failed logins|Password guessing|Dictionary attack|Fail2ban|Hammering|Temporary ban|Logon failure list|Never ban|Never-ban list|Do not ban|Reverse name|Provider banned|Widen ban|Neighbours|Neighbors|PTR|Subnet ban",
-                  // "tls" is here, and "autoban" is on the SSL/TLS page, so a
+                  // "tls" is here, and "autoban" is on the TLS versions & ciphers page, so a
                   // reader who followed an old note about the combined page and
                   // wanted the other half has a way across. The breadcrumb draws as
                   // many as fit and puts the rest in its More drop-down, and each

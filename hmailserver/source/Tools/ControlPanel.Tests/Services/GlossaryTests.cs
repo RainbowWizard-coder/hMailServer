@@ -170,19 +170,24 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// TLS in prose: the glossary's row keeps SSL for the two pages that carry it in their
-      /// titles until the page names are decided again - SSL certificates, with the certificates
-      /// it lists and a port's SSL certificate box, and SSL/TLS, which is also the connection
-      /// security that encrypts from the first byte - and for OpenSSL's name (review finding F301).
+      /// TLS in prose: SSL is left for SSL/TLS, the connection security that encrypts from the
+      /// first byte, and for OpenSSL's name (review finding F301). The two pages that carried it
+      /// in their titles are TLS certificates and TLS versions &amp; ciphers since the owner's
+      /// decision of 12 October 2026, with the certificates the first lists and a port's TLS
+      /// certificate box, and the old titles are their aliases.
       /// </summary>
       [Fact]
       public void NoEnglishText_SaysSslButThePagesTitlesAndOpenSsl()
       {
-         var allowed = new Regex(@"OpenSSL|SSL/TLS|SSL certificates?", RegexOptions.IgnoreCase);
+         var allowed = new Regex(@"OpenSSL|SSL/TLS", RegexOptions.IgnoreCase);
          List<string> offenders = EnglishTexts().Where(text => Regex.IsMatch(allowed.Replace(text.Replace("_", "", StringComparison.Ordinal), ""), @"\bSSL")).ToList();
-         Assert.True(offenders.Count == 0, "TLS in prose; SSL names the two pages alone:\n" + string.Join("\n", offenders));
-         Assert.Equal("SSL certificates", hMailServer.ControlPanel.Services.NavigationMap.Find("certs").Title);
-         Assert.Contains("TLS certificate", hMailServer.ControlPanel.Services.NavigationMap.Find("certs").Aliases);
+         Assert.True(offenders.Count == 0, "TLS in prose; SSL is SSL/TLS and OpenSSL alone:\n" + string.Join("\n", offenders));
+         var certs = hMailServer.ControlPanel.Services.NavigationMap.Find("certs");
+         Assert.Equal("TLS certificates", certs.Title);
+         Assert.Contains("SSL certificates", certs.Aliases);
+         var tls = hMailServer.ControlPanel.Services.NavigationMap.Find("tls");
+         Assert.Equal("TLS versions & ciphers", tls.Title);
+         Assert.Contains("SSL/TLS", tls.Aliases);
       }
 
       [Fact]
