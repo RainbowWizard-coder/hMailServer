@@ -696,8 +696,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the rule fires (`.gitlab/upstream-sync`). `RuleOwnerTester` (`business-object-tests` on Linux) holds the check to
   examples; `Rules/Rules.cs` saves such names and plain ones through `RuleAction.Save` and `Rule.Save` for a
   server's, a domain's and an account's rule - the last by the administrator and by the account signed in as itself -
-  saved and not yet saved; `API/RestApiRules.cs` and `API/RestApiAccountRules.cs` (both benches) post and put them
-  under the three routes; and `API/Events.cs` has the firing path still refuse one written to the database.
+  saved and not yet saved; `API/RestApiRules.cs` posts and puts them under the three routes, and
+  `API/RestApiAccountRules.cs`, which both benches run, under an account's; and `API/Events.cs` has the firing path
+  still refuse one written to the database.
 
 ### Downloads and the release
 

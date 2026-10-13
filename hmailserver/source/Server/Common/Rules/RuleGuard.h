@@ -249,18 +249,18 @@ namespace HM
       // fired, where ScriptServer::FireEvent refuses a name that is not a plain
       // function name before a Windows engine sees it (HM5018, each time), and the
       // JavaScript engine of the Linux builds looks no such name up (ScriptBinding's
-      // IsIdentifier_). So a rule saved naming "MarkTheSubject()", "Mark The Subject"
-      // or nothing ran no function, on every message it matched, and the one who
-      // saved it was told nothing.
+      // IsIdentifier_, which asks the same test). So a rule saved naming
+      // "MarkTheSubject()", "Mark The Subject" or nothing ran no function, on every
+      // message it matched, and the one who saved it was told nothing.
       //
       // The name is held at save to the firing path's own test,
       // ScriptServer::IsPlainProcedureName - ASCII letters, digits, _ and $, not
       // starting with a digit, at most 255 characters - and not to a test of its own,
       // so that what is saved is what runs: upstream's test, which refuses $, is not
-      // taken, since a JavaScript handler may be named with it. Whoever owns the rule:
-      // the function is the event script's, and a name is plain or not for every rule
-      // alike. The firing path keeps its refusal, for a name stored before this, or
-      // restored from a backup, which holds no rule to RuleGuard.
+      // taken, since a JScript or a JavaScript function may be named with it. Whoever
+      // owns the rule: the function is the event script's, and a name is plain or not
+      // for every rule alike. The firing path keeps its refusal, for a name stored
+      // before this, or restored from a backup, which holds no rule to RuleGuard.
       static String WhyScriptFunctionMayNotBeStored(const String &functionName);
 
       // Why this action may not be stored under a rule of this owner, or nothing: a

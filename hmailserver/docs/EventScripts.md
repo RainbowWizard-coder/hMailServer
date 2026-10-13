@@ -436,7 +436,7 @@ is that the script cannot reach past the objects it is given.
 | The engine could not be started (memory) | HM7340 |
 | An event that reaches a script loaded while scripting was off and never compiled since - the load that switched scripting on refused it, in a language this build does not run or one that does not compile - in practice a rule's "Run function" | HM5018, once per load |
 | On Windows, an event whose call was built for VBScript while a reload installed JScript, or the reverse | HM5018, once per load; that one event is skipped rather than run in the other language |
-| A rule's "Run function" saved naming no function, or a name that is not a plain identifier | refused by the save, with the reason - a COM error from `RuleAction.Save` or `Rule.Save`, a 400 from the REST API's rule routes; nothing is stored or logged |
+| A rule's "Run function" saved naming no function, or a name that is not a plain identifier | refused by the save, with the reason - a COM error from `RuleAction.Save` or `Rule.Save`, a 400 from the REST API's rule routes; nothing is stored, and nothing is written to the ERROR log |
 | On Windows, a rule's "Run function" whose name is not a plain identifier - stored before the save refused it, restored from a backup or written to the database | HM5018, each time the rule matches; the function is not run |
 | On Linux, a rule's "Run function" whose name is not a plain identifier - stored before the save refused it, restored from a backup or written to the database | a `Script Error: ... ReferenceError - Description: <name> is not a function defined in the event script` line in the ERROR log, each time the rule matches; the name is never evaluated and nothing is run |
 
