@@ -401,7 +401,7 @@ checkers:
 
       # Generated source is what its generator writes now.
       check python3 build/add-license-headers.py --check
-      for name in help-pages portal-page portal-smime portal-openpgp settings-defaults profiles idna-tables; do
+      for name in help-pages portal-page portal-smime portal-openpgp settings-defaults profiles idna-tables html-references; do
         check python3 "build/generate-$name.py" --check
       done
       check portal_languages

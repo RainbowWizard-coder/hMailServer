@@ -908,6 +908,26 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   ([SenderListsAndDigests.md](hmailserver/docs/SenderListsAndDigests.md); [Roadmap3.md](Roadmap3.md),
   "Internationalised link hosts").
 
+- **An HTML part's character references are read as a browser reads them: every named one HTML defines, and in the
+  text between tags one without its `;` whatever follows it.** The SURBL test and the sender lists' URL entries read
+  the 70 named references of an ASCII character, a no-break space or a code point UTS 46 ignores (6.3.6), on the
+  ground that no named reference stands for an ASCII letter, digit or hyphen - which `&fjlig;`, `fj`, does - and since
+  UTS 46 maps mathematical letters, ligatures and other compatibility forms to ASCII ones, a host written in other
+  named references named nothing where a browser, which reads the references before its URL parser maps what they
+  stand for, goes to the listed name: `<a href="http://&eopf;vil.example/">` (`U+1D556`, an `e` once mapped),
+  `&filig;nd.example` (`U+FB01`, `fi`) and `b&uuml;cher.example` are `evil.example`, `find.example` and
+  `xn--bcher-kva.example` to it, and any listed name can be spelt in the double-struck, fraktur or script letters HTML
+  names. Every named reference HTML defines is now read, the longest the text begins with, as the tokenizer takes
+  it: 2,231 names, from the HTML standard's own list (`entities.json`, vendored under `Common/AntiSpam/whatwg` and
+  held to its SHA-256), generated into `Common/AntiSpam/HtmlReferencesData.cpp` by
+  `build/generate-html-references.py`. One of the 106 HTML also reads without its `;` is read so in an attribute's
+  value only where no `=`, letter or digit follows it, as before, and in the text between tags whatever follows it,
+  as the tokenizer reads it there (`ev&shyil.example`, `p&ordfypal.example`), where it was read everywhere as in a
+  value; no reference is read in a tag's or an attribute's name, where the tokenizer reads none. `SURBLTester` reads
+  every name of the table where it stands, in a value and in text, and `AntiSpam/Basics.cs` delivers a link to a
+  listed name written in double-struck letters and one written with `&uuml;`, and finds each tagged
+  ([SenderListsAndDigests.md](hmailserver/docs/SenderListsAndDigests.md)).
+
 ### Control Panel
 
 - **Fixed: a list page whose read failed showed its empty state, the rows of its last visit or a count of zero as if
@@ -4579,7 +4599,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   each held to its SHA-256; `checkers` runs it with `--check` beside the other generators, and SonarQube Cloud's scope
   leaves its two files out, as it does theirs (`.sonarcloud.properties`); the data's Unicode License v3 is in
   `hmailserver/docs/Licenses/`, the packages' copyright file, the Windows installer's licence, the source tarball's
-  required files and the SBOM. `build/ci/idna-differential-fuzz.sh` builds the server's core library with libFuzzer
+  required files and the SBOM; and so do HTML's named character references, whose table
+  `build/generate-html-references.py` writes from the HTML standard's `entities.json`, held to its SHA-256 likewise,
+  under the BSD 3-Clause terms the standard gives a portion of it incorporated into source code.
+  `build/ci/idna-differential-fuzz.sh` builds the server's core library with libFuzzer
   and AddressSanitizer beside ada 4.0.0, the URL parser of Node.js, taken from PyPI and Unicode's files from
   unicode.org, each pinned, nothing from GitHub, and puts every input to the domain parser, `SURBL::HostOfAuthority`
   and the link reader in text and in HTML on both sides; before it fuzzes it holds the server's NFC to

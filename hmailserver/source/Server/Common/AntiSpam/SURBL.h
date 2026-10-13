@@ -196,11 +196,13 @@ namespace HM
       // closing quotation mark, a guillemet, a dash or CJK punctuation, which
       // UTS 46 takes into the host's last label, hands over the name before it
       // as well. Any other IPv6 address hands over nothing. html: text is HTML,
-      // whose character references are read as the browser reads them, and a
-      // link opened by a quote runs to the closing quote; and a quoted value of
-      // a tag is read again as the URL parser reads it, its tabs and line
-      // breaks deleted, and the hosts only that reading finds are handed over
-      // too.
+      // whose character references are read as the browser reads them - every
+      // named one HTML defines (HtmlReferences.h), and one HTML reads without
+      // its ';' read so but in an attribute's value before an '=' or a letter
+      // or digit - and a link opened by a quote runs to the closing quote; and
+      // a quoted value of a tag is read again as the URL parser reads it, its
+      // tabs and line breaks deleted, and the hosts only that reading finds
+      // are handed over too.
       //
       // maxCharacters: a text longer than this is read only as far as its
       // first part (FirstPartForLinks), and a link whose reading runs on to
@@ -343,8 +345,9 @@ namespace HM
    // refuses, and a megabyte of a code point it maps to eighteen), the host
    // as it is written beside it, the IPv4 forms, backslashes,
    // links with no scheme, quoted-printable soft line breaks, HTML character
-   // references and quotes, and punctuation after a link, past ASCII as well
-   // as in it; the names asked
+   // references - every named one HTML defines, read as the tokenizer reads
+   // it, in an attribute's value and in text - and quotes, and punctuation
+   // after a link, past ASCII as well as in it; the names asked
    // about for each host, the ICANN section's domain among them; which of a
    // message's names are asked - every domain up to MaxDomainsAsked, whatever
    // else the message links to, and a message with more told apart - and that

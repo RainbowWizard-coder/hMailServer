@@ -370,6 +370,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\NeverBanNameList.cpp" />
     <ClCompile Include="..\Common\Util\AutoBanWidener.cpp" />
     <ClCompile Include="..\Common\AntiSpam\SURBL.cpp" />
+    <ClCompile Include="..\Common\AntiSpam\HtmlReferencesData.cpp" />
     <ClCompile Include="..\Common\Idna\Idna.cpp" />
     <ClCompile Include="..\Common\Idna\IdnaTables.cpp" />
     <ClCompile Include="..\Common\Idna\IdnaTestData.cpp" />
@@ -1378,6 +1379,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\NeverBanNameList.h" />
     <ClInclude Include="..\Common\Util\AutoBanWidener.h" />
     <ClInclude Include="..\Common\AntiSpam\SURBL.h" />
+    <ClInclude Include="..\Common\AntiSpam\HtmlReferences.h" />
     <ClInclude Include="..\Common\Idna\Idna.h" />
     <ClInclude Include="..\Common\Idna\IdnaTables.h" />
     <ClInclude Include="..\Common\AntiSpam\WhiteListCache.h" />

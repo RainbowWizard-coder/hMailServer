@@ -920,6 +920,46 @@ namespace RegressionTests.AntiSpam
          surblServer.Save();
       }
 
+      [Test]
+      public void SurblReadsAHostWrittenInNamedCharacterReferences()
+      {
+         // A browser reads an HTML part's character references before its URL
+         // parser maps what they stand for: a host written in double-struck
+         // letters (&sopf; is U+1D564, an s once UTS 46 maps it) goes to the
+         // name they spell, and b&uuml;cher.test to xn--bcher-kva.test. Until
+         // 6.3.7 only the 70 named references of an ASCII character, a no-break
+         // space or a code point UTS 46 ignores were read, and such a link
+         // named nothing. surbl-userinfo.test and xn--bcher-kva.test are listed.
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "surbl-references@example.test", "test");
+         var surblServer = ArmSurbl_("");
+
+         LogHandler.DeleteCurrentDefaultLog();
+
+         var messages = new[]
+         {
+            new { What = "a link written in double-struck letters", Type = "text/html",
+                  Body = "<html><body><a href=\"http://&sopf;&uopf;&ropf;&bopf;&lopf;-&uopf;&sopf;&eopf;&ropf;&iopf;&nopf;&fopf;&oopf;.&topf;&eopf;&sopf;&topf;/\">a link</a></body></html>" },
+            new { What = "an internationalised name written with &uuml;", Type = "text/html",
+                  Body = "<html><body><a href=\"http://b&uuml;cher.test/\">a link</a></body></html>" },
+         };
+
+         foreach (var message in messages)
+         {
+            SmtpClientSimulator.StaticSendRaw(account.Address, account.Address,
+               Utf8Message_(account.Address, "SURBL-References", message.Type, message.Body));
+            var text = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+            Assert.IsTrue(text.Contains("X-hMailServer-Spam"), message.What + " was not looked up as the listed name a browser goes to.");
+         }
+
+         Assert.IsTrue(LogHandler.DefaultLogContains("SURBL: Lookup: surbl-userinfo.test.multi.surbl.org"),
+            "The host written in double-struck letters was not asked about as surbl-userinfo.test.");
+         Assert.IsTrue(LogHandler.DefaultLogContains("SURBL: Lookup: xn--bcher-kva.test.multi.surbl.org"),
+            "The host written with &uuml; was not asked about in its xn-- form.");
+
+         surblServer.Active = false;
+         surblServer.Save();
+      }
+
       // A message of one part in UTF-8, base64-encoded, whose body is the given
       // text: the characters past ASCII reach the server as the sender wrote them.
       private static string Utf8Message_(string address, string subject, string contentType, string body)

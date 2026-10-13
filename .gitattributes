@@ -99,6 +99,15 @@ build/db-upgrade-6029/*.sql -text
 ###############################################################################
 hmailserver/source/Server/Common/Idna/ucd/** -text
 
+###############################################################################
+# HTML's named character references (hmailserver/source/Server/Common/AntiSpam/
+# whatwg), byte for byte as html.spec.whatwg.org serves them: the generator of
+# the table built from them, build/generate-html-references.py, holds
+# entities.json to the SHA-256 of the file the WHATWG publishes, which a CRLF
+# checkout would change.
+###############################################################################
+hmailserver/source/Server/Common/AntiSpam/whatwg/** -text
+
 # Explicitly binary
 *.exe binary
 *.dll binary

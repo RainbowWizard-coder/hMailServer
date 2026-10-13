@@ -13,6 +13,7 @@
 #include "../../SMTP/BLCheck.h"
 
 #include "DMARC/PublicSuffixList.h"
+#include "HtmlReferences.h"
 #include "SenderListCache.h"
 #include "SenderPattern.h"
 #include <boost/regex.hpp>
@@ -20,6 +21,7 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <cstring>
 #include <map>
 #include <mutex>
 #include <random>
@@ -308,50 +310,54 @@ namespace HM
          return decoded;
       }
 
-      struct NamedReference
+      bool IsAsciiLetter_(wchar_t c)
       {
-         const wchar_t *name;
-         unsigned int character;
-      };
+         return (c >= L'a' && c <= L'z') || (c >= L'A' && c <= L'Z');
+      }
 
-      // Every named character reference HTML defines for an ASCII character -
-      // the 45 written with their semicolon and the 8 legacy ones without it,
-      // the 53 of html.spec.whatwg.org/entities.json - the two for the
-      // no-break space, which ends a link in text, and the 14 that stand for
-      // one code point UTS 46 ignores (entities.json again), which a browser
-      // deletes from a host: &shy; is a soft hyphen, &ZeroWidthSpace; and its
-      // four other names a zero-width space. No named reference stands for an
-      // ASCII letter, digit or hyphen; a numeric one can stand for any.
-      const NamedReference namedReferences[] =
+      // HTML's ASCII white space, which ends an attribute's value written
+      // without quotes.
+      bool IsHtmlWhiteSpace_(wchar_t c)
       {
-         { L"shy;", 0x00AD }, { L"ZeroWidthSpace;", 0x200B }, { L"NegativeVeryThinSpace;", 0x200B },
-         { L"NegativeThinSpace;", 0x200B }, { L"NegativeMediumSpace;", 0x200B }, { L"NegativeThickSpace;", 0x200B },
-         { L"NoBreak;", 0x2060 }, { L"ApplyFunction;", 0x2061 }, { L"af;", 0x2061 }, { L"InvisibleTimes;", 0x2062 },
-         { L"it;", 0x2062 }, { L"InvisibleComma;", 0x2063 }, { L"ic;", 0x2063 },
-         { L"Tab;", L'\t' }, { L"NewLine;", L'\n' }, { L"excl;", L'!' }, { L"quot;", L'"' },
-         { L"QUOT;", L'"' }, { L"num;", L'#' }, { L"dollar;", L'$' }, { L"percnt;", L'%' },
-         { L"amp;", L'&' }, { L"AMP;", L'&' }, { L"apos;", L'\'' }, { L"lpar;", L'(' },
-         { L"rpar;", L')' }, { L"ast;", L'*' }, { L"midast;", L'*' }, { L"plus;", L'+' },
-         { L"comma;", L',' }, { L"period;", L'.' }, { L"sol;", L'/' }, { L"colon;", L':' },
-         { L"semi;", L';' }, { L"lt;", L'<' }, { L"LT;", L'<' }, { L"equals;", L'=' },
-         { L"gt;", L'>' }, { L"GT;", L'>' }, { L"quest;", L'?' }, { L"commat;", L'@' },
-         { L"lbrack;", L'[' }, { L"lsqb;", L'[' }, { L"bsol;", L'\\' }, { L"rbrack;", L']' },
-         { L"rsqb;", L']' }, { L"Hat;", L'^' }, { L"UnderBar;", L'_' }, { L"lowbar;", L'_' },
-         { L"DiacriticalGrave;", L'`' }, { L"grave;", L'`' }, { L"lbrace;", L'{' }, { L"lcub;", L'{' },
-         { L"VerticalLine;", L'|' }, { L"verbar;", L'|' }, { L"vert;", L'|' }, { L"rbrace;", L'}' },
-         { L"rcub;", L'}' }, { L"nbsp;", 0xA0 }, { L"NonBreakingSpace;", 0xA0 },
-         // Legacy: read without the semicolon, except where an '=' or a letter
-         // or digit follows, as in an attribute's value.
-         { L"amp", L'&' }, { L"AMP", L'&' }, { L"quot", L'"' }, { L"QUOT", L'"' },
-         { L"lt", L'<' }, { L"LT", L'<' }, { L"gt", L'>' }, { L"GT", L'>' }, { L"nbsp", 0xA0 },
-         { L"shy", 0x00AD },
-      };
+         return c == L'\t' || c == L'\n' || c == L'\f' || c == L'\r' || c == L' ';
+      }
+
+      // The named character reference whose name, without its '&', is name;
+      // null when HTML defines none.
+      const HtmlReferences::NamedReference *NamedReference_(const std::string &name)
+      {
+         const HtmlReferences::NamedReference *begin = HtmlReferences::Named;
+         const HtmlReferences::NamedReference *end = begin + HtmlReferences::NamedCount;
+         const HtmlReferences::NamedReference *found = std::lower_bound(begin, end, name,
+            [](const HtmlReferences::NamedReference &entry, const std::string &value) { return strcmp(entry.name, value.c_str()) < 0; });
+
+         if (found == end || name != found->name)
+            return nullptr;
+         return found;
+      }
 
       // Reads the character reference at text[position] ('&'), as the HTML
       // tokenizer does: numeric, decimal or hexadecimal, with or without its
-      // semicolon, and the named ones above. True, with the code point and the
-      // reference's length, when there is one.
-      bool ReadCharacterReference_(const std::wstring &text, size_t position, unsigned int &character, size_t &length)
+      // semicolon; or named, the longest of every name HTML defines
+      // (HtmlReferences.h, the standard's own list) that the text there begins
+      // with. One of the 106 HTML also reads without its ';' is read so, but in
+      // an attribute's value not where an '=' or a letter or digit follows it,
+      // which the tokenizer leaves there as it is written. True, with the one or
+      // two code points it stands for and the reference's length, when there is
+      // one.
+      //
+      // Until 6.3.7 only the 70 names of an ASCII character, a no-break space
+      // or a code point UTS 46 ignores were read, on the ground that no named
+      // reference stands for an ASCII letter, digit or hyphen - which &fjlig;,
+      // "fj", does - and since UTS 46 maps mathematical letters, ligatures and
+      // fullwidth forms to ASCII ones, <a href="http://&eopf;vil.example/">
+      // (U+1D556, an 'e' once mapped), &filig;nd.example (U+FB01, "fi") and
+      // b&uuml;cher.example named nothing where a browser goes to
+      // evil.example, find.example and xn--bcher-kva.example. Nor, in the text
+      // between tags, was a reference without its ';' read where a letter
+      // followed it (ev&shyil.example), as the tokenizer reads it there.
+      bool ReadCharacterReference_(const std::wstring &text, size_t position, bool inAttribute, unsigned int (&characters)[2],
+                                   size_t &count, size_t &length)
       {
          const size_t textLength = text.size();
 
@@ -389,62 +395,135 @@ namespace HM
             // ASCII and never a space, but VARIATION SELECTOR-17 to -256 and a
             // few others are code points a browser deletes from a host.
             if (value == 0 || value > 0x10FFFF || (value >= 0xD800 && value <= 0xDFFF) || (value >= 0x80 && value <= 0x9F))
-               character = replacementCharacter;
+               characters[0] = replacementCharacter;
             else
-               character = static_cast<unsigned int>(value);
+               characters[0] = static_cast<unsigned int>(value);
 
+            count = 1;
             length = i - position;
             return true;
          }
 
-         for (const NamedReference &reference : namedReferences)
+         // The letters and digits after the '&', as many as the longest name
+         // holds: every name is made of them, and ends with its ';' or, read
+         // without one, with them.
+         size_t end = position + 1;
+         while (end < textLength && end - position - 1 < HtmlReferences::LongestName && IsAsciiAlphanumeric_(text[end]))
+            end++;
+
+         std::string run;
+         for (size_t i = position + 1; i < end; i++)
+            run += static_cast<char>(text[i]);
+
+         // With a ';' after them, the whole of them is the longest name there
+         // can be; else the longest one HTML reads without its ';' that they
+         // begin with.
+         const HtmlReferences::NamedReference *reference = nullptr;
+         size_t nameLength = 0;
+         if (!run.empty() && end < textLength && text[end] == L';')
          {
-            const size_t nameLength = wcslen(reference.name);
-            if (position + 1 + nameLength > textLength)
-               continue;
-
-            if (wcsncmp(text.c_str() + position + 1, reference.name, nameLength) != 0)
-               continue;
-
-            if (reference.name[nameLength - 1] != L';')
-            {
-               const size_t next = position + 1 + nameLength;
-               if (next < textLength && (text[next] == L'=' || IsAsciiAlphanumeric_(text[next])))
-                  continue;
-            }
-
-            character = reference.character;
-            length = 1 + nameLength;
-            return true;
+            reference = NamedReference_(run + ";");
+            nameLength = run.size() + 1;
          }
 
-         return false;
+         for (size_t take = std::min(run.size(), HtmlReferences::LongestLegacyName); reference == nullptr && take > 0; take--)
+         {
+            reference = NamedReference_(run.substr(0, take));
+            nameLength = take;
+         }
+
+         if (reference == nullptr)
+            return false;
+
+         if (inAttribute && reference->name[nameLength - 1] != ';')
+         {
+            const size_t next = position + 1 + nameLength;
+            if (next < textLength && (text[next] == L'=' || IsAsciiAlphanumeric_(text[next])))
+               return false;
+         }
+
+         characters[0] = reference->first;
+         characters[1] = reference->second;
+         count = reference->second != 0 ? 2 : 1;
+         length = 1 + nameLength;
+         return true;
       }
 
       // The HTML with its character references read, and for each character
       // whether a reference wrote it: a quote written as &quot; inside an
-      // attribute's value is part of the value, not its end.
+      // attribute's value is part of the value, not its end. Whether a
+      // reference is in an attribute's value is known as the tokenizer knows
+      // it, as far as references care, from the characters as they are
+      // written - a reference makes none of a tag's: a tag opens at a '<'
+      // followed by a letter, or by a '/' and a letter, and ends at a '>'
+      // outside its values; a value follows an '=' in it, and runs to the
+      // quote that opened it or, unquoted, to white space or the tag's end. No
+      // reference is read in a tag's or an attribute's name, where the
+      // tokenizer reads none.
       void DecodeCharacterReferences_(const std::wstring &html, std::wstring &text, std::vector<bool> &fromReference)
       {
+         enum Place { Text, Tag, BeforeValue, QuotedValue, UnquotedValue };
+         Place place = Text;
+         wchar_t quote = 0;
+
          text.reserve(html.size());
          fromReference.reserve(html.size());
 
          for (size_t i = 0; i < html.size(); i++)
          {
-            unsigned int character = 0;
+            const wchar_t c = html[i];
+            switch (place)
+            {
+            case Text:
+               if (c == L'<' && i + 1 < html.size() &&
+                   (IsAsciiLetter_(html[i + 1]) || (html[i + 1] == L'/' && i + 2 < html.size() && IsAsciiLetter_(html[i + 2]))))
+                  place = Tag;
+               break;
+            case Tag:
+               if (c == L'>')
+                  place = Text;
+               else if (c == L'=')
+                  place = BeforeValue;
+               break;
+            case BeforeValue:
+               if (c == L'"' || c == L'\'')
+               {
+                  quote = c;
+                  place = QuotedValue;
+               }
+               else if (c == L'>')
+                  place = Text;
+               else if (!IsHtmlWhiteSpace_(c))
+                  place = UnquotedValue;
+               break;
+            case QuotedValue:
+               if (c == quote)
+                  place = Tag;
+               break;
+            case UnquotedValue:
+               if (IsHtmlWhiteSpace_(c))
+                  place = Tag;
+               else if (c == L'>')
+                  place = Text;
+               break;
+            }
+
+            unsigned int characters[2] = { 0, 0 };
+            size_t count = 0;
             size_t length = 0;
-            if (html[i] == L'&' && ReadCharacterReference_(html, i, character, length))
+            if (c == L'&' && place != Tag && ReadCharacterReference_(html, i, place != Text, characters, count, length))
             {
                // One flag for each wchar_t written: a pair of surrogates on
                // Windows is two.
                const size_t before = text.size();
-               AppendCodePoint_(character, text);
+               for (size_t k = 0; k < count; k++)
+                  AppendCodePoint_(characters[k], text);
                fromReference.insert(fromReference.end(), text.size() - before, true);
                i += length - 1;
                continue;
             }
 
-            text += html[i];
+            text += c;
             fromReference.push_back(false);
          }
       }
@@ -2963,6 +3042,26 @@ namespace HM
          { L"<p>\u201CVisit http://evil.example\u201D</p>", true, L"evil.xn--example-b46c|evil.example", "in HTML's text as in a text part" },
          { L"<p>\u8BF7\u8BBF\u95EE\u300Chttp://evil.example\u300D</p>", true, L"evil.xn--example-vr3f|evil.example",
            "CJK corner brackets in HTML's text" },
+         { L"<p>Visit http://evil.example&rdquo; now</p>", true, L"evil.xn--example-b46c|evil.example", "a closing quotation mark written as a named reference" },
+
+         // Every named character reference HTML defines, read as a browser
+         // reads it before its URL parser maps what the reference stands for -
+         // until 6.3.7 only the 70 of an ASCII character, a no-break space or a
+         // code point UTS 46 ignores were - and in the text between tags one
+         // HTML reads without its ';' read whatever follows it, as the
+         // tokenizer reads it there.
+         { L"<a href=\"http://&eopf;vil.example/\">", true, L"evil.example", "&eopf;, a double-struck e" },
+         { L"<a href=\"http://&Eopf;&Vopf;&Iopf;&Lopf;.example/\">", true, L"evil.example", "double-struck capitals" },
+         { L"<a href=\"http://&ExponentialE;vil.example/\">", true, L"evil.example", "&ExponentialE;, a double-struck italic e" },
+         { L"<a href=\"http://b&uuml;cher.example/\">", true, L"xn--bcher-kva.example", "&uuml;, in an internationalised name" },
+         { L"<a href=\"http://&filig;nd.example/\">", true, L"find.example", "&filig;, a ligature UTS 46 maps to fi" },
+         { L"<a href=\"http://&fjlig;ord.example/\">", true, L"fjord.example", "&fjlig;, which stands for two ASCII letters" },
+         { L"<a href=\"http://b&uumlcher.example/\">", true, L"", "&uuml without its ';', a letter after it, in an attribute's value: as it is written" },
+         { L"<a href=\"http://b&uuml.example/\">", true, L"xn--b-eha.example", "&uuml without its ';', a full stop after it, in an attribute's value: read" },
+         { L"<p>http://b&uumlcher.example/</p>", true, L"xn--bcher-kva.example", "&uuml without its ';' in text, a letter after it" },
+         { L"<p>http://ev&shyil.example/</p>", true, L"evil.example", "&shy without its ';' in text, a letter after it" },
+         { L"<p>http://p&ordfypal.example/</p>", true, L"paypal.example", "&ordf without its ';' in text: a feminine ordinal, an a once mapped" },
+         { L"<p>http://&eopf;vil.example/</p>", true, L"evil.example", "&eopf; in text" },
 
          // Where a mail program's script ends a link in running text at a
          // code point its \s matches and a browser given the whole link
@@ -3342,6 +3441,79 @@ namespace HM
          if (Joined_(hosts) != _T("1.0.0.1|0.0.0.1"))
             Fail_("a part of 300 fullwidth zeros is an ASCII label once mapped, however long", _T("http://0x1<U+FF0E><U+FF10 x 300><U+FF0E>1/"),
                Joined_(hosts), _T("1.0.0.1|0.0.0.1"));
+      }
+
+      // Every named character reference HTML defines is in the table, in order
+      // and each once, as the binary search needs, and is read as the code
+      // points it stands for, in an attribute's value and in text alike: with
+      // its ';', or, for one HTML reads without it too, followed by a space.
+      for (size_t i = 0; i < HtmlReferences::NamedCount; i++)
+      {
+         const HtmlReferences::NamedReference &reference = HtmlReferences::Named[i];
+         std::wstring name;
+         for (const char *c = reference.name; *c != '\0'; c++)
+            name += static_cast<wchar_t>(static_cast<unsigned char>(*c));
+
+         if (i > 0 && strcmp(HtmlReferences::Named[i - 1].name, reference.name) >= 0)
+            Fail_("the named references are in order, each once", String(name.c_str()), _T("out of order"), _T("in order"));
+
+         const std::wstring text = L"&" + name + L" ";
+         for (int inAttribute = 0; inAttribute < 2; inAttribute++)
+         {
+            unsigned int characters[2] = { 0, 0 };
+            size_t count = 0;
+            size_t length = 0;
+            const bool read = ReadCharacterReference_(text, 0, inAttribute != 0, characters, count, length);
+            const size_t expectedCount = reference.second != 0 ? 2 : 1;
+            if (!read || length != name.size() + 1 || count != expectedCount || characters[0] != reference.first ||
+                (expectedCount == 2 && characters[1] != reference.second))
+               Fail_(inAttribute != 0 ? "a named reference is read as what it stands for, in an attribute's value" :
+                                        "a named reference is read as what it stands for, in text",
+                  String(text.c_str()), read ? String(_T("read otherwise")) : String(_T("not read")), _T("read as its code points"));
+         }
+      }
+
+      // The longest name the text begins with, as the tokenizer takes it, and
+      // one HTML reads without its ';' read so in text whatever follows it, but
+      // in an attribute's value not before an '=' or a letter or digit.
+      {
+         struct ReferenceCase
+         {
+            const wchar_t *text;
+            bool inAttribute;
+            unsigned int character;   // 0: not read
+            size_t length;
+            const char *why;
+         };
+         const ReferenceCase referenceCases[] =
+         {
+            { L"&notin;", false, 0x2209, 7, "the longest name: &notin;, not &not" },
+            { L"&notit;", false, 0x00AC, 4, "&not, read without its ';', and \"it;\" after it" },
+            { L"&notit;", true, 0, 0, "&not followed by a letter in an attribute's value: not read" },
+            { L"&amp;x", true, '&', 5, "&amp; in an attribute's value, a letter after it" },
+            { L"&ampx", false, '&', 4, "&amp without its ';' in text, a letter after it" },
+            { L"&ampx", true, 0, 0, "the same in an attribute's value: not read" },
+            { L"&amp=", true, 0, 0, "&amp without its ';' in an attribute's value, an '=' after it: not read" },
+            { L"&amp=", false, '&', 4, "the same in text: read" },
+            { L"&CounterClockwiseContourIntegral;", false, 0x2233, 33, "the longest name of all" },
+            { L"&CounterClockwiseContourIntegrals;", false, 0, 0, "a name a letter longer than any" },
+            { L"&eopf", false, 0, 0, "&eopf; without its ';', which HTML does not read" },
+            { L"&;", false, 0, 0, "no name" },
+            { L"&", false, 0, 0, "an '&' alone" },
+         };
+
+         for (const ReferenceCase &test : referenceCases)
+         {
+            const std::wstring text = test.text;
+            unsigned int characters[2] = { 0, 0 };
+            size_t count = 0;
+            size_t length = 0;
+            const bool read = ReadCharacterReference_(text, 0, test.inAttribute, characters, count, length);
+            const bool expected = test.character != 0;
+            if (read != expected || (read && (characters[0] != test.character || count != 1 || length != test.length)))
+               Fail_(test.why, test.text, read ? String(_T("read, ")) + StringParser::IntToString(static_cast<int>(length)) + _T(" characters") : String(_T("not read")),
+                  expected ? String(_T("read, ")) + StringParser::IntToString(static_cast<int>(test.length)) + _T(" characters") : String(_T("not read")));
+         }
       }
 
       // A text read only as far as its first part (the sender lists' URL

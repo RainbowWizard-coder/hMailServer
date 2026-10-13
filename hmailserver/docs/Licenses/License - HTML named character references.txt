@@ -1,0 +1,54 @@
+The HTML standard's list of named character references, vendored at
+hmailserver/source/Server/Common/AntiSpam/whatwg/entities.json as
+html.spec.whatwg.org serves it, and the table build/generate-html-references.py
+makes of it, HtmlReferencesData.cpp, which is compiled into the server on
+Windows and Linux: every named reference HTML defines, which the SURBL test and
+the sender lists' URL entries read an HTML part's links with, as a browser does.
+The file below is a verbatim copy of whatwg/entities.LICENSE, which is kept
+beside the list, and is here so that this directory is a complete list of the
+third-party terms this repository carries.
+
+----------------------------------------------------------------------------
+
+The list of named character references, entities.json, is part of the HTML
+Living Standard (https://html.spec.whatwg.org/), whose terms are:
+
+  Copyright © WHATWG (Apple, Google, Mozilla, Microsoft). This work is
+  licensed under a Creative Commons Attribution 4.0 International License.
+  To the extent portions of it are incorporated into source code, such
+  portions in the source code are licensed under the BSD 3-Clause License
+  instead.
+
+The list is incorporated into hMailServer's source code - as the table
+build/generate-html-references.py writes from it, HtmlReferencesData.cpp - and
+so is under the BSD 3-Clause License, which follows
+(https://opensource.org/license/bsd-3-clause).
+
+----------------------------------------------------------------------------
+
+Copyright © WHATWG (Apple, Google, Mozilla, Microsoft)
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

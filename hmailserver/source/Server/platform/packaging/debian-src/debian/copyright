@@ -175,6 +175,28 @@ Comment:
  to ASCII) for the SURBL test and the sender lists' URL entries.
  IdnaTestData.cpp is Unicode's conformance tests, which idna-tests runs.
 
+Files: hmailserver/source/Server/Common/AntiSpam/whatwg/entities.json
+       hmailserver/source/Server/Common/AntiSpam/whatwg/entities.LICENSE
+       hmailserver/docs/Licenses/License?-?HTML?named?character?references.txt
+Copyright: WHATWG (Apple, Google, Mozilla, Microsoft)
+License: WHATWG-BSD-3-clause
+Comment:
+ The HTML standard's list of named character references, entities.json,
+ vendored unmodified as html.spec.whatwg.org serves it, and held to its
+ SHA-256 by build/generate-html-references.py. The standard is under CC-BY-4.0,
+ and a portion of it incorporated into source code, as this list is, under the
+ BSD 3-Clause License instead (whatwg/entities.LICENSE quotes the terms).
+
+Files: hmailserver/source/Server/Common/AntiSpam/HtmlReferencesData.cpp
+Copyright: WHATWG (Apple, Google, Mozilla, Microsoft)
+           2026 Christopher Holloway / Progressive Robot Ltd
+License: WHATWG-BSD-3-clause and AGPL-3+
+Comment:
+ Made from entities.json above by build/generate-html-references.py, and
+ compiled into /usr/bin/hmailserver, which reads an HTML part's character
+ references with it, as a browser does, before it reads the part's links for
+ the SURBL test and the sender lists' URL entries.
+
 Files: hmailserver/source/Server/Common/Scripting/ScriptSite.h
 Copyright: 2001 VisionTech Limited
            2005-2014 Martin Knafve / hMailServer.com
@@ -993,6 +1015,32 @@ License: Unicode-3.0
  not be used in advertising or otherwise to promote the sale, use or other
  dealings in these Data Files or Software without prior written
  authorization of the copyright holder.
+
+License: WHATWG-BSD-3-clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+ .
+ 1. Redistributions of source code must retain the above copyright notice, this
+    list of conditions and the following disclaimer.
+ .
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+ .
+ 3. Neither the name of the copyright holder nor the names of its contributors
+    may be used to endorse or promote products derived from this software
+    without specific prior written permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 License: ScriptSite
  VisionTech Limited makes no warranties, either express or implied,

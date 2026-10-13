@@ -56,7 +56,10 @@ ones, a name in Unicode in its `xn--` form) and read as it is written too, as
 6.3.6 read it, so that a link in running text followed by a closing quotation
 mark, a guillemet, a dash or CJK punctuation - which UTS 46 takes into the
 host's last label - also names the host before that character, where the mail
-programs that make the link end it; and an address in its own order, an
+programs that make the link end it; an HTML part's character references read
+first, as a browser reads them - every named one HTML defines (`&eopf;vil.example`
+is `evil.example`, `b&uuml;cher.example` is `xn--bcher-kva.example`); and an
+address in its own order, an
 IPv4-mapped IPv6 address (`[::ffff:192.0.2.1]`) as the IPv4 address it carries;
 in a text part also the name before a `)`, `"` or `}` in the user name, where a
 mail program ends the link, and the name before a zero-width no-break space,

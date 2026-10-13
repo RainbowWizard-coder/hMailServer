@@ -71,7 +71,7 @@ main(int /*argc*/, char * /*argv*/[])
       return 1;
    }
 
-   printf("ok    the SURBL test's links: the host after the userinfo, ports, IPv6 and the IPv4 addresses it carries, percent-encoding as UTF-8, UTS 46 (the code points it ignores, fullwidth letters, ideographic full stops, xn-- forms, the labels it refuses), the forms of an address, links with no scheme, HTML's references and quotes, the names asked about, a lookup that fails passed over and one that throws ending the list, the lists' error codes, and the sender lists' URL entries read the same way and matched against every link\n");
+   printf("ok    the SURBL test's links: the host after the userinfo, ports, IPv6 and the IPv4 addresses it carries, percent-encoding as UTF-8, UTS 46 (the code points it ignores, fullwidth letters, ideographic full stops, xn-- forms, the labels it refuses, a megabyte of U+FDFA) and the host as it is written beside it, punctuation past ASCII after a link, the forms of an address, links with no scheme, HTML's references (every named one HTML defines) and quotes, the names asked about, a lookup that fails passed over and one that throws ending the list, the lists' error codes, and the sender lists' URL entries read the same way and matched against every link\n");
 
    // What an address lookup answers when one of its queries fails, and the
    // lookup the SURBL lookups above and the DNS blacklists make - of the A

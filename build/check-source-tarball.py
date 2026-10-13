@@ -203,6 +203,9 @@ REQUIRED = (
     ("hmailserver/docs/Licenses/License - RFC 7208 test suite.txt", "the same, among the third-party notices"),
     (SERVER + "/Common/Idna/ucd/unicode.LICENSE", "the Unicode License v3 of the UTS 46 data the server compiles in"),
     ("hmailserver/docs/Licenses/License - Unicode data.txt", "the same, among the third-party notices"),
+    (SERVER + "/Common/AntiSpam/whatwg/entities.LICENSE",
+     "the BSD 3-Clause terms of the HTML standard's list of named character references the server compiles in"),
+    ("hmailserver/docs/Licenses/License - HTML named character references.txt", "the same, among the third-party notices"),
 )
 
 # Archives the tarball may carry, by path, each with the reason it is not a binary
@@ -747,6 +750,8 @@ def self_test():
         SERVER + "/SMTP/SPF/Conformance/rfc7208-tests.LICENSE": "BSD",
         SERVER + "/Common/Idna/ucd/unicode.LICENSE": "Unicode-3.0",
         "hmailserver/docs/Licenses/License - Unicode data.txt": "Unicode-3.0",
+        SERVER + "/Common/AntiSpam/whatwg/entities.LICENSE": "BSD-3-Clause",
+        "hmailserver/docs/Licenses/License - HTML named character references.txt": "BSD-3-Clause",
         SERVER + "/Common/Util/Deflate.cpp": '#include "../../zlib/zlib.h"\n',
         SERVER + "/Common/Util/Win.cpp": '#ifndef HM_PLATFORM_POSIX\n#include "../../COM/Api.h"\n#endif\n',
         SERVER + "/Common/Util/Both.cpp": ('#ifdef HM_PLATFORM_POSIX\n#include <zlib.h>\n#else\n#include "../../zlib/zlib.h"\n#endif\n'
@@ -885,6 +890,8 @@ def self_test():
             SERVER + "/SMTP/SPF/Conformance/rfc7208-tests.LICENSE": b"BSD",
             SERVER + "/Common/Idna/ucd/unicode.LICENSE": b"Unicode-3.0",
             "hmailserver/docs/Licenses/License - Unicode data.txt": b"Unicode-3.0",
+            SERVER + "/Common/AntiSpam/whatwg/entities.LICENSE": b"BSD-3-Clause",
+            "hmailserver/docs/Licenses/License - HTML named character references.txt": b"BSD-3-Clause",
             "hmailserver/docs/Licenses/License list.ods": b"PK\x03\x04 spreadsheet",
         })
         files.update(extra or {})
