@@ -53,7 +53,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("Maintenance", Of("Backup").Heading);
          foreach (string build in new[] { "ContinuousIntegration", "Fuzzing", "Nix", "ReproducibleBuilds" })
             Assert.Equal(HelpDocumentList.Building, Of(build).Heading);
-         Assert.Equal(HelpDocumentList.Reference, Of("HighAvailabilityRunbook").Heading);
+         Assert.Equal(HelpDocumentList.Reference, Of("ActiveActive").Heading);
+         // Under the group of the page whose tab opens it, Monitoring & alerts' Shutdown.
+         Assert.Equal("Monitoring & troubleshooting", Of("HighAvailabilityRunbook").Heading);
 
          // One rule for the documents of the packages, each of which says how its
          // package is installed, how it is built and what has run: the snap stood

@@ -17,6 +17,15 @@ Before 15 September 2026 seven of the tables below were in neither, and
 restoring an archive destroyed them. If you are running 6.3.3 or earlier, read
 the last section.
 
+Migrations and PST import are on the same page of the Control Panel, Backup,
+restore & migration, as its Migrations card: how many connections the running
+migrations may hold to one source host, and the folder Outlook data files are
+copied into to be imported. Bringing mail in from another server or a PST file
+is not a backup or a restore, and has a document of its own,
+[Migration.md](Migration.md): the jobs in
+[Five hundred mailboxes: migration jobs](Migration.md#five-hundred-mailboxes-migration-jobs),
+and the import in [Outlook data files (PST)](Migration.md#outlook-data-files-pst).
+
 
 In the archive
 --------------

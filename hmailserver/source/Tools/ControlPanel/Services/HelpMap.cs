@@ -194,7 +194,7 @@ namespace hMailServer.ControlPanel.Services
             ["delivery#Mailing lists"] = new HelpTarget("MailingLists.md"),
 
             ["protocols#SMTP"] = new HelpTarget("Protocols.md", "SMTP"),
-            ["protocols#ManageSieve"] = HelpTarget.NoGuide,
+            ["protocols#ManageSieve"] = new HelpTarget("SettingsReasons.md", "Protocols"),
 
             ["antispam#Sender auth"] = new HelpTarget("SmtpPolicy.md", "SPF's other results (#286)"),
             ["antispam#Host checks"] = new HelpTarget("SmtpPolicy.md"),
@@ -211,7 +211,7 @@ namespace hMailServer.ControlPanel.Services
             ["api#Metrics"] = new HelpTarget("SettingsReasons.md", "Monitoring & alerts"),
             ["api#Alerts & webhooks"] = new HelpTarget("AlertsAndAuditTrail.md", "Alerts"),
             ["api#SNMP"] = new HelpTarget("Snmp.md"),
-            ["api#Shutdown"] = new HelpTarget("SettingsReasons.md", "Monitoring & alerts"),
+            ["api#Shutdown"] = new HelpTarget("HighAvailabilityRunbook.md", "5. Planned failover (maintenance)"),
 
             ["performance#Message store"] = new HelpTarget("MessageStore.md"),
 
@@ -259,7 +259,6 @@ namespace hMailServer.ControlPanel.Services
          "FollowConnection.md",
          "Fuzzing.md",
          "Help.md",
-         "HighAvailabilityRunbook.md",
          "ImpersonationProtection.md",
          "IpWarmup.md",
          "LiveUpdateKinds.md",

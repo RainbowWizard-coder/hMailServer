@@ -113,6 +113,9 @@ namespace hMailServer.ControlPanel.Tests.Services
       [Theory]
       [InlineData("api", "SNMP", "Snmp.md")]
       [InlineData("api", "Alerts & webhooks", "AlertsAndAuditTrail.md")]
+      [InlineData("api", "Shutdown", "HighAvailabilityRunbook.md")]
+      [InlineData("protocols", "ManageSieve", "SettingsReasons.md")]
+      [InlineData("protocols", "SMTP", "Protocols.md")]
       [InlineData("logging", "Audit trail", "AlertsAndAuditTrail.md")]
       [InlineData("logging", "Logging", "Syslog.md")]
       [InlineData("logging", null, "Syslog.md")]
@@ -138,7 +141,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Null(HelpMap.For("no-such-page", "SNMP"));
          Assert.Contains("SNMP", HelpMap.TabsOf("api"));
          Assert.DoesNotContain("SNMP", HelpMap.TabsOf("logging"));
-         Assert.False(HelpMap.For("protocols", "ManageSieve").IsGuide);
+         Assert.Equal("Protocols", HelpMap.For("protocols", "ManageSieve").Heading);
          Assert.Empty(HelpMap.TabsOf("domains"));
          Assert.Empty(HelpMap.TabsOf(null));
       }
@@ -276,6 +279,47 @@ namespace hMailServer.ControlPanel.Tests.Services
             IReadOnlyList<MdHeading> headings = MarkdownBlocks.Headings(File.ReadAllText(path));
             Assert.Contains(headings, h => h.Text == entry.Value.Heading);
          }
+      }
+
+      /// <summary>
+      /// The help of a card that review finding F273 moved is reached from where it is
+      /// now. The Migrations card is on the backup page, whose help is Backup.md and
+      /// which has no tabs to open another document on - its first tab strip is the
+      /// card's own, which an entry for it would take the whole page with - so Backup.md
+      /// sends the reader to Migration.md, which Advanced's Migrations tab opened. The
+      /// Shutdown tab of Monitoring &amp; alerts opens the runbook that says what the drain
+      /// on a stop is for, where it opened a section of the reasons document that says
+      /// nothing of it; and ManageSieve's tab of Protocols the reasons document's
+      /// Protocols section, which holds its reason.
+      /// </summary>
+      [Fact]
+      public void TheMovedCards_KeepTheirGuides()
+      {
+         string docs = FindDocs();
+         Assert.DoesNotContain("Migrations", HelpMap.TabsOf("advanced"));
+         Assert.Equal("Backup.md", HelpMap.For("backup").Doc);
+         Assert.Empty(HelpMap.TabsOf("backup"));
+         string backup = File.ReadAllText(Path.Combine(docs, "Backup.md"));
+         Assert.Contains("[Migration.md](Migration.md)", backup, StringComparison.Ordinal);
+         Assert.Contains("(Migration.md#outlook-data-files-pst)", backup, StringComparison.Ordinal);
+
+         Assert.Contains("ShutdownDrainSeconds", Section_(Path.Combine(docs, "HighAvailabilityRunbook.md"), HelpMap.For("api", "Shutdown").Heading), StringComparison.Ordinal);
+         Assert.Contains("ManageSieve", Section_(Path.Combine(docs, "SettingsReasons.md"), HelpMap.For("protocols", "ManageSieve").Heading), StringComparison.Ordinal);
+         Assert.DoesNotContain("HighAvailabilityRunbook.md", HelpMap.ReferenceOnly);
+      }
+
+      /// <summary>The text of a document from the heading named to the next heading of its level or above.</summary>
+      private static string Section_(string path, string heading)
+      {
+         string text = File.ReadAllText(path).Replace("\r\n", "\n");
+         IReadOnlyList<MdHeading> headings = MarkdownBlocks.Headings(text);
+         int at = headings.ToList().FindIndex(h => h.Text == heading);
+         Assert.True(at >= 0, Path.GetFileName(path) + " has no heading '" + heading + "'.");
+         int start = text.IndexOf("## " + heading, StringComparison.Ordinal);
+         if (start < 0)
+            start = text.IndexOf(heading + "\n", StringComparison.Ordinal);
+         int end = at + 1 < headings.Count ? text.IndexOf(headings[at + 1].Text, start + heading.Length, StringComparison.Ordinal) : -1;
+         return end < 0 ? text.Substring(start) : text.Substring(start, end - start);
       }
 
       [Fact]
