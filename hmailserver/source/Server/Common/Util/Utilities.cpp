@@ -595,6 +595,10 @@ namespace HM
       if (sRecipient != _T("tmh@host.edu"))
          HM_TEST_FAILED();
 
+      hostName = Utilities::GetHostNameFromReceivedHeader(sHeader);
+      if (hostName != _T("host.edu"))
+         HM_TEST_FAILED();
+
       // A comment after the address (upstream #665): the address is found all the same.
       sHeader = "Received: from example.com (example.com [1.2.3.4])\r\n"
                 "\tby mail.example.test with ESMTPS for <recipient@example.test>\r\n"
@@ -622,10 +626,6 @@ namespace HM
       sHeader = "from host.edu (host.edu [1.2.3.4]) by mail.host.edu with ESMTP for tmh@host.edu (comment); Tue, 18 Mar 1997 14:39:24 -0800 (PST)";
       sRecipient = Utilities::GetRecipientFromReceivedHeader(sHeader);
       if (sRecipient != _T("tmh@host.edu"))
-         HM_TEST_FAILED();
-
-      hostName = Utilities::GetHostNameFromReceivedHeader(sHeader);
-      if (hostName != _T("host.edu"))
          HM_TEST_FAILED();
 
       sHeader = "Received: from unknown (HELO mail-***.icp-***-irony4.*****.***.au) ([123.123.123.123])\r\n "
