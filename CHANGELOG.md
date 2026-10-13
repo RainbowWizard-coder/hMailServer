@@ -753,12 +753,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   arming a read on the closing connection. Not counted, as before: the refusals that close the session themselves,
   and those this server's own policies make of a command that is in order - a remote domain's inbound TLS policy,
   the authenticated-sender check, the sending quota's stop, the suppression list, BINARYMIME relay, greylisting's
-  refusal of a sender that retried too soon, the backup MX's recipient callout, the domain policy list, the FQDN
-  checks, restricted delivery, a null sender's second recipient, a rule's rejection, an XCLIENT `LOGIN` naming a
-  room. The count is still the connection's, and RSET, a command that succeeds and a message accepted leave it as it
-  is; `OnRecipientUnknown` still fires only when a recipient is refused as one the server does not have, and not for
-  a script's or a spam test's refusal whose text reads `Unknown user`. `DisconnectInvalidClients` is off by default; the office profile turns it on with a limit of
-  20 ([EventScripts.md](hmailserver/docs/EventScripts.md), [Profiles.md](hmailserver/docs/Profiles.md)).
+  refusal of a sender that retried too soon too often, the backup MX's recipient callout, the domain policy list, the
+  FQDN checks, restricted delivery, a null sender's second recipient, a rule's rejection, an XCLIENT `LOGIN` naming
+  a room. The count is still the connection's, and RSET, a command that succeeds and a message accepted leave it as
+  it is; `OnRecipientUnknown` still fires only when a recipient is refused as one the server does not have, and not
+  for a script's or a spam test's refusal whose text reads `Unknown user`. `DisconnectInvalidClients` is off by
+  default; the office profile turns it on with a limit of 20 ([EventScripts.md](hmailserver/docs/EventScripts.md),
+  [Profiles.md](hmailserver/docs/Profiles.md)).
   `SMTP/InvalidCommandLimit.cs` holds each counted reply to the limit and the session closed after it, where the
   count starts again, and as controls a `453`, a session with the limit off and such a script's text; the spam case
   needs an incoming relay, which the Linux suite's REST API does not have, and runs on Windows. Found by upstream.
