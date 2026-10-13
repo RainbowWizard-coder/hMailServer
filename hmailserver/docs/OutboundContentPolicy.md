@@ -56,7 +56,7 @@ POST /api/v1/rules
 }
 ```
 
-`{ "field": "attachment_type", "match": "contains", "value": "executable" }` with `delete` or `quarantine` catches a program called `report.txt`; `{ "field": "content", "match": "regex", "value": "(?s).*PROJECT-[0-9]{4}.*" }` is a rule's own pattern (the rule engine's regex condition matches the whole value, so bracket it as shown, or use `contains`). The account-number pattern is `PUT /api/v1/settings` with `dlp_account_number_pattern`, the Deck's Settings page, or the Rules tab of the Control Panel's Delivery of e-mail page, which reaches it over the REST API.
+`{ "field": "attachment_type", "match": "contains", "value": "executable" }` with `delete` or `quarantine` catches a program called `report.txt`; `{ "field": "content", "match": "regex", "value": "(?s).*PROJECT-[0-9]{4}.*" }` is a rule's own pattern (the rule engine's regex condition matches the whole value, so bracket it as shown, or use `contains`). The account-number pattern is `PUT /api/v1/settings` with `dlp_account_number_pattern`, the Deck's Settings page, or the Rule limits card of the Control Panel's Rules page, which reaches it over the REST API.
 
 ## What it does not do
 
