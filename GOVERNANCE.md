@@ -16,41 +16,51 @@ ran there. On GitLab, up to and including 6.3.4, no approval was required (the
 GitHub ruleset had stopped requiring one on 14 September 2026): `master` is
 protected, and a change that had passed the regression gate landed on it by
 fast-forward. From the first change after 6.3.4, every change is to land
-through a merge request that Zain Ul Abidin approves (the owner, for Zain's
-own) before the owner merges it, by fast-forward, once its pipeline has passed
-and every thread on it is resolved; `build/land-via-mr.py` (written on 26
-September 2026) lands it that way and refuses a merge request without that
-approval (see Review). Four batches have landed that way since 29 September
-2026, each on the owner's override of that approval. Until the owner takes
-direct pushes off `master`, which he does once the batch that brings the change
-checks has landed through them ([SECURITY.md](SECURITY.md), "Every change"), he
-can still push a gated tree to `master` directly, as he did with 6.3.6's
-release fixes on 5 October 2026. Security reports go
-by the routes in [SECURITY.md](SECURITY.md). The release chain ran on GitHub
-Actions; its replacement, the release jobs of `.gitlab-ci.yml`, is written and
-has not run yet, so 6.3.4 was built and signed by hand. The installer's fetched
-build inputs come from the project's package registry on GitLab. Until a
-release has been made by those jobs, *Critical assets* below overstates what is
-committed.
+through a merge request that a second person approves - Zain Ul Abidin, or the
+owner for Zain's own - before the owner merges it, by fast-forward, once its
+pipeline has passed and every thread on it is resolved; `build/land-via-mr.py`
+(written on 26 September 2026) lands it that way and refuses a merge request
+without that approval unless the owner overrides it (see Review). By 14 October
+2026 nine batches had landed that way, the first on 29 September 2026: one,
+`batch45` (7 October 2026), with Zain Ul Abidin's approval, and eight on the
+owner's override. Since 13 October 2026 Zain Ul Abidin holds no role in the
+project, and no other person who could approve is a member of it, so every
+landing is on that override until one is ([Maintainers](#maintainers)). The
+owner takes direct pushes off `master` once the batch that brings the change
+checks has landed through them ([SECURITY.md](SECURITY.md), "Every change"); it
+landed on 9 October 2026 (`batch44`), and on 14 October 2026 `master` still let
+Maintainers push, so until he does, he can still push a gated tree to `master`
+directly, as he did with 6.3.6's release fixes on 5 October 2026. Security
+reports go by the routes in [SECURITY.md](SECURITY.md). The release chain ran on
+GitHub Actions; its replacement, the release jobs of `.gitlab-ci.yml`, made
+6.3.5 on 29 September 2026 and 6.3.6 on 6 October 2026, and 6.3.4, between the
+two, was built and signed by hand. The installer's fetched build inputs come
+from the project's package registry on GitLab.
 
 The short version
 -----------------
 
 This project has **two maintainers**, Christopher Holloway and Zain Ul Abidin,
 and is stewarded by Progressive Robot Ltd. Decisions are made by the
-maintainers, in the open, on the issue tracker.
+maintainers, in the open, on the issue tracker. Since 13 October 2026 only
+Christopher Holloway holds a role in the GitLab project, so every duty below
+that needs one is his alone for now ([Maintainers](#maintainers)).
 
 On GitLab, since 26 September 2026, Christopher Holloway's account
 `Progressiverobot` is the project's only Owner among its people and its only
-person with the Maintainer role or above. One project access token, `laptop-git`,
-which the maintainers' machine works with, holds the Owner role too until it
-expires on 27 September 2027; it is the owner's, used on the owner's machine,
-and SECURITY.md lists what it can do. Zain Ul Abidin (`zainulabidin1990`) and
-Christopher Holloway's older account `chrisholloway5` hold the Developer role;
-the owner decided both. `master` and the `v*` tags are protected for
-Maintainers, so every change reaches `master` through the owner or that token,
-Zain Ul Abidin's included, and only they can create a release tag, which the
-`release` job also holds to the one key in `.gitlab/allowed_signers`.
+person with the Maintainer role or above, and since 13 October 2026 its only
+person with any role (its members, read through GitLab's API on 14 October
+2026). Zain Ul Abidin (`zainulabidin1990`) held the Developer role from
+26 September 2026, the owner's decision; on 13 October 2026 he was made a
+Guest, to keep the group's GitLab subscription to its one seat, and then
+removed from the project, and Christopher Holloway's older account
+`chrisholloway5`, a Developer until then, was removed the same day. The project
+access token `laptop-git`, which held the Owner role for work from the owner's
+machine, is revoked; its bot user is still listed among the members with that
+role, and nothing can act as it. `master` and the `v*` tags are protected for
+Maintainers, so every change reaches `master` through the owner, and only he
+can create a release tag, which the `release` job also holds to the one key in
+`.gitlab/allowed_signers`.
 
 The two maintainers are unassociated: Christopher Holloway is from Progressive
 Robot Ltd, and Zain Ul Abidin is independent of it (the owner's statement of
@@ -68,10 +78,11 @@ Roles and responsibilities
 
 ### Maintainers
 
-**Currently: Christopher Holloway (`Progressiverobot` on GitLab, the Owner, and
-his older account `chrisholloway5`, a Developer; `chrisholloway5` on GitHub) and
-Zain Ul Abidin (`zainulabidin1990` on GitLab, a Developer; `Zainulabidin90` on
-GitHub).**
+**Currently: Christopher Holloway (`Progressiverobot` on GitLab, the Owner;
+`chrisholloway5` on GitHub, and on GitLab an older account of his that was a
+Developer in the project until 13 October 2026) and Zain Ul Abidin
+(`zainulabidin1990` on GitLab, a Developer in the project from 26 September to
+13 October 2026 and not a member of it since; `Zainulabidin90` on GitHub).**
 
 The maintainers are accountable for the project. In practice this means:
 
@@ -92,27 +103,28 @@ Who holds which today:
 
 | Duty | Christopher Holloway | Zain Ul Abidin |
 |---|:-:|:-:|
-| Accepting changes | Yes | Reviews; lands through the owner ³ |
+| Accepting changes | Yes | No, since 13 October 2026 ³ |
 | Releasing | Yes | No ¹ |
-| Security response | Yes | Not yet ² |
+| Security response | Yes | No ² |
 | Direction | Yes | Yes |
 | Infrastructure | Yes | No |
 
 Christopher Holloway owns the GitLab project and holds the signing and release
 path. On GitHub, until 18 September 2026, he held admin rights on the
 repository, and Zain Ul Abidin held write access, which was enough to review and
-merge pull requests and to run the release workflows. On GitLab, since
-26 September 2026, Zain Ul Abidin holds the Developer role, the owner's
-decision. Three of the duties above need more than GitLab's Developer role
-gives, or a decision not yet made:
+merge pull requests and to run the release workflows. On GitLab, Zain Ul Abidin
+held the Developer role from 26 September 2026, the owner's decision, and holds
+no role in the project since 13 October 2026. Three of the duties above need
+more than GitLab's Developer role gives, or a decision not yet made:
 
 1. **Releasing** is the owner's alone. **Release tags are created by
    Christopher Holloway, as the `Progressiverobot` account, alone** (decided on
    26 September 2026), and he is the only member GitLab lets create one: the
-   protected tag rule for `v*` allows Maintainers, and he is the only member
-   with that role or above. That role is the real control. GitLab's Free tier
-   cannot hold tag creation to one account - a protected-tag rule names a
-   role - and a Maintainer's `v*` tag runs the tagged commit's own
+   protected tag rule for `v*` allows Maintainers, and he is the only person
+   among the members with that role or above (the one other member listed with
+   it, the bot user of the revoked token `laptop-git`, can do nothing). That
+   role is the real control. The protected-tag rule names the role, not his
+   account, and a Maintainer's `v*` tag runs the tagged commit's own
    `.gitlab-ci.yml`: any pipeline of a protected `v*` tag is given a Sigstore
    certificate naming that tag, which every server built after 6.3.3 accepts.
    The `release` job's own checks - `.gitlab/allowed_signers` read as `master`
@@ -129,21 +141,27 @@ gives, or a decision not yet made:
    confidential issues on GitLab, opened directly or by mail to the Service
    Desk address ([SECURITY.md](SECURITY.md)), and GitLab shows a confidential
    issue only to its author, its assignees and the project's members with the
-   Planner role or above. Zain Ul Abidin has been a member of the GitLab
-   project since 24 September 2026 (`zainulabidin1990`), a Developer since
-   26 September 2026, so he can see every report; taking the duty on is the maintainers' decision, and until it is
-   made, security response rests on Christopher Holloway. (On GitHub, until 18 September 2026, reports arrived through
+   Planner role or above. Zain Ul Abidin was a member of the GitLab project
+   from 24 September 2026 (`zainulabidin1990`), a Developer from 26 September
+   2026, and so could see every report, until 13 October 2026; since then he is
+   not a member, and sees none. Security response rests on Christopher
+   Holloway, the one person who sees a report; whether Zain Ul Abidin takes the
+   duty on, should he be a member again, is the maintainers' decision. (On
+   GitHub, until 18 September 2026, reports arrived through
    private vulnerability reporting, which showed every advisory only to
    repository admins, security managers and organisation owners.)
 3. **Accepting changes** on GitLab needs the Maintainer role: `master` is
    protected, and only Maintainers may merge to it (or push to it, until the
    push rule becomes *No one*; [ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md),
-   "Landing on master"). As a Developer, Zain Ul Abidin pushes branches of his
-   own, opens merge requests and reviews others'; from the first change after
-   6.3.4 he approves each merge request, the owner's batches included, before
-   the owner merges it (see Review), and his own changes, and a contributor's
-   he has reviewed, reach `master` through the owner, who reviews and lands
-   them.
+   "Landing on master"). As a Developer, from 26 September to 13 October 2026,
+   Zain Ul Abidin could push branches of his own, open merge requests and
+   review others', and from the first change after 6.3.4 he was the second
+   person whose approval each merge request needs, the owner's batches
+   included, before the owner merges it (see Review); his own changes, and a
+   contributor's he had reviewed, reached `master` through the owner, who
+   reviews and lands them. Since 13 October 2026 he can do none of that in the
+   project; like anyone, he can still comment on its public issues and merge
+   requests, and open a merge request from a fork.
 
 ### Contributor
 
@@ -168,8 +186,11 @@ How decisions are made
 ----------------------
 
 **Ordinary changes.** Either maintainer decides on a contributor's merge
-request, and from the first change after 6.3.4 every change is approved by a
-maintainer other than its author before it lands (see Review). The reasoning is recorded where the decision
+request, and from the first change after 6.3.4 every change is to be approved by
+a maintainer other than its author before it lands. Since 13 October 2026
+nobody in the project can approve the owner's batches, in which every change
+lands, so each lands on the owner's override (see Review). The reasoning is
+recorded where the decision
 happens — in the merge request, in the issue, or in the release notes. The
 project's habit is to write down *why* rather than just *what*; the release
 notes are the clearest example of this and are the intended place to look for
@@ -181,33 +202,47 @@ the first batch it lands, through a merge request: the owner's own work as a
 ([CONTRIBUTING.md](CONTRIBUTING.md), "Merge requests").
 
 **Review.** From the first change after 6.3.4, every change lands on `master`
-through a merge request, and Zain Ul Abidin reviews and approves each one
-before Christopher Holloway, the owner, merges it - by fast-forward, with the
-merge request's pipeline green (the owner's decision of 26 September 2026).
-That covers the owner's own changes, those an agent makes on his behalf,
-contributors' and Renovate's. A merge request of Zain Ul Abidin's own is
-reviewed and approved by the owner instead. A reviewer asks for changes on the
-merge request rather than pushing to the author's branch, and while the
-reviewer is unavailable, changes wait. GitLab's Free tier has the Approve
-button but no approval rules: anyone with the Developer role or above can
-approve, and nothing in GitLab can make an approval a condition of the merge
-(no approval rule is configured on the project). What the project's merge
-settings do hold is that a merge request merges only by fast-forward, only once
-its pipeline has succeeded and only with every thread on it resolved. Whether
-an author may approve their own merge request, and whether a new push takes an
-approval off, are settings of the paid tiers; the landing script never counts
-an author's approval, and counts only one given after the tip it lands reached
-the merge request, whatever those settings say. So the approval is held by
-`build/land-via-mr.py`, and by the owner, the one member who can merge; it is
-recorded on the merge request rather than anywhere private, because that record
-is what shows that a second person has read the change. Until the batch that
-brings the change checks has landed, `master` still takes a Maintainer's direct
-push; then it is closed to direct pushes
+through a merge request, which Christopher Holloway, the owner, merges - by
+fast-forward, with the merge request's pipeline green - once a second person has
+reviewed and approved it (the owner's decision of 26 September 2026): Zain Ul
+Abidin, for the owner's own changes, those an agent makes on his behalf,
+contributors' and Renovate's, and the owner for a merge request of Zain Ul
+Abidin's own. A reviewer asks for changes on the merge request rather than
+pushing to the author's branch. While the reviewer is unavailable, a change
+waits, or the owner lands it on his override (below).
+
+That is the rule; this is the record. By 14 October 2026 nine batches had
+landed through a merge request, the first on 29 September 2026. One, `batch45`
+(!13, 7 October 2026), had Zain Ul Abidin's approval. Eight landed on the
+owner's override, each with its reason on its merge request - from 6 October
+2026 the owner's standing decision to leave a second person's approval unmet for
+the moment - and Zain Ul Abidin reviewed one of them afterwards, `batch43`
+(!12), on its merge request (the landing log, `land-via-mr.log`, and the merge
+requests' notes). Since 13 October 2026 Zain Ul Abidin holds no role in the
+project ([Maintainers](#maintainers)) and no other person who could approve is a
+member of it, so until one is, every change lands on the owner's override and
+waits for a reviewer to read it afterwards.
+
+No approval rule is configured on the project, so nothing in GitLab makes an
+approval a condition of the merge. What the project's merge settings do hold is
+that a merge request merges only by fast-forward, only once its pipeline has
+succeeded and only with every thread on it resolved. Whether an author may
+approve their own merge request, and whether a new push takes an approval off,
+are project settings; the landing script never counts an author's approval, and
+counts only one given after the tip it lands reached the merge request, whatever
+those settings say. So the approval is held by `build/land-via-mr.py`, and by
+the owner, the one member who can merge; it is recorded on the merge request
+rather than anywhere private, because that record is what shows that a second
+person has read the change. `master` takes a Maintainer's direct push until the
+owner closes it to direct pushes, which he does once the batch that brings the
+change checks has landed through them
 ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md),
 "Landing on master"; [SECURITY.md](SECURITY.md), "Every change"), leaving the
-merge request as the only way in.
+merge request as the only way in; that batch, `batch44`, landed on 9 October
+2026, and on 14 October 2026 `master` still let Maintainers push.
 
-How Zain Ul Abidin, a Developer, reviews one of the owner's batches:
+How a reviewer with the Developer role - Zain Ul Abidin, until 13 October 2026 -
+reviews one of the owner's batches:
 
 1. Open the merge request (`Land batchN: ...`, opened by `build/land-via-mr.py`),
    and read the **Changes** tab, commit by commit where the batch is large (the
@@ -231,11 +266,12 @@ not an approval given before that tip reached the merge request (its diff
 versions say when). Without such an approval it refuses to merge (exit 7), and
 the landing note says so. The owner alone may override that for one landing,
 when waiting would hold up something urgent - a security fix inside its
-disclosure window, or a broken build on `master` - with
+disclosure window, or a broken build on `master` - or, since 6 October 2026,
+under his standing decision to leave the approval unmet for the moment, with
 `python3 build/land-via-mr.py batchN --land-without-approval "<reason>"`: the
 script refuses the override unless it runs as one of the owner's accounts, and
 records the reason in the landing note and its log; a change landed that way is
-reviewed afterwards, on its merge request. A batch that changes the gates' own
+to be reviewed afterwards, on its merge request. A batch that changes the gates' own
 files - the change checks' scripts, `.gitlab-ci.yml` and the CI files their
 jobs are in or take a part from, the landing script,
 `build/check-release-chain.py`, the sign-off check and the secret scan the
@@ -279,9 +315,9 @@ not a preference — an upgrade must preserve configuration and mail.
 **Security.** Security decisions are made under the disclosure timetable in
 [SECURITY.md](SECURITY.md), not by consensus. They are the
 maintainers' to make, and either maintainer may decide alone when waiting for
-the other would miss that timetable. Until the second note under
-[Maintainers](#maintainers) is resolved, only Christopher Holloway is notified
-of a report and can publish an advisory, so in practice those decisions are
+the other would miss that timetable. Only Christopher Holloway sees a report
+and can publish an advisory (the second note under
+[Maintainers](#maintainers)), so in practice those decisions are
 Christopher Holloway's; and a fix authored by Zain Ul Abidin always needs
 Christopher Holloway's approval to merge (see Review).
 
@@ -298,8 +334,11 @@ benefit from it — see [Continuity](#continuity).
 
 The second maintainer did not come by that route. Zain Ul Abidin, who is
 independent of Progressive Robot Ltd, was appointed by the owner in September
-2026, before building a track record in this repository; that record is being
-built through the review rule under [How decisions are made](#how-decisions-are-made).
+2026, before building a track record in this repository; that record was to be
+built through the review rule under [How decisions are made](#how-decisions-are-made),
+and when he stopped holding a role in the GitLab project, on 13 October 2026,
+it held one approval of his (`batch45`, !13) and one review after a landing
+(`batch43`, !12).
 
 Critical assets
 ---------------
@@ -335,7 +374,8 @@ Continuity
 ----------
 
 **Current status: two maintainers, one from Progressive Robot Ltd and one
-independent of it; access continuity is arranged; the record of knowing the
+independent of it, of whom only the first holds a role in the GitLab project
+since 13 October 2026; access continuity is arranged; the record of knowing the
 codebase is still one person's.** Christopher Holloway keeps the critical credentials in a managed
 arrangement that a trusted person can reach if Christopher Holloway is
 confirmed unavailable, together with the legal authority to use them, so the
@@ -348,8 +388,9 @@ person to push until 14 September 2026, and GitHub does not let authors approve
 their own pull requests. On GitLab, since 26 September 2026, only the owner can
 push or merge to `master`, so while he is unavailable every change, Zain Ul
 Abidin's included, waits on the arrangement too; and from the first change
-after 6.3.4 every change also waits for the other maintainer's approval (see
-Review).
+after 6.3.4 every change is also to wait for the other maintainer's approval,
+which since 13 October 2026 nobody in the project can give, so that each lands
+on the owner's override (see Review).
 
 What remains true, stated as plainly as the single-maintainer position was:
 
@@ -359,19 +400,23 @@ What remains true, stated as plainly as the single-maintainer position was:
   the repository does not yet show a second person who knows the codebase.
   That changes only as both maintainers review and write changes here; the
   review rule under [How decisions are made](#how-decisions-are-made), which
-  has Zain Ul Abidin approve every merge request from the first change after
-  6.3.4, is what builds that record.
-- **Administration rests on one person.** Only Christopher Holloway holds
-  the Owner role on GitLab, and with it the only Maintainer rights, and the
-  credentials under
+  has a second person approve every merge request from the first change after
+  6.3.4, is what would build that record, and it has built little of it so
+  far: one approval and one review after a landing, Zain Ul Abidin's, by
+  13 October 2026, when he stopped holding a role in the project.
+- **Administration rests on one person.** Only Christopher Holloway, among
+  people, holds the Owner role on GitLab, and with it the only Maintainer
+  rights, and the credentials under
   [Critical assets](#critical-assets); while Christopher Holloway is
   unavailable, settings, rulesets, access and security advisories wait on the
   arrangement above.
 - **Two of the duties need more than the Developer role.** Accepting
   changes and releasing need the Maintainer role, which is the owner's alone,
   and releasing needs a release machine besides. Security response needs
-  access to private reports, which a Developer has; taking it on is the
-  maintainers' decision. See the notes under [Maintainers](#maintainers).
+  access to private reports, which a Developer has and somebody who is not a
+  member of the project, as Zain Ul Abidin is not since 13 October 2026, does
+  not; taking it on is the maintainers' decision. See the notes under
+  [Maintainers](#maintainers).
 - **Mostly one organisation, for now.** The maintainers are unassociated -
   Christopher Holloway is from Progressive Robot Ltd, Zain Ul Abidin is
   independent of it - but the administration, the release path and, so far,

@@ -23,15 +23,18 @@ Holloway, the identity of the GitLab account `Progressiverobot`; from 14
 September 2026 up to and including 6.3.4 no approval was required, so a tree that
 had passed the gate landed on `master` by fast-forward, with no pull request;
 and from the first change after 6.3.4 every change, a release's included, lands
-through a merge request that the other maintainer approves before the owner
-merges it by fast-forward, its pipeline green (GOVERNANCE.md, Review). A batch
-lands that way with `python3 build/land-via-mr.py batchN` (written on 26
+through a merge request that, by the rule, the other maintainer approves before
+the owner merges it by fast-forward, its pipeline green (GOVERNANCE.md, Review).
+A batch lands that way with `python3 build/land-via-mr.py batchN` (written on 26
 September 2026; the first, batch41, landed through merge request !1 on 29
-September 2026, with the owner's override, and is reviewed afterwards), which
-refuses a merge request without that approval unless the owner overrides it for
-one landing (`--land-without-approval "<reason>"`), and every commit it lands is
-signed off (`git commit -s`; CONTRIBUTING.md, "Merge requests"). Before that
-first landing, a tree that had passed the gate was pushed to `master` directly.
+September 2026, with the owner's override), which refuses a merge request without
+that approval unless the owner overrides it for one landing
+(`--land-without-approval "<reason>"`), and every commit it lands is signed off
+(`git commit -s`; CONTRIBUTING.md, "Merge requests"). Before that first landing,
+a tree that had passed the gate was pushed to `master` directly. Since 13
+October 2026 nobody in the project can approve a batch, which is the owner's own
+work, so every batch lands on that override until somebody can (GOVERNANCE.md,
+Review).
 
 **From 6.3.6, releases pause.** 6.3.6 is the last release for the time being.
 Security releases are still made, until 30 September 2027
@@ -58,8 +61,8 @@ can sign a release the servers accept. Nothing in the pipeline can check this.
 
 Release tags are created by Christopher Holloway, as `Progressiverobot`, alone
 (the owner's decision of 26 September 2026, GOVERNANCE.md). The protected tag
-rule cannot say so on GitLab's free tier - it names a role, and Maintainers
-include others - so the `release` job holds what it can: it reads
+rule does not say so - it names a role, Maintainers, and anyone given that role
+holds it - so the `release` job holds what it can: it reads
 `.gitlab/allowed_signers` as `master` has it, fetched by name, never as the
 tag's own tree has it; it refuses every tag while that list holds any number of
 keys but one; it requires the tag's signature to be that key's, by its
@@ -74,9 +77,10 @@ for one tag at a time ([Authenticode](#on-gitlab-from-635)) holds the
 installer's Authenticode signature alone, which a server checks only where
 `UpdateRequireAuthenticode=1` is set, and never on Linux. `master`'s list is
 itself only as safe as `master`, which Maintainers may push to until its push
-rule becomes *No one*, once the batch that brings the change checks has landed;
-after that a change to it reaches `master` only through a merge request whose
-pipeline passed, the change checks in it (SECURITY.md, "Every change";
+rule becomes *No one*, once the batch that brings the change checks has landed
+(it landed on 9 October 2026, and on 14 October 2026 the rule still let
+Maintainers push); after that a change to it reaches `master` only through a
+merge request whose pipeline passed, the change checks in it (SECURITY.md, "Every change";
 `hmailserver/docs/ContinuousIntegration.md`, "Landing on master").
 
 1. **Steps 1 to 10 below, as written**, with one change: the release notes are
@@ -135,8 +139,11 @@ pipeline passed, the change checks in it (SECURITY.md, "Every change";
    gathers those files, each but the two sources files with an SBOM; and for
    `helm-chart-package`, the chart. (Release may need fifty jobs at most,
    GitLab's `ci_needs_size_limit`; `release-packages` waits for forty-three,
-   forty-one of them jobs `release` does not need itself.) It does not wait for the Windows packages, whose installers no
-   release carries: the release's installer is `windows-installer`'s. It reads
+   forty-one of them jobs `release` does not need itself.) Of the Windows
+   package jobs it waits for `windows-packages-arm64`, whose ARM64 installer the
+   release carries (step 4); a tag's pipeline has no `windows-packages-x64`, since
+   the release's x64 installer is `windows-installer`'s
+   (`.gitlab/ci/packages-windows.yml`). It reads
    the four scans'
    reports first (`build/ci/security-gate.py`) and refuses while one did not
    finish, or found something `SECURITY.md`'s policy counts ("Before a
@@ -362,17 +369,37 @@ release is made by the tag's pipeline, as in
 [Order of operations](#order-of-operations) below it. What differs is the
 order in which things become public, and the steps only the owner can take.
 
+6.3.7 did not keep that order for five of its fixes: they and their
+descriptions in `CHANGELOG.md` were public on GitLab from 6 and 7 October 2026,
+when the batches that carried them were pushed, and on `master` from 7 and 9
+October 2026, when those batches landed, until 6.3.7 was released - the owner's
+decisions of 6 and 7 October 2026 to push and land them before the release, of
+12 October 2026, knowing that they were public, to hold the release for more of
+the work then planned, and of 13 October 2026 to make it once the work already
+under way had been finished and folded into one batch (SECURITY.md, "What gets
+a release"). The steps below, and their window of about a day, stay the rule
+for every release after it.
+
 **Before starting**, check what the release depends on is still valid: the
 table in SECURITY.md, "What must stay valid for a security release". In
-particular, check four things:
+particular, check five things:
 
 - the findings of `.gitlab/security-exceptions.yml` that expire before the
   release (293 of them on 26 and 27 March 2027) have been read again, or the
   release job refuses;
+- the last pipeline of the batch the release is made from has, in its
+  `dependency-scan` job, no Critical or High record with a fixed version that
+  `master`'s `.gitlab/security-exceptions.yml` does not accept: `release` holds
+  on every such record (`build/ci/security-gate.py`, step 3 of
+  [The release on GitLab](#the-release-on-gitlab)), while `dependency-scan`
+  itself fails no pipeline (`allow_failure`) and no landing gate reads it. Fix
+  such a record, or have the owner accept it on `master` by a merge request of
+  its own. The advisory databases change every day, so read the tag pipeline's
+  own `dependency-scan` again before step 6;
 - the Artifact Signing identity validation has not lapsed (the Azure portal);
-- bench150, and linix or server2 (the runners with the tag `linix`), are up and
-  online on GitLab
-  (`hmailserver/docs/ContinuousIntegration.md`, "The runners");
+- bench150 and S1-WINBENCH, the two Windows benches, and at least one of linix,
+  server2 and s1-linux (the runners with the tag `linix`), are up and online on
+  GitLab (`hmailserver/docs/ContinuousIntegration.md`, "The runners");
 - the project's path, which the federated credential's subject names:
   `hmailserver/hmailserver` since the move into the group on 29 September
   2026 (`Progressiverobot/hmailserver` before it, for 6.3.5).
@@ -389,13 +416,17 @@ particular, check four things:
    `## [X.Y.Z](...) - <date>`, committed with the stamp of step 7. The section
    says what was fixed, names the confidential issue, and credits the reporter.
    It does not say how to exploit the flaw, because it is public from the push,
-   about a day before the release.
+   about a day before the release; nor does the fix's commit message, or an
+   entry for the fix in Unreleased.
 3. **Land it**, with `python3 build/land-via-mr.py batchN`: the batch's branch
-   pipeline runs every gate, and Zain Ul Abidin approves the merge request.
+   pipeline runs every gate, and a second person approves the merge request.
    **Owner:** if waiting for that approval would take the fix past its
    disclosure window, land it with
-   `--land-without-approval "<the issue and the date it is due>"`. The change is
-   then reviewed on its merge request afterwards (GOVERNANCE.md, Review).
+   `--land-without-approval "<the issue and the date it is due>"`; since 13
+   October 2026 nobody in the project can approve a batch, which is the owner's
+   own work, so every batch lands that way, with its reason, until somebody can
+   (GOVERNANCE.md, Review). The change is then reviewed on its merge request
+   afterwards, when a reviewer can.
 4. **Owner: the federated credential for the tag**, made before the tag is
    pushed, as [On GitLab, from 6.3.5](#on-gitlab-from-635) step 1 says. Use the
    project's path of that day in the subject.
@@ -404,8 +435,9 @@ particular, check four things:
    No one else holds that key, and `release` refuses a tag signed by any other.
 6. **Owner: start `release`** once the tag's gates have passed. The owner is the
    only person in the project with the Maintainer role, which a manual job on a
-   protected tag needs (the project access token `laptop-git` is an Owner too:
-   SECURITY.md, "What must stay valid for a security release").
+   protected tag needs (the bot user of the project access token `laptop-git`
+   is listed as an Owner too, and nothing can act as it, since the token is
+   revoked: SECURITY.md, "What must stay valid for a security release").
    `release-authenticode`, `release-sbom`, `release-sign`
    and `release-verify` then follow by themselves.
 7. **The installer smoke test**, by hand, on the signed installer (step 5 of
@@ -558,6 +590,19 @@ that administrators upgrade by hand.
    `0`: the build number lives in `Version.h` and the tag, and a build-only
    re-cut (the common case) must not have to touch the installer script or
    the seven `.csproj` files, whose versions are also `<version>.0`.
+
+   The release's notes are written with the stamp: the version's section of
+   `CHANGELOG.md` takes the Unreleased section's place, under the heading step 1
+   of [The release on GitLab](#the-release-on-gitlab) gives, with an empty
+   Unreleased section above it. Besides its Security notes the section carries
+   `### What changes on upgrade without a switch`, a numbered list of every
+   change an upgraded server makes to what it does with no setting turned, each
+   saying what changes and, where something is to be done, what an administrator
+   does before or after upgrading, as the sections of 6.3.4, 6.3.5 and 6.3.6 do.
+   The list is gathered at the stamp from the entries, which say what changed
+   where it changed; Unreleased keeps no such list.
+   `python build/renumber-upgrade-items.py` numbers it 1 to n and rewrites the
+   section's references to its items (`checkers` runs it with `--check`).
 8. **Build everything at the stamped version**: `build.ps1 -Configuration
    Release`, `build-tools.ps1 -Configuration Release`, ControlPanel
    `dotnet publish` to its `publish\` folder (build-tools does not cover it),

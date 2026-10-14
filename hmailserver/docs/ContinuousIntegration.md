@@ -1315,10 +1315,14 @@ python3 build/land-via-mr.py batch41 --dry-run
 python3 build/land-via-mr.py batch41
 ```
 
-Four batches have landed this way: `batch41` through !1 on 29 September 2026,
-`batch42-docs` through !9 on 30 September, `batch42` (6.3.6) through !10 on 5
-October and `batch43` through !12 on 6 October 2026, each on the owner's
-override of the approval rule (step 6). The script needs git and `glab`, logged
+By 14 October 2026 nine batches had landed this way (`land-via-mr.log`):
+`batch41` through !1 on 29 September 2026, `batch42-docs` through !9 on 30
+September, `batch42` (6.3.6) through !10 on 5 October, `batch43` through !12 on
+6 October, `batch45` through !13 on 7 October, `batch44` through !14 on 9
+October, `batch46` through !15 on 10 October, `batch47-sast-exceptions` through
+!19 on 13 October and `batch47` through !20 on 14 October 2026. `batch45` had a
+second person's approval, Zain Ul Abidin's; the other eight landed on the
+owner's override of the approval rule (step 6). The script needs git and `glab`, logged
 in to gitlab.com as a Maintainer. In order, and stopping at the first refusal:
 
 1. **Before anything is sent**, the batch must be on top of the remote's
@@ -1427,7 +1431,10 @@ in to gitlab.com as a Maintainer. In order, and stopping at the first refusal:
    September 2026). The owner alone may override that for one landing with
    `--land-without-approval "<reason>"`, which the script refuses unless it runs
    as one of the owner's accounts, and whose reason it records in the landing
-   note and its log.
+   note and its log. Since 13 October 2026 Zain Ul Abidin holds no role in the
+   project and no person but the owner is a member of it, so every landing is
+   on the override until somebody who can approve is
+   ([GOVERNANCE.md](../../GOVERNANCE.md), "Review").
 7. It merges through the API at exactly the tip it checked (`sha`), with
    `squash` false - a squash would put one commit in the merge request author's
    name in place of the batch, its authors and its sign-offs - and checks that
@@ -1494,10 +1501,12 @@ batch's tip's, the reason and the files in the landing record and its log, and
 is refused without a reason, with a blank one, and from a checkout with a copy
 that is neither `master`'s nor the batch's, or with `master`'s copy of a file
 the batch changes. On GitLab, the
-four landings above ran the merge request, its head pipeline, the approvals and
-diff-versions endpoints on the Free tier, the merge and the deletion of a
-protected branch. The check of the gate jobs came with the change checks, and
-its first run on GitLab is the landing of the batch that brought them.
+first four landings above ran the merge request, its head pipeline, the
+approvals and diff-versions endpoints - the first of them on the Free tier, in
+the owner's own namespace - the merge and the deletion of a protected branch.
+The check of the gate jobs came with the change checks, and its first run on
+GitLab was the landing of the batch that brought them, `batch44` through !14 on
+9 October 2026, whose landing record is the first to name the gate jobs.
 
 ### Nobody pushes to master, and a skipped pipeline does not count
 
@@ -1506,7 +1515,9 @@ Two project settings finish what the change checks and this script begin
 both wait until the batch that brings the change checks has landed through them:
 until then a direct push is how a fix lands that cannot wait for a batch, as the
 re-pinned analyzers and the exceptions of 6.3.6's release did on 5 October 2026
-(`e3c448aa6`).
+(`e3c448aa6`). That batch, `batch44`, landed on 9 October 2026. On 14 October
+2026 the second setting held (`allow_merge_on_skipped_pipeline` false) and
+`master`'s rule still let Maintainers push and merge (the project's API).
 
 **`master`: push *No one*, merge *Maintainers*.** `master`'s rule lets
 Maintainers push and merge. The owner makes the change in Settings, Repository,

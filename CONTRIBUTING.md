@@ -852,13 +852,15 @@ rewrites. To sign off without remembering the flag, `git config alias.cs "commit
 3. **Keep it to one logical change.** Add or update regression tests for a change of behaviour. Say in the
    description which checks you ran and on what; the merge-request template asks.
 4. **Open the merge request against `master`** of `hmailserver/hmailserver`, and sign off every commit.
-5. **Review.** Zain Ul Abidin, the second maintainer, reviews the change - or, for a merge request of his own,
-   the owner does - asks for changes in threads on the merge request, and presses **Approve** when it is right.
-   GitLab will not merge a merge request with an unresolved thread or a pipeline that has not passed (both are
-   project settings). From the first change after 6.3.4 no change lands without that approval, the maintainers'
-   own included ([GOVERNANCE.md](GOVERNANCE.md), "Review"). On GitLab's Free tier anyone with the Developer role
-   can approve, but no rule can require an approval, and whether an author may approve their own is a setting of
-   the paid tiers; so the landing script below holds the rule, and it never counts an author's approval.
+5. **Review.** A maintainer other than the author reviews the change - by the rule Zain Ul Abidin, the second
+   maintainer, or, for a merge request of his own, the owner - asks for changes in threads on the merge request,
+   and presses **Approve** when it is right. GitLab will not merge a merge request with an unresolved thread or a
+   pipeline that has not passed (both are project settings). From the first change after 6.3.4 no change lands
+   without that approval, the maintainers' own included, unless the owner overrides it for one landing
+   ([GOVERNANCE.md](GOVERNANCE.md), "Review"). Since 13 October 2026 Zain Ul Abidin holds no role in the project,
+   so the owner reviews a contributor's merge request, and the batches land on his override until another person
+   can approve. No approval rule is configured on the project, so the landing script below holds the rule, and it
+   never counts an author's approval.
 6. **The gate.** A merge request's own pipeline runs the checks only, the change checks among them, on GitLab's
    hosted runners, and they must pass ([The checkers](#the-checkers)). A merge request from your fork runs that
    pipeline in your fork, with your fork's CI files and on runners your fork's settings choose, so its result tells
@@ -899,8 +901,9 @@ rewrites. To sign off without remembering the flag, `git config alias.cs "commit
    `--dry-run` it checks and changes nothing, with `--no-wait` it stops once the merge request is open, and run
    again it finds the open merge request and carries on. Your merge request is then merged or closed with a link to
    the batch's. `master` is protected: only the owner can merge to it, and once the batch that brings the change
-   checks has landed through them it takes no direct push ([SECURITY.md](SECURITY.md), "Every change"), so that a
-   merge request is the only way in. (On GitHub, until 14 September 2026, a pull request was merged by rebase once
+   checks has landed through them it is to take no direct push ([SECURITY.md](SECURITY.md), "Every change"), so
+   that a merge request is the only way in; that batch landed on 9 October 2026, and on 14 October 2026 `master`
+   still let Maintainers push. (On GitHub, until 14 September 2026, a pull request was merged by rebase once
    the other maintainer had approved it, as the master ruleset required; from then until 6.3.4 no approval was
    required.)
 
