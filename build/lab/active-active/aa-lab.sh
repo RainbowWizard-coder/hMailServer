@@ -91,7 +91,15 @@ esac
 FRONT="$P-front"
 BACK="$P-back"
 DB_NAME=hmlab_aa
+# python-tds for sqlcheck's SQL Server leg, and the SHA-256 of the one file of it pip may
+# install: python_tds-1.16.0-py3-none-any.whl, as PyPI lists it and as it hashes when
+# downloaded. node_image installs it in pip's hash-checking mode (--require-hashes), which
+# refuses a file of any other hash and any requirement without one; python-tds requires
+# no other package (its METADATA has no Requires-Dist). The source archive's hash is left
+# out, so that pip never builds python-tds from source. Both go into the node image's
+# Dockerfile, so a new pin is a new tag and a new image.
 PYTHON_TDS_VERSION=1.16.0
+PYTHON_TDS_SHA256=61512e7e2feabbe1d23ed60fe1d2dcccab50afba726d75f9f00fa79f70b2e1bb
 
 say() { printf '%s\n' "$*"; }
 die() { printf 'aa-lab.sh: %s\n' "$*" >&2; exit 1; }
@@ -117,7 +125,7 @@ NODE_PACKAGES="libmariadb3 mariadb-client faketime 7zip python3-pip"
 node_image() {
   local base tag dockerfile
   base=$(ci_image)
-  dockerfile=$(printf 'FROM %s\nRUN apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends %s > /dev/null && rm -rf /var/lib/apt/lists/*\nRUN pip3 install -q --break-system-packages --no-cache-dir python-tds==%s\n' "$base" "$NODE_PACKAGES" "$PYTHON_TDS_VERSION")
+  dockerfile=$(printf 'FROM %s\nRUN apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends %s > /dev/null && rm -rf /var/lib/apt/lists/*\nRUN echo "python-tds==%s --hash=sha256:%s" | pip3 install -q --break-system-packages --no-cache-dir --require-hashes -r /dev/stdin\n' "$base" "$NODE_PACKAGES" "$PYTHON_TDS_VERSION" "$PYTHON_TDS_SHA256")
   tag="$P/node:${base##*:}-$(printf '%s' "$dockerfile" | sha256sum | cut -c1-8)"
   if ! docker image inspect "$tag" > /dev/null 2>&1; then
     docker image inspect "$base" > /dev/null 2>&1 || die "the CI image $base is not on this host"

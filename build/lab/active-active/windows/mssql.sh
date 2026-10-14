@@ -56,7 +56,15 @@ CHECK=hmlab-aa-sqlcheck
 # build/lab/docker-compose.yml pins the same image: SQL Server 2022 CU27 (16.0.4295.3).
 IMAGE=mcr.microsoft.com/mssql/server:2022-latest@sha256:4402d880dd4c34bfa7d8705e56a86cd6c88da80a1f6bbbe741f999e76264a090
 PYTHON_IMAGE=python:3.12-slim@sha256:46cb7cc2877e60fbd5e21a9ae6115c30ace7a077b9f8772da879e4590c18c2e3
+# python-tds for the checks, and the SHA-256 of the one file of it pip may install:
+# python_tds-1.16.0-py3-none-any.whl, as PyPI lists it and as it hashes when downloaded.
+# python_lib installs it in pip's hash-checking mode (--require-hashes), which refuses a
+# file of any other hash and any requirement without one; python-tds requires no other
+# package (its METADATA has no Requires-Dist). The source archive's hash is left out, so
+# that pip never builds python-tds from source. python_lib's marker names both, so a new
+# pin installs again.
 PYTHON_TDS_VERSION=1.16.0
+PYTHON_TDS_SHA256=61512e7e2feabbe1d23ed60fe1d2dcccab50afba726d75f9f00fa79f70b2e1bb
 ADDRESS="${AA_WIN_ADDRESS:-10.0.0.19}"
 MSSQL_PORT="${AA_WIN_MSSQL_PORT:-14330}"
 SINK_PORT="${AA_WIN_SINK_PORT:-14325}"
@@ -268,12 +276,14 @@ SQL
 
 python_lib() {
   local lib="$AA_WIN_HOME/pylib"
-  if [ ! -f "$lib/.python-tds-$PYTHON_TDS_VERSION" ]; then
+  local marker="$lib/.python-tds-$PYTHON_TDS_VERSION-$PYTHON_TDS_SHA256"
+  if [ ! -f "$marker" ]; then
     rm -rf "$lib" && mkdir -p "$lib"
-    docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$lib:/pylib" "$PYTHON_IMAGE" \
-      pip install -q --no-cache-dir --target /pylib "python-tds==$PYTHON_TDS_VERSION" > /dev/null \
+    printf 'python-tds==%s --hash=sha256:%s\n' "$PYTHON_TDS_VERSION" "$PYTHON_TDS_SHA256" \
+      | docker run --rm -i --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$lib:/pylib" "$PYTHON_IMAGE" \
+          pip install -q --no-cache-dir --require-hashes --target /pylib -r /dev/stdin > /dev/null \
       || die "installing python-tds $PYTHON_TDS_VERSION failed"
-    touch "$lib/.python-tds-$PYTHON_TDS_VERSION"
+    touch "$marker"
   fi
   printf '%s' "$lib"
 }
