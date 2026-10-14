@@ -181,6 +181,23 @@ namespace RegressionTests.AntiVirus
       }
 
       /// <summary>
+      ///    The line of the server's "message deleted" notice (VIRUS_NOTIFICATION)
+      ///    that holds the macro, as a notice has it with the macro replaced by the
+      ///    value - "   From: someone@example.com" in the shipped text.
+      /// </summary>
+      private string NoticeLine(string macro, string value)
+      {
+         foreach (var line in ServerMessage("VIRUS_NOTIFICATION").Split('\n'))
+         {
+            if (line.Contains(macro))
+               return line.TrimEnd('\r').Replace(macro, value);
+         }
+
+         Assert.Fail("The server's VIRUS_NOTIFICATION text has no " + macro + ".");
+         return null;
+      }
+
+      /// <summary>
       ///    An ordinary multipart message: a line of text and EICAR attached.
       /// </summary>
       private static string TextAndEicarMessage(string recipient)
@@ -516,8 +533,15 @@ namespace RegressionTests.AntiVirus
             "The deletion has to be in the log, with its reason.");
 
          // The notice is made from the message's header, which could not be read
-         // either while the file was held: said, and the notice goes all the same.
-         CustomAsserts.AssertReportedError("Could not read the message header");
+         // either while the file was held: the envelope names the message in its
+         // place, and nothing is written to the error log, since what happened is
+         // what the two lines above say, and handled.
+         StringAssert.Contains(NoticeLine("%MACRO_FROM%", "correspondent@example.com"), delivered,
+            "The notice does not name the sender of the message it says was deleted.");
+         StringAssert.Contains(NoticeLine("%MACRO_TO%", _account.Address), delivered,
+            "The notice does not name the recipient of the message it says was deleted.");
+
+         CustomAsserts.AssertNoReportedError();
       }
 
       [TestCase("one attachment")]
@@ -559,8 +583,14 @@ namespace RegressionTests.AntiVirus
          BounceTestSupport.AssertLogContains("the message could not be rewritten, so its attachments could not be stripped",
             "The deletion has to be in the log, with its reason.");
 
+         // The notice is made from the message's header, which could be read.
+         StringAssert.Contains(NoticeLine("%MACRO_FROM%", "correspondent@example.com"), delivered,
+            "The notice does not name the sender of the message it says was deleted.");
+
          // The notice, read (and so taken) above, was all that arrived.
          Pop3ClientSimulator.AssertMessageCount(_account.Address, Password, 0);
+
+         CustomAsserts.AssertNoReportedError();
       }
 
       [Test]

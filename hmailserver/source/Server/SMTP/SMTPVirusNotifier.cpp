@@ -36,35 +36,57 @@ namespace HM
 
    }
 
-   void 
+   void
    SMTPVirusNotifier::CreateMessageDeletedNotification(const std::shared_ptr<Message> pOriginalMessage, const String &sRecipient)
    {
-      LOG_DEBUG("SMTPVirusNotifier::CreateMessageDeletedNotification");
-
       // A notice to nobody: the notice to the sender of a message whose envelope
       // sender is empty - a bounce - has no place to go. Asked of the address the
       // notice is for, not of the message's sender: a recipient of such a message
       // has an address all the same, and is told as any other recipient is.
+      // Asked before the file is read, as well as below.
       if (sRecipient.IsEmpty())
          return;
 
-       // Parse out the subject in the original
-      // message, so that we can Re: that..
+      // Parse out the subject in the original message, so that we can Re: that.
+      CreateMessageDeletedNotification(pOriginalMessage, sRecipient,
+         PersistentMessage::LoadHeader(MessageStore::WorkingFile(pOriginalMessage)));
+   }
+
+   void
+   SMTPVirusNotifier::CreateMessageDeletedNotification(const std::shared_ptr<Message> pOriginalMessage, const String &sRecipient, const AnsiString &originalHeader)
+   {
+      LOG_DEBUG("SMTPVirusNotifier::CreateMessageDeletedNotification");
+
+      if (sRecipient.IsEmpty())
+         return;
 
       MimeHeader header;
-      AnsiString sHeader = PersistentMessage::LoadHeader(MessageStore::WorkingFile(pOriginalMessage));
-      header.Load(sHeader, sHeader.GetLength(), true);
-       
+      header.Load(originalHeader, originalHeader.GetLength(), true);
+
       String sMailerDaemonAddress = MailerDaemonAddressDeterminer::GetMailerDaemonAddress(pOriginalMessage);
 
       String sTextVirusFound = Configuration::Instance()->GetServerMessages()->GetMessage("VIRUS_FOUND");
       String sErrMsg = Configuration::Instance()->GetServerMessages()->GetMessage("VIRUS_NOTIFICATION");
 
       String sOriginalSubject = header.GetRawFieldValue("Subject");
+      String sOriginalFrom = header.GetRawFieldValue("From");
+      String sOriginalTo = header.GetRawFieldValue("To");
+
+      // A header with nothing in it: the message's file could not be read when
+      // the header was asked for - another program held it or had taken it away -
+      // which is how the strip action comes to delete a message it cannot read.
+      // Every field of the notice was then empty, and its recipient could not
+      // tell which message had been deleted. The envelope says who sent it, or
+      // that nobody did, and the notice is going to one of its recipients.
+      if (header.GetFieldCount() == 0)
+      {
+         sOriginalFrom = pOriginalMessage->GetFromAddress().IsEmpty() ? String(_T("<>")) : pOriginalMessage->GetFromAddress();
+         sOriginalTo = sRecipient;
+      }
 
       // Replace macros.
-      sErrMsg.Replace(_T("%MACRO_FROM%"), String(header.GetRawFieldValue("From")));
-      sErrMsg.Replace(_T("%MACRO_TO%"), String(header.GetRawFieldValue("To")));
+      sErrMsg.Replace(_T("%MACRO_FROM%"), sOriginalFrom);
+      sErrMsg.Replace(_T("%MACRO_TO%"), sOriginalTo);
       sErrMsg.Replace(_T("%MACRO_SENT%"), String(header.GetRawFieldValue("Date")));
       sErrMsg.Replace(_T("%MACRO_SUBJECT%"), sOriginalSubject);
 

@@ -943,8 +943,10 @@ namespace HM
       AntiVirusConfiguration &antiVirusConfig = Configuration::Instance()->GetAntiVirusConfiguration();
 
       // Every recipient of the message is sent the "message deleted" notice
-      // (SMTPVirusNotifier, VIRUS_NOTIFICATION).
-      auto notifyEveryRecipient = [&pMessage]()
+      // (SMTPVirusNotifier, VIRUS_NOTIFICATION): made from the message's header
+      // as read here and once, when originalHeader is given, and otherwise from
+      // the file, which each notice reads for itself.
+      auto notifyEveryRecipient = [&pMessage](const AnsiString *originalHeader)
       {
          // owned by this call: the recipients of the message this delivery holds
          std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients = pMessage->GetRecipients()->GetVector();
@@ -952,7 +954,10 @@ namespace HM
 
          while (iterRecipient != vecRecipients.end())
          {
-            SMTPVirusNotifier::CreateMessageDeletedNotification(pMessage, (*iterRecipient)->GetAddress());
+            if (originalHeader != nullptr)
+               SMTPVirusNotifier::CreateMessageDeletedNotification(pMessage, (*iterRecipient)->GetAddress(), *originalHeader);
+            else
+               SMTPVirusNotifier::CreateMessageDeletedNotification(pMessage, (*iterRecipient)->GetAddress());
 
             iterRecipient++;
          }
@@ -964,7 +969,7 @@ namespace HM
 
          // Should we notify the recipient?
          if (antiVirusConfig.AVNotifyReceiver())
-            notifyEveryRecipient();
+            notifyEveryRecipient(nullptr);
 
          if (antiVirusConfig.AVNotifySender())
             SMTPVirusNotifier::CreateMessageDeletedNotification(pMessage, pMessage->GetFromAddress());
@@ -980,6 +985,17 @@ namespace HM
       else if (antiVirusConfig.AVAction() == AntiVirusConfiguration::ActionStripAttachments)
       {
          std::shared_ptr<MessageAttachmentStripper> pStripper = std::shared_ptr<MessageAttachmentStripper>(new MessageAttachmentStripper());
+
+         // The header as the message arrived, for the notice that takes the
+         // message's place when it cannot be stripped (below): read before the
+         // stripper writes over the file - a rewrite that fails part of the way
+         // leaves a part of it there - once, however many recipients the message
+         // has, and with nothing reported when the file cannot be read now: the
+         // stripper and the line below say that themselves, where each notice's
+         // own read of the file wrote HM4403 to the error log for every recipient
+         // of a message the stripper could not read, and made a notice of empty
+         // fields. A header with nothing in it is a notice of the envelope.
+         const AnsiString originalHeader = PersistentMessage::LoadHeader(MessageStore::WorkingFile(pMessage), false);
 
          // The line says what the stripper did, not what it was asked to do.
          // "Message attachments stripped" was written unconditionally, so a
@@ -1028,7 +1044,7 @@ namespace HM
             // notices are on; the sender is not, as this action never tells the
             // sender. The two notice settings are the delete action's, and the
             // Control Panel says so beside them.
-            notifyEveryRecipient();
+            notifyEveryRecipient(&originalHeader);
 
             LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: Message will be deleted (contained virus {1}): the message could not be {2}, so its attachments could not be stripped. Its recipients are sent the message-deleted notice in place of the note.",
                pMessage->GetID(), virusName,

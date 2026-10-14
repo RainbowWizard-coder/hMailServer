@@ -1341,21 +1341,24 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
 - **The anti-virus action *Remove all attachments and deliver the text* replaces a message that is one attachment
   with its note, and deletes a message it cannot read.** A message whose one part is not its text - a file, a message
   carried whole, or a text file declared an attachment, which are attachments as a part of a multipart message is one
-  (`MimeBody::IsAttachment`) - is rewritten as a message with no text part is: its header, the subject marked with the
-  server's *VIRUS_FOUND* text, and the *VIRUS_ATTACHMENT_REMOVED* note with nothing after it, the part's own
+  (`MimeBody::IsAttachment`) - is rewritten as a message with no text part is: its header, the subject marked with
+  the server's *VIRUS_FOUND* text, and the *VIRUS_ATTACHMENT_REMOVED* note with nothing after it, the part's own
   `Content-` fields left out with the part, so that the note reads as text. A message the stripper cannot read - its
   file held by another program or gone, or its parse failed - has nothing in it that can be kept, and is deleted, as
   *Delete the whole message* deletes it: each of its recipients is sent the "message deleted" notice
   (*VIRUS_NOTIFICATION*) in place of the note, whatever the two notice settings say, and its sender is not told, as
-  this action never tells the sender. An S/MIME message signed as one part - `application/pkcs7-mime` holding
-  signed-data, which is opaque to the server's other readers and is not encrypted - is one such part, and is replaced
-  by the note too: the stripper asks `SealedMessage::IsEncrypted`, which is `IsOpaque` less signed-data. A message
-  that is one text part is delivered as it is, having no attachment to remove, and so is an encrypted one; the
-  application log says which of these each message was. `AntiVirus/StripAction.cs` delivers a message that is one
-  attachment in four shapes, an S/MIME message signed as one part and one encrypted as one part, and one that is one
-  text part, and holds a message's file while the stripper reads it; `SealedMessageTester` holds `IsEncrypted` to
-  the S/MIME and PGP/MIME shapes ([SealedMail.md](hmailserver/docs/SealedMail.md), "The "delete attachments"
-  anti-virus action").
+  this action never tells the sender. The notice is made from the message's header, read once for all of its
+  recipients; when that cannot be read either, nothing is written to the error log, and the notice gives the
+  envelope's sender and the recipient as the message's *From* and *To*. An S/MIME message signed as one part -
+  `application/pkcs7-mime` holding signed-data, which is opaque to the server's other readers and is not encrypted -
+  is one such part, and is replaced by the note too: the stripper asks `SealedMessage::IsEncrypted`, which is
+  `IsOpaque` less signed-data. A message that is one text part is delivered as it is, having no attachment to remove,
+  and so is an encrypted one; the application log says which of these each message was. `AntiVirus/StripAction.cs`
+  delivers a message that is one attachment in four shapes, an S/MIME message signed as one part and one encrypted as
+  one part, and one that is one text part, and holds a message's file while the stripper reads it and finds the
+  notice naming the message's sender and recipient and nothing in the error log; `SealedMessageTester` holds
+  `IsEncrypted` to the S/MIME and PGP/MIME shapes ([SealedMail.md](hmailserver/docs/SealedMail.md), "The "delete
+  attachments" anti-virus action").
 
 - **Fixed: the anti-virus "message deleted" notice went to none of the recipients of a message whose envelope
   sender is empty.** With *Notify the recipients* on, the delete action tells every recipient of an infected message

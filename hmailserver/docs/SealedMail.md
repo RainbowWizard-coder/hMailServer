@@ -205,7 +205,9 @@ What the action does with a message that is not text with files attached:
   **deleted**, as *Delete the whole message* deletes a message. Each of its recipients
   is sent the server's *message deleted* notice (the `VIRUS_NOTIFICATION` server
   message) in place of the note, whatever *Notify the recipients* says, and its sender
-  is not told, as this action never tells the sender. It is deleted rather than held:
+  is not told, as this action never tells the sender; when the message's header cannot
+  be read either, the notice gives the envelope's sender and the recipient as its
+  *From* and *To*. It is deleted rather than held:
   a message that cannot be read now is no more readable on a later pass, and a hold
   would end in a return to a sender that virus mail forges. The log says `Message will
   be deleted`, with the reason.
