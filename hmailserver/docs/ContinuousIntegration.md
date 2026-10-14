@@ -140,9 +140,9 @@ whose artifact holds the arm64 `.deb`), and `release` waits for every job that
 can fail a tag's pipeline - the checks, both suites, the upgrade gates, the
 package jobs, `linux-cross`, `linux-sanitize`, `linux-image`,
 `linux-image-arm64`, `linux-repro`, `windows-dotnet` -
-and `windows-installer` ([The release](#the-release)). Each of the two
-runners with the tag `linix` runs up to three jobs at once
-([The runners](#the-runners)), and the rest queue behind them in the
+and `windows-installer` ([The release](#the-release)). Of the three
+runners with the tag `linix`, linix and server2 each run up to three jobs at
+once and s1-linux two ([The runners](#the-runners)), and the rest queue behind them in the
 order GitLab hands them out; bench150's two jobs take the bench's gate lock in turn
 ([The .NET job](#the-net-job)), and `windows-gate-s1vm` takes S1-WINBENCH's.
 
@@ -309,8 +309,8 @@ sets one ([GitLab's hosted runners beside the project's](#gitlabs-hosted-runners
 job that names no runner of its own takes, GitLab's templates' jobs among them
 (`semgrep-sast`, `secret_detection`, and any analyzer a template would add).
 `container_scanning`, which ran GitLab's template until 10 October 2026, takes them
-too. `.gitlab-ci.yml`'s `variables:` set `HM_RUNNER` to `linix`, the tag linix
-and server2 carry. The jobs that need a machine of a kind name their own runner as
+too. `.gitlab-ci.yml`'s `variables:` set `HM_RUNNER` to `linix`, the tag linix,
+server2 and s1-linux carry. The jobs that need a machine of a kind name their own runner as
 before (`.linix`'s `linix`, `bench150`, `bench-s1vm`, `linix-systemd`). The workflow's rules
 choose the runner for each pipeline: every rule that makes a pipeline for a
 protected ref that is not a merge request's - `master`, a `batch*` branch, a `v*`
@@ -375,8 +375,8 @@ tags as well, and judges a job that takes `[$HM_RUNNER]` by the workflow's rules
 ([The repository
 checks](#the-repository-checks-and-the-scorecard-checks-left-out)).
 
-**What changes.** linix and server2 take the forty jobs, each short ([How long
-each job takes](#how-long-each-job-takes)), in images pulled on first use and
+**What changes.** linix, server2 and s1-linux take the forty jobs, each short
+([How long each job takes](#how-long-each-job-takes)), in images pulled on first use and
 kept ([linix](#linix)), and the cache `package-repos` keeps the release's
 package files in is the runner's own, in the volumes that hold `linux-fuzz`'s,
 not GitLab's: a run that finds none there downloads every file again, each held
@@ -395,17 +395,20 @@ up on a file.
 
 **What it trusts.** The ID tokens of the jobs that sign - `release-sign`'s and
 `container-image-sign`'s `SIGSTORE_ID_TOKEN` in a `v*` tag's pipeline, and
-`pypi-publish`'s - are held on linix or server2 while those jobs run, where
-until 9 October 2026 a VM of GitLab's held them, made for the one job. Whoever
-is root on either machine or in its `docker` group, or a job of `linix-systemd`,
-which runs privileged on linix's Docker, in a protected ref's pipeline at the
-same time, can read them while the job runs, and with a tag's
+`pypi-publish`'s - are held on linix, server2 or s1-linux while those jobs run,
+where until 9 October 2026 a VM of GitLab's held them, made for the one job.
+Whoever is root on one of the three machines or in its `docker` group, or is an
+administrator of server1, the owner's machine that s1-linux runs on, or a job of
+`linix-systemd`, which runs privileged on linix's Docker, in a protected ref's
+pipeline at the same time, can read them while the job runs, and with a tag's
 `SIGSTORE_ID_TOKEN` have Fulcio certify a key as that release's pipeline while
-the token is valid. The two machines were trusted with the release already -
-they build the Linux packages it carries - and only a protected ref's pipeline
-reaches them. Nothing else is handed to them that was not: every job of a
-protected ref's pipeline is given every protected variable, on these machines as
-before; what is new on them is the tag's signing identity.
+the token is valid. The three machines were trusted with the release already -
+they build the Linux packages it carries, whichever of them takes each job,
+s1-linux since it took the tag `linix` on 13 October 2026 - and only a protected
+ref's pipeline reaches them, since each runner is registered for protected refs
+alone ([The runners](#the-runners)). Nothing else is handed to them that was
+not: every job of a protected ref's pipeline is given every protected variable,
+on these machines as before; what is new on them is the tag's signing identity.
 
 GitLab's hosted runners beside the project's
 --------------------------------------------
@@ -426,7 +429,7 @@ as it was.
 |---|---|---|---|
 | `HM_RUNNER_BUILD` | The builds and checks in the CI image or a distribution's own amd64 image, 21 jobs: `linux-build`, `linux-build-gcc`, `linux-cross`, `linux-sanitize`, `linux-repro`, `linux-sbom`, `linux-live-update`, both upgrade gates, `linux-package-deb` and `linux-package-rpm`, `linux-image`, `static-analysis`, `semgrep`, `ci-image-packages`, `dependency-scan`, `repo-hygiene`, `source-tarball`, `release-packages`, and the two AArch64 SBOM jobs | `saas-linux-large-amd64` | none |
 | `HM_RUNNER_PACKAGES` | The package builds and their install jobs in amd64 containers, 45 jobs: every `.deb` build (the arm64 ones are cross-compiled in amd64 containers) and the amd64 install jobs, the x86_64 `.rpm` builds and their install jobs, the seven source packages and their install jobs, `alpine-package` and `alpine-install`, the AppImages' amd64 jobs (`appimage-aarch64-compile` among them), and `snap-build-amd64` | `saas-linux-large-amd64` | `HM_LANE_PACKAGES`, `linix-package-build` |
-| `HM_RUNNER_ARM64` | The jobs in an arm64 container, which linix and server2 run under qemu-user, 15 jobs: the four arm64 `.deb` and six aarch64 `.rpm` install jobs, `appimage-runtime-aarch64`, `appimage-aarch64`, `appimage-test-aarch64`, `snap-build-arm64` and `linux-image-arm64` | `saas-linux-medium-arm64`, where they run natively | none |
+| `HM_RUNNER_ARM64` | The jobs in an arm64 container, which linix, server2 and s1-linux run under qemu-user, 15 jobs: the four arm64 `.deb` and six aarch64 `.rpm` install jobs, `appimage-runtime-aarch64`, `appimage-aarch64`, `appimage-test-aarch64`, `snap-build-arm64` and `linux-image-arm64` | `saas-linux-medium-arm64`, where they run natively | none |
 | `HM_RUNNER_SUITE` | `linux-suite` and `alpine-suite` | `saas-linux-large-amd64` | `HM_LANE_SUITE`, `linix-suite` |
 
 `build/check-release-chain.py` holds each class to the jobs it names: a job takes a
@@ -726,7 +729,7 @@ fork's CI files, on runners the fork's owner can choose: what it says is the
 fork's to report. Such a change lands through a batch, whose pipeline runs here,
 or on a pipeline a maintainer runs for the merge request in this project after
 reading its CI files; `build/land-via-mr.py` refuses a pipeline another project
-ran. The change checks run in each - on linix or server2 in a batch's pipeline,
+ran. The change checks run in each - on linix, server2 or s1-linux in a batch's pipeline,
 on GitLab's hosted runner in a merge request's - (`.gitlab/ci/mr-checks.yml`,
 `.gitlab/ci/gitlab-security.yml` and one checker),
 and they hold the policy of [SECURITY.md](../../SECURITY.md), "Vulnerability
@@ -1577,7 +1580,8 @@ beside the three), bench150, the Windows bench, and S1-WINBENCH, a second one,
 which takes half of the Windows suite ([S1-WINBENCH](#s1-winbench)). s1-linux is an
 Ubuntu 26.04 virtual machine on server1 with 16 vCPUs and no KVM, runner 57371020,
 registered as the others are, which has taken jobs of the tag `linix` since 13
-October 2026.
+October 2026: the docker executor with six CPUs and 8 GB of memory for each job,
+as on linix, and up to two jobs at once, in its 16 GB.
 
 ### linix
 
@@ -1675,11 +1679,12 @@ without it the job runs it under TCG ([Nix.md](Nix.md)).
 **It shares the tag `linix`.** No job names server2 alone: every job tagged
 `linix` - each job of `.linix`, every job that takes `default:`'s tags, and the
 others the tables above give to linix -
-goes to whichever of the two runners asks GitLab for it first with a place
-free, so *linix* in those tables names the tag, not the machine, and up to six
-such jobs run at once, three on each. A `resource_group` belongs to GitLab, not
-to a runner, so `linix-suite` and `linix-package-build` still run one job of
-their kind at a time across both machines. `linix-systemd` is an entry of
+goes to whichever of the three runners - linix, server2 and s1-linux - asks
+GitLab for it first with a place free, so *linix* in those tables names the tag,
+not the machine, and up to eight such jobs run at once, three on linix, three on
+server2 and two on s1-linux. A `resource_group` belongs to GitLab, not to a
+runner, so `linix-suite` and `linix-package-build` still run one job of their
+kind at a time across the three machines. `linix-systemd` is an entry of
 linix's alone, so `package-systemd-ubuntu26.04` and `package-systemd-fedora44`
 run only there. server2 needs what linix needs (above): the job image, which it
 pulls from the project's registry by the digest `.linix` names, as linix does,
@@ -1970,8 +1975,8 @@ once; since 6 October 2026 it names it by digest:
   (`linux-libc-dev` 7.0.0-38.38, `libc6` 2.43-2ubuntu2.4, `openssl`
   3.5.5-1ubuntu3.7), and pushed: the same tag, moved to
   `sha256:350484026f1ade2f1c8bb0b9248fcbb32bf45394c40e9a89af4f92445e31d2d6`,
-  which `.linix` has named since, and both runners with the tag, linix and
-  server2, pull it by that digest. The 6 October digest was left with no tag,
+  which `.linix` has named since, and the runners with the tag, linix, server2
+  and s1-linux, pull it by that digest. The 6 October digest was left with no tag,
   which the registry does not keep: GitLab.com's registry removes an untagged
   manifest that nothing references about 24 hours later (its online garbage
   collection; the cleanup policy, switched off, governs tags alone). So on 8
@@ -1992,7 +1997,7 @@ once; since 6 October 2026 it names it by digest:
 
 What the digest holds against is a name given to other bytes - `docker tag`, or
 an image built or loaded under the same name. It is no proof against root on
-linix or server2 rewriting Docker's store underneath it, or the runner: a job on
+linix, server2 or s1-linux rewriting Docker's store underneath it, or the runner: a job on
 linix's privileged `linix-systemd` entry (above) is root on linix in effect and
 could change an image's files in place, which no check made inside a job can
 see. That reach is the maintainers' already, since only they start a protected
@@ -2434,7 +2439,7 @@ pinned by digest where the CI file names it.
 ### Nothing from GitHub, in the job
 
 The runners are to enforce the rule as well as follow it: the runner entries of
-linix and server2 are to map `github.com`, `api.github.com`, `codeload.github.com`,
+linix, server2 and s1-linux are to map `github.com`, `api.github.com`, `codeload.github.com`,
 `objects.githubusercontent.com`, `raw.githubusercontent.com` and `ghcr.io` to
 0.0.0.0 in every job's `/etc/hosts` (`extra_hosts`), and bench150's hosts file
 to do the same, so that a tool that quietly reaches for GitHub fails by name.
@@ -2454,9 +2459,10 @@ Two things that would not cover were found on 28 September 2026:
   address; with `::` beside it, to `::`. The runner's entries want `::` too.
 
 And a job on GitLab's hosted runners - a merge request's checks - has no entries
-at all, nor, while the entries above are still to be made, a job on linix or
-server2: neither runner's `config.toml` maps a GitHub host (read 9 October 2026;
-linix's `extra_hosts` holds one entry, for `archives.boost.io`). So a job can take
+at all, nor, while the entries above are still to be made, a job on linix,
+server2 or s1-linux: none of the three runners' `config.toml` maps a GitHub host
+(linix's and server2's read on 9 October 2026, s1-linux's as it was set up on 13
+October 2026; linix's `extra_hosts` holds one entry, for `archives.boost.io`). So a job can take
 the rule into itself: `.gitlab/ci/no-github.yml` defines `.no-github`, whose
 `before_script` adds the six hosts at 0.0.0.0 and at `::` to the job's own
 `/etc/hosts`, writes `hosts: files dns` where there is no `/etc/nsswitch.conf`,
@@ -2565,8 +2571,8 @@ Windows). It replays every kept input and every committed reproducer first, then
 fuzzes each harness for `HM_FUZZ_MINUTES` (20) with `HM_FUZZ_JOBS` workers (2),
 on the corpus the earlier nights grew, which the runner's cache carries from one
 night to the next - the cache of the place the job runs in, one of linix's three
-([linix](#linix)) or of server2's ([server2](#server2)), so two nights in
-different places grow two corpora. A finding
+([linix](#linix)), of server2's ([server2](#server2)) or of s1-linux's two, so two
+nights in different places grow two corpora. A finding
 fails the job. The job's artifact is
 `fuzz-results/` - each harness's log and, on a finding, the input libFuzzer
 wrote - kept whether the job passed or failed, for 30 days, and readable by the
@@ -2600,8 +2606,8 @@ Then start the first run with the schedule's *Run* button, and check that its
 pipeline holds `linux-fuzz` alone. The schedule runs as the maintainer who owns
 it, who must be allowed to push to `master`, because a scheduled pipeline on a
 protected branch is that user's. *Run pipeline* by hand does not start it: a
-pipeline started that way is not a schedule's. It takes one of the three places
-of linix or of server2 for a little over an hour, and a protected ref's
+pipeline started that way is not a schedule's. It takes one place of linix,
+server2 or s1-linux for a little over an hour, and a protected ref's
 pipeline that arrives meanwhile runs beside it, on the same cores. To start the corpus again from the
 seeds, clear the runner caches
 (*Pipelines*, *Clear runner caches*).
@@ -2687,8 +2693,8 @@ well: two that reading the static analysis's findings led to, and one the
 upgrade gate's new comparison found. What each was, and what fixes it:
 
 - `update-helper`: GitLab's shared runners, where the job ran until 9 October
-  2026, check out with umask 0000, as the docker runners of linix and server2
-  do, and `systemd-analyze verify` refused the world-writable units. The job gives
+  2026, check out with umask 0000, as the docker runners of linix, server2 and
+  s1-linux do, and `systemd-analyze verify` refused the world-writable units. The job gives
   the checkout's three units the mode the package installs them with, 0644.
 - `harnesses`: the portal harness took the first resize handle of the week
   view, which in UTC is another event's, and two more of its checks assumed
@@ -4053,7 +4059,7 @@ October 2026 it found 59 pins in 118 places in 37 seconds, and one gone,
 `container_scanning`'s, which answered 404 ([Security
 scanning](#security-scanning)).
 
-The `image-pins` job runs it daily, on linix or server2, in the pipeline of the
+The `image-pins` job runs it daily, on linix, server2 or s1-linux, in the pipeline of the
 schedule described `renovate`, the pipeline about the pins, beside `renovate` and
 needing nothing of it: its self-test first, against a registry it serves on the
 loopback, then the check, and a pin gone fails that pipeline. It needs the
@@ -4349,7 +4355,7 @@ Two more come from GitLab's own templates (`.gitlab/ci/gitlab-security.yml`,
 included from `.gitlab-ci.yml`): `semgrep-sast`, GitLab's Semgrep analyzer and
 rules over every language of the tree, the server's C and C++ included, and
 `secret_detection`, which looks for a key, token or password in the commits a
-pipeline brings. They run for `master` and a merge request - on linix or server2,
+pipeline brings. They run for `master` and a merge request - on linix, server2 or s1-linux,
 and in a merge request's pipeline on GitLab's hosted runner; `semgrep-sast` for a
 protected `batch*` branch too, whose
 `semgrep-sast-gate` reads its report, and for a `v*` tag, whose release job does.
@@ -5084,7 +5090,7 @@ by an alias, a merge key (`<<:`), an `extends` by an alias, an `!reference` the
 files do not resolve, and an include that is not a local file or one of GitLab's
 templates. Tags and `extends` may be block lists. A job is on the project's
 runners when it asks for a tag that is a variable, or for any tag they are
-registered with (`linix`, `linux` and `docker` for linix and server2;
+registered with (`linix`, `linux` and `docker` for linix, server2 and s1-linux;
 `bench150`, `bench` and `windows` for bench150; `bench-s1vm` and `windows` for
 S1-WINBENCH); a job that names none takes
 `default:`'s. One whose tags are `default:`'s `[$HM_RUNNER]` is judged by the
@@ -5101,7 +5107,8 @@ first); the check as first rewritten (a4636e983) passed 22 of those 23, and
 failed two of the eight that should pass. The runners are registered for
 protected refs only (`access_level` `ref_protected`, read by a maintainer with
 `glab api runners/<id>`: linix and bench150 on 26 September 2026, and those two,
-`linix-systemd` and server2 on 6 October 2026, and S1-WINBENCH on 14 October 2026),
+`linix-systemd` and server2 on 6 October 2026, s1-linux on 13 October 2026, and
+S1-WINBENCH on 14 October 2026),
 so none of that was open on this
 project: the check is the CI files' own guarantee.
 
@@ -5380,7 +5387,7 @@ Since 6.3.6 `linux-build-gcc` adds a second whole build to linix's share of a
 `master` or `batch*` pipeline, never of a tag's: 25.5 minutes in WSL at four
 jobs, and not yet measured on linix, whose job has six CPUs. `scorecard` takes
 a few minutes of linix once a week, in a pipeline of its own. The change checks
-run where the other checks do: on linix or server2 in a `batch*` branch's
+run where the other checks do: on linix, server2 or s1-linux in a `batch*` branch's
 pipeline, and on GitLab's hosted runner, on the namespace's compute minutes, in a
 merge request's; the dependency check runs only when a lock file changed.
 

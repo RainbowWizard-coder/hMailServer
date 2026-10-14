@@ -5,8 +5,8 @@
 # The command-line clients as packages (hmailserver/docs/CommandLinePackages.md):
 # hmctl on PyPI as hmailserver-cli, and the HmailServer PowerShell module on the
 # PowerShell Gallery. Included from .gitlab-ci.yml. On default:'s tags, [$HM_RUNNER]:
-# linix or server2 for a protected ref that is not a merge request's, GitLab's hosted
-# runner for any other pipeline:
+# linix, server2 or s1-linux for a protected ref that is not a merge request's,
+# GitLab's hosted runner for any other pipeline:
 #
 #   cli-packages        a merge request's or a branch's pipeline, when the clients or
 #                       their packaging change: build's pinned tools installed with

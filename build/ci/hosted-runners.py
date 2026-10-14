@@ -264,7 +264,7 @@ def setting_back(environ):
     named = sorted(set(n for c in CLASSES for n in (c[0], c[2]) if n and environ.get(n) not in (None, OWN, c[3]))) or every
     return ("To put every job back on the project's runners, delete the project CI/CD variable%s %s (Settings, CI/CD, "
             "Variables; or glab api -X DELETE projects/$CI_PROJECT_ID/variables/<name>) and make a new pipeline (CI/CD, "
-            "Pipelines, Run pipeline, or a push): each class of it is then on linix and server2 as before, while a "
+            "Pipelines, Run pipeline, or a push): each class of it is then on the project's runners as before, while a "
             "pipeline already made keeps the runners its jobs were made with, a job of it run again among them (%s)." % (
                 "s" if len(named) > 1 else "", ", ".join(named), DOCUMENT))
 

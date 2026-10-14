@@ -74,8 +74,8 @@
 # retried too, and so is a failure of GitLab's own (.gate-retry,
 # .gitlab/ci/gitlab-security.yml).
 #
-# Where they run: on default:'s tags, [$HM_RUNNER] (.gitlab-ci.yml) - linix or server2
-# in a batch* branch's pipeline, GitLab's hosted runner in a merge request's, whose code
+# Where they run: on default:'s tags, [$HM_RUNNER] (.gitlab-ci.yml) - linix, server2
+# or s1-linux in a batch* branch's pipeline, GitLab's hosted runner in a merge request's, whose code
 # reaches no machine of the project's - in Docker Hub's python:3.14-slim-trixie pinned
 # by digest, the image the checkers job runs in. They need no secret: they read the
 # checkout, semgrep-sast's report, master from the project itself, and for the

@@ -167,8 +167,8 @@
     paths:
       - packages-deb/*/install-*.txt
 
-# An arm64 install job: its container is arm64, which linix and server2 run under
-# qemu-user and GitLab's arm64 machines natively, so its class is HM_RUNNER_ARM64's, not
+# An arm64 install job: its container is arm64, which linix, server2 and s1-linux run
+# under qemu-user and GitLab's arm64 machines natively, so its class is HM_RUNNER_ARM64's, not
 # its build's (.gitlab-ci.yml, variables:).
 .deb-install-arm64:
   extends: .deb-install

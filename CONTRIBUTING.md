@@ -378,7 +378,7 @@ CI files made to break it). Each script is started as `python3 build/...`, `node
 `pwsh -File build/...`, never by its shebang, because the tree checks out CRLF.
 
 **On the project's own runners**, for a push to `master`, to a `batch*` branch or of a `v*` tag, and for
-nothing else. On the Linux runners, linix and server2, which share the tag `linix`: *linux-build* (the server with clang, its tester programs, the OpenPGP
+nothing else. On the Linux runners, linix, server2 and s1-linux, which share the tag `linix`: *linux-build* (the server with clang, its tester programs, the OpenPGP
 writer against GnuPG, and the `.deb` and the `.rpm`), *linux-suite* (the whole Linux suite against it on
 PostgreSQL), *linux-cross* (every core file compiled for AArch64), *linux-sanitize* (`snmp-tests` under
 AddressSanitizer, once the option exists), *linux-db-upgrade-pgsql* and *-mysql* (`build/db-upgrade-gate.sh`),

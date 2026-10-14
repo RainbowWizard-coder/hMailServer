@@ -27,8 +27,8 @@
 # x86_64 builds and install jobs are HM_RUNNER_PACKAGES's, the builds waiting in its
 # lane, HM_LANE_PACKAGES; the aarch64 install jobs are HM_RUNNER_ARM64's, natively on
 # GitLab's arm64 machines when it sends them there; the SBOM job is HM_RUNNER_BUILD's.
-# The aarch64 builds stay on linix and server2 whatever the switches say, in the lane
-# linix-package-build there: each runs its testers under qemu-user, which GitLab's
+# The aarch64 builds stay on linix, server2 and s1-linux whatever the switches say, in
+# the lane linix-package-build there: each runs its testers under qemu-user, which GitLab's
 # amd64 machines have not (.rpm-build-aarch64).
 #
 # The release collects generic/hmailserver-<v>-1.aarch64.rpm from 6.3.6 with its
@@ -229,8 +229,8 @@
   script:
     - bash build/ci/packages/rpm-install-test.sh "$HM_RPM_TARGET" "$HM_RPM_ARCH"
 
-# An aarch64 install job: its container is aarch64, which linix and server2 run under
-# qemu-user and GitLab's arm64 machines natively (HM_RUNNER_ARM64).
+# An aarch64 install job: its container is aarch64, which linix, server2 and s1-linux
+# run under qemu-user and GitLab's arm64 machines natively (HM_RUNNER_ARM64).
 .rpm-install-aarch64:
   extends: .rpm-install
   tags: [$HM_RUNNER_ARM64]

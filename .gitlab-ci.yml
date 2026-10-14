@@ -255,7 +255,7 @@ default:
 
 variables:
   # The runner of every job that names none of its own (default:, above): the tag
-  # linix, which linix and server2 carry. The workflow's rules set it to
+  # linix, which linix, server2 and s1-linux carry. The workflow's rules set it to
   # saas-linux-small-amd64, GitLab's hosted small Linux runner, for a merge request's
   # pipeline and an unprotected ref's, and nothing else in the CI files sets it
   # (build/check-release-chain.py). A project CI/CD variable of this name would stand
@@ -279,8 +279,9 @@ variables:
   #                       (linux-build, the scans, linux-repro, ...): saas-linux-large-amd64
   #   HM_RUNNER_PACKAGES  the package builds and their install jobs in amd64 containers,
   #                       with their lane HM_LANE_PACKAGES: saas-linux-large-amd64
-  #   HM_RUNNER_ARM64     the jobs in an arm64 container, which on linix and server2 run
-  #                       under qemu-user: natively on saas-linux-medium-arm64
+  #   HM_RUNNER_ARM64     the jobs in an arm64 container, which linix, server2 and
+  #                       s1-linux run under qemu-user: natively on
+  #                       saas-linux-medium-arm64
   #   HM_RUNNER_SUITE     linux-suite and alpine-suite, with their lane HM_LANE_SUITE
   HM_RUNNER_BUILD: linix
   HM_RUNNER_PACKAGES: linix
@@ -592,9 +593,10 @@ pages:
 
 # ---------------------------------------------------------------- the project's own runners
 #
-# linix and server2 (tags linux, docker, linix), linix's second entry linix-systemd
-# (tag linix-systemd), bench150 (tags windows, bench, bench150) and S1-WINBENCH (tags
-# windows, bench-s1vm), a Windows Server VM on server1 that takes windows-gate-s1vm,
+# linix, server2 and s1-linux, a Linux VM on server1 (tags linux, docker, linix, and
+# kvm on server2), linix's second entry linix-systemd (tag linix-systemd), bench150
+# (tags windows, bench, bench150) and S1-WINBENCH (tags windows, bench-s1vm), a
+# Windows Server VM on server1 that takes windows-gate-s1vm,
 # are project runners registered ref_protected with run_untagged off, and a job
 # reaches one only by its tag - every job of the CI files does, one that names none by
 # default:'s [$HM_RUNNER]. These rules keep a job that names one of them out of any
@@ -1160,9 +1162,10 @@ update-helper:
     # The only thing systemd-analyze objects to in a checkout is the two executables
     # the package would have installed; they are tolerated by name and nothing else is.
     # A runner's checkout is made under umask 0000 - the docker executor's default on
-    # linix and server2, as on GitLab's hosted runners - so every file is world-writable,
-    # which systemd-analyze reports; the package installs the units 0644 (CMake's
-    # install(FILES) default), so the checkout's copies are given that mode first.
+    # linix, server2 and s1-linux, as on GitLab's hosted runners - so every file is
+    # world-writable, which systemd-analyze reports; the package installs the units
+    # 0644 (CMake's install(FILES) default), so the checkout's copies are given that
+    # mode first.
     - |
       cd hmailserver/source/Server/platform/packaging
       chmod 0644 hmailserver.service hmailserver-update.path hmailserver-update.service
@@ -2117,8 +2120,9 @@ release-sbom:
 # (HM_COSIGN_IMAGE, above): nothing from GitHub. On the project's runners Fulcio's
 # certificate says the runner was self-hosted (its Runner Environment extension,
 # 1.3.6.1.4.1.57264.1.11), which no verifier of the project's reads, and the tag's
-# ID token is on linix or server2 while the job runs (docs/ContinuousIntegration.md,
-# "Every job on the project's own runners"). The certificate names
+# ID token is on linix, server2 or s1-linux while the job runs
+# (docs/ContinuousIntegration.md, "Every job on the project's own runners"). The
+# certificate names
 # https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/<tag>, the group's
 # path the project has been at since 29 September 2026; 6.3.5's named the first one,
 # https://gitlab.com/Progressiverobot/hmailserver//...

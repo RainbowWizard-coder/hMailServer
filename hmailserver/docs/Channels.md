@@ -293,7 +293,7 @@ Copr's builder verifies again, and the PPA uploads the verified file.
 Two jobs, because `cosign` has no Windows build outside GitHub and `choco` runs on
 Windows. Pressing `chocolatey-release` starts both.
 
-- `chocolatey-release` (linix or server2): `release-files.py verify
+- `chocolatey-release` (linix, server2 or s1-linux): `release-files.py verify
   "hMailServer-{version}-x64.exe"`, the installer verified as above, and
   `verification.json` handed on.
 - `chocolatey-publish` (bench150, `build/ci/channels/chocolatey-publish.ps1`): the

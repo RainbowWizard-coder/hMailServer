@@ -375,7 +375,7 @@ deployment off with `pages: false`, a key GitLab merges into the job of that
 name. If both deployed, the feed alone would be live between the two.
 
 The tools are Debian 13's own `apt-utils`, `dpkg-dev`, `createrepo-c` and
-`gnupg`. They run in `debian:13` pinned by digest, on linix or server2 like
+`gnupg`. They run in `debian:13` pinned by digest, on linix, server2 or s1-linux like
 `pages`.
 
 **Without the key, the feed alone.** If `HM_REPO_SIGNING_KEY` is not set, or

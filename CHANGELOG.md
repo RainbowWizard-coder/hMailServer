@@ -5733,7 +5733,7 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   SUP2-1). On 6 October 2026 the image was pushed with `build/ci/build-linux-image.sh --push` to
   `registry.gitlab.com/hmailserver/hmailserver/ci-linux`, which anyone can pull from, and `.linix` now names it
   `ci-linux:26.04-52e9976e73bf@sha256:4eead001…`: Docker takes an image named so only as the registry holds that
-  digest, and linix and server2 both pull it from there. `.linix`'s `before_script` is
+  digest, and each runner with the tag `linix` pulls it from there. `.linix`'s `before_script` is
   `python3 build/check-ci-image.py --job`, and `container-image-sbom`, `container-image-start` and
   `container-image-start-arm64`, which take its image without extending it, start with the same step: it stops the
   job before it builds anything unless the image it was started in is named so, with the tag of the commit's own
@@ -5884,7 +5884,7 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   and regctl's images and `container_scanning`, the command-line packages' jobs and the release channels' but
   `snap-upload` and `chocolatey-publish`, `helm-chart-package` and `installer-smoke`. `.gitlab-ci.yml`'s `default:`
   now gives every job that names no runner of its own, GitLab's templates' jobs among them, the tags `[$HM_RUNNER]`:
-  `linix`, which linix and server2 carry, in such a pipeline. A merge request's pipeline and an unprotected branch's
+  `linix`, which linix, server2 and s1-linux carry, in such a pipeline. A merge request's pipeline and an unprotected branch's
   still run their checks on GitLab's hosted runner (`saas-linux-small-amd64`, which the workflow's rules set for them)
   and never on the project's machines, which are registered for protected refs alone and take no code nobody here has
   reviewed: a fork's in the fork, on the fork's minutes; Renovate's, one a maintainer runs here for a fork's merge
@@ -5898,11 +5898,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Token-Permissions judges a job on `default:`'s tags by the workflow's rules. Under linix's limits `semgrep-sast`
   took 188 s over the batch and found what it finds on server2. The Sigstore certificate of a release's signature now
   names the runner self-hosted, an extension nothing that verifies a release reads (ContinuousIntegration.md, "Every
-  job on the project's own runners"). And the ID token a release tag's signing jobs are given is now held on linix or
-  server2 while they run, where a VM of GitLab's made for the one job held it: whoever is root there, or in the
-  `docker` group, could have Fulcio certify a key as that release's pipeline while the token is valid. Those machines
-  build the release's Linux packages already, and only a protected ref's pipeline reaches them (the same section,
-  "What it trusts").
+  job on the project's own runners"). And the ID token a release tag's signing jobs are given is now held on linix,
+  server2 or s1-linux while they run, where a VM of GitLab's made for the one job held it: whoever is root there, or
+  in the `docker` group, or an administrator of server1, which s1-linux runs on, could have Fulcio certify a key as
+  that release's pipeline while the token is valid. Those machines build the release's Linux packages already, and
+  only a protected ref's pipeline reaches them (the same section, "What it trusts").
 - **GitLab's hosted runners can take a class of jobs beside the project's own, by a switch the owner sets.** The
   group is on GitLab's open-source plan since 13 October 2026, with 50,000 compute minutes a month. The jobs on the
   project's runners that need nothing of the project's are in four classes, each of which takes its tags from a
@@ -5910,9 +5910,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   GitLab's hosted Linux machines in a protected ref's pipeline: `HM_RUNNER_BUILD`, the 21 builds and checks in the CI
   image or a distribution's (`linux-build`, the scans, `linux-repro` and the rest); `HM_RUNNER_PACKAGES`, the 45
   package builds and install jobs in amd64 containers; `HM_RUNNER_ARM64`, the 15 jobs in an arm64 container, which
-  linix and server2 run under qemu-user and GitLab's arm64 machines natively; and `HM_RUNNER_SUITE`, the two suites.
-  The package builds and the suites take their resource groups from `HM_LANE_PACKAGES` and `HM_LANE_SUITE`
-  (`linix-package-build` and `linix-suite`), which the owner sets to `hosted-$CI_JOB_NAME` beside a switch, so that
+  linix, server2 and s1-linux run under qemu-user and GitLab's arm64 machines natively; and `HM_RUNNER_SUITE`, the
+  two suites. The package builds and the suites take their resource groups from `HM_LANE_PACKAGES` and
+  `HM_LANE_SUITE` (`linix-package-build` and `linix-suite`), which the owner sets to `hosted-$CI_JOB_NAME` beside a
+  switch, so that
   jobs that each have a machine of their own do not wait for one another: one after another, the 28 package builds
   made each batch's pipeline about eight hours long in October 2026. Nothing moves until a switch is set. Every image
   and service asks for the pull policy `[if-not-present, always]`, since GitLab's runners allow `always` alone. What
@@ -6351,6 +6352,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   licensed or rebuilt before it. ContinuousIntegration.md says the same of each bench, and that bench150 can take
   S1-WINBENCH's half of the Windows suite while S1-WINBENCH is down, by a runner tag and no commit; RELEASE.md's
   "Before starting" checks both licences. HelpPagesData.cpp is regenerated.
+- **ContinuousIntegration.md, the CI files and the documents name s1-linux beside linix and server2.** s1-linux, a
+  virtual machine on server1, has carried the tag `linix` since 13 October 2026, so `release-sign`,
+  `container-image-sign` and `pypi-publish`, which take `default:`'s tag, may run there in a release's pipeline, and
+  their ID tokens be held there while they run. ContinuousIntegration.md's "What it trusts" names it, with server1's
+  administrators among those who could read the tokens, and says why the three machines are trusted with the release,
+  where it named linix and server2, "the two machines". The comments of `.gitlab-ci.yml` and the other CI files, the
+  scripts' comments and messages, and the documents that counted the runners with the tag - ContinuousIntegration.md,
+  CONTRIBUTING.md, Channels.md, CommandLinePackages.md, ContainerImage.md, PackageManagers.md, PackagesAppImage.md,
+  PackagesDeb.md, PackagesRpm.md, RegressionEnvironment.md, UpdateFeed.md and three entries above - name the three,
+  with up to eight such jobs at once, three on linix and on server2 and two on s1-linux, where they named two.
+  HelpPagesData.cpp is regenerated.
 
 ---
 

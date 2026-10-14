@@ -92,8 +92,8 @@
 # would sit in every pipeline on master, and would need a pipeline to be started in
 # anyway.
 #
-# Where they run: on default:'s tags, [$HM_RUNNER] (.gitlab-ci.yml) - linix or
-# server2, by the tag linix, in a pipeline for a protected ref that is not a merge
+# Where they run: on default:'s tags, [$HM_RUNNER] (.gitlab-ci.yml) - linix,
+# server2 or s1-linux, by the tag linix, in a pipeline for a protected ref that is not a merge
 # request's, and GitLab's hosted runner in a merge request's, whose code reaches no
 # machine of the project's. Until 9 October 2026 they carried no tag and ran on
 # GitLab's shared runners, whose compute minutes then ran out.

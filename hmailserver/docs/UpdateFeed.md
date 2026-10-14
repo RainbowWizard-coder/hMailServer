@@ -937,7 +937,7 @@ How it is published
 `build/generate-update-feed.py` reads the releases and the package registry
 through GitLab's public API, with no token, and writes the site into `public/`.
 The `pages` job in `.gitlab-ci.yml` runs it on the project's own runners (the
-tag `linix`: linix or server2; GitLab's shared runners until 9 October 2026).
+tag `linix`: linix, server2 or s1-linux; GitLab's shared runners until 9 October 2026).
 The `package-repos` job then adds the signed apt and dnf repositories to the
 same site, when their signing key is set ([PackageManagers.md](PackageManagers.md),
 "apt and dnf"), and GitLab Pages deploys the result. The two jobs run for a push

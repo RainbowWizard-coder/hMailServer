@@ -293,7 +293,7 @@ index that the CI image and `linux-package-deb` already pin (`513c0741…`).
 
 **Serialisation.** The build jobs share `resource_group: linix-package-build`,
 so only one of these builds runs at a time, across pipelines and across the
-two runners with the tag `linix`, linix and server2. Each
+three runners with the tag `linix`, linix, server2 and s1-linux. Each
 build runs six compilers at once (`HM_BUILD_JOBS`); linix had 16 cores and
 11 GB of memory on 26 September 2026. The group holds only the jobs that name
 it: the RPM and AppImage builds and `linux-build` are outside it unless their

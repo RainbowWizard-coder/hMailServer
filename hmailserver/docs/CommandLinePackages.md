@@ -181,7 +181,7 @@ skipping, when pwsh cannot run it.
 The jobs
 --------
 
-`.gitlab/ci/cli-packages.yml`, on the runner `.gitlab-ci.yml`'s `default:` gives a job: linix or server2 for
+`.gitlab/ci/cli-packages.yml`, on the runner `.gitlab-ci.yml`'s `default:` gives a job: linix, server2 or s1-linux for
 `master`, a `batch*` branch or a `v*` tag, GitLab's hosted runner for a merge request or any other branch
 ([ContinuousIntegration.md](ContinuousIntegration.md), "Every job on the project's own runners"):
 

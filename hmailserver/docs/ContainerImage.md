@@ -47,7 +47,8 @@ whose server cannot run on its own platform, with its own libraries, is never
 made.
 
 The pipeline builds the arm64 image on a runner with the tag `linix` - linix,
-or since 5 October 2026 server2, both x86-64 machines - where the kernel hands
+since 5 October 2026 server2 or since 13 October 2026 s1-linux, all three x86-64
+machines - where the kernel hands
 each arm64 program to qemu-user. In 6.3.6's pipeline server2 built it and
 started it, under emulation; no arm64 machine has run it yet.
 
@@ -385,7 +386,7 @@ that does not exist (empty, pg_dump's exit status 1) or in one cut short.
 | Job | Where | What it does |
 |---|---|---|
 | `container-image-deb` | a runner with the tag `linix`, in cosign's image (`HM_COSIGN_IMAGE`); **started by hand** | Takes `hmailserver_<version>_amd64.deb`, `hmailserver_<version>_arm64.deb` and their SBOMs from the published release, with their Sigstore bundles, and verifies each with `cosign verify-blob` as signed by this project's pipeline for the tag, at either of the project's two paths, with the project's id `86730559` required in the certificate's extensions at the group's path, read from the v0.3 bundle cosign verified by `build/ci/sigstore-certificate.sh` (`build/ci/container-image-deb.sh`). Since 6.3.6 it also takes the release's `hmailserver-linux-<version>-SHA256SUMS.txt`, verified the same way, and holds each `.deb` to the SHA-256 it gives that name and each SBOM to naming its `.deb`'s SHA-256: a signature binds bytes, not a name, so another file the pipeline signed, served under a `.deb`'s name, would verify. A release without either `.deb`, or its SBOM, stops it: the image is built for both platforms or not at all |
-| `container-image-amd64`, `container-image-arm64` | a runner with the tag `linix` (linix or server2), in kaniko's image | Each builds the Dockerfile for its platform from its own architecture's `.deb` - the arm64 one under qemu-user - checks the image's platform, user, entrypoint, healthcheck, ports, file capability, `HM_INSTALL_KIND` and labels and that the server answered `--version` in the build, and keeps the image's tarball for `container-image`; neither pushes (`build/ci/linux-image.sh`, `HM_IMAGE_RELEASE=1`) |
+| `container-image-amd64`, `container-image-arm64` | a runner with the tag `linix` (linix, server2 or s1-linux), in kaniko's image | Each builds the Dockerfile for its platform from its own architecture's `.deb` - the arm64 one under qemu-user - checks the image's platform, user, entrypoint, healthcheck, ports, file capability, `HM_INSTALL_KIND` and labels and that the server answered `--version` in the build, and keeps the image's tarball for `container-image`; neither pushes (`build/ci/linux-image.sh`, `HM_IMAGE_RELEASE=1`) |
 | `container-image` | a runner with the tag `linix`, in regctl's image | Holds each tarball to what its job checked, joins the two images under one index, checks that the index names exactly linux/amd64 and linux/arm64, and only then pushes: each image by its digest, the index as `:<version>` (and `:<major>.<minor>` and `:latest` for a release without a suffix, each only forward: see below). It reads every tag it wrote back (`build/ci/container-image-push.sh`) |
 | `container-image-artifacthub` | a runner with the tag `linix`, in regctl's image; in the default branch's pipeline, **started by hand** | Pushes the tree's `platform/packaging/docker/artifacthub-repo.yml` under the tag `artifacthub.io`, as Artifact Hub reads it, when it holds the repository ID, as it does since 6 October 2026, and reads it back; for a file without one, nothing ([Artifact Hub](#artifact-hub)). Nothing waits for it (`build/ci/container-image-artifacthub.sh`) |
 | `container-image-sbom` | a runner with the tag `linix`, in the Linux CI image | For each platform, Syft's reading of that platform's pushed image by its digest, with what that architecture's `.deb`'s own SBOM names inside the binary (`build/ci/container-image-sbom.sh`) |
@@ -458,8 +459,8 @@ tag's commit, `.linix`'s, and start, as every job in it does, with
 `build/check-ci-image.py --job`. Since 6 October 2026 `.linix` names that image in the
 project's registry by digest
 (`registry.gitlab.com/hmailserver/hmailserver/ci-linux:<release>-<hash>@sha256:<digest>`),
-and whichever runner with the tag `linix` takes the job (linix or, since 5 October
-2026, server2) pulls it from there: keep it in the registry until the release's image
+and whichever runner with the tag `linix` takes the job (linix, server2 since 5
+October 2026 or s1-linux since 13 October 2026) pulls it from there: keep it in the registry until the release's image
 jobs have run ([ContinuousIntegration.md](ContinuousIntegration.md), The image). The
 registry's cleanup policy, were it switched on, would keep its tag by name.
 `container-image-deb` is not allowed to fail, because GitLab starts a job whose
@@ -648,7 +649,7 @@ scripts, in the jobs' own images, unprivileged, as the jobs run them:
 
 ### Packaging and serving the chart
 
-`.gitlab/ci/helm-chart.yml`'s `helm-chart-package` job (linix or server2,
+`.gitlab/ci/helm-chart.yml`'s `helm-chart-package` job (linix, server2 or s1-linux,
 Alpine's image and its `helm`) runs for a protected `v*` tag and a protected
 `batch*` branch. `build/ci/helm-chart-package.sh` takes the version from the tag -
 which must be Version.h's, with or without a SemVer suffix (`v<version>-rc1`, not

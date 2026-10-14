@@ -43,7 +43,7 @@ CHANNELS = os.path.join("build", "ci", "channels")
 PUBLISH = ["channels-verify", "registry-mirror", "aur-publish", "ppa-upload", "copr-build", "obs-publish",
            "chocolatey-release", "snap-upload"]
 FOLLOWS = {"chocolatey-publish": "chocolatey-release"}
-# The jobs in a docker image, on linix or server2 (default:'s tags, or snap-upload's own
+# The jobs in a docker image, on linix, server2 or s1-linux (default:'s tags, or snap-upload's own
 # linix) - GitLab's shared runners until 9 October 2026 - none of whose runners maps
 # GitHub's hosts itself: each keeps GitHub out of itself (.gitlab/ci/no-github.yml).
 NO_GITHUB_JOBS = ["channels-check", "channels-verify", "registry-mirror", "aur-publish", "ppa-upload", "copr-build",

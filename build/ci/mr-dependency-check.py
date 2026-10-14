@@ -8,7 +8,7 @@
 The mr-dependency-check job of .gitlab/ci/mr-checks.yml runs this on every change
 before it lands: in a merge request's pipeline, and in a protected batch* branch's
 pipeline, which is the one GitLab holds that branch's merge request to; with no
-secret, on linix or server2 in the second and on GitLab's hosted runner in the first
+secret, on linix, server2 or s1-linux in the second and on GitLab's hosted runner in the first
 (.gitlab-ci.yml, default: and workflow:). The dependency-scan job (Trivy and OSV,
 build/ci/dependency-scan.py) reads the whole tree, but on linix, for a protected
 ref only, and is allow_failure, so that a finding no change brought does not stop

@@ -226,7 +226,7 @@ gate's eleven-namespace half leaves out the fixtures outside `RegressionTests`
 `Stress`, which a run of the whole suite skips: NUnit runs an `[Explicit]`
 fixture that a class pattern names. The job's half, the six namespaces'
 complement, does neither.
-GitLab CI runs the Linux suite whole as well, on the project's Linux runner.
+GitLab CI runs the Linux suite whole as well, on one of the project's Linux runners.
 
 A faster bench finds what a slower one cannot: the first split run found a
 fixture that waited for a restore by watching a stamp of one-second resolution

@@ -3148,7 +3148,7 @@ RUNNER_CLASSES = {
         ["srcpkg-%s" % t for t in _SRCPKG_TARGETS] + ["srcpkg-%s-install" % t for t in _SRCPKG_TARGETS] +
         ["alpine-package", "alpine-install", "appimage-runtime-x86_64", "appimage-x86_64", "appimage-test-x86_64",
          "appimage-runtime-sources", "appimage-bundled-sources", "appimage-aarch64-compile", "snap-build-amd64"])},
-    # The jobs in an arm64 container, which linix and server2 run under qemu-user.
+    # The jobs in an arm64 container, which linix, server2 and s1-linux run under qemu-user.
     "HM_RUNNER_ARM64": {"arch": "arm64", "lane": None, "jobs": tuple(
         ["deb-%s-arm64-install" % d for d in _DEB_ARM64] + ["rpm-%s-aarch64-install" % t for t in _RPM_TARGETS] +
         ["appimage-runtime-aarch64", "appimage-aarch64", "appimage-test-aarch64", "snap-build-arm64", "linux-image-arm64"])},
@@ -3514,7 +3514,7 @@ def runner_problems(texts):
     set_to = re.findall(r"""^  ["']?%s["']?[ \t]*:[ \t]*(.*?)[ \t]*$""" % RUNNER_VARIABLE, variables, re.MULTILINE)
     global_runner = yaml_scalar(set_to[0]) if len(set_to) == 1 else None
     if global_runner != DEFAULT_RUNNER:
-        problems.append(".gitlab-ci.yml's variables: %s %s: it must be %s, the tag linix and server2 carry, for every "
+        problems.append(".gitlab-ci.yml's variables: %s %s: it must be %s, the tag linix, server2 and s1-linux carry, for every "
                         "pipeline of a protected ref that is not a merge request's" % (
                             "set" if set_to else "do not set", RUNNER_VARIABLE if not set_to else "%s to %r" % (
                                 RUNNER_VARIABLE, global_runner), DEFAULT_RUNNER))
