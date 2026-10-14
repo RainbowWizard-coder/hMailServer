@@ -6,8 +6,10 @@
 # S/MIME fixtures made with OpenSSL, the independent implementation the page's
 # module is checked against: a CA, an RSA leaf and an EC leaf for
 # alice@example.test (emailAddress in the subject and an rfc822Name SAN), the
-# keys as PKCS#8 (clear, PBES2-encrypted) and as a modern PKCS#12, then
-# messages OpenSSL signed (detached and opaque) and encrypted for each leaf.
+# keys as PKCS#8 (clear, PBES2-encrypted) and as modern PKCS#12 files (with
+# and without a MAC, with clear safes, with an empty and a non-ASCII
+# password), then messages OpenSSL signed (detached and opaque) and encrypted
+# for each leaf.
 set -euo pipefail
 out="$1"
 mkdir -p "$out"
@@ -39,6 +41,18 @@ openssl x509 -req -in alice.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -da
 openssl pkcs8 -topk8 -in alice-key.pem -out alice-key-encrypted.pem -v2 aes-256-cbc -v2prf hmacWithSHA256 -passout pass:fixture-pass 2>/dev/null
 openssl pkcs12 -export -in alice.pem -inkey alice-key.pem -certfile ca.pem -name 'Alice Example' -passout pass:fixture-pass -out alice.p12 2>/dev/null
 openssl pkcs12 -export -in alice.pem -inkey alice-key.pem -certfile ca.pem -name 'Alice Example' -passout pass:fixture-pass -legacy -out alice-legacy.p12 2>/dev/null || true
+# PKCS#12 files for the wrong-password checks: one whose safes are not
+# encrypted, so that only its MAC knows the password; two with no MAC, the
+# certificates encrypted in one and not in the other (OpenSSL 3.2 encrypts
+# them under -nomac only when asked); one made with an empty password; and one
+# made with a password that is not ASCII, read from a file so that no shell or
+# code page changes it on its way to OpenSSL.
+openssl pkcs12 -export -in alice.pem -inkey alice-key.pem -certfile ca.pem -name 'Alice Example' -passout pass:fixture-pass -keypbe NONE -certpbe NONE -out alice-clear.p12 2>/dev/null
+openssl pkcs12 -export -in alice.pem -inkey alice-key.pem -certfile ca.pem -name 'Alice Example' -passout pass:fixture-pass -nomac -certpbe AES-256-CBC -keypbe AES-256-CBC -out alice-nomac.p12 2>/dev/null
+openssl pkcs12 -export -in alice.pem -inkey alice-key.pem -certfile ca.pem -name 'Alice Example' -passout pass:fixture-pass -nomac -certpbe NONE -keypbe AES-256-CBC -out alice-nomac-plaincerts.p12 2>/dev/null
+openssl pkcs12 -export -in alice.pem -inkey alice-key.pem -certfile ca.pem -name 'Alice Example' -passout pass: -out alice-empty.p12 2>/dev/null
+printf 'caf\303\251-\342\202\254-\360\237\224\221' > unicode-pass.txt
+openssl pkcs12 -export -in alice.pem -inkey alice-key.pem -certfile ca.pem -name 'Alice Example' -passout file:unicode-pass.txt -out alice-unicode.p12 2>/dev/null
 
 openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out erin-key.pem 2>/dev/null
 openssl req -new -key erin-key.pem -subj '/CN=Erin Example/emailAddress=erin@example.test' -out erin.csr 2>/dev/null

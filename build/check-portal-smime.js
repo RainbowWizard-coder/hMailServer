@@ -3,11 +3,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 // Runs the page's S/MIME module (PortalSmime.js) in Node against fixtures
-// OpenSSL made - certificates, keys in three forms, messages signed detached,
-// opaque and by an EC key, messages encrypted with AES-256 and AES-128, one
-// signed then encrypted, one tampered with - and hands what the module signs
-// and encrypts to OpenSSL to verify and decrypt, so both directions are
-// checked against an implementation that is not this one.
+// OpenSSL made - certificates, keys in three forms, PKCS#12 files with right
+// and wrong passwords, messages signed detached, opaque and by an EC key,
+// messages encrypted with AES-256 and AES-128, one signed then encrypted, one
+// tampered with - and hands what the module signs and encrypts to OpenSSL to
+// verify and decrypt, so both directions are checked against an
+// implementation that is not this one.
 //
 // Usage: node build/check-portal-smime.js [module.js] [fixtures dir]
 // Needs Node 20 or later (Web Crypto) and openssl on the PATH.
@@ -15,6 +16,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const nodeCrypto = require('crypto');
 const { execFileSync, spawnSync } = require('child_process');
 
 const modulePath = process.argv[2] || path.join(__dirname, '..', 'hmailserver', 'source', 'Server', 'Common', 'Util', 'PortalSmime.js');
@@ -56,6 +58,86 @@ function openssl(args, input) {
   }
 }
 
+// What a wrong password hands back about one time in 255: AES-CBC's padding
+// check passes when the last block happens to decrypt to a valid padding, and
+// the rest is noise. Made certain: the PBES2 ciphertext of an OpenSSL-made
+// file, rewritten in place to the noise given (one byte shorter, so that the
+// padding is one byte and the length stays) under the key the wrong password
+// derives with the file's own salt, iteration count and IV. Answers the bytes
+// the wrong password decrypts to, by Node's own AES-CBC.
+const PRF_BY_OID = { '1.2.840.113549.2.7': 'sha1', '1.2.840.113549.2.9': 'sha256', '1.2.840.113549.2.10': 'sha384', '1.2.840.113549.2.11': 'sha512' };
+const CIPHER_BY_OID = { '2.16.840.1.101.3.4.1.2': 'aes-128-cbc', '2.16.840.1.101.3.4.1.22': 'aes-192-cbc', '2.16.840.1.101.3.4.1.42': 'aes-256-cbc' };
+function forgePbes2(algorithmNode, ciphertextNode, password, noise) {
+  if (ciphertextNode.constructed || noise.length !== ciphertextNode.content.length - 1) { throw new Error('the ciphertext cannot be rewritten in place'); }
+  const params = smime.derChildren(smime.derChildren(algorithmNode)[1]);
+  const kdf = smime.derChildren(smime.derChildren(params[0])[1]);
+  const scheme = smime.derChildren(params[1]);
+  const cipher = CIPHER_BY_OID[smime.oidDecode(scheme[0].content)];
+  let prf = 'sha1';
+  for (let i = 2; i < kdf.length; i++) { if (kdf[i].tag === 0x30) { prf = PRF_BY_OID[smime.oidDecode(smime.derChildren(kdf[i])[0].content)]; } }
+  if (!cipher || !prf) { throw new Error('the file is encrypted with something other than PBKDF2 and AES-CBC'); }
+  const iterations = Number(BigInt('0x' + Buffer.from(kdf[1].content).toString('hex')));
+  const key = nodeCrypto.pbkdf2Sync(Buffer.from(password, 'utf8'), Buffer.from(kdf[0].content), iterations, Number(cipher.slice(4, 7)) / 8, prf);
+  const iv = Buffer.from(scheme[1].content);
+  const encryptor = nodeCrypto.createCipheriv(cipher, key, iv);
+  ciphertextNode.content.set(Buffer.concat([encryptor.update(noise), encryptor.final()]));
+  const decryptor = nodeCrypto.createDecipheriv(cipher, key, iv);
+  return Buffer.concat([decryptor.update(Buffer.from(ciphertextNode.content)), decryptor.final()]);
+}
+
+function derHeader(tag, length) {
+  if (length < 0x80) { return Buffer.from([tag, length]); }
+  const bytes = [];
+  for (let v = length; v > 0; v = Math.floor(v / 256)) { bytes.unshift(v & 0xff); }
+  return Buffer.from([tag, 0x80 | bytes.length].concat(bytes));
+}
+
+// Three kinds of noise, each of the length given: one whole DER element and
+// then anything, which 6.3.6 read as a key because one element read (and as a
+// safe, as it read anything); a SEQUENCE that ends before the bytes do; and a
+// SEQUENCE over all of them that holds no key, only an OCTET STRING of zeros.
+function noiseLeadingElement(length) { return Buffer.concat([Buffer.from([0x04, 0x01, 0x00]), nodeCrypto.randomBytes(length - 3)]); }
+function noiseShortSequence(length) { return Buffer.concat([Buffer.from([0x30, 0x03, 0x02, 0x01, 0x00]), nodeCrypto.randomBytes(length - 5)]); }
+function noiseWholeSequence(length) {
+  for (let n = length; n >= 0; n--) {
+    const inner = Buffer.concat([derHeader(0x04, n), Buffer.alloc(n)]);
+    const outer = Buffer.concat([derHeader(0x30, inner.length), inner]);
+    if (outer.length === length) { return outer; }
+  }
+  throw new Error('no SEQUENCE is ' + length + ' bytes long');
+}
+
+// The PBES2 pieces of an OpenSSL-made PKCS#12, as [algorithm, ciphertext]
+// nodes over the file's own bytes: its first encrypted safe's, and the first
+// shrouded key's that lies in a safe that is not encrypted.
+function pkcs12Pieces(bytes) {
+  const authSafe = smime.derChildren(smime.derChildren(smime.derChildren(smime.derRead(bytes))[1])[1])[0];
+  if (authSafe.constructed) { throw new Error('the AuthenticatedSafe is in pieces'); }
+  const pieces = { safe: null, key: null };
+  for (const info of smime.derChildren(smime.derRead(authSafe.content))) {
+    const kids = smime.derChildren(info);
+    const inner = smime.derChildren(kids[1])[0];
+    const type = smime.oidDecode(kids[0].content);
+    if (type === smime.OID.encryptedData && !pieces.safe) {
+      const eci = smime.derChildren(smime.derChildren(inner)[1]);
+      pieces.safe = [eci[1], eci[2]];
+    } else if (type === smime.OID.data && !inner.constructed) {
+      for (const bag of smime.derChildren(smime.derRead(inner.content))) {
+        const bagKids = smime.derChildren(bag);
+        if (smime.oidDecode(bagKids[0].content) === smime.OID.shroudedKeyBag && !pieces.key) {
+          const encrypted = smime.derChildren(smime.derChildren(bagKids[1])[0]);
+          pieces.key = [encrypted[0], encrypted[1]];
+        }
+      }
+    }
+  }
+  return pieces;
+}
+
+function pem(label, der) { return Buffer.from('-----BEGIN ' + label + '-----\n' + Buffer.from(der).toString('base64').replace(/(.{64})/g, '$1\n').replace(/\n$/, '') + '\n-----END ' + label + '-----\n'); }
+
+async function messageOf(promise) { try { await promise; return 'IMPORTED'; } catch (e) { return e.message; } }
+
 (async function () {
   console.log('== certificates');
   const alice = smime.parseCertificate(read('alice.der'));
@@ -84,9 +166,62 @@ function openssl(args, input) {
   let wrong = '';
   try { await smime.importAny(read('alice-key-encrypted.pem'), 'nope'); } catch (e) { wrong = e.message; }
   check(wrong === 'wrong password', 'a wrong password is named: ' + wrong);
+  // The check above is a gamble about one time in 255: a wrong password's last
+  // block then decrypts to a valid padding, and until 6.3.7 the noise in front
+  // of it was read as a key whenever one DER element read, and named "DER: bad
+  // length" or the like. Made certain here, for each kind of noise: the
+  // encrypted key with its ciphertext rewritten so that 'nope' really does
+  // decrypt it, padding and all.
+  for (const [kind, makeNoise] of [['one DER element and then noise', noiseLeadingElement], ['a SEQUENCE that ends before the bytes do', noiseShortSequence],
+    ['a SEQUENCE over all of it that holds no key', noiseWholeSequence]]) {
+    const der = smime.pemBlocks(text(read('alice-key-encrypted.pem')))[0].bytes;
+    const parts = smime.derChildren(smime.derRead(der));
+    const noise = makeNoise(parts[1].content.length - 1);
+    const decrypted = forgePbes2(parts[0], parts[1], 'nope', noise);
+    const said = await messageOf(smime.importAny(new Uint8Array(pem('ENCRYPTED PRIVATE KEY', der)), 'nope'));
+    check(Buffer.compare(decrypted, noise) === 0 && said === 'wrong password', 'a wrong password that the padding lets through, to ' + kind + ', is named: ' + said);
+  }
   const p12 = await smime.importAny(read('alice.p12'), PASSWORD);
   check(p12.keys.length === 1 && p12.keys[0].certificate && p12.keys[0].certificate.emails[0] === 'alice@example.test', 'PKCS#12 imported: the key is paired with its certificate');
   check(p12.certificates.length === 2, 'PKCS#12 carries the chain: ' + p12.certificates.map(function (c) { return c.name; }).join(', '));
+  // A wrong password for a PKCS#12 is told by its MAC, before any safe is
+  // decrypted; until 6.3.7 it was the same gamble as the key's above.
+  const p12Wrong = await messageOf(smime.importAny(read('alice.p12'), 'nope'));
+  check(p12Wrong === 'wrong password', 'a wrong password for the PKCS#12 is named: ' + p12Wrong);
+  // A file whose safes are not encrypted: only its MAC knows the password, and
+  // until 6.3.7, which never read the MAC, any password imported it.
+  const clearP12 = await smime.importAny(read('alice-clear.p12'), PASSWORD);
+  check(clearP12.keys.length === 1 && !!clearP12.keys[0].certificate, 'a PKCS#12 whose safes are not encrypted imports with its password');
+  const clearWrong = await messageOf(smime.importAny(read('alice-clear.p12'), 'nope'));
+  check(clearWrong === 'wrong password', 'and its MAC names a wrong one: ' + clearWrong);
+  // Files with no MAC: the padding, and then the shape of what each safe and
+  // each key decrypts to, tell a wrong password - made certain as for the key
+  // above, with an encrypted safe, and a key in a safe that is not, rewritten
+  // so that 'nope' decrypts them.
+  for (const [name, piece, what] of [['alice-nomac.p12', 'safe', 'an encrypted safe'], ['alice-nomac-plaincerts.p12', 'key', 'a shrouded key']]) {
+    const imported = await smime.importAny(read(name), PASSWORD);
+    check(imported.keys.length === 1 && !!imported.keys[0].certificate, 'a PKCS#12 with no MAC, ' + what + ' in it, imports with its password');
+    const wrongOne = await messageOf(smime.importAny(read(name), 'nope'));
+    check(wrongOne === 'wrong password', 'and a wrong one is named: ' + wrongOne);
+    const bytes = read(name);
+    const pieces = pkcs12Pieces(bytes)[piece];
+    const noise = noiseLeadingElement(pieces[1].content.length - 1);
+    const decrypted = forgePbes2(pieces[0], pieces[1], 'nope', noise);
+    const said = await messageOf(smime.importAny(bytes, 'nope'));
+    check(Buffer.compare(decrypted, noise) === 0 && said === 'wrong password', 'a wrong password that ' + what + '\'s padding lets through, to noise, is named: ' + said);
+  }
+  // The MAC takes the password as UTF-16 with two zero bytes on the end, and
+  // PBKDF2 as UTF-8: a file made with no password, and one made with a
+  // password that is not ASCII (an accented letter, a euro sign and an emoji).
+  const emptyP12 = await smime.importAny(read('alice-empty.p12'), '');
+  check(emptyP12.keys.length === 1 && !!emptyP12.keys[0].certificate, 'a PKCS#12 made with an empty password imports with none');
+  const emptyWrong = await messageOf(smime.importAny(read('alice-empty.p12'), 'nope'));
+  check(emptyWrong === 'wrong password', 'and a password given for it is named wrong: ' + emptyWrong);
+  const unicodePassword = text(read('unicode-pass.txt'));
+  const unicodeP12 = await smime.importAny(read('alice-unicode.p12'), unicodePassword);
+  check(unicodeP12.keys.length === 1 && !!unicodeP12.keys[0].certificate, 'a PKCS#12 made with a password that is not ASCII imports with it');
+  const unicodeWrong = await messageOf(smime.importAny(read('alice-unicode.p12'), unicodePassword.normalize('NFD')));
+  check(unicodeWrong === 'wrong password', 'and the same password with its accent written apart is named wrong: ' + unicodeWrong);
   if (fs.existsSync(path.join(fixtures, 'alice-legacy.p12'))) {
     let legacy = '';
     try { await smime.importAny(read('alice-legacy.p12'), PASSWORD); } catch (e) { legacy = e.message; }

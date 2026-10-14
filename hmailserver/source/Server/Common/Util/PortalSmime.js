@@ -505,11 +505,135 @@
     }
   }
 
+  // What a password decrypts to is judged by its shape as well, because
+  // AES-CBC tells no more than whether the padding checks out: a wrong
+  // password fails it about 254 times in 255 (pbes2Decrypt's "wrong
+  // password"), and the 255th time it hands back noise. Noise is never the
+  // shape the right password gives, so that is a wrong password too, and is
+  // not read as a key or a safe - where it ended in a DER error ("DER: bad
+  // length") that the person could do nothing with.
+
+  // A PrivateKeyInfo (RFC 5208; RFC 5958's OneAsymmetricKey) as
+  // importPrivateKey reads one: a SEQUENCE that is the whole of the bytes, of
+  // a version INTEGER, an AlgorithmIdentifier that starts with its OID, and
+  // the key as an OCTET STRING.
+  function isPrivateKeyInfo(bytes) {
+    try {
+      const top = derRead(bytes);
+      if (top.tag !== TAG.SEQ || top.end !== bytes.length) { return false; }
+      const kids = derChildren(top);
+      if (kids.length < 3 || kids[0].tag !== TAG.INT || kids[1].tag !== TAG.SEQ) { return false; }
+      if (kids[2].tag !== TAG.OCTET && kids[2].tag !== (TAG.OCTET | 0x20)) { return false; }
+      const algorithm = derChildren(kids[1]);
+      return algorithm.length > 0 && algorithm[0].tag === TAG.OID;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // A SafeContents (RFC 7292 section 4.2) as importPkcs12 reads one: a
+  // SEQUENCE that is the whole of the bytes, of SafeBags, each a SEQUENCE of
+  // its type's OID and a [0] holding the bag's one value.
+  function isSafeContents(bytes) {
+    try {
+      const top = derRead(bytes);
+      if (top.tag !== TAG.SEQ || top.end !== bytes.length) { return false; }
+      for (const bag of derChildren(top)) {
+        const kids = bag.tag === TAG.SEQ ? derChildren(bag) : [];
+        if (kids.length < 2 || kids[0].tag !== TAG.OID || kids[1].tag !== 0xa0 || derChildren(kids[1]).length !== 1) { return false; }
+      }
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   async function decryptPkcs8(encrypted, password) {
     const info = derChildren(derRead(encrypted));
     const plain = await pbes2Decrypt(info[0], octetsOf(info[1]), password);
-    try { derRead(plain); } catch (e) { throw new Error('wrong password'); }
+    if (!isPrivateKeyInfo(plain)) { throw new Error('wrong password'); }
     return plain;
+  }
+
+  // PKCS#12's MAC (the macData of RFC 7292 section 4, and its appendix B)
+  // tells a wrong password for certain, before anything is decrypted: it is
+  // an HMAC of the AuthenticatedSafe under a key made from the password, the
+  // file's salt and its iteration count. The derivation (B.2, with the MAC's
+  // ID, 3) takes the password as a BMPString - UTF-16, big-endian, two zero
+  // bytes on the end - and makes a key as long as the hash's output (B.4),
+  // which is its first block alone: the hash, iterated, of the ID, the salt
+  // and the password, each repeated to a whole number of the hash's blocks.
+  async function pkcs12MacKey(hash, passwordBytes, salt, iterations) {
+    const v = (hash === 'SHA-384' || hash === 'SHA-512') ? 128 : 64;
+    const fill = function (part) {
+      const out = new Uint8Array(part.length ? v * Math.ceil(part.length / v) : 0);
+      for (let i = 0; i < out.length; i++) { out[i] = part[i % part.length]; }
+      return out;
+    };
+    let block = concat([new Uint8Array(v).fill(3), fill(salt), fill(passwordBytes)]);
+    for (let i = 0; i < Math.max(1, iterations); i++) { block = new Uint8Array(await subtle.digest(hash, block)); }
+    return block;
+  }
+
+  // The password as a MAC may have been made with it: the BMPString; for an
+  // empty password also no bytes at all, as a file made with no password has
+  // it; and for one that is not ASCII also its UTF-8 bytes each widened to
+  // two, as OpenSSL wrote before 1.1.0. These are the forms the openssl
+  // pkcs12 command tries.
+  function pkcs12PasswordForms(password) {
+    password = String(password || '');
+    const bmp = new Uint8Array(password.length * 2 + 2);
+    for (let i = 0; i < password.length; i++) { bmp[i * 2] = password.charCodeAt(i) >> 8; bmp[i * 2 + 1] = password.charCodeAt(i) & 0xff; }
+    const forms = [bmp];
+    if (!password) { forms.push(new Uint8Array(0)); }
+    const bytes = utf8(password);
+    if (bytes.length !== password.length) {
+      const widened = new Uint8Array(bytes.length * 2 + 2);
+      for (let i = 0; i < bytes.length; i++) { widened[i * 2 + 1] = bytes[i]; }
+      forms.push(widened);
+    }
+    return forms;
+  }
+
+  // The most iterations of the MAC's derivation this page runs, one hash at a
+  // time. OpenSSL counts 2,048 unless its -iter asks for more, Windows 2,000
+  // and Java 10,000; 600,000 takes Chrome about two seconds, and a count past
+  // any exporter's - a damaged file - would hold the import for hours. A MAC
+  // with more is passed over, like one this page cannot compute.
+  const MAC_MOST_ITERATIONS = 1000000;
+
+  // True when the file's MAC was computed and the password, in none of its
+  // forms, gives it. A MAC this page cannot read or compute - a hash Web
+  // Crypto lacks, RFC 9579's PBMAC1, an iteration count past the most above -
+  // answers false, and the shape of what each safe decrypts to is then what
+  // tells a wrong password, as for a file that has no MAC.
+  async function pkcs12MacRefuses(macData, content, password) {
+    let hash, digest, salt, iterations;
+    try {
+      const parts = derChildren(macData);
+      if (parts.length < 2 || parts.length > 3 || parts[0].tag !== TAG.SEQ || parts[1].tag !== TAG.OCTET) { return false; }
+      const digestInfo = derChildren(parts[0]);
+      if (digestInfo.length !== 2 || digestInfo[0].tag !== TAG.SEQ || digestInfo[1].tag !== TAG.OCTET) { return false; }
+      const digestOid = algorithmOid(digestInfo[0]);
+      if ([OID.sha1, OID.sha256, OID.sha384, OID.sha512].indexOf(digestOid) < 0) { return false; }
+      hash = HASH_BY_OID[digestOid];
+      digest = digestInfo[1].content;
+      salt = parts[1].content;
+      iterations = 1;
+      if (parts.length > 2) {
+        const count = parts[2];
+        if (count.tag !== TAG.INT || !count.content.length || (count.content[0] & 0x80)) { return false; }
+        iterations = Number(bytesToBig(count.content));
+      }
+    } catch (e) {
+      return false;
+    }
+    if (iterations > MAC_MOST_ITERATIONS) { return false; }
+    for (const form of pkcs12PasswordForms(password)) {
+      const key = await subtle.importKey('raw', await pkcs12MacKey(hash, form, salt, iterations), { name: 'HMAC', hash: hash }, false, ['verify']);
+      if (await subtle.verify('HMAC', key, digest, content)) { return false; }
+    }
+    return true;
   }
 
   // A PKCS#12 file: every key and certificate in it, the keys paired with
@@ -518,7 +642,10 @@
     const pfx = derChildren(derRead(bytes));
     const authSafe = derChildren(pfx[1]);
     if (oidDecode(authSafe[0].content) !== OID.data) { throw new Error('not a PKCS#12 file'); }
-    const safes = derChildren(derRead(octetsOf(derChildren(authSafe[1])[0])));
+    const content = octetsOf(derChildren(authSafe[1])[0]);
+    // The MAC first, so that a wrong password is told before any safe is decrypted.
+    if (pfx.length > 2 && await pkcs12MacRefuses(pfx[2], content, password)) { throw new Error('wrong password'); }
+    const safes = derChildren(derRead(content));
     const keys = [];
     const certs = [];
     const readSafeContents = async function (contentBytes) {
@@ -542,7 +669,9 @@
       else if (type === OID.encryptedData) {
         const enc = derChildren(inner);
         const eci = derChildren(enc[1]);
-        await readSafeContents(await pbes2Decrypt(eci[1], octetsOf(eci[2]), password));
+        const plain = await pbes2Decrypt(eci[1], octetsOf(eci[2]), password);
+        if (!isSafeContents(plain)) { throw new Error('wrong password'); }
+        await readSafeContents(plain);
       }
     }
     const parsedCerts = certs.map(parseCertificate);
