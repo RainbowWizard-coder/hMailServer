@@ -232,6 +232,15 @@
       "depNameTemplate": "7-zip",
       "datasourceTemplate": "custom.7-zip",
       "versioningTemplate": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)$"
+    },
+    {
+      "customType": "regex",
+      "description": "The .NET Desktop Runtime the Windows installers carry: the version of each of the binary manifest's two runtime entries, the x64 installer's and the ARM64 installer's, which build/get-dotnet-runtime.ps1 places and holds to the SHA-512 beside it. Looked up as Microsoft's .NET runtime releases, in its release metadata (the dotnet-version datasource): a Desktop Runtime release carries the .NET runtime of the same version. Renovate can move the version alone, not the SHA-512 and the address that pin it, so the merge request is a notice (the rule for dotnet-runtime below).",
+      "managerFilePatterns": ["/^hmailserver/docs/third-party-binaries\\.json$/"],
+      "matchStrings": ["\"component\": \"Microsoft \\.NET Windows Desktop Runtime \\((?:x64|ARM64) installer\\)\",\\s*\"version\": \"(?<currentValue>\\d+\\.\\d+\\.\\d+)\""],
+      "depNameTemplate": "dotnet-runtime",
+      "datasourceTemplate": "dotnet-version",
+      "versioningTemplate": "semver"
     }
   ],
   "packageRules": [
@@ -251,11 +260,15 @@
       "enabled": false
     },
     {
-      "description": "Placeholder for the .NET runtime the installer bundles. build/get-dotnet-runtime.ps1 takes the newest 10.0 from aka.ms by channel today, so there is no pin to update. When the supply-chain row pins it to an exact version, add a customManager for that line with datasourceTemplate dotnet-version and depNameTemplate dotnet-runtime; this rule then puts it in the NuGet merge request, and the rule below keeps it on .NET 10.",
+      "description": "The .NET Desktop Runtime the installers carry (the customManager for the binary manifest's runtime entries): a new release of .NET 10 is proposed on any day, in a merge request of its own, because Microsoft's servicing releases carry its security fixes and the advisory alerts do not reach this datasource; the rule below keeps it on .NET 10. The merge request is a notice, never merged as it is: Renovate changes each entry's version and not the SHA-512 and the address beside it, and an entry whose address does not name its version is refused - the x64 one by build/check-sbom-inputs.py, which the checkers job runs, and either by get-dotnet-runtime.ps1. Until 14 October 2026 this rule was a placeholder, written before the runtime was pinned, which would have put it in the NuGet merge request.",
       "matchDatasources": ["dotnet-version"],
       "matchPackageNames": ["dotnet-runtime"],
-      "groupName": "NuGet packages",
-      "groupSlug": "nuget"
+      "groupName": ".NET Desktop Runtime the installers carry",
+      "groupSlug": "dotnet-runtime",
+      "schedule": ["at any time"],
+      "prBodyNotes": [
+        "**This merge request is a notice; do not merge it as it is.** Renovate changed the version of the .NET Desktop Runtime in `hmailserver/docs/third-party-binaries.json`, not the SHA-512 and the address that pin it, and the checkers job fails until they agree. Move the pin by hand on a branch of your own, as `hmailserver/docs/ThirdPartyBinaries.md` (\"Moving the .NET runtime pin\") says: run `build/show-dotnet-runtime-pin.ps1 -Version {{{newVersion}}}`, and again with `-Platform ARM64`, copy each answer's version, sha512 and source into its entry, and run `build/get-dotnet-runtime.ps1` with and without `-Platform ARM64`. Then close this merge request."
+      ]
     },
     {
       "description": "The .NET major version moves by hand, in one commit: global.json, every TargetFramework, DOTNET_MAJOR in hMailServer64.iss and the SDK image of build/ci/linux.Dockerfile (global.json's own comment says so).",

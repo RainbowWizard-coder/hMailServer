@@ -5809,6 +5809,17 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
 
 ### Build and tests
 
+- **Renovate proposes the .NET Desktop Runtime the installers carry when Microsoft publishes a new release of .NET 10.**
+  `renovate.json` held only a placeholder rule for the runtime, written before it was pinned, which said there was no
+  pin to update, so no merge request ever named a new release. A regex manager now reads the version of both runtime
+  entries of `hmailserver/docs/third-party-binaries.json`, the x64 and the ARM64 installer's, and looks it up as
+  `dotnet-runtime` in Microsoft's release metadata (the `dotnet-version` datasource); its rule proposes a new release
+  on any day, in a merge request of its own, ".NET Desktop Runtime the installers carry", and keeps it on .NET 10. The
+  merge request is a notice: Renovate moves each entry's version and not the SHA-512 and the address beside it, which
+  `check-sbom-inputs.py` (for the x64 entry) and `get-dotnet-runtime.ps1` refuse, so its note says to move the pin
+  with `build/show-dotnet-runtime-pin.ps1` and close it. Run with the `renovate` job's image (Renovate 44.115.13) over
+  the configuration and the manifest: Renovate's validator passes the file, the lookup proposes 10.0.13 for both
+  entries of the base's manifest and nothing for this tree's, and the configuration as it was extracts no runtime.
 - **`dependency-scan` and `mr-dependency-check` ask OSV about the .NET Desktop Runtime the Windows installers carry.**
   `build/ci/dependency-scan.py`'s list of what no manifest names (`VENDORED`) read every component of
   `hmailserver/docs/third-party-binaries.json` the installers ship but the runtime, so no scan, no change gate and not

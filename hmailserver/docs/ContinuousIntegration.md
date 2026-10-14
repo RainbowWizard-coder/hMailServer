@@ -3807,6 +3807,7 @@ limit is a mitigation, not a proven cure; the job's debug log
 | QuickJS, vendored | `Server/quickjs/VERSION` | a regex manager | `custom.quickjs`: bellard.org/quickjs/ | waits on the dashboard |
 | The MariaDB client, a build input | `post-build.bat`, `TestEnvironments.cs`, `CONTRIBUTING.md`, `RegressionEnvironment.md`, `third-party-binaries.json` | a regex manager | `custom.mariadb-connector-c`: downloads.mariadb.org's API | waits on the dashboard |
 | 7-Zip's `7za.exe`, a build input | `third-party-binaries.json` | a regex manager | `custom.7-zip`: 7-zip.org/download.html, the page only | waits on the dashboard |
+| The .NET Desktop Runtime the installers carry | `third-party-binaries.json`, the x64 and the ARM64 installer's entries | a regex manager | `dotnet-version`: Microsoft's release metadata, as `dotnet-runtime` | on any day, in a merge request of its own that is a notice: the pin is moved by hand (below) |
 
 Not covered, each for a reason: the MSVC runtime (gathered from the build
 machine's Visual Studio), the ADO type library (copied from Windows), SQL Server
@@ -3820,9 +3821,7 @@ project's path before its move on 29 September 2026, where no image was ever
 pushed), and
 the Linux CI image, `registry.gitlab.com/hmailserver/hmailserver/ci-linux`, which is built on linix from
 `build/ci/linux.Dockerfile` and pushed by hand, under a tag made from the Dockerfile's own hash
-([The image](#the-image)), so that it moves only with the Dockerfile. The .NET runtime the installer bundles has no pin
-yet: `build/get-dotnet-runtime.ps1` takes the newest 10.0 by channel. A placeholder
-rule in `renovate.json` says what to add when the supply-chain row pins it.
+([The image](#the-image)), so that it moves only with the Dockerfile.
 
 ### How updates arrive
 
@@ -3838,6 +3837,18 @@ rule in `renovate.json` says what to add when the supply-chain row pins it.
   alerts below do not reach the custom datasources: OpenSSL 4.0.3, published on
   29 September 2026 with thirteen advisories against the 4.0.2 the Windows
   installers ship, reached the dashboard as a routine update for the next Monday.
+- **A .NET 10 servicing release on any day.** The .NET Desktop Runtime the
+  installers carry, pinned in `third-party-binaries.json` by release, SHA-512 and
+  address, comes in a merge request of its own, ".NET Desktop Runtime the
+  installers carry", on the first daily run after Microsoft publishes a release,
+  because Microsoft's servicing releases carry its security fixes and the advisory
+  alerts do not reach the `dotnet-version` datasource. It is a notice: Renovate
+  moves each entry's version, not the SHA-512 and the address, and an entry whose
+  address does not name its version is refused - the x64 one by
+  `check-sbom-inputs.py`, so the `checkers` job fails, and either by
+  `get-dotnet-runtime.ps1` - so the pin is moved by hand on a branch of its own,
+  as [ThirdPartyBinaries.md](ThirdPartyBinaries.md) ("Moving the .NET runtime
+  pin") says, and the notice closed.
 - **Security fixes at once.** `osvVulnerabilityAlerts` is on. A dependency whose
   version has a published advisory gets a merge request of its own, labelled
   `security` and marked `[SECURITY]`, on the next daily run, whatever the day. It
