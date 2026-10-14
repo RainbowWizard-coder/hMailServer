@@ -5900,7 +5900,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   names the runner self-hosted, an extension nothing that verifies a release reads (ContinuousIntegration.md, "Every
   job on the project's own runners"). And the ID token a release tag's signing jobs are given is now held on linix,
   server2 or s1-linux while they run, where a VM of GitLab's made for the one job held it: whoever is root there, or
-  in the `docker` group, or an administrator of server1, which s1-linux runs on, could have Fulcio certify a key as
+  in the `docker` group, or an administrator of the laptop or of server1, which linix and s1-linux run on, could have
+  Fulcio certify a key as
   that release's pipeline while the token is valid. Those machines build the release's Linux packages already, and
   only a protected ref's pipeline reaches them (the same section, "What it trusts").
 - **GitLab's hosted runners can take a class of jobs beside the project's own, by a switch the owner sets.** The
@@ -6355,8 +6356,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 - **ContinuousIntegration.md, the CI files and the documents name s1-linux beside linix and server2.** s1-linux, a
   virtual machine on server1, has carried the tag `linix` since 13 October 2026, so `release-sign`,
   `container-image-sign` and `pypi-publish`, which take `default:`'s tag, may run there in a release's pipeline, and
-  their ID tokens be held there while they run. ContinuousIntegration.md's "What it trusts" names it, with server1's
-  administrators among those who could read the tokens, and says why the three machines are trusted with the release,
+  their ID tokens be held there while they run. ContinuousIntegration.md's "What it trusts" names it, with the
+  administrators of server1 and of the laptop linix runs on among those who could read the tokens, and says why the
+  three machines are trusted with the release,
   where it named linix and server2, "the two machines". The comments of `.gitlab-ci.yml` and the other CI files, the
   scripts' comments and messages, and the documents that counted the runners with the tag - ContinuousIntegration.md,
   CONTRIBUTING.md, Channels.md, CommandLinePackages.md, ContainerImage.md, PackageManagers.md, PackagesAppImage.md,

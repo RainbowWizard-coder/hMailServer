@@ -122,12 +122,11 @@ it changes.
   earliest ([What must stay valid](#what-must-stay-valid-for-a-security-release), below). From that day Windows shuts
   the bench down every hour, and without it no release is made and no batch lands but one of documents alone; so
   before then the maintainers rearm it, if a rearm is left, license it or rebuild it. Then 293 of the accepted
-  findings (263 of
-  *static-analysis*, 26 of *semgrep-sast* and 4 of *semgrep*) expire on 26 and 27 March 2027 (counted on 14 October
-  2026). From the day after, the release job refuses a release while any of them is still found and has not been
-  read again (`build/ci/security-gate.py`). So the maintainers read them again before 26 March 2027, and give each a
-  new expiry. Otherwise, a report that arrives after either date waits on the bench or on that reading as well as on
-  its fix.
+  findings (263 of *static-analysis*, 26 of *semgrep-sast* and 4 of *semgrep*) expire on 26 and 27 March 2027
+  (counted on 14 October 2026). From the day after, the release job refuses a release while any of them is still
+  found and has not been read again (`build/ci/security-gate.py`). So the maintainers read them again before
+  26 March 2027, and give each a new expiry. Otherwise, a report that arrives after either date waits on the bench
+  or on that reading as well as on its fix.
 
 ### What gets a release
 

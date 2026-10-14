@@ -398,9 +398,10 @@ up on a file.
 `pypi-publish`'s - are held on linix, server2 or s1-linux while those jobs run,
 where until 9 October 2026 a VM of GitLab's held them, made for the one job.
 Whoever is root on one of the three machines or in its `docker` group, or is an
-administrator of server1, the owner's machine that s1-linux runs on, or a job of
-`linix-systemd`, which runs privileged on linix's Docker, in a protected ref's
-pipeline at the same time, can read them while the job runs, and with a tag's
+administrator of the maintainer's laptop or of server1, the machines linix and
+s1-linux run on, or a job of `linix-systemd`, which runs privileged on linix's
+Docker, in a protected ref's pipeline at the same time, can read them while the
+job runs, and with a tag's
 `SIGSTORE_ID_TOKEN` have Fulcio certify a key as that release's pipeline while
 the token is valid. The three machines were trusted with the release already -
 they build the Linux packages it carries, whichever of them takes each job,
