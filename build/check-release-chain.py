@@ -56,9 +56,9 @@ refuses it. This checker holds them to each other. It fails when:
   * windows-packages-x64 is in a v* tag's pipeline, whose x64 installer is
     windows-installer's alone, or windows-packages-arm64 needs it without
     optional: true, which would keep a tag's pipeline from being created;
-  * a job or template of the CI files that runs on bench150 does not take
-    hooks: !reference [.bench150-leftovers, hooks], the step that stops before
-    its checkout what a cancelled job left running in its directory, or
+  * a job or template of the CI files that runs on bench150 or S1-WINBENCH does
+    not take hooks: !reference [.bench150-leftovers, hooks], the step that stops
+    before its checkout what a cancelled job left running in its directory, or
     .bench150-leftovers has no pre_get_sources_script;
   * the PowerShell module's HmailServer.psd1 and HmailServer.psm1 are not files every
     release carries, collected unsigned from hmailserver/source/Tools/Cli and signed
@@ -139,9 +139,16 @@ refuses it. This checker holds them to each other. It fails when:
     of the tree as GitLab matches them, and must leave out exactly the Markdown
     files at the root and under .gitlab/ - hmailserver/docs/*.md is compiled into
     the server;
-  * linux-suite or windows-gate can be cancelled by a later push (interruptible),
-    or a gate that lets a busy bench's exit 10 pass (allow_failure: exit_codes)
-    can do so in a v* tag's pipeline, where release would then start without it;
+  * linux-suite, windows-gate or windows-gate-s1vm can be cancelled by a later push
+    (interruptible), or a gate that lets a busy bench's exit 10 pass (allow_failure:
+    exit_codes, its own or a template's) can do so in a v* tag's pipeline, where
+    release would then start without it - read in the script the job runs, its own
+    or the nearest template's that has one;
+  * windows-gate and windows-gate-s1vm, the Windows suite's two halves, are not one
+    pattern of HM_GATE_WHERE, class!~ on bench150 and class=~ on S1-WINBENCH, so that
+    a test would run on neither bench, or on both: each must set it once, quoted, in
+    its own variables:, no rule either takes may set it, and windows-gate must run
+    the whole suite when there is no windows-gate-s1vm;
   * linux-fuzz does not keep fuzz-results/ as its artifact, whatever the result,
     for Developers only (a reproducer may be an exploit), or another job claims it;
   * secret_detection lets a finding pass: it must be allow_failure: false and read
@@ -366,8 +373,9 @@ refuses it. This checker holds them to each other. It fails when:
     GitLab's hosted runner, for each other one, which the project's runners -
     registered ref_protected - take nothing of; and a job that names its own tags must
     name a runner of the project's (every tag one runner's, one of them linix,
-    linix-systemd or bench150: not none, not GitLab's, not another variable), and then
-    its rules may make it in no pipeline of a merge request or an unprotected ref.
+    linix-systemd, bench150 or bench-s1vm: not none, not GitLab's, not another
+    variable), and then its rules may make it in no pipeline of a merge request or an
+    unprotected ref.
     A class of the jobs that need nothing of the project's takes its tags from a switch
     instead (RUNNER_CLASSES; docs/ContinuousIntegration.md, "GitLab's hosted runners
     beside the project's"): HM_RUNNER_BUILD, HM_RUNNER_PACKAGES, HM_RUNNER_ARM64 and
@@ -557,7 +565,7 @@ OLD_ROUTES = ("HM_PIPELINE", "RUN_RENOVATE")
 # The YAML anchor of .own-runners' rules:changes paths, which db-matrix names too.
 NOT_DOCS_ONLY = "not-docs-only"
 # The long gates, which a later push must not cancel half-way.
-NOT_INTERRUPTIBLE = ("linux-suite", "windows-gate")
+NOT_INTERRUPTIBLE = ("linux-suite", "windows-gate", "windows-gate-s1vm")
 # How a gate that lets a busy bench pass (allow_failure: exit_codes) keeps a v* tag's
 # pipeline from doing so: the bench's "busy" exits 10 only outside a tag.
 BUSY_GUARD = "$taken -eq 1 -and -not $env:CI_COMMIT_TAG"
@@ -1322,7 +1330,7 @@ def check(texts, chain, feed):
         "release-sign": ["release", "release-authenticode", "release-sbom"],
         "release-verify": ["release", "release-sign"],
         "release-publish": ["release-sign", "release-verify"],
-        "windows-installer": ["windows-gate"],
+        "windows-installer": ["windows-gate", "windows-gate-s1vm"],
     }
     for name, wanted in sorted(order.items()):
         have = needs(jobs[name])
@@ -2271,15 +2279,15 @@ def check(texts, chain, feed):
                 problems.append("%s in %s triggers a pipeline of a project (trigger: project): GitLab refuses a multi-project "
                                 "trigger into the project that runs it (invalid_bridge_trigger, as 6.3.5's update-feed was), "
                                 "and a project's path changes when it moves into the group" % (name, where))
-    # Every job (or template) that names bench150 stops, before its checkout, what a
-    # cancelled job left running in its directory: windows-installer and
-    # release-authenticode are a release's (.gitlab-ci.yml, .bench150-leftovers).
+    # Every job (or template) that names bench150 or S1-WINBENCH stops, before its
+    # checkout, what a cancelled job left running in its directory: windows-installer
+    # and release-authenticode are a release's (.gitlab-ci.yml, .bench150-leftovers).
     for where, text in [(".gitlab-ci.yml", ci)] + sorted(texts.get("ci-includes", {}).items()):
         for name, block in sorted(blocks(text).items()):
-            if re.search(r"^  tags:[ \t]*\[[^\]\n]*\bbench150\b", block, re.MULTILINE) and \
-                    not re.search(r"^  hooks: !reference \[\.bench150-leftovers, hooks\]\s*$", block, re.MULTILINE):
-                problems.append("%s in %s runs on bench150 without hooks: !reference [.bench150-leftovers, hooks]: a compiler a "
-                                "cancelled job left running there can hold a file its checkout must replace" % (name, where))
+            bench = re.search(r"^  tags:[ \t]*\[[^\]\n]*\b(bench150|bench-s1vm)\b", block, re.MULTILINE)
+            if bench and not re.search(r"^  hooks: !reference \[\.bench150-leftovers, hooks\]\s*$", block, re.MULTILINE):
+                problems.append("%s in %s runs on %s without hooks: !reference [.bench150-leftovers, hooks]: a compiler a "
+                                "cancelled job left running there can hold a file its checkout must replace" % (name, where, bench.group(1)))
     if "pre_get_sources_script:" not in jobs.get(".bench150-leftovers", ""):
         problems.append(".gitlab-ci.yml's .bench150-leftovers has no hooks: pre_get_sources_script, which the bench150 jobs take")
     for name, text in sorted(jobs.items()):
@@ -2373,7 +2381,7 @@ def check(texts, chain, feed):
     for name in sorted(jobs):
         if name.startswith(".") or name in RESERVED or name in RELEASE_JOBS or name in SCHEDULE_ONLY_JOBS:
             continue
-        if not re.search(r"^  tags: \[(linix|bench150|%s)\]" % "|".join(re.escape("$" + v) for v in sorted(RUNNER_CLASSES)),
+        if not re.search(r"^  tags: \[(linix|bench150|bench-s1vm|%s)\]" % "|".join(re.escape("$" + v) for v in sorted(RUNNER_CLASSES)),
                          inherited(name, jobs), re.MULTILINE):
             continue
         rules = rules_text(name, jobs)
@@ -2387,9 +2395,50 @@ def check(texts, chain, feed):
         if not re.search(r"^  interruptible: false\s*$", jobs.get(name, ""), re.MULTILINE):
             problems.append("%s can be cancelled half-way by a later push: it says interruptible: false" % name)
     for name in gates(jobs):
-        if re.search(r"^  allow_failure:\s*\n\s+exit_codes:", inherited(name, jobs), re.MULTILINE) and BUSY_GUARD not in jobs[name]:
+        if not re.search(r"^  allow_failure:\s*\n\s+exit_codes:", inherited(name, jobs), re.MULTILINE):
+            continue
+        # The guard must be in the script the job runs: its own, or else the nearest
+        # template's that has one (windows-gate-s1vm runs windows-gate's), never a
+        # template's that a script of the job's own replaces.
+        runs = next((jobs[n] for n in template_order(name, jobs) if re.search(r"^  script:", jobs[n], re.MULTILINE)), "")
+        if BUSY_GUARD not in runs:
             problems.append("%s lets an exit code fail without failing the pipeline, and release waits for it: that code must "
                             "never come from a v* tag's pipeline (%s)" % (name, BUSY_GUARD))
+
+    # The Windows suite in two halves at once, one on each bench: one pattern, given to
+    # windows-gate-s1vm with =~ and to windows-gate with !~, so that together they run
+    # every test once, and a namespace added later - or a fixture outside RegressionTests -
+    # runs on bench150 rather than on neither (a list of namespaces for each would leave it
+    # out, as an eleven-namespace list leaves out ServerFreeTests). Each half says it once,
+    # quoted, in its own variables:, as this reads it - GitLab's YAML reader takes the
+    # last of two keys, and a variable a rule sets stands above the job's own - and with
+    # no windows-gate-s1vm, windows-gate runs the whole suite.
+    gate_where = {}
+    for name in ("windows-gate", "windows-gate-s1vm"):
+        if name not in jobs:
+            continue
+        keys = re.findall(r"^[ \t]*['\"]?HM_GATE_WHERE['\"]?[ \t]*:.*$", jobs[name], re.MULTILINE)
+        said = re.match(r"^    HM_GATE_WHERE: (?:'([^'\n]*)'|\"\")[ \t]*$", keys[0]) if len(keys) == 1 else None
+        gate_where[name] = (said.group(1) or "") if said else None
+        if not said:
+            problems.append("%s does not set HM_GATE_WHERE once, quoted, in its own variables: (%s): the half of the Windows "
+                            "suite it runs cannot be read" % (name, "; ".join(k.strip() for k in keys) or "not at all"))
+        ruled = next((jobs[n] for n in template_order(name, jobs) if re.search(r"^  rules:", jobs[n], re.MULTILINE)), "")
+        if any("HM_GATE_WHERE" in item for item in rule_items(ruled, jobs)):
+            problems.append("a rule %s takes sets HM_GATE_WHERE, which stands above the job's own variables: the half of the "
+                            "Windows suite it runs is not the one its variables: say" % name)
+    half, rest = gate_where.get("windows-gate-s1vm"), gate_where.get("windows-gate")
+    if "windows-gate-s1vm" in jobs:
+        if half is not None and rest is not None and not (
+                half.startswith("class=~/") and half.endswith("/") and len(half) > len("class=~//")
+                and rest == "class!~/" + half[len("class=~/"):]):
+            problems.append("windows-gate (HM_GATE_WHERE %s) and windows-gate-s1vm (%s) are not the two halves of one suite: "
+                            "windows-gate-s1vm's must be class=~/<pattern>/ and windows-gate's class!~/<the same pattern>/, "
+                            "or a test runs on neither bench, or on both" % (rest or "empty", half or "empty"))
+    elif rest:
+        problems.append("windows-gate runs a part of the Windows suite (HM_GATE_WHERE %s) and no windows-gate-s1vm runs the "
+                        "rest: without the second bench's half, windows-gate's HM_GATE_WHERE must be empty, the whole suite"
+                        % rest)
 
     # The fuzz job keeps what it finds, for the project's members only.
     fuzz = jobs.get("linux-fuzz", "")
@@ -2957,11 +3006,15 @@ def job_key_problems(texts):
 # a virtual machine on server1, carries linix's tags since 13 October 2026, and server2
 # carries kvm beside them, which the owner adds (runner 57072507's tags): its machine has
 # /dev/kvm, and linix and s1-linux, virtual machines themselves, have none (KVM_JOBS).
+# S1-WINBENCH, a Windows Server virtual machine on server1 registered as bench150 is,
+# carries windows and bench-s1vm (glab api runners/57373183, 14 October 2026), and takes
+# windows-gate-s1vm, the Windows suite's other half.
 PROJECT_RUNNERS = (("linix (56743206) and s1-linux (57371020)", ("linux", "docker", "linix")),
                    ("server2 (57072507)", ("linux", "docker", "linix", "kvm")),
                    ("linix-systemd (56932743)", ("linix-systemd",)),
-                   ("bench150 (56743216)", ("windows", "bench", "bench150")))
-PROJECT_ONLY_TAGS = ("linix", "linix-systemd", "bench150")
+                   ("bench150 (56743216)", ("windows", "bench", "bench150")),
+                   ("S1-WINBENCH (57373183)", ("windows", "bench-s1vm")))
+PROJECT_ONLY_TAGS = ("linix", "linix-systemd", "bench150", "bench-s1vm")
 # The jobs that name no runner of their own take default:'s tags, the one variable below:
 # linix in .gitlab-ci.yml's variables:, and GitLab's hosted small Linux runner's tag where
 # a workflow rule sets it - for every merge request's pipeline and every pipeline of an
@@ -4538,6 +4591,45 @@ def self_test(chain, feed):
     # The gates.
     broken("the Windows suite cancelled by a later push", "ci", "  timeout: 4 hours\n  # A later push does not cut the suite off half-way, nor leave the bench mid-build.\n  interruptible: false",
            "  timeout: 4 hours", "windows-gate can be cancelled half-way")
+    # The second bench's half (windows-gate-s1vm, on S1-WINBENCH).
+    broken("the second bench's half without the leftovers' hook", "ci",
+           "  tags: [bench-s1vm]\n  hooks: !reference [.bench150-leftovers, hooks]\n", "  tags: [bench-s1vm]\n",
+           "windows-gate-s1vm in .gitlab-ci.yml runs on bench-s1vm without hooks")
+    broken("the second bench's half cancelled by a later push", "ci",
+           "  hooks: !reference [.bench150-leftovers, hooks]\n  interruptible: false\n  variables:\n    HM_GATE_WHERE: 'class=~",
+           "  hooks: !reference [.bench150-leftovers, hooks]\n  variables:\n    HM_GATE_WHERE: 'class=~",
+           "windows-gate-s1vm can be cancelled half-way")
+    broken("windows-installer built after half of the suite", "ci", "needs: [windows-gate, windows-gate-s1vm, build-inputs-authenticode]",
+           "needs: [windows-gate, build-inputs-authenticode]", "windows-installer does not need windows-gate-s1vm")
+    broken("release startable after half of the suite", "ci", "    - job: windows-gate-s1vm\n      artifacts: false\n", "",
+           "release does not need windows-gate-s1vm")
+    broken("a namespace on neither bench", "ci", "SMTP|AntiVirus|SSL|ExternalAccounts)\\./'\n\n",
+           "SMTP|AntiVirus|ExternalAccounts)\\./'\n\n", "are not the two halves of one suite")
+    broken("bench150's half as a list of its own", "ci", "    HM_GATE_WHERE: 'class!~/",
+           "    HM_GATE_WHERE: 'class=~/", "are not the two halves of one suite")
+    # GitLab's YAML reader takes the last of two keys: bench150's half read as the
+    # complement while the job runs the whole suite, the six twice.
+    broken("bench150's half said twice, the whole suite last", "ci", "ExternalAccounts)\\./'\n    HM_GATE_LOCK:",
+           "ExternalAccounts)\\./'\n    HM_GATE_WHERE: \"\"\n    HM_GATE_LOCK:", "windows-gate does not set HM_GATE_WHERE once")
+    broken("both halves' pattern set by a rule", "ci",
+           "    - if: $CI_PIPELINE_SOURCE != \"merge_request_event\" && $CI_COMMIT_REF_PROTECTED == \"true\"\n      changes:\n"
+           "        paths: &not-docs-only\n",
+           "    - if: $CI_PIPELINE_SOURCE != \"merge_request_event\" && $CI_COMMIT_REF_PROTECTED == \"true\"\n      variables:\n"
+           "        HM_GATE_WHERE: \"\"\n      changes:\n        paths: &not-docs-only\n",
+           "a rule windows-gate takes sets HM_GATE_WHERE")
+    broken("bench150's half left without the second bench's", "ci", "windows-gate-s1vm:\n  extends: windows-gate\n",
+           "windows-gate-elsewhere:\n  extends: windows-gate\n", "no windows-gate-s1vm runs the rest")
+    broken("the second bench's half running a script of its own past a busy bench", "ci",
+           "  interruptible: false\n  variables:\n    HM_GATE_WHERE: 'class=~",
+           "  interruptible: false\n  script:\n    - exit 10\n  variables:\n    HM_GATE_WHERE: 'class=~",
+           "windows-gate-s1vm lets an exit code fail")
+    broken("a job on S1-WINBENCH started by a push of documents alone", "ci",
+           "# ---------------------------------------------------------------- ported from GitHub Actions\n",
+           "s1vm-probe:\n  stage: test\n  tags: [bench-s1vm]\n  hooks: !reference [.bench150-leftovers, hooks]\n  rules:\n"
+           "    - if: $CI_PIPELINE_SOURCE == \"schedule\" || $CI_PIPELINE_SOURCE == \"pipeline\"\n      when: never\n"
+           "    - if: $CI_PIPELINE_SOURCE != \"merge_request_event\" && $CI_COMMIT_REF_PROTECTED == \"true\"\n"
+           "  script:\n    - exit 0\n\n# ---------------------------------------------------------------- ported from GitHub Actions\n",
+           "s1vm-probe runs on the project's own runners for a push that changes only documentation")
     broken("a busy bench let past in a tag's pipeline", "ci", "if ($taken -eq 1 -and -not $env:CI_COMMIT_TAG) { \"the bench is busy - no gate",
            "if ($taken -eq 1) { \"the bench is busy - no gate", "windows-gate lets an exit code fail")
     broken("the cosign placeholder back", "ci", '"%s"' % cosign, '"%s@sha256:PIN-THE-DIGEST"' % cosign.split("@")[0],
@@ -5856,8 +5948,8 @@ def self_test(chain, feed):
     broken("the Windows packages needing the build inputs' job optionally", "packages-windows",
            "    - job: build-inputs-authenticode\n      artifacts: false\n",
            "    - job: build-inputs-authenticode\n      artifacts: false\n      optional: true\n", ".windows-packages does not need build-inputs-authenticode")
-    broken("windows-installer built without the build inputs' job", "ci", "needs: [windows-gate, build-inputs-authenticode]",
-           "needs: [windows-gate]", "windows-installer does not need build-inputs-authenticode")
+    broken("windows-installer built without the build inputs' job", "ci", "needs: [windows-gate, windows-gate-s1vm, build-inputs-authenticode]",
+           "needs: [windows-gate, windows-gate-s1vm]", "windows-installer does not need build-inputs-authenticode")
     broken("release-sign.sh taking the ARM64 installer unsigned", "sign", '      *-arm64.exe) echo "$authenticode-arm64/$1" ;;\n', "",
            "the ARM64 installer taken signed")
     broken("a job of the rehearsal's file that is not the rehearsal's", "rehearsal", "\nrelease-rehearsal-verify:\n",

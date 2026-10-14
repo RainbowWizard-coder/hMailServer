@@ -4,18 +4,18 @@
 
 # The checks GitLab runs on a push, on a merge request and on a release tag.
 #
-# Every job runs on the project's own runners - bench150, linix's second entry
-# linix-systemd, and linix, server2 or s1-linux, which share the tag linix, server2
-# with kvm beside it - in every pipeline for a protected ref that is not a merge
-# request's: master, a batch* branch, a v* tag and the schedules on master, unless the
-# owner sends a class of them to GitLab's hosted runners (below). None goes to GitLab's
-# shared runners by itself: their compute minutes ran out on 9 October 2026 and left
-# batch46's change gate without a runner (docs/ContinuousIntegration.md, "Every job on
-# the project's own runners"). A job that names no runner itself takes default:'s tags,
-# [$HM_RUNNER]: linix (variables:, below) in such a pipeline, and GitLab's hosted
-# runner in any other - a merge request's, an unprotected branch's - where its workflow
-# rule says so, since the project's runners, registered ref_protected, take nothing of
-# that pipeline.
+# Every job runs on the project's own runners - bench150 and S1-WINBENCH, the Windows
+# benches, linix's second entry linix-systemd, and linix, server2 or s1-linux, which
+# share the tag linix, server2 with kvm beside it - in every pipeline for a protected
+# ref that is not a merge request's: master, a batch* branch, a v* tag and the
+# schedules on master, unless the owner sends a class of them to GitLab's hosted
+# runners (below). None goes to GitLab's shared runners by itself: their compute
+# minutes ran out on 9 October 2026 and left batch46's change gate without a runner
+# (docs/ContinuousIntegration.md, "Every job on the project's own runners"). A job that
+# names no runner itself takes default:'s tags, [$HM_RUNNER]: linix (variables:, below)
+# in such a pipeline, and GitLab's hosted runner in any other - a merge request's, an
+# unprotected branch's - where its workflow rule says so, since the project's runners,
+# registered ref_protected, take nothing of that pipeline.
 #
 # GitLab's hosted runners beside the project's, since the group's open-source plan of
 # 13 October 2026 (50,000 compute minutes a month): a class of the jobs on the
@@ -70,15 +70,20 @@
 #                 linux-image's linux/amd64 one (.gitlab/ci/container-image.yml);
 #   linux-repro   linix: linux-build's server and packages made a second time, from
 #                 another path, and compared byte for byte (build/ci/linux-repro.sh);
-#   windows-gate  bench150: the whole Windows suite in the bench's own checkout,
-#                 which its hMailServer service runs from (build/ci/windows-gate.ps1);
+#   windows-gate  bench150: the Windows suite but for six namespaces, in the bench's
+#                 own checkout, which its hMailServer service runs from
+#                 (build/ci/windows-gate.ps1);
+#   windows-gate-s1vm  S1-WINBENCH, at the same time: those six - Security,
+#                 Infrastructure, SMTP, AntiVirus, SSL and ExternalAccounts - the same
+#                 way, in that bench's own checkout;
 #   windows-dotnet  bench150: the Control Panel and the tools built, tested and held
 #                 to dotnet format (build/ci/windows-dotnet.ps1);
 #
 # And for a v* tag, the release (docs/ContinuousIntegration.md, "The release"):
 #
 #   windows-installer     bench150: the x64 Windows installer, built in the bench's checkout
-#                         after windows-gate (build/ci/windows-installer.ps1); the ARM64 one is
+#                         after both halves of the Windows suite, windows-gate and
+#                         windows-gate-s1vm (build/ci/windows-installer.ps1); the ARM64 one is
 #                         windows-packages-arm64's (.gitlab/ci/packages-windows.yml);
 #   release               by hand: the tag, the version stamp and the settings checked, the
 #                         security scans' reports read (build/ci/security-gate.py), and
@@ -237,11 +242,11 @@ workflow:
         HM_RUNNER: saas-linux-small-amd64
 
 default:
-  # A newer push to the same branch makes this pipeline's answer moot. The two long
-  # gates, linux-suite and windows-gate, say interruptible: false (as do linux-fuzz,
-  # renovate and the release jobs), and once one of them has started GitLab cancels
-  # nothing of the pipeline: a gate is not cut off half-way, and the pipeline that
-  # started it keeps its answer.
+  # A newer push to the same branch makes this pipeline's answer moot. The long gates,
+  # linux-suite and the Windows suite's two halves, windows-gate and windows-gate-s1vm,
+  # say interruptible: false (as do linux-fuzz, renovate and the release jobs), and
+  # once one of them has started GitLab cancels nothing of the pipeline: a gate is not
+  # cut off half-way, and the pipeline that started it keeps its answer.
   interruptible: true
   # Where every job runs that names no runner of its own - GitLab's templates' jobs among
   # them: HM_RUNNER, which is linix for a protected ref that is not a merge request's
@@ -588,15 +593,16 @@ pages:
 # ---------------------------------------------------------------- the project's own runners
 #
 # linix and server2 (tags linux, docker, linix), linix's second entry linix-systemd
-# (tag linix-systemd) and bench150 (tags windows, bench, bench150) are project
-# runners registered ref_protected with run_untagged off, and a job reaches one only
-# by its tag - every job of the CI files does, one that names none by default:'s
-# [$HM_RUNNER]. These rules keep a job that names one of them out of any pipeline
-# that is not for a protected ref, and out of every merge request pipeline whatever
-# its source; the jobs that take default:'s tags, the workflow sends to GitLab's
-# hosted runner there. A job of a class (variables:, HM_RUNNER_BUILD and the rest)
-# takes these rules too: its switch can send it to GitLab's runners, in a pipeline of
-# a protected ref alone, and it stays out of every other one, as on linix.
+# (tag linix-systemd), bench150 (tags windows, bench, bench150) and S1-WINBENCH (tags
+# windows, bench-s1vm), a Windows Server VM on server1 that takes windows-gate-s1vm,
+# are project runners registered ref_protected with run_untagged off, and a job
+# reaches one only by its tag - every job of the CI files does, one that names none by
+# default:'s [$HM_RUNNER]. These rules keep a job that names one of them out of any
+# pipeline that is not for a protected ref, and out of every merge request pipeline
+# whatever its source; the jobs that take default:'s tags, the workflow sends to
+# GitLab's hosted runner there. A job of a class (variables:, HM_RUNNER_BUILD and the
+# rest) takes these rules too: its switch can send it to GitLab's runners, in a
+# pipeline of a protected ref alone, and it stays out of every other one, as on linix.
 # A scheduled pipeline runs the one job its description names (linux-fuzz and renovate
 # here, with rules of their own): it must not start the gates.
 #
@@ -766,13 +772,13 @@ db-matrix:
     reports:
       junit: db-matrix/junit.xml
 
-# Before every job on bench150 fetches or checks anything out: what a cancelled job left
-# running in this job's directory is stopped. A job cancelled mid-build (pipeline #11,
-# 2897966924, on 30 September 2026) left cl.exe and mspdbsrv.exe running in the runner's
-# checkout, holding a precompiled header open, and the next job's checkout of the same
-# directory failed on it until they were killed by hand. GitLab stops a cancelled job's
-# own process tree, but mspdbsrv detaches by design and a compiler started by MSBuild's
-# tracker can outlive its parent.
+# Before every job on bench150 or S1-WINBENCH fetches or checks anything out: what a
+# cancelled job left running in this job's directory is stopped. A job cancelled
+# mid-build (pipeline #11, 2897966924, on 30 September 2026) left cl.exe and
+# mspdbsrv.exe running in the runner's checkout, holding a precompiled header open, and
+# the next job's checkout of the same directory failed on it until they were killed by
+# hand. GitLab stops a cancelled job's own process tree, but mspdbsrv detaches by design
+# and a compiler started by MSBuild's tracker can outlive its parent.
 #
 # What is stopped: a process of the runner's own account (LocalSystem), named in the
 # list below - the compilers and their servers, MSBuild and its tracker, the .NET build
@@ -785,7 +791,7 @@ db-matrix:
 # read from the process itself (its PEB, 64- or 32-bit), since Windows offers it nowhere
 # else; a process it cannot be read from is judged by its command line alone. Each one
 # stopped is named in the log with why; a failure here is reported and the job goes on,
-# since the checkout itself is then the check. Taken by each bench150 job as
+# since the checkout itself is then the check. Taken by each job on either bench as
 # hooks: !reference [.bench150-leftovers, hooks] (docs/ContinuousIntegration.md,
 # "bench150").
 .bench150-leftovers:
@@ -893,17 +899,23 @@ db-matrix:
           }
         }
 
-# The whole Windows suite in the second bench's own checkout, C:\bench\hmailserver,
-# because the bench's hMailServer service is registered from that path: GIT_STRATEGY
-# none, and the commit is fetched into that checkout from GitLab. The gate scripts
-# are this commit's, taken out of the object store (git archive) before the checkout
-# is touched, so that the gate lock is held - by this commit's own gate-lock.ps1 -
-# before anything in the bench's working tree changes. The lock is released by the
-# script, and again by after_script for a job that was cancelled (GitLab 17.0 and
-# later run after_script then) or ran out of time (RUNNER_SCRIPT_TIMEOUT below).
+# The Windows suite - this job's half of it, below - in the second bench's own
+# checkout, C:\bench\hmailserver, because the bench's hMailServer service is registered
+# from that path: GIT_STRATEGY none, and the commit is fetched into that checkout from
+# GitLab. The gate scripts are this commit's, taken out of the object store (git
+# archive) before the checkout is touched, so that the gate lock is held - by this
+# commit's own gate-lock.ps1 - before anything in the bench's working tree changes. The
+# lock is released by the script, and again by after_script for a job that was
+# cancelled (GitLab 17.0 and later run after_script then) or ran out of time
+# (RUNNER_SCRIPT_TIMEOUT below).
 #
-# HM_GATE_WHERE, empty, is the whole suite in one run; an NUnit --where expression
-# runs that subset instead, which is how a second Windows runner would take half.
+# HM_GATE_WHERE splits the suite between two benches, run at the same time: this job,
+# on bench150, runs every test outside the six namespaces windows-gate-s1vm names
+# (class!~), and windows-gate-s1vm, on S1-WINBENCH, those six (class=~), with the same
+# pattern, so that together they run every test once, and a namespace added later - or
+# a fixture outside RegressionTests, as ServerFreeTests is - runs here rather than
+# nowhere (build/check-release-chain.py holds the two to that). Empty, it is the whole
+# suite in one run.
 #
 # A bench busy for HM_GATE_LOCK_WAIT_MINUTES (the maintainer's split gate, or another
 # pipeline's) ends the job with exit 10, which is allowed to fail: the pipeline shows a
@@ -925,7 +937,7 @@ windows-gate:
     GIT_STRATEGY: none
     HM_BENCH_DIR: 'C:\bench\hmailserver'
     HM_GATE_REPOSITORY: https://gitlab.com/hmailserver/hmailserver.git
-    HM_GATE_WHERE: ""
+    HM_GATE_WHERE: 'class!~/^RegressionTests\.(Security|Infrastructure|SMTP|AntiVirus|SSL|ExternalAccounts)\./'
     HM_GATE_LOCK: 'C:\bench\gate.lock'
     HM_GATE_LOCK_WAIT_MINUTES: "90"
     # No prompt for a credential, ever: under LocalSystem there is nobody to answer it.
@@ -945,7 +957,7 @@ windows-gate:
       # The scripts below are started with the PowerShell running this, by its path:
       # LocalSystem has the machine PATH only.
       $shell = (Get-Process -Id $PID).Path
-      "== windows-gate of $sha in $bench as $([Security.Principal.WindowsIdentity]::GetCurrent().Name), under $shell"
+      "== $($env:CI_JOB_NAME) of $sha in $bench as $([Security.Principal.WindowsIdentity]::GetCurrent().Name), under $shell"
       # GIT_STRATEGY none cleans nothing: an earlier job's scripts go first, so that
       # nothing below, and no after_script, runs another commit's.
       Remove-Item -Recurse -Force gate, gate.zip -ErrorAction SilentlyContinue
@@ -998,6 +1010,25 @@ windows-gate:
       - gate-results/
     reports:
       junit: gate-results/junit.xml
+
+# The other half of the Windows suite, on S1-WINBENCH, the Windows Server VM on server1
+# (runner 57373183, tags windows and bench-s1vm; docs/ContinuousIntegration.md,
+# "S1-WINBENCH"): windows-gate in every other respect, in that bench's own checkout,
+# C:\bench\hmailserver, under that bench's own lock, C:\bench\gate.lock there, so that
+# the two halves run at the same time. extends: replaces tags: and merges variables:;
+# hooks: and interruptible: are said again because build/check-release-chain.py reads
+# them from the job's own text. With S1-WINBENCH offline or paused the job waits for
+# it, and GitLab fails it once it has waited an hour with no runner online to take it
+# (stuck_pending_no_matching_runners, which no exit code allows): the pipeline fails,
+# and windows-installer and release, which need it, never start. A busy bench is exit
+# 10 here as in windows-gate.
+windows-gate-s1vm:
+  extends: windows-gate
+  tags: [bench-s1vm]
+  hooks: !reference [.bench150-leftovers, hooks]
+  interruptible: false
+  variables:
+    HM_GATE_WHERE: 'class=~/^RegressionTests\.(Security|Infrastructure|SMTP|AntiVirus|SSL|ExternalAccounts)\./'
 
 # ---------------------------------------------------------------- ported from GitHub Actions
 #
@@ -1776,8 +1807,9 @@ image-pins:
 # pipeline, once its gates have passed, makes the release (docs/ContinuousIntegration.md,
 # "The release"; RELEASE.md has the runbook). In order:
 #
-#   windows-installer     automatic, after windows-gate: the x64 installer, unsigned, in
-#                         the bench's checkout under the gate lock (the ARM64 one is
+#   windows-installer     automatic, after both halves of the Windows suite, windows-gate
+#                         and windows-gate-s1vm: the x64 installer, unsigned, in bench150's
+#                         checkout under its gate lock (the ARM64 one is
 #                         windows-packages-arm64's, .gitlab/ci/packages-windows.yml);
 #   release               started by hand, after every gate: nothing is signed or sent
 #                         anywhere until a maintainer says so. It checks the tag (an
@@ -1820,7 +1852,7 @@ windows-installer:
   hooks: !reference [.bench150-leftovers, hooks]
   # build-inputs-authenticode (.gitlab/ci/packages-windows.yml): the third-party files
   # this build places, held to the signatures the manifest records first.
-  needs: [windows-gate, build-inputs-authenticode]
+  needs: [windows-gate, windows-gate-s1vm, build-inputs-authenticode]
   timeout: 2 hours
   interruptible: false
   rules:
@@ -1949,6 +1981,8 @@ release:
     - job: linux-repro
       artifacts: false
     - job: windows-gate
+      artifacts: false
+    - job: windows-gate-s1vm
       artifacts: false
     - job: windows-dotnet
       artifacts: false

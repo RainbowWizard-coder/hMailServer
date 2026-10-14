@@ -213,11 +213,19 @@ gate; a run that reports one is not one. The same split, by the same rule,
 ran the Linux suite on GitHub as two matrix halves of the `regression-on-linux`
 job, after the whole suite grew past that job's ninety-minute limit.
 
-Since 25 September 2026 GitLab CI runs the whole suite, in one run, on the
-second bench itself for `master`, `batch*` branches and release tags: the
-`windows-gate` job, `build/ci/windows-gate.ps1`. The job and the split gate
-take one lock, `C:\bench\gate.lock`, so that neither checks a commit out under
-the other's running suite ([ContinuousIntegration.md](ContinuousIntegration.md)).
+Since 25 September 2026 GitLab CI runs the suite on the second bench itself for
+`master`, `batch*` branches and release tags: the `windows-gate` job,
+`build/ci/windows-gate.ps1`, ran the whole of it in one run until a third bench,
+S1-WINBENCH, took half. Since then `windows-gate` runs every test but the six
+namespaces above on bench150, and `windows-gate-s1vm` those six on S1-WINBENCH,
+at the same time. On each bench the job and the split gate take one lock,
+`C:\bench\gate.lock`, so that neither checks a commit out under the other's
+running suite ([ContinuousIntegration.md](ContinuousIntegration.md)). The split
+gate's eleven-namespace half leaves out the fixtures outside `RegressionTests`
+(`ServerFreeTests`), and runs the two `[Explicit]` stress fixtures under
+`Stress`, which a run of the whole suite skips: NUnit runs an `[Explicit]`
+fixture that a class pattern names. The job's half, the six namespaces'
+complement, does neither.
 GitLab CI runs the Linux suite whole as well, on the project's Linux runner.
 
 A faster bench finds what a slower one cannot: the first split run found a

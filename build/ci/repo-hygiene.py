@@ -991,8 +991,9 @@ def check_token_permissions(files):
     # GitLab's hosted runners - a job on a switch is judged by its own rules, as a job on
     # linix is. The runners are registered with more tags than their names (glab api
     # runners/<id>, 26 September 2026): linix with linux, docker and linix, bench150 with
-    # windows, bench and bench150. A job asking for any of them can land on one.
-    own = re.compile(r"\b(linix|linux|docker|bench150|bench|windows)\b|\$", re.I)
+    # windows, bench and bench150, and S1-WINBENCH since 13 October 2026 with windows and
+    # bench-s1vm. A job asking for any of them can land on one.
+    own = re.compile(r"\b(linix|linux|docker|bench150|bench-s1vm|bench|windows)\b|\$", re.I)
     # default:'s tags, which a job that names none - itself or through extends - takes.
     default_tags = values(jobs.get("default", ""), "tags")
     # A job whose tags are [$HM_RUNNER] runs where the workflow's rules leave HM_RUNNER:

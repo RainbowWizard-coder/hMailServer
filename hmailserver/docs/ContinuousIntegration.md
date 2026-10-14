@@ -3,8 +3,10 @@ Continuous integration
 
 GitLab CI starts every pipeline (`.gitlab-ci.yml` at the repository root), and
 every job of a pipeline for `master`, a `batch*` branch, a `v*` tag or a
-schedule runs on the project's own runners - linix and bench150, and since 5
-October 2026 server2 beside linix ([The runners](#the-runners)). The checks run
+schedule runs on the project's own runners - linix and bench150, since 5
+October 2026 server2 beside linix, and since 13 October s1-linux beside them and
+S1-WINBENCH beside bench150, which takes half of the Windows suite ([The
+runners](#the-runners)). The checks run
 for every push and every merge request; the builds, both regression suites and
 everything else that needs a machine of the project's run only for the refs that
 only a maintainer can push. The owner decided on GitLab CI with runners of the
@@ -42,9 +44,10 @@ What runs where
 ---------------
 
 *Runs on* names where GitLab sends a job in a pipeline for a protected ref that is
-not a merge request's: bench150, linix's second entry `linix-systemd`, or the tag
-`linix`, which two runners carry since 5 October 2026, linix and server2, so that
-such a job runs on whichever of the two takes it first ([The runners](#the-runners)).
+not a merge request's: bench150, S1-WINBENCH, linix's second entry `linix-systemd`,
+or the tag `linix`, which three runners carry - linix and server2 since 5 October
+2026, s1-linux since 13 October - so that such a job runs on whichever of them
+takes it first ([The runners](#the-runners)).
 A job that names no runner of its own takes `linix` from `default:`; in a merge
 request's pipeline and an unprotected branch's that is GitLab's hosted runner
 instead ([Every job on the project's own runners](#every-job-on-the-projects-own-runners)).
@@ -84,7 +87,8 @@ The other tables on this page name runners the same way.
 | `linux-sbom` | test | linix | a protected ref | The SPDX and CycloneDX SBOMs of the tree, kept 90 days (`build/ci/linux-sbom.sh`) |
 | `linux-repro` | test | linix | a protected ref, after `linux-build` | `linux-build`'s binary, `.deb` and `.rpm` made a second time from a copy of the tree at another path with other file modes, in another build directory, started under another umask and in another time zone, and compared: all three must be byte for byte identical (`build/ci/linux-repro.sh`; [ReproducibleBuilds.md](ReproducibleBuilds.md)) |
 | `db-matrix` | test | linix | a protected ref, started by hand | The `linux-build` server against MySQL 8.4, MariaDB 11.8 or PostgreSQL 17 in the test lab (`HM_LAB_DB`), the database-sensitive fixtures or the whole suite (`HM_SUITE_FILTER`); `build/lab/db-suite.sh`, [TestLab.md](TestLab.md) |
-| `windows-gate` | test | bench150 | a protected ref | The whole Windows suite in the bench's own checkout (`build/ci/windows-gate.ps1`) |
+| `windows-gate` | test | bench150 | a protected ref | The Windows suite but for `windows-gate-s1vm`'s six namespaces, in the bench's own checkout (`build/ci/windows-gate.ps1`) |
+| `windows-gate-s1vm` | test | S1-WINBENCH | a protected ref | The other half, at the same time: Security, Infrastructure, SMTP, AntiVirus, SSL and ExternalAccounts, in that bench's own checkout ([S1-WINBENCH](#s1-winbench)) |
 | `windows-dotnet` | test | bench150 | a protected ref | The Control Panel and the tools built with warnings as errors, published and tested, and `dotnet format` (`build/ci/windows-dotnet.ps1`) |
 | `build-inputs-authenticode` | build | bench150 | a protected ref | Every build input downloaded afresh and held to its pinned SHA-256, and every third-party file the installers take from one held to the Authenticode record `third-party-binaries.json` keeps for it: signed by the signer recorded, with a timestamp, or unsigned (`build/ci/build-inputs-authenticode.ps1`); then that check and `release-authenticode`'s pin tested, each refusing what it must (`build/ci/authenticode-selftest.ps1`). `windows-packages-x64`, `windows-packages-arm64` and `windows-installer` need it ([ThirdPartyBinaries.md](ThirdPartyBinaries.md), "What checks it") |
 | `linux-fuzz` | test | linix | the schedule described `fuzz`, and nothing else | The three MIME harnesses under libFuzzer (`build/ci/linux-fuzz.sh`); its findings are its artifact, for Developers and above |
@@ -98,7 +102,7 @@ The other tables on this page name runners the same way.
 | `semgrep-sast-gate` | test | linix | every change: a merge request, and a protected `batch*` branch | `semgrep-sast`'s report read by the release's rule, for the files the change touches from its base, or every file when it alters the scan: a Critical or High finding that `.gitlab/security-exceptions.yml`, as the base has it, does not accept fails it, and so does a baseline that grows or loses a reason, a suppression comment added, a narrowing of what a scan reads that does not land alone, a source file put out of the scan's reach, a changed file a rule gave up on, and a report that is not this pipeline's or that the tree commits (`build/ci/security-gate.py --merge-request auto`; [Change checks](#change-checks)) |
 | `mr-dependency-check` | check | linix | every change: a merge request, and a protected `batch*` branch | Every NuGet and PyPI version the change adds, looked up in OSV's own export of its ecosystem's advisories, and every native or vendored library pin it moves, asked of OSV by its upstream tag: a malicious package, or a Critical or High advisory, that neither the base's exceptions nor its VEX document accepts fails it (`build/ci/mr-dependency-check.py --base auto`) |
 | `secret_detection` | test | linix | `master`, a merge request, and the schedule described `security` | GitLab's own secret-detection template: a key, token or password in the commits the pipeline brings, or in the whole history for the `security` schedule - with GitLab's rules but for the two entries of their allowlist that leave out `build/` and the like, so the scripts under `build/` too ([What the secret scans read](#what-the-secret-scans-read)) - in the project's copy of the analyzer's image; a finding `.gitleaksignore` does not name fails it (`.gitlab/ci/gitlab-security.yml`) |
-| `windows-installer` | release | bench150 | a `v*` tag, after `windows-gate` | The x64 Windows installer, unsigned, built in the bench's checkout (`build/ci/windows-installer.ps1`; [The release](#the-release)); the ARM64 one is `windows-packages-arm64`'s ([PackagesWindows.md](PackagesWindows.md)) |
+| `windows-installer` | release | bench150 | a `v*` tag, after `windows-gate` and `windows-gate-s1vm` | The x64 Windows installer, unsigned, built in the bench's checkout (`build/ci/windows-installer.ps1`; [The release](#the-release)); the ARM64 one is `windows-packages-arm64`'s ([PackagesWindows.md](PackagesWindows.md)) |
 | `release` | release | linix | a `v*` tag, started by hand | Checks the tag, the version stamp and the release settings, reads the four security scans' reports (`build/ci/security-gate.py`), collects the sixty files a release carries before the two installers' SBOMs, the PowerShell module's two unsigned among them (eight in 6.3.5), and counts what GitLab and Pages will take of it (`build/ci/release-chain.py collect`) |
 | `release-authenticode` | release | bench150 | a `v*` tag, after `release` | The two installers, x64 and ARM64, and the PowerShell module's manifest and script, Authenticode-signed through Azure Artifact Signing with the job's ID token (`build/ci/windows-authenticode.ps1`) |
 | `release-sbom` | release | linix | a `v*` tag, after `release-authenticode` | Each signed installer's own SBOM, `<installer>.cdx.json`, and the statement of the release's SLSA provenance (`build/ci/release-chain.py sbom`, `build/asset-sbom.py`) |
@@ -126,10 +130,10 @@ The other tables on this page name runners the same way.
 | `compute-quota` | check | linix | the same | The namespace's compute minutes this month against its quota and what a pipeline made at the switches as the job reads them, when it starts, is expected to use, in the environment `compute-quota`; while a switch sends a class to GitLab's runners, a warning under a quarter of the quota or ten such pipelines left, a failure under a twentieth or two, with how the switches are set back; with none sent there, the minutes left and that the pipeline's jobs keep the runners they were made with; says "not configured" until `HM_QUOTA_TOKEN` exists; allowed to fail, whatever it says (`build/ci/hosted-runners.py quota`) |
 | `scorecard` | check | linix | the schedule described `scorecard`, and nothing else | OpenSSF Scorecard 5.5.0 from cache.nixos.org over the project, its result kept for `package-repos` to publish with a badge; says "not configured" and passes until the owner's `GITLAB_AUTH_TOKEN` exists (`.gitlab/ci/scorecard.yml`, `build/ci/scorecard.sh`; [OpenSSF Scorecard](#openssf-scorecard)) |
 
-`linux-build`, `windows-gate`, `windows-dotnet`, `linux-cross`, `linux-sanitize`
-and `linux-sbom` start as soon as the pipeline does. They do not wait for the
-checks, because the project's machines are otherwise idle and the Windows gate
-is the longest job. `linux-suite`, the two upgrade gates, the two package jobs,
+`linux-build`, `windows-gate`, `windows-gate-s1vm`, `windows-dotnet`, `linux-cross`,
+`linux-sanitize` and `linux-sbom` start as soon as the pipeline does. They do not
+wait for the checks, because the project's machines are otherwise idle and the
+Windows gate is the longest job. `linux-suite`, the two upgrade gates, the two package jobs,
 `linux-image` and `linux-repro` wait for `linux-build`, whose artifact holds the
 binary and the packages (`linux-image-arm64` waits for `deb-ubuntu26.04-arm64`,
 whose artifact holds the arm64 `.deb`), and `release` waits for every job that
@@ -140,7 +144,7 @@ and `windows-installer` ([The release](#the-release)). Each of the two
 runners with the tag `linix` runs up to three jobs at once
 ([The runners](#the-runners)), and the rest queue behind them in the
 order GitLab hands them out; bench150's two jobs take the bench's gate lock in turn
-([The .NET job](#the-net-job)).
+([The .NET job](#the-net-job)), and `windows-gate-s1vm` takes S1-WINBENCH's.
 
 A test report is published for both suites, under the pipeline's *Tests* tab.
 The Linux suite's TRX goes through `build/ci/trx-to-junit.py`, and the Windows
@@ -225,15 +229,15 @@ open merge request would otherwise run two pipelines, one for the branch and
 one for the merge request. A newer push to the same ref makes an older pipeline
 moot: most jobs are `interruptible`, so GitLab cancels the older pipeline when
 the project's "auto-cancel redundant pipelines" setting is on, as it is by
-default. The two long gates are not: `linux-suite` and `windows-gate` say
-`interruptible: false`, and GitLab's default ("conservative") auto-cancel
-leaves a pipeline alone once a job that is not interruptible has started. So a
-push that lands while a gate runs - three documentation commits after a batch's
-gated one, say - does not cut the gate off half-way or leave bench150 in the
-middle of a build: the older pipeline runs to its answer and the newer one
-queues behind it on the runner. `linux-fuzz`, `renovate` and the release jobs
-are not interruptible either, so a push to `master` during the night does not
-cut the night's fuzzing short.
+default. The long gates are not: `linux-suite` and the Windows suite's two
+halves, `windows-gate` and `windows-gate-s1vm`, say `interruptible: false`, and
+GitLab's default ("conservative") auto-cancel leaves a pipeline alone once a job
+that is not interruptible has started. So a push that lands while a gate runs -
+three documentation commits after a batch's gated one, say - does not cut the
+gate off half-way or leave a bench in the middle of a build: the older pipeline
+runs to its answer and the newer one queues behind it on the runner.
+`linux-fuzz`, `renovate` and the release jobs are not interruptible either, so a
+push to `master` during the night does not cut the night's fuzzing short.
 
 Landing a batch runs the full gate twice. The gate runs once on the `batch*`
 branch, and again when `master` is fast-forwarded to the same commit. That is
@@ -248,7 +252,7 @@ off and `locked`. GitLab gives them a job only when all three of these hold:
 
 1. the pipeline is for a protected ref: `master`, a `batch*` branch or a `v*`
    tag, which only the maintainers can push;
-2. the job names one of the runner's tags (`linix`, `bench150`,
+2. the job names one of the runner's tags (`linix`, `bench150`, `bench-s1vm`,
    `linix-systemd`) - every job does, one that names none by `default:`'s
    `[$HM_RUNNER]`, which is `linix` in such a pipeline alone;
 3. the job's `rules:` created it. `.own-runners` in the CI file creates its
@@ -307,7 +311,7 @@ job that names no runner of its own takes, GitLab's templates' jobs among them
 `container_scanning`, which ran GitLab's template until 10 October 2026, takes them
 too. `.gitlab-ci.yml`'s `variables:` set `HM_RUNNER` to `linix`, the tag linix
 and server2 carry. The jobs that need a machine of a kind name their own runner as
-before (`.linix`'s `linix`, `bench150`, `linix-systemd`). The workflow's rules
+before (`.linix`'s `linix`, `bench150`, `bench-s1vm`, `linix-systemd`). The workflow's rules
 choose the runner for each pipeline: every rule that makes a pipeline for a
 protected ref that is not a merge request's - `master`, a `batch*` branch, a `v*`
 tag, a schedule on `master` - leaves `HM_RUNNER` as it is, and every other rule
@@ -355,7 +359,7 @@ their other clauses can go, make a pipeline of a protected ref that is not a
 merge request's with `HM_RUNNER` anything but a tag of the project's, or any
 other pipeline with anything but `saas-linux-small-amd64`; and when a job that
 names its own tags names none, a variable other than `HM_RUNNER`, tags no runner
-of the project's carries, or none of `linix`, `linix-systemd` and `bench150` (a
+of the project's carries, or none of `linix`, `linix-systemd`, `bench150` and `bench-s1vm` (a
 runner anywhere may carry `linux` or `docker`) - or names the project's and has
 rules that make it in a merge request's or an unprotected ref's pipeline, where
 it would wait for a runner that never takes it. A job of a class names its class's
@@ -455,19 +459,20 @@ its own runs side by side on linix; `hosted-runners` warns of both. The six aarc
 `.rpm` builds and `nix` stay in `linix-package-build` on the project's runners.
 
 **What stays on the project's runners whatever a switch says.** Every Windows job,
-on bench150; `package-systemd-ubuntu26.04` and `package-systemd-fedora44`, on
-`linix-systemd`'s privileged entry; the six aarch64 `.rpm` builds, each of which runs
-its testers under qemu-user, which GitLab's amd64 machines have not; `nix`, which
-boots a QEMU machine and asks for the tags `linix` and `kvm`, which server2 alone
-carries ([server2](#server2)); `db-matrix`, which reaches the lab on linix;
-`linux-fuzz` and `linux-coverage`, the one keeping its corpus in linix's own cache and
-the other longer than GitLab's three hours; `forge-export`, whose archives are kept in
-linix's cache, off GitLab; `renovate`, `scorecard` and every publisher of the release
-channels and the command-line packages, each holding a credential; every job of the
-release and of its rehearsal, which sign with the pipeline's ID token or collect,
-verify and publish what it signs; `pages` and `package-repos`; and every job that
-takes `default:`'s tags - the checks, the change gates and the jobs of GitLab's
-templates - which runs on GitLab's small runner in a merge request's pipeline already.
+on bench150 and S1-WINBENCH; `package-systemd-ubuntu26.04` and
+`package-systemd-fedora44`, on `linix-systemd`'s privileged entry; the six aarch64
+`.rpm` builds, each of which runs its testers under qemu-user, which GitLab's amd64
+machines have not; `nix`, which boots a QEMU machine and asks for the tags `linix`
+and `kvm`, which server2 alone carries ([server2](#server2)); `db-matrix`, which
+reaches the lab on linix; `linux-fuzz` and `linux-coverage`, the one keeping its
+corpus in linix's own cache and the other longer than GitLab's three hours;
+`forge-export`, whose archives are kept in linix's cache, off GitLab; `renovate`,
+`scorecard` and every publisher of the release channels and the command-line
+packages, each holding a credential; every job of the release and of its
+rehearsal, which sign with the pipeline's ID token or collect, verify and publish
+what it signs; `pages` and `package-repos`; and every job that takes `default:`'s
+tags - the checks, the change gates and the jobs of GitLab's templates - which runs
+on GitLab's small runner in a merge request's pipeline already.
 
 ### What a job on GitLab's runners is given
 
@@ -605,13 +610,18 @@ arm64 jobs, 27,000 with the builds and 40,000 with everything; two release weeks
 
 **What it buys.** On the project's runners a batch's pipeline took 7.9 to 8.5 hours
 in October 2026, the package builds one after another its longest path, and
-`windows-gate` 3.5 hours, bench150's whole path about four. With the packages on
-GitLab's runners, each build in a lane of its own, the builds run side by side and
-are done within the hour; the longest Linux path is then the two suites, which
-`linix-suite` keeps one after the other on the project's runners: `linux-suite` after
-`linux-build`, then `alpine-suite`, about five hours from the start. With the suites
-on GitLab's runners too, each in a lane of its own, they run side by side and the
-pipeline ends with bench150's path, about four hours. The builds' class frees the
+`windows-gate` 3.5 hours, bench150's whole path about four. With the Windows suite
+split between bench150 and S1-WINBENCH ([The Windows gate](#the-windows-gate)),
+bench150's half is about two hours by estimate - its tests took 105 of the 198
+minutes of 13 October's whole run there - and its whole path a little over two.
+With the packages on GitLab's runners, each build in a lane of its own, the builds
+run side by side and are done within the hour; the longest Linux path is then the
+two suites, which `linix-suite` keeps one after the other on the project's
+runners: `linux-suite` after `linux-build`, then `alpine-suite`, about five hours
+from the start. With the suites on GitLab's runners too, each in a lane of its own,
+they run side by side and the pipeline ends with the longest of their paths and
+the Windows ones, about three hours by the same estimates (bench150's whole path,
+about four, while one bench ran the whole Windows suite). The builds' class frees the
 project's runners for what must stay there, and makes no path shorter. A suite takes
 as long anywhere: `linux-suite` ran 135 to 140 minutes on server2's 28 CPUs and 139
 to 146 on linix's six, `alpine-suite` 137 to 146 - they wait on their fixtures'
@@ -622,7 +632,8 @@ suites' own 3 h 50 min, without its `after_script`.
 `HM_RUNNER_ARM64`, always: about 300 minutes a batch's pipeline, which takes it from
 eight hours to five, and the arm64 jobs on real arm64 - some 19,000 to 30,000 minutes
 in a month of one or two release weeks. `HM_RUNNER_SUITE` with `HM_LANE_SUITE` for a
-release week, when the hour it saves matters, for 145 more a pipeline, `master`'s
+release week, when the two hours or so it saves matter (one while one bench ran the
+whole Windows suite), for 145 more a pipeline, `master`'s
 included, and for a day the project's runners cannot take the suites; with it in the
 release weeks alone, a month of one release week comes to about 27,000, and one of
 two to about 46,000, close to the quota - and with it all month, to about 31,500 and
@@ -1522,12 +1533,14 @@ refuses a skipped pipeline whatever the setting (step 4).
 The runners
 -----------
 
-Four machines take the project's own jobs: linix, server2 and s1-linux, whose
+Five machines take the project's own jobs: linix, server2 and s1-linux, whose
 runners carry the same three tags and share the jobs of the tag `linix` between them
 (linix has a second entry of its own, `linix-systemd`, and server2 the tag `kvm`
-beside the three), and bench150, the Windows bench. s1-linux is an Ubuntu 26.04
-virtual machine on server1 with 16 vCPUs and no KVM, runner 57371020, registered as
-the others are, which has taken jobs of the tag `linix` since 13 October 2026.
+beside the three), bench150, the Windows bench, and S1-WINBENCH, a second one,
+which takes half of the Windows suite ([S1-WINBENCH](#s1-winbench)). s1-linux is an
+Ubuntu 26.04 virtual machine on server1 with 16 vCPUs and no KVM, runner 57371020,
+registered as the others are, which has taken jobs of the tag `linix` since 13
+October 2026.
 
 ### linix
 
@@ -1774,6 +1787,38 @@ bench), plus these:
   read from the process's own memory (its PEB, 64- or 32-bit), which Windows
   shows nowhere else. A check that cannot run says so and the job goes on.
 
+### S1-WINBENCH
+
+A third Windows bench, since 13 October 2026: a Windows Server 2025 virtual
+machine on server1, in VMware Workstation, bridged to the LAN at 10.0.0.229, with
+16 vCPUs and 12 GB of memory. GitLab Runner runs there as on bench150: the
+`gitlab-runner` service as LocalSystem, the shell executor with `shell = "pwsh"`,
+one job at a time, builds in `C:\GitLab-Runner\builds`. It has the tags `windows`
+and `bench-s1vm`, and it is runner 57373183 on GitLab, registered as bench150's
+is: a project runner for protected refs only, no untagged jobs, locked, four
+hours at most.
+
+It takes one job, `windows-gate-s1vm`: the half of the Windows suite that the
+maintainer's split gate ran on its remote bench - Security, Infrastructure,
+SMTP, AntiVirus, SSL and ExternalAccounts - in its own checkout,
+`C:\bench\hmailserver`, under its own lock, `C:\bench\gate.lock` on that bench,
+at the same time as `windows-gate` runs the rest on bench150. The host has what
+the list above asks of bench150 for the gate: the bench itself
+([RegressionEnvironment.md](RegressionEnvironment.md)), PowerShell 7 and Git for
+the machine, the `safe.directory`, access to `gitlab.com` and `api.nuget.org`,
+and nothing from GitHub in its hosts file. It has neither Inno Setup, nor the
+Artifact Signing Client Tools, nor Visual Studio's ARM64 tools, so
+`windows-installer`, `release-authenticode` and the Windows package jobs stay on
+bench150; `windows-dotnet` would run here as well (the .NET SDK 10.0.401, and the
+Build Tools' MIDL and `TlbImp.exe`, are there), but it names `bench150`.
+
+The VM starts with server1, from a scheduled task there that starts it with no
+window and keeps running while it does, and comes back by itself after a restart
+of server1. Windows Update is off in it, as on bench150. Its evaluation licence
+was activated on 14 October 2026 and runs to 12 April 2027; one rearm
+(`slmgr /rearm`, then a restart) adds 180 days once, and after that the VM needs
+a licence or a rebuild.
+
 ### Re-creating a runner
 
 The integrator's two scripts, `make-linix-runner.py` and
@@ -2018,8 +2063,9 @@ The Windows gate
 
 `windows-gate` works in `C:\bench\hmailserver`, not in the runner's builds
 directory, because the bench's hMailServer service is registered from that
-path. The bench keeps its registration. The job has `GIT_STRATEGY: none`, so the
-runner clones nothing, and the job does the following itself:
+path, and so does `windows-gate-s1vm`, the same job on S1-WINBENCH, there. The
+bench keeps its registration. The job has `GIT_STRATEGY: none`, so the runner
+clones nothing, and the job does the following itself:
 
 1. It fetches the commit into the bench's checkout from
    `https://gitlab.com/hmailserver/hmailserver.git` (`HM_GATE_REPOSITORY`).
@@ -2075,18 +2121,51 @@ for any other reason, or stayed another holder's in a `v*` tag's pipeline.
 **A busy bench is a warning, not a failure.** Exit 10 is
 `allow_failure: exit_codes: [10]`: the pipeline shows the job with a warning
 and stays green, since nothing was wrong with the commit, only with the
-timing. Retrying the job gates it. `windows-dotnet` does the same after its 200
-minutes. A `v*` tag's pipeline turns the same wait into exit 13, a failure,
-because `release` waits for `windows-gate` and `windows-dotnet` and must not be
-startable when the suite never ran; `build/check-release-chain.py` holds both
-jobs to that.
+timing. Retrying the job gates it. Each half of the suite does so on its own
+bench, and `windows-dotnet` the same after its 200 minutes. A `v*` tag's
+pipeline turns the same wait into exit 13, a failure, because `release` waits
+for `windows-gate`, `windows-gate-s1vm` and `windows-dotnet` and must not be
+startable when the suite never ran; `build/check-release-chain.py` holds the
+three jobs to that.
 
-**The whole suite, in one run.** `HM_GATE_WHERE` is empty, and an empty value
-runs every test (3,490 test cases on 25 September 2026). The two halves of the
-split gate together cover every namespace of the suite (RegressionEnvironment.md
-names them), so one run with no filter is the same set of tests. When a second
-Windows runner exists, two copies of the job, each with half the filter in
-`HM_GATE_WHERE`, split the suite again.
+**The suite in two halves, at once.** `windows-gate` on bench150 and
+`windows-gate-s1vm` on S1-WINBENCH ([S1-WINBENCH](#s1-winbench)) each run half
+of the suite, at the same time, each in its own bench's checkout under its own
+bench's lock. `windows-gate-s1vm`'s `HM_GATE_WHERE` names six namespaces,
+`class=~/^RegressionTests\.(Security|Infrastructure|SMTP|AntiVirus|SSL|ExternalAccounts)\./`,
+and `windows-gate`'s is the same pattern with `!~`: every test the other half
+does not take. Together they run every test once, and a namespace added later,
+or a fixture outside `RegressionTests` such as `ServerFreeTests`, runs on
+bench150 rather than on neither; `build/check-release-chain.py` holds the two
+jobs to that, each setting its pattern once in its own `variables:`. Counted by
+name in the whole suite's run at `1df1dc3e7` (pipeline 2944202315, 13 October
+2026), the suite has 4,178 test cases: 1,563 in S1-WINBENCH's half and 2,615 in
+bench150's, none in both and none in neither; at `901764554` NUnit's own list of
+each half's cases, made on S1-WINBENCH, gave 1,563 and 2,613 of 4,176, the same
+as that count gives there. As in one run of the whole suite, neither half runs
+an `[Explicit]` fixture outside the six namespaces: the suite's seven
+`[Explicit]` test cases, two stress fixtures under `Stress`, are bench150's, and
+NUnit (5.0, under `nunit3-console` 3.22) runs none that a negation leaves in.
+It does run an `[Explicit]` fixture that a class pattern names, so one put in
+one of the six would run on S1-WINBENCH, where a run of the whole suite skips
+it. The six are the maintainer's split gate's remote half
+(RegressionEnvironment.md), whose other half, a list of eleven namespaces,
+leaves out `ServerFreeTests` and runs the two stress fixtures. `release`,
+`windows-installer` and the Windows package jobs need both halves. An empty
+`HM_GATE_WHERE` would run the whole suite in one job.
+
+**A pipeline does not pass on one half.** With S1-WINBENCH's runner offline or
+paused, `windows-gate-s1vm` waits for it. Once an hour GitLab fails a job that
+has waited more than an hour while no runner that can take it is online - one
+that has asked GitLab for a job in the last two hours - with
+`stuck_pending_no_matching_runners`, and any job that has waited a day; neither
+failure has an exit code, so `allow_failure: exit_codes: [10]` does not cover
+it, and the pipeline fails, with `windows-installer` and `release`, which need
+the job, never started. A runner back before then takes the job, and the half
+runs late. A restart of server1 under a running job leaves it without updates,
+and GitLab fails it after half an hour (`no_updates_running`); retrying the job
+runs the half again. Only a busy bench, exit 10, lets a pipeline go green
+without a half, with the warning above.
 
 **What changes under LocalSystem.** The split gate's remote half ran as the
 Administrator over SSH. The job runs as LocalSystem, the same account as the
@@ -2118,7 +2197,9 @@ The gate lock
 -------------
 
 Two things run gates on bench150: this job, and the maintainer's split gate
-(its remote half, over SSH). Either one checking a commit out under the other's
+(its remote half, over SSH); on S1-WINBENCH, `windows-gate-s1vm` and agents'
+runs over SSH. Each bench has its own lock file, and both halves of the gate
+take their own bench's. Either one checking a commit out under the other's
 running suite makes a gate that means nothing. Both take one lock,
 `C:\bench\gate.lock`, around everything that touches the bench's checkout,
 build or service. `build/ci/gate-lock.ps1` implements it:
@@ -2166,7 +2247,7 @@ not hold it.
 | `style.yml` editorconfig | `editorconfig` | shared | every pipeline |
 | `style.yml` license-headers | `checkers` (row 139) | shared | every pipeline |
 | `style.yml` dotnet-format | `windows-dotnet` | bench150 | a protected ref |
-| `server-build.yml` | `windows-gate`, which builds the Release server before the suite | bench150 | a protected ref |
+| `server-build.yml` | `windows-gate` and `windows-gate-s1vm`, each of which builds the Release server before its half of the suite | bench150 and S1-WINBENCH | a protected ref |
 | `dco.yml` | `sign-off` (row 139); since 26 September 2026 for every merge request and every `batch*` branch, the maintainers' commits included | shared | a merge request, a `batch*` branch |
 | `roadmap.yml` | `roadmap` | shared | `Roadmap.md` changed |
 | `linux-build.yml` stamps | `checkers` runs `check-linux-version-stamp.sh` (row 139), and `linux-build` runs it again before it packages: a drifted stamp makes no package | shared, linix | every pipeline; a protected ref |
@@ -2893,7 +2974,7 @@ runbook.
 
 | Job | Where | What it does |
 |---|---|---|
-| `windows-installer` | bench150, in `C:\bench\hmailserver` under the gate lock, after `windows-gate` | Refuses a checkout with a change of its own to a tracked file, with a file git neither tracks nor ignores under `hmailserver\source` (an SDK-style project builds every source file below its folder, tracked or not), or with an untracked `Directory.Build.props`, `NuGet.Config` or kin that every build would read, in the checkout or above it; empties every folder the installer script takes whole from the checkout, and every tool's publish folder, of what git does not track; then builds the server, the tools and the Control Panel, fetches the .NET runtime and the third-party files (each against its pinned hash), refuses if a build changed a tracked file, runs ISCC, and requires the file to be `hMailServer-<version>-x64.exe` with the version resource `<version>.0` (`build/ci/windows-installer.ps1`). Automatic: it signs and sends nothing |
+| `windows-installer` | bench150, in `C:\bench\hmailserver` under the gate lock, after `windows-gate` and `windows-gate-s1vm` | Refuses a checkout with a change of its own to a tracked file, with a file git neither tracks nor ignores under `hmailserver\source` (an SDK-style project builds every source file below its folder, tracked or not), or with an untracked `Directory.Build.props`, `NuGet.Config` or kin that every build would read, in the checkout or above it; empties every folder the installer script takes whole from the checkout, and every tool's publish folder, of what git does not track; then builds the server, the tools and the Control Panel, fetches the .NET runtime and the third-party files (each against its pinned hash), refuses if a build changed a tracked file, runs ISCC, and requires the file to be `hMailServer-<version>-x64.exe` with the version resource `<version>.0` (`build/ci/windows-installer.ps1`). Automatic: it signs and sends nothing |
 | `release` | linix, by hand, after every gate | Refuses unless the tag is an annotated tag that still points at the commit the pipeline built, that commit is on `master`, and the tag is signed by the one key `master`'s `.gitlab/allowed_signers` lists (fetched by name, never the tagged tree's copy; every tag is refused while that list holds more than one key), `Version.h` says the tag's version, the security scans of the commit finished and every finding they raised that `SECURITY.md`'s policy counts is in a baseline or accepted in `.gitlab/security-exceptions.yml` ([Before a release](#before-a-release-the-scans-hold-it)), `HM_COSIGN_IMAGE` is `gcr.io/projectsigstore/cosign` pinned by digest (checked as the job receives it, so a CI/CD variable of that name cannot put another image in `release-sign`) and the five Azure settings are set; then collects the x64 installer, `windows-installer`'s, and from 6.3.6 the ARM64 one, `windows-packages-arm64`'s, held to the `SHA256SUMS` that job wrote; the x86-64 `.deb` and `.rpm`, `linux-build`'s, and the generic AArch64 ones, `deb-ubuntu26.04-arm64`'s and `rpm-fedora44-aarch64`'s (from 6.3.6), each with its own SBOM (`<package>.cdx.json`, which `linux-build` or the package's SBOM job made and which must describe the package, by SHA-256); from 6.3.6 every distribution release's `.deb` and `.rpm`, both AppImages and the source tarball, each with its SBOM, and the source of the libraries linked into the AppImages' runtime, which has none, as `release-packages` gathered them, and the Helm chart, `helm-chart-package`'s; the sums as `hmailserver-linux-<version>-SHA256SUMS.txt`, `linux-build`'s `SHA256SUMS.txt` as it is with a line added for every other Linux file and the chart; and the tree's two SBOMs, checking every package, AppImage, the runtime's sources and the chart against the sums its build job wrote and the tarball with `build/check-source-tarball.py`; refuses when the package `hmailserver/<version>` already holds one of those files with other bytes, or an installer, its SBOM, a bundle, a bundle's `.sigstore.json` copy or the provenance at all, which only the jobs after it make; and last counts what GitLab and Pages will take of the release, refusing past a limit ([What a release carries](#the-release); `build/ci/release-chain.py collect`) |
 | `release-authenticode` | bench150 | Signs the x64 installer into `release-authenticode/`, and, when that is signed, the ARM64 one into `release-authenticode-arm64/`, and, when that is, the PowerShell module's `HmailServer.psd1` and `HmailServer.psm1` into `release-authenticode-module/`, each through Azure Artifact Signing, and requires a valid signature with an RFC 3161 timestamp on each, by the publisher, chain and code-signing use every installation's Control Panel is pinned to, and each module file to be its unsigned bytes with one signature block appended (`build/ci/windows-authenticode.ps1`, called once for each; `-Check` holds a downloaded file to the same) |
 | `release-sbom` | linix, in Python's image | Makes each installer's own SBOM, `hMailServer-<version>-x64.exe.cdx.json` and `hMailServer-<version>-arm64.exe.cdx.json`, from the bytes Authenticode signed, with `linux-sbom`'s component list for that processor (both kept by `release` in `release-tools/`), the tools' lock files and that installer's script; refuses an installer Authenticode left unchanged, and a module file that is not collect's bytes with one signature block appended; then writes the statement of the release's SLSA v1 provenance, an in-toto statement naming all sixty-two files by their SHA-256, the commit and the pipeline, for `release-sign` (`build/ci/release-chain.py sbom`, `build/asset-sbom.py`) |
@@ -3921,7 +4002,7 @@ measured times after the first pipelines.
 | `linux-image-arm64` | 162 to 217 s by hand | 30 min | kaniko over Ubuntu 24.04 for arm64 and the arm64 `.deb`, the `RUN` under qemu-user, on linix on 29 September 2026 beside a pipeline, pinned to four CPUs |
 | `linux-sbom` | 6 s by hand | 15 min | |
 | `linux-repro` | 11 to 16 min by hand | 1 h | One more run of `linux-build.sh` - the build, the testers and the packages - plus a copy of the tree and the comparison, which take seconds: the second build took 760, 795, 959, 673, 686 and 696 s with six jobs in six runs on linix on 26 September 2026 |
-| `windows-gate` | 2.5 to 3 h | 4 h | On 25 September 2026 the two halves took 62 minutes (1,339 tests, on bench150) and 70 minutes (2,126 tests, on the laptop), each with its build. One bench runs both, one after the other, with one build. Add any wait for the lock |
+| `windows-gate`, `windows-gate-s1vm` | about 2 h on bench150, at the same time as the other half on S1-WINBENCH, estimated | 4 h | The whole suite in one job took 3 h 25 min on bench150 at `1df1dc3e7` (pipeline 2944202315, 13 October 2026), 198 minutes of it the tests: those of `windows-gate`'s half took 105 minutes there, and those of `windows-gate-s1vm`'s 94. Each job runs one half with its own build, on its own bench; S1-WINBENCH has run no half yet (it built the server in 1 min 58 s on 13 October 2026). Add any wait for the lock |
 | `windows-dotnet` | 10 to 20 min, estimated | 4 h | Two restores (cold for LocalSystem the first time), two Release builds, MIDL, the tests and five publishes; the timeout allows 200 minutes of waiting for the lock |
 | `linux-fuzz` | 65 min | 2 h | Three harnesses of 20 minutes, plus about 3 minutes to build and replay (by hand: 3.5 minutes all told with one minute a harness) |
 | `linux-coverage` | about 3 h, estimated | 4 h | By hand on linix on 26 September 2026, in the job's image: the whole suite against the instrumented server took 126 minutes, and the 29 fixtures linked that day 20 minutes more in a run of their own; the testers took under a minute and the report seconds. The instrumented build was not timed on its own; `linux-build`'s took 20 minutes in the first pipeline |
@@ -3948,7 +4029,8 @@ little under three hours, with the package jobs, the image, `linux-repro`, the
 cross build and the security scans ([What they cost](#what-they-cost)) beside
 them and slowing them, since three jobs of six CPUs ask for more than linix's
 sixteen cores. bench150's two jobs add up one after the other, the gate lock
-holding the second. So a pipeline for a protected ref takes about three hours
+holding the second, with `windows-gate-s1vm`'s half of the suite on S1-WINBENCH
+beside them. So a pipeline for a protected ref takes about three hours
 from start to finish, and the Windows gate and the Linux lane decide it between
 them.
 
@@ -4029,8 +4111,8 @@ and `security`, each of which runs its own job alone (`linux-fuzz`, `renovate`,
 `secret_detection`), and the checker fails if it stops skipping any of them or
 a rule of the file names `HM_PIPELINE` or `RUN_RENOVATE`, the variables that
 chose those pipelines until 26 September 2026 and that the project would refuse.
-Without them each scheduled run would start the whole Windows gate on bench150
-and the Linux suite on linix. A new job added to the file needs the same, or a
+Without them each scheduled run would start the Windows gate on bench150 and
+S1-WINBENCH and the Linux suite on linix. A new job added to the file needs the same, or a
 schedule starts it too.
 
 The `checkers` job runs the generator's self-test, which reads the compiled feed
@@ -4903,7 +4985,8 @@ files do not resolve, and an include that is not a local file or one of GitLab's
 templates. Tags and `extends` may be block lists. A job is on the project's
 runners when it asks for a tag that is a variable, or for any tag they are
 registered with (`linix`, `linux` and `docker` for linix and server2;
-`bench150`, `bench` and `windows` for bench150); a job that names none takes
+`bench150`, `bench` and `windows` for bench150; `bench-s1vm` and `windows` for
+S1-WINBENCH); a job that names none takes
 `default:`'s. One whose tags are `default:`'s `[$HM_RUNNER]` is judged by the
 workflow's rules, which choose its runner (since 9 October 2026, [Every job on
 the project's own runners](#every-job-on-the-projects-own-runners)): a rule that
@@ -4918,7 +5001,8 @@ first); the check as first rewritten (a4636e983) passed 22 of those 23, and
 failed two of the eight that should pass. The runners are registered for
 protected refs only (`access_level` `ref_protected`, read by a maintainer with
 `glab api runners/<id>`: linix and bench150 on 26 September 2026, and those two,
-`linix-systemd` and server2 on 6 October 2026), so none of that was open on this
+`linix-systemd` and server2 on 6 October 2026, and S1-WINBENCH on 14 October 2026),
+so none of that was open on this
 project: the check is the CI files' own guarantee.
 
 Left out of Scorecard's checks, each for a reason:

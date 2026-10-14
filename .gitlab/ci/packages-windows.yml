@@ -47,7 +47,9 @@
 # pending jobs oldest first: started with the pipeline (stage build, needs []) these
 # jobs would take the lock first, and an x64 build (about an hour) followed by an
 # ARM64 one would leave the gate - or on a tag the release's installer - giving up
-# with exit 10. So they need windows-gate and windows-dotnet, and on a v* tag
+# with exit 10. So they need windows-gate and windows-dotnet - and windows-gate-s1vm,
+# the suite's other half, on S1-WINBENCH, whose lock is that bench's own, so that no
+# installer is built from a commit either half failed -, and on a v* tag
 # windows-installer (optional: it is in a tag's pipeline only), which is why they sit
 # in the release stage: a job can need a job of its own or an earlier stage only. On a
 # v* tag the release job needs windows-packages-arm64, whose installer it collects, so a
@@ -117,6 +119,8 @@ build-inputs-authenticode:
     - job: build-inputs-authenticode
       artifacts: false
     - job: windows-gate
+      artifacts: false
+    - job: windows-gate-s1vm
       artifacts: false
     - job: windows-dotnet
       artifacts: false
@@ -211,6 +215,8 @@ windows-packages-arm64:
   extends: .windows-packages
   needs:
     - job: windows-gate
+      artifacts: false
+    - job: windows-gate-s1vm
       artifacts: false
     - job: windows-dotnet
       artifacts: false

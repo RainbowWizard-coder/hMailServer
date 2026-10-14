@@ -5702,6 +5702,25 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   sends a 60,000-character description through a stand-in for glab that reads what it is given; with the fields put
   back on the command line it fails, on Windows with that same error. A landing runs `master`'s copy of the script,
   so the batch that brings this one opens its merge request before it lands, or lands with `--own-copies`.
+- **The Windows suite runs in two halves at once, on bench150 and on S1-WINBENCH.** `windows-gate` ran the whole suite
+  on bench150, 3 h 25 min at `1df1dc3e7` (pipeline 2944202315), the Windows side's longest path in every protected
+  pipeline. A second Windows runner, S1-WINBENCH - a Windows Server 2025 virtual machine on server1, runner 57373183,
+  tags `windows` and `bench-s1vm`, registered as bench150's is - takes `windows-gate-s1vm`, which is `windows-gate` in
+  every other respect, in that bench's own checkout under that bench's own lock: it runs the six namespaces of the
+  split gate's remote half, `class=~/^RegressionTests\.(Security|Infrastructure|SMTP|AntiVirus|SSL|ExternalAccounts)\./`,
+  and `windows-gate` the same pattern with `!~`, every other test - not the split gate's other half, a list of eleven
+  namespaces, which leaves out the six `ServerFreeTests` cases outside `RegressionTests` and runs the two `[Explicit]`
+  stress fixtures that a run of the whole suite skips. Counted by name in the whole suite's run at `1df1dc3e7`, its
+  4,178 test cases fall 1,563 to S1-WINBENCH and 2,615 to bench150, none to both and none to neither; the tests of
+  bench150's half took 105 of that run's 198 minutes. `windows-installer`, `release` and the Windows package jobs need
+  both halves, and a pipeline does not pass on one: with S1-WINBENCH offline or paused GitLab fails the waiting job
+  once it has waited an hour with no runner online to take it (`stuck_pending_no_matching_runners`), which no exit code
+  allows. `build/check-release-chain.py` holds the two halves to one pattern, `=~` on S1-WINBENCH and `!~` on bench150,
+  each said once, quoted, in the job's own `variables:` and set by no rule, and `windows-gate` to the whole suite
+  without the other half; a job on `bench-s1vm` to the leftovers' hook, the second half to `interruptible: false`,
+  `windows-installer` and `release` to needing it, and a gate's busy-bench guard to the script the job runs, its own or
+  the nearest template's, which the second half's own script would otherwise have replaced unseen - each rule with a
+  case of its self-test that fails without it (ContinuousIntegration.md, "The Windows gate" and "S1-WINBENCH").
 - **The message indexer's stop and start, as fixed above (*Correctness*), leave `static-analysis` nothing new to
   say.** Run over them as the job runs it, cppcheck and clang-tidy found four findings in `MessageIndexer.cpp` that
   no baseline holds, none of them a defect in what the code does, and each is now written so that the tools have

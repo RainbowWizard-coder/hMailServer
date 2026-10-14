@@ -8,7 +8,8 @@
    database forward through the running service, build the server and the tests,
    pre-flight, watch the idle server, run the suite. It is the second bench's
    remote-gate.ps1 (the split gate's remote half, run over SSH since 16 September
-   2026) versioned in the tree, and what GitLab's windows-gate job runs on bench150
+   2026) versioned in the tree, and what GitLab's windows-gate job runs on bench150,
+   and windows-gate-s1vm on S1-WINBENCH, each a half of the suite
    (.gitlab-ci.yml; docs\ContinuousIntegration.md).
 
    It does not fetch: the commit must already be in the checkout. The windows-gate
@@ -17,8 +18,10 @@
    runs it holds the lock around it.
 
    -Where   an NUnit --where expression, for a subset: a half of the split gate, or
-            one fixture. Empty - the default, and what the CI job passes unless
-            HM_GATE_WHERE says otherwise - runs the whole suite in one run.
+            one fixture. The default is HM_GATE_WHERE, which the CI jobs set to
+            their halves: windows-gate the six namespaces' complement, class!~,
+            and windows-gate-s1vm those six, class=~. Empty runs the whole suite in
+            one run.
 
    Exit codes, the first seven as remote-gate.ps1 had them:
      0  the suite ran and nothing failed          5  the checkout is not the commit
