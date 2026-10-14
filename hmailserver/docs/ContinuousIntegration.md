@@ -1371,11 +1371,17 @@ in to gitlab.com as a Maintainer. In order, and stopping at the first refusal:
    with a job a rule never created. `semgrep-sast`, `semgrep-sast-gate`,
    `mr-dependency-check` and `checkers`, in which `build/check-release-chain.py`
    holds the CI files to the gates, must each have succeeded, and so must
-   `static-analysis` and `semgrep` unless every file the batch changes from
-   `master` is Markdown at
-   the root or under a directory whose name begins with a dot - the changes for
-   which `.own-runners` creates no scan. A gate that is not in the pipeline, was
-   skipped, or failed, allowed to or not, refuses (exit 5), naming it; the
+   `static-analysis` and `semgrep`, and the Windows suite's two halves,
+   `windows-gate` and `windows-gate-s1vm`, each of which a busy bench ends with
+   exit 10, allowed to fail ([The Windows gate](#the-windows-gate)), unless
+   every file the batch changes from `master` is Markdown at the root or under a
+   directory whose name begins with a dot - the changes for which
+   `.own-runners` creates none of them. A gate that is not in the pipeline, was
+   skipped, or failed, allowed to or not, refuses (exit 5), naming it - a half
+   a busy bench let pass is gated by retrying its job, and a half that a push of
+   documents alone on top of the batch's code left out (`.own-runners`'
+   `changes:` compare a push with the one before) by a pipeline of the branch
+   started by hand, which counts every file as changed; the
    statuses go into the landing record. So do those of `hosted-runners` and
    `compute-quota`, or that neither was in the pipeline
    ([GitLab's hosted runners beside the project's](#gitlabs-hosted-runners-beside-the-projects)):
@@ -2165,7 +2171,10 @@ the job, never started. A runner back before then takes the job, and the half
 runs late. A restart of server1 under a running job leaves it without updates,
 and GitLab fails it after half an hour (`no_updates_running`); retrying the job
 runs the half again. Only a busy bench, exit 10, lets a pipeline go green
-without a half, with the warning above.
+without a half, with the warning above, and no batch lands on such a pipeline:
+`build/land-via-mr.py` requires each half to have succeeded itself, unless the
+batch changes documents alone ([Landing on master](#landing-on-master)), and
+retrying the half's job gates the batch.
 
 **What changes under LocalSystem.** The split gate's remote half ran as the
 Administrator over SSH. The job runs as LocalSystem, the same account as the

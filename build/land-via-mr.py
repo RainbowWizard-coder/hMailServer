@@ -59,11 +59,14 @@ refusal:
      never created. The change gates semgrep-sast, semgrep-sast-gate and
      mr-dependency-check, and checkers, which holds the CI files to them, must
      each have succeeded (GATE_JOBS), and so must the
-     source scans static-analysis and semgrep (SOURCE_SCAN_JOBS) unless every
-     file the batch changes from master is Markdown at the root or under a
-     directory whose name begins with a dot - the changes for which .own-runners
-     creates no scan. A gate that is missing, skipped, or failed refuses (exit
-     5), naming it; the statuses go into the landing record, and so do those of
+     source scans static-analysis and semgrep (SOURCE_SCAN_JOBS) and the Windows
+     suite's two halves, windows-gate and windows-gate-s1vm (WINDOWS_GATE_JOBS),
+     each of which a bench busy past its lock's wait ends with exit 10, allowed
+     to fail, unless every file the batch changes from master is Markdown at the
+     root or under a directory whose name begins with a dot - the changes for
+     which .own-runners creates none of them. A gate that is missing, skipped, or
+     failed refuses (exit 5), naming it - a half a busy bench let pass is gated
+     by retrying its job; the statuses go into the landing record, and so do those of
      hosted-runners and compute-quota (HOSTED_CHECK_JOBS), which no landing waits
      for, or that neither was in the pipeline. The pipeline must be
      the project's own (its project_id), not one a fork ran on runners of its
@@ -193,6 +196,13 @@ SETTLING = {"checking", "unchecked", "approvals_syncing", "preparing", "ci_still
 # build/check-release-chain.py holds these names to the jobs the CI files define.
 GATE_JOBS = ("semgrep-sast", "semgrep-sast-gate", "mr-dependency-check", "checkers")
 SOURCE_SCAN_JOBS = ("static-analysis", "semgrep")
+# The Windows suite's two halves, on bench150 and S1-WINBENCH (.gitlab-ci.yml), on the
+# same terms as the source scans: a bench whose lock another holder keeps past
+# HM_GATE_LOCK_WAIT_MINUTES ends its half with exit 10, which a batch's pipeline lets
+# fail - the pipeline green, with a warning, and that half of the suite never run - so
+# each must have succeeded itself; retrying the half's job gates it
+# (docs/ContinuousIntegration.md, "The Windows gate").
+WINDOWS_GATE_JOBS = ("windows-gate", "windows-gate-s1vm")
 # The checks of a pipeline for which a switch sends a class of jobs to GitLab's hosted
 # runners (.gitlab/ci/hosted-runners.yml), which no landing waits for: a failure of
 # hosted-runners fails the pipeline itself, and compute-quota is allowed to fail whatever
@@ -531,9 +541,9 @@ def pipeline_jobs(api, project, pipeline_id):
 
 def required_jobs(jobs, changed):
     """[(name, status, allowed to fail)] for each job the landing needs: GATE_JOBS always,
-    SOURCE_SCAN_JOBS unless the batch changes documents only. A job not in the pipeline
-    has the status "not in the pipeline"."""
-    names = list(GATE_JOBS) + ([] if documents_only(changed) else list(SOURCE_SCAN_JOBS))
+    SOURCE_SCAN_JOBS and WINDOWS_GATE_JOBS unless the batch changes documents only. A job
+    not in the pipeline has the status "not in the pipeline"."""
+    names = list(GATE_JOBS) + ([] if documents_only(changed) else list(SOURCE_SCAN_JOBS) + list(WINDOWS_GATE_JOBS))
     return [(name, (jobs.get(name) or {}).get("status") or "not in the pipeline", bool((jobs.get(name) or {}).get("allow_failure")))
             for name in names]
 
@@ -710,7 +720,7 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_sca
             "Landing %s: %d commit(s) on top of %s, opened by `build/land-via-mr.py`." % (branch, len(shas), base[:12]),
             "",
             "It merges by fast-forward once this branch's pipeline has passed, and each gate job in it "
-            "(`%s`), and every thread is resolved. " % "`, `".join(GATE_JOBS + SOURCE_SCAN_JOBS) +
+            "(`%s`), and every thread is resolved. " % "`, `".join(GATE_JOBS + SOURCE_SCAN_JOBS + WINDOWS_GATE_JOBS) +
             "Every commit carries its author's `Signed-off-by`. A second person's review is an approval: "
             "read the change, then press Approve, or open a thread for what must change "
             "(GOVERNANCE.md, \"Review\").",
@@ -762,14 +772,16 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_sca
         sleep(opts.poll_seconds)
 
     # ... and the gates in it, each of which must have succeeded itself: GitLab calls a
-    # pipeline a success with a job that failed while allowed to fail, or that a rule
-    # never created (a push of documents alone trims the scans).
+    # pipeline a success with a job that failed while allowed to fail - a half of the
+    # Windows suite a busy bench let pass among them - or that a rule never created (a
+    # push of documents alone trims the scans).
     jobs = pipeline_jobs(api, project, pipeline["id"])
     statuses = required_jobs(jobs, changed)
     jobs_line = describe_jobs(statuses)
     if documents_only(changed):
-        jobs_line += " (%s not required: the batch changes Markdown alone, at the root or under a dot-directory)" % (
-            " and ".join(SOURCE_SCAN_JOBS))
+        let_off = SOURCE_SCAN_JOBS + WINDOWS_GATE_JOBS
+        jobs_line += " (%s and %s not required: the batch changes Markdown alone, at the root or under a dot-directory)" % (
+            ", ".join(let_off[:-1]), let_off[-1])
     say("Gate jobs of pipeline #%s: %s" % (pipeline["id"], jobs_line))
     hosted = [(name, jobs[name].get("status") or "unknown", bool(jobs[name].get("allow_failure")))
               for name in HOSTED_CHECK_JOBS if name in jobs]
@@ -779,7 +791,10 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_sca
     if held:
         raise Refused(5, "REFUSED: pipeline #%s of %s succeeded, but %s did not: %s. A gate that a rule left out of the "
                          "pipeline, that was skipped, or that failed while allowed to fail has not held the batch; push "
-                         "the tip again so that its pipeline runs them, or find why it did not (docs/ContinuousIntegration.md, "
+                         "the tip again so that its pipeline runs them, or find why it did not - a half of the Windows "
+                         "suite that a busy bench let pass (exit 10) is gated by retrying its job, and one a push of "
+                         "documents alone left out by a pipeline of the branch started by hand, which counts every file "
+                         "as changed (docs/ContinuousIntegration.md, "
                          "\"Landing on master\")." % (pipeline["id"], tip[:12], " and ".join(n for n, _, _ in held),
                                                       describe_jobs(held)))
     # ... and against the base the batch leaves master at: a gate whose log names another
@@ -954,7 +969,7 @@ def full_pipeline(**changes):
     gates are on the second page, then the gates, each a success unless changes gives it
     (status, allow_failure), or None to leave it out."""
     jobs = [{"id": 1000 + n, "name": "job-%d" % n, "status": "success", "allow_failure": False} for n in range(110)]
-    for n, name in enumerate(GATE_JOBS + SOURCE_SCAN_JOBS):
+    for n, name in enumerate(GATE_JOBS + SOURCE_SCAN_JOBS + WINDOWS_GATE_JOBS):
         if changes.get(name, ("success", False)) is None:
             continue
         status, allowed = changes.get(name, ("success", False))
@@ -1284,6 +1299,9 @@ def self_test():
         expect("happy: the branch is gone on the project", remote_ref(bare, "refs/heads/batch1"), None)
         created = [c for c in api.calls if c[0] == "POST" and c[1].endswith("/merge_requests")]
         expect("happy: one merge request, not squashed", [c[2].get("squash") for c in created], [False])
+        expect("happy: its description names each gate job it waits for, the Windows suite's halves among them",
+               [("`semgrep`, `windows-gate`, `windows-gate-s1vm`), and every thread" in (c[2].get("description") or ""))
+                for c in created], [True])
         merges = [c for c in api.calls if c[0] == "PUT"]
         expect("happy: merged at exactly the tip", [c[2].get("sha") for c in merges], [tip])
         expect("happy: a landing record naming the approver", len(api.notes) == 1 and "yes: @zainulabidin1990" in api.notes[0], True)
@@ -1292,7 +1310,7 @@ def self_test():
                [c[1].split("?")[1] for c in api.calls if "/pipelines/7/jobs" in c[1]], ["per_page=100&page=1", "per_page=100&page=2"])
         expect("happy: the landing record gives each gate job's status", len(api.notes) == 1 and (
             "- Gate jobs: semgrep-sast success, semgrep-sast-gate success, mr-dependency-check success, checkers success, "
-            "static-analysis success, semgrep success") in api.notes[0], True)
+            "static-analysis success, semgrep success, windows-gate success, windows-gate-s1vm success\n") in api.notes[0], True)
         expect("happy: the landing record says that the checkout's copies were master's", len(api.notes) == 1 and
                "- The checkout's copies of what the landing runs: master's\n" in api.notes[0], True)
         expect("happy: the landing record says that no check of GitLab's hosted runners was in the pipeline",
@@ -1716,18 +1734,37 @@ def self_test():
         commit(work, "signed")
         code, text = attempt(work, FakeGitLab(bare, approved_by=[zain], jobs=full_pipeline(semgrep=("skipped", False))))
         expect("a skipped scan: exit", code, 5)
+        # The Windows suite's two halves: one that a busy bench ended with exit 10, which
+        # the pipeline lets fail, and one the pipeline lacks, each hold the batch.
+        for name in WINDOWS_GATE_JOBS:
+            bare, work = scenario("busy-" + name)
+            commit(work, "signed")
+            api = FakeGitLab(bare, approved_by=[zain], jobs=full_pipeline(**{name: ("failed", True)}))
+            code, text = attempt(work, api)
+            expect("%s let pass by a busy bench: exit" % name, code, 5)
+            expect("%s let pass by a busy bench: no merge call" % name, [c for c in api.calls if c[0] == "PUT"], [])
+            expect("%s let pass by a busy bench: named, with the way to gate it" % name,
+                   "%s failed while allowed to fail" % name in text and "is gated by retrying its job" in text, True)
+            bare, work = scenario("missing-" + name)
+            commit(work, "signed")
+            code, text = attempt(work, FakeGitLab(bare, approved_by=[zain], jobs=full_pipeline(**{name: None})))
+            expect("%s missing: exit" % name, code, 5)
+            expect("%s missing: named" % name, "%s not in the pipeline" % name in text, True)
+        expect("the Windows suite's halves are the jobs a landing needs of it", WINDOWS_GATE_JOBS,
+               ("windows-gate", "windows-gate-s1vm"))
 
         # 14. A batch of documents alone - Markdown at the root and under a dot-directory -
-        #     needs the change gates and not the scans .own-runners creates none of; one
-        #     anywhere else is not documents alone.
+        #     needs the change gates and not the scans or the Windows suite's halves,
+        #     which .own-runners creates none of; one anywhere else is not documents alone.
         bare, work = scenario("documents")
         tip = commit_files(work, {"README.md": "read me\n", ".gitlab/notes.md": "notes\n"}, "documents, signed")
-        api = FakeGitLab(bare, approved_by=[zain], jobs=full_pipeline(**{"static-analysis": None, "semgrep": None}))
+        api = FakeGitLab(bare, approved_by=[zain], jobs=full_pipeline(**{"static-analysis": None, "semgrep": None,
+                                                                         "windows-gate": None, "windows-gate-s1vm": None}))
         code, text = attempt(work, api)
         expect("documents alone: exit", code, 0)
         expect("documents alone: master is the tip", remote_ref(bare, "refs/heads/master"), tip)
-        expect("documents alone: the record says why the scans were not needed", len(api.notes) == 1
-               and "static-analysis and semgrep not required" in api.notes[0], True)
+        expect("documents alone: the record says why the scans and the Windows halves were not needed", len(api.notes) == 1
+               and "static-analysis, semgrep, windows-gate and windows-gate-s1vm not required" in api.notes[0], True)
         bare, work = scenario("documents-no-gate")
         commit_files(work, {"README.md": "read me\n"}, "documents, signed")
         api = FakeGitLab(bare, approved_by=[zain], jobs=full_pipeline(**{"static-analysis": None, "semgrep": None,

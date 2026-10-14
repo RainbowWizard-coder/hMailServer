@@ -5721,6 +5721,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `windows-installer` and `release` to needing it, and a gate's busy-bench guard to the script the job runs, its own or
   the nearest template's, which the second half's own script would otherwise have replaced unseen - each rule with a
   case of its self-test that fails without it (ContinuousIntegration.md, "The Windows gate" and "S1-WINBENCH").
+- **A batch lands only once both halves of the Windows suite have run.** A bench whose lock another holder keeps for
+  90 minutes ends its half with exit 10, which a batch's pipeline lets fail: the pipeline is green, with a warning, and
+  that half of the suite never ran - and with the suite on two benches, either of which an agent's run over SSH can
+  keep busy, that is twice as likely as it was. `build/land-via-mr.py` holds `windows-gate` and `windows-gate-s1vm`
+  (`WINDOWS_GATE_JOBS`) as it holds the two source scans: each must have succeeded itself, unless the batch changes
+  Markdown alone at the root or under a dot-directory, for which `.own-runners` creates neither; a half a busy bench
+  let pass refuses the landing (exit 5), named, and retrying its job gates the batch. So does a half that a push of
+  documents alone on top of the batch's code left out of the tip's pipeline, since `.own-runners` compares a push with
+  the one before - which a landing let pass until now, and the maintainer looked for by hand -: a pipeline of the
+  branch started by hand runs both. Its self-test lands no batch with
+  either half failed while allowed to fail or missing, lands one of documents alone without them, and holds the landing
+  record and the merge request's description to naming both; `build/check-release-chain.py` holds the list to those two
+  jobs of the CI files. A landing runs `master`'s copy of the script, so this holds from the landing after the one that
+  brings it (ContinuousIntegration.md, "Landing on master").
 - **The message indexer's stop and start, as fixed above (*Correctness*), leave `static-analysis` nothing new to
   say.** Run over them as the job runs it, cppcheck and clang-tidy found four findings in `MessageIndexer.cpp` that
   no baseline holds, none of them a defect in what the code does, and each is now written so that the tools have

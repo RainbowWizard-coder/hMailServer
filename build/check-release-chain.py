@@ -195,8 +195,9 @@ refuses it. This checker holds them to each other. It fails when:
     protected batch* branch with master (compare_to: refs/heads/master) and run for
     none that changes documentation alone; and the jobs build/land-via-mr.py requires
     must be jobs of the CI files - the two gates, semgrep-sast and checkers always
-    (GATE_JOBS), static-analysis and semgrep (SOURCE_SCAN_JOBS) - and its
-    documents_only, which lets the second two off, must agree with .own-runners'
+    (GATE_JOBS), static-analysis and semgrep (SOURCE_SCAN_JOBS), and windows-gate and
+    windows-gate-s1vm, the Windows suite's halves (WINDOWS_GATE_JOBS) - and its
+    documents_only, which lets the last four off, must agree with .own-runners'
     paths: *not-docs-only on every file of the tree; the checks whose statuses its
     landing record gives must be hosted-runners and compute-quota (HOSTED_CHECK_JOBS),
     by name; its GATE_FILES, which a batch changes only with --gates-read, must name
@@ -734,7 +735,10 @@ BATCH_COMPARE = ('- if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMM
 # that let it fail would take every rule here away unseen - always (GATE_JOBS); the two
 # blocking scans on linix unless the batch changes documents alone (SOURCE_SCAN_JOBS),
 # which its documents_only tells as .own-runners' paths: *not-docs-only does.
-LANDING_REQUIRED = {"GATE_JOBS": sorted(CHANGE_GATES) + [GATE_SCAN, "checkers"], "SOURCE_SCAN_JOBS": BLOCKING_SCANS}
+LANDING_REQUIRED = {"GATE_JOBS": sorted(CHANGE_GATES) + [GATE_SCAN, "checkers"], "SOURCE_SCAN_JOBS": BLOCKING_SCANS,
+                    # The Windows suite's two halves, on the scans' terms: a busy bench's exit 10,
+                    # which a batch's pipeline lets fail, leaves a half of the suite unrun.
+                    "WINDOWS_GATE_JOBS": ["windows-gate", "windows-gate-s1vm"]}
 # The scripts build/land-via-mr.py runs before it pushes a batch - the sign-off check and
 # the secret scan, and the script that makes the scan's rules, which secret_detection runs
 # too - which its GATE_FILES must name with the CI files the gates run in.
@@ -5253,6 +5257,12 @@ def self_test(chain, feed):
     broken("land-via-mr not requiring a blocking scan", "land", scan_jobs, 'SOURCE_SCAN_JOBS = ("static-analysis",)',
            "SOURCE_SCAN_JOBS does not require semgrep")
     broken("land-via-mr without its list of scans", "land", scan_jobs, "SCANS = ()", "names no SOURCE_SCAN_JOBS")
+    windows_jobs = re.search(r"^WINDOWS_GATE_JOBS = .*$", texts["land"], re.MULTILINE)
+    windows_jobs = windows_jobs.group(0) if windows_jobs else "WINDOWS_GATE_JOBS not found"
+    broken("land-via-mr landing on bench150's half of the Windows suite alone", "land", windows_jobs,
+           'WINDOWS_GATE_JOBS = ("windows-gate",)', "WINDOWS_GATE_JOBS does not require windows-gate-s1vm")
+    broken("land-via-mr without its list of the Windows suite's halves", "land", windows_jobs, "HALVES = ()",
+           "names no WINDOWS_GATE_JOBS")
     broken("land-via-mr's gates named by an expression", "land", gate_jobs, "GATE_JOBS = tuple(sorted(OWNER))",
            "GATE_JOBS is not a literal list of job names")
     broken("land-via-mr not requiring checkers", "land", gate_jobs,
