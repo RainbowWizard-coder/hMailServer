@@ -1715,11 +1715,29 @@ resolver to download its needs' artifacts.
 
 ### bench150
 
-The second Windows regression bench at 192.168.11.150: Windows Server 2025 with
-16 cores and 16 GB of memory. GitLab Runner runs there as the `gitlab-runner`
+The second Windows regression bench at 192.168.11.150: Windows Server 2025
+Standard Evaluation, installed on 16 September 2026, with 16 cores and 16 GB of
+memory. GitLab Runner runs there as the `gitlab-runner`
 service, **as LocalSystem**, with the shell executor and `shell = "pwsh"`.
 Its builds are in `C:\GitLab-Runner\builds`. It has the tags `windows`, `bench`
 and `bench150`, and it is runner 56743216 on GitLab.
+
+**Its licence is an evaluation.** It runs 180 days from its activation, so it
+ends in March 2027, on 15 March at the earliest: `slmgr /xpr` on the bench gives
+the day, and `slmgr /dlv` the rearms left. From that day Windows shuts the bench
+down every hour, and with it goes every Windows job of the project's but
+`windows-gate-s1vm`, and so every landing and every release. A rearm taken
+before the licence ends, if one is left (`slmgr /rearm`, a restart, then
+`slmgr /ato` and `slmgr /xpr` to read the new end), gives it 180 days from that
+day, which end before 30 September 2027, the last day the 6.3 line is supported
+(SECURITY.md, "What must stay valid for a security release"). Before then the
+bench needs a licensed key
+(`DISM /Online /Set-Edition:ServerStandard /ProductKey:<key> /AcceptEula`) or a
+rebuild, and a rebuild means installing again everything below - Inno Setup, the
+Artifact Signing Client Tools and Visual Studio's ARM64 tools among it - and
+registering its runner again ([Re-creating a runner](#re-creating-a-runner)): no
+other machine of the project's can take `windows-installer`,
+`release-authenticode` or the Windows package jobs ([S1-WINBENCH](#s1-winbench)).
 
 What the host needs is everything the Windows bench needs
 ([RegressionEnvironment.md](RegressionEnvironment.md), the list for a second
@@ -1852,9 +1870,24 @@ Build Tools' MIDL and `TlbImp.exe`, are there), but it names `bench150`.
 The VM starts with server1, from a scheduled task there that starts it with no
 window and keeps running while it does, and comes back by itself after a restart
 of server1. Windows Update is off in it, as on bench150. Its evaluation licence
-was activated on 14 October 2026 and runs to 12 April 2027; one rearm
-(`slmgr /rearm`, then a restart) adds 180 days once, and after that the VM needs
-a licence or a rebuild.
+was activated on 14 October 2026 and runs to 12 April 2027 (`slmgr /xpr`, read
+again on 15 October 2026), with one rearm left (`slmgr /dlv`). The rearm
+(`slmgr /rearm`, a restart, then `slmgr /ato`, as on 14 October, and
+`slmgr /xpr` to read the new end) gives it 180 days from the day it is taken,
+once: a rearm taken between 4 and 11 April 2027 carries it past 30 September
+2027, the last day the 6.3 line is supported, and one taken earlier ends on that
+day or before it. After that the VM needs a licensed key
+(`DISM /Online /Set-Edition`) or a rebuild.
+
+**While it is down, bench150 can take its half**, with no commit: the owner
+gives bench150's runner S1-WINBENCH's tag as well
+(`glab api -X PUT runners/56743216 -f tag_list=windows,bench,bench150,bench-s1vm`),
+and `windows-gate-s1vm` then runs on bench150, in that bench's checkout and
+under its gate lock, before or after `windows-gate`. A half that finds the lock
+held for 90 minutes ends with exit 10, or 13 for a `v*` tag, as on any bench
+([The gate lock](#the-gate-lock)), and is retried once the other half is done.
+Setting bench150's tags back (`-f tag_list=windows,bench,bench150`) ends it;
+until then either bench may take the half.
 
 ### Re-creating a runner
 
@@ -2204,7 +2237,8 @@ leaves out `ServerFreeTests` and runs the two stress fixtures. `release`,
 `HM_GATE_WHERE` would run the whole suite in one job.
 
 **A pipeline does not pass on one half.** With S1-WINBENCH's runner offline or
-paused, `windows-gate-s1vm` waits for it. Once an hour GitLab fails a job that
+paused, `windows-gate-s1vm` waits for it, unless bench150 has been given its tag
+([S1-WINBENCH](#s1-winbench)). Once an hour GitLab fails a job that
 has waited more than an hour while no runner that can take it is online - one
 that has asked GitLab for a job in the last two hours - with
 `stuck_pending_no_matching_runners`, and any job that has waited a day; neither

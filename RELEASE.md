@@ -405,7 +405,8 @@ particular, check five things:
   GitLab, and for the batch's own pipeline, which runs jobs a tag's does not,
   linix's second entry, `linix-systemd`, and server2, the one runner with the
   tag `kvm`, as well (`hmailserver/docs/ContinuousIntegration.md`, "The
-  runners");
+  runners"); and neither bench's Windows licence, an evaluation, ends before
+  the tag's pipeline is done (`slmgr /xpr` on each; the table has the dates);
 - the project's path, which the federated credential's subject names:
   `hmailserver/hmailserver` since the move into the group on 29 September
   2026 (`Progressiverobot/hmailserver` before it, for 6.3.5).

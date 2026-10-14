@@ -113,12 +113,20 @@ it changes.
     until it has been read again.
 
   A later date would be a promise that rests on renewals nobody has made yet. A year is also long enough for
-  several reports to run through the 90-day timetable one after another.
-- **One date comes first.** 293 of the accepted findings (263 of *static-analysis*, 26 of *semgrep-sast* and 4 of
-  *semgrep*) expire on 26 and 27 March 2027 (counted on 14 October 2026). From the day after, the release job
-  refuses a release while any of them is still found and has not been read again (`build/ci/security-gate.py`). So
-  the maintainers read them again before 26 March 2027, and give each a new expiry. Otherwise, a
-  report that arrives after that date waits on that reading as well as on its fix.
+  several reports to run through the 90-day timetable one after another. One thing a release needs does not reach
+  the date: the Windows licence of bench150, the bench that builds and signs each release's installer, is an
+  evaluation, which ends in March 2027 and, rearmed, before 30 September 2027. So the date rests on bench150 being
+  licensed or rebuilt before then, as well; S1-WINBENCH, the other Windows bench, reaches it with its one rearm,
+  taken from 4 April 2027 ([What must stay valid](#what-must-stay-valid-for-a-security-release), below).
+- **One date comes first.** bench150's Windows licence, an evaluation, ends in March 2027, on 15 March at the
+  earliest ([What must stay valid](#what-must-stay-valid-for-a-security-release), below). From that day Windows shuts
+  the bench down every hour, and without it no batch lands and no release is made; so before then the maintainers
+  rearm it, if a rearm is left, license it or rebuild it. Then 293 of the accepted findings (263 of
+  *static-analysis*, 26 of *semgrep-sast* and 4 of *semgrep*) expire on 26 and 27 March 2027 (counted on 14 October
+  2026). From the day after, the release job refuses a release while any of them is still found and has not been
+  read again (`build/ci/security-gate.py`). So the maintainers read them again before 26 March 2027, and give each a
+  new expiry. Otherwise, a report that arrives after either date waits on the bench or on that reading as well as on
+  its fix.
 
 ### What gets a release
 
@@ -213,7 +221,8 @@ Sigstore bundle. No server installs such a release by live update. Each installa
 What a release depends on that expires, as recorded on 29 September 2026, when the GitLab tokens' dates were read
 through GitLab's API, and read again on 14 October 2026, when the tokens, the project's CI/CD variables (by name)
 and its members were read through the API and the exceptions file was counted; the Azure rows are as recorded on
-the first day. No value of any of them is in the repository, and none is written here.
+the first day, S1-WINBENCH's licence as read on that bench on 15 October 2026, and bench150's from the day it was
+installed. No value of any of them is in the repository, and none is written here.
 
 | What | Used for | Expires |
 |---|---|---|
@@ -223,6 +232,8 @@ the first day. No value of any of them is in the repository, and none is written
 | The Azure subscription (pay-as-you-go) | The Artifact Signing account | It does not expire, but it must be kept paid |
 | The app registration's client secret, made for the GitHub workflow on 10 September 2026 | Nothing since the move to GitLab: the pipeline needs no secret | 10 September 2028. It should be deleted (`az ad app credential delete`), not left to run out |
 | `.gitlab/security-exceptions.yml`, 504 accepted findings | The release job's security gate | Each finding has its own date: 281 expire on 26 March 2027, 12 on 27 March 2027, 167 on 25 September 2027, 2 on 27 September 2027, 22 on 1 October 2027, 6 on 2 October 2027, 10 on 4 October 2027 and 4 on 12 October 2027. After its date, a finding holds every release until it has been read again and given a new expiry |
+| bench150's Windows licence: Windows Server 2025 Standard Evaluation, installed on 16 September 2026 | The Windows bench of every release: half of the Windows suite (`windows-gate`), `windows-dotnet`, and the jobs no other machine of the project's can run - `windows-installer`, `release-authenticode` and the Windows package jobs | 180 days from its activation: 15 March 2027 at the earliest (`slmgr /xpr` on the bench gives the day, and `slmgr /dlv` the rearms left). A rearm, if one is left, gives 180 days from the day it is taken, so that taken before the licence ends it ends before 30 September 2027. Before then, a licensed key (`DISM /Online /Set-Edition`) or a rebuild ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "bench150") |
+| S1-WINBENCH's Windows licence: Windows Server 2025 Standard Evaluation, activated on 14 October 2026 | The other half of the Windows suite (`windows-gate-s1vm`), which `windows-installer`, the Windows package jobs and `release` wait for | 12 April 2027. One rearm is left: taken between 4 and 11 April 2027, it carries the bench past 30 September 2027. After that, a licensed key or a rebuild. While S1-WINBENCH is down, bench150 can take its half, by a runner tag and no commit ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "S1-WINBENCH") |
 | `RENOVATE_TOKEN`, the owner's personal access token `renovate` | Renovate's merge requests | 27 September 2027 |
 | `sonarcloud-hmailserver`, the owner's personal access token | SonarQube Cloud's binding to the GitLab group | 27 September 2027 |
 | `laptop-git`, a project access token with the Owner role and the `api` scope | Nothing: it is revoked, and was last used on 29 September 2026. It was made for work from the maintainers' machine, and no CI job used it: the jobs use their own `CI_JOB_TOKEN`. Its bot user is still listed among the project's members with the Owner role, and nothing can act as it | Revoked. It would have expired on 27 September 2027 |

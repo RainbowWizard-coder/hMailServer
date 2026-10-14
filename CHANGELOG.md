@@ -6342,6 +6342,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   server2's `kvm`; and the version stamp says that the version's section carries "What changes on upgrade without a
   switch", gathered at the stamp. The documents also say that on 14 October 2026 `master` still let Maintainers push,
   after the batch that brings the change checks had landed on 9 October. HelpPagesData.cpp is regenerated.
+- **SECURITY.md and ContinuousIntegration.md say when the Windows benches' licences end.** Both benches run
+  evaluations of Windows Server 2025. SECURITY.md's table of what must stay valid for a security release has a row for
+  each: bench150's ends in March 2027, on 15 March at the earliest, and even rearmed before 30 September 2027, so the
+  bench needs a licensed key or a rebuild before then; S1-WINBENCH's ends on 12 April 2027, and its one rearm, taken
+  between 4 and 11 April 2027, carries it past 30 September 2027. "One date comes first" is bench150's, before the
+  findings that expire on 26 and 27 March 2027, and "Why that date" says that the support date rests on bench150 being
+  licensed or rebuilt before it. ContinuousIntegration.md says the same of each bench, and that bench150 can take
+  S1-WINBENCH's half of the Windows suite while S1-WINBENCH is down, by a runner tag and no commit; RELEASE.md's
+  "Before starting" checks both licences. HelpPagesData.cpp is regenerated.
 
 ---
 
