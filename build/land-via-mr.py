@@ -857,7 +857,7 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_sca
             "- Pipeline: %s" % pipeline_line,
             "- Gate jobs: %s" % jobs_line,
             "- GitLab's hosted runners' checks: %s" % hosted_line,
-            "- The gates' base:`%s`, where the batch leaves master, as %s said" % (base[:12], " and ".join(BASE_GATES)),
+            "- The gates' base: `%s`, where the batch leaves master, as %s said" % (base[:12], " and ".join(BASE_GATES)),
             "- The gates' own files: %s" % (("changed (%s), read: %s" % (", ".join(gate_files), gates_read))
                                             if gate_files else "not changed"),
             "- The checkout's copies of what the landing runs: %s" % checkout_line,
@@ -1298,6 +1298,12 @@ def self_test():
         expect("happy: the landing record says that no check of GitLab's hosted runners was in the pipeline",
                len(api.notes) == 1 and "- GitLab's hosted runners' checks: not in the pipeline (no switch or lane was set)\n"
                in api.notes[0], True)
+        expect("happy: the landing record gives the gates' base, where the batch leaves master", len(api.notes) == 1 and
+               "\n- The gates' base: `%s`, where the batch leaves master, as %s said\n" % (master_before[:12], " and ".join(
+                   BASE_GATES)) in api.notes[0], True)
+        expect("happy: each line of the landing record's list is '- what: its value'", [line for line in (
+            api.notes[0] if len(api.notes) == 1 else "- none").split("\n") if line.startswith("- ") and
+            not re.match(r"^- [^:\n]+: \S", line)], [])
 
         # 1a. A pipeline a switch was set for: compute-quota, allowed to fail whatever it says,
         # holds no landing, and what it came to is in the landing record and the output.
