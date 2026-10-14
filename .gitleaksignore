@@ -135,10 +135,12 @@ c19f5481847677b677d566cb17aea5ee5a6ef3a8:hmailserver/source/Server/Common/Util/H
 # 1 October 2026: b42-surbl2 moved the two lines; the directory-scan entries follow them to
 # SURBL.cpp 1886 and Basics.cs 504 (the commit-keyed entries name the lines in their own commit).
 # 10 October 2026: SURBL.cpp's has moved on to 2625 (below).
+# 14 October 2026, batch48's fold: SURBL.cpp's to 3349 (dns-failed-lookup's and idn-uts46's
+# edits above it) and Basics.cs's to 507 (idn-uts46's), each read again, the same fixture.
 37324d9689e55e6d6c592436b7d25589c658a15d:hmailserver/source/Server/Common/AntiSpam/SURBL.cpp:Password in URL:1115
 37324d9689e55e6d6c592436b7d25589c658a15d:hmailserver/test/RegressionTests/AntiSpam/Basics.cs:Password in URL:500
-/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/AntiSpam/SURBL.cpp:Password in URL:2625
-/builds/hmailserver/hmailserver/hmailserver/test/RegressionTests/AntiSpam/Basics.cs:Password in URL:504
+/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/AntiSpam/SURBL.cpp:Password in URL:3349
+/builds/hmailserver/hmailserver/hmailserver/test/RegressionTests/AntiSpam/Basics.cs:Password in URL:507
 #
 # b53-ci, 10 October 2026: what both scans find now that they read every path under a
 # directory named build, bin, obj, target or packages, which GitLab's rules left out
@@ -176,4 +178,5 @@ c893043d824e2965e3a52848f83104e8147bd288:build/deck-script-test.js:PGP private k
 /builds/hmailserver/hmailserver/build/fixtures/openpgp/bob.sec.asc:PGP private key:1
 /builds/hmailserver/hmailserver/build/ci/installer-smoke.ps1:PKCS8 private key:1766
 /builds/hmailserver/hmailserver/build/generate-package-repos.py:PGP private key:375
-/builds/hmailserver/hmailserver/build/deck-script-test.js:PGP private key:5260
+# 14 October 2026, batch48's fold: deck-script-test.js's to 5288 (cp53's edits above it), read again.
+/builds/hmailserver/hmailserver/build/deck-script-test.js:PGP private key:5288
