@@ -190,9 +190,11 @@ refuses it. This checker holds them to each other. It fails when:
     must be jobs of the CI files - the two gates, semgrep-sast and checkers always
     (GATE_JOBS), static-analysis and semgrep (SOURCE_SCAN_JOBS) - and its
     documents_only, which lets the second two off, must agree with .own-runners'
-    paths: *not-docs-only on every file of the tree; its GATE_FILES, which a batch
-    changes only with --gates-read, must name the gates' code, .gitlab-ci.yml, every CI
-    file the gate jobs are in or reach, the two scripts it runs and the two source
+    paths: *not-docs-only on every file of the tree; the checks whose statuses its
+    landing record gives must be hosted-runners and compute-quota (HOSTED_CHECK_JOBS),
+    by name; its GATE_FILES, which a batch changes only with --gates-read, must name
+    the gates' code, .gitlab-ci.yml, every CI file the gate jobs are in or reach, the
+    two scripts it runs and the two source
     scans' scripts; no CI file but one may define a job that holds a change (the
     gates, semgrep-sast, static-analysis, semgrep, checkers) or a template one reaches,
     since GitLab merges a second definition into the first; no CI file but
@@ -2700,6 +2702,21 @@ def change_gate_problems(texts, jobs, security_jobs, security_gate=None):
         absent = [n for n in needed if n not in required]
         if absent:
             problems.append("build/land-via-mr.py's %s does not require %s before it lands a batch" % (constant, ", ".join(absent)))
+    # And the checks whose statuses its landing record gives, which no landing waits for
+    # (HOSTED_CHECK_JOBS): the checks of a pipeline a switch is set for, by their names, so
+    # that a record never says a check was not in a pipeline it ran in under another name.
+    reported = None
+    for node in tree.body if tree else []:
+        if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "HOSTED_CHECK_JOBS" for t in node.targets):
+            try:
+                reported = sorted(str(n) for n in ast.literal_eval(node.value))
+            except (ValueError, TypeError):
+                reported = "not a literal list of job names"
+            break
+    if tree and reported != sorted(HOSTED_CHECKS):
+        problems.append("build/land-via-mr.py's HOSTED_CHECK_JOBS is %s, not the checks of a pipeline a switch is set for (%s): "
+                        "its landing record would say that a check was not in a pipeline it ran in" % (
+                            "missing" if reported is None else reported, ", ".join(sorted(HOSTED_CHECKS))))
     # Its GATE_FILES, which a batch changes only with --gates-read, name the gates' code
     # (security-gate.py's GATE_CODE, which the base's copy runs), .gitlab-ci.yml (its
     # workflow, defaults and includes), every CI file the gate jobs are in or reach with
@@ -5071,6 +5088,14 @@ def self_test(chain, feed):
            "GATE_JOBS is not a literal list of job names")
     broken("land-via-mr not requiring checkers", "land", gate_jobs,
            'GATE_JOBS = ("semgrep-sast", "semgrep-sast-gate", "mr-dependency-check")', "GATE_JOBS does not require checkers")
+    hosted_checks = 'HOSTED_CHECK_JOBS = ("hosted-runners", "compute-quota")'
+    broken("land-via-mr's record without compute-quota", "land", hosted_checks, 'HOSTED_CHECK_JOBS = ("hosted-runners",)',
+           "HOSTED_CHECK_JOBS is ['hosted-runners'], not the checks of a pipeline a switch is set for")
+    broken("land-via-mr's record of a check under an old name", "land", hosted_checks,
+           'HOSTED_CHECK_JOBS = ("hosted-runners", "quota")', "HOSTED_CHECK_JOBS is ['hosted-runners', 'quota']")
+    broken("land-via-mr's record of the checks by an expression", "land", hosted_checks,
+           "HOSTED_CHECK_JOBS = tuple(sorted(OWNER))", "HOSTED_CHECK_JOBS is not a literal list of job names")
+    broken("land-via-mr without its record of the checks", "land", hosted_checks, "HOSTED = ()", "HOSTED_CHECK_JOBS is missing")
     landing = landing_module()
     files_held = tuple(landing.GATE_FILES)
     for constant, stand_in, needle in (
