@@ -309,11 +309,14 @@ namespace HM
       // posting rather than none, and receivedSpfDomain the domain that check
       // evaluated (Message::GetReceivedSpfDomain), which the set names beside it. The
       // copy is recorded as sent on by the list's domain (Message::GetRelayingDomainID),
-      // whose key seals that set. False when it could not be queued; the reason is
-      // reported.
+      // whose key seals that set. authDomainsOnArrival is what DMARC passed for when the
+      // posting arrived (Message::GetAuthDomainsOnArrival), which the copy carries
+      // (Message::GetCopiedAuthDomains) for the envelope a copy of it is sent on with in
+      // turn - by a member here that forwards it, or an alias a member is. False when it
+      // could not be queued; the reason is reported.
       static bool QueueCopy(std::shared_ptr<const DistributionList> list, const String &member, const String &token, const String &contentFile, bool queryMember,
                             bool fromOutside = false, bool signAsListDomain = true, const String &receivedSpfResult = String(),
-                            const String &receivedSpfDomain = String());
+                            const String &receivedSpfDomain = String(), const String &authDomainsOnArrival = String());
 
       // Whether the list may sign a copy of this posting as its own domain: always,
       // but for a posting from outside (Message::GetFromOutside) whose From names a

@@ -226,8 +226,11 @@ namespace HM
 
       static bool Refresh_();
 
+      // fromOutside and authDomainsOnArrival are the message's Message::GetFromOutside
+      // and GetAuthDomainsOnArrival, which a copy delivered as it was accepted carries.
       static bool Queue_(std::shared_ptr<JournalRule> rule, const String &originalFileName,
-                         const Envelope &envelope, unsigned int sessionId, bool fromOutside = false);
+                         const Envelope &envelope, unsigned int sessionId, bool fromOutside = false,
+                         const String &authDomainsOnArrival = String());
    };
 
    class JournalingTester

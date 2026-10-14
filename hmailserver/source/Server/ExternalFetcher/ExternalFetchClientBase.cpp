@@ -25,6 +25,7 @@
 #include "../Common/BO/FetchAccountUID.h"
 #include "../Common/BO/MessageRecipients.h"
 #include "../Common/Util/MessageUtilities.h"
+#include "../Common/Util/MessageOrigin.h"
 #include "../Common/Util/Journaling.h"
 #include "../Common/Threading/AsynchronousTask.h"
 #include "../Common/Threading/WorkQueue.h"
@@ -216,7 +217,9 @@ namespace HM
       IPAddress ipAddress;
       String hostName;
 
-      String senderAddress = current_message_->GetFromAddress();
+      // The From's address, as the checks have always read the sender of a download,
+      // whether or not it is the message's envelope sender (ParseMessageHeaders_).
+      String senderAddress = header_sender_;
       MessageUtilities::RetrieveOriginatingAddress(current_message_, hostName, ipAddress);
       // The received header isn't safely parseable so we will always do anti-spam,
 
@@ -296,7 +299,8 @@ namespace HM
          recorded_return_path_.Empty();
 
       {
-         // Parse out the sender of the message. 
+         // Parse out the sender of the message.
+         header_sender_.Empty();
          String sFrom = pHeader->GetRawFieldValue("From");
 
          if (!sFrom.IsEmpty())
@@ -310,10 +314,26 @@ namespace HM
             {
                sFrom = sUser + "@" + sDomain;
                if (StringParser::IsValidEmailAddress(sFrom))
-                  current_message_->SetFromAddress(sFrom);
+               {
+                  header_sender_ = sFrom;
+
+                  // The From is whatever the message's sender wrote, and the envelope
+                  // sender of a download is only that guess. An address hosted here is
+                  // not taken for it: an envelope sender of this server's own domains is
+                  // one it sends a forward or a mirror copy of the message with, and the
+                  // message is not this server's. It keeps the null sender, as a download
+                  // whose From names no address does.
+                  if (MessageOrigin::IsHostedAddress(sFrom))
+                  {
+                     LOG_DEBUG("ExternalFetchClientBase - the From of the download, " + sFrom +
+                        ", is an address hosted here, so it is not taken for the message's envelope sender.");
+                  }
+                  else
+                     current_message_->SetFromAddress(sFrom);
+               }
             }
          }
-      }      
+      }
 
       // bool bPreprocessRecipientList = true;
       CreateRecipentList_(pHeader);

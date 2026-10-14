@@ -524,7 +524,8 @@ namespace HM
 
    bool
    Journaling::Queue_(std::shared_ptr<JournalRule> rule, const String &originalFileName,
-                      const Envelope &envelope, unsigned int sessionId, bool fromOutside)
+                      const Envelope &envelope, unsigned int sessionId, bool fromOutside,
+                      const String &authDomainsOnArrival)
    {
       std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(rule->GetDomainID());
 
@@ -563,6 +564,12 @@ namespace HM
       // From's domain only when it would have signed the message. A report is this
       // server's own, from the domain's postmaster.
       journal->SetFromOutside(rule->GetMode() == JournalRule::ModeCopy && fromOutside);
+
+      // And what DMARC passed for when it arrived, for the envelope a copy of it is sent
+      // on with in turn, by a journal mailbox here that forwards it or an alias the
+      // journal address is (Message::GetCopiedAuthDomains).
+      if (journal->GetFromOutside())
+         journal->SetCopiedAuthDomains(authDomainsOnArrival);
 
       // The rule's domain sends it on, and seals the ARC set over a copy it does not
       // sign (Message::GetRelayingDomainID).
@@ -835,7 +842,7 @@ namespace HM
 
       for (std::shared_ptr<JournalRule> rule : matched)
       {
-         if (Queue_(rule, fileName, envelope, sessionId, message->GetFromOutside()))
+         if (Queue_(rule, fileName, envelope, sessionId, message->GetFromOutside(), message->GetAuthDomainsOnArrival()))
             queued++;
       }
 

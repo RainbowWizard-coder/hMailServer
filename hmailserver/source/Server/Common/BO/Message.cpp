@@ -150,6 +150,43 @@ namespace HM
    }
 
    String
+   Message::GetCopiedAuthDomains() const
+   {
+      return origin_strings_ ? origin_strings_->copied_auth_domains : String();
+   }
+
+   void
+   Message::SetCopiedAuthDomains(const String &domains)
+   {
+      if (!origin_strings_)
+      {
+         if (domains.IsEmpty())
+            return;
+
+         origin_strings_.reset(new OriginStrings());
+      }
+
+      origin_strings_->copied_auth_domains = domains;
+   }
+
+   String
+   Message::GetAuthDomainsOnArrival() const
+   {
+      const String own = GetAuthDomains();
+      const String copied = GetCopiedAuthDomains();
+
+      // Once, whichever holds it: a recipient's copy of a message that arrived, and a
+      // copy made of that, carry what the message recorded, and nothing is added to it.
+      if (copied.IsEmpty() || copied.CompareNoCase(own) == 0)
+         return own;
+
+      if (own.IsEmpty())
+         return copied;
+
+      return own + _T(",") + copied;
+   }
+
+   String
    Message::GetReceivedSpfDomain() const
    {
       return origin_strings_ ? origin_strings_->spf_domain : String();

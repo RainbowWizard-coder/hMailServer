@@ -249,6 +249,84 @@ namespace RegressionTests.SMTP
       }
 
       [Test]
+      [Description("A copy-mode journal copy of mail from outside whose From names the hosted test domain, and that passed DMARC for it when it arrived, is sent on by a journal mailbox here that forwards it to an address outside: the copy carries what DMARC passed for when the mail arrived, as every copy of it does (docs/SendAs.md, the envelope a copy is sent on with).")]
+      public void AJournalMailboxForwardsACopyOfMailThatPassedDmarc()
+      {
+         var reader = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "reader@" + _domain.Name, Password);
+         AddRule("account", reader.Address, _journalBox.Address, "inbound", "copy");
+
+         _journalBox.ForwardEnabled = true;
+         _journalBox.ForwardAddress = "external@example.com";
+         _journalBox.ForwardKeepOriginal = true;
+         _journalBox.Save();
+
+         int markBefore = (int) _settings.AntiSpam.SpamMarkThreshold;
+         int deleteBefore = (int) _settings.AntiSpam.SpamDeleteThreshold;
+         bool dmarcBefore = _settings.AntiSpam.DMARCEnabled;
+         Route route = null;
+         try
+         {
+            _settings.AntiSpam.SpamMarkThreshold = 100;
+            _settings.AntiSpam.SpamDeleteThreshold = 1000;
+            _settings.AntiSpam.DMARCEnabled = true;
+            _application.Reinitialize();
+
+            // DMARC passes for example.test on arrival: SPF for the loopback at its
+            // subdomain bounces.example.test, which aligns with the From (SuiteDns).
+            SuiteDns.Zone
+               .WithTxt("_dmarc.example.test", "v=DMARC1; p=none")
+               .WithTxt("bounces.example.test", "v=spf1 ip4:127.0.0.1 -all");
+
+            int port = TestSetup.GetNextFreePort();
+            using (var server = new SmtpServerSimulator(1, port))
+            {
+               server.SecondsToWaitBeforeTerminate = 60;
+               server.AddRecipientResult(new Dictionary<string, int> { { "external@example.com", 250 } });
+               server.StartListen();
+
+               route = _settings.Routes.Add();
+               route.DomainName = "example.com";
+               route.TargetSMTPHost = "localhost";
+               route.TargetSMTPPort = port;
+               route.NumberOfTries = 1;
+               route.MinutesBetweenTry = 5;
+               route.Save();
+
+               new SmtpClientSimulator().SendRaw("bounce@bounces.example.test", reader.Address,
+                  "From: The CEO <ceo@example.test>\r\nTo: " + reader.Address + "\r\nSubject: Journalled and forwarded\r\n\r\nPlease read.\r\n");
+
+               CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+               Pop3ClientSimulator.AssertMessageCount(_journalBox.Address, Password, 1);
+
+               // The envelope sender in MAIL FROM, between its angle brackets: the journal
+               // copy's, the postmaster of the rule's domain.
+               string mailFrom = server.NumberOfConnectedClients > 0 ? (server.MailFromCommand ?? "") : "";
+               int start = mailFrom.IndexOf('<');
+               int end = mailFrom.LastIndexOf('>');
+               string envelope = start >= 0 && end > start ? mailFrom.Substring(start + 1, end - start - 1).ToLowerInvariant() : "";
+
+               Assert.IsNotEmpty(envelope,
+                  "The journal mailbox's forward of a copy of mail that passed DMARC for example.test when it arrived was not sent on.");
+               Assert.IsTrue(envelope.EndsWith("@example.test"),
+                  "The journal mailbox's forward should keep the journal copy's envelope, at the rule's domain: " + mailFrom);
+            }
+         }
+         finally
+         {
+            SuiteDns.Reset();
+            if (route != null)
+            {
+               try { _settings.Routes.DeleteByDBID(route.ID); } catch (Exception) { }
+            }
+            _settings.AntiSpam.SpamMarkThreshold = markBefore;
+            _settings.AntiSpam.SpamDeleteThreshold = deleteBefore;
+            _settings.AntiSpam.DMARCEnabled = dmarcBefore;
+            _application.Reinitialize();
+         }
+      }
+
+      [Test]
       [Description("The journal header a sender writes decides nothing: the copy is made anyway, and only the mark this server minted stops one.")]
       public void OnlyTheServersOwnJournalHeaderStopsACopy()
       {

@@ -774,6 +774,13 @@ namespace HM
       // vouched for stay with the message the server saw arrive.
       pTo->SetFromOutside(sourceMessage->GetFromOutside());
 
+      // What DMARC passed for when the mail arrived goes with the copy apart from them,
+      // for the envelope a copy of it is sent on with and nothing else
+      // (Message::GetCopiedAuthDomains): a forward of a forward, an alias's expansion of a
+      // forward and a list's posting a forward made are copies of the mail that arrived,
+      // as the first forward is.
+      pTo->SetCopiedAuthDomains(sourceMessage->GetAuthDomainsOnArrival());
+
       // And so does the SPF result this server reached for the message it copies,
       // which the ARC set sealed over a forward attests (Message::GetReceivedSpfResult).
       pTo->SetReceivedSpfResult(sourceMessage->GetReceivedSpfResult());
@@ -794,6 +801,7 @@ namespace HM
       const wchar_t *const SpfMark = L"spf=";
       const wchar_t *const RelayMark = L"relay=";
       const wchar_t *const SpfDomainMark = L"mailfrom=";
+      const wchar_t *const CopiedMark = L"copied=";
       const int OriginColumnWidth = 255;
 
       // The id a "relay=" mark holds: digits, and a hosted domain's id, or 0.
@@ -843,8 +851,6 @@ namespace HM
       String spfDomain = message.GetReceivedSpfDomain();
       const String spfDomainMark = spfDomain.IsEmpty() || spfDomain.Find(_T(",")) >= 0 ? String() : String(SpfDomainMark) + spfDomain;
 
-      const String domains = message.GetAuthDomains();
-
       auto joined = [](const String &left, const String &right)
       {
          if (left.IsEmpty())
@@ -853,6 +859,19 @@ namespace HM
             return left;
          return left + _T(",") + right;
       };
+
+      // What a copy carries of what DMARC passed for when the mail arrived
+      // (Message::GetCopiedAuthDomains), each of its words after "copied=", ahead of the
+      // domains vouched for, and kept or dropped with them.
+      String copied;
+      for (String word : StringParser::SplitString(message.GetCopiedAuthDomains(), _T(",")))
+      {
+         word.Trim();
+         if (!word.IsEmpty())
+            copied = joined(copied, String(CopiedMark) + word);
+      }
+
+      const String domains = joined(copied, message.GetAuthDomains());
 
       String column = joined(joined(marks, spfDomainMark), domains);
 
@@ -876,10 +895,12 @@ namespace HM
       String spf;
       __int64 relay = 0;
       String spfDomain;
+      String copied;
 
       // The marks come first; the first word that is not one begins the domains.
       const int relayMarkLength = static_cast<int>(wcslen(RelayMark));
       const int spfDomainMarkLength = static_cast<int>(wcslen(SpfDomainMark));
+      const int copiedMarkLength = static_cast<int>(wcslen(CopiedMark));
       for (;;)
       {
          const int comma = rest.Find(_T(","));
@@ -894,6 +915,8 @@ namespace HM
             relay = RelayDomainIdOf(word.Mid(relayMarkLength));
          else if (word.GetLength() > spfDomainMarkLength && word.Left(spfDomainMarkLength).CompareNoCase(SpfDomainMark) == 0)
             spfDomain = word.Mid(spfDomainMarkLength);
+         else if (word.GetLength() > copiedMarkLength && word.Left(copiedMarkLength).CompareNoCase(CopiedMark) == 0)
+            copied = copied.IsEmpty() ? word.Mid(copiedMarkLength) : copied + _T(",") + word.Mid(copiedMarkLength);
          else
             break;
 
@@ -904,6 +927,7 @@ namespace HM
       message.SetReceivedSpfResult(spf);
       message.SetRelayingDomainID(relay);
       message.SetReceivedSpfDomain(spfDomain);
+      message.SetCopiedAuthDomains(copied);
       message.SetAuthDomains(rest);
    }
 

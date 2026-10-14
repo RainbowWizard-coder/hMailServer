@@ -454,5 +454,112 @@ namespace RegressionTests.AntiSpam
             SuiteDns.Reset();
          }
       }
+
+      /// <summary>
+      /// A forward of mail from outside whose From names a hosted domain is given an
+      /// envelope in that domain's organisation - SRS here - only when the message passed
+      /// DMARC for it when it arrived (docs/SendAs.md, the envelope a copy is sent on
+      /// with). The quarantine keeps that it passed in the stored copy's name, and a
+      /// release puts it back, so that the forward of a released message is sent on as
+      /// the forward of one never held is.
+      ///
+      /// example.test publishes a DMARC policy, and its subdomain bounces.example.test SPF
+      /// for the loopback, so mail from bounce@bounces.example.test with a From at
+      /// example.test passes DMARC for example.test on arrival (SuiteDns). Against the
+      /// server before the stored copy's name kept the pass, the released message's
+      /// forward is not sent on at all: the SRS rewrite is withheld, and the envelope the
+      /// message came with is at a subdomain of the hosted domain.
+      /// </summary>
+      [Test]
+      [Description("A message from outside whose From names a hosted domain and that passed DMARC for it when it arrived, held by a domain's rule and released, is forwarded with the SRS envelope its forward has when it is never held.")]
+      public void AReleasedMessageThatPassedDmarcIsForwardedAsBefore()
+      {
+         EnableQuarantine();
+
+         var antiSpam = _application.Settings.AntiSpam;
+         bool dmarcBefore = antiSpam.DMARCEnabled;
+
+         try
+         {
+            IniFileSetting.Write("SRSEnabled", "1");
+            IniFileSetting.Write("SRSSecret", "quarantine-release-secret");
+            antiSpam.SpamMarkThreshold = 100;
+            antiSpam.SpamDeleteThreshold = 1000;
+            antiSpam.DMARCEnabled = true;
+            _application.Reinitialize();
+
+            SuiteDns.Zone
+               .WithTxt("_dmarc.example.test", "v=DMARC1; p=none")
+               .WithTxt("bounces.example.test", "v=spf1 ip4:127.0.0.1 -all");
+
+            _recipient.ForwardEnabled = true;
+            _recipient.ForwardAddress = "external@example.com";
+            _recipient.ForwardKeepOriginal = true;
+            _recipient.Save();
+
+            // What is addressed to the recipient, and not everything, so that the forward
+            // the release makes is not held as well (as above).
+            var rule = _domain.Rules.Add();
+            rule.Name = "Hold what is addressed to the recipient";
+            rule.Active = true;
+            var criteria = rule.Criterias.Add();
+            criteria.UsePredefined = true;
+            criteria.PredefinedField = eRulePredefinedField.eFTRecipientList;
+            criteria.MatchType = eRuleMatchType.eMTContains;
+            criteria.MatchValue = _recipient.Address;
+            criteria.Save();
+            var hold = rule.Actions.Add();
+            hold.Type = eRuleActionType.eRAQuarantine;
+            hold.Save();
+            rule.Save();
+
+            var port = TestSetup.GetNextFreePort();
+            using (var smtpServer = new SmtpServerSimulator(1, port))
+            {
+               smtpServer.SecondsToWaitBeforeTerminate = 60;
+               smtpServer.AddRecipientResult(new System.Collections.Generic.Dictionary<string, int> { { "external@example.com", 250 } });
+               smtpServer.StartListen();
+
+               RegressionTests.AntiSpam.DKIM.Signing.AddRoutePointingAtLocalhost(1, port);
+
+               new SmtpClientSimulator().SendRaw("bounce@bounces.example.test", _recipient.Address,
+                  "From: The CEO <ceo@example.test>\r\n" +
+                  "To: " + _recipient.Address + "\r\n" +
+                  "Subject: Held, released and forwarded\r\n" +
+                  "\r\n" +
+                  "Hello.\r\n");
+
+               CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+               var quarantine = _application.Settings.AntiSpam.Quarantine;
+               quarantine.Refresh();
+               ClassicAssert.AreEqual(1, quarantine.Count, "The domain's rule did not hold the message.");
+               quarantine[0].ReleaseMessage();
+
+               CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+               // The envelope sender in MAIL FROM, between its angle brackets.
+               string mailFrom = smtpServer.NumberOfConnectedClients > 0 ? (smtpServer.MailFromCommand ?? "") : "";
+               int start = mailFrom.IndexOf('<');
+               int end = mailFrom.LastIndexOf('>');
+               string envelope = start >= 0 && end > start ? mailFrom.Substring(start + 1, end - start - 1).ToLowerInvariant() : "";
+
+               ClassicAssert.IsNotEmpty(envelope,
+                  "The forward of a released message that passed DMARC for example.test when it arrived was not sent on.");
+               ClassicAssert.IsTrue(envelope.StartsWith("srs0=") && envelope.EndsWith("@example.test"),
+                  "The forward of a released message that passed DMARC for example.test should be SRS-rewritten at example.test, " +
+                  "as the forward of one never held is: " + mailFrom);
+            }
+         }
+         finally
+         {
+            IniFileSetting.Write("SRSEnabled", "0");
+            IniFileSetting.Write("SRSSecret", "");
+            antiSpam.DMARCEnabled = dmarcBefore;
+            _application.Reinitialize();
+            SuiteDns.Reset();
+            SingletonProvider<TestSetup>.Instance.RemoveAllRoutes();
+         }
+      }
    }
 }

@@ -7,6 +7,7 @@
 #include "DistributionListSender.h"
 
 #include "PlusAddressing.h"
+#include "SMTPForwarding.h"
 
 #include "../Common/Application/ObjectCache.h"
 #include "../Common/Cache/CacheContainer.h"
@@ -437,6 +438,26 @@ namespace HM
 
       if (message->GetFromAddress().CompareNoCase(bounceAddress.c_str()) == 0)
          return;
+
+      // A posting from outside whose From names the bounce address's organisation is
+      // given it only when it passed DMARC for that organisation when it arrived
+      // (SMTPForwarding::MaySendOnWithIdentity), and otherwise keeps the envelope sender
+      // it came with. Where the posting came from is recorded before this runs
+      // (SMTPConnection::DoPreAcceptMessageModifications_).
+      if (message->GetFromOutside())
+      {
+         const AnsiString header = PersistentMessage::LoadHeader(MessageStore::WorkingFile(message));
+         MimeHeader mimeHeader;
+         mimeHeader.Load(header.c_str(), header.GetLength(), true);
+
+         if (!SMTPForwarding::MaySendOnWithIdentity(true, message->GetAuthDomainsOnArrival(), SMTPForwarding::FromFieldValues(mimeHeader),
+                                                    StringParser::ExtractDomain(bounceAddress)))
+         {
+            LOG_DEBUG(Formatter::Format("DistributionListSender - The posting to '{0}' keeps its envelope sender '{1}', not the list's bounce address '{2}': it came from outside with a From of that address's organisation, with no DMARC pass for it recorded when it arrived.",
+               list->GetAddress(), message->GetFromAddress(), bounceAddress));
+            return;
+         }
+      }
 
       String msg;
       msg.Format(_T("DistributionListSender - Envelope sender of the posting to '%s' changed from '%s' to the list's bounce address '%s'."),

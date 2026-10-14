@@ -1473,6 +1473,79 @@ namespace RegressionTests.SMTP
 
       // ------------------------------------------------------------ helpers
 
+      // ------------------------------------------------------------ a member's forward
+
+      [Test]
+      [Description("A posting from outside whose From names the list's domain, and that passed DMARC for it when it arrived, is distributed, and a member here that forwards its copy to an address outside sends it on from the list's bounce address: each copy carries what DMARC passed for when the posting arrived (docs/SendAs.md, the envelope a copy is sent on with).")]
+      public void AMembersForwardOfAPostingThatPassedDmarcIsSentOn()
+      {
+         Account member = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, Member1, Password);
+         member.ForwardEnabled = true;
+         member.ForwardAddress = "external@example.com";
+         member.ForwardKeepOriginal = true;
+         member.Save();
+         MakeList(1, Member1);
+
+         int markBefore = (int) _settings.AntiSpam.SpamMarkThreshold;
+         int deleteBefore = (int) _settings.AntiSpam.SpamDeleteThreshold;
+         bool dmarcBefore = _settings.AntiSpam.DMARCEnabled;
+         Route route = null;
+         try
+         {
+            _settings.AntiSpam.SpamMarkThreshold = 100;
+            _settings.AntiSpam.SpamDeleteThreshold = 1000;
+            _settings.AntiSpam.DMARCEnabled = true;
+            _application.Reinitialize();
+
+            // DMARC passes for example.test on arrival: SPF for the loopback at its
+            // subdomain bounces.example.test, which aligns with the From (SuiteDns).
+            SuiteDns.Zone
+               .WithTxt("_dmarc.example.test", "v=DMARC1; p=none")
+               .WithTxt("bounces.example.test", "v=spf1 ip4:127.0.0.1 -all");
+
+            int port = TestSetup.GetNextFreePort();
+            using (var server = new SmtpServerSimulator(1, port))
+            {
+               server.SecondsToWaitBeforeTerminate = 60;
+               server.AddRecipientResult(new Dictionary<string, int> { ["external@example.com"] = 250 });
+               server.StartListen();
+
+               route = _settings.Routes.Add();
+               route.DomainName = "example.com";
+               route.TargetSMTPHost = "localhost";
+               route.TargetSMTPPort = port;
+               route.NumberOfTries = 1;
+               route.MinutesBetweenTry = 5;
+               route.Save();
+
+               new SmtpClientSimulator().SendRaw("bounce@bounces.example.test", ListAddress,
+                  "From: The CEO <ceo@example.test>\r\nTo: " + ListAddress + "\r\nSubject: From the CEO\r\n\r\nPlease read.\r\n");
+
+               CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+               Pop3ClientSimulator.AssertMessageCount(Member1, Password, 1);
+
+               string mailFrom = server.NumberOfConnectedClients > 0 ? (server.MailFromCommand ?? "") : "";
+               ClassicAssert.IsTrue(mailFrom.Length > 0,
+                  "The member's forward of a posting that passed DMARC for example.test when it arrived was not sent on.");
+               StringAssert.Contains("<team-bounces@example.test>", mailFrom,
+                  "The member's forward should keep the envelope the list's copy was given, its bounce address.");
+            }
+         }
+         finally
+         {
+            SuiteDns.Reset();
+            if (route != null)
+            {
+               try { _settings.Routes.DeleteByDBID(route.ID); } catch (Exception) { }
+            }
+            _settings.AntiSpam.SpamMarkThreshold = markBefore;
+            _settings.AntiSpam.SpamDeleteThreshold = deleteBefore;
+            _settings.AntiSpam.DMARCEnabled = dmarcBefore;
+            _application.Reinitialize();
+         }
+      }
+
       private void AddAccounts(params string[] addresses)
       {
          foreach (string address in addresses)

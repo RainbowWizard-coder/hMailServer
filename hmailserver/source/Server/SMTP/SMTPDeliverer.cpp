@@ -56,6 +56,7 @@
 #include "RuleResult.h"
 #include "RecipientParser.h"
 #include "MirrorMessage.h"
+#include "SMTPForwarding.h"
 
 #include "../Common/Util/AWStats.h"
 #include "../Common/Util/Charset.h"
@@ -452,6 +453,14 @@ namespace HM
       InboundWebhooks::SetAside(pMessage, heldForInboundWebhooks);
 
       bool messageRescheduled = false;
+
+      // A message from outside is not sent on to an address outside that an alias or a
+      // list of this server's expanded to, with a null envelope sender under this
+      // server's host name or one at that name or a domain hosted here, when its From
+      // names that organisation and it did not pass DMARC for it when it arrived - as
+      // an account's forward of it is not made (SMTPForwarding).
+      if (pMessage->GetRecipients()->GetCount() > 0)
+         SMTPForwarding::WithholdOutwardExpansions(pMessage);
 
       // The suppression list, at the one point every outbound path meets: a
       // submission, an alias expanding outwards, a forward, a rule, a scheduled
@@ -1556,6 +1565,7 @@ namespace HM
          held->SetSubmittedBySignedInUser(pMessage->GetSubmittedBySignedInUser());
          held->SetReceivedSpfResult(pMessage->GetReceivedSpfResult());
          held->SetReceivedSpfDomain(pMessage->GetReceivedSpfDomain());
+         held->SetCopiedAuthDomains(pMessage->GetAuthDomainsOnArrival());
          held->SetRelayingDomainID(DKIMSigner::RelayingDomainID(pMessage, false));
          for (std::shared_ptr<MessageRecipient> recipient : taken)
          {

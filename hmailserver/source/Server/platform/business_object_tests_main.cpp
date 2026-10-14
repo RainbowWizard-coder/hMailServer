@@ -146,6 +146,17 @@
 //     is from what the message said: an addheader or deleteheader of From, Sender,
 //     the Resent- pair or DKIM-Signature is refused when stored and not made when a
 //     stored script runs.
+//   - A copy of mail from outside is given an envelope sender of its From's
+//     organisation only when the message passed DMARC for it when it arrived, and a
+//     copy is not sent outside with a null sender under a host name of that
+//     organisation, nor with the envelope sender it came with at this server's host
+//     name or a domain hosted here (CopyEnvelopeTester, SMTP/SMTPForwarding.cpp):
+//     the organisations a From names, read through the public suffix list from every
+//     field, every address and every @ in one; the DMARC passes a message's record
+//     holds; which envelope senders are this server's own; the choice, with and
+//     without a pass, a rewrite and a null sender; and what DMARC passed for when the
+//     mail arrived, which every copy carries apart from the record of the message
+//     that arrived - CreateCopy_, the queue row and the quarantine's stored name.
 //   - A ManageSieve quoted string holds no CR, LF or NUL (ManageSieveResponseTester,
 //     Common/Sieve/ManageSieveServer.cpp): a PUTSCRIPT or CHECKSCRIPT refusal quoting
 //     a script's line with a line break in it split the NO response until 7 October
@@ -166,6 +177,7 @@
 #include "../Common/BO/Message.h"
 #include "../Common/AntiSpam/DKIM/DKIMSigner.h"
 #include "../Common/AntiSpam/DKIM/Arc.h"
+#include "../SMTP/SMTPForwarding.h"
 #include "../Common/Diagnostics/DiagnosticResult.h"
 #include "../Common/Rules/RuleGuard.h"
 #include "../Common/Sieve/SieveVacationResponder.h"
@@ -243,6 +255,7 @@ namespace
       source.SetModSeq(123456789012LL);
       source.SetSubmitterAccountID(29);
       source.SetAuthDomains(_T("example.test"));
+      source.SetCopiedAuthDomains(_T("dmarc=partner.example"));
       source.SetFromOutside(true);
       source.SetReceivedSpfResult(_T("softfail"));
       source.SetReceivedSpfDomain(_T("bounces.example.test"));
@@ -272,6 +285,7 @@ namespace
          Expect(copy.GetModSeq() == source.GetModSeq(), "a copy of a message lost its mod-sequence");
          Expect(copy.GetSubmitterAccountID() == source.GetSubmitterAccountID(), "a copy of a message lost its submitter");
          Expect(copy.GetAuthDomains() == source.GetAuthDomains(), "a copy of a message lost its authenticated domains");
+         Expect(copy.GetCopiedAuthDomains() == source.GetCopiedAuthDomains(), "a copy of a message lost what DMARC passed for when the mail it was made from arrived");
          Expect(copy.GetFromOutside(), "a copy of a message from outside lost the mark that says so");
          Expect(copy.GetReceivedSpfResult() == source.GetReceivedSpfResult(), "a copy of a message lost the SPF result this server reached for it");
          Expect(copy.GetReceivedSpfDomain() == source.GetReceivedSpfDomain(), "a copy of a message lost the domain its SPF check evaluated");
@@ -554,6 +568,13 @@ namespace
    }
 
    void
+   TestCopyEnvelope()
+   {
+      HM::CopyEnvelopeTester tester;
+      tester.Test();
+   }
+
+   void
    TestArcAuthenticationResults()
    {
       HM::ArcAuthenticationResultsTester tester;
@@ -594,6 +615,7 @@ main(int /*argc*/, char * /*argv*/[])
    failed += Run(&TestLoopCountEdits, "no Sieve edit, rule or line break in a header value resets X-hMailServer-LoopCount, and no Sieve edit changes Auto-Submitted");
    failed += Run(&TestRuleOwner, "a rule's actions held to its owner: no From or DKIM-Signature set but by a global rule, a reply sent only from an address the owner may send as, and its From one mailbox");
    failed += Run(&TestSigningOrigin, "no message from outside, nor a forward, redirect or copy of one, nor a signed-in submission whose From is another's, is signed as its From's domain; the mark and the relaying domain are copied and kept on the queue row and in a quarantined copy's name");
+   failed += Run(&TestCopyEnvelope, "a forward, a redirect, a list's or an alias's copy of mail from outside is given an envelope sender of its From's organisation only for a message that passed DMARC for it, and none is sent outside with a null sender under a host name of that organisation or with the envelope sender it came with at this server's host name or a hosted domain; and a copy carries the pass the message arrived with - a copy of a copy, a queue row and a quarantined copy's name");
    failed += Run(&TestArcAuthenticationResults, "an ARC seal's spf= is the server's own SPF result, carried by copies, the queue row and a quarantined copy's name, never a Received-SPF field the message carries, and the seal names header.d and smtp.mailfrom");
    failed += Run(&TestSieveFromAddress, "a Sieve vacation reply or notification is from its :from only when that reaches the account, and no Sieve edit changes who a message is from");
    failed += Run(&TestManageSieveQuoting, "a ManageSieve quoted string holds no line break: a refusal quoting a script's line with one in it is one line");

@@ -276,6 +276,27 @@ namespace HM
       String GetAuthDomains() const;
       void SetAuthDomains(const String &domains);
 
+      // What DMARC passed for when the mail a copy was made from arrived - the
+      // GetAuthDomainsOnArrival of the message it was copied from - for the copy,
+      // which has no record of its own (GetAuthDomains): every copy made of a queued
+      // message or of a recipient's copy of one carries it (PersistentMessage::CreateCopy_),
+      // and so does a managed list's copy (ListManager::QueueCopy), a journal rule's
+      // copy delivered as it was accepted (Journaling) and a message released from the
+      // quarantine (QuarantineStore::StoredMarks), and each passes it on to a copy of
+      // its own. Read for the envelope a copy of mail from outside is sent on with
+      // (SMTPForwarding::EnvelopeOfCopy) and by nothing else: a room, iMIP and a
+      // domain's rules read what was recorded of the message that arrived alone. Kept
+      // on a queue row beside it (PersistentMessage::OriginColumn), never on a mailbox
+      // row.
+      String GetCopiedAuthDomains() const;
+      void SetCopiedAuthDomains(const String &domains);
+
+      // What DMARC passed for when the mail arrived: the message's own record
+      // (GetAuthDomains) and, for a copy, what it carries of the message it was made
+      // from (GetCopiedAuthDomains) - the one that is not empty, or both, a comma
+      // between, when they differ.
+      String GetAuthDomainsOnArrival() const;
+
       // Whether the message, or the message it is a copy of, came in from outside
       // through no submission, so that its From was written by somebody this server
       // cannot vouch for: an SMTP session that neither signed in nor sent as one of
@@ -429,13 +450,15 @@ namespace HM
       // See GetSubmitterAccountID.
       __int64 submitter_account_id_ = 0;
 
-      // The strings of where the message came from - GetAuthDomains and
-      // GetReceivedSpfDomain - which a queued message has and a message in a mailbox
-      // never does: made when one is set, so that every Message an IMAP folder's
-      // cached listing holds carries a pointer for them, not two Strings.
+      // The strings of where the message came from - GetAuthDomains,
+      // GetCopiedAuthDomains and GetReceivedSpfDomain - which a queued message has and
+      // a message in a mailbox never does: made when one is set, so that every Message
+      // an IMAP folder's cached listing holds carries a pointer for them, not three
+      // Strings.
       struct OriginStrings
       {
          String auth_domains;
+         String copied_auth_domains;
          String spf_domain;
       };
       std::unique_ptr<OriginStrings> origin_strings_;

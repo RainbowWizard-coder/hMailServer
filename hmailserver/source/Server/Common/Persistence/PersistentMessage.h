@@ -42,17 +42,19 @@ namespace HM
       // is one word of at most 16 characters, and "relay=" and a domain's id for
       // Message::GetRelayingDomainID, written only when there is one - then
       // "mailfrom=" and the domain the SPF check evaluated (Message::GetReceivedSpfDomain),
-      // then the domains the inbound checks
+      // then "copied=" before each word of what a copy carries of what DMARC passed
+      // for when the mail arrived (Message::GetCopiedAuthDomains), then the domains the
+      // inbound checks
       // vouched for (Message::GetAuthDomains, a "dmarc=" word or nothing), commas
       // between. Never longer than the column's 255
       // characters: when all of it would not fit, the SPF check's domain is dropped
-      // first, then the domains, whole, as a value too long for the column always
-      // was, and the marks are kept, since a mark
+      // first, then the domains and the copied words, whole, as a value too long for
+      // the column always was, and the marks are kept, since a mark
       // left out would let a message from outside be signed as the domain its From
       // names. ReadOriginColumn takes the marks back off the front, so that
       // GetAuthDomains answers the domains as they were, and a row written before the
-      // marks existed reads as it did. No database: SigningOriginTester and
-      // ArcAuthenticationResultsTester hold the two to examples.
+      // marks existed reads as it did. No database: SigningOriginTester,
+      // ArcAuthenticationResultsTester and CopyEnvelopeTester hold the two to examples.
       static String OriginColumn(const Message &message);
       static void ReadOriginColumn(const String &column, Message &message);
 
@@ -156,6 +158,7 @@ namespace HM
       // Which members a copy carries is asked of CreateCopy_ itself.
       friend class SigningOriginTester;
       friend class ArcAuthenticationResultsTester;
+      friend class CopyEnvelopeTester;
 
       static std::shared_ptr<Message> CreateCopy_(std::shared_ptr<Message> sourceMessage, int destinationAccountID);
 

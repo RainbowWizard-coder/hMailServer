@@ -32,6 +32,7 @@
 #include "../Util/Unicode.h"
 #include "../Util/MessageOrigin.h"
 #include "DKIM/DKIMSigner.h"
+#include "DMARC/DMARC.h"
 
 #include <stdexcept>
 #include <utility>
@@ -112,6 +113,7 @@ namespace HM
       const String SpfNameMark = _T("spf-");
       const String RelayNameMark = _T("relay-");
       const String SendersDomainNameMark = _T("mailfrom");
+      const String DmarcNameMark = _T("dmarc");
 
       bool EndsWithNoCase(const String &text, const String &end)
       {
@@ -151,6 +153,9 @@ namespace HM
 
       if (marks.spf_domain_is_senders)
          name += String(_T(".")) + SendersDomainNameMark;
+
+      if (marks.dmarc_passed_for_from)
+         name += String(_T(".")) + DmarcNameMark;
 
       // A hosted domain's id, digits alone.
       if (marks.relaying_domain_id > 0 && marks.relaying_domain_id <= INT_MAX)
@@ -202,6 +207,8 @@ namespace HM
             marks.spf_result = Message::SpfResultKeyword(word.Mid(SpfNameMark.GetLength()));
          else if (word.CompareNoCase(SendersDomainNameMark) == 0)
             marks.spf_domain_is_senders = true;
+         else if (word.CompareNoCase(DmarcNameMark) == 0)
+            marks.dmarc_passed_for_from = true;
          else if (StartsWithNoCase(word, RelayNameMark))
          {
             const String digits = word.Mid(RelayNameMark.GetLength());
@@ -228,6 +235,45 @@ namespace HM
          return OriginUnknown;
 
       return marks.from_outside ? OriginOutside : OriginInside;
+   }
+
+   String
+   QuarantineStore::FromDomainAsDmarcReadsIt(const AnsiString &header)
+   {
+      if (header.IsEmpty())
+         return String();
+
+      MimeHeader mimeHeader;
+      mimeHeader.Load(header.c_str(), header.GetLength(), true);
+
+      // The first From field, decoded, as MessageData::GetFrom gives it to the DMARC
+      // check (SpamTestDMARC), and the address in it.
+      String domain = StringParser::ExtractDomain(DMARC::ExtractAddressFromHeaderValue(mimeHeader.GetUnicodeFieldValue("From")));
+      domain.Trim();
+      domain.MakeLower();
+      return domain;
+   }
+
+   bool
+   QuarantineStore::RecordsDmarcPassFor(const String &authDomains, const String &domain)
+   {
+      if (authDomains.IsEmpty() || domain.IsEmpty())
+         return false;
+
+      const String wanted = _T("dmarc=") + domain;
+
+      String words = authDomains;
+      words.Replace(_T(","), _T(" "));
+      words.Replace(_T("\t"), _T(" "));
+
+      for (String word : StringParser::SplitString(words, _T(" ")))
+      {
+         word.Trim();
+         if (word.GetLength() == wanted.GetLength() && word.CompareNoCase(wanted) == 0)
+            return true;
+      }
+
+      return false;
    }
 
    bool
@@ -396,7 +442,7 @@ namespace HM
    }
 
    void
-   QuarantineStore::ApplyStoredMarks_(const QuarantinedMessage &quarantined, Message &message)
+   QuarantineStore::ApplyStoredMarks_(const QuarantinedMessage &quarantined, Message &message, const String &file)
    {
       // What the name kept beside the origin, which nothing in the message can change.
       // A copy held before the name kept it has none: no SPF result and no domain
@@ -409,6 +455,17 @@ namespace HM
       // row's sender, which the release gives the message it queues.
       if (marks.spf_domain_is_senders)
          message.SetReceivedSpfDomain(StringParser::ExtractDomain(quarantined.sender));
+
+      // What DMARC passed for when the message arrived, when that was the domain of the
+      // From the stored copy carries: read from the copy again, as the hold read it
+      // (Quarantine_), for the envelope a forward of the released message is sent on
+      // with alone (Message::GetCopiedAuthDomains).
+      if (marks.from_outside && marks.dmarc_passed_for_from)
+      {
+         const String domain = FromDomainAsDmarcReadsIt(PersistentMessage::LoadHeader(file, false));
+         if (!domain.IsEmpty())
+            message.SetCopiedAuthDomains(_T("dmarc=") + domain);
+      }
    }
 
    bool
@@ -435,6 +492,13 @@ namespace HM
          marks.spf_domain_is_senders = !message->GetReceivedSpfDomain().IsEmpty() &&
             message->GetReceivedSpfDomain().CompareNoCase(StringParser::ExtractDomain(message->GetFromAddress())) == 0;
          marks.relaying_domain_id = DKIMSigner::RelayingDomainID(message, false);
+
+         // And whether mail from outside passed DMARC, when it arrived, for the domain of
+         // the From the stored copy carries, which its release gives back
+         // (ApplyStoredMarks_): the copy's header is read only when there is a pass.
+         const String passedOnArrival = marks.from_outside ? message->GetAuthDomainsOnArrival() : String();
+         marks.dmarc_passed_for_from = !passedOnArrival.IsEmpty() &&
+            RecordsDmarcPassFor(passedOnArrival, FromDomainAsDmarcReadsIt(PersistentMessage::LoadHeader(sourceFile, false)));
          String relativePath = BuildRelativePath_(marks);
          String targetFile = FileUtilities::Combine(GetQuarantineDirectory(), relativePath);
 
@@ -1112,7 +1176,7 @@ namespace HM
 
       message->SetSize(MessageStore::FileSize(targetFile));
       message->SetFromOutside(ReleasedCopyIsFromOutside_(quarantined.file_name, targetFile));
-      ApplyStoredMarks_(quarantined, *message);
+      ApplyStoredMarks_(quarantined, *message, targetFile);
 
       RecipientParser recipientParser;
 
@@ -1293,7 +1357,7 @@ namespace HM
 
       message->SetSize(MessageStore::FileSize(targetFile));
       message->SetFromOutside(ReleasedCopyIsFromOutside_(quarantined.file_name, targetFile));
-      ApplyStoredMarks_(quarantined, *message);
+      ApplyStoredMarks_(quarantined, *message, targetFile);
 
       RecipientParser recipientParser;
       bool recipientOk = false;

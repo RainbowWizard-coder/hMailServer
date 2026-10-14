@@ -43,6 +43,7 @@
 #include "../Persistence/PersistentServerMessage.h"
 #include "../TCPIP/IPAddress.h"
 #include "../../SMTP/RecipientParser.h"
+#include "../../SMTP/SMTPForwarding.h"
 #include "../../SMTP/DeliveryFailure.h"
 #include "../../SMTP/DeliveryReportParser.h"
 #include "../../SMTP/SMTPConfiguration.h"
@@ -1210,12 +1211,31 @@ namespace HM
       const String receivedSpfResult = message->GetReceivedSpfResult();
       const String receivedSpfDomain = message->GetReceivedSpfDomain();
 
+      // And what DMARC passed for when the posting arrived, which decides whether it is
+      // distributed (below) and which every copy carries (Message::GetCopiedAuthDomains)
+      // for the envelope it is sent on with in turn: by a member here that forwards its
+      // copy, or an alias a member is.
+      const String authDomainsOnArrival = message->GetAuthDomainsOnArrival();
+
       std::vector<String> fromValues;
       fromValues.push_back(data->GetFrom());
       for (MimeField &field : mime->Fields())
       {
          if (AnsiString(field.GetName()).CompareNoCase("From") == 0)
             fromValues.push_back(String(AnsiString(field.GetValue())));
+      }
+
+      // Every copy is sent from the list's bounce address, or the member's VERP form of
+      // it, an address of the list's domain. A posting from outside with an address of
+      // that domain's organisation in its From fields is distributed only when it
+      // passed DMARC for that organisation when it arrived
+      // (SMTPForwarding::MaySendOnWithIdentity), and is otherwise not distributed, as a
+      // posting marked as spam is not: the application log says so, naming the sender.
+      if (!SMTPForwarding::MaySendOnWithIdentity(fromOutside, authDomainsOnArrival, fromValues, StringParser::ExtractDomain(listAddress)))
+      {
+         LOG_APPLICATION(Formatter::Format("ListManager: message {0} from {1} to {2} came from outside with a From of the list domain's organisation, with no DMARC pass for it recorded when it arrived, so it was not distributed: every copy is sent from an address of the list's domain.",
+            message->GetID(), message->GetFromAddress(), listAddress));
+         return true;
       }
 
       const bool signAsListDomain = SignsCopiesAsListDomain(fromOutside, fromValues, listAddress);
@@ -1299,7 +1319,8 @@ namespace HM
 
          EnsureToken(row);
 
-         if (QueueCopy(list, address, row->GetToken(), copyFile, false, fromOutside, signAsListDomain, receivedSpfResult, receivedSpfDomain))
+         if (QueueCopy(list, address, row->GetToken(), copyFile, false, fromOutside, signAsListDomain, receivedSpfResult, receivedSpfDomain,
+                       authDomainsOnArrival))
             each++;
          else
             failed++;
@@ -1333,7 +1354,8 @@ namespace HM
             if (IsListOwnAddress(member, listAddress))
                continue;
 
-            if (QueueCopy(list, member, QueryMemberToken(secret, member), copyFile, true, fromOutside, signAsListDomain, receivedSpfResult, receivedSpfDomain))
+            if (QueueCopy(list, member, QueryMemberToken(secret, member), copyFile, true, fromOutside, signAsListDomain, receivedSpfResult, receivedSpfDomain,
+                          authDomainsOnArrival))
                each++;
             else
                failed++;
@@ -1469,55 +1491,26 @@ namespace HM
       if (listDomain.IsEmpty())
          return true;
 
-      const String listOrganisation = DMARC::GetOrganizationalDomainByPublicSuffixList(listDomain);
-
-      for (const String &value : fromHeaderValues)
-      {
-         // The address DMARC here reads in the field.
-         if (!SignsCopiesAsListDomain(fromOutside, value, listAddress))
-            return false;
-
-         // And every domain written after an @ anywhere in it - a second address, one
-         // in a group or in a comment - and in every From field the posting has: a
-         // receiver may take any of them for the author, and a DKIM signature covers
-         // the From field nearest the body, which need not be the first.
-         String lowered = value;
-         lowered.MakeLower();
-
-         for (int at = lowered.Find(_T("@")); at >= 0; at = lowered.Find(_T("@"), at + 1))
-         {
-            int end = at + 1;
-            while (end < lowered.GetLength())
-            {
-               const wchar_t character = lowered[end];
-               const bool ascii = character < 0x80;
-               if (ascii && !((character >= L'a' && character <= L'z') || (character >= L'0' && character <= L'9') ||
-                              character == L'.' || character == L'-'))
-                  break;
-               end++;
-            }
-
-            String domain = lowered.Mid(at + 1, end - at - 1);
-            domain.TrimLeft(L'.');
-            domain.TrimRight(L'.');
-
-            if (!domain.IsEmpty() && DMARC::GetOrganizationalDomainByPublicSuffixList(domain).CompareNoCase(listOrganisation) == 0)
-               return false;
-         }
-      }
-
-      return true;
+      // The address DMARC here reads in each field, and every domain written after an
+      // @ anywhere in it - a second address, one in a group or in a comment - and in
+      // every From field the posting has: a receiver may take any of them for the
+      // author, and a DKIM signature covers the From field nearest the body, which need
+      // not be the first. The same reading the envelope of every copy of mail from
+      // outside is decided by (SMTPForwarding::FromNamesOrganisationOf).
+      return !SMTPForwarding::FromNamesOrganisationOf(fromHeaderValues, listDomain);
    }
 
    bool
    ListManager::QueueCopy(std::shared_ptr<const DistributionList> list, const String &member, const String &token, const String &contentFile, bool queryMember,
-                          bool fromOutside, bool signAsListDomain, const String &receivedSpfResult, const String &receivedSpfDomain)
+                          bool fromOutside, bool signAsListDomain, const String &receivedSpfResult, const String &receivedSpfDomain,
+                          const String &authDomainsOnArrival)
    {
       std::shared_ptr<Message> copy(new Message());
       copy->SetState(Message::Delivering);
       copy->SetFromOutside(fromOutside);
       copy->SetReceivedSpfResult(receivedSpfResult);
       copy->SetReceivedSpfDomain(receivedSpfDomain);
+      copy->SetCopiedAuthDomains(authDomainsOnArrival);
 
       // The list's domain sends every copy on, a digest among them, and seals the ARC
       // set over one it does not sign (Message::GetRelayingDomainID).

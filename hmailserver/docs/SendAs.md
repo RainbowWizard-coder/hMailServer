@@ -144,11 +144,64 @@ server made), or the one on top is this server's own for a session that signed i
 send API's; a download from another server's mailbox, whose top field is that server's, is
 from outside.
 
+The envelope a copy is sent on with
+----------------------------------
+
+A forward, a redirect, a rule's forward, a list's copy or an alias's copy of mail from outside
+is given an envelope sender - or, for a null one, sent under a host name - in the organisation
+of a domain its `From` names only when the message **passed DMARC for that organisation when
+it arrived**: the pass this server's own DMARC check recorded on the message, which its queue
+row keeps beside the from-outside mark (`hm_messages.messageauthdomains`). A copy the server
+makes of the message carries that pass - a forward's, a list's, a journal rule's, one held in
+the quarantine since the upgrade and released - so that what the copy meets further on, another
+account's forward, an alias or a list, is held to the same pass as the first forward. The
+organisation is read from the `From` the same way the managed list reads it
+([MailingLists.md](MailingLists.md)): every `From` field, every address in one, and every
+domain written after an `@`, through the public suffix list. Otherwise:
+
+* a forward's or a redirect's `SRS` rewrite, or its envelope-from rewrite
+  (`RewriteEnvelopeFromWhenForwarding`), into that organisation is **withheld**, and the copy
+  keeps the envelope sender the message came with;
+* a copy that would still be sent with such an identity - a null envelope sender, when this
+  server's host name (the name it gives in `EHLO`) is of that organisation, or the envelope
+  sender the message came with when that is itself at this server's host name or at a domain
+  whose organisation is hosted here (a hosted domain or a subdomain of one) - is **not sent
+  on** to an address outside, and the application log names each recipient it was withheld
+  from; the message stays in the mailbox. Nor is a message that an alias or a distribution
+  list expands to an address outside sent there with such an identity;
+* a managed list does not distribute the posting, as it does not a spam-marked one, and a
+  distribution list's bounce address is not given to it.
+
+**No pass is recorded** for a message the DMARC check did not judge: with the check off
+(`ASDMARCEnabled`), for a sender the anti-spam white list covers, in a session from an IP
+range whose spam protection is off, for a message larger than the spam tests read
+(`antispammaxsize`, 1024 KB as shipped), for one the tests run on its content before it
+(SURBL, DKIM) had already scored at the higher of the spam mark and delete thresholds, and
+for a message imported from a file or downloaded (below). Nor is one recorded when the
+`From`'s domain publishes no DMARC record, itself or through its organisation, or the record
+could not be looked up. Such a message is held to the rule above as one that did not pass.
+The application log names each recipient a copy was withheld from and each posting not
+distributed; the debug log names each rewrite withheld.
+
+A download from an external account is not a message this server is the source of, and no
+DMARC pass is recorded for it, so it is never given an address hosted here from its own
+`From` as its envelope sender: it keeps the null sender a message with no usable `From` has,
+and a forward of it is held to the rule above. The address the spam checks read as the
+download's sender is unchanged.
+
+A forward of mail that **passed** DMARC for its `From`'s organisation, and an ordinary forward
+of third-party mail - whose `From` is not the forwarder's organisation at all - are
+`SRS`-rewritten and sent on exactly as before. And what a copy of mail that passed meets
+further on - another account's forward of the forward, an alias that expands to an address
+outside, a list member's forward of the list's copy, the forward of a message held in the
+quarantine since the upgrade and released, or of a journal rule's copy - sends it on as before.
+
 Up to 6.3.6 the server signed every message whose `From` named a domain it signs for,
 whatever it was: a message from outside claiming to be from `ceo@` such a domain was signed
 before local delivery, and a forward of it to an address outside left the server as a
 forgery that passed DMARC. Messages already in the queue when the server is upgraded were
-recorded without the mark and are signed as before.
+recorded without the mark and are signed, and sent on, as before. A message held in the
+quarantine before the upgrade is released with no DMARC pass recorded for it.
 
 **A signed-in user's message whose `From` is another hosted domain's.** Authenticated SMTP
 does not hold the `From` header to the account - `SmtpAuthenticatedSenderCheck`, off by

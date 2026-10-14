@@ -228,7 +228,15 @@ distributed - and a list's `bounce_address`, which a list without the manager
 gives its postings as their envelope sender, is never given to a managed list's
 posting nor to a report. Nor is a posting this server marked as spam
 distributed; the application log says so, naming the sender, since it goes to
-nobody.
+nobody. Nor is a posting from outside whose `From` names the list domain's own
+organisation distributed, unless the message passed DMARC for that organisation
+when it arrived, since every copy is sent from `team-bounces@` the list's domain
+([SendAs.md](SendAs.md#the-envelope-a-copy-is-sent-on-with), which says when no
+pass is recorded: none is for a posting larger than the spam tests read,
+`antispammaxsize`, nor for one from a sender on the anti-spam white list); the
+application log names the sender. The pass goes with every copy: a posting a
+forward here sent to the list is distributed when the message forwarded passed,
+and a member here that forwards its copy of a posting that passed sends it on.
 
 **A posting the list manager cannot read** - its file could not be opened or
 loaded, as an antivirus or a backup holding it makes happen, or the list's copy
@@ -256,7 +264,9 @@ names, and when an address of the list domain's own organisation is anywhere in
 its `From` fields - a second field, a second address in one, one in a comment or
 a group - none is signed as the list's domain either, since that signature would
 be one DMARC aligns with the `From` a receiver reads (the application log says so for the posting; the
-one-click is then not offered). Until 7 October 2026 such a posting was signed
+one-click is then not offered), and unless the message passed DMARC for that
+organisation when it arrived the posting is not distributed at all (above): it
+goes to nobody, as a spam-marked one does. Until 7 October 2026 such a posting was signed
 as its `From`'s domain before it was distributed. ARC sealing
 (`DKIMSigner`, as for any forward) applies only with `ArcSealingEnabled` on,
 which it is not by default. **The list does not rewrite `From`.** A posting from

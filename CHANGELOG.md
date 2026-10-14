@@ -317,6 +317,49 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   releases mail from outside that a domain's rule claimed a signed-in client for and then held, and finds its forward
   not signed. Found by the project's own review.
 
+- **Fixed: a forward, a redirect, a list's copy or an alias's copy of mail from outside is given an envelope sender -
+  or, for a null one, sent under a host name - in the organisation of a domain its `From` names only when the message
+  passed DMARC for that organisation when it arrived.** The rule holds for an account's forward, a rule's forward, a
+  Sieve `redirect`, a posting a managed list distributes, and an alias or a distribution list expanding to an address
+  outside, and reads the organisation as the list's signing decision does: the public suffix list's organisation of
+  every `From` field, every address in one and every domain after an `@`. The pass is the one this server's DMARC
+  check recorded on the message when it arrived (`hm_messages.messageauthdomains`, beside the mark of mail from
+  outside, through a restart), and a copy the server makes of the message carries it - a forward's, a list's, a
+  journal rule's, one held in the quarantine since the upgrade and released - so that what such a copy meets further
+  on, another account's forward of it, an alias or a list, is held to the same pass. Otherwise:
+  - the `SRS` or envelope-from rewrite a forward or redirect would make into that organisation is withheld, and the
+    copy keeps the envelope sender the message came with;
+  - a copy that would still carry such an identity - a null envelope sender under a host name of that organisation,
+    or the envelope sender the message came with when that is at this server's host name or at a domain whose
+    organisation is hosted here (a hosted domain or a subdomain of one) - is not sent on to an address outside, and
+    the application log names each recipient it was withheld from;
+  - a managed list does not distribute the posting, as a spam-marked one is not, and a distribution list's bounce
+    address is not given to it.
+
+  No pass is recorded for a message the check did not judge - with `ASDMARCEnabled` off, from a sender on the
+  anti-spam white list or an IP range with spam protection off, larger than `antispammaxsize` (1024 KB as shipped),
+  already scored by the tests before it at the higher of the spam thresholds, imported from a file or downloaded -
+  nor for a `From` whose domain publishes no DMARC record, and such a message is held to the rule as one that did not
+  pass.
+
+  A download from an external account whose `From` is an address hosted here keeps a null envelope sender, as one
+  whose `From` names no address does, since a download is not a message this server is the source of; the sender
+  the spam checks read is the `From`'s address, as before. A forward of mail that passed DMARC for its `From`'s
+  organisation, and an ordinary forward of third-party mail, are `SRS`-rewritten and sent on as before, and a
+  forward of such a forward is sent on as before.
+
+  `CopyEnvelopeTester` (`business-object-tests` on Linux) holds the organisations a `From` names, the DMARC passes a
+  message's record carries, which envelope senders are this server's own, the choice, and the pass a copy carries -
+  through a copy of a copy, a queue row and a quarantined copy's name - to examples, and `SMTP/CopyEnvelopes.cs`
+  sends mail from outside whose `From` names the hosted test domain, without a DMARC pass for it, through an
+  account's forward, a rewritten forward, a null-sender forward, a Sieve `redirect`, a forward that keeps an envelope
+  sender at a subdomain of that domain, a forwarded external download and a second forward, and finds none sent on
+  under an identity of that domain, beside a forward that passed DMARC, a second forward of it, a forward of it to an
+  alias that expands to an address outside and an ordinary third-party forward, all still sent; `SMTP.MailingLists`,
+  `AntiSpam.Quarantine` and `SMTP.Journaling` find a list member's forward of a posting that passed, the forward of a
+  message that passed released from the quarantine, and a journal mailbox's forward of its copy of one, sent on.
+  Found by the project's own review.
+
 - **Changed: an authenticated SMTP submission is signed as another domain hosted here only when its account may send
   as the address its `From` names.** Authenticated SMTP does not hold the `From` header to the account
   (`SmtpAuthenticatedSenderCheck`, off by default, holds `MAIL FROM` alone), and the server signed a signed-in user's

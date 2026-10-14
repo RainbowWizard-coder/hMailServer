@@ -72,6 +72,7 @@
 #include "ListManager.h"
 #include "ListArchive.h"
 #include "../../SMTP/BounceTracker.h"
+#include "../../SMTP/SMTPForwarding.h"
 #include "../../SMTP/DestinationBackoffTester.h"
 #include "../../SMTP/WarmupPlanTester.h"
 #include "../../SMTP/TlsPolicy.h"
@@ -289,6 +290,15 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing which messages are signed as their From's domain\n"));
       SigningOriginTester signingOriginTester;
       signingOriginTester.Test();
+
+      // Which envelope sender a copy of a message is sent on with, and which copy is
+      // sent outside at all: the organisations its From names, the DMARC passes its
+      // record holds, which envelope senders are this server's own, the choice, and
+      // what DMARC passed for when the mail arrived, which every copy carries
+      // (SMTPForwarding.h, CopyEnvelopeTester).
+      OutputDebugString(_T("hMailServer: Testing the envelope a copy is sent on with\n"));
+      CopyEnvelopeTester copyEnvelopeTester;
+      copyEnvelopeTester.Test();
 
       // The spf= an ARC seal attests is this server's own SPF result for the message,
       // carried by its copies, and never a Received-SPF field it carries, which a

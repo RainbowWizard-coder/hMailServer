@@ -68,5 +68,12 @@ namespace HM
       // when it has none that reads as a path. Read with the rest of the header
       // (ParseMessageHeaders_) for the SpamAssassin scan (DoSpamProtection_).
       AnsiString recorded_return_path_;
+
+      // The address in the current message's From field, or empty when it has none
+      // that is valid: the sender the spam checks go by (DoSpamProtection_), as they
+      // always have, and the message's envelope sender unless it is an address hosted
+      // here, which a download is not given as its envelope sender
+      // (ParseMessageHeaders_).
+      String header_sender_;
    };
 }

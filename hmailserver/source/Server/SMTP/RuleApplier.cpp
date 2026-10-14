@@ -37,6 +37,8 @@
 
 #include "RecipientParser.h"
 #include "DeliveryQueue.h"
+#include "SMTPForwarding.h"
+#include "../Common/Util/Utilities.h"
 
 #include "SMTPConfiguration.h"
 
@@ -1062,6 +1064,38 @@ namespace HM
          }
       }
 
+      // The envelope sender of the copy (SMTPForwarding::EnvelopeOfCopy): the address of
+      // the account whose rule it is when RewriteEnvelopeFromWhenForwarding asks for it,
+      // or the message's own. A copy that may not be sent on with the one it came with -
+      // the null sender under this server's EHLO name, or one at that name or at a
+      // domain hosted here - goes to no address outside (below).
+      String envelope;
+      bool maySendOn = true;
+      {
+         std::shared_ptr<const Account> ruleAccount = CacheContainer::Instance()->GetAccount(rule_account_id_);
+         const String envelopeSender = pOriginalMessage->GetFromAddress();
+         const String rewritten = ruleAccount && IniFileSettings::Instance()->GetRewriteEnvelopeFromWhenForwarding() && !envelopeSender.IsEmpty()
+            ? ruleAccount->GetAddress() : String();
+
+         std::vector<String> fromFieldValues;
+         if (pOriginalMessage->GetFromOutside() && pMsgData->GetMimeMessage())
+            fromFieldValues = SMTPForwarding::FromFieldValues(*pMsgData->GetMimeMessage());
+
+         const bool senderOrganisationHosted = pOriginalMessage->GetFromOutside() && !envelopeSender.IsEmpty() &&
+                                               SMTPForwarding::IsHostedOrganisation(StringParser::ExtractDomain(envelopeSender));
+
+         bool rewriteWithheld = false;
+         maySendOn = SMTPForwarding::EnvelopeOfCopy(pOriginalMessage->GetFromOutside(), pOriginalMessage->GetAuthDomainsOnArrival(), envelopeSender,
+                                                    senderOrganisationHosted, fromFieldValues, rewritten, Utilities::ComputerName(), envelope,
+                                                    rewriteWithheld);
+
+         if (rewriteWithheld)
+         {
+            LOG_DEBUG(Formatter::Format("RuleApplier: the forward of message {0} keeps the envelope sender it came with, <{1}>, in place of {2}: the message came from outside with a From of that address's organisation, with no DMARC pass for it recorded when it arrived.",
+               pOriginalMessage->GetID(), envelopeSender, rewritten));
+         }
+      }
+
       std::shared_ptr<Message> pMsg = PersistentMessage::CopyToQueue(account, pMsgData->GetMessage());
 
       if (!pMsg)
@@ -1083,16 +1117,24 @@ namespace HM
       pNewMsgData->IncreaseRuleLoopCount();
       pNewMsgData->WriteReported(newFileName, "The rule-loop counter on a forwarded message");
 
-      // We need to update the SMTP envelope from address, if this
-      // message is forwarded by a user-level account.
-      std::shared_ptr<const Account> pAccount = CacheContainer::Instance()->GetAccount(rule_account_id_);
-      if (pAccount && IniFileSettings::Instance()->GetRewriteEnvelopeFromWhenForwarding() && !pMsg->GetFromAddress().IsEmpty())
-         pMsg->SetFromAddress(pAccount->GetAddress());
-      
+      // The envelope sender chosen above: for a user-level account's rule, its address
+      // when the setting asks for it and the message may be sent on with it.
+      if (pMsg->GetFromAddress().Compare(envelope) != 0)
+         pMsg->SetFromAddress(envelope);
+
       // Add new recipients
       bool recipientOK = false;
       RecipientParser recipientParser;
       recipientParser.CreateMessageRecipientList(pAction->GetTo(), pMsg->GetRecipients(), recipientOK);
+
+      // A copy that may not be sent on goes to the addresses here alone, and when there
+      // are none it is not made: the message stays where it is.
+      if (!maySendOn && SMTPForwarding::WithholdOutsideRecipients(pMsg, pOriginalMessage->GetID(), _T("rule's forward"), envelope) &&
+          pMsg->GetRecipients()->GetCount() == 0)
+      {
+         FileUtilities::DeleteFile(newFileName);
+         return;
+      }
 
       // Check that there are recipients of the letter. If not, we should skip delivery.
       if (pMsg->GetRecipients()->GetCount() == 0)

@@ -3330,6 +3330,12 @@ namespace HM
       // headers. And it must stay *inside* this function, because the caller re-reads
       // the file size from disk immediately afterwards, which is what makes the
       // rewritten size authoritative.
+      //
+      // Where the message came from is recorded first, as the rules ask it again
+      // below: a list's bounce address is not given to a posting from outside whose
+      // From names that address's organisation, unless it passed DMARC for it here
+      // (DistributionListSender::ApplyBounceAddress_).
+      RecordOrigin_();
       DistributionListSender::AddListHeaders(current_message_);
 
       // Last, and for the same two reasons the List-* call gives: it must come after
