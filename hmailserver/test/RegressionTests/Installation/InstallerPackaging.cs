@@ -477,7 +477,7 @@ namespace RegressionTests.Installation
       }
 
       [Test]
-      [Description("When the administrator running Setup cannot open the database - SQL Server with Windows authentication, LocalSystem a SQL Server administrator and that person not - the secure defaults and the stored-secrets key are applied by the service at the start Setup makes (sc start hMailServer --apply-new-install-defaults), which the server reads in ServiceMain; and a key Setup's verb found already held is not said to have been made.")]
+      [Description("When the administrator running Setup cannot open the database - SQL Server with Windows authentication, LocalSystem a SQL Server administrator and that person not - the secure defaults and the stored-secrets key are applied by the service at the start Setup makes (sc start hMailServer --apply-new-install-defaults), which the server reads in ServiceMain: InitializeApplication hands FinishNewInstallationAtStart to that start and to no other, and Application::InitInstanceAndStart runs it once InitInstance has opened the database, starts again (Reinitialize_) when it changed the server and else starts the servers; and a key Setup's verb found already held is not said to have been made.")]
       public void ANewInstallationItsAdministratorCannotOpenIsFinishedByTheServicesStart()
       {
          string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
@@ -503,8 +503,28 @@ namespace RegressionTests.Installation
          ClassicAssert.IsTrue(Regex.IsMatch(tasks, @"if\s+g_bFinishNewInstallationAtStart\s+then\s+bStarted\s*:=\s*StartServiceToFinishNewInstallation\(", RegexOptions.IgnoreCase),
             "RunPostInstallTasks does not start the service to finish the installation when the verbs could not.");
          StringAssert.Contains("'start hMailServer --apply-new-install-defaults'", CodeBody(code, "StartServiceToFinishNewInstallation"));
-         StringAssert.Contains("argument.CompareNoCase(_T(\"--apply-new-install-defaults\")) == 0", server, "ServiceMain does not read --apply-new-install-defaults.");
-         ClassicAssert.IsTrue(Regex.IsMatch(server, @"if \(finish && FinishNewInstallationAtStart\(\)\)"), "InitializeApplication does not finish a new installation it was started to.");
+         ClassicAssert.IsTrue(Regex.IsMatch(server, @"argument\.CompareNoCase\(_T\(""--apply-new-install-defaults""\)\) == 0\)\s*g_finishNewInstallationAtStart = true;"),
+            "ServiceMain does not read --apply-new-install-defaults as the start's ask to finish a new installation.");
+
+         // InitializeApplication hands the finish to the start that was asked for
+         // it, and to no other. Since 10 October 2026 the start itself is
+         // Application::InitInstanceAndStart, which holds the servers' lock
+         // throughout, and the finish is the function InitializeApplication gives it.
+         string initialize = CppFunctionCode(server, "void InitializeApplication(", "hMailServer.cpp");
+         ClassicAssert.IsTrue(Regex.IsMatch(initialize, @"const bool finish = g_finishNewInstallationAtStart;"),
+            "InitializeApplication no longer takes whether to finish a new installation from what ServiceMain read.");
+         ClassicAssert.IsTrue(Regex.IsMatch(initialize, @"InitInstanceAndStart\(sErrorMessage,\s*finish \? std::function<bool\(\)>\(&FinishNewInstallationAtStart\) : std::function<bool\(\)>\(\)\);"),
+            "InitializeApplication does not hand FinishNewInstallationAtStart to a start asked to finish a new installation, or hands it to every start.");
+
+         // The start runs it once InitInstance has opened the database, starts
+         // again, listeners and all, when it changed the server, and else starts
+         // the servers.
+         string application = ReadRepositoryFile(@"hmailserver\source\Server\Common\Application\Application.cpp");
+         string start = CppFunctionCode(application, "Application::InitInstanceAndStart(", "Application.cpp");
+         ClassicAssert.IsTrue(Regex.IsMatch(start, @"if \(!InitInstance\(sErrorMessage\)\)\s*return false;\s*if \(finish && finish\(\)\)\s*\{\s*sErrorMessage = Reinitialize_\(\);\s*return sErrorMessage\.IsEmpty\(\);\s*\}"),
+            "Application::InitInstanceAndStart does not run the finish it is given once InitInstance has opened the database, or does not start again (Reinitialize_) when the finish changed the server.");
+         ClassicAssert.IsTrue(Regex.IsMatch(start, @"return StartServers_\(\);\s*\}$"),
+            "Application::InitInstanceAndStart does not start the servers when it was given no finish or the finish changed nothing.");
       }
 
       [Test]
@@ -673,6 +693,25 @@ namespace RegressionTests.Installation
          Match close = Regex.Match(extension.Substring(header.Index), @"^end;", RegexOptions.Multiline);
          Assert.IsTrue(close.Success, name + " has no end.");
          return extension.Substring(header.Index, close.Index + close.Length);
+      }
+
+      /// <summary>
+      ///    The code of one C++ function definition of a server source file, its
+      ///    comments dropped, so that a comment naming a call cannot stand in for
+      ///    the call: from the line that starts with its declarator ("void
+      ///    InitializeApplication(", "Application::InitInstanceAndStart("), a
+      ///    declaration passed over, to the first "}" at that line's indentation,
+      ///    which closes it in this tree's style.
+      /// </summary>
+      private static string CppFunctionCode(string source, string declarator, string file)
+      {
+         Match header = Regex.Match(source, @"^([ \t]*)" + Regex.Escape(declarator) + @"[^;{]*\{", RegexOptions.Multiline);
+         Assert.IsTrue(header.Success, declarator + "...) is not defined in " + file + ".");
+
+         Match close = Regex.Match(source.Substring(header.Index + header.Length), @"^" + Regex.Escape(header.Groups[1].Value) + @"\}", RegexOptions.Multiline);
+         Assert.IsTrue(close.Success, declarator + "...) has no end in " + file + ".");
+         string definition = source.Substring(header.Index, header.Length + close.Index + close.Length);
+         return Regex.Replace(definition, @"//[^\n]*", "");
       }
 
       [Test]
