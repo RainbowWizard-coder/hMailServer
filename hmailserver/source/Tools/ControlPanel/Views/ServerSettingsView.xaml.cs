@@ -2343,9 +2343,9 @@ namespace hMailServer.ControlPanel.Views
          imap.Settings.Add(new ComText
          {
             Path = "IMAPProxyProtocolTrustedIPs",
-            Label = L("Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)"),
+            Label = L("Proxies allowed to send a PROXY header (comma separated)"),
             Placeholder = "10.0.0.5, 192.168.10.0/24", // no-loc
-            Blurb = L("Empty means nobody, which is the safe default. Matched against the real TCP peer. An entry that does not parse matches nothing rather than everything, and is reported in the error log once per run.")
+            Blurb = Sentences(L("Addresses or CIDR blocks."), L("Empty means nobody, which is the safe default."))
          });
          Tab(L("IMAP")).Cards.Add(imap);
 
@@ -2403,9 +2403,9 @@ namespace hMailServer.ControlPanel.Views
          pop3.Settings.Add(new ComText
          {
             Path = "POP3ProxyProtocolTrustedIPs",
-            Label = L("Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)"),
+            Label = L("Proxies allowed to send a PROXY header (comma separated)"),
             Placeholder = "10.0.0.5, 192.168.10.0/24", // no-loc
-            Blurb = L("Empty means nobody, which is the safe default. Matched against the real TCP peer. An entry that does not parse matches nothing rather than everything, and is reported in the error log once per run.")
+            Blurb = Sentences(L("Addresses or CIDR blocks."), L("Empty means nobody, which is the safe default."))
          });
          Tab(L("POP3")).Cards.Add(pop3);
 

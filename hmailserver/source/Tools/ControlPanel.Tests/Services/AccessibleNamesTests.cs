@@ -217,7 +217,7 @@ namespace hMailServer.ControlPanel.Tests.Services
             new[]
             {
                "protocols: Maximum simultaneous connections (0 = no limit) (x3)",
-               "protocols: Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges) (x2)",
+               "protocols: Proxies allowed to send a PROXY header (comma separated) (x2)",
                "protocols: Welcome banner (empty = default) (x3)"
             },
             duplicated);
