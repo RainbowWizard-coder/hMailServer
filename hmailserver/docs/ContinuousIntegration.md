@@ -430,7 +430,8 @@ switch only when its class names it, and every job a class names takes it; nothi
 the CI files but `variables:` sets a switch or a lane, and there at its default; a
 job of a class names no environment, `id_tokens` or `secrets`, and `default:`, which
 every job takes - written once, as a block, which is how the checker reads it -
-names no `id_tokens`; a job of a class asks for a pull policy
+names no `id_tokens`, each key of a job written bare and once, as the checker reads
+it; a job of a class asks for a pull policy
 GitLab's runners allow (`[if-not-present, always]`: they allow `always` alone, and
 fail a job that asks for `if-not-present` only), runs in a container of its class's
 architecture (the CI image is amd64 alone) and waits in its class's lane or in none;
@@ -1217,7 +1218,10 @@ when a CI file other than `.gitlab-ci.yml` sets `variables`, `default` or
 one of GitLab's templates; when a CI file writes a top-level key twice - a
 second `default:`, `variables:` or `workflow:`, or a job written again in its
 own file - since GitLab's YAML reader takes the last of the two without a word,
-where the checker reads the first or any; and when a Python script of
+where the checker reads the first or any; when a key of a job, a template,
+`default:` or `workflow:` is written quoted, with a space before its colon, by a
+merge key or twice, which GitLab's YAML reader takes too, where the rules that
+hold a job read each of its keys bare and once; and when a Python script of
 `GATE_FILES` imports anything but `os` and `sys` before it takes its own
 directory off its module path (`PATH_GUARD`). Each of those has a case in its
 self-test that must fail.

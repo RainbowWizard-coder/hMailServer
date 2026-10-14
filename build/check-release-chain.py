@@ -200,8 +200,10 @@ refuses it. This checker holds them to each other. It fails when:
     since GitLab merges a second definition into the first; no CI file but
     .gitlab-ci.yml may set variables, default or workflow, or include anything but
     GitLab's templates; no CI file may write a top-level key twice, of which GitLab's
-    YAML reader takes the last where this reads the first or any (repeated_key_problems);
-    and each Python script of GATE_FILES must keep its own
+    YAML reader takes the last where this reads the first or any (repeated_key_problems),
+    nor a key of a job, a template, default: or workflow: other than bare - unquoted,
+    its colon straight after it - and once, as the rules that hold a job read it
+    (job_key_problems); and each Python script of GATE_FILES must keep its own
     directory off sys.path before it imports anything but os and sys (PATH_GUARD).
   * the container image's jobs (.gitlab/ci/container-image.yml) can run for
     anything but a protected v* tag, start before release-publish or without a
@@ -2506,6 +2508,7 @@ def check(texts, chain, feed):
     notes.extend(said)
     problems.extend(runner_class_problems(texts))
     problems.extend(repeated_key_problems(texts))
+    problems.extend(job_key_problems(texts))
     return problems, notes
 
 
@@ -2901,6 +2904,41 @@ def repeated_key_problems(texts):
                             "where this checker reads the first or any, so that what GitLab runs could be other than what "
                             "it checked - each top-level key of a CI file is written once" % (
                                 path, key, {2: "twice"}.get(keys.count(key), "%d times" % keys.count(key))))
+    return problems
+
+
+# The top-level keys whose blocks hold no keys of a job's: a list, or variables' names.
+NOT_JOB_BLOCKS = ("stages", "variables", "include")
+
+
+def job_key_problems(texts):
+    """[problem] for each block of a CI file - a job or a template, default: or
+    workflow: - one of whose own keys, two spaces in, is not written bare, or is
+    written twice. The rules that hold a job read its keys as this tree writes them,
+    each a name of small letters and underscores with its colon straight after it, once
+    (^  tags:, ^  id_tokens: and the like), where GitLab's YAML reader takes a key quoted,
+    with a space before its colon or by a merge key too, and the last of a key written
+    twice, so that a job of a class given an ID token under "id_tokens":, or one sent to
+    GitLab's runners by tags : [...] or by a second tags:, passed every rule (14 October
+    2026). unread_keys finds the first; the container scans' own rules say more of
+    theirs."""
+    problems = []
+    for path, text in sorted(ci_files(texts).items()):
+        for name, body in sorted(blocks(text or "").items()):
+            if name in NOT_JOB_BLOCKS:
+                continue
+            unread = unread_keys(body, 2)
+            keys = re.findall(r"^  ([a-z_]+):(?:[ \t]|$)", body, re.MULTILINE)
+            twice = sorted(set(k for k in keys if keys.count(k) > 1))
+            if unread:
+                problems.append("%s in %s has a key this checker does not read (%s): GitLab's YAML reader takes a key quoted, "
+                                "with a space before its colon or by a merge key, where the rules that hold a job read each of "
+                                "its keys bare - a name, its colon straight after it - so that a job could be given an ID "
+                                "token, an environment or a runner past them; write the key bare" % (name, path, unread[0][:60]))
+            for key in twice:
+                problems.append("%s in %s writes its key %s %s: GitLab's YAML reader takes the last alone, without a word, "
+                                "where the rules that hold a job read the first or any - write each key of a job once" % (
+                                    name, path, key, {2: "twice"}.get(keys.count(key), "%d times" % keys.count(key))))
     return problems
 
 
@@ -5498,6 +5536,34 @@ def self_test(chain, feed):
     if len(spare_two) < 2 or repeated_key_problems(copy):
         failures.append("a job defined once in each of two CI files is let pass by repeated_key_problems: %s" % (
             repeated_key_problems(copy) if len(spare_two) == 2 else "no two CI files to define it in"))
+    # Each key of a job written bare and once (job_key_problems), through the whole checker:
+    # a classed job given an ID token or an environment, and a job sent to GitLab's runner,
+    # in a form GitLab's YAML reader takes and the rules that hold a job do not read.
+    if job_key_problems(texts):
+        failures.append("the tree's jobs write each of their keys bare and once: %s" % job_key_problems(texts))
+    for what, path, old, new, needle in (
+            ("a classed job given an ID token under a quoted key", ".gitlab-ci.yml", sbom_job,
+             sbom_job + "  \"id_tokens\":\n    PROBE_ID_TOKEN:\n      aud: probe\n",
+             "linux-sbom in .gitlab-ci.yml has a key this checker does not read (\"id_tokens\":)"),
+            ("a classed job naming an environment, a space before the colon", ".gitlab-ci.yml", sbom_job,
+             sbom_job + "  environment :\n    name: probe\n", "linux-sbom in .gitlab-ci.yml has a key this checker does not read "
+                                                             "(environment :)"),
+            ("a classed job taking keys by a merge key", ".gitlab-ci.yml", sbom_job, sbom_job + "  <<: *probe-keys\n",
+             "linux-sbom in .gitlab-ci.yml has a key this checker does not read (<<: *probe-keys)"),
+            ("a check sent to GitLab's runner by quoted tags", ".gitlab-ci.yml", editorconfig,
+             editorconfig + "  'tags': [saas-linux-small-amd64]\n", "editorconfig in .gitlab-ci.yml has a key this checker "
+                                                                     "does not read ('tags': [saas-linux-small-amd64])"),
+            ("a check given its tags twice, the last GitLab's runner", ".gitlab-ci.yml", editorconfig,
+             editorconfig + "  tags: [$HM_RUNNER]\n  tags: [saas-linux-small-amd64]\n",
+             "editorconfig in .gitlab-ci.yml writes its key tags twice"),
+            ("an included template giving its tags twice", ".gitlab/ci/packages-rpm.yml",
+             "  tags: [linix]\n  resource_group: linix-package-build\n",
+             "  tags: [linix]\n  tags: [saas-linux-small-amd64]\n  resource_group: linix-package-build\n",
+             "in .gitlab/ci/packages-rpm.yml writes its key tags twice")):
+        class_broken(what, path, old, new, needle, judge=lambda copy: check(copy, chain, feed)[0])
+    copy = dict(texts, ci=texts["ci"].replace(sbom_job, sbom_job + "  variables:\n    \"PROBE_SETTING\": probe\n", 1))
+    if job_key_problems(copy):
+        failures.append("a job's variable quoted, four spaces in, is let pass by job_key_problems: %s" % job_key_problems(copy))
     held_runners = PROJECT_RUNNERS
     try:
         globals()["PROJECT_RUNNERS"] = tuple((who, tuple(t for t in carried if t != "kvm")) for who, carried in held_runners)
