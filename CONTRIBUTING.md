@@ -391,8 +391,9 @@ finding new to their baselines that `master`'s `.gitlab/security-exceptions.yml`
 branch the scans judge everything the batch changes from `master`, not its last push. Three of them,
 with GitLab's *semgrep-sast*, hold a release as well: the release job reads their reports and refuses while a
 scan did not finish or found something `SECURITY.md`'s policy counts that no baseline and no entry of
-`.gitlab/security-exceptions.yml` accepts ([Before a release](hmailserver/docs/ContinuousIntegration.md#before-a-release-the-scans-hold-it)). On the second Windows bench:
-*windows-gate* (the whole Windows suite, in the bench's own checkout) and *windows-dotnet* (the Control Panel and
+`.gitlab/security-exceptions.yml` accepts ([Before a release](hmailserver/docs/ContinuousIntegration.md#before-a-release-the-scans-hold-it)). On the Windows benches:
+*windows-gate* on bench150 and *windows-gate-s1vm* on S1-WINBENCH, the two halves of the Windows suite, run at once,
+each in its bench's own checkout; and on bench150 *windows-dotnet* (the Control Panel and
 the tools built with warnings as errors and tested, `generate-settings-index.ps1` held to its file, and
 `dotnet format --verify-no-changes`). The package jobs of `.gitlab/ci/packages-deb.yml`, `-rpm.yml` and
 `-appimage.yml` build, install and test each distribution's package and the AppImages on the same Linux runners. A `v*` tag's pipeline ends in the release jobs, for 6.3.5 onwards, which the owner starts

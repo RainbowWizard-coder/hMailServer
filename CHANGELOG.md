@@ -6363,6 +6363,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   PackagesDeb.md, PackagesRpm.md, RegressionEnvironment.md, UpdateFeed.md and three entries above - name the three,
   with up to eight such jobs at once, three on linix and on server2 and two on s1-linux, where they named two.
   HelpPagesData.cpp is regenerated.
+- **CONTRIBUTING.md and RELEASE.md give the Windows suite's two halves.** CONTRIBUTING.md says that `windows-gate` on
+  bench150 and `windows-gate-s1vm` on S1-WINBENCH run the two halves of the suite at once, each in its bench's own
+  checkout, where it said that bench150 ran the whole suite; RELEASE.md's step 2, and ContinuousIntegration.md's two
+  tables, that `windows-installer` waits for both halves and for `build-inputs-authenticode`, where RELEASE.md named
+  `windows-gate` alone and the tables left out `build-inputs-authenticode`. HelpPagesData.cpp is regenerated.
 
 ---
 

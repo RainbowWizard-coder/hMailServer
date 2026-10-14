@@ -116,7 +116,10 @@ merge request whose pipeline passed, the change checks in it (SECURITY.md, "Ever
    A pre-release's tag carries a suffix, `vX.Y.Z-rc1` (step 12 says why).
    The tag's pipeline runs every gate - the checks, both suites, the package
    jobs, the SBOMs - and `windows-installer`, which builds the installer on
-   bench150 after `windows-gate` and signs nothing.
+   bench150 after both halves of the Windows suite, `windows-gate` and
+   `windows-gate-s1vm`, and `build-inputs-authenticode`, which holds each
+   third-party file the installer takes to the Authenticode record
+   `third-party-binaries.json` keeps for it, and signs nothing.
 3. **Start `release`** once every job before it has passed, within three days of
    the tag's pipeline (`linux-build`'s artifact is kept three days; retry
    `linux-build` otherwise). GitLab offers the button only when every job of
