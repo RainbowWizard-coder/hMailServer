@@ -52,8 +52,14 @@ refusal:
      pipeline is the one GitLab holds the merge request to.
   3. A merge request into master is opened, or the open one for the branch is
      found: running this again resumes where it stopped.
-  4. The pipeline of exactly the branch's tip is waited for. Anything but
-     success refuses: failed, canceled, skipped, or blocked on a manual job.
+  4. The pipeline of exactly the branch's tip is waited for, once the merge
+     request's head is that tip: GitLab moves the head to a pushed commit a
+     moment after the push, so a head that is not yet the tip is read again
+     every HEAD_POLL_SECONDS for up to HEAD_WAIT_SECONDS from the push (or from
+     finding the branch at the tip already), saying what it waits for, before
+     it refuses; a head that leaves the tip once it was there refuses at once.
+     Anything but success refuses: failed, canceled, skipped, or blocked on a
+     manual job.
      Then its jobs are read, every page of them, since GitLab calls a pipeline a
      success with a job that failed while allowed to fail and with a job a rule
      never created. The change gates semgrep-sast, semgrep-sast-gate and
@@ -186,6 +192,15 @@ EMAIL_ACCOUNT = {
 }
 PENDING = {"created", "waiting_for_resource", "preparing", "pending", "running", "scheduled"}
 SETTLING = {"checking", "unchecked", "approvals_syncing", "preparing", "ci_still_running"}
+# GitLab moves a merge request's head to a commit pushed to its branch a moment after the
+# push, not with it: on 14 October 2026 the landing of batch47 read its merge request
+# straight after pushing the new tip and found the head still the commit before
+# (1df1dc3e794e, not 2bd79d38170e), and refused; run again, it went on. Until the head has
+# been the tip once, step 4 reads it again every HEAD_POLL_SECONDS, for up to
+# HEAD_WAIT_SECONDS from the push - or from finding the branch at the tip already - and
+# refuses only then; a head that leaves the tip once it was there refuses at once.
+HEAD_WAIT_SECONDS = 300
+HEAD_POLL_SECONDS = 10
 # The jobs a landing needs to have succeeded, beyond the pipeline as a whole: a pipeline
 # succeeds with a job that failed while it was allowed to fail, and with a job a rule
 # left out of it, and either is a gate that did not hold the batch. The change gates
@@ -697,6 +712,7 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_sca
     remote_sha = out_ls.split()[0] if code == 0 and out_ls.strip() else None
     if remote_sha == tip:
         say("%s/%s is already at %s." % (remote, branch, tip[:12]))
+        on_remote_since = "this run found %s/%s at it" % (remote, branch)
     else:
         if remote_sha:
             git.run("fetch", "--quiet", remote, "+refs/heads/%s:refs/remotes/%s/%s" % (branch, remote, branch))
@@ -708,6 +724,10 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_sca
         else:
             git.run("push", "--quiet", remote, "%s:refs/heads/%s" % (tip, branch))
         say("Pushed %s to %s/%s." % (tip[:12], remote, branch))
+        on_remote_since = "the push to %s/%s" % (remote, branch)
+    # From here the branch on GitLab holds the tip: the merge request's head follows it a
+    # moment later (HEAD_WAIT_SECONDS).
+    on_remote_at = clock()
 
     # 3. The merge request.
     found = api("GET", "projects/%s/merge_requests?state=opened&source_branch=%s&target_branch=%s" % (project, q(branch), TARGET)) or []
@@ -738,16 +758,44 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_sca
         say("Not waiting (--no-wait). Run this again to wait for the pipeline and land.")
         return 0
 
-    # 4. The pipeline of exactly this tip.
+    # 4. The pipeline of exactly this tip, once the merge request's head is the tip, which
+    # GitLab makes it a moment after the push (HEAD_WAIT_SECONDS).
     deadline = clock() + opts.timeout_hours * 3600
+    head_deadline = on_remote_at + HEAD_WAIT_SECONDS
+    head_seen = False
+    head_waiting = False
     last = None
     while True:
         mr = api("GET", "projects/%s/merge_requests/%d" % (project, iid))
         if mr.get("state") != "opened":
             raise Refused(5, "REFUSED: merge request !%d is %s" % (iid, mr.get("state")))
-        if mr.get("sha") and mr["sha"] != tip:
-            raise Refused(5, "REFUSED: merge request !%d's head is %s, not the %s checked here; run this again"
-                             % (iid, mr["sha"][:12], tip[:12]))
+        head = mr.get("sha")
+        head_pipeline_sha = (mr.get("head_pipeline") or {}).get("sha")
+        head_pipeline_said = head_pipeline_sha[:12] if head_pipeline_sha else "none"
+        if head and head != tip:
+            if head_seen:
+                # It was the tip, and is not now: the branch was pushed again while this waited.
+                raise Refused(5, "REFUSED: merge request !%d's head is %s, not the %s checked here; run this again"
+                                 % (iid, head[:12], tip[:12]))
+            if clock() >= head_deadline:
+                raise Refused(5, "REFUSED: merge request !%d's head is still %s (its head pipeline's commit: %s), not the "
+                                 "%s checked here, %d minute(s) after %s: GitLab has not moved the merge request to it; "
+                                 "run this again" % (iid, head[:12], head_pipeline_said, tip[:12], HEAD_WAIT_SECONDS // 60,
+                                                     on_remote_since))
+            if not head_waiting:
+                head_waiting = True
+                say("Merge request !%d's head is %s (its head pipeline's commit: %s), not yet %s: GitLab moves it a moment "
+                    "after %s. Waiting for it to be %s, up to %d minute(s) from then, reading it every %d s."
+                    % (iid, head[:12], head_pipeline_said, tip[:12], on_remote_since, tip[:12], HEAD_WAIT_SECONDS // 60,
+                       HEAD_POLL_SECONDS))
+            sleep(HEAD_POLL_SECONDS)
+            continue
+        if head == tip and not head_seen:
+            head_seen = True
+            if head_waiting:
+                say("Merge request !%d's head is %s, %d s after %s; its head pipeline's commit: %s%s." % (
+                    iid, tip[:12], int(clock() - on_remote_at), on_remote_since, head_pipeline_said,
+                    "" if head_pipeline_sha == tip else " (the pipeline of %s is looked for by its commit)" % tip[:12]))
         pipeline = mr.get("head_pipeline")
         if not pipeline or pipeline.get("sha") != tip:
             listed = api("GET", "projects/%s/pipelines?ref=%s&sha=%s&order_by=id&sort=desc" % (project, q(branch), tip)) or []
@@ -1005,6 +1053,18 @@ class FakeGitLab(object):
         self.approved_at = approved_at
         self.version_at = version_at
         self.versions_api = versions_api
+        # GitLab a moment after a push: each read of a merge request takes the first of these,
+        # (its head, its head pipeline's commit, that pipeline's status), None for each the
+        # branch's own tip and the pipeline's status as it is; once they are gone, the reads
+        # see the branch as it is.
+        self.heads = []
+        # A clock (the self-test's) that the search for the branch's open merge request moves
+        # on by lookup_seconds, as a slow answer would; and how many reads of a merge request
+        # a landing may make before the fake takes it for a loop that does not end.
+        self.clock = None
+        self.lookup_seconds = 0
+        self.reads = 0
+        self.most_reads = 500
 
     def _ref(self, ref):
         done = subprocess.run(["git", "--git-dir", self.bare, "rev-parse", "--verify", "--quiet", ref], stdout=subprocess.PIPE)
@@ -1016,6 +1076,8 @@ class FakeGitLab(object):
         params = dict(urllib.parse.parse_qsl(query))
         m = re.match(r"^projects/\d+/merge_requests$", path_only)
         if m and method == "GET":
+            if self.clock is not None:
+                self.clock.now += self.lookup_seconds
             return [mr for mr in self.mrs.values() if mr["state"] == "opened" and mr["source_branch"] == params.get("source_branch")]
         if m and method == "POST":
             iid = len(self.mrs) + 1
@@ -1025,12 +1087,22 @@ class FakeGitLab(object):
             return self.mrs[iid]
         m = re.match(r"^projects/\d+/merge_requests/(\d+)$", path_only)
         if m and method == "GET":
+            self.reads += 1
+            if self.reads > self.most_reads:
+                raise RuntimeError("the landing read merge request !%s %d times: a loop that does not end" % (
+                    m.group(1), self.most_reads))
             mr = dict(self.mrs[int(m.group(1))])
             sha = self._ref("refs/heads/" + mr["source_branch"])
-            mr["sha"] = sha
             status = self.statuses.pop(0) if len(self.statuses) > 1 else self.statuses[0]
-            mr["head_pipeline"] = {"id": 7, "sha": sha, "status": status, "web_url": "https://example.invalid/p/7",
-                                   "project_id": self.pipeline_project}
+            head, pipeline_sha = sha, sha
+            if self.heads:
+                said_head, said_pipeline, said_status = self.heads.pop(0)
+                head, pipeline_sha, status = said_head or sha, said_pipeline or sha, said_status or status
+            mr["sha"] = head
+            # The tip's pipeline is #7, whose jobs these are; an earlier commit's is #6.
+            number = 7 if pipeline_sha == sha else 6
+            mr["head_pipeline"] = {"id": number, "sha": pipeline_sha, "status": status,
+                                   "web_url": "https://example.invalid/p/%d" % number, "project_id": self.pipeline_project}
             mr["detailed_merge_status"] = self.mergeable
             return mr
         m = re.match(r"^projects/\d+/merge_requests/(\d+)/approvals$", path_only)
@@ -1260,9 +1332,24 @@ def self_test():
             checkouts.append((repo, base))
             return []
 
+        class Clock(object):
+            """A clock that moves only when land() sleeps: what it waited for, and how long, is read
+            from it, and a wait of minutes takes none."""
+
+            def __init__(self):
+                self.now = 1760000000.0
+                self.slept = []
+
+            def time(self):
+                return self.now
+
+            def sleep(self, seconds):
+                self.slept.append(seconds)
+                self.now += seconds
+
         def attempt(work, api, **kw):
             opts = argparse.Namespace(branch=kw.get("branch", "batch1"), remote="origin", project="1", dry_run=kw.get("dry_run", False),
-                                      no_wait=False, force_push=False, timeout_hours=1, poll_seconds=0,
+                                      no_wait=kw.get("no_wait", False), force_push=False, timeout_hours=1, poll_seconds=0,
                                       land_without_approval=kw.get("override"), gates_read=kw.get("gates_read"),
                                       own_copies=kw.get("own_copies"))
             # The branch is left checked out in no worktree, as a batch is folded in its own.
@@ -1270,11 +1357,19 @@ def self_test():
             sink = io.StringIO()
             # checkout="default" runs land() with its own checkout check, as main() does.
             held = {} if kw.get("checkout") == "default" else {"checkout": kw.get("checkout", same_checkout)}
+            if kw.get("clock"):
+                held.update(sleep=kw["clock"].sleep, clock=kw["clock"].time)
+            else:
+                held.update(sleep=lambda s: None)
             try:
-                code = land(opts, Git(work), api, sink, sleep=lambda s: None, scan=kw.get("scan", clean_scan), **held)
+                code = land(opts, Git(work), api, sink, scan=kw.get("scan", clean_scan), **held)
             except Refused as e:
                 print(str(e), file=sink)
                 code = e.code
+            except RuntimeError as e:
+                # The fake's word for a landing that would never have ended.
+                print("NEVER ENDED: %s" % e, file=sink)
+                code = "never ended"
             return code, sink.getvalue()
 
         def remote_ref(bare, ref):
@@ -1579,6 +1674,87 @@ def self_test():
         commit(work, "signed")
         code, text = attempt(work, FakeGitLab(bare, pipeline_statuses=["manual"]))
         expect("manual pipeline: exit", code, 5)
+
+        # 6a. GitLab moves a merge request's head to a pushed commit a moment after the push
+        #     (batch47's landing, 14 October 2026): a head still the commit before is read
+        #     again until it is the tip, for up to HEAD_WAIT_SECONDS from the push or from
+        #     finding the branch there, and refused only then, its pipeline never taken for
+        #     the tip's; a head that leaves the tip once it was there refuses at once.
+        def opened_at_first_tip(name):
+            """A merge request opened (--no-wait) at the branch's first tip, and a commit on top:
+            (bare, work, api, the first tip, the commit on top)."""
+            bare, work = scenario(name)
+            first = commit(work, "signed, the merge request's first head")
+            api = FakeGitLab(bare, approved_by=[zain])
+            code, _ = attempt(work, api, no_wait=True)
+            expect("%s: the merge request opened at the first tip" % name, (code, len(api.mrs)), (0, 1))
+            run(work, "checkout", "-q", "batch1")
+            return bare, work, api, first, commit(work, "signed, pushed on top")
+
+        bare, work, api, first, tip = opened_at_first_tip("head-late")
+        # Two reads with the commit before as the head, its pipeline failed; one with the head
+        # moved and the head pipeline still the commit before's; then the branch as it is.
+        api.heads = [(first, first, "failed"), (first, first, "failed"), (None, first, "failed")]
+        clock = Clock()
+        code, text = attempt(work, api, clock=clock)
+        expect("a head that reaches the tip late: landed", code, 0)
+        expect("a head that reaches the tip late: master is the tip", remote_ref(bare, "refs/heads/master"), tip)
+        expect("a head that reaches the tip late: merged at the tip", [c[2].get("sha") for c in api.calls if c[0] == "PUT"],
+               [tip])
+        expect("a head that reaches the tip late: said what it waited for",
+               ("Merge request !1's head is %s (its head pipeline's commit: %s), not yet %s: GitLab moves it a moment after "
+                "the push to origin/batch1. Waiting for it to be %s, up to 5 minute(s) from then, reading it every %d s."
+                % (first[:12], first[:12], tip[:12], tip[:12], HEAD_POLL_SECONDS)) in text, True)
+        expect("a head that reaches the tip late: and when it came",
+               ("Merge request !1's head is %s, %d s after the push to origin/batch1; its head pipeline's commit: %s (the "
+                "pipeline of %s is looked for by its commit)." % (tip[:12], 2 * HEAD_POLL_SECONDS, first[:12], tip[:12]))
+               in text, True)
+        expect("a head that reaches the tip late: two reads waited for", [s for s in clock.slept if s],
+               [HEAD_POLL_SECONDS, HEAD_POLL_SECONDS])
+        expect("a head that reaches the tip late: the commit before's failed pipeline not taken for the tip's",
+               ("Pipeline #6" not in text, "Pipeline of %s: not yet created" % tip[:12] in text,
+                "Pipeline #7 https://example.invalid/p/7: success" in text), (True, True, True))
+        bare, work, api, first, tip = opened_at_first_tip("head-late-found")
+        code, _ = attempt(work, api, no_wait=True)
+        expect("head-late-found: an earlier run pushed the tip", (code, remote_ref(bare, "refs/heads/batch1")), (0, tip))
+        # The commit before as the head once, its pipeline a success: what must not be landed on.
+        api.heads = [(first, first, "success")]
+        clock = Clock()
+        code, text = attempt(work, api, clock=clock)
+        expect("a head late after an earlier run's push: landed", (code, remote_ref(bare, "refs/heads/master")), (0, tip))
+        expect("a head late after an earlier run's push: said from when it counted",
+               ("Merge request !1's head is %s, %d s after this run found origin/batch1 at it; its head pipeline's commit: "
+                "%s." % (tip[:12], HEAD_POLL_SECONDS, tip[:12])) in text and "Pipeline #6" not in text, True)
+        bare, work, api, first, tip = opened_at_first_tip("head-stuck")
+        # The commit before stays the head, its pipeline a success; the search for the open
+        # merge request after the push takes a minute, which the five minutes count in.
+        api.heads = [(first, first, "success")] * 100
+        clock = Clock()
+        api.clock, api.lookup_seconds = clock, 60
+        code, text = attempt(work, api, clock=clock)
+        expect("a head that never reaches the tip: refused", code, 5)
+        expect("a head that never reaches the tip: no merge call, master unmoved",
+               ([c for c in api.calls if c[0] == "PUT"], remote_ref(bare, "refs/heads/master") == tip), ([], False))
+        expect("a head that never reaches the tip: refused %d s after the push, a minute of it the search" % HEAD_WAIT_SECONDS,
+               (sum(clock.slept), clock.now - (1760000000.0 + 60)), (HEAD_WAIT_SECONDS - 60, HEAD_WAIT_SECONDS - 60))
+        expect("a head that never reaches the tip: said so, and what to do",
+               ("REFUSED: merge request !1's head is still %s (its head pipeline's commit: %s), not the %s checked here, 5 "
+                "minute(s) after the push to origin/batch1: GitLab has not moved the merge request to it; run this again"
+                % (first[:12], first[:12], tip[:12])) in text, True)
+        expect("a head that never reaches the tip: no pipeline looked at", "Pipeline " in text, False)
+        bare, work = scenario("head-moved-again")
+        tip = commit(work, "signed")
+        api = FakeGitLab(bare, approved_by=[zain])
+        other = "c" * 40
+        api.heads = [(None, None, None), (other, other, None)]
+        clock = Clock()
+        code, text = attempt(work, api, clock=clock)
+        expect("a head that leaves the tip once it was there: refused", code, 5)
+        expect("a head that leaves the tip once it was there: at once, and said so", (
+            [s for s in clock.slept if s], "REFUSED: merge request !1's head is %s, not the %s checked here; run this again"
+            % (other[:12], tip[:12]) in text, "Waiting" in text), ([], True, False))
+        expect("a head that leaves the tip once it was there: no merge call", [c for c in api.calls if c[0] == "PUT"], [])
+        expect("the head is waited for five minutes, read every ten seconds", (HEAD_WAIT_SECONDS, HEAD_POLL_SECONDS), (300, 10))
 
         # 7. Threads open: GitLab says no, and so does this.
         bare, work = scenario("threads")

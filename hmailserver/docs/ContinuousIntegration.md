@@ -1370,7 +1370,16 @@ in to gitlab.com as a Maintainer. In order, and stopping at the first refusal:
 4. It waits for the pipeline of exactly the branch's tip (twelve hours by
    default, `--timeout-hours`). A merge request from a `batch*` branch runs no
    pipeline of its own (the `workflow:` rules), so GitLab holds it to the
-   branch's pipeline for the same commit, its head pipeline. Anything but
+   branch's pipeline for the same commit, its head pipeline. GitLab moves the
+   merge request's head to a pushed commit a moment after the push, not with
+   it - on 14 October 2026 the landing of `batch47` read !20 straight after
+   pushing its new tip, found the commit before as the head and refused, and a
+   second run went on - so a head that is not yet the tip is read again every
+   ten seconds, for up to five minutes from the push (or from finding the
+   branch at the tip already), the script saying what it waits for and when
+   the head came, and the landing refuses (exit 5) only then; a pipeline of
+   the commit before is never taken for the tip's, and a head that leaves the
+   tip once it was there refuses at once, the branch pushed again. Anything but
    success refuses: failed, canceled, skipped, or waiting on a manual job that
    blocks. Then it reads the pipeline's jobs, every page of them, since GitLab
    calls a pipeline a success with a job that failed while allowed to fail and
@@ -1456,7 +1465,12 @@ project and a GitLab API held in memory: a landing, and a refusal for each of an
 unsigned commit, a possible secret, a secret scan that could not run or failed
 (the scan itself stands in there; its own self-test covers it), a batch behind
 `master`, a merge commit, a failed pipeline, a pipeline waiting on a manual job,
-an open thread, and a missing approval once one is required; approvals read from
+an open thread, and a missing approval once one is required; a merge request
+whose head reaches the pushed tip two reads after the push, a failed pipeline of
+the commit before its head pipeline until then, landed at the tip, and so is one
+whose head is late after a push an earlier run made, while a head that never
+reaches the tip is refused five minutes after the push and one that leaves it
+once it was there at once, with no wait; approvals read from
 the merge request's system notes where the approvals API is refused; an approval
 given before the tip reached the merge request not counted, and counted with a
 note where the diff versions cannot be read; the release-tag exemption taken

@@ -5746,6 +5746,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `channels.yml` say, would have made a half run `exit 0` and succeed, and the batch land. A landing runs `master`'s
   copy of `land-via-mr.py`, so its hold on the halves begins with the landing after the one that brings it
   (ContinuousIntegration.md, "Landing on master").
+- **`build/land-via-mr.py` waits for GitLab to move the merge request to the push.** GitLab moves a merge request's
+  head to a commit pushed to its branch a moment after the push, not with it: on 14 October 2026 the landing of
+  `batch47` read its merge request straight after pushing the new tip, found the commit before as the head and
+  refused (exit 5), and a second run went on. A head that is not yet the tip is now read again every ten seconds, for
+  up to five minutes from the push, or from finding the branch at the tip already, and the landing refuses only then;
+  it says what it waits for and when the head came, it never takes a pipeline of the commit before for the tip's,
+  and a head that leaves the tip once it was there still refuses at once, the branch pushed again. The self-test lands
+  a batch whose merge request reaches the tip two reads after the push, a failed pipeline of the commit before its
+  head pipeline until then, and one whose head is late after an earlier run's push, and refuses one that never
+  reaches the tip, five minutes after the push, and one that leaves it, with no wait; with the head read once, as
+  before, the first two are refused. A landing runs `master`'s copy of the script, so the wait begins with the
+  landing after the one that brings it (ContinuousIntegration.md, "Landing on master").
 - **The message indexer's stop and start, as fixed above (*Correctness*), leave `static-analysis` nothing new to
   say.** Run over them as the job runs it, cppcheck and clang-tidy found four findings in `MessageIndexer.cpp` that
   no baseline holds, none of them a defect in what the code does, and each is now written so that the tools have
