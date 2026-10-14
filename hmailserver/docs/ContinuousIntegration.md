@@ -3382,10 +3382,16 @@ so it also rehearses the release, publishing nothing
   install nowhere; that refusal is also the proof that every bundle is one a
   server reads as far as its identity.
 
-What it cannot rehearse: the tag's own checks (an annotated tag on `master`
-signed by the owner's key), the security gate, whose scans a tag's pipeline runs,
-the package registry, and Authenticode, which needs the credential the owner
-makes for one tag. What it touches: nothing of the project's releases or its
+What it does not rehearse: the tag's own checks (an annotated tag on `master`
+signed by the owner's key), the package registry, and Authenticode, which needs
+the credential the owner makes for one tag. Nor does it ask the security gate
+(`build/ci/security-gate.py`), which the release job asks before it signs
+anything, although a `batch*` branch's pipeline runs the four scans the gate
+reads - `static-analysis`, `semgrep`, `semgrep-sast` and `dependency-scan` - so
+that the gate can be asked of their artifacts, with `master`'s exceptions, before
+the tag (`python3 build/ci/security-gate.py --artifacts <dir> --exceptions
+<file>`), as [RELEASE.md](../../RELEASE.md)'s step 9 has it done: a finding the
+gate holds stops the release at its button, after the tag. What it touches: nothing of the project's releases or its
 package registry - no job of it uses the job token GitLab gives every job, and
 `release-chain.py` refuses `--rehearse` with `publish` or `gather` - and
 Sigstore's public log, where each rehearsal's entries name the branch. It runs where the package jobs

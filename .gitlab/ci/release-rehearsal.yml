@@ -28,9 +28,14 @@
 #                             SBOM, copy and the provenance held to the files
 #                             (build/ci/release-verify.sh --rehearse).
 #
-# What it cannot rehearse: the tag's own checks (an annotated tag on master signed by
-# the owner's key), the security gate, which reads scans a tag's pipeline runs, the
-# registry, and Authenticode, which needs the credential the owner makes for one tag.
+# What it does not rehearse: the tag's own checks (an annotated tag on master signed by
+# the owner's key), the registry, and Authenticode, which needs the credential the owner
+# makes for one tag. Nor does it ask the security gate (build/ci/security-gate.py), which
+# the release job asks before it signs anything, although the batch's own pipeline runs
+# the four scans the gate reads (static-analysis, semgrep, semgrep-sast, dependency-scan):
+# RELEASE.md's step 9 has the gate asked of their artifacts, with master's exceptions,
+# before the tag (python3 build/ci/security-gate.py --artifacts <dir> --exceptions <file>),
+# since a finding the gate holds stops the release at its button, after the tag.
 # What it publishes: nothing. No job here uses the job token GitLab gives every job, for
 # the package registry, the Releases API or anything else, or runs publish
 # (build/ci/release-chain.py refuses --rehearse with it); the one ID token is

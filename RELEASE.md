@@ -311,9 +311,10 @@ SBOM, copy and the provenance to the files, and has the server's own verifier re
 each bundle and refuse it at the identity. Servers trust `v*` tags alone, so what a
 rehearsal signs installs nowhere, and it publishes nothing: no job of it uses the
 job token GitLab gives every job, and `release-chain.py` refuses `--rehearse` with
-`publish`. What it cannot rehearse is the tag's own checks, the security gate,
-the registry and Authenticode. A rehearsal that fails is a release that would fail: mend it before
-the tag.
+`publish`. What it does not rehearse is the tag's own checks, the registry and
+Authenticode; nor does it ask the security gate, although the batch's pipeline runs the
+four scans the gate reads, and step 9 has the gate asked of them before the tag. A
+rehearsal that fails is a release that would fail: mend it before the tag.
 
 A tag is spent once here too. Before `release-publish`, a job that failed for
 a reason outside the tree - a setting, a tool on bench150, the network - is

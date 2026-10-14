@@ -6764,6 +6764,12 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   the webmail's harnesses read them from `generate-help-pages.py` and hold the list of documents their recorded server
   answers to the one `HelpPagesData.cpp` embeds, reading each row of its table by the row's head, so that a field after
   the headings is read too.
+- **The release rehearsal's file, RELEASE.md and ContinuousIntegration.md no longer say that the security gate cannot
+  be rehearsed.** They said the gate reads scans that a tag's pipeline runs. A `batch*` branch's pipeline runs all four
+  it reads - `static-analysis`, `semgrep`, `semgrep-sast` and `dependency-scan` - so the gate can be asked of their
+  artifacts with `master`'s exceptions before the tag, as RELEASE.md's step 9 has it done; batch47's pipeline of 14
+  October 2026 would have shown so the 36 `dependency-scan` findings against the CI image's .NET that the release job
+  would have refused 6.3.7 on. They now say that the rehearsal does not ask the gate, and how to ask it.
 - **SmtpPolicy.md, RestrictedDelivery.md and ImpersonationProtection.md say what the server's IDNA conversion reads
   and what it does not.** They said the server has none, and that the Linux build has no Unicode tables, which UTS 46
   for a link's host made untrue ("Anti-spam, anti-virus and mail flow rules", above): the domain policy list and
