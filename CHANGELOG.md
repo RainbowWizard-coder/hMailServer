@@ -5673,11 +5673,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `build/ci/hosted-runners.py`), on linix, check that each switch names a machine of its class's kind and each lane
   goes with its class, fail while a job that names no environment is given a credential, naming it - any variable but
   GitLab's own, its runner's, the container's, those the CI files and the GitLab templates they include set, and the
-  few of the project's known to hold no secret is taken for one, whatever its name -, and read the namespace's compute
-  minutes against what the pipeline is expected to use: while a class of it is on GitLab's runners, a warning under a
-  quarter of the quota or ten such pipelines left, a failure under a twentieth or two, which says how the switches are
-  set back, and the job allowed to fail whatever it says, since no job waits for it and its failure would hold a gate
-  whose every job had passed; `build/land-via-mr.py`'s landing record gives what the two checks came to.
+  few of the project's known to hold no secret is taken for one, a name that begins with `CI_` GitLab's unless it says
+  it holds a credential (`TOKEN`, `SECRET`, `PASSWORD`, `KEY` and the like) and is none of GitLab's own so named, and
+  one that begins with `FF_` the runner's feature flag only with a value true or false, since GitLab keeps no prefix
+  for its own -, and read the namespace's compute minutes against what the pipeline is expected to use: while a class
+  of it is on GitLab's runners, a warning under a quarter of the quota or ten such pipelines left, a failure under a
+  twentieth or two, which says how the switches are set back, and the job allowed to fail whatever it says, since no
+  job waits for it and its failure would hold a gate whose every job had passed; `build/land-via-mr.py`'s landing
+  record gives what the two checks came to.
   `build/check-release-chain.py` holds each class to the jobs it names, the switches and lanes to their defaults, a
   classed job to no environment, `id_tokens` or `secrets` and `default:` - written as a block, its key alone on its
   line - to no `id_tokens`, a pull policy GitLab allows, its class's architecture and lane, `nix` to `kvm`, the two

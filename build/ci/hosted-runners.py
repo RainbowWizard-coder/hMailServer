@@ -34,13 +34,18 @@ GitLab expands for each job as it makes the job's resource group.
       given to them too - a credential of the project's is scoped to the environment of
       the one job that uses it (CREDENTIALS), and then no other job sees it. The test
       fails closed: it takes for a credential every variable it is given but GitLab's
-      own (GITLAB_OWN and those whose names begin with CI_ or FF_, but the deploy
-      token's), its runner's (RUNNER_OWN), the container's (PROCESS), those that the CI
-      files and the GitLab templates they include set for every job (ci_globals,
-      TEMPLATE_GLOBALS), and the project's that hold none (PLAIN). Each problem is
-      named, with what to do; a value is never printed. A lane that does not go with
-      its class is a warning: the jobs run, one at a time on GitLab's machines, or side
-      by side on linix.
+      own - GITLAB_OWN, and those whose names begin with CI_ but one whose name says it
+      holds a credential (CREDENTIAL_WORDS) and is none of GitLab's own of such names
+      (GITLAB_JOB_CREDENTIALS) -, its runner's (its feature flags, FF_ and a flag's
+      name, true or false, and RUNNER_OWN), the container's (PROCESS), those that the
+      CI files and the GitLab templates they include set for every job (ci_globals,
+      TEMPLATE_GLOBALS), and the project's that hold none (PLAIN). GitLab keeps no
+      prefix for its own, so a variable of the project's named CI_ that says nothing
+      of a credential is taken for GitLab's by its name alone; the deploy token GitLab
+      gives every job, while the project has one, fails it (GITLAB_CREDENTIALS). Each
+      problem is named, with what to do; a value is never printed. A lane that does
+      not go with its class is a warning: the jobs run, one at a time on GitLab's
+      machines, or side by side on linix.
   python3 build/ci/hosted-runners.py quota
       The compute-quota job, on linix, in the same pipelines, in the environment
       compute-quota, to which HM_QUOTA_TOKEN is scoped: a read_api token of an Owner of
@@ -146,17 +151,41 @@ CREDENTIALS = {
 }
 # Every other variable a job that names no environment is given is taken for a
 # credential, but for these, which hold none: what GitLab gives every job of its own -
-# the variables whose names begin with CI_ (CI_JOB_TOKEN and CI_REGISTRY_PASSWORD are the
-# job's own token, valid while it runs) or FF_ (the runner's feature flags), and those of
+# its predefined variables, whose names begin with CI_ (gitlab_own), and those of
 # GITLAB_OWN, its predefined variables of other names (docs.gitlab.com, "Predefined CI/CD
-# variables", on 14 October 2026) - but for GITLAB_CREDENTIALS; KUBECONFIG, which GitLab
-# gives every job once an agent for Kubernetes lets the project in, holds that agent's
-# token, and is not among them.
+# variables", on 14 October 2026); KUBECONFIG, which GitLab gives every job once an agent
+# for Kubernetes lets the project in, holds that agent's token, and is not among them.
 GITLAB_OWN = {"CI", "GITLAB_CI", "GITLAB_FEATURES", "GITLAB_USER_EMAIL", "GITLAB_USER_ID", "GITLAB_USER_LOGIN", "GITLAB_USER_NAME",
               "CHAT_CHANNEL", "CHAT_INPUT", "CHAT_USER_ID", "TRIGGER_PAYLOAD"}
-# The credentials GitLab gives every job under a name that begins with CI_: those of the
-# project's deploy token named gitlab-deploy-token, while it has one (it has none).
+# GitLab keeps no prefix of a variable's name for its own (app/models/concerns/ci/
+# has_variable.rb takes any name of letters, digits and _), so a variable of the
+# project's or the group's may begin with CI_ as well: a name that does is taken for
+# GitLab's unless it says it holds a credential (CREDENTIAL_WORDS), and then for a
+# credential, unless it is one of GitLab's own of such names, which are the job's or the
+# runner's, not the project's (GITLAB_JOB_CREDENTIALS) - the job's own token, as
+# CI_JOB_TOKEN, CI_REGISTRY_PASSWORD and CI_DEPENDENCY_PROXY_PASSWORD, valid while the
+# job runs; CI_TRIGGER_SHORT_TOKEN, the first four characters of a pipeline trigger's
+# token, and CI_RUNNER_SHORT_TOKEN, the runner's token as the runner shortens it so as not
+# to expose it; and the file of the runner's own TLS client key, where its configuration
+# names one (GitLab's app/models/ci/build.rb,
+# persisted_variables and dependency_proxy_variables, and lib/gitlab/ci/variables/
+# builder.rb; gitlab-runner 19.4's RunnerConfig.GetVariables and Build.GetCITLSVariables).
+# A CI_ name that says nothing of a credential is taken for GitLab's by that name alone.
+CREDENTIAL_WORDS = re.compile(r"TOKEN|SECRET|PASSWORD|PASSWD|PASSPHRASE|CREDENTIAL|PRIVATE|APIKEY|API_KEY|ACCESS_KEY|"
+                              r"WEBHOOK|JWT|COOKIE|(?:^|_)(?:KEYS?|PASS|AUTH|PFX|P12|PEM)(?:_|$)")
+GITLAB_JOB_CREDENTIALS = {"CI_JOB_TOKEN", "CI_REGISTRY_PASSWORD", "CI_DEPENDENCY_PROXY_PASSWORD", "CI_TRIGGER_SHORT_TOKEN",
+                          "CI_RUNNER_SHORT_TOKEN", "CI_SERVER_TLS_KEY_FILE"}
+# The credentials GitLab gives every job under a name that begins with CI_ that are the
+# project's: those of its deploy token named gitlab-deploy-token, while it has one (it
+# has none).
 GITLAB_CREDENTIALS = {"CI_DEPLOY_PASSWORD": "the project's deploy token named gitlab-deploy-token"}
+# The runner's feature flags: it gives every job each of them, FF_ and the flag's name,
+# true or false, and puts a job's variable of a flag's name in the flag's place
+# (gitlab-runner 19.4's Build.getResolvedFeatureFlags, strconv.FormatBool, and
+# getNonFeatureFlagJobVariables); it reads a flag's value with strconv.ParseBool, whose
+# forms these are, an empty one off. An FF_ variable of another value is none of the
+# runner's flags but the project's or the group's, and is taken as any other variable is.
+FEATURE_FLAG_VALUES = {"", "1", "t", "T", "TRUE", "true", "True", "0", "f", "F", "FALSE", "false", "False"}
 # What the runner gives a job's script beside GitLab's variables (gitlab-runner 19.4's
 # Build.GetAllVariables and its shell's exports): the file a job's script may set a
 # variable in, the job's temporary directory, git's settings, and the names of the job's
@@ -281,6 +310,16 @@ def ci_globals(root=ROOT):
     return names, unknown
 
 
+def gitlab_own(name, value):
+    """Whether a variable is GitLab's own or its runner's: by its name, one that begins
+    with CI_ and says nothing of a credential, or is one of GitLab's own that does
+    (GITLAB_JOB_CREDENTIALS); and an FF_ one, a feature flag of the runner's, by its
+    value."""
+    if name.startswith("FF_"):
+        return value in FEATURE_FLAG_VALUES
+    return name.startswith("CI_") and (name in GITLAB_JOB_CREDENTIALS or not CREDENTIAL_WORDS.search(name))
+
+
 def check(environ, out, ci=(frozenset(), [])):
     """The switches, the lanes and the credentials, as hosted-runners checks them; ci is
     ci_globals' answer for the tree. The exit code: 1 for a problem, 3 for a warning, 0
@@ -320,7 +359,7 @@ def check(environ, out, ci=(frozenset(), [])):
     # Every variable is a credential that is not known here to hold none.
     switch_names = set(n for c in CLASSES for n in (c[0], c[2]) if n)
     no_secret = set(ci_names) | GITLAB_OWN | RUNNER_OWN | PROCESS | PLAIN | switch_names
-    given = sorted(name for name in environ if not name.startswith(("CI_", "FF_")) or name in GITLAB_CREDENTIALS)
+    given = sorted(name for name in environ if not gitlab_own(name, environ[name]))
     for name in given:
         if name in GITLAB_CREDENTIALS:
             problems.append("%s is given to every job of this pipeline, and so to each job a switch sends to GitLab's runners: "
@@ -335,6 +374,17 @@ def check(environ, out, ci=(frozenset(), [])):
                       "a switch is set")
             problems.append("%s is given to every job of this pipeline that names no environment, and so to each job a switch "
                             "sends to GitLab's runners: %s (Settings, CI/CD, Variables, Environment scope)" % (name, to))
+        elif name.startswith(("CI_", "FF_")) and name not in no_secret:
+            ci_name = name.startswith("CI_")
+            problems.append("%s is given to every job of this pipeline that names no environment, and so to each job a switch "
+                            "sends to GitLab's runners, and it is not %s although its name begins with %s - %s -, but a "
+                            "variable of the project's or the group's, which GitLab lets begin so: if it holds a credential, "
+                            "scope it to the environment of the one job that uses it (Settings, CI/CD, Variables, Environment "
+                            "scope); if it holds none, name it in build/ci/hosted-runners.py's PLAIN%s" % (
+                                name, "GitLab's own" if ci_name else "a feature flag of the runner's", name[:3],
+                                "its name says it holds a credential, as none of GitLab's own does but those of "
+                                "GITLAB_JOB_CREDENTIALS" if ci_name else "its value is not true or false, as each flag's is",
+                                ", or, one GitLab gives every job, in its GITLAB_JOB_CREDENTIALS" if ci_name else ""))
         elif name not in no_secret:
             problems.append("%s is given to every job of this pipeline that names no environment, and so to each job a switch "
                             "sends to GitLab's runners, and it is none of the variables known to hold no secret - GitLab's "
@@ -481,10 +531,18 @@ def self_test():
     # its runner's, the Python image's, the CI files' (as the tree has them), their
     # templates' (Jobs/SAST and Jobs/Secret-Detection, as CI lint's merged_yaml listed them
     # on 14 October 2026), and the project's that hold no secret. All but the CI files' are
-    # written out here, so that a name this script stops knowing fails a case.
+    # written out here, so that a name this script stops knowing fails a case: GitLab's own
+    # whose names say they hold a credential, and others whose names hold such a word in
+    # passing (CI_COMMIT_AUTHOR), and the runner's feature flags, those whose names say so
+    # among them - gitlab-runner 19.4.1 has six of its 53 so named.
     defaults = dict((name, "x") for name in tree_ci[0])
     defaults.update({
         "CI": "true", "CI_JOB_NAME": "hosted-runners", "CI_JOB_TOKEN": "job-token-value", "CI_REGISTRY_PASSWORD": "registry-value",
+        "CI_DEPENDENCY_PROXY_PASSWORD": "registry-value", "CI_RUNNER_SHORT_TOKEN": "x", "CI_TRIGGER_SHORT_TOKEN": "x",
+        "CI_SERVER_TLS_KEY_FILE": "/builds/x.tmp/CI_SERVER_TLS_KEY_FILE", "CI_SERVER_TLS_CERT_FILE": "/builds/x.tmp/cert",
+        "CI_COMMIT_AUTHOR": "Someone <someone@example.invalid>", "CI_REPOSITORY_URL": "https://gitlab.example/x.git",
+        "FF_MASK_ALL_DEFAULT_TOKENS": "true", "FF_GIT_URLS_WITHOUT_TOKENS": "false", "FF_DISABLE_AUTOMATIC_TOKEN_ROTATION": "false",
+        "FF_SECRET_RESOLVING_FAILS_IF_MISSING": "true", "FF_HASH_CACHE_KEYS": "false", "FF_USE_GIT_PROACTIVE_AUTH": "false",
         "CI_COMMIT_BRANCH": "batch48", "CI_DEFAULT_BRANCH": "master", "GITLAB_CI": "true", "GITLAB_USER_LOGIN": "someone",
         "GITLAB_FEATURES": "", "FF_NETWORK_PER_BUILD": "false", "GITLAB_ENV": "/builds/x.tmp/gitlab_runner_env",
         "RUNNER_TEMP_PROJECT_DIR": "/builds/x.tmp", "PATH": "/usr/local/bin:/usr/bin", "HOME": "/root", "HOSTNAME": "runner-1",
@@ -572,6 +630,19 @@ def self_test():
            (code, "its job names no environment to scope it to yet" in text), (1, True))
     code, text = run_check(SOMEONES_API_KEY=planted)
     expect("a variable whose name says it is a credential: failed", (code, "FAILED: SOMEONES_API_KEY is given" in text), (1, True))
+    # GitLab keeps neither CI_ nor FF_ for its own: a variable of the project's may be named so.
+    for name in ("CI_PUSH_TOKEN", "CI_SIGNING_KEY", "CI_NPM_AUTH"):
+        code, text = run_check(**dict(recommended, **{name: planted}))
+        expect("%s, the project's under a name that begins with CI_ and says it holds a credential: failed, named" % name,
+               (code, "FAILED: %s is given to every job" % name in text and "although its name begins with CI_" in text),
+               (1, True))
+    code, text = run_check(**dict(recommended, FF_UPLOAD_TOKEN=planted))
+    expect("FF_UPLOAD_TOKEN, the project's under a name that begins with FF_ and of a value no flag of the runner's has: "
+           "failed, named", (code, "FAILED: FF_UPLOAD_TOKEN is given to every job" in text and "a feature flag of the "
+                             "runner's" in text), (1, True))
+    code, text = run_check(**dict(recommended, FF_SOME_NEWER_FLAG="1"))
+    expect("a feature flag the runner does not know, set to 1, which it reads as true: passed", (code, "FAILED" in text),
+           (0, False))
     expect("no value of any variable is printed", any(v in text for v in (planted, "job-token-value", "registry-value")), False)
 
     # The quota, against answers held in memory.
