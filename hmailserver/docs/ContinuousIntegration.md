@@ -122,7 +122,7 @@ The other tables on this page name runners the same way.
 | `renovate` | check | linix | the schedule described `renovate`, and nothing else | Renovate's dependency updates ([Dependency updates](#dependency-updates)) |
 | `image-pins` | check | linix | the schedule described `renovate`, and nothing else | Every image the CI files and the build scripts pin by digest, asked of its registry as a runner asks it; a pin the registry no longer serves fails the pipeline, named with every place that names it (`build/check-image-pins.py`; [Image pins](#image-pins)) |
 | `forge-export` | check | linix | the pipeline schedule for `master` whose description is `export`, and nothing else | The issues, merge requests, labels, milestones, boards and releases as JSON and the wiki as a git bundle, and GitLab's project export when its token is set: what a push mirror does not carry, kept on linix and as an artifact for Developers only (`.gitlab/ci/forge-export.yml`, `build/ci/forge-export.py`; [Mirroring.md](Mirroring.md)) |
-| `hosted-runners` | check | linix | `master` or a `batch*` branch for which a switch or a lane is set; never a tag | Each switch names a runner of its class's kind, each lane goes with its class, and no credential is given to a job that names no environment, as every job a switch moves is; it names what such a job is given (`.gitlab/ci/hosted-runners.yml`, `build/ci/hosted-runners.py check`; [GitLab's hosted runners beside the project's](#gitlabs-hosted-runners-beside-the-projects)) |
+| `hosted-runners` | check | linix | `master` or a `batch*` branch for which a switch or a lane is set; never a tag | Each switch names a runner of its class's kind, each lane goes with its class, and no credential is given to a job that names no environment, as every job a switch moves is - every variable such a job is given is taken for one but GitLab's, its runner's, the container's, those the CI files and their templates set, and the project's that hold none; it names what such a job is given (`.gitlab/ci/hosted-runners.yml`, `build/ci/hosted-runners.py check`; [GitLab's hosted runners beside the project's](#gitlabs-hosted-runners-beside-the-projects)) |
 | `compute-quota` | check | linix | the same | The namespace's compute minutes this month against its quota and what the pipeline is expected to use at its switches, in the environment `compute-quota`; a warning under a quarter of the quota or ten such pipelines left, a failure under a twentieth or two, with how the switches are set back; says "not configured" until `HM_QUOTA_TOKEN` exists (`build/ci/hosted-runners.py quota`) |
 | `scorecard` | check | linix | the schedule described `scorecard`, and nothing else | OpenSSF Scorecard 5.5.0 from cache.nixos.org over the project, its result kept for `package-repos` to publish with a badge; says "not configured" and passes until the owner's `GITLAB_AUTH_TOKEN` exists (`.gitlab/ci/scorecard.yml`, `build/ci/scorecard.sh`; [OpenSSF Scorecard](#openssf-scorecard)) |
 
@@ -432,7 +432,9 @@ job of a class names no environment, `id_tokens` or `secrets`, asks for a pull p
 GitLab's runners allow (`[if-not-present, always]`: they allow `always` alone, and
 fail a job that asks for `if-not-present` only), runs in a container of its class's
 architecture (the CI image is amd64 alone) and waits in its class's lane or in none;
-and no job outside a class waits in a lane.
+and no job outside a class waits in a lane. And `build/ci/hosted-runners.py` knows
+the variables of each GitLab template the CI files include, and of no other
+(`TEMPLATE_GLOBALS`).
 
 **The lanes.** The package builds and the two suites each wait for one another in a
 resource group, so that the project's machines run one of their kind at a time
@@ -490,11 +492,21 @@ has scoped `RENOVATE_TOKEN` to `renovate` and `SNAPCRAFT_STORE_CREDENTIALS` to
 `CI_JOB_TOKEN` and `CI_REGISTRY_PASSWORD` - the job's own token, valid while it runs,
 with what a job token may do in this project as the pipeline's user: the package and
 container registries and the releases, as on the project's runners -; the CI files'
-variables; the five identifiers and the switch of the table's first two rows; and
-`GITLAB_OBSERVABILITY_EXPORT`, which every job is given. No ID token: no job of a
-class asks for one. Until the two are scoped, they are given to
+variables and those of the GitLab templates they include (`SECRETS_ANALYZER_VERSION`,
+`SAST_EXCLUDED_PATHS` and the rest); the five identifiers and the switch of the table's
+first two rows; and `GITLAB_OBSERVABILITY_EXPORT`, which every job is given. No ID
+token: no job of a class asks for one. Until the two are scoped, they are given to
 it too, and `hosted-runners` fails every pipeline a switch is set for, naming each
-credential it is given and the environment to scope it to, never a value. The
+credential it is given and the environment to scope it to, never a value. It fails
+closed: every variable it is given is a credential to it but GitLab's own (those
+whose names begin with `CI_` or `FF_`, but the deploy token's, and the few others
+GitLab predefines), its runner's, the container's, those the CI files and their
+templates set, and the project's that hold none (`PLAIN` in
+`build/ci/hosted-runners.py`: the five identifiers, the switch and the observability
+export). So a credential made later fails it, whatever its name, until it is
+scoped to its job's environment; a variable made later that holds none fails it
+until it is named in `PLAIN`; and so does a variable GitLab adds to one of its
+templates, until it is named in `TEMPLATE_GLOBALS` there. The
 signing key `package-repos` would read, `HM_REPO_SIGNING_KEY` with its passphrase,
 does not exist yet, and `package-repos` names no environment: until it names one to
 scope the key to, a switch hands the key to GitLab's runners, and `hosted-runners`
@@ -511,9 +523,13 @@ rules), and never for a `v*` tag, whose batch and `master` pipelines have run th
   or one of GitLab's Linux machines of its class's architecture - any other value is a
   tag no runner carries, and the class's jobs would wait until GitLab failed them -
   and no credential is given to a job that names no environment, which this job is, as
-  is every job a switch moves. Either fails it. A lane that does not go with its class
-  is a warning (exit 3). It prints every variable it is given beside GitLab's own and
-  the CI files', by name: that is what a job on GitLab's runners is given.
+  is every job a switch moves - every variable it is given is one but those it knows
+  to hold none (above). Either fails it. Once the credential is scoped, the job run
+  again passes; a switch that named no runner needs a pipeline made again, since a job
+  keeps the tags it was made with. A lane that does not go with its class
+  is a warning (exit 3). It prints every variable it is given beside GitLab's own, its
+  runner's, the container's and the CI files', by name: that is what a job on GitLab's
+  runners is given.
 - **`compute-quota`** (`build/ci/hosted-runners.py quota`), in the environment
   `compute-quota`: the namespace's compute minutes this month against its quota
   (`GET /namespaces/hmailserver`'s `ci_minutes_usage`, `GET /groups/hmailserver`'s

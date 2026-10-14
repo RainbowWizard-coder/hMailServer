@@ -32,10 +32,15 @@ GitLab expands for each job as it makes the job's resource group.
       failed them. No credential may be in this job's environment: it names no
       environment, as no job a switch moves does, so every variable it is given is
       given to them too - a credential of the project's is scoped to the environment of
-      the one job that uses it (CREDENTIALS), and then no other job sees it. Each
-      problem is named, with what to do; a value is never printed. A lane that does not
-      go with its class is a warning: the jobs run, one at a time on GitLab's machines,
-      or side by side on linix.
+      the one job that uses it (CREDENTIALS), and then no other job sees it. The test
+      fails closed: it takes for a credential every variable it is given but GitLab's
+      own (GITLAB_OWN and those whose names begin with CI_ or FF_, but the deploy
+      token's), its runner's (RUNNER_OWN), the container's (PROCESS), those that the CI
+      files and the GitLab templates they include set for every job (ci_globals,
+      TEMPLATE_GLOBALS), and the project's that hold none (PLAIN). Each problem is
+      named, with what to do; a value is never printed. A lane that does not go with
+      its class is a warning: the jobs run, one at a time on GitLab's machines, or side
+      by side on linix.
   python3 build/ci/hosted-runners.py quota
       The compute-quota job, on linix, in the same pipelines, in the environment
       compute-quota, to which HM_QUOTA_TOKEN is scoped: a read_api token of an Owner of
@@ -47,9 +52,10 @@ GitLab expands for each job as it makes the job's resource group.
       is a missing token, said so. A GitLab that cannot be asked is exit 2, which the job
       tries twice more.
   python3 build/ci/hosted-runners.py --self-test
-      Both against environments and answers held in memory, and the HTTP reading against
-      a GitLab API served on the loopback; and the classes against the tree's
-      .gitlab-ci.yml, whose variables: must hold each switch and lane at its default.
+      Both against environments and answers held in memory, the CI files' variables
+      read from the tree's own, and the HTTP reading against a GitLab API served on the
+      loopback; and the classes against the tree's .gitlab-ci.yml, whose variables:
+      must hold each switch and lane at its default.
 
 Exit codes: 0 nothing to say, 1 a failure (named above it), 2 GitLab could not be asked,
 3 a warning.
@@ -134,16 +140,54 @@ CREDENTIALS = {
     "HM_REPO_SIGNING_KEY": None,
     "HM_REPO_SIGNING_PASSPHRASE": None,
 }
-# Any other variable whose name says it holds a credential is taken for one; GitLab's own
-# (CI_JOB_TOKEN, CI_REGISTRY_PASSWORD and the rest) are the job's, and every job has them.
-CREDENTIAL_NAME = re.compile(r"TOKEN|SECRET|PASSWORD|PASSPHRASE|CREDENTIAL|PRIVATE_KEY|API_KEY|ACCESS_KEY|WEBHOOK")
+# Every other variable a job that names no environment is given is taken for a
+# credential, but for these, which hold none: what GitLab gives every job of its own -
+# the variables whose names begin with CI_ (CI_JOB_TOKEN and CI_REGISTRY_PASSWORD are the
+# job's own token, valid while it runs) or FF_ (the runner's feature flags), and those of
+# GITLAB_OWN, its predefined variables of other names (docs.gitlab.com, "Predefined CI/CD
+# variables", on 14 October 2026) - but for GITLAB_CREDENTIALS; KUBECONFIG, which GitLab
+# gives every job once an agent for Kubernetes lets the project in, holds that agent's
+# token, and is not among them.
+GITLAB_OWN = {"CI", "GITLAB_CI", "GITLAB_FEATURES", "GITLAB_USER_EMAIL", "GITLAB_USER_ID", "GITLAB_USER_LOGIN", "GITLAB_USER_NAME",
+              "CHAT_CHANNEL", "CHAT_INPUT", "CHAT_USER_ID", "TRIGGER_PAYLOAD"}
+# The credentials GitLab gives every job under a name that begins with CI_: those of the
+# project's deploy token named gitlab-deploy-token, while it has one (it has none).
+GITLAB_CREDENTIALS = {"CI_DEPLOY_PASSWORD": "the project's deploy token named gitlab-deploy-token"}
+# What the runner gives a job's script beside GitLab's variables (gitlab-runner 19.4's
+# Build.GetAllVariables and its shell's exports): the file a job's script may set a
+# variable in, the job's temporary directory, git's settings, and the names of the job's
+# variables where the runner's own steps run the script.
+RUNNER_OWN = {"GITLAB_ENV", "RUNNER_TEMP_PROJECT_DIR", "RUNNER_JOB_VAR_NAMES", "GIT_CONFIG_GLOBAL", "GIT_TERMINAL_PROMPT",
+              "GCM_INTERACTIVE", "GIT_LFS_SKIP_SMUDGE"}
 # What a container's process is given that is not a variable of GitLab's or the CI files':
-# the shell's, and Docker Hub's Python image's (GPG_KEY is the id of the key its Python
-# release is signed with, a public one).
+# Docker's, the shell's, and Docker Hub's Python image's - PATH, PYTHON_VERSION and
+# PYTHON_SHA256 in the image the job runs in, and what its earlier images set (GPG_KEY is
+# the id of the key a Python release is signed with, a public one).
 PROCESS = {"PATH", "HOME", "HOSTNAME", "LANG", "LC_ALL", "TERM", "SHLVL", "PWD", "OLDPWD", "_", "GPG_KEY",
-           "PYTHON_VERSION", "PYTHON_SHA256"}
-# GitLab's own variables whose names do not begin with CI_.
-GITLAB_OWN = {"GITLAB_CI", "GITLAB_FEATURES", "GITLAB_USER_EMAIL", "GITLAB_USER_ID", "GITLAB_USER_LOGIN", "GITLAB_USER_NAME"}
+           "PYTHON_VERSION", "PYTHON_SHA256", "PYTHON_PIP_VERSION", "PYTHON_SETUPTOOLS_VERSION", "PYTHON_GET_PIP_URL",
+           "PYTHON_GET_PIP_SHA256"}
+# The variables: of the GitLab templates the CI files include (include: - template:),
+# which GitLab gives every job as it gives the CI files' own: their names as GitLab's
+# templates had them on 14 October 2026 (lib/gitlab/ci/templates/Jobs/ in gitlab-org/
+# gitlab; the variables: of the pipeline's merged configuration, CI lint's merged_yaml,
+# list them beside the CI files' own). build/check-release-chain.py holds the templates
+# named here to those the CI files include. A variable GitLab adds to a template is taken
+# for a credential until it is named here.
+TEMPLATE_GLOBALS = {
+    "Jobs/SAST.gitlab-ci.yml": (
+        "SECURE_ANALYZERS_PREFIX", "SAST_IMAGE_SUFFIX", "SAST_EXCLUDED_ANALYZERS", "DEFAULT_SAST_EXCLUDED_PATHS",
+        "SAST_EXCLUDED_PATHS", "SCAN_KUBERNETES_MANIFESTS", "GITLAB_ADVANCED_SAST_EXT_INCREMENTAL_ENABLED"),
+    "Jobs/Secret-Detection.gitlab-ci.yml": (
+        "SECURE_ANALYZERS_PREFIX", "SECRET_DETECTION_IMAGE_SUFFIX", "SECRETS_ANALYZER_VERSION",
+        "SECRET_DETECTION_EXCLUDED_PATHS"),
+}
+# The project's and the group's variables that hold no secret (13 October 2026): the
+# Artifact Signing account, endpoint and profile, and the Entra application and tenant
+# with which release-authenticode's ID token is exchanged - the identifiers of a federated
+# credential, which holds none -, the container image's switch, and GitLab's
+# observability export. The switches and the lanes are the CI files' own.
+PLAIN = {"ARTIFACT_SIGNING_ACCOUNT", "ARTIFACT_SIGNING_ENDPOINT", "ARTIFACT_SIGNING_PROFILE", "AZURE_CLIENT_ID",
+         "AZURE_TENANT_ID", "HM_PUBLISH_IMAGE", "GITLAB_OBSERVABILITY_EXPORT"}
 QUOTA_FAIL_SHARE, QUOTA_WARN_SHARE = 0.95, 0.75
 QUOTA_FAIL_PIPELINES, QUOTA_WARN_PIPELINES = 2, 10
 DOCUMENT = "docs/ContinuousIntegration.md, \"GitLab's hosted runners beside the project's\""
@@ -179,21 +223,65 @@ def setting_back(environ):
 
 
 def defined_variables(text):
-    """The names .gitlab-ci.yml's top-level variables: define."""
+    """The names a CI file's top-level variables: define."""
     names, inside = set(), False
     for line in text.replace("\r\n", "\n").split("\n"):
         if re.match(r"^[A-Za-z0-9_.\-]+:", line):
             inside = line.startswith("variables:")
             continue
-        m = re.match(r"^  ([A-Za-z_][A-Za-z0-9_]*):", line)
+        m = re.match(r"""^  ["']?([A-Za-z_][A-Za-z0-9_]*)["']?[ \t]*:""", line)
         if inside and m:
             names.add(m.group(1))
     return names
 
 
-def check(environ, out, ci_text=""):
-    """The switches, the lanes and the credentials, as hosted-runners checks them. The
-    exit code: 1 for a problem, 3 for a warning, 0 otherwise."""
+def included(text):
+    """[(kind, what)] for each entry of a CI file's top-level include: - local, template,
+    or another kind, whose file this cannot read."""
+    found, inside = [], False
+    for line in text.replace("\r\n", "\n").split("\n"):
+        if re.match(r"^[A-Za-z0-9_.\-]+:", line):
+            inside = line.startswith("include:")
+            continue
+        m = re.match(r"""^\s*-\s*([a-z_]+):\s*["']?([^"'\s#]+)""", line)
+        if inside and m:
+            found.append((m.group(1), m.group(2)))
+    return found
+
+
+def ci_globals(root=ROOT):
+    """(the names of the variables the CI files set for every job, [each GitLab template
+    they include that TEMPLATE_GLOBALS does not name]): the top-level variables: of
+    .gitlab-ci.yml and of every file it includes, at any remove, and those of the GitLab
+    templates they include (TEMPLATE_GLOBALS) - which GitLab gives every job, this one
+    among them, and which a commit, not a person's setting, makes."""
+    names, unknown, seen, pending = set(), [], set(), [".gitlab-ci.yml"]
+    while pending:
+        path = pending.pop(0)
+        if path in seen:
+            continue
+        seen.add(path)
+        try:
+            with io.open(os.path.join(root, *path.split("/")), encoding="utf-8") as f:
+                text = f.read()
+        except (IOError, OSError):
+            continue
+        names |= defined_variables(text)
+        for kind, what in included(text):
+            if kind == "local":
+                pending.append(what.lstrip("/"))
+            elif kind == "template" and what in TEMPLATE_GLOBALS:
+                names |= set(TEMPLATE_GLOBALS[what])
+            else:
+                unknown.append("%s %s" % (kind, what))
+    return names, unknown
+
+
+def check(environ, out, ci=(frozenset(), [])):
+    """The switches, the lanes and the credentials, as hosted-runners checks them; ci is
+    ci_globals' answer for the tree. The exit code: 1 for a problem, 3 for a warning, 0
+    otherwise."""
+    ci_names, ci_unknown = ci
     problems, warnings = [], []
     job = environ.get("CI_JOB_NAME", "hosted-runners")
     for variable, arch, value, hosted, lane, lane_value, lane_default in switches(environ):
@@ -225,23 +313,38 @@ def check(environ, out, ci_text=""):
             warnings.append("%s is %r while its class is on the project's runners: its jobs run side by side on linix, which the "
                             "lane %s keeps them from. Delete %s, or send the class to GitLab's runners" % (
                                 lane, lane_value, lane_default, lane))
-    given = sorted(name for name in environ if not name.startswith(("CI_", "FF_")))
+    # Every variable is a credential that is not known here to hold none.
+    switch_names = set(n for c in CLASSES for n in (c[0], c[2]) if n)
+    no_secret = set(ci_names) | GITLAB_OWN | RUNNER_OWN | PROCESS | PLAIN | switch_names
+    given = sorted(name for name in environ if not name.startswith(("CI_", "FF_")) or name in GITLAB_CREDENTIALS)
     for name in given:
-        if name in CREDENTIALS or CREDENTIAL_NAME.search(name):
-            scope = CREDENTIALS.get(name, "")
+        if name in GITLAB_CREDENTIALS:
+            problems.append("%s is given to every job of this pipeline, and so to each job a switch sends to GitLab's runners: "
+                            "GitLab gives every job the credentials of %s - revoke it, or keep every class on the project's "
+                            "runners" % (name, GITLAB_CREDENTIALS[name]))
+        elif name in CREDENTIALS:
+            scope = CREDENTIALS[name]
             if scope:
                 to = "scope it to the environment %s, which the one job that uses it names" % scope
-            elif name in CREDENTIALS:
+            else:
                 to = ("its job names no environment to scope it to yet: give the job one, and scope the variable to it, before "
                       "a switch is set")
-            else:
-                to = "scope it to the environment of the one job that uses it"
             problems.append("%s is given to every job of this pipeline that names no environment, and so to each job a switch "
                             "sends to GitLab's runners: %s (Settings, CI/CD, Variables, Environment scope)" % (name, to))
-    ours = defined_variables(ci_text) | PROCESS | GITLAB_OWN | set(n for c in CLASSES for n in (c[0], c[2]) if n)
-    beyond = [n for n in given if n not in ours]
-    print("Given to a job of this pipeline that names no environment, beside GitLab's own variables and the CI files': %s"
-          % (", ".join(beyond) or "nothing"), file=out)
+        elif name not in no_secret:
+            problems.append("%s is given to every job of this pipeline that names no environment, and so to each job a switch "
+                            "sends to GitLab's runners, and it is none of the variables known to hold no secret - GitLab's "
+                            "own, its runner's, the container's, those the CI files and their templates set, and the "
+                            "project's in PLAIN: if it holds a credential, scope it to the environment of the one job that "
+                            "uses it (Settings, CI/CD, Variables, Environment scope); if it holds none, name it in "
+                            "build/ci/hosted-runners.py's PLAIN, or, one of a GitLab template's variables, in its "
+                            "TEMPLATE_GLOBALS" % name)
+    beyond = [n for n in given if n not in set(ci_names) | GITLAB_OWN | RUNNER_OWN | PROCESS | switch_names]
+    print("Given to a job of this pipeline that names no environment, beside GitLab's own variables, its runner's, the "
+          "container's and the CI files': %s" % (", ".join(beyond) or "nothing"), file=out)
+    if ci_unknown:
+        print("The CI files include what this does not read the variables of: %s (TEMPLATE_GLOBALS)" % ", ".join(ci_unknown),
+              file=out)
     for p in problems:
         print("FAILED: %s." % p, file=out)
     for w in warnings:
@@ -251,8 +354,8 @@ def check(environ, out, ci_text=""):
         return 1
     if warnings:
         return 3
-    print("Every switch names a runner of its kind, every lane goes with its class, and no credential is given to a job "
-          "that names no environment.", file=out)
+    print("Every switch names a runner of its kind, every lane goes with its class, and a job that names no environment is "
+          "given no variable but those known to hold no secret.", file=out)
     return 0
 
 
@@ -358,11 +461,31 @@ def self_test():
         if got != want:
             failures.append("%s: got %r, want %r" % (what, got, want))
 
-    defaults = {"HM_RUNNER_BUILD": "linix", "HM_RUNNER_PACKAGES": "linix", "HM_LANE_PACKAGES": "linix-package-build",
-                "HM_RUNNER_ARM64": "linix", "HM_RUNNER_SUITE": "linix", "HM_LANE_SUITE": "linix-suite",
-                "CI_JOB_NAME": "hosted-runners", "CI_JOB_TOKEN": "job-token-value", "CI_REGISTRY_PASSWORD": "registry-value",
-                "PATH": "/usr/bin", "GPG_KEY": "the-image-own", "AZURE_CLIENT_ID": "x",
-                "HM_PUBLISH_IMAGE": "1", "GITLAB_OBSERVABILITY_EXPORT": "traces"}
+    # The CI files' variables as the job reads them: from the tree's own files.
+    tree_ci = ci_globals(ROOT)
+    expect("the tree's CI files: their variables and their templates' are read, every template known",
+           ({"HM_RUNNER", "HM_RUNNER_PACKAGES", "HM_LANE_SUITE", "SECRETS_ANALYZER_VERSION", "SAST_EXCLUDED_PATHS"} <=
+            tree_ci[0], tree_ci[1]), (True, []))
+    # What GitLab gives this job in a batch's pipeline, by name: its predefined variables,
+    # its runner's, the Python image's, the CI files' (as the tree has them), their
+    # templates' (Jobs/SAST and Jobs/Secret-Detection, as CI lint's merged_yaml listed them
+    # on 14 October 2026), and the project's that hold no secret. All but the CI files' are
+    # written out here, so that a name this script stops knowing fails a case.
+    defaults = dict((name, "x") for name in tree_ci[0])
+    defaults.update({
+        "CI": "true", "CI_JOB_NAME": "hosted-runners", "CI_JOB_TOKEN": "job-token-value", "CI_REGISTRY_PASSWORD": "registry-value",
+        "CI_COMMIT_BRANCH": "batch48", "CI_DEFAULT_BRANCH": "master", "GITLAB_CI": "true", "GITLAB_USER_LOGIN": "someone",
+        "GITLAB_FEATURES": "", "FF_NETWORK_PER_BUILD": "false", "GITLAB_ENV": "/builds/x.tmp/gitlab_runner_env",
+        "RUNNER_TEMP_PROJECT_DIR": "/builds/x.tmp", "PATH": "/usr/local/bin:/usr/bin", "HOME": "/root", "HOSTNAME": "runner-1",
+        "PWD": "/builds/x", "SHLVL": "1", "_": "/usr/local/bin/python3", "PYTHON_VERSION": "3.14.7", "PYTHON_SHA256": "0" * 64,
+        "HM_RUNNER": "linix", "HM_RUNNER_BUILD": "linix", "HM_RUNNER_PACKAGES": "linix", "HM_LANE_PACKAGES": "linix-package-build",
+        "HM_RUNNER_ARM64": "linix", "HM_RUNNER_SUITE": "linix", "HM_LANE_SUITE": "linix-suite",
+        "SECURE_ANALYZERS_PREFIX": "registry.gitlab.com/security-products", "SAST_IMAGE_SUFFIX": "", "SAST_EXCLUDED_ANALYZERS": "",
+        "DEFAULT_SAST_EXCLUDED_PATHS": "spec, test, tests, tmp", "SAST_EXCLUDED_PATHS": "spec, test, tests, tmp",
+        "SCAN_KUBERNETES_MANIFESTS": "false", "GITLAB_ADVANCED_SAST_EXT_INCREMENTAL_ENABLED": "true",
+        "SECRET_DETECTION_IMAGE_SUFFIX": "", "SECRETS_ANALYZER_VERSION": "7", "SECRET_DETECTION_EXCLUDED_PATHS": "",
+        "ARTIFACT_SIGNING_ACCOUNT": "x", "ARTIFACT_SIGNING_ENDPOINT": "x", "ARTIFACT_SIGNING_PROFILE": "x", "AZURE_CLIENT_ID": "x",
+        "AZURE_TENANT_ID": "x", "HM_PUBLISH_IMAGE": "1", "GITLAB_OBSERVABILITY_EXPORT": "traces"})
     # A stand-in no scanner takes for a credential, which no output may hold.
     planted = "Q" * 24
 
@@ -374,19 +497,42 @@ def self_test():
             else:
                 environ[key] = value
         out = io.StringIO()
-        code = check(environ, out, "variables:\n  HM_RUNNER: linix\n  GIT_DEPTH: \"1\"\njob:\n  script: [x]\n")
+        code = check(environ, out, tree_ci)
         return code, out.getvalue()
 
+    recommended = dict(HM_RUNNER_PACKAGES="saas-linux-large-amd64", HM_LANE_PACKAGES="hosted-hosted-runners",
+                       HM_RUNNER_ARM64="saas-linux-medium-arm64")
     code, text = run_check()
-    expect("every switch at its default: passed", code, 0)
-    expect("every switch at its default: what a job is given beside GitLab's and the CI files', named",
-           "AZURE_CLIENT_ID, GITLAB_OBSERVABILITY_EXPORT, HM_PUBLISH_IMAGE" in text, True)
+    expect("every switch at its default: passed", (code, "FAILED" in text), (0, False))
+    expect("every switch at its default: what a job is given beside GitLab's, the runner's, the container's and the CI "
+           "files', named", "ARTIFACT_SIGNING_ACCOUNT, ARTIFACT_SIGNING_ENDPOINT, ARTIFACT_SIGNING_PROFILE, AZURE_CLIENT_ID, "
+           "AZURE_TENANT_ID, GITLAB_OBSERVABILITY_EXPORT, HM_PUBLISH_IMAGE\n" in text, True)
     expect("GitLab's own credentials are the job's, not the project's", "CI_JOB_TOKEN" in text, False)
-    code, text = run_check(HM_RUNNER_PACKAGES="saas-linux-large-amd64", HM_LANE_PACKAGES="hosted-hosted-runners",
-                           HM_RUNNER_ARM64="saas-linux-medium-arm64")
-    expect("packages and arm64 on GitLab's runners, a lane of each job's own: passed", (code, "FAILED" in text), (0, False))
+    code, text = run_check(**recommended)
+    expect("packages and arm64 on GitLab's runners, a lane of each job's own, beside the variables of the CI files and of "
+           "their templates (SECRETS_ANALYZER_VERSION and the rest): passed", (code, "FAILED" in text), (0, False))
     expect("the switches are said", "HM_RUNNER_PACKAGES: GitLab's saas-linux-large-amd64" in text and
            "HM_RUNNER_ARM64: GitLab's saas-linux-medium-arm64" in text, True)
+    out = io.StringIO()
+    expect("the CI files' own variables and their templates', not read: each failed",
+           (check(dict(defaults, **recommended), out, (frozenset(), [])), "FAILED: SECRETS_ANALYZER_VERSION is given" in
+            out.getvalue() and "FAILED: HM_RUNNER is given" in out.getvalue()), (1, True))
+    expect("a CI file's variables, a key quoted or its value below it, are read",
+           defined_variables("variables:\n  \"QUOTED\": x\n  'SINGLE' : y\n  EXPANDED:\n    value: z\n    description: d\n"
+                             "job:\n  variables:\n    NOT_GLOBAL: w\n"), {"QUOTED", "SINGLE", "EXPANDED"})
+    expect("a CI file's includes are read from its include: alone",
+           included("include:\n  # a note\n  - local: .gitlab/ci/a.yml\n  - template: 'Jobs/SAST.gitlab-ci.yml'\n"
+                    "  - remote: https://example.invalid/x.yml\njob:\n  script:\n    - local: not-an-include\n"),
+           [("local", ".gitlab/ci/a.yml"), ("template", "Jobs/SAST.gitlab-ci.yml"), ("remote", "https://example.invalid/x.yml")])
+    for name in ("HM_UPDATE_SIGNING_KEY", "COSIGN_KEY", "SSH_DEPLOY_KEY", "NPM_AUTH", "HM_SMTP_PASS", "SIGNING_CERT_PFX",
+                 "KUBECONFIG"):
+        code, text = run_check(**dict(recommended, **{name: planted}))
+        expect("%s, a variable known to hold no secret by none of the lists, whatever its name: failed, named" % name,
+               (code, "FAILED: %s is given to every job" % name in text and "none of the variables known to hold no secret"
+                in text), (1, True))
+    code, text = run_check(**dict(recommended, CI_DEPLOY_USER="gitlab+deploy-token-1", CI_DEPLOY_PASSWORD=planted))
+    expect("the deploy token GitLab gives every job: failed, named as such", (code, "FAILED: CI_DEPLOY_PASSWORD is given" in text
+                                                                               and "gitlab-deploy-token" in text), (1, True))
     code, text = run_check(HM_RUNNER_PACKAGES="saas-linux-large-amd4")
     expect("a switch no runner carries: failed, naming it", (code, "HM_RUNNER_PACKAGES is 'saas-linux-large-amd4'" in text), (1, True))
     expect("a failure says how to set the switches back", "delete the project CI/CD variable HM_RUNNER_PACKAGES" in text, True)
@@ -411,9 +557,10 @@ def self_test():
     expect("the Snap Store's and the quota's credentials: failed, each named", (code, "snap-store" in text and
                                                                                "compute-quota" in text), (1, True))
     code, text = run_check(HM_REPO_SIGNING_KEY=planted)
-    expect("a credential whose job names no environment yet: failed, saying so", (code, "names no environment" in text), (1, True))
+    expect("a credential whose job names no environment yet: failed, saying so",
+           (code, "its job names no environment to scope it to yet" in text), (1, True))
     code, text = run_check(SOMEONES_API_KEY=planted)
-    expect("a variable whose name says it is a credential: failed", (code, "SOMEONES_API_KEY" in text), (1, True))
+    expect("a variable whose name says it is a credential: failed", (code, "FAILED: SOMEONES_API_KEY is given" in text), (1, True))
     expect("no value of any variable is printed", any(v in text for v in (planted, "job-token-value", "registry-value")), False)
 
     # The quota, against answers held in memory.
@@ -558,12 +705,7 @@ def main(argv):
     if argv == ["--self-test"]:
         return self_test()
     if argv == ["check"]:
-        try:
-            with io.open(os.path.join(ROOT, ".gitlab-ci.yml"), encoding="utf-8") as f:
-                ci = f.read()
-        except (IOError, OSError):
-            ci = ""
-        return check(dict(os.environ), sys.stdout, ci)
+        return check(dict(os.environ), sys.stdout, ci_globals(ROOT))
     if argv == ["quota"]:
         return quota(dict(os.environ), sys.stdout)
     print(__doc__)

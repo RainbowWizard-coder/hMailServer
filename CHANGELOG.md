@@ -5671,14 +5671,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   scoped to its one job and reaches no job on GitLab's runners. In every pipeline of `master` or a `batch*` branch a
   switch is set for, `hosted-runners` and `compute-quota` (`.gitlab/ci/hosted-runners.yml`,
   `build/ci/hosted-runners.py`), on linix, check that each switch names a machine of its class's kind and each lane
-  goes with its class, fail while a job that names no environment is given a credential, naming it, and read the
-  namespace's compute minutes against what the pipeline is expected to use: a warning under a quarter of the quota or
-  ten such pipelines left, a failure under a twentieth or two, which says how the switches are set back.
-  `build/check-release-chain.py` holds each class to the jobs it names, the switches and lanes to their defaults, a
-  classed job to no environment, `id_tokens` or `secrets`, a pull policy GitLab allows, its class's architecture and
-  lane, `nix` to `kvm` and the two checks to how they run, each rule with a case of its self-test that fails without
-  it (ContinuousIntegration.md, "GitLab's hosted runners beside the project's", says what each class costs, at 0.5 a
-  job-minute on any of GitLab's Linux machines, which classes to switch on, and what a job there is given).
+  goes with its class, fail while a job that names no environment is given a credential, naming it - any variable but
+  GitLab's own, its runner's, the container's, those the CI files and the GitLab templates they include set, and the
+  few of the project's known to hold no secret is taken for one, whatever its name -, and read the namespace's compute
+  minutes against what the pipeline is expected to use: a warning under a quarter of the quota or ten such pipelines
+  left, a failure under a twentieth or two, which says how the switches are set back. `build/check-release-chain.py`
+  holds each class to the jobs it names, the switches and lanes to their defaults, a classed job to no environment,
+  `id_tokens` or `secrets`, a pull policy GitLab allows, its class's architecture and lane, `nix` to `kvm`, the two
+  checks to how they run, and the GitLab templates whose variables `hosted-runners` knows to those the CI files
+  include, each rule with a case of its self-test that fails without it (ContinuousIntegration.md, "GitLab's hosted
+  runners beside the project's", says what each class costs, at 0.5 a job-minute on any of GitLab's Linux machines,
+  which classes to switch on, and what a job there is given).
 - **`build/land-via-mr.py` lands a batch of any size from Windows.** It gave glab every field of a request as an
   argument of its command line, and the description of `batch47`'s merge request, 200 commit lines and 50,565
   characters, made one longer than the 32,767 characters Windows takes: on 13 October 2026 the landing pushed the

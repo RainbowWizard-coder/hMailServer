@@ -14,12 +14,15 @@
 #                   one of GitLab's hosted Linux machines of that class's architecture -
 #                   and each lane goes with its class; and no credential is given to a
 #                   job that names no environment, which this job is, as is every job a
-#                   switch moves (build/ci/hosted-runners.py check). A switch that names
-#                   no such runner, whose jobs would wait for one that never takes them,
-#                   fails it, and so does a credential, named - never its value - with
-#                   the environment to scope it to; a lane that disagrees with its
-#                   class is a warning (exit 3), since the jobs then run, one at a time
-#                   on GitLab's machines or side by side on linix.
+#                   switch moves (build/ci/hosted-runners.py check): every variable it is
+#                   given is taken for one but GitLab's, its runner's, the container's,
+#                   those the CI files and their templates set, and the project's that
+#                   the script knows to hold no secret. A switch that names no such
+#                   runner, whose jobs would wait for one that never takes them, fails
+#                   it, and so does a credential, named - never its value - with the
+#                   environment to scope it to; a lane that disagrees with its class is
+#                   a warning (exit 3), since the jobs then run, one at a time on
+#                   GitLab's machines or side by side on linix.
 #   compute-quota   linix: the namespace's compute minutes this month, against its quota
 #                   and what this pipeline is expected to use at the switches it was
 #                   made with (build/ci/hosted-runners.py quota), so that they do not

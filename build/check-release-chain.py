@@ -3505,9 +3505,10 @@ def runner_class_problems(texts, script=None):
     without one; a job outside a class in a class's lane; a job that boots a QEMU
     machine without the tags that put it on server2 (KVM_JOBS); the checks of
     HOSTED_CHECKS_FILE missing, not included, not run as HOSTED_SCRIPT runs them, not
-    on linix, or not asking of every switch and lane whether it is at its default; and
-    the script's classes not these. script stands in for HOSTED_SCRIPT, for the
-    self-test."""
+    on linix, or not asking of every switch and lane whether it is at its default; the
+    script's classes not these; and the GitLab templates whose variables the script
+    knows (TEMPLATE_GLOBALS) not the ones the CI files include. script stands in for
+    HOSTED_SCRIPT, for the self-test."""
     problems = []
     every_ci = ci_files(texts)
     order = [p for p in sorted(every_ci) if p != ".gitlab-ci.yml"] + [".gitlab-ci.yml"]
@@ -3636,6 +3637,22 @@ def runner_class_problems(texts, script=None):
                             "have %s" % (HOSTED_SCRIPT.replace(os.sep, "/"), sorted(theirs.items()), sorted(ours.items())))
         if dict(module.HOSTED) != dict(HOSTED_MACHINES):
             problems.append("%s's HOSTED machines are not HOSTED_MACHINES" % HOSTED_SCRIPT.replace(os.sep, "/"))
+        # The variables of GitLab's templates, which GitLab gives every job as the CI
+        # files' own: hosted-runners knows them by the templates the CI files include.
+        templates = set()
+        for text in every_ci.values():
+            templates |= set(re.findall(r"""^\s*-\s*template\s*:\s*["']?([^"'\s#]+)""", blocks(text or "").get("include") or "",
+                                        re.MULTILINE))
+        known = set(getattr(module, "TEMPLATE_GLOBALS", None) or {})
+        for template in sorted(templates - known):
+            problems.append("the CI files include GitLab's template %s, and %s's TEMPLATE_GLOBALS does not name its "
+                            "variables: GitLab gives every job them, and hosted-runners would take each for a credential "
+                            "and fail every pipeline a switch is set for - name them there, as the variables: of CI lint's "
+                            "merged_yaml list them" % (template, HOSTED_SCRIPT.replace(os.sep, "/")))
+        for template in sorted(known - templates):
+            problems.append("%s's TEMPLATE_GLOBALS names %s, which no CI file includes: hosted-runners would take a project "
+                            "variable of one of its names for one that holds no secret" % (
+                                HOSTED_SCRIPT.replace(os.sep, "/"), template))
     except Exception as error:
         problems.append("%s could not be read: %s" % (HOSTED_SCRIPT.replace(os.sep, "/"), error))
     return problems
@@ -5328,6 +5345,15 @@ def self_test(chain, feed):
             ("a check that runs another command", hosted_file, "    - python3 build/ci/hosted-runners.py quota\n",
              "    - python3 build/ci/hosted-runners.py --self-test\n",
              "compute-quota (.gitlab/ci/hosted-runners.yml) does not run python3 build/ci/hosted-runners.py quota"),
+            ("a GitLab template whose variables hosted-runners does not know", ".gitlab/ci/gitlab-security.yml",
+             "  - template: Jobs/Secret-Detection.gitlab-ci.yml\n",
+             "  - template: Jobs/Secret-Detection.gitlab-ci.yml\n  - template: Jobs/Dependency-Scanning.gitlab-ci.yml\n",
+             "the CI files include GitLab's template Jobs/Dependency-Scanning.gitlab-ci.yml, and build/ci/hosted-runners.py's "
+             "TEMPLATE_GLOBALS does not name its variables"),
+            ("a GitLab template no longer included, its variables still known", ".gitlab/ci/gitlab-security.yml",
+             "  - template: Jobs/Secret-Detection.gitlab-ci.yml\n", "",
+             "build/ci/hosted-runners.py's TEMPLATE_GLOBALS names Jobs/Secret-Detection.gitlab-ci.yml, which no CI file "
+             "includes"),
             ("a classed job a merge request's pipeline makes", ".gitlab-ci.yml", sbom_job,
              sbom_job + '  rules:\n    - if: $CI_PIPELINE_SOURCE == "merge_request_event"\n',
              "linux-sbom (.gitlab-ci.yml) is tagged ['linix'], for a runner of the project's, and its rule 1")):
@@ -5345,8 +5371,16 @@ def self_test(chain, feed):
         CLASSES = (("HM_RUNNER_BUILD", "amd64", None, None), ("HM_RUNNER_PACKAGES", "amd64", "HM_LANE_PACKAGES", "linix-package-build"),
                    ("HM_RUNNER_ARM64", "arm64", None, None), ("HM_RUNNER_SUITE", "amd64", "HM_LANE_SUITE", "linix-suite"))
         HOSTED = dict(HOSTED_MACHINES)
+        TEMPLATE_GLOBALS = {"Jobs/SAST.gitlab-ci.yml": ("SAST_EXCLUDED_PATHS",),
+                            "Jobs/Secret-Detection.gitlab-ci.yml": ("SECRETS_ANALYZER_VERSION",)}
     if runner_class_problems(texts, Script):
         failures.append("hosted-runners.py's classes as the CI files have them pass: %s" % runner_class_problems(texts, Script))
+    held_templates = Script.TEMPLATE_GLOBALS
+    Script.TEMPLATE_GLOBALS = {"Jobs/SAST.gitlab-ci.yml": ("SAST_EXCLUDED_PATHS",)}
+    if not any("template Jobs/Secret-Detection.gitlab-ci.yml, and build/ci/hosted-runners.py's TEMPLATE_GLOBALS does not "
+               "name its variables" in p for p in runner_class_problems(texts, Script)):
+        failures.append("hosted-runners.py not knowing an included template's variables is caught")
+    Script.TEMPLATE_GLOBALS = held_templates
     Script.CLASSES = Script.CLASSES[:3]
     if not any("CLASSES are not RUNNER_CLASSES'" in p for p in runner_class_problems(texts, Script)):
         failures.append("hosted-runners.py without the suites' class is caught")
