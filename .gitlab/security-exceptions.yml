@@ -3669,27 +3669,6 @@ exceptions:
     reviewed-by: Progressiverobot
     reviewed: 2026-09-26
     expires: 2027-03-26
-  - scan: semgrep-sast
-    finding: 367dce7d1426591b4bd1
-    what: FileName of the elevated cmd.exe in TryRestartService
-    reason: 'In TryRestartService, FileName is Path.Combine(Environment.SystemDirectory, "cmd.exe"). Environment.SystemDirectory comes from GetSystemDirectoryW, not from the environment, and WorkingDirectory is also System32 (line 3021), so ShellExecuteEx does no search and nothing in the current directory can stand in for cmd.exe. No user or file text reaches this line.'
-    reviewed-by: Progressiverobot
-    reviewed: 2026-09-26
-    expires: 2027-03-26
-  - scan: semgrep-sast
-    finding: 3a98ec300b45c7a6ab8c
-    what: Arguments of the elevated cmd.exe (net stop/start hMailServer) in TryRestartService
-    reason: 'In TryRestartService, the argument line is constant text plus ''net'', which is Path.Combine(Environment.SystemDirectory, "net.exe") (line 3016): a GetSystemDirectoryW path with no quote in it, quoted in the line. /d skips Command Processor AutoRun, and with /s cmd removes only the outer pair of quotes, so what runs is exactly ''"<System32>\net.exe" stop hMailServer & "<System32>\net.exe" start hMailServer'', with no value from the user, a file or the server.'
-    reviewed-by: Progressiverobot
-    reviewed: 2026-09-26
-    expires: 2027-03-26
-  - scan: semgrep-sast
-    finding: 361005ce906b3d763429
-    what: Process.Start of the elevated restart start info in TryRestartService
-    reason: 'In TryRestartService, this starts the ProcessStartInfo built at lines 3017-3025. Its FileName is System32''s cmd.exe by full path, its WorkingDirectory is System32, and its arguments are constant except for System32''s net.exe path. Nothing variable is interpreted by the shell, and no bare name is searched for.'
-    reviewed-by: Progressiverobot
-    reviewed: 2026-09-26
-    expires: 2027-03-26
 
   # hmailserver/source/Tools/ControlPanel/Views/UtilityViews.cs
   - scan: semgrep-sast
@@ -4041,16 +4020,17 @@ exceptions:
 
   # The four semgrep-sast findings in batch47's Control Panel code that its change gate held
   # when the batch was pre-gated (13 October 2026). Three are TryRestartService's lines,
-  # accepted above in FeatureSettingsView.xaml.cs (367dce7d1426591b4bd1, 3a98ec300b45c7a6ab8c,
-  # 361005ce906b3d763429), which batch47 moves unchanged into ServiceRestart.TryRestart, the
-  # restart that the window's pending bar and the pages a save leaves waiting for a restart now
-  # share: a fingerprint names the file, so theirs are new. The fourth is the Open the Control
-  # Deck button's ShellExecute of the Deck's address. Each was read against the code of batch47
-  # at 8f098865b by an AI agent, which then tried to show it exploitable and could not, under
-  # the owner's delegation and not line by line by the owner, so reviewed-by names the owner,
-  # who delegated the reading. They land on master before batch47, in a change of their own.
-  # Once batch47 is on master the three entries above accept nothing, the method gone from
-  # FeatureSettingsView.xaml.cs, and are to be taken out.
+  # which three entries for FeatureSettingsView.xaml.cs accepted (367dce7d1426591b4bd1,
+  # 3a98ec300b45c7a6ab8c, 361005ce906b3d763429) until batch47 moved them unchanged into
+  # ServiceRestart.TryRestart, the restart that the window's pending bar and the pages a save
+  # leaves waiting for a restart now share: a fingerprint names the file, so theirs are new.
+  # The fourth is the Open the Control Deck button's ShellExecute of the Deck's address. Each
+  # was read against the code of batch47 at 8f098865b by an AI agent, which then tried to show
+  # it exploitable and could not, under the owner's delegation and not line by line by the
+  # owner, so reviewed-by names the owner, who delegated the reading. They landed on master
+  # before batch47, in a change of their own. With batch47 on master those three entries
+  # accepted nothing, the method gone from FeatureSettingsView.xaml.cs, and were taken out
+  # in a change of their own.
   # hmailserver/source/Tools/ControlPanel/Services/ServiceRestart.cs
   - scan: semgrep-sast
     finding: 0376f275140223bb1f6d
