@@ -33,7 +33,14 @@ and Dependabot's alerts. Three scans, one report:
      (api.osv.dev) by its upstream repository's tag. OSV's C and C++ data is
      partial, so each library is also asked about a CONTROL version that a
      recent advisory is known to name: when OSV says nothing about the control
-     either, the answer for the real version is UNKNOWN, never clean.
+     either, the answer for the real version is UNKNOWN, never clean. And the
+     .NET Desktop Runtime each Windows installer carries, at the release
+     third-party-binaries.json pins for that installer, asked of OSV by the
+     NuGet packages Microsoft publishes its two shared frameworks as -
+     Microsoft.WindowsDesktop.App.Runtime and Microsoft.NETCore.App.Runtime,
+     win-x64 for the x64 installer and win-arm64 for the ARM64 one - which is
+     how OSV's records name the runtime; a control beside each, as for the
+     libraries.
 
 Where it comes from - nothing from GitHub. Trivy is Docker Hub's aquasec/trivy,
 pinned by digest in .gitlab-ci.yml. Its vulnerability database is an OCI artifact
@@ -176,7 +183,8 @@ VCXPROJ = "hmailserver/source/Server/hMailServer/hMailServer.vcxproj"
 BINARIES = "hmailserver/docs/third-party-binaries.json"
 
 # The libraries no manifest names. For each: where its version is read, how OSV
-# names it (the upstream repository and the tag of a version), and a CONTROL
+# names it (the upstream repository and the tag of a version - or, with an
+# ecosystem, the package's name there and the version itself), and a CONTROL
 # version that a recent advisory in OSV is known to name, so that "no advisory"
 # can be told apart from "no data". control_draws says that OSV did name advisories for
 # the control when it was chosen (api.osv.dev on 6 October 2026: OpenSSL 4.0.0 43,
@@ -188,6 +196,9 @@ BINARIES = "hmailserver/docs/third-party-binaries.json"
 # that may affect it. oldest_tag is the first version the upstream
 # repository has a tag for, where that is later than versions still in use: OSV
 # matches a version by its tag, and cannot match one the repository never had.
+# ecosystem, when there is one, is OSV's name for the package index whose records name
+# the component (NuGet for the .NET runtime, below): OSV is then asked by repo, the
+# package's name in it, and the version as it is ("{v}"), never by a repository's tag.
 # purl is the name of its pkg:generic purl, as build/native-dependencies.ps1 gives it
 # to the SBOM and as a statement of the VEX document names it (--self-test holds the
 # two to each other). build/ci/mr-dependency-check.py reads this list, vendored_versions
@@ -223,6 +234,33 @@ VENDORED = [
      "repo": None, "used": "the built-in database, shipped by the installer",
      "coverage": "no open vulnerability database tracks it; Microsoft ended its support in July 2021"},
 ]
+
+# The .NET Desktop Runtime each Windows installer carries and installs where no .NET 10
+# Desktop Runtime is present: third-party-binaries.json's two downloaded entries, one
+# for each installer, each pinning one release of Microsoft's. One release's installer
+# holds two shared frameworks of that release, Microsoft.WindowsDesktop.App and
+# Microsoft.NETCore.App, which Microsoft publishes on NuGet as the runtime packages
+# below, one per platform, and OSV's records name the runtime's advisories under those
+# packages. So each package is asked of OSV in the NuGet ecosystem at the release its
+# installer's entry pins, with the control 10.0.12 beside it, a release OSV names
+# advisories for (it did for each of the four packages on 14 October 2026), so that its
+# silence is OSV's data not read. The SBOM names both installers' runtime
+# pkg:generic/dotnet-windowsdesktop-runtime (the ARM64 one with ?arch=arm64), so a VEX
+# statement names it so, at the release.
+DOTNET_RUNTIME_INSTALLERS = (
+    ("Microsoft .NET Windows Desktop Runtime (x64 installer)", "win-x64", "the x64 installer"),
+    ("Microsoft .NET Windows Desktop Runtime (ARM64 installer)", "win-arm64", "the ARM64 installer"),
+)
+DOTNET_RUNTIME_PACKAGES = (
+    ("Microsoft.WindowsDesktop.App.Runtime", "the Windows Desktop runtime, which the Control Panel runs on"),
+    ("Microsoft.NETCore.App.Runtime", "the .NET runtime, which the Control Panel and the database tools run on"),
+)
+VENDORED += [
+    {"name": "%s.%s" % (package, rid), "purl": "dotnet-windowsdesktop-runtime", "file": BINARIES, "component": component,
+     "ecosystem": "NuGet", "repo": "%s.%s" % (package, rid), "tag": "{v}", "control": "10.0.12", "control_draws": True,
+     "used": "%s, in the .NET Desktop Runtime %s carries and installs where no .NET 10 Desktop Runtime is present"
+             % (what, installer)}
+    for component, rid, installer in DOTNET_RUNTIME_INSTALLERS for package, what in DOTNET_RUNTIME_PACKAGES]
 
 
 _mr_check = []
@@ -460,8 +498,11 @@ def report_findings(report, label, file_prefix=""):
 
 # ---------------------------------------------------------------- OSV, for the vendored libraries
 
-def osv_query(repo, tag):
-    body = json.dumps({"package": {"name": repo, "ecosystem": "GIT"}, "version": tag}).encode("utf-8")
+def osv_query(repo, tag, ecosystem="GIT"):
+    """Every advisory api.osv.dev names for a version: by a repository's tag (ecosystem
+    GIT, the default), or by a package's name and version in another ecosystem
+    (VENDORED's ecosystem, NuGet for the .NET runtime)."""
+    body = json.dumps({"package": {"name": repo, "ecosystem": ecosystem}, "version": tag}).encode("utf-8")
     vulns, token = [], None
     while True:
         payload = json.loads(body)
@@ -504,6 +545,50 @@ def vendored_version(lib):
     except ValueError:
         versions = []
     return (versions[0] if versions else None), lib["file"]
+
+
+def advisory_fix(v, lib, version):
+    """What fixes advisory v for lib at version, as the report's solution names it, or ""
+    when OSV's record names no fix. A library asked by its repository's tag (GIT): a
+    later release, with the fix commit the record gives. One asked by its package in an
+    ecosystem (NuGet): the release that ends the record's range holding the version, for
+    that package - the 10.0 range's fix for a 10.0 runtime, where the record has an 8.0
+    and a 9.0 range beside it - or, when no range holds it, the fixes the record names
+    for the package."""
+    ecosystem = lib.get("ecosystem", "GIT")
+    if ecosystem == "GIT":
+        fixed = ""
+        for affected in v.get("affected", []) or []:
+            for r in affected.get("ranges", []) or []:
+                for event in r.get("events", []) or []:
+                    if "fixed" in event:
+                        fixed = "a later release (fix commit %s)" % event["fixed"][:12]
+        return fixed
+
+    def order(release):
+        # Numbers compared as numbers, and a word (a pre-release's) after any number, so
+        # that two versions always compare.
+        return [(0, p) if isinstance(p, int) else (1, p) for p in version_key(release)]
+    holding, named = [], []
+    for affected in v.get("affected", []) or []:
+        package = affected.get("package") or {}
+        if str(package.get("ecosystem", "")).lower() != ecosystem.lower() or \
+                str(package.get("name", "")).lower() != lib["repo"].lower():
+            continue
+        for r in affected.get("ranges", []) or []:
+            introduced = "0"
+            for event in r.get("events", []) or []:
+                if "introduced" in event:
+                    introduced = str(event["introduced"])
+                elif "fixed" in event:
+                    fixed = str(event["fixed"])
+                    named.append(fixed)
+                    if order(introduced) <= order(version) < order(fixed):
+                        holding.append(fixed)
+    if holding:
+        return min(holding, key=order)
+    named = sorted(set(named), key=order)
+    return ("a later release (%s)" % ", ".join(named)) if named else ""
 
 
 def osv_severity(v):
@@ -564,9 +649,10 @@ def osv_scan(dismissed):
             continue
         tag = lib["tag"].format(v=version, v_=version.replace(".", "_"))
         control = lib["tag"].format(v=lib["control"], v_=lib["control"].replace(".", "_"))
+        ecosystem = lib.get("ecosystem", "GIT")
         try:
-            vulns = osv_query(lib["repo"], tag)
-            control_vulns = osv_query(lib["repo"], control)
+            vulns = osv_query(lib["repo"], tag, ecosystem)
+            control_vulns = osv_query(lib["repo"], control, ecosystem)
         except (urllib.error.URLError, OSError, ValueError) as e:
             outcomes.append((lib["name"], version, source, "FAIL", "OSV could not be asked: %s" % e))
             continue
@@ -582,12 +668,7 @@ def osv_scan(dismissed):
             aliases = [v.get("id", "")] + list(v.get("aliases", []) or [])
             # The statement must name this library at this version, not the advisory alone.
             hit = mr_check().vex_dismissal(dismissed, aliases, "generic", lib["purl"], version)
-            fixed = ""
-            for affected in v.get("affected", []) or []:
-                for r in affected.get("ranges", []) or []:
-                    for event in r.get("events", []) or []:
-                        if "fixed" in event:
-                            fixed = "a later release (fix commit %s)" % event["fixed"][:12]
+            fixed = advisory_fix(v, lib, version)
             record = {
                 "scanner": "osv", "scan": "vendored libraries", "file": source, "type": "vendored",
                 "package": lib["name"], "version": version, "id": v.get("id", ""),
@@ -610,7 +691,8 @@ def osv_scan(dismissed):
             # What affects the oldest version OSV can match most probably affects
             # an older one too: listed for a person to read, not counted.
             try:
-                oldest = osv_query(lib["repo"], lib["tag"].format(v=lib["oldest_tag"], v_=lib["oldest_tag"].replace(".", "_")))
+                oldest = osv_query(lib["repo"], lib["tag"].format(v=lib["oldest_tag"], v_=lib["oldest_tag"].replace(".", "_")),
+                                   ecosystem)
             except (urllib.error.URLError, OSError, ValueError):
                 oldest = control_vulns
             maybe = sorted({v.get("id") for v in oldest})
@@ -1066,6 +1148,43 @@ def self_test():
                                          {"component": "MariaDB Connector/C", "version": "3.4.10 (x86)"}]})
     expect(vendored_versions(libraries["mariadb-connector-c"], manifest) == ["3.4.9", "3.4.10"],
            "each version of a component's files, once")
+    # The .NET runtime's packages, each at the release its own installer's entry pins.
+    runtime = dict((lib["name"], lib) for lib in VENDORED if lib.get("ecosystem") == "NuGet")
+    runtime_manifest = json.dumps({"artifacts": [
+        {"component": "Microsoft .NET Windows Desktop Runtime (x64 installer)", "version": "10.0.13", "disposition": "downloaded"},
+        {"component": "Microsoft .NET Windows Desktop Runtime (ARM64 installer)", "version": "10.0.14", "platform": "arm64",
+         "disposition": "downloaded"}]})
+    for name, release in (("Microsoft.WindowsDesktop.App.Runtime.win-x64", "10.0.13"),
+                          ("Microsoft.NETCore.App.Runtime.win-x64", "10.0.13"),
+                          ("Microsoft.WindowsDesktop.App.Runtime.win-arm64", "10.0.14"),
+                          ("Microsoft.NETCore.App.Runtime.win-arm64", "10.0.14")):
+        lib = runtime.get(name)
+        expect(lib is not None and lib["repo"] == name and lib["tag"] == "{v}" and vendored_versions(lib, runtime_manifest) == [release],
+               "VENDORED asks OSV about the NuGet package %s at the release its installer's entry pins (%s): %s"
+               % (name, release, lib and vendored_versions(lib, runtime_manifest)))
+
+    # Where OSV's record says a runtime advisory is fixed: the release that ends the
+    # range holding the version, for the package asked about. (A library of its own
+    # here, so that what is held below is the scan's reading, whatever VENDORED holds.)
+    desktop = {"name": "Microsoft.WindowsDesktop.App.Runtime.win-x64", "purl": "dotnet-windowsdesktop-runtime", "file": BINARIES,
+               "component": "Microsoft .NET Windows Desktop Runtime (x64 installer)", "ecosystem": "NuGet",
+               "repo": "Microsoft.WindowsDesktop.App.Runtime.win-x64", "tag": "{v}", "control": "10.0.12", "control_draws": True}
+
+    def nuget_range(package, introduced, fixed):
+        return {"package": {"ecosystem": "NuGet", "name": package},
+                "ranges": [{"type": "ECOSYSTEM", "events": [{"introduced": introduced}, {"fixed": fixed}]}]}
+    runtime_record = {"id": "GHSA-0000-0000-0001", "aliases": ["CVE-0000-00001"], "summary": "an advisory of the runtime",
+                      "database_specific": {"severity": "HIGH"},
+                      "affected": [nuget_range(desktop["repo"], "8.0.0", "8.0.32"), nuget_range(desktop["repo"], "10.0.0", "10.0.13"),
+                                   nuget_range("Microsoft.WindowsDesktop.App.Runtime.win-x86", "10.0.0", "10.0.99")]}
+    for version, fix in (("10.0.12", "10.0.13"), ("10.0.0", "10.0.13"), ("8.0.5", "8.0.32"),
+                         ("10.0.13", "a later release (8.0.32, 10.0.13)")):
+        got = advisory_fix(runtime_record, desktop, version)
+        expect(got == fix, "a NuGet record's fix for %s %s is %r, not %r" % (desktop["repo"], version, fix, got))
+    git_record = {"id": "CVE-0000-00002", "affected": [{"ranges": [{"type": "GIT", "repo": "r",
+                                                                     "events": [{"introduced": "0"}, {"fixed": "f" * 40}]}]}]}
+    expect(advisory_fix(git_record, libraries["zlib"], "1.3.2") == "a later release (fix commit ffffffffffff)",
+           "a repository's record's fix is a later release and its fix commit, as before")
 
     # What OSV answers for a library: a control OSV is known to name that draws nothing
     # is its data not read, which fails the scan; and a version older than a control that
@@ -1073,9 +1192,13 @@ def self_test():
     module = globals()
     held = (module["osv_query"], module["vendored_version"], list(VENDORED))
     try:
-        answers = {}
+        answers, asked = {}, []
+
+        def fake_query(repo, tag, ecosystem="GIT"):
+            asked.append((ecosystem, repo, tag))
+            return [dict(a) for a in answers.get((ecosystem, repo, tag) if ecosystem != "GIT" else (repo, tag), [])]
         zlib = dict(libraries["zlib"])
-        module["osv_query"] = lambda repo, tag: [dict(a) for a in answers.get((repo, tag), [])]
+        module["osv_query"] = fake_query
         VENDORED[:] = [zlib]
         module["vendored_version"] = lambda lib: ("1.2.0", "zlib.h")
         _, outcomes = osv_scan([])
@@ -1096,9 +1219,63 @@ def self_test():
         _, outcomes = osv_scan([])
         expect(len(outcomes) == 1 and outcomes[0][3] == "UNKNOWN", "a control OSV is not known to name, drawing nothing, "
                "leaves the library UNKNOWN: %s" % outcomes)
+
+        # The .NET runtime: asked in OSV's NuGet ecosystem by its package and the pinned
+        # release, never by a repository's tag. A High advisory whose range for the
+        # package holds the release fails the scan, with the release that ends the range
+        # as the fix the report gives - so the release gate holds it; a release past the
+        # range passes, the control drawing the advisory; and a control that draws nothing
+        # is OSV's data not read.
+        VENDORED[:] = [dict(desktop)]
+        answers.clear()
+        answers[("NuGet", desktop["repo"], "10.0.12")] = [runtime_record]
+        del asked[:]
+        module["vendored_version"] = lambda lib: ("10.0.12", BINARIES)
+        found, outcomes = osv_scan([])
+        expect(asked == [("NuGet", desktop["repo"], "10.0.12"), ("NuGet", desktop["repo"], "10.0.12")],
+               "the runtime's package is asked of OSV in the NuGet ecosystem, at the release and at its control: %s" % asked)
+        expect(len(outcomes) == 1 and outcomes[0][3] == "FAIL" and "GHSA-0000-0000-0001" in outcomes[0][4] and
+               "could not" not in outcomes[0][4], "a pinned runtime a High advisory names fails the scan: %s" % outcomes)
+        expect(len(found) == 1 and found[0]["severity"] == "High" and found[0]["fixed"] == "10.0.13" and blocking(found[0])
+               and found[0]["package"] == desktop["repo"] and found[0]["file"] == BINARIES,
+               "and it is a High with a fixed version, against the package, at the manifest: %s" % found)
+        report = gitlab_report("osv", "OSV", "api.osv.dev v1", found, "2026-10-14T00:00:00", "2026-10-14T00:00:01", "success")
+        expect([(v["severity"], v.get("solution"), v["location"]["dependency"]["package"]["name"]) for v in report["vulnerabilities"]]
+               == [("High", "Upgrade %s to 10.0.13." % desktop["repo"], desktop["repo"])],
+               "the GitLab report's record is High with the fixed release as its solution, which the release gate holds: %s"
+               % report["vulnerabilities"])
+        module["vendored_version"] = lambda lib: ("10.0.13", BINARIES)
+        found, outcomes = osv_scan([])
+        expect(len(outcomes) == 1 and outcomes[0][3] == "PASS" and not found,
+               "a pinned runtime past the advisory's range passes, the control drawing it: %s" % outcomes)
+        answers.clear()
+        found, outcomes = osv_scan([])
+        expect(len(outcomes) == 1 and outcomes[0][3] == "FAIL" and "could not" in outcomes[0][4],
+               "a runtime control that draws nothing is OSV's data not read, which fails the scan: %s" % outcomes)
     finally:
         module["osv_query"], module["vendored_version"] = held[0], held[1]
         VENDORED[:] = held[2]
+
+    # The tree: each runtime the installers carry - every downloaded entry of
+    # third-party-binaries.json - is asked of OSV by both of its NuGet packages, for its
+    # platform, at the release the entry pins.
+    try:
+        text = read(BINARIES)
+        artifacts = json.loads(text[1:] if text.startswith(chr(0xFEFF)) else text).get("artifacts", [])
+    except (OSError, ValueError) as e:
+        artifacts = []
+        failures.append("the tree's %s is read: %s" % (BINARIES, e))
+    downloaded = [a for a in artifacts if isinstance(a, dict) and a.get("disposition") == "downloaded"]
+    expect(len(downloaded) == 2, "the tree's %s pins a runtime for each installer: %s" % (BINARIES, [a.get("path") for a in downloaded]))
+    for artifact in downloaded:
+        rid = "win-arm64" if artifact.get("platform") == "arm64" else "win-x64"
+        reading = [lib for lib in VENDORED if lib.get("file") == BINARIES and lib.get("component") == artifact.get("component")]
+        expect(sorted((lib.get("ecosystem"), lib.get("repo")) for lib in reading) ==
+               [("NuGet", "Microsoft.NETCore.App.Runtime." + rid), ("NuGet", "Microsoft.WindowsDesktop.App.Runtime." + rid)]
+               and all(vendored_version(lib)[0] == str(artifact.get("version")) for lib in reading),
+               "the runtime %s carries (%s) is asked of OSV by Microsoft.WindowsDesktop.App.Runtime.%s and "
+               "Microsoft.NETCore.App.Runtime.%s at %s: %s" % (artifact.get("path"), artifact.get("component"), rid, rid,
+                                                              artifact.get("version"), [lib.get("name") for lib in reading]))
 
     # The tree: every library has its purl, the SBOM's; the version each file pins is
     # read; and every statement of the VEX document parses and names, among its

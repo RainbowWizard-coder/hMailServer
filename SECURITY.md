@@ -544,9 +544,10 @@ scanning".
   - *What it evaluates:* each NuGet version the change adds (`packages*.lock.json`, the ARM64 ones among them, and
     `packages.config`), each PyPI version it adds (`*requirements*.txt`), and each native or vendored library whose
     pinned version it changes: OpenSSL, Boost and libpq (`hMailServer.vcxproj`), zlib and QuickJS (vendored), and
-    MariaDB Connector/C, 7-Zip and SQL Server Compact (`hmailserver/docs/third-party-binaries.json`). A NuGet or PyPI
-    version is looked up in OSV's own export of its ecosystem's advisories; a native library is asked of OSV by its
-    upstream repository's tag, beside a control version a published advisory is known to affect.
+    MariaDB Connector/C, 7-Zip, SQL Server Compact and the .NET Desktop Runtime each installer carries
+    (`hmailserver/docs/third-party-binaries.json`). A NuGet or PyPI version is looked up in OSV's own export of its
+    ecosystem's advisories; a native library is asked of OSV by its upstream repository's tag, and the runtime by its
+    NuGet runtime packages, beside a control version a published advisory is known to affect.
   - *A violation*, which fails the pipeline: an OSV `MAL-` record (the OpenSSF malicious-packages data), rated
     Critical; an advisory of severity Critical or High, with a fixed version or without one, rated by the GitHub
     advisory database's label, else its CVSS v3 vector, else its CVSS v4.0 vector, else its aliases'; such an
@@ -670,8 +671,10 @@ scanning".
   `packages.config` files and the scanners' own hashed Python requirements, and over the package database of the
   image the Linux server is built in, whose OpenSSL, libpq, libldap and Boost the Linux packages are built against.
   It asks OSV (`api.osv.dev`) about the libraries the Windows server is built with and no manifest names - OpenSSL,
-  Boost, libpq, zlib, QuickJS, MariaDB Connector/C, 7-Zip - at the versions the build uses, and says UNKNOWN, not
-  clean, for a library OSV holds no usable data on (libpq, QuickJS, 7-Zip 19.00 and SQL Server Compact, today). It
+  Boost, libpq, zlib, QuickJS, MariaDB Connector/C, 7-Zip - at the versions the build uses, and about the .NET Desktop
+  Runtime each Windows installer carries, by its NuGet runtime packages at the release the installer pins; and it says
+  UNKNOWN, not clean, for a library OSV holds no usable data on (libpq, QuickJS, 7-Zip 19.00 and SQL Server Compact,
+  today). It
   honours the VEX document. An advisory against a header-only package of that image - `linux-libc-dev`, the kernel's
   user-space API headers, which carry no code of the kernel's, under which Trivy files every advisory against the
   kernel's source package - is not affected: the report lists it with that status, counted apart, and neither the scan

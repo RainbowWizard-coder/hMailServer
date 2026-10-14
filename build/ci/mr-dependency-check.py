@@ -40,8 +40,10 @@ fetched by name. What it reads, at the base and at the head, from git:
                            at each version its file pins, read as that scan reads
                            it: OpenSSL, Boost and libpq from hMailServer.vcxproj's
                            paths, zlib from zlib.h, QuickJS from its VERSION, and
-                           MariaDB Connector/C, 7-Zip and SQL Server Compact from
-                           third-party-binaries.json; and
+                           MariaDB Connector/C, 7-Zip, SQL Server Compact and the
+                           .NET Desktop Runtime each installer carries (its two
+                           NuGet runtime packages, for the installer's platform)
+                           from third-party-binaries.json; and
   **/native-dependencies*.json
                            a native component list (build/native-dependencies.ps1),
                            if one is committed, whose components are taken as the
@@ -72,9 +74,11 @@ merge request as one that may affect the version, which a maintainer reads and, 
 does not, accepts.
 
 A native or vendored library's version that the head pins and the base does not is
-asked of OSV (api.osv.dev) by its upstream repository's tag, as dependency-scan asks,
-with the library's CONTROL version beside it, and rated as above, an alias's record
-fetched from api.osv.dev when the advisory has no rating of its own. A version older
+asked of OSV (api.osv.dev) by its upstream repository's tag, as dependency-scan asks -
+or, for one VENDORED names an ecosystem for (the .NET runtime's NuGet packages), by
+the package and the version in that ecosystem - with the library's CONTROL version
+beside it, and rated as above, an alias's record fetched from api.osv.dev when the
+advisory has no rating of its own. A version older
 than the repository's first tag (7-Zip's 22.01), which OSV cannot match, is held by
 the Critical and High advisories of that first tag, as ones that may affect it; and a
 version older than its control that OSV names nothing for, while it names advisories
@@ -858,10 +862,11 @@ def by_name(index, ecosystem):
 
 class OsvApi(object):
     """api.osv.dev, as build/ci/dependency-scan.py asks it: by a repository's tag (GIT),
-    and for one record by its id. An error is raised, never taken for no advisory."""
+    or by a package and its version in another ecosystem (NuGet), and for one record by
+    its id. An error is raised, never taken for no advisory."""
 
-    def query(self, repo, tag):
-        return scan.osv_query(repo, tag)
+    def query(self, repo, tag, ecosystem="GIT"):
+        return scan.osv_query(repo, tag, ecosystem)
 
     def vuln(self, advisory_id):
         """The record of one id, or None when OSV has none (404)."""
@@ -916,7 +921,8 @@ def native_pins(root, ref, at_head):
 def native_changes(root, base, native_added):
     """[(library of VENDORED or None, name, version, files)]: each version of a library
     that HEAD pins and base does not, and each component a committed native list adds,
-    taken as the library of VENDORED whose purl name it has (None when it is none)."""
+    taken as every library of VENDORED whose purl name it has - the .NET runtime's is
+    the purl of four, its two packages for each installer - or None when it is none."""
     before = native_pins(root, base, False)
     after = native_pins(root, "HEAD", True)
     changes, seen = [], set()
@@ -925,16 +931,18 @@ def native_changes(root, base, native_added):
             if version not in before[lib["name"]]:
                 changes.append((lib, lib["name"], version, lib["file"]))
                 seen.add((lib["name"], version))
-    by_purl = dict((lib["purl"], lib) for lib in scan.VENDORED)
+    by_purl = {}
+    for lib in scan.VENDORED:
+        by_purl.setdefault(lib["purl"], []).append(lib)
     for key, where in native_added:
         _, name, version = key
-        lib = by_purl.get(name.lower())
         files = ", ".join(sorted({w[0] for w in where}))
-        if lib is not None and (lib["name"], version) in seen:
-            continue
-        if lib is not None:
-            seen.add((lib["name"], version))
-        changes.append((lib, lib["name"] if lib else where[0][1], version, files))
+        for lib in by_purl.get(name.lower()) or [None]:
+            if lib is not None and (lib["name"], version) in seen:
+                continue
+            if lib is not None:
+                seen.add((lib["name"], version))
+            changes.append((lib, lib["name"] if lib else where[0][1], version, files))
     return changes
 
 
@@ -968,9 +976,10 @@ def evaluate_native(changes, accepted, statements, osv, say, held_versions):
 
         def tag_of(v):
             return lib["tag"].format(v=v, v_=v.replace(".", "_"))
+        ecosystem = lib.get("ecosystem", "GIT")
         tag, control = tag_of(version), tag_of(lib["control"])
-        found = osv.query(lib["repo"], tag)
-        control_found = osv.query(lib["repo"], control)
+        found = osv.query(lib["repo"], tag, ecosystem)
+        control_found = osv.query(lib["repo"], control, ecosystem)
         if lib.get("control_draws") and not control_found:
             # The control is one OSV is known to name: its silence is OSV's data not read,
             # never an answer.
@@ -981,7 +990,7 @@ def evaluate_native(changes, accepted, statements, osv, say, held_versions):
             # OSV matches a version by its tag, and the repository has none this old: what
             # affects its first tag most probably reaches back to it.
             below = lib["oldest_tag"]
-            maybe = [v for v in osv.query(lib["repo"], tag_of(lib["oldest_tag"]))
+            maybe = [v for v in osv.query(lib["repo"], tag_of(lib["oldest_tag"]), ecosystem)
                      if v.get("id") not in {f.get("id") for f in found}]
             say("        %s is older than %s's first tag, %s, which OSV cannot match: the advisories of %s are taken as "
                 "ones that may affect it (%d)" % (version, lib["repo"], lib["oldest_tag"], lib["oldest_tag"], len(maybe)))
@@ -1009,11 +1018,16 @@ def evaluate_native(changes, accepted, statements, osv, say, held_versions):
             ids = sorted({advisory["id"]} | {i for a in group for i in [a["id"]] + list(a.get("aliases") or [])})
             others = [i for i in ids if i != advisory["id"]]
             taken = next((accepted[(i, pypi_name(lib["name"]))] for i in ids if (i, pypi_name(lib["name"])) in accepted), None)
-            fixes = sorted({str(ev["fixed"])[:12] for a in advisory.get("affected") or [] for r in a.get("ranges") or []
-                            for ev in r.get("events") or [] if "fixed" in ev})
+            if ecosystem == "GIT":
+                fixes = sorted({str(ev["fixed"])[:12] for a in advisory.get("affected") or [] for r in a.get("ranges") or []
+                                for ev in r.get("events") or [] if "fixed" in ev})
+                fix = (" - fix commit %s" % ", ".join(fixes[:4])) if fixes else " - no fix"
+            else:
+                # A release of the package, as dependency-scan names it in the report.
+                fix = scan.advisory_fix(advisory, lib, version)
+                fix = (" - fixed in %s" % fix) if fix else " - no fix"
             line = "native %s: %s %s (%s)%s%s - %s" % (
-                what, level or "unrated", advisory["id"], ", ".join(others) or "no alias",
-                (" - fix commit %s" % ", ".join(fixes[:4])) if fixes else " - no fix",
+                what, level or "unrated", advisory["id"], ", ".join(others) or "no alias", fix,
                 (" - MAY affect it: OSV cannot match %s, and this advisory affects %s" % (version, below))
                 if uncertain else "",
                 (advisory.get("summary") or advisory.get("details") or "")[:140].replace("\n", " "))
@@ -1360,7 +1374,8 @@ def self_test():
         libs = dict((lib["purl"], lib) for lib in scan.VENDORED)
 
         def natives(openssl="4.0.3", openssl_arm64=None, boost="1_92_0", zlib="1.3.2", quickjs="2026-06-04",
-                    mariadb="3.4.11", sevenzip="26.03", sqlce="4.0 SP1 (MSI built 2012-04-06)"):
+                    mariadb="3.4.11", sevenzip="26.03", sqlce="4.0 SP1 (MSI built 2012-04-06)", runtime="10.0.13",
+                    runtime_arm64=None):
             project = ("<I>$(hMailServerLibs)\\boost_%s;$(hMailServerLibs)\\openssl-%s\\out64\\include;"
                        "$(hMailServerLibs)\\postgresql-18.6\\src\\interfaces\\libpq</I>\n"
                        "<I>$(hMailServerLibs)\\openssl-%s-arm64\\out64\\include</I>\n" % (boost, openssl, openssl_arm64 or openssl))
@@ -1368,7 +1383,12 @@ def self_test():
                 {"component": "MariaDB Connector/C", "version": mariadb, "path": "libmysql.dll"},
                 {"component": "MariaDB Connector/C", "version": mariadb, "path": "plugin/dialog.dll"},
                 {"component": "7-Zip standalone console (7za.exe)", "version": sevenzip},
-                {"component": "Microsoft SQL Server Compact 4.0 SP1 x64 ENU", "version": sqlce}]}, indent=2)
+                {"component": "Microsoft SQL Server Compact 4.0 SP1 x64 ENU", "version": sqlce},
+                {"component": "Microsoft .NET Windows Desktop Runtime (x64 installer)", "version": runtime,
+                 "disposition": "downloaded", "path": "hmailserver/installation/DotNet/windowsdesktop-runtime-10.0-win-x64.exe"},
+                {"component": "Microsoft .NET Windows Desktop Runtime (ARM64 installer)", "version": runtime_arm64 or runtime,
+                 "disposition": "downloaded", "platform": "arm64",
+                 "path": "hmailserver/installation/ARM64/DotNet/windowsdesktop-runtime-10.0-win-arm64.exe"}]}, indent=2)
             return {libs["openssl"]["file"]: project, libs["zlib"]["file"]: '#define ZLIB_VERSION "%s"\n' % zlib,
                     libs["quickjs"]["file"]: quickjs + "\n", libs["7-zip"]["file"]: binaries}
 
@@ -1399,6 +1419,17 @@ def self_test():
 
         def answer(purl, tag, *records):
             return ((libs[purl]["repo"], tag), list(records))
+
+        # The .NET runtime's packages, as OSV's NuGet records name them: a High advisory
+        # whose 10.0 range ends at 10.0.13, for each package, which names the control.
+        runtime_packages = sorted(lib["repo"] for lib in scan.VENDORED
+                                  if str(lib.get("component", "")).startswith("Microsoft .NET Windows Desktop Runtime"))
+
+        def runtime_record(package):
+            return {"id": "GHSA-0000-0000-%04d" % (runtime_packages.index(package) + 1), "aliases": ["CVE-0000-00001"],
+                    "summary": "an advisory of the runtime", "database_specific": {"severity": "HIGH"},
+                    "affected": [{"package": {"ecosystem": "NuGet", "name": package},
+                                  "ranges": [{"type": "ECOSYSTEM", "events": [{"introduced": "10.0.0"}, {"fixed": "10.0.13"}]}]}]}
         answers = dict([
             answer("zlib", "v1.2.11", native_record("CVE-2022-37434", critical, summary="inflateGetHeader heap overflow")),
             answer("zlib", "v1.3", native_record("CVE-2026-27171", medium)),
@@ -1408,17 +1439,19 @@ def self_test():
             answer("mariadb-connector-c", "v3.4.10", native_record("CVE-2026-4", medium)),
             answer("mariadb-connector-c", "v3.1.7", native_record("CVE-2020-1", critical)),
             answer("7-zip", "22.01", native_record("CVE-2023-31102", local_high)),
-            answer("7-zip", "24.08", native_record("CVE-2024-11477", local_high))])
+            answer("7-zip", "24.08", native_record("CVE-2024-11477", local_high))] +
+            [(("NuGet", package, "10.0.12"), [runtime_record(package)]) for package in runtime_packages])
 
         class FakeOsv(object):
             def __init__(self, broken=False):
                 self.broken, self.asked = broken, []
 
-            def query(self, repo, tag):
-                self.asked.append((repo, tag))
+            def query(self, repo, tag, ecosystem="GIT"):
+                key = (repo, tag) if ecosystem == "GIT" else (ecosystem, repo, tag)
+                self.asked.append(key)
                 if self.broken:
                     raise OSError("api.osv.dev cannot be reached")
-                return [dict(r) for r in answers.get((repo, tag), [])]
+                return [dict(r) for r in answers.get(key, [])]
 
             def vuln(self, advisory_id):
                 self.asked.append(("vuln", advisory_id))
@@ -1574,13 +1607,52 @@ def self_test():
         reset(base)
         commit(natives(zlib="1.3.1"), "zlib 1.3.1, OSV's control answering nothing")
         silent = FakeOsv()
-        silent.query = lambda repo, tag: [] if tag == "v1.3" else FakeOsv.query(silent, repo, tag)
+        silent.query = lambda repo, tag, ecosystem="GIT": [] if tag == "v1.3" else FakeOsv.query(silent, repo, tag, ecosystem)
         expect(verdict(base, osv=silent) == 2 and any("known to name" in s for s in said),
                "a control OSV is known to name that draws nothing is never a pass: %s" % said)
         reset(base)
         commit(natives(mariadb="3.0.0"), "a Connector/C older than its control, which OSV names nothing for")
         expect(verdict(base) == 1 and any("CVE-2020-1" in s and "MAY affect" in s for s in said if s.startswith("HELD")),
                "a version below a control that draws a Critical advisory, named in none itself, is held by it: %s" % said)
+        # The .NET runtime each installer carries: a change that moves a pin is asked of
+        # OSV by the installer's two NuGet packages, in the NuGet ecosystem, at the new
+        # release and at the control. A release a High advisory's range holds is held, the
+        # release that ends the range named as its fix, unless the base's exceptions accept
+        # the advisory for the package by its name; a release past the range passes, and
+        # an installer whose pin did not move is not asked about.
+        expect(len(runtime_packages) == 4, "dependency-scan's VENDORED asks OSV about the runtime's four NuGet packages, "
+               "two for each installer: %s" % runtime_packages)
+        if len(runtime_packages) == 4:
+            reset(base)
+            commit(natives(runtime="10.0.12"), "both runtimes back to 10.0.12")
+            code = verdict(base)
+            held = [s for s in said if s.startswith("HELD")]
+            expect(code == 1 and len(held) == 4 and all(any(p + " 10.0.12" in s and "fixed in 10.0.13" in s for s in held)
+                                                        for p in runtime_packages),
+                   "a runtime pin moved to a release a High advisory names is held, for each of its four packages: %s" % said)
+            expect(sorted(a for a in fake[0].asked if a[0] == "NuGet") == sorted([("NuGet", p, "10.0.12") for p in runtime_packages] * 2)
+                   and not any(a[0] in runtime_packages for a in fake[0].asked),
+                   "each runtime package is asked of OSV in the NuGet ecosystem, at the release and its control, never by a "
+                   "repository's tag: %s" % fake[0].asked)
+            reset(base)
+            runtime_exception = accepting.replace("GHSA-aaaa-aaaa-aaaa", runtime_record(runtime_packages[0])["id"]).replace(
+                "package: Foo.Bar", "package: %s" % runtime_packages[0])
+            accepted_runtime = commit({EXCEPTIONS: runtime_exception}, "an exception for one runtime package, landed first")
+            commit(natives(runtime="10.0.12"), "both runtimes back to 10.0.12")
+            code = verdict(accepted_runtime)
+            held = [s for s in said if s.startswith("HELD")]
+            expect(code == 1 and len(held) == 3 and not any(runtime_packages[0] + " " in s for s in held)
+                   and any(s.startswith("ACCEPTED") and runtime_packages[0] in s for s in said),
+                   "an exception naming the advisory and the runtime package accepts it for that package alone: %s" % said)
+            reset(base)
+            older = commit(natives(runtime="10.0.12"), "the runtimes at 10.0.12, landed")
+            commit(natives(runtime="10.0.12", runtime_arm64="10.0.13"), "the ARM64 runtime alone to 10.0.13")
+            code = verdict(older)
+            expect(code == 0 and sorted(s.split(":")[0] for s in said if s.startswith("ok      native Microsoft.")) ==
+                   ["ok      native Microsoft.NETCore.App.Runtime.win-arm64 10.0.13 (hmailserver/docs/third-party-binaries.json)",
+                    "ok      native Microsoft.WindowsDesktop.App.Runtime.win-arm64 10.0.13 (hmailserver/docs/third-party-binaries.json)"],
+                   "a runtime pin moved past the advisory's range passes, and the installer whose pin did not move is not asked "
+                   "about: %s" % said)
 
         # A requirements line that pins no version by name==version is held, and one the
         # base already has is not the change's. A requirements file it names is the tree's

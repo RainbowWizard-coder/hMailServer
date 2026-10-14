@@ -5809,6 +5809,23 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
 
 ### Build and tests
 
+- **`dependency-scan` and `mr-dependency-check` ask OSV about the .NET Desktop Runtime the Windows installers carry.**
+  `build/ci/dependency-scan.py`'s list of what no manifest names (`VENDORED`) read every component of
+  `hmailserver/docs/third-party-binaries.json` the installers ship but the runtime, so no scan, no change gate and not
+  the release job read the release the installers bundle. It now holds the runtime's four NuGet packages -
+  `Microsoft.WindowsDesktop.App.Runtime` and `Microsoft.NETCore.App.Runtime`, `win-x64` for the x64 installer and
+  `win-arm64` for the ARM64 one, the packages Microsoft publishes the installer's two shared frameworks as and OSV's
+  records name the runtime's advisories under - each asked of `api.osv.dev` in its NuGet ecosystem at the release its
+  installer's entry pins, with the control 10.0.12 beside it, which OSV is known to name, so that its silence fails the
+  scan. An advisory's fix is the release that ends its range for that package, which the report gives as the
+  solution: a pinned release a High advisory names fails the scan with a fixed version, and the release job's gate
+  holds it, as it holds any other. `mr-dependency-check` asks the same of a change that moves either pin, by the same
+  packages, and names the fix the same way; an exception of `.gitlab/security-exceptions.yml` names such an advisory
+  by its package. Both self-tests hold it: the four packages asked at each installer's pin, the NuGet ecosystem and
+  never a repository's tag, the fix of the range that holds the version, a pin that a High advisory names held and one
+  past it passed, a control that draws nothing refused; and the tree's two runtime pins each read by its two packages.
+  Run against OSV on 14 October 2026, the scan passed each of the four packages at 10.0.13, the release the installers
+  carry.
 - **The Windows gate stops when the post-build step fails, where it ran the suite on the previous gate's files.**
   `build/ci/windows-gate.ps1` ran `post-build.ps1` and went on whatever it answered, so a post-build that stopped
   part-way - at a library the commit's binary manifest names and the bench has not got, as the MariaDB client's move

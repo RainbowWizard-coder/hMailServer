@@ -96,7 +96,7 @@ The other tables on this page name runners the same way.
 | `static-analysis` | test | linix | a protected ref; a `batch*` branch by what it changes from `master` ([Change checks](#change-checks)) | cppcheck and clang-tidy over the server's C++, held to a baseline and to `master`'s exceptions file ([Security scanning](#security-scanning)) |
 | `semgrep` | test | linix | the same | Semgrep's open rules over the C#, Python, JavaScript and shell sources, held to a baseline and to `master`'s exceptions file |
 | `ci-image-packages` | test | linix | the same | Copies the CI image's package database out, for `dependency-scan` |
-| `dependency-scan` | test | linix | the same | Trivy over the lock files and the CI image, OSV over the vendored libraries; passes whatever they find, so that GitLab takes its report into the vulnerability report, and fails only when a scan could not run ([Dependency findings](#dependency-findings-the-vex-document-and-what-osv-cannot-answer)) |
+| `dependency-scan` | test | linix | the same | Trivy over the lock files and the CI image, OSV over the vendored libraries and the .NET runtime the installers carry; passes whatever they find, so that GitLab takes its report into the vulnerability report, and fails only when a scan could not run ([Dependency findings](#dependency-findings-the-vex-document-and-what-osv-cannot-answer)) |
 | `dependency-scan-verdict` | test | linix | wherever `dependency-scan` runs, after it | The scan's verdict, `verdict.json`: fails on a Critical or High vulnerability with a fixed version, as `dependency-scan` used to, and when a scan could not run; allowed to fail (`build/ci/dependency-scan.py --verdict`). After a retry of `dependency-scan` by hand, retry it too: GitLab runs it again only when it was skipped |
 | `repo-hygiene` | test | linix | a protected ref | The repository checks OpenSSF Scorecard ran, answered from GitLab and the tree |
 | `semgrep-sast` | test | linix | every change - a merge request, and a protected `batch*` branch - `master`, and a `v*` tag | GitLab's own SAST template: its Semgrep analyzer and rules over the C, C++, C#, Python and JavaScript - less what lies under a `build`, `dist`, `vendor` or `node_modules` directory, which the analyzer's template leaves out, so not the scripts under `build/` - with no baseline, in the project's copy of the analyzer's image; not `allow_failure`, and it keeps Semgrep's SARIF beside its report (`.gitlab/ci/gitlab-security.yml`) |
@@ -1000,11 +1000,13 @@ hold a change on what it brings:
   It also asks about every native or vendored library whose pinned version the
   change moves, read as `dependency-scan` reads them: OpenSSL, Boost and libpq
   from `hMailServer.vcxproj`'s paths, zlib from `zlib.h`, QuickJS from its
-  `VERSION`, and MariaDB Connector/C, 7-Zip and SQL Server Compact from
-  `third-party-binaries.json` - every version a file pins, so that a path for
-  ARM64 alone counts - and the components of a committed
-  `native-dependencies*.json`. Each new version is asked of `api.osv.dev` by its
-  upstream repository's tag, with the library's control version beside it, as
+  `VERSION`, and MariaDB Connector/C, 7-Zip, SQL Server Compact and the .NET
+  Desktop Runtime each installer carries from `third-party-binaries.json` -
+  every version a file pins, so that a path for ARM64 alone counts - and the
+  components of a committed `native-dependencies*.json`. Each new version is
+  asked of `api.osv.dev` by its upstream repository's tag - the runtime by its
+  two NuGet runtime packages for the installer's platform, in OSV's NuGet
+  ecosystem - with the library's control version beside it, as
   `dependency-scan` asks, and rated as above, an alias's record fetched when the
   advisory has no rating of its own. A version older than its repository's first
   tag (7-Zip's before 22.01), which OSV cannot match, is held by that tag's
@@ -1012,7 +1014,8 @@ hold a change on what it brings:
   than its control that OSV names no advisory for while it names the control's,
   by the control's (OpenSSL's 0.9.6 draws none, its 4.0.0 43). A control that
   OSV is known to name - OpenSSL's, Boost's, zlib's, Connector/C's and 7-Zip's,
-  each of which drew advisories on 6 October 2026 (`control_draws` in
+  each of which drew advisories on 6 October 2026, and the runtime packages'
+  10.0.12, which drew them on 14 October 2026 (`control_draws` in
   `dependency-scan`'s list) - and that draws none is OSV's data not read: exit 2,
   as `dependency-scan` fails its scan for it. A library OSV has no usable data
   for - no repository it knows (SQL Server Compact), or nothing for a control OSV
@@ -5122,6 +5125,19 @@ UNKNOWN (a skipped test case), not clean. On 25 September 2026:
 | QuickJS | 2025-04-26 | UNKNOWN: OSV has no QuickJS data |
 | 7-Zip (`7za.exe`) | 19.00 | UNKNOWN: 19.00 predates the upstream repository's first tag (22.01), so OSV cannot match it. The two advisories OSV has for 22.01 (CVE-2025-55188, CVE-2026-58052) reach back to the first commit. CVE-2023-31102 (a crafted 7z archive and the PPMd decoder, before 23.00) is in OSV only with a range it could not resolve, so no query by version finds it |
 | SQL Server Compact | 4.0 SP1 | UNKNOWN: no open database tracks it, and Microsoft ended its support in July 2021 |
+
+The .NET Desktop Runtime each Windows installer carries - the release
+`third-party-binaries.json` pins for that installer, which setup installs
+where no .NET 10 Desktop Runtime is present - is asked of OSV too, by the NuGet
+packages Microsoft publishes its two shared frameworks as, under which OSV's
+records name the runtime's advisories: `Microsoft.WindowsDesktop.App.Runtime`
+and `Microsoft.NETCore.App.Runtime`, `win-x64` for the x64 installer and
+`win-arm64` for the ARM64 one, each in OSV's NuGet ecosystem at the pinned
+release, with the control 10.0.12 beside it, a release OSV is known to name
+advisories for. A record's fix is the release that ends its range for that
+package, so a pinned release a High advisory names fails the scan with a fixed
+version, and the release job holds it. On 14 October 2026 OSV named no advisory
+for 10.0.13, the release the installers carry.
 
 The CI image's scan treats `linux-libc-dev` as a header-only package: the rule
 `HEADER_ONLY` in `build/ci/dependency-scan.py`, a list of the image's packages
