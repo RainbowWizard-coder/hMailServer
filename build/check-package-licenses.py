@@ -3,25 +3,43 @@
 # Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-"""Every licence field of the Linux packages names the licences of what is compiled into the server.
+"""The licence fields of the Linux packages name what is compiled into the server, or the project's licence alone.
 
-Five files say, in a field a package manager, a distribution and an auditor read, under
-which licences a Linux package of the server goes out: the project's own .rpm
-(CPACK_RPM_PACKAGE_LICENSE in CMakeLists.txt), the RPM spec's License, the APKBUILD's
-license=, the PKGBUILD's license= and the Nix package's meta.license. Each must name the
-server's own licence and the licence of every third-party component compiled into the
-server that an identifier names, and nothing else: hmailserver/docs/PackagesRpm.md, "The
-licences", says so of the tag. Until 6.3.7 four of them named neither licence of the two
-data sets idn-uts46 compiled in - Unicode's data for UTS 46 (Unicode-3.0) and HTML's list
-of named character references (BSD-3-Clause) - and the PKGBUILD named the AGPL alone
-(release review 6.3.7, B-DOC-1).
+Nine fields, in the files the Linux packages, the snap, the container image and the Helm
+chart are made from, say under which licences each goes out, where a package manager, a
+store, a registry, a distribution and an auditor read it. This holds all nine.
+
+Five of them (FIELDS) name the licences of what is compiled into the server: the
+project's own .rpm (CPACK_RPM_PACKAGE_LICENSE in CMakeLists.txt), the RPM spec's License,
+the APKBUILD's license=, the PKGBUILD's license= and the Nix package's meta.license. Each
+must name the server's own licence and the licence of every third-party component
+compiled into the server that an identifier names, and nothing else:
+hmailserver/docs/PackagesRpm.md, "The licences", says so of the tag. Until 6.3.7 four of
+them named neither licence of the two data sets idn-uts46 compiled in - Unicode's data for
+UTS 46 (Unicode-3.0) and HTML's list of named character references (BSD-3-Clause) - and
+the PKGBUILD named the AGPL alone (release review 6.3.7, B-DOC-1).
+
+The other four (OWN_LICENCE_ONLY) name the project's own licence alone, each for the
+reason given there: the snap's license, the container image's
+org.opencontainers.image.licenses and io.artifacthub.package.license labels, and the Helm
+chart's artifacthub.io/license. The snap and the image carry the .deb's files, and with
+them its copyright file and the notices of what is compiled into the server; the chart
+carries no binary. Each must be there once and say AGPL-3.0-or-later, so that one made to
+name more is decided here - moved to FIELDS and held to what is compiled in - rather than
+left short of it.
+
+And no other line of the files they are made from (SCANNED_DIRECTORIES and SCANNED_FILES)
+is a licence field (FIELD_LINES, by the kind of file): a field added there fails until it
+is in one list or the other. As first written, this checked the five alone and said they
+were every licence field of the Linux packages, and the other four were licence fields
+that nothing held (release review 6.3.7, the check of RB-2).
 
 What is compiled in is decided component by component against build/asset-sbom.py's
 SOURCE_COMPONENTS, the third-party parts of the source tarball as
 hmailserver/docs/SourceTarball.md declares them, read here without running that file:
 each of its components must be in COMPILED_IN or NOT_COMPILED_IN below, so that one added
 there is decided here before this passes, and a component SOURCE_COMPONENTS gives an SPDX
-identifier must have that identifier here. Then each field must name:
+identifier must have that identifier here. Then each of the five must name:
 
   AGPL-3.0-or-later              the server's own;
   each COMPILED_IN identifier    by its SPDX identifier; one SPDX has none for has the
@@ -38,14 +56,16 @@ The SPDX fields are read as an AND of identifiers, which is all they hold; an OR
 parentheses fail, as an expression this does not read. The PKGBUILD's array is the AND of
 its elements. The Nix package's list is read by nixpkgs' names (NIX_NAMES, each the spdxId
 lib/licenses/licenses.nix gives it in the nixpkgs flake.lock pins); a name not there fails.
+The four that name the project's licence are read as their files write a value: bare, or in
+single or double quotes.
 
   python build/check-package-licenses.py              the tree
   python build/check-package-licenses.py --self-test  the negative controls alone
 
 The tree's check runs the negative controls first, so a check that has stopped seeing what
 it reads fails too. Exit codes: 0 every field names exactly what it must; 1 a field names
-too little or too much, is not there or is there twice, or a component is undecided; 2 a
-file could not be read.
+too little or too much, is not there or is there twice, a line of those files is a licence
+field this does not hold, or a component is undecided; 2 a file could not be read.
 """
 
 import os
@@ -58,12 +78,16 @@ sys.path[:] = [p for p in sys.path if os.path.normcase(os.path.realpath(p or os.
 
 import ast
 import re
+import subprocess
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SERVER = "hmailserver/source/Server"
 PACKAGING = SERVER + "/platform/packaging"
 ASSET_SBOM = "build/asset-sbom.py"
 CMAKELISTS = SERVER + "/CMakeLists.txt"
+SNAPCRAFT = "snap/snapcraft.yaml"
+DOCKERFILE = PACKAGING + "/docker/Dockerfile"
+CHART = PACKAGING + "/helm/hmailserver/Chart.yaml"
 
 OWN = "AGPL-3.0-or-later"
 BOOST = "BSL-1.0"
@@ -110,16 +134,60 @@ FIELDS = (
     ("the Nix package's meta.license", "nix/package.nix", "nix", False),
 )
 
+# The fields that name the project's own licence alone: what each is, its file, how its
+# value is read, and why it names no other.
+OWN_LICENCE_ONLY = (
+    ("the snap's license", SNAPCRAFT, "snap",
+     "snapd holds a snap's licence to the identifiers of SPDX License List 3.11 (its spdx/licenses.go), "
+     "which has no Unicode-3.0, and its snap pack and its install refuse a snap whose licence names another"),
+    ("the container image's org.opencontainers.image.licenses", DOCKERFILE, "oci-label",
+     "the image is Ubuntu 24.04 with the .deb and what it depends on installed, under the licences the "
+     "copyright files in it declare, the .deb's among them"),
+    ("the container image's io.artifacthub.package.license", DOCKERFILE, "artifacthub-label",
+     "Artifact Hub takes one SPDX identifier there"),
+    ("the Helm chart's artifacthub.io/license", CHART, "chart-annotation",
+     "Artifact Hub takes one SPDX identifier there, and the chart's files are the project's own"),
+)
+
+# A value as the snap's and the chart's YAML writes it - in double or single quotes, or
+# bare to the end of the line or a comment - and as a Dockerfile's LABEL does, where a bare
+# value ends at a space.
+YAML_VALUE = r"""(?:"([^"\n]*)"|'([^'\n]*)'|([^\s"'#][^\n#]*?))[ \t]*(?:#[^\n]*)?$"""
+LABEL_VALUE = r"""(?:"([^"\n]*)"|'([^'\n]*)'|([^\s"'#\\][^\s#\\]*))"""
 READERS = {
     "cpack": re.compile(r'^set\(CPACK_RPM_PACKAGE_LICENSE\s+"([^"\n]*)"\s*\)', re.MULTILINE),
     "spec": re.compile(r"^License:[ \t]*(\S[^\n]*?)[ \t]*$", re.MULTILINE),
     "apkbuild": re.compile(r'^license="([^"\n]*)"[ \t]*$', re.MULTILINE),
     "pkgbuild": re.compile(r"^license=\(([^)\n]*)\)[ \t]*$", re.MULTILINE),
     "nix": re.compile(r"^[ \t]*license = with lib\.licenses; \[([^\]\n]*)\];[ \t]*$", re.MULTILINE),
+    "snap": re.compile(r"^license:[ \t]*" + YAML_VALUE, re.MULTILINE),
+    "oci-label": re.compile(r"^[ \t]*(?:LABEL[ \t]+)?org\.opencontainers\.image\.licenses=" + LABEL_VALUE, re.MULTILINE),
+    "artifacthub-label": re.compile(r"^[ \t]*(?:LABEL[ \t]+)?io\.artifacthub\.package\.license=" + LABEL_VALUE,
+                                    re.MULTILINE),
+    "chart-annotation": re.compile(r"^[ \t]+artifacthub\.io/license:[ \t]*" + YAML_VALUE, re.MULTILINE),
 }
 BOOST_OPTION = re.compile(r'^option\(HM_BOOST_STATIC "[^"\n]*" (ON|OFF)\)', re.MULTILINE)
 BOOST_OFF = "-DHM_BOOST_STATIC=OFF"
 IDENTIFIER = re.compile(r"^(?:LicenseRef-)?[A-Za-z0-9][A-Za-z0-9.+-]*$")
+
+# The files the Linux packages, the snap, the container image and the Helm chart are made
+# from, and the lines of them that are a licence field, by the kind of file: a line that
+# is not a comment and that one of these takes must be the line a reader of FIELDS or of
+# OWN_LICENCE_ONLY reads in that file. (A licence file, such as debian/copyright, is not a
+# field: it is what the fields' notices are, and none of these kinds takes it.)
+SCANNED_DIRECTORIES = ("snap/", "nix/", PACKAGING + "/")
+SCANNED_FILES = ("flake.nix", CMAKELISTS)
+FIELD_LINES = (
+    (re.compile(r"\.spec(\.in)?$"), re.compile(r"^[ \t]*license[ \t]*:", re.IGNORECASE)),
+    (re.compile(r"(^|/)(APKBUILD|PKGBUILD)$"), re.compile(r"^[ \t]*license\+?=")),
+    (re.compile(r"\.nix$"), re.compile(r"\blicen[cs]es?[ \t]*=")),
+    (re.compile(r"(^|/)(CMakeLists\.txt|[^/]*\.cmake)$"),
+     re.compile(r"^[ \t]*set[ \t]*\([ \t]*CPACK_[A-Z0-9_]*PACKAGE_LICEN[CS]E\b", re.IGNORECASE)),
+    (re.compile(r"\.ya?ml(\.in)?$"), re.compile(r"""^[ \t]*(?:-[ \t]+)?["']?(?:[A-Za-z0-9.-]+/)?licen[cs]es?["']?[ \t]*:""")),
+    (re.compile(r"(^|/)((Docker|Container)file[^/]*|[^/]*\.(Docker|Container)file|[^/]*\.ya?ml(\.in)?)$"),
+     re.compile(r"\b(?:org\.opencontainers\.image\.licenses|io\.artifacthub\.package\.license)\b")),
+    (re.compile(r"\.xml(\.in)?$"), re.compile(r"<(?:project|metadata)_license\b")),
+)
 
 
 class Unreadable(Exception):
@@ -188,6 +256,14 @@ def field_value(kind, text):
     return names, None
 
 
+def own_value(kind, text):
+    """(the value of a field that names the project's licence alone, or None, and what is wrong)."""
+    found = READERS[kind].findall(text)
+    if len(found) != 1:
+        return None, "is there %d time(s), not once" % len(found)
+    return "".join(found[0]), None
+
+
 def boost_static(kind, text, cmake_default):
     """Whether the build that field is of links Boost statically: the CMake default,
     unless a line of the file that is not a comment passes -DHM_BOOST_STATIC=OFF."""
@@ -197,8 +273,42 @@ def boost_static(kind, text, cmake_default):
     return cmake_default and not any(BOOST_OFF in line for line in code)
 
 
-def problems_of(texts):
-    """What is wrong, given {path: text} of the five files, the CMakeLists and asset-sbom.py."""
+def in_scope(path):
+    return path in SCANNED_FILES or path.startswith(SCANNED_DIRECTORIES)
+
+
+def field_lines_of(path):
+    """The FIELD_LINES patterns that read a file of that name: none for a file of no kind."""
+    return [line for name, line in FIELD_LINES if name.search(path)]
+
+
+def unheld_fields(texts, own_only):
+    """The lines of the scanned files among texts that are a licence field and that no
+    reader of FIELDS or own_only reads, as problems."""
+    held = {}
+    for field in tuple(FIELDS) + tuple(own_only):
+        path, kind = field[1], field[2]
+        if path in texts:
+            for match in READERS[kind].finditer(texts[path]):
+                held.setdefault(path, set()).add(texts[path].count("\n", 0, match.start()) + 1)
+    problems = []
+    for path in sorted(texts):
+        patterns = field_lines_of(path) if in_scope(path) else []
+        if not patterns:
+            continue
+        for number, line in enumerate(texts[path].split("\n"), 1):
+            if line.lstrip().startswith("#") or not any(p.search(line) for p in patterns):
+                continue
+            if number not in held.get(path, ()):
+                problems.append("%s:%d (%s) is a licence field this does not hold: put it in FIELDS, to name what is "
+                                "compiled into the server, or in OWN_LICENCE_ONLY, with why it names the project's "
+                                "licence alone" % (path, number, line.strip()))
+    return problems
+
+
+def problems_of(texts, own_only=OWN_LICENCE_ONLY):
+    """What is wrong, given {path: text} of the CMakeLists, asset-sbom.py, the files of the
+    fields and the other files the scan reads."""
     problems = []
     components = source_components(texts[ASSET_SBOM])
     for ref, (name, spdx) in sorted(components.items()):
@@ -215,6 +325,15 @@ def problems_of(texts):
         if ref not in components:
             problems.append("build/check-package-licenses.py decides %s, which %s's SOURCE_COMPONENTS no longer has: "
                             "remove it here, or put it back there" % (ref, ASSET_SBOM))
+    for what, path, kind, why in own_only:
+        value, wrong = own_value(kind, texts[path])
+        if wrong:
+            problems.append("%s (%s) %s" % (what, path, wrong))
+        elif value != OWN:
+            problems.append("%s (%s) names %s, and it names the project's licence alone, %s, because %s: name that, or "
+                            "move the field to FIELDS and hold it to what is compiled into the server" % (
+                                what, path, value or "nothing", OWN, why))
+    problems.extend(unheld_fields(texts, own_only))
     default = BOOST_OPTION.findall(texts[CMAKELISTS])
     if len(default) != 1:
         problems.append("%s gives HM_BOOST_STATIC %d default(s), not one: whether a build links Boost statically "
@@ -252,8 +371,29 @@ def problems_of(texts):
     return problems
 
 
+def scanned_paths(root):
+    """The tree's files in SCANNED_DIRECTORIES and SCANNED_FILES of a kind FIELD_LINES reads,
+    relative to root: git's list where there is git, else a walk of those places."""
+    def wanted(path):
+        return in_scope(path) and bool(field_lines_of(path))
+    try:
+        done = subprocess.run(["git", "-C", root, "ls-files", "-z"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if done.returncode == 0 and done.stdout:
+            return sorted(p for p in done.stdout.decode("utf-8", "replace").split("\0") if p and wanted(p))
+    except OSError:
+        pass
+    found = [p for p in SCANNED_FILES if os.path.isfile(os.path.join(root, *p.split("/")))]
+    for place in SCANNED_DIRECTORIES:
+        for directory, subdirectories, files in os.walk(os.path.join(root, *place.rstrip("/").split("/"))):
+            subdirectories[:] = [d for d in subdirectories if d != ".git"]
+            for name in files:
+                found.append(os.path.relpath(os.path.join(directory, name), root).replace(os.sep, "/"))
+    return sorted(set(p for p in found if wanted(p)))
+
+
 def tree_texts(root):
-    paths = [ASSET_SBOM, CMAKELISTS] + [path for _, path, _, _ in FIELDS]
+    paths = ([ASSET_SBOM, CMAKELISTS] + [field[1] for field in FIELDS] + [field[1] for field in OWN_LICENCE_ONLY] +
+             scanned_paths(root))
     return dict((path, read(root, path)) for path in sorted(set(paths)))
 
 
@@ -285,28 +425,43 @@ GOOD = {
                               "BSD-3-Clause AND BSL-1.0')\n"),
     "nix/package.nix": ('    "-DHM_BOOST_STATIC=OFF"\n'
                         "    license = with lib.licenses; [ agpl3Plus mit bsd1 mpl20 unicode-30 bsd3 ];\n"),
+    SNAPCRAFT: "name: hmailserver\nlicense: AGPL-3.0-or-later\ngrade: stable\n",
+    DOCKERFILE: ('FROM ubuntu:24.04\n'
+                 'LABEL org.opencontainers.image.title="hMailServer" \\\n'
+                 '      org.opencontainers.image.licenses="AGPL-3.0-or-later" \\\n'
+                 '      io.artifacthub.package.license="AGPL-3.0-or-later" \\\n'
+                 '      io.artifacthub.package.keywords="mail"\n'),
+    CHART: ('apiVersion: v2\nname: hmailserver\nannotations:\n  artifacthub.io/license: AGPL-3.0-or-later\n'
+            '  artifacthub.io/prerelease: "false"\n'),
 }
 
 
 def self_test():
     failures = []
 
-    def expect(what, texts, wanted):
+    def expect(what, texts, wanted, own_only=OWN_LICENCE_ONLY):
         try:
-            found = problems_of(texts)
+            found = problems_of(texts, own_only)
         except Unreadable as e:
             found = [str(e)]
         if wanted is None:
             if found:
                 failures.append("%s: expected no problem, got %s" % (what, found))
-        elif not any(wanted in p for p in found):
-            failures.append("%s: expected a problem saying %r, got %s" % (what, wanted, found))
+            return
+        for each in ([wanted] if isinstance(wanted, str) else wanted):
+            if not any(each in p for p in found):
+                failures.append("%s: expected a problem saying %r, got %s" % (what, each, found))
 
     def changed(path, old, new):
         texts = dict(GOOD)
         if old not in texts[path]:
             failures.append("the fixture of %s has no %r to change" % (path, old))
         texts[path] = texts[path].replace(old, new)
+        return texts
+
+    def added(path, text):
+        texts = dict(GOOD)
+        texts[path] = text
         return texts
 
     expect("the good fixture", GOOD, None)
@@ -358,6 +513,67 @@ def self_test():
     expect("a component whose licence changed", changed(ASSET_SBOM, '"q", "MIT"', '"q", "Apache-2.0"'),
            "gives quickjs (QuickJS) the licence Apache-2.0, and COMPILED_IN here MIT")
     expect("no SOURCE_COMPONENTS", changed(ASSET_SBOM, "SOURCE_COMPONENTS = [", "COMPONENTS = ["), "has no SOURCE_COMPONENTS list")
+    # The four that name the project's licence alone, each held to it.
+    expect("the snap naming what is compiled in as well", changed(SNAPCRAFT, "license: AGPL-3.0-or-later",
+                                                                  "license: AGPL-3.0-or-later AND MIT"),
+           "the snap's license (%s) names AGPL-3.0-or-later AND MIT, and it names the project's licence alone" % SNAPCRAFT)
+    expect("the image's OCI label naming what is compiled in as well",
+           changed(DOCKERFILE, 'licenses="AGPL-3.0-or-later"', 'licenses="AGPL-3.0-or-later AND MIT AND BSD-1-Clause AND '
+                                                              'MPL-2.0 AND Unicode-3.0 AND BSD-3-Clause AND BSL-1.0"'),
+           "the container image's org.opencontainers.image.licenses (%s) names AGPL-3.0-or-later AND MIT" % DOCKERFILE)
+    expect("the image's Artifact Hub label naming another", changed(DOCKERFILE, 'package.license="AGPL-3.0-or-later"',
+                                                                    "package.license='MIT'"),
+           "the container image's io.artifacthub.package.license (%s) names MIT" % DOCKERFILE)
+    expect("the chart's annotation naming another", changed(CHART, "license: AGPL-3.0-or-later", "license: Apache-2.0"),
+           "the Helm chart's artifacthub.io/license (%s) names Apache-2.0" % CHART)
+    expect("the chart's annotation empty", changed(CHART, "license: AGPL-3.0-or-later", 'license: ""'),
+           "artifacthub.io/license (%s) names nothing" % CHART)
+    expect("the chart's annotation in quotes", changed(CHART, "license: AGPL-3.0-or-later", 'license: "AGPL-3.0-or-later"'),
+           None)
+    expect("the snap's licence after a comment of its own", changed(SNAPCRAFT, "license: AGPL-3.0-or-later",
+                                                                    "license: AGPL-3.0-or-later  # the project's"), None)
+    expect("the snap's licence gone", changed(SNAPCRAFT, "license: AGPL", "# license: AGPL"),
+           "the snap's license (%s) is there 0 time(s), not once" % SNAPCRAFT)
+    expect("an image label twice", changed(DOCKERFILE, "      io.artifacthub.package.license",
+                                           '      org.opencontainers.image.licenses="AGPL-3.0-or-later" \\\n'
+                                           "      io.artifacthub.package.license"),
+           "org.opencontainers.image.licenses (%s) is there 2 time(s), not once" % DOCKERFILE)
+    # And no licence field in the files the packages are made from that nothing holds.
+    expect("a licence label in another Dockerfile",
+           added(PACKAGING + "/docker/Dockerfile.alpine", 'FROM alpine\nLABEL org.opencontainers.image.licenses="MIT"\n'),
+           "%s/docker/Dockerfile.alpine:2 (LABEL org.opencontainers.image.licenses=\"MIT\") is a licence field this "
+           "does not hold" % PACKAGING)
+    expect("a licence label in a Containerfile named for its base",
+           added(PACKAGING + "/docker/alpine.Containerfile", 'FROM alpine\nLABEL io.artifacthub.package.license=MIT\n'),
+           "%s/docker/alpine.Containerfile:2 (LABEL io.artifacthub.package.license=MIT) is a licence field this "
+           "does not hold" % PACKAGING)
+    expect("a licence key of the chart's own", changed(CHART, "annotations:\n", "license: MIT\nannotations:\n"),
+           "%s:3 (license: MIT) is a licence field this does not hold" % CHART)
+    expect("a CPack component's licence", changed(CMAKELISTS, "set(CPACK_RPM_PACKAGE_LICENSE\n",
+                                                  'set(CPACK_RPM_CLI_PACKAGE_LICENSE "MIT")\nset(CPACK_RPM_PACKAGE_LICENSE\n'),
+           "%s:2 (set(CPACK_RPM_CLI_PACKAGE_LICENSE \"MIT\")) is a licence field this does not hold" % CMAKELISTS)
+    expect("a Nix module's licence", added("nix/module.nix", "{ lib }:\n{\n  meta.license = lib.licenses.mit;\n}\n"),
+           "nix/module.nix:3 (meta.license = lib.licenses.mit;) is a licence field this does not hold")
+    expect("an AppStream licence", added(PACKAGING + "/hmailserver.metainfo.xml",
+                                         "<component>\n  <project_license>AGPL-3.0-or-later</project_license>\n</component>\n"),
+           "%s/hmailserver.metainfo.xml:2 (<project_license>AGPL-3.0-or-later</project_license>) is a licence field "
+           "this does not hold" % PACKAGING)
+    expect("a snap's licence key in a part", changed(SNAPCRAFT, "grade: stable\n", "grade: stable\nparts:\n  x:\n    license: MIT\n"),
+           "%s:6 (license: MIT) is a licence field this does not hold" % SNAPCRAFT)
+    expect("a licence label named in a comment alone",
+           changed(DOCKERFILE, "LABEL ", '# org.opencontainers.image.licenses="MIT" is the label below\nLABEL '), None)
+    expect("a licence label in a file outside them", added("build/ci/linux.Dockerfile",
+                                                           'LABEL org.opencontainers.image.licenses="MIT"\n'), None)
+    expect("a licence file, not a field", added(PACKAGING + "/debian-src/debian/copyright", "License: MIT\n"), None)
+    # As first written the check held the five alone, and said they were every licence
+    # field of the Linux packages: the other four are licence fields, and nothing held them.
+    expect("the five alone", GOOD,
+           ["%s:2 (license: AGPL-3.0-or-later) is a licence field this does not hold" % SNAPCRAFT,
+            "%s:3 (org.opencontainers.image.licenses=\"AGPL-3.0-or-later\" \\) is a licence field this does not hold"
+            % DOCKERFILE,
+            "%s:4 (io.artifacthub.package.license=\"AGPL-3.0-or-later\" \\) is a licence field this does not hold"
+            % DOCKERFILE,
+            "%s:4 (artifacthub.io/license: AGPL-3.0-or-later) is a licence field this does not hold" % CHART], ())
     return failures
 
 
@@ -388,6 +604,11 @@ def main(argv):
     print("OK: the five licence fields each name the server's licence and those of what is compiled into it:")
     for what, path, kind, _ in FIELDS:
         print("  %s: %s" % (what, " AND ".join(field_value(kind, texts[path])[0])))
+    print("the four that name the project's licence alone do:")
+    for what, path, kind, _ in OWN_LICENCE_ONLY:
+        print("  %s: %s" % (what, own_value(kind, texts[path])[0]))
+    scanned = [p for p in texts if in_scope(p) and field_lines_of(p)]
+    print("and no other line of the %d files they are made from is a licence field" % len(scanned))
     return 0
 
 

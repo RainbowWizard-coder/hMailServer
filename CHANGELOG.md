@@ -1118,23 +1118,28 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   release stamped there reaches all three; `build/check-version-resources.py`, which the `checkers` job runs, holds
   every C++ program of the server to it. Found by upstream PR 658.
 - **Every Linux install, the AppImages among them, carries the notices of the two data sets this release compiles into
-  the server, and every Linux package's licence field names their licences.** The server reads a link's host with tables
-  made from Unicode's data for UTS 46, under the Unicode License v3, and an HTML part's character references with one
-  made from HTML's list of named character references, a portion of the WHATWG's standard under the BSD 3-Clause
-  License; both licences ask for their notice with every copy of a binary. The AppImages carried neither notice, and the
-  spec-built RPMs, the Alpine package and the Nix package carried them in no file. Every Linux install now puts them
-  beside `QuickJS.txt` and the AGPL-3.0 text, as `/usr/share/hmailserver/licenses/Unicode-data.txt` and
+  the server, and the licence fields of the `.rpm`, the RPM spec, the APKBUILD, the PKGBUILD and the Nix package name
+  their licences.** The server reads a link's host with tables made from Unicode's data for UTS 46, under the Unicode
+  License v3, and an HTML part's character references with one made from HTML's list of named character references, a
+  portion of the WHATWG's standard under the BSD 3-Clause License; both licences ask for their notice with every copy of
+  a binary. The AppImages carried neither notice, and the spec-built RPMs, the Alpine package, the Arch package and the
+  Nix package carried them in no file. Every Linux install now puts them beside `QuickJS.txt` and the AGPL-3.0 text, as
+  `/usr/share/hmailserver/licenses/Unicode-data.txt` and
   `/usr/share/hmailserver/licenses/HTML-named-character-references.txt` - the files kept beside the data in the source,
   `Common/Idna/ucd/unicode.LICENSE` and `Common/AntiSpam/whatwg/entities.LICENSE` - marked `%license` in the `.rpm` and
   in the packages the RPM spec builds. The `.rpm`'s `License`, the spec's, the APKBUILD's and the Nix package's
   `meta.license` name `Unicode-3.0 AND BSD-3-Clause` as well; the PKGBUILD's, which named the AGPL alone, names the
-  whole list, with `BSL-1.0` for the Boost its build links statically, and the PKGBUILD installs the copyright file and
-  the three notices in `/usr/share/licenses/hmailserver`, where Arch looks for them.
-  `build/ci/packages/check-licenses.sh` holds the `.deb` and the `.rpm` to the two notices by SHA-256,
-  `appimage-test.sh` the AppImages, `alpine.sh` the Alpine package and `srcpkg-rpm.sh` the spec's packages;
-  `build/check-package-licenses.py`, in the `checkers` job, holds the five licence fields to what is compiled into the
-  server, so that a component compiled in whose licence an identifier names and a field that leaves it out fail the
-  pipeline. Found by the release review of 6.3.7 ([PackagesRpm.md](hmailserver/docs/PackagesRpm.md), "The licences";
+  whole list, with `BSL-1.0` for the Boost its build links statically, and the PKGBUILD installs the copyright file,
+  and links to the three notices, in `/usr/share/licenses/hmailserver`, where Arch looks for them. The snap's `license`,
+  the container image's two licence labels and the Helm chart's `artifacthub.io/license` still name the project's own
+  licence alone, each for a reason `build/check-package-licenses.py` gives; the snap and the image carry the notices,
+  in the `.deb`'s files. `build/ci/packages/check-licenses.sh` holds the `.deb` and the `.rpm` to the two notices by
+  SHA-256, `appimage-test.sh` the AppImages and `alpine.sh` the Alpine package, and `srcpkg-rpm.sh` requires the
+  spec's packages to carry them marked `%license`. `build/check-package-licenses.py`, in the `checkers` job, holds the
+  five licence fields to what is compiled into the server, so that a component compiled in whose licence an identifier
+  names and a field that leaves it out fail the pipeline; it holds the snap's, the image's and the chart's to the
+  project's licence alone, and fails a licence field it does not hold in the files the packages are made from. Found
+  by the release review of 6.3.7 ([PackagesRpm.md](hmailserver/docs/PackagesRpm.md), "The licences";
   [PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md), "Licences").
 
 ### Delivery and SMTP
