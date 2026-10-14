@@ -32,10 +32,11 @@ landed on 9 October 2026 (`batch44`), and on 14 October 2026 `master` still let
 Maintainers push, so until he does, he can still push a gated tree to `master`
 directly, as he did with 6.3.6's release fixes on 5 October 2026. Security
 reports go by the routes in [SECURITY.md](SECURITY.md). The release chain ran on
-GitHub Actions; its replacement, the release jobs of `.gitlab-ci.yml`, made
-6.3.5 on 29 September 2026 and 6.3.6 on 6 October 2026, and 6.3.4, between the
-two, was built and signed by hand. The installer's fetched build inputs come
-from the project's package registry on GitLab.
+GitHub Actions up to 6.3.3; 6.3.4, published on 27 September 2026, was built and
+signed by hand; and the chain's replacement, the release jobs of
+`.gitlab-ci.yml`, made 6.3.5 on 29 September 2026 and 6.3.6 on 6 October 2026.
+The installer's fetched build inputs come from the project's package registry
+on GitLab.
 
 The short version
 -----------------
