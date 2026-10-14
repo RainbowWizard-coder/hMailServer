@@ -6320,28 +6320,28 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 - **SECURITY.md, RELEASE.md and GOVERNANCE.md describe the project as it is for 6.3.7.** SECURITY.md's "What gets a
   release" and RELEASE.md's "A security release during the pause" say that five of this release's fixes, and their
   descriptions here, were public on GitLab from 6 and 7 October 2026 and on `master` from 7 and 9 October 2026 until
-  the release, by the owner's decisions of 6, 7 and 12 October 2026, and that the window of about a day between a
-  fix's push and its release stays the rule after it: a fix, its commit message and its entry here are pushed with
-  the batch its release is made from, and say what was fixed, not how to exploit it. Since 13 October 2026 Zain Ul
-  Abidin holds no role in the GitLab project, so nobody but the owner sees a security report or can approve a merge
-  request, and every batch lands on the owner's override until another person can: GOVERNANCE.md's "Maintainers",
-  "Review" and "Continuity", SECURITY.md, RELEASE.md, CONTRIBUTING.md and ASSURANCE-CASE.md say so, with the record
-  of the nine landings to 14 October 2026 - `batch45` with Zain Ul Abidin's approval, eight on the override, one of
-  them reviewed afterwards - where they said that he approves each and that four batches had landed, each on the
-  override; ContinuousIntegration.md's "Landing on master" names all nine. The project access token `laptop-git`,
-  which the documents said held the Owner role until 27 September 2027, is revoked. GOVERNANCE.md says that the
-  release jobs made 6.3.5 and 6.3.6, where it said they had not run, and drops the caveat on *Critical assets* that
-  hung on it. SECURITY.md counts the accepted findings again on 14 October 2026 - 504, of which 293 (263, 26 and 4)
-  expire in March 2027, where it said 298, and the last on 12 October 2027, where it said 27 September - and its
-  table of what must stay valid is read again that day, the Snap Store's credential, made on 6 October, among it.
-  RELEASE.md's step 3 says that `release` waits for `windows-packages-arm64`, whose installer the release carries,
-  where it said it waited for no Windows package; "Before starting" checks the last batch pipeline's
+  the release, by the owner's decisions of 6, 7, 12 and 13 October 2026; that it carries the work that was under way
+  on 13 October 2026 as well as fixes, and so is not only 6.3.6 with fixes; and that the window of about a day
+  between a fix's push and its release stays the rule after it: a fix, its commit message and its entry here are
+  pushed with the batch its release is made from, and say what was fixed, not how to exploit it. Since 13 October
+  2026 Zain Ul Abidin holds no role in the GitLab project, so nobody but the owner sees a security report or can
+  approve a merge request, and every batch lands on the owner's override until another person can: GOVERNANCE.md's
+  "Maintainers", "Review" and "Continuity", SECURITY.md, RELEASE.md, CONTRIBUTING.md and ASSURANCE-CASE.md say so,
+  with the record of the nine landings to 14 October 2026 - `batch45` with Zain Ul Abidin's approval, eight on the
+  override, one of them reviewed afterwards - where they said that he approves each and that four batches had landed,
+  each on the override; ContinuousIntegration.md's "Landing on master" names all nine. The project access token
+  `laptop-git`, which the documents said held the Owner role until 27 September 2027, is revoked. GOVERNANCE.md says
+  that the release jobs made 6.3.5 and 6.3.6, where it said they had not run, and drops the caveat on *Critical
+  assets* that hung on it. SECURITY.md counts the accepted findings again on 14 October 2026 - 504, of which 293
+  (263, 26 and 4) expire in March 2027, where it said 298, and the last on 12 October 2027, where it said 27
+  September - and its table of what must stay valid is read again that day, the Snap Store's credential, made on 6
+  October, among it. RELEASE.md's step 3 says that `release` waits for `windows-packages-arm64`, whose installer the
+  release carries, where it said it waited for no Windows package; "Before starting" checks the last batch pipeline's
   `dependency-scan`, which the release job holds on and no landing gate reads, and names among the runners both
-  Windows benches, s1-linux, and the two the release batch's own pipeline needs beside the tag's, `linix-systemd`
-  and server2's `kvm`; and the version stamp says that the version's section carries "What changes on upgrade
-  without a switch", gathered at the stamp. The documents also say that on 14 October 2026 `master` still
-  let Maintainers push, after the batch that brings the change checks had landed on 9 October. HelpPagesData.cpp is
-  regenerated.
+  Windows benches, s1-linux, and the two the release batch's own pipeline needs beside the tag's, `linix-systemd` and
+  server2's `kvm`; and the version stamp says that the version's section carries "What changes on upgrade without a
+  switch", gathered at the stamp. The documents also say that on 14 October 2026 `master` still let Maintainers push,
+  after the batch that brings the change checks had landed on 9 October. HelpPagesData.cpp is regenerated.
 
 ---
 

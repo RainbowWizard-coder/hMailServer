@@ -377,8 +377,9 @@ decisions of 6 and 7 October 2026 to push and land them before the release, of
 12 October 2026, knowing that they were public, to hold the release for more of
 the work then planned, and of 13 October 2026 to make it once the work already
 under way had been finished and folded into one batch (SECURITY.md, "What gets
-a release"). The steps below, and their window of about a day, stay the rule
-for every release after it.
+a release"). 6.3.7 also carries that work, so it is not only 6.3.6 with fixes,
+which the paragraph above says a security release is. The steps below, and
+their window of about a day, stay the rule for every release after it.
 
 **Before starting**, check what the release depends on is still valid: the
 table in SECURITY.md, "What must stay valid for a security release". In

@@ -141,8 +141,10 @@ was released. The owner decided to push and land them before the release (on 6 O
 of the work then planned; on 13 October 2026 he decided that it would follow once the work already under way had
 been finished and folded into one batch, and so 6.3.7 was released. So those of them that the rule above ships at
 once did not ship as soon as their fixes had passed the gates; all five were public for longer than the day that
-step 3 below allows, and their descriptions say more about each flaw than that step allows. The rule above, and
-step 3's window of about a day, stand for every release after 6.3.7.
+step 3 below allows, and their descriptions say more about each flaw than that step allows. 6.3.7 also carries the
+work that was under way on 13 October 2026, so it is not only 6.3.6 with fixes, which
+[What is supported](#what-is-supported-and-for-how-long) says a security release is. The rule above, and step 3's
+window of about a day, stand for every release after 6.3.7.
 
 ### How a report is handled
 
