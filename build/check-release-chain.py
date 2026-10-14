@@ -199,7 +199,9 @@ refuses it. This checker holds them to each other. It fails when:
     gates, semgrep-sast, static-analysis, semgrep, checkers) or a template one reaches,
     since GitLab merges a second definition into the first; no CI file but
     .gitlab-ci.yml may set variables, default or workflow, or include anything but
-    GitLab's templates; and each Python script of GATE_FILES must keep its own
+    GitLab's templates; no CI file may write a top-level key twice, of which GitLab's
+    YAML reader takes the last where this reads the first or any (repeated_key_problems);
+    and each Python script of GATE_FILES must keep its own
     directory off sys.path before it imports anything but os and sys (PATH_GUARD).
   * the container image's jobs (.gitlab/ci/container-image.yml) can run for
     anything but a protected v* tag, start before release-publish or without a
@@ -373,7 +375,9 @@ refuses it. This checker holds them to each other. It fails when:
     HM_LANE_SUITE, set there to linix-package-build and linix-suite. A job takes a
     switch only when its class names it, every job a class names takes it, and its
     rules are held as a job's on linix are; a classed job names no environment,
-    id_tokens or secrets, asks for a pull policy GitLab's runners allow (always, after
+    id_tokens or secrets, nor does .gitlab-ci.yml's default: name id_tokens, which every
+    job takes - written as a block, its key alone on its line, which is how it is read -,
+    and a classed job asks for a pull policy GitLab's runners allow (always, after
     if-not-present), runs in a container of its class's architecture (the CI image is
     amd64 alone) and in its class's lane or in none; no other job waits in a lane; nix
     asks for the tags linix and kvm, which server2 alone carries; and
@@ -2501,6 +2505,7 @@ def check(texts, chain, feed):
     problems.extend(found)
     notes.extend(said)
     problems.extend(runner_class_problems(texts))
+    problems.extend(repeated_key_problems(texts))
     return problems, notes
 
 
@@ -2874,6 +2879,28 @@ def ci_override_problems(texts):
             problems.append("%s includes what is not one of GitLab's templates, each as - template: <name> (%s): a "
                             "definition there of a job that holds a change could not be read here - include it from "
                             ".gitlab-ci.yml" % (path, other[0][:80]))
+    return problems
+
+
+def repeated_key_problems(texts):
+    """[problem] for each top-level key a CI file writes more than once - a second
+    default:, variables: or workflow:, or a job or template of one name written again in
+    its own file. GitLab's YAML reader takes the last of two keys of a mapping and says
+    nothing, where this checker reads the first or any: blocks() keeps the last that is
+    written as a block, and reads one written with its value on the key's line - a flow
+    mapping, an alias, a !reference - as lines of the block before it, so that what
+    GitLab runs would be other than what was checked. A default: in flow style after the
+    block, giving every job an ID token, passed every rule (14 October 2026). A name
+    defined in two files is another matter: GitLab merges the definitions, and the rules
+    that hold a job read each (ci_override_problems, the container scans')."""
+    problems = []
+    for path, text in sorted(ci_files(texts).items()):
+        keys = top_level_keys(text)
+        for key in sorted(set(k for k in keys if keys.count(k) > 1)):
+            problems.append("%s writes the top-level key %s %s: GitLab's YAML reader takes the last alone, without a word, "
+                            "where this checker reads the first or any, so that what GitLab runs could be other than what "
+                            "it checked - each top-level key of a CI file is written once" % (
+                                path, key, {2: "twice"}.get(keys.count(key), "%d times" % keys.count(key))))
     return problems
 
 
@@ -3515,9 +3542,11 @@ def runner_class_problems(texts, script=None):
     """[problem] for each way a class of jobs a switch moves to GitLab's hosted runners
     (RUNNER_CLASSES) could take a credential there, fail there, or run where it must not:
     a classed job that names an environment (a credential scoped to it would go with
-    it), id_tokens or secrets; .gitlab-ci.yml's default: giving every job id_tokens, or
-    taking keys by a merge key or an alias, which this does not read (no other CI file
-    may set default:, ci_override_problems); a classed job that asks for a pull policy
+    it), id_tokens or secrets; .gitlab-ci.yml's default: giving every job id_tokens,
+    taking keys by a merge key or an alias, or written other than as a block, its key
+    alone on its line - neither of which this reads (no other CI file may set default:,
+    ci_override_problems, and no CI file a top-level key twice, repeated_key_problems);
+    a classed job that asks for a pull policy
     without always, which GitLab's runners refuse; one of an amd64 class in an arm64
     container, which they cannot run, or of the arm64 class in the CI image, which is
     amd64 alone; one that waits in a resource group other than its class's lane, or in
@@ -3597,6 +3626,16 @@ def runner_class_problems(texts, script=None):
             break
     # default: gives each of its keys to every job that names none of its own - every job
     # of a class among them - so an ID token there would go with each to GitLab's runners.
+    # It is read as blocks() reads a block, its key alone on its line: GitLab's YAML reader
+    # takes a value there too - a flow mapping, an anchor, an alias, a !reference - and a
+    # key quoted or followed by a comment, each of which this would read as no default: at
+    # all, or as lines of the block before it (a second default: is repeated_key_problems').
+    for line in texts["ci"].split("\n"):
+        key = TOP_LEVEL_KEY.match(line)
+        if key and (key.group(1) or key.group(2) or key.group(3)) == "default" and not re.match(r"^default:\s*$", line):
+            problems.append(".gitlab-ci.yml's default: is not written as a block, its key alone on its line (%s), which is "
+                            "how this reads it: whether it gives every job an ID token cannot be told" % line.strip()[:60])
+            break
     for line in (blocks(texts["ci"]).get("default") or "").split("\n"):
         code = re.split(r"(?:^|\s)#", line, maxsplit=1)[0]
         if re.search(r"""(?:^|[\s{,])["']?id_tokens["']?[ \t]*:""", code):
@@ -5400,6 +5439,13 @@ def self_test(chain, feed):
              "  tags: [$HM_RUNNER]\n  'id_tokens': {PROBE_ID_TOKEN: {aud: probe}}\n", ".gitlab-ci.yml's default: says id_tokens:"),
             ("default: taking keys by a merge key", ".gitlab-ci.yml", "  tags: [$HM_RUNNER]\n",
              "  tags: [$HM_RUNNER]\n  <<: *probe-keys\n", ".gitlab-ci.yml's default: takes keys by a merge key or an alias"),
+            ("default: on one line, in flow style, giving every job an ID token", ".gitlab-ci.yml", "default:\n  # A newer push",
+             "default: {interruptible: true, tags: [$HM_RUNNER], id_tokens: {PROBE_ID_TOKEN: {aud: probe}}}\n"
+             ".probe-old-default:\n  # A newer push", ".gitlab-ci.yml's default: is not written as a block"),
+            ("default: with an anchor on its line", ".gitlab-ci.yml", "default:\n  # A newer push",
+             "default: &probe-default\n  # A newer push", ".gitlab-ci.yml's default: is not written as a block"),
+            ("default: quoted", ".gitlab-ci.yml", "default:\n  # A newer push", "\"default\":\n  # A newer push",
+             ".gitlab-ci.yml's default: is not written as a block"),
             ("a GitLab template whose variables hosted-runners does not know", ".gitlab/ci/gitlab-security.yml",
              "  - template: Jobs/Secret-Detection.gitlab-ci.yml\n",
              "  - template: Jobs/Secret-Detection.gitlab-ci.yml\n  - template: Jobs/Dependency-Scanning.gitlab-ci.yml\n",
@@ -5413,6 +5459,45 @@ def self_test(chain, feed):
              sbom_job + '  rules:\n    - if: $CI_PIPELINE_SOURCE == "merge_request_event"\n',
              "linux-sbom (.gitlab-ci.yml) is tagged ['linix'], for a runner of the project's, and its rule 1")):
         class_broken(what, path, old, new, needle)
+    # No CI file writes a top-level key twice (repeated_key_problems): each case is a key
+    # written again after the file's own, as GitLab's YAML reader would take it - the last
+    # -, through the whole checker; and a name defined once in each of two files is not
+    # this rule's.
+    if repeated_key_problems(texts):
+        failures.append("the tree's CI files write each top-level key once: %s" % repeated_key_problems(texts))
+    for what, path, addition, needle in (
+            ("a second default:, in flow style after the block, giving every job an ID token", ".gitlab-ci.yml",
+             "default: {interruptible: true, tags: [$HM_RUNNER], id_tokens: {PROBE_ID_TOKEN: {aud: probe}}}\n",
+             ".gitlab-ci.yml writes the top-level key default twice"),
+            ("a second default: block", ".gitlab-ci.yml", "\ndefault:\n  interruptible: true\n  tags: [$HM_RUNNER]\n",
+             ".gitlab-ci.yml writes the top-level key default twice"),
+            ("a second variables:, in flow style", ".gitlab-ci.yml", "variables: {PROBE_SETTING: probe}\n",
+             ".gitlab-ci.yml writes the top-level key variables twice"),
+            ("a second workflow:, in flow style", ".gitlab-ci.yml", "workflow: {rules: [{when: always}]}\n",
+             ".gitlab-ci.yml writes the top-level key workflow twice"),
+            ("a job written again in its own file, quoted, in flow style", ".gitlab-ci.yml",
+             "\"editorconfig\": {script: [\"true\"]}\n", ".gitlab-ci.yml writes the top-level key editorconfig twice"),
+            ("a job written again in its own included file", channels, "aur-publish: {when: never}\n",
+             ".gitlab/ci/channels.yml writes the top-level key aur-publish twice")):
+        copy = dict(texts)
+        key = "ci" if path == ".gitlab-ci.yml" else files_key.get(path)
+        source = copy.get(key) if key else copy["ci-includes"].get(path)
+        if not source:
+            failures.append("%s: %s is not in the tree" % (what, path))
+            continue
+        if key:
+            copy[key] = source.rstrip("\n") + "\n" + addition
+        else:
+            copy["ci-includes"] = dict(copy["ci-includes"], **{path: source.rstrip("\n") + "\n" + addition})
+        found, _ = check(copy, chain, feed)
+        if not any(needle in p for p in found):
+            failures.append("%s is caught: %s" % (what, found))
+    spare_two = [p for p in sorted(texts["ci-includes"]) if p not in files_key][:2]
+    copy = dict(texts, **{"ci-includes": dict(texts["ci-includes"], **dict(
+        (p, texts["ci-includes"][p] + "\nprobe-job:\n  script: [echo]\n") for p in spare_two))})
+    if len(spare_two) < 2 or repeated_key_problems(copy):
+        failures.append("a job defined once in each of two CI files is let pass by repeated_key_problems: %s" % (
+            repeated_key_problems(copy) if len(spare_two) == 2 else "no two CI files to define it in"))
     held_runners = PROJECT_RUNNERS
     try:
         globals()["PROJECT_RUNNERS"] = tuple((who, tuple(t for t in carried if t != "kvm")) for who, carried in held_runners)

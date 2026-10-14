@@ -429,7 +429,8 @@ as it was.
 switch only when its class names it, and every job a class names takes it; nothing in
 the CI files but `variables:` sets a switch or a lane, and there at its default; a
 job of a class names no environment, `id_tokens` or `secrets`, and `default:`, which
-every job takes, names no `id_tokens`; a job of a class asks for a pull policy
+every job takes - written once, as a block, which is how the checker reads it -
+names no `id_tokens`; a job of a class asks for a pull policy
 GitLab's runners allow (`[if-not-present, always]`: they allow `always` alone, and
 fail a job that asks for `if-not-present` only), runs in a container of its class's
 architecture (the CI image is amd64 alone) and waits in its class's lane or in none;
@@ -1196,9 +1197,13 @@ later include's keys over an earlier one's, and could take the job's rules,
 script or `allow_failure` from a file the landing asks no person's word for;
 when a CI file other than `.gitlab-ci.yml` sets `variables`, `default` or
 `workflow` at its top level, which every job takes, or includes anything but
-one of GitLab's templates; and when a Python script of `GATE_FILES` imports
-anything but `os` and `sys` before it takes its own directory off its module
-path (`PATH_GUARD`). Each of those has a case in its self-test that must fail.
+one of GitLab's templates; when a CI file writes a top-level key twice - a
+second `default:`, `variables:` or `workflow:`, or a job written again in its
+own file - since GitLab's YAML reader takes the last of the two without a word,
+where the checker reads the first or any; and when a Python script of
+`GATE_FILES` imports anything but `os` and `sys` before it takes its own
+directory off its module path (`PATH_GUARD`). Each of those has a case in its
+self-test that must fail.
 `security-gate.py`'s own self-test fails while the tree's `static-analysis.sh`
 or `semgrep.sh` has no `# scan-scope` marks around its tools' invocations, the
 rule packs' fetching and what stands as the tools' report, or one of their

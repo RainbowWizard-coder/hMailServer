@@ -5679,12 +5679,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   set back, and the job allowed to fail whatever it says, since no job waits for it and its failure would hold a gate
   whose every job had passed; `build/land-via-mr.py`'s landing record gives what the two checks came to.
   `build/check-release-chain.py` holds each class to the jobs it names, the switches and lanes to their defaults, a
-  classed job to no environment, `id_tokens` or `secrets` and `default:` to no `id_tokens`, a pull policy GitLab
-  allows, its class's architecture and lane, `nix` to `kvm`, the two checks to how they run, and the GitLab templates
-  whose variables `hosted-runners` knows to those the CI files include, each rule with a case of its self-test that
-  fails without it (ContinuousIntegration.md, "GitLab's hosted runners beside the project's", says what each class
-  costs, at 0.5 a job-minute on any of GitLab's Linux machines, which classes to switch on, and what a job there is
-  given).
+  classed job to no environment, `id_tokens` or `secrets` and `default:` - written as a block, its key alone on its
+  line - to no `id_tokens`, a pull policy GitLab allows, its class's architecture and lane, `nix` to `kvm`, the two
+  checks to how they run, the GitLab templates whose variables `hosted-runners` knows to those the CI files include,
+  and every CI file to each top-level key written once, since GitLab's YAML reader takes the last of two where the
+  checker reads the first or any (a second `default:` in flow style after the block, giving every job an ID token,
+  passed it), each rule with a case of its self-test that fails without it (ContinuousIntegration.md, "GitLab's
+  hosted runners beside the project's", says what each class costs, at 0.5 a job-minute on any of GitLab's Linux
+  machines, which classes to switch on, and what a job there is given).
 - **`build/land-via-mr.py` lands a batch of any size from Windows.** It gave glab every field of a request as an
   argument of its command line, and the description of `batch47`'s merge request, 200 commit lines and 50,565
   characters, made one longer than the 32,767 characters Windows takes: on 13 October 2026 the landing pushed the
