@@ -1219,11 +1219,15 @@ the gates' code, `.gitlab-ci.yml`, a CI file a gate job is in or reaches with
 `semgrep.sh`; its `GATE_CODE` is not `security-gate.py`'s; its `BASE_GATES` are
 not the two gates; or its `BASE_COPY_SCRIPTS` do not name each gate with the
 script its job runs; when a job that holds a change - the two gates,
-`semgrep-sast`, `static-analysis`, `semgrep` and `checkers` - or a template one
-extends or takes a part of is defined in a second CI file, under any name YAML
-spells it with, since GitLab merges the second definition into the first, a
-later include's keys over an earlier one's, and could take the job's rules,
-script or `allow_failure` from a file the landing asks no person's word for;
+`semgrep-sast`, `static-analysis`, `semgrep`, `checkers`, and the Windows
+suite's two halves, `windows-gate` and `windows-gate-s1vm`, which a landing
+requires as it does the scans - or a template one extends or takes a part of
+(`.own-runners` and `.bench150-leftovers` among them) is defined in a second CI
+file, under any name YAML spells it with, since GitLab merges the second
+definition into the first, a later include's keys over an earlier one's, and
+could take any key the job does not set itself - its rules, script,
+`before_script` or `allow_failure`, over what it takes from a template by
+`extends` - from a file the landing asks no person's word for;
 when a CI file other than `.gitlab-ci.yml` sets `variables`, `default` or
 `workflow` at its top level, which every job takes, or includes anything but
 one of GitLab's templates; when a CI file writes a top-level key twice - a

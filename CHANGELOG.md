@@ -5732,11 +5732,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   let pass refuses the landing (exit 5), named, and retrying its job gates the batch. So does a half that a push of
   documents alone on top of the batch's code left out of the tip's pipeline, since `.own-runners` compares a push with
   the one before - which a landing let pass until now, and the maintainer looked for by hand -: a pipeline of the
-  branch started by hand runs both. Its self-test lands no batch with
-  either half failed while allowed to fail or missing, lands one of documents alone without them, and holds the landing
-  record and the merge request's description to naming both; `build/check-release-chain.py` holds the list to those two
-  jobs of the CI files. A landing runs `master`'s copy of the script, so this holds from the landing after the one that
-  brings it (ContinuousIntegration.md, "Landing on master").
+  branch started by hand runs both. Its self-test lands no batch with either half failed while allowed to fail or
+  missing, lands one of documents alone without them, and holds the landing record and the merge request's description
+  to naming both; `build/check-release-chain.py` holds the list to those two jobs of the CI files, and the two jobs, as
+  it holds the scans, to one definition, with every template they reach: GitLab merges a second definition in another
+  CI file into the job, and `windows-gate-s1vm` sets no script, `before_script`, rules or `allow_failure` of its own,
+  nor `windows-gate` a `before_script` or rules, so that one in a file a landing asks no person's word for,
+  `channels.yml` say, would have made a half run `exit 0` and succeed, and the batch land. A landing runs `master`'s
+  copy of `land-via-mr.py`, so its hold on the halves begins with the landing after the one that brings it
+  (ContinuousIntegration.md, "Landing on master").
 - **The message indexer's stop and start, as fixed above (*Correctness*), leave `static-analysis` nothing new to
   say.** Run over them as the job runs it, cppcheck and clang-tidy found four findings in `MessageIndexer.cpp` that
   no baseline holds, none of them a defect in what the code does, and each is now written so that the tools have

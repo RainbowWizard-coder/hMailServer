@@ -206,12 +206,13 @@ refuses it. This checker holds them to each other. It fails when:
     landing record gives must be hosted-runners and compute-quota (HOSTED_CHECK_JOBS),
     by name; its GATE_FILES, which a batch changes only with --gates-read, must name
     the gates' code, .gitlab-ci.yml, every CI file the gate jobs are in or reach, the
-    two scripts it runs and the two source
-    scans' scripts; no CI file but one may define a job that holds a change (the
-    gates, semgrep-sast, static-analysis, semgrep, checkers) or a template one reaches,
-    since GitLab merges a second definition into the first; no CI file but
-    .gitlab-ci.yml may set variables, default or workflow, or include anything but
-    GitLab's templates; no CI file may write a top-level key twice, of which GitLab's
+    two scripts it runs and the two source scans' scripts; no CI file but one may
+    define a job that holds a change (the gates, semgrep-sast, static-analysis,
+    semgrep, checkers, and the Windows suite's halves, windows-gate and
+    windows-gate-s1vm: every job of LANDING_REQUIRED) or a template one reaches, since
+    GitLab merges a second definition into the first; no CI file but .gitlab-ci.yml
+    may set variables, default or workflow, or include anything but GitLab's
+    templates; no CI file may write a top-level key twice, of which GitLab's
     YAML reader takes the last where this reads the first or any (repeated_key_problems),
     nor a key of a job, a template, default: or workflow: other than bare - unquoted,
     its colon straight after it - and once, as the rules that hold a job read it
@@ -2871,9 +2872,13 @@ def ci_files(texts):
 # A key at the top level of a CI file, a job's or a template's name among them, in any of
 # the forms YAML takes for one: bare or quoted, with its value on the line or below it.
 TOP_LEVEL_KEY = re.compile(r"^(?:\"([^\"\n]+)\"|'([^'\n]+)'|([A-Za-z0-9_.\-]+))[ \t]*:(?:[ \t]|$)", re.MULTILINE)
-# The jobs whose definitions say whether and how a change is held: the change gates and
-# their scan, the blocking scans on linix, and checkers, which holds the CI files to them.
-HELD_JOBS = sorted(CHANGE_GATES) + [GATE_SCAN] + BLOCKING_SCANS + ["checkers"]
+# The jobs whose definitions say whether and how a change is held: every job
+# build/land-via-mr.py requires to have succeeded before it lands a batch
+# (LANDING_REQUIRED) - the change gates and their scan, the blocking scans on linix,
+# checkers, which holds the CI files to them, and the Windows suite's two halves, which a
+# second definition elsewhere could give a script, a before_script, rules or an
+# allow_failure that made a half pass having run no test.
+HELD_JOBS = sorted(set(job for required in LANDING_REQUIRED.values() for job in required))
 # The top-level keys every job takes from the file that sets them: .gitlab-ci.yml's alone,
 # a file of build/land-via-mr.py's GATE_FILES.
 EVERY_JOB_KEYS = ("variables", "default", "workflow")
@@ -2918,12 +2923,15 @@ def gate_job_files(texts):
 
 def ci_override_problems(texts):
     """[problem] for each way a CI file other than a job's own would say whether and how
-    a job of HELD_JOBS runs: GitLab merges every definition of a name, the keys of a later
-    include over an earlier one's and .gitlab-ci.yml's over all, so a second definition of
-    one of them, or of a template it reaches, in a file a landing asks no person's word
-    for, could take the job's rules, script or allow_failure; a file but .gitlab-ci.yml
-    that sets what every job takes (EVERY_JOB_KEYS); and an include in one that brings in
-    a file this cannot read (any but one of GitLab's templates)."""
+    a job of HELD_JOBS runs - the change gates, semgrep-sast, the blocking scans,
+    checkers and the Windows suite's halves, windows-gate and windows-gate-s1vm: GitLab
+    merges every definition of a name, the keys of a later include over an earlier one's
+    and .gitlab-ci.yml's over all, so a second definition of one of them, or of a template
+    it reaches, in a file a landing asks no person's word for, could take any key the job
+    does not set itself - its rules, script, before_script or allow_failure, over what it
+    takes from a template by extends; a file but .gitlab-ci.yml that sets what every job
+    takes (EVERY_JOB_KEYS); and an include in one that brings in a file this cannot read
+    (any but one of GitLab's templates)."""
     every_ci = ci_files(texts)
     problems = []
     for name, paths in sorted(reached_definitions(every_ci, HELD_JOBS).items()):
@@ -5377,6 +5385,22 @@ def self_test(chain, feed):
             ("a template a gate extends defined again", "\n.mr-check:\n  allow_failure: true\n", ".mr-check is defined in"),
             ("a template a gate takes a part of defined again", "\n.gate-retry:\n  retry:\n    max: 0\n",
              ".gate-retry is defined in"),
+            # The Windows suite's halves, which a landing requires as it does the scans:
+            # windows-gate-s1vm sets no script, before_script, rules or allow_failure of
+            # its own and windows-gate no before_script or rules, so a second definition's
+            # would be the job's, over what extends gives it.
+            ("a half of the Windows suite defined again, with a script",
+             "\nwindows-gate-s1vm:\n  script:\n    - exit 0\n", "windows-gate-s1vm is defined in"),
+            ("a half of the Windows suite defined again, with a before_script both halves take",
+             "\nwindows-gate:\n  before_script:\n    - exit 0\n", "windows-gate is defined in"),
+            ("a half of the Windows suite defined again, allowed to fail",
+             "\nwindows-gate-s1vm:\n  allow_failure: true\n", "windows-gate-s1vm is defined in"),
+            ("a half of the Windows suite defined again, with rules",
+             "\nwindows-gate-s1vm:\n  rules:\n    - when: never\n", "windows-gate-s1vm is defined in"),
+            ("a template the Windows suite's halves extend defined again",
+             "\n.own-runners:\n  before_script:\n    - exit 0\n", ".own-runners is defined in"),
+            ("a template the Windows suite's halves take a part of defined again",
+             "\n.bench150-leftovers:\n  allow_failure: true\n", ".bench150-leftovers is defined in"),
             ("variables every job takes, in an included file", "\nvariables:\n  PYTHONPATH: build/x\n",
              "sets variables at its top level"),
             ("defaults every job takes, in an included file", "\ndefault:\n  hooks:\n    pre_get_sources_script: [\"true\"]\n",
@@ -5397,6 +5421,23 @@ def self_test(chain, feed):
         overriding = [p for p in found if " is defined in " in p or " at its top level" in p or " includes what " in p]
         if (needle and not any(needle in p for p in found)) or (needle is None and overriding):
             failures.append("%s in %s is %s: %s" % (what, spare[-1], "caught" if needle else "let pass", overriding or found))
+    # The same in channels.yml, and in packages-windows.yml, a file of FILES, beside
+    # bench150's other jobs: with windows-gate-s1vm given script: [exit 0] in either, the
+    # half ran exit 0 and succeeded, and every rule passed it (14 October 2026).
+    addition = "\nwindows-gate-s1vm:\n  script:\n    - exit 0\n"
+    for path, key in ((".gitlab/ci/channels.yml", None),
+                      (FILES["packages-windows"].replace(os.sep, "/"), "packages-windows")):
+        if key:
+            copy = dict(texts, **{key: texts[key].rstrip("\n") + "\n" + addition})
+        elif path in texts["ci-includes"]:
+            changed = texts["ci-includes"][path].rstrip("\n") + "\n" + addition
+            copy = dict(texts, **{"ci-includes": dict(texts["ci-includes"], **{path: changed})})
+        else:
+            failures.append("a half of the Windows suite defined again in %s: the tree has no such CI file" % path)
+            continue
+        found, _ = check(copy, chain, feed)
+        if not any("windows-gate-s1vm is defined in .gitlab-ci.yml and %s" % path in p for p in found):
+            failures.append("a half of the Windows suite given a script of its own in %s is caught: %s" % (path, found))
     # Every job on the project's own runners for a protected ref that is not a merge
     # request's, and on a runner that takes it in any other pipeline (runner_problems):
     # the tree passes, and each way out below is caught - in .gitlab-ci.yml, or in an
