@@ -399,7 +399,10 @@ particular, check five things:
 - the Artifact Signing identity validation has not lapsed (the Azure portal);
 - bench150 and S1-WINBENCH, the two Windows benches, and at least one of linix,
   server2 and s1-linux (the runners with the tag `linix`), are up and online on
-  GitLab (`hmailserver/docs/ContinuousIntegration.md`, "The runners");
+  GitLab, and for the batch's own pipeline, which runs jobs a tag's does not,
+  linix's second entry, `linix-systemd`, and server2, the one runner with the
+  tag `kvm`, as well (`hmailserver/docs/ContinuousIntegration.md`, "The
+  runners");
 - the project's path, which the federated credential's subject names:
   `hmailserver/hmailserver` since the move into the group on 29 September
   2026 (`Progressiverobot/hmailserver` before it, for 6.3.5).

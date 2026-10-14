@@ -196,7 +196,8 @@ but the owner's own ([What must stay valid](#what-must-stay-valid-for-a-security
 Two more things are needed besides:
 
 - the project's runners must be up: bench150 and S1-WINBENCH, the two Windows benches, which share the Windows
-  suite between them, and linix, server2 or s1-linux, which share the tag `linix`
+  suite between them, and linix, server2 or s1-linux, which share the tag `linix`, and for the batch's own
+  pipeline linix's entry `linix-systemd` and server2, the one runner with the tag `kvm`, as well
   ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "The runners");
 - the installer smoke test is run by hand between `release-sign` and `release-publish`.
 

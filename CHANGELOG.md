@@ -6336,9 +6336,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   table of what must stay valid is read again that day, the Snap Store's credential, made on 6 October, among it.
   RELEASE.md's step 3 says that `release` waits for `windows-packages-arm64`, whose installer the release carries,
   where it said it waited for no Windows package; "Before starting" checks the last batch pipeline's
-  `dependency-scan`, which the release job holds on and no landing gate reads, and names both Windows benches and
-  s1-linux among the runners; and the version stamp says that the version's section carries "What changes on
-  upgrade without a switch", gathered at the stamp. The documents also say that on 14 October 2026 `master` still
+  `dependency-scan`, which the release job holds on and no landing gate reads, and names among the runners both
+  Windows benches, s1-linux, and the two the release batch's own pipeline needs beside the tag's, `linix-systemd`
+  and server2's `kvm`; and the version stamp says that the version's section carries "What changes on upgrade
+  without a switch", gathered at the stamp. The documents also say that on 14 October 2026 `master` still
   let Maintainers push, after the batch that brings the change checks had landed on 9 October. HelpPagesData.cpp is
   regenerated.
 
