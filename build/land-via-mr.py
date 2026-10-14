@@ -63,7 +63,9 @@ refusal:
      file the batch changes from master is Markdown at the root or under a
      directory whose name begins with a dot - the changes for which .own-runners
      creates no scan. A gate that is missing, skipped, or failed refuses (exit
-     5), naming it; the statuses go into the landing record. The pipeline must be
+     5), naming it; the statuses go into the landing record, and so do those of
+     hosted-runners and compute-quota (HOSTED_CHECK_JOBS), which no landing waits
+     for, or that neither was in the pipeline. The pipeline must be
      the project's own (its project_id), not one a fork ran on runners of its
      owner's choosing; and each gate that finds the change's base itself
      (BASE_GATES) must say in its log that it judged the batch against master's
@@ -191,6 +193,12 @@ SETTLING = {"checking", "unchecked", "approvals_syncing", "preparing", "ci_still
 # build/check-release-chain.py holds these names to the jobs the CI files define.
 GATE_JOBS = ("semgrep-sast", "semgrep-sast-gate", "mr-dependency-check", "checkers")
 SOURCE_SCAN_JOBS = ("static-analysis", "semgrep")
+# The checks of a pipeline for which a switch sends a class of jobs to GitLab's hosted
+# runners (.gitlab/ci/hosted-runners.yml), which no landing waits for: a failure of
+# hosted-runners fails the pipeline itself, and compute-quota is allowed to fail whatever
+# it says of the compute minutes. The landing record gives what each came to, so that what
+# compute-quota said is seen at each landing.
+HOSTED_CHECK_JOBS = ("hosted-runners", "compute-quota")
 # The gates that find the change's base themselves and say it in their log ("The base:
 # <commit>, ..."): a landing holds it to where the batch leaves master, so that a base a
 # CI file named would show.
@@ -763,6 +771,10 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_sca
         jobs_line += " (%s not required: the batch changes Markdown alone, at the root or under a dot-directory)" % (
             " and ".join(SOURCE_SCAN_JOBS))
     say("Gate jobs of pipeline #%s: %s" % (pipeline["id"], jobs_line))
+    hosted = [(name, jobs[name].get("status") or "unknown", bool(jobs[name].get("allow_failure")))
+              for name in HOSTED_CHECK_JOBS if name in jobs]
+    hosted_line = describe_jobs(hosted) if hosted else "not in the pipeline (no switch or lane was set)"
+    say("GitLab's hosted runners' checks of pipeline #%s: %s" % (pipeline["id"], hosted_line))
     held = [(name, status, allowed) for name, status, allowed in statuses if status != "success"]
     if held:
         raise Refused(5, "REFUSED: pipeline #%s of %s succeeded, but %s did not: %s. A gate that a rule left out of the "
@@ -844,7 +856,8 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_sca
             "- Tip: `%s`, %d commit(s) on top of master `%s`" % (tip, len(shas), base[:12]),
             "- Pipeline: %s" % pipeline_line,
             "- Gate jobs: %s" % jobs_line,
-            "- The gates' base: `%s`, where the batch leaves master, as %s said" % (base[:12], " and ".join(BASE_GATES)),
+            "- GitLab's hosted runners' checks: %s" % hosted_line,
+            "- The gates' base:`%s`, where the batch leaves master, as %s said" % (base[:12], " and ".join(BASE_GATES)),
             "- The gates' own files: %s" % (("changed (%s), read: %s" % (", ".join(gate_files), gates_read))
                                             if gate_files else "not changed"),
             "- The checkout's copies of what the landing runs: %s" % checkout_line,
@@ -1282,6 +1295,24 @@ def self_test():
             "static-analysis success, semgrep success") in api.notes[0], True)
         expect("happy: the landing record says that the checkout's copies were master's", len(api.notes) == 1 and
                "- The checkout's copies of what the landing runs: master's\n" in api.notes[0], True)
+        expect("happy: the landing record says that no check of GitLab's hosted runners was in the pipeline",
+               len(api.notes) == 1 and "- GitLab's hosted runners' checks: not in the pipeline (no switch or lane was set)\n"
+               in api.notes[0], True)
+
+        # 1a. A pipeline a switch was set for: compute-quota, allowed to fail whatever it says,
+        # holds no landing, and what it came to is in the landing record and the output.
+        bare, work = scenario("hosted")
+        commit(work, "signed")
+        jobs = full_pipeline() + [{"id": 3000, "name": "hosted-runners", "status": "success", "allow_failure": False},
+                                  {"id": 3001, "name": "compute-quota", "status": "failed", "allow_failure": True}]
+        api = FakeGitLab(bare, approved_by=[zain], jobs=jobs)
+        code, text = attempt(work, api)
+        expect("hosted: landed although compute-quota failed", code, 0)
+        expect("hosted: the landing record gives what the two checks came to", len(api.notes) == 1 and
+               "- GitLab's hosted runners' checks: hosted-runners success, compute-quota failed while allowed to fail\n"
+               in api.notes[0], True)
+        expect("hosted: and so does the output", "checks of pipeline #7: hosted-runners success, compute-quota failed while "
+               "allowed to fail" in text, True)
 
         # 2. A commit without its sign-off: nothing leaves the machine.
         bare, work = scenario("unsigned")

@@ -3505,10 +3505,10 @@ def runner_class_problems(texts, script=None):
     without one; a job outside a class in a class's lane; a job that boots a QEMU
     machine without the tags that put it on server2 (KVM_JOBS); the checks of
     HOSTED_CHECKS_FILE missing, not included, not run as HOSTED_SCRIPT runs them, not
-    on linix, or not asking of every switch and lane whether it is at its default; the
-    script's classes not these; and the GitLab templates whose variables the script
-    knows (TEMPLATE_GLOBALS) not the ones the CI files include. script stands in for
-    HOSTED_SCRIPT, for the self-test."""
+    on linix, not asking of every switch and lane whether it is at its default, or
+    compute-quota not allowed to fail; the script's classes not these; and the GitLab
+    templates whose variables the script knows (TEMPLATE_GLOBALS) not the ones the CI
+    files include. script stands in for HOSTED_SCRIPT, for the self-test."""
     problems = []
     every_ci = ci_files(texts)
     order = [p for p in sorted(every_ci) if p != ".gitlab-ci.yml"] + [".gitlab-ci.yml"]
@@ -3628,6 +3628,10 @@ def runner_class_problems(texts, script=None):
             if job != "compute-quota" and re.search(r"^  environment:", body, re.MULTILINE):
                 problems.append("%s (%s) names an environment: it must be given what a job that names none is given, as every "
                                 "job a switch moves is" % (job, HOSTED_CHECKS_FILE))
+            if job == "compute-quota" and not re.search(r"^  allow_failure: true[ \t]*$", body, re.MULTILINE):
+                problems.append("compute-quota (%s) does not say allow_failure: true: what it says of the minutes is for the "
+                                "owner to read, and a failure of it would save no minute - no job waits for it - and hold a "
+                                "gate whose every job had passed until a pipeline was made again" % HOSTED_CHECKS_FILE)
     try:
         module = script if script is not None else _load(HOSTED_SCRIPT, "hosted_runners")
         theirs = dict((c[0], (c[1], (c[2], c[3]) if c[2] else None)) for c in module.CLASSES)
@@ -5345,6 +5349,10 @@ def self_test(chain, feed):
             ("a check that runs another command", hosted_file, "    - python3 build/ci/hosted-runners.py quota\n",
              "    - python3 build/ci/hosted-runners.py --self-test\n",
              "compute-quota (.gitlab/ci/hosted-runners.yml) does not run python3 build/ci/hosted-runners.py quota"),
+            ("compute-quota allowed to fail by some answers alone", hosted_file,
+             "  allow_failure: true\n  script:\n    - python3 build/ci/hosted-runners.py quota\n",
+             "  allow_failure:\n    exit_codes: [2, 3]\n  script:\n    - python3 build/ci/hosted-runners.py quota\n",
+             "compute-quota (.gitlab/ci/hosted-runners.yml) does not say allow_failure: true"),
             ("a GitLab template whose variables hosted-runners does not know", ".gitlab/ci/gitlab-security.yml",
              "  - template: Jobs/Secret-Detection.gitlab-ci.yml\n",
              "  - template: Jobs/Secret-Detection.gitlab-ci.yml\n  - template: Jobs/Dependency-Scanning.gitlab-ci.yml\n",

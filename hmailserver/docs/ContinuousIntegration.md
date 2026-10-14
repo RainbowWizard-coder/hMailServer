@@ -123,7 +123,7 @@ The other tables on this page name runners the same way.
 | `image-pins` | check | linix | the schedule described `renovate`, and nothing else | Every image the CI files and the build scripts pin by digest, asked of its registry as a runner asks it; a pin the registry no longer serves fails the pipeline, named with every place that names it (`build/check-image-pins.py`; [Image pins](#image-pins)) |
 | `forge-export` | check | linix | the pipeline schedule for `master` whose description is `export`, and nothing else | The issues, merge requests, labels, milestones, boards and releases as JSON and the wiki as a git bundle, and GitLab's project export when its token is set: what a push mirror does not carry, kept on linix and as an artifact for Developers only (`.gitlab/ci/forge-export.yml`, `build/ci/forge-export.py`; [Mirroring.md](Mirroring.md)) |
 | `hosted-runners` | check | linix | `master` or a `batch*` branch for which a switch or a lane is set; never a tag | Each switch names a runner of its class's kind, each lane goes with its class, and no credential is given to a job that names no environment, as every job a switch moves is - every variable such a job is given is taken for one but GitLab's, its runner's, the container's, those the CI files and their templates set, and the project's that hold none; it names what such a job is given (`.gitlab/ci/hosted-runners.yml`, `build/ci/hosted-runners.py check`; [GitLab's hosted runners beside the project's](#gitlabs-hosted-runners-beside-the-projects)) |
-| `compute-quota` | check | linix | the same | The namespace's compute minutes this month against its quota and what the pipeline is expected to use at its switches, in the environment `compute-quota`; a warning under a quarter of the quota or ten such pipelines left, a failure under a twentieth or two, with how the switches are set back; says "not configured" until `HM_QUOTA_TOKEN` exists (`build/ci/hosted-runners.py quota`) |
+| `compute-quota` | check | linix | the same | The namespace's compute minutes this month against its quota and what the pipeline is expected to use at its switches, in the environment `compute-quota`; while a class of the pipeline is on GitLab's runners, a warning under a quarter of the quota or ten such pipelines left, a failure under a twentieth or two, with how the switches are set back; says "not configured" until `HM_QUOTA_TOKEN` exists; allowed to fail, whatever it says (`build/ci/hosted-runners.py quota`) |
 | `scorecard` | check | linix | the schedule described `scorecard`, and nothing else | OpenSSF Scorecard 5.5.0 from cache.nixos.org over the project, its result kept for `package-repos` to publish with a badge; says "not configured" and passes until the owner's `GITLAB_AUTH_TOKEN` exists (`.gitlab/ci/scorecard.yml`, `build/ci/scorecard.sh`; [OpenSSF Scorecard](#openssf-scorecard)) |
 
 `linux-build`, `windows-gate`, `windows-dotnet`, `linux-cross`, `linux-sanitize`
@@ -534,10 +534,17 @@ rules), and never for a `v*` tag, whose batch and `master` pipelines have run th
   `compute-quota`: the namespace's compute minutes this month against its quota
   (`GET /namespaces/hmailserver`'s `ci_minutes_usage`, `GET /groups/hmailserver`'s
   `shared_runners_minutes_limit` and any purchased), and what a pipeline of its kind
-  is expected to use at the switches set (the table below). Fewer minutes left than two
-  such pipelines need, or a twentieth of the quota, fail it, and the failure says how
-  the switches are set back; fewer than ten such pipelines, or a quarter of the quota,
-  is a warning. It reads with `HM_QUOTA_TOKEN`, a token with `read_api` of an Owner of
+  is expected to use at the switches set (the table below). While a class of the
+  pipeline is on GitLab's runners, fewer minutes left than two such pipelines need, or
+  a twentieth of the quota, fail it, and the failure says how the switches are set
+  back; fewer than ten such pipelines, or a quarter of the quota, is a warning. With
+  none there - the switches were set back, and the job is run again - it says how
+  many are left, and passes. It fails no pipeline, whatever it says (`allow_failure:
+  true`): no job waits for it, so its failure would save no minute, and it would hold
+  a gate whose every job had passed until a whole pipeline was made again. Its log,
+  the job's mark in the pipeline and the landing record `build/land-via-mr.py` posts,
+  which gives what both checks came to, are for the owner to read. It reads with
+  `HM_QUOTA_TOKEN`, a token with `read_api` of an Owner of
   the group (only an Owner may read the usage): a group access token with the Owner
   role, a protected, masked and hidden project variable scoped to `compute-quota`.
   Without it the job says "not configured", a warning. A GitLab that cannot be asked
@@ -631,7 +638,7 @@ jobs alone, on a medium machine at 1 a minute, and the packages for a release we
 4. **Back**: delete the variables (`glab variable delete HM_RUNNER_PACKAGES`, and the
    rest) and run the pipeline again; every class is then on the project's runners, as
    before. That is also what `compute-quota`'s failure says to do when the minutes run
-   low.
+   low; the job itself, run again after, passes.
 
 ### The arm64 jobs on arm64
 
@@ -1329,7 +1336,11 @@ in to gitlab.com as a Maintainer. In order, and stopping at the first refusal:
    the root or under a directory whose name begins with a dot - the changes for
    which `.own-runners` creates no scan. A gate that is not in the pipeline, was
    skipped, or failed, allowed to or not, refuses (exit 5), naming it; the
-   statuses go into the landing record. The pipeline must be the project's own
+   statuses go into the landing record. So do those of `hosted-runners` and
+   `compute-quota`, or that neither was in the pipeline
+   ([GitLab's hosted runners beside the project's](#gitlabs-hosted-runners-beside-the-projects)):
+   `compute-quota` is allowed to fail whatever it says, and what it said of the
+   compute minutes is seen there. The pipeline must be the project's own
    (its `project_id`), not one a fork ran, and each of `semgrep-sast-gate` and
    `mr-dependency-check` must say in its log - "The base: <commit>, ..." - that it
    judged the batch against `master`'s tip, where the batch leaves it: a base a

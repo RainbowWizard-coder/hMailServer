@@ -47,10 +47,14 @@ GitLab expands for each job as it makes the job's resource group.
       the group, which alone may read its compute usage. The namespace's minutes this
       month, against its quota (shared_runners_minutes_limit and any purchased), and
       what a pipeline of this kind is expected to use at the switches set (EXPECTED).
-      Fewer left than two such pipelines, or a twentieth of the quota, fails it, saying
-      how the switches are set back; fewer than ten, or a quarter, is a warning; and so
-      is a missing token, said so. A GitLab that cannot be asked is exit 2, which the job
-      tries twice more.
+      With a class of this pipeline on GitLab's runners, fewer left than two such
+      pipelines, or a twentieth of the quota, is a failure, saying how the switches are
+      set back; fewer than ten, or a quarter, is a warning; and so is a missing token,
+      said so. With none there, nothing of the pipeline spends a minute, and the usage
+      is said and nothing more. A GitLab that cannot be asked is exit 2, which the job
+      tries twice more. The job is allowed to fail whatever it answers: a failure of it
+      would save no minute, since no job waits for it, and would hold a gate whose jobs
+      had passed until a pipeline was made again.
   python3 build/ci/hosted-runners.py --self-test
       Both against environments and answers held in memory, the CI files' variables
       read from the tree's own, and the HTTP reading against a GitLab API served on the
@@ -440,6 +444,13 @@ def quota(environ, out, fetch=fetch_json):
                 ran, month.get("minutes") or 0, (month.get("minutes") or 0) / ran), file=out)
     except (Unreachable, Refused, ValueError, TypeError, AttributeError):
         pass
+    if not hosted:
+        # Nothing of this pipeline runs on GitLab's runners - the switches were set back
+        # after it was made, and its job is run again, or a lane alone is set - so nothing
+        # of it can stop for the minutes.
+        print("No class of this pipeline is on GitLab's runners, so none of its jobs stops when the minutes are spent%s." % (
+            "; a merge request's pipeline, on GitLab's small runner, does" if share >= QUOTA_WARN_SHARE else ""), file=out)
+        return 0
     if (expected and left < QUOTA_FAIL_PIPELINES * expected) or share >= QUOTA_FAIL_SHARE:
         print("FAILED: %d compute minutes are left this month, fewer than %s: the jobs on GitLab's runners stop with "
               "ci_quota_exceeded once they are spent, a gate's among them. %s" % (
@@ -618,6 +629,17 @@ def self_test():
            (code, "10 pipelines like this one need" in text), (3, True))
     code, text, _ = run_quota(48000, environ=dict(base, CI_COMMIT_BRANCH="master"))
     expect("master's pipeline expects 120, and 2,000 left is under a twentieth of the quota: failed", code, 1)
+    code, text, _ = run_quota(47600, environ=dict(base, CI_COMMIT_BRANCH="master", HM_RUNNER_PACKAGES="linix"))
+    expect("master's with the arm64 class alone there, whose jobs wait for a press, 2,400 left: failed, the quota near its end",
+           (code, "a twentieth of the quota" in text), (1, True))
+    code, text, _ = run_quota(47600, environ=dict(base, HM_RUNNER_PACKAGES="linix", HM_RUNNER_ARM64="linix"))
+    expect("the job run again after the switches were set back, 2,400 left: passed, the minutes said",
+           (code, "2400 left" in text and "none of its jobs stops when the minutes are spent" in text and "FAILED" not in text),
+           (0, True))
+    code, text, _ = run_quota(49900, environ=dict(base, HM_RUNNER_PACKAGES="linix", HM_RUNNER_ARM64="linix",
+                                                  HM_LANE_PACKAGES="hosted-compute-quota"))
+    expect("a lane alone set, nothing on GitLab's runners, 100 left: passed, saying what does stop",
+           (code, "a merge request's pipeline, on GitLab's small runner, does" in text), (0, True))
     code, text, _ = run_quota(415, environ=dict(base, HM_QUOTA_TOKEN=""))
     expect("no token: a warning, not configured", (code, "not configured" in text), (3, True))
     fetch, _ = fake(None, None, error=Unreachable("connection refused"))

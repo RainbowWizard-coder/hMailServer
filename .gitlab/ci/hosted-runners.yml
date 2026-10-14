@@ -30,10 +30,15 @@
 #                   HM_QUOTA_TOKEN, a read_api token of the group's owner, a protected and
 #                   masked project variable scoped to the environment compute-quota,
 #                   which this job alone names, so that no other job is given it.
-#                   Without the token it says so, a warning. A quarter of the quota left,
-#                   or ten pipelines like this one, is a warning; a twentieth, or two, a
-#                   failure, which says how the switches are set back. A GitLab that
-#                   cannot be asked is tried twice more (exit 2), then a warning.
+#                   Without the token it says so, a warning. With a class of this
+#                   pipeline on GitLab's runners, a quarter of the quota left, or ten
+#                   pipelines like this one, is a warning, and a twentieth, or two, a
+#                   failure, which says how the switches are set back; with none there
+#                   it says how many are left, and passes. A GitLab that cannot be asked
+#                   is tried twice more (exit 2). It fails no pipeline, whatever it
+#                   answers (allow_failure: true): no job waits for it, so its failure
+#                   would save no minute, and it would hold a gate whose every job had
+#                   passed until a whole pipeline was made again.
 #
 # On linix both, whatever the switches say: a check of the switches must not depend on
 # them, and on linix it costs no minute and runs when the minutes have run out. When:
@@ -84,7 +89,7 @@ compute-quota:
     max: 2
     when: !reference [.gate-retry, retry, when]
     exit_codes: [2]
-  allow_failure:
-    exit_codes: [2, 3]
+  # What it says is for the owner to read, never a gate (above).
+  allow_failure: true
   script:
     - python3 build/ci/hosted-runners.py quota
