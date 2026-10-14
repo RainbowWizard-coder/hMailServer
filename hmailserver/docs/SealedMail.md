@@ -207,15 +207,17 @@ What the action does with a message that is not text with files attached:
   message) in place of the note, whatever *Notify the recipients* says, and its sender
   is not told, as this action never tells the sender; when the message's header cannot
   be read either, the notice gives the envelope's sender and the recipient as its
-  *From* and *To*. It is deleted rather than held:
-  a message that cannot be read now is no more readable on a later pass, and a hold
-  would end in a return to a sender that virus mail forges. The log says `Message will
-  be deleted`, with the reason.
+  *From* and *To*. It is deleted rather than held: what made it unreadable - another
+  program holding or removing its file, most often an antivirus, or a parse that
+  failed - is not something a later pass can count on, and a hold would end in a
+  return to a sender that virus mail forges. The log says `Message will be deleted`,
+  with the reason.
 * A message whose file the server **cannot rewrite** - it can be read, but another
   program lets nobody write it, or the write does not complete - is deleted in the same
-  way, its recipients told and its sender not: what would be delivered is the file, and
-  it still holds the message as it arrived, or a part of what was being written over
-  it. The log says that the message `could not be rewritten`.
+  way and for the same reasons, its recipients told and its sender not: what would be
+  delivered is the file, and it still holds the message as it arrived, or a part of
+  what was being written over it. The log says that the message `could not be
+  rewritten`.
 
 ## Rules
 

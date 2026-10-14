@@ -1029,15 +1029,17 @@ namespace HM
          case MessageAttachmentStripper::Result::RewriteFailed:
             // Nothing of the message can be kept, so it is not delivered: it is
             // deleted, as the delete action deletes it. Deleted rather than held
-            // for another try: a message that could not be read now is no more
-            // readable on a later pass, and a hold would end in a return to its
-            // sender, which on virus mail is an address the sender forged.
+            // for another try: what made it unreadable - another program holding
+            // or removing its file, most often an antivirus, or a parse that
+            // failed - is not something a later pass can count on, and a hold
+            // would end in a return to its sender, which on virus mail is an
+            // address the sender forged.
             //
             // So is a message whose stripped form could not be written over its
-            // file: the file is what the delivery below would deliver, and it is
-            // the message as it arrived, or a part of the rewrite. Such a message
-            // was delivered as it was, and logged above as stripped, while the
-            // stripper did not say that its write had failed.
+            // file, for the same reasons: the file is what the delivery below
+            // would deliver, and it is the message as it arrived, or a part of the
+            // rewrite. Such a message was delivered as it was, and logged above as
+            // stripped, while the stripper did not say that its write had failed.
             //
             // The recipients are told in place of the note this action puts in
             // the messages it delivers, as the delete action tells them when its
