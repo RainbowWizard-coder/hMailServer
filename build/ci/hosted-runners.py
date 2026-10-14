@@ -51,15 +51,21 @@ GitLab expands for each job as it makes the job's resource group.
       compute-quota, to which HM_QUOTA_TOKEN is scoped: a read_api token of an Owner of
       the group, which alone may read its compute usage. The namespace's minutes this
       month, against its quota (shared_runners_minutes_limit and any purchased), and
-      what a pipeline of this kind is expected to use at the switches set (EXPECTED).
-      With a class of this pipeline on GitLab's runners, fewer left than two such
+      what a pipeline of this kind made at the switches as the job reads them is
+      expected to use (EXPECTED). Those are the switches when the job starts, which a
+      pipeline made then takes: GitLab gives a job the project's variables as it
+      starts, and fixes a job's tags as it makes the pipeline, which a job run again
+      keeps, so this pipeline's jobs are where its switches were when it was made.
+      While a switch sends a class to GitLab's runners, fewer left than two such
       pipelines, or a twentieth of the quota, is a failure, saying how the switches are
       set back; fewer than ten, or a quarter, is a warning; and so is a missing token,
-      said so. With none there, nothing of the pipeline spends a minute, and the usage
-      is said and nothing more. A GitLab that cannot be asked is exit 2, which the job
-      tries twice more. The job is allowed to fail whatever it answers: a failure of it
-      would save no minute, since no job waits for it, and would hold a gate whose jobs
-      had passed until a pipeline was made again.
+      said so. With none sent there - the switches set back and the job run again, or a
+      lane alone set -, a pipeline made from then on spends no minute, and the usage is
+      said, and that this pipeline's jobs keep the runners they were made with. A
+      GitLab that cannot be asked is exit 2, which the job tries twice more. The job is
+      allowed to fail whatever it answers: a failure of it would save no minute, since
+      no job waits for it, and would hold a gate whose jobs had passed until a pipeline
+      was made again.
   python3 build/ci/hosted-runners.py --self-test
       Both against environments and answers held in memory, the CI files' variables
       read from the tree's own, and the HTTP reading against a GitLab API served on the
@@ -250,8 +256,9 @@ def setting_back(environ):
     every = [n for c in CLASSES for n in (c[0], c[2]) if n]
     named = sorted(set(n for c in CLASSES for n in (c[0], c[2]) if n and environ.get(n) not in (None, OWN, c[3]))) or every
     return ("To put every job back on the project's runners, delete the project CI/CD variable%s %s (Settings, CI/CD, "
-            "Variables; or glab api -X DELETE projects/$CI_PROJECT_ID/variables/<name>) and run the pipeline again: from "
-            "the next pipeline each class is on linix and server2 as before (%s)." % (
+            "Variables; or glab api -X DELETE projects/$CI_PROJECT_ID/variables/<name>) and make a new pipeline (CI/CD, "
+            "Pipelines, Run pipeline, or a push): each class of it is then on linix and server2 as before, while a "
+            "pipeline already made keeps the runners its jobs were made with, a job of it run again among them (%s)." % (
                 "s" if len(named) > 1 else "", ", ".join(named), DOCUMENT))
 
 
@@ -439,13 +446,18 @@ def fetch_json(url, token, data=None):
 
 
 def quota(environ, out, fetch=fetch_json):
-    """The namespace's compute minutes against what this pipeline is expected to use, as
+    """The namespace's compute minutes against what a pipeline of this kind made at the
+    switches as the job reads them - when it starts - is expected to use, as
     compute-quota reads them. The exit code: 1, 2, 3 or 0, as the module says."""
     kind = kind_of(environ)
+    # The switches as GitLab gave them to this job when it started: those of a pipeline
+    # made now. This pipeline's jobs took their tags from the switches when it was made,
+    # and keep them, a job run again among them; the two differ once a switch has been set
+    # or deleted since.
     hosted = [(variable, value) for variable, _, value, on, _, _, _ in switches(environ) if on]
     expected = sum(EXPECTED[variable][kind] for variable, _ in hosted)
-    print("On GitLab's runners in this %s pipeline: %s; expected to use about %d compute minutes there." % (
-        kind, ", ".join("%s (%s)" % pair for pair in hosted) or "no class", expected), file=out)
+    print("The switches now send %s to GitLab's runners: a %s pipeline made with them is expected to use about %d compute "
+          "minutes there." % (", ".join("%s (%s)" % pair for pair in hosted) or "no class", kind, expected), file=out)
     token = environ.get("HM_QUOTA_TOKEN", "")
     if not token:
         print("WARNING: not configured: HM_QUOTA_TOKEN is not set, so the namespace's compute minutes are not read. It is a "
@@ -480,7 +492,8 @@ def quota(environ, out, fetch=fetch_json):
     print("This month %s has used %d of its %d compute minutes (%.1f%%): %d left, which the 1st of next month makes %d "
           "again." % (namespace, used, total, 100 * share, left, limit), file=out)
     if expected:
-        print("That is about %d more pipelines like this one." % max(0, left // expected), file=out)
+        print("That is about %d more such pipeline%s." % (max(0, left // expected), "" if left // expected == 1 else "s"),
+              file=out)
     try:
         graph = fetch("%s/api/graphql" % api[:-len("/api/v4")] if api.endswith("/api/v4") else api + "/graphql", token,
                       json.dumps({"query": "query { ciMinutesUsage(namespaceId: \"gid://gitlab/Group/%d\") { nodes { "
@@ -495,21 +508,26 @@ def quota(environ, out, fetch=fetch_json):
     except (Unreachable, Refused, ValueError, TypeError, AttributeError):
         pass
     if not hosted:
-        # Nothing of this pipeline runs on GitLab's runners - the switches were set back
-        # after it was made, and its job is run again, or a lane alone is set - so nothing
-        # of it can stop for the minutes.
-        print("No class of this pipeline is on GitLab's runners, so none of its jobs stops when the minutes are spent%s." % (
-            "; a merge request's pipeline, on GitLab's small runner, does" if share >= QUOTA_WARN_SHARE else ""), file=out)
+        # No switch sends a class to GitLab's runners now - the switches were set back and
+        # the job is run again, or a lane alone is set: a pipeline made from now on spends
+        # no minute. This pipeline's jobs keep the tags they were made with, a job run again
+        # among them, so a class of it made while a switch was set is on GitLab's runners
+        # still, and can stop for the minutes; which of its jobs are is not read here.
+        print("No switch sends a class to GitLab's runners now, so a pipeline made from now on runs every class on the "
+              "project's runners. This pipeline's jobs keep the runners they were made with, a job of it run again among "
+              "them: if a switch was set when it was made, its class's jobs here run on GitLab's runners still, and stop "
+              "once the minutes are spent%s." % ("; so does a merge request's pipeline, on GitLab's small runner"
+                                                 if share >= QUOTA_WARN_SHARE else ""), file=out)
         return 0
     if (expected and left < QUOTA_FAIL_PIPELINES * expected) or share >= QUOTA_FAIL_SHARE:
         print("FAILED: %d compute minutes are left this month, fewer than %s: the jobs on GitLab's runners stop with "
               "ci_quota_exceeded once they are spent, a gate's among them. %s" % (
-                  left, "%d pipelines like this one need" % QUOTA_FAIL_PIPELINES if expected and left < QUOTA_FAIL_PIPELINES *
+                  left, "%d such pipelines need" % QUOTA_FAIL_PIPELINES if expected and left < QUOTA_FAIL_PIPELINES *
                   expected else "a twentieth of the quota", setting_back(environ)), file=out)
         return 1
     if (expected and left < QUOTA_WARN_PIPELINES * expected) or share >= QUOTA_WARN_SHARE:
         print("WARNING: %d compute minutes are left this month, fewer than %s. %s" % (
-            left, "%d pipelines like this one need" % QUOTA_WARN_PIPELINES if expected and left < QUOTA_WARN_PIPELINES *
+            left, "%d such pipelines need" % QUOTA_WARN_PIPELINES if expected and left < QUOTA_WARN_PIPELINES *
             expected else "a quarter of the quota", setting_back(environ)), file=out)
         return 3
     return 0
@@ -605,6 +623,10 @@ def self_test():
     code, text = run_check(HM_RUNNER_PACKAGES="saas-linux-large-amd4")
     expect("a switch no runner carries: failed, naming it", (code, "HM_RUNNER_PACKAGES is 'saas-linux-large-amd4'" in text), (1, True))
     expect("a failure says how to set the switches back", "delete the project CI/CD variable HM_RUNNER_PACKAGES" in text, True)
+    expect("and that a new pipeline is on the project's runners, where one made before keeps its runners, a job run again "
+           "among them", ("make a new pipeline" in text, "keeps the runners its jobs were made with, a job of it run again "
+                                                         "among them" in text, "run the pipeline again" in text),
+           (True, True, False))
     code, text = run_check(HM_RUNNER_BUILD="saas-linux-large-arm64")
     expect("an arm64 machine for an amd64 class: failed", (code, "an arm64 machine, and its jobs' containers are amd64" in text),
            (1, True))
@@ -674,6 +696,9 @@ def self_test():
     code, text, asked = run_quota(415)
     expect("415 of 50,000 used: passed", code, 0)
     expect("the expected minutes of a batch's pipeline with packages and arm64 on GitLab's", "about 295 compute minutes" in text, True)
+    expect("which are those of a pipeline made at the switches as the job reads them, not of this one",
+           ("The switches now send HM_RUNNER_PACKAGES (saas-linux-large-amd64), HM_RUNNER_ARM64 (saas-linux-medium-arm64) to "
+            "GitLab's runners: a batch pipeline made with them" in text, "this batch pipeline" in text), (True, False))
     expect("the namespace and the group are asked, by the root namespace", [u for u, _ in asked][:2],
            ["https://gitlab.example/api/v4/namespaces/hmailserver", "https://gitlab.example/api/v4/groups/hmailserver?with_projects=false"])
     expect("the token is never printed", planted in text, False)
@@ -691,26 +716,33 @@ def self_test():
     code, text, _ = run_quota(49000, extra=10000)
     expect("purchased minutes count: 49,000 of 60,000 used is a warning", (code, "of its 60000 compute minutes" in text), (3, True))
     code, text, _ = run_quota(49500)
-    expect("500 left, fewer than two batch pipelines' 590: failed", (code, "2 pipelines like this one need" in text), (1, True))
+    expect("500 left, fewer than two batch pipelines' 590: failed", (code, "2 such pipelines need" in text), (1, True))
     code, text, _ = run_quota(46000)
     expect("4,000 left, more than ten pipelines' 2,950 but under a quarter of the quota: a warning", code, 3)
     code, text, _ = run_quota(47000, environ=dict(base, HM_RUNNER_BUILD="saas-linux-large-amd64",
                                                   HM_RUNNER_SUITE="saas-linux-large-amd64"))
     expect("3,000 left with every class on, fewer than ten pipelines' 5,350: a warning saying so",
-           (code, "10 pipelines like this one need" in text), (3, True))
+           (code, "10 such pipelines need" in text), (3, True))
     code, text, _ = run_quota(48000, environ=dict(base, CI_COMMIT_BRANCH="master"))
     expect("master's pipeline expects 120, and 2,000 left is under a twentieth of the quota: failed", code, 1)
     code, text, _ = run_quota(47600, environ=dict(base, CI_COMMIT_BRANCH="master", HM_RUNNER_PACKAGES="linix"))
     expect("master's with the arm64 class alone there, whose jobs wait for a press, 2,400 left: failed, the quota near its end",
            (code, "a twentieth of the quota" in text), (1, True))
     code, text, _ = run_quota(47600, environ=dict(base, HM_RUNNER_PACKAGES="linix", HM_RUNNER_ARM64="linix"))
-    expect("the job run again after the switches were set back, 2,400 left: passed, the minutes said",
-           (code, "2400 left" in text and "none of its jobs stops when the minutes are spent" in text and "FAILED" not in text),
-           (0, True))
+    # The pipeline's jobs keep the tags it was made with, a job run again among them: what
+    # the job knows is the switches as they are now, which a pipeline made now takes.
+    expect("the job run again after the switches were set back, 2,400 left: passed, the minutes said, and what is known - "
+           "the switches now, a pipeline made now - and that this pipeline's jobs keep their runners, never that none stops",
+           (code, "2400 left" in text, "The switches now send no class to GitLab's runners" in text,
+            "No switch sends a class to GitLab's runners now, so a pipeline made from now on runs every class on the project's "
+            "runners" in text, "This pipeline's jobs keep the runners they were made with, a job of it run again among them: "
+            "if a switch was set when it was made, its class's jobs here run on GitLab's runners still" in text,
+            any(claim in text for claim in ("none of its jobs stops", "No class of this pipeline", "this batch pipeline")),
+            "FAILED" in text), (0, True, True, True, True, False, False))
     code, text, _ = run_quota(49900, environ=dict(base, HM_RUNNER_PACKAGES="linix", HM_RUNNER_ARM64="linix",
                                                   HM_LANE_PACKAGES="hosted-compute-quota"))
     expect("a lane alone set, nothing on GitLab's runners, 100 left: passed, saying what does stop",
-           (code, "a merge request's pipeline, on GitLab's small runner, does" in text), (0, True))
+           (code, "so does a merge request's pipeline, on GitLab's small runner" in text), (0, True))
     code, text, _ = run_quota(415, environ=dict(base, HM_QUOTA_TOKEN=""))
     expect("no token: a warning, not configured", (code, "not configured" in text), (3, True))
     fetch, _ = fake(None, None, error=Unreachable("connection refused"))

@@ -24,21 +24,24 @@
 #                   a warning (exit 3), since the jobs then run, one at a time on
 #                   GitLab's machines or side by side on linix.
 #   compute-quota   linix: the namespace's compute minutes this month, against its quota
-#                   and what this pipeline is expected to use at the switches it was
-#                   made with (build/ci/hosted-runners.py quota), so that they do not
-#                   run out unseen, as they did on 9 October 2026. It asks GitLab with
-#                   HM_QUOTA_TOKEN, a read_api token of the group's owner, a protected and
-#                   masked project variable scoped to the environment compute-quota,
-#                   which this job alone names, so that no other job is given it.
-#                   Without the token it says so, a warning. With a class of this
-#                   pipeline on GitLab's runners, a quarter of the quota left, or ten
-#                   pipelines like this one, is a warning, and a twentieth, or two, a
-#                   failure, which says how the switches are set back; with none there
-#                   it says how many are left, and passes. A GitLab that cannot be asked
-#                   is tried twice more (exit 2). It fails no pipeline, whatever it
-#                   answers (allow_failure: true): no job waits for it, so its failure
-#                   would save no minute, and it would hold a gate whose every job had
-#                   passed until a whole pipeline was made again.
+#                   and what a pipeline of this kind made at the switches as the job
+#                   reads them, when it starts, is expected to use
+#                   (build/ci/hosted-runners.py quota), so that they do not run out
+#                   unseen, as they did on 9 October 2026; this pipeline's jobs keep
+#                   the runners they were made with, a job run again among them. It
+#                   asks GitLab with HM_QUOTA_TOKEN, a read_api token of the group's
+#                   owner, a protected and masked project variable scoped to the
+#                   environment compute-quota, which this job alone names, so that no
+#                   other job is given it. Without the token it says so, a warning.
+#                   While a switch sends a class to GitLab's runners, a quarter of the
+#                   quota left, or ten such pipelines, is a warning, and a twentieth, or
+#                   two, a failure, which says how the switches are set back; with none
+#                   sent there it says how many are left, and that this pipeline's jobs
+#                   keep their runners, and passes. A GitLab that cannot be asked is
+#                   tried twice more (exit 2). It fails no pipeline, whatever it answers
+#                   (allow_failure: true): no job waits for it, so its failure would save
+#                   no minute, and it would hold a gate whose every job had passed until
+#                   a whole pipeline was made again.
 #
 # On linix both, whatever the switches say: a check of the switches must not depend on
 # them, and on linix it costs no minute and runs when the minutes have run out. When:
