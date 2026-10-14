@@ -607,9 +607,10 @@ suites' own 3 h 50 min, without its `after_script`.
 eight hours to five, and the arm64 jobs on real arm64 - some 19,000 to 30,000 minutes
 in a month of one or two release weeks. `HM_RUNNER_SUITE` with `HM_LANE_SUITE` for a
 release week, when the hour it saves matters, for 145 more a pipeline, `master`'s
-included, and for a day the project's runners cannot take the suites; with it, a month
-of one release week comes to about 31,500, and one of two to about 49,000, too close
-to the quota. `HM_RUNNER_BUILD` when the project's Linux runners are short - linix
+included, and for a day the project's runners cannot take the suites; with it in the
+release weeks alone, a month of one release week comes to about 27,000, and one of
+two to about 46,000, close to the quota - and with it all month, to about 31,500 and
+49,000. `HM_RUNNER_BUILD` when the project's Linux runners are short - linix
 paused, server2 busy -, for 95 more. Should GitLab charge half of each machine's factor
 after all, the packages cost three times as much, about 840 a batch: then the arm64
 jobs alone, on a medium machine at 1 a minute, and the packages for a release week.
