@@ -503,28 +503,41 @@ namespace RegressionTests.Installation
          ClassicAssert.IsTrue(Regex.IsMatch(tasks, @"if\s+g_bFinishNewInstallationAtStart\s+then\s+bStarted\s*:=\s*StartServiceToFinishNewInstallation\(", RegexOptions.IgnoreCase),
             "RunPostInstallTasks does not start the service to finish the installation when the verbs could not.");
          StringAssert.Contains("'start hMailServer --apply-new-install-defaults'", CodeBody(code, "StartServiceToFinishNewInstallation"));
-         ClassicAssert.IsTrue(Regex.IsMatch(server, @"argument\.CompareNoCase\(_T\(""--apply-new-install-defaults""\)\) == 0\)\s*g_finishNewInstallationAtStart = true;"),
-            "ServiceMain does not read --apply-new-install-defaults as the start's ask to finish a new installation.");
+         // ServiceMain reads the ask into the flag, in its code and not in a
+         // comment, before it starts (InitializeApplication), and nothing between
+         // the two sets the flag again.
+         string serviceMain = CppFunctionCode(server, "ServiceMain(", "hMailServer.cpp");
+         ClassicAssert.IsTrue(Regex.IsMatch(serviceMain, @"argument\.CompareNoCase\(_T\(""--apply-new-install-defaults""\)\) == 0\)\s*g_finishNewInstallationAtStart = true;(?:(?!g_finishNewInstallationAtStart\s*=(?!=))[\s\S])*\n\s*InitializeApplication\(\);"),
+            "ServiceMain does not read --apply-new-install-defaults as the start's ask to finish a new installation before it starts, or sets the ask again first.");
 
          // InitializeApplication hands the finish to the start that was asked for
          // it, and to no other. Since 10 October 2026 the start itself is
          // Application::InitInstanceAndStart, which holds the servers' lock
          // throughout, and the finish is the function InitializeApplication gives it.
          string initialize = CppFunctionCode(server, "void InitializeApplication(", "hMailServer.cpp");
-         ClassicAssert.IsTrue(Regex.IsMatch(initialize, @"const bool finish = g_finishNewInstallationAtStart;"),
-            "InitializeApplication no longer takes whether to finish a new installation from what ServiceMain read.");
+         ClassicAssert.IsTrue(Regex.IsMatch(initialize, @"^(?:(?!g_finishNewInstallationAtStart\s*=(?!=))[\s\S])*const bool finish = g_finishNewInstallationAtStart;\s*g_finishNewInstallationAtStart = false;"),
+            "InitializeApplication no longer takes whether to finish a new installation from what ServiceMain read, or sets the flag before it takes it.");
          ClassicAssert.IsTrue(Regex.IsMatch(initialize, @"InitInstanceAndStart\(sErrorMessage,\s*finish \? std::function<bool\(\)>\(&FinishNewInstallationAtStart\) : std::function<bool\(\)>\(\)\);"),
             "InitializeApplication does not hand FinishNewInstallationAtStart to a start asked to finish a new installation, or hands it to every start.");
 
+         // The finish applies the defaults and makes the key, and answers true when
+         // that may have changed the server.
+         string finisher = CppFunctionCode(server, "static bool FinishNewInstallationAtStart(", "hMailServer.cpp");
+         ClassicAssert.IsTrue(Regex.IsMatch(finisher, @"HM::NewInstallDefaults::ApplyAtServiceStart\(\)") && Regex.IsMatch(finisher, @"HM::StoredSecrets::CreateKey\(") &&
+                              Regex.IsMatch(finisher, @"return defaults == 0 \|\| defaults == 1 \|\| keyMade;\s*\}$"),
+            "FinishNewInstallationAtStart does not apply the defaults and make the key, or does not answer true when it changed the server.");
+
          // The start runs it once InitInstance has opened the database, starts
          // again, listeners and all, when it changed the server, and else starts
-         // the servers.
+         // the servers - at its end, and nowhere else.
          string application = ReadRepositoryFile(@"hmailserver\source\Server\Common\Application\Application.cpp");
          string start = CppFunctionCode(application, "Application::InitInstanceAndStart(", "Application.cpp");
          ClassicAssert.IsTrue(Regex.IsMatch(start, @"if \(!InitInstance\(sErrorMessage\)\)\s*return false;\s*if \(finish && finish\(\)\)\s*\{\s*sErrorMessage = Reinitialize_\(\);\s*return sErrorMessage\.IsEmpty\(\);\s*\}"),
             "Application::InitInstanceAndStart does not run the finish it is given once InitInstance has opened the database, or does not start again (Reinitialize_) when the finish changed the server.");
          ClassicAssert.IsTrue(Regex.IsMatch(start, @"return StartServers_\(\);\s*\}$"),
             "Application::InitInstanceAndStart does not start the servers when it was given no finish or the finish changed nothing.");
+         ClassicAssert.AreEqual(1, Regex.Matches(start, @"\bStartServers_\(\)").Count,
+            "Application::InitInstanceAndStart starts the servers somewhere other than at its end, so a start can begin them before InitInstance has opened the database.");
       }
 
       [Test]
@@ -697,11 +710,13 @@ namespace RegressionTests.Installation
 
       /// <summary>
       ///    The code of one C++ function definition of a server source file, its
-      ///    comments dropped, so that a comment naming a call cannot stand in for
-      ///    the call: from the line that starts with its declarator ("void
-      ///    InitializeApplication(", "Application::InitInstanceAndStart("), a
-      ///    declaration passed over, to the first "}" at that line's indentation,
-      ///    which closes it in this tree's style.
+      ///    comments dropped - "//" to the end of the line and "/*" to "*/" - so
+      ///    that a comment naming a call cannot stand in for the call: from the
+      ///    line that starts with its declarator ("void InitializeApplication(",
+      ///    "Application::InitInstanceAndStart("), a declaration passed over, to
+      ///    the first "}" at that line's indentation, which closes it in this
+      ///    tree's style. A string literal holding "//" or "/*" would be cut as a
+      ///    comment; none of the functions read through this holds one.
       /// </summary>
       private static string CppFunctionCode(string source, string declarator, string file)
       {
@@ -711,7 +726,7 @@ namespace RegressionTests.Installation
          Match close = Regex.Match(source.Substring(header.Index + header.Length), @"^" + Regex.Escape(header.Groups[1].Value) + @"\}", RegexOptions.Multiline);
          Assert.IsTrue(close.Success, declarator + "...) has no end in " + file + ".");
          string definition = source.Substring(header.Index, header.Length + close.Index + close.Length);
-         return Regex.Replace(definition, @"//[^\n]*", "");
+         return Regex.Replace(definition, @"/\*[\s\S]*?\*/|//[^\n]*", "");
       }
 
       [Test]
