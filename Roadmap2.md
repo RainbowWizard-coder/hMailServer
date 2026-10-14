@@ -1,6 +1,6 @@
 # Roadmap 2: the programme after 6.3.2
 
-**Written 14 September 2026.** [Roadmap.md](Roadmap.md) is the record: 864 rows done, a handful open, three dozen deferred with their reasons. It has grown into the history of the project, and it is kept because every row in it is a claim that was checked. This file is the plan: what still stands between this server and the best mail server there is, held against what the people who run Gmail, Outlook.com, Exchange, Dovecot and Stalwart offer, and worked through in the order below. A row moves out of here into Roadmap.md when it is done, with the measure that says so.
+**Written 14 September 2026.** [Roadmap.md](Roadmap.md) is the record: nearly all of its rows done, a handful open and the rest deferred with their reasons, as its contents table counts them. It has grown into the history of the project, and it is kept because every row in it is a claim that was checked. This file is the plan: what still stands between this server and the best mail server there is, held against what the people who run Gmail, Outlook.com, Exchange, Dovecot and Stalwart offer, and worked through in the order below. A row moves out of here into Roadmap.md when it is done, with the measure that says so.
 
 The legend is Roadmap.md's: ✅ done and verified, 🔄 underway, ⬜ not started, ⏸️ deferred with the reason written down.
 
