@@ -18,9 +18,16 @@ Run on the build machine (server1), in PowerShell 7, from anywhere:
 -From is a clone that has the commit (on server1, C:\bench\hmailserver, which
 push-to-server1.sh delivers branches to); -Work holds the tree (src), the build's
 log and the kit, kit-<sha12>.zip. The ignored inputs the build reads and the
-installer ships - libraries\msado28 and libraries\mariadb-connector-c-3.4.9 - are
-copied from -From's tree. hMailServerLibs (the machine's environment) names the
-libraries, as build.ps1 expects.
+installer ships are copied from -From's tree: libraries\msado28, and the MariaDB
+client's folder that the commit's binary manifest
+(hmailserver\docs\third-party-binaries.json) names,
+libraries\mariadb-connector-c-<version>, which build\get-installer-binaries.ps1
+puts in a checkout at a commit with that manifest. The client goes into the kit
+file by file as the manifest lists it, each file held to the manifest's SHA-256,
+so that the kit carries the client the commit's installer ships and nothing else
+of that folder; a -From without the folder, or in which one of those files is
+missing or not the manifest's, is refused before the build. hMailServerLibs (the
+machine's environment) names the libraries, as build.ps1 expects.
 #>
 param(
     [Parameter(Mandatory = $true)][string]$Commit,
@@ -47,13 +54,47 @@ $sha = (git -C $src rev-parse HEAD).Trim()
 $sha12 = $sha.Substring(0, 12)
 Write-Host "source: $src at $sha"
 
-foreach ($dir in @('libraries\msado28', 'libraries\mariadb-connector-c-3.4.9')) {
-    $to = Join-Path $src $dir
-    if (-not (Test-Path $to)) {
-        robocopy (Join-Path $From $dir) $to /E /NFL /NDL /NJH /NJS /NP | Out-Null
-        if ($LASTEXITCODE -ge 8) { throw "copying $dir failed ($LASTEXITCODE)" }
+$to = Join-Path $src 'libraries\msado28'
+if (-not (Test-Path $to)) {
+    robocopy (Join-Path $From 'libraries\msado28') $to /E /NFL /NDL /NJH /NJS /NP | Out-Null
+    if ($LASTEXITCODE -ge 8) { throw "copying libraries\msado28 failed ($LASTEXITCODE)" }
+}
+
+# The MariaDB client the installer ships - libmysql.dll and the plugins
+# section_files_common.iss names one by one - as this commit's binary manifest has it:
+# the fetched x64 files under one libraries\mariadb-connector-c-<version> folder, the
+# archive members the installer's Extras copies are made from too, and what
+# post-build.bat puts beside the server the suite runs. Read from the manifest rather
+# than written here, so that the kit follows the client the commit ships: until 14
+# October 2026 this script named the 3.4.9 folder, which the move of the installer to
+# 3.4.11 left on the build machines beside the new one, and so made kits with the old
+# client.
+$manifest = Get-Content -Raw -LiteralPath (Join-Path $src 'hmailserver\docs\third-party-binaries.json') | ConvertFrom-Json
+$client = @($manifest.artifacts | Where-Object {
+        $_.disposition -eq 'fetched' -and -not $_.platform -and ([string]$_.path) -match '^libraries/mariadb-connector-c-[^/]+/'
+    })
+$clientDirs = @($client | ForEach-Object { (([string]$_.path) -split '/')[0..1] -join '\' } | Sort-Object -Unique)
+if ($clientDirs.Count -ne 1 -or -not ($client | Where-Object { ([string]$_.path) -match '/libmysql\.dll$' })) {
+    throw "the binary manifest at $sha12 names $($clientDirs.Count) MariaDB client folder(s) under libraries ($($clientDirs -join ', ')), not one with libmysql.dll in it"
+}
+$clientDir = $clientDirs[0]
+$fromClient = Join-Path $From $clientDir
+if (-not (Test-Path -LiteralPath $fromClient -PathType Container)) {
+    throw "$From has no $clientDir, the MariaDB client the binary manifest at $sha12 names: run build\get-installer-binaries.ps1 in $From at a commit with that manifest"
+}
+# Mirrored each time, so that src holds what -From holds now and nothing an earlier
+# run left; then every file held to the manifest.
+robocopy $fromClient (Join-Path $src $clientDir) /MIR /NFL /NDL /NJH /NJS /NP | Out-Null
+if ($LASTEXITCODE -ge 8) { throw "copying $clientDir failed ($LASTEXITCODE)" }
+foreach ($a in $client) {
+    $name = ([string]$a.path) -replace '/', '\'
+    $file = Join-Path $src $name
+    $hash = if (Test-Path -LiteralPath $file -PathType Leaf) { (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash.ToLower() } else { 'none, the file is missing' }
+    if ($hash -ne ([string]$a.sha256).ToLower()) {
+        throw "$From's $name is not the file the binary manifest at $sha12 names (sha256 $hash, the manifest's $($a.sha256)): run build\get-installer-binaries.ps1 in $From at a commit with that manifest"
     }
 }
+Write-Host ("MariaDB client: {0}, {1} file(s), each as the binary manifest has it" -f $clientDir, $client.Count)
 
 $out = Join-Path $src 'hmailserver\source\Server\hMailServer\x64\Release'
 $exe = Join-Path $out 'hMailServer.exe'
@@ -80,8 +121,14 @@ $minidump = Join-Path $out 'hMailServer.Minidump.exe'
 if (Test-Path $minidump) { Copy-Item $minidump $bin }
 Copy-Item -Path "$libs\openssl-4.0.3\out64\bin\libcrypto-4-x64.dll", "$libs\openssl-4.0.3\out64\bin\libssl-4-x64.dll" -Destination $bin
 Copy-Item -Path "$libs\postgresql-18.6\builddir\src\interfaces\libpq\*.dll" -Destination $bin
-Copy-Item -Path (Join-Path $src 'libraries\mariadb-connector-c-3.4.9\libmysql.dll') -Destination $bin
-Copy-Item -Path (Join-Path $src 'libraries\mariadb-connector-c-3.4.9\plugin\*.dll') -Destination (Join-Path $bin 'plugin')
+# The client file by file, as the manifest lists it (libmysql.dll in Bin, the plugins
+# in Bin\plugin, where the installer puts them): a wildcard would take whatever else
+# the folder holds, as section_files_common.iss says of its own list.
+foreach ($a in $client) {
+    $inKit = Join-Path $bin (([string]$a.path).Substring($clientDir.Length + 1) -replace '/', '\')
+    New-Item -ItemType Directory -Force -Path (Split-Path $inKit) | Out-Null
+    Copy-Item -LiteralPath (Join-Path $src (([string]$a.path) -replace '/', '\')) -Destination $inKit
+}
 Copy-Item -Path (Join-Path $src 'hmailserver\installation\Extras\dh2048.pem') -Destination $bin
 Copy-Item -Path (Join-Path $src 'hmailserver\installation\License.rtf') -Destination $bin -ErrorAction SilentlyContinue
 
@@ -104,7 +151,8 @@ $version = (Get-Item $exe).VersionInfo
     "commit=$sha",
     "built=$((Get-Item $exe).LastWriteTime.ToString('s'))",
     "file_version=$($version.FileVersion)",
-    "crt=$crt"
+    "crt=$crt",
+    "mariadb_client=$clientDir"
 ) | Set-Content -Path (Join-Path $kit 'build-info.txt')
 Get-ChildItem -Recurse -File $kit | Get-FileHash -Algorithm SHA256 | ForEach-Object {
     '{0}  {1}' -f $_.Hash.ToLower(), $_.Path.Substring($kit.Length + 1)
