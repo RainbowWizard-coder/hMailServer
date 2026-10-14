@@ -100,10 +100,12 @@ namespace HM
       // stopping, went straight on, and closed the database under the
       // reinitialise and the message indexer's thread it was waiting for -
       // which faulted the Linux server on its way out. Made on the indexer's
-      // own thread, by an OnError script it runs, each is refused when another
-      // holds the mutex (MessageIndexer::LockServersUnlessOnItsThread); made on
-      // the thread that holds it, by a script the stop or the start runs, each
-      // is refused; and after ShutDown has begun every one is, at once.
+      // own thread, by an OnError script it runs, a stop or a start is refused
+      // when another holds the mutex (MessageIndexer::LockServersUnlessOnItsThread)
+      // and made when it is free, and a reinitialise is refused whatever holds
+      // it (TakeServersLock_ says why); made on the thread that holds it, by a
+      // script the stop or the start runs, each is refused; and after ShutDown
+      // has begun every one is, at once.
       //
       // StartServers: COM's Application.Start, the service's start, the Linux
       // server's, a /Test run. False when the start failed or was refused, the
@@ -271,26 +273,42 @@ namespace HM
       // The stop and the start themselves, servers_mutex_ held. StopServers_
       // answers whether the indexer's thread has ended: false when a stop
       // before exit gave up on it, or the stop was made on that thread, which
-      // cannot wait for itself.
-      bool StopServers_(StopPurpose purpose);
+      // cannot wait for itself. indexer is the one it stops: the indexer
+      // TakeServersLock_ asked, the server's (MessageIndexer::Instance) or a
+      // tester's stand-in (ServersLockTester).
+      bool StopServers_(StopPurpose purpose, MessageIndexer &indexer);
       bool StartServers_();
 
+      // Reinitialize, asked of the indexer it names - the server's from
+      // Reinitialize, a tester's stand-in from ServersLockTester: servers_mutex_
+      // taken by TakeServersLock_, a refusal said in the application log as a
+      // refused start or stop is, and then Reinitialize_.
+      String ReinitializeWith_(MessageIndexer &indexer);
+
       // Reinitialize itself, servers_mutex_ held.
-      String Reinitialize_();
+      String Reinitialize_(MessageIndexer &indexer);
+
+      // What servers_mutex_ is taken for (TakeServersLock_).
+      enum LockPurpose
+      {
+         LockToStartOrStop,
+         LockToReinitialise
+      };
 
       // servers_mutex_ taken by lock for a stop, a start or a reinitialise:
       // answers empty, or why it was not taken - on the thread that holds it
       // already, by a script the stop or the start it is making runs; on the
-      // indexer's own thread while another holds it; or after ShutDown has
-      // begun. The caller declares a ServersLockHeld_ straight after lock.
-      // indexer is the server's (MessageIndexer::Instance), or a tester's
-      // stand-in (ServersLockTester). A stop, a start or a reinitialise under
-      // way is waited for until it has ended, or for maxWaitSeconds when that
-      // is above 0 (StartServers); asked from an event script, for
-      // ComServersWaitSeconds at most, since what holds the mutex may be
-      // joining the script's thread without a limit (ScriptServer::
-      // IsScriptRunningOnThisThread); after ShutDown has begun nothing is.
-      String TakeServersLock_(boost::unique_lock<boost::timed_mutex> &lock, MessageIndexer &indexer, int maxWaitSeconds = 0);
+      // indexer's own thread, a reinitialise whatever holds the mutex and a
+      // stop or a start while another holds it; or after ShutDown has begun.
+      // The caller declares a ServersLockHeld_ straight after lock. indexer is
+      // the server's (MessageIndexer::Instance), or a tester's stand-in
+      // (ServersLockTester). A stop, a start or a reinitialise under way is
+      // waited for until it has ended, or for maxWaitSeconds when that is above
+      // 0 (StartServers); asked from an event script, for ComServersWaitSeconds
+      // at most, since what holds the mutex may be joining the script's thread
+      // without a limit (ScriptServer::IsScriptRunningOnThisThread); after
+      // ShutDown has begun nothing is.
+      String TakeServersLock_(boost::unique_lock<boost::timed_mutex> &lock, MessageIndexer &indexer, int maxWaitSeconds = 0, LockPurpose purpose = LockToStartOrStop);
 
       // Says which thread holds servers_mutex_ from when it is taken
       // (TakeServersLock_, ShutDown) until this goes, before the lock does.
@@ -480,7 +498,10 @@ namespace HM
    // once, where it would wait for the mutex its own thread holds; one asked on
    // the message indexer's own thread while another holds the mutex - by an
    // OnError script the indexer runs - is refused at once, where the holder may
-   // be waiting for that thread to end; once the stop before the process ends
+   // be waiting for that thread to end; a reinitialise asked there is refused
+   // with the mutex free as well, touching nothing, where it stopped the servers
+   // and ended part way, half torn down, while a stop or a start asked there
+   // with the mutex free takes it; once the stop before the process ends
    // (ShutDown) has begun every one is refused; that stop waits for one under
    // way; it closes every database connection but one still in use, which it
    // leaves open, and answers that the process is to end at once while a
@@ -508,6 +529,7 @@ namespace HM
    private:
       void TestAskedOnTheThreadThatHoldsIt_();
       void TestAskedOnTheIndexersThreadWhileAStopWaits_();
+      void TestAReinitialiseOnTheIndexersThreadIsRefused_();
       void TestRefusedOnceTheStopBeforeExitHasBegun_();
       void TestTheStopBeforeExitWaitsForOneUnderWay_();
       void TestComsStopAndStartWaitAMomentAtMost_();

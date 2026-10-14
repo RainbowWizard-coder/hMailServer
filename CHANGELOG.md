@@ -850,6 +850,41 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   answered by another once it has ended, as before. In the same run the server now ends 60.2 seconds after the
   SIGTERM, starting nothing; with the lock let go of during the wait, the reinitialise stops short and the server
   ends at once. Found by the re-check of the batch's message indexer fix.
+- **Fixed: an `OnError` script's `Application.Reinitialize` for an error the message indexer reported stopped the
+  servers and left them stopped (in every version).** An event script runs on the thread that fired its event, and
+  an hMailServer object a Windows script creates is called on that thread, so a reinitialise asked for an error the
+  indexer met - a database's failover or restart, under a script that reinitialises on database errors - ran on the
+  indexer's own thread, and its stop of the servers ends by stopping the indexer, which cannot wait for the thread it
+  runs on. Until this release that stop asked the thread to join itself, which Boost refuses with an exception: the
+  servers stayed stopped, the state stopping, and a COM `Start` was refused until a reinitialise from elsewhere or a
+  restart. With the indexer's stop as it now is (above), it asked the thread to end at its next interruption point
+  instead, which was the reinitialise's own next wait, the stop of the maintenance queue's threads: the reinitialise
+  ended there with the servers stopped and nothing listening, the COM API's getters answering that the server has not
+  loaded its configuration, and the maintenance queue stopped but still registered, so that a COM `Start` started the
+  servers without their scheduled tasks. Such a reinitialise is now refused before it stops anything, whatever else
+  holds the lock that the servers' stops and starts take, with the reason in the script's error and in the
+  application log, and the servers go on as they are. Letting it go on there would not be safe either: its close of
+  the database disconnects the connections in use, the one the indexer's statement may hold among them. A
+  reinitialise asked anywhere else is made as before, and so are a `Stop` and a `Start` made on that thread with the
+  lock free: the stop asks the indexer to end, which it does at its next interruption point, and a start after it
+  takes that back. A refused reinitialise of any caller is now written to the application log, as a refused start
+  or stop is.
+  `ServersLockTester` (`TestInternals` on Windows, `business-object-tests` on Linux) has a stand-in indexer's own
+  thread, counted as running an event script, ask for a reinitialise with the lock free and with it held, and take
+  the lock for a stop or a start: the reinitialise must be refused at once, the server still initialised, the
+  maintenance queue still running a task and the thread not asked to end, and the lock must be taken for the stop or
+  the start. With the refusal taken out the reinitialise ended part way in `boost::thread_interrupted`, and the test
+  failed in four runs of four. On Windows, a test of `API.Events` makes the indexer's own save of a message's
+  full-text terms fail on purpose (`SimulateDatabaseFailureFor`), which the indexer reports as HM6260 on its thread,
+  under an `OnError` VBScript that calls `Application.Reinitialize`: the script must be answered the refusal, its
+  next call that needs the configuration must answer, and the server must be running and deliver mail. Without the
+  fix the script was answered a generic error and then that the server had not loaded its configuration. End to end
+  on Linux, beside PostgreSQL 18, a server built with a test hook made COM's calls on its indexer's own thread: the
+  reinitialise ended part way, the servers stopped and the server unconfigured, in five runs of five - nothing
+  listening five seconds later, or, after a start made as COM's `Start` makes it on another thread, the servers
+  running without eleven of their scheduled tasks - and with the fix it was refused, the servers running, in five
+  runs of five; a stop followed by a start there left the servers running and the indexer going on in three runs of
+  three before the fix and three after. Found by the release review of 6.3.7.
 - **Fixed: a DNS lookup that failed was taken for a name with no addresses, and the spam tests scored or cleared
   what they could not look up (upstream PR 640).** An address lookup asks A and AAAA, and it succeeded when either
   query did; an AAAA query answered "no AAAA records" - the answer of every IPv4-only host, and of every address a

@@ -51,21 +51,35 @@ namespace HM
       //
       // Made on the indexer's own thread - by an OnError script it runs - it asks
       // the thread to stop at its next interruption point and answers false: the
-      // thread cannot wait for itself. The lock is let go of while a stop waits,
-      // so that such a script's Start or Stop, which return at once on that
-      // thread, are never made to wait for the stop that waits for them.
+      // thread cannot wait for itself. That point is the next one the thread
+      // meets, in what the script asks for after this as well as in the indexer
+      // once the script has returned, and a Start on the thread with no other
+      // caller waiting for it to end takes the request back. So COM's
+      // Application.Stop there, whose stop of the servers ends with this, is made
+      // when the servers' mutex is free, and a Reinitialize, whose stop would be
+      // followed by waits of its own and by the database's close, is refused
+      // before it stops anything (Application::TakeServersLock_). The lock is let
+      // go of while a stop waits, so that such a script's Start or Stop, which
+      // return at once on that thread, are never made to wait for the stop that
+      // waits for them.
       bool Stop(const std::function<void()> &progress = std::function<void()>(), int maxWaitSeconds = 0);
 
       // Takes lock's mutex - Application's servers_mutex_, held across every
       // stop, start and reinitialise of the servers - and answers whether it
       // has. On the indexer's own thread - an OnError script it runs calling
-      // COM's Application.Reinitialize, Stop or Start - only when the mutex is
-      // free at once: the stop that holds it may be waiting for this thread to
-      // end, a reinitialise's without a limit, and this thread would wait for
-      // it in turn, for ever, as until 10 October 2026 such a Reinitialize did.
-      // Elsewhere it waits until the mutex is free, or for maxWaitSeconds when
-      // that is above 0 (COM's Application.Stop and Start).
+      // COM's Application.Stop or Start - only when the mutex is free at once:
+      // the stop that holds it may be waiting for this thread to end, a
+      // reinitialise's without a limit, and this thread would wait for it in
+      // turn, for ever, as until 10 October 2026 such a Reinitialize did. Such a
+      // script's Reinitialize is refused before this is asked, whatever holds
+      // the mutex (Application::TakeServersLock_). Elsewhere it waits until the
+      // mutex is free, or for maxWaitSeconds when that is above 0 (COM's
+      // Application.Stop and Start).
       bool LockServersUnlessOnItsThread(boost::unique_lock<boost::timed_mutex> &lock, int maxWaitSeconds = 0);
+
+      // Whether the caller runs on the indexer's own thread, as an OnError script
+      // the indexer runs does. Asked of worker_id_, as Start and Stop ask it.
+      bool IsItsOwnThread();
 
       void IndexNow();
 

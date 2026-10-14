@@ -868,7 +868,7 @@ namespace HM
 
       if (finish && finish())
       {
-         sErrorMessage = Reinitialize_();
+         sErrorMessage = Reinitialize_(*MessageIndexer::Instance());
          return sErrorMessage.IsEmpty();
       }
 
@@ -1715,7 +1715,7 @@ namespace HM
          return refused;
       }
 
-      StopServers_(StopToStartAgain);
+      StopServers_(StopToStartAgain, *MessageIndexer::Instance());
       return "";
    }
 
@@ -1779,12 +1779,12 @@ namespace HM
          held.Taken();
       }
 
-      const bool indexerEnded = StopServers_(StopBeforeExit);
+      const bool indexerEnded = StopServers_(StopBeforeExit, *MessageIndexer::Instance());
       return ExitInstance_(StopBeforeExit, indexerEnded);
    }
 
    String
-   Application::TakeServersLock_(boost::unique_lock<boost::timed_mutex> &lock, MessageIndexer &indexer, int maxWaitSeconds)
+   Application::TakeServersLock_(boost::unique_lock<boost::timed_mutex> &lock, MessageIndexer &indexer, int maxWaitSeconds, LockPurpose purpose)
    {
       // Not waited for: the stop before the process ends holds the mutex or
       // waits for it, and what follows it is refused anyway (below). A script's
@@ -1798,6 +1798,32 @@ namespace HM
       // another: it would wait for the mutex its own thread holds.
       if (servers_mutex_holder_.load() == std::this_thread::get_id())
          return "a stop, a start or a reinitialise of the servers is under way on this thread, which asked for this from a script it runs.";
+
+      // A reinitialise asked on the message indexer's own thread - by an OnError
+      // script the indexer runs, for an error it reports - is refused whatever
+      // holds the mutex, before the mutex is asked for, so that it is answered
+      // alike either way and nothing is touched. Its stop of the servers ends
+      // with the indexer's Stop, which on the indexer's own thread can only ask
+      // that thread to end at its next interruption point, and that point is
+      // the reinitialise's own next wait: the join of the maintenance queue's
+      // threads in ExitInstance_. From 10 October 2026, with the mutex free, the
+      // reinitialise was let through and ended there, in boost's
+      // thread_interrupted, with the servers stopped, initialized_ false - every
+      // COM getter refused - and that queue stopped but still registered, so
+      // that a COM Start ran the servers without their scheduled tasks; before
+      // that the Stop asked the thread to join itself, which boost refuses, and
+      // the servers were left stopping. Taking the request back before those
+      // waits would not make it safe: the database's close after them
+      // disconnects the connections in use, among them the one the indexer's
+      // statement may still hold further up this thread
+      // (DatabaseConnectionManager::Disconnect). A stop or a start asked there
+      // is made when the mutex is free (MessageIndexer::LockServersUnlessOnItsThread):
+      // the stop's request to the indexer is the last thing it does, and the
+      // indexer ends at its next interruption point - in what the script asks
+      // for next, or once the script has returned - unless a start on that
+      // thread takes the request back first (MessageIndexer::Start).
+      if (purpose == LockToReinitialise && indexer.IsItsOwnThread())
+         return "a reinitialise asked on the message indexer's own thread - by an event script the indexer runs, OnError for an error it reported - is not made there: its stop cannot wait for the thread it runs on, and the database it would close is the one the indexer's statement may be using. The servers go on as they are.";
 
       // An event script's call waits a few seconds at most, whatever its
       // caller asked (ComServersWaitSeconds): the stop, the start or the
@@ -1870,7 +1896,7 @@ namespace HM
    }
 
    bool
-   Application::StopServers_(StopPurpose purpose)
+   Application::StopServers_(StopPurpose purpose, MessageIndexer &indexer)
    {
       LOG_APPLICATION("Stopping servers...")
 
@@ -1930,7 +1956,7 @@ namespace HM
          // ending, after a stop made on that thread: waited for as below, so that
          // a database closed after this is not closed under it.
          LOG_DEBUG("Application::~StopServers() - E1");
-         return MessageIndexer::Instance()->Stop(progress, purpose == StopBeforeExit ? IndexerWaitBeforeExitSeconds : 0);
+         return indexer.Stop(progress, purpose == StopBeforeExit ? IndexerWaitBeforeExitSeconds : 0);
       }
 
       // Migration jobs first: each writes its counters and its resume marks and
@@ -2101,7 +2127,7 @@ namespace HM
       // thread first, and the process ended through the destructors of statics
       // with the thread still running; and so it was under a work queue's thread
       // that a stop had given up on.
-      const bool indexerEnded = MessageIndexer::Instance()->Stop(progress, purpose == StopBeforeExit ? IndexerWaitBeforeExitSeconds : 0);
+      const bool indexerEnded = indexer.Stop(progress, purpose == StopBeforeExit ? IndexerWaitBeforeExitSeconds : 0);
 
       ServerStatus::Instance()->SetState(ServerStatus::StateStopped);
 
@@ -2273,23 +2299,38 @@ namespace HM
    String
    Application::Reinitialize()
    {
+      return ReinitializeWith_(*MessageIndexer::Instance());
+   }
+
+   String
+   Application::ReinitializeWith_(MessageIndexer &indexer)
+   {
       // One restart at a time: see the member's comment in Application.h. A
       // second caller waits for the first to finish and then restarts again,
       // which is what it asked for - unless it asks on the message indexer's
       // own thread, or the process is ending (TakeServersLock_).
       boost::unique_lock<boost::timed_mutex> lock(servers_mutex_, boost::defer_lock);
-      const String refused = TakeServersLock_(lock, *MessageIndexer::Instance());
+      const String refused = TakeServersLock_(lock, indexer, 0, LockToReinitialise);
       ServersLockHeld_ held(*this, lock);
       if (!refused.IsEmpty())
-         return "The server was not reinitialised: " + refused;
+      {
+         // In the application log as well, as a refused start or stop is: an
+         // event script, the caller on the indexer's own thread, meets the
+         // answer as an error, which reaches the error log only when the script
+         // does not handle it, and nothing else said that the server went on
+         // without the reinitialise.
+         const String answer = "The server was not reinitialised: " + refused;
+         LOG_APPLICATION(answer);
+         return answer;
+      }
 
-      return Reinitialize_();
+      return Reinitialize_(indexer);
    }
 
    String
-   Application::Reinitialize_()
+   Application::Reinitialize_(MessageIndexer &indexer)
    {
-      StopServers_(StopToStartAgain);
+      StopServers_(StopToStartAgain, indexer);
 
       // A stop before the process ends came while this one stopped, and waits
       // for it (ShutDown): that stop closes the database, and nothing is
@@ -2498,6 +2539,7 @@ namespace HM
    {
       TestAskedOnTheThreadThatHoldsIt_();
       TestAskedOnTheIndexersThreadWhileAStopWaits_();
+      TestAReinitialiseOnTheIndexersThreadIsRefused_();
    }
 
    void
@@ -2703,6 +2745,347 @@ namespace HM
 
       if (answers->took || !answers->taking.Contains(_T("on whose thread this was asked")))
          throw std::logic_error("ServersLockTester: the servers' mutex, held by a stop waiting for the message indexer, was not refused on the indexer's own thread.");
+   }
+
+   namespace
+   {
+      // A task that notes that it ran, which a work queue does at once unless it
+      // has been stopped, when it turns every task away.
+      class NotedTask : public Task
+      {
+      public:
+         explicit NotedTask(const std::shared_ptr<std::atomic<bool>> &ran) :
+            Task("ServersLockTester's noted task"),
+            ran_(ran)
+         {
+         }
+
+      protected:
+         void DoWork() override
+         {
+            ran_->store(true);
+         }
+
+      private:
+         std::shared_ptr<std::atomic<bool>> ran_;
+      };
+
+      // Whether queue runs a task within the limit.
+      bool RunsATask(const std::shared_ptr<WorkQueue> &queue, std::chrono::seconds within)
+      {
+         std::shared_ptr<std::atomic<bool>> ran = std::make_shared<std::atomic<bool>>(false);
+         queue->AddTask(std::make_shared<NotedTask>(ran));
+
+         const std::chrono::steady_clock::time_point until = std::chrono::steady_clock::now() + within;
+         while (!ran->load() && std::chrono::steady_clock::now() < until)
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+         return ran->load();
+      }
+
+      // What TestAReinitialiseOnTheIndexersThreadIsRefused_ asks the stand-in
+      // indexer's own thread to make, one ask at a time while the test waits,
+      // and what that thread answers.
+      struct OwnThreadAsks
+      {
+         enum Ask
+         {
+            AskNothing,
+            AskReinitialise,
+            AskStopOrStart
+         };
+
+         std::mutex lock;
+         std::condition_variable changed;
+
+         bool began = false;
+         Ask ask = AskNothing;
+         int asked = 0;
+         int made = 0;
+
+         // The last ask's answer: what it returned, what it threw instead,
+         // whether a stop's or a start's take of the mutex took it, and whether
+         // the thread had been asked to end afterwards.
+         String answer;
+         String thrown;
+         bool took = false;
+         bool interruption_after = false;
+         bool stop_asked_after = false;
+
+         template <typename Predicate>
+         bool WaitFor(std::chrono::seconds within, Predicate predicate)
+         {
+            std::unique_lock<std::mutex> guard(lock);
+            return changed.wait_for(guard, within, predicate);
+         }
+
+         template <typename Change>
+         void Set(Change change)
+         {
+            {
+               std::lock_guard<std::mutex> guard(lock);
+               change();
+            }
+            changed.notify_all();
+         }
+
+         // Asks for what, and waits for the answer: false when none came.
+         bool Make(Ask what, std::chrono::seconds within)
+         {
+            int number = 0;
+            Set([&]() { ask = what; number = ++asked; });
+            return WaitFor(within, [&]() { return made == number; });
+         }
+      };
+   }
+
+   void
+   ServersLockTester::TestAReinitialiseOnTheIndexersThreadIsRefused_()
+   {
+      Application &application = *Application::Instance();
+      std::shared_ptr<OwnThreadAsks> asks = std::make_shared<OwnThreadAsks>();
+
+      // What a reinitialise reaches first after its stop: initialized_, and the
+      // maintenance queue whose threads ExitInstance_ joins before anything else.
+      // In a server (TestInternals) they are the server's own, read and left as
+      // they are; in business-object-tests, which has neither, a queue of the
+      // test's under that name, and initialized_ set, for as long as it runs.
+      std::shared_ptr<WorkQueue> queue = WorkQueueManager::Instance()->GetQueue(application.maintenance_queue_);
+      const bool standsIn = !queue;
+      const bool initializedBefore = application.initialized_;
+      if (standsIn)
+      {
+         WorkQueueManager::Instance()->CreateWorkQueue(5, application.maintenance_queue_);
+         queue = WorkQueueManager::Instance()->GetQueue(application.maintenance_queue_);
+         application.initialized_ = true;
+      }
+
+      // Put back however the test ends, once the stand-in below has ended. A
+      // stop of the queue the system refuses may not leave a destructor: the
+      // process ends, as it would have, said here where it happens.
+      struct PutBack
+      {
+         Application &application;
+         const bool standsIn;
+         const bool initialized;
+
+         ~PutBack()
+         {
+            if (!standsIn)
+               return;
+
+            try
+            {
+               WorkQueueManager::Instance()->RemoveQueue(application.maintenance_queue_);
+            }
+            catch (...)
+            {
+               std::terminate();
+            }
+
+            application.initialized_ = initialized;
+         }
+      } putBack{application, standsIn, initializedBefore};
+
+      if (!queue)
+         throw std::logic_error("ServersLockTester: the test's maintenance queue was not made.");
+
+      const bool initialized = application.initialized_;
+
+      // The indexer's pass, standing in, with no database: what the test asks
+      // for it makes on its own thread, counted as an event script's run, as an
+      // OnError script the indexer runs for an error it reports would make it,
+      // and then says whether its own thread has been asked to end. Between two
+      // asks it makes an interruption point, as the indexer's loop does.
+      MessageIndexer *standIn = nullptr;
+      boost::function<void()> pass = [&application, asks, &standIn]()
+      {
+         asks->Set([&]() { asks->began = true; });
+
+         for (;;)
+         {
+            int number = 0;
+            OwnThreadAsks::Ask ask = OwnThreadAsks::AskNothing;
+            {
+               std::unique_lock<std::mutex> guard(asks->lock);
+               asks->changed.wait_for(guard, std::chrono::milliseconds(10), [&asks]() { return asks->asked > asks->made; });
+               if (asks->asked > asks->made)
+               {
+                  number = asks->asked;
+                  ask = asks->ask;
+               }
+            }
+
+            if (ask == OwnThreadAsks::AskNothing)
+            {
+               boost::this_thread::interruption_point();
+               continue;
+            }
+
+            String answer;
+            String thrown;
+            bool took = false;
+            {
+               ScriptServer::ScriptRunOnThisThread script;
+               try
+               {
+                  if (ask == OwnThreadAsks::AskReinitialise)
+                  {
+                     // COM's Application.Reinitialize, as such a script calls it.
+                     answer = application.ReinitializeWith_(*standIn);
+                  }
+                  else
+                  {
+                     // A stop's or a start's take of the mutex, let go of at once,
+                     // so that nothing is stopped or started. In a server its own
+                     // stop, start or reinitialise - a setting's save among them -
+                     // may hold the mutex for a moment, which on this thread is
+                     // refused rather than waited for: asked again until it is
+                     // free, a minute at most.
+                     const std::chrono::steady_clock::time_point until = std::chrono::steady_clock::now() + ServersLockWait;
+                     for (;;)
+                     {
+                        boost::unique_lock<boost::timed_mutex> lock(application.servers_mutex_, boost::defer_lock);
+                        answer = application.TakeServersLock_(lock, *standIn, Application::ComServersWaitSeconds);
+                        Application::ServersLockHeld_ held(application, lock);
+                        took = lock.owns_lock();
+                        if (took || std::chrono::steady_clock::now() >= until)
+                           break;
+
+                        std::this_thread::sleep_for(std::chrono::milliseconds(25));
+                     }
+                  }
+               }
+               catch (boost::thread_interrupted &)
+               {
+                  // What COM's catch-all answered as an unknown error.
+                  thrown = _T("boost::thread_interrupted");
+               }
+               catch (std::exception &error)
+               {
+                  thrown = String(AnsiString(error.what()));
+               }
+               catch (...)
+               {
+                  thrown = _T("an exception of another type");
+               }
+            }
+
+            const bool interruption = boost::this_thread::interruption_requested();
+            bool stopAsked = false;
+            {
+               boost::lock_guard<boost::mutex> guard(standIn->starterMutex_);
+               stopAsked = standIn->stop_asked_;
+            }
+
+            asks->Set([&]()
+            {
+               asks->answer = answer;
+               asks->thrown = thrown;
+               asks->took = took;
+               asks->interruption_after = interruption;
+               asks->stop_asked_after = stopAsked;
+               asks->made = number;
+            });
+         }
+      };
+
+      MessageIndexer indexer(pass);
+      standIn = &indexer;
+
+      indexer.Start();
+      if (!asks->WaitFor(ServersLockWait, [&asks]() { return asks->began; }))
+         throw std::logic_error("ServersLockTester: the stand-in indexer's thread began no pass within a minute of Start.");
+
+      const String refusedThere = _T("on the message indexer's own thread");
+
+      // An OnError script's Application.Reinitialize on the indexer's own thread,
+      // with the mutex free. Until the release review of 6.3.7 (CORE-1) it was
+      // let through: its stop asked the indexer's own thread to end, and the
+      // join of the maintenance queue's threads after it met that request.
+      if (!asks->Make(OwnThreadAsks::AskReinitialise, ServersLockWait))
+         throw std::logic_error("ServersLockTester: a reinitialise asked on the stand-in indexer's own thread, with the servers' mutex free, had not returned within a minute.");
+
+      String answer;
+      String thrown;
+      bool askedToEnd = false;
+      {
+         std::lock_guard<std::mutex> guard(asks->lock);
+         answer = asks->answer;
+         thrown = asks->thrown;
+         askedToEnd = asks->interruption_after || asks->stop_asked_after;
+      }
+
+      const bool queueKept = WorkQueueManager::Instance()->GetQueue(application.maintenance_queue_) == queue;
+      const bool initializedKept = application.initialized_ == initialized;
+
+      if (!thrown.IsEmpty())
+         throw std::logic_error(std::string("ServersLockTester: a reinitialise asked on the message indexer's own thread, with the servers' mutex free - by an OnError script the indexer runs - was made there and ended part way, in ") + AnsiString(thrown).c_str() + ": its stop asked the indexer's own thread to end, and the join of the maintenance queue's threads after it met that request, leaving the servers stopped, the server unconfigured and that queue stopped but registered, as from 10 October 2026 until the release review of 6.3.7.");
+
+      if (!answer.Contains(refusedThere))
+         throw std::logic_error(std::string("ServersLockTester: a reinitialise asked on the message indexer's own thread, with the servers' mutex free, was not refused as one asked there; it answered: ") + AnsiString(answer).c_str());
+
+      if (!initializedKept)
+         throw std::logic_error("ServersLockTester: a reinitialise asked on the message indexer's own thread changed whether the server is initialised, and every COM getter would have been refused.");
+
+      if (!queueKept || !RunsATask(queue, ServersLockWait))
+         throw std::logic_error("ServersLockTester: a reinitialise asked on the message indexer's own thread removed the maintenance queue, or left it turning every task away - stopped but still registered, so that a start after it ran the servers without their scheduled tasks.");
+
+      if (askedToEnd)
+         throw std::logic_error("ServersLockTester: a reinitialise asked on the message indexer's own thread asked that thread to end.");
+
+      // And with the mutex held - here, as a reinitialise on another thread holds
+      // it while its stop waits for the indexer - the same refusal, at once,
+      // rather than the one for a mutex held by another after a script's few
+      // seconds.
+      {
+         boost::unique_lock<boost::timed_mutex> lock(application.servers_mutex_, boost::defer_lock);
+         const String taking = application.TakeServersLock_(lock, *MessageIndexer::Instance());
+         Application::ServersLockHeld_ held(application, lock);
+         if (!taking.IsEmpty())
+            throw std::logic_error("ServersLockTester: the servers' mutex was refused to the test: the server is stopping.");
+
+         const std::chrono::steady_clock::time_point before = std::chrono::steady_clock::now();
+         if (!asks->Make(OwnThreadAsks::AskReinitialise, ServersLockWait))
+            throw std::logic_error("ServersLockTester: a reinitialise asked on the stand-in indexer's own thread, with the servers' mutex held, had not returned within a minute.");
+
+         const std::chrono::steady_clock::duration waited = std::chrono::steady_clock::now() - before;
+         {
+            std::lock_guard<std::mutex> guard(asks->lock);
+            answer = asks->answer;
+            thrown = asks->thrown;
+         }
+
+         if (!thrown.IsEmpty() || !answer.Contains(refusedThere))
+            throw std::logic_error(std::string("ServersLockTester: a reinitialise asked on the message indexer's own thread, with the servers' mutex held, was not refused as one asked there; it answered: ") + AnsiString(thrown.IsEmpty() ? answer : thrown).c_str());
+
+         // (A copy: chrono takes the constant by reference.)
+         const int limit = Application::ComServersWaitSeconds;
+         if (waited >= std::chrono::seconds(limit))
+            throw std::logic_error("ServersLockTester: a reinitialise asked on the message indexer's own thread, with the servers' mutex held, was refused only after the few seconds a script's call waits for the mutex.");
+      }
+
+      // A stop or a start asked there, with the mutex free, takes it: those are
+      // refused only while another holds it.
+      if (!asks->Make(OwnThreadAsks::AskStopOrStart, ServersLockWait + ServersLockWait))
+         throw std::logic_error("ServersLockTester: a stop's or a start's take of the servers' mutex on the stand-in indexer's own thread had not returned within two minutes.");
+
+      bool took = false;
+      {
+         std::lock_guard<std::mutex> guard(asks->lock);
+         answer = asks->answer;
+         thrown = asks->thrown;
+         took = asks->took;
+         askedToEnd = asks->interruption_after || asks->stop_asked_after;
+      }
+
+      if (!thrown.IsEmpty() || !took || !answer.IsEmpty())
+         throw std::logic_error(std::string("ServersLockTester: a stop or a start asked on the message indexer's own thread, with the servers' mutex free, was refused; it answered: ") + AnsiString(thrown.IsEmpty() ? answer : thrown).c_str());
+
+      if (askedToEnd)
+         throw std::logic_error("ServersLockTester: a stop's or a start's take of the servers' mutex on the message indexer's own thread asked that thread to end.");
+
+      indexer.Stop();
    }
 
    void

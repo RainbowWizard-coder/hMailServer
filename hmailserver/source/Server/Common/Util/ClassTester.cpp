@@ -989,8 +989,10 @@ namespace HM
       // start asked on the thread that holds it - by a script the stop or the
       // start runs - or on the message indexer's own thread while a stop that
       // holds it waits for the indexer - by an OnError script - is refused at
-      // once, where it would have waited for ever. What it takes it lets go of
-      // at once, and it starts and stops nothing.
+      // once, where it would have waited for ever; and a reinitialise asked on
+      // the indexer's own thread is refused with the mutex free too, touching
+      // nothing, where it stopped the servers and ended part way. What it takes
+      // it lets go of at once, and it starts and stops nothing.
       OutputDebugString(_T("hMailServer: Testing the servers' mutex\n"));
       ServersLockTester serversLockTester;
       serversLockTester.Test();

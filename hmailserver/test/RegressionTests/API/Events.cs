@@ -642,6 +642,135 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("An OnError script's Application.Reinitialize for an error the message indexer reports runs on the " +
+                   "indexer's own thread, and is refused there, with the reason in the script's error and in the " +
+                   "application log, while the servers go on as they were: the script's next call that needs the " +
+                   "configuration answers, the server is Running and delivers mail. Until the release review of 6.3.7 " +
+                   "the reinitialise was made there: its stop of the servers asked the indexer's own thread to end, the " +
+                   "next wait met that request, and the reinitialise ended part way with the servers stopped and the " +
+                   "configuration let go of. The indexer's full-text save is failed on purpose " +
+                   "(SimulateDatabaseFailureFor), which it reports on its own thread as HM6260.")]
+      public void AnOnErrorScriptsReinitializeOnTheMessageIndexersThreadIsRefusedAndTheServersRunOn()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "indexer-onerror@example.test", "test");
+         SmtpClientSimulator.StaticSend(account.Address, account.Address, "Indexed", "A message for the full-text index to read");
+         ImapClientSimulator.AssertMessageCount(account.Address, "test", "INBOX", 1);
+
+         // Read while the server answers them: before the fix these COM calls were
+         // refused once the reinitialise had ended part way.
+         var scriptFile = _settings.Scripting.CurrentScriptFile;
+         var eventLogFile = LogHandler.GetEventLogFileName();
+         var defaultLogFile = LogHandler.GetDefaultLogFileName();
+
+         var script =
+            "Sub OnError(iSeverity, iError, sSource, sDescription)\r\n" +
+            "   If iError <> 6260 Then Exit Sub\r\n" +
+            "   Dim oApp\r\n" +
+            "   Set oApp = CreateObject(\"hMailServer.Application\")\r\n" +
+            "   Call oApp.Authenticate(\"Administrator\", \"testar\")\r\n" +
+            "   On Error Resume Next\r\n" +
+            "   Err.Clear\r\n" +
+            "   Call oApp.Reinitialize()\r\n" +
+            "   EventLog.Write(\"OnErrorReinitialize: \" & Err.Number & \" \" & Err.Description)\r\n" +
+            "   Err.Clear\r\n" +
+            "   Dim sHostName\r\n" +
+            "   sHostName = oApp.Settings.HostName\r\n" +
+            "   EventLog.Write(\"OnErrorSettings: \" & Err.Number & \" \" & Err.Description)\r\n" +
+            "End Sub\r\n";
+
+         try
+         {
+            LogHandler.DeleteEventLog();
+
+            var scripting = _settings.Scripting;
+            scripting.Language = "VBScript";
+            File.WriteAllText(scriptFile, script);
+            scripting.Enabled = true;
+            scripting.Reload();
+
+            // Both read at a reinitialise. The fragment is the indexer's own: the
+            // delete before it saves a message's terms, and no other statement.
+            IniFileSetting.Write("SimulateDatabaseFailureFor", "delete from hm_messageindexterms where mitmessageid =");
+            IniFileSetting.Write("IndexerFullText", "1");
+            _application.Reinitialize();
+
+            _settings.MessageIndexing.Enabled = true;
+            _settings.MessageIndexing.Index();
+
+            // The indexer's first pass reaches the message's terms within seconds,
+            // and the script, run on its thread, writes its two lines.
+            var eventLog = string.Empty;
+            RetryHelper.TryAction(TimeSpan.FromSeconds(90), () =>
+            {
+               eventLog = ReadSharedFile(eventLogFile);
+               RetryableAssert.StringContains("OnErrorSettings: ", eventLog);
+            });
+
+            StringAssert.Contains("on the message indexer's own thread", eventLog,
+               "The OnError script's Application.Reinitialize on the message indexer's own thread was not refused as one " +
+               "asked there. Event log: " + eventLog);
+            StringAssert.Contains("OnErrorSettings: 0 ", eventLog,
+               "After the OnError script's Application.Reinitialize on the message indexer's own thread, the script's " +
+               "next call that needs the configuration was refused: the server had let go of it. Event log: " + eventLog);
+
+            ClassicAssert.AreEqual(3, (int) _application.ServerState,
+               "The servers were not Running after an OnError script's Application.Reinitialize on the message indexer's " +
+               "own thread: the reinitialise had stopped them and ended part way.");
+
+            ClassicAssert.IsTrue(ReadSharedFile(defaultLogFile).Contains(
+                  "The server was not reinitialised: a reinitialise asked on the message indexer's own thread"),
+               "The refused reinitialise was not written to the application log.");
+
+            SmtpClientSimulator.StaticSend(account.Address, account.Address, "Delivered", "After the refused reinitialise");
+            ImapClientSimulator.AssertMessageCount(account.Address, "test", "INBOX", 2);
+         }
+         finally
+         {
+            // The script first, from the file as well, so that no error the indexer
+            // reports while this puts things back runs it again; a reinitialise
+            // reads both, and is what brings back a server the script's call left
+            // stopped.
+            File.WriteAllText(scriptFile, string.Empty);
+            try
+            {
+               _settings.Scripting.Enabled = false;
+               _settings.Scripting.Reload();
+            }
+            catch (Exception notAnswered) when (!ExceptionPolicy.IsFatal(notAnswered))
+            {
+               Console.WriteLine("The scripting switch was not answered: " + notAnswered.Message);
+            }
+
+            _application.Reinitialize();
+
+            _settings.MessageIndexing.Enabled = false;
+            IniFileSetting.Write("SimulateDatabaseFailureFor", "");
+            IniFileSetting.Delete("IndexerFullText");
+            _application.Reinitialize();
+
+            LeaveAnEmptyVBScriptScriptLoaded();
+
+            // HM6119, from the fault injector announcing itself, and the HM6260s
+            // the failed saves reported, on purpose.
+            LogHandler.ClearErrorLogUntilSettled();
+         }
+      }
+
+      // A log file the server goes on writing, read without a lock; empty while
+      // nothing has written it.
+      private static string ReadSharedFile(string fileName)
+      {
+         if (!File.Exists(fileName))
+            return string.Empty;
+
+         using (var stream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+         using (var reader = new StreamReader(stream))
+         {
+            return reader.ReadToEnd();
+         }
+      }
+
+      [Test]
       public void TestOnExternalAccountDownload()
       {
          LogHandler.DeleteCurrentDefaultLog();

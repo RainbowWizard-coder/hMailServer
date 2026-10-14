@@ -281,17 +281,18 @@ namespace HM
    }
 
    bool
+   MessageIndexer::IsItsOwnThread()
+   {
+      boost::lock_guard<boost::mutex> guard(starterMutex_);
+      return boost::this_thread::get_id() == worker_id_;
+   }
+
+   bool
    MessageIndexer::LockServersUnlessOnItsThread(boost::unique_lock<boost::timed_mutex> &lock, int maxWaitSeconds)
    {
-      // Asked of worker_id_, as Start and Stop ask it, and let go of before the
-      // servers' mutex is taken: a stop holding that one takes this one.
-      bool onItsThread = false;
-      {
-         boost::lock_guard<boost::mutex> guard(starterMutex_);
-         onItsThread = boost::this_thread::get_id() == worker_id_;
-      }
-
-      if (onItsThread)
+      // starterMutex_ let go of before the servers' mutex is taken: a stop
+      // holding that one takes this one.
+      if (IsItsOwnThread())
          return lock.try_lock();
 
       if (maxWaitSeconds > 0)

@@ -76,7 +76,12 @@
 //     Application/Application.cpp, through Application itself): a reinitialise, a
 //     stop or a start asked on the thread that holds it, by a script the stop or
 //     the start runs, or on the message indexer's own thread while a stop that
-//     holds it waits for the indexer. Once the stop before the process ends has
+//     holds it waits for the indexer. A reinitialise asked on the indexer's own
+//     thread is refused with the mutex free as well, touching nothing: until the
+//     release review of 6.3.7 it was let through, its stop asked that thread to
+//     end, and the join of the maintenance queue's threads after it met the
+//     request, the servers left stopped, the server unconfigured and the queue
+//     stopped but registered. Once the stop before the process ends has
 //     begun every one is refused, and that stop waits for one under way, where
 //     until 10 October 2026 it closed the database under a reinitialise. It
 //     closes every database connection but one in use, which it leaves open for
@@ -595,7 +600,7 @@ main(int /*argc*/, char * /*argv*/[])
    failed += Run(&TestMessageIndexerStopAndStart, "the message indexer's Stop waits for the pass in flight, or gives up at its limit, a Start straight after a Stop begins a new indexer, and a Start or a Stop on the indexer's own thread neither joins it nor waits for a Stop that waits for it, and a Stop ends a pass that swallowed its request to stop; the servers' mutex a Stop holds while it waits is not waited for on the indexer's own thread; a tester's stand-in starts while the servers are stopped");
    failed += Run(&TestWorkerException, "an exception on a worker's thread is reported and answered as a failure, and ends nothing more than the work");
    failed += Run(&TestMessageIndexerException, "an exception on the message indexer's thread is reported and ends that thread, not the process, and the next Start begins the indexer again");
-   failed += Run(&TestServersLock, "a reinitialise, a stop or a start asked on the thread that holds the servers' mutex, or on the message indexer's own thread while a stop that holds it waits for the indexer, is refused at once");
+   failed += Run(&TestServersLock, "a reinitialise, a stop or a start asked on the thread that holds the servers' mutex, or on the message indexer's own thread while a stop that holds it waits for the indexer, is refused at once, and a reinitialise asked on the indexer's own thread is refused with the mutex free too, touching nothing");
    failed += Run(&TestDatabaseCloseBeforeExit, "the database's close before the process ends closes an idle connection at once and one in use only when it is handed back, hands out none after it, and waits out SQL Server Compact's flush interval for one in use, nothing on a database server; a connection made after it is closed, not pooled, and one the start's checks run on is held for them");
 
    // Last: it makes the stop before the process ends.
