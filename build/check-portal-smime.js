@@ -134,9 +134,79 @@ function pkcs12Pieces(bytes) {
   return pieces;
 }
 
+// A PKCS#12's MAC made again, by Node's own hashes and not the module's: RFC
+// 7292 appendix B.2 with the MAC's ID, 3 - the hash, iterated, of a block of
+// 3s, then the salt and the password's bytes, each repeated to whole blocks (64
+// bytes, or 128 for SHA-384 and SHA-512) - gives the HMAC key, and the HMAC is
+// of the AuthenticatedSafe's octets. The password's bytes are given as the MAC
+// takes them: the BMPString, two zero bytes on the end; or no bytes at all; or
+// the UTF-8 bytes each widened to two, as OpenSSL wrote them before 1.1.0.
+const MAC_HASHES = { '1.3.14.3.2.26': ['sha1', 64], '2.16.840.1.101.3.4.2.1': ['sha256', 64], '2.16.840.1.101.3.4.2.2': ['sha384', 128], '2.16.840.1.101.3.4.2.3': ['sha512', 128] };
+function bmpPassword(password) {
+  const out = Buffer.alloc(password.length * 2 + 2);
+  for (let i = 0; i < password.length; i++) { out.writeUInt16BE(password.charCodeAt(i), i * 2); }
+  return out;
+}
+function widenedPassword(password) {
+  const bytes = Buffer.from(password, 'utf8');
+  const out = Buffer.alloc(bytes.length * 2 + 2);
+  for (let i = 0; i < bytes.length; i++) { out[i * 2 + 1] = bytes[i]; }
+  return out;
+}
+function macParts(bytes) {
+  const pfx = smime.derChildren(smime.derRead(bytes));
+  const content = smime.derChildren(smime.derChildren(pfx[1])[1])[0];
+  if (pfx.length !== 3 || content.constructed) { throw new Error('not a PKCS#12 with a MAC and its AuthenticatedSafe in one piece'); }
+  const macData = smime.derChildren(pfx[2]);
+  const digestInfo = smime.derChildren(macData[0]);
+  return {
+    version: Buffer.from(pfx[0].raw), authSafe: Buffer.from(pfx[1].raw), content: Buffer.from(content.content),
+    algorithm: Buffer.from(digestInfo[0].raw), hashOid: smime.oidDecode(smime.derChildren(digestInfo[0])[0].content), digest: Buffer.from(digestInfo[1].content),
+    salt: Buffer.from(macData[1].content), iterations: macData.length > 2 ? Number(BigInt('0x' + Buffer.from(macData[2].content).toString('hex'))) : 1
+  };
+}
+function macOf(parts, passwordBytes, iterations) {
+  const [hash, blockSize] = MAC_HASHES[parts.hashOid];
+  const fill = function (part) {
+    const out = Buffer.alloc(part.length ? blockSize * Math.ceil(part.length / blockSize) : 0);
+    for (let i = 0; i < out.length; i++) { out[i] = part[i % part.length]; }
+    return out;
+  };
+  let key = nodeCrypto.createHash(hash).update(Buffer.alloc(blockSize, 3)).update(fill(parts.salt)).update(fill(passwordBytes)).digest();
+  for (let i = 1; i < iterations; i++) { key = nodeCrypto.createHash(hash).update(key).digest(); }
+  return nodeCrypto.createHmac(hash, key).update(parts.content).digest();
+}
+function der(tag, ...contents) { const content = Buffer.concat(contents); return Buffer.concat([derHeader(tag, content.length), content]); }
+function derInteger(value) {
+  let digits = value.toString(16);
+  if (digits.length % 2) { digits = '0' + digits; }
+  const bytes = Buffer.from(digits, 'hex');
+  return der(0x02, bytes[0] & 0x80 ? Buffer.concat([Buffer.from([0]), bytes]) : bytes);
+}
+// The file with its MacData written again: the MAC made over the password's
+// bytes given, or the file's own MAC kept, under the iteration count given or
+// the file's own.
+function withMac(bytes, change) {
+  const parts = macParts(bytes);
+  const iterations = change.iterations === undefined ? parts.iterations : change.iterations;
+  const digest = change.passwordBytes ? macOf(parts, change.passwordBytes, iterations) : parts.digest;
+  const macData = der(0x30, der(0x30, parts.algorithm, der(0x04, digest)), der(0x04, parts.salt), derInteger(iterations));
+  return new Uint8Array(der(0x30, parts.version, parts.authSafe, macData));
+}
+
 function pem(label, der) { return Buffer.from('-----BEGIN ' + label + '-----\n' + Buffer.from(der).toString('base64').replace(/(.{64})/g, '$1\n').replace(/\n$/, '') + '\n-----END ' + label + '-----\n'); }
 
 async function messageOf(promise) { try { await promise; return 'IMPORTED'; } catch (e) { return e.message; } }
+// "IMPORTED" when the file gave one key paired with its certificate; what it
+// gave, or the error, otherwise.
+async function importedAs(bytes, password) {
+  try {
+    const found = await smime.importAny(bytes, password);
+    return found.keys.length === 1 && found.keys[0].certificate ? 'IMPORTED' : found.keys.length + ' key(s), ' + found.certificates.length + ' certificate(s)';
+  } catch (e) {
+    return e.message;
+  }
+}
 
 (async function () {
   console.log('== certificates');
@@ -222,10 +292,62 @@ async function messageOf(promise) { try { await promise; return 'IMPORTED'; } ca
   check(unicodeP12.keys.length === 1 && !!unicodeP12.keys[0].certificate, 'a PKCS#12 made with a password that is not ASCII imports with it');
   const unicodeWrong = await messageOf(smime.importAny(read('alice-unicode.p12'), unicodePassword.normalize('NFD')));
   check(unicodeWrong === 'wrong password', 'and the same password with its accent written apart is named wrong: ' + unicodeWrong);
+  // The MAC's two other forms of a password, which no exporter at hand
+  // writes - OpenSSL 3 makes an empty password's MAC over the BMPString's two
+  // zero bytes, and one that is not ASCII over its BMPString - but which
+  // OpenSSL's own import takes, as the page must: alice-clear.p12, in which
+  // nothing is encrypted, with its MAC made again over that form alone, so
+  // that only that form lets a password through. First, that the derivation
+  // gives the MAC OpenSSL made.
+  const clearParts = macParts(read('alice-clear.p12'));
+  check(macOf(clearParts, bmpPassword(PASSWORD), clearParts.iterations).equals(clearParts.digest), 'the harness\'s own MAC (RFC 7292 B.2, by Node) is the one OpenSSL made for alice-clear.p12');
+  const macTmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hm-smime-mac-'));
+  const noBytes = withMac(read('alice-clear.p12'), { passwordBytes: Buffer.alloc(0) });
+  fs.writeFileSync(path.join(macTmp, 'no-bytes.p12'), noBytes);
+  const noBytesOpenssl = openssl(['pkcs12', '-in', path.join(macTmp, 'no-bytes.p12'), '-noout', '-passin', 'pass:']);
+  const noBytesEmpty = await importedAs(noBytes, '');
+  check(noBytesOpenssl.ok && noBytesEmpty === 'IMPORTED', 'a MAC made over no bytes, as for no password at all, which OpenSSL takes for an empty one, imports with an empty password: ' +
+    noBytesEmpty + (noBytesOpenssl.ok ? '' : '; OpenSSL: ' + noBytesOpenssl.out.trim()));
+  const noBytesWrong = await importedAs(noBytes, 'nope');
+  check(noBytesWrong === 'wrong password', 'and names a wrong one: ' + noBytesWrong);
+  const widened = withMac(read('alice-clear.p12'), { passwordBytes: widenedPassword(unicodePassword) });
+  fs.writeFileSync(path.join(macTmp, 'widened.p12'), widened);
+  const widenedOpenssl = openssl(['pkcs12', '-in', path.join(macTmp, 'widened.p12'), '-noout', '-passin', 'file:' + path.join(fixtures, 'unicode-pass.txt')]);
+  const widenedRight = await importedAs(widened, unicodePassword);
+  check(widenedOpenssl.ok && widenedRight === 'IMPORTED', 'a MAC made over the password\'s UTF-8 bytes each widened to two, as OpenSSL wrote one that is not ASCII before 1.1.0 and still takes it, imports with that password: ' +
+    widenedRight + (widenedOpenssl.ok ? '' : '; OpenSSL: ' + widenedOpenssl.out.trim()));
+  const widenedWrong = await importedAs(widened, unicodePassword.normalize('NFD'));
+  check(widenedWrong === 'wrong password', 'and that password with its accent written apart is named wrong by the MAC too: ' + widenedWrong);
+  // A MAC the page cannot compute is passed over, as a file with no MAC is:
+  // with nothing encrypted, any password then imports the file, and the right
+  // one must. A MAC by SHA-224, as OpenSSL's -macalg sha224 makes it; one whose
+  // count is past the page's bound, as a damaged file's may be, which would
+  // hold the import for hours if it ran; and, where OpenSSL makes one, RFC
+  // 9579's PBMAC1, with its safes encrypted, so that they name a wrong password.
+  const sha224 = read('alice-clear-sha224.p12');
+  const sha224Right = await importedAs(sha224, PASSWORD);
+  const sha224Other = await importedAs(sha224, 'nope');
+  check(macParts(sha224).hashOid === '2.16.840.1.101.3.4.2.4' && sha224Right === 'IMPORTED' && sha224Other === 'IMPORTED',
+    'a MAC by SHA-224, which Web Crypto lacks, is passed over: the file, nothing in it encrypted, imports with its password and with another: ' + sha224Right + ', ' + sha224Other);
+  const pastBound = withMac(read('alice-clear.p12'), { iterations: 1000001 });
+  const pastRight = await importedAs(pastBound, PASSWORD);
+  const pastOther = await importedAs(pastBound, 'nope');
+  check(pastRight === 'IMPORTED' && pastOther === 'IMPORTED', 'a MAC whose count is past 1,000,000 is passed over, not run: the file imports with its password and with another: ' + pastRight + ', ' + pastOther);
+  if (fs.existsSync(path.join(fixtures, 'alice-pbmac1.p12'))) {
+    const pbmac1 = read('alice-pbmac1.p12');
+    const pbmac1Right = await importedAs(pbmac1, PASSWORD);
+    const pbmac1Wrong = await importedAs(pbmac1, 'nope');
+    check(macParts(pbmac1).hashOid === '1.2.840.113549.1.5.14' && pbmac1Right === 'IMPORTED' && pbmac1Wrong === 'wrong password',
+      'a MAC by RFC 9579\'s PBMAC1, as OpenSSL 3.4 and later make it, is passed over: the file imports with its password, and its encrypted safes name a wrong one: ' + pbmac1Right + ', ' + pbmac1Wrong);
+  }
+  fs.rmSync(macTmp, { recursive: true, force: true });
   if (fs.existsSync(path.join(fixtures, 'alice-legacy.p12'))) {
     let legacy = '';
     try { await smime.importAny(read('alice-legacy.p12'), PASSWORD); } catch (e) { legacy = e.message; }
     check(/legacy/.test(legacy), 'a legacy (3DES/RC2) PKCS#12 is refused with advice: ' + legacy);
+    // Its MAC knows the password, where 6.3.6 gave the advice for any.
+    const legacyWrong = await importedAs(read('alice-legacy.p12'), 'nope');
+    check(legacyWrong === 'wrong password', 'and a wrong password for it is named by its MAC: ' + legacyWrong);
   }
   const der8 = await smime.importAny(read('alice-key.p8'), '');
   check(der8.keys.length === 1 && smime.keyMatchesCertificate(der8.keys[0].key, alice), 'DER PKCS#8 imported');

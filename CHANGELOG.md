@@ -5593,9 +5593,16 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   encrypted safe and shrouded key, each with its ciphertext rewritten in place so that the wrong password really does
   decrypt it, padding and all, to noise - one DER element and then anything, a SEQUENCE that ends early, a SEQUENCE
   that holds no key - beside PKCS#12 files with clear safes, with no MAC, with an empty password and with one that is
-  not ASCII, all made afresh by `build/make-smime-fixtures.sh`. Against 6.3.6's module 6 of its 97 checks fail; with
-  the key's check cut to one SEQUENCE over all of what was decrypted, or without the MAC's check or the safe's, one
-  does (without the key's check at all, four).
+  not ASCII, all made afresh by `build/make-smime-fixtures.sh`. It also holds the MAC's other forms of a password, and
+  the MACs the page passes over, with the clear file's MAC made again by the harness's own RFC 7292 derivation: over
+  no bytes for an empty password, and over a password's UTF-8 bytes widened as OpenSSL wrote them before 1.1.0, both
+  of which OpenSSL's own import takes, each importing with its password and naming a wrong one; and a count past
+  1,000,000, beside OpenSSL's files with a MAC by SHA-224 and, from OpenSSL 3.4, by PBMAC1, each passed over; and a
+  legacy file's wrong password. Against 6.3.6's module 9 of its 105 checks fail (106 where OpenSSL makes the PBMAC1
+  file); with the key's check cut to one SEQUENCE over all of what was decrypted, or without the safe's, one does
+  (without the key's check at all, four), without the MAC's check, four, and without its no-bytes form, its widened
+  form, its pass-over of a hash Web Crypto lacks or its bound, only the checks that hold that branch: one each, and
+  for the pass-over two where the PBMAC1 file is made.
 
 ### Operations
 

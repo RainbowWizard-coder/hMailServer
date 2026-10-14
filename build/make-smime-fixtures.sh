@@ -7,9 +7,9 @@
 # module is checked against: a CA, an RSA leaf and an EC leaf for
 # alice@example.test (emailAddress in the subject and an rfc822Name SAN), the
 # keys as PKCS#8 (clear, PBES2-encrypted) and as modern PKCS#12 files (with
-# and without a MAC, with clear safes, with an empty and a non-ASCII
-# password), then messages OpenSSL signed (detached and opaque) and encrypted
-# for each leaf.
+# and without a MAC, with a MAC the page passes over, with clear safes, with
+# an empty and a non-ASCII password), then messages OpenSSL signed (detached
+# and opaque) and encrypted for each leaf.
 set -euo pipefail
 out="$1"
 mkdir -p "$out"
@@ -53,6 +53,11 @@ openssl pkcs12 -export -in alice.pem -inkey alice-key.pem -certfile ca.pem -name
 openssl pkcs12 -export -in alice.pem -inkey alice-key.pem -certfile ca.pem -name 'Alice Example' -passout pass: -out alice-empty.p12 2>/dev/null
 printf 'caf\303\251-\342\202\254-\360\237\224\221' > unicode-pass.txt
 openssl pkcs12 -export -in alice.pem -inkey alice-key.pem -certfile ca.pem -name 'Alice Example' -passout file:unicode-pass.txt -out alice-unicode.p12 2>/dev/null
+# Two whose MAC the page passes over: one with clear safes and a MAC by
+# SHA-224, which Web Crypto lacks; and, where OpenSSL makes one (3.4 and
+# later), one with RFC 9579's PBMAC1 and its safes encrypted.
+openssl pkcs12 -export -in alice.pem -inkey alice-key.pem -certfile ca.pem -name 'Alice Example' -passout pass:fixture-pass -keypbe NONE -certpbe NONE -macalg sha224 -out alice-clear-sha224.p12 2>/dev/null
+openssl pkcs12 -export -in alice.pem -inkey alice-key.pem -certfile ca.pem -name 'Alice Example' -passout pass:fixture-pass -pbmac1_pbkdf2 -out alice-pbmac1.p12 2>/dev/null || true
 
 openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out erin-key.pem 2>/dev/null
 openssl req -new -key erin-key.pem -subj '/CN=Erin Example/emailAddress=erin@example.test' -out erin.csr 2>/dev/null
