@@ -21,6 +21,10 @@
    a release is a security release and which CVEs it names, which is what
    decides when the pin should move, and what the manifest pins now.
 
+   The manifest pins the runtime twice, once for each installer, and the two
+   entries move together, to one release: run this once without -Platform and
+   once with -Platform ARM64, and copy each answer into its own entry.
+
    hmailserver/docs/ThirdPartyBinaries.md, "Moving the .NET runtime pin", has
    the whole step.
 
@@ -29,11 +33,21 @@
 
 .PARAMETER Channel
    The channel to read. Default: the channel of the version given, or 10.0.
+
+.PARAMETER Platform
+   x64 (the default): the win-x64 runtime hMailServer64.iss carries, the entry
+   for hmailserver/installation/DotNet/windowsdesktop-runtime-10.0-win-x64.exe.
+   ARM64: the win-arm64 runtime of the release that hMailServerARM64.iss carries,
+   the entry for hmailserver/installation/ARM64/DotNet/windowsdesktop-runtime-10.0-win-arm64.exe,
+   which build/get-dotnet-runtime.ps1 -Platform ARM64 places
+   (hmailserver/docs/WindowsOnArm.md).
 #>
 [CmdletBinding()]
 param(
    [string] $Version,
-   [string] $Channel
+   [string] $Channel,
+   [ValidateSet('x64', 'ARM64')]
+   [string] $Platform = 'x64'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -48,7 +62,17 @@ $hosts = @(
    "https://builds.dotnet.microsoft.com/dotnet/release-metadata/$Channel/releases.json",
    "https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/$Channel/releases.json"
 )
-$wanted = 'windowsdesktop-runtime-win-x64.exe'
+# The manifest entry each installer's runtime is pinned by - the paths
+# build/get-dotnet-runtime.ps1 places - and the file of a release that pins it.
+$Platform = 'x64'
+$runtimeIdentifier = 'win-x64'
+$entryPath = 'hmailserver/installation/DotNet/windowsdesktop-runtime-10.0-win-x64.exe'
+if ($PSBoundParameters['Platform'] -eq 'ARM64') {
+   $Platform = 'ARM64'
+   $runtimeIdentifier = 'win-arm64'
+   $entryPath = 'hmailserver/installation/ARM64/DotNet/windowsdesktop-runtime-10.0-win-arm64.exe'
+}
+$wanted = "windowsdesktop-runtime-$runtimeIdentifier.exe"
 
 $answers = @()
 foreach ($url in $hosts) {
@@ -87,16 +111,16 @@ foreach ($other in $found | Select-Object -Skip 1) {
    }
 }
 if ($first.Sha512 -notmatch '^[0-9a-f]{128}$') { throw "The hash published for $($first.Version) is not a SHA-512: $($first.Sha512)" }
-if (-not $first.Url.EndsWith("/windowsdesktop-runtime-$($first.Version)-win-x64.exe")) { throw "The address published for $($first.Version) does not name that version: $($first.Url)" }
+if (-not $first.Url.EndsWith("/windowsdesktop-runtime-$($first.Version)-$runtimeIdentifier.exe")) { throw "The address published for $($first.Version) does not name that version: $($first.Url)" }
 
 $current = $null
 $manifest = Join-Path (Join-Path (Join-Path (Split-Path -Parent $PSScriptRoot) 'hmailserver') 'docs') 'third-party-binaries.json'
 if (Test-Path -LiteralPath $manifest) {
    $current = @((Get-Content -LiteralPath $manifest -Raw | ConvertFrom-Json).artifacts |
-      Where-Object { $_.path -eq 'hmailserver/installation/DotNet/windowsdesktop-runtime-10.0-win-x64.exe' }) | Select-Object -First 1
+      Where-Object { $_.path -eq $entryPath }) | Select-Object -First 1
 }
 
-Write-Host ("The .NET Desktop Runtime {0} (x64 installer), released {1}{2}" -f $first.Version, $first.Date, $(if ($first.Security) { ', a security release' } else { '' }))
+Write-Host ("The .NET Desktop Runtime {0} ({1} installer), released {2}{3}" -f $first.Version, $Platform, $first.Date, $(if ($first.Security) { ', a security release' } else { '' }))
 if ($first.Cves.Count) { Write-Host ("  CVEs it names: {0}" -f ($first.Cves -join ', ')) }
 Write-Host ("  read from: {0}" -f (($found | ForEach-Object { $_.Host }) -join ' and '))
 if ($current) {
@@ -109,11 +133,12 @@ if ($current) {
 }
 Write-Host ''
 Write-Host 'Its fields in hmailserver/docs/third-party-binaries.json (the entry for'
-Write-Host 'hmailserver/installation/DotNet/windowsdesktop-runtime-10.0-win-x64.exe):'
+Write-Host ('{0}):' -f $entryPath)
 Write-Host ''
 Write-Host ('      "sha512": "{0}",' -f $first.Sha512)
 Write-Host ('      "version": "{0}",' -f $first.Version)
 Write-Host ('      "source": "{0}"' -f $first.Url)
 Write-Host ''
-Write-Host "and the release named in its 'upstream' sentence. Then run build\get-dotnet-runtime.ps1 and"
-Write-Host 'python build\check-sbom-inputs.py, and commit the entry by itself.'
+Write-Host "and the release named in its 'upstream' sentence. The other installer's entry moves to the same"
+Write-Host ("release: run this again {0}. Then run build\get-dotnet-runtime.ps1, with and without" -f $(if ($Platform -eq 'ARM64') { 'without -Platform' } else { 'with -Platform ARM64' }))
+Write-Host '-Platform ARM64, and python build\check-sbom-inputs.py, and commit the two entries by themselves.'

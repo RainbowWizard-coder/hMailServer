@@ -440,25 +440,29 @@ under `hmailserver/installation/ARM64`. `get-installer-binaries.ps1` and
 `get-dotnet-runtime.ps1` place them only with `-Platform ARM64`, and without it
 they skip them, so the x64 build and its `-Verify` are what they were. Moving
 the .NET pin moves both runtimes: the ARM64 entry's SHA-512 is in the same
-release metadata, under `windowsdesktop-runtime-win-arm64.exe`.
+release metadata, under `windowsdesktop-runtime-win-arm64.exe`, which
+`show-dotnet-runtime-pin.ps1 -Platform ARM64` prints.
 
 ### Moving the .NET runtime pin
 
-The installer's runtime moves when Microsoft ships a servicing release of .NET
+The installers' runtime moves when Microsoft ships a servicing release of .NET
 10 worth taking - a security release above all - and never by itself:
 
 1. `powershell.exe -NoProfile -ExecutionPolicy Bypass -File build\show-dotnet-runtime-pin.ps1 -Version 10.0.N`
    (the channel's latest without `-Version`) reads Microsoft's release metadata
    from builds.dotnet.microsoft.com and dotnetcli.blob.core.windows.net,
    refuses to answer when the two disagree, and prints the release's date, the
-   CVEs it names, its address and its SHA-512.
-2. Copy `version`, `sha512` and `source` into the entry for
-   `hmailserver/installation/DotNet/windowsdesktop-runtime-10.0-win-x64.exe`
-   in `third-party-binaries.json`, and the release into its `upstream`.
-3. `build\get-dotnet-runtime.ps1` downloads it, checks it and replaces the old
-   file; `-Verify` checks the file in place.
+   CVEs it names, its address and its SHA-512 for the x64 installer's runtime;
+   with `-Platform ARM64`, the same for the ARM64 installer's.
+2. Copy each answer's `version`, `sha512` and `source` into its entry in
+   `third-party-binaries.json` -
+   `hmailserver/installation/DotNet/windowsdesktop-runtime-10.0-win-x64.exe` and
+   `hmailserver/installation/ARM64/DotNet/windowsdesktop-runtime-10.0-win-arm64.exe` -
+   and the release into each one's `upstream`. The two move to one release.
+3. `build\get-dotnet-runtime.ps1`, and again with `-Platform ARM64`, downloads
+   each, checks it and replaces the old file; `-Verify` checks the file in place.
 4. `python build/check-sbom-inputs.py` and `build\test-get-dotnet-runtime.ps1`.
-5. Commit the entry by itself, saying which release it is and why.
+5. Commit the two entries by themselves, saying which release it is and why.
 
 A new major version is a different change: the `<TargetFramework>` of the tools,
 `global.json`, `DOTNET_MAJOR` and `DOTNET_CHANNEL` in `hMailServer64.iss`, and
