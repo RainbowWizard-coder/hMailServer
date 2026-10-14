@@ -45,6 +45,7 @@ import sys
 sys.path[:] = [p for p in sys.path if os.path.normcase(os.path.realpath(p or os.curdir)) !=
                os.path.normcase(os.path.dirname(os.path.realpath(__file__)))]
 
+import io
 import shutil
 import subprocess
 import tempfile
@@ -95,29 +96,46 @@ def unsigned(repo, base, head, exempt=()):
     return found, len(shas)
 
 
+def say(text, out):
+    """Print text on out. A character out's encoding cannot write is written as its backslash
+    escape (\\u81ea), where print stopped the check there with UnicodeEncodeError: Python writes
+    a pipe or a file on Windows in the code page (cp1252), so that a commit subject in Japanese
+    ended the run unless PYTHONIOENCODING said utf-8 (14 October 2026). On UTF-8, which writes
+    every character, nothing changes."""
+    encoding = getattr(out, "encoding", None)
+    if encoding:
+        try:
+            text.encode(encoding)
+        except UnicodeEncodeError:
+            text = text.encode(encoding, "backslashreplace").decode(encoding)
+        except LookupError:
+            pass
+    print(text, file=out)
+
+
 def report(repo, base, head, exempt=(), out=sys.stdout):
     """Print one line a commit and a verdict; return the exit code."""
     try:
         shas = commits(repo, base, head, exempt)
     except RangeError as e:
-        print("The range %s..%s cannot be read: %s" % (base, head, e), file=out)
+        say("The range %s..%s cannot be read: %s" % (base, head, e), out)
         return 2
     missing = 0
     for sha in shas:
         author, subject, ok = signed_off(repo, sha)
         if ok:
-            print("ok       %s %s" % (sha[:12], subject[:100]), file=out)
+            say("ok       %s %s" % (sha[:12], subject[:100]), out)
         else:
-            print("MISSING  %s %s - no Signed-off-by for %s" % (sha[:12], subject[:100], author), file=out)
+            say("MISSING  %s %s - no Signed-off-by for %s" % (sha[:12], subject[:100], author), out)
             missing += 1
     if exempt:
-        print("(Commits already in %d release tag(s) were not looked at.)" % len(exempt), file=out)
+        say("(Commits already in %d release tag(s) were not looked at.)" % len(exempt), out)
     if missing:
-        print("", file=out)
-        print("%d of %d commit(s) have no Developer Certificate of Origin sign-off by their author." % (missing, len(shas)), file=out)
-        print(FIX, file=out)
+        say("", out)
+        say("%d of %d commit(s) have no Developer Certificate of Origin sign-off by their author." % (missing, len(shas)), out)
+        say(FIX, out)
         return 1
-    print("Every commit (%d) carries its author's sign-off." % len(shas), file=out)
+    say("Every commit (%d) carries its author's sign-off." % len(shas), out)
     return 0
 
 
@@ -180,11 +198,63 @@ def self_test():
             expect("exit for a range that is not there", report(tmp, "0" * 40, "HEAD", out=sink), 2)
         finally:
             sink.close()
+
+        # A subject the output's encoding cannot write. Python writes a pipe or a file on Windows
+        # in the code page, cp1252, which has no Japanese: the check stopped at such a subject with
+        # UnicodeEncodeError unless PYTHONIOENCODING said utf-8 (14 October 2026). Each character
+        # the encoding lacks is written as its escape, the rest as they are; UTF-8 is unchanged.
+        def commit_message(name, email, message):
+            with open(os.path.join(tmp, "f.txt"), "a") as f:
+                f.write("one more\n")
+            git("add", "f.txt")
+            path = os.path.join(tmp, "message.txt")
+            with open(path, "wb") as f:
+                f.write(message.encode("utf-8"))
+            who = {"GIT_AUTHOR_NAME": name, "GIT_AUTHOR_EMAIL": email,
+                   "GIT_COMMITTER_NAME": name, "GIT_COMMITTER_EMAIL": email}
+            git("commit", "-q", "-F", path, env=who)
+            os.remove(path)
+            return git("rev-parse", "HEAD")
+
+        subject = "\u81ea\u52d5 BAN \u306e caf\u00e9"
+        before_jp = git("rev-parse", "HEAD")
+        jp = commit_message("Hana", "hana@example.org", subject + "\n\nSigned-off-by: Hana <hana@example.org>\n")
+        jp_unsigned = commit_message("Hana", "hana@example.org", subject + ", not signed off\n")
+
+        def written(encoding, start, end):
+            raw = io.BytesIO()
+            stream = io.TextIOWrapper(raw, encoding=encoding, errors="strict", newline="\n")
+            try:
+                code = report(tmp, start, end, out=stream)
+                stream.flush()
+            except UnicodeEncodeError as error:
+                return "UnicodeEncodeError (%s)" % error.reason, b""
+            return code, raw.getvalue()
+
+        ok_line = "ok       %s %s\n" % (jp[:12], subject)
+        done = "Every commit (1) carries its author's sign-off.\n"
+        expect("a Japanese subject on UTF-8: written as it is, byte for byte", written("utf-8", before_jp, jp),
+               (0, (ok_line + done).encode("utf-8")))
+        expect("a Japanese subject on cp1252: what cp1252 lacks escaped, the rest as it is",
+               written("cp1252", before_jp, jp),
+               (0, ("ok       %s \\u81ea\\u52d5 BAN \\u306e caf\u00e9\n" % jp[:12] + done).encode("cp1252")))
+        expect("a Japanese subject on ASCII: every character ASCII lacks escaped", written("ascii", before_jp, jp),
+               (0, ("ok       %s \\u81ea\\u52d5 BAN \\u306e caf\\xe9\n" % jp[:12] + done).encode("ascii")))
+        code, data = written("cp1252", jp, jp_unsigned)
+        expect("a Japanese subject without its sign-off on cp1252: refused, named",
+               (code, ("MISSING  %s \\u81ea\\u52d5 BAN \\u306e caf\u00e9, not signed off - no Signed-off-by for "
+                       "hana@example.org\n" % jp_unsigned[:12]).encode("cp1252") in data), (1, True))
+        # And the script itself, its standard output a pipe in cp1252 as on Windows.
+        ran = subprocess.run([sys.executable, os.path.abspath(__file__), before_jp, jp], cwd=tmp, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE, env=dict(env, PYTHONIOENCODING="cp1252"))
+        expect("the script, its output a cp1252 pipe: exit and what it wrote",
+               (ran.returncode, ran.stdout.replace(b"\r\n", b"\n"), ran.stderr),
+               (0, ("ok       %s \\u81ea\\u52d5 BAN \\u306e caf\u00e9\n" % jp[:12] + done).encode("cp1252"), b""))
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     for f in failures:
-        print("FAIL " + f)
-    print("sign-off.py self-test: %d failure(s)" % len(failures))
+        say("FAIL " + f, sys.stdout)
+    say("sign-off.py self-test: %d failure(s)" % len(failures), sys.stdout)
     return 1 if failures else 0
 
 

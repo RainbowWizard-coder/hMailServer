@@ -5758,6 +5758,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   reaches the tip, five minutes after the push, and one that leaves it, with no wait; with the head read once, as
   before, the first two are refused. A landing runs `master`'s copy of the script, so the wait begins with the
   landing after the one that brings it (ContinuousIntegration.md, "Landing on master").
+- **`build/sign-off.py` runs to its end whatever its output's encoding.** Python writes a pipe or a file on Windows in
+  the code page, cp1252, and the check stopped with `UnicodeEncodeError` at the first commit subject that code page
+  has no characters for: on 14 October 2026 one of `batch48`'s, whose translation commits name Czech, Ukrainian,
+  Chinese and Japanese texts in their subjects, unless `PYTHONIOENCODING` said `utf-8`. A character the output's
+  encoding lacks is now written as its backslash escape and every other as it is, so that on UTF-8, the `sign-off`
+  job's, nothing it prints changes. The self-test writes a Japanese subject to UTF-8, byte for byte as before, to
+  cp1252 and to ASCII, and runs the script with its output a cp1252 pipe; as the script was, all but the first stop.
 - **The message indexer's stop and start, as fixed above (*Correctness*), leave `static-analysis` nothing new to
   say.** Run over them as the job runs it, cppcheck and clang-tidy found four findings in `MessageIndexer.cpp` that
   no baseline holds, none of them a defect in what the code does, and each is now written so that the tools have
