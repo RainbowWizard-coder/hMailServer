@@ -22,9 +22,10 @@
 #   * the image carries the Control Deck and every one of its catalogues byte for
 #     byte, the schema scripts, the Diffie-Hellman group, the public-suffix list,
 #     the live update's apply step, the licences - hMailServer's own AGPL-3.0 text;
-#     the notices of what is compiled into the server, QuickJS's licence and the
-#     notices of Unicode's data for UTS 46 and of HTML's list of named character
-#     references, each the tree's file byte for byte;
+#     the notices of what is compiled into the server, each held to the tree's
+#     file: QuickJS's licence with the carriage returns a checkout gives it taken
+#     off both sides, and the notices of Unicode's data for UTS 46 and of HTML's
+#     list of named character references byte for byte;
 #     the runtime's notice, which names the release file with its libraries'
 #     source, those libraries' own licence files and the GPL-3.0's text; and
 #     bundled.txt, which lists every library in usr/lib with its package and
