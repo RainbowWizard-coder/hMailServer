@@ -375,7 +375,7 @@ runs on the build machine, and libpq uses no time zone data.
   ARM64 console, taken from the same pinned archive as the x64 console. Without
   `-Platform` the script does what it always did, and it skips these entries.
 - `get-dotnet-runtime.ps1 -Platform ARM64` downloads the `win-arm64` .NET
-  Desktop Runtime 10.0.12 and checks it against the SHA-512 that Microsoft
+  Desktop Runtime 10.0.13 and checks it against the SHA-512 that Microsoft
   publishes for it, which is pinned in the manifest beside the x64 runtime.
 - `hMailServerARM64.iss` reads the version from `section_setup_64.iss`, so the
   release's version stamp is still one installer file.

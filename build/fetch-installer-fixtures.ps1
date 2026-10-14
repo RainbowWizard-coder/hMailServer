@@ -42,8 +42,10 @@ $fixtures = @(
    @{ Name = 'hMailServer-6.3.5-x64.exe'; Url = "$project/6.3.5/hMailServer-6.3.5-x64.exe"; Algorithm = 'SHA256'; Hash = 'ebb708e056dfd1ca3bcb56b6356e819511b496965e0a82834bdf6987fec79e97' },
    @{ Name = 'hMailServer-6.3.5-x64.exe.cosign.bundle'; Url = "$project/6.3.5/hMailServer-6.3.5-x64.exe.cosign.bundle"; Algorithm = 'SHA256'; Hash = $null },
    # Microsoft's, validly signed and not by the project's publisher: the pin must
-   # refuse it. The version and hash the installer build pins
-   # (hmailserver/docs/third-party-binaries.json).
+   # refuse it. The release the installer build pinned when the fixture was chosen
+   # (hmailserver/docs/third-party-binaries.json pins a later one now): any validly
+   # signed release proves the same, and AdminUpdateTester takes the first
+   # windowsdesktop-runtime-*-win-x64.exe it finds, so a bench keeps the one it has.
    @{ Name = 'windowsdesktop-runtime-10.0.12-win-x64.exe'; Url = 'https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/10.0.12/windowsdesktop-runtime-10.0.12-win-x64.exe'; Algorithm = 'SHA512'; Hash = '0b907e9312867172a4eb82f4b5ab3f7c2d25e27d8349546d77eeb5d5b8cbecab9ebebfed189b13e9669dc578d892756c548366da539d47b3ddac5efcb7ae72fe' }
 )
 

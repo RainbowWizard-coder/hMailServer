@@ -6,19 +6,19 @@
     {
       "path": "hmailserver/installation/DotNet/windowsdesktop-runtime-10.0-win-x64.exe",
       "sha256": null,
-      "sha512": "0b907e9312867172a4eb82f4b5ab3f7c2d25e27d8349546d77eeb5d5b8cbecab9ebebfed189b13e9669dc578d892756c548366da539d47b3ddac5efcb7ae72fe",
+      "sha512": "adaf5e06b66b145848f3a994b51ea1590d19a5c02f6e7c5899ed896bbdb020af6386d2eaef613034d697388adaf48aa8c3291343f0bbb5f8e62e37aff9564a00",
       "size": null,
       "component": "Microsoft .NET Windows Desktop Runtime (x64 installer)",
-      "version": "10.0.12",
+      "version": "10.0.13",
       "publisher": "Microsoft Corporation",
       "license": "Microsoft's terms for the .NET runtime, which its installer shows - not read for this entry, because the file was not downloaded to record it",
-      "upstream": "https://builds.dotnet.microsoft.com/dotnet/release-metadata/10.0/releases.json - Microsoft's release metadata for the 10.0 channel, where the sha512 above is published for release 10.0.12 (8 September 2026, a security release); the copy at dotnetcli.blob.core.windows.net gives the same value",
+      "upstream": "https://builds.dotnet.microsoft.com/dotnet/release-metadata/10.0/releases.json - Microsoft's release metadata for the 10.0 channel, where the sha512 above is published for release 10.0.13 (13 October 2026, a security release); the copy at dotnetcli.blob.core.windows.net gives the same value",
       "authenticode": "NotRecorded",
       "authenticode_signer": null,
       "disposition": "downloaded",
       "used_by": "section_files_64.iss (DotNet\\{#DOTNET_RUNTIME_FILE}); installed by InstallDotNetRuntime() in hMailServerInnoExtension.iss when no .NET 10 Desktop Runtime is present",
       "why": "The Control Panel and the database tools are .NET 10 applications, and DBSetup, DBSetupQuick and DBUpdater run during installation, so the installer carries the runtime and installs it where none of .NET 10 is present. Not in git (60 MB; .gitignore excludes installation/DotNet). build/get-dotnet-runtime.ps1 downloads exactly this version from 'source' and refuses any file whose SHA-512 is not the one here, which is the value Microsoft publishes for it; the file keeps the channel's name, which is the name the installer script builds from DOTNET_CHANNEL. Until 25 September 2026 the script took whatever aka.ms/dotnet/10.0 pointed at and checked only that it was larger than 40 MB. build/show-dotnet-runtime-pin.ps1 prints these fields for another version; ThirdPartyBinaries.md, 'Moving the .NET runtime pin', says how to move it. The size and the signature are not recorded because the file was not downloaded to record this entry: the hash is Microsoft's own.",
-      "source": "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/10.0.12/windowsdesktop-runtime-10.0.12-win-x64.exe"
+      "source": "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/10.0.13/windowsdesktop-runtime-10.0.13-win-x64.exe"
     },
     {
       "path": "hmailserver/installation/Extras/7za.exe",
@@ -518,20 +518,20 @@
     {
       "path": "hmailserver/installation/ARM64/DotNet/windowsdesktop-runtime-10.0-win-arm64.exe",
       "sha256": null,
-      "sha512": "909ffed452c1b45572d558b5dbf088927a57854dcd3844b46701ead6d4d175fb3f329084fdf9b077aa7cdecaececcacb95c82870d32d7b8c411638331491c441",
+      "sha512": "399775427df648920cb406e5a42a0847bc4dca93b0dfcb6a7526198dd8356f23e4a87bcae03675f615f6cb58eb2b8e10edb832553ca7011661bf5350e375dee8",
       "size": null,
       "component": "Microsoft .NET Windows Desktop Runtime (ARM64 installer)",
-      "version": "10.0.12",
+      "version": "10.0.13",
       "publisher": "Microsoft Corporation",
       "license": "Microsoft's terms for the .NET runtime, which its installer shows - not read for this entry, because the file was not downloaded to record it",
-      "upstream": "https://builds.dotnet.microsoft.com/dotnet/release-metadata/10.0/releases.json - Microsoft's release metadata for the 10.0 channel, where the sha512 above is published for release 10.0.12's windowsdesktop-runtime-win-arm64.exe (read on 25 September 2026)",
+      "upstream": "https://builds.dotnet.microsoft.com/dotnet/release-metadata/10.0/releases.json - Microsoft's release metadata for the 10.0 channel, where the sha512 above is published for release 10.0.13's windowsdesktop-runtime-win-arm64.exe (read on 14 October 2026)",
       "authenticode": "NotRecorded",
       "authenticode_signer": null,
       "disposition": "downloaded",
       "platform": "arm64",
       "used_by": "section_files_arm64.iss (DotNet\\{#DOTNET_RUNTIME_FILE}, which hMailServerARM64.iss names); installed by InstallDotNetRuntime() in hMailServerInnoExtension.iss when no .NET 10 Desktop Runtime is present",
       "why": "The ARM64 installer's .NET runtime: the Control Panel and the database tools it carries are published for win-arm64 (build/build-tools.ps1 -Platform ARM64) and run on the ARM64 runtime. The same release as the x64 pin, moved with it. build/get-dotnet-runtime.ps1 -Platform ARM64 downloads exactly this file from 'source' and refuses any other. Not in git (.gitignore excludes installation/ARM64). hmailserver/docs/WindowsOnArm.md.",
-      "source": "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/10.0.12/windowsdesktop-runtime-10.0.12-win-arm64.exe"
+      "source": "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/10.0.13/windowsdesktop-runtime-10.0.13-win-arm64.exe"
     },
     {
       "path": "hmailserver/installation/ARM64/Extras/7za.exe",

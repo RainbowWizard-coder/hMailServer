@@ -1223,6 +1223,16 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   originally created by Martin Knafve, whose copyright in the original work remains" is now the last paragraph of
   `installation/License.rtf`, which setup shows before it installs and copies to `Bin`, where it was the second
   sentence of the Preamble.
+- **The installers carry the .NET Desktop Runtime 10.0.13, Microsoft's release of 13 October 2026, where they carried
+  10.0.12.** Both entries of `hmailserver/docs/third-party-binaries.json` - the x64 installer's `win-x64` runtime and
+  the ARM64 installer's `win-arm64` one - pin 10.0.13 by its version, the address Microsoft publishes it at and the
+  SHA-512 Microsoft's release metadata gives for it, so `build/get-dotnet-runtime.ps1` places that release and refuses
+  any other file; `build/show-dotnet-runtime-pin.ps1` prints the ARM64 entry's fields as well now, with
+  `-Platform ARM64`, where it printed the x64 one's alone. Setup installs the runtime it carries only on a machine
+  with no .NET 10 Desktop Runtime, and leaves one that is there as it is, of whatever 10.0 release. Microsoft Update
+  services the runtime - on Windows Server through WSUS and the Microsoft Update Catalog, and through Automatic Updates
+  only where the server has been opted in - so keep it current there, or install Microsoft's newer release yourself
+  (`hmailserver/docs/Upgrading.md`, "The .NET 10 runtime").
 - **The Helm chart's and the container image's repositories are on Artifact Hub, and the tree holds the IDs Artifact
   Hub gave them.** On 6 October 2026 the maintainers added both to the organization `hmailserver`: the chart's,
   `https://updates.progressiverobot.com/helm/`, with the ID `d8768ed9-b894-45c8-ba44-f7516bcf4206`, and the image's,

@@ -563,6 +563,17 @@ without the Control Panel. The runtime is bundled as
 when it is missing, and the setup tools (`DBSetup`, `DBSetupQuick`, `DBUpdater`)
 need it as well as the Control Panel does.
 
+Setup does not update a .NET 10 Desktop Runtime the machine already has, of any
+10.0 release: it installs the one it carries only where none is there. The
+runtime is Microsoft's product, and Microsoft Update services it - on Windows
+Server through WSUS and the Microsoft Update Catalog, and through Automatic
+Updates only where the server has been opted in (Microsoft's [Install .NET on
+Windows](https://learn.microsoft.com/dotnet/core/install/windows), "Microsoft
+Update"). So keep it current there, or install Microsoft's newer release
+yourself: `dotnet --list-runtimes` lists the releases a machine has, and the one
+the installer carries is the release
+[third-party-binaries.json](third-party-binaries.json) pins.
+
 **MySQL and MariaDB: schema 6102 rebuilds every table.** The step converts every
 table to `utf8mb4` under `utf8mb4_general_ci`, InnoDB and `ROW_FORMAT=DYNAMIC`, so
 that a character outside the Basic Multilingual Plane - an emoji - is stored instead
