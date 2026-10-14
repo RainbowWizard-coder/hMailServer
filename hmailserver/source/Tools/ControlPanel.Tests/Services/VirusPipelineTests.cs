@@ -266,6 +266,31 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.False(HasNote(config, StatusLevel.Warning, "backscatter"));
       }
 
+      /// <summary>
+      /// What the strip action does with a message that is not text with files
+      /// attached, as MessageAttachmentStripper and HandleInfectedMessage_ do it: one
+      /// attachment alone becomes the note; text alone and an encrypted message are
+      /// delivered as they arrived, which the warning says since the scanner's find
+      /// goes with them; and a message the stripper cannot read is deleted, each of
+      /// its recipients sent the "message deleted" notice whatever the two settings
+      /// say, its sender never.
+      /// </summary>
+      [Fact]
+      public void StrippingSaysWhatBecomesOfAMessageWithNothingToStripOrThatCannotBeRead()
+      {
+         VirusPipelineConfig config = Scanning();
+         config.Action = VirusAction.StripAttachments;
+
+         string summary = VirusPipeline.ActionSummary(config);
+         Assert.Contains("a message that is one attachment becomes the note alone", summary);
+         Assert.Contains("one that is only text, or encrypted, is delivered unchanged", summary);
+         Assert.Contains("A message the server cannot open or parse is deleted", summary);
+         Assert.Contains("each of its recipients is sent the \"message deleted\" notice", summary);
+         Assert.Contains("the envelope sender is never told", summary);
+
+         Assert.True(HasNote(config, StatusLevel.Warning, "one that is only text, or encrypted, is delivered as it arrived"));
+      }
+
       [Fact]
       public void NotifyingTheSenderOfAVirusIsCalledOutAsBackscatter()
       {

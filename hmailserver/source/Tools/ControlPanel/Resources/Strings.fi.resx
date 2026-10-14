@@ -4990,8 +4990,8 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row." xml:space="preserve">
     <value>Jokainen hallinnollinen muutos yhtenä rivinä hajautusketjussa: kuka sen teki, milloin, minkä rajapinnan kautta, mistä ja millä valtuudella. Asetuksen muutos voidaan palauttaa sen riviltä.</value>
   </data>
-  <data name="Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged." xml:space="preserve">
-    <value>Jokainen liite korvataan lyhyellä huomautuksella, ei vain saastunut; salattu viesti toimitetaan muuttamattomana.</value>
+  <data name="Every attachment is replaced by a short note, not only the infected one, and a message that is one attachment becomes the note alone. A message that is only text, or encrypted, is delivered unchanged; one the server cannot open or parse is deleted, and its recipients are told." xml:space="preserve">
+    <value>Jokainen liite korvataan lyhyellä huomautuksella, ei vain saastunut, ja viestistä, joka on pelkkä liite, jää jäljelle vain huomautus. Pelkkää tekstiä sisältävä tai salattu viesti toimitetaan muuttamattomana; viesti, jota palvelin ei voi avata eikä jäsentää, poistetaan, ja sen vastaanottajille ilmoitetaan.</value>
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>Jokainen tarkistus siinä järjestyksessä, jossa palvelin ajaa ne, sen pistemäärä ja mitä kokonaissumma tekee viestille.</value>
@@ -6148,8 +6148,8 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Indexing" xml:space="preserve">
     <value>Indeksointi</value>
   </data>
-  <data name="Infected messages are delivered with their attachments stripped rather than deleted. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
-    <value>Tartunnan saaneet viestit toimitetaan liitteet poistettuina sen sijaan, että ne poistettaisiin. Vastaanottaja saa yhä viestin rungon, joka useimmissa haittapostiviesteissä on se osa, jossa kerrotaan, mitä tehdä seuraavaksi.</value>
+  <data name="Infected messages are delivered with their attachments stripped rather than deleted, and one that is only text, or encrypted, is delivered as it arrived. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
+    <value>Tartunnan saaneet viestit toimitetaan liitteet poistettuina sen sijaan, että ne poistettaisiin, ja pelkkää tekstiä sisältävä tai salattu viesti toimitetaan sellaisena kuin se saapui. Vastaanottaja saa yhä viestin rungon, joka useimmissa haittapostiviesteissä on se osa, jossa kerrotaan, mitä tehdä seuraavaksi.</value>
   </data>
   <data name="Information" xml:space="preserve">
     <value>Tiedot</value>
@@ -11481,8 +11481,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Sent" xml:space="preserve">
     <value>Lähtevä</value>
   </data>
-  <data name="Sent only when the whole message is deleted. With the attachments removed, the note in their place tells the receiver, and nobody else is told." xml:space="preserve">
-    <value>Lähetetään vain, kun koko viesti poistetaan. Kun liitteet poistetaan, niiden tilalle tuleva huomautus kertoo sen vastaanottajalle, eikä kenellekään muulle ilmoiteta.</value>
+  <data name="Sent only when the action is to delete the whole message. With the attachments removed, the note in their place tells the receiver - or the &quot;message deleted&quot; notice, when the server cannot open or parse a message and deletes it - and nobody else is told." xml:space="preserve">
+    <value>Lähetetään vain, kun toimintona on koko viestin poistaminen. Kun liitteet poistetaan, niiden tilalle tuleva huomautus kertoo sen vastaanottajalle - tai "viesti poistettu" -ilmoitus, kun palvelin ei voi avata eikä jäsentää viestiä ja poistaa sen - eikä kenellekään muulle ilmoiteta.</value>
   </data>
   <data name="Separately, this server sends its own reports to other domains only when 'TLS report sender address' is set on the Transport security page; hMailServer.ini could not be found on this machine to check it." xml:space="preserve">
     <value>Erikseen: tämä palvelin lähettää omia raporttejaan muille verkkotunnuksille vain, kun 'TLS-raporttien lähettäjäosoite' on asetettu sivulla Siirtoturvallisuus; hMailServer.ini-tiedostoa ei löytynyt tältä koneelta sen tarkistamiseksi.</value>
@@ -12867,8 +12867,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="The attachment blocking settings could not be read." xml:space="preserve">
     <value>Liitteiden eston asetuksia ei voitu lukea.</value>
   </data>
-  <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action - the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
-    <value>Liitteet korvataan ja viesti toimitetaan. Kumpikaan ilmoitusasetus ei koske tätä toimintoa - palvelin lähettää "viesti poistettu" -ilmoituksen vain, kun toiminto on viestin poistaminen.</value>
+  <data name="The attachments are replaced by a note and the message is delivered; a message that is one attachment becomes the note alone, and one that is only text, or encrypted, is delivered unchanged. A message the server cannot open or parse is deleted, and each of its recipients is sent the &quot;message deleted&quot; notice in its place. Neither notification setting applies to this action, and the envelope sender is never told." xml:space="preserve">
+    <value>Liitteet korvataan huomautuksella ja viesti toimitetaan; viestistä, joka on pelkkä liite, jää jäljelle vain huomautus, ja pelkkää tekstiä sisältävä tai salattu viesti toimitetaan muuttamattomana. Viesti, jota palvelin ei voi avata eikä jäsentää, poistetaan, ja jokaiselle sen vastaanottajalle lähetetään sen tilalle "viesti poistettu" -ilmoitus. Kumpikaan ilmoitusasetus ei koske tätä toimintoa, eikä kuoren lähettäjälle ilmoiteta koskaan.</value>
   </data>
   <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
     <value>Tarkastuslokin rivit vaativat myös oikeuden view_audit, jota näillä tunnuksilla ei ole.</value>

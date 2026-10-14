@@ -1959,7 +1959,7 @@ namespace
 
       // What happens to a message a scanner flags, and who is told.
       { "action", KindEnum, ReadWrite, EffectNow, AntiVirusActionWords,
-        "What is done with a message a scanner flags: delete_email drops it, delete_attachments strips its attachments and delivers the rest.",
+        "What is done with a message a scanner flags: delete_email drops it; delete_attachments replaces its attachments with a note and delivers the rest (an encrypted message as it is), and drops one it cannot open or parse.",
         ROW_NUMBER(AntiVirus().AVAction()), ROW_SET(AntiVirus().AVAction((AntiVirusConfiguration::eAVAction) v.number)), ROW_NO_CHECK },
       { "notify_sender", KindBoolean, ReadWrite, EffectNow, nullptr,
         "Whether the sender is told that a virus was found.",

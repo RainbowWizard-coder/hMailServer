@@ -5054,8 +5054,8 @@ Control Panel может читать файлы сообщений только
   <data name="Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row." xml:space="preserve">
     <value>Каждое административное изменение как одна строка хеш-цепочки: кто его сделал, когда, через какой интерфейс, откуда и с какими полномочиями. Изменение настройки можно вернуть из её строки.</value>
   </data>
-  <data name="Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged." xml:space="preserve">
-    <value>Каждое вложение заменяется короткой заметкой, а не только заражённое; зашифрованное сообщение доставляется без изменений.</value>
+  <data name="Every attachment is replaced by a short note, not only the infected one, and a message that is one attachment becomes the note alone. A message that is only text, or encrypted, is delivered unchanged; one the server cannot open or parse is deleted, and its recipients are told." xml:space="preserve">
+    <value>Каждое вложение заменяется короткой заметкой, а не только заражённое, и от сообщения, состоящего из одного вложения, остаётся одна заметка. Сообщение, в котором только текст, или зашифрованное сообщение доставляется без изменений; сообщение, которое сервер не может открыть или разобрать, удаляется, и его получатели уведомляются.</value>
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>Все проверки в том порядке, в каком их выполняет сервер, их оценки и то, что делает с сообщением итог.</value>
@@ -6230,8 +6230,8 @@ Control Panel может читать файлы сообщений только
   <data name="Indexing" xml:space="preserve">
     <value>Индексирование</value>
   </data>
-  <data name="Infected messages are delivered with their attachments stripped rather than deleted. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
-    <value>Заражённые сообщения не удаляются, а доставляются с вырезанными вложениями. Получатель всё равно получает тело письма, а именно оно у большей части вредоносной почты и несёт указания о том, что делать дальше.</value>
+  <data name="Infected messages are delivered with their attachments stripped rather than deleted, and one that is only text, or encrypted, is delivered as it arrived. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
+    <value>Заражённые сообщения не удаляются, а доставляются с вырезанными вложениями; сообщение, в котором только текст, или зашифрованное сообщение доставляется в том виде, в каком пришло. Получатель всё равно получает тело письма, а именно оно у большей части вредоносной почты и несёт указания о том, что делать дальше.</value>
   </data>
   <data name="Information" xml:space="preserve">
     <value>Информация</value>
@@ -11635,8 +11635,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Sent" xml:space="preserve">
     <value>Исходящая</value>
   </data>
-  <data name="Sent only when the whole message is deleted. With the attachments removed, the note in their place tells the receiver, and nobody else is told." xml:space="preserve">
-    <value>Отправляется, только когда удаляется всё сообщение. Если удаляются вложения, получателю сообщает об этом заметка на их месте, а больше никто не уведомляется.</value>
+  <data name="Sent only when the action is to delete the whole message. With the attachments removed, the note in their place tells the receiver - or the &quot;message deleted&quot; notice, when the server cannot open or parse a message and deletes it - and nobody else is told." xml:space="preserve">
+    <value>Отправляется, только когда действием является удаление всего сообщения. Если удаляются вложения, получателю сообщает об этом заметка на их месте — или уведомление «сообщение удалено», когда сервер не может открыть или разобрать сообщение и удаляет его, — а больше никто не уведомляется.</value>
   </data>
   <data name="Separately, this server sends its own reports to other domains only when 'TLS report sender address' is set on the Transport security page; hMailServer.ini could not be found on this machine to check it." xml:space="preserve">
     <value>Отдельно от этого данный сервер отправляет собственные отчёты другим доменам только тогда, когда на странице «Транспортная безопасность» задан «Адрес отправителя отчётов TLS»; найти hMailServer.ini на этом компьютере, чтобы это проверить, не удалось.</value>
@@ -13027,8 +13027,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The attachment blocking settings could not be read." xml:space="preserve">
     <value>Параметры блокировки вложений не удалось прочитать.</value>
   </data>
-  <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action - the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
-    <value>Вложения заменяются, и сообщение доставляется. Ни один из параметров уведомления к этому действию не относится — уведомление «сообщение удалено» сервер отправляет только тогда, когда действием является удаление сообщения.</value>
+  <data name="The attachments are replaced by a note and the message is delivered; a message that is one attachment becomes the note alone, and one that is only text, or encrypted, is delivered unchanged. A message the server cannot open or parse is deleted, and each of its recipients is sent the &quot;message deleted&quot; notice in its place. Neither notification setting applies to this action, and the envelope sender is never told." xml:space="preserve">
+    <value>Вложения заменяются заметкой, и сообщение доставляется; от сообщения, состоящего из одного вложения, остаётся одна заметка, а сообщение, в котором только текст, или зашифрованное сообщение доставляется без изменений. Сообщение, которое сервер не может открыть или разобрать, удаляется, и каждому его получателю вместо него отправляется уведомление «сообщение удалено». Ни один из параметров уведомления к этому действию не относится, а отправитель конверта никогда не уведомляется.</value>
   </data>
   <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
     <value>Для строк журнала аудита нужно также view_audit, которого у этих учётных данных нет.</value>

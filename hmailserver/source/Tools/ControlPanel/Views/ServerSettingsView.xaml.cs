@@ -2030,7 +2030,11 @@ namespace hMailServer.ControlPanel.Views
       // them, not the infected one: MessageAttachmentStripper keeps one text part
       // and removes every other part, which "Delete infected attachments only"
       // understated. The overview says "the attachments are stripped"; so does
-      // this now.
+      // this now. The note under the row says what 1 does with a message that is
+      // not text with files attached: one attachment alone becomes the note, text
+      // alone and an encrypted message go as they are, and a message the stripper
+      // cannot read is deleted, its recipients told (SMTPDeliverer's
+      // HandleInfectedMessage_).
       private static readonly (int, string)[] AntivirusAction =
       {
          (0, L("Delete the whole message")), (1, L("Remove all attachments and deliver the text"))
@@ -3304,7 +3308,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "AntiVirus.Action",
             Label = L("When a virus is found"),
             Options = AntivirusAction,
-            Blurb = L("Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged.")
+            Blurb = L("Every attachment is replaced by a short note, not only the infected one, and a message that is one attachment becomes the note alone. A message that is only text, or encrypted, is delivered unchanged; one the server cannot open or parse is deleted, and its recipients are told.")
          };
          var notifySender = new ComBool { Path = "AntiVirus.NotifySender", Label = L("Notify the sender") };
          var notifyReceiver = new ComBool { Path = "AntiVirus.NotifyReceiver", Label = L("Notify the recipients") };
@@ -7185,10 +7189,13 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// The anti-virus notices follow the action: the sender and the receiver are told
-      /// only when the whole message is deleted (SMTPDeliverer), so with the attachments
-      /// removed both rows are dimmed, say why under the box, and keep the state they are saved with
-      /// - where they stayed live and said nothing (review finding F197).
+      /// The anti-virus notices follow the action: the two settings are the delete
+      /// action's alone (SMTPDeliverer), so with the attachments removed both rows are
+      /// dimmed, say why under the box, and keep the state they are saved with - where
+      /// they stayed live and said nothing (review finding F197). Removing the
+      /// attachments tells the receiver by the note, or by the "message deleted" notice
+      /// when it deletes a message it cannot read, whatever the boxes say, and never
+      /// tells the sender.
       /// </summary>
       private static void WireAntivirusNoticeDependency(ComCombo action, ComBool notifySender, ComBool notifyReceiver)
       {
@@ -7198,7 +7205,7 @@ namespace hMailServer.ControlPanel.Views
          void Update()
          {
             bool sent = action.SelectedValue == 0;
-            string why = sent ? null : L("Sent only when the whole message is deleted. With the attachments removed, the note in their place tells the receiver, and nobody else is told.");
+            string why = sent ? null : L("Sent only when the action is to delete the whole message. With the attachments removed, the note in their place tells the receiver - or the \"message deleted\" notice, when the server cannot open or parse a message and deletes it - and nobody else is told.");
             foreach (CheckBox box in new[] { notifySender.Box, notifyReceiver.Box })
             {
                // The row, which says why under the box and as its help text; the box

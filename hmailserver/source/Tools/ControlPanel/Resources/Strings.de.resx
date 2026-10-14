@@ -4990,8 +4990,8 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row." xml:space="preserve">
     <value>Jede administrative Änderung als eine Zeile in einer Hash-Kette: wer sie gemacht hat, wann, über welche Schnittstelle, von wo und mit welcher Berechtigung. Die Änderung einer Einstellung lässt sich aus ihrer Zeile zurücksetzen.</value>
   </data>
-  <data name="Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged." xml:space="preserve">
-    <value>Jeder Anhang wird durch einen kurzen Hinweis ersetzt, nicht nur der infizierte; eine verschlüsselte Nachricht wird unverändert zugestellt.</value>
+  <data name="Every attachment is replaced by a short note, not only the infected one, and a message that is one attachment becomes the note alone. A message that is only text, or encrypted, is delivered unchanged; one the server cannot open or parse is deleted, and its recipients are told." xml:space="preserve">
+    <value>Jeder Anhang wird durch einen kurzen Hinweis ersetzt, nicht nur der infizierte, und eine Nachricht, die nur aus einem Anhang besteht, wird zum Hinweis allein. Eine Nachricht, die nur Text ist, oder eine verschlüsselte wird unverändert zugestellt; eine, die der Server nicht öffnen oder parsen kann, wird gelöscht, und ihre Empfänger werden benachrichtigt.</value>
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>Jede Prüfung in der Reihenfolge, in der der Server sie ausführt, ihre Bewertung und was die Summe mit der Nachricht macht.</value>
@@ -6148,8 +6148,8 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Indexing" xml:space="preserve">
     <value>Indizierung</value>
   </data>
-  <data name="Infected messages are delivered with their attachments stripped rather than deleted. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
-    <value>Infizierte Nachrichten werden mit entfernten Anhängen zugestellt statt gelöscht. Der Empfänger bekommt weiterhin den Nachrichtentext, der bei den meisten bösartigen Mails der Teil mit den Anweisungen ist, was als Nächstes zu tun ist.</value>
+  <data name="Infected messages are delivered with their attachments stripped rather than deleted, and one that is only text, or encrypted, is delivered as it arrived. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
+    <value>Infizierte Nachrichten werden mit entfernten Anhängen zugestellt statt gelöscht, und eine, die nur Text ist, oder eine verschlüsselte wird so zugestellt, wie sie ankam. Der Empfänger bekommt weiterhin den Nachrichtentext, der bei den meisten bösartigen Mails der Teil mit den Anweisungen ist, was als Nächstes zu tun ist.</value>
   </data>
   <data name="Information" xml:space="preserve">
     <value>Information</value>
@@ -11481,8 +11481,8 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Sent" xml:space="preserve">
     <value>Ausgehend</value>
   </data>
-  <data name="Sent only when the whole message is deleted. With the attachments removed, the note in their place tells the receiver, and nobody else is told." xml:space="preserve">
-    <value>Wird nur gesendet, wenn die ganze Nachricht gelöscht wird. Werden die Anhänge entfernt, sagt es der Hinweis an ihrer Stelle dem Empfänger, und sonst erfährt es niemand.</value>
+  <data name="Sent only when the action is to delete the whole message. With the attachments removed, the note in their place tells the receiver - or the &quot;message deleted&quot; notice, when the server cannot open or parse a message and deletes it - and nobody else is told." xml:space="preserve">
+    <value>Wird nur gesendet, wenn die Aktion darin besteht, die ganze Nachricht zu löschen. Werden die Anhänge entfernt, sagt es der Hinweis an ihrer Stelle dem Empfänger - oder die Benachrichtigung „Nachricht gelöscht“, wenn der Server eine Nachricht nicht öffnen oder parsen kann und sie löscht -, und sonst erfährt es niemand.</value>
   </data>
   <data name="Separately, this server sends its own reports to other domains only when 'TLS report sender address' is set on the Transport security page; hMailServer.ini could not be found on this machine to check it." xml:space="preserve">
     <value>Davon getrennt sendet dieser Server seine eigenen Berichte nur dann an andere Domains, wenn 'Absenderadresse für TLS-Berichte' auf der Seite Transportsicherheit gesetzt ist; hMailServer.ini wurde auf diesem Rechner nicht gefunden, um das zu prüfen.</value>
@@ -12867,8 +12867,8 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="The attachment blocking settings could not be read." xml:space="preserve">
     <value>Die Einstellungen zum Blockieren von Anhängen konnten nicht gelesen werden.</value>
   </data>
-  <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action - the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
-    <value>Die Anhänge werden ersetzt und die Nachricht wird zugestellt. Keine der beiden Benachrichtigungseinstellungen gilt für diese Aktion - der Server sendet den Hinweis „Nachricht gelöscht“ nur, wenn die Aktion darin besteht, die Nachricht zu löschen.</value>
+  <data name="The attachments are replaced by a note and the message is delivered; a message that is one attachment becomes the note alone, and one that is only text, or encrypted, is delivered unchanged. A message the server cannot open or parse is deleted, and each of its recipients is sent the &quot;message deleted&quot; notice in its place. Neither notification setting applies to this action, and the envelope sender is never told." xml:space="preserve">
+    <value>Die Anhänge werden durch einen Hinweis ersetzt und die Nachricht wird zugestellt; eine Nachricht, die nur aus einem Anhang besteht, wird zum Hinweis allein, und eine, die nur Text ist, oder eine verschlüsselte wird unverändert zugestellt. Eine Nachricht, die der Server nicht öffnen oder parsen kann, wird gelöscht, und jeder ihrer Empfänger bekommt an ihrer Stelle die Benachrichtigung „Nachricht gelöscht“. Keine der beiden Benachrichtigungseinstellungen gilt für diese Aktion, und der Umschlagabsender erfährt nie davon.</value>
   </data>
   <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
     <value>Die Zeilen des Prüfprotokolls erfordern zusätzlich view_audit, das diese Anmeldedaten nicht haben.</value>

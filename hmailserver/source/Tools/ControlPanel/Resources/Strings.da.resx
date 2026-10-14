@@ -4990,8 +4990,8 @@ Ingen post røres - indekset er udledt af den - men indtil genopbygningen har in
   <data name="Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row." xml:space="preserve">
     <value>Hver administrativ ændring som én række i en hashkæde: hvem der foretog den, hvornår, over hvilken grænseflade, hvorfra og med hvilken myndighed. En indstillings ændring kan sættes tilbage fra sin række.</value>
   </data>
-  <data name="Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged." xml:space="preserve">
-    <value>Hver vedhæftet fil erstattes af en kort note, ikke kun den inficerede; en krypteret meddelelse leveres uændret.</value>
+  <data name="Every attachment is replaced by a short note, not only the infected one, and a message that is one attachment becomes the note alone. A message that is only text, or encrypted, is delivered unchanged; one the server cannot open or parse is deleted, and its recipients are told." xml:space="preserve">
+    <value>Hver vedhæftet fil erstattes af en kort note, ikke kun den inficerede, og en meddelelse, der kun er én vedhæftet fil, bliver til noten alene. En meddelelse, der kun er tekst, eller som er krypteret, leveres uændret; en meddelelse, som serveren ikke kan åbne eller parse, slettes, og dens modtagere får besked.</value>
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>Hver kontrol i den rækkefølge, serveren kører dem, dens score, og hvad totalen gør ved meddelelsen.</value>
@@ -6148,8 +6148,8 @@ Ingen post røres - indekset er udledt af den - men indtil genopbygningen har in
   <data name="Indexing" xml:space="preserve">
     <value>Indeksering</value>
   </data>
-  <data name="Infected messages are delivered with their attachments stripped rather than deleted. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
-    <value>Inficerede meddelelser leveres med deres vedhæftede filer fjernet i stedet for at blive slettet. Modtageren får stadig meddelelsens brødtekst, som for det meste ondsindet post er den del, der bærer instruktionerne om, hvad de skal gøre som det næste.</value>
+  <data name="Infected messages are delivered with their attachments stripped rather than deleted, and one that is only text, or encrypted, is delivered as it arrived. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
+    <value>Inficerede meddelelser leveres med deres vedhæftede filer fjernet i stedet for at blive slettet, og en, der kun er tekst, eller som er krypteret, leveres, som den ankom. Modtageren får stadig meddelelsens brødtekst, som for det meste ondsindet post er den del, der bærer instruktionerne om, hvad de skal gøre som det næste.</value>
   </data>
   <data name="Information" xml:space="preserve">
     <value>Information</value>
@@ -11481,8 +11481,8 @@ Hver mappe tømmes først: post, der er kommet siden sikkerhedskopien, er væk. 
   <data name="Sent" xml:space="preserve">
     <value>Udgående</value>
   </data>
-  <data name="Sent only when the whole message is deleted. With the attachments removed, the note in their place tells the receiver, and nobody else is told." xml:space="preserve">
-    <value>Sendes kun, når hele meddelelsen slettes. Når de vedhæftede filer fjernes, fortæller noten i deres sted modtageren det, og ingen andre får besked.</value>
+  <data name="Sent only when the action is to delete the whole message. With the attachments removed, the note in their place tells the receiver - or the &quot;message deleted&quot; notice, when the server cannot open or parse a message and deletes it - and nobody else is told." xml:space="preserve">
+    <value>Sendes kun, når handlingen er at slette hele meddelelsen. Når de vedhæftede filer fjernes, fortæller noten i deres sted modtageren det - eller beskeden "meddelelse slettet", når serveren ikke kan åbne eller parse en meddelelse og sletter den - og ingen andre får besked.</value>
   </data>
   <data name="Separately, this server sends its own reports to other domains only when 'TLS report sender address' is set on the Transport security page; hMailServer.ini could not be found on this machine to check it." xml:space="preserve">
     <value>Separat sender denne server kun sine egne rapporter til andre domæner, når 'Afsenderadresse for TLS-rapporter' er sat på siden Transportsikkerhed; hMailServer.ini kunne ikke findes på denne maskine, så det kan ikke kontrolleres.</value>
@@ -12867,8 +12867,8 @@ Hver mappe tømmes først: post, der er kommet siden sikkerhedskopien, er væk. 
   <data name="The attachment blocking settings could not be read." xml:space="preserve">
     <value>Indstillingerne for blokering af vedhæftede filer kunne ikke læses.</value>
   </data>
-  <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action - the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
-    <value>De vedhæftede filer erstattes, og meddelelsen leveres. Ingen af meddelelsesindstillingerne gælder for denne handling - serveren sender kun beskeden "meddelelse slettet", når handlingen er at slette meddelelsen.</value>
+  <data name="The attachments are replaced by a note and the message is delivered; a message that is one attachment becomes the note alone, and one that is only text, or encrypted, is delivered unchanged. A message the server cannot open or parse is deleted, and each of its recipients is sent the &quot;message deleted&quot; notice in its place. Neither notification setting applies to this action, and the envelope sender is never told." xml:space="preserve">
+    <value>De vedhæftede filer erstattes af en note, og meddelelsen leveres; en meddelelse, der kun er én vedhæftet fil, bliver til noten alene, og en, der kun er tekst, eller som er krypteret, leveres uændret. En meddelelse, som serveren ikke kan åbne eller parse, slettes, og hver af dens modtagere får beskeden "meddelelse slettet" i stedet. Ingen af meddelelsesindstillingerne gælder for denne handling, og konvolutafsenderen får aldrig besked.</value>
   </data>
   <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
     <value>Revisionslinjerne kræver også view_audit, som disse legitimationsoplysninger ikke har.</value>

@@ -4990,8 +4990,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row." xml:space="preserve">
     <value>Elke beheerwijziging als één rij in een hashketen: wie ze maakte, wanneer, via welke interface, van waar en met welke bevoegdheid. De wijziging van een instelling kan vanuit haar rij worden teruggezet.</value>
   </data>
-  <data name="Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged." xml:space="preserve">
-    <value>Elke bijlage wordt vervangen door een korte notitie, niet alleen de besmette; een versleuteld bericht wordt ongewijzigd bezorgd.</value>
+  <data name="Every attachment is replaced by a short note, not only the infected one, and a message that is one attachment becomes the note alone. A message that is only text, or encrypted, is delivered unchanged; one the server cannot open or parse is deleted, and its recipients are told." xml:space="preserve">
+    <value>Elke bijlage wordt vervangen door een korte notitie, niet alleen de besmette, en van een bericht dat uit één bijlage bestaat, blijft alleen de notitie over. Een bericht dat alleen tekst is, of versleuteld, wordt ongewijzigd bezorgd; een bericht dat de server niet kan openen of ontleden, wordt verwijderd en de ontvangers krijgen bericht.</value>
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>Elke controle in de volgorde waarin de server ze uitvoert, de score ervan, en wat het totaal met het bericht doet.</value>
@@ -6148,8 +6148,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Indexing" xml:space="preserve">
     <value>Indexering</value>
   </data>
-  <data name="Infected messages are delivered with their attachments stripped rather than deleted. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
-    <value>Geïnfecteerde berichten worden bezorgd met hun bijlagen verwijderd in plaats van dat het bericht zelf wordt verwijderd. De ontvanger krijgt nog steeds de inhoud van het bericht, en dat is bij de meeste kwaadaardige mail juist het deel met de aanwijzingen die hem vertellen wat hij vervolgens moet doen.</value>
+  <data name="Infected messages are delivered with their attachments stripped rather than deleted, and one that is only text, or encrypted, is delivered as it arrived. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
+    <value>Geïnfecteerde berichten worden bezorgd met hun bijlagen verwijderd in plaats van dat het bericht zelf wordt verwijderd, en een bericht dat alleen tekst is, of versleuteld, wordt bezorgd zoals het binnenkwam. De ontvanger krijgt nog steeds de inhoud van het bericht, en dat is bij de meeste kwaadaardige mail juist het deel met de aanwijzingen die hem vertellen wat hij vervolgens moet doen.</value>
   </data>
   <data name="Information" xml:space="preserve">
     <value>Informatie</value>
@@ -11481,8 +11481,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Sent" xml:space="preserve">
     <value>Uitgaand</value>
   </data>
-  <data name="Sent only when the whole message is deleted. With the attachments removed, the note in their place tells the receiver, and nobody else is told." xml:space="preserve">
-    <value>Wordt alleen verzonden wanneer het hele bericht wordt verwijderd. Worden de bijlagen verwijderd, dan vertelt de notitie op hun plaats het de ontvanger, en krijgt verder niemand bericht.</value>
+  <data name="Sent only when the action is to delete the whole message. With the attachments removed, the note in their place tells the receiver - or the &quot;message deleted&quot; notice, when the server cannot open or parse a message and deletes it - and nobody else is told." xml:space="preserve">
+    <value>Wordt alleen verzonden wanneer de actie is het hele bericht te verwijderen. Worden de bijlagen verwijderd, dan vertelt de notitie op hun plaats het de ontvanger - of de melding "bericht verwijderd", wanneer de server een bericht niet kan openen of ontleden en het verwijdert - en krijgt verder niemand bericht.</value>
   </data>
   <data name="Separately, this server sends its own reports to other domains only when 'TLS report sender address' is set on the Transport security page; hMailServer.ini could not be found on this machine to check it." xml:space="preserve">
     <value>Los daarvan verstuurt deze server alleen eigen rapporten naar andere domeinen wanneer 'Afzenderadres voor TLS-rapporten' is ingesteld op de pagina Transportbeveiliging; hMailServer.ini kon op deze machine niet worden gevonden om dat te controleren.</value>
@@ -12867,8 +12867,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The attachment blocking settings could not be read." xml:space="preserve">
     <value>De instellingen voor het blokkeren van bijlagen konden niet worden gelezen.</value>
   </data>
-  <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action - the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
-    <value>De bijlagen worden vervangen en het bericht wordt bezorgd. Geen van beide meldingsinstellingen geldt voor deze actie - de server stuurt de melding "bericht verwijderd" alleen wanneer de actie is het bericht te verwijderen.</value>
+  <data name="The attachments are replaced by a note and the message is delivered; a message that is one attachment becomes the note alone, and one that is only text, or encrypted, is delivered unchanged. A message the server cannot open or parse is deleted, and each of its recipients is sent the &quot;message deleted&quot; notice in its place. Neither notification setting applies to this action, and the envelope sender is never told." xml:space="preserve">
+    <value>De bijlagen worden vervangen door een notitie en het bericht wordt bezorgd; van een bericht dat uit één bijlage bestaat, blijft alleen de notitie over, en een bericht dat alleen tekst is, of versleuteld, wordt ongewijzigd bezorgd. Een bericht dat de server niet kan openen of ontleden, wordt verwijderd, en elke ontvanger ervan krijgt in plaats daarvan de melding "bericht verwijderd". Geen van beide meldingsinstellingen geldt voor deze actie, en de envelopafzender krijgt nooit bericht.</value>
   </data>
   <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
     <value>De auditregels vereisen ook view_audit, dat deze referenties niet hebben.</value>

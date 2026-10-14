@@ -4990,8 +4990,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row." xml:space="preserve">
     <value>Varje administrativ ändring som en rad i en hashkedja: vem som gjorde den, när, över vilket gränssnitt, varifrån och med vilken behörighet. En inställnings ändring kan sättas tillbaka från sin rad.</value>
   </data>
-  <data name="Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged." xml:space="preserve">
-    <value>Varje bilaga ersätts av en kort notering, inte bara den infekterade; ett krypterat meddelande levereras oförändrat.</value>
+  <data name="Every attachment is replaced by a short note, not only the infected one, and a message that is one attachment becomes the note alone. A message that is only text, or encrypted, is delivered unchanged; one the server cannot open or parse is deleted, and its recipients are told." xml:space="preserve">
+    <value>Varje bilaga ersätts av en kort notering, inte bara den infekterade, och ett meddelande som bara är en bilaga blir enbart noteringen. Ett meddelande som bara är text, eller som är krypterat, levereras oförändrat; ett som servern inte kan öppna eller tolka tas bort, och dess mottagare får veta det.</value>
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>Varje kontroll i den ordning servern kör dem, dess poäng, och vad summan gör med meddelandet.</value>
@@ -6148,8 +6148,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Indexing" xml:space="preserve">
     <value>Indexering</value>
   </data>
-  <data name="Infected messages are delivered with their attachments stripped rather than deleted. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
-    <value>Infekterade meddelanden levereras med bilagorna borttagna i stället för att raderas. Mottagaren får ändå meddelandekroppen, som för den mesta skadliga posten är delen som bär instruktionerna om vad de ska göra härnäst.</value>
+  <data name="Infected messages are delivered with their attachments stripped rather than deleted, and one that is only text, or encrypted, is delivered as it arrived. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
+    <value>Infekterade meddelanden levereras med bilagorna borttagna i stället för att raderas, och ett som bara är text, eller som är krypterat, levereras som det kom. Mottagaren får ändå meddelandekroppen, som för den mesta skadliga posten är delen som bär instruktionerna om vad de ska göra härnäst.</value>
   </data>
   <data name="Information" xml:space="preserve">
     <value>Information</value>
@@ -11481,8 +11481,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Sent" xml:space="preserve">
     <value>Utgående</value>
   </data>
-  <data name="Sent only when the whole message is deleted. With the attachments removed, the note in their place tells the receiver, and nobody else is told." xml:space="preserve">
-    <value>Skickas bara när hela meddelandet tas bort. När bilagorna tas bort talar anteckningen i deras ställe om det för mottagaren, och ingen annan får veta.</value>
+  <data name="Sent only when the action is to delete the whole message. With the attachments removed, the note in their place tells the receiver - or the &quot;message deleted&quot; notice, when the server cannot open or parse a message and deletes it - and nobody else is told." xml:space="preserve">
+    <value>Skickas bara när åtgärden är att ta bort hela meddelandet. När bilagorna tas bort talar noteringen i deras ställe om det för mottagaren - eller meddelandet "meddelande borttaget", när servern inte kan öppna eller tolka ett meddelande och tar bort det - och ingen annan får veta.</value>
   </data>
   <data name="Separately, this server sends its own reports to other domains only when 'TLS report sender address' is set on the Transport security page; hMailServer.ini could not be found on this machine to check it." xml:space="preserve">
     <value>Separat skickar den här servern sina egna rapporter till andra domäner bara när 'Avsändaradress för TLS-rapporter' är satt på sidan Transportsäkerhet; hMailServer.ini kunde inte hittas på den här datorn för kontroll.</value>
@@ -12867,8 +12867,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="The attachment blocking settings could not be read." xml:space="preserve">
     <value>Inställningarna för blockering av bilagor kunde inte läsas.</value>
   </data>
-  <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action - the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
-    <value>Bilagorna ersätts och meddelandet levereras. Ingen av aviseringsinställningarna gäller den här åtgärden - servern skickar bara meddelandet "meddelande borttaget" när åtgärden är att ta bort meddelandet.</value>
+  <data name="The attachments are replaced by a note and the message is delivered; a message that is one attachment becomes the note alone, and one that is only text, or encrypted, is delivered unchanged. A message the server cannot open or parse is deleted, and each of its recipients is sent the &quot;message deleted&quot; notice in its place. Neither notification setting applies to this action, and the envelope sender is never told." xml:space="preserve">
+    <value>Bilagorna ersätts av en notering och meddelandet levereras; ett meddelande som bara är en bilaga blir enbart noteringen, och ett som bara är text, eller som är krypterat, levereras oförändrat. Ett meddelande som servern inte kan öppna eller tolka tas bort, och var och en av dess mottagare får meddelandet "meddelande borttaget" i dess ställe. Ingen av aviseringsinställningarna gäller den här åtgärden, och kuvertavsändaren får aldrig veta något.</value>
   </data>
   <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
     <value>Granskningsraderna kräver även view_audit, som de här inloggningsuppgifterna inte har.</value>

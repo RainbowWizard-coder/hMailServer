@@ -19,8 +19,9 @@ Sealed is decided from the message's top-level `Content-Type`, in `SealedMessage
 (`source/Server/Common/Util/SealedMessage.cpp`): declining to add a footer costs
 nothing, so a label is enough. **Opaque is not decided from the label**, because every
 check below that stands aside for an opaque message - the blocked-attachment list,
-the stripper, the rule engine's body and content conditions, eDiscovery's body search
-- would otherwise be one header away from being switched off by anyone sending mail.
+the stripper (for an encrypted one), the rule engine's body and content conditions,
+eDiscovery's body search - would otherwise be one header away from being switched off
+by anyone sending mail.
 A message is opaque only when its body has the exact shape the label promises:
 
 * **S/MIME** (`application/pkcs7-mime` or `application/x-pkcs7-mime`): one part whose
@@ -146,8 +147,9 @@ message a fresh budget.
 ## The "delete attachments" anti-virus action
 
 **An encrypted message is never stripped.** When the anti-virus action is *delete
-attachments* and the scanner objects to an opaque message - encrypted, judged from its
-body as above - the message is left exactly
+attachments* and the scanner objects to an encrypted message - S/MIME enveloped-data or
+authenticated-enveloped-data, or PGP/MIME ciphertext, judged from its body as above -
+the message is left exactly
 as it arrived and the application log says so, naming the message and its content type
 and ending with the sentence *Set the anti-virus action to delete the message if such
 a message must not be delivered* - which is the setting that still works on a message
@@ -176,6 +178,37 @@ light there, and neither is about sealed mail:
 * A message with no text part at all - two attachments and nothing else - was
   previously "stripped" to its first attachment. It is now stripped to the header and
   the notice with no body, which is what deleting every attachment of it means.
+
+What the action does with a message that is not text with files attached:
+
+* A message that is **one attachment** and nothing else - a file, a message carried
+  whole, or a text file declared an attachment, each an attachment as a part of a
+  multipart message would be - is stripped the same way: what is delivered is its
+  header, the subject marked *Virus found*, and the notice with no body. The part's own
+  `Content-` fields go with it, since they describe the part and not the notice: a
+  `Content-Transfer-Encoding` left in would have a client decode the notice by it, and
+  a `Content-Disposition` would offer the notice as the file. The log says `the message
+  was one attachment, so the notice is all that is delivered`.
+* An S/MIME message **signed as one part** - `application/pkcs7-mime` holding CMS
+  signed-data, the opaque form - is opaque to the server's other readers, but it is not
+  encrypted: its content is inside the signature, where the recipient's client shows
+  it, a file in it included. The stripper cannot pick a part out of it, so it is one
+  attachment like any other and is replaced by the notice, signature and all, and the
+  log says `is signed in S/MIME's opaque form`. (A `multipart/signed` message is
+  stripped like any other, as above.)
+* A message that is **one text part** has no attachment to remove and is delivered as it
+  is, as the text part of a multipart message is kept. The log says that it is a single
+  text part and, like the encrypted case, names the setting to choose if such a message
+  must not be delivered.
+* A message the server **cannot open or parse** - another program holds its file, or
+  has moved it away, or its parse failed - has nothing in it that can be kept, and it is
+  **deleted**, as *Delete the whole message* deletes a message. Each of its recipients
+  is sent the server's *message deleted* notice (the `VIRUS_NOTIFICATION` server
+  message) in place of the note, whatever *Notify the recipients* says, and its sender
+  is not told, as this action never tells the sender. It is deleted rather than held:
+  a message that cannot be read now is no more readable on a later pass, and a hold
+  would end in a return to a sender that virus mail forges. The log says `Message will
+  be deleted`, with the reason.
 
 ## Rules
 

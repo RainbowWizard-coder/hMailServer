@@ -195,6 +195,14 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("bool sent = action.SelectedValue == 0;", wire, StringComparison.Ordinal);
          Assert.Contains("row.IsEnabled = sent;", wire, StringComparison.Ordinal);
          Assert.Contains("row.Hint = why;", wire, StringComparison.Ordinal);
+
+         // Removing the attachments tells the receiver whatever the boxes say: by the
+         // note, or by the "message deleted" notice for a message the stripper cannot
+         // read, which SMTPDeliverer deletes. The hint says both, and the note under
+         // the action says what becomes of a message with nothing to strip.
+         Assert.Contains("Sent only when the action is to delete the whole message.", wire, StringComparison.Ordinal);
+         Assert.Contains("when the server cannot open or parse a message and deletes it", wire, StringComparison.Ordinal);
+         Assert.Contains("a message that is one attachment becomes the note alone. A message that is only text, or encrypted, is delivered unchanged; one the server cannot open or parse is deleted, and its recipients are told.", settings, StringComparison.Ordinal);
       }
 
       [Fact]
