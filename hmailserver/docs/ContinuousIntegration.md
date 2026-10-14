@@ -508,7 +508,8 @@ are scoped, they are given to
 it too, and `hosted-runners` fails every pipeline a switch is set for, naming each
 credential it is given and the environment to scope it to, never a value. It fails
 closed: every variable it is given is a credential to it but GitLab's own - those
-whose names begin with `CI_` and say nothing of a credential, GitLab's own that do
+whose names begin with `CI_`, are written in capitals, digits and `_` alone, as
+each of GitLab's is, and say nothing of a credential, GitLab's own that do
 (the job's token as `CI_JOB_TOKEN`, `CI_REGISTRY_PASSWORD` and
 `CI_DEPENDENCY_PROXY_PASSWORD`, the first characters of the runner's token and of a
 trigger's, and the runner's TLS key file), and the few others GitLab predefines; the
@@ -518,12 +519,13 @@ the CI files and their templates set, and the project's that hold none (`PLAIN` 
 `build/ci/hosted-runners.py`: the five identifiers, the switch and the observability
 export). GitLab keeps no prefix for its own, so a variable of the project's named
 `CI_` is a credential to it when its name says so (`TOKEN`, `SECRET`, `PASSWORD`,
-`KEY` and the like), and one named `FF_` when its value is not true or false; one
-named `CI_` that says nothing of a credential is taken for GitLab's by that name
-alone. So a credential made later fails it, whatever its name but such a one, until
-it is scoped to its job's environment; a variable made later that holds none fails
-it until it is named in `PLAIN`; and so does a variable GitLab adds to one of its
-templates, until it is named in `TEMPLATE_GLOBALS` there. The
+`KEY` and the like) or has a small letter, which none of GitLab's has
+(`CI_push_token`), and one named `FF_` when its value is not true or false; one
+named `CI_` in capitals that says nothing of a credential is taken for GitLab's by
+that name alone. So a credential made later fails it, whatever its name but such a
+one, until it is scoped to its job's environment; a variable made later that holds
+none fails it until it is named in `PLAIN`; and so does a variable GitLab adds to
+one of its templates, until it is named in `TEMPLATE_GLOBALS` there. The
 signing key `package-repos` would read, `HM_REPO_SIGNING_KEY` with its passphrase,
 does not exist yet, and `package-repos` names no environment: until it names one to
 scope the key to, a switch hands the key to GitLab's runners, and `hosted-runners`
