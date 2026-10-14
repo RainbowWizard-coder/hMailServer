@@ -41,12 +41,12 @@ namespace HM
    {
       LOG_DEBUG("SMTPVirusNotifier::CreateMessageDeletedNotification");
 
-      if (pOriginalMessage->GetFromAddress().IsEmpty())
-      {
-         // No sender address specified, hence no place to
-         // deliver the error log.
+      // A notice to nobody: the notice to the sender of a message whose envelope
+      // sender is empty - a bounce - has no place to go. Asked of the address the
+      // notice is for, not of the message's sender: a recipient of such a message
+      // has an address all the same, and is told as any other recipient is.
+      if (sRecipient.IsEmpty())
          return;
-      }
 
        // Parse out the subject in the original
       // message, so that we can Re: that..

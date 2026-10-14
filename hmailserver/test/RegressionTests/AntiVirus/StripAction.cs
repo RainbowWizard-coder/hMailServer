@@ -31,6 +31,9 @@ namespace RegressionTests.AntiVirus
    ///      its recipients is sent the "message deleted" notice in place of the
    ///      note, whatever the two notice settings say; its sender is not told.
    ///
+   ///    And the "message deleted" notice reaches the recipients of a message
+   ///    whose envelope sender is empty, as it reaches any other recipient.
+   ///
    ///    The scanners are command lines with a fixed exit code, as in
    ///    SealedMailSafety: these tests are about what the server does with a
    ///    verdict, not about reaching one. What is scanned carries the EICAR test
@@ -403,6 +406,27 @@ namespace RegressionTests.AntiVirus
          // The notice is made from the message's header, which could not be read
          // either while the file was held: said, and the notice goes all the same.
          CustomAsserts.AssertReportedError("Could not read the message header");
+      }
+
+      [Test]
+      [Description("With the delete action and the recipients' notice on, the recipient of a message whose envelope sender is empty is sent the notice.")]
+      public void TheRecipientOfAMessageWithNoSenderIsToldOfItsDeletion()
+      {
+         EnableScanner(AlwaysInfectedScanner, eAntivirusAction.hDeleteEmail);
+         _settings.AntiVirus.NotifyReceiver = true;
+
+         SmtpClientSimulator.StaticSendRaw("", _account.Address, TextAndEicarMessage(_account.Address));
+
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+         Pop3ClientSimulator.AssertMessageCount(_account.Address, Password, 1);
+
+         var delivered = Pop3ClientSimulator.AssertGetFirstMessageText(_account.Address, Password);
+
+         StringAssert.DoesNotContain(EicarBase64(), delivered,
+            "The deleted message was delivered.");
+         StringAssert.Contains("Subject: " + ServerMessage("VIRUS_FOUND") + ": Text and a file", delivered,
+            "What arrived is not the message-deleted notice.");
       }
    }
 }

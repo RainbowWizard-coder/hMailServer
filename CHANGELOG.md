@@ -1353,6 +1353,14 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   and holds a message's file while the stripper reads it
   ([SealedMail.md](hmailserver/docs/SealedMail.md), "The "delete attachments" anti-virus action").
 
+- **Fixed: the anti-virus "message deleted" notice went to none of the recipients of a message whose envelope
+  sender is empty.** With *Notify the recipients* on, the delete action tells every recipient of an infected message
+  that it was deleted, but `SMTPVirusNotifier` asked whether the message had a sender before it made any notice, the
+  recipients' as well as the sender's, so the recipients of a message with an empty envelope sender - a bounce among
+  them - were told nothing. It now asks whether the notice has an address to go to: the sender's notice of such a
+  message still goes nowhere, and each recipient is told as for any other message. `AntiVirus/StripAction.cs`
+  deletes such a message with the recipients' notice on and finds the notice in the mailbox.
+
 ### Control Panel
 
 - **Fixed: "Restart the service" waited a fixed 60 seconds for a stop the server gives ShutdownDrainSeconds plus 90,
