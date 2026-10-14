@@ -226,8 +226,12 @@ The CI jobs
   tarball and checks it, copies the APKBUILD and its install scripts out of it into
   an aports-shaped directory, runs `apkbuild-lint`, makes a signing key for the job
   alone, runs `abuild checksum` and `abuild -r` - the build, `check()` and the
-  packages - and keeps the packages, the key's public half, `abuild.log` and
-  `lint.txt`.
+  packages - holds the licences the server's package carries in
+  `/usr/share/hmailserver/licenses` (the AGPL-3.0 text and the notices of QuickJS,
+  Unicode's data for UTS 46 and HTML's list of named character references, which
+  the install rules put there) to the tarball's files by SHA-256
+  (`build/ci/alpine.sh licences` runs that step alone), and keeps the packages,
+  the key's public half, `abuild.log` and `lint.txt`.
 - **`alpine-install`** (test): `build/ci/alpine.sh install` in a clean container:
   the packages installed with `apk add` beside Alpine's PostgreSQL 18 in a cluster of
   its own, the account, the unit-less layout and the modes checked, the database made
@@ -312,6 +316,13 @@ from `batch42` with this item's changes, beside `batch42`'s own pipeline:
   with STARTTLS and IMAP answered, and it reloaded and stopped; and `alpine-suite`
   ran the whole Linux suite against it, 1899 passed, 332 skipped and none failed of
   2231. In 2897966924 the three were cancelled with the pipeline before they started.
+- **The licences, for 6.3.7**, on server2 on 14 October 2026: `alpine.sh package`
+  on a source tarball of the commit that installs the two data sets' notices -
+  `apkbuild-lint` had nothing to say - made a package whose `.PKGINFO` licence
+  names `Unicode-3.0 AND BSD-3-Clause` and that carries `AGPL-3.0.txt`, `QuickJS.txt`,
+  `Unicode-data.txt` and `HTML-named-character-references.txt`, each the tarball's
+  file; `alpine.sh licences`, run over the package `batch48`'s `6e1a336c5` made,
+  refused it: it carries no `Unicode-data.txt`.
 
 What is left
 ------------

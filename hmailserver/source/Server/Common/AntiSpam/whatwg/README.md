@@ -28,6 +28,12 @@ be expanded or changed in the future".
 
 It is not this project's file and carries no header of its own. The licence
 asks that its copyright notice, conditions and disclaimer go with the source
-and, in a binary, with its documentation, which `entities.LICENSE` here, the
-generated file's header, `hmailserver/docs/Licenses/License - HTML named character references.txt`,
-the packages' copyright file and the Windows installer's licence do.
+and, in a binary, with its documentation. With the source, `entities.LICENSE`
+here, the generated file's header and
+`hmailserver/docs/Licenses/License - HTML named character references.txt` do.
+With a binary: on Linux, every install - the packages and the AppImages - puts
+`entities.LICENSE` beside the server as
+`/usr/share/hmailserver/licenses/HTML-named-character-references.txt` (the
+CMake install rules, and `build-appimage.sh` for the AppImages), and the `.deb`
+and the `.rpm` carry the Debian copyright file as well; on Windows, the
+installer's licence carries it.

@@ -117,9 +117,21 @@ project's own files (AGPL-3.0-or-later, Martin Knafve's and the maintainers'), i
 declares every third-party notice in the repacked tarball: QuickJS (MIT, as
 `Expat`), the MIME coder (BSD-1-Clause), `CStdString` (its own notice), the RFC
 7208 test suite (BSD-3-Clause), the Public Suffix List's data compiled into the
-server (MPL-2.0), the ATL script host, which only the Windows server
-compiles (its own notice), the DKIM corpus (Perl's terms), and the licence texts under
-`hmailserver/docs/Licenses`, which are notices of components not in the source.
+server (MPL-2.0), Unicode's data for UTS 46 and the tables made of it compiled
+into the server (Unicode-3.0), HTML's list of named character references and the
+table made of it compiled into the server (the WHATWG's BSD 3-Clause terms), the
+ATL script host, which only the Windows server compiles (its own notice), the DKIM
+corpus (Perl's terms), and the licence texts under `hmailserver/docs/Licenses`:
+the notices of the components the Windows build ships and the source does not
+carry (7-Zip, Boost, the Fat Cow icons, the MariaDB connector, OpenSSL, libpq,
+zlib), and a copy of the notice of each component in the source that has one
+(QuickJS, the MIME coder, `CStdString`, the RFC 7208 test suite, Unicode's data,
+the WHATWG's list), declared with that component. The packages built from the
+source install the notices of what is compiled into the server whose licences ask
+for them with every copy - QuickJS's, Unicode's and the WHATWG's - in
+`/usr/share/hmailserver/licenses`, beside the AGPL-3.0 text, through the CMake
+install rules, so the spec's `%files` marks the four `%license` and the Debian
+package installs them under `/usr/share/hmailserver`.
 Since 6.3.6 no file is declared `none-stated`, a declaration a Debian archive does not accept
 ([the questions below](#questions-for-a-debian-or-fedora-maintainer)). The AGPL's
 text is written out in full: Debian's `/usr/share/common-licenses` does not carry
@@ -169,7 +181,10 @@ five files written by hand, which batch42's pipeline found on 30 September 2026:
 `debian/source/lintian-overrides` overrides those five, with the reason, and the
 lintian of Debian 13 (2.122) and of Ubuntu 26.04 (2.129) reports none of them. Last it holds the binary package to what was asked for: a Boost
 soname among its dependencies, no `hmailserver-update` in it, the `sysusers.d`
-file, and `hmctl` in `hmailserver-cli`. The debug information packages
+file, and `hmctl` in `hmailserver-cli`; and the RPM build its licences, each marked
+`%license` - `LICENSE`, the AGPL-3.0 text and the notices of QuickJS, Unicode's
+data for UTS 46 and HTML's list of named character references under
+`/usr/share/hmailserver/licenses`. The debug information packages
 (`hmailserver-dbgsym`, `hmailserver-debuginfo` and `-debugsource`) are built and
 linted but not kept in the job's artifacts: nothing reads them, and Fedora's
 debuginfo alone is 245 MB. The builds are in the resource group

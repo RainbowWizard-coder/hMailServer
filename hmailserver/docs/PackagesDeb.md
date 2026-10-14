@@ -460,19 +460,27 @@ the Arch package carried hMailServer's own licence.
   which licence, with the AGPL-3.0-or-later in full and the terms of what is
   compiled into the binary - QuickJS (MIT), the MIME coder (BSD-1-Clause),
   CStdString (a permissive notice of its own), the Public Suffix List's rules
-  (MPL-2.0) and the rest it names. Ubuntu's container images keep it where
-  their `dpkg` leaves out the rest of `/usr/share/doc`.
+  (MPL-2.0), Unicode's data for UTS 46 (Unicode-3.0), HTML's list of named
+  character references (BSD-3-Clause) and the rest it names. Ubuntu's container
+  images keep it where their `dpkg` leaves out the rest of `/usr/share/doc`.
 - `/usr/share/hmailserver/licenses/AGPL-3.0.txt`, hMailServer's own licence, the
   FSF's file byte for byte (the repository's `LICENSE` without its carriage
-  returns), beside `QuickJS.txt`, as the AppImage carries them.
+  returns), and beside it the notices of what is compiled into the server whose
+  licences ask for them with every copy: `QuickJS.txt`, QuickJS's MIT licence;
+  `Unicode-data.txt`, the Unicode License v3 of the data UTS 46 is done from
+  (`Common/Idna/ucd/unicode.LICENSE`); and
+  `HTML-named-character-references.txt`, the BSD 3-Clause terms of HTML's list
+  of named character references (`Common/AntiSpam/whatwg/entities.LICENSE`),
+  as the `.rpm` and the AppImage carry them. The last two came in 6.3.7, with
+  the two tables they are the notices of.
 
-The install rules put the two texts in, for every install; CPack alone puts the
+The install rules put the four texts in, for every install; CPack alone puts the
 copyright file in (`platform/packaging/cpack-licenses.cmake`), so the source
 package, which installs with CMake, places its own with debhelper. No other
 licence text is owed: Boost, which the server links statically, asks for its
 notice only with its source, and OpenSSL, libpq, OpenLDAP and zlib are the
 distribution's shared libraries, whose packages carry their own copyright files.
-`build/ci/packages/check-licenses.sh` holds the three files to the tree, by
+`build/ci/packages/check-licenses.sh` holds the five files to the tree, by
 SHA-256, mode and owner: `deb-build.sh` and `linux-build` fail a package
 without them, and the install test checks them as installed.
 
@@ -488,6 +496,13 @@ step with the package made before the change. Lintian's Debian profile no longer
 reports `no-copyright-file` and reports nothing new. A miniature of the tree with
 the same install rules and CPack settings made and installed the `.deb` with
 Debian 12's, Ubuntu 24.04's and Ubuntu 26.04's own CMake and dpkg.
+
+**Run for the two notices, on server2 on 14 October 2026,** from a source tarball
+of the commit, against `batch48`'s `6e1a336c5` as the base: `linux-build.sh` in the
+CI image made the `.deb` with the four texts, and `check-licenses.sh` passed it
+and refused the base's for want of `Unicode-data.txt` and
+`HTML-named-character-references.txt`; installed with apt in `ubuntu:26.04`, the
+package passed `check-licenses.sh --installed deb` and the base's failed it.
 
 The install test
 ----------------
@@ -509,8 +524,9 @@ architecture:
    the repository's), the three systemd units, the update helper, the auto-ban
    hook, the configuration and the logrotate rule.
 5. The licences are installed as the tree has them, and `dpkg -L` names each:
-   the copyright file, `AGPL-3.0.txt` and `QuickJS.txt` (`check-licenses.sh
-   --installed deb`; [The licences](#the-licences)).
+   the copyright file, `AGPL-3.0.txt`, `QuickJS.txt`, `Unicode-data.txt` and
+   `HTML-named-character-references.txt` (`check-licenses.sh --installed deb`;
+   [The licences](#the-licences)).
 6. `postinst` made the `hmailserver` user and enabled `hmailserver.service` and
    `hmailserver-update.path` through `deb-systemd-helper`.
 7. `apt-get remove` takes the package off again.

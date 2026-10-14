@@ -157,8 +157,11 @@ CI jobs pass it): libfuse3's LGPL-2.1 and lzo's GPL ask for their text, and for
 their source, which a release carries as
 `hmailserver-<version>-appimage-runtime-sources.tar.gz`. Beside them it always puts
 the GPL-3.0's text, `appimage/GPL-3.0.txt`, under which the runtime takes lzo,
-and hMailServer's own AGPL-3.0 text, the repository's `LICENSE`, as
-`usr/share/hmailserver/licenses/AGPL-3.0.txt`. Where `dpkg` is (Debian, Ubuntu,
+hMailServer's own AGPL-3.0 text, the repository's `LICENSE`, as
+`usr/share/hmailserver/licenses/AGPL-3.0.txt`, and beside it the notices of what
+is compiled into the server, `QuickJS.txt`, `Unicode-data.txt` and
+`HTML-named-character-references.txt`, as the install rules install them for the
+packages (the script runs none of them). Where `dpkg` is (Debian, Ubuntu,
 the CI's Ubuntu 24.04), it also puts the copyright file of the package each
 library in `usr/lib` came from, the licence texts those name, and `bundled.txt`,
 which lists each library with its package and source package and names the
@@ -186,6 +189,16 @@ From the CMakeLists install rules, with the prefix above:
 /usr/share/hmailserver/licenses/QuickJS.txt the licence of QuickJS, the JavaScript
                                             engine compiled into the binary for the
                                             event scripts (MIT asks for its notice)
+/usr/share/hmailserver/licenses/Unicode-data.txt
+                                            the Unicode License v3 of the data UTS 46
+                                            is done from, compiled into the binary as
+                                            tables (it asks for its notice with
+                                            every copy): Common/Idna/ucd/unicode.LICENSE
+/usr/share/hmailserver/licenses/HTML-named-character-references.txt
+                                            the BSD 3-Clause terms of HTML's list of
+                                            named character references, compiled in
+                                            as a table (a binary must carry the
+                                            notice): Common/AntiSpam/whatwg/entities.LICENSE
 /usr/share/hmailserver/licenses/AGPL-3.0.txt hMailServer's own licence, the FSF's
                                             file: the repository's LICENSE without
                                             its carriage returns
@@ -207,9 +220,10 @@ look elsewhere; moving the other two needs `ProgramFolder` to follow.
 
 CPack adds one file the install rules do not: the copyright file, where each
 format keeps it - `/usr/share/doc/hmailserver/copyright` in the `.deb` (Debian
-Policy 12.5), `/usr/share/licenses/hmailserver/copyright` in the `.rpm`, where it,
-`AGPL-3.0.txt` and `QuickJS.txt` are marked `%license` (`cpack-licenses.cmake`).
-`build/ci/packages/check-licenses.sh` holds all three to the tree, in the package
+Policy 12.5), `/usr/share/licenses/hmailserver/copyright` in the `.rpm`, where it
+and the four texts under `/usr/share/hmailserver/licenses` are marked `%license`
+(`cpack-licenses.cmake`, `CPACK_RPM_USER_FILELIST`).
+`build/ci/packages/check-licenses.sh` holds all five to the tree, in the package
 file and as installed.
 
 Created by the maintainer scripts, not by the package payload, and therefore not
@@ -950,7 +964,13 @@ Proven since the list above was first written, and therefore not on it: the
 PKGBUILD builds and installs on Arch Linux (`makepkg`, `pacman -U`,
 `systemd-sysusers`, `/usr/bin/hmailserver --version`); MariaDB 11.8 runs the
 same end-to-end sequence PostgreSQL does (schema created by `--create-database`,
-an account over REST, a message over SMTP, read back over IMAP).
+an account over REST, a message over SMTP, read back over IMAP). And from 6.3.7 the
+PKGBUILD names every licence of what is compiled into the server, `BSL-1.0` among
+them for the Boost its build links statically, and installs the copyright file and
+links to `QuickJS.txt`, `Unicode-data.txt` and `HTML-named-character-references.txt`
+in `/usr/share/licenses/hmailserver`, where Arch looks for a package's licences:
+`makepkg` built it in Arch Linux's pinned image on 14 October 2026, and `namcap`
+said nothing of its licences.
 
 Compose and Helm
 ----------------

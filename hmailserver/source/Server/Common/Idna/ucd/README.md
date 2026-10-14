@@ -30,9 +30,13 @@ anything. Nothing fetches them again: the build reads only these copies.
 
 They are not this project's files and carry no header of its own. The licence
 asks that its copyright and permission notice go with every copy of the data or
-appear in its documentation, which `unicode.LICENSE` here, the generated files'
-headers, `hmailserver/docs/Licenses/License - Unicode data.txt`, the packages'
-copyright file and the Windows installer's licence do.
+appear in its documentation. With the source, `unicode.LICENSE` here, the
+generated files' headers and `hmailserver/docs/Licenses/License - Unicode data.txt`
+do. With a binary: on Linux, every install - the packages and the AppImages -
+puts `unicode.LICENSE` beside the server as
+`/usr/share/hmailserver/licenses/Unicode-data.txt` (the CMake install rules, and
+`build-appimage.sh` for the AppImages), and the `.deb` and the `.rpm` carry the
+Debian copyright file as well; on Windows, the installer's licence carries it.
 
 To move to another Unicode version: replace the six data files with that
 version's, put their SHA-256s and the version in the generator, run
