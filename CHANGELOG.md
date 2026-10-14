@@ -6777,6 +6777,13 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   now. `build/check-release-chain.py` holds every command a document gives for the release's gate to `--exceptions`,
   and step 9's to a file written from `master`'s copy, and its self-test breaks each in a copy: run over the documents
   as they were, it reported both commands and a step 9 with no such command.
+- **SECURITY.md names the libraries `dependency-scan` says UNKNOWN for as the scan answers today: libpq, QuickJS and
+  SQL Server Compact.** It named 7-Zip 19.00 among them, which the Windows installer has not carried since 25
+  September 2026: 7-Zip 26.03 is asked of OSV beside its control, which OSV names advisories for, and passes.
+  `build/ci/dependency-scan.py`'s self-test holds the list to the scan's own (`VENDORED`): the libraries OSV knows no
+  repository for, those whose control OSV was not known to name and those pinned older than their repository's first
+  tag, each named by the start of its name and at the version the tree pins. Over SECURITY.md as it was, it fails
+  twice: 7-Zip at 19.00, where the tree pins 26.03, and 7-Zip among the libraries OSV holds no usable data on.
 - **SmtpPolicy.md, RestrictedDelivery.md and ImpersonationProtection.md say what the server's IDNA conversion reads
   and what it does not.** They said the server has none, and that the Linux build has no Unicode tables, which UTS 46
   for a link's host made untrue ("Anti-spam, anti-virus and mail flow rules", above): the domain policy list and

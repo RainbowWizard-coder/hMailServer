@@ -673,8 +673,7 @@ scanning".
   It asks OSV (`api.osv.dev`) about the libraries the Windows server is built with and no manifest names - OpenSSL,
   Boost, libpq, zlib, QuickJS, MariaDB Connector/C, 7-Zip - at the versions the build uses, and about the .NET Desktop
   Runtime each Windows installer carries, by its NuGet runtime packages at the release the installer pins; and it says
-  UNKNOWN, not clean, for a library OSV holds no usable data on (libpq, QuickJS, 7-Zip 19.00 and SQL Server Compact,
-  today). It
+  UNKNOWN, not clean, for a library OSV holds no usable data on (libpq, QuickJS and SQL Server Compact, today). It
   honours the VEX document. An advisory against a header-only package of that image - `linux-libc-dev`, the kernel's
   user-space API headers, which carry no code of the kernel's, under which Trivy files every advisory against the
   kernel's source package - is not affected: the report lists it with that status, counted apart, and neither the scan

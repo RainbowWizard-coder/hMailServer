@@ -136,9 +136,9 @@ Usage, from the root of a checkout, in the aquasec/trivy image with python3:
 by default; that scan is skipped, and says so, when it is not there). --self-test
 reads no network: the severities, the VEX document's matching, the version
 readers, the header-only rule and the CI image's summary, against records and
-texts it makes, the tree's own VEX document and pins against each other, and the
-scan's ending and its verdict, over a tree it makes with Trivy and its database
-stood in for.
+texts it makes, the tree's own VEX document and pins against each other and against
+SECURITY.md's list of the libraries this says UNKNOWN for, and the scan's ending and
+its verdict, over a tree it makes with Trivy and its database stood in for.
 """
 
 import os
@@ -633,6 +633,17 @@ def cvss3_rating(vector):
         # CVSS 3.1's Roundup: the smallest one-decimal number not below raw.
         score = math.ceil(round(raw * 100000) / 10000.0) / 10.0
     return "Critical" if score >= 9 else "High" if score >= 7 else "Medium" if score >= 4 else "Low" if score > 0 else "Info"
+
+
+def without_usable_data(lib, version):
+    """Whether OSV holds no usable data on lib at version, as osv_scan finds it: no
+    repository OSV knows (UNKNOWN whatever OSV says), a control OSV was not known to name
+    when it was chosen (no control_draws: UNKNOWN while the control draws nothing), or a
+    version older than the upstream repository's first tag, which OSV cannot match.
+    SECURITY.md ("Dependencies") names these as what the scan says UNKNOWN for today,
+    and --self-test holds it to them."""
+    return not lib.get("repo") or not lib.get("control_draws") or bool(
+        lib.get("oldest_tag") and version and version_key(version) < version_key(lib["oldest_tag"]))
 
 
 def osv_scan(dismissed):
@@ -1629,6 +1640,35 @@ def self_test():
         module["ROOT"], module["installed_trivy"], module["download_database"], module["trivy"] = kept[:4]
         os.chdir(kept[4])
         shutil.rmtree(scratch, ignore_errors=True)
+    # The tree: SECURITY.md ("Dependencies") names, as the libraries this scan says
+    # UNKNOWN for today, exactly those of VENDORED that OSV holds no usable data on at the
+    # tree's pins (without_usable_data), each by the start of its name, and a version it
+    # names the one pinned: a pin that moves past its repository's first tag, or a
+    # library added, moves the sentence too.
+    try:
+        policy = " ".join(read("SECURITY.md").split())
+    except OSError as e:
+        policy = ""
+        failures.append("the tree's SECURITY.md is read: %s" % e)
+    said = re.search(r"says UNKNOWN, not clean, for a library OSV holds no usable data on \(([^()]*), today\)", policy)
+    expect(said, "SECURITY.md says which libraries this scan says UNKNOWN for today (\"... for a library OSV holds no "
+           "usable data on (<libraries>, today)\")")
+    if said:
+        named = []
+        for item in re.split(r", | and ", said.group(1)):
+            item_name, item_version = re.match(r"^(.*?)(?: ([0-9][0-9A-Za-z.\-]*))?$", item.strip()).groups()
+            matched = [lib for lib in VENDORED if lib["name"] == item_name or lib["name"].startswith(item_name + " ")]
+            expect(len(matched) == 1, "SECURITY.md's %r, among the libraries the scan says UNKNOWN for, is one library "
+                   "of VENDORED: %s" % (item, [lib["name"] for lib in matched]))
+            if len(matched) == 1:
+                named.append(matched[0]["name"])
+                pinned = vendored_version(matched[0])[0]
+                expect(item_version is None or item_version == pinned, "SECURITY.md names %s %s among the libraries "
+                       "the scan says UNKNOWN for, and the tree pins %s" % (matched[0]["name"], item_version, pinned))
+        unknown = [lib["name"] for lib in VENDORED if without_usable_data(lib, vendored_version(lib)[0])]
+        expect(sorted(named) == sorted(unknown), "SECURITY.md names %s as what the scan says UNKNOWN for today, and OSV "
+               "holds no usable data on %s at the tree's pins (no repository, a control OSV was not known to name, or "
+               "a pin older than its repository's first tag)" % (sorted(named), sorted(unknown)))
 
     for failure in failures:
         print("FAILED: " + failure)
