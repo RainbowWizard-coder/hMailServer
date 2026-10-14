@@ -123,9 +123,13 @@ stdenv.mkDerivation {
     changelog = "https://gitlab.com/hmailserver/hmailserver/-/blob/v${version}/CHANGELOG.md";
     # The server's own licence, and those of what is compiled into it: QuickJS
     # (MIT), the MIME coder (BSD-1-Clause), the Public Suffix List's rules
-    # (MPL-2.0); CStdString's notice is permissive and has no identifier
+    # (MPL-2.0), Unicode's data for UTS 46 (Unicode-3.0, nixpkgs' unicode-30) and
+    # HTML's list of named character references (BSD-3-Clause, bsd3), whose notices
+    # the install puts in $out/share/hmailserver/licenses; CStdString's notice is
+    # permissive and has no identifier
     # (hmailserver/source/Server/platform/packaging/debian-src/debian/copyright).
-    license = with lib.licenses; [ agpl3Plus mit bsd1 mpl20 ];
+    # build/check-package-licenses.py holds this to what is compiled in.
+    license = with lib.licenses; [ agpl3Plus mit bsd1 mpl20 unicode-30 bsd3 ];
     platforms = lib.platforms.linux;
     mainProgram = "hmailserver";
   };

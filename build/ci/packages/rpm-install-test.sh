@@ -21,8 +21,9 @@
 #   Fedora and EL rpm -Uvh refuses it, and dnf, which the live update installs
 #   with there, brings them;
 #   every file a working installation needs is where the package put it;
-#   the licences are there as the tree has them - the AGPL-3.0 text, QuickJS's
-#   and /usr/share/licenses/hmailserver/copyright - installed under the image's
+#   the licences are there as the tree has them - the AGPL-3.0 text, the notices
+#   of QuickJS, Unicode's data and HTML's named character references, and
+#   /usr/share/licenses/hmailserver/copyright - installed under the image's
 #   tsflags=nodocs, and each one rpm -qL names (check-licenses.sh);
 #   %post made the service account and the directories, and left the
 #   configuration root-owned and readable by the service only;

@@ -1199,6 +1199,26 @@ set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${HM_AGPL_LICENSE
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/packaging/AGPL-3.0.txt
    DESTINATION ${CMAKE_INSTALL_DATADIR}/hmailserver/licenses)
 
+# And the notices of the two data sets compiled into the server as tables, which
+# SURBL.cpp reads a link with: Unicode's data for UTS 46 (Common/Idna/IdnaTables.cpp),
+# whose Unicode License v3 asks for its copyright and permission notice to go with
+# every copy of the data or to be in its documentation, and HTML's list of named
+# character references (Common/AntiSpam/HtmlReferencesData.cpp), a portion of the
+# WHATWG's standard under the BSD 3-Clause License, whose second condition asks a
+# binary to carry its notice, conditions and disclaimer in the documentation or
+# other materials that go with it. Each is the file kept beside its data, byte for
+# byte as its publisher serves it (.gitattributes marks both directories -text),
+# which the source tarball must carry (build/check-source-tarball.py) and
+# debian/copyright declares, under a name that says whose it is, as QuickJS's has.
+# Every install gets them; the AppImage, which runs no install rule, copies the
+# same two to the same place (platform/packaging/build-appimage.sh).
+install(FILES ${SERVER_DIR}/Common/Idna/ucd/unicode.LICENSE
+   DESTINATION ${CMAKE_INSTALL_DATADIR}/hmailserver/licenses
+   RENAME Unicode-data.txt)
+install(FILES ${SERVER_DIR}/Common/AntiSpam/whatwg/entities.LICENSE
+   DESTINATION ${CMAKE_INSTALL_DATADIR}/hmailserver/licenses
+   RENAME HTML-named-character-references.txt)
+
 # The Control Deck - the administration page the REST listener serves at GET /.
 #
 # RestApiServer::HandleWebAdminPage_ builds the path as
@@ -1472,12 +1492,14 @@ set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
 set(CPACK_DEBIAN_PACKAGE_CONTROL_STRICT_PERMISSION ON)
 
 # The licence files, marked %license as Fedora's guidelines ask, so that rpm -qL
-# lists them: the copyright file cpack-licenses.cmake puts in, and the two texts
+# lists them: the copyright file cpack-licenses.cmake puts in, and the four texts
 # beside the data.
 list(APPEND CPACK_RPM_USER_FILELIST
    "%license /usr/share/licenses/hmailserver/copyright"
    "%license ${CMAKE_INSTALL_FULL_DATADIR}/hmailserver/licenses/AGPL-3.0.txt"
-   "%license ${CMAKE_INSTALL_FULL_DATADIR}/hmailserver/licenses/QuickJS.txt")
+   "%license ${CMAKE_INSTALL_FULL_DATADIR}/hmailserver/licenses/QuickJS.txt"
+   "%license ${CMAKE_INSTALL_FULL_DATADIR}/hmailserver/licenses/Unicode-data.txt"
+   "%license ${CMAKE_INSTALL_FULL_DATADIR}/hmailserver/licenses/HTML-named-character-references.txt")
 
 set(CPACK_RPM_FILE_NAME RPM-DEFAULT)
 set(CPACK_RPM_PACKAGE_GROUP "Applications/Internet")
@@ -1508,12 +1530,15 @@ set(CPACK_RPM_CHANGELOG_FILE ${CMAKE_CURRENT_BINARY_DIR}/packaging/rpm-changelog
 # The licences the tag can name of what the package carries: the server's own, and
 # of the code compiled into it QuickJS (MIT), the MIME coder (BSD-1-Clause),
 # CStdString (a permissive notice of its own), the Public Suffix List's rules
-# (MPL-2.0) and Boost (BSL-1.0), linked statically. The source package's spec names
-# the same less Boost, whose shared libraries it links. Neither can name a notice
-# no identifier names yet: the copyright file declares those
-# (hmailserver/docs/SourcePackages.md).
+# (MPL-2.0), Unicode's data for UTS 46 (Unicode-3.0), HTML's list of named character
+# references (BSD-3-Clause) and Boost (BSL-1.0), linked statically. The source
+# package's spec names the same less Boost, whose shared libraries it links. Neither
+# can name a notice no identifier names yet: the copyright file declares those
+# (hmailserver/docs/SourcePackages.md). build/check-package-licenses.py holds this,
+# the spec's, the APKBUILD's, the PKGBUILD's and the Nix package's to the code
+# compiled into the server.
 set(CPACK_RPM_PACKAGE_LICENSE
-   "AGPL-3.0-or-later AND MIT AND BSD-1-Clause AND MPL-2.0 AND LicenseRef-Fedora-UltraPermissive AND BSL-1.0")
+   "AGPL-3.0-or-later AND MIT AND BSD-1-Clause AND MPL-2.0 AND LicenseRef-Fedora-UltraPermissive AND Unicode-3.0 AND BSD-3-Clause AND BSL-1.0")
 set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE ${SERVER_DIR}/platform/packaging/rpm/post)
 set(CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE ${SERVER_DIR}/platform/packaging/rpm/preun)
 # Without a %postun, rpm -e leaves systemd holding a unit file that is gone.

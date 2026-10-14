@@ -22,6 +22,9 @@
 #   * the image carries the Control Deck and every one of its catalogues byte for
 #     byte, the schema scripts, the Diffie-Hellman group, the public-suffix list,
 #     the live update's apply step, the licences - hMailServer's own AGPL-3.0 text;
+#     the notices of what is compiled into the server, QuickJS's licence and the
+#     notices of Unicode's data for UTS 46 and of HTML's list of named character
+#     references, each the tree's file byte for byte;
 #     the runtime's notice, which names the release file with its libraries'
 #     source, those libraries' own licence files and the GPL-3.0's text; and
 #     bundled.txt, which lists every library in usr/lib with its package and
@@ -151,6 +154,8 @@ for f in AppRun hmailserver.desktop hmailserver.svg .DirIcon \
          usr/share/hmailserver/WebAdmin/index.html \
          usr/share/hmailserver/hMailServer.ini.default \
          usr/share/hmailserver/licenses/QuickJS.txt \
+         usr/share/hmailserver/licenses/Unicode-data.txt \
+         usr/share/hmailserver/licenses/HTML-named-character-references.txt \
          usr/share/hmailserver/licenses/AGPL-3.0.txt \
          usr/share/hmailserver/licenses/bundled.txt \
          usr/share/hmailserver/licenses/appimage-runtime.txt \
@@ -181,6 +186,29 @@ echo "the runtime's notice, naming its libraries' source, their licence files an
 agpl="$root/usr/share/hmailserver/licenses/AGPL-3.0.txt"
 grep -qx " *GNU AFFERO GENERAL PUBLIC LICENSE" "$agpl" && grep -qx " *Version 3, 19 November 2007" "$agpl" \
   || { echo "usr/share/hmailserver/licenses/AGPL-3.0.txt is not the AGPL-3.0's text."; exit 1; }
+# The notices of what is compiled into the server, each held by SHA-256 to the file
+# of the tree build-appimage.sh copied it from, as the install rules install it for
+# the packages: QuickJS's licence, with the carriage returns a checkout gives it taken
+# off both sides, and the notices of the two data sets compiled in as tables -
+# Unicode's data for UTS 46 (the Unicode License v3) and HTML's list of named
+# character references (the BSD 3-Clause License) - byte for byte, as the tree keeps
+# them (.gitattributes marks their directories -text).
+while read -r notice how source; do
+  [ -f "$source" ] || { echo "No $source here, which the image's $notice is held to: run this from the root of a checkout."; exit 2; }
+  if [ "$how" = text ]; then
+    got=$(tr -d '\r' < "$root/usr/share/hmailserver/licenses/$notice" | sha256sum)
+    want=$(tr -d '\r' < "$source" | sha256sum)
+  else
+    got=$(sha256sum < "$root/usr/share/hmailserver/licenses/$notice")
+    want=$(sha256sum < "$source")
+  fi
+  [ "$got" = "$want" ] || { echo "usr/share/hmailserver/licenses/$notice is not the tree's $source (SHA-256 ${got%% *})."; exit 1; }
+done << 'NOTICES'
+QuickJS.txt text hmailserver/source/Server/quickjs/LICENSE
+Unicode-data.txt exact hmailserver/source/Server/Common/Idna/ucd/unicode.LICENSE
+HTML-named-character-references.txt exact hmailserver/source/Server/Common/AntiSpam/whatwg/entities.LICENSE
+NOTICES
+echo "the notices of QuickJS, Unicode's data and HTML's named character references, each the tree's file"
 # The libraries in usr/lib: each listed in bundled.txt with its package and source
 # package, each package's copyright file beside it, every licence text those files
 # name by its place in /usr/share/common-licenses, and the release file with their

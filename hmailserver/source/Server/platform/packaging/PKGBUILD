@@ -64,7 +64,15 @@ arch=('x86_64' 'aarch64')
 # the group's path it moved to on 29 September 2026 (its first path,
 # Progressiverobot/hmailserver, redirects there).
 url="https://gitlab.com/hmailserver/hmailserver"
-license=('AGPL-3.0-or-later')
+# The server's own licence and those of what is compiled into it, as one SPDX
+# expression: QuickJS (MIT), the MIME coder (BSD-1-Clause), the Public Suffix
+# List's rules (MPL-2.0), Unicode's data for UTS 46 (Unicode-3.0), HTML's list of
+# named character references (BSD-3-Clause), and Boost (BSL-1.0), which build()
+# links statically, as CMakeLists.txt does unless -DHM_BOOST_STATIC=OFF says
+# otherwise. CStdString's permissive notice has no SPDX identifier; the copyright
+# file package() installs has it in full, with every other notice.
+# build/check-package-licenses.py holds this to what is compiled in.
+license=('AGPL-3.0-or-later AND MIT AND BSD-1-Clause AND MPL-2.0 AND Unicode-3.0 AND BSD-3-Clause AND BSL-1.0')
 
 # Matched to what hmailserver/source/Server/CMakeLists.txt actually links:
 # Threads, OpenSSL 3.0 or newer, zlib, libpq, OpenLDAP (libldap and liblber, one
@@ -176,6 +184,20 @@ TMPFILES
 
    install -Dm644 "${srcdir}/${pkgname}-${pkgver}/LICENSE" \
       "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+
+   # Where Arch looks for a package's licences: beside the AGPL, the copyright file
+   # the project's .deb and .rpm carry, which declares the terms of everything
+   # compiled into the server, and the three notices the install rules put in
+   # /usr/share/hmailserver/licenses whose licences ask for them in every copy -
+   # QuickJS's (MIT), Unicode's (Unicode-3.0) and the WHATWG's (BSD-3-Clause) -
+   # linked to them there.
+   install -Dm644 \
+      "${srcdir}/${pkgname}-${pkgver}/hmailserver/source/Server/platform/packaging/debian-src/debian/copyright" \
+      "${pkgdir}/usr/share/licenses/${pkgname}/copyright"
+   local notice
+   for notice in QuickJS.txt Unicode-data.txt HTML-named-character-references.txt; do
+      ln -s "/usr/share/hmailserver/licenses/${notice}" "${pkgdir}/usr/share/licenses/${pkgname}/${notice}"
+   done
 
    install -Dm644 \
       "${srcdir}/${pkgname}-${pkgver}/hmailserver/source/Server/platform/packaging/README.md" \

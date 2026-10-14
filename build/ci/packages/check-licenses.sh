@@ -11,13 +11,23 @@
 #                                                  carriage returns, the FSF's file
 #   /usr/share/hmailserver/licenses/QuickJS.txt    the licence of QuickJS, compiled
 #                                                  into the server
+#   /usr/share/hmailserver/licenses/Unicode-data.txt
+#                                                  the Unicode License v3 of Unicode's
+#                                                  data for UTS 46, compiled into the
+#                                                  server as tables: Common/Idna/ucd/
+#                                                  unicode.LICENSE
+#   /usr/share/hmailserver/licenses/HTML-named-character-references.txt
+#                                                  the BSD 3-Clause terms of HTML's list
+#                                                  of named character references,
+#                                                  compiled in as a table: Common/
+#                                                  AntiSpam/whatwg/entities.LICENSE
 #   the copyright file                             platform/packaging/debian-src/debian/copyright:
 #     .deb  /usr/share/doc/hmailserver/copyright   (Debian Policy 12.5)
 #     .rpm  /usr/share/licenses/hmailserver/copyright
 #
-# each 0644 and root's, each the package's own, and in the .rpm all three marked
+# each 0644 and root's, each the package's own, and in the .rpm all five marked
 # %license.
-# CMakeLists.txt installs the first two; CPack puts the copyright file in
+# CMakeLists.txt installs the first four; CPack puts the copyright file in
 # (platform/packaging/cpack-licenses.cmake).
 #
 #   bash build/ci/packages/check-licenses.sh PACKAGE.deb | PACKAGE.rpm
@@ -33,7 +43,9 @@
 #
 # Run from the root of a checkout or of the source tarball: every file is
 # compared with the tree's by SHA-256 - QuickJS.txt with its carriage returns
-# taken off both sides, since it is installed as the checkout holds it. It needs
+# taken off both sides, since it is installed as the checkout holds it, and the
+# two data sets' notices exactly, being kept byte for byte (.gitattributes marks
+# their directories -text). It needs
 # bash, coreutils, grep and dpkg or rpm, which every image the package jobs run
 # in has. Exit 0 when every file is there and right, 1 when one is not,
 # 2 on a usage error.
@@ -63,8 +75,10 @@ esac
 server=hmailserver/source/Server
 agpl_source=LICENSE
 quickjs_source=$server/quickjs/LICENSE
+unicode_source=$server/Common/Idna/ucd/unicode.LICENSE
+whatwg_source=$server/Common/AntiSpam/whatwg/entities.LICENSE
 copyright_source=$server/platform/packaging/debian-src/debian/copyright
-for f in "$agpl_source" "$quickjs_source" "$copyright_source"; do
+for f in "$agpl_source" "$quickjs_source" "$unicode_source" "$whatwg_source" "$copyright_source"; do
   [ -f "$f" ] || { echo "REFUSED: no $f here. Run this from the root of a checkout or of the source tarball."; exit 2; }
 done
 
@@ -80,6 +94,8 @@ fi
 # as well, which is what an .rpm's header can be held to
 expected="$licenses/AGPL-3.0.txt exact $(tr -d '\r' < "$agpl_source" | sha)
 $licenses/QuickJS.txt text $(tr -d '\r' < "$quickjs_source" | sha)
+$licenses/Unicode-data.txt exact $(sha < "$unicode_source")
+$licenses/HTML-named-character-references.txt exact $(sha < "$whatwg_source")
 $copyright exact $(sha < "$copyright_source")"
 quickjs_as_held=$(sha < "$quickjs_source")
 
@@ -172,4 +188,4 @@ if [ "$failed" -ne 0 ]; then
   echo "FAILED: $failed licence file(s) $where missing or not the tree's"
   exit 1
 fi
-echo "LICENCES PASSED: the AGPL-3.0 text, QuickJS's licence and the copyright file $where are the tree's"
+echo "LICENCES PASSED: the AGPL-3.0 text, the notices of QuickJS, Unicode's data and HTML's named character references, and the copyright file $where are the tree's"

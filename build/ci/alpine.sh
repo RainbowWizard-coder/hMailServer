@@ -11,7 +11,10 @@
 #   bash build/ci/alpine.sh package   the APKBUILD run by abuild on the source
 #                                      tarball: the build, its check() - the
 #                                      server's --version and every tester program -
-#                                      the packages, and apkbuild-lint
+#                                      the packages, apkbuild-lint, and the licences
+#                                      the package carries, held to the tarball's
+#   bash build/ci/alpine.sh licences  that last step alone, over the packages a
+#                                      package step left in HM_OUT_DIR
 #   bash build/ci/alpine.sh install   in a clean container, the packages installed
 #                                      beside Alpine's PostgreSQL, the database made
 #                                      as an administrator makes it, the server
@@ -146,7 +149,57 @@ package() {
     echo "$(basename "$apk")  $(stat -c %s "$apk") bytes"
   done
   ( cd "$OUT/packages" && find . -name '*.apk' -exec sha256sum {} + ) > "$OUT/SHA256SUMS.txt"
-  echo "PASSED: the APKBUILD built hmailserver $version on $(cat /etc/alpine-release) with musl, and its check() ran the testers."
+  package_licences "$root" "$version"
+  echo "PASSED: the APKBUILD built hmailserver $version on $(cat /etc/alpine-release) with musl, its check() ran the testers, and the package carries the licences."
+}
+
+# The licences the install rules put in /usr/share/hmailserver/licenses, in the
+# package abuild made, held to the tarball's files by SHA-256 as
+# build/ci/packages/check-licenses.sh holds the .deb's and the .rpm's to the tree:
+# hMailServer's AGPL-3.0 text, and the notices of QuickJS, of Unicode's data for
+# UTS 46 and of HTML's list of named character references, which are compiled into
+# the server and whose licences ask for them with every copy. The AGPL's and
+# QuickJS's are compared with their carriage returns taken off both sides, as the
+# tarball holds them with a checkout's; the two data sets' notices exactly, being
+# kept byte for byte (.gitattributes marks their directories -text).
+package_licences() {
+  local root=$1 version=$2 main scratch notice how source got want
+  main=$(find "$OUT/packages" -name "hmailserver-$version-r[0-9]*.apk" | head -n 1)
+  [ -n "$main" ] && [ -f "$main" ] || fail "no hmailserver-$version-r*.apk in $OUT/packages"
+  echo "== the licences in $(basename "$main")"
+  scratch=$(mktemp -d)
+  tar -xzf "$main" -C "$scratch" 2> /dev/null || { rm -rf "$scratch"; fail "tar could not unpack $(basename "$main")"; }
+  while read -r notice how source; do
+    [ -f "$scratch/usr/share/hmailserver/licenses/$notice" ] \
+      || { rm -rf "$scratch"; fail "$(basename "$main") carries no /usr/share/hmailserver/licenses/$notice"; }
+    if [ "$how" = text ]; then
+      got=$(tr -d '\r' < "$scratch/usr/share/hmailserver/licenses/$notice" | sha256sum)
+      want=$(tr -d '\r' < "$root/$source" | sha256sum)
+    else
+      got=$(sha256sum < "$scratch/usr/share/hmailserver/licenses/$notice")
+      want=$(sha256sum < "$root/$source")
+    fi
+    [ "$got" = "$want" ] \
+      || { rm -rf "$scratch"; fail "$(basename "$main")'s /usr/share/hmailserver/licenses/$notice is not the tarball's $source"; }
+    echo "  present  /usr/share/hmailserver/licenses/$notice  ${got:0:12}"
+  done << 'NOTICES'
+AGPL-3.0.txt text LICENSE
+QuickJS.txt text hmailserver/source/Server/quickjs/LICENSE
+Unicode-data.txt exact hmailserver/source/Server/Common/Idna/ucd/unicode.LICENSE
+HTML-named-character-references.txt exact hmailserver/source/Server/Common/AntiSpam/whatwg/entities.LICENSE
+NOTICES
+  rm -rf "$scratch"
+}
+
+# package_licences alone, over the packages a package step left in HM_OUT_DIR.
+licences() {
+  apk add --no-cache python3 tar > /dev/null
+  local root version
+  root=$(unpack_tarball)
+  version=$(sed -n 's/^#define[[:space:]][[:space:]]*HMAILSERVER_VERSION[[:space:]][[:space:]]*"\([0-9.]*\)".*/\1/p' \
+    "$root/hmailserver/source/Server/Common/Application/Version.h" | tr -d '\r')
+  package_licences "$root" "$version"
+  echo "PASSED: the package carries the licences, the tarball's."
 }
 
 # bash's /dev/tcp: SMTP greets with 220 and offers STARTTLS, IMAP greets with * OK,
@@ -272,8 +325,9 @@ suite() {
 
 case "${1:-}" in
   package) package ;;
+  licences) licences ;;
   install) install_test ;;
   suite) suite ;;
   collect) HM_SERVER_BINARY=/usr/bin/hmailserver bash "$HERE/linux-suite.sh" collect ;;
-  *) echo "usage: $0 package|install|suite|collect" >&2; exit 2 ;;
+  *) echo "usage: $0 package|licences|install|suite|collect" >&2; exit 2 ;;
 esac

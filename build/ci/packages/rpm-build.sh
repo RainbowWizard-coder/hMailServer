@@ -603,7 +603,8 @@ check_weak_dependencies() {
 }
 check_weak_dependencies "$build_dir/$name"
 # And the licences it goes out under, the tree's, each marked %license: the AGPL-3.0
-# text, QuickJS's and /usr/share/licenses/hmailserver/copyright.
+# text, the notices of QuickJS, Unicode's data and HTML's named character references,
+# and /usr/share/licenses/hmailserver/copyright.
 bash build/ci/packages/check-licenses.sh "$build_dir/$name" \
   || { echo "PACKAGING FAILED: the package's licence files (above)"; exit 4; }
 cp "$build_dir/$name" "$out/"

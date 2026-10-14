@@ -88,7 +88,10 @@
 #   * the desktop file and the icon at the AppDir's root, and .DirIcon.
 #
 # And the licences, in usr/share/hmailserver/licenses/: hMailServer's own, the
-# AGPL-3.0 (AGPL-3.0.txt, the repository's LICENSE); QuickJS's; the runtime's
+# AGPL-3.0 (AGPL-3.0.txt, the repository's LICENSE); the notices of what is
+# compiled into the server, QuickJS's (QuickJS.txt), Unicode's for its data for
+# UTS 46 (Unicode-data.txt) and the WHATWG's for HTML's list of named character
+# references (HTML-named-character-references.txt); the runtime's
 # notice and its libraries' licence files (appimage-runtime.txt and
 # appimage-runtime/); and for the libraries copied into usr/lib, the copyright
 # file of the package each came from, as the distribution ships it
@@ -286,6 +289,17 @@ cp -r "${REPO_ROOT}/hmailserver/source/DBScripts" "${APPDIR}/usr/share/hmailserv
 # here at the same path they give it.
 install -Dm 0644 "${REPO_ROOT}/hmailserver/source/Server/quickjs/LICENSE" \
    "${APPDIR}/usr/share/hmailserver/licenses/QuickJS.txt"
+
+# And the notices of the two data sets compiled into the server as tables, for the
+# same reason and from the same files as the install rules take them
+# (CMakeLists.txt): Unicode's data for UTS 46, whose Unicode License v3 asks for its
+# notice with every copy, and HTML's list of named character references, under the
+# BSD 3-Clause License, whose second condition asks a binary to carry its notice,
+# conditions and disclaimer.
+install -m 0644 "${REPO_ROOT}/hmailserver/source/Server/Common/Idna/ucd/unicode.LICENSE" \
+   "${APPDIR}/usr/share/hmailserver/licenses/Unicode-data.txt"
+install -m 0644 "${REPO_ROOT}/hmailserver/source/Server/Common/AntiSpam/whatwg/entities.LICENSE" \
+   "${APPDIR}/usr/share/hmailserver/licenses/HTML-named-character-references.txt"
 
 # hMailServer's own licence, the AGPL-3.0-or-later. Its section 4 asks for a copy
 # of the licence to go with every copy of the program, and section 6 conveys the

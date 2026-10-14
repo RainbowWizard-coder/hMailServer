@@ -41,9 +41,11 @@ Version:        6.3.6
 Release:        1%{?dist}
 Summary:        Mail server for SMTP, IMAP and POP3
 # The server is the project's (AGPL-3.0-or-later); compiled into it are QuickJS
-# (MIT), the MIME coder (BSD-1-Clause), CStdString (its own permissive notice)
-# and the Public Suffix List's rules (MPL-2.0).
-License:        AGPL-3.0-or-later AND MIT AND BSD-1-Clause AND MPL-2.0 AND LicenseRef-Fedora-UltraPermissive
+# (MIT), the MIME coder (BSD-1-Clause), CStdString (its own permissive notice),
+# the Public Suffix List's rules (MPL-2.0), Unicode's data for UTS 46
+# (Unicode-3.0) and HTML's list of named character references (BSD-3-Clause).
+# build/check-package-licenses.py holds this to what is compiled in.
+License:        AGPL-3.0-or-later AND MIT AND BSD-1-Clause AND MPL-2.0 AND LicenseRef-Fedora-UltraPermissive AND Unicode-3.0 AND BSD-3-Clause
 URL:            https://gitlab.com/hmailserver/hmailserver
 Source0:        https://gitlab.com/api/v4/projects/86730559/packages/generic/hmailserver/%{version}/hmailserver-%{version}.tar.gz
 Source1:        hmailserver.sysusers
@@ -279,6 +281,8 @@ fi
 %dir %{_datadir}/hmailserver/licenses
 %license %{_datadir}/hmailserver/licenses/QuickJS.txt
 %license %{_datadir}/hmailserver/licenses/AGPL-3.0.txt
+%license %{_datadir}/hmailserver/licenses/Unicode-data.txt
+%license %{_datadir}/hmailserver/licenses/HTML-named-character-references.txt
 %dir %attr(0750,root,hmailserver) %{_sysconfdir}/hmailserver
 %config(noreplace) %attr(0640,root,hmailserver) %{_sysconfdir}/hmailserver/hMailServer.ini
 %config(noreplace) %{_sysconfdir}/logrotate.d/hmailserver

@@ -25,7 +25,8 @@
 #      error fails the job, and the warnings are listed in rpmlint.txt and the log;
 #   5. the binary package held to what the build was asked for: a Boost soname
 #      among its requirements (linked dynamically), bundled(quickjs) among what it
-#      provides, and no live-update helper in it.
+#      provides, no live-update helper in it, and its licences marked %license -
+#      LICENSE, the AGPL-3.0 text and the notices of what is compiled into it.
 #
 # What it leaves in HM_OUT_DIR (source-packages/<release>): the .src.rpm, the
 # binary packages without the debug information ones (built and linted, not kept),
@@ -277,6 +278,19 @@ fi
 grep -q '^/usr/lib/sysusers.d/hmailserver.conf$' <<< "$listing" || fail "no sysusers.d file in the package"
 cli_listing=$(rpm -qlp "$out"/hmailserver-cli-*.noarch.rpm)
 grep -q '^/usr/bin/hmctl$' <<< "$cli_listing" || fail "hmailserver-cli carries no hmctl"
+# The licences it goes out under, each marked %license, which is what rpm -qL lists:
+# the project's LICENSE, and the four texts the install rules put in
+# /usr/share/hmailserver/licenses - hMailServer's AGPL-3.0 text and the notices of
+# QuickJS, of Unicode's data for UTS 46 and of HTML's list of named character
+# references, which are compiled into the server and whose licences ask for them with
+# every copy.
+licence_listing=$(rpm -qpL "$server_rpm")
+for licence in /usr/share/licenses/hmailserver/LICENSE /usr/share/hmailserver/licenses/AGPL-3.0.txt \
+    /usr/share/hmailserver/licenses/QuickJS.txt /usr/share/hmailserver/licenses/Unicode-data.txt \
+    /usr/share/hmailserver/licenses/HTML-named-character-references.txt; do
+  grep -qxF "$licence" <<< "$licence_listing" || fail "the package does not carry $licence marked %license"
+done
+echo "licences: $(tr '\n' ' ' <<< "$licence_listing")"
 echo "requires: $(grep -E '^lib(boost|ssl|pq|ldap|crypto)' <<< "$server_requires" | tr '\n' ' ')"
 ( cd "$out" && sha256sum -- *.rpm > SHA256SUMS.txt )
 {
