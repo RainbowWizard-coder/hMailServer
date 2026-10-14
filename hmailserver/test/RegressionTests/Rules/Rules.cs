@@ -2474,13 +2474,17 @@ namespace RegressionTests.Rules
       /// saved - by RuleAction.Save, for a rule saved and for one not saved yet, and by
       /// Rule.Save, for an action changed after its own Save - for a rule of every owner,
       /// whether the administrator saves an account's rule or the account itself, signed
-      /// in as itself, with the reason; a plain name, the longest included, is saved.
+      /// in as itself, with the reason; a plain name, the longest included, is saved -
+      /// by the administrator: on a domain's or an account's rule only the server
+      /// administrator may set a Run function action at all, so the account's own save of
+      /// one is refused whatever it names, its name looked at first, so that a name that
+      /// is not plain is refused for what it is.
       /// Upstream PR 671's save-time half, held to the firing path's own test.
       ///
       /// Against the unfixed server every Save below succeeds.
       /// </summary>
       [Test]
-      [Description("A Run function action naming no function, or a name that is not a plain function name, is refused when it is saved over COM, for a rule of every owner, saved or not yet saved, by the administrator or by the account signed in as itself, and says why; a plain name is saved.")]
+      [Description("A Run function action naming no function, or a name that is not a plain function name, is refused when it is saved over COM, for a rule of every owner, saved or not yet saved, by the administrator or by the account signed in as itself, and says why; a plain name is saved by the administrator, and refused to the account on its own rule, where only the server administrator may set one.")]
       public void ARunFunctionActionIsSavedOnlyNamingAFunctionTheServerRuns()
       {
          var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "runfunction@example.test", "test");
@@ -2548,6 +2552,27 @@ namespace RegressionTests.Rules
 
             Assert.AreEqual(0, rule.Actions.Count, "A refused action is among the actions of " + rule.Name + ".");
 
+            // The account's own rule, saved as itself: a plain name is refused too, since on
+            // a domain's or an account's rule only the server administrator may set a Run
+            // function action, and nothing is stored.
+            if (rule.ID == ownRule.ID)
+            {
+               foreach (var name in plainNames)
+               {
+                  var action = rule.Actions.Add();
+                  action.Type = eRuleActionType.eRARunScriptFunction;
+                  action.ScriptFunction = name;
+
+                  var refusedToTheOwner = Assert.Throws<System.Runtime.InteropServices.COMException>(() => action.Save(),
+                     "The account itself saved a Run function action naming '" + name + "' on its own rule.");
+                  StringAssert.Contains("which only the server administrator may set", refusedToTheOwner.Message, refusedToTheOwner.Message);
+               }
+
+               Assert.AreEqual(0, rule.Actions.Count, "A refused action is among the actions of " + rule.Name + ".");
+               rule.Save();
+               continue;
+            }
+
             // The control: plain names are saved.
             RuleAction first = null;
             foreach (var name in plainNames)
@@ -2591,7 +2616,8 @@ namespace RegressionTests.Rules
             for (int i = 0; i < rule.Actions.Count; i++)
                names.Add(rule.Actions[i].ScriptFunction);
 
-            CollectionAssert.AreEqual(plainNames, names, "The Run function actions stored for " + rule.Name + ".");
+            CollectionAssert.AreEqual(rule.ID == ownRule.ID ? new string[0] : plainNames, names,
+               "The Run function actions stored for " + rule.Name + ".");
          }
 
          GC.KeepAlive(itself);
