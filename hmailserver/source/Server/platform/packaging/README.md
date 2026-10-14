@@ -964,8 +964,8 @@ Proven since the list above was first written, and therefore not on it: the
 PKGBUILD builds and installs on Arch Linux (`makepkg`, `pacman -U`,
 `systemd-sysusers`, `/usr/bin/hmailserver --version`); MariaDB 11.8 runs the
 same end-to-end sequence PostgreSQL does (schema created by `--create-database`,
-an account over REST, a message over SMTP, read back over IMAP). And from 6.3.7 the
-PKGBUILD names every licence of what is compiled into the server, `BSL-1.0` among
+an account over REST, a message over SMTP, read back over IMAP). And the PKGBUILD
+names every licence of what is compiled into the server, `BSL-1.0` among
 them for the Boost its build links statically, and installs the copyright file and
 links to `QuickJS.txt`, `Unicode-data.txt` and `HTML-named-character-references.txt`
 in `/usr/share/licenses/hmailserver`, where Arch looks for a package's licences:
