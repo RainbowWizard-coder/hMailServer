@@ -4990,8 +4990,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row." xml:space="preserve">
     <value>Cada alteração administrativa como uma linha de uma cadeia de hash: quem a fez, quando, por qual interface, de onde e com qual autoridade. A alteração de uma configuração pode ser restaurada a partir da sua linha.</value>
   </data>
-  <data name="Every attachment is replaced by a short note, not only the infected one, and a message that is one attachment becomes the note alone. A message that is only text, or encrypted, is delivered unchanged; one the server cannot open or parse is deleted, and its recipients are told." xml:space="preserve">
-    <value>Todo anexo é substituído por uma breve nota, não só o infectado, e uma mensagem que é um único anexo vira apenas a nota. Uma mensagem que é só texto, ou criptografada, é entregue sem alteração; uma que o servidor não consegue abrir nem interpretar é excluída, e seus destinatários são avisados.</value>
+  <data name="Every attachment is replaced by a short note, not only the infected one, and a message that is one attachment becomes the note alone. A message of one text part, or an encrypted one, is delivered unchanged; one the server cannot open or parse is deleted, and its recipients are told." xml:space="preserve">
+    <value>Todo anexo é substituído por uma breve nota, não só o infectado, e uma mensagem que é um único anexo vira apenas a nota. Uma mensagem formada por uma única parte de texto, ou criptografada, é entregue sem alteração; uma que o servidor não consegue abrir nem interpretar é excluída, e seus destinatários são avisados.</value>
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>Cada verificação na ordem em que o servidor as executa, sua pontuação, e o que o total faz com a mensagem.</value>
@@ -6148,8 +6148,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Indexing" xml:space="preserve">
     <value>Indexação</value>
   </data>
-  <data name="Infected messages are delivered with their attachments stripped rather than deleted, and one that is only text, or encrypted, is delivered as it arrived. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
-    <value>As mensagens infectadas são entregues com os anexos removidos, em vez de excluídas, e uma que é só texto, ou criptografada, é entregue como chegou. O destinatário ainda recebe o corpo da mensagem, que na maior parte dos e-mails maliciosos é a parte que traz as instruções dizendo a ele o que fazer em seguida.</value>
+  <data name="Infected messages are delivered with their attachments stripped rather than deleted, and one of a single text part, or encrypted, is delivered as it arrived. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
+    <value>As mensagens infectadas são entregues com os anexos removidos, em vez de excluídas, e uma formada por uma única parte de texto, ou criptografada, é entregue como chegou. O destinatário ainda recebe o corpo da mensagem, que na maior parte dos e-mails maliciosos é a parte que traz as instruções dizendo a ele o que fazer em seguida.</value>
   </data>
   <data name="Information" xml:space="preserve">
     <value>Informações</value>
@@ -12867,8 +12867,8 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="The attachment blocking settings could not be read." xml:space="preserve">
     <value>As configurações de bloqueio de anexos não puderam ser lidas.</value>
   </data>
-  <data name="The attachments are replaced by a note and the message is delivered; a message that is one attachment becomes the note alone, and one that is only text, or encrypted, is delivered unchanged. A message the server cannot open or parse is deleted, and each of its recipients is sent the &quot;message deleted&quot; notice in its place. Neither notification setting applies to this action, and the envelope sender is never told." xml:space="preserve">
-    <value>Os anexos são substituídos por uma nota e a mensagem é entregue; uma mensagem que é um único anexo vira apenas a nota, e uma que é só texto, ou criptografada, é entregue sem alteração. Uma mensagem que o servidor não consegue abrir nem interpretar é excluída, e cada um de seus destinatários recebe em seu lugar o aviso de "mensagem excluída". Nenhuma das configurações de notificação se aplica a esta ação, e o remetente do envelope nunca é avisado.</value>
+  <data name="The attachments are replaced by a note and the message is delivered; a message that is one attachment becomes the note alone, and one of a single text part, or encrypted, is delivered unchanged. A message the server cannot open or parse is deleted, and each of its recipients is sent the &quot;message deleted&quot; notice in its place. Neither notification setting applies to this action, and the envelope sender is never told." xml:space="preserve">
+    <value>Os anexos são substituídos por uma nota e a mensagem é entregue; uma mensagem que é um único anexo vira apenas a nota, e uma formada por uma única parte de texto, ou criptografada, é entregue sem alteração. Uma mensagem que o servidor não consegue abrir nem interpretar é excluída, e cada um de seus destinatários recebe em seu lugar o aviso de "mensagem excluída". Nenhuma das configurações de notificação se aplica a esta ação, e o remetente do envelope nunca é avisado.</value>
   </data>
   <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
     <value>As linhas de auditoria também exigem view_audit, que esta credencial não tem.</value>

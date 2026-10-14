@@ -4990,8 +4990,8 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row." xml:space="preserve">
     <value>Her yönetimsel değişiklik bir karma zincirinde bir satır olarak: kim yaptı, ne zaman, hangi arayüz üzerinden, nereden ve hangi yetkiyle. Bir ayarın değişikliği kendi satırından geri alınabilir.</value>
   </data>
-  <data name="Every attachment is replaced by a short note, not only the infected one, and a message that is one attachment becomes the note alone. A message that is only text, or encrypted, is delivered unchanged; one the server cannot open or parse is deleted, and its recipients are told." xml:space="preserve">
-    <value>Yalnızca virüslü olan değil, her ek kısa bir notla değiştirilir ve tek bir ekten ibaret bir ileti yalnızca nota dönüşür. Yalnızca metin olan ya da şifrelenmiş bir ileti değiştirilmeden teslim edilir; sunucunun açamadığı ya da ayrıştıramadığı bir ileti silinir ve alıcılarına bildirilir.</value>
+  <data name="Every attachment is replaced by a short note, not only the infected one, and a message that is one attachment becomes the note alone. A message of one text part, or an encrypted one, is delivered unchanged; one the server cannot open or parse is deleted, and its recipients are told." xml:space="preserve">
+    <value>Yalnızca virüslü olan değil, her ek kısa bir notla değiştirilir ve tek bir ekten ibaret bir ileti yalnızca nota dönüşür. Tek bir metin parçasından oluşan ya da şifrelenmiş bir ileti değiştirilmeden teslim edilir; sunucunun açamadığı ya da ayrıştıramadığı bir ileti silinir ve alıcılarına bildirilir.</value>
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>Sunucunun çalıştırdığı sırayla her denetim, puanı ve toplamın iletiye ne yaptığı.</value>
@@ -6148,8 +6148,8 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Indexing" xml:space="preserve">
     <value>İndeksleme</value>
   </data>
-  <data name="Infected messages are delivered with their attachments stripped rather than deleted, and one that is only text, or encrypted, is delivered as it arrived. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
-    <value>Virüslü iletiler silinmek yerine ekleri çıkarılarak teslim edilir; yalnızca metin olan ya da şifrelenmiş bir ileti ise geldiği gibi teslim edilir. Alıcı ileti gövdesini yine alır ki kötü amaçlı postaların çoğunda sonra ne yapacağını söyleyen yönergeleri taşıyan kısım odur.</value>
+  <data name="Infected messages are delivered with their attachments stripped rather than deleted, and one of a single text part, or encrypted, is delivered as it arrived. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
+    <value>Virüslü iletiler silinmek yerine ekleri çıkarılarak teslim edilir; tek bir metin parçasından oluşan ya da şifrelenmiş bir ileti ise geldiği gibi teslim edilir. Alıcı ileti gövdesini yine alır ki kötü amaçlı postaların çoğunda sonra ne yapacağını söyleyen yönergeleri taşıyan kısım odur.</value>
   </data>
   <data name="Information" xml:space="preserve">
     <value>Bilgi</value>
@@ -12867,8 +12867,8 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="The attachment blocking settings could not be read." xml:space="preserve">
     <value>Ek engelleme ayarları okunamadı.</value>
   </data>
-  <data name="The attachments are replaced by a note and the message is delivered; a message that is one attachment becomes the note alone, and one that is only text, or encrypted, is delivered unchanged. A message the server cannot open or parse is deleted, and each of its recipients is sent the &quot;message deleted&quot; notice in its place. Neither notification setting applies to this action, and the envelope sender is never told." xml:space="preserve">
-    <value>Ekler bir notla değiştirilir ve ileti teslim edilir; tek bir ekten ibaret bir ileti yalnızca nota dönüşür, yalnızca metin olan ya da şifrelenmiş bir ileti ise değiştirilmeden teslim edilir. Sunucunun açamadığı ya da ayrıştıramadığı bir ileti silinir ve alıcılarının her birine onun yerine "ileti silindi" bildirimi gönderilir. Bu eyleme hiçbir bildirim ayarı uygulanmaz ve zarf gönderene hiçbir zaman bildirilmez.</value>
+  <data name="The attachments are replaced by a note and the message is delivered; a message that is one attachment becomes the note alone, and one of a single text part, or encrypted, is delivered unchanged. A message the server cannot open or parse is deleted, and each of its recipients is sent the &quot;message deleted&quot; notice in its place. Neither notification setting applies to this action, and the envelope sender is never told." xml:space="preserve">
+    <value>Ekler bir notla değiştirilir ve ileti teslim edilir; tek bir ekten ibaret bir ileti yalnızca nota dönüşür, tek bir metin parçasından oluşan ya da şifrelenmiş bir ileti ise değiştirilmeden teslim edilir. Sunucunun açamadığı ya da ayrıştıramadığı bir ileti silinir ve alıcılarının her birine onun yerine "ileti silindi" bildirimi gönderilir. Bu eyleme hiçbir bildirim ayarı uygulanmaz ve zarf gönderene hiçbir zaman bildirilmez.</value>
   </data>
   <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
     <value>Denetim satırları için ayrıca view_audit gerekir; bu kimlik bilgilerinde bu izin yok.</value>

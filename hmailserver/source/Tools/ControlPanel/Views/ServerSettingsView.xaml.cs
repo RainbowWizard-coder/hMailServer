@@ -2031,10 +2031,12 @@ namespace hMailServer.ControlPanel.Views
       // and removes every other part, which "Delete infected attachments only"
       // understated. The overview says "the attachments are stripped"; so does
       // this now. The note under the row says what 1 does with a message that is
-      // not text with files attached: one attachment alone becomes the note, text
-      // alone and an encrypted message go as they are, and a message the stripper
-      // cannot read is deleted, its recipients told (SMTPDeliverer's
-      // HandleInfectedMessage_).
+      // not text with files attached: one attachment alone becomes the note, a
+      // message of one text part and an encrypted message go as they are, and a
+      // message the stripper cannot read is deleted, its recipients told
+      // (SMTPDeliverer's HandleInfectedMessage_). A multipart message of text
+      // parts alone is not one of them: it is kept to its text and given the
+      // note, as any multipart message is.
       private static readonly (int, string)[] AntivirusAction =
       {
          (0, L("Delete the whole message")), (1, L("Remove all attachments and deliver the text"))
@@ -3308,7 +3310,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "AntiVirus.Action",
             Label = L("When a virus is found"),
             Options = AntivirusAction,
-            Blurb = L("Every attachment is replaced by a short note, not only the infected one, and a message that is one attachment becomes the note alone. A message that is only text, or encrypted, is delivered unchanged; one the server cannot open or parse is deleted, and its recipients are told.")
+            Blurb = L("Every attachment is replaced by a short note, not only the infected one, and a message that is one attachment becomes the note alone. A message of one text part, or an encrypted one, is delivered unchanged; one the server cannot open or parse is deleted, and its recipients are told.")
          };
          var notifySender = new ComBool { Path = "AntiVirus.NotifySender", Label = L("Notify the sender") };
          var notifyReceiver = new ComBool { Path = "AntiVirus.NotifyReceiver", Label = L("Notify the recipients") };

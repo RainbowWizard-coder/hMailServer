@@ -5001,8 +5001,8 @@
   <data name="Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row." xml:space="preserve">
     <value>すべての管理上の変更をハッシュチェーンの 1 行として記録します。誰が、いつ、どのインターフェースで、どこから、どの権限で行ったか。設定の変更はその行から元に戻せます。</value>
   </data>
-  <data name="Every attachment is replaced by a short note, not only the infected one, and a message that is one attachment becomes the note alone. A message that is only text, or encrypted, is delivered unchanged; one the server cannot open or parse is deleted, and its recipients are told." xml:space="preserve">
-    <value>感染した添付ファイルだけでなく、すべての添付ファイルが短い注記に置き換えられ、添付ファイル一つだけのメッセージは注記だけになります。テキストだけのメッセージや暗号化されたメッセージはそのまま配信され、サーバーが開くことも解析することもできないメッセージは削除されて、その受信者に通知されます。</value>
+  <data name="Every attachment is replaced by a short note, not only the infected one, and a message that is one attachment becomes the note alone. A message of one text part, or an encrypted one, is delivered unchanged; one the server cannot open or parse is deleted, and its recipients are told." xml:space="preserve">
+    <value>感染した添付ファイルだけでなく、すべての添付ファイルが短い注記に置き換えられ、添付ファイル一つだけのメッセージは注記だけになります。テキストの部分一つだけから成るメッセージや暗号化されたメッセージはそのまま配信され、サーバーが開くことも解析することもできないメッセージは削除されて、その受信者に通知されます。</value>
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>サーバーが実行する順に並べたすべてのチェックと、そのスコア、そして合計がメッセージに何をもたらすか。</value>
@@ -6159,8 +6159,8 @@
   <data name="Indexing" xml:space="preserve">
     <value>インデックス作成</value>
   </data>
-  <data name="Infected messages are delivered with their attachments stripped rather than deleted, and one that is only text, or encrypted, is delivered as it arrived. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
-    <value>感染したメッセージは、削除されるのではなく添付ファイルを取り除いた状態で配信され、テキストだけのメッセージや暗号化されたメッセージは届いたままの状態で配信されます。受信者はメッセージ本文を引き続き受け取りますが、悪意のあるメールの大半では、本文こそが次に何をすべきかを指示する部分です。</value>
+  <data name="Infected messages are delivered with their attachments stripped rather than deleted, and one of a single text part, or encrypted, is delivered as it arrived. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
+    <value>感染したメッセージは、削除されるのではなく添付ファイルを取り除いた状態で配信され、テキストの部分一つだけから成るメッセージや暗号化されたメッセージは届いたままの状態で配信されます。受信者はメッセージ本文を引き続き受け取りますが、悪意のあるメールの大半では、本文こそが次に何をすべきかを指示する部分です。</value>
   </data>
   <data name="Information" xml:space="preserve">
     <value>情報</value>
@@ -12878,8 +12878,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The attachment blocking settings could not be read." xml:space="preserve">
     <value>添付ファイル ブロック設定を読み取れませんでした。</value>
   </data>
-  <data name="The attachments are replaced by a note and the message is delivered; a message that is one attachment becomes the note alone, and one that is only text, or encrypted, is delivered unchanged. A message the server cannot open or parse is deleted, and each of its recipients is sent the &quot;message deleted&quot; notice in its place. Neither notification setting applies to this action, and the envelope sender is never told." xml:space="preserve">
-    <value>添付ファイルは注記に置き換えられ、メッセージは配信されます。添付ファイル一つだけのメッセージは注記だけになり、テキストだけのメッセージや暗号化されたメッセージはそのまま配信されます。サーバーが開くことも解析することもできないメッセージは削除され、その受信者全員に、代わりに「メッセージ削除」通知が送られます。このアクションにはどちらの通知設定も適用されず、エンベロープ送信者には一切通知されません。</value>
+  <data name="The attachments are replaced by a note and the message is delivered; a message that is one attachment becomes the note alone, and one of a single text part, or encrypted, is delivered unchanged. A message the server cannot open or parse is deleted, and each of its recipients is sent the &quot;message deleted&quot; notice in its place. Neither notification setting applies to this action, and the envelope sender is never told." xml:space="preserve">
+    <value>添付ファイルは注記に置き換えられ、メッセージは配信されます。添付ファイル一つだけのメッセージは注記だけになり、テキストの部分一つだけから成るメッセージや暗号化されたメッセージはそのまま配信されます。サーバーが開くことも解析することもできないメッセージは削除され、その受信者全員に、代わりに「メッセージ削除」通知が送られます。このアクションにはどちらの通知設定も適用されず、エンベロープ送信者には一切通知されません。</value>
   </data>
   <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
     <value>監査ログの行を表示するには view_audit も必要ですが、この資格情報には付与されていません。</value>

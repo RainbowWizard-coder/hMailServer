@@ -1567,19 +1567,20 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   translated severity word.
 - **Fixed: the Anti-virus settings page's "Delete infected attachments only" understated what the server deletes.**
   The strip action keeps one text part and removes every attachment, not only the infected one, and puts the server's
-  "attachment removed" note before the text; a message that is one attachment becomes the note alone, a message that
-  is only text, or an encrypted one, which has no part to remove, is delivered exactly as it arrived, with the log
+  "attachment removed" note before the text; a message that is one attachment becomes the note alone, a message of
+  one text part, or an encrypted one, which has no part to remove, is delivered exactly as it arrived, with the log
   saying so, and a message the server cannot open or parse is deleted, its recipients sent the "message deleted"
-  notice. The two choices under *When a virus is found* now read *Delete the whole message* and *Remove all
-  attachments and deliver the text*, as the virus scanning overview already described them, with a note under the
-  row: "Every attachment is replaced by a short note, not only the infected one, and a message that is one attachment
-  becomes the note alone. A message that is only text, or encrypted, is delivered unchanged; one the server cannot
-  open or parse is deleted, and its recipients are told." The two notice settings, dimmed under the strip action,
-  say why: "Sent only when the action is to delete the whole message. With the attachments removed, the note in
-  their place tells the receiver - or the "message deleted" notice, when the server cannot open or parse a message
-  and deletes it - and nobody else is told." The virus scanning overview says the same of the action, and its
-  warning that the strip action delivers infected mail says that a message that is only text, or encrypted, is
-  delivered as it arrived.
+  notice. A multipart message of text parts alone is not delivered as it arrived: it is kept to its text, with the
+  note, as any multipart message is. The two choices under *When a virus is found* now read *Delete the whole
+  message* and *Remove all attachments and deliver the text*, as the virus scanning overview already described them,
+  with a note under the row: "Every attachment is replaced by a short note, not only the infected one, and a message
+  that is one attachment becomes the note alone. A message of one text part, or an encrypted one, is delivered
+  unchanged; one the server cannot open or parse is deleted, and its recipients are told." The two notice settings,
+  dimmed under the strip action, say why: "Sent only when the action is to delete the whole message. With the
+  attachments removed, the note in their place tells the receiver - or the "message deleted" notice, when the server
+  cannot open or parse a message and deletes it - and nobody else is told." The virus scanning overview says the same
+  of the action, and its warning that the strip action delivers infected mail says that a message of a single text
+  part, or an encrypted one, is delivered as it arrived.
 - **Fixed: the Control Panel's Auto-ban page was blank on every second visit and after every Reload.** The never-ban
   list's editor kept its grid in a field built once with the page's definition, while the page builds every editor
   again on every visit; the second build added the same grid to a new panel, WPF refused ("Specified element is

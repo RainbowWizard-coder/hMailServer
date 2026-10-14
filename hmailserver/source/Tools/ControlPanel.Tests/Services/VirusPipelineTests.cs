@@ -269,11 +269,13 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// <summary>
       /// What the strip action does with a message that is not text with files
       /// attached, as MessageAttachmentStripper and HandleInfectedMessage_ do it: one
-      /// attachment alone becomes the note; text alone and an encrypted message are
-      /// delivered as they arrived, which the warning says since the scanner's find
-      /// goes with them; and a message the stripper cannot read is deleted, each of
-      /// its recipients sent the "message deleted" notice whatever the two settings
-      /// say, its sender never.
+      /// attachment alone becomes the note; a message of one text part and an
+      /// encrypted message are delivered as they arrived, which the warning says
+      /// since the scanner's find goes with them; and a message the stripper cannot
+      /// read is deleted, each of its recipients sent the "message deleted" notice
+      /// whatever the two settings say, its sender never. Only a message of one part
+      /// that is text is left as it is: a multipart message of text parts alone is
+      /// kept to its text and given the note, so neither text says "only text".
       /// </summary>
       [Fact]
       public void StrippingSaysWhatBecomesOfAMessageWithNothingToStripOrThatCannotBeRead()
@@ -283,12 +285,14 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          string summary = VirusPipeline.ActionSummary(config);
          Assert.Contains("a message that is one attachment becomes the note alone", summary);
-         Assert.Contains("one that is only text, or encrypted, is delivered unchanged", summary);
+         Assert.Contains("one of a single text part, or encrypted, is delivered unchanged", summary);
+         Assert.DoesNotContain("only text", summary);
          Assert.Contains("A message the server cannot open or parse is deleted", summary);
          Assert.Contains("each of its recipients is sent the \"message deleted\" notice", summary);
          Assert.Contains("the envelope sender is never told", summary);
 
-         Assert.True(HasNote(config, StatusLevel.Warning, "one that is only text, or encrypted, is delivered as it arrived"));
+         Assert.True(HasNote(config, StatusLevel.Warning, "one of a single text part, or encrypted, is delivered as it arrived"));
+         Assert.False(HasNote(config, StatusLevel.Warning, "only text"));
       }
 
       [Fact]

@@ -500,11 +500,12 @@ namespace hMailServer.ControlPanel.Services
             // Deliberately says what does NOT happen: this action is the one people
             // choose expecting the notifications below it to apply, and they do not.
             // And what it does with the messages it cannot strip: one attachment
-            // alone becomes the note, text alone and an encrypted message go as they
-            // are, and one the stripper cannot read is deleted, its recipients sent
-            // the "message deleted" notice whatever the settings say
-            // (SMTPDeliverer's HandleInfectedMessage_).
-            return L("The attachments are replaced by a note and the message is delivered; a message that is one attachment becomes the note alone, and one that is only text, or encrypted, is delivered unchanged. A message the server cannot open or parse is deleted, and each of its recipients is sent the \"message deleted\" notice in its place. Neither notification setting applies to this action, and the envelope sender is never told.");
+            // alone becomes the note, a message of one text part and an encrypted
+            // message go as they are, and one the stripper cannot read is deleted,
+            // its recipients sent the "message deleted" notice whatever the settings
+            // say (SMTPDeliverer's HandleInfectedMessage_). A multipart message of
+            // text parts alone is stripped as any multipart message is.
+            return L("The attachments are replaced by a note and the message is delivered; a message that is one attachment becomes the note alone, and one of a single text part, or encrypted, is delivered unchanged. A message the server cannot open or parse is deleted, and each of its recipients is sent the \"message deleted\" notice in its place. Neither notification setting applies to this action, and the envelope sender is never told.");
          }
 
          if (!config.NotifySender && !config.NotifyRecipient)
@@ -587,7 +588,7 @@ namespace hMailServer.ControlPanel.Services
          if (scannersRead && action && usable > 0 && config.Action == VirusAction.StripAttachments)
          {
             notes.Add(new VirusPipelineNote(StatusLevel.Warning,
-               L("Infected messages are delivered with their attachments stripped rather than deleted, and one that is only text, or encrypted, is delivered as it arrived. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next.")));
+               L("Infected messages are delivered with their attachments stripped rather than deleted, and one of a single text part, or encrypted, is delivered as it arrived. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next.")));
          }
 
          if (scannersRead && action && usable > 0 && config.Action == VirusAction.DeleteMessage && config.NotifySender)

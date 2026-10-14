@@ -5054,8 +5054,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row." xml:space="preserve">
     <value>Každá administrativní změna jako jeden řádek v hašovacím řetězu: kdo ji provedl, kdy, přes jaké rozhraní, odkud a s jakým oprávněním. Změnu nastavení lze vrátit z jejího řádku.</value>
   </data>
-  <data name="Every attachment is replaced by a short note, not only the infected one, and a message that is one attachment becomes the note alone. A message that is only text, or encrypted, is delivered unchanged; one the server cannot open or parse is deleted, and its recipients are told." xml:space="preserve">
-    <value>Každá příloha je nahrazena krátkou poznámkou, nejen ta infikovaná, a ze zprávy, která je jen jednou přílohou, zbude jen poznámka. Zpráva, která obsahuje jen text, nebo šifrovaná zpráva je doručena beze změny; zpráva, kterou server nedokáže otevřít ani zpracovat, se smaže a její příjemci se to dozví.</value>
+  <data name="Every attachment is replaced by a short note, not only the infected one, and a message that is one attachment becomes the note alone. A message of one text part, or an encrypted one, is delivered unchanged; one the server cannot open or parse is deleted, and its recipients are told." xml:space="preserve">
+    <value>Každá příloha je nahrazena krátkou poznámkou, nejen ta infikovaná, a ze zprávy, která je jen jednou přílohou, zbude jen poznámka. Zpráva tvořená jedinou textovou částí nebo šifrovaná zpráva je doručena beze změny; zpráva, kterou server nedokáže otevřít ani zpracovat, se smaže a její příjemci se to dozví.</value>
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>Každá kontrola v pořadí, v jakém je server spouští, její skóre a co součet udělá se zprávou.</value>
@@ -6230,8 +6230,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Indexing" xml:space="preserve">
     <value>Indexování</value>
   </data>
-  <data name="Infected messages are delivered with their attachments stripped rather than deleted, and one that is only text, or encrypted, is delivered as it arrived. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
-    <value>Infikované zprávy se doručují s odstraněnými přílohami místo smazání a zpráva, která obsahuje jen text, nebo šifrovaná zpráva se doručí tak, jak přišla. Příjemce stále dostane tělo zprávy, což je u většiny škodlivé pošty ta část, která nese pokyny, co dělat dál.</value>
+  <data name="Infected messages are delivered with their attachments stripped rather than deleted, and one of a single text part, or encrypted, is delivered as it arrived. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
+    <value>Infikované zprávy se doručují s odstraněnými přílohami místo smazání a zpráva tvořená jedinou textovou částí nebo šifrovaná zpráva se doručí tak, jak přišla. Příjemce stále dostane tělo zprávy, což je u většiny škodlivé pošty ta část, která nese pokyny, co dělat dál.</value>
   </data>
   <data name="Information" xml:space="preserve">
     <value>Informace</value>
@@ -13027,8 +13027,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="The attachment blocking settings could not be read." xml:space="preserve">
     <value>Nastavení blokování příloh se nepodařilo přečíst.</value>
   </data>
-  <data name="The attachments are replaced by a note and the message is delivered; a message that is one attachment becomes the note alone, and one that is only text, or encrypted, is delivered unchanged. A message the server cannot open or parse is deleted, and each of its recipients is sent the &quot;message deleted&quot; notice in its place. Neither notification setting applies to this action, and the envelope sender is never told." xml:space="preserve">
-    <value>Přílohy se nahradí poznámkou a zpráva se doručí; ze zprávy, která je jen jednou přílohou, zbude jen poznámka, a zpráva, která obsahuje jen text, nebo šifrovaná zpráva se doručí beze změny. Zpráva, kterou server nedokáže otevřít ani zpracovat, se smaže a každému jejímu příjemci se místo ní pošle upozornění „message deleted“. Na tuto akci se nevztahuje ani jedno z nastavení oznámení a odesílatel obálky se nikdy nic nedozví.</value>
+  <data name="The attachments are replaced by a note and the message is delivered; a message that is one attachment becomes the note alone, and one of a single text part, or encrypted, is delivered unchanged. A message the server cannot open or parse is deleted, and each of its recipients is sent the &quot;message deleted&quot; notice in its place. Neither notification setting applies to this action, and the envelope sender is never told." xml:space="preserve">
+    <value>Přílohy se nahradí poznámkou a zpráva se doručí; ze zprávy, která je jen jednou přílohou, zbude jen poznámka, a zpráva tvořená jedinou textovou částí nebo šifrovaná zpráva se doručí beze změny. Zpráva, kterou server nedokáže otevřít ani zpracovat, se smaže a každému jejímu příjemci se místo ní pošle upozornění „message deleted“. Na tuto akci se nevztahuje ani jedno z nastavení oznámení a odesílatel obálky se nikdy nic nedozví.</value>
   </data>
   <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
     <value>Řádky auditního záznamu vyžadují také view_audit, které tyto přihlašovací údaje nemají.</value>

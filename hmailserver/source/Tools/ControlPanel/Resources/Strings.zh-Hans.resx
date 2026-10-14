@@ -4990,8 +4990,8 @@
   <data name="Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row." xml:space="preserve">
     <value>每项管理更改都是哈希链中的一行：谁做的、何时、通过哪个接口、来自哪里、以何种权限。设置的更改可以从其所在行恢复。</value>
   </data>
-  <data name="Every attachment is replaced by a short note, not only the infected one, and a message that is one attachment becomes the note alone. A message that is only text, or encrypted, is delivered unchanged; one the server cannot open or parse is deleted, and its recipients are told." xml:space="preserve">
-    <value>每个附件都会被替换为一条简短说明，而不仅是受感染的那个；只有一个附件的邮件只剩下说明。只有文本的邮件和加密邮件会原样投递；服务器无法打开或解析的邮件会被删除，并通知其收件人。</value>
+  <data name="Every attachment is replaced by a short note, not only the infected one, and a message that is one attachment becomes the note alone. A message of one text part, or an encrypted one, is delivered unchanged; one the server cannot open or parse is deleted, and its recipients are told." xml:space="preserve">
+    <value>每个附件都会被替换为一条简短说明，而不仅是受感染的那个；只有一个附件的邮件只剩下说明。只由一个文本部分组成的邮件和加密邮件会原样投递；服务器无法打开或解析的邮件会被删除，并通知其收件人。</value>
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>每项检查按服务器运行它们的顺序列出，以及它的分数，还有总分会对邮件产生什么影响。</value>
@@ -6148,8 +6148,8 @@
   <data name="Indexing" xml:space="preserve">
     <value>索引</value>
   </data>
-  <data name="Infected messages are delivered with their attachments stripped rather than deleted, and one that is only text, or encrypted, is delivered as it arrived. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
-    <value>受感染的邮件会在剥除附件后投递，而不是删除；只有文本的邮件和加密邮件则按到达时的原样投递。收件人仍会收到邮件正文，而对大多数恶意邮件来说，正文才是告诉他们下一步该做什么的那部分。</value>
+  <data name="Infected messages are delivered with their attachments stripped rather than deleted, and one of a single text part, or encrypted, is delivered as it arrived. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
+    <value>受感染的邮件会在剥除附件后投递，而不是删除；只由一个文本部分组成的邮件和加密邮件则按到达时的原样投递。收件人仍会收到邮件正文，而对大多数恶意邮件来说，正文才是告诉他们下一步该做什么的那部分。</value>
   </data>
   <data name="Information" xml:space="preserve">
     <value>信息</value>
@@ -12867,8 +12867,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The attachment blocking settings could not be read." xml:space="preserve">
     <value>附件拦截设置无法读取。</value>
   </data>
-  <data name="The attachments are replaced by a note and the message is delivered; a message that is one attachment becomes the note alone, and one that is only text, or encrypted, is delivered unchanged. A message the server cannot open or parse is deleted, and each of its recipients is sent the &quot;message deleted&quot; notice in its place. Neither notification setting applies to this action, and the envelope sender is never told." xml:space="preserve">
-    <value>附件被替换为一条说明，邮件被投递；只有一个附件的邮件只剩下说明，只有文本的邮件和加密邮件则原样投递。服务器无法打开或解析的邮件会被删除，并向其每个收件人发送“邮件已删除”通知来代替它。两个通知设置都不适用于此操作，信封发件人也永远不会收到通知。</value>
+  <data name="The attachments are replaced by a note and the message is delivered; a message that is one attachment becomes the note alone, and one of a single text part, or encrypted, is delivered unchanged. A message the server cannot open or parse is deleted, and each of its recipients is sent the &quot;message deleted&quot; notice in its place. Neither notification setting applies to this action, and the envelope sender is never told." xml:space="preserve">
+    <value>附件被替换为一条说明，邮件被投递；只有一个附件的邮件只剩下说明，只由一个文本部分组成的邮件和加密邮件则原样投递。服务器无法打开或解析的邮件会被删除，并向其每个收件人发送“邮件已删除”通知来代替它。两个通知设置都不适用于此操作，信封发件人也永远不会收到通知。</value>
   </data>
   <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
     <value>审计记录行还需要 view_audit 权限，而此凭据没有该权限。</value>
