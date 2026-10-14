@@ -637,8 +637,12 @@ The control with the journal line writes the line itself: a real one comes only
 from a container that forbids part of the sandbox, where the unit then either
 starts without it or, as without `CAP_SYS_ADMIN`, does not start. The binfmt
 guard itself, the count falling during a run, was not provoked: that would take
-linix's handlers away. The jobs have not yet run in a pipeline: the first is
-`batch42`'s next.
+linix's handlers away. In GitLab's pipelines both jobs first passed in
+`batch42`'s 2910290282 on 4 October 2026, again in 2910897383 the same day,
+and in every landing's pipeline since, the last !19's 2940986102 on 13 October; in
+`master`'s own push pipelines the Ubuntu job passes, and the Fedora one waits
+for its `.rpm`, whose build `master` starts by hand (Roadmap3.md, "The package
+started under its own systemd unit").
 
 The re-check of 2 October found two checks that held without what they check,
 and the third and fifth rows are what replaced them. podman gives the container a

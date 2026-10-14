@@ -20,7 +20,8 @@ nixpkgs is NixOS's own release tarball, pinned by its hash.**
 is in the tree from 6.3.6; `nix build gitlab:hmailserver/hmailserver/v6.3.6` works
 from the day that tag exists, and not for an earlier release, which carries no
 flake. It is not nixpkgs: NixOS's own package set takes packages only as pull
-requests on GitHub, which the project does not use (Roadmap3, "nixpkgs").
+requests on GitHub, which the project does not use, so its row was taken off
+Roadmap3 on 13 October 2026 (Roadmap3, "Rows removed").
 
 Using it
 --------
@@ -371,9 +372,10 @@ What is left
 
 - **The tag.** `nix build gitlab:hmailserver/hmailserver/v6.3.6` is the row's test
   and needs the tag, and the flake must be in it.
-- **nixpkgs itself** is paused under the no-GitHub rule: its only route is a pull
-  request to NixOS/nixpkgs on GitHub, and the NUR is on GitHub too. That is the
-  owner's decision alone (Roadmap3, "nixpkgs").
+- **nixpkgs itself** cannot be done: its only route is a pull request to
+  NixOS/nixpkgs on GitHub, and the NUR is on GitHub too, so on 13 October 2026
+  its row was taken off Roadmap3, as the owner decided for what needs GitHub and
+  has no GitLab form (Roadmap3, "Rows removed").
 - **A binary cache.** Nobody's cache holds the package, so every user builds the
   server from source (half an hour on four cores). A cache of the project's own
   would be a spend and a signing key, the owner's.

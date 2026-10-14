@@ -16,15 +16,21 @@ starts the result in a clean container.**
 | Binary packages | `hmailserver`, `hmailserver-cli` | `hmailserver`, `hmailserver-cli` |
 | CI (`.gitlab/ci/source-packages.yml`) | Debian 13, Ubuntu 24.04, Ubuntu 26.04 | Fedora 44, EL 10 (AlmaLinux 10), openSUSE Leap 16.0, Tumbleweed |
 
-**Where it stands (30 September 2026):** five of the seven targets have been
-built with the network refused, linted clean of errors, installed and started in
-GitLab's pipelines: Debian 13, Ubuntu 26.04, Fedora 44 and EL 10 in `batch42`'s
-pipeline 2896082335, and Ubuntu 24.04 in 2897966924, once lintian 2.117's five
+**Where it stands (14 October 2026):** all seven targets have been built with
+the network refused, linted clean of errors, installed and started in GitLab's
+pipelines: all of them together first in `batch42`'s pipeline 2910897383 of 4
+October 2026, at `94892314a`, from which `v6.3.6` differs only in three files
+under `.gitlab/` and the date in its CHANGELOG heading, and again in each of
+`master`'s push pipelines that has run the jobs since, the last 2943328025 at
+`901764554` on 13 October. Before it, `batch42`'s pipelines of 30 September
+passed five of them: Debian 13, Ubuntu 26.04, Fedora 44 and EL 10 in
+2896082335, and Ubuntu 24.04 in 2897966924, once lintian 2.117's five
 `source-is-missing` errors were overridden, with Debian 13 again. openSUSE
-Leap 16.0 and Tumbleweed have not passed in a pipeline: in 2896082335 both
-stopped in their first seconds, their images having no `find`; the script was
-fixed, Tumbleweed's package then built on linix in its job's own image, and in
-2897966924 both jobs were cancelled with the pipeline before they started (see
+Leap 16.0 and Tumbleweed did not pass there: in 2896082335 both stopped in
+their first seconds, their images having no `find`; the script was fixed,
+Tumbleweed's package then built on linix in its job's own image, and in
+2897966924 both jobs were cancelled with the pipeline before they started.
+They first passed in 2910549202, earlier on 4 October (see
 [What has run](#what-has-run)). Before the pipelines, both were built on the
 laptop - the Debian source package with `dpkg-buildpackage` in WSL Ubuntu 26.04,
 lintian clean of errors and its autopkgtest passing in a clean container; the
@@ -307,30 +313,37 @@ What has run
 
 ### In GitLab's pipelines
 
-`batch42`'s pipelines of 30 September 2026, on linix, each job building from the
-`source-tarball` job's `hmailserver-6.3.6.tar.gz` with the network refused, and
-each install job (`srcpkg-<target>-install`) installing what its build made in a
-clean container, creating a PostgreSQL database and starting the server, which
-answered SMTP with STARTTLS and IMAP. Each time is the job's own `BUILT:` or
-`PACKAGE PASSED:` line.
+`batch42`'s pipelines of 30 September and 4 October 2026, on linix, each job
+building from the `source-tarball` job's `hmailserver-6.3.6.tar.gz` with the
+network refused, and each install job (`srcpkg-<target>-install`) installing
+what its build made in a clean container, creating a PostgreSQL database and
+starting the server, which answered SMTP with STARTTLS and IMAP. Each time is
+the job's own `BUILT:` or `PACKAGE PASSED:` line.
 
-| Target | 2896082335 (`c26ce1e59`) | 2897966924 (`cec2b151d`) |
-|---|---|---|
-| Debian 13 | built in 1,893 s, lintian: no error, 6 warnings; the autopkgtest passed (50 s) | built in 1,933 s, the same; passed (52 s) |
-| Ubuntu 24.04 | failed: lintian 2.117 reported `source-is-missing` for five files written by hand (below) | built in 1,837 s, no error, 7 warnings; passed (59 s) |
-| Ubuntu 26.04 | built in 1,863 s, no error, 6 warnings; passed (46 s) | cancelled before it started |
-| Fedora 44 | built in 2,235 s, rpmlint: no error, 20 warnings; installed and started (28 s) | cancelled before it started |
-| EL 10 (AlmaLinux 10.2) | built in 2,432 s, no error, 84 warnings; installed and started (24 s) | cancelled before it started |
-| openSUSE Leap 16.0 | failed after 10 s: the image has no `find` (below) | cancelled before it started |
-| openSUSE Tumbleweed | failed after 9 s: the same | cancelled before it started |
+| Target | 2896082335 (`c26ce1e59`) | 2897966924 (`cec2b151d`) | 2910897383 (`94892314a`) |
+|---|---|---|---|
+| Debian 13 | built in 1,893 s, lintian: no error, 6 warnings; the autopkgtest passed (50 s) | built in 1,933 s, the same; passed (52 s) | built in 1,756 s, no error, 6 warnings; passed (43 s) |
+| Ubuntu 24.04 | failed: lintian 2.117 reported `source-is-missing` for five files written by hand (below) | built in 1,837 s, no error, 7 warnings; passed (59 s) | built in 1,659 s, no error, 7 warnings; passed (43 s) |
+| Ubuntu 26.04 | built in 1,863 s, no error, 6 warnings; passed (46 s) | cancelled before it started | built in 1,588 s, no error, 6 warnings; passed (42 s) |
+| Fedora 44 | built in 2,235 s, rpmlint: no error, 20 warnings; installed and started (28 s) | cancelled before it started | built in 1,717 s, no error, 20 warnings; installed and started (27 s) |
+| EL 10 (AlmaLinux 10.2) | built in 2,432 s, no error, 84 warnings; installed and started (24 s) | cancelled before it started | built in 2,000 s, no error, 86 warnings; installed and started (22 s) |
+| openSUSE Leap 16.0 | failed after 10 s: the image has no `find` (below) | cancelled before it started | built in 1,769 s, no error, 87 warnings; installed and started (34 s) |
+| openSUSE Tumbleweed | failed after 9 s: the same | cancelled before it started | built in 1,816 s, no error, 92 warnings; installed and started (84 s) |
 
 2897966924 was cancelled at 22:14 UTC to free linix and the Windows bench for
 other builds, with five of these builds still waiting for linix. By then 93 of
 its jobs had passed - the Windows gate, the Windows packages, every package build
 and install and the release's rehearsal among them - and one run of a job had
 failed: `windows-dotnet`'s first, at its checkout, where git could not remove a
-file left in bench150's build folder; started again, it passed. So five of the
-seven targets have passed in a pipeline, and Leap 16.0 and Tumbleweed have not.
+file left in bench150's build folder; started again, it passed. So by 30
+September five of the seven targets had passed in a pipeline. On 4 October
+2910549202 (`29c4b0fc9`) passed the two openSUSE targets, Ubuntu 26.04 and
+Fedora 44, the others cancelled; then 2910897383, at the commit merge request
+!10 landed on 5 October, passed all seven; and from 6 October each of
+`master`'s push pipelines that ran the jobs passed all fourteen again:
+2918038819, 2923938530, 2930660579, 2933835416 and 2943328025 (13 October, at
+`901764554`). In 2914520460, `master`'s of 5 October, twelve of them were
+cancelled.
 
 ### Before any pipeline
 
@@ -520,16 +533,6 @@ What is not done
   kernel is not WSL's, but no one has replayed a link's writes there. A loss in a
   CI build shows only where something runs the damaged bytes: `%check` and the
   install jobs run the server, and the testers, and nothing checks the rest.
-- **openSUSE in a pipeline.** Leap 16.0 and Tumbleweed have not passed in one
-  ([In GitLab's pipelines](#in-gitlabs-pipelines)). Since their first run the script
-  finds the tarball without `find`, the spec asks openSUSE for `libopenssl-devel`,
-  and the two rpmlint errors Tumbleweed makes about the debug packages are
-  filtered. Tumbleweed's package was then built on linix in its job's image, its
-  `%check` passing, before those filters were added; Leap 16.0's has not been built
-  anywhere with the current spec. The next `batch*` pipeline runs both. The other
-  five targets passed in `batch42`'s pipelines, where lintian 2.117 on Ubuntu 24.04
-  found the five files that the laptop's lintian had not, and every job built at
-  `-j4`.
 - **Manual pages** for `hmailserver` and `hmctl`, which lintian and rpmlint ask for.
 - **The distributions' archives.** Debian's (Roadmap3 row 66), Fedora's (row 68)
   and openSUSE's `server:mail` (row 70) each need a named maintainer, who takes

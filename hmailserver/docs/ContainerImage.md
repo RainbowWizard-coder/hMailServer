@@ -211,9 +211,11 @@ Artifact Hub (artifacthub.io) indexes charts and images and hosts neither. The
 owner's account, `progressiverobot89`, and the organization `hmailserver` exist;
 the organization's home URL has been `https://gitlab.com/hmailserver/hmailserver`
 since 6 October 2026, the day the maintainers added its two repositories, the
-chart's and the image's. Neither listing has the Verified publisher label yet:
-each gets it from a metadata file that carries its repository ID, which the tree
-holds from that day and which reaches Artifact Hub as each item below says.
+chart's and the image's. Each listing gets the Verified publisher label from a
+metadata file that carries its repository ID, which the tree holds from that day
+and which reaches Artifact Hub as each item below says: the image's listing has
+it, from the file pushed on 6 October 2026, and the chart's does not yet
+(Artifact Hub's API, read on 14 October 2026).
 
 - **The chart.** The repository `hmailserver`, shown as hMailServer, of kind Helm
   charts, with the URL `https://updates.progressiverobot.com/helm/`, which has
@@ -222,10 +224,13 @@ holds from that day and which reaches Artifact Hub as each item below says.
   `build/ci/helm-repo.py`, and `package-repos`, which runs that script after the
   pages job and deploys the site, writes it into `helm/artifacthub-repo.yml`
   beside the index, which gives the listing its Verified publisher label. The
-  first `package-repos` to write it is the default branch's after the ID lands
-  there: the file 6.3.6's pipeline wrote says that no ID is there yet. Once
-  Artifact Hub has indexed the repository, the chart's page is
-  `https://artifacthub.io/packages/helm/hmailserver/hmailserver`. The chart's
+  default branch's `package-repos` has written it since the ID landed there, and
+  the file the site serves names it (read on 14 October 2026). Artifact Hub lists
+  the chart at 6.3.6, at
+  `https://artifacthub.io/packages/helm/hmailserver/hmailserver`, without the
+  label: its API gives the repository's last tracking as 6 October 2026 at 03:45
+  UTC, before the ID reached the default branch, with an error reading the file
+  6.3.6's pipeline had written, which said that no ID was there yet. The chart's
   annotations name its licence (`artifacthub.io/license`), its image
   (`artifacthub.io/images`, stamped with the release's version, with the image's
   two platforms, `linux/amd64` and `linux/arm64`, which `helm-chart-package.sh`
@@ -248,10 +253,15 @@ holds from that day and which reaches Artifact Hub as each item below says.
   ID as a line `repositoryID: <the ID>`, and the job `container-image-artifacthub`
   pushes it. That job runs in every release's pipeline after `container-image`,
   and in the default branch's a maintainer starts it by hand, so that the label
-  need not wait for a release: its first push is that start, in the default
-  branch's pipeline after the ID lands there. 6.3.6's pipeline ran it while the
-  file held no ID, and it pushed nothing; without an ID it pushes nothing, and
-  passes. It
+  need not wait for a release. 6.3.6's pipeline ran it while the file held no
+  ID, and it pushed nothing; without an ID it pushes nothing, and passes. Its
+  first push was that start, in the default branch's pipeline 2918038819 on 6
+  October 2026, once the ID had landed there (job 16970526037, "ARTIFACT HUB
+  METADATA PUSHED"): GitLab's registry took the artifact of Artifact Hub's
+  configuration type, both of whose media types are on the registry's list
+  (the container registry's `docs/supported-media-types.md`, read on 2 October
+  2026), and the listing shows the Verified publisher label (Roadmap3.md,
+  "Artifact Hub: the container image"). It
   pushes with `regctl` (`artifact put`), from the image `container-image` runs in,
   since ORAS comes from GitHub, in the shape Artifact Hub documents for
   `oras push`: an empty configuration of the type
@@ -690,17 +700,9 @@ and a package whose platforms had changed after the tree's were checked.
 - No arm64 machine has run the image: only qemu-user on the project's x86-64
   runners.
 - The chart 6.3.6 is in the Pages site's repository, whose `index.yaml` lists it,
-  and its repository was added to Artifact Hub on 6 October 2026; the listing at
-  the current version, and that the `helm/artifacthub-repo.yml` `package-repos`
-  writes with the ID gives it the Verified publisher label, are first seen after
-  the default branch's `package-repos` has written that file.
-- No metadata has been pushed to GitLab's registry: `container-image-artifacthub`
-  ran in 6.3.6's pipeline while the file held no ID, and pushed nothing. It first
-  pushes when a maintainer starts it in the default branch's pipeline after the ID
-  lands there, and whether GitLab's registry takes an artifact of Artifact Hub's
-  configuration type, and Artifact Hub then shows the Verified publisher label, is
-  first seen then. GitLab's registry refuses a manifest with a media type outside
-  its list; both of Artifact Hub's are on that list (the container registry's
-  `docs/supported-media-types.md`, read on 2 October 2026), and the manifest regctl
-  0.11.6 writes with the job's options, read whole from an OCI layout on linix that
-  day, names no other: no `artifactType`, and no annotation but the layer's title.
+  its repository was added to Artifact Hub on 6 October 2026, and Artifact Hub
+  lists it at 6.3.6. That the `helm/artifacthub-repo.yml` `package-repos` writes
+  with the ID, which the site serves (read on 14 October 2026), gives the listing
+  the Verified publisher label is not seen yet: Artifact Hub's last tracking of
+  the repository, on 6 October 2026, came before the ID reached the default
+  branch.
