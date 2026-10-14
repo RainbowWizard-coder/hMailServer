@@ -148,7 +148,9 @@ refuses it. This checker holds them to each other. It fails when:
     pattern of HM_GATE_WHERE, class!~ on bench150 and class=~ on S1-WINBENCH, so that
     a test would run on neither bench, or on both: the pattern must be one class
     pattern and nothing else, no unescaped "/" in it (a compound expression and its
-    "complement" written the same way leave tests on neither), each half must set it
+    "complement" written the same way leave tests on neither) and no "$", which the
+    runner expands in a variable's value (so that the text read is not what the half
+    runs), each half must set it
     once, quoted, in its own variables:, no rule either takes may set it, nor any other
     line of either job or of a template it takes name it (a script's
     $env:HM_GATE_WHERE, in any case), the script either runs must call
@@ -2462,6 +2464,15 @@ def check(texts, chain, feed):
         if not said:
             problems.append("%s does not set HM_GATE_WHERE once, quoted, in its own variables: (%s): the half of the Windows "
                             "suite it runs cannot be read" % (name, "; ".join(k.strip() for k in keys) or "not at all"))
+        # The runner expands a variable's value before the job sees it - $NAME and
+        # ${NAME} to that variable's value, or to nothing, $$ to $ (gitlab-runner's
+        # Variables.ExpandWith, os.Expand over the job's variables) - so a pattern with a
+        # $ in it is not, as text, the one the half runs: two that read as one pattern
+        # and its complement could name different variables, set apart in each job.
+        elif "$" in (said.group(1) or ""):
+            problems.append("%s's HM_GATE_WHERE holds a $, which the runner expands in a variable's value, $NAME and ${NAME} "
+                            "to that variable's value or to nothing: the pattern read here would not be the one the half "
+                            "runs" % name)
         ruled = next((jobs[n] for n in template_order(name, jobs) if re.search(r"^  rules:", jobs[n], re.MULTILINE)), "")
         if any("HM_GATE_WHERE" in item for item in rule_items(ruled, jobs)):
             problems.append("a rule %s takes sets HM_GATE_WHERE, which stands above the job's own variables: the half of the "
@@ -4712,6 +4723,20 @@ def self_test(chain, feed):
             failures.append("a compound pattern for the two halves, which runs a test on neither bench, is caught: %s" % found)
     else:
         failures.append("a compound pattern for the two halves: the halves' HM_GATE_WHERE lines are not once each in ci")
+    # A pattern and its complement as text, each naming a variable the runner expands
+    # in it, which each half sets apart: SMTP alone on S1-WINBENCH, every namespace but
+    # the six on bench150, and the other five of the six on neither bench.
+    if texts["ci"].count(s1_where) == 1 and texts["ci"].count(b150_where) == 1:
+        expanded = dict(texts, ci=texts["ci"]
+                        .replace(s1_where, "    HM_GATE_WHERE: 'class=~/^RegressionTests\\.($HM_GATE_SIX)\\./'\n"
+                                 "    HM_GATE_SIX: 'SMTP'\n")
+                        .replace(b150_where, "    HM_GATE_WHERE: 'class!~/^RegressionTests\\.($HM_GATE_SIX)\\./'\n"
+                                 "    HM_GATE_SIX: 'Security|Infrastructure|SMTP|AntiVirus|SSL|ExternalAccounts'\n"))
+        found, _ = check(expanded, chain, feed)
+        if not any("windows-gate-s1vm's HM_GATE_WHERE holds a $" in p for p in found) or \
+                not any("windows-gate's HM_GATE_WHERE holds a $" in p for p in found):
+            failures.append("a pattern of each half naming a variable the runner expands, set apart in each, is caught: %s"
+                            % found)
     broken("the gate's script giving windows-gate.ps1 a -Where of its own", "ci",
            "-ResultsDirectory \"$env:CI_PROJECT_DIR\\gate-results\"\n        $code = $LASTEXITCODE",
            "-ResultsDirectory \"$env:CI_PROJECT_DIR\\gate-results\" -W ''\n        $code = $LASTEXITCODE",

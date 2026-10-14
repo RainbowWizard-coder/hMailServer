@@ -2158,14 +2158,17 @@ with nothing after it on the line but named arguments - no `-Where`, no splat,
 no continuation line, and no argument by its place, which PowerShell would give
 `-Where`, the first parameter the call does not name; and the pattern is one
 class pattern and nothing else (a compound expression and its "complement"
-written the same way would leave tests on neither). Counted by name in the
-whole suite's run at `1df1dc3e7` (pipeline 2944202315, 13 October
-2026), the suite has 4,178 test cases: 1,563 in S1-WINBENCH's half and 2,615 in
-bench150's, none in both and none in neither; at `901764554` NUnit's own list of
-each half's cases, made on S1-WINBENCH, gave 1,563 and 2,613 of 4,176, the same
-as that count gives there. As in one run of the whole suite, neither half runs
-an `[Explicit]` fixture outside the six namespaces: the suite's seven
-`[Explicit]` test cases, two stress fixtures under `Stress`, are bench150's, and
+written the same way would leave tests on neither), with no `$` in it, which the
+runner expands in a variable's value, `$NAME` to that variable's value or to
+nothing, so that two patterns that read as one and its complement could run
+other subsets. Counted by name in the whole suite's run at `1df1dc3e7`
+(pipeline 2944202315, 13 October 2026), the suite has 4,178 test cases: 1,563
+in S1-WINBENCH's half and 2,615 in bench150's, none in both and none in
+neither; at `901764554` NUnit's own list of each half's cases, made on
+S1-WINBENCH, gave 1,563 and 2,613 of 4,176, the same as that count gives
+there. As in one run of the whole suite, neither half runs an `[Explicit]`
+fixture outside the six namespaces: the suite's seven `[Explicit]` test
+cases, two stress fixtures under `Stress`, are bench150's, and
 NUnit (5.0, under `nunit3-console` 3.22) runs none that a negation leaves in.
 It does run an `[Explicit]` fixture that a class pattern names, so one put in
 one of the six would run on S1-WINBENCH, where a run of the whole suite skips

@@ -5717,16 +5717,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   once it has waited an hour with no runner online to take it (`stuck_pending_no_matching_runners`), which no exit code
   allows. `build/check-release-chain.py` holds the two halves to one class pattern and nothing else, `=~` on S1-WINBENCH
   and `!~` on bench150 - a compound expression and its "complement" written the same way would leave tests on neither -,
-  each said once, quoted, in the job's own `variables:`, set by no rule nor named by any other line of a block the job
-  takes text from - a script's `$env:HM_GATE_WHERE`, in any case of the name, which Windows takes for the same
-  variable -, and reaching `build/ci/windows-gate.ps1` as its `-Where`'s default alone: the script the job runs calls
-  it once, as `-File`'s script with named arguments alone after it on the line, so that no `-Where` of the call's own,
-  no splat, no continuation line and no argument by its place, which PowerShell gives `-Where`, the first parameter
-  the call does not name, passes over it; and `windows-gate` to the whole suite without the other half; a job on
-  `bench-s1vm` to the leftovers' hook, the second half to `interruptible: false`, `windows-installer` and `release` to
-  needing it, and a gate's busy-bench guard to the script the job runs, its own or the nearest template's, which the
-  second half's own script would otherwise have replaced unseen - each rule with a case of its self-test that fails
-  without it (ContinuousIntegration.md, "The Windows gate" and "S1-WINBENCH").
+  with no `$` in it, which the runner expands in a variable's value - two patterns that read as one and its complement
+  would run other subsets -, each said once, quoted, in the job's own `variables:`, set by no rule nor named by any
+  other line of a block the job takes text from - a script's `$env:HM_GATE_WHERE`, in any case of the name, which
+  Windows takes for the same variable -, and reaching `build/ci/windows-gate.ps1` as its `-Where`'s default alone: the
+  script the job runs calls it once, as `-File`'s script with named arguments alone after it on the line, so that no
+  `-Where` of the call's own, no splat, no continuation line and no argument by its place, which PowerShell gives
+  `-Where`, the first parameter the call does not name, passes over it; and `windows-gate` to the whole suite without
+  the other half; a job on `bench-s1vm` to the leftovers' hook, the second half to `interruptible: false`,
+  `windows-installer` and `release` to needing it, and a gate's busy-bench guard to the script the job runs, its own or
+  the nearest template's, which the second half's own script would otherwise have replaced unseen - each rule with a
+  case of its self-test that fails without it (ContinuousIntegration.md, "The Windows gate" and "S1-WINBENCH").
 - **A batch lands only once both halves of the Windows suite have run.** A bench whose lock another holder keeps for
   90 minutes ends its half with exit 10, which a batch's pipeline lets fail: the pipeline is green, with a warning, and
   that half of the suite never ran - and with the suite on two benches, either of which an agent's run over SSH can
