@@ -5715,12 +5715,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   bench150's half took 105 of that run's 198 minutes. `windows-installer`, `release` and the Windows package jobs need
   both halves, and a pipeline does not pass on one: with S1-WINBENCH offline or paused GitLab fails the waiting job
   once it has waited an hour with no runner online to take it (`stuck_pending_no_matching_runners`), which no exit code
-  allows. `build/check-release-chain.py` holds the two halves to one pattern, `=~` on S1-WINBENCH and `!~` on bench150,
-  each said once, quoted, in the job's own `variables:` and set by no rule, and `windows-gate` to the whole suite
-  without the other half; a job on `bench-s1vm` to the leftovers' hook, the second half to `interruptible: false`,
-  `windows-installer` and `release` to needing it, and a gate's busy-bench guard to the script the job runs, its own or
-  the nearest template's, which the second half's own script would otherwise have replaced unseen - each rule with a
-  case of its self-test that fails without it (ContinuousIntegration.md, "The Windows gate" and "S1-WINBENCH").
+  allows. `build/check-release-chain.py` holds the two halves to one class pattern and nothing else, `=~` on S1-WINBENCH
+  and `!~` on bench150 - a compound expression and its "complement" written the same way would leave tests on neither -,
+  each said once, quoted, in the job's own `variables:`, set by no rule and passed over by no `-Where` of the job's
+  script, and `windows-gate` to the whole suite without the other half; a job on `bench-s1vm` to the leftovers' hook,
+  the second half to `interruptible: false`, `windows-installer` and `release` to needing it, and a gate's busy-bench
+  guard to the script the job runs, its own or the nearest template's, which the second half's own script would
+  otherwise have replaced unseen - each rule with a case of its self-test that fails without it (ContinuousIntegration.md,
+  "The Windows gate" and "S1-WINBENCH").
 - **A batch lands only once both halves of the Windows suite have run.** A bench whose lock another holder keeps for
   90 minutes ends its half with exit 10, which a batch's pipeline lets fail: the pipeline is green, with a warning, and
   that half of the suite never ran - and with the suite on two benches, either of which an agent's run over SSH can

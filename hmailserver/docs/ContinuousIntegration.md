@@ -4,10 +4,10 @@ Continuous integration
 GitLab CI starts every pipeline (`.gitlab-ci.yml` at the repository root), and
 every job of a pipeline for `master`, a `batch*` branch, a `v*` tag or a
 schedule runs on the project's own runners - linix and bench150, since 5
-October 2026 server2 beside linix, and since 13 October s1-linux beside them and
-S1-WINBENCH beside bench150, which takes half of the Windows suite ([The
-runners](#the-runners)). The checks run
-for every push and every merge request; the builds, both regression suites and
+October 2026 server2 beside linix, since 13 October s1-linux beside them, and
+S1-WINBENCH, registered on 13 October, beside bench150, which takes half of the
+Windows suite ([The runners](#the-runners)). The checks run for every push and
+every merge request; the builds, both regression suites and
 everything else that needs a machine of the project's run only for the refs that
 only a maintainer can push. The owner decided on GitLab CI with runners of the
 project's on 25 September 2026, a week after GitHub suspended the project's
@@ -2143,7 +2143,11 @@ and `windows-gate`'s is the same pattern with `!~`: every test the other half
 does not take. Together they run every test once, and a namespace added later,
 or a fixture outside `RegressionTests` such as `ServerFreeTests`, runs on
 bench150 rather than on neither; `build/check-release-chain.py` holds the two
-jobs to that, each setting its pattern once in its own `variables:`. Counted by
+jobs to that, each setting its pattern once in its own `variables:`, which the
+script hands `build/ci/windows-gate.ps1` as its `-Where` (it passes none of its
+own), and the pattern to one class pattern and nothing else (a compound
+expression and its "complement" written the same way would leave tests on
+neither). Counted by
 name in the whole suite's run at `1df1dc3e7` (pipeline 2944202315, 13 October
 2026), the suite has 4,178 test cases: 1,563 in S1-WINBENCH's half and 2,615 in
 bench150's, none in both and none in neither; at `901764554` NUnit's own list of

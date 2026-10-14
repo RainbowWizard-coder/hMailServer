@@ -146,9 +146,13 @@ refuses it. This checker holds them to each other. It fails when:
     or the nearest template's that has one;
   * windows-gate and windows-gate-s1vm, the Windows suite's two halves, are not one
     pattern of HM_GATE_WHERE, class!~ on bench150 and class=~ on S1-WINBENCH, so that
-    a test would run on neither bench, or on both: each must set it once, quoted, in
-    its own variables:, no rule either takes may set it, and windows-gate must run
-    the whole suite when there is no windows-gate-s1vm;
+    a test would run on neither bench, or on both: the pattern must be one class
+    pattern and nothing else, no unescaped "/" in it (a compound expression and its
+    "complement" written the same way leave tests on neither), each half must set it
+    once, quoted, in its own variables:, no rule either takes may set it, the script
+    either runs may pass build/ci/windows-gate.ps1 no -Where of its own (or any prefix
+    of the name), and windows-gate must run the whole suite when there is no
+    windows-gate-s1vm;
   * linux-fuzz does not keep fuzz-results/ as its artifact, whatever the result,
     for Developers only (a reproducer may be an exploit), or another job claims it;
   * secret_detection lets a finding pass: it must be allow_failure: false and read
@@ -2431,11 +2435,20 @@ def check(texts, chain, feed):
         if any("HM_GATE_WHERE" in item for item in rule_items(ruled, jobs)):
             problems.append("a rule %s takes sets HM_GATE_WHERE, which stands above the job's own variables: the half of the "
                             "Windows suite it runs is not the one its variables: say" % name)
+        # The pattern reaches the suite as windows-gate.ps1's -Where, whose default is
+        # HM_GATE_WHERE: a -Where the script the job runs passes itself - PowerShell takes
+        # any prefix of the name, -W among them - would give both halves one subset.
+        runs = next((jobs[n] for n in template_order(name, jobs) if re.search(r"^  script:", jobs[n], re.MULTILINE)), "")
+        if re.search(r"windows-gate\.ps1\b[^\n]*\s-w(?:h(?:e(?:re?)?)?)?(?![A-Za-z])", runs, re.IGNORECASE):
+            problems.append("%s's script passes build/ci/windows-gate.ps1 a -Where of its own, which stands above HM_GATE_WHERE: "
+                            "both halves of the Windows suite would run one subset" % name)
     half, rest = gate_where.get("windows-gate-s1vm"), gate_where.get("windows-gate")
     if "windows-gate-s1vm" in jobs:
-        if half is not None and rest is not None and not (
-                half.startswith("class=~/") and half.endswith("/") and len(half) > len("class=~//")
-                and rest == "class!~/" + half[len("class=~/"):]):
+        # One class pattern and nothing else: no unescaped "/" inside it, which would let
+        # a compound expression (class=~/A/ && class=~/B/, and its "complement" written
+        # the same way) put a test on neither bench.
+        pattern = re.fullmatch(r"class=~/((?:[^/\\\n]|\\.)+)/", half or "")
+        if half is not None and rest is not None and not (pattern and rest == "class!~/%s/" % pattern.group(1)):
             problems.append("windows-gate (HM_GATE_WHERE %s) and windows-gate-s1vm (%s) are not the two halves of one suite: "
                             "windows-gate-s1vm's must be class=~/<pattern>/ and windows-gate's class!~/<the same pattern>/, "
                             "or a test runs on neither bench, or on both" % (rest or "empty", half or "empty"))
@@ -4623,6 +4636,22 @@ def self_test(chain, feed):
            "a rule windows-gate takes sets HM_GATE_WHERE")
     broken("bench150's half left without the second bench's", "ci", "windows-gate-s1vm:\n  extends: windows-gate\n",
            "windows-gate-elsewhere:\n  extends: windows-gate\n", "no windows-gate-s1vm runs the rest")
+    # A compound expression and its "complement" written the same way: A and B on
+    # S1-WINBENCH, not-A and B on bench150, and every test outside B on neither.
+    s1_where = "    HM_GATE_WHERE: 'class=~/^RegressionTests\\.(Security|Infrastructure|SMTP|AntiVirus|SSL|ExternalAccounts)\\./'\n"
+    b150_where = s1_where.replace("class=~/", "class!~/")
+    if texts["ci"].count(s1_where) == 1 and texts["ci"].count(b150_where) == 1:
+        compound = dict(texts, ci=texts["ci"].replace(s1_where, "    HM_GATE_WHERE: 'class=~/^RegressionTests\\./ && class=~/Basics/'\n")
+                        .replace(b150_where, "    HM_GATE_WHERE: 'class!~/^RegressionTests\\./ && class=~/Basics/'\n"))
+        found, _ = check(compound, chain, feed)
+        if not any("are not the two halves of one suite" in p for p in found):
+            failures.append("a compound pattern for the two halves, which runs a test on neither bench, is caught: %s" % found)
+    else:
+        failures.append("a compound pattern for the two halves: the halves' HM_GATE_WHERE lines are not once each in ci")
+    broken("the gate's script giving windows-gate.ps1 a -Where of its own", "ci",
+           "-ResultsDirectory \"$env:CI_PROJECT_DIR\\gate-results\"\n        $code = $LASTEXITCODE",
+           "-ResultsDirectory \"$env:CI_PROJECT_DIR\\gate-results\" -W ''\n        $code = $LASTEXITCODE",
+           "windows-gate-s1vm's script passes build/ci/windows-gate.ps1 a -Where of its own")
     broken("the second bench's half running a script of its own past a busy bench", "ci",
            "  interruptible: false\n  variables:\n    HM_GATE_WHERE: 'class=~",
            "  interruptible: false\n  script:\n    - exit 10\n  variables:\n    HM_GATE_WHERE: 'class=~",
