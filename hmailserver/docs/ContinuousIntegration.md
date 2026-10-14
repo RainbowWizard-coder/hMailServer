@@ -1734,7 +1734,8 @@ and `bench150`, and it is runner 56743216 on GitLab.
 ends in March 2027, on 15 March at the earliest: `slmgr /xpr` on the bench gives
 the day, and `slmgr /dlv` the rearms left. From that day Windows shuts the bench
 down every hour, and with it goes every Windows job of the project's but
-`windows-gate-s1vm`, and so every landing and every release. A rearm taken
+`windows-gate-s1vm`, and so every release, and every landing but a batch's of
+documents alone ([Landing on master](#landing-on-master)). A rearm taken
 before the licence ends, if one is left (`slmgr /rearm`, a restart, then
 `slmgr /ato` and `slmgr /xpr` to read the new end), gives it 180 days from that
 day, which end before 30 September 2027, the last day the 6.3 line is supported
