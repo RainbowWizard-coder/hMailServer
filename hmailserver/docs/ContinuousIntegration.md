@@ -2011,6 +2011,11 @@ once; since 6 October 2026 it names it by digest:
   (`linux-libc-dev` 7.0.0-38.38, `libc6` 2.43-2ubuntu2.4, `openssl`
   3.5.5-1ubuntu3.7), and pushed: the same tag, moved to
   `sha256:350484026f1ade2f1c8bb0b9248fcbb32bf45394c40e9a89af4f92445e31d2d6`,
+  which `.linix` named until 16 October 2026, when the Dockerfile took the .NET
+  SDK and PowerShell from Microsoft's SDK image of 13 October (SDK 10.0.402 on
+  runtime 10.0.13) and the image, built on linix from that Dockerfile, was
+  pushed under the new tag its hash makes,
+  `ci-linux:26.04-68dd5409068c@sha256:4b93f211b5ad847525401774ac788ef571bcb773a78e5322df008b187a8e1b0c`,
   which `.linix` has named since, and the runners with the tag, linix, server2
   and s1-linux, pull it by that digest. The 6 October digest was left with no tag,
   which the registry does not keep: GitLab.com's registry removes an untagged

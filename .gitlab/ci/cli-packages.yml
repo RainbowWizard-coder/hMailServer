@@ -167,7 +167,7 @@ cli-packages:
 
 cli-powershell:
   stage: check
-  image: mcr.microsoft.com/dotnet/sdk:10.0@sha256:35d40304542c8689331f8cab17c65926cdf48fe711e289321d71924b230a7d29
+  image: mcr.microsoft.com/dotnet/sdk:10.0@sha256:0d99ebf1ccad15037b5c98c9fe8979d6b8dbac23812feae2277a0b277b5c5ffa
   needs: []
   timeout: 15 minutes
   rules:
@@ -219,7 +219,7 @@ pypi-publish:
 
 psgallery-publish:
   stage: release
-  image: mcr.microsoft.com/dotnet/sdk:10.0@sha256:35d40304542c8689331f8cab17c65926cdf48fe711e289321d71924b230a7d29
+  image: mcr.microsoft.com/dotnet/sdk:10.0@sha256:0d99ebf1ccad15037b5c98c9fe8979d6b8dbac23812feae2277a0b277b5c5ffa
   needs: []
   timeout: 20 minutes
   interruptible: false

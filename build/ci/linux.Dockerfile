@@ -4,18 +4,19 @@
 
 # The image the Linux jobs of .gitlab-ci.yml that build or run the server run in
 # (linux-build, linux-suite, linux-cross, linux-db-upgrade-*, linux-sanitize,
-# linux-sbom and linux-fuzz), on the project's own runner, linix. It is built ON
-# linix and never pushed anywhere: the runner's pull policy is if-not-present, so
-# a job finds it in the host's own image store by its tag.
+# linux-sbom and linux-fuzz), on the project's own runners. It is built on linix
+# and pushed to the project's container registry (build/ci/build-linux-image.sh
+# --push), and .gitlab-ci.yml names it there by the digest of its manifest, which
+# each runner pulls.
 #
 # The tag is not chosen by hand. It is 26.04- and the first twelve hex digits of
 # the SHA-256 of this file (line endings made LF), so that an edit here is a new
 # tag: build/check-ci-image.py fails the checkers job until .gitlab-ci.yml names
-# that tag, and a Linux job whose tag has not been built on linix fails at its
-# first step, naming the image it could not find, instead of running on an image
-# made from an older version of this file. build/ci/build-linux-image.sh computes
-# the tag the same way and builds it; docs/ContinuousIntegration.md says when to
-# run it.
+# that tag, and a Linux job whose image has not been pushed fails at its first
+# step, naming the image it could not find, instead of running on an image made
+# from an older version of this file. build/ci/build-linux-image.sh computes the
+# tag the same way and builds it; docs/ContinuousIntegration.md says when to run
+# it.
 #
 # What is in it, and why each part is here. Every package comes from Ubuntu's own
 # archive unless the line says otherwise; nothing is downloaded from GitHub.
@@ -59,7 +60,7 @@
 # Docker Hub, is the one of the two this project may fetch, and its one file is
 # a static binary.
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0@sha256:35d40304542c8689331f8cab17c65926cdf48fe711e289321d71924b230a7d29 AS dotnet
+FROM mcr.microsoft.com/dotnet/sdk:10.0@sha256:0d99ebf1ccad15037b5c98c9fe8979d6b8dbac23812feae2277a0b277b5c5ffa AS dotnet
 
 FROM anchore/syft:v1.52.0@sha256:500e2d872ac019436926e8322b4fc1f39441d94d21f6f4046c6ff29b30e8cb02 AS syft
 

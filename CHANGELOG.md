@@ -5809,6 +5809,18 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
 
 ### Build and tests
 
+- **The Linux CI image takes its .NET SDK and PowerShell from Microsoft's SDK image of 13 October 2026, SDK 10.0.402
+  on runtime 10.0.13, and so do the jobs that run in that image itself.** `build/ci/linux.Dockerfile` copied them from
+  the `10.0` tag's image of 21 September, SDK 10.0.401 on runtime 10.0.12, against which Microsoft's advisories of 13
+  October gave `dependency-scan` 36 high or critical records with a fixed version in the image's .NET - the SDK's
+  `System.Security.Cryptography.Pkcs` and `.Xml` and the ASP.NET Core and .NET shared frameworks - each of which the
+  release job's security gate would have held the release on. The image is now made from the `10.0` tag's digest of
+  13 October (`sha256:0d99ebf1...`), under the tag `26.04-68dd5409068c` that the Dockerfile's hash makes, and
+  `.gitlab-ci.yml`'s `package-templates` and `roadmap`, `channels-check`, `cli-powershell` and `psgallery-publish`
+  name the same digest. Built from this Dockerfile, the image holds no high or critical record with a fixed version,
+  and the gate, asked over batch47's pipeline's other three scans with `master`'s exceptions, holds nothing. The
+  Dockerfile's opening lines no longer say that the image is never pushed: it is pushed to the project's registry
+  and named there by digest, since 6 October 2026.
 - **Renovate proposes the .NET Desktop Runtime the installers carry when Microsoft publishes a new release of .NET 10.**
   `renovate.json` held only a placeholder rule for the runtime, written before it was pinned, which said there was no
   pin to update, so no merge request ever named a new release. A regex manager now reads the version of both runtime

@@ -658,7 +658,7 @@ pages:
   extends: .own-runners
   tags: [$HM_RUNNER_BUILD]
   image:
-    name: registry.gitlab.com/hmailserver/hmailserver/ci-linux:26.04-52e9976e73bf@sha256:350484026f1ade2f1c8bb0b9248fcbb32bf45394c40e9a89af4f92445e31d2d6
+    name: registry.gitlab.com/hmailserver/hmailserver/ci-linux:26.04-68dd5409068c@sha256:4b93f211b5ad847525401774ac788ef571bcb773a78e5322df008b187a8e1b0c
     pull_policy: [if-not-present, always]
   before_script:
     - python3 build/check-ci-image.py --job
@@ -1196,7 +1196,7 @@ update-helper:
 # jsonschema are Ubuntu's packages.
 package-templates:
   stage: check
-  image: mcr.microsoft.com/dotnet/sdk:10.0@sha256:35d40304542c8689331f8cab17c65926cdf48fe711e289321d71924b230a7d29
+  image: mcr.microsoft.com/dotnet/sdk:10.0@sha256:0d99ebf1ccad15037b5c98c9fe8979d6b8dbac23812feae2277a0b277b5c5ffa
   timeout: 10 minutes
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
@@ -1219,7 +1219,7 @@ package-templates:
 # when either changes. pwsh is the one in Microsoft's .NET SDK image.
 roadmap:
   stage: check
-  image: mcr.microsoft.com/dotnet/sdk:10.0@sha256:35d40304542c8689331f8cab17c65926cdf48fe711e289321d71924b230a7d29
+  image: mcr.microsoft.com/dotnet/sdk:10.0@sha256:0d99ebf1ccad15037b5c98c9fe8979d6b8dbac23812feae2277a0b277b5c5ffa
   timeout: 5 minutes
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
