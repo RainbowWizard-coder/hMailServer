@@ -149,10 +149,14 @@ refuses it. This checker holds them to each other. It fails when:
     a test would run on neither bench, or on both: the pattern must be one class
     pattern and nothing else, no unescaped "/" in it (a compound expression and its
     "complement" written the same way leave tests on neither), each half must set it
-    once, quoted, in its own variables:, no rule either takes may set it, the script
-    either runs may pass build/ci/windows-gate.ps1 no -Where of its own (or any prefix
-    of the name), and windows-gate must run the whole suite when there is no
-    windows-gate-s1vm;
+    once, quoted, in its own variables:, no rule either takes may set it, nor any other
+    line of either job or of a template it takes name it (a script's
+    $env:HM_GATE_WHERE, in any case), the script either runs must call
+    build/ci/windows-gate.ps1 once, as -File's script with nothing after it on the line
+    but named arguments, each a variable or a quoted string, none of them -Where (or
+    any prefix of the name) - a splat, a continuation line or an argument by its place,
+    which PowerShell gives -Where, would hide one -, and windows-gate must run the whole
+    suite when there is no windows-gate-s1vm;
   * linux-fuzz does not keep fuzz-results/ as its artifact, whatever the result,
     for Developers only (a reproducer may be an exploit), or another job claims it;
   * secret_detection lets a finding pass: it must be allow_failure: false and read
@@ -575,6 +579,17 @@ NOT_INTERRUPTIBLE = ("linux-suite", "windows-gate", "windows-gate-s1vm")
 # How a gate that lets a busy bench pass (allow_failure: exit_codes) keeps a v* tag's
 # pipeline from doing so: the bench's "busy" exits 10 only outside a tag.
 BUSY_GUARD = "$taken -eq 1 -and -not $env:CI_COMMIT_TAG"
+# How the Windows suite's halves call build/ci/windows-gate.ps1, which takes the half's
+# pattern as its -Where's default, HM_GATE_WHERE - the one form the halves' rule reads:
+# the script named as -File's, and after it on the line nothing but named arguments, each
+# a variable or a quoted string. A -Where of the call's own, a splat, an argument on a
+# continuation line, or one without a name, which PowerShell gives the first parameter
+# the call does not name - -Where, the script's second -, would give the half another
+# subset.
+GATE_CALL = re.compile(r"\s-File[ \t]+(?:\"[^\"\n]*windows-gate\.ps1\"|'[^'\n]*windows-gate\.ps1'|[^\s\"']*windows-gate\.ps1)(.*)$",
+                       re.IGNORECASE)
+GATE_VALUE = r"(?:\$[A-Za-z_][A-Za-z0-9_]*(?::[A-Za-z_][A-Za-z0-9_]*)?|\"[^\"`\n]*\"|'[^'\n]*')"
+GATE_ARGUMENTS = re.compile(r"(?:[ \t]+-[A-Za-z]+[ \t]+%s)*[ \t]*" % GATE_VALUE)
 # The package jobs whose files a release carries (.gitlab/ci/packages-*.yml), by the
 # kind of server that installs each (generate-update-feed.py's installer_names): the
 # file the jobs are in, the job that builds the package, the one that makes its SBOM,
@@ -935,6 +950,21 @@ def template_order(name, jobs, seen=None):
         for parent in reversed([n.strip() for n in extends.group(1).strip("[]").split(",") if n.strip()]):
             order += template_order(parent, jobs, seen)
     return order
+
+
+def taken_blocks(name, jobs):
+    """Every block of jobs a job takes text from: the job and the templates it extends
+    (template_order), and every block a !reference in one of them names, with the
+    templates that one extends, at any remove."""
+    taken, pending = [], template_order(name, jobs)
+    while pending:
+        block = pending.pop(0)
+        if block in taken or block not in jobs:
+            continue
+        taken.append(block)
+        for reference in re.findall(r"!reference \[\s*([^,\]\s]+)", jobs[block]):
+            pending.extend(template_order(reference, jobs))
+    return taken
 
 
 def rule_items(text, jobs, seen=None):
@@ -2437,12 +2467,38 @@ def check(texts, chain, feed):
             problems.append("a rule %s takes sets HM_GATE_WHERE, which stands above the job's own variables: the half of the "
                             "Windows suite it runs is not the one its variables: say" % name)
         # The pattern reaches the suite as windows-gate.ps1's -Where, whose default is
-        # HM_GATE_WHERE: a -Where the script the job runs passes itself - PowerShell takes
-        # any prefix of the name, -W among them - would give both halves one subset.
+        # HM_GATE_WHERE, and by nothing else. No line of a block the job takes text from
+        # (taken_blocks) names HM_GATE_WHERE but a variables: line - a script's or a
+        # before_script's $env:HM_GATE_WHERE, in any case, since Windows takes an
+        # environment variable's name so, would set it under the job's own -; every line
+        # there that names windows-gate.ps1 calls it in the one form this reads (GATE_CALL,
+        # GATE_ARGUMENTS), where a -Where of its own - PowerShell takes any prefix of the
+        # name, -W among them -, a splat, an argument on a continuation line or one by its
+        # place would give both halves one subset; and the script the job runs calls it
+        # once.
+        taken = taken_blocks(name, jobs)
+        for n in taken:
+            for line in jobs[n].split("\n"):
+                if re.search(r"HM_GATE_WHERE", line, re.IGNORECASE) and not re.match(r"^    HM_GATE_WHERE: ", line):
+                    problems.append("%s names HM_GATE_WHERE other than in a variables: line of its own (%s): a line that sets "
+                                    "it would give the half of the Windows suite %s runs another subset than its variables: "
+                                    "say" % (n if n == name else "%s, which %s takes," % (n, name), line.strip()[:80], name))
+        named = [line for n in taken for line in jobs[n].split("\n") if re.search(r"windows-gate\.ps1", line, re.IGNORECASE)]
         runs = next((jobs[n] for n in template_order(name, jobs) if re.search(r"^  script:", jobs[n], re.MULTILINE)), "")
-        if re.search(r"windows-gate\.ps1\b[^\n]*\s-w(?:h(?:e(?:re?)?)?)?(?![A-Za-z])", runs, re.IGNORECASE):
+        calls = [line for line in runs.split("\n") if re.search(r"windows-gate\.ps1", line, re.IGNORECASE)]
+        unread = [line for line in named if not (GATE_CALL.search(line) and GATE_ARGUMENTS.fullmatch(GATE_CALL.search(line).group(1)))]
+        if any(re.search(r"windows-gate\.ps1\b[^\n]*\s-w(?:h(?:e(?:re?)?)?)?(?![A-Za-z])", line, re.IGNORECASE) for line in named):
             problems.append("%s's script passes build/ci/windows-gate.ps1 a -Where of its own, which stands above HM_GATE_WHERE: "
                             "both halves of the Windows suite would run one subset" % name)
+        elif unread:
+            problems.append("%s's script calls build/ci/windows-gate.ps1 other than as this reads the call, as -File's script "
+                            "with nothing after it on its line but named arguments, each a variable or a quoted string (%s): a "
+                            "-Where by a splat, on a continuation line or by its place, which PowerShell gives -Where, the "
+                            "first parameter the call does not name, would give both halves one subset unseen"
+                            % (name, unread[0].strip()[:120]))
+        elif len(calls) != 1:
+            problems.append("%s's script calls build/ci/windows-gate.ps1 on %s: the half of the Windows suite it runs cannot be "
+                            "read" % (name, "no line that names it" if not calls else "%d lines" % len(calls)))
     half, rest = gate_where.get("windows-gate-s1vm"), gate_where.get("windows-gate")
     if "windows-gate-s1vm" in jobs:
         # One class pattern and nothing else: no unescaped "/" inside it, which would let
@@ -4660,6 +4716,57 @@ def self_test(chain, feed):
            "-ResultsDirectory \"$env:CI_PROJECT_DIR\\gate-results\"\n        $code = $LASTEXITCODE",
            "-ResultsDirectory \"$env:CI_PROJECT_DIR\\gate-results\" -W ''\n        $code = $LASTEXITCODE",
            "windows-gate-s1vm's script passes build/ci/windows-gate.ps1 a -Where of its own")
+    # What else would reach the suite as its subset (14 October 2026, each of which passed
+    # the rule that read -Where on the call's line alone): HM_GATE_WHERE set by a script,
+    # in capitals or not, or by a block a half takes; and a call of windows-gate.ps1 that
+    # hides a -Where - continued on the next line, by a splat, by its place, or with the
+    # script named in a variable -, made twice, or not made.
+    gate_call = ('        & $shell -NoProfile -ExecutionPolicy Bypass -File "$ci\\windows-gate.ps1" -Commit $sha -BenchDir $bench '
+                 '-ResultsDirectory "$env:CI_PROJECT_DIR\\gate-results"\n')
+    s1_head = "windows-gate-s1vm:\n  extends: windows-gate\n  tags: [bench-s1vm]\n"
+    for what, old, new, needle in (
+            ("bench150's script setting HM_GATE_WHERE to the six before the call", gate_call,
+             "        $env:HM_GATE_WHERE = 'class=~/^RegressionTests\\.(Security|Infrastructure|SMTP|AntiVirus|SSL|ExternalAccounts)\\./'\n"
+             + gate_call, "windows-gate names HM_GATE_WHERE other than in a variables: line of its own"),
+            ("the script setting it in small letters, which Windows takes for the same variable", gate_call,
+             "        $env:hm_gate_where = ''\n" + gate_call,
+             "windows-gate, which windows-gate-s1vm takes, names HM_GATE_WHERE other than in a variables: line of its own"),
+            ("the second half's own before_script emptying it", s1_head,
+             s1_head + "  before_script:\n    - $env:HM_GATE_WHERE = ''\n",
+             "windows-gate-s1vm names HM_GATE_WHERE other than in a variables: line of its own"),
+            ("a block the second half takes by !reference emptying it", s1_head,
+             ".probe-where:\n  script:\n    - $env:HM_GATE_WHERE = ''\n\n" + s1_head +
+             "  before_script:\n    - !reference [.probe-where, script]\n",
+             ".probe-where, which windows-gate-s1vm takes, names HM_GATE_WHERE other than in a variables: line of its own"),
+            ("a -Where on a continuation line of the call", gate_call,
+             gate_call.replace('gate-results"\n', "gate-results\" `\n          -Where ''\n"),
+             "windows-gate-s1vm's script calls build/ci/windows-gate.ps1 other than as this reads the call"),
+            ("a -Where by a splat", gate_call,
+             "        $w = @{ Where = '' }\n" + gate_call.replace('gate-results"\n', 'gate-results" @w\n'),
+             "windows-gate's script calls build/ci/windows-gate.ps1 other than as this reads the call"),
+            ("a -Where by its place, which PowerShell gives the first parameter the call does not name", gate_call,
+             gate_call.replace('gate-results"\n', "gate-results\" 'class=~/Basics/'\n"),
+             "windows-gate's script calls build/ci/windows-gate.ps1 other than as this reads the call"),
+            ("the script named in a variable, the -Where on another line", gate_call,
+             "        $gate = \"$ci\\windows-gate.ps1\"\n        & $shell -NoProfile -File $gate -Commit $sha -Where ''\n",
+             "windows-gate-s1vm's script calls build/ci/windows-gate.ps1 other than as this reads the call"),
+            ("the second half's own before_script running the suite with an argument by its place", s1_head,
+             s1_head + "  before_script:\n    - |\n      & (Get-Process -Id $PID).Path -NoProfile -File \"$env:CI_PROJECT_DIR\\gate"
+             "\\build\\ci\\windows-gate.ps1\" -Commit $env:CI_COMMIT_SHA 'class=~/Basics/'\n      exit $LASTEXITCODE\n",
+             "windows-gate-s1vm's script calls build/ci/windows-gate.ps1 other than as this reads the call"),
+            ("the suite run twice by the script", gate_call, gate_call + gate_call,
+             "windows-gate's script calls build/ci/windows-gate.ps1 on 2 lines"),
+            ("the second half's own script, which runs no suite", s1_head, s1_head + "  script:\n    - exit 0\n",
+             "windows-gate-s1vm's script calls build/ci/windows-gate.ps1 on no line that names it")):
+        broken(what, "ci", old, new, needle)
+    # And no more: the call's named arguments quoted another way, or named in small
+    # letters, which PowerShell takes as they are.
+    calm = dict(texts, ci=texts["ci"].replace(gate_call, gate_call.replace("-BenchDir $bench", "-BenchDir 'C:\\bench\\hmailserver'")
+                                              .replace("-Commit $sha", "-commit $sha"), 1))
+    found, _ = check(calm, chain, feed)
+    if gate_call not in texts["ci"] or any("windows-gate.ps1" in p or "HM_GATE_WHERE" in p for p in found):
+        failures.append("the call of windows-gate.ps1 with a named argument quoted and one named in small letters is let pass: %s"
+                        % (found if gate_call in texts["ci"] else "the call is not in ci"))
     broken("the second bench's half running a script of its own past a busy bench", "ci",
            "  interruptible: false\n  variables:\n    HM_GATE_WHERE: 'class=~",
            "  interruptible: false\n  script:\n    - exit 10\n  variables:\n    HM_GATE_WHERE: 'class=~",

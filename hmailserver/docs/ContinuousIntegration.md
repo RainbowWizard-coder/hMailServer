@@ -2147,12 +2147,17 @@ and `windows-gate`'s is the same pattern with `!~`: every test the other half
 does not take. Together they run every test once, and a namespace added later,
 or a fixture outside `RegressionTests` such as `ServerFreeTests`, runs on
 bench150 rather than on neither; `build/check-release-chain.py` holds the two
-jobs to that, each setting its pattern once in its own `variables:`, which the
-script hands `build/ci/windows-gate.ps1` as its `-Where` (it passes none of its
-own), and the pattern to one class pattern and nothing else (a compound
-expression and its "complement" written the same way would leave tests on
-neither). Counted by
-name in the whole suite's run at `1df1dc3e7` (pipeline 2944202315, 13 October
+jobs to that: each sets its pattern once in its own `variables:`, and no other
+line of either job, or of a block it takes text from, names `HM_GATE_WHERE` (a
+script's `$env:HM_GATE_WHERE`, in any case of the name, would set it over the
+job's own); the pattern reaches `build/ci/windows-gate.ps1` as its `-Where`'s
+default alone, the script either job runs calling it once, as `-File`'s script
+with nothing after it on the line but named arguments - no `-Where`, no splat,
+no continuation line, and no argument by its place, which PowerShell would give
+`-Where`, the first parameter the call does not name; and the pattern is one
+class pattern and nothing else (a compound expression and its "complement"
+written the same way would leave tests on neither). Counted by name in the
+whole suite's run at `1df1dc3e7` (pipeline 2944202315, 13 October
 2026), the suite has 4,178 test cases: 1,563 in S1-WINBENCH's half and 2,615 in
 bench150's, none in both and none in neither; at `901764554` NUnit's own list of
 each half's cases, made on S1-WINBENCH, gave 1,563 and 2,613 of 4,176, the same
