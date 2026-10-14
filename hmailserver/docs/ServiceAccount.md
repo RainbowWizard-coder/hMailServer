@@ -502,22 +502,71 @@ delete or rename it, from before it is looked at until after it is changed, so t
 user can put a link in its place in between.
 
 **Before upgrading an installation at a drive's root.** From an elevated Command
-Prompt, with the installation's own folder in place of `C:\hMailServer`:
+Prompt, with the installation's own folder in place of `C:\hMailServer`, first see
+who owns the three: `dir /q /a:d "C:\hMailServer"` names the program folder's owner
+on its line `.`, and `Bin`'s and `ControlPanel`'s on theirs. Then, as
+`/ProtectFolders` does, for the program folder, then `Bin`, then `ControlPanel`:
 
-```
-icacls "C:\hMailServer" /inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F *S-1-5-32-545:(OI)(CI)RX
-icacls "C:\hMailServer\Bin" /inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F *S-1-5-32-545:(OI)(CI)RX
-icacls "C:\hMailServer\ControlPanel" /inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F *S-1-5-32-545:(OI)(CI)RX
-```
+1. Make the Administrators its owner - an owner may change the permissions whatever
+   they say. The folder alone: `/T` would reach the message store too.
 
-The SIDs are SYSTEM, the Administrators and the Users in every language of Windows;
-where the folder above lets no user read the installation, leave out the Users' grant
-at the end of each line, as `/ProtectFolders` does. The first walks the whole program folder, the message store included where 6.3.5 or
-earlier left `Data` inheriting - minutes there, and `Data` then readable by Users until
-the upgrade's `/ProtectFolders` makes it private. The service's entries on
-`Bin` and `ControlPanel` and on `Bin\hMailServerApiKeys.ini` are their own and stay;
-if anybody else may have changed a program in `Bin` already, reinstall rather than
-harden.
+   ```
+   icacls "C:\hMailServer" /setowner *S-1-5-32-544
+   ```
+
+2. List its entries with `icacls "C:\hMailServer"`; one without `(I)` is the folder's
+   own. Take away each entry of its own but SYSTEM's and the Administrators'. The
+   Users' and the service's go by their SIDs, whatever they give - steps 3 and 4 give
+   back what they need:
+
+   ```
+   icacls "C:\hMailServer" /remove:g *S-1-5-32-545 *S-1-5-80-3504853920-2627644491-1723263464-2546768561-1700046809
+   ```
+
+   Anybody else's goes by the name the list gives, in quotes (where it gives a SID,
+   `*` and the SID). A `(DENY)` entry only takes away, and stays.
+
+   ```
+   icacls "C:\hMailServer" /remove:g "<name>"
+   ```
+
+3. Replace what it inherits, and give SYSTEM and the Administrators full control and
+   the Users Read & execute:
+
+   ```
+   icacls "C:\hMailServer" /inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F *S-1-5-32-545:(OI)(CI)RX
+   ```
+
+4. On `Bin` and `ControlPanel`, give the service back its Read & execute, the
+   grant's:
+
+   ```
+   icacls "C:\hMailServer\Bin" /grant *S-1-5-80-3504853920-2627644491-1723263464-2546768561-1700046809:(OI)(CI)RX
+   ```
+
+`icacls` on each of the three then lists SYSTEM's and the Administrators'
+`(OI)(CI)(F)`, the Users' `(OI)(CI)(RX)`, on `Bin` and `ControlPanel` the service's
+`(OI)(CI)(RX)`, and any deny entry, which stays - nothing marked `(I)` and nobody
+else's. The SIDs are SYSTEM's, the Administrators', the Users' and the service's, the
+same in every language of Windows; where the folder above lets no user read the
+installation, leave out the Users' grant at the end of step 3, as `/ProtectFolders`
+does. On the program folder each change of its entries reaches everything in it, the
+message store included where 6.3.5 or earlier left `Data` inheriting - minutes
+there, and `Data` then readable by Users until the upgrade's `/ProtectFolders` makes
+it private. The service's Modify on `Bin\hMailServerApiKeys.ini` is the file's own,
+and stays.
+
+The steps keep anybody else from changing the three folders themselves from then
+on; they undo nothing changed before, and a file or folder in them keeps its owner
+and any entry of its own. Where accounts that are not administrators could sign in
+to the computer while the three took the root's permissions; where `dir /q` named an
+owner other than `BUILTIN\Administrators`, `NT AUTHORITY\SYSTEM` or
+`NT SERVICE\TrustedInstaller` for one of the three, or
+`dir /q /s /a "C:\hMailServer\Bin" "C:\hMailServer\ControlPanel"` named such an
+owner for anything in them; or where step 2 took away an entry that gave anybody
+more than `(RX)`, the Users' and the service's included: a program in them may have
+been changed already. Reinstall the programs from the release into a folder only the
+administrators may change, rather than rely on the steps.
 
 Exit codes: 0 each made private or hardened, or so already (`CHECK` lines do not change
 it); 1 one could not be, and its line says why - a link somebody else controls,
