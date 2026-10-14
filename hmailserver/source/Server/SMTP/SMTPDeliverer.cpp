@@ -942,25 +942,29 @@ namespace HM
    {
       AntiVirusConfiguration &antiVirusConfig = Configuration::Instance()->GetAntiVirusConfiguration();
 
+      // Every recipient of the message is sent the "message deleted" notice
+      // (SMTPVirusNotifier, VIRUS_NOTIFICATION).
+      auto notifyEveryRecipient = [&pMessage]()
+      {
+         // owned by this call: the recipients of the message this delivery holds
+         std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients = pMessage->GetRecipients()->GetVector();
+         auto iterRecipient = vecRecipients.begin();
+
+         while (iterRecipient != vecRecipients.end())
+         {
+            SMTPVirusNotifier::CreateMessageDeletedNotification(pMessage, (*iterRecipient)->GetAddress());
+
+            iterRecipient++;
+         }
+      };
+
       if (antiVirusConfig.AVAction() == AntiVirusConfiguration::ActionDelete)
       {
          // The message should be deleted.
 
          // Should we notify the recipient?
          if (antiVirusConfig.AVNotifyReceiver())
-         {
-            // Notify every receiver of the email.
-            // owned by this call: the recipients of the message this delivery holds
-            std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients = pMessage->GetRecipients()->GetVector();
-            auto iterRecipient = vecRecipients.begin();
-
-            while (iterRecipient != vecRecipients.end())
-            {
-               SMTPVirusNotifier::CreateMessageDeletedNotification(pMessage, (*iterRecipient)->GetAddress());
-               
-               iterRecipient++;
-            }
-         }
+            notifyEveryRecipient();
 
          if (antiVirusConfig.AVNotifySender())
             SMTPVirusNotifier::CreateMessageDeletedNotification(pMessage, pMessage->GetFromAddress());
@@ -969,7 +973,7 @@ namespace HM
             pMessage->GetID(), virusName);
 
          LOG_APPLICATION(logMessage);
-         
+
          return false; // do not continue delivery
 
       }
@@ -988,8 +992,13 @@ namespace HM
                pMessage->GetID(), virusName));
             break;
 
+         case MessageAttachmentStripper::Result::ReplacedByNotice:
+            LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: Message attachments stripped (contained virus {1}): the message was one attachment, so the notice is all that is delivered.",
+               pMessage->GetID(), virusName));
+            break;
+
          case MessageAttachmentStripper::Result::NothingToStrip:
-            LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: delivered as it is with virus {1}: the message is a single part and has no attachments to strip.",
+            LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: delivered as it is with virus {1}: the message is a single text part and has no attachments to strip. Set the anti-virus action to delete the message if such a message must not be delivered.",
                pMessage->GetID(), virusName));
             break;
 
@@ -999,9 +1008,23 @@ namespace HM
             break;
 
          case MessageAttachmentStripper::Result::LeftAloneUnreadable:
-            LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: delivered unstripped (the message could not be parsed) with virus {1}.",
+            // Nothing of the message can be kept, so it is not delivered: it is
+            // deleted, as the delete action deletes it. Deleted rather than held
+            // for another try: a message that could not be read now is no more
+            // readable on a later pass, and a hold would end in a return to its
+            // sender, which on virus mail is an address the sender forged.
+            //
+            // The recipients are told in place of the note this action puts in
+            // the messages it delivers, as the delete action tells them when its
+            // notices are on; the sender is not, as this action never tells the
+            // sender. The two notice settings are the delete action's, and the
+            // Control Panel says so beside them.
+            notifyEveryRecipient();
+
+            LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: Message will be deleted (contained virus {1}): the message could not be read, so its attachments could not be stripped. Its recipients are sent the message-deleted notice in place of the note.",
                pMessage->GetID(), virusName));
-            break;
+
+            return false; // do not continue delivery
          }
 
          return true; // continue delivery

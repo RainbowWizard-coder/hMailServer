@@ -41,11 +41,18 @@ namespace HM
       // returns nothing and it returns below without touching the file - so the outcome
       // was accidentally safe rather than deliberately so, and it depended on
       // FindFirstPart's behaviour rather than on the load having worked. Say so instead.
+      //
+      // A message that cannot be read has no text that can be picked out of it, so
+      // nothing of it can be kept: the file is not rewritten, and the caller deletes
+      // the message (SMTPDeliverer::HandleInfectedMessage_) as the "delete the
+      // message" action does. The file is unreadable here because it could not be
+      // opened - another program holds it, or has moved it away - or because its
+      // parse failed.
       MimeBody oMimeMessage;
 
       if (oMimeMessage.LoadFromFile(fileName) != MimeLoadResult::Loaded)
       {
-         LOG_APPLICATION(Formatter::Format("The message {0} could not be read, so its attachments have not been stripped. The message has been left exactly as it was.", fileName));
+         LOG_APPLICATION(Formatter::Format("The message {0} could not be read, so its attachments could not be stripped and no part of it can be kept.", fileName));
          return Result::LeftAloneUnreadable;
       }
 
@@ -93,11 +100,36 @@ namespace HM
 
       if (!oMimeMessage.IsMultiPart())
       {
-         // A single-part message has no attachment to remove: its one part is
-         // the message. This returned silently before, and the caller then
-         // logged that the attachments had been stripped. Nothing is rewritten;
-         // the caller now says so.
-         return Result::NothingToStrip;
+         // A single-part message is either its text or something attached, and
+         // the same question as for a part of a multipart message tells which
+         // (IsGoodTextPart_, which asks MimeBody::IsAttachment): a part whose
+         // disposition is "attachment" - or "inline" with a file name - or whose
+         // main type is not text, is an attachment wherever it stands.
+         //
+         // Text has no attachment to remove: nothing is rewritten, and the
+         // caller says so. The text of a multipart message is kept in the same
+         // way below.
+         if (IsGoodTextPart_(oMimeMessage))
+            return Result::NothingToStrip;
+
+         // The one part is the attachment, so removing every attachment leaves
+         // the header and the notice, as for a multipart message with no text
+         // part. The header's Content- fields describe the part removed - its
+         // encoding, its file name - and none of them describes the notice, so
+         // they go too: a Content-Transfer-Encoding left behind would have the
+         // notice decoded as that encoding, and a Content-Disposition would show
+         // it as the file.
+         WriteToDisk_(pMessage, oMimeMessage, std::shared_ptr<MimeBody>(), true);
+
+         // As for a multipart message below: a label the body does not bear out
+         // is said to have been disbelieved.
+         if (SealedMessage::IsOpaqueContentType(contentType))
+         {
+            LOG_APPLICATION(Formatter::Format("Message {0} is labelled encrypted ({1}) but its body is not an encrypted message, so it has been replaced by the notice as any other message that is one attachment is.",
+               pMessage->GetID(), contentType));
+         }
+
+         return Result::ReplacedByNotice;
       }
 
       // The text to keep. text/plain is preferred wherever it is in the tree,
@@ -124,7 +156,7 @@ namespace HM
       // infected one as often as not. Now that the comparison is right, no text
       // part is a real outcome, and returning here would deliver the message
       // whole. So it is stripped to nothing: the header, the notice, and no body.
-      WriteToDisk_(pMessage, oMimeMessage, pBody);
+      WriteToDisk_(pMessage, oMimeMessage, pBody, false);
 
       if (SealedMessage::IsOpaqueContentType(contentType))
       {
@@ -164,7 +196,7 @@ namespace HM
             continue;
          }
 
-         if (!IsGoodTextPart_(part))
+         if (!IsGoodTextPart_(*part))
             continue;
 
          if (subType.IsEmpty() || String(part->GetSubType()).CompareNoCase(subType) == 0)
@@ -175,7 +207,7 @@ namespace HM
    }
 
    void
-   MessageAttachmentStripper::WriteToDisk_(std::shared_ptr<Message> pMessage, MimeBody &oMainMessage, std::shared_ptr<MimeBody> pBody)
+   MessageAttachmentStripper::WriteToDisk_(std::shared_ptr<Message> pMessage, MimeBody &oMainMessage, std::shared_ptr<MimeBody> pBody, bool bodyWasThePart)
    {
       // A null body is now a caller's decision rather than a mistake: it means
       // "this message has no text part to keep", and what is written is the
@@ -192,6 +224,14 @@ namespace HM
          MimeField oField = (*iterField);
 
          AnsiString sName = oField.GetName();
+
+         // Every Content- field of a single-part message - its type, encoding,
+         // disposition, description, ID, digest - is about the part this
+         // replaces with the notice. For a multipart message the type alone is
+         // left out, as before: the rest describe the whole message.
+         // (AnsiString::StartsWith compares without case.)
+         const bool describesTheRemovedPart = bodyWasThePart && sName.StartsWith("content-");
+
          if (sName.CompareNoCase("subject") == 0)
          {
             String sTextVirusFound = Configuration::Instance()->GetServerMessages()->GetMessage("VIRUS_FOUND");
@@ -201,7 +241,7 @@ namespace HM
             sHeader += oField.GetValue();
             sHeader += "\r\n";
          }
-         else if (sName.CompareNoCase("content-type") != 0)
+         else if (sName.CompareNoCase("content-type") != 0 && !describesTheRemovedPart)
          {
             sHeader += sName;
             sHeader += ": ";
@@ -231,11 +271,8 @@ namespace HM
 
 
    bool
-   MessageAttachmentStripper::IsGoodTextPart_(std::shared_ptr<MimeBody> pBody)
+   MessageAttachmentStripper::IsGoodTextPart_(const MimeBody &body)
    {
-      if (!pBody)
-         return false;
-
       // Two mistakes in one line, and they cancelled into "yes" for every part.
       //
       // CompareNoCase returns 0 when the strings are EQUAL, so `if (compare)`
@@ -253,10 +290,10 @@ namespace HM
       // part that is declared an attachment - a .txt file, or an inline part
       // with a file name - is something attached, not the message's text, and
       // keeping it would make the stripped message read as that file.
-      if (pBody->IsAttachment())
+      if (body.IsAttachment())
          return false;
 
-      String sMainType = pBody->GetMainType();
+      String sMainType = body.GetMainType();
 
       return sMainType.CompareNoCase(_T("text")) == 0;
    }

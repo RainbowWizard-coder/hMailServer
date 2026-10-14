@@ -1338,6 +1338,21 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   listed name written in double-struck letters and one written with `&uuml;`, and finds each tagged
   ([SenderListsAndDigests.md](hmailserver/docs/SenderListsAndDigests.md)).
 
+- **The anti-virus action *Remove all attachments and deliver the text* replaces a message that is one attachment
+  with its note, and deletes a message it cannot read.** A message whose one part is not its text - a file, a message
+  carried whole, or a text file declared an attachment, which are attachments as a part of a multipart message is one
+  (`MimeBody::IsAttachment`) - is rewritten as a message with no text part is: its header, the subject marked with the
+  server's *VIRUS_FOUND* text, and the *VIRUS_ATTACHMENT_REMOVED* note with nothing after it, the part's own
+  `Content-` fields left out with the part, so that the note reads as text. A message the stripper cannot read - its
+  file held by another program or gone, or its parse failed - has nothing in it that can be kept, and is deleted, as
+  *Delete the whole message* deletes it: each of its recipients is sent the "message deleted" notice
+  (*VIRUS_NOTIFICATION*) in place of the note, whatever the two notice settings say, and its sender is not told, as
+  this action never tells the sender. A message that is one text part is delivered as it is, having no attachment to
+  remove, and so is an encrypted one; the application log says which of these each message was.
+  `AntiVirus/StripAction.cs` delivers a message that is one attachment in four shapes and one that is one text part,
+  and holds a message's file while the stripper reads it
+  ([SealedMail.md](hmailserver/docs/SealedMail.md), "The "delete attachments" anti-virus action").
+
 ### Control Panel
 
 - **Fixed: "Restart the service" waited a fixed 60 seconds for a stop the server gives ShutdownDrainSeconds plus 90,

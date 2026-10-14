@@ -18,15 +18,18 @@ namespace HM
       virtual ~MessageAttachmentStripper();
 
       // What Strip did, so that the caller can log what happened rather than
-      // what it asked for. Strip is called after a scanner has found a virus,
-      // and every value here except Stripped means the message was delivered
-      // still carrying it.
+      // what it asked for, and so that it can decide what happens next. Strip
+      // is called after a scanner has found a virus. NothingToStrip and
+      // LeftAloneEncrypted mean the message goes on still carrying it;
+      // LeftAloneUnreadable means nothing in it could be kept, and the caller
+      // does not deliver it.
       enum class Result
       {
          Stripped,             // rewritten as its text part plus the notice
-         NothingToStrip,       // a single-part message: there is no attachment to remove
+         ReplacedByNotice,     // a single part that is not the message's text: rewritten as the notice alone
+         NothingToStrip,       // a single-part message that is its text: there is no attachment to remove
          LeftAloneEncrypted,   // encrypted end to end, so there is no part to pick out
-         LeftAloneUnreadable   // the file could not be parsed, so it was not rewritten
+         LeftAloneUnreadable   // the file could not be read, so it was not rewritten: the caller deletes it
       };
 
       // Rewrites the message as its text part plus a notice, which is what the
@@ -34,7 +37,15 @@ namespace HM
       // for through the whole MIME tree (text/plain first, then any text part),
       // so a multipart/mixed > multipart/related > multipart/alternative message
       // keeps its text. A message with no text part anywhere is stripped to the
-      // header and the notice.
+      // header and the notice, and so is a message of one part that is not its
+      // text - a file, an encapsulated message, a text file declared an
+      // attachment - since that part is the attachment.
+      //
+      // A message of one part that IS its text has nothing to remove, and is
+      // left as it is (NothingToStrip), as an infected text part of a multipart
+      // message is kept. A message that cannot be read is not rewritten either
+      // (LeftAloneUnreadable): nothing of it can be kept, so the caller deletes
+      // it rather than deliver what the scanner found.
       //
       // An ENCRYPTED message (SealedMessage::IsOpaque) is left exactly as it
       // arrived and the reason is logged: keeping one part of it hands the
@@ -47,8 +58,11 @@ namespace HM
    private:
 
       // pBody may be null, meaning "there is no text part to keep": the header
-      // and the notice are written and the body is empty.
-      static void WriteToDisk_(std::shared_ptr<Message> pMessage, MimeBody &oMainMessage, std::shared_ptr<MimeBody> pBody);
+      // and the notice are written and the body is empty. bodyWasThePart says
+      // that the message's own header described the part removed - a
+      // single-part message - so its Content- fields, which describe that part
+      // and not the notice, are left out with Content-Type.
+      static void WriteToDisk_(std::shared_ptr<Message> pMessage, MimeBody &oMainMessage, std::shared_ptr<MimeBody> pBody, bool bodyWasThePart);
 
       // The first part under parent, at any depth up to the cap, that
       // IsGoodTextPart_ accepts and whose sub type is subType (any text sub
@@ -60,8 +74,9 @@ namespace HM
       // Content-Disposition (an attached .txt file is not the message's text).
       // It compared the whole media type against "text", with the sense of
       // CompareNoCase inverted, until 16 September 2026; the two mistakes
-      // cancelled into "true for every part".
-      static bool IsGoodTextPart_(std::shared_ptr<MimeBody> pBody);
+      // cancelled into "true for every part". Asked of a single-part message
+      // too, whose one part is the message itself.
+      static bool IsGoodTextPart_(const MimeBody &body);
    };
 
 }
