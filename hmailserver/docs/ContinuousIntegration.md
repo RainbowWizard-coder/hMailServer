@@ -428,7 +428,8 @@ as it was.
 `build/check-release-chain.py` holds each class to the jobs it names: a job takes a
 switch only when its class names it, and every job a class names takes it; nothing in
 the CI files but `variables:` sets a switch or a lane, and there at its default; a
-job of a class names no environment, `id_tokens` or `secrets`, asks for a pull policy
+job of a class names no environment, `id_tokens` or `secrets`, and `default:`, which
+every job takes, names no `id_tokens`; a job of a class asks for a pull policy
 GitLab's runners allow (`[if-not-present, always]`: they allow `always` alone, and
 fail a job that asks for `if-not-present` only), runs in a container of its class's
 architecture (the CI image is amd64 alone) and waits in its class's lane or in none;
@@ -495,7 +496,8 @@ container registries and the releases, as on the project's runners -; the CI fil
 variables and those of the GitLab templates they include (`SECRETS_ANALYZER_VERSION`,
 `SAST_EXCLUDED_PATHS` and the rest); the five identifiers and the switch of the table's
 first two rows; and `GITLAB_OBSERVABILITY_EXPORT`, which every job is given. No ID
-token: no job of a class asks for one. Until the two are scoped, they are given to
+token: no job of a class asks for one, and `default:` gives none. Until the two
+are scoped, they are given to
 it too, and `hosted-runners` fails every pipeline a switch is set for, naming each
 credential it is given and the environment to scope it to, never a value. It fails
 closed: every variable it is given is a credential to it but GitLab's own (those

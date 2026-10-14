@@ -3498,13 +3498,15 @@ def runner_class_problems(texts, script=None):
     """[problem] for each way a class of jobs a switch moves to GitLab's hosted runners
     (RUNNER_CLASSES) could take a credential there, fail there, or run where it must not:
     a classed job that names an environment (a credential scoped to it would go with
-    it), id_tokens or secrets; one that asks for a pull policy without always, which
-    GitLab's runners refuse; one of an amd64 class in an arm64 container, which they
-    cannot run, or of the arm64 class in the CI image, which is amd64 alone; one that
-    waits in a resource group other than its class's lane, or in any for a class
-    without one; a job outside a class in a class's lane; a job that boots a QEMU
-    machine without the tags that put it on server2 (KVM_JOBS); the checks of
-    HOSTED_CHECKS_FILE missing, not included, not run as HOSTED_SCRIPT runs them, not
+    it), id_tokens or secrets; .gitlab-ci.yml's default: giving every job id_tokens, or
+    taking keys by a merge key or an alias, which this does not read (no other CI file
+    may set default:, ci_override_problems); a classed job that asks for a pull policy
+    without always, which GitLab's runners refuse; one of an amd64 class in an arm64
+    container, which they cannot run, or of the arm64 class in the CI image, which is
+    amd64 alone; one that waits in a resource group other than its class's lane, or in
+    any for a class without one; a job outside a class in a class's lane; a job that
+    boots a QEMU machine without the tags that put it on server2 (KVM_JOBS); the checks
+    of HOSTED_CHECKS_FILE missing, not included, not run as HOSTED_SCRIPT runs them, not
     on linix, not asking of every switch and lane whether it is at its default, or
     compute-quota not allowed to fail; the script's classes not these; and the GitLab
     templates whose variables the script knows (TEMPLATE_GLOBALS) not the ones the CI
@@ -3575,6 +3577,19 @@ def runner_class_problems(texts, script=None):
                 problems.append("%s waits in $%s, %s's lane, and is none of its jobs: on the project's runners it waits with "
                                 "them, and with none once the owner gives each of them a lane of its own" % (
                                     name, lane.group(1), lanes[lane.group(1)]))
+            break
+    # default: gives each of its keys to every job that names none of its own - every job
+    # of a class among them - so an ID token there would go with each to GitLab's runners.
+    for line in (blocks(texts["ci"]).get("default") or "").split("\n"):
+        code = re.split(r"(?:^|\s)#", line, maxsplit=1)[0]
+        if re.search(r"""(?:^|[\s{,])["']?id_tokens["']?[ \t]*:""", code):
+            problems.append(".gitlab-ci.yml's default: says id_tokens:, which GitLab gives every job that names none of its "
+                            "own, every job of a class among them, and a switch sends those to GitLab's runners: a job that "
+                            "needs a token names it itself, and stays on the project's runners")
+            break
+        if re.search(r"""(?:^|[\s{,])["']?<<["']?[ \t]*:|:[ \t]*\*[A-Za-z0-9_.\-]""", code):
+            problems.append(".gitlab-ci.yml's default: takes keys by a merge key or an alias (%s), which this does not "
+                            "read: whether it gives every job an ID token cannot be told" % code.strip()[:60])
             break
     for name, wanted in sorted(KVM_JOBS.items()):
         found = None
@@ -5353,6 +5368,13 @@ def self_test(chain, feed):
              "  allow_failure: true\n  script:\n    - python3 build/ci/hosted-runners.py quota\n",
              "  allow_failure:\n    exit_codes: [2, 3]\n  script:\n    - python3 build/ci/hosted-runners.py quota\n",
              "compute-quota (.gitlab/ci/hosted-runners.yml) does not say allow_failure: true"),
+            ("an ID token every job is given, by default:", ".gitlab-ci.yml", "  tags: [$HM_RUNNER]\n",
+             "  tags: [$HM_RUNNER]\n  id_tokens:\n    PROBE_ID_TOKEN:\n      aud: probe\n",
+             ".gitlab-ci.yml's default: says id_tokens:"),
+            ("an ID token every job is given, by default: in flow style", ".gitlab-ci.yml", "  tags: [$HM_RUNNER]\n",
+             "  tags: [$HM_RUNNER]\n  'id_tokens': {PROBE_ID_TOKEN: {aud: probe}}\n", ".gitlab-ci.yml's default: says id_tokens:"),
+            ("default: taking keys by a merge key", ".gitlab-ci.yml", "  tags: [$HM_RUNNER]\n",
+             "  tags: [$HM_RUNNER]\n  <<: *probe-keys\n", ".gitlab-ci.yml's default: takes keys by a merge key or an alias"),
             ("a GitLab template whose variables hosted-runners does not know", ".gitlab/ci/gitlab-security.yml",
              "  - template: Jobs/Secret-Detection.gitlab-ci.yml\n",
              "  - template: Jobs/Secret-Detection.gitlab-ci.yml\n  - template: Jobs/Dependency-Scanning.gitlab-ci.yml\n",
