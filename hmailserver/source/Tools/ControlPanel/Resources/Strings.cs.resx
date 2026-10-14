@@ -2197,8 +2197,8 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Before you copy: {0}" xml:space="preserve">
     <value>Než budete kopírovat: {0}</value>
   </data>
-  <data name="Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client. The header is then required from a named proxy, and a PROXY line from anyone else closes the connection." xml:space="preserve">
-    <value>Za load balancerem se každý klient jeví, jako by přicházel od balanceru, a rozsahy IP, auto-ban i seznam zařízení účtu pak působí na balancer. Je-li tato volba zapnutá, proxy uvedená níže předá skutečnou adresu klienta v hlavičce PROXY (HAProxy: send-proxy nebo send-proxy-v2) a ty pak působí na klienta. Od uvedené proxy je pak hlavička povinná a řádek PROXY od kohokoli jiného spojení ukončí.</value>
+  <data name="Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client." xml:space="preserve">
+    <value>Za load balancerem se každý klient jeví, jako by přicházel od balanceru, a rozsahy IP, auto-ban i seznam zařízení účtu pak působí na balancer. Je-li tato volba zapnutá, proxy uvedená níže předá skutečnou adresu klienta v hlavičce PROXY (HAProxy: send-proxy nebo send-proxy-v2) a ty pak působí na klienta.</value>
   </data>
   <data name="Below the server: the firewall" xml:space="preserve">
     <value>Pod serverem: firewall</value>

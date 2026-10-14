@@ -2338,7 +2338,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "IMAPProxyProtocolEnabled",
             Label = L("Accept the PROXY protocol (v1 and v2) on the IMAP listener"),
-            Blurb = L("Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client. The header is then required from a named proxy, and a PROXY line from anyone else closes the connection.")
+            Blurb = L("Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client.")
          });
          imap.Settings.Add(new ComText
          {
@@ -2398,7 +2398,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "POP3ProxyProtocolEnabled",
             Label = L("Accept the PROXY protocol (v1 and v2) on the POP3 listener"),
-            Blurb = L("Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client. The header is then required from a named proxy, and a PROXY line from anyone else closes the connection.")
+            Blurb = L("Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client.")
          });
          pop3.Settings.Add(new ComText
          {

@@ -2167,8 +2167,8 @@ Los detalles completos se escribieron en:
   <data name="Before you copy: {0}" xml:space="preserve">
     <value>Antes de copiar: {0}</value>
   </data>
-  <data name="Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client. The header is then required from a named proxy, and a PROXY line from anyone else closes the connection." xml:space="preserve">
-    <value>Detrás de un balanceador de carga, todos los clientes parecen venir del balanceador, y los rangos de IP, el bloqueo automático y la lista de dispositivos de la cuenta actúan sobre el balanceador. Con esto activado, un proxy indicado abajo transmite la dirección real del cliente en una cabecera PROXY (HAProxy: send-proxy o send-proxy-v2), y actúan sobre el cliente. La cabecera pasa entonces a ser obligatoria desde un proxy indicado, y una línea PROXY de cualquier otro cierra la conexión.</value>
+  <data name="Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client." xml:space="preserve">
+    <value>Detrás de un balanceador de carga, todos los clientes parecen venir del balanceador, y los rangos de IP, el bloqueo automático y la lista de dispositivos de la cuenta actúan sobre el balanceador. Con esto activado, un proxy indicado abajo transmite la dirección real del cliente en una cabecera PROXY (HAProxy: send-proxy o send-proxy-v2), y actúan sobre el cliente.</value>
   </data>
   <data name="Below the server: the firewall" xml:space="preserve">
     <value>Bajo el servidor: el cortafuegos</value>

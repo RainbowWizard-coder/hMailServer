@@ -2167,8 +2167,8 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Before you copy: {0}" xml:space="preserve">
     <value>Before you copy: {0}</value>
   </data>
-  <data name="Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client. The header is then required from a named proxy, and a PROXY line from anyone else closes the connection." xml:space="preserve">
-    <value>Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client. The header is then required from a named proxy, and a PROXY line from anyone else closes the connection.</value>
+  <data name="Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client." xml:space="preserve">
+    <value>Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client.</value>
   </data>
   <data name="Below the server: the firewall" xml:space="preserve">
     <value>Below the server: the firewall</value>

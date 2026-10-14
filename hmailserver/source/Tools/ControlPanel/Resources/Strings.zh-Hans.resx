@@ -2167,8 +2167,8 @@
   <data name="Before you copy: {0}" xml:space="preserve">
     <value>在复制之前：{0}</value>
   </data>
-  <data name="Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client. The header is then required from a named proxy, and a PROXY line from anyone else closes the connection." xml:space="preserve">
-    <value>在负载均衡器后面，每个客户端看起来都来自负载均衡器，IP 范围、自动封禁和账户的设备列表都作用于负载均衡器。开启此项后，下面列出的代理会在 PROXY 标头中传递真实的客户端地址（HAProxy：send-proxy 或 send-proxy-v2），这些设置就会作用于客户端。此后要求列出的代理必须发送该标头，而来自其他任何人的 PROXY 行会关闭连接。</value>
+  <data name="Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client." xml:space="preserve">
+    <value>在负载均衡器后面，每个客户端看起来都来自负载均衡器，IP 范围、自动封禁和账户的设备列表都作用于负载均衡器。开启此项后，下面列出的代理会在 PROXY 标头中传递真实的客户端地址（HAProxy：send-proxy 或 send-proxy-v2），这些设置就会作用于客户端。</value>
   </data>
   <data name="Below the server: the firewall" xml:space="preserve">
     <value>服务器之下：防火墙</value>

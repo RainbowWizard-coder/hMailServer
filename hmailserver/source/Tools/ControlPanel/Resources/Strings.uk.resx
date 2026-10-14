@@ -2197,8 +2197,8 @@
   <data name="Before you copy: {0}" xml:space="preserve">
     <value>Перш ніж копіювати: {0}</value>
   </data>
-  <data name="Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client. The header is then required from a named proxy, and a PROXY line from anyone else closes the connection." xml:space="preserve">
-    <value>За балансувальником навантаження кожен клієнт виглядає так, ніби підключається з балансувальника, і діапазони IP, автоблокування та список пристроїв облікового запису діють на балансувальник. Якщо цей параметр увімкнено, проксі, перелічений нижче, передає справжню адресу клієнта в заголовку PROXY (HAProxy: send-proxy або send-proxy-v2), і вони діють на клієнта. Тоді від переліченого проксі заголовок обов’язковий, а рядок PROXY від будь-кого іншого закриває підключення.</value>
+  <data name="Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client." xml:space="preserve">
+    <value>За балансувальником навантаження кожен клієнт виглядає так, ніби підключається з балансувальника, і діапазони IP, автоблокування та список пристроїв облікового запису діють на балансувальник. Якщо цей параметр увімкнено, проксі, перелічений нижче, передає справжню адресу клієнта в заголовку PROXY (HAProxy: send-proxy або send-proxy-v2), і вони діють на клієнта.</value>
   </data>
   <data name="Below the server: the firewall" xml:space="preserve">
     <value>Нижче сервера: брандмауер</value>

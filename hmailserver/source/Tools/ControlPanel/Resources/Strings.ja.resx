@@ -2178,8 +2178,8 @@
   <data name="Before you copy: {0}" xml:space="preserve">
     <value>コピーする前に: {0}</value>
   </data>
-  <data name="Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client. The header is then required from a named proxy, and a PROXY line from anyone else closes the connection." xml:space="preserve">
-    <value>ロード バランサーの背後では、すべてのクライアントがバランサーから来ているように見え、IP 範囲、自動ブロック、アカウントのデバイス一覧はバランサーに対して働きます。これを有効にすると、下に指定したプロキシが PROXY ヘッダー (HAProxy: send-proxy または send-proxy-v2) で本当のクライアント アドレスを伝え、それらはクライアントに対して働きます。その場合、指定したプロキシからはヘッダーが必須になり、それ以外の相手からの PROXY 行は接続を閉じます。</value>
+  <data name="Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client." xml:space="preserve">
+    <value>ロード バランサーの背後では、すべてのクライアントがバランサーから来ているように見え、IP 範囲、自動 BAN、アカウントのデバイス一覧はバランサーに対して働きます。これを有効にすると、下に指定したプロキシが PROXY ヘッダー (HAProxy: send-proxy または send-proxy-v2) で本当のクライアント アドレスを伝え、それらはクライアントに対して働きます。</value>
   </data>
   <data name="Below the server: the firewall" xml:space="preserve">
     <value>サーバーの下層: ファイアウォール</value>

@@ -2167,8 +2167,8 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Before you copy: {0}" xml:space="preserve">
     <value>Bevor Sie kopieren: {0}</value>
   </data>
-  <data name="Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client. The header is then required from a named proxy, and a PROXY line from anyone else closes the connection." xml:space="preserve">
-    <value>Hinter einem Load Balancer scheint jeder Client vom Load Balancer zu kommen, und die IP-Bereiche, der Auto-Bann und die Geräteliste des Kontos wirken auf den Load Balancer. Ist dies eingeschaltet, reicht ein unten eingetragener Proxy die echte Client-Adresse in einem PROXY-Header weiter (HAProxy: send-proxy oder send-proxy-v2), und sie wirken auf den Client. Von einem eingetragenen Proxy wird der Header dann verlangt, und eine PROXY-Zeile von jedem anderen schließt die Verbindung.</value>
+  <data name="Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client." xml:space="preserve">
+    <value>Hinter einem Load Balancer scheint jeder Client vom Load Balancer zu kommen, und die IP-Bereiche, der Auto-Bann und die Geräteliste des Kontos wirken auf den Load Balancer. Ist dies eingeschaltet, reicht ein unten eingetragener Proxy die echte Client-Adresse in einem PROXY-Header weiter (HAProxy: send-proxy oder send-proxy-v2), und sie wirken auf den Client.</value>
   </data>
   <data name="Below the server: the firewall" xml:space="preserve">
     <value>Unterhalb des Servers: die Firewall</value>

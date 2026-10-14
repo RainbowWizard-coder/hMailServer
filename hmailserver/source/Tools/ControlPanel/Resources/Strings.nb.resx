@@ -2167,8 +2167,8 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Before you copy: {0}" xml:space="preserve">
     <value>Før du kopierer: {0}</value>
   </data>
-  <data name="Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client. The header is then required from a named proxy, and a PROXY line from anyone else closes the connection." xml:space="preserve">
-    <value>Bak en lastbalanserer ser hver klient ut til å komme fra lastbalansereren, og IP-områdene, den automatiske blokkeringen og kontoens liste over enheter virker på lastbalansereren. Når dette er på, sender en proxy som er oppført nedenfor, den reelle klientadressen videre i en PROXY-header (HAProxy: send-proxy eller send-proxy-v2), og de virker på klienten. Headeren er da påkrevd fra en oppført proxy, og en PROXY-linje fra hvem som helst annen lukker forbindelsen.</value>
+  <data name="Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client." xml:space="preserve">
+    <value>Bak en lastbalanserer ser hver klient ut til å komme fra lastbalansereren, og IP-områdene, den automatiske blokkeringen og kontoens liste over enheter virker på lastbalansereren. Når dette er på, sender en proxy som er oppført nedenfor, den reelle klientadressen videre i en PROXY-header (HAProxy: send-proxy eller send-proxy-v2), og de virker på klienten.</value>
   </data>
   <data name="Below the server: the firewall" xml:space="preserve">
     <value>Under serveren: brannmuren</value>

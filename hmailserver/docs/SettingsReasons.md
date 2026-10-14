@@ -28,6 +28,13 @@ folder - which a restored or hand-edited database can do - the folder issues a U
 has already used, and a client that caches by UID shows one message where another
 should be.
 
+*Accept the PROXY protocol (v1 and v2) on the IMAP listener*, and *on the POP3 listener.* With it on, the
+header is required from a named proxy, and a PROXY line from anyone else closes the connection.
+
+*Proxies allowed to send a PROXY header*, on the IMAP and POP3 cards. Each is matched against the real TCP
+peer. An entry that does not parse matches nothing rather than everything, and is reported in the error log once
+per run.
+
 *ManageSieve (RFC 5804).* STARTTLS is offered only when a TLS-capable mailbox port
 has a certificate to borrow - the status on the card says whether it will be.
 

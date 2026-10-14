@@ -2197,8 +2197,8 @@ Control Panel может читать файлы сообщений только
   <data name="Before you copy: {0}" xml:space="preserve">
     <value>Прежде чем копировать: {0}</value>
   </data>
-  <data name="Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client. The header is then required from a named proxy, and a PROXY line from anyone else closes the connection." xml:space="preserve">
-    <value>За балансировщиком нагрузки каждый клиент выглядит так, будто подключается с балансировщика, и диапазоны IP, автоблокировка и список устройств учётной записи действуют на балансировщик. Если этот параметр включён, указанный ниже прокси передаёт настоящий адрес клиента в заголовке PROXY (HAProxy: send-proxy или send-proxy-v2), и они действуют на клиента. Тогда от указанного прокси заголовок обязателен, а строка PROXY от любого другого собеседника закрывает подключение.</value>
+  <data name="Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client." xml:space="preserve">
+    <value>За балансировщиком нагрузки каждый клиент выглядит так, будто подключается с балансировщика, и диапазоны IP, автоблокировка и список устройств учётной записи действуют на балансировщик. Если этот параметр включён, указанный ниже прокси передаёт настоящий адрес клиента в заголовке PROXY (HAProxy: send-proxy или send-proxy-v2), и они действуют на клиента.</value>
   </data>
   <data name="Below the server: the firewall" xml:space="preserve">
     <value>Ниже сервера: межсетевой экран</value>

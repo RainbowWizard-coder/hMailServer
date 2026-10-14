@@ -2167,8 +2167,8 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Before you copy: {0}" xml:space="preserve">
     <value>Antes de copiar: {0}</value>
   </data>
-  <data name="Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client. The header is then required from a named proxy, and a PROXY line from anyone else closes the connection." xml:space="preserve">
-    <value>Atrás de um balanceador de carga, todo cliente parece vir do balanceador, e as faixas de IP, o banimento automático e a lista de dispositivos da conta agem sobre o balanceador. Com isto ligado, um proxy listado abaixo repassa o endereço real do cliente em um cabeçalho PROXY (HAProxy: send-proxy ou send-proxy-v2), e eles agem sobre o cliente. O cabeçalho passa então a ser obrigatório vindo de um proxy listado, e uma linha PROXY vinda de qualquer outro fecha a conexão.</value>
+  <data name="Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client." xml:space="preserve">
+    <value>Atrás de um balanceador de carga, todo cliente parece vir do balanceador, e as faixas de IP, o banimento automático e a lista de dispositivos da conta agem sobre o balanceador. Com isto ligado, um proxy listado abaixo repassa o endereço real do cliente em um cabeçalho PROXY (HAProxy: send-proxy ou send-proxy-v2), e eles agem sobre o cliente.</value>
   </data>
   <data name="Below the server: the firewall" xml:space="preserve">
     <value>Abaixo do servidor: o firewall</value>

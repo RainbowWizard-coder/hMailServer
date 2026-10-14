@@ -2167,8 +2167,8 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Before you copy: {0}" xml:space="preserve">
     <value>Ennen kopiointia: {0}</value>
   </data>
-  <data name="Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client. The header is then required from a named proxy, and a PROXY line from anyone else closes the connection." xml:space="preserve">
-    <value>Kuormantasaajan takana jokainen asiakas näyttää tulevan kuormantasaajalta, ja IP-alueet, automaattinen esto ja tilin laiteluettelo kohdistuvat kuormantasaajaan. Kun tämä on päällä, alla nimetty välityspalvelin välittää asiakkaan todellisen osoitteen PROXY-otsakkeessa (HAProxy: send-proxy tai send-proxy-v2), ja ne kohdistuvat asiakkaaseen. Otsake on tällöin pakollinen nimetyltä välityspalvelimelta, ja PROXY-rivi keneltä tahansa muulta sulkee yhteyden.</value>
+  <data name="Behind a load balancer every client appears to come from the balancer, and the IP ranges, the auto-ban and the account's list of devices act on the balancer. With this on, a proxy named below passes on the real client's address in a PROXY header (HAProxy: send-proxy or send-proxy-v2), and they act on the client." xml:space="preserve">
+    <value>Kuormantasaajan takana jokainen asiakas näyttää tulevan kuormantasaajalta, ja IP-alueet, automaattinen esto ja tilin laiteluettelo kohdistuvat kuormantasaajaan. Kun tämä on päällä, alla nimetty välityspalvelin välittää asiakkaan todellisen osoitteen PROXY-otsakkeessa (HAProxy: send-proxy tai send-proxy-v2), ja ne kohdistuvat asiakkaaseen.</value>
   </data>
   <data name="Below the server: the firewall" xml:space="preserve">
     <value>Palvelimen alla: palomuuri</value>
