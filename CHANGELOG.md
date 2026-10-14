@@ -5561,48 +5561,55 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   (RFC 6855), and is accepted there. The mode still changes nothing in what is sent, a message going out as it is
   stored with `UTF8` or without, and RFC 6856's downgrade for a client that never sends `UTF8` (a surrogate message,
   or a refusal, for a message with UTF-8 in its header fields) is not done (Roadmap.md, POP3).
-- **Fixed: the webmail's S/MIME import could answer a wrong password with "Could not import: DER: bad length", and
-  never read a PKCS#12's MAC, so that a file in which nothing is encrypted imported with any password.** The page
-  decrypts an imported key or PKCS#12 in the browser with PBES2 - PBKDF2, then AES-CBC - and AES-CBC tells no more of
-  a password than whether the padding of the last block checks out, which a wrong password's does about one time in
-  255. What it then decrypted to, noise, was read as a key whenever its first DER element read, and as a safe always,
-  and the import failed on it with "DER: bad length", "DER: length past the end" or the like, which said nothing of
-  the password: 26 wrong passwords in 12,000 for an encrypted PEM key, and 12 in 3,000 for OpenSSL's PKCS#12 files, in
-  the release review's count. A wrong password for an AES-encrypted PEM key, or for a PKCS#12 whose safes are
-  encrypted with AES, is now named as one every time. A decrypted key is taken only when it is a PrivateKeyInfo - one
-  SEQUENCE over all of what was decrypted that starts with a version, an algorithm and the key - and a decrypted safe
-  only when it is a SafeContents. A PKCS#12's MAC (RFC 7292) is checked before any safe is decrypted, with the
-  password as the MAC takes it - UTF-16 with two zero bytes on the end; for an empty password also no bytes, and for
-  one that is not ASCII also the form OpenSSL wrote before 1.1.0 - so that a wrong password is told for certain
-  wherever the page can compute the MAC, whatever the safes: a file in which nothing is encrypted, which imported with
-  any password, now takes only the one its MAC was made with, and a legacy (3DES or RC2) file answers a wrong password
-  "wrong password" and the right one with its advice to export the file again with AES, where both had the advice; and
-  a file whose MAC was made with another password than its AES-encrypted safes (`openssl pkcs12 -twopass`), which
-  imported with the safes' password, is now refused as a wrong password with either, as OpenSSL refuses it without
-  both. A MAC the page cannot read or compute - RFC 9579's PBMAC1, a hash Web Crypto lacks (SHA-224, SHA-512/256),
-  more than 1,000,000 iterations - is passed over, as a file with no MAC is: the shape of what each encrypted safe and
-  key decrypts to then tells a wrong password, and a file in which nothing is encrypted still imports with any
-  password, since nothing in it is secret. A wrong key was never imported, and unlocking a stored key, under AES-GCM,
-  was never affected. The MAC was checked against PKCS#12 files from OpenSSL 3.2 (SHA-1, SHA-256, SHA-384 and SHA-512,
-  1 to 1,000,000 iterations, an empty password and one with an accented letter, a euro sign and an emoji), from .NET's
-  `Pkcs12Builder` and from Windows' own export (AES256-SHA256 and TripleDES-SHA1), in Node 24 and in Chrome, where
-  2,048 iterations take a few milliseconds and 600,000 two seconds. The same chance failed the `harnesses` job's
-  `build/check-portal-smime.js` about one pipeline in 500, with "a wrong password is named: DER: bad length" (pipeline
-  2944202315), and `release` needs that job. The harness now also names a PKCS#12's wrong password, and makes certain
-  of the one time in 255, in the shape of `check-portal-openpgp.js`'s one time in 256: an OpenSSL-made encrypted key,
-  encrypted safe and shrouded key, each with its ciphertext rewritten in place so that the wrong password really does
-  decrypt it, padding and all, to noise - one DER element and then anything, a SEQUENCE that ends early, a SEQUENCE
-  that holds no key - beside PKCS#12 files with clear safes, with no MAC, with an empty password and with one that is
-  not ASCII, all made afresh by `build/make-smime-fixtures.sh`. It also holds the MAC's other forms of a password, and
-  the MACs the page passes over, with the clear file's MAC made again by the harness's own RFC 7292 derivation: over
-  no bytes for an empty password, and over a password's UTF-8 bytes widened as OpenSSL wrote them before 1.1.0, both
-  of which OpenSSL's own import takes, each importing with its password and naming a wrong one; and a count past
-  1,000,000, beside OpenSSL's files with a MAC by SHA-224 and, from OpenSSL 3.4, by PBMAC1, each passed over; and a
-  legacy file's wrong password. Against 6.3.6's module 9 of its 105 checks fail (106 where OpenSSL makes the PBMAC1
-  file); with the key's check cut to one SEQUENCE over all of what was decrypted, or without the safe's, one does
-  (without the key's check at all, four), without the MAC's check, four, and without its no-bytes form, its widened
-  form, its pass-over of a hash Web Crypto lacks or its bound, only the checks that hold that branch: one each, and
-  for the pass-over two where the PBMAC1 file is made.
+- **Fixed: the webmail's S/MIME import could answer a wrong password with "Could not import: DER: bad length", never
+  read a PKCS#12's MAC, so that a file in which nothing is encrypted imported with any password, and could not import
+  an encrypted key in DER.** The page decrypts an imported key or PKCS#12 in the browser with PBES2 - PBKDF2, then
+  AES-CBC - and AES-CBC tells no more of a password than whether the padding of the last block checks out, which a
+  wrong password's does about one time in 255. What it then decrypted to, noise, was read as a key whenever its first
+  DER element read, and as a safe always, and the import failed on it with "DER: bad length", "DER: length past the
+  end" or the like, which said nothing of the password: 26 wrong passwords in 12,000 for an encrypted PEM key, and 12
+  in 3,000 for OpenSSL's PKCS#12 files, in the release review's count. A wrong password for an AES-encrypted key, PEM
+  or DER, or for a PKCS#12 whose safes are encrypted with AES, is now named as one every time. A decrypted key is
+  taken only when it is a PrivateKeyInfo - one SEQUENCE over all of what was decrypted that starts with a version, an
+  algorithm and the key - and a decrypted safe only when it is a SafeContents. A PKCS#12's MAC (RFC 7292) is checked
+  before any safe is decrypted, with the password as the MAC takes it - UTF-16 with two zero bytes on the end; for an
+  empty password also no bytes, and for one that is not ASCII also the form OpenSSL wrote before 1.1.0 - so that a
+  wrong password is told for certain wherever the page can compute the MAC, whatever the safes: a file in which
+  nothing is encrypted, which imported with any password, now takes only the one its MAC was made with, and a legacy
+  (3DES or RC2) file answers a wrong password "wrong password" and the right one with its advice to export the file
+  again with AES, where both had the advice; and a file whose MAC was made with another password than its
+  AES-encrypted safes (`openssl pkcs12 -twopass`), which imported with the safes' password, is now refused as a wrong
+  password with either, as OpenSSL refuses it without both. A MAC the page cannot read or compute - RFC 9579's PBMAC1,
+  a hash Web Crypto lacks (SHA-224, SHA-512/256), more than 1,000,000 iterations - is passed over, as a file with no
+  MAC is: the shape of what each encrypted safe and key decrypts to then tells a wrong password, and a file in which
+  nothing is encrypted still imports with any password, since nothing in it is secret. A wrong key was never imported,
+  and unlocking a stored key, under AES-GCM, was never affected. An encrypted key in DER - an EncryptedPrivateKeyInfo,
+  the .p8, .der or .key file that `openssl pkcs8 -topk8 -outform DER` writes - was read as a certificate, since it
+  starts with a SEQUENCE as a certificate does, and answered "Could not import: Cannot read properties of undefined
+  (reading 'content')" for its password and for any other; it is now told by its two elements, where a certificate has
+  three, and decrypted as a PEM key is, so that a wrong password is named and the right one gives the key (alone, it
+  holds no certificate, and the page says so, as for a clear key). The MAC was checked against PKCS#12 files from
+  OpenSSL 3.2 (SHA-1, SHA-256, SHA-384 and SHA-512, 1 to 1,000,000 iterations, an empty password and one with an
+  accented letter, a euro sign and an emoji), from .NET's `Pkcs12Builder` and from Windows' own export (AES256-SHA256
+  and TripleDES-SHA1), in Node 24 and in Chrome, where 2,048 iterations take a few milliseconds and 600,000 two
+  seconds. The same chance failed the `harnesses` job's `build/check-portal-smime.js` about one pipeline in 500, with
+  "a wrong password is named: DER: bad length" (pipeline 2944202315), and `release` needs that job. The harness now
+  also names a PKCS#12's wrong password, and makes certain of the one time in 255, in the shape of
+  `check-portal-openpgp.js`'s one time in 256: an OpenSSL-made encrypted key, encrypted safe and shrouded key, each
+  with its ciphertext rewritten in place so that the wrong password really does decrypt it, padding and all, to noise -
+  one DER element and then anything, a SEQUENCE that ends early, a SEQUENCE that holds no key - beside PKCS#12 files
+  with clear safes, with no MAC, with an empty password and with one that is not ASCII, all made afresh by
+  `build/make-smime-fixtures.sh`. It also holds the MAC's other forms of a password, and the MACs the page passes
+  over, with the clear file's MAC made again by the harness's own RFC 7292 derivation: over no bytes for an empty
+  password, and over a password's UTF-8 bytes widened as OpenSSL wrote them before 1.1.0, both of which OpenSSL's own
+  import takes, each importing with its password and naming a wrong one; and a count past 1,000,000, beside OpenSSL's
+  files with a MAC by SHA-224 and, from OpenSSL 3.4, by PBMAC1, each passed over; a legacy file's wrong password; and
+  an encrypted key in DER, with its password, a wrong one and the one time in 255 made certain, beside a DER
+  certificate. Against 6.3.6's module 12 of its 109 checks fail (110 where OpenSSL makes the PBMAC1 file); with the
+  key's check cut to one SEQUENCE over all of what was decrypted, or without the safe's, one does (without the key's
+  check at all, five), without the DER key's reading, three, without the MAC's check, four, and without its no-bytes
+  form, its widened form, its pass-over of a hash Web Crypto lacks or its bound, only the checks that hold that
+  branch: one each, and for the pass-over two where the PBMAC1 file is made.
 
 ### Operations
 

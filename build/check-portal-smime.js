@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 // Runs the page's S/MIME module (PortalSmime.js) in Node against fixtures
-// OpenSSL made - certificates, keys in three forms, PKCS#12 files with right
+// OpenSSL made - certificates, keys in four forms, PKCS#12 files with right
 // and wrong passwords, messages signed detached, opaque and by an EC key,
 // messages encrypted with AES-256 and AES-128, one signed then encrypted, one
 // tampered with - and hands what the module signs and encrypts to OpenSSL to
@@ -351,6 +351,26 @@ async function importedAs(bytes, password) {
   }
   const der8 = await smime.importAny(read('alice-key.p8'), '');
   check(der8.keys.length === 1 && smime.keyMatchesCertificate(der8.keys[0].key, alice), 'DER PKCS#8 imported');
+  // An encrypted key in DER, as openssl pkcs8 -topk8 -outform DER writes it:
+  // until 6.3.7 it was read as a certificate, and any password was answered
+  // "Cannot read properties of undefined (reading 'content')". Then the one
+  // time in 255 made certain for it, as for the PEM key above, and a DER
+  // certificate, which must not be taken for one.
+  let der8Encrypted;
+  try { der8Encrypted = await smime.importAny(read('alice-key-encrypted.p8'), PASSWORD); } catch (e) { der8Encrypted = { keys: [], error: e.message }; }
+  check(der8Encrypted.keys.length === 1 && smime.keyMatchesCertificate(der8Encrypted.keys[0].key, alice), 'a PBES2-encrypted DER PKCS#8 imported with the password' + (der8Encrypted.error ? ': ' + der8Encrypted.error : ''));
+  const der8Wrong = await messageOf(smime.importAny(read('alice-key-encrypted.p8'), 'nope'));
+  check(der8Wrong === 'wrong password', 'and a wrong one is named: ' + der8Wrong);
+  const der8Forged = read('alice-key-encrypted.p8');
+  const der8Parts = smime.derChildren(smime.derRead(der8Forged));
+  const der8Noise = noiseLeadingElement(der8Parts[1].content.length - 1);
+  const der8Decrypted = forgePbes2(der8Parts[0], der8Parts[1], 'nope', der8Noise);
+  const der8Said = await messageOf(smime.importAny(der8Forged, 'nope'));
+  check(Buffer.compare(der8Decrypted, der8Noise) === 0 && der8Said === 'wrong password', 'a wrong password that its padding lets through, to noise, is named: ' + der8Said);
+  let derCertificate;
+  try { derCertificate = await smime.importAny(read('alice.der'), ''); } catch (e) { derCertificate = { keys: [], certificates: [], error: e.message }; }
+  check(derCertificate.keys.length === 0 && derCertificate.certificates.length === 1 && derCertificate.certificates[0].serialHex === alice.serialHex,
+    'a DER certificate imports as a certificate' + (derCertificate.error ? ': ' + derCertificate.error : ''));
   const pemCert = await smime.importAny(read('alice.pem'), '');
   check(pemCert.certificates.length === 1 && pemCert.keys.length === 0, 'a PEM certificate alone imports');
   const erinKey = (await smime.importAny(read('erin-key.pem'), '')).keys[0].key;

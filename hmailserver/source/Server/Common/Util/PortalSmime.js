@@ -685,8 +685,8 @@
   }
 
   // Whatever a user gives: PEM (keys clear or encrypted, certificates), a
-  // PKCS#12, a DER certificate or a DER PKCS#8. Answers the keys with their
-  // certificates and every other certificate.
+  // PKCS#12, a DER certificate or a DER PKCS#8, clear or encrypted. Answers
+  // the keys with their certificates and every other certificate.
   async function importAny(bytes, password) {
     const out = { keys: [], certificates: [] };
     if (looksLikePem(bytes)) {
@@ -706,6 +706,14 @@
     let top;
     try { top = derRead(bytes); } catch (e) { throw new Error('not PEM, PKCS#12 or DER'); }
     const kids = derChildren(top);
+    // An encrypted PKCS#8 (EncryptedPrivateKeyInfo, RFC 5958) is its algorithm
+    // and the ciphertext as an OCTET STRING, two elements where a certificate
+    // has three; it is decrypted as a PEM one is, so that a wrong password is
+    // named one.
+    if (kids.length === 2 && kids[0].tag === TAG.SEQ && (kids[1].tag === TAG.OCTET || kids[1].tag === (TAG.OCTET | 0x20))) {
+      out.keys.push({ key: await importPrivateKey(await decryptPkcs8(bytes, password || '')), certificate: null });
+      return out;
+    }
     // A certificate starts with a SEQUENCE (the TBS); a PKCS#12 and a PKCS#8 with an INTEGER version.
     if (kids.length && kids[0].tag === TAG.SEQ) { out.certificates.push(parseCertificate(bytes)); return out; }
     if (kids.length >= 2 && kids[1].tag === TAG.SEQ && derChildren(kids[1])[0].tag === TAG.OID && oidDecode(derChildren(kids[1])[0].content) === OID.data) { return importPkcs12(bytes, password || ''); }

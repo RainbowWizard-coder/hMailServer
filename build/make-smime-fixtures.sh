@@ -6,10 +6,10 @@
 # S/MIME fixtures made with OpenSSL, the independent implementation the page's
 # module is checked against: a CA, an RSA leaf and an EC leaf for
 # alice@example.test (emailAddress in the subject and an rfc822Name SAN), the
-# keys as PKCS#8 (clear, PBES2-encrypted) and as modern PKCS#12 files (with
-# and without a MAC, with a MAC the page passes over, with clear safes, with
-# an empty and a non-ASCII password), then messages OpenSSL signed (detached
-# and opaque) and encrypted for each leaf.
+# keys as PKCS#8 (clear and PBES2-encrypted, each in PEM and in DER) and as
+# modern PKCS#12 files (with and without a MAC, with a MAC the page passes
+# over, with clear safes, with an empty and a non-ASCII password), then
+# messages OpenSSL signed (detached and opaque) and encrypted for each leaf.
 set -euo pipefail
 out="$1"
 mkdir -p "$out"
@@ -86,4 +86,5 @@ openssl x509 -in ca.pem -outform DER -out ca.der
 openssl x509 -in erin.pem -outform DER -out erin.der
 openssl x509 -in alice.pem -noout -serial -fingerprint -sha256 > alice.facts
 openssl pkcs8 -topk8 -nocrypt -in alice-key.pem -outform DER -out alice-key.p8
+openssl pkcs8 -topk8 -in alice-key.pem -outform DER -v2 aes-256-cbc -v2prf hmacWithSHA256 -passout pass:fixture-pass -out alice-key-encrypted.p8 2>/dev/null
 ls -la
