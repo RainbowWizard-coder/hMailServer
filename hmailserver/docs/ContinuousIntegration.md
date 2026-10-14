@@ -508,7 +508,8 @@ variables and those of the GitLab templates they include (`SECRETS_ANALYZER_VERS
 first two rows; and `GITLAB_OBSERVABILITY_EXPORT`, which every job is given. No ID
 token: no job of a class asks for one, and `default:` gives none. Until the two
 are scoped, they are given to
-it too, and `hosted-runners` fails every pipeline a switch is set for, naming each
+it too, and `hosted-runners` fails every pipeline of `master` or a `batch*` branch a
+switch is set for, naming each
 credential it is given and the environment to scope it to, never a value. It fails
 closed: every variable it is given is a credential to it but GitLab's own - those
 whose names begin with `CI_`, are written in capitals, digits and `_` alone, as
@@ -539,7 +540,9 @@ says so.
 `.gitlab/ci/hosted-runners.yml` runs two jobs on linix, where they cost no minute and
 run when the minutes are spent, in every pipeline of `master` or a `batch*` branch for
 which a switch or a lane is not its default (`.hosted-switched`, then `.own-runners`'
-rules), and never for a `v*` tag, whose batch and `master` pipelines have run them:
+rules), and never for a `v*` tag. For the tagged commit they have run only in those of
+its batch's and `master`'s pipelines that a switch was set for, so set no switch for a
+tag that its `master` pipeline did not have. The two jobs:
 
 - **`hosted-runners`** (`build/ci/hosted-runners.py check`): each switch names `linix`
   or one of GitLab's Linux machines of its class's architecture - any other value is a

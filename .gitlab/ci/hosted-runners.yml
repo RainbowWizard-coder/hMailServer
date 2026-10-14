@@ -48,8 +48,9 @@
 # in a pipeline of master or a batch* branch for which a switch or a lane is not its
 # default - a project variable is set - and .own-runners' rules make the job, so never
 # for a merge request, an unprotected ref, a schedule, or a push of documentation alone.
-# Never for a v* tag: the batch and master pipelines of the tagged commit have run them,
-# and release waits for no check that a switch makes or unmakes.
+# Never for a v* tag: they ran in the tagged commit's batch and master pipelines only if a
+# switch was set there, so set none for a tag that its master pipeline did not have; and
+# release waits for no check that a switch makes or unmakes.
 .hosted-switched:
   rules:
     - if: $CI_COMMIT_TAG

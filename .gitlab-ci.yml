@@ -29,8 +29,9 @@
 # tag kvm), the lab's and those that keep a runner's own cache stay on the project's
 # runners whatever a switch says. hosted-runners and compute-quota
 # (.gitlab/ci/hosted-runners.yml) check the switches, what a job there is given and the
-# namespace's minutes in every pipeline a switch is set for (docs/ContinuousIntegration.md,
-# "GitLab's hosted runners beside the project's"). build/check-release-chain.py holds
+# namespace's minutes in every pipeline of master or a batch* branch a switch is set for
+# (docs/ContinuousIntegration.md, "GitLab's hosted runners beside the project's").
+# build/check-release-chain.py holds
 # every job of the CI files to a runner of the project's in a protected ref's pipeline -
 # or to its class's switch - and to one that takes it in any other, and each class to
 # its jobs.
@@ -274,7 +275,7 @@ variables:
   # to its jobs); docs/ContinuousIntegration.md, "GitLab's hosted runners beside the
   # project's", says which jobs each takes, what a job there is given, what each costs,
   # and how the switch is set back. hosted-runners and compute-quota, below, check them
-  # in every pipeline a switch is set for.
+  # in every pipeline of master or a batch* branch a switch is set for.
   #   HM_RUNNER_BUILD     the builds and checks in the CI image or a distribution's own
   #                       (linux-build, the scans, linux-repro, ...): saas-linux-large-amd64
   #   HM_RUNNER_PACKAGES  the package builds and their install jobs in amd64 containers,

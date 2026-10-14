@@ -6368,6 +6368,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   checkout, where it said that bench150 ran the whole suite; RELEASE.md's step 2, and ContinuousIntegration.md's two
   tables, that `windows-installer` waits for both halves and for `build-inputs-authenticode`, where RELEASE.md named
   `windows-gate` alone and the tables left out `build-inputs-authenticode`. HelpPagesData.cpp is regenerated.
+- **ContinuousIntegration.md and the CI files say in which pipelines the checks of a switch run.** `hosted-runners`
+  and `compute-quota` run in a pipeline of `master` or a `batch*` branch that a switch is set for, never in a `v*`
+  tag's, and for the tagged commit only in those of its pipelines that a switch was set for; so a tag is to be given
+  no switch that its `master` pipeline did not have. The texts said that a tag's batch and `master` pipelines had
+  run them, and that `hosted-runners` fails every pipeline a switch is set for. HelpPagesData.cpp is regenerated.
 
 ---
 
