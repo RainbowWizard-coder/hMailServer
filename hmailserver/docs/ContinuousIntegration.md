@@ -2183,13 +2183,19 @@ that has asked GitLab for a job in the last two hours - with
 failure has an exit code, so `allow_failure: exit_codes: [10]` does not cover
 it, and the pipeline fails, with `windows-installer` and `release`, which need
 the job, never started. A runner back before then takes the job, and the half
-runs late. A restart of server1 under a running job leaves it without updates,
-and GitLab fails it after half an hour (`no_updates_running`); retrying the job
-runs the half again. Only a busy bench, exit 10, lets a pipeline go green
-without a half, with the warning above, and no batch lands on such a pipeline:
-`build/land-via-mr.py` requires each half to have succeeded itself, unless the
-batch changes documents alone ([Landing on master](#landing-on-master)), and
-retrying the half's job gates the batch.
+runs late. A restart of server1 under a running half - or of bench150 under its
+own - leaves the job without updates, and GitLab fails it once it has had none
+for half an hour, at its hourly sweep (`no_updates_running`). The job's gate lock
+stays on its bench: its `after_script`, which would have released it, never ran,
+and nothing else removes it. Release it there before retrying the job, by the
+dropped job's holder ([The gate lock](#the-gate-lock)): the retry is another
+holder, which waits 90 minutes for the lock and then ends with exit 10 (13 for a
+`v*` tag), not having run the half, unless the lock has turned five hours old,
+and so stale, while it waited. Only a busy bench, exit 10, lets a pipeline go
+green without a half, with the warning above, and no batch lands on such a
+pipeline: `build/land-via-mr.py` requires each half to have succeeded itself,
+unless the batch changes documents alone ([Landing on master](#landing-on-master)),
+and retrying the half's job gates the batch.
 
 **What changes under LocalSystem.** The split gate's remote half ran as the
 Administrator over SSH. The job runs as LocalSystem, the same account as the
@@ -2237,6 +2243,13 @@ build or service. `build/ci/gate-lock.ps1` implements it:
   logged. Five hours is one hour more than the longest a job may run.
 - The job waits up to 90 minutes for a lock that another holder has, and then
   gives up with exit 10, a warning (13 for a `v*` tag).
+- **A lock a dropped job left.** A job that GitLab fails after a restart of its
+  bench under it (`no_updates_running`) never runs its `after_script`, so its
+  lock stays, and a retry of the job, another holder, cannot take it until it is
+  stale, nor release it. Release it on that bench before retrying, by the
+  dropped job's holder, which `type C:\bench\gate.lock` shows:
+  `pwsh -NoProfile -File C:\bench\hmailserver\build\ci\gate-lock.ps1 -Release -Holder gitlab-pipeline-<pipeline id>-job-<job id>`,
+  which removes it only while it is that job's.
 
 The split gate takes the same lock with the same script. Copy the script to
 the bench next to `remote-gate.ps1`, and put it around the remote half:
@@ -4220,8 +4233,9 @@ What each job leaves behind
   the suite left it, and the fetched objects in the checkout's `.git`. The
   job's directory under `C:\GitLab-Runner\builds` keeps `gate\`, `gate.zip` and
   `gate-results\`, a few megabytes that the next job replaces.
-  `C:\bench\gate.lock` exists only while a gate holds it. The artifact expires
-  after seven days.
+  `C:\bench\gate.lock` exists only while a gate holds it, but for one that a job
+  GitLab dropped after a restart of the bench left behind, until it is released
+  ([The gate lock](#the-gate-lock)). The artifact expires after seven days.
 - **The security scans** write only into the checkout (`security/`,
   `ci-image-packages/`) and their containers' `/tmp`, which go with the next
   checkout and the container. linix keeps the two images they add,
