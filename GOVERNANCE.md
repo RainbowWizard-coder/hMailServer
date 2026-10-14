@@ -42,9 +42,9 @@ The short version
 
 This project has **two maintainers**, Christopher Holloway and Zain Ul Abidin,
 and is stewarded by Progressive Robot Ltd. Decisions are made by the
-maintainers, in the open, on the issue tracker. Since 13 October 2026 only
-Christopher Holloway holds a role in the GitLab project, so every duty below
-that needs one is his alone for now ([Maintainers](#maintainers)).
+maintainers, in the open, on the issue tracker. Since 13 October 2026
+Christopher Holloway is the only person with a role in the GitLab project, so
+every duty below that needs one is his alone for now ([Maintainers](#maintainers)).
 
 On GitLab, since 26 September 2026, Christopher Holloway's account
 `Progressiverobot` is the project's only Owner among its people and its only

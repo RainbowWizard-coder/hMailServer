@@ -389,6 +389,7 @@ particular, check five things:
   release job refuses;
 - the last pipeline of the batch the release is made from has, in its
   `dependency-scan` job, no Critical or High record with a fixed version that
+  the VEX document (`.gitlab/hmailserver.openvex.json`) does not dismiss and
   `master`'s `.gitlab/security-exceptions.yml` does not accept: `release` holds
   on every such record (`build/ci/security-gate.py`, step 3 of
   [The release on GitLab](#the-release-on-gitlab)), while `dependency-scan`
