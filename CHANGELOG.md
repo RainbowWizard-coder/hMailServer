@@ -6769,7 +6769,14 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   it reads - `static-analysis`, `semgrep`, `semgrep-sast` and `dependency-scan` - so the gate can be asked of their
   artifacts with `master`'s exceptions before the tag, as RELEASE.md's step 9 has it done; batch47's pipeline of 14
   October 2026 would have shown so the 36 `dependency-scan` findings against the CI image's .NET that the release job
-  would have refused 6.3.7 on. They now say that the rehearsal does not ask the gate, and how to ask it.
+  would have refused 6.3.7 on. They now say that the rehearsal does not ask the gate, and how to ask it. Step 9 gives
+  the commands: the four jobs' artifacts unpacked into one directory, `master`'s copy of
+  `.gitlab/security-exceptions.yml` fetched from GitLab, and `security-gate.py --artifacts <dir> --exceptions <file>`.
+  It gave a command for a release made by hand alone, as ContinuousIntegration.md did, without `--exceptions`, so that
+  the gate read the checkout's own copy where the release job reads `master`'s, never the tagged tree's; both pass it
+  now. `build/check-release-chain.py` holds every command a document gives for the release's gate to `--exceptions`,
+  and step 9's to a file written from `master`'s copy, and its self-test breaks each in a copy: run over the documents
+  as they were, it reported both commands and a step 9 with no such command.
 - **SmtpPolicy.md, RestrictedDelivery.md and ImpersonationProtection.md say what the server's IDNA conversion reads
   and what it does not.** They said the server has none, and that the Linux build has no Unicode tables, which UTS 46
   for a link's host made untrue ("Anti-spam, anti-virus and mail flow rules", above): the domain policy list and

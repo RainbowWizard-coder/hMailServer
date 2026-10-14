@@ -398,6 +398,16 @@ refuses it. This checker holds them to each other. It fails when:
     its signing job, or names the job token, the registry or publish; or the scripts
     sign as a branch other than in their rehearsal, or as one that is not a protected
     batch* branch, or release-chain.py takes --rehearse with publish or gather;
+  * the release's security gate, asked by hand as a document of the tree says, would
+    not judge the scans' reports as the release job does, by master's
+    .gitlab/security-exceptions.yml, never the tagged tree's (release-chain.py's
+    master_exceptions): a command for it a document gives (security-gate.py
+    --artifacts, a change's --merge-request apart) does not name the exceptions file
+    with --exceptions, without which the gate reads the checkout's own copy; or
+    RELEASE.md's step 9, which asks for the gate's pass before the tag and to which
+    the rehearsal's file and docs/ContinuousIntegration.md send the reader for the
+    command, gives no such command, or writes its file from another copy than master's
+    as GitLab has it (a fetch of master by name and FETCH_HEAD, or a remote's master);
   * a Fulcio certificate's field is read by searching the certificate's bytes, which
     its public key - bytes its holder chooses - can fill with whatever is searched
     for: release-verify.sh must read the installer's repository id
@@ -533,6 +543,9 @@ FILES = {
     # The two change gates, and the landing script that requires them.
     "mr-checks": os.path.join(".gitlab", "ci", "mr-checks.yml"),
     "land": os.path.join("build", "land-via-mr.py"),
+    # The release's order of operations, whose step 9 asks the security gate before the
+    # tag (gate_by_hand_problems).
+    "release-md": "RELEASE.md",
 }
 
 RELEASE_JOBS = ["windows-installer", "release", "release-authenticode", "release-sbom", "release-sign", "release-verify",
@@ -1437,6 +1450,112 @@ def link_path_problems(chain, documents):
                 problems.append("%s gives the address .../-/releases/permalink/latest/downloads/%s, which no link of a "
                                 "release has: the paths are %s" % (document, name, ", ".join(sorted(
                                     path for path in served if "." in path and not path.endswith((chain.BUNDLE, chain.BUNDLE_COPY)))[:6]) + ", ..."))
+    return problems
+
+
+# The release's security gate as a document gives the command for it: security-gate.py
+# and its arguments - an option, a <placeholder> (of several words, perhaps) or a word -
+# read in a text whose lines gate_flat has joined. A change's gate (--merge-request) and
+# the self-test are other commands.
+GATE_ARGUMENT = re.compile(r"--[A-Za-z][A-Za-z0-9\-]*|<[^<>`]*>|[^\s`()<>,;]+")
+GATE_COMMAND = re.compile(r"(?:python3 )?build/ci/security-gate\.py((?: (?:%s))*)" % GATE_ARGUMENT.pattern)
+# The exceptions file a command is handed, written from a ref's copy of the exceptions,
+# and a fetch of master by name, after which FETCH_HEAD is master as GitLab has it.
+EXCEPTIONS_COPY = re.compile(r"git show (\S+):\.gitlab/security-exceptions\.yml > (\S+)")
+MASTER_FETCH = re.compile(r"^git fetch(?: --?[A-Za-z][A-Za-z0-9\-]*)* \S+ (?:\+?refs/heads/)?master(?::\S*)?(?: |$)")
+MASTER_REF = re.compile(r"^(?:refs/remotes/)?[A-Za-z0-9._\-]+/master$")
+
+
+def gate_texts():
+    """{path: text} of each Markdown or YAML file of the tree that names
+    build/ci/security-gate.py, RELEASE.md apart (FILES' release-md): what can give a
+    command for asking the release's security gate. The change log and the roadmaps say
+    what was done, and are not read."""
+    texts = {}
+    for name in tree_files():
+        if not name.endswith((".md", ".yml", ".yaml")) or name.startswith(("libraries/", "fuzz/")) or \
+                name in ("RELEASE.md", "CHANGELOG.md") or re.match(r"^Roadmap[0-9]*\.md$", name):
+            continue
+        try:
+            with io.open(os.path.join(ROOT, name), encoding="utf-8") as f:
+                text = f.read()
+        except (OSError, UnicodeDecodeError):
+            continue
+        if "security-gate.py" in text:
+            texts[name] = text.replace("\r\n", "\n")
+    return texts
+
+
+def gate_flat(text):
+    """A document as one line: each line's indentation and comment marks (YAML's #, a
+    heading's) taken off and its spaces made one, and the lines joined by a space, so
+    that a command wrapped over two lines reads as one."""
+    return " ".join(" ".join(line.strip().lstrip("#").split()) for line in text.split("\n"))
+
+
+def release_step(text, number):
+    """The text of step number of RELEASE.md's "Order of operations", or None."""
+    section = re.search(r"^## Order of operations\n(.*?)(?=^## |\Z)", text, re.MULTILINE | re.DOTALL)
+    step = section and re.search(r"^%d\. \*\*.*?(?=^[0-9]+[a-z]?\. \*\*|\Z)" % number, section.group(1),
+                                 re.MULTILINE | re.DOTALL)
+    return step.group(0) if step else None
+
+
+def gate_by_hand_problems(texts):
+    """The release's security gate, asked by hand - before the tag, of the four scans'
+    reports of the commit's pipeline, as RELEASE.md's step 9 asks, and for a release made
+    by hand - is asked as the release job asks it: with master's
+    .gitlab/security-exceptions.yml, which collect hands the gate and never the tagged
+    tree's (build/ci/release-chain.py, master_exceptions), where security-gate.py without
+    --exceptions reads the checkout's own copy, which need not be master's. So every
+    command a document of the tree gives for that gate (--artifacts, outside a change's
+    --merge-request) names the exceptions file; and step 9, to which
+    .gitlab/ci/release-rehearsal.yml and docs/ContinuousIntegration.md send the reader to
+    ask the gate before the tag, gives such a command, its file written from master's
+    copy as GitLab has it: a fetch of master by name and FETCH_HEAD, or a remote's master."""
+    problems = []
+    release = texts.get("release-md", "")
+    for document, text in [("RELEASE.md", release)] + sorted(texts.get("gate-docs", {}).items()):
+        for found in GATE_COMMAND.finditer(gate_flat(text)):
+            arguments = GATE_ARGUMENT.findall(found.group(1))
+            if "--artifacts" in arguments and "--merge-request" not in arguments and "--exceptions" not in arguments:
+                problems.append("%s gives the release's security gate as `%s`, without --exceptions: the gate then reads the "
+                                "checkout's own .gitlab/security-exceptions.yml, where the release job reads master's, never "
+                                "the tagged tree's (build/ci/release-chain.py, master_exceptions): hand it master's copy"
+                                % (document, found.group(0).strip()))
+    step = release_step(release, 9)
+    if step is None:
+        problems.append("RELEASE.md has no step 9 in \"Order of operations\", where the security gate's pass is asked for "
+                        "before the tag, and .gitlab/ci/release-rehearsal.yml and docs/ContinuousIntegration.md send the "
+                        "reader to it for the command")
+        return problems
+    flat = gate_flat(step)
+    handed = []
+    for found in GATE_COMMAND.finditer(flat):
+        arguments = GATE_ARGUMENT.findall(found.group(1))
+        if "--artifacts" in arguments and "--merge-request" not in arguments and "--exceptions" in arguments[:-1]:
+            handed.append((found.start(), arguments[arguments.index("--exceptions") + 1]))
+    if not handed:
+        problems.append("RELEASE.md's step 9 gives no command that asks the release's security gate before the tag as the "
+                        "release job asks it, over the four scans' artifacts of the commit's pipeline with master's "
+                        ".gitlab/security-exceptions.yml (python3 build/ci/security-gate.py --artifacts <dir> --exceptions "
+                        "<file>): .gitlab/ci/release-rehearsal.yml and docs/ContinuousIntegration.md send the reader there "
+                        "for it")
+    for at, name in handed:
+        written = [m for m in EXCEPTIONS_COPY.finditer(flat[:at]) if m.group(2) == name]
+        if not written:
+            problems.append("RELEASE.md's step 9 hands the gate %s, which it does not say to write from master's "
+                            ".gitlab/security-exceptions.yml (git show <master>:.gitlab/security-exceptions.yml > %s), "
+                            "the copy the release job reads" % (name, name))
+            continue
+        ref = written[-1].group(1)
+        before = flat[:written[-1].start()]
+        fetched = ref == "FETCH_HEAD" and before.rfind("git fetch ") >= 0 and \
+            MASTER_FETCH.match(before[before.rfind("git fetch "):])
+        if not (fetched or MASTER_REF.match(ref)):
+            problems.append("RELEASE.md's step 9 writes %s from %s's .gitlab/security-exceptions.yml, where the release job "
+                            "reads master's as GitLab has it, never the tagged tree's: git fetch <remote> master, then git "
+                            "show FETCH_HEAD:.gitlab/security-exceptions.yml > %s" % (name, ref, name))
     return problems
 
 
@@ -2699,6 +2818,8 @@ def check(texts, chain, feed):
     if "exceptions, missing = master_exceptions(root, run)" not in collect_text or "exceptions_text=exceptions" not in collect_text:
         problems.append("build/ci/release-chain.py's collect does not give the gate master's .gitlab/security-exceptions.yml: "
                         "the tagged tree's own copy could accept what master does not")
+    # And the same gate asked by hand, as the documents give it, the same way.
+    problems.extend(gate_by_hand_problems(texts))
     copied = collect_text.find("shutil.copyfile(")
     if asked < 0 or copied < asked or collect_text.find("    if problems:\n        return problems", asked) < 0:
         problems.append("build/ci/release-chain.py's collect no longer asks build/ci/security-gate.py before it copies the "
@@ -5020,6 +5141,7 @@ def load_texts():
     texts["missing"] = missing
     texts["tree"] = tree_files()
     texts["permalinks"] = permalink_texts()
+    texts["gate-docs"] = gate_texts()
     texts["ci-includes"] = dict((name, read(name)) for name in texts["tree"]
                                 if name.startswith(".gitlab/ci/") and name.endswith(".yml"))
     return texts
@@ -5087,6 +5209,40 @@ def self_test(chain, feed):
             failures.append("a document with %s at permalink/latest is caught: %s" % (what, found))
     if not texts["permalinks"] or not any(PERMALINK.search(t) for t in texts["permalinks"].values()):
         failures.append("the tree's permanent download addresses are read (README.md, Channels.md, the OBS _service): %s" % sorted(texts["permalinks"]))
+    # The release's gate asked by hand: step 9's command without the exceptions, its file
+    # from the tagged tree, from a FETCH_HEAD that is not master's or from nowhere, and no
+    # step 9; and a document's command - wrapped over two comment lines, with a
+    # placeholder of several words - without them, where one with them, a change's gate
+    # and the self-test pass.
+    broken("step 9 asking the gate with the checkout's exceptions", "release-md",
+           "security-gate.py --artifacts <dir> --exceptions <file>", "security-gate.py --artifacts <dir>",
+           "RELEASE.md's step 9 gives no command")
+    broken("step 9's exceptions from the tagged tree", "release-md", "git show FETCH_HEAD:.gitlab/security-exceptions.yml",
+           "git show vX.Y.Z:.gitlab/security-exceptions.yml", "from vX.Y.Z's .gitlab/security-exceptions.yml")
+    broken("step 9's exceptions from a FETCH_HEAD that is not master's", "release-md", "git fetch gitlab master\n",
+           "git fetch gitlab vX.Y.Z\n", "from FETCH_HEAD's .gitlab/security-exceptions.yml")
+    broken("step 9's exceptions written nowhere", "release-md",
+           "git show FETCH_HEAD:.gitlab/security-exceptions.yml > <file>", "git show FETCH_HEAD:.gitlab/security-exceptions.yml",
+           "which it does not say to write from master's")
+    broken("no step 9", "release-md", "\n9. **Full regression suite", "\n9a. **Full regression suite", "RELEASE.md has no step 9")
+    for what, path, planted, caught in (
+            ("a command wrapped over two comment lines, without --exceptions", ".gitlab/ci/planted.yml",
+             "# Ask it first (python3 build/ci/security-gate.py\n#   --artifacts <dir>), by hand.\n", True),
+            ("a command with a placeholder of several words, without --exceptions", "hmailserver/docs/Planted.md",
+             "Then `python3 build/ci/security-gate.py --artifacts <the directory they wrote to>`, by hand.\n", True),
+            ("a command with --exceptions", "hmailserver/docs/Planted.md",
+             "Then `python3 build/ci/security-gate.py --artifacts <dir> --exceptions <file>`.\n", False),
+            ("a change's gate", "hmailserver/docs/Planted.md",
+             "Then `python3 build/ci/security-gate.py --merge-request auto --artifacts <dir>`.\n", False),
+            ("the gate's self-test", "hmailserver/docs/Planted.md", "Then `python3 build/ci/security-gate.py --self-test`.\n", False)):
+        copy = dict(texts, **{"gate-docs": dict(texts["gate-docs"], **{path: planted})})
+        found, _ = check(copy, chain, feed)
+        if any(p.startswith(path + " gives the release's security gate") for p in found) != caught:
+            failures.append("%s in a document is %s: %s" % (what, "caught" if caught else "passed", [p for p in found if path in p]))
+    if ".gitlab/ci/release-rehearsal.yml" not in texts["gate-docs"] or \
+            "hmailserver/docs/ContinuousIntegration.md" not in texts["gate-docs"] or release_step(texts["release-md"], 9) is None:
+        failures.append("the documents that give the release's gate are read (release-rehearsal.yml, ContinuousIntegration.md, "
+                        "RELEASE.md's step 9): %s" % sorted(texts["gate-docs"]))
     broken("cosign from ghcr.io", "ci", 'HM_COSIGN_IMAGE: "gcr.io/projectsigstore/cosign:', 'HM_COSIGN_IMAGE: "ghcr.io/sigstore/cosign:', "never ghcr.io")
     broken("the old bundle format", "sign", 'sign_flags="--yes --new-bundle-format', 'sign_flags="--yes', "--new-bundle-format")
     broken("another log", "sign", "--rekor-url https://rekor.sigstore.dev --fulcio", "--rekor-url https://log2025-1.rekor.sigstore.dev --fulcio", "Rekor v1 log")

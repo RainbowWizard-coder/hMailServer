@@ -724,10 +724,24 @@ that administrators upgrade by hand.
    *static-analysis*, *semgrep* and *semgrep-sast*
    (`hmailserver/docs/ContinuousIntegration.md`, "Security scanning") - pass
    `build/ci/security-gate.py`, which holds them to the thresholds in
-   `SECURITY.md` ("Before a release") and to `.gitlab/security-exceptions.yml`,
-   or the release waits. The release job runs the gate itself; a release made by
-   hand runs the scans on linix against the release's commit and the gate over
-   what they wrote (`python3 build/ci/security-gate.py --artifacts <dir>`).
+   `SECURITY.md` ("Before a release") and to `master`'s copy of
+   `.gitlab/security-exceptions.yml`, or the release waits. The release job runs
+   the gate itself, but only after the tag, and reads `master`'s copy, never the
+   tagged tree's; so ask it here, before the tag, as the job will. Unpack the
+   artifacts of those four jobs into one directory, as the jobs write them, and
+   in a checkout of the release's commit fetch `master`'s copy from GitLab and
+   hand it to the gate:
+
+   ```
+   git fetch gitlab master
+   git show FETCH_HEAD:.gitlab/security-exceptions.yml > <file>
+   python3 build/ci/security-gate.py --artifacts <dir> --exceptions <file>
+   ```
+
+   It exits 1, naming each finding, while anything would hold the release.
+   Without `--exceptions` the gate reads the checkout's own copy, which need not
+   be `master`'s. A release made by hand runs the scans on linix against the
+   release's commit, and the gate over what they wrote in the same way.
    Up to 6.3.3 these were GitHub's Code Scanning and Dependabot alert pages.
 10. **README release notes** — every claim checked against the diff. "Fixed"
    means reproduced-then-fixed or negative-control-tested; anything else is

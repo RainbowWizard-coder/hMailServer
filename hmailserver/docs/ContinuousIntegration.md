@@ -4661,9 +4661,15 @@ published after the change that brought its dependency, and `dependency-scan`'s
 findings over the whole tree, which hold no change.
 
 The same gate runs by hand where a release is made by hand: the scans' scripts
-on linix against the release's commit, then
-`python3 build/ci/security-gate.py --artifacts <the directory they wrote to>`,
-which exits 1 while anything holds the release.
+on linix against the release's commit, then the gate over what they wrote, with
+`master`'s copy of `.gitlab/security-exceptions.yml`, which the release job
+reads: `git fetch gitlab master`, then
+`git show FETCH_HEAD:.gitlab/security-exceptions.yml > <file>` and
+`python3 build/ci/security-gate.py --artifacts <dir> --exceptions <file>`, where
+`<dir>` is the directory the scans wrote to. It exits 1 while anything holds the
+release. Without `--exceptions` the gate reads the checkout's own copy, which
+need not be `master`'s. [RELEASE.md](../../RELEASE.md)'s step 9 asks the same of
+the commit's pipeline's four reports before the tag.
 
 ### Before a push: the secret scan
 
