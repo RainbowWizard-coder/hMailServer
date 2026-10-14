@@ -1347,11 +1347,15 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   file held by another program or gone, or its parse failed - has nothing in it that can be kept, and is deleted, as
   *Delete the whole message* deletes it: each of its recipients is sent the "message deleted" notice
   (*VIRUS_NOTIFICATION*) in place of the note, whatever the two notice settings say, and its sender is not told, as
-  this action never tells the sender. A message that is one text part is delivered as it is, having no attachment to
-  remove, and so is an encrypted one; the application log says which of these each message was.
-  `AntiVirus/StripAction.cs` delivers a message that is one attachment in four shapes and one that is one text part,
-  and holds a message's file while the stripper reads it
-  ([SealedMail.md](hmailserver/docs/SealedMail.md), "The "delete attachments" anti-virus action").
+  this action never tells the sender. An S/MIME message signed as one part - `application/pkcs7-mime` holding
+  signed-data, which is opaque to the server's other readers and is not encrypted - is one such part, and is replaced
+  by the note too: the stripper asks `SealedMessage::IsEncrypted`, which is `IsOpaque` less signed-data. A message
+  that is one text part is delivered as it is, having no attachment to remove, and so is an encrypted one; the
+  application log says which of these each message was. `AntiVirus/StripAction.cs` delivers a message that is one
+  attachment in four shapes, an S/MIME message signed as one part and one encrypted as one part, and one that is one
+  text part, and holds a message's file while the stripper reads it; `SealedMessageTester` holds `IsEncrypted` to
+  the S/MIME and PGP/MIME shapes ([SealedMail.md](hmailserver/docs/SealedMail.md), "The "delete attachments"
+  anti-virus action").
 
 - **Fixed: the anti-virus "message deleted" notice went to none of the recipients of a message whose envelope
   sender is empty.** With *Notify the recipients* on, the delete action tells every recipient of an infected message

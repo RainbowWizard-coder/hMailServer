@@ -24,6 +24,10 @@ namespace RegressionTests.AntiVirus
    ///      notice takes its place: what is delivered is the header, its subject
    ///      marked, and the server's VIRUS_ATTACHMENT_REMOVED text, without the
    ///      part's own Content- fields, so that the notice reads as text.
+   ///    - An S/MIME message signed as one part (signed-data, the opaque form) is
+   ///      such a part too, and is replaced by the notice; one encrypted as one
+   ///      part (enveloped-data) is delivered as it arrived, as every encrypted
+   ///      message is.
    ///    - One text part is the message's text, and is delivered as it is, as the
    ///      text part of a multipart message is kept.
    ///    - A message that cannot be read cannot be stripped, so nothing of it can
@@ -292,7 +296,89 @@ namespace RegressionTests.AntiVirus
          BounceTestSupport.AssertLogContains("the message was one attachment",
             "The log has to say that the notice is all that was delivered.");
 
-         Pop3ClientSimulator.AssertMessageCount(_account.Address, Password, 1);
+         // The one message, read (and so taken) above, was all that arrived.
+         Pop3ClientSimulator.AssertMessageCount(_account.Address, Password, 0);
+      }
+
+      /// <summary>
+      ///    The CMS object an S/MIME message signed as one part begins with:
+      ///    ContentInfo, signed-data (1.2.840.113549.1.7.2), indefinite lengths -
+      ///    what SealedMessageTester takes for opaque signed-data.
+      /// </summary>
+      private const string SignedDataPrefix = "MIAGCSqGSIb3DQEHAqCAMIACAQE=";
+
+      /// <summary>
+      ///    And an enveloped-data one's (1.2.840.113549.1.7.3): an encrypted
+      ///    message, which the action leaves as it arrived.
+      /// </summary>
+      private const string EnvelopedDataPrefix = "MIAGCSqGSIb3DQEHA6CAMIACAQAAAAAAAAA=";
+
+      private static string SMimeOnePartMessage(string recipient, string smimeType, string base64)
+      {
+         return "From: correspondent@example.com\r\n" +
+                "To: " + recipient + "\r\n" +
+                "Subject: One S/MIME part\r\n" +
+                "MIME-Version: 1.0\r\n" +
+                "Content-Type: application/pkcs7-mime; smime-type=" + smimeType + "; name=\"smime.p7m\"\r\n" +
+                "Content-Transfer-Encoding: base64\r\n" +
+                "Content-Disposition: attachment; filename=\"smime.p7m\"\r\n" +
+                "\r\n" +
+                base64 + "\r\n";
+      }
+
+      [Test]
+      [Description("An S/MIME message signed as one part - signed-data, not encrypted - is replaced by the notice, as any message that is one attachment is.")]
+      public void AnSMimeMessageSignedAsOnePartIsReplacedByTheNotice()
+      {
+         EnableScanner(AlwaysInfectedScanner, eAntivirusAction.hDeleteAttachments);
+
+         // The signed-data object's start, and the EICAR file after it, where
+         // the signed content would be.
+         var signedData = Convert.FromBase64String(SignedDataPrefix);
+         var eicar = Convert.FromBase64String(EicarBase64());
+         var content = new byte[signedData.Length + eicar.Length];
+         Buffer.BlockCopy(signedData, 0, content, 0, signedData.Length);
+         Buffer.BlockCopy(eicar, 0, content, signedData.Length, eicar.Length);
+         var body = Convert.ToBase64String(content);
+
+         SmtpClientSimulator.StaticSendRaw("correspondent@example.com", _account.Address,
+            SMimeOnePartMessage(_account.Address, "signed-data", body));
+
+         var delivered = Pop3ClientSimulator.AssertGetFirstMessageText(_account.Address, Password);
+
+         StringAssert.DoesNotContain(body, delivered,
+            "The signed message the scanner objected to was delivered as it arrived.");
+         StringAssert.Contains(ServerMessage("VIRUS_ATTACHMENT_REMOVED").TrimEnd(), delivered,
+            "The notice is not where the signed message was.");
+         StringAssert.DoesNotContain("Content-Type", HeaderOf(delivered),
+            "The signed message's type is still in the header.");
+
+         BounceTestSupport.AssertLogContains("is signed in S/MIME's opaque form",
+            "The log has to say that a signed message was replaced, and why.");
+
+         Pop3ClientSimulator.AssertMessageCount(_account.Address, Password, 0);
+      }
+
+      [Test]
+      [Description("The negative control: an S/MIME message encrypted as one part - enveloped-data - is delivered as it arrived, as before.")]
+      public void AnSMimeMessageEncryptedAsOnePartIsDeliveredAsItArrived()
+      {
+         EnableScanner(AlwaysInfectedScanner, eAntivirusAction.hDeleteAttachments);
+
+         SmtpClientSimulator.StaticSendRaw("correspondent@example.com", _account.Address,
+            SMimeOnePartMessage(_account.Address, "enveloped-data", EnvelopedDataPrefix));
+
+         var delivered = Pop3ClientSimulator.AssertGetFirstMessageText(_account.Address, Password);
+
+         StringAssert.Contains(EnvelopedDataPrefix, delivered,
+            "The ciphertext of an encrypted message was not delivered.");
+         StringAssert.Contains("application/pkcs7-mime", HeaderOf(delivered),
+            "An encrypted message was rewritten.");
+         StringAssert.DoesNotContain(ServerMessage("VIRUS_ATTACHMENT_REMOVED").TrimEnd(), delivered,
+            "An encrypted message was given the notice.");
+
+         BounceTestSupport.AssertLogContains("attachments have NOT been stripped",
+            "A message that still carries what the scanner objected to must be reported, not quietly delivered.");
       }
 
       [Test]
@@ -398,7 +484,9 @@ namespace RegressionTests.AntiVirus
          StringAssert.Contains("Subject: " + ServerMessage("VIRUS_FOUND") + ":", delivered,
             "The recipient was not sent the message-deleted notice in place of the note.");
 
-         Pop3ClientSimulator.AssertMessageCount(_account.Address, Password, 1);
+         // The notice, read (and so taken) above, was all that arrived: the
+         // message itself never does, once the hold is over or later.
+         Pop3ClientSimulator.AssertMessageCount(_account.Address, Password, 0);
 
          BounceTestSupport.AssertLogContains("the message could not be read, so its attachments could not be stripped",
             "The deletion has to be in the log, with its reason.");

@@ -22,10 +22,11 @@
 //               Asked by the domain disclaimer and the domain signature, where
 //               declining costs nothing but a footer.
 //   IsOpaque  - "is the content of this message unreadable here?" Asked by the
-//               blocked-attachment list, the attachment stripper, the virus
-//               verdict line, the rule engine's body and content criteria and
-//               eDiscovery. It is answered from the body, never from the label:
-//               see IsOpaque below.
+//               blocked-attachment list, the virus verdict line, the rule
+//               engine's body and content criteria and eDiscovery. It is
+//               answered from the body, never from the label: see IsOpaque
+//               below. The attachment stripper asks the narrower IsEncrypted,
+//               which S/MIME's opaque signed-data is not.
 //
 // The rewriters ask the NARROWER question on purpose. Nothing on this server
 // verifies a signature, so "multipart/signed" at the top of a message is a
@@ -110,10 +111,11 @@ namespace HM
       // is sealed and NOT opaque: its first part is the text exactly as the
       // author wrote it, readable by the virus scanner, the rule engine and a
       // Sieve script alike. Only an encrypted message, or S/MIME's opaque
-      // signed-data, hides its content - and the blocked-attachment list, the
-      // stripper and the rule engine's body and content criteria all stand
-      // aside for one. So the answer is never taken from the label, which the
-      // sender writes, but from the shape the label promises:
+      // signed-data, hides its content - and the blocked-attachment list and
+      // the rule engine's body and content criteria stand aside for one, the
+      // attachment stripper for an encrypted one alone (IsEncrypted). So the
+      // answer is never taken from the label, which the sender writes, but
+      // from the shape the label promises:
       //
       //   application/pkcs7-mime or application/x-pkcs7-mime: one part whose
       //     content begins a CMS ContentInfo of enveloped-data,
@@ -141,6 +143,16 @@ namespace HM
       // IsOpaque asked of a loaded message's MIME tree. False for a null one.
       static bool IsOpaque(std::shared_ptr<MessageData> messageData);
 
+      // IsOpaque less S/MIME's opaque signed-data: is the content of this
+      // message under a key? The attachment stripper asks this. A message whose
+      // text is inside a signature is as hidden from this server's readers as
+      // an encrypted one, but not from its recipient's client, which shows the
+      // content, a file in it included. The stripper, which cannot pick a part
+      // out of it, replaces it with the notice, as it replaces any other
+      // message that is one attachment, where it leaves an encrypted one as it
+      // arrived.
+      static bool IsEncrypted(MimeBody &message);
+
       // The detached signature of a signed message, or null: the part the
       // blocked-attachment list leaves alone, because replacing it removes
       // nothing and makes every client report the message as tampered with.
@@ -156,6 +168,12 @@ namespace HM
       // like any other attachment.
       static std::shared_ptr<MimeBody> DetachedSignaturePart(MimeBody &message);
       static std::shared_ptr<MimeBody> DetachedSignaturePart(std::shared_ptr<MimeBody> message);
+
+   private:
+
+      // IsOpaque's shape check, with S/MIME's opaque signed-data counted as
+      // opaque or not (IsEncrypted).
+      static bool IsOpaque_(MimeBody &message, bool signedDataIsOpaque);
    };
 
    // Run from ClassTester::DoTests.

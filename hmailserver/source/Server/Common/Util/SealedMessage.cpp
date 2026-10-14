@@ -451,6 +451,18 @@ namespace HM
    bool
    SealedMessage::IsOpaque(MimeBody &message)
    {
+      return IsOpaque_(message, true);
+   }
+
+   bool
+   SealedMessage::IsEncrypted(MimeBody &message)
+   {
+      return IsOpaque_(message, false);
+   }
+
+   bool
+   SealedMessage::IsOpaque_(MimeBody &message, bool signedDataIsOpaque)
+   {
       const String mediaType = MediaTypeOfPart(message);
 
       // S/MIME: one part, whose content is a CMS object this server does not
@@ -462,7 +474,7 @@ namespace HM
             return false;
 
          const std::vector<unsigned char> prefix = DecodedPrefix(message, 32);
-         return GatewayEncryption::IsEnvelopedCms(prefix) || GatewayEncryption::IsSignedCms(prefix);
+         return GatewayEncryption::IsEnvelopedCms(prefix) || (signedDataIsOpaque && GatewayEncryption::IsSignedCms(prefix));
       }
 
       // A bare application/pgp-encrypted body: malformed, but when what it
@@ -771,8 +783,9 @@ namespace HM
    {
       // Opaque is decided from what the body holds. The label is a claim any
       // sender can write, and every caller of IsOpaque then skips a check -
-      // the blocked-attachment list, the stripper, the rule engine's body and
-      // content criteria - so a label alone must never be enough.
+      // the blocked-attachment list, the rule engine's body and content
+      // criteria, and, of an encrypted message, the stripper - so a label
+      // alone must never be enough.
       Require(SealedMessage::IsOpaque(ParsedForTest(PgpMime(ControlPart, CiphertextPart("encrypted.asc", EncryptedPackets)))),
          "A real PGP/MIME message, its ciphertext under a key, was not opaque.");
 
@@ -849,6 +862,23 @@ namespace HM
 
       Require(!SealedMessage::IsOpaque(ParsedForTest(Smime("invoice.exe", "MIAGCSqGSIb3DQEHA6CAMIACAQAAAAAAAAA="))),
          "An S/MIME part named invoice.exe was called opaque.");
+
+      // IsEncrypted, the attachment stripper's question: the same shapes, but
+      // for opaque signed-data, which is opaque here and is not under a key.
+      Require(SealedMessage::IsEncrypted(*ParsedForTest(Smime("smime.p7m", "MIAGCSqGSIb3DQEHA6CAMIACAQAAAAAAAAA="))),
+         "An S/MIME enveloped-data message was not encrypted.");
+
+      Require(!SealedMessage::IsEncrypted(*ParsedForTest(Smime("smime.p7m", "MIAGCSqGSIb3DQEHAqCAMIACAQE="))),
+         "An S/MIME opaque signed-data message was called encrypted: its content is inside the signature, not under a key.");
+
+      Require(SealedMessage::IsEncrypted(*ParsedForTest(PgpMime(ControlPart, CiphertextPart("encrypted.asc", EncryptedPackets)))),
+         "A real PGP/MIME message, its ciphertext under a key, was not encrypted.");
+
+      Require(!SealedMessage::IsEncrypted(*ParsedForTest(PgpMime(ControlPart, ExecutablePart))),
+         "A multipart/encrypted label around invoice.exe was called encrypted.");
+
+      Require(!SealedMessage::IsEncrypted(*ParsedForTest(Smime("smime.p7m", ExecutableBase64))),
+         "An application/pkcs7-mime label on an executable was called encrypted.");
 
       // The ordinary shapes, which were never opaque.
       Require(!SealedMessage::IsOpaque(ParsedForTest("Content-Type: text/plain\r\n\r\nhello\r\n")),

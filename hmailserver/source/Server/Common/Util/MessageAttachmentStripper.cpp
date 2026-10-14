@@ -86,12 +86,20 @@ namespace HM
       // And "encrypted" is decided from the body, not the label: a
       // multipart/encrypted header over ordinary parts is one line any sender
       // can write, and declining on it would deliver the virus the scanner has
-      // just found whole. SealedMessage::IsOpaque says encrypted only for the
-      // exact shape of a real encrypted message, which has no part to strip.
+      // just found whole. SealedMessage::IsEncrypted says encrypted only for
+      // the exact shape of a real encrypted message, which has no part to
+      // strip.
+      //
+      // IsEncrypted and not IsOpaque: S/MIME's opaque signed-data is opaque to
+      // this server's readers, its content inside the CMS, but it is not under
+      // a key, and the recipient's client shows that content, a file in it
+      // included, as it shows a multipart/signed message's. It is one part
+      // that is not text, so below it is replaced by the notice, as any
+      // message that is one attachment is.
       const char *topLevelContentType = oMimeMessage.GetContentType();
       const String contentType = topLevelContentType != nullptr ? String(topLevelContentType) : String();
 
-      if (SealedMessage::IsOpaque(oMimeMessage))
+      if (SealedMessage::IsEncrypted(oMimeMessage))
       {
          LOG_APPLICATION(Formatter::Format("Message {0} is encrypted ({1}), so its attachments have NOT been stripped: keeping one part of an encrypted message destroys it and leaves the recipient a fragment of ciphertext. The message has been left exactly as it was. Set the anti-virus action to delete the message if such a message must not be delivered.",
             pMessage->GetID(), contentType));
@@ -121,9 +129,15 @@ namespace HM
          // it as the file.
          WriteToDisk_(pMessage, oMimeMessage, std::shared_ptr<MimeBody>(), true);
 
-         // As for a multipart message below: a label the body does not bear out
-         // is said to have been disbelieved.
-         if (SealedMessage::IsOpaqueContentType(contentType))
+         // As for a multipart message below: a signed message is said to have
+         // lost its signature, and a label the body does not bear out is said
+         // to have been disbelieved.
+         if (SealedMessage::IsOpaque(oMimeMessage))
+         {
+            LOG_APPLICATION(Formatter::Format("Message {0} is signed in S/MIME's opaque form ({1}), which is not encrypted, so it has been replaced by the notice as any other message that is one attachment is: the signed content, and the signature, are not delivered.",
+               pMessage->GetID(), contentType));
+         }
+         else if (SealedMessage::IsOpaqueContentType(contentType))
          {
             LOG_APPLICATION(Formatter::Format("Message {0} is labelled encrypted ({1}) but its body is not an encrypted message, so it has been replaced by the notice as any other message that is one attachment is.",
                pMessage->GetID(), contentType));

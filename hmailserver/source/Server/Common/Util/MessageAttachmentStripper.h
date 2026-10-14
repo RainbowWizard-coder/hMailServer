@@ -28,7 +28,7 @@ namespace HM
          Stripped,             // rewritten as its text part plus the notice
          ReplacedByNotice,     // a single part that is not the message's text: rewritten as the notice alone
          NothingToStrip,       // a single-part message that is its text: there is no attachment to remove
-         LeftAloneEncrypted,   // encrypted end to end, so there is no part to pick out
+         LeftAloneEncrypted,   // encrypted end to end (SealedMessage::IsEncrypted), so there is no part to pick out
          LeftAloneUnreadable   // the file could not be read, so it was not rewritten: the caller deletes it
       };
 
@@ -47,12 +47,14 @@ namespace HM
       // (LeftAloneUnreadable): nothing of it can be kept, so the caller deletes
       // it rather than deliver what the scanner found.
       //
-      // An ENCRYPTED message (SealedMessage::IsOpaque) is left exactly as it
+      // An ENCRYPTED message (SealedMessage::IsEncrypted) is left exactly as it
       // arrived and the reason is logged: keeping one part of it hands the
       // recipient a fragment of ciphertext. A SIGNED message is stripped like
       // any other, because nothing here verifies a signature and a sender who
       // could opt out of stripping by adding a multipart/signed wrapper would;
-      // the log says the signature has been invalidated. See
+      // the log says the signature has been invalidated. S/MIME's opaque
+      // signed-data, one part that is not text, is replaced by the notice as
+      // any message that is one attachment is. See
       // hmailserver/docs/SealedMail.md.
       static Result Strip(std::shared_ptr<Message> pMessage);
    private:
