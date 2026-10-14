@@ -1058,7 +1058,14 @@ namespace HM
 
          ConnectionResult Connect(String &/*sErrorMessage*/) override { return Connected; }
          bool Disconnect() override { closed_.store(true); return true; }
-         ExecutionResult TryExecute(const SQLCommand &/*command*/, String &/*sErrorMessage*/, __int64 * /*iInsertID*/, int /*iIgnoreErrors*/) override { return DALSuccess; }
+         ExecutionResult TryExecute(const SQLCommand &/*command*/, String &/*sErrorMessage*/, __int64 * /*iInsertID*/, int /*iIgnoreErrors*/, __int64 *rowsAffected) override
+         {
+            // A statement that matched no row (DALConnection::TryExecute's count).
+            if (rowsAffected != nullptr)
+               *rowsAffected = 0;
+
+            return DALSuccess;
+         }
          bool IsConnected() const override { return !closed_.load(); }
          void OnConnected() override { connected_open_.store(!closed_.load()); }
          bool BeginTransaction(String &/*sErrorMessage*/) override { return true; }
