@@ -1365,6 +1365,17 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   message still goes nowhere, and each recipient is told as for any other message. `AntiVirus/StripAction.cs`
   deletes such a message with the recipients' notice on and finds the notice in the mailbox.
 
+- **Fixed: the anti-virus action *Remove all attachments and deliver the text* delivered a message whose file it
+  could not rewrite as the message had arrived, and logged it as stripped.** The stripper writes the stripped message
+  over the message's file, and it went on without asking whether the write had worked, so a message whose file could
+  be read but not written - another program holding it so - was delivered whole, and the log said that its
+  attachments had been stripped. A rewrite that does not reach the file now strips nothing, and the message is
+  deleted as one the stripper cannot read is: each of its recipients is sent the "message deleted" notice, its sender
+  is not told, and the log says that it `could not be rewritten`. `AntiVirus/StripAction.cs` holds a message's file
+  against writing while the stripper rewrites it, a message that is one attachment and one of text and an attachment,
+  and finds the notice and nothing of the message in the mailbox ([SealedMail.md](hmailserver/docs/SealedMail.md),
+  "The "delete attachments" anti-virus action").
+
 ### Control Panel
 
 - **Fixed: "Restart the service" waited a fixed 60 seconds for a stop the server gives ShutdownDrainSeconds plus 90,

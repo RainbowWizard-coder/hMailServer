@@ -18,7 +18,7 @@ namespace RegressionTests.AntiVirus
    ///    (eAntivirusAction.hDeleteAttachments) does with a message that is not
    ///    text with files attached: a message that is one attachment and nothing
    ///    else, a message that is one text part, and a message the stripper cannot
-   ///    read.
+   ///    read or cannot rewrite.
    ///
    ///    - One attachment and nothing else is an attachment like any other, and the
    ///      notice takes its place: what is delivered is the header, its subject
@@ -34,6 +34,8 @@ namespace RegressionTests.AntiVirus
    ///      be kept: it is deleted, as the delete action deletes it, and each of
    ///      its recipients is sent the "message deleted" notice in place of the
    ///      note, whatever the two notice settings say; its sender is not told.
+   ///      So is a message that can be read but whose file cannot be written,
+   ///      since what would be delivered is the file as it arrived.
    ///
    ///    And the "message deleted" notice reaches the recipients of a message
    ///    whose envelope sender is empty, as it reaches any other recipient.
@@ -169,6 +171,13 @@ namespace RegressionTests.AntiVirus
          var end = message.IndexOf("\r\n\r\n", StringComparison.Ordinal);
 
          return end < 0 ? message : message.Substring(0, end + 2);
+      }
+
+      private static string FirstLineOf(string text)
+      {
+         var end = text.IndexOfAny(new[] { '\r', '\n' });
+
+         return end < 0 ? text : text.Substring(0, end);
       }
 
       /// <summary>
@@ -407,31 +416,39 @@ namespace RegressionTests.AntiVirus
       }
 
       /// <summary>
-      ///    The custom scanner for the test below, run as the service runs it. It
-      ///    starts a second process that opens the message file without letting
-      ///    anyone else read it - as a host antivirus or a backup agent can hold a
-      ///    file it is looking at - waits until that process has the file, and
-      ///    then answers "infected". The hold ends by itself a few seconds later.
-      ///    Deleting the file is shared, so the server can still remove it.
+      ///    The custom scanner for the tests below, run as the service runs it. It
+      ///    starts a second process that opens the message file sharing it only as
+      ///    <paramref name="sharing"/> says - as a host antivirus or a backup agent
+      ///    can hold a file it is looking at - waits until that process has the
+      ///    file, and then answers "infected". The hold ends by itself a few
+      ///    seconds later. Deleting the file is shared, so the server can still
+      ///    remove it.
       /// </summary>
-      private const string HoldScript =
-         "param([string]$File, [string]$Signal, [int]$HoldMilliseconds)\r\n" +
-         "$holder = \"`$h = [System.IO.File]::Open('\" + $File + \"', 'Open', 'Read', 'Delete'); \" +\r\n" +
-         "   \"[System.IO.File]::WriteAllText('\" + $Signal + \"', 'held'); \" +\r\n" +
-         "   \"Start-Sleep -Milliseconds \" + $HoldMilliseconds + \"; `$h.Dispose()\"\r\n" +
-         "$encoded = [Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($holder))\r\n" +
-         "Start-Process -FilePath (Join-Path $PSHOME 'powershell.exe') -WindowStyle Hidden -ArgumentList '-NoProfile', '-NonInteractive', '-EncodedCommand', $encoded | Out-Null\r\n" +
-         "$deadline = [DateTime]::UtcNow.AddSeconds(60)\r\n" +
-         "while (-not (Test-Path -LiteralPath $Signal)) {\r\n" +
-         "   if ([DateTime]::UtcNow -gt $deadline) { exit 2 }\r\n" +
-         "   Start-Sleep -Milliseconds 50\r\n" +
-         "}\r\n" +
-         "Remove-Item -LiteralPath $Signal -ErrorAction SilentlyContinue\r\n" +
-         "exit 3\r\n";
+      private static string HoldScript(string sharing)
+      {
+         return
+            "param([string]$File, [string]$Signal, [int]$HoldMilliseconds)\r\n" +
+            "$holder = \"`$h = [System.IO.File]::Open('\" + $File + \"', 'Open', 'Read', '" + sharing + "'); \" +\r\n" +
+            "   \"[System.IO.File]::WriteAllText('\" + $Signal + \"', 'held'); \" +\r\n" +
+            "   \"Start-Sleep -Milliseconds \" + $HoldMilliseconds + \"; `$h.Dispose()\"\r\n" +
+            "$encoded = [Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($holder))\r\n" +
+            "Start-Process -FilePath (Join-Path $PSHOME 'powershell.exe') -WindowStyle Hidden -ArgumentList '-NoProfile', '-NonInteractive', '-EncodedCommand', $encoded | Out-Null\r\n" +
+            "$deadline = [DateTime]::UtcNow.AddSeconds(60)\r\n" +
+            "while (-not (Test-Path -LiteralPath $Signal)) {\r\n" +
+            "   if ([DateTime]::UtcNow -gt $deadline) { exit 2 }\r\n" +
+            "   Start-Sleep -Milliseconds 50\r\n" +
+            "}\r\n" +
+            "Remove-Item -LiteralPath $Signal -ErrorAction SilentlyContinue\r\n" +
+            "exit 3\r\n";
+      }
 
-      [Test]
-      [Description("A message the stripper cannot read is not delivered: it is deleted, and its recipient is sent the message-deleted notice in place of the note.")]
-      public void AMessageTheStripperCannotReadIsDeletedAndItsRecipientIsTold()
+      /// <summary>
+      ///    The strip action, with HoldScript as the scanner: while the stripper
+      ///    works on the message, another process holds its file, sharing it as
+      ///    <paramref name="sharing"/> says ("Delete": nobody may read it or write
+      ///    it; "Read, Delete": it may be read, and not written).
+      /// </summary>
+      private void StripWhileAnotherProcessHoldsTheFile(string sharing)
       {
          string powershell = Path.Combine(Environment.SystemDirectory, @"WindowsPowerShell\v1.0\powershell.exe");
          if (!File.Exists(powershell))
@@ -443,7 +460,7 @@ namespace RegressionTests.AntiVirus
          var token = Guid.NewGuid().ToString("N");
          _holdScript = Path.Combine(tempDirectory, "strip-action-hold-" + token + ".ps1");
          _holdSignal = Path.Combine(tempDirectory, "strip-action-held-" + token + ".txt");
-         File.WriteAllText(_holdScript, HoldScript);
+         File.WriteAllText(_holdScript, HoldScript(sharing));
 
          EnableScanner("\"" + powershell + "\" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"" + _holdScript +
             "\" \"%FILE%\" \"" + _holdSignal + "\" " + HoldMilliseconds, eAntivirusAction.hDeleteAttachments);
@@ -463,6 +480,13 @@ namespace RegressionTests.AntiVirus
             "}\r\n");
          scripting.Enabled = true;
          scripting.Reload();
+      }
+
+      [Test]
+      [Description("A message the stripper cannot read is not delivered: it is deleted, and its recipient is sent the message-deleted notice in place of the note.")]
+      public void AMessageTheStripperCannotReadIsDeletedAndItsRecipientIsTold()
+      {
+         StripWhileAnotherProcessHoldsTheFile("Delete");
 
          SmtpClientSimulator.StaticSendRaw("correspondent@example.com", _account.Address,
             TextAndEicarMessage(_account.Address));
@@ -494,6 +518,49 @@ namespace RegressionTests.AntiVirus
          // The notice is made from the message's header, which could not be read
          // either while the file was held: said, and the notice goes all the same.
          CustomAsserts.AssertReportedError("Could not read the message header");
+      }
+
+      [TestCase("one attachment")]
+      [TestCase("text and an attachment")]
+      [Description("A message the stripper can read but cannot rewrite is not delivered: it is deleted, and its recipient is sent the message-deleted notice in place of the note.")]
+      public void AMessageTheStripperCannotRewriteIsDeletedAndItsRecipientIsTold(string shape)
+      {
+         // Read, and not written: the stripper reads the message and works out
+         // what to keep, and the rewrite is what fails. A message that is one
+         // attachment is rewritten as the notice alone, the other as its text
+         // and the notice: each way of rewriting it.
+         StripWhileAnotherProcessHoldsTheFile("Read, Delete");
+
+         var oneAttachment = shape == "one attachment";
+
+         SmtpClientSimulator.StaticSendRaw("correspondent@example.com", _account.Address,
+            oneAttachment ? OneAttachmentMessage(_account.Address, "attachment") : TextAndEicarMessage(_account.Address));
+
+         var delivered = Pop3ClientSimulator.AssertGetFirstMessageText(_account.Address, Password);
+
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+         StringAssert.DoesNotContain(EicarBase64(), delivered,
+            "A message whose file the stripper could not rewrite was delivered as it arrived, the attachment the scanner objected to in it.");
+         StringAssert.DoesNotContain(PlainTextMarker, delivered,
+            "Something of a message the stripper could not rewrite was delivered.");
+         StringAssert.Contains("Subject: " + ServerMessage("VIRUS_FOUND") + ": " + (oneAttachment ? "One attachment" : "Text and a file"), delivered,
+            "The recipient was not sent the message-deleted notice in place of the note.");
+         StringAssert.Contains(FirstLineOf(ServerMessage("VIRUS_NOTIFICATION")), delivered,
+            "What arrived is not the message-deleted notice.");
+         StringAssert.DoesNotContain(ServerMessage("VIRUS_ATTACHMENT_REMOVED").TrimEnd(), delivered,
+            "The message was delivered with its attachments stripped, so its file was written after all.");
+
+         // What the test stands on: the file could be read and not written while
+         // the stripper rewrote it, and the stripper says so.
+         BounceTestSupport.AssertLogContains("could not be rewritten, so its attachments could not be stripped and no part of it can be kept",
+            "The helper did not hold the message file against writing while the stripper rewrote it, so this test has tested nothing.");
+
+         BounceTestSupport.AssertLogContains("the message could not be rewritten, so its attachments could not be stripped",
+            "The deletion has to be in the log, with its reason.");
+
+         // The notice, read (and so taken) above, was all that arrived.
+         Pop3ClientSimulator.AssertMessageCount(_account.Address, Password, 0);
       }
 
       [Test]

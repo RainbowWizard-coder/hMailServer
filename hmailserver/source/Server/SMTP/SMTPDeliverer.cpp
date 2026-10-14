@@ -985,7 +985,9 @@ namespace HM
          // "Message attachments stripped" was written unconditionally, so a
          // message the stripper had just declined (and said so, one line
          // earlier) was recorded as stripped in the next.
-         switch (pStripper->Strip(pMessage))
+         const MessageAttachmentStripper::Result stripped = pStripper->Strip(pMessage);
+
+         switch (stripped)
          {
          case MessageAttachmentStripper::Result::Stripped:
             LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: Message attachments stripped (contained virus {1}).",
@@ -1008,11 +1010,18 @@ namespace HM
             break;
 
          case MessageAttachmentStripper::Result::LeftAloneUnreadable:
+         case MessageAttachmentStripper::Result::RewriteFailed:
             // Nothing of the message can be kept, so it is not delivered: it is
             // deleted, as the delete action deletes it. Deleted rather than held
             // for another try: a message that could not be read now is no more
             // readable on a later pass, and a hold would end in a return to its
             // sender, which on virus mail is an address the sender forged.
+            //
+            // So is a message whose stripped form could not be written over its
+            // file: the file is what the delivery below would deliver, and it is
+            // the message as it arrived, or a part of the rewrite. Such a message
+            // was delivered as it was, and logged above as stripped, while the
+            // stripper did not say that its write had failed.
             //
             // The recipients are told in place of the note this action puts in
             // the messages it delivers, as the delete action tells them when its
@@ -1021,8 +1030,9 @@ namespace HM
             // Control Panel says so beside them.
             notifyEveryRecipient();
 
-            LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: Message will be deleted (contained virus {1}): the message could not be read, so its attachments could not be stripped. Its recipients are sent the message-deleted notice in place of the note.",
-               pMessage->GetID(), virusName));
+            LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: Message will be deleted (contained virus {1}): the message could not be {2}, so its attachments could not be stripped. Its recipients are sent the message-deleted notice in place of the note.",
+               pMessage->GetID(), virusName,
+               String(stripped == MessageAttachmentStripper::Result::RewriteFailed ? _T("rewritten") : _T("read"))));
 
             return false; // do not continue delivery
          }

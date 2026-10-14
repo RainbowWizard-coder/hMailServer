@@ -19,6 +19,25 @@
 
 namespace HM
 {
+   namespace
+   {
+      // The stripped message could not be written over the message's file: it
+      // could not be opened for writing - another program holds it, letting it
+      // be read but not written - or did not take all of what was written. What
+      // the caller delivers is that file, which now holds the message as it
+      // arrived or a part of the rewrite, so no part of it can be kept, and the
+      // caller deletes it as it deletes a message that cannot be read
+      // (SMTPDeliverer::HandleInfectedMessage_). This line was not written, and
+      // the caller said that the attachments had been stripped and delivered the
+      // file as it was.
+      MessageAttachmentStripper::Result ReportRewriteFailed(const String &fileName)
+      {
+         LOG_APPLICATION(Formatter::Format("The message {0} could not be rewritten, so its attachments could not be stripped and no part of it can be kept.", fileName));
+
+         return MessageAttachmentStripper::Result::RewriteFailed;
+      }
+   }
+
    MessageAttachmentStripper::MessageAttachmentStripper()
    {
 
@@ -127,7 +146,11 @@ namespace HM
          // they go too: a Content-Transfer-Encoding left behind would have the
          // notice decoded as that encoding, and a Content-Disposition would show
          // it as the file.
-         WriteToDisk_(pMessage, oMimeMessage, std::shared_ptr<MimeBody>(), true);
+         //
+         // What is delivered is the file, so a rewrite that did not reach it
+         // has stripped nothing (ReportRewriteFailed, above).
+         if (!WriteToDisk_(pMessage, oMimeMessage, std::shared_ptr<MimeBody>(), true))
+            return ReportRewriteFailed(fileName);
 
          // As for a multipart message below: a signed message is said to have
          // lost its signature, and a label the body does not bear out is said
@@ -170,7 +193,11 @@ namespace HM
       // infected one as often as not. Now that the comparison is right, no text
       // part is a real outcome, and returning here would deliver the message
       // whole. So it is stripped to nothing: the header, the notice, and no body.
-      WriteToDisk_(pMessage, oMimeMessage, pBody, false);
+      //
+      // And as for a single part: a rewrite that did not reach the file has
+      // stripped nothing.
+      if (!WriteToDisk_(pMessage, oMimeMessage, pBody, false))
+         return ReportRewriteFailed(fileName);
 
       if (SealedMessage::IsOpaqueContentType(contentType))
       {
@@ -220,7 +247,7 @@ namespace HM
       return none;
    }
 
-   void
+   bool
    MessageAttachmentStripper::WriteToDisk_(std::shared_ptr<Message> pMessage, MimeBody &oMainMessage, std::shared_ptr<MimeBody> pBody, bool bodyWasThePart)
    {
       // A null body is now a caller's decision rather than a mistake: it means
@@ -276,11 +303,17 @@ namespace HM
       sData += "\r\n";
       sData += sBody + "\r\n";
 
-      pMessage->SetSize(sData.GetLength());
-
       String fileName = MessageStore::WorkingFile(pMessage);
 
-      FileUtilities::WriteToFile(fileName, sData, false);
+      // Its result was thrown away, and the caller went on as though the file
+      // held the stripped message whatever the write had done. The size is the
+      // file's once the file holds it, and not before.
+      if (!FileUtilities::WriteToFile(fileName, sData, false))
+         return false;
+
+      pMessage->SetSize(sData.GetLength());
+
+      return true;
    }
 
 

@@ -21,15 +21,16 @@ namespace HM
       // what it asked for, and so that it can decide what happens next. Strip
       // is called after a scanner has found a virus. NothingToStrip and
       // LeftAloneEncrypted mean the message goes on still carrying it;
-      // LeftAloneUnreadable means nothing in it could be kept, and the caller
-      // does not deliver it.
+      // LeftAloneUnreadable and RewriteFailed mean nothing in it could be
+      // kept, and the caller does not deliver it.
       enum class Result
       {
          Stripped,             // rewritten as its text part plus the notice
          ReplacedByNotice,     // a single part that is not the message's text: rewritten as the notice alone
          NothingToStrip,       // a single-part message that is its text: there is no attachment to remove
          LeftAloneEncrypted,   // encrypted end to end (SealedMessage::IsEncrypted), so there is no part to pick out
-         LeftAloneUnreadable   // the file could not be read, so it was not rewritten: the caller deletes it
+         LeftAloneUnreadable,  // the file could not be read, so it was not rewritten: the caller deletes it
+         RewriteFailed         // read, but what was to replace it could not be written: the file holds the message as it arrived, or part of the rewrite, and the caller deletes it
       };
 
       // Rewrites the message as its text part plus a notice, which is what the
@@ -45,7 +46,10 @@ namespace HM
       // left as it is (NothingToStrip), as an infected text part of a multipart
       // message is kept. A message that cannot be read is not rewritten either
       // (LeftAloneUnreadable): nothing of it can be kept, so the caller deletes
-      // it rather than deliver what the scanner found.
+      // it rather than deliver what the scanner found. Nor can anything of one
+      // whose rewrite could not be written (RewriteFailed): its file is the
+      // message as it arrived, or a part of what was being written over it,
+      // and the caller deletes it too.
       //
       // An ENCRYPTED message (SealedMessage::IsEncrypted) is left exactly as it
       // arrived and the reason is logged: keeping one part of it hands the
@@ -63,8 +67,10 @@ namespace HM
       // and the notice are written and the body is empty. bodyWasThePart says
       // that the message's own header described the part removed - a
       // single-part message - so its Content- fields, which describe that part
-      // and not the notice, are left out with Content-Type.
-      static void WriteToDisk_(std::shared_ptr<Message> pMessage, MimeBody &oMainMessage, std::shared_ptr<MimeBody> pBody, bool bodyWasThePart);
+      // and not the notice, are left out with Content-Type. False when the
+      // file could not be written - not opened for writing, or not all of it
+      // taken - and then the message's size is left as it was.
+      static bool WriteToDisk_(std::shared_ptr<Message> pMessage, MimeBody &oMainMessage, std::shared_ptr<MimeBody> pBody, bool bodyWasThePart);
 
       // The first part under parent, at any depth up to the cap, that
       // IsGoodTextPart_ accepts and whose sub type is subType (any text sub
