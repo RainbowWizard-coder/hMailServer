@@ -364,8 +364,12 @@ How this stays true
 
 - `build/generate-auth-matrix.py --check` runs in the `checkers` job: a route
   added, moved or reclassified changes the committed matrix, and a new route of
-  a flagged shape is flagged the day it is written. Its `--self-test` breaks the
-  source in memory and proves each flag still fires.
+  a flagged shape is flagged the day it is written. The steps of the decision -
+  `Authorize_`, the functions it asks, and `ProcessRequest_` from the end of the
+  anonymous routes to the handler - are held to the ones the script follows:
+  one added, taken out, moved or given a condition stops the script until it
+  has been read against it. Its `--self-test` breaks the source in memory and
+  proves each flag still fires and each such change stops it.
 - `check-role-choke-point.py`, `check-authz-choke-point.py`,
   `check-deck-script.py` and `check-portal-script.py` hold the choke points and
   the pages' policies.

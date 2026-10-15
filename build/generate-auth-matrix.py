@@ -9,7 +9,9 @@ every kind of credential, read from the code.
 Writes hmailserver/docs/WebAuthorisationMatrix.md. Nothing in that file is typed
 by hand: every row comes from the C++ that decides it, so that the matrix says
 what the server does rather than what somebody once meant it to do, and --check
-fails the moment the two part.
+fails the moment the two part: when the routes, the lists or the roles it is
+read from have changed and the file has not (exit 1), and when a step the
+decision is written in has changed (exit 2; STEPS, below).
 
 What is read, all of it from hmailserver/source/Server/Common:
 
@@ -33,7 +35,12 @@ What is read, all of it from hmailserver/source/Server/Common:
       exceptions to the API-key routes. The decision below follows Authorize_'s
       order, step for step; build/check-role-choke-point.py already holds every
       RouteKind to a classification, and this script holds the decision to the
-      same reading.
+      same reading. The steps are the script's own writing, so they are held to
+      the code: STEPS carries each function the decision rests on - these,
+      RoleManager::Allows, IsDomainAllowed_, and ProcessRequest_ from the end of
+      the anonymous routes to the handler - with what the readers take out of
+      it masked, and a step added, taken out, moved or given a condition stops
+      the script until decide() has been read against it and STEPS updated.
   Application/RoleManager.cpp
       the four built-in roles' permissions.
   Util/WebServicesServer.cpp, ProcessRequest_
@@ -44,11 +51,14 @@ Usage:
   python build/generate-auth-matrix.py            # write the matrix
   python build/generate-auth-matrix.py --check    # fail if the committed one is stale
   python build/generate-auth-matrix.py --print    # to stdout
+  python build/generate-auth-matrix.py --steps    # the steps as the code has them, as STEPS holds them
   python build/generate-auth-matrix.py --self-test
 """
 
 import contextlib
 import copy
+import difflib
+import functools
 import io
 import os
 import re
@@ -543,11 +553,21 @@ class Parser(object):
                 return node
 
 
-def function_text(text, qualified):
+def function_text(text, qualified, params=None):
     """The body of a member function, '{' to its closing '}' at the definition's indent,
-    and the line its '{' is on."""
-    m = re.search(r"^([ \t]*)[^\n]*\b" + re.escape(qualified) + r"\s*\([^;{]*?\)\s*(?:const\s*)?\n\1\{", text, re.M | re.S)
-    if not m:
+    and the line its '{' is on. With params, of the overload whose parameter list
+    holds that text."""
+    # Tried at the start of each line that names the function, in order: the
+    # first definition, as a search of the whole text would find it, without
+    # trying the pattern at every line of a file of ten thousand.
+    head = re.compile(r"([ \t]*)[^\n]*\b" + re.escape(qualified) + r"\s*\(([^;{]*?)\)\s*(?:const\s*)?\n\1\{", re.S)
+    at = text.find(qualified)
+    while at >= 0:
+        m = head.match(text, text.rfind("\n", 0, at) + 1)
+        if m and (params is None or params in m.group(2)):
+            break
+        at = text.find(qualified, m.end() if m else at + 1)
+    else:
         return None, 0
     indent = m.group(1)
     open_at = m.end() - 1
@@ -1905,9 +1925,119 @@ def read_anonymous_routes(sources, rel, qualified, stop_at_try):
 # Reading the decision
 # ---------------------------------------------------------------------------
 
-def body_of(text, qualified):
-    body, _ = function_text(text, qualified)
+def body_of(text, qualified, params=None):
+    body, _ = function_text(text, qualified, params)
     return body
+
+
+# What the readers below take out of the code. steps_of masks exactly what these
+# take, with the same patterns, before it compares a function's steps with STEPS:
+# so a list may change - a route into or out of a refusal, a permission, a
+# handler - and nothing else may without the script stopping.
+LABEL = r"case (Route\w+):"
+LABEL_LINE = r"\s*case (Route\w+):\s*$"
+PERMISSION_LINE = r"\s*return RolePermission::(\w+);\s*$"
+SECOND_PERMISSION_LINE = r"\s*permission = RolePermission::(\w+);\s*$"
+DOMAIN_LINE = r"\s*return (.+);\s*$"
+HANDLER_LINE = r"\s*return (\w+)\((.*)\);\s*$"
+KEY_ROUTES = "if (IsApiKeyRoute_(route.kind))"
+CONFINEMENT = "if (caller.domains.empty())"
+DISPATCH = "switch (route.kind)"
+CONFINED_REFUSAL = re.compile(r"if \(((?:route\.kind == Route\w+\s*(?:\|\|)?\s*)+)\)\s*\{\s*"
+                              r"refusalReason = \"this credential is restricted", re.S)
+SERVER_WIDE = re.compile(r"switch \(route\.kind\)\s*\{(.*?)refusalReason = \"this credential is restricted to named "
+                         r"domains, and that resource is server-wide\"", re.S)
+# The domain DomainNamedByRoute_ answers with, by the expression it is written as.
+DOMAIN_EXPRESSIONS = {
+    "StringParser::ExtractDomain(String(route.identifier))": "the address's domain",
+    "InboundWebhooks::DomainOf(String(route.identifier))": "the address's or domain's",
+    "String(route.identifier)": "the domain",
+}
+
+
+def tokens_of(text):
+    """Every token of text in order, whitespace and comments included, so that
+    joining them gives the text back."""
+    pos = 0
+    while pos < len(text):
+        m = TOKEN.match(text, pos)
+        if not m:
+            raise GenerationError("cannot tokenize near line %d: %r" % (text.count("\n", 0, pos) + 1, text[pos:pos + 40]))
+        yield m
+        pos = m.end()
+
+
+@functools.lru_cache(maxsize=None)
+def code_of(text):
+    """The text with its comments taken out, each line where it was. By the
+    tokenizer, so that a /* ... */ is a comment too and a // inside a string is
+    not: a case label in a comment is no case label."""
+    return "".join(("\n" * m.group(0).count("\n") or " ") if m.lastgroup == "comment" else m.group(0)
+                   for m in tokens_of(text or ""))
+
+
+def one_statement_a_line(code):
+    """The code with every line break inside parentheses made a space, so that a
+    call written over several lines - a dispatch's return among them - is read
+    as the one line it is."""
+    out = []
+    depth = 0
+    for m in tokens_of(code):
+        piece = m.group(0)
+        if m.lastgroup == "op" and piece == "(":
+            depth += 1
+        elif m.lastgroup == "op" and piece == ")":
+            depth = max(0, depth - 1)
+        elif m.lastgroup == "ws" and depth and "\n" in piece:
+            piece = " "
+        out.append(piece)
+    return "".join(out)
+
+
+def braced(code, start):
+    """(begin, end) of the first { ... } at or after the offset start, braces
+    matched by token, or None."""
+    depth = 0
+    begin = None
+    for m in tokens_of(code[start:]):
+        if m.lastgroup != "op":
+            continue
+        if m.group(0) == "{":
+            if begin is None:
+                begin = start + m.start()
+            depth += 1
+        elif m.group(0) == "}" and begin is not None:
+            depth -= 1
+            if depth == 0:
+                return begin, start + m.end()
+    return None
+
+
+def key_route_block(authorize):
+    """Authorize_'s block for IsApiKeyRoute_, which holds the role-holding
+    account's exceptions: (begin, end) in its code, or None."""
+    at = authorize.find(KEY_ROUTES)
+    return braced(authorize, at + len(KEY_ROUTES)) if at >= 0 else None
+
+
+def authenticated_part(process):
+    """ProcessRequest_'s try block - where the anonymous routes end, and from
+    which every request has a credential - and the (begin, end) inside it of the
+    dispatch switch's braces: (part, span), or (None, None)."""
+    depth = 0
+    for m in tokens_of(process):
+        if m.lastgroup == "op" and m.group(0) == "{":
+            depth += 1
+        elif m.lastgroup == "op" and m.group(0) == "}":
+            depth -= 1
+        elif m.lastgroup == "id" and m.group(0) == "try" and depth == 1:
+            block = braced(process, m.start())
+            if block is None:
+                return None, None
+            part = process[m.start():block[1]]
+            at = part.find(DISPATCH)
+            return part, (braced(part, at) if at >= 0 else None)
+    return None, None
 
 
 def route_kinds(header):
@@ -1919,24 +2049,30 @@ def route_kinds(header):
 
 
 def case_set(body):
-    return set(re.findall(r"case (Route\w+):", re.sub(r"//[^\n]*", "", body or "")))
+    return set(re.findall(LABEL, code_of(body)))
 
 
-def case_groups(body, answer):
-    """{kind: answer-group} for a switch whose groups end in a line matching answer."""
+def case_matches(body, answer):
+    """{kind: the match of answer} for a switch whose groups end in a line
+    matching answer."""
     mapping = {}
     pending = []
-    for line in re.sub(r"//[^\n]*", "", body or "").split("\n"):
-        label = re.match(r"\s*case (Route\w+):\s*$", line)
+    for line in one_statement_a_line(code_of(body)).split("\n"):
+        label = re.match(LABEL_LINE, line)
         if label:
             pending.append(label.group(1))
             continue
         m = re.match(answer, line)
         if m and pending:
             for kind in pending:
-                mapping[kind] = m.group(1)
+                mapping[kind] = m
             pending = []
     return mapping
+
+
+def case_groups(body, answer):
+    """{kind: answer-group} for a switch whose groups end in a line matching answer."""
+    return {kind: m.group(1) for kind, m in case_matches(body, answer).items()}
 
 
 def builtin_permissions(role_cpp, function):
@@ -1976,63 +2112,49 @@ class Decision(object):
         self.api_key = case_set(body_of(cpp, "RestApiServer::IsApiKeyRoute_"))
         self.mutating = case_set(body_of(cpp, "RestApiServer::IsMutatingRoute_"))
         self.takes_in = case_set(body_of(cpp, "RestApiServer::ChangesAccountByAddress_"))
-        self.permission = case_groups(body_of(cpp, "RestApiServer::PermissionFor_"),
-                                      r"\s*return RolePermission::(\w+);\s*$")
-        self.second = case_groups(body_of(cpp, "RestApiServer::SecondPermissionFor_"),
-                                  r"\s*permission = RolePermission::(\w+);\s*$")
+        self.permission = case_groups(body_of(cpp, "RestApiServer::PermissionFor_"), PERMISSION_LINE)
+        self.second = case_groups(body_of(cpp, "RestApiServer::SecondPermissionFor_"), SECOND_PERMISSION_LINE)
         default = re.search(r"default:\s*break;\s*\}\s*return RolePermission::(\w+);",
-                            re.sub(r"//[^\n]*", "", body_of(cpp, "RestApiServer::PermissionFor_") or ""))
+                            code_of(body_of(cpp, "RestApiServer::PermissionFor_")))
         self.default_permission = default.group(1) if default else None
-        named = case_groups(body_of(cpp, "RestApiServer::DomainNamedByRoute_"), r"\s*return (.+);\s*$")
+        named = case_groups(body_of(cpp, "RestApiServer::DomainNamedByRoute_"), DOMAIN_LINE)
         self.domain_named = {}
         for kind, expr in named.items():
-            if "ExtractDomain" in expr:
-                self.domain_named[kind] = "the address's domain"
-            elif "DomainOf" in expr:
-                self.domain_named[kind] = "the address's or domain's"
-            elif "identifier" in expr:
-                self.domain_named[kind] = "the domain"
-            else:
-                self.domain_named[kind] = expr
-        authorize = body_of(cpp, "RestApiServer::Authorize_") or ""
+            self.domain_named[kind] = DOMAIN_EXPRESSIONS.get(re.sub(r"\s+", "", expr), expr)
+        authorize = code_of(body_of(cpp, "RestApiServer::Authorize_"))
         self.authorize_text = authorize
         # The role-holding account's exceptions inside the API-key block
-        m = re.search(r"if \(IsApiKeyRoute_\(route\.kind\)\)(.*?)// THE DECISION", authorize, re.S)
-        self.role_key_routes = case_set(m.group(1)) if m else set()
+        span = key_route_block(authorize)
+        self.role_key_routes = case_set(authorize[span[0]:span[1]]) if span else set()
         # The refusals a credential confined to named domains meets
-        after = authorize.split("if (caller.domains.empty())", 1)
+        after = authorize.split(CONFINEMENT, 1)
         if len(after) != 2:
             raise GenerationError("%s: Authorize_'s confinement section could not be found" % REST_CPP)
         confined = after[1]
         self.confined_refused = set()
-        for block in re.finditer(r"if \(((?:route\.kind == Route\w+\s*(?:\|\|)?\s*)+)\)\s*\{\s*refusalReason = \"this credential is restricted",
-                                 confined, re.S):
+        for block in CONFINED_REFUSAL.finditer(confined):
             self.confined_refused |= set(re.findall(r"Route\w+", block.group(1)))
-        sw = re.search(r"switch \(route\.kind\)\s*\{(.*?)refusalReason = \"this credential is restricted to named domains, and that resource is server-wide\"",
-                       confined, re.S)
+        sw = SERVER_WIDE.search(confined)
         if not sw:
             raise GenerationError("%s: Authorize_'s list of server-wide routes could not be found" % REST_CPP)
         self.confined_refused |= case_set(sw.group(1))
         self.report_kind = "RouteReport" if "route.kind == RouteReport" in confined else None
-        # Dispatch: kind -> handler call text
-        process = body_of(cpp, "RestApiServer::ProcessRequest_") or ""
-        dispatch = process.split("switch (route.kind)", 1)
-        if len(dispatch) != 2:
+        if self.report_kind in self.confined_refused:
+            # Its own block stands between the refusals, so which of the two
+            # answers depends on where the refusal is - an order decide() does
+            # not read.
+            raise GenerationError("%s: RouteReport is in a refusal of a confined credential as well as in its own "
+                                  "block in Authorize_; read decide() against the two" % REST_CPP)
+        # Dispatch: kind -> handler call text, from the switch in ProcessRequest_'s
+        # try block, where every request has a credential
+        part, span = authenticated_part(code_of(body_of(cpp, "RestApiServer::ProcessRequest_")))
+        if span is None:
             raise GenerationError("%s: ProcessRequest_'s dispatch could not be found" % REST_CPP)
-        self.handler = case_groups(dispatch[1], r"\s*return (\w+)\((.*)\);\s*$")
+        self.handler = {}
         self.handler_args = {}
-        pending = []
-        for line in re.sub(r"//[^\n]*", "", dispatch[1]).split("\n"):
-            label = re.match(r"\s*case (Route\w+):\s*$", line)
-            if label:
-                pending.append(label.group(1))
-                continue
-            m2 = re.match(r"\s*return (\w+)\((.*)\);\s*$", line)
-            if m2 and pending:
-                for kind in pending:
-                    self.handler[kind] = m2.group(1)
-                    self.handler_args[kind] = m2.group(2)
-                pending = []
+        for kind, m in case_matches(part[span[0]:span[1]], HANDLER_LINE).items():
+            self.handler[kind] = m.group(1)
+            self.handler_args[kind] = m.group(2)
         roles = {
             "serveradmin": builtin_permissions(role_cpp, "ServerAdminPermissions"),
             "domainadmin": builtin_permissions(role_cpp, "DomainAdminPermissions"),
@@ -2052,6 +2174,11 @@ class Decision(object):
                              ("the dispatch", self.handler), ("the role-holder's key-route exceptions", self.role_key_routes)):
             if not value:
                 raise GenerationError("%s: %s could not be read" % (REST_CPP, label))
+        # What decide() takes as given - the order of Authorize_'s steps and their
+        # conditions, what lies between the credential and the handler - held to
+        # the code, so that a change of a step stops the script rather than
+        # leaving the matrix as it was.
+        check_steps(sources)
 
     def token(self, permission):
         return self.tokens.get(permission, permission)
@@ -2099,6 +2226,589 @@ class Decision(object):
         if kind in self.domain_named:
             return "own"
         return "own*" if cell == "yes" else cell
+
+
+# ---------------------------------------------------------------------------
+# The steps decide() takes as given
+# ---------------------------------------------------------------------------
+#
+# decide() reads its lists out of the code but writes the steps between them
+# itself: which test comes first, what each one asks, what follows a refusal.
+# So every function the decision rests on is held to STEPS, the steps as they
+# were when decide() was last read against them. A list may change unseen - the
+# readers above take it - and nothing else may: a step added, taken out, moved
+# or given a condition stops the script with the difference, until decide() has
+# been read against the new steps and STEPS updated with them.
+
+# The functions read with case_set and case_groups, and what their answers are
+# masked to.
+STEP_CASE_SETS = [
+    ("RestApiServer::IsSessionRoute_", REST_CPP),
+    ("RestApiServer::IsSelfServiceRoute_", REST_CPP),
+    ("RestApiServer::IsScimRoute_", SUB_PARSERS["ParseScimRoute_"]),
+    ("RestApiServer::IsApiKeyRoute_", REST_CPP),
+    ("RestApiServer::IsMutatingRoute_", REST_CPP),
+    ("RestApiServer::ChangesAccountByAddress_", REST_CPP),
+]
+STEP_CASE_GROUPS = [
+    ("RestApiServer::PermissionFor_", PERMISSION_LINE, lambda m: "return RolePermission::PERMISSION;"),
+    ("RestApiServer::SecondPermissionFor_", SECOND_PERMISSION_LINE, lambda m: "permission = RolePermission::PERMISSION;"),
+    # One of the expressions the reader knows is a domain; any other is a step.
+    ("RestApiServer::DomainNamedByRoute_", DOMAIN_LINE,
+     lambda m: "return DOMAIN;" if re.sub(r"\s+", "", m.group(1)) in DOMAIN_EXPRESSIONS else None),
+]
+
+
+def mask_lines(code, answer, masked):
+    """code, one statement a line, with each line case_matches would take as a
+    label or as an answer masked."""
+    out = []
+    for line in one_statement_a_line(code).split("\n"):
+        if re.match(LABEL_LINE, line):
+            line = "case ROUTE:"
+        else:
+            m = re.match(answer, line)
+            if m and masked(m) is not None:
+                line = masked(m)
+        out.append(line)
+    return "\n".join(out)
+
+
+def last_statement(tokens):
+    """The first token of the last statement of tokens, or None when they do not
+    end in one."""
+    if not tokens or tokens[-1] != ";":
+        return None
+    k = len(tokens) - 2
+    depth = 0
+    while k >= 0:
+        t = tokens[k]
+        if t in (")", "]", "}"):
+            depth += 1
+        elif t in ("(", "[", "{"):
+            if depth == 0:
+                break
+            depth -= 1
+        elif depth == 0 and t in (";", ":"):
+            break
+        k -= 1
+    return tokens[k + 1]
+
+
+def skeleton(code):
+    """A function's code as its steps, one statement a line: its tokens with the
+    whitespace and the comments gone and every string literal "" (adjacent ones
+    one, as in C++). A run of masked labels is one label, and two masked switch
+    groups or two masked refusals that are alike, side by side and end in a jump
+    are one, so that a route given a group or a refusal of its own is a list
+    edit too."""
+    tokens = []
+    for m in tokens_of(code):
+        if m.lastgroup in ("ws", "comment"):
+            continue
+        if m.lastgroup == "str":
+            if not (tokens and tokens[-1] == '""'):
+                tokens.append('""')
+        elif m.lastgroup == "chr":
+            tokens.append("''")
+        else:
+            tokens.append(m.group(0))
+    label = ["case", "ROUTE", ":"]
+    refusal = ["if", "(", "route", ".", "kind", "==", "ROUTES", ")", "{"]
+    runs = []
+    i = 0
+    while i < len(tokens):
+        if tokens[i:i + 3] == label and runs[-3:] == label:
+            i += 3
+            continue
+        runs.append(tokens[i])
+        i += 1
+    tokens = runs
+
+    def unit_end(i):
+        if tokens[i:i + 3] == label:
+            depth = 0
+            j = i + 3
+            while j < len(tokens):
+                t = tokens[j]
+                if t in ("(", "[", "{"):
+                    depth += 1
+                elif t in (")", "]", "}"):
+                    if depth == 0:
+                        break
+                    depth -= 1
+                elif depth == 0 and t in ("case", "default"):
+                    break
+                j += 1
+            return j if last_statement(tokens[i + 3:j]) in ("return", "break") else None
+        if tokens[i:i + len(refusal)] == refusal:
+            depth = 0
+            j = i + len(refusal) - 1
+            while j < len(tokens):
+                if tokens[j] == "{":
+                    depth += 1
+                elif tokens[j] == "}":
+                    depth -= 1
+                    if depth == 0:
+                        break
+                j += 1
+            if j >= len(tokens) or tokens[j + 1:j + 2] == ["else"]:
+                return None
+            return j + 1 if last_statement(tokens[i + len(refusal):j]) == "return" else None
+        return None
+
+    kept = []
+    previous = None
+    i = 0
+    while i < len(tokens):
+        end = unit_end(i)
+        if end is None:
+            kept.append(tokens[i])
+            previous = None
+            i += 1
+            continue
+        unit = tokens[i:end]
+        if unit != previous:
+            kept.extend(unit)
+        previous = unit
+        i = end
+    lines = []
+    line = []
+    state = {"depth": 0, "paren": 0, "label": False}
+
+    def end_line():
+        if line:
+            text = " ".join(line)
+            if text == ";" and lines:
+                lines[-1] += " ;"
+            else:
+                lines.append("  " * state["depth"] + text)
+            del line[:]
+    for t in kept:
+        if t == "}":
+            end_line()
+            state["depth"] -= 1
+            line.append(t)
+            end_line()
+            continue
+        if t in ("case", "default") and state["paren"] == 0:
+            end_line()
+            state["label"] = True
+        line.append(t)
+        if t == "(":
+            state["paren"] += 1
+        elif t == ")":
+            state["paren"] -= 1
+        elif t == "{":
+            end_line()
+            state["depth"] += 1
+        elif t == ";" and state["paren"] == 0:
+            end_line()
+        elif t == ":" and state["label"] and state["paren"] == 0:
+            state["label"] = False
+            end_line()
+    end_line()
+    return "\n".join(lines)
+
+
+def steps_of(sources=None):
+    """[(function, its steps)] for every function the decision rests on, each
+    masked where the readers above take something out of it: Authorize_ (the
+    role-holder's exceptions, the routes of each refusal of a confined
+    credential and the server-wide switch's labels), the functions read with
+    case_set and case_groups, the two decisions Authorize_ hands its domain to -
+    RoleManager::Allows, with the domain, and IsDomainAllowed_ - and
+    ProcessRequest_'s try block, everything between the end of the anonymous
+    routes and the handler, the dispatch's labels and handlers masked."""
+
+    def code(rel, qualified, params=None):
+        body = body_of(read(rel, sources), qualified, params)
+        if body is None:
+            raise GenerationError("%s: %s could not be read" % (rel, qualified))
+        return code_of(body)
+
+    steps = []
+    authorize = code(REST_CPP, "RestApiServer::Authorize_")
+    spans = []
+    key = key_route_block(authorize)
+    if key:
+        spans += [(key[0] + m.start(), key[0] + m.end(), "case ROUTE:")
+                  for m in re.finditer(LABEL, authorize[key[0]:key[1]])]
+    at = authorize.find(CONFINEMENT)
+    if at >= 0:
+        base = at + len(CONFINEMENT)
+        confined = authorize[base:]
+        spans += [(base + m.start(1), base + m.end(1), "route.kind == ROUTES") for m in CONFINED_REFUSAL.finditer(confined)]
+        sw = SERVER_WIDE.search(confined)
+        if sw:
+            spans += [(base + sw.start(1) + m.start(), base + sw.start(1) + m.end(), "case ROUTE:")
+                      for m in re.finditer(LABEL, sw.group(1))]
+    for begin, end, new in sorted(spans, reverse=True):
+        authorize = authorize[:begin] + new + authorize[end:]
+    steps.append(("RestApiServer::Authorize_", skeleton(authorize)))
+    for qualified, rel in STEP_CASE_SETS:
+        steps.append((qualified, skeleton(re.sub(LABEL, "case ROUTE:", code(rel, qualified)))))
+    for qualified, answer, masked in STEP_CASE_GROUPS:
+        steps.append((qualified, skeleton(mask_lines(code(REST_CPP, qualified), answer, masked))))
+    steps.append(("RoleManager::Allows", skeleton(code(ROLE_CPP, "RoleManager::Allows", "const String &domainName"))))
+    steps.append(("RestApiServer::IsDomainAllowed_", skeleton(code(REST_CPP, "RestApiServer::IsDomainAllowed_"))))
+    part, span = authenticated_part(code(REST_CPP, "RestApiServer::ProcessRequest_"))
+    if span is None:
+        raise GenerationError("%s: ProcessRequest_'s dispatch could not be found" % REST_CPP)
+    part = part[:span[0]] + mask_lines(part[span[0]:span[1]], HANDLER_LINE, lambda m: "return HANDLER();") + part[span[1]:]
+    steps.append(("RestApiServer::ProcessRequest_", skeleton(part)))
+    return steps
+
+
+def steps_literal(steps):
+    """STEPS as this script carries it, for steps."""
+    out = ["STEPS = {"]
+    for name, text in steps:
+        out.append('    "%s": r"""' % name)
+        out.append(text)
+        out.append('""",')
+    out.append("}")
+    return "\n".join(out) + "\n"
+
+
+def check_steps(sources=None):
+    now = steps_of(sources)
+    if [name for name, _ in now] != list(STEPS):
+        raise GenerationError("STEPS names %s, and the steps read are of %s"
+                              % (", ".join(STEPS), ", ".join(name for name, _ in now)))
+    for name, text in now:
+        carried = STEPS[name].strip("\n")
+        if text != carried:
+            diff = list(difflib.unified_diff(carried.split("\n"), text.split("\n"), "STEPS", "the code", n=1, lineterm=""))
+            raise GenerationError("%s's steps have changed: read decide() against them, then update its entry in STEPS "
+                                  "(python build/generate-auth-matrix.py --steps prints them as the code has them "
+                                  "now):\n%s" % (name, "\n".join(diff[:60])))
+
+
+# The steps, as decide() was last read against them: what steps_of reads,
+# printed by --steps.
+STEPS = {
+    "RestApiServer::Authorize_": r"""
+{
+  refusalReason = "" ;
+  if ( IsSessionRoute_ ( route . kind ) ) {
+    if ( route . kind == RouteSessionGet ) {
+      return AuthorizationAllowed ;
+    }
+    if ( route . kind == RouteSendList || route . kind == RouteSendGet ) {
+      if ( caller . result == AuthenticatedWithApiKey ) return AuthorizationAllowed ;
+      refusalReason = "" ;
+      return AuthorizationForbidden ;
+    }
+    if ( caller . result == AuthenticatedAsAccount || caller . result == AuthenticatedAsAdministrator ) return AuthorizationAllowed ;
+    refusalReason = "" ;
+    return AuthorizationForbidden ;
+  }
+  if ( route . kind == RouteSendCreate && caller . result != AuthenticatedWithApiKey ) {
+    refusalReason = "" ;
+    return AuthorizationForbidden ;
+  }
+  if ( IsScimRoute_ ( route . kind ) && caller . result != AuthenticatedWithApiKey ) return AuthorizationUnauthenticated ;
+  if ( IsSelfServiceRoute_ ( route . kind ) ) {
+    if ( caller . result == AuthenticatedAsAccount ) return AuthorizationAllowed ;
+    refusalReason = "" ;
+    return AuthorizationForbidden ;
+  }
+  if ( caller . result == AuthenticatedAsAccount && ! caller . grant . administrative ) {
+    refusalReason = "" ;
+    return AuthorizationForbidden ;
+  }
+  if ( caller . result == AuthenticatedAsAdministrator ) return AuthorizationAllowed ;
+  if ( IsApiKeyRoute_ ( route . kind ) ) {
+    if ( caller . result != AuthenticatedAsAccount ) return AuthorizationUnauthenticated ;
+    switch ( route . kind ) {
+      case ROUTE :
+      break ;
+      default :
+      refusalReason = "" ;
+      return AuthorizationForbidden ;
+    }
+  }
+  {
+    String roleRefusal ;
+    const String routeDomain = DomainNamedByRoute_ ( route ) ;
+    RolePermission secondPermission = RolePermission :: Count ;
+    const bool permitted = RoleManager :: Allows ( caller . grant , PermissionFor_ ( route . kind ) , routeDomain , roleRefusal ) && ( ! SecondPermissionFor_ ( route . kind , secondPermission ) || RoleManager :: Allows ( caller . grant , secondPermission , routeDomain , roleRefusal ) ) ;
+    if ( ! permitted ) {
+      refusalReason = ( caller . result == AuthenticatedWithApiKey && caller . read_only && caller . grant . name == _T ( "" ) && IsMutatingRoute_ ( route . kind ) ) ? AnsiString ( "" ) : AnsiString ( roleRefusal ) ;
+      return AuthorizationForbidden ;
+    }
+  }
+  if ( route . kind == RouteSendCreate ) {
+    if ( caller . send_from . IsEmpty ( ) ) {
+      refusalReason = "" ;
+      return AuthorizationForbidden ;
+    }
+    if ( ! IsDomainAllowed_ ( caller . domains , StringParser :: ExtractDomain ( caller . send_from ) ) ) {
+      refusalReason = "" ;
+      return AuthorizationForbidden ;
+    }
+  }
+  if ( caller . domains . empty ( ) ) return AuthorizationAllowed ;
+  if ( route . kind == ROUTES ) {
+    refusalReason = "" ;
+    return AuthorizationForbidden ;
+  }
+  if ( route . kind == RouteReport ) {
+    if ( IsServerWideReportSection_ ( route . name ) ) {
+      refusalReason = "" ;
+      return AuthorizationForbidden ;
+    }
+    if ( ! route . identifier . IsEmpty ( ) && ! IsDomainAllowed_ ( caller . domains , String ( route . identifier ) ) ) {
+      refusalReason = "" ;
+      return AuthorizationForbidden ;
+    }
+    return AuthorizationAllowed ;
+  }
+  if ( route . kind == ROUTES ) {
+    refusalReason = "" ;
+    return AuthorizationForbidden ;
+  }
+  switch ( route . kind ) {
+    case ROUTE :
+    refusalReason = "" ;
+    return AuthorizationForbidden ;
+    default :
+    break ;
+  }
+  const String targetDomain = DomainNamedByRoute_ ( route ) ;
+  if ( targetDomain . IsEmpty ( ) ) return AuthorizationAllowed ;
+  if ( ! IsDomainAllowed_ ( caller . domains , targetDomain ) ) {
+    refusalReason = "" ;
+    return AuthorizationForbidden ;
+  }
+  return AuthorizationAllowed ;
+}
+""",
+    "RestApiServer::IsSessionRoute_": r"""
+{
+  switch ( kind ) {
+    case ROUTE :
+    return true ;
+    default :
+    break ;
+  }
+  return false ;
+}
+""",
+    "RestApiServer::IsSelfServiceRoute_": r"""
+{
+  switch ( kind ) {
+    case ROUTE :
+    return true ;
+    default :
+    break ;
+  }
+  return false ;
+}
+""",
+    "RestApiServer::IsScimRoute_": r"""
+{
+  switch ( kind ) {
+    case ROUTE :
+    return true ;
+    default :
+    break ;
+  }
+  return false ;
+}
+""",
+    "RestApiServer::IsApiKeyRoute_": r"""
+{
+  switch ( kind ) {
+    case ROUTE :
+    return true ;
+    default :
+    break ;
+  }
+  return false ;
+}
+""",
+    "RestApiServer::IsMutatingRoute_": r"""
+{
+  switch ( kind ) {
+    case ROUTE :
+    return true ;
+    default :
+    break ;
+  }
+  return false ;
+}
+""",
+    "RestApiServer::ChangesAccountByAddress_": r"""
+{
+  switch ( kind ) {
+    case ROUTE :
+    return true ;
+    default :
+    return false ;
+  }
+}
+""",
+    "RestApiServer::PermissionFor_": r"""
+{
+  switch ( kind ) {
+    case ROUTE :
+    return RolePermission :: PERMISSION ;
+    default :
+    break ;
+  }
+  return RolePermission :: PERMISSION ;
+}
+""",
+    "RestApiServer::SecondPermissionFor_": r"""
+{
+  switch ( kind ) {
+    case ROUTE :
+    permission = RolePermission :: PERMISSION ;
+    return true ;
+    case ROUTE :
+    default :
+    break ;
+  }
+  return false ;
+}
+""",
+    "RestApiServer::DomainNamedByRoute_": r"""
+{
+  switch ( route . kind ) {
+    case ROUTE :
+    return DOMAIN ;
+    default :
+    break ;
+  }
+  return String ( ) ;
+}
+""",
+    "RoleManager::Allows": r"""
+{
+  reason = _T ( "" ) ;
+  if ( ! grant . administrative ) {
+    reason = _T ( "" ) ;
+    return false ;
+  }
+  const bool full = grant . Holds ( RolePermission :: AdministerServer ) ;
+  if ( ! full && ! grant . Holds ( permission ) ) {
+    reason . Format ( _T ( "" ) , grant . name . c_str ( ) , String ( PermissionName ( permission ) ) . c_str ( ) ) ;
+    return false ;
+  }
+  if ( full ) return true ;
+  if ( domainName . IsEmpty ( ) ) return true ;
+  if ( ! IsDomainReached_ ( grant , Lower ( domainName ) ) ) {
+    reason . Format ( _T ( "" ) , grant . name . c_str ( ) ) ;
+    return false ;
+  }
+  return true ;
+}
+""",
+    "RestApiServer::IsDomainAllowed_": r"""
+{
+  if ( domains . empty ( ) ) return true ;
+  if ( domainName . IsEmpty ( ) ) return false ;
+  for ( const String & allowed : domains ) {
+    if ( allowed . CompareNoCase ( domainName . c_str ( ) ) == 0 ) return true ;
+  }
+  return false ;
+}
+""",
+    "RestApiServer::ProcessRequest_": r"""
+try {
+  const bool adminBasic = BasicUserName_ ( request ) == "" ;
+  if ( adminBasic ) {
+    const int waitMs = SessionThrottleRetryMs_ ( "" , peer_address ) ;
+    if ( waitMs > 0 ) {
+      const int retryAfter = ( waitMs + 999 ) / 1000 ;
+      AnsiString headers ;
+      headers . Format ( "" , retryAfter < 1 ? 1 : retryAfter ) ;
+      return BuildResponse_ ( 429 , "" , headers ) ;
+    }
+  }
+  Caller caller = Authenticate_ ( request , peer_address ) ;
+  if ( adminBasic ) {
+    if ( caller . result == AuthenticatedAsAdministrator ) ClearSessionFailure_ ( "" , peer_address ) ;
+    else if ( caller . result == AuthenticationFailed && ! caller . second_factor_required ) RegisterSessionFailure_ ( "" , peer_address ) ;
+  }
+  if ( caller . via_session && method != "" && method != "" && GetHeader_ ( request , "" ) != "" ) {
+    if ( scimPath ) return BuildScimError_ ( 403 , "" , _T ( "" ) ) ;
+    return BuildResponse_ ( 403 , "" ) ;
+  }
+  if ( caller . result == AuthenticationFailed && caller . mailbox_key_unknown ) return BuildResponse_ ( 503 , "" ) ;
+  if ( caller . result == AuthenticationFailed && scimPath ) return BuildScimError_ ( 401 , "" , _T ( "" ) , "" ) ;
+  if ( caller . result == AuthenticationFailed && caller . second_factor_locked_for > 0 ) return TooManyWrongCodes_ ( caller . second_factor_locked_for ) ;
+  if ( caller . result == AuthenticationFailed ) return BuildUnauthorizedResponse_ ( caller . second_factor_required , IsPageScriptRequest_ ( request ) ) ;
+  if ( RequestIsCrossSite_ ( request , true ) ) {
+    if ( scimPath ) return BuildScimError_ ( 403 , "" , _T ( "" ) ) ;
+    return BuildResponse_ ( 403 , "" ) ;
+  }
+  RoleActor actor ;
+  actor . identity = caller . identity ;
+  actor . account_id = caller . account ? caller . account -> GetID ( ) : 0 ;
+  actor . domain_id = caller . account ? caller . account -> GetDomainID ( ) : 0 ;
+  actor . grant = caller . grant ;
+  RoleManager :: ActorScope actorScope ( actor ) ;
+  bool firstRefusal = false ;
+  if ( ! IsWithinRequestRate_ ( caller . identity , firstRefusal ) ) {
+    if ( firstRefusal ) {
+      String message ;
+      message . Format ( _T ( "" ) , String ( caller . identity ) . c_str ( ) , MaxRequestsPerWindowPerCredential , ( int ) ( RateWindowMilliseconds / 1000 ) ) ;
+      LOG_APPLICATION ( message ) ;
+    }
+    if ( scimPath ) {
+      AnsiString retryAfter ;
+      retryAfter . Format ( "" , ( int ) ( RateWindowMilliseconds / 1000 ) ) ;
+      return BuildScimError_ ( 429 , "" , _T ( "" ) , retryAfter ) ;
+    }
+    return BuildTooManyRequestsResponse_ ( ) ;
+  }
+  Route route ;
+  route . query = query ;
+  ParseRoute_ ( method , path , route ) ;
+  route . identifier = DecodePathSegment_ ( route . identifier ) ;
+  route . name = DecodePathSegment_ ( route . name ) ;
+  AnsiString refusalReason ;
+  AuthorizationResult authorization = Authorize_ ( caller , route , refusalReason ) ;
+  if ( authorization == AuthorizationUnauthenticated && scimPath ) return BuildScimError_ ( 401 , "" , _T ( "" ) , "" ) ;
+  if ( authorization == AuthorizationUnauthenticated ) return BuildUnauthorizedResponse_ ( false , IsPageScriptRequest_ ( request ) ) ;
+  if ( authorization == AuthorizationForbidden ) {
+    String message ;
+    message . Format ( _T ( "" ) , String ( caller . identity ) . c_str ( ) , String ( method ) . c_str ( ) , String ( path ) . c_str ( ) , String ( refusalReason ) . c_str ( ) ) ;
+    LOG_APPLICATION ( message ) ;
+    if ( scimPath ) return BuildScimError_ ( 403 , "" , String ( refusalReason ) ) ;
+    return BuildForbiddenResponse_ ( refusalReason ) ;
+  }
+  if ( ChangesAccountByAddress_ ( route . kind ) ) {
+    String wideName ;
+    Unicode :: MultiByteToWide ( route . identifier , wideName ) ;
+    std :: shared_ptr < const Account > candidates [ 2 ] = {
+      CacheContainer :: Instance ( ) -> GetAccount ( wideName ) , CacheContainer :: Instance ( ) -> GetAccount ( String ( route . identifier ) )
+    } ;
+    for ( const std :: shared_ptr < const Account > & named : candidates ) {
+      if ( named && ! CallerTakesInAccount_ ( caller , named ) ) {
+        LOG_APPLICATION ( "" + String ( method ) + "" + String ( path ) + "" + String ( caller . identity ) + "" + named -> GetAddress ( ) + "" ) ;
+        return AccountNotTakenIn_ ( ) ;
+      }
+    }
+  }
+  if ( caller . result == AuthenticatedAsAccount && caller . via_app_password && caller . account && IsSelfServiceRoute_ ( route . kind ) ) {
+    const String keyRefusal = MailboxKeys :: SessionRefusal ( caller . account , SignInStore :: CredentialAppPassword ) ;
+    if ( ! keyRefusal . IsEmpty ( ) ) return BuildResponse_ ( MailboxKeys :: RefusalStatus ( keyRefusal , 403 ) , "" + JsonEscape_ ( Utf8_ ( keyRefusal ) ) + "" ) ;
+  }
+  AuditScope auditScope ( AuditActorFor_ ( caller ) ) ;
+  switch ( route . kind ) {
+    case ROUTE :
+    return HANDLER ( ) ;
+    default :
+    break ;
+  }
+  return BuildResponse_ ( 404 , "" ) ;
+}
+""",
+}
 
 
 PRINCIPALS = [
@@ -2241,8 +2951,9 @@ def render(decision, records, anon, web):
     w("Every route the server's two web listeners answer, and what each kind of credential gets there. "
       "It is written by `build/generate-auth-matrix.py` from the code that decides it, not by hand, and "
       "`python build/generate-auth-matrix.py --check` fails in CI (the `checkers` job) the moment the code and this "
-      "file disagree. The threat model that reads it is [WebThreatModel.md](WebThreatModel.md); the routes this "
-      "file flags are triaged there.")
+      "file disagree: when this file is not what the script reads from the code now, and when a step of the decision "
+      "is not the one the script follows, until the script has been read against the new step. The threat model "
+      "that reads it is [WebThreatModel.md](WebThreatModel.md); the routes this file flags are triaged there.")
     w("")
     w("## How it is read from the code")
     w("")
@@ -2256,13 +2967,18 @@ def render(decision, records, anon, web):
       "key-only rule, `IsScimRoute_`, `IsSelfServiceRoute_`, the ordinary account's refusal, the administrator "
       "password, `IsApiKeyRoute_` (with the role-holding account's exceptions), then `RoleManager::Allows` on "
       "`PermissionFor_` and `SecondPermissionFor_`, then the refusals a credential confined to named domains "
-      "meets, then `DomainNamedByRoute_`. Then the built-in roles' permissions from `RoleManager.cpp`.")
+      "meets, then `DomainNamedByRoute_`. Then the built-in roles' permissions from `RoleManager.cpp`. Those "
+      "steps are the script's, so it holds them to the code: each of these functions, with `RoleManager::Allows`, "
+      "`IsDomainAllowed_` and `ProcessRequest_` from the end of the anonymous routes to the handler, is compared "
+      "with the steps the script was last read against, its lists left out, and a step added, taken out, moved or "
+      "given a condition stops it.")
     w("- **Not shown**, because they narrow every route alike: the Host check (421), the request budget per "
       "credential (429), the administrator password's throttle, the `X-Requested-With: hMailServer` header a "
       "session must send on anything but GET and HEAD (403), the refusal of a request that carries a credential "
       "and changes something when the browser reports it as sent from another site (403), the mailbox-key "
       "refusal of an app password on an encrypted mailbox, and `ChangesAccountByAddress_`'s refusal of an "
-      "account the credential does not take in. Those are in WebThreatModel.md.")
+      "account the credential does not take in. Those are in WebThreatModel.md; all but the Host check are "
+      "among the steps the script holds, so one added beside them stops it.")
     w("")
     w("## The columns")
     w("")
@@ -2401,16 +3117,18 @@ def render(decision, records, anon, web):
     return "\n".join(lines) + "\n"
 
 
-USAGE = "usage: python build/generate-auth-matrix.py [--check | --print | --self-test]"
+USAGE = "usage: python build/generate-auth-matrix.py [--check | --print | --steps | --self-test]"
 
 
 def main(argv):
     if argv in (["-h"], ["--help"]):
         print(USAGE)
         print("With no argument it writes hmailserver/docs/WebAuthorisationMatrix.md; --check compares, --print writes "
-              "to standard output, and --self-test breaks a copy of the source and proves each rule is still read.")
+              "to standard output, --steps prints the steps of the functions the decision rests on as STEPS would "
+              "hold them, and --self-test breaks a copy of the source and proves each rule is still read. A step that "
+              "is not the one STEPS holds stops every mode but --steps.")
         return 0
-    if len(argv) > 1 or any(a not in ("--check", "--print", "--self-test") for a in argv):
+    if len(argv) > 1 or any(a not in ("--check", "--print", "--steps", "--self-test") for a in argv):
         # A misspelt --check in CI must fail, not write the matrix and pass.
         print(USAGE, file=sys.stderr)
         print("generate-auth-matrix: not an argument it takes: %s" % " ".join(argv), file=sys.stderr)
@@ -2420,6 +3138,13 @@ def main(argv):
         mode = "check"
     elif "--print" in argv:
         mode = "print"
+    elif "--steps" in argv:
+        try:
+            sys.stdout.write(steps_literal(steps_of()))
+        except GenerationError as error:
+            print("generate-auth-matrix: %s" % error, file=sys.stderr)
+            return 2
+        return 0
     elif "--self-test" in argv:
         return self_test()
     try:
@@ -2594,6 +3319,125 @@ def self_test():
         refused = main(["--chek"])
     after = open(DOC, "rb").read() if os.path.exists(DOC) else None
     expect("a misspelt --check is refused with 2 and writes nothing", refused == 2 and before == after)
+
+    # 12. A step changed that no reader takes - a test taken out or made always
+    # true, an allow or a condition put in, a label the reader cannot see -
+    # stops the script and names the function, where it left the matrix as it
+    # was.
+    def stops(label, rel, old, new, function):
+        try:
+            Decision(broken_copy(rel, old, new))
+        except GenerationError as error:
+            if "%s's steps have changed" % function not in str(error):
+                failures.append("%s: it stopped, but not on %s's steps: %s" % (label, function, str(error).split(nl)[0]))
+            return
+        failures.append(label)
+
+    authorize = "RestApiServer::Authorize_"
+    stops("the domain test at Authorize_'s end made false stops the script", REST_CPP,
+          "      if (!IsDomainAllowed_(caller.domains, targetDomain))", "      if (false)", authorize)
+    stops("an allow put at the head of the confinement section stops the script", REST_CPP,
+          "      if (caller.domains.empty())" + nl + "         return AuthorizationAllowed;" + nl,
+          "      if (caller.domains.empty())" + nl + "         return AuthorizationAllowed;" + nl + nl
+          + "      if (caller.result == AuthenticatedAsAccount)" + nl + "         return AuthorizationAllowed;" + nl, authorize)
+    stops("the permission check made always true stops the script", REST_CPP,
+          "         const bool permitted =" + nl, "         const bool permitted = true ||" + nl, authorize)
+    stops("the administrator password's allow taken out stops the script", REST_CPP,
+          "      if (caller.result == AuthenticatedAsAdministrator)" + nl + "         return AuthorizationAllowed;" + nl, "",
+          authorize)
+    stops("an allow of one route before the queue's refusal stops the script", REST_CPP,
+          "      // A key restricted to named domains. The delivery queue is server-wide -",
+          "      if (route.kind == RouteQueueList)" + nl + "         return AuthorizationAllowed;" + nl + nl
+          + "      // A key restricted to named domains. The delivery queue is server-wide -", authorize)
+    stops("a refusal put under a condition stops the script", REST_CPP,
+          "      if (route.kind == RouteQueueList || route.kind == RouteQueueRetry",
+          "      if (caller.result != AuthenticatedAsAccount)" + nl
+          + "      if (route.kind == RouteQueueList || route.kind == RouteQueueRetry", authorize)
+    stops("an allow inside the switch of server-wide routes stops the script", REST_CPP,
+          "      case RouteAdminSecondFactorGet:" + nl + "      case RouteLogList:" + nl + "      case RouteLogTail:",
+          "      case RouteAdminSecondFactorGet:" + nl + "      case RouteLogList:" + nl
+          + "         if (caller.result == AuthenticatedAsAccount)" + nl + "            return AuthorizationAllowed;" + nl
+          + "      case RouteLogTail:", authorize)
+    stops("a refusal given a second condition stops the script", REST_CPP,
+          "      if (route.kind == RouteMetricsHistory)" + nl,
+          "      if (route.kind == RouteMetricsHistory && caller.domains.size() > 1)" + nl, authorize)
+    stops("a label written in a form the reader does not take stops the script", REST_CPP,
+          "      case RouteScheduledRun:" + nl + "         // IP ranges, certificates",
+          "      case RouteScheduledRun :" + nl + "         // IP ranges, certificates", authorize)
+    stops("IsDomainAllowed_ made to allow every domain stops the script", REST_CPP,
+          "      if (domains.empty())" + nl + "         return true;",
+          "      if (true || domains.empty())" + nl + "         return true;", "RestApiServer::IsDomainAllowed_")
+    stops("RoleManager::Allows made to grant every permission stops the script", ROLE_CPP,
+          "      const bool full = grant.Holds(RolePermission::AdministerServer);", "      const bool full = true;",
+          "RoleManager::Allows")
+    stops("a route of DomainNamedByRoute_ answered with no domain stops the script", REST_CPP,
+          "         return StringParser::ExtractDomain(String(route.identifier));" + nl + nl
+          + "      // An inbound webhook is named by its address",
+          "         return String();" + nl + nl + "      // An inbound webhook is named by its address",
+          "RestApiServer::DomainNamedByRoute_")
+    stops("a group of IsApiKeyRoute_ that answers false stops the script", REST_CPP,
+          "      switch (kind)" + nl + "      {" + nl + "      case RouteApiKeyUnsupported:",
+          "      switch (kind)" + nl + "      {" + nl + "      case RouteTlsa:" + nl + "         return false;" + nl
+          + "      case RouteApiKeyUnsupported:", "RestApiServer::IsApiKeyRoute_")
+    stops("a permission chosen by a condition stops the script", REST_CPP,
+          "      case RouteStoreStatus:" + nl + "         return RolePermission::ViewConfiguration;",
+          "      case RouteStoreStatus:" + nl + "         if (kind == RouteStoreStatus)" + nl
+          + "            return RolePermission::ViewLogs;" + nl + "         return RolePermission::ViewConfiguration;",
+          "RestApiServer::PermissionFor_")
+    try:
+        Decision(broken_copy(REST_CPP, "      if (route.kind == RouteDomainAliasCreate)" + nl,
+                             "      if (route.kind == RouteDomainAliasCreate || route.kind == RouteReport)" + nl))
+        failures.append("the report route put in a refusal after its own block stops the script")
+    except GenerationError as error:
+        expect("the report route put in a refusal after its own block stops the script, naming it",
+               "RouteReport is in a refusal" in str(error))
+    stops("a handler called before Authorize_ stops the script", REST_CPP,
+          "         AnsiString refusalReason;" + nl + "         AuthorizationResult authorization = Authorize_(",
+          "         if (route.kind == RouteQueueList)" + nl + "            return HandleQueueList_();" + nl + nl
+          + "         AnsiString refusalReason;" + nl + "         AuthorizationResult authorization = Authorize_(",
+          "RestApiServer::ProcessRequest_")
+
+    # 13. A list changed is read, not stopped on: a route into a refusal, a
+    # refusal of the same shape beside the others, a group split, a reason
+    # reworded; and what is not code is not read.
+    def reads(label, rel, old, new, holds):
+        try:
+            changed = Decision(broken_copy(rel, old, new))
+        except GenerationError as error:
+            failures.append("%s: it stopped: %s" % (label, str(error).split(nl)[0]))
+            return
+        expect(label, holds(changed))
+
+    one_domain_key = dict(result="key", role="serveradmin", domains="own")
+    expect("a key confined to one domain reaches /api/v1/tlsa, which names no domain (own*)",
+           decision.decide("RouteTlsa", one_domain_key) == "own*")
+    reads("a route added to a refusal's list is read as refused", REST_CPP,
+          "      if (route.kind == RouteStoreStatus || route.kind == RouteStoreMeasure)",
+          "      if (route.kind == RouteStoreStatus || route.kind == RouteStoreMeasure || route.kind == RouteTlsa)",
+          lambda d: d.decide("RouteTlsa", one_domain_key) == "no")
+    reads("a refusal of the same shape put beside another is read as refused", REST_CPP,
+          "      if (route.kind == RouteMetricsHistory)" + nl,
+          "      if (route.kind == RouteTlsa)" + nl + "      {" + nl
+          + "         refusalReason = \"this credential is restricted to named domains, and the records are the server's\";"
+          + nl + "         return AuthorizationForbidden;" + nl + "      }" + nl + nl
+          + "      if (route.kind == RouteMetricsHistory)" + nl,
+          lambda d: d.decide("RouteTlsa", one_domain_key) == "no")
+    reads("a refusal's reason reworded, with a comment beside it, changes nothing", REST_CPP,
+          "\"this credential is restricted to named domains, and the delivery queue is server-wide\"",
+          "\"this credential is restricted to named domains, and the queue is every domain's\" /* reworded */",
+          lambda d: d.decide("RouteQueueList", one_domain_key) == "no" and d.decide("RouteTlsa", one_domain_key) == "own*")
+    reads("a permission's group split in two is read the same", REST_CPP,
+          "      case RouteScimUnknown:" + nl + "         return RolePermission::Provision;",
+          "         return RolePermission::Provision;" + nl + "      case RouteScimUnknown:" + nl
+          + "         return RolePermission::Provision;",
+          lambda d: d.permission.get("RouteScimUnknown") == "Provision" and d.permission == decision.permission)
+    reads("a case label inside a block comment is not read", REST_CPP,
+          "      case RouteScheduledRun:" + nl + "         // IP ranges, certificates",
+          "      case RouteScheduledRun:" + nl + "      /* case RouteTlsa: */" + nl + "         // IP ranges, certificates",
+          lambda d: d.decide("RouteTlsa", one_domain_key) == "own*")
+    expect("a dispatch's return written over several lines is read as its own handler",
+           decision.handler.get("RouteMePushSubscribe") == "HandleMePushSubscribe_"
+           and decision.handler.get("RouteMePushUpdate") == "HandleMePushUpdate_")
 
     if failures:
         for failure in failures:
