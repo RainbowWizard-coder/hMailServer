@@ -39,11 +39,17 @@ eleven commits and no check noticed. This one holds:
     file changes between landings, each entry in a change of its own: the section's
     entry on SECURITY.md's policy, written on 6 October 2026, said that the file's
     header "counts its 500 entries", while four were added on 13 October and thirteen
-    taken out on 14 and 15 October, leaving the 491 the header counts now, and no check
+    taken out on 14 and 15 October, leaving 491 on 15 October 2026, and no check
     noticed. A clause - up to a ";" or the end of a sentence - that names the file, or
     "the exceptions file", and gives in figures a number of entries, exceptions or
-    accepted findings names a day as well ("500 on 6 October 2026"). A release's section
-    is history and is not read.
+    accepted findings names a day as well ("500 on 6 October 2026"), with no more than
+    eight words between the two. In an entry that names the file - a paragraph, or a
+    list item with what is indented under it - "the file", "its header" and "the
+    header" name it too, and a figure that the header counts or the file holds is a
+    count: the entry that brought this rule in said "leaving the 491 the header counts
+    now", in a clause that named the file as "the file's header" and held the day the
+    four were added, 13 October 2026, eleven words before the 491, and the rule as
+    first written passed it. A release's section is history and is not read.
 
   python build/check-changelog.py [--self-test]
 """
@@ -60,12 +66,17 @@ FULL_NOTES = re.compile(r'^Full notes: \[the [^\]]+ release\]\(https://gitlab\.c
 NESTED_ITEM = re.compile(r'^ +[-*+] ')
 CLAUSE_END = re.compile(r'[.:;!?][)\]"\'*_`]*$')
 # A count of .gitlab/security-exceptions.yml's entries: a clause that names the file - not
-# where its name ends another, as in the artifact master-security-exceptions.yml - a
-# number of entries in figures, and a day.
+# where its name ends another, as in the artifact master-security-exceptions.yml - or, in
+# an entry that names it, one that calls it "the file", "its header" or "the header"; a
+# number of entries in figures, or a figure that the header counts or the file holds ("the
+# 491 the header counts"); and a day no more than NEAR words from the count, in its clause.
 EXCEPTIONS_NAMED = re.compile(r'(?<![\w./-])(?:\.gitlab/)?security-exceptions\.yml(?![\w-])|\bexceptions file\b')
-ENTRY_COUNT = re.compile(r'(?<![\w.,])\d[\d,]* (?:entries|exceptions|accepted findings)\b')
+EXCEPTIONS_MENTIONED = re.compile(r'\b(?:the file|its header|the header)\b', re.IGNORECASE)
+ENTRY_COUNT = re.compile(r'(?<![\w.,])\d[\d,]*(?: (?:entries|exceptions|accepted findings)\b'
+                         r'|(?= (?:that |which )?(?:the header counts|the file holds)\b))')
 DAY = re.compile(r'\b\d{1,2} (?:January|February|March|April|May|June|July|August|September|October|November|'
                  r'December) \d{4}\b')
+NEAR = 8
 # Where a clause ends: a ";" or the end of a sentence, a closing bracket, quote or mark-up
 # after it, then a space.
 CLAUSE_BREAK = re.compile(r'(?<=[.;!?])[)\]"\'*_`]*\s+')
@@ -121,24 +132,46 @@ def items_of(lines, first, last):
     return items
 
 
+def words_in(text):
+    """How many words text holds, its marks and mark-up left out."""
+    return sum(1 for word in text.split() if re.search(r'\w', word))
+
+
 def undated_exception_counts(lines, first, last):
-    """(line number, the count, its clause) for each number of .gitlab/security-exceptions.yml's
-    entries that lines[first:last] give in figures in a clause that names the file and no
-    day: a count the file's next entry, or the next taken out, makes untrue."""
-    out = []
+    """(line number, the count, the words around it) for each number of
+    .gitlab/security-exceptions.yml's entries that lines[first:last] give in figures with
+    no day near it: a count the file's next entry, or the next taken out, makes untrue."""
+    entries = []                   # each a list of (an item's lines joined, [(offset, line number)])
     for item in items_of(lines, first, last):
         text, starts = '', []
         for number, part in item:
             starts.append((len(text), number))
             text += part + ' '
-        ends = [0] + [m.end() for m in CLAUSE_BREAK.finditer(text)] + [len(text)]
-        for begin, end in zip(ends, ends[1:]):
-            clause = text[begin:end]
-            if not EXCEPTIONS_NAMED.search(clause) or DAY.search(clause):
-                continue
-            for m in ENTRY_COUNT.finditer(clause):
-                at = begin + m.start()
-                out.append((max(n for s, n in starts if s <= at), m.group(0), clause.strip()))
+        # An entry is a paragraph, or a list item at the start of a line with the items and
+        # paragraphs indented under it: "the file" in any part of it is the file it names.
+        if not entries or not lines[item[0][0] - 1].startswith(' '):
+            entries.append([])
+        entries[-1].append((text, starts))
+    out = []
+    for entry in entries:
+        named = any(EXCEPTIONS_NAMED.search(text) for text, _ in entry)
+        for text, starts in entry:
+            ends = [0] + [m.end() for m in CLAUSE_BREAK.finditer(text)] + [len(text)]
+            for begin, end in zip(ends, ends[1:]):
+                clause = text[begin:end]
+                if not (EXCEPTIONS_NAMED.search(clause) or (named and EXCEPTIONS_MENTIONED.search(clause))):
+                    continue
+                days = list(DAY.finditer(clause))
+                for m in ENTRY_COUNT.finditer(clause):
+                    # The words between the count and each day of its clause, before it or after it.
+                    if any(words_in(clause[d.end():m.start()] if d.end() <= m.start() else clause[m.end():d.start()])
+                           <= NEAR for d in days):
+                        continue
+                    at = begin + m.start()
+                    # The clause's text from NEAR words before the count to NEAR words after it.
+                    start = ([w.start() for w in re.finditer(r'\S+', clause[:m.start()])][-NEAR:] or [m.start()])[0]
+                    stop = m.end() + ([w.end() for w in re.finditer(r'\S+', clause[m.end():])][:NEAR] or [0])[-1]
+                    out.append((max(n for s, n in starts if s <= at), m.group(0), clause[start:stop]))
     return out
 
 
@@ -226,11 +259,11 @@ def problems_of(text):
     for i, (n, h) in enumerate(sections):
         if not h.startswith('## Unreleased'):
             continue
-        for number, count, clause in undated_exception_counts(lines, n, bounds[i + 1] - 1):
-            out.append('line %d: the Unreleased section gives "%s" of .gitlab/security-exceptions.yml with no day: the '
-                       'file changes between landings, each entry in a change of its own, and the section only when a '
-                       'batch lands, so give the day it was counted ("500 on 6 October 2026"): %s'
-                       % (number, count, clause[:120]))
+        for number, count, around in undated_exception_counts(lines, n, bounds[i + 1] - 1):
+            out.append('line %d: the Unreleased section gives "%s" of .gitlab/security-exceptions.yml with no day within '
+                       '%d words of it: the file changes between landings, each entry in a change of its own, and the '
+                       'section only when a batch lands, so give the day it was counted beside it ("500 on 6 October '
+                       '2026"): %s' % (number, count, NEAR, around[:160]))
     return out
 
 
@@ -243,6 +276,18 @@ def self_test():
         '- **The exceptions.** `.gitlab/security-exceptions.yml`\'s header counts its entries by scan and by group (500',
         '  on 6 October 2026). On 13 October 2026 the exceptions file held 504 entries; the artifact',
         '  `master-security-exceptions.yml` holds 3 entries.', '',
+        # A day eight words from its count, before it and after it, a mark between them no word.
+        '- **The exceptions, counted.** On 14 October 2026 the exceptions file - read by its parser - held 501 entries. The',
+        '  exceptions file held 491 entries, as its parser read and counted them on 15 October 2026.', '',
+        # The file named in the first sentence of an entry alone, which then calls it "the file" and gives its
+        # count with the day, and quotes another beside its own; and after it, an entry of another file.
+        '- **A count of `.gitlab/security-exceptions.yml`\'s entries has its day.** The file changes between landings: an',
+        '  entry, written on 6 October 2026, said that the file\'s header "counts its 500 entries", while four were added',
+        '  on 13 October 2026 and thirteen taken out on 14 and 15 October, leaving 491 on 15 October 2026; the entry gives',
+        '  the 500 as 6 October\'s now.',
+        '- **Another file.** The file of this entry holds 7 entries, the 7 the header counts.', '',
+        '- **The exceptions\' parts.** `.gitlab/security-exceptions.yml` has two:',
+        '  - its groups, each with a comment;', '  - its header, which counts the entries by scan.', '',
         '- **An entry.** Text that goes on', '  over two lines.', '', '---', '',
         '## [6.3.5](https://gitlab.com/p/h/-/releases/v6.3.5) - 2026-09-28', '', 'Its introduction.', '',
         '### Operations', '', '- **One.** Text.', '',
@@ -297,6 +342,26 @@ def self_test():
             '`security-exceptions.yml`\'s header counts its 491 exceptions'),
         'the same of "the exceptions file", the day in the next clause': good.replace(
             'On 13 October 2026 the exceptions file held 504 entries;', 'The exceptions file holds 504 entries; on 13 October 2026'),
+        # The words of 058a184bd's entry for this rule, which the rule as that commit wrote it passed.
+        'a figure the header counts, the file called "the file", a day of another fact eleven words before it':
+            good.replace('leaving 491 on 15 October 2026;', 'leaving the 491 the header counts now;'),
+        'the same, a figure that the file holds': good.replace(
+            'leaving 491 on 15 October 2026;', 'leaving the 491 that the file holds now;'),
+        'the same, a figure which the header counts': good.replace(
+            'leaving 491 on 15 October 2026;', 'leaving the 491 which the header counts now;'),
+        '"the file" in an entry that names the file': good.replace(
+            '`master-security-exceptions.yml` holds 3 entries.',
+            '`master-security-exceptions.yml` holds 3 entries. The file holds 491 entries.'),
+        '"its header" in an entry that names the file': good.replace(
+            '`master-security-exceptions.yml` holds 3 entries.',
+            '`master-security-exceptions.yml` holds 3 entries. Its header counts 491 entries.'),
+        '"the header" in an entry that names the file': good.replace(
+            '`master-security-exceptions.yml` holds 3 entries.',
+            '`master-security-exceptions.yml` holds 3 entries; the header counts 491 entries.'),
+        'in a part of an entry whose first line names the file': good.replace(
+            '  - its header, which counts the entries by scan.', '  - its header, which counts 491 entries by scan.'),
+        'a day nine words before its count': good.replace('read by its parser - held 501', 'read by its own parser - held 501'),
+        'a day nine words after its count': good.replace('as its parser read and counted', 'as its own parser read and counted'),
     }
     cases.update(counts)
     for name, text in cases.items():

@@ -6062,11 +6062,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 - **`build/check-changelog.py` refuses a count of `.gitlab/security-exceptions.yml`'s entries that the Unreleased
   section gives without its day.** The section is written when a batch lands, and the file changes between landings,
   each entry in a change of its own, so that such a count goes out of date with no change to this file: the entry on
-  SECURITY.md's vulnerability management policy said that the file's header "counts its 500 entries", while four were
-  added on 13 October 2026 and thirteen taken out on 14 and 15 October, leaving the 491 the header counts now; the
-  entry gives the 500 as 6 October's now. A clause that names the file, or "the exceptions file", and gives a number
-  of its entries, exceptions or accepted findings in figures names a day as well. A release's section is history, and
-  is not read.
+  SECURITY.md's vulnerability management policy, written on 6 October 2026, said that the file's header "counts its
+  500 entries", while four were added on 13 October 2026 and thirteen taken out on 14 and 15 October, leaving 491 on
+  15 October 2026; the entry gives the 500 as 6 October's now. A clause that names the file, or "the exceptions file",
+  and gives a number of its entries, exceptions or accepted findings in figures names a day as well, with no more than
+  eight words between the two; in an entry that names the file, "the file", "its header" and "the header" name it too,
+  and a figure that the header counts or the file holds is a count. A release's section is history, and is not read.
 - **`MessageIndexerTester` no longer turns on when a thread happens to run, nor on the servers of the process it runs
   in being started.** A stop with a limit looked at the limit before it called its progress, so that a first second's
   wait that ran over a limit of two seconds - on a loaded machine, or under the emulator the AArch64 builds run the
