@@ -290,6 +290,8 @@ def self_test():
         # inside a name: no count.
         '- **The exceptions\' parts.** `.gitlab/security-exceptions.yml` has two, the batch48 entries among them:',
         '  - its groups, each with a comment;', '  - its header, which counts the entries by scan.', '',
+        # A paragraph at the start of a line is an entry of its own, though the entry before it names the file.
+        'A paragraph of its own: the file it is about holds 7 entries.', '',
         '- **An entry.** Text that goes on', '  over two lines.', '', '---', '',
         '## [6.3.5](https://gitlab.com/p/h/-/releases/v6.3.5) - 2026-09-28', '', 'Its introduction.', '',
         '### Operations', '', '- **One.** Text.', '',
@@ -364,6 +366,9 @@ def self_test():
             '`master-security-exceptions.yml` holds 3 entries; the header counts 491 entries.'),
         'in a part of an entry whose first line names the file': good.replace(
             '  - its header, which counts the entries by scan.', '  - its header, which counts 491 entries by scan.'),
+        'an entry whose indented part alone names the file, its first giving the count': good.replace(
+            '- **An entry of parts.** It has three:', '- **An entry of parts.** The file holds 491 entries, in three:').replace(
+            '  - the second\n', '  - the second, of `.gitlab/security-exceptions.yml`\n'),
         'a day nine words before its count': good.replace('read by its parser - held 501', 'read by its own parser - held 501'),
         'a day nine words after its count': good.replace('as its parser read and counted', 'as its own parser read and counted'),
         'a count in the bold first sentence of an entry, its day in the next': good.replace(
