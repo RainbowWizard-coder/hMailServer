@@ -329,9 +329,9 @@ typing stops, so that a message older than the page is found too, and says so -
 *Searched every held message on the server: 37 match the search.* in the Control
 Panel, *Searched every held message on the server. Matches: 37.* in the Deck. Where
 more match than a page holds, the most recent of them are listed and the notice
-says how many match in all; a longer search narrows them. A server older than the Control Panel
-cannot search, and the page then says that it looked at the most recent only. A
-search is the list's, and is not on the audit trail, as the list is not
+says how many match in all; a longer search narrows them. A server older than the
+Control Panel cannot search, and the page then says that it looked at the most
+recent only. A search is the list's, and is not on the audit trail, as the list is not
 ([AlertsAndAuditTrail.md](AlertsAndAuditTrail.md)): the quarantine is one of the
 server's working lists. Reading a held message's headers or its text is recorded.
 
