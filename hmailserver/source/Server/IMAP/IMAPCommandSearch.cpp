@@ -1565,32 +1565,22 @@ namespace HM
          message_data_->LoadFromMessage(fileName, pMessage);
       }
 
-      String sHeader = message_data_->GetHeader();
-      String sBody = message_data_->GetBody();
-      String sHTMLBody = message_data_->GetHTMLBody();
-      String sAttachmentText = message_data_->GetAttachmentText();
+      // RFC 3501 6.4.4: NOT TEXT is "messages that do not match" TEXT, so the
+      // match is worked out once - the header, the body, the HTML body and the
+      // text-bearing attachments - and NOT turns it, as in MatchesBODYCriteria_.
+      // The two answers used to be written out apart, and the attachments,
+      // added to TEXT, were never added to NOT TEXT: a message whose text was
+      // only in an attached file matched TEXT and NOT TEXT both, and
+      // "TEXT x NOT TEXT x" found it.
+      const String &sTextToFind = pCriteria->GetText();
 
-      String sTextToFind = pCriteria->GetText();
+      const bool found =
+         message_data_->GetHeader().ContainsNoCase(sTextToFind) ||
+         message_data_->GetBody().ContainsNoCase(sTextToFind) ||
+         message_data_->GetHTMLBody().ContainsNoCase(sTextToFind) ||
+         message_data_->GetAttachmentText().ContainsNoCase(sTextToFind);
 
-      if (pCriteria->GetPositive())
-      {
-         if (!sHeader.ContainsNoCase(sTextToFind) &&
-             !sBody.ContainsNoCase(sTextToFind) &&
-             !sHTMLBody.ContainsNoCase(sTextToFind) &&
-             !sAttachmentText.ContainsNoCase(sTextToFind))
-             return false;
-      }
-      else
-      {
-         if (sHeader.ContainsNoCase(sTextToFind) ||
-             sBody.ContainsNoCase(sTextToFind) ||
-             sHTMLBody.ContainsNoCase(sTextToFind))
-             return false;
-      }
-
-      return true;
-
-
+      return found == pCriteria->GetPositive();
    }
 
    bool

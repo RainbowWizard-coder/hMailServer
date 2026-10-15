@@ -5340,6 +5340,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   650,000 different `OR`s of two keys, is parsed in 1.2 seconds on server2 where it took 0.67 without the pass, with a
   tenth more memory at its peak. README.md's line for `IMAPSearchTimeout` said that a search which reaches it returns
   the matches found so far; it is answered `NO [LIMIT]`, with none of them.
+- **Fixed: IMAP `SEARCH NOT TEXT` found a message whose text was only in an attached file, which `SEARCH TEXT` found
+  too, so that `TEXT x NOT TEXT x` was not empty.** Since 6.2.25 `TEXT` and `BODY` read the text-bearing attachments
+  as well as the body, and the full-text index tokenises them too. `BODY` gives both its answers from one match, but
+  `TEXT` wrote its two out apart, and the attachments were added to the one for `TEXT` alone: for a message whose text
+  was only in an attached text, CSV or HTML file, `NOT TEXT` - RFC 3501's "messages that do not match the specified
+  search key" - matched as `TEXT` did, with the index off and on, so that a client acting on the messages that do not
+  mention something, a clean-up or an archiver's complement, acted on one that does. `TEXT` now works out its match
+  once, over the header, the body, the HTML body and the attachments, and `NOT` turns it, as `BODY` does; what `TEXT`
+  finds is unchanged. `SEARCH`, `UID SEARCH`, `ESEARCH`, `SORT` and `THREAD` share the matcher. In
+  `IMAP/AttachmentTextSearch`, with the index off and on, `TEXT` and `NOT TEXT`, and `BODY` and `NOT BODY`, of a text in
+  each of three attachments, in the body and in a binary attachment, must part the mailbox between them, find nothing
+  together and every message in an `OR`; without the fix both tests failed on the three attachments, `NOT TEXT`
+  finding the message and `TEXT x NOT TEXT x` finding it. Found by the release review of 6.3.7.
 - **Fixed: IMAP `FETCH` handed out a part's MIME header and a multipart's body written out again, not as the message
   holds them.** `BODY[N.MIME]` - and `BODY[N.HEADER]` of a part that is not a message - was each field of the part's
   header as `Name: value` with its folds undone, and `BODY[N]` of a multipart - with its `BINARY[N]` and

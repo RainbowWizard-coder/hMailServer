@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using NUnit.Framework;
@@ -19,7 +20,8 @@ namespace RegressionTests.IMAP
    ///    found identically with the index on and off, which is the property the
    ///    index is held to. A binary attachment that happens to contain the bytes
    ///    is not searched: the search is for text a person could read, not for
-   ///    byte patterns in an executable.
+   ///    byte patterns in an executable. NOT TEXT and NOT BODY read the same parts
+   ///    as TEXT and BODY, so that each is its key's complement.
    ///
    ///    Every attachment here is built by hand as a MIME message rather than
    ///    through a helper, so that the transfer encoding is the one under test:
@@ -187,6 +189,85 @@ namespace RegressionTests.IMAP
          WaitForIndexer();
 
          AssertTheSearchesAnswerTheSame(account.Address);
+      }
+
+      // RFC 3501 6.4.4: NOT is "messages that do not match the specified search
+      // key". So a key and its NOT part the mailbox between them, the two together
+      // find nothing, and the OR of the two finds every message - whichever part of
+      // a message holds the text. Every answer that is not so is collected, so
+      // that a failure names them all.
+      private static void CheckNotIsTheComplement(string address, string key, string needle, string matches,
+         string others, List<string> wrong)
+      {
+         string search = key + " \"" + needle + "\"";
+
+         var cases = new[]
+         {
+            new[] { search, matches },
+            new[] { "NOT " + search, others },
+            new[] { search + " NOT " + search, "" },
+            new[] { "OR " + search + " NOT " + search, "1 2 3 4" },
+         };
+
+         foreach (string[] c in cases)
+         {
+            string got = Search(address, c[0]);
+            if (got != c[1])
+               wrong.Add("SEARCH " + c[0] + " answered '" + got + "' where RFC 3501 gives '" + c[1] + "'");
+         }
+      }
+
+      private static void AssertNotIsTheComplement(string address)
+      {
+         var wrong = new List<string>();
+
+         // Only inside an attachment: base64 text/plain, 7bit text/csv, base64 text/html.
+         CheckNotIsTheComplement(address, "TEXT", "BorealisNeedleOne", "1", "2 3 4", wrong);
+         CheckNotIsTheComplement(address, "TEXT", "BorealisNeedleTwo", "2", "1 3 4", wrong);
+         CheckNotIsTheComplement(address, "TEXT", "BorealisNeedleThree", "3", "1 2 4", wrong);
+
+         // In the body; and in a binary attachment, which is not text and not searched.
+         CheckNotIsTheComplement(address, "TEXT", "minutes attached", "1", "2 3 4", wrong);
+         CheckNotIsTheComplement(address, "TEXT", "BorealisNeedleFour", "", "1 2 3 4", wrong);
+
+         // BODY reads the same parts but the header, as one text for both answers:
+         // the same five texts.
+         CheckNotIsTheComplement(address, "BODY", "BorealisNeedleOne", "1", "2 3 4", wrong);
+         CheckNotIsTheComplement(address, "BODY", "BorealisNeedleTwo", "2", "1 3 4", wrong);
+         CheckNotIsTheComplement(address, "BODY", "BorealisNeedleThree", "3", "1 2 4", wrong);
+         CheckNotIsTheComplement(address, "BODY", "minutes attached", "1", "2 3 4", wrong);
+         CheckNotIsTheComplement(address, "BODY", "BorealisNeedleFour", "", "1 2 3 4", wrong);
+
+         if (wrong.Count > 0)
+            Assert.Fail(string.Join("; ", wrong));
+      }
+
+      [Test]
+      [Description("NOT TEXT is the complement of TEXT, and NOT BODY of BODY, for a text that is only inside an attached file, in the body or in a binary attachment - with the index off.")]
+      public void NotTextIsTheComplementOfTextWithTheIndexOff()
+      {
+         Account account = DeliverTheFourMessages();
+         AssertNotIsTheComplement(account.Address);
+      }
+
+      /// <summary>
+      ///    With the index on, a message the index proves cannot hold the text is
+      ///    answered without being read - TEXT false, NOT TEXT true - and every other
+      ///    one is read and scanned, so the answers are the scan's, as with the index
+      ///    off.
+      /// </summary>
+      [Test]
+      [Description("With the full-text index on, NOT TEXT and NOT BODY are still the complements of TEXT and BODY.")]
+      public void NotTextIsTheComplementOfTextWithTheIndexOn()
+      {
+         Account account = DeliverTheFourMessages();
+
+         IniFileSetting.Write("IndexerFullText", "1");
+         _application.Reinitialize();
+         _settings.MessageIndexing.Enabled = true;
+         WaitForIndexer();
+
+         AssertNotIsTheComplement(account.Address);
       }
    }
 }
