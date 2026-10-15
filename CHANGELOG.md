@@ -6305,12 +6305,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 - **`hmailserver/docs/WebAuthorisationMatrix.md` is every route the two web listeners answer, against nine kinds of
   credential, read from the code.** `build/generate-auth-matrix.py` interprets the route parser (`ParseRoute_` and the
   three parsers it calls) rather than matching patterns in it, follows `Authorize_` step by step, and reads the
-  built-in roles from `RoleManager.cpp`: 41 routes answered before any credential, 609 decided by `Authorize_` and 20
-  on the web services listener. The steps it follows are held to the code: a step of `Authorize_`, of the functions
-  it asks, of `RoleManager::Allows` or of `ProcessRequest_` from the end of the anonymous routes to the handler that
-  is added, taken out, moved or given a condition stops it with the difference, as a list or a route that changed
-  where the matrix did not fails its `--check`, and only the lists it reads may change unseen (`--steps` prints the
-  steps as the code has them). It flags each route a role confined to its domain reaches while the route names no
+  built-in roles from `RoleManager.cpp` and the report's sections counted from server-wide metrics from
+  `RestApiReports.cpp`: 41 routes answered before any credential, 609 decided by `Authorize_` and 20 on the web
+  services listener. The steps it follows are held to the code: a step added, taken out, moved or given a condition in
+  `Authorize_`, in the functions whose lists it reads, in `RoleManager::Allows` and the `RoleGrant::Holds` and
+  `RoleManager::IsDomainReached_` it asks, in `IsDomainAllowed_`, in `IsServerWideReportSection_` and the
+  `FindSection` it asks, or in `ProcessRequest_` from the end of the anonymous routes to the handler stops it with the
+  difference, as a list or a route that changed where the matrix did not fails its `--check`, and only the lists it
+  reads may change unseen (`--steps` prints the steps as the code has them); what `Authenticate_` makes of a
+  credential, the string helpers those functions use and the functions `ProcessRequest_`'s other checks call are not
+  held, and the matrix says so. It flags each route a role confined to its domain reaches while the route names no
   domain, each change such a role makes on its own domain's path whose handler is not given the caller, each change
   reached by GET, each page answered before any credential for GET and POST alike, and each route kind authorised and
   never dispatched. Its `--check` and its `--self-test`, which breaks the source in memory and proves each flag

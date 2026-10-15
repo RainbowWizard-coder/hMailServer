@@ -10,8 +10,8 @@ Writes hmailserver/docs/WebAuthorisationMatrix.md. Nothing in that file is typed
 by hand: every row comes from the C++ that decides it, so that the matrix says
 what the server does rather than what somebody once meant it to do, and --check
 fails the moment the two part: when the routes, the lists or the roles it is
-read from have changed and the file has not (exit 1), and when a step the
-decision is written in has changed (exit 2; STEPS, below).
+read from have changed and the file has not (exit 1), and when a step of one
+of the functions it holds has changed (exit 2; STEPS, below).
 
 What is read, all of it from hmailserver/source/Server/Common:
 
@@ -28,24 +28,38 @@ What is read, all of it from hmailserver/source/Server/Common:
       IsEmpty, ParseQueueId, SplitString) and keeps the path as a template of
       literal text and named holes. A condition it cannot model narrows nothing,
       so a template is never narrower than what the code accepts.
-  Util/RestApiServer.cpp, Authorize_ and the functions it asks
+  Util/RestApiServer.cpp, Authorize_ and the functions whose lists it reads
       IsSessionRoute_, IsSelfServiceRoute_, IsScimRoute_, IsApiKeyRoute_,
-      PermissionFor_, SecondPermissionFor_, DomainNamedByRoute_, the refusals a
-      credential confined to named domains meets, and the role-holding account's
+      IsMutatingRoute_, ChangesAccountByAddress_, PermissionFor_,
+      SecondPermissionFor_, DomainNamedByRoute_, the refusals a credential
+      confined to named domains meets, and the role-holding account's
       exceptions to the API-key routes. The decision below follows Authorize_'s
       order, step for step; build/check-role-choke-point.py already holds every
       RouteKind to a classification, and this script holds the decision to the
-      same reading. The steps are the script's own writing, so they are held to
-      the code: STEPS carries each function the decision rests on - these,
-      RoleManager::Allows, IsDomainAllowed_, and ProcessRequest_ from the end of
-      the anonymous routes to the handler - with what the readers take out of
-      it masked, and a step added, taken out, moved or given a condition stops
-      the script until decide() has been read against it and STEPS updated.
+      same reading.
+  Util/RestApiReports.cpp, SECTIONS
+      the report's sections and which of them are counted from server-wide
+      metrics: those IsServerWideReportSection_ answers for, which Authorize_
+      refuses a credential confined to named domains.
   Application/RoleManager.cpp
       the four built-in roles' permissions.
   Util/WebServicesServer.cpp, ProcessRequest_
       the second listener: MTA-STS, autoconfiguration, the Web Key Directory, the
       S/MIME authority, ACME, security.txt, and the CalDAV and CardDAV trees.
+
+The steps between those lists are the script's own writing, so they are held
+to the code: STEPS carries the steps of Authorize_; of the functions whose
+lists it reads; of the functions it hands its decision to - RoleManager::Allows
+(the overload with a domain) with the RoleGrant::Holds and
+RoleManager::IsDomainReached_ it asks, IsDomainAllowed_, and
+IsServerWideReportSection_ with the FindSection it asks; and of ProcessRequest_
+from the end of the anonymous routes to the handler - each with what the
+readers take out of it masked. A step added, taken out, moved or given a
+condition stops the script until decide() has been read against it and STEPS
+updated. Not held: how Authenticate_ makes a request one of the nine
+credentials (the matrix's columns take that as given), the string helpers the
+functions above use, and what the functions ProcessRequest_'s other checks
+call decide.
 
 Usage:
   python build/generate-auth-matrix.py            # write the matrix
@@ -70,6 +84,7 @@ DOC = os.path.join(ROOT, "hmailserver", "docs", "WebAuthorisationMatrix.md")
 
 REST_H = "Common/Util/RestApiServer.h"
 REST_CPP = "Common/Util/RestApiServer.cpp"
+REPORTS_CPP = "Common/Util/RestApiReports.cpp"
 ROLE_CPP = "Common/Application/RoleManager.cpp"
 WEB_CPP = "Common/Util/WebServicesServer.cpp"
 SUB_PARSERS = {
@@ -2095,6 +2110,40 @@ def permission_enum(role_h):
     return [n for n in names if n != "Count"]
 
 
+# The report's sections, RestApiReports.cpp's table: FindSection finds a section
+# by its name in it, and IsServerWideReportSection_ answers with its second field.
+REPORT_TABLE = "const SectionInfo SECTIONS[] ="
+REPORT_ROW = re.compile(r'\{\s*"(\w+)"\s*,\s*(true|false)\s*,')
+REPORT_COUNT = re.compile(r"const int SectionCount = \(int\) \(sizeof\(SECTIONS\) / sizeof\(SECTIONS\[0\]\)\);")
+
+
+def report_sections(reports):
+    """[(section, whether it is counted from server-wide metrics)], in the
+    table's order. FindSection searches SectionCount rows of it, which must be
+    the whole table."""
+    code = code_of(reports)
+    at = code.find(REPORT_TABLE)
+    table = braced(code, at + len(REPORT_TABLE)) if at >= 0 else None
+    if table is None:
+        raise GenerationError("%s: the report's table of sections could not be found" % REPORTS_CPP)
+    inside = code[:table[1] - 1]
+    sections = []
+    row = braced(inside, table[0] + 1)
+    while row is not None:
+        m = REPORT_ROW.match(inside, row[0], row[1])
+        if not m:
+            raise GenerationError("%s: a row of the report's table of sections could not be read: %s"
+                                  % (REPORTS_CPP, " ".join(inside[row[0]:row[1]].split())[:80]))
+        sections.append((m.group(1), m.group(2) == "true"))
+        row = braced(inside, row[1])
+    if not sections:
+        raise GenerationError("%s: the report's table of sections has no row" % REPORTS_CPP)
+    if not REPORT_COUNT.search(code):
+        raise GenerationError("%s: FindSection searches SectionCount rows of the report's table, and SectionCount "
+                              "is not written as the table's length" % REPORTS_CPP)
+    return sections
+
+
 class Decision(object):
     """What Authorize_ decides, read out of RestApiServer.cpp."""
 
@@ -2139,6 +2188,9 @@ class Decision(object):
             raise GenerationError("%s: Authorize_'s list of server-wide routes could not be found" % REST_CPP)
         self.confined_refused |= case_set(sw.group(1))
         self.report_kind = "RouteReport" if "route.kind == RouteReport" in confined else None
+        # The sections of it that block refuses: IsServerWideReportSection_'s,
+        # from the table FindSection searches.
+        self.server_wide_sections = [name for name, wide in report_sections(read(REPORTS_CPP, sources)) if wide]
         if self.report_kind in self.confined_refused:
             # Its own block stands between the refusals, so which of the two
             # answers depends on where the refusal is - an order decide() does
@@ -2234,11 +2286,16 @@ class Decision(object):
 #
 # decide() reads its lists out of the code but writes the steps between them
 # itself: which test comes first, what each one asks, what follows a refusal.
-# So every function the decision rests on is held to STEPS, the steps as they
-# were when decide() was last read against them. A list may change unseen - the
-# readers above take it - and nothing else may: a step added, taken out, moved
-# or given a condition stops the script with the difference, until decide() has
-# been read against the new steps and STEPS updated with them.
+# So the functions it models are held to STEPS, the steps as they were when
+# decide() was last read against them: Authorize_, the functions whose lists it
+# reads, the functions it hands its decision to and those they ask (steps_of
+# names each), and ProcessRequest_ from the end of the anonymous routes to the
+# handler. A list may change unseen - the readers above take it - and nothing
+# else of those functions may: a step added, taken out, moved or given a
+# condition stops the script with the difference, until decide() has been read
+# against the new steps and STEPS updated with them. Not held: Authenticate_,
+# which makes a request one of PRINCIPALS, the string helpers, and the functions
+# that ProcessRequest_'s other checks call.
 
 # The functions read with case_set and case_groups, and what their answers are
 # masked to.
@@ -2423,14 +2480,18 @@ def skeleton(code):
 
 
 def steps_of(sources=None):
-    """[(function, its steps)] for every function the decision rests on, each
-    masked where the readers above take something out of it: Authorize_ (the
+    """[(function, its steps)] for every function decide() models, each masked
+    where the readers above take something out of it: Authorize_ (the
     role-holder's exceptions, the routes of each refusal of a confined
-    credential and the server-wide switch's labels), the functions read with
-    case_set and case_groups, the two decisions Authorize_ hands its domain to -
-    RoleManager::Allows, with the domain, and IsDomainAllowed_ - and
-    ProcessRequest_'s try block, everything between the end of the anonymous
-    routes and the handler, the dispatch's labels and handlers masked."""
+    credential and the server-wide switch's labels); the functions read with
+    case_set and case_groups; the decisions Authorize_ hands a permission, a
+    domain or a report section to and the functions those ask -
+    RoleManager::Allows, with the domain, and the RoleGrant::Holds and
+    RoleManager::IsDomainReached_ it asks, IsDomainAllowed_, and
+    IsServerWideReportSection_ and the FindSection it asks, whose table
+    report_sections reads; and ProcessRequest_'s try block, everything between
+    the end of the anonymous routes and the handler, the dispatch's labels and
+    handlers masked."""
 
     def code(rel, qualified, params=None):
         body = body_of(read(rel, sources), qualified, params)
@@ -2462,7 +2523,12 @@ def steps_of(sources=None):
     for qualified, answer, masked in STEP_CASE_GROUPS:
         steps.append((qualified, skeleton(mask_lines(code(REST_CPP, qualified), answer, masked))))
     steps.append(("RoleManager::Allows", skeleton(code(ROLE_CPP, "RoleManager::Allows", "const String &domainName"))))
+    steps.append(("RoleGrant::Holds", skeleton(code(ROLE_CPP, "RoleGrant::Holds"))))
+    steps.append(("RoleManager::IsDomainReached_", skeleton(code(ROLE_CPP, "RoleManager::IsDomainReached_"))))
     steps.append(("RestApiServer::IsDomainAllowed_", skeleton(code(REST_CPP, "RestApiServer::IsDomainAllowed_"))))
+    steps.append(("RestApiServer::IsServerWideReportSection_",
+                  skeleton(code(REPORTS_CPP, "RestApiServer::IsServerWideReportSection_"))))
+    steps.append(("FindSection", skeleton(code(REPORTS_CPP, "FindSection"))))
     part, span = authenticated_part(code(REST_CPP, "RestApiServer::ProcessRequest_"))
     if span is None:
         raise GenerationError("%s: ProcessRequest_'s dispatch could not be found" % REST_CPP)
@@ -2717,6 +2783,21 @@ STEPS = {
   return true ;
 }
 """,
+    "RoleGrant::Holds": r"""
+{
+  return ( permissions & ( 1ULL << static_cast < int > ( permission ) ) ) != 0 ;
+}
+""",
+    "RoleManager::IsDomainReached_": r"""
+{
+  if ( grant . domains . empty ( ) ) return true ;
+  if ( domainName . IsEmpty ( ) ) return false ;
+  for ( const String & allowed : grant . domains ) {
+    if ( allowed . CompareNoCase ( domainName . c_str ( ) ) == 0 ) return true ;
+  }
+  return false ;
+}
+""",
     "RestApiServer::IsDomainAllowed_": r"""
 {
   if ( domains . empty ( ) ) return true ;
@@ -2725,6 +2806,20 @@ STEPS = {
     if ( allowed . CompareNoCase ( domainName . c_str ( ) ) == 0 ) return true ;
   }
   return false ;
+}
+""",
+    "RestApiServer::IsServerWideReportSection_": r"""
+{
+  const SectionInfo * info = FindSection ( section ) ;
+  return info != 0 && info -> server_wide ;
+}
+""",
+    "FindSection": r"""
+{
+  for ( int i = 0 ; i < SectionCount ; i ++ ) {
+    if ( name . CompareNoCase ( SECTIONS [ i ] . name ) == 0 ) return & SECTIONS [ i ] ;
+  }
+  return 0 ;
 }
 """,
     "RestApiServer::ProcessRequest_": r"""
@@ -2962,8 +3057,9 @@ def render(decision, records, anon, web):
     w("Every route the server's two web listeners answer, and what each kind of credential gets there. "
       "It is written by `build/generate-auth-matrix.py` from the code that decides it, not by hand, and "
       "`python build/generate-auth-matrix.py --check` fails in CI (the `checkers` job) the moment the code and this "
-      "file disagree: when this file is not what the script reads from the code now, and when a step of the decision "
-      "is not the one the script follows, until the script has been read against the new step. The threat model "
+      "file disagree: when this file is not what the script reads from the code now, and when a step of a function "
+      "the script holds (\"The answer\", below) is not the one it follows, until the script has been read against the "
+      "new step. The threat model "
       "that reads it is [WebThreatModel.md](WebThreatModel.md); the routes this file flags are triaged there.")
     w("")
     w("## How it is read from the code")
@@ -2978,11 +3074,15 @@ def render(decision, records, anon, web):
       "key-only rule, `IsScimRoute_`, `IsSelfServiceRoute_`, the ordinary account's refusal, the administrator "
       "password, `IsApiKeyRoute_` (with the role-holding account's exceptions), then `RoleManager::Allows` on "
       "`PermissionFor_` and `SecondPermissionFor_`, then the refusals a credential confined to named domains "
-      "meets, then `DomainNamedByRoute_`. Then the built-in roles' permissions from `RoleManager.cpp`. Those "
-      "steps are the script's, so it holds them to the code: each of these functions, with `RoleManager::Allows`, "
-      "`IsDomainAllowed_` and `ProcessRequest_` from the end of the anonymous routes to the handler, is compared "
-      "with the steps the script was last read against, its lists left out, and a step added, taken out, moved or "
-      "given a condition stops it.")
+      "meets, the report's sections among them (`IsServerWideReportSection_`, from `RestApiReports.cpp`'s table), "
+      "then `DomainNamedByRoute_`. Then the built-in roles' permissions from `RoleManager.cpp`. Those steps are the "
+      "script's, so it holds them to the code: `Authorize_` and each function whose list it reads, "
+      "`RoleManager::Allows` and the `RoleGrant::Holds` and `RoleManager::IsDomainReached_` it asks, "
+      "`IsDomainAllowed_`, `IsServerWideReportSection_` and the `FindSection` it asks, and `ProcessRequest_` from "
+      "the end of the anonymous routes to the handler are compared with the steps the script was last read "
+      "against, their lists left out, and a step added, taken out, moved or given a condition stops it. Not held: "
+      "how `Authenticate_` makes a request one of the columns below, which they take as given, and the string "
+      "helpers those functions use.")
     w("- **Not shown**, because they narrow every route alike: the Host check (421), the request budget per "
       "credential (429), the administrator password's throttle, the `X-Requested-With: hMailServer` header a "
       "session must send on anything but GET and HEAD (403), the refusal of a request that carries a credential "
@@ -3011,7 +3111,14 @@ def render(decision, records, anon, web):
     w("|---|---|")
     w("| yes | Allowed. |")
     w("| own | Allowed where the domain the route names (in its path) is one the credential reaches; another domain's answers 403. Only the path is held here: what the body names beyond that domain is the handler's to hold, and a change whose handler is not given the caller is listed under Flagged. |")
-    w("| own+ | The report route: allowed for a named domain the credential reaches; the sections counted from server-wide metrics are refused. |")
+    wide = ["`%s`" % name for name in decision.server_wide_sections]
+    if wide:
+        w("| own+ | The report route: allowed for a named domain the credential reaches; the sections `RestApiReports.cpp`'s "
+          "table counts from server-wide metrics (%s) are refused. |"
+          % (wide[0] if len(wide) == 1 else ", ".join(wide[:-1]) + " and " + wide[-1]))
+    else:
+        w("| own+ | The report route: allowed for a named domain the credential reaches; `RestApiReports.cpp`'s table "
+          "counts none of its sections from server-wide metrics, so none is refused. |")
     w("| own* | Allowed, and the route names no domain: whatever it shows or changes beyond the credential's domains is narrowed by the handler, or not at all. Each is listed under Flagged. |")
     w("| sender | Allowed when the key names a sender (`SendFrom`) in a domain it reaches. |")
     w("| no | 403. |")
@@ -3136,8 +3243,8 @@ def main(argv):
     if argv in (["-h"], ["--help"]):
         print(USAGE)
         print("With no argument it writes hmailserver/docs/WebAuthorisationMatrix.md; --check compares, --print writes "
-              "to standard output, --steps prints the steps of the functions the decision rests on as STEPS would "
-              "hold them, and --self-test breaks a copy of the source and proves each rule is still read. A step that "
+              "to standard output, --steps prints the steps of the functions it holds to the code (steps_of) as STEPS "
+              "would hold them, and --self-test breaks a copy of the source and proves each rule is still read. A step that "
               "is not the one STEPS holds stops every mode but --steps.")
         return 0
     if len(argv) > 1 or any(a not in ("--check", "--print", "--steps", "--self-test") for a in argv):
@@ -3191,8 +3298,8 @@ def self_test():
     what it writes - so that a script that has stopped seeing the source fails."""
     failures = []
     base = {}
-    for rel in [REST_H, REST_CPP, ROLE_CPP, WEB_CPP, "Common/Application/RoleManager.h"] + list(SUB_PARSERS.values()) \
-            + list(PREDICATES.values()) + [c[0] for c in CONSTANTS.values()]:
+    for rel in [REST_H, REST_CPP, REPORTS_CPP, ROLE_CPP, WEB_CPP, "Common/Application/RoleManager.h"] \
+            + list(SUB_PARSERS.values()) + list(PREDICATES.values()) + [c[0] for c in CONSTANTS.values()]:
         base[rel] = read(rel)
 
     def run(sources):
@@ -3411,6 +3518,28 @@ def self_test():
           "         if (route.kind == RouteQueueList)" + nl + "            return HandleQueueList_();" + nl + nl
           + "         AnsiString refusalReason;" + nl + "         AuthorizationResult authorization = Authorize_(",
           "RestApiServer::ProcessRequest_")
+    # The functions Authorize_ hands a permission, a domain or a report section
+    # to ask others, and those are held too.
+    stops("RoleGrant::Holds made to hold every permission stops the script", ROLE_CPP,
+          "      return (permissions & (1ULL << static_cast<int>(permission))) != 0;", "      return true;",
+          "RoleGrant::Holds")
+    stops("RoleManager::IsDomainReached_ made to reach every domain stops the script", ROLE_CPP,
+          "      // an unrestricted key have." + nl + "      if (grant.domains.empty())",
+          "      // an unrestricted key have." + nl + "      if (true || grant.domains.empty())",
+          "RoleManager::IsDomainReached_")
+    stops("IsServerWideReportSection_ made to answer no for every section stops the script", REPORTS_CPP,
+          "      return info != 0 && info->server_wide;", "      return false;",
+          "RestApiServer::IsServerWideReportSection_")
+    stops("FindSection made to find another section than the one named stops the script", REPORTS_CPP,
+          "            if (name.CompareNoCase(SECTIONS[i].name) == 0)",
+          "            if (name.CompareNoCase(SECTIONS[i].name) != 0)", "FindSection")
+    try:
+        Decision(broken_copy(REPORTS_CPP, "const int SectionCount = (int) (sizeof(SECTIONS) / sizeof(SECTIONS[0]));",
+                             "const int SectionCount = 8;"))
+        failures.append("a SectionCount that is not the report table's length stops the script")
+    except GenerationError as error:
+        expect("a SectionCount that is not the report table's length stops the script, naming it",
+               "SectionCount" in str(error))
 
     # 13. A list changed is read, not stopped on: a route into a refusal, a
     # refusal of the same shape beside the others, a group split, a reason
@@ -3453,6 +3582,13 @@ def self_test():
     expect("a dispatch's return written over several lines is read as its own handler",
            decision.handler.get("RouteMePushSubscribe") == "HandleMePushSubscribe_"
            and decision.handler.get("RouteMePushUpdate") == "HandleMePushUpdate_")
+    # The report's table is a list: a section counted from server-wide metrics
+    # is named in the own+ cell, and one made so is read there.
+    expect("the report's server-wide sections are read from its table and named in the own+ cell",
+           "server-wide metrics (`countries`) are refused" in text)
+    d14, r14, t14 = run(broken_copy(REPORTS_CPP, '{ "storage", false,', '{ "storage", true,'))
+    expect("a report section made one counted from server-wide metrics is named in the own+ cell",
+           "server-wide metrics (`storage` and `countries`) are refused" in t14)
 
     if failures:
         for failure in failures:
