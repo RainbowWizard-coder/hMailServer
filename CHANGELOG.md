@@ -6222,6 +6222,14 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   The script's self-test has the cases: the token with a switch set and with none passes (batch48's guard failed the
   first, naming it), and each of eight other names beside it fails, the token still accepted
   (ContinuousIntegration.md, "What a job on GitLab's runners is given").
+- **Fixed: `hosted-runners` would have failed every pipeline a switch is set for, whatever its variables, on
+  `LC_CTYPE`.** The job runs in Docker Hub's `python:3.14-slim-trixie`, which sets no `LANG`, and Python, started
+  under the C locale, puts `LC_CTYPE=C.UTF-8` in its own environment (PEP 538's locale coercion, in UTF-8 mode
+  too), which the guard read among the job's variables and took for a credential; its self-test listed the image's
+  variables by hand and never had it. Found by running `build/ci/hosted-runners.py check` in the pinned image on
+  server2 with the variables of the self-test's batch pipeline: every case failed on `LC_CTYPE`, the one with no
+  credential at all among them. `LC_CTYPE` is now one of the container's (`PROCESS`), and the self-test's pipeline
+  gives it; given it, batch48's self-test fails seven of its cases, those that expect a pass or a warning.
 - **`build/land-via-mr.py` lands a batch of any size from Windows.** It gave glab every field of a request as an
   argument of its command line, and the description of `batch47`'s merge request, 200 commit lines and 50,565
   characters, made one longer than the 32,767 characters Windows takes: on 13 October 2026 the landing pushed the

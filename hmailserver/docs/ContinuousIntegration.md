@@ -530,7 +530,9 @@ each of GitLab's is, and say nothing of a credential, GitLab's own that do
 `CI_DEPENDENCY_PROXY_PASSWORD`, the first characters of the runner's token and of a
 trigger's, and the runner's TLS key file), and the few others GitLab predefines; the
 deploy token's `CI_DEPLOY_PASSWORD` fails it -, its runner's (its feature flags
-among them, each `FF_` and the flag's name, true or false), the container's, those
+among them, each `FF_` and the flag's name, true or false), the container's
+(Python's own `LC_CTYPE` among them, which Python sets to `C.UTF-8` when it starts
+under the C locale, as it does in the job's image, which sets no `LANG`), those
 the CI files and their templates set, and the project's that hold none (`PLAIN` in
 `build/ci/hosted-runners.py`: the five identifiers, the switch and the observability
 export). One credential it accepts, by its whole name, and names in its log as

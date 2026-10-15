@@ -211,8 +211,14 @@ RUNNER_OWN = {"GITLAB_ENV", "RUNNER_TEMP_PROJECT_DIR", "RUNNER_JOB_VAR_NAMES", "
 # What a container's process is given that is not a variable of GitLab's or the CI files':
 # Docker's, the shell's, and Docker Hub's Python image's - PATH, PYTHON_VERSION and
 # PYTHON_SHA256 in the image the job runs in, and what its earlier images set (GPG_KEY is
-# the id of the key a Python release is signed with, a public one).
-PROCESS = {"PATH", "HOME", "HOSTNAME", "LANG", "LC_ALL", "TERM", "SHLVL", "PWD", "OLDPWD", "_", "GPG_KEY",
+# the id of the key a Python release is signed with, a public one) - and Python's own:
+# LC_CTYPE, which Python puts in its own environment, as C.UTF-8, when it starts under
+# the C locale (PEP 538's locale coercion, in UTF-8 mode too), as it does in the job's
+# image, which sets no LANG (its environment is PATH, PYTHON_VERSION and PYTHON_SHA256
+# alone: docker image inspect on server2, 15 October 2026), so that this script, run as
+# the job runs it, reads LC_CTYPE among the job's variables, and took it for a
+# credential, which failed every pipeline a switch was set for, whatever its variables.
+PROCESS = {"PATH", "HOME", "HOSTNAME", "LANG", "LC_ALL", "LC_CTYPE", "TERM", "SHLVL", "PWD", "OLDPWD", "_", "GPG_KEY",
            "PYTHON_VERSION", "PYTHON_SHA256", "PYTHON_PIP_VERSION", "PYTHON_SETUPTOOLS_VERSION", "PYTHON_GET_PIP_URL",
            "PYTHON_GET_PIP_SHA256"}
 # The variables: of the GitLab templates the CI files include (include: - template:),
@@ -589,7 +595,8 @@ def self_test():
            ({"HM_RUNNER", "HM_RUNNER_PACKAGES", "HM_LANE_SUITE", "SECRETS_ANALYZER_VERSION", "SAST_EXCLUDED_PATHS"} <=
             tree_ci[0], tree_ci[1]), (True, []))
     # What GitLab gives this job in a batch's pipeline, by name: its predefined variables,
-    # its runner's, the Python image's, the CI files' (as the tree has them), their
+    # its runner's, the Python image's and Python's own LC_CTYPE, which the job's script
+    # reads as it reads the rest (PROCESS), the CI files' (as the tree has them), their
     # templates' (Jobs/SAST and Jobs/Secret-Detection, as CI lint's merged_yaml listed them
     # on 14 October 2026), and the project's that hold no secret. All but the CI files' are
     # written out here, so that a name this script stops knowing fails a case: GitLab's own
@@ -610,6 +617,7 @@ def self_test():
         "GITLAB_FEATURES": "", "FF_NETWORK_PER_BUILD": "false", "GITLAB_ENV": "/builds/x.tmp/gitlab_runner_env",
         "RUNNER_TEMP_PROJECT_DIR": "/builds/x.tmp", "PATH": "/usr/local/bin:/usr/bin", "HOME": "/root", "HOSTNAME": "runner-1",
         "PWD": "/builds/x", "SHLVL": "1", "_": "/usr/local/bin/python3", "PYTHON_VERSION": "3.14.7", "PYTHON_SHA256": "0" * 64,
+        "LC_CTYPE": "C.UTF-8",
         "HM_RUNNER": "linix", "HM_RUNNER_BUILD": "linix", "HM_RUNNER_PACKAGES": "linix", "HM_LANE_PACKAGES": "linix-package-build",
         "HM_RUNNER_ARM64": "linix", "HM_RUNNER_SUITE": "linix", "HM_LANE_SUITE": "linix-suite",
         "SECURE_ANALYZERS_PREFIX": "registry.gitlab.com/security-products", "SAST_IMAGE_SUFFIX": "", "SAST_EXCLUDED_ANALYZERS": "",
