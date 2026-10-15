@@ -5,8 +5,10 @@
 
 """Embed the operator documentation in the server.
 
-Reads every hmailserver/docs/*.md except README.md (the index of the others)
-and DeckParity.md (a census build/check-deck-parity.py rewrites) and writes
+Reads every hmailserver/docs/*.md except README.md (the index of the others),
+DeckParity.md (a census build/check-deck-parity.py rewrites) and
+WebAuthorisationMatrix.md (a table build/generate-auth-matrix.py writes from the
+code, which would otherwise change this file whenever a route did) and writes
 hmailserver/source/Server/Common/Util/HelpPagesData.cpp: each document's text,
 CRLF made LF, in pieces of at most four thousand characters (a compiler's limit
 on one literal is sixteen thousand bytes; a piece of four thousand characters
@@ -69,7 +71,7 @@ WIKI_PAGE = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9_-]{0,99}$")
 
 # The index of the others, and a census a checker rewrites: neither is a page
 # anybody is helped by.
-EXCLUDED = {"README.md", "DeckParity.md"}
+EXCLUDED = {"README.md", "DeckParity.md", "WebAuthorisationMatrix.md"}
 
 ATX = re.compile(r"^(#{1,6})[ \t]+(.*?)[ \t]*#*[ \t]*$")
 SETEXT_ONE = re.compile(r"^=+[ \t]*$")

@@ -23,7 +23,8 @@ Checked:
   pages     every page of each surface has an entry, and no entry names a
             page the surface does not have;
   files     every entry names a document that exists and is one the
-            generator embeds (not README.md, not DeckParity.md);
+            generator embeds (not README.md, DeckParity.md or
+            WebAuthorisationMatrix.md);
   headings  every heading named is a level-one or level-two heading of its
             document, read by the generator's own parser, so a heading the
             checker accepts is one the server lists and the panes scroll to;

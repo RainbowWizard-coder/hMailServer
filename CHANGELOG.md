@@ -6287,6 +6287,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 
 ### Documentation
 
+- **`hmailserver/docs/WebAuthorisationMatrix.md` is every route the two web listeners answer, against nine kinds of
+  credential, read from the code.** `build/generate-auth-matrix.py` interprets the route parser (`ParseRoute_` and the
+  three parsers it calls) rather than matching patterns in it, follows `Authorize_` step by step, and reads the
+  built-in roles from `RoleManager.cpp`: 41 routes answered before any credential, 609 decided by `Authorize_` and 20
+  on the web services listener. It flags each route a role confined to its domain reaches while the route names no
+  domain, each change reached by GET, and each route kind authorised and never dispatched. Its `--check` and its
+  `--self-test`, which breaks the source in memory and proves each flag fires, run in the `checkers` job; neither the
+  server's help nor the Control Panel's embeds the matrix (`generate-help-pages.py`, the Control Panel's project
+  files), so that a route change does not rewrite `HelpPagesData.cpp` too.
 - **SmtpPolicy.md, RestrictedDelivery.md and ImpersonationProtection.md say what the server's IDNA conversion reads
   and what it does not.** They said the server has none, and that the Linux build has no Unicode tables, which UTS 46
   for a link's host made untrue ("Anti-spam, anti-virus and mail flow rules", above): the domain policy list and

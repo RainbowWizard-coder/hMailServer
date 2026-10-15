@@ -196,11 +196,11 @@
 
   <!-- The operator documentation, embedded straight from the repository as
        Help.<Name>.md, exactly as ControlPanel.csproj embeds it for the program:
-       the same glob, the same two exclusions, the same names. The program does
+       the same glob, the same three exclusions, the same names. The program does
        not reference this assembly (it compiles Services/*.cs itself), so the
        group is in both; this one is what the tests read through HelpPages. -->
   <ItemGroup>
-    <EmbeddedResource Include="..\..\..\docs\*.md" Exclude="..\..\..\docs\README.md;..\..\..\docs\DeckParity.md" LogicalName="Help.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="..\..\..\docs\*.md" Exclude="..\..\..\docs\README.md;..\..\..\docs\DeckParity.md;..\..\..\docs\WebAuthorisationMatrix.md" LogicalName="Help.%(Filename)%(Extension)" />
   </ItemGroup>
 
 </Project>

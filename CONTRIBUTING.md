@@ -486,6 +486,7 @@ file differs from what it would write. After changing the input, run it without 
 | `python build/generate-profiles.py [--check]` | `Common/Application/ProfilesData.cpp`, and the tables in `hmailserver/docs/Profiles.md` | `Common/Application/Profiles/*.json` |
 | `python build/generate-idna-tables.py [--check]` | `Common/Idna/IdnaTables.cpp` and `Common/Idna/IdnaTestData.cpp` | Unicode's data files under `Common/Idna/ucd`, each held to the SHA-256 and Unicode version the generator pins |
 | `python build/generate-html-references.py [--check]` | `Common/AntiSpam/HtmlReferencesData.cpp` | HTML's list of named character references, `Common/AntiSpam/whatwg/entities.json`, held to the SHA-256 the generator pins |
+| `python build/generate-auth-matrix.py [--check]` | `hmailserver/docs/WebAuthorisationMatrix.md` | The route parser (`ParseRoute_` and the three parsers it calls), `Authorize_` and the functions it asks, the built-in roles in `RoleManager.cpp`, and the two listeners' anonymous routes. `--self-test` breaks the source in memory and proves each flag still fires |
 | `build/generate-settings-index.ps1` (either PowerShell) | `ControlPanel/Services/SettingsSearchIndex.g.cs` | The Control Panel's settings pages; check with `git diff` afterwards |
 | `python build/add-license-headers.py [--check]` | The licence header on every source file | See [below](#code-style-and-licence-headers) |
 
@@ -514,7 +515,7 @@ something which already exists.
 | Anything | `add-license-headers.py --check`, `check-project-items.py`, `check-control-bytes.py` |
 | C++ in the server | The server build (`/WX`); `check-collection-iteration.py`, `check-audit-choke-point.py`, `check-role-choke-point.py`, `check-authz-choke-point.py`, `check-com-dispids.py`, `check-com-error-info.py`, `check-idl-case.py`, `check-password-choice-sites.py`, `check-setting-levels.py`, `check-address-parsing.py`, `check-source-literals.py` where they apply; the Linux build or census if the file is in the Linux core |
 | SQL or the schema | `check-schema-versions.ps1`, `check-db-scripts.ps1`, `check-mysql-charset.py`, `check-sql-separators.py`, `check-sql-parameters.py`, `check-upgrade-inserts.py`, `check-settings-rows.py`, `check-account-stores.py`, `generate-settings-defaults.py --check` |
-| A REST route | `check-role-choke-point.py`, `check-openapi-blocks.py`, `check-audit-choke-point.py`, `check-deck-parity.py`, `check-cli.py` if a client verb changed |
+| A REST route | `check-role-choke-point.py`, `check-openapi-blocks.py`, `check-audit-choke-point.py`, `check-deck-parity.py`, `generate-auth-matrix.py` (and commit the matrix it writes), `check-cli.py` if a client verb changed |
 | The Control Panel | Its build and tests, `check-mnemonics.py`, `check-localisation.py`, `check-catalogues.py`, `check-ini-coverage.py`, `check-db-settings-coverage.py`, `check-help-map.py`, `check-spacing.py`, `generate-settings-index.ps1`, `dotnet format` |
 | The Control Deck | `check-deck-script.py`, `check-deck-languages.py`, `check-help-map.py`, `check-deck-parity.py` |
 | The webmail | `generate-portal-page.py --check`, `check-portal-script.py`, `check-portal-languages.py`, `check-help-map.py`; the S/MIME and OpenPGP pairs if those modules changed |

@@ -460,9 +460,12 @@ checkers:
 
       # Generated source is what its generator writes now.
       check python3 build/add-license-headers.py --check
-      for name in help-pages portal-page portal-smime portal-openpgp settings-defaults profiles idna-tables html-references; do
+      for name in help-pages portal-page portal-smime portal-openpgp settings-defaults profiles idna-tables html-references auth-matrix; do
         check python3 "build/generate-$name.py" --check
       done
+      # The web authorisation matrix's reading of the route parser and of Authorize_, broken
+      # in memory, so that a generator which has stopped seeing the source fails too.
+      check python3 build/generate-auth-matrix.py --self-test
       check portal_languages
       check deck_parity
 

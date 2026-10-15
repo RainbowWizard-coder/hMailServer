@@ -61,12 +61,13 @@
        /api/v1/help (build/generate-help-pages.py), read by Services/HelpPages.cs
        for the help pane beside every page. Nothing is copied into this tree,
        so the copy cannot be behind the documents. README.md is the index of
-       the others and DeckParity.md a census a checker rewrites; the server
-       leaves both out too. ControlPanel.Core carries the same group, so that
+       the others, DeckParity.md a census a checker rewrites and
+       WebAuthorisationMatrix.md a table generated from the routes; the server
+       leaves all three out too. ControlPanel.Core carries the same group, so that
        HelpMapTests holds this copy to the directory; a change here is a
        change there. -->
   <ItemGroup>
-    <EmbeddedResource Include="..\..\..\docs\*.md" Exclude="..\..\..\docs\README.md;..\..\..\docs\DeckParity.md" LogicalName="Help.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="..\..\..\docs\*.md" Exclude="..\..\..\docs\README.md;..\..\..\docs\DeckParity.md;..\..\..\docs\WebAuthorisationMatrix.md" LogicalName="Help.%(Filename)%(Extension)" />
   </ItemGroup>
 
 </Project>
