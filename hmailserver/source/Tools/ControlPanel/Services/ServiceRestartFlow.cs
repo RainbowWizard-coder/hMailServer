@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using static hMailServer.ControlPanel.Services.Loc;
 
 namespace hMailServer.ControlPanel.Services
@@ -49,17 +50,44 @@ namespace hMailServer.ControlPanel.Services
    public readonly record struct ServiceReading(ServiceState State, int CheckPoint, int WaitHintMilliseconds, int ProcessId);
 
    /// <summary>
-   /// The service a restart drives: its state read, a stop and a start asked. Windows'
-   /// service controller in the program (ServiceRestart), a fake in the tests, which is
-   /// why this file has no WPF, no COM and no System.ServiceProcess in it.
+   /// The service a restart drives: its state read, a stop and a start asked, and the
+   /// process it ran in watched for its end. Windows' service controller in the program
+   /// (ServiceRestart), a fake in the tests, which is why this file has no WPF, no COM and
+   /// no System.ServiceProcess in it.
    /// </summary>
    public interface IServiceControl
    {
       ServiceReading Read();
 
-      void Stop();
+      /// <summary>
+      /// Asks the service to stop and returns at once with the request, which ends when
+      /// Windows' service controller answers it. The controller answers a stop once the
+      /// service's control handler has returned, and the server's handler runs the whole
+      /// of its stop (hMailServer.cpp, ServiceController and TerminateServer): past the 30
+      /// seconds the controller gives a handler, it says the service is stopped while the
+      /// process still drains, and answers the request with ERROR_SERVICE_REQUEST_TIMEOUT
+      /// (1053) as the process ends. A stop refused - no right to stop the service, or a
+      /// service that takes no stop then - ends the request at once, with the service as
+      /// it was. The answer is read while the restart waits, or never, once it has done.
+      /// </summary>
+      Task AskStop();
 
       void Start();
+
+      /// <summary>
+      /// The process <paramref name="processId"/>, opened so that its end can be waited
+      /// for, or null where it cannot be opened. Opened before the stop is asked, as the
+      /// installer's StopHMailServerAndWaitForExit opens it: once the service has stopped,
+      /// the controller names its process no more, and the id could be another's.
+      /// </summary>
+      IProcessExit WatchProcess(int processId);
+   }
+
+   /// <summary>A process a restart waits to end: the one the service ran in before its stop.</summary>
+   public interface IProcessExit : IDisposable
+   {
+      /// <summary>Whether the process has ended - or can no longer be asked, which leaves the stop's answer to wait for.</summary>
+      bool HasExited { get; }
    }
 
    /// <summary>The time a wait is measured in and slept through: the computer's in the program, a test's own in the tests.</summary>
@@ -95,10 +123,26 @@ namespace hMailServer.ControlPanel.Services
    /// within the wait hint the service names, and the whole within the longest hint it
    /// named and a minute more. So the budget is read in one place - the server's - and
    /// a change to it reaches this wait without a change here. Once a stop has been made,
-   /// the service is started when it has stopped; and when it cannot be, or has not
-   /// finished stopping, the outcome is <see cref="ServiceRestartOutcome.Stopped"/>,
-   /// whose sentence says that the service is not running and how to start it. Held by
-   /// ServiceRestartFlowTests.
+   /// the service is started when it has stopped and the process it ran in has ended;
+   /// and when it cannot be, or has not finished stopping, the outcome is
+   /// <see cref="ServiceRestartOutcome.Stopped"/>, whose sentence says that the service
+   /// is not running and how to start it.
+   ///
+   /// Windows gives a service's control handler 30 seconds, and the server runs its
+   /// whole stop inside its handler. A stop longer than that - a drain of 30 seconds or
+   /// more with one client connected, or the message indexer's minute - is one the
+   /// service controller gives up waiting for at the 30th second (System event 7011): it
+   /// says Stopped from then on while the process still drains, and answers the stop it
+   /// was asked with ERROR_SERVICE_REQUEST_TIMEOUT (1053) once the process has ended. The
+   /// restart asked the stop and waited for that answer, and took any error of it for a
+   /// stop refused - "the service runs as it did" - so that an elevated Control Panel, the
+   /// usual one on a server, ended such a restart in a bare 1053 with the service stopped,
+   /// as before this flow (the adversarial check of release-fix unit rf5-rf6-cp, on
+   /// server1's bench, with a drain of 45 seconds). So the stop is asked on a worker, and
+   /// the service watched meanwhile: a stop is refused only while the service is as it was,
+   /// in the same process, when its request ends; and the start waits for the process the
+   /// service ran in to end, within what the service asked for its stop, since the
+   /// controller's Stopped does not say it has. Held by ServiceRestartFlowTests.
    /// </summary>
    public static class ServiceRestartFlow
    {
@@ -113,6 +157,13 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>How often a pending service is read: a cheap call, and a wait that ends close to when the service does.</summary>
       public static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(500);
+
+      /// <summary>
+      /// What Windows' service controller gives a service's control handler before it
+      /// gives up waiting for it (the Handler function's 30 seconds): the most a stop the
+      /// service has not yet begun to report is waited for.
+      /// </summary>
+      public static readonly TimeSpan HandlerTimeout = TimeSpan.FromSeconds(30);
 
       /// <summary>How a wait while the service was pending ended: the last reading, how long it took and whether it ran out.</summary>
       public readonly record struct Waited(ServiceReading Reading, TimeSpan Took, TimeSpan LongestHint, bool RanOut);
@@ -157,8 +208,9 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>
       /// Stops and starts the service through the service controller, which this
-      /// process may do itself (an elevated Control Panel): the stop waited for as the
-      /// service asks, then the start, then the start waited for. Null as the reason
+      /// process may do itself (an elevated Control Panel): the stop asked and the service
+      /// watched while it stops, as the service asks to be waited for, then the process it
+      /// ran in waited for, then the start, then the start waited for. Null as the reason
       /// when the service was restarted.
       /// </summary>
       public static (ServiceRestartOutcome Outcome, string Reason) Run(IServiceControl service, IWaitClock clock)
@@ -167,26 +219,127 @@ namespace hMailServer.ControlPanel.Services
          try
          {
             before = service.Read();
-            if (before.State != ServiceState.Stopped && before.State != ServiceState.StopPending)
-               service.Stop();
          }
          catch (Exception refused) when (!ExceptionPolicy.IsFatal(refused))
          {
-            // Nothing was stopped: the service runs as it did.
             return (ServiceRestartOutcome.NotRestarted, MessageOf_(refused));
+         }
+
+         if (before.State == ServiceState.Stopped)
+            return StartStopped_(service, clock, StartNow_(service));
+
+         // Opened before the stop is asked, while the controller still names the process.
+         using IProcessExit process = before.ProcessId != 0 ? service.WatchProcess(before.ProcessId) : null;
+         TimeSpan asked = clock.Elapsed;
+         Task request = null;
+         if (before.State != ServiceState.StopPending)
+         {
+            try
+            {
+               request = service.AskStop();
+            }
+            catch (Exception refused) when (!ExceptionPolicy.IsFatal(refused))
+            {
+               // Nothing was asked of the service: it runs as it did.
+               return (ServiceRestartOutcome.NotRestarted, MessageOf_(refused));
+            }
+
+            string refusal = UntilTheStopBegins_(service, before, request, clock);
+            if (refusal != null)
+               return (ServiceRestartOutcome.NotRestarted, refusal);
          }
 
          Waited stop = WhilePending(service, ServiceState.StopPending, clock);
          if (stop.Reading.State == ServiceState.StopPending)
             return (ServiceRestartOutcome.Stopped, StillStopping(stop));
+         if (stop.Reading.State == ServiceState.Running && before.ProcessId != 0 && stop.Reading.ProcessId != 0 && stop.Reading.ProcessId != before.ProcessId)
+            return (ServiceRestartOutcome.Restarted, null); // started again meanwhile, by another hand, in a new process
          if (stop.Reading.State != ServiceState.Stopped)
             return (ServiceRestartOutcome.NotRestarted, DidNotStop(stop.Reading.State));
 
-         return StartStopped_(service, clock, () =>
+         Waited ended = UntilTheProcessEnds_(process, request, clock, asked, stop.LongestHint);
+         if (ended.RanOut)
+            return (ServiceRestartOutcome.Stopped, StillStopping(ended));
+
+         return StartStopped_(service, clock, StartNow_(service));
+      }
+
+      private static Func<bool> StartNow_(IServiceControl service)
+         => () =>
          {
             service.Start();
             return true;
-         });
+         };
+
+      /// <summary>
+      /// Watches a stop asked of the service until it has begun - the service has left the
+      /// state it was in, or the process it ran in - and answers null then. A request that
+      /// ends with the service as it was, in the same process, is a stop the service
+      /// refused, and its reason is answered: the error it ended with, or that the service
+      /// did not stop. So is a stop that has not begun within the 30 seconds the controller
+      /// gives a handler (<see cref="HandlerTimeout"/>) and <see cref="StepSlack"/>, as the
+      /// server reports its stop pending first thing (TerminateServer). An error that ends
+      /// the request after the stop has begun - 1053, the controller's 30 seconds past -
+      /// is not a refusal: the stop was made, and is watched to its end.
+      /// </summary>
+      private static string UntilTheStopBegins_(IServiceControl service, ServiceReading before, Task request, IWaitClock clock)
+      {
+         TimeSpan started = clock.Elapsed;
+         while (true)
+         {
+            // Whether the request had ended is read before the state, so that a refusal is
+            // one whose service was as it was after the request ended.
+            bool ended = request.IsCompleted;
+            ServiceReading reading = service.Read();
+            if (reading.State != before.State || reading.ProcessId != before.ProcessId)
+               return null;
+
+            if (ended)
+               return request.IsFaulted && request.Exception != null ? MessageOf_(request.Exception) : DidNotStop(reading.State);
+
+            if (clock.Elapsed - started > HandlerTimeout + StepSlack)
+               return DidNotStop(reading.State);
+
+            clock.Sleep(PollInterval);
+         }
+      }
+
+      /// <summary>
+      /// Waits, once the controller says the service is stopped, for the process the
+      /// service ran in to end - which from the controller's 30 seconds on it has not, while
+      /// the stop drains on - and for the controller's answer to the stop, which comes as the
+      /// process ends, though no longer than <see cref="StepSlack"/> after it. All within the
+      /// longest wait hint the service named for its stop and <see cref="WholeSlack"/>,
+      /// counted from the stop's request; a wait that runs out is a service that has not
+      /// finished stopping. A process that could not be opened leaves the answer alone to
+      /// wait for; with neither - a stop someone else asked, of a process that cannot be
+      /// opened - the controller's Stopped is all there is.
+      /// </summary>
+      private static Waited UntilTheProcessEnds_(IProcessExit process, Task request, IWaitClock clock, TimeSpan asked, TimeSpan longestHint)
+      {
+         TimeSpan? exitedAt = null;
+         while (true)
+         {
+            TimeSpan now = clock.Elapsed;
+            bool answered = request == null || request.IsCompleted;
+            if (process == null)
+            {
+               if (answered)
+                  return new Waited(default, now - asked, longestHint, false);
+            }
+            else
+            {
+               if (exitedAt == null && process.HasExited)
+                  exitedAt = now;
+               if (exitedAt is TimeSpan exited && (answered || now - exited > StepSlack))
+                  return new Waited(default, now - asked, longestHint, false);
+            }
+
+            if (now - asked > longestHint + WholeSlack)
+               return new Waited(default, now - asked, longestHint, true);
+
+            clock.Sleep(PollInterval);
+         }
       }
 
       /// <summary>

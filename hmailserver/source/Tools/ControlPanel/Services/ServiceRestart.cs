@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Microsoft.Win32.SafeHandles;
 using static hMailServer.ControlPanel.Services.Loc;
 
 namespace hMailServer.ControlPanel.Services
@@ -149,14 +150,17 @@ namespace hMailServer.ControlPanel.Services
       /// The hMailServer service through Windows' service controller: its status read
       /// with QueryServiceStatusEx and only the right to query it - which a Control
       /// Panel that is not elevated has, so that it can watch the stop and the start its
-      /// helper asked for - and a stop and a start asked through ServiceController,
-      /// which needs the rights an elevated Control Panel has.
+      /// helper asked for - a stop and a start asked through ServiceController, which
+      /// needs the rights an elevated Control Panel has, and its process opened to wait
+      /// for its end, with the right to wait alone (SYNCHRONIZE), as the installer opens it.
       /// </summary>
       private sealed class WindowsService : IServiceControl
       {
          private const uint ScManagerConnect = 0x0001;
          private const uint ServiceQueryStatus = 0x0004;
          private const int ScStatusProcessInfo = 0;
+         private const uint Synchronize = 0x00100000;
+         private const uint WaitTimeout = 0x00000102;
 
          public ServiceReading Read()
          {
@@ -187,16 +191,53 @@ namespace hMailServer.ControlPanel.Services
             }
          }
 
-         public void Stop()
+         /// <summary>
+         /// ServiceController.Stop on a worker: ControlService returns once the service's
+         /// handler has, which for this server is the whole of its stop - or, past the 30
+         /// seconds the controller gives a handler, with error 1053 as its process ends -
+         /// so the flow watches the service meanwhile. The request's error is observed here,
+         /// for the request the flow has stopped reading once it has done.
+         /// </summary>
+         public Task AskStop()
          {
-            using var controller = new ServiceController(ServiceName);
-            controller.Stop();
+            Task request = Task.Run(() =>
+            {
+               using var controller = new ServiceController(ServiceName);
+               controller.Stop();
+            });
+            request.ContinueWith(ended => _ = ended.Exception, System.Threading.CancellationToken.None,
+               TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+            return request;
          }
 
          public void Start()
          {
             using var controller = new ServiceController(ServiceName);
             controller.Start();
+         }
+
+         public IProcessExit WatchProcess(int processId)
+         {
+            SafeProcessHandle handle = OpenProcess(Synchronize, false, processId);
+            if (handle.IsInvalid)
+            {
+               handle.Dispose();
+               return null;
+            }
+
+            return new ProcessExit(handle);
+         }
+
+         /// <summary>A process opened to wait for: ended when its handle is signalled, or when it can no longer be asked.</summary>
+         private sealed class ProcessExit : IProcessExit
+         {
+            private readonly SafeProcessHandle handle_;
+
+            public ProcessExit(SafeProcessHandle handle) => handle_ = handle;
+
+            public bool HasExited => WaitForSingleObject(handle_, 0) != WaitTimeout;
+
+            public void Dispose() => handle_.Dispose();
          }
 
          [StructLayout(LayoutKind.Sequential)]
@@ -230,6 +271,14 @@ namespace hMailServer.ControlPanel.Services
          [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
          [return: MarshalAs(UnmanagedType.Bool)]
          private static extern bool CloseServiceHandle(IntPtr handle);
+
+         [DllImport("kernel32.dll", SetLastError = true)]
+         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+         private static extern SafeProcessHandle OpenProcess(uint desiredAccess, [MarshalAs(UnmanagedType.Bool)] bool inheritHandle, int processId);
+
+         [DllImport("kernel32.dll", SetLastError = true)]
+         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+         private static extern uint WaitForSingleObject(SafeProcessHandle handle, uint milliseconds);
       }
    }
 }

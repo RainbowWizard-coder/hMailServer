@@ -1292,19 +1292,26 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 - **Fixed: "Restart the service" waited a fixed 60 seconds for a stop the server gives ShutdownDrainSeconds plus 90,
   and a restart that ran out left the service stopped without a word (release review finding CP-1).** The server's
   stop names that budget as its wait hint and moves its check point about once a second while it drains its
-  connections and waits for the message indexer, so a drain of a minute or more with one client connected ran past
-  the 60: the pending-changes bar, the settings pages and the directory pages said only that the operation had not
+  connections and waits for the message indexer, so a drain of a minute or more with one client connected ran past the
+  60: the pending-changes bar, the settings pages and the directory pages said only that the operation had not
   completed in time, and the service, stopped a moment later, stayed stopped - nothing started it, and nothing said
-  that no mail was received or delivered. The restart waits now as Windows asks a service control program to: as long
-  as the check point moves, each step within the wait hint the service names, and the whole within the longest hint
-  it named and a minute more, so that the budget is read from the server alone and a change to it needs none here.
-  Once the service has stopped it is started, and a Control Panel not run as administrator, whose elevated helper's
-  own start came too early, asks once more to start it. A service that could not be started again, or has not
-  finished stopping, is said in a Critical notice to be not running, so that no mail is received or delivered until
-  it is started, with how to start it, and the restart button stays, its next press starting it; a stop the service
-  refused says that it runs as it did. `ServiceRestartFlowTests` holds the wait to a fake service whose stop takes 75
-  seconds, one whose check point stops moving and one that cannot be started again, and the helper's path to its
-  second prompt.
+  that no mail was received or delivered. Windows also gives a service's control handler 30 seconds, and the server
+  runs its whole stop inside its handler: from the 30th second of a longer stop the service controller says the
+  service is stopped while its process still drains, and answers the stop with error 1053 as the process ends, which a
+  Control Panel run as administrator - the usual one on a server - took for a stop refused, ending the restart in "The
+  service did not respond to the start or control request in a timely fashion." with the service stopped. The restart
+  asks the stop now and watches the service meanwhile, waiting as Windows asks a service control program to: as long
+  as the check point moves, each step within the wait hint the service names, and the whole within the longest hint it
+  named and a minute more, so that the budget is read from the server alone and a change to it needs none here. Once
+  the service has stopped and the process it ran in has ended, it is started, and a Control Panel not run as
+  administrator, whose elevated helper's own start came too early, asks once more to start it. A service that could
+  not be started again, or has not finished stopping, is said in a Critical notice to be not running, so that no mail
+  is received or delivered until it is started, with how to start it, and the restart button stays, its next press
+  starting it; a stop refused at once - no right to stop the service, or a service that takes no stop then - says that
+  it runs as it did. `ServiceRestartFlowTests` holds the wait to a fake service whose stop takes 75 seconds, one whose
+  stop runs past the controller's 30 seconds and is answered with error 1053, one the controller says is stopped while
+  its process drains on, one whose check point stops moving, one whose process does not end and one that cannot be
+  started again, and the helper's path to its second prompt.
 
 - **Fixed: a hMailServer.ini [Settings] value the server holds empty was shown as the row's default (release review
   finding CP-4).** `GetIniSetting` answers "" for a key that is absent and for one stored empty alike, and the rows
