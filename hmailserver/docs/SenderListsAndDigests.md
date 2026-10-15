@@ -181,9 +181,9 @@ recipient's preferences are reachable.
 
 | List | When | For whom | What it does |
 |---|---|---|---|
-| **Blocked senders** (Anti-spam) | During the SMTP conversation | Every recipient at once | Adds a score, 100 by default, which refuses the message. Nobody's own list overrules it. |
-| **White list** (Anti-spam) | During the SMTP conversation | Every recipient at once | Skips every spam test for a sender and an IP range. |
-| **Domain white and black list** (Anti-spam; [SmtpPolicy.md](SmtpPolicy.md)) | At `MAIL FROM`, before greylisting and the score | Every recipient at once, keyed by the sender's domain or HELO suffix rather than by address | Black refuses the session outright; white skips greylisting and the score's refusals while every test still runs. |
+| **Blocked senders** (the Control Panel's *Spam filtering > Blocked senders*) | During the SMTP conversation | Every recipient at once | Adds a score, 100 by default, which refuses the message. Nobody's own list overrules it. |
+| **White list** (*Spam filtering > Spam exemptions*) | During the SMTP conversation | Every recipient at once | Skips every spam test for a sender and an IP range. |
+| **Domain white and black list** (*Spam filtering > Allowed and blocked domains*; [SmtpPolicy.md](SmtpPolicy.md)) | At `MAIL FROM`, before greylisting and the score | Every recipient at once, keyed by the sender's domain or HELO suffix rather than by address | Black refuses the session outright; white skips greylisting and the score's refusals while every test still runs. |
 | **Allow and block list** (this) | At delivery | Each recipient separately | Allows or blocks for the recipients it applies to, below their own lists and their domain's. |
 
 ### Neither address is proof
@@ -218,10 +218,12 @@ getting through. Rules written that way before are left exactly where they are.)
 Expiry can be set over REST and in the Deck; the Control Panel and the webmail
 do not offer it yet.
 
-The server's list is also written from the quarantine: **Whitelist** and
-**Blacklist** on a held message, a group or the checked messages put the sender's
-address on it as allowed or blocked, and then release or delete (see
-[Reviewing the quarantine](#reviewing-the-quarantine)).
+The server's list is also written from the quarantine: allowing or blocking the
+sender of a held message, a group or the checked messages - in the Control Panel
+the two person icons and **Allow sender…** and **Block sender…**, in the Deck
+**Whitelist** and **Blacklist** - puts the sender's address on it as allowed or
+blocked, when the dialog that asks which list is left on the address, and then
+releases or deletes (see [Reviewing the quarantine](#reviewing-the-quarantine)).
 
 One thing writes to the server's list by itself: a **spam trap**. A message to
 an address that was never real puts its envelope sender on the server's block
@@ -278,13 +280,17 @@ nothing is held.
 | **Score** | The spam score it reached; 0 for a hold that was not a score's (a rule, a block list). |
 | **Subject** | The subject, read from the held file. |
 
-Why it was held is the row's tooltip in the Control Panel and a line under the
-subject in the Deck. Every column sorts from its header; a sort orders the
-messages **inside** each group and leaves the groups where they are.
+Why it was held is the row's tooltip in the Control Panel, and a card under the
+list for the selected message; in the Deck, a line under the subject. Every
+column sorts from its header; a sort orders the messages **inside** each group
+and leaves the groups where they are.
 
-The icon before the HELO name opens the message's **headers**, and the icon before
-the subject a **plain-text preview**: its text part, decoded, or when it has none
-its HTML part with the markup, style sheets and scripts taken out. Nothing is
+Two icons open the message itself: its **headers**, and a **plain-text preview** -
+its text part, decoded, or when it has none its HTML part with the markup, style
+sheets and scripts taken out. In the Control Panel both are before the subject,
+and on the selected row H opens the headers and P or Enter the preview; in the
+Deck the headers' icon is before the HELO name and the preview's before the
+subject. Nothing is
 rendered as HTML, anywhere. The headers are cut at 65,536 characters and the
 preview at 16,384, and each says so when it was cut. If those and the columns are
 not enough to decide, release the message to the person it was addressed to rather
@@ -338,37 +344,58 @@ else a message was for, which is not the account's to learn.
 
 ### The four actions
 
-Every message, every group and the header carry the same four icons:
+Every message and every group carries four icons, and the checked messages take
+the same four acts - in the Control Panel from the buttons over the list, in the
+Deck from the same four icons in the list's header:
 
-| Icon | On a message | On a group | In the header |
-|---|---|---|---|
-| Green tick | Release it to its recipients | Release every message in the group | Release every checked message |
-| Red cross | Delete it | Delete the group | Delete the checked messages |
-| Open list with green lines | **Whitelist** its sender, then release it | The same for each distinct sender or domain in the group | The same for the checked messages |
-| Dark list with red lines | **Blacklist** its sender, then delete it | The same | The same |
+| Icon in the Control Panel | Icon in the Deck | On a message | On a group | On the checked messages |
+|---|---|---|---|---|
+| Green tick in a circle | Green tick in a circle | Release it to its recipients | Release every message in the group | Release every checked message: **Release** in the Control Panel |
+| Red cross in a circle | Red cross in a circle | Delete it | Delete the group | Delete the checked messages: **Delete permanently** in the Control Panel |
+| Green person with a tick | Open list with green lines | Allow its sender, then release it | The same for each distinct sender or domain in the group | The same for the checked messages: **Allow sender…** in the Control Panel |
+| Red person with a prohibition sign | Dark list with red lines | Block its sender, then delete it | The same | The same: **Block sender…** in the Control Panel |
+
+The Deck calls allowing and blocking **Whitelist** and **Blacklist**: its icons'
+tips say *Whitelist the sender, then release* and *Blacklist the sender, then
+delete*, where the Control Panel's say *Allow the sender, then release* and
+*Block the sender, then delete*.
 
 The box before each row checks it; a group's box checks every message in it,
 folded or not, and shows a dash when only some are; the header's box checks
-everything. The header's icons act on every checked message; with nothing
-checked they say so and do nothing.
+everything. The Control Panel's buttons over the list say how many messages are
+checked and can be pressed only while one is; the Deck's header icons, with
+nothing checked, say so and do nothing. In the Control Panel's list the selected
+row answers to keys as well: R releases it and Del deletes it, a message or a
+group, and Space checks it.
 
-**Delete asks once**, Yes or No, with **No** as the default for Enter and Escape
-in the Control Panel and in the Deck (whose dialog is its own, because the
-browser's `confirm()` answers OK to Enter). The sender was told `250`, so nothing
-will retry and there is no other copy. A release is not asked about.
+**Delete asks once**, and declining is the default: the Control Panel's question
+has **Delete** and **Cancel**, and Enter and Escape give Cancel; the Deck's has
+**Delete** and **No**, No has the keyboard when it opens and Escape gives it (the
+dialog is the Deck's own, because the browser's `confirm()` answers OK to Enter).
+The sender was told `250`, so nothing will retry and there is no other copy. One
+message's release is not asked about. In the Control Panel a group's release, or
+the checked messages', asks first - **Release** or **Cancel**, with Cancel for
+Enter - because each message is delivered at once and a release cannot be taken
+back; the Deck asks before a release, an allow or a block only when the search
+hides some of the messages it would act on.
 
-**Whitelist and blacklist ask which list**, and write one of the two that already
-exist - never a third:
+**Allowing and blocking ask which list** - in a dialog the Control Panel calls
+*Allow and release* or *Block and delete*, and the Deck *Whitelist and release*
+or *Blacklist and delete* - and write one of the two that already exist - never
+a third:
 
 | Choice | What is written | Read when | What it does |
 |---|---|---|---|
 | **The sender's address** (the default) | The address on the **server's allow and block list** (`hm_senderlist`, above) | At delivery, for every recipient | Allowed: delivered unmarked, and the accounts' own thresholds do not run. Blocked: held for the recipient where the quarantine is on, marked where it is not. |
-| **The domain** | `.example.com` - the organization's domain and everything beneath it - on the **domain white and black list** ([SmtpPolicy.md](SmtpPolicy.md)), matched on the envelope sender's domain; when the page is grouped by **HELO domain**, the HELO name's organization instead, matched on the HELO name | At `MAIL FROM` | White: not greylisted, not refused or held on the spam score. Black: refused with `550` before anything else runs. |
+| **The domain** | `.example.com` - the organization's domain and everything beneath it - on the **domain white and black list** (the Control Panel's *allowed and blocked domains*; [SmtpPolicy.md](SmtpPolicy.md)), matched on the envelope sender's domain; when the page is grouped by **HELO domain**, the HELO name's organization instead, matched on the HELO name | At `MAIL FROM` | White: not greylisted, not refused or held on the spam score. Black: refused with `550` before anything else runs. |
 
 The address is the narrow choice and the default. It has one limit worth knowing:
 the server's allow list is read at delivery, so a message whose **server-wide**
 score reaches the delete threshold during the SMTP conversation is held there
-before the list is read. The domain white list is the one that stops that.
+before the list is read. The domain white list is the one that stops that, so the
+Control Panel's *Allow and release* starts on the domain when the server-wide
+score held one of the messages, and says under the address what it would not
+stop; the Deck starts on the address whatever held them.
 
 Before anything is written, the dialog asks the server what the choice would
 write (a dry run) and lists it: one entry per distinct sender or domain, whether
@@ -380,8 +407,8 @@ a one-label HELO name such as `localhost`, a name from the list's private sectio
 such as `github.io`) would cover every domain registered beneath it, so the
 dialog names it and writes it only after a box is ticked. There is no list of
 free-mail providers in the server to warn about `gmail.com` and the like; that is
-what the default, the sender's address, is for. Blacklist then deletes, so in its
-dialog Cancel has the keyboard.
+what the default, the sender's address, is for. Blocking then deletes, so in its
+dialog Cancel has the keyboard, in the Control Panel and in the Deck.
 
 The entries are written first and the messages acted on after, so a message whose
 entry could not be written - the server's list full at a thousand entries, a
@@ -389,10 +416,13 @@ database error - is left in the quarantine with the reason, rather than released
 with its sender never allowed. An entry written from here carries the reason
 *Added from the quarantine review.* and is in the audit trail as any list entry is.
 
-**Remove expired** deletes now what the retention sweep would (everything held
-longer than `QuarantineRetentionDays`; 0 keeps everything). **Refresh** reads the
-queue again. **Digest settings** is the two settings below: a dialog in the
-Control Panel, the Settings view filtered to them in the Deck.
+**Delete expired messages…** in the Control Panel, **Remove expired** in the
+Deck, deletes now what the retention sweep would (everything held longer than
+`QuarantineRetentionDays`; 0 keeps everything). The Control Panel's asks first,
+naming the window, with Cancel for Enter, and cannot be pressed while the window
+is 0; the Deck's does not ask. **Refresh** reads the queue again. **Digest
+settings** is the two settings below: a dialog in the Control Panel, the Settings
+view filtered to them in the Deck.
 
 ### REST and COM
 
