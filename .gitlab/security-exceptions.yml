@@ -62,21 +62,26 @@
 # allow-list: an exception that reaches master after the tag, by a merge request of its
 # own, counts when the release job is retried.
 #
-# On 6 October 2026 the file held 500 entries: 232 of semgrep-sast, 264 of
-# static-analysis and 4 of semgrep, in seven groups, each headed by a comment that says
-# how it was read. 293 of them expire on 26 and 27 March 2027, the rest from 25
-# September 2027. The groups, in the file's order:
+# The file holds 491 entries: 223 of semgrep-sast, 264 of static-analysis and 4 of
+# semgrep, in eight groups, each headed by a comment that says how it was read. 290 of
+# them expire on 26 and 27 March 2027, the rest from 25 September 2027. On 6 October
+# 2026 it held 500, in the first seven groups; the eighth, of four, was added on 13
+# October 2026, and on 14 and 15 October thirteen semgrep-sast entries that no longer
+# matched any finding were taken out - three of the fourth group's (the eighth group's
+# comment says which), nine of the first's (below) and one of the fifth's (its comment).
+# The groups, in the file's order:
 #
-#   - 169 entries: 167 of the 169 semgrep-sast findings judged not exploitable on 26
+#   - 160 entries: 158 of the 169 semgrep-sast findings judged not exploitable on 26
 #     September 2026 (below), and two of 28 September 2026 for UpdateChecker.cpp's
 #     getenv, one of static-analysis and one of semgrep-sast;
 #   - 2 semgrep-sast findings in the webmail's Portal.js, read on 27 September 2026;
 #   - 10 semgrep-sast findings in the AppImage runtime, read on 27 September 2026;
-#   - 281 findings of the 6.3.4 release scan - 263 static-analysis, 4 semgrep and 14
+#   - 278 findings of the 6.3.4 release scan - 263 static-analysis, 4 semgrep and 11
 #     semgrep-sast - read on 26 September 2026;
-#   - 22 semgrep-sast findings read on 2 October 2026 and 6 read on 3 October 2026,
+#   - 21 semgrep-sast findings read on 2 October 2026 and 6 read on 3 October 2026,
 #     each against 6.3.6's code;
-#   - 10 semgrep-sast findings in 6.3.6's new code, read on 5 October 2026.
+#   - 10 semgrep-sast findings in 6.3.6's new code, read on 5 October 2026;
+#   - 4 semgrep-sast findings in batch47's Control Panel code, read on 13 October 2026.
 #
 # The 169 findings of GitLab's semgrep analyzer (semgrep-sast) that began the first
 # group, run on linix over master at 40c7d3e0c, were judged not exploitable. Each was
@@ -90,7 +95,13 @@
 # memcpy, the password dialog's help link (formEnterPassword.cs), the Control Panel's
 # elevated command line (FeatureSettingsView.xaml.cs, /d added) and UtilityViews.cs's
 # explorer.exe. Where the analyzer still flags one of those, it has a new fingerprint
-# and holds the release until it is read again.
+# and holds the release until it is read again. Their six entries matched nothing from
+# then on, and were taken out on 15 October 2026 with three more of the group's whose
+# lines had gone: AboutView.cs's second ShellExecute of a hyperlink's address, of which
+# the About page's rewrite of 10 October 2026 (bda80a377) left one; DnssecResolver.cpp's
+# copy of a name server's address in the Windows arm of its lookup, which b42-secfix-net2
+# rewrote (6feb74de7); and UpdateChecker.cpp's system() asking rpm whether it owns the
+# package, which 7f3e622ff made a run of ProcessLauncher.
 #
 # The seven High findings judged real have no entry: each was fixed instead, in the
 # tree 6.3.4 is released from (batch40's fold of the branch sast-fix, 26 September
@@ -532,15 +543,6 @@ exceptions:
     reviewed: 2026-09-26
     expires: 2027-09-25
 
-  # hmailserver/source/Server/Common/SQL/MySQLInterface.cpp
-  - scan: semgrep-sast
-    finding: 1400426ba14b4209dfb6
-    what: 'LoadLibrary of the MySQL/MariaDB client in MySQLInterface::Load (Windows arm)'
-    reason: 'MySQLInterface::Load gives LoadLibrary a full path, not a bare name: GetLibraryFileName_ takes the server''s own directory from GetModuleFileName and appends libmysql.dll. A full path loads that file or fails, never searching the current directory or PATH, so no search-order planting is possible.'
-    reviewed-by: Progressiverobot
-    reviewed: 2026-09-26
-    expires: 2027-09-25
-
   # hmailserver/source/Server/Common/SQL/MySQLRecordset.cpp
   - scan: semgrep-sast
     finding: fe41cfb5a941c8b3cf67
@@ -583,13 +585,6 @@ exceptions:
     expires: 2027-09-25
 
   # hmailserver/source/Server/Common/TCPIP/DnssecResolver.cpp
-  - scan: semgrep-sast
-    finding: c142b80374951114ccf0
-    what: 'memcpy of a system DNS server''s SOCKADDR from GetAdaptersAddresses into a sockaddr_in (Windows arm of the nameserver lookup)'
-    reason: 'The destination is a local sockaddr_in and exactly its size is copied, from GetAdaptersAddresses'' own buffer after it returned NO_ERROR. Entries with a null lpSockaddr or a family other than AF_INET are skipped, and an AF_INET SOCKET_ADDRESS points at a 16-byte SOCKADDR_IN; no network input sets the length.'
-    reviewed-by: Progressiverobot
-    reviewed: 2026-09-26
-    expires: 2027-09-25
   - scan: semgrep-sast
     finding: 128fc21fb2d62c4c105e
     what: 'memcpy of an A record''s 4-octet RDATA into a struct in_addr, in the DNSSEC resolver''s answer-to-DNSRecord conversion'
@@ -1109,13 +1104,6 @@ exceptions:
     reviewed-by: Progressiverobot
     reviewed: 2026-09-26
     expires: 2027-09-25
-  - scan: semgrep-sast
-    finding: e982d6de1322d4cd8c3b
-    what: 'system() asking rpm whether it owns the hmailserver package in UpdateChecker::DetectInstallKind (POSIX only)'
-    reason: DetectInstallKind runs a compile-time literal command with nothing interpolated, naming rpm by absolute path after an access check of /usr/bin/rpm, and glibc runs /bin/sh by absolute path. The environment comes from root or systemd, not from a remote party, and the answer is cached.
-    reviewed-by: Progressiverobot
-    reviewed: 2026-09-26
-    expires: 2027-09-25
 
   # hmailserver/source/Server/Common/Util/UpdateInstaller.cpp
   - scan: semgrep-sast
@@ -1143,22 +1131,6 @@ exceptions:
     finding: 65515b25ad1db6132230
     what: 'getenv("APPIMAGE") in UpdateInstaller::Apply (POSIX) written as the image= line of the apply request'
     reason: 'UpdateInstaller::Apply appends APPIMAGE, null-checked, to an AnsiString written as the image= line of the apply request; no buffer is involved. The service user writes that request and the root-side helper treats it as untrusted: its check_request requires image= to be an absolute, non-symlink regular file owned by the applying uid and not writable by group or others.'
-    reviewed-by: Progressiverobot
-    reviewed: 2026-09-26
-    expires: 2027-09-25
-
-  # hmailserver/source/Server/Common/Util/Utilities.cpp
-  - scan: semgrep-sast
-    finding: 0fd6dff2646a97c3fdeb
-    what: 'memcpy of gethostbyname''s first address into a SOCKADDR_IN''s sin_addr in Utilities::IsLocalHost (POSIX arm)'
-    reason: 'IsLocalHost''s POSIX arm copies h_length bytes, which glibc''s gethostbyname sets to 4 for AF_INET itself, whatever the DNS answer; 16-byte results needed RES_USE_INET6, removed in glibc 2.30, far older than the glibc the packages depend on. A null result is caught before the copy, and the only POSIX caller is UtilitiesTester, with the machine''s own name.'
-    reviewed-by: Progressiverobot
-    reviewed: 2026-09-26
-    expires: 2027-09-25
-  - scan: semgrep-sast
-    finding: 5cccc1f61958ec5cfe54
-    what: 'memcpy of gethostbyname''s first address into a SOCKADDR_IN''s sin_addr in Utilities::IsLocalHost (Windows arm)'
-    reason: 'Winsock''s gethostbyname returns IPv4 only and builds the hostent itself, with h_length 4, sizeof(IN_ADDR), whatever a DNS server answers. IsLocalHost catches a null result before the copy, and the hostname chooses which address is copied, never how many bytes.'
     reviewed-by: Progressiverobot
     reviewed: 2026-09-26
     expires: 2027-09-25
@@ -1335,26 +1307,12 @@ exceptions:
     reviewed-by: Progressiverobot
     reviewed: 2026-09-26
     expires: 2027-09-25
-  - scan: semgrep-sast
-    finding: b476e441283f26afff17
-    what: 'ShellExecute of the hyperlink''s NavigateUri in AboutView.Link''s RequestNavigate handler'
-    reason: 'AboutView.Link is private static with one call, passing the constant https://gitlab.com/hmailserver/hmailserver, and nothing else sets NavigateUri, so ShellExecute opens only that URL.'
-    reviewed-by: Progressiverobot
-    reviewed: 2026-09-26
-    expires: 2027-09-25
 
   # hmailserver/source/Tools/ControlPanel/Views/FeatureSettingsView.xaml.cs
   - scan: semgrep-sast
     finding: 90413260f444e2b8400d
     what: FileName of the elevated cmd.exe that runs /GrantServiceAccess and /Register in RunElevated_
     reason: 'RunElevated_ names cmd.exe by full path, Path.Combine(Environment.SystemDirectory, cmd.exe), so ShellExecuteEx searches nothing, and the line carries no one''s text.'
-    reviewed-by: Progressiverobot
-    reviewed: 2026-09-26
-    expires: 2027-09-25
-  - scan: semgrep-sast
-    finding: 7ce10eaea41b79b9f115
-    what: 'cmd.exe /s /c argument line built by CommandFor_ from the server executable''s path and a temp report path, in RunElevated_'
-    reason: 'Only two variables reach RunElevated_''s cmd.exe /s /c line, and CommandFor_ double-quotes each: the server executable, found from HKLM''s InstallLocation or the service''s registered path and required to exist, and a GUID-named temporary report path. Both come from administrators or from the user who consents to the elevation (a % in either would expand, which crosses no privilege boundary), and no viewer, network or database text reaches it.'
     reviewed-by: Progressiverobot
     reviewed: 2026-09-26
     expires: 2027-09-25
@@ -1401,13 +1359,6 @@ exceptions:
     reviewed-by: Progressiverobot
     reviewed: 2026-09-26
     expires: 2027-09-25
-  - scan: semgrep-sast
-    finding: 863677ab66138b6959b3
-    what: 'fallback that starts explorer.exe /select,"<report path>" to reveal the consistency report'
-    reason: 'The only variable part of explorer.exe''s /select argument is the quoted reportPath_, which exists (File.Exists) and so cannot hold a double quote, and ends in the constant report file name, not a backslash. explorer.exe parses it, not cmd.exe, and the path comes from the administrator-owned local INI.'
-    reviewed-by: Progressiverobot
-    reviewed: 2026-09-26
-    expires: 2027-09-25
 
   # hmailserver/source/Tools/DBSetup/Pages/ucPerformTask.cs
   - scan: semgrep-sast
@@ -1437,15 +1388,6 @@ exceptions:
     finding: e0b9928ec2b4f18e271f
     what: FileName of the DBUpdater ProcessStartInfo in DBSetupQuick.Program.UpgradeDatabase
     reason: 'FileName is the full path of DBUpdater.exe in DBSetupQuick''s own folder (AppContext.BaseDirectory), with no search and no shell (UseShellExecute is false on .NET 10). The unquoted password in the argument line is a separate finding, fixed instead of accepted.'
-    reviewed-by: Progressiverobot
-    reviewed: 2026-09-26
-    expires: 2027-09-25
-
-  # hmailserver/source/Tools/Shared/Dialogs/formEnterPassword.cs
-  - scan: semgrep-sast
-    finding: 8ff29a186e46cb2464ba
-    what: 'ShellExecute of the fixed help URL from the password dialog''s ''What is this'' link'
-    reason: linkWhatIsThis_LinkClicked opens a compile-time constant https URL with no arguments; nothing variable reaches it.
     reviewed-by: Progressiverobot
     reviewed: 2026-09-26
     expires: 2027-09-25
@@ -1575,7 +1517,7 @@ exceptions:
     reviewed: 2026-09-27
     expires: 2027-03-27
 
-  # The entries from here to the end of the file are the static-analysis, semgrep and
+  # The entries from here to the note of 2 October below are the static-analysis, semgrep and
   # semgrep-sast findings of the 6.3.4 release scan (the scans of c76ff7e49 made on linix for
   # the release, ~/release-6.3.4/c76ff7e49/scans) that held the release: 263 static-analysis, 4
   # semgrep and 19 semgrep-sast, 286 in all. Each was read on 26 September 2026 by one AI
@@ -3711,7 +3653,9 @@ exceptions:
   # branch b42-ci folded in, that no entry above accepted - lines added or changed since the
   # scan the entries above were made from. Each was read against the code by an AI agent under the owner's delegation, not line
   # by line by the owner, so reviewed-by names the owner, who delegated the reading; none is a
-  # defect, and each reason names what holds.
+  # defect, and each reason names what holds. The entry for SURBL.cpp's wcslen of a name in
+  # its table of named character references, 4b852016042ed947cc48, was taken out on 15
+  # October 2026: batch48's 1036a7d3d rewrote the table, and the line it named is gone.
 
   # hmailserver/source/Server/Common/Util/AdminUpdate.cpp
   - scan: semgrep-sast
@@ -3828,15 +3772,6 @@ exceptions:
     reviewed: 2026-10-02
     expires: 2027-10-01
 
-  # hmailserver/source/Server/Common/AntiSpam/SURBL.cpp
-  - scan: semgrep-sast
-    finding: 4b852016042ed947cc48
-    what: 'wcslen of a named character reference in SURBL.cpp''s table of HTML entities'
-    reason: 'reference.name comes from namedReferences, a constant table of this file whose every name is a non-empty wide string literal (L"shy;", L"Tab;" and so on), NUL-terminated by the compiler; the text being decoded is compared with wcsncmp only after position + 1 + nameLength is checked against its length.'
-    reviewed-by: Progressiverobot
-    reviewed: 2026-10-02
-    expires: 2027-10-01
-
   # hmailserver/source/Server/hMailServer.Updater/hMailServer.Updater.cpp
   - scan: semgrep-sast
     finding: f785c879f6652c1f2f0d
@@ -3887,7 +3822,8 @@ exceptions:
   # GitLab's semgrep analyzer, run on linix as the semgrep-sast job runs it, over batch42 at
   # 6feb74de7 with the branch b42-sa folded in, that no entry above accepted - the copies
   # of a name server's socket address in the lookup b42-secfix-net2 rewrote (the entry
-  # above for its Windows arm, c142b80374951114ccf0, names a line that is no longer there).
+  # that accepted its Windows arm, c142b80374951114ccf0, named a line that is no longer
+  # there, and was taken out on 15 October 2026).
   # Each was read against the code by an AI agent under the owner's delegation, not line by
   # line by the owner, so reviewed-by names the owner, who delegated the reading; none is a
   # defect, and each reason names what holds.
