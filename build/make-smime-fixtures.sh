@@ -8,8 +8,10 @@
 # alice@example.test (emailAddress in the subject and an rfc822Name SAN), the
 # keys as PKCS#8 (clear and PBES2-encrypted, each in PEM and in DER) and as
 # modern PKCS#12 files (with and without a MAC, with a MAC the page passes
-# over, with clear safes, with an empty and a non-ASCII password), then
-# messages OpenSSL signed (detached and opaque) and encrypted for each leaf.
+# over, with MACs by SHA-512 and with no iteration count, with clear safes,
+# with a key-usage attribute on the key, with an empty and a non-ASCII
+# password), then messages OpenSSL signed (detached and opaque) and encrypted
+# for each leaf.
 set -euo pipefail
 out="$1"
 mkdir -p "$out"
@@ -58,6 +60,14 @@ openssl pkcs12 -export -in alice.pem -inkey alice-key.pem -certfile ca.pem -name
 # later), one with RFC 9579's PBMAC1 and its safes encrypted.
 openssl pkcs12 -export -in alice.pem -inkey alice-key.pem -certfile ca.pem -name 'Alice Example' -passout pass:fixture-pass -keypbe NONE -certpbe NONE -macalg sha224 -out alice-clear-sha224.p12 2>/dev/null
 openssl pkcs12 -export -in alice.pem -inkey alice-key.pem -certfile ca.pem -name 'Alice Example' -passout pass:fixture-pass -pbmac1_pbkdf2 -out alice-pbmac1.p12 2>/dev/null || true
+# Three that OpenSSL writes when asked, and the page must read: clear safes
+# with a MAC by SHA-512, whose derivation works in blocks of 128 bytes where
+# SHA-256's works in 64; clear safes with a MAC that has no iteration count
+# (-nomaciter), which is then one; and a key that carries a key-usage
+# attribute after it in its PrivateKeyInfo (-keysig), encrypted as by default.
+openssl pkcs12 -export -in alice.pem -inkey alice-key.pem -certfile ca.pem -name 'Alice Example' -passout pass:fixture-pass -keypbe NONE -certpbe NONE -macalg sha512 -out alice-clear-sha512.p12 2>/dev/null
+openssl pkcs12 -export -in alice.pem -inkey alice-key.pem -certfile ca.pem -name 'Alice Example' -passout pass:fixture-pass -keypbe NONE -certpbe NONE -nomaciter -out alice-clear-nomaciter.p12 2>/dev/null
+openssl pkcs12 -export -in alice.pem -inkey alice-key.pem -certfile ca.pem -name 'Alice Example' -passout pass:fixture-pass -keysig -out alice-keysig.p12 2>/dev/null
 
 openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out erin-key.pem 2>/dev/null
 openssl req -new -key erin-key.pem -subj '/CN=Erin Example/emailAddress=erin@example.test' -out erin.csr 2>/dev/null

@@ -3,12 +3,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 // Runs the page's S/MIME module (PortalSmime.js) in Node against fixtures
-// OpenSSL made - certificates, keys in four forms, PKCS#12 files with right
-// and wrong passwords, messages signed detached, opaque and by an EC key,
-// messages encrypted with AES-256 and AES-128, one signed then encrypted, one
-// tampered with - and hands what the module signs and encrypts to OpenSSL to
-// verify and decrypt, so both directions are checked against an
-// implementation that is not this one.
+// OpenSSL made - certificates, keys in PEM and in DER, clear and encrypted,
+// PKCS#12 files with right and wrong passwords, messages signed detached,
+// opaque and by an EC key, messages encrypted with AES-256 and AES-128, one
+// signed then encrypted, one tampered with - and hands what the module signs
+// and encrypts to OpenSSL to verify and decrypt, so both directions are
+// checked against an implementation that is not this one.
 //
 // Usage: node build/check-portal-smime.js [module.js] [fixtures dir]
 // Needs Node 20 or later (Web Crypto) and openssl on the PATH.
@@ -67,8 +67,9 @@ function openssl(args, input) {
 // the wrong password decrypts to, by Node's own AES-CBC.
 const PRF_BY_OID = { '1.2.840.113549.2.7': 'sha1', '1.2.840.113549.2.9': 'sha256', '1.2.840.113549.2.10': 'sha384', '1.2.840.113549.2.11': 'sha512' };
 const CIPHER_BY_OID = { '2.16.840.1.101.3.4.1.2': 'aes-128-cbc', '2.16.840.1.101.3.4.1.22': 'aes-192-cbc', '2.16.840.1.101.3.4.1.42': 'aes-256-cbc' };
-function forgePbes2(algorithmNode, ciphertextNode, password, noise) {
-  if (ciphertextNode.constructed || noise.length !== ciphertextNode.content.length - 1) { throw new Error('the ciphertext cannot be rewritten in place'); }
+// The cipher, key and IV that a password gives under a file's PBES2
+// parameters, by Node's own PBKDF2.
+function pbes2Key(algorithmNode, password) {
   const params = smime.derChildren(smime.derChildren(algorithmNode)[1]);
   const kdf = smime.derChildren(smime.derChildren(params[0])[1]);
   const scheme = smime.derChildren(params[1]);
@@ -78,9 +79,19 @@ function forgePbes2(algorithmNode, ciphertextNode, password, noise) {
   if (!cipher || !prf) { throw new Error('the file is encrypted with something other than PBKDF2 and AES-CBC'); }
   const iterations = Number(BigInt('0x' + Buffer.from(kdf[1].content).toString('hex')));
   const key = nodeCrypto.pbkdf2Sync(Buffer.from(password, 'utf8'), Buffer.from(kdf[0].content), iterations, Number(cipher.slice(4, 7)) / 8, prf);
-  const iv = Buffer.from(scheme[1].content);
+  return { cipher: cipher, key: key, iv: Buffer.from(scheme[1].content) };
+}
+function forgePbes2(algorithmNode, ciphertextNode, password, noise) {
+  if (ciphertextNode.constructed || noise.length !== ciphertextNode.content.length - 1) { throw new Error('the ciphertext cannot be rewritten in place'); }
+  const { cipher, key, iv } = pbes2Key(algorithmNode, password);
   const encryptor = nodeCrypto.createCipheriv(cipher, key, iv);
   ciphertextNode.content.set(Buffer.concat([encryptor.update(noise), encryptor.final()]));
+  const decryptor = nodeCrypto.createDecipheriv(cipher, key, iv);
+  return Buffer.concat([decryptor.update(Buffer.from(ciphertextNode.content)), decryptor.final()]);
+}
+// What a PBES2 ciphertext decrypts to under a password, by Node's own AES-CBC.
+function decryptPbes2(algorithmNode, ciphertextNode, password) {
+  const { cipher, key, iv } = pbes2Key(algorithmNode, password);
   const decryptor = nodeCrypto.createDecipheriv(cipher, key, iv);
   return Buffer.concat([decryptor.update(Buffer.from(ciphertextNode.content)), decryptor.final()]);
 }
@@ -162,7 +173,7 @@ function macParts(bytes) {
   return {
     version: Buffer.from(pfx[0].raw), authSafe: Buffer.from(pfx[1].raw), content: Buffer.from(content.content),
     algorithm: Buffer.from(digestInfo[0].raw), hashOid: smime.oidDecode(smime.derChildren(digestInfo[0])[0].content), digest: Buffer.from(digestInfo[1].content),
-    salt: Buffer.from(macData[1].content), iterations: macData.length > 2 ? Number(BigInt('0x' + Buffer.from(macData[2].content).toString('hex'))) : 1
+    salt: Buffer.from(macData[1].content), counted: macData.length > 2, iterations: macData.length > 2 ? Number(BigInt('0x' + Buffer.from(macData[2].content).toString('hex'))) : 1
   };
 }
 function macOf(parts, passwordBytes, iterations) {
@@ -192,6 +203,23 @@ function withMac(bytes, change) {
   const digest = change.passwordBytes ? macOf(parts, change.passwordBytes, iterations) : parts.digest;
   const macData = der(0x30, der(0x30, parts.algorithm, der(0x04, digest)), der(0x04, parts.salt), derInteger(iterations));
   return new Uint8Array(der(0x30, parts.version, parts.authSafe, macData));
+}
+
+// The elements of the PrivateKeyInfo that a PKCS#12's first shrouded key in a
+// safe that is not encrypted decrypts to under the password, by Node's own
+// PBKDF2 and AES-CBC; none when there is no such key.
+function privateKeyInfoOf(bytes, password) {
+  const piece = pkcs12Pieces(bytes).key;
+  return piece ? smime.derChildren(smime.derRead(new Uint8Array(decryptPbes2(piece[0], piece[1], password)))) : [];
+}
+// An encrypted PKCS#8 written again with its ciphertext as a constructed
+// OCTET STRING of pieces of the size given, as BER allows and DER does not.
+function withConstructedCiphertext(bytes, size) {
+  const parts = smime.derChildren(smime.derRead(bytes));
+  const ciphertext = Buffer.from(parts[1].content);
+  const pieces = [];
+  for (let at = 0; at < ciphertext.length; at += size) { pieces.push(der(0x04, ciphertext.subarray(at, at + size))); }
+  return new Uint8Array(der(0x30, Buffer.from(parts[0].raw), der(0x24, ...pieces)));
 }
 
 function pem(label, der) { return Buffer.from('-----BEGIN ' + label + '-----\n' + Buffer.from(der).toString('base64').replace(/(.{64})/g, '$1\n').replace(/\n$/, '') + '\n-----END ' + label + '-----\n'); }
@@ -341,6 +369,32 @@ async function importedAs(bytes, password) {
       'a MAC by RFC 9579\'s PBMAC1, as OpenSSL 3.4 and later make it, is passed over: the file imports with its password, and its encrypted safes name a wrong one: ' + pbmac1Right + ', ' + pbmac1Wrong);
   }
   fs.rmSync(macTmp, { recursive: true, force: true });
+  // What OpenSSL writes when asked, and the page must read: a MAC by SHA-512,
+  // whose derivation works in blocks of 128 bytes where SHA-256's works in 64;
+  // a MAC with no iteration count (-nomaciter), which is then one; and a key
+  // whose PrivateKeyInfo carries an attribute after the key, -keysig's key
+  // usage, in a file encrypted as by default. Each imports with its password
+  // and names a wrong one - the two clear files by their MACs, where until
+  // 6.3.7, which never read a MAC, any password imported them.
+  const sha512 = read('alice-clear-sha512.p12');
+  const sha512Right = await importedAs(sha512, PASSWORD);
+  check(macParts(sha512).hashOid === '2.16.840.1.101.3.4.2.3' && sha512Right === 'IMPORTED', 'a PKCS#12 with a MAC by SHA-512, nothing in it encrypted, imports with its password: ' + sha512Right);
+  const sha512Wrong = await importedAs(sha512, 'nope');
+  check(sha512Wrong === 'wrong password', 'and its MAC names a wrong one: ' + sha512Wrong);
+  const noCount = read('alice-clear-nomaciter.p12');
+  const noCountRight = await importedAs(noCount, PASSWORD);
+  check(!macParts(noCount).counted && noCountRight === 'IMPORTED', 'a PKCS#12 whose MAC has no iteration count, nothing in it encrypted, imports with its password: ' + noCountRight);
+  const noCountWrong = await importedAs(noCount, 'nope');
+  check(noCountWrong === 'wrong password', 'and its MAC names a wrong one: ' + noCountWrong);
+  const keysig = read('alice-keysig.p12');
+  let keysigInfo = [];
+  try { keysigInfo = privateKeyInfoOf(keysig, PASSWORD); } catch (e) { keysigInfo = []; }
+  const keysigAttributes = keysigInfo.length === 4 && keysigInfo[3].tag === 0xa0;
+  const keysigRight = await importedAs(keysig, PASSWORD);
+  check(keysigAttributes && keysigRight === 'IMPORTED', 'a PKCS#12 whose key carries an attribute after it, -keysig\'s key usage, imports with its password: ' + keysigRight +
+    (keysigAttributes ? '' : '; the fixture\'s key has no attributes (' + keysigInfo.length + ' elements)'));
+  const keysigWrong = await importedAs(keysig, 'nope');
+  check(keysigWrong === 'wrong password', 'and a wrong one is named: ' + keysigWrong);
   if (fs.existsSync(path.join(fixtures, 'alice-legacy.p12'))) {
     let legacy = '';
     try { await smime.importAny(read('alice-legacy.p12'), PASSWORD); } catch (e) { legacy = e.message; }
@@ -367,6 +421,16 @@ async function importedAs(bytes, password) {
   const der8Decrypted = forgePbes2(der8Parts[0], der8Parts[1], 'nope', der8Noise);
   const der8Said = await messageOf(smime.importAny(der8Forged, 'nope'));
   check(Buffer.compare(der8Decrypted, der8Noise) === 0 && der8Said === 'wrong password', 'a wrong password that its padding lets through, to noise, is named: ' + der8Said);
+  // The same key with its ciphertext as a constructed OCTET STRING in pieces,
+  // as BER may write it: an encrypted key still, and not a certificate.
+  const der8Ber = withConstructedCiphertext(read('alice-key-encrypted.p8'), 512);
+  const der8BerConstructed = smime.derChildren(smime.derRead(der8Ber))[1].tag === 0x24;
+  let der8BerImported;
+  try { der8BerImported = await smime.importAny(der8Ber, PASSWORD); } catch (e) { der8BerImported = { keys: [], error: e.message }; }
+  check(der8BerConstructed && der8BerImported.keys.length === 1 && smime.keyMatchesCertificate(der8BerImported.keys[0].key, alice),
+    'an encrypted DER PKCS#8 whose ciphertext is a constructed OCTET STRING, as BER may write it, imported with the password' + (der8BerImported.error ? ': ' + der8BerImported.error : ''));
+  const der8BerWrong = await messageOf(smime.importAny(der8Ber, 'nope'));
+  check(der8BerWrong === 'wrong password', 'and a wrong one is named: ' + der8BerWrong);
   let derCertificate;
   try { derCertificate = await smime.importAny(read('alice.der'), ''); } catch (e) { derCertificate = { keys: [], certificates: [], error: e.message }; }
   check(derCertificate.keys.length === 0 && derCertificate.certificates.length === 1 && derCertificate.certificates[0].serialHex === alice.serialHex,
