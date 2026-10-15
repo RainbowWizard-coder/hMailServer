@@ -13,12 +13,14 @@
 #include "DatabaseSettings.h"
 #include "DatabaseUnavailableMarker.h"
 #include "SQLCommand.h"
+#include "SQLScriptRunner.h"
 
-#ifndef HM_PLATFORM_POSIX
-#include "SQLCEConnection.h"
 #include "../Application/IniFileSettings.h"
 #include "../Util/FileUtilities.h"
 #include "../Util/GUIDCreator.h"
+
+#ifndef HM_PLATFORM_POSIX
+#include "SQLCEConnection.h"
 #include "../Util/PasswordGenerator.h"
 #endif
 
@@ -247,6 +249,108 @@ namespace HM
       {
          return SQLCommand(Formatter::Format("insert into aatxnprobec (id, v) values ({0}, 99)", id));
       }
+
+      // What became of a statement of a transaction the pool handed out, run as the
+      // COM Database object runs one of its script's (InterfaceDatabase::
+      // ExecuteSQLWithReturn).
+      enum ScriptAnswer
+      {
+         ScriptRan = 0,
+         ScriptFailed = 1,
+         ScriptRefused = 2
+      };
+
+      // A statement as InterfaceDatabase runs one in the script's transaction:
+      // refused without being sent once the database has ended the transaction and
+      // gone on in autocommit (DALConnection::IsTransactionFailed, which
+      // InterfaceDatabase asks before each, but not on PostgreSQL, whose aborted
+      // transaction refuses the statement itself: GetFailedStatementEndsTransaction),
+      // otherwise sent once (TryExecute, which InterfaceDatabase calls), and a
+      // failure that the [IGNORE-ERRORS] marker answered as a success but that ended
+      // the transaction taken for a failure, as InterfaceDatabase takes it.
+      bool EndedIntoAutocommit(const std::shared_ptr<DALConnection> &connection)
+      {
+         return !connection->GetFailedStatementEndsTransaction() && connection->IsTransactionFailed();
+      }
+
+      ScriptAnswer AsTheScriptRunsIt(const std::shared_ptr<DALConnection> &connection, const SQLCommand &command, String &error)
+      {
+         if (EndedIntoAutocommit(connection))
+            return ScriptRefused;
+
+         if (connection->TryExecute(command, error, 0, 0) != DALConnection::DALSuccess)
+            return ScriptFailed;
+
+         return EndedIntoAutocommit(connection) ? ScriptFailed : ScriptRan;
+      }
+
+      const TCHAR *ScriptAnswerName(ScriptAnswer answer)
+      {
+         switch (answer)
+         {
+         case ScriptRan:
+            return _T("run");
+         case ScriptFailed:
+            return _T("failed");
+         default:
+            return _T("refused");
+         }
+      }
+
+      // A transaction the pool hands out (DatabaseConnectionManager::
+      // BeginTransaction), as the COM Database object holds one for its script, and
+      // rolled back and given back to the pool if it is still held when this ends:
+      // a check that fails half-way leaves no transaction holding the tester's rows,
+      // which the tables' drop at the end would wait for.
+      class HandedOut
+      {
+      public:
+         explicit HandedOut(std::shared_ptr<DatabaseConnectionManager> pool) :
+            pool_(pool)
+         {
+            String error;
+            connection_ = pool_->BeginTransaction(error);
+            Check(connection_ != nullptr, _T("the pool's BeginTransaction failed: ") + error);
+         }
+
+         ~HandedOut()
+         {
+            try
+            {
+               String ignored;
+               Rollback(ignored);
+            }
+            catch (...)
+            {
+               // A destructor that may not throw; the check that failed is the
+               // one said, and what is left of the tables goes at Finish.
+               LOG_DEBUG(_T("DatabaseTransactionTester: a transaction a check left open could not be rolled back."));
+            }
+         }
+
+         HandedOut(const HandedOut &) = delete;
+         HandedOut &operator=(const HandedOut &) = delete;
+
+         const std::shared_ptr<DALConnection> &Connection() const { return connection_; }
+
+         bool Commit(String &error)
+         {
+            std::shared_ptr<DALConnection> connection = connection_;
+            connection_.reset();
+            return connection && pool_->CommitTransaction(connection, error);
+         }
+
+         bool Rollback(String &error)
+         {
+            std::shared_ptr<DALConnection> connection = connection_;
+            connection_.reset();
+            return connection && pool_->RollbackTransaction(connection, error);
+         }
+
+      private:
+         std::shared_ptr<DatabaseConnectionManager> pool_;
+         std::shared_ptr<DALConnection> connection_;
+      };
    }
 
    void
@@ -941,6 +1045,447 @@ namespace HM
             }
 
             probe.Say(_T("a deadlock between two units of work: Run runs the victim again and both commit once, where scopes alone lose it"));
+         }
+
+         // A transaction the pool hands out (DatabaseConnectionManager::BeginTransaction),
+         // held as the COM Database object holds its script's and its statements run as
+         // InterfaceDatabase runs them (AsTheScriptRunsIt), whose statement a deadlock
+         // chooses as its victim. MySQL, MariaDB and SQL Server roll the whole
+         // transaction back there and go on in autocommit, PostgreSQL refuses
+         // everything until the rollback, and SQL Server Compact, which detects no
+         // deadlock, times the lock wait out and leaves the transaction as it was. Once
+         // the database has ended the transaction the script's next statement is
+         // refused - by the Database object, and on PostgreSQL by the database - and
+         // its commit fails with nothing of the transaction committed. On
+         // 6e1a336c5 MySQL and MariaDB said the transaction had not ended, so the next
+         // statement was sent and committed on its own, and the commit - a COMMIT with
+         // nothing open - reported success. The control: the same statement sent past
+         // the refusal, as the COM object sent it on 6e1a336c5, is committed on its own
+         // on MySQL, MariaDB and SQL Server. Then a script of statements run in such a
+         // transaction (SQLScriptRunner, Database.ExecuteSQLScript), whose statement
+         // marked [IGNORE-ERRORS] is the victim, and, on MySQL and MariaDB, the other
+         // failures that end the transaction there: MariaDB's 1020 and, where
+         // innodb_rollback_on_timeout is on, a lock wait that timed out - and, where it
+         // is off, the same lock wait, which takes back its own statement alone.
+         {
+            const bool compact = probe.type_ == DatabaseSettings::TypeMSSQLCompactEdition;
+            const bool mssql = probe.type_ == DatabaseSettings::TypeMSSQLServer;
+
+            // The script's transaction holds row 1 of aatxnprobe, which it updates,
+            // and row 2, which it inserts. Another transaction, made the heavier by
+            // forty rows of aatxnprobeb so that InnoDB and SQL Server choose the
+            // script's as the victim, holds row 1 of aatxnprobeb. ask, on a thread of
+            // its own, makes the script ask for that row, and waits; the other
+            // transaction then asks for the script's row 1. On PostgreSQL the script
+            // waits first, so that its deadlock_timeout runs out first and its
+            // transaction is the one aborted. On SQL Server Compact both lock waits
+            // time out. The other transaction is rolled back before this returns, and
+            // what ask answered is returned.
+            auto deadlock = [&](const std::shared_ptr<DALConnection> &script, const std::function<ScriptAnswer()> &ask) -> ScriptAnswer
+            {
+               String error;
+               Check(AsTheScriptRunsIt(script, Update(_T("aatxnprobe"), 1), error) == ScriptRan, _T("the script's first update failed: ") + error);
+               Check(AsTheScriptRunsIt(script, Insert(2, 20), error) == ScriptRan, _T("the script's insert failed: ") + error);
+
+               __int64 session = 0;
+               if (postgres)
+               {
+                  std::shared_ptr<DALRecordset> own = script->CreateRecordset();
+                  Check(own->TryOpen(script, SQLCommand(_T("select pg_backend_pid() as session")), error) == DALConnection::DALSuccess && !own->IsEOF(),
+                     _T("the tester could not read the script's session: ") + error);
+                  session = own->GetInt64Value("session");
+               }
+
+               HandedOut other(pool);
+               for (int id = 100; id < 140; id++)
+               {
+                  Check(other.Connection()->TryExecute(SQLCommand(Formatter::Format("insert into aatxnprobeb (id, v) values ({0}, 0)", id)), error, 0, 0) == DALConnection::DALSuccess,
+                     _T("the other transaction's insert failed: ") + error);
+               }
+               Check(other.Connection()->TryExecute(Update(_T("aatxnprobeb"), 5), error, 0, 0) == DALConnection::DALSuccess, _T("the other transaction's update failed: ") + error);
+
+               ScriptAnswer answer = ScriptRan;
+               std::exception_ptr askFailed;
+               std::thread asker([&]()
+               {
+                  try
+                  {
+                     answer = ask();
+                  }
+                  catch (...)
+                  {
+                     askFailed = std::current_exception();
+                  }
+               });
+
+               bool otherRan = false;
+               std::exception_ptr otherFailed;
+               try
+               {
+                  if (postgres)
+                  {
+                     bool waiting = false;
+                     for (int i = 0; i < 250 && !waiting; i++)
+                     {
+                        std::shared_ptr<DALRecordset> waits = probe.raw_->CreateRecordset();
+                        Check(waits->TryOpen(probe.raw_, SQLCommand(Formatter::Format("select count(*) as waiting from pg_stat_activity where pid = {0} and wait_event_type = 'Lock'", session)), error) == DALConnection::DALSuccess,
+                           _T("the tester could not see whether the script waits: ") + error);
+                        waiting = waits->GetLongValue("waiting") > 0;
+                        if (!waiting)
+                           std::this_thread::sleep_for(std::chrono::milliseconds(20));
+                     }
+                     Check(waiting, _T("the script's statement did not wait for the other transaction's row within five seconds"));
+                  }
+                  else
+                  {
+                     std::this_thread::sleep_for(std::chrono::milliseconds(300));
+                  }
+
+                  String otherError;
+                  otherRan = other.Connection()->TryExecute(Update(_T("aatxnprobe"), 100), otherError, 0, 0) == DALConnection::DALSuccess;
+               }
+               catch (...)
+               {
+                  // Joined first: a thread destroyed while it can still be joined ends
+                  // the process. The other transaction is rolled back below, which ends
+                  // the script's wait.
+                  otherFailed = std::current_exception();
+               }
+
+               String rollbackError;
+               if (otherFailed)
+                  other.Rollback(rollbackError);
+
+               asker.join();
+               other.Rollback(rollbackError);
+
+               if (askFailed)
+                  std::rethrow_exception(askFailed);
+               if (otherFailed)
+                  std::rethrow_exception(otherFailed);
+
+               // Where a deadlock is detected, the script's transaction was the victim
+               // when the other's update could go on: the database rolled the script's
+               // back and freed its row 1.
+               if (!compact)
+                  Check(otherRan, _T("the deadlock chose the other transaction as its victim, not the script's, so this check could not be made"));
+
+               return answer;
+            };
+
+            // Each case below is a check of its own: a failure is kept and the next case
+            // run, and the failures are said together at the end, so that one run says
+            // which of them the code fails.
+            std::vector<std::string> failed;
+            auto run = [&](const std::function<void()> &check)
+            {
+               try
+               {
+                  check();
+               }
+               catch (const std::exception &failure)
+               {
+                  failed.push_back(failure.what());
+               }
+            };
+
+            // The script goes on past the deadlock: its next statement, then its commit.
+            run([&]()
+            {
+               probe.Reset();
+               HandedOut script(pool);
+               const ScriptAnswer victim = deadlock(script.Connection(), [&]() -> ScriptAnswer
+               {
+                  String error;
+                  return AsTheScriptRunsIt(script.Connection(), Update(_T("aatxnprobeb"), 10), error);
+               });
+
+               const bool ended = script.Connection()->IsTransactionFailed();
+               String error;
+               const ScriptAnswer next = AsTheScriptRunsIt(script.Connection(), Insert(3, 30), error);
+
+               // What another session sees before the transaction ends. Not on SQL
+               // Server Compact, where a read waits for the rows the transaction holds.
+               const int seen = compact ? -1 : probe.Value(_T("aatxnprobe"), 3);
+
+               String commitError;
+               const bool committed = script.Commit(commitError);
+
+               const int one = probe.Value(_T("aatxnprobe"), 1);
+               const int two = probe.Value(_T("aatxnprobe"), 2);
+               const int three = probe.Value(_T("aatxnprobe"), 3);
+               const int held = probe.Value(_T("aatxnprobeb"), 1);
+
+               Check(victim == ScriptFailed, Formatter::Format("the script's statement that met the deadlock was {0}, not failed", ScriptAnswerName(victim)));
+
+               if (compact)
+               {
+                  // The lock wait timed out: its statement alone was taken back, and the
+                  // transaction went on and committed - as before.
+                  Check(!ended && next == ScriptRan && committed,
+                     Formatter::Format("on SQL Server Compact a transaction whose lock wait timed out was said to have ended ({0}), or its next statement was {1}, or it was not committed: {2}",
+                        ended ? 1 : 0, ScriptAnswerName(next), commitError));
+                  Check(one == 1 && two == 20 && three == 30 && held == 0,
+                     Formatter::Format("on SQL Server Compact a transaction whose lock wait timed out left {0}, {1}, {2} and {3}, not 1, 20, 30 and 0", one, two, three, held));
+                  probe.Say(_T("SQL Server Compact: a lock wait that timed out took back its own statement, and the transaction went on and committed"));
+               }
+               else
+               {
+                  Check(seen == -1 && three == -1,
+                     Formatter::Format("a statement the script ran after the database had rolled its transaction back at a deadlock was saved on its own, as on 6e1a336c5 on MySQL and MariaDB: {0} before the transaction's end and {1} after it, where nothing was to be saved",
+                        seen, three));
+                  Check(one == 0 && two == -1 && held == 0,
+                     Formatter::Format("the transaction the database rolled back at a deadlock left rows 1 and 2 at {0} and {1}, and the other's row at {2}, not 0, none and 0", one, two, held));
+                  Check(ended, _T("a transaction the database had rolled back at a deadlock was not said to have ended (DALConnection::IsTransactionFailed), as on 6e1a336c5 on MySQL and MariaDB"));
+                  // Refused by the Database object; on PostgreSQL, whose transaction is
+                  // aborted and open, by the database itself.
+                  Check(next == (postgres ? ScriptFailed : ScriptRefused),
+                     Formatter::Format("the script's statement after the deadlock was {0}, not refused", ScriptAnswerName(next)));
+                  Check(!committed, _T("the commit of a transaction the database had rolled back at a deadlock reported success, as on 6e1a336c5 on MySQL and MariaDB"));
+                  probe.Say(_T("a deadlock that ended a transaction the pool handed out: the script's next statement refused, the commit failed, nothing saved"));
+               }
+            });
+
+            // The control: the same statement sent past the refusal is committed on its
+            // own, and the rollback does not take it back. Not on PostgreSQL, which
+            // refuses it itself, nor on SQL Server Compact, whose transaction goes on.
+            if (!compact && !postgres)
+            {
+               run([&]()
+               {
+                  probe.Reset();
+                  HandedOut script(pool);
+                  deadlock(script.Connection(), [&]() -> ScriptAnswer
+                  {
+                     String error;
+                     return AsTheScriptRunsIt(script.Connection(), Update(_T("aatxnprobeb"), 10), error);
+                  });
+
+                  String error;
+                  const bool sent = script.Connection()->TryExecute(Insert(4, 40), error, 0, 0) == DALConnection::DALSuccess;
+                  const int seen = probe.Value(_T("aatxnprobe"), 4);
+
+                  String rollbackError;
+                  const bool rolledBack = script.Rollback(rollbackError);
+
+                  Check(sent && seen == 40 && probe.Value(_T("aatxnprobe"), 4) == 40,
+                     _T("the control: a statement sent past the refusal after the deadlock was not committed on its own, so the check above cannot tell the refusal from a database that keeps the transaction"));
+
+                  // SQL Server refuses a ROLLBACK with nothing open (3903), which the COM
+                  // object answers as done.
+                  Check(rolledBack || mssql, _T("the rollback of a transaction a deadlock had ended was refused: ") + rollbackError);
+                  probe.Say(_T("the control: a statement sent past the refusal after a deadlock is committed on its own"));
+               });
+            }
+
+            // A script of statements in the transaction (SQLScriptRunner, as
+            // Database.ExecuteSQLScript runs one), whose statement marked
+            // [IGNORE-ERRORS] is the deadlock's victim. MySQL, MariaDB and PostgreSQL
+            // answer its failure as a success, which has ended the transaction: the
+            // runner stops there, and the rest of the script is not run. On 6e1a336c5
+            // it went on, and on MySQL and MariaDB the script's next statement was
+            // committed on its own. (SQL Server's providers answer a victim with
+            // E_FAIL, a lost connection's, which the marker never lets through.)
+            if (!compact)
+            {
+               run([&]()
+               {
+                  probe.Reset();
+
+                  const String separator = postgres ? _T(";\n\n") : _T("\n\n");
+                  const String file = FileUtilities::Combine(IniFileSettings::Instance()->GetTempDirectory(), _T("aatxnscript-") + GUIDCreator::GetGUID() + _T(".sql"));
+                  const String text = _T("insert into aatxnprobe (id, v) values (5, 50)") + separator +
+                                      _T("update aatxnprobeb set v = v + 10 where id = 1 /* [IGNORE-ERRORS] */") + separator +
+                                      _T("insert into aatxnprobe (id, v) values (6, 60)") + separator;
+                  Check(FileUtilities::WriteToFile(file, AnsiString(text)), _T("the tester could not write its script to ") + file);
+
+                  bool ran = false;
+                  String scriptError;
+                  int seen = -2;
+                  std::exception_ptr failure;
+                  try
+                  {
+                     HandedOut script(pool);
+                     deadlock(script.Connection(), [&]() -> ScriptAnswer
+                     {
+                        SQLScriptRunner runner;
+                        ran = runner.ExecuteScript(script.Connection(), file, scriptError);
+                        return ran ? ScriptRan : ScriptFailed;
+                     });
+
+                     seen = probe.Value(_T("aatxnprobe"), 6);
+
+                     String rollbackError;
+                     script.Rollback(rollbackError);
+                  }
+                  catch (...)
+                  {
+                     failure = std::current_exception();
+                  }
+
+                  FileUtilities::DeleteFile(file);
+
+                  if (failure)
+                     std::rethrow_exception(failure);
+
+                  Check(seen == -1 && probe.Value(_T("aatxnprobe"), 6) == -1,
+                     _T("a statement of a script run after its statement marked [IGNORE-ERRORS] had met a deadlock was saved on its own, as on 6e1a336c5 on MySQL and MariaDB: the runner went on past the end of the transaction"));
+                  Check(!ran, _T("a script whose statement marked [IGNORE-ERRORS] met a deadlock that ended its transaction was said to have run: ") + scriptError);
+                  Check(probe.Value(_T("aatxnprobe"), 5) == -1 && probe.Value(_T("aatxnprobe"), 2) == -1 && probe.Value(_T("aatxnprobe"), 1) == 0,
+                     _T("a script's transaction a deadlock ended left a row of it"));
+                  probe.Say(_T("a script whose statement marked [IGNORE-ERRORS] met a deadlock: the runner stopped there, and nothing after it was saved"));
+               });
+            }
+
+            // MariaDB's 1020, a row another session changed and committed after the
+            // transaction read it, under innodb_snapshot_isolation (on by default in
+            // MariaDB 11.8): the whole transaction rolled back, as at a deadlock. MySQL
+            // has no such check and no such variable: the update reads the row as
+            // committed, and the transaction commits whole - the control.
+            if (mysql)
+            {
+               run([&]()
+               {
+                  bool snapshotIsolation = false;
+                  {
+                     std::shared_ptr<DALRecordset> isolation = probe.raw_->CreateRecordset();
+                     String error;
+                     if (isolation->TryOpen(probe.raw_, SQLCommand(_T("select @@innodb_snapshot_isolation as snapshotisolation")), error) == DALConnection::DALSuccess && !isolation->IsEOF())
+                        snapshotIsolation = isolation->GetLongValue("snapshotisolation") != 0;
+                  }
+
+                  probe.Reset();
+                  HandedOut script(pool);
+                  String error;
+                  Check(AsTheScriptRunsIt(script.Connection(), Insert(2, 20), error) == ScriptRan, _T("the script's insert failed: ") + error);
+
+                  std::shared_ptr<DALRecordset> read = script.Connection()->CreateRecordset();
+                  Check(read->TryOpen(script.Connection(), SQLCommand(_T("select v from aatxnprobe where id = 1")), error) == DALConnection::DALSuccess,
+                     _T("the script's read failed: ") + error);
+
+                  probe.Raw(_T("update aatxnprobe set v = v + 5 where id = 1"));
+
+                  const ScriptAnswer changed = AsTheScriptRunsIt(script.Connection(), Update(_T("aatxnprobe"), 1), error);
+                  const ScriptAnswer next = AsTheScriptRunsIt(script.Connection(), Insert(3, 30), error);
+                  const int seen = probe.Value(_T("aatxnprobe"), 3);
+
+                  String commitError;
+                  const bool committed = script.Commit(commitError);
+
+                  const int one = probe.Value(_T("aatxnprobe"), 1);
+                  const int two = probe.Value(_T("aatxnprobe"), 2);
+                  const int three = probe.Value(_T("aatxnprobe"), 3);
+
+                  if (snapshotIsolation)
+                  {
+                     Check(changed == ScriptFailed, Formatter::Format("MariaDB answered an update of a row changed since the transaction read it with {0}, not its error 1020", ScriptAnswerName(changed)));
+                     Check(seen == -1 && three == -1,
+                        Formatter::Format("a statement the script ran after MariaDB had rolled its transaction back at a row changed since it was read (1020) was saved on its own, as on 6e1a336c5: {0} before the transaction's end and {1} after it",
+                           seen, three));
+                     Check(one == 5 && two == -1, Formatter::Format("the transaction MariaDB rolled back at its error 1020 left rows 1 and 2 at {0} and {1}, not 5 and none", one, two));
+                     Check(next == ScriptRefused && !committed,
+                        Formatter::Format("after MariaDB's error 1020 the script's next statement was {0} and its commit {1}, where it is refused and the commit fails",
+                           ScriptAnswerName(next), committed ? _T("reported success") : _T("failed")));
+                     probe.Say(_T("MariaDB's 1020, a row changed since the transaction read it: the next statement refused, the commit failed, nothing saved"));
+                  }
+                  else
+                  {
+                     Check(changed == ScriptRan && next == ScriptRan && seen == -1 && committed,
+                        Formatter::Format("with no snapshot isolation, an update of a row another session had changed was {0}, the next statement {1}, seen {2} before the commit, and the commit {3}: {4}",
+                           ScriptAnswerName(changed), ScriptAnswerName(next), seen, committed ? _T("succeeded") : _T("failed"), commitError));
+                     Check(one == 6 && two == 20 && three == 30, Formatter::Format("with no snapshot isolation the transaction left {0}, {1} and {2}, not 6, 20 and 30", one, two, three));
+                     probe.Say(_T("no snapshot isolation (MySQL): a row changed since the transaction read it is updated, and the transaction commits whole"));
+                  }
+               });
+            }
+
+            // A lock wait that timed out (1205), the script's made a second long on a
+            // pool of its own, so that the pool's connections keep theirs. With
+            // innodb_rollback_on_timeout on, the whole transaction is rolled back, as at
+            // a deadlock; off (the servers' default), its own statement alone, and the
+            // transaction goes on - as before.
+            if (mysql)
+            {
+               run([&]()
+               {
+                  bool rollbackOnTimeout = false;
+                  {
+                     std::shared_ptr<DALRecordset> variable = probe.raw_->CreateRecordset();
+                     String error;
+                     Check(variable->TryOpen(probe.raw_, SQLCommand(_T("select @@innodb_rollback_on_timeout as rollbackontimeout")), error) == DALConnection::DALSuccess && !variable->IsEOF(),
+                        _T("the tester could not read innodb_rollback_on_timeout: ") + error);
+                     rollbackOnTimeout = variable->GetLongValue("rollbackontimeout") != 0;
+                  }
+
+                  probe.Reset();
+                  std::shared_ptr<DatabaseConnectionManager> timing = OpenPool(settings, 1);
+                  std::exception_ptr failure;
+                  try
+                  {
+                     HandedOut script(timing);
+                     String error;
+                     Check(script.Connection()->TryExecute(SQLCommand(_T("set session innodb_lock_wait_timeout = 1")), error, 0, 0) == DALConnection::DALSuccess,
+                        _T("the tester could not shorten the script's lock wait: ") + error);
+                     Check(AsTheScriptRunsIt(script.Connection(), Insert(2, 20), error) == ScriptRan, _T("the script's insert failed: ") + error);
+
+                     ScriptAnswer waited = ScriptRan;
+                     {
+                        HandedOut other(pool);
+                        Check(other.Connection()->TryExecute(Update(_T("aatxnprobe"), 100), error, 0, 0) == DALConnection::DALSuccess, _T("the other transaction's update failed: ") + error);
+                        waited = AsTheScriptRunsIt(script.Connection(), Update(_T("aatxnprobe"), 1), error);
+                     }
+
+                     const ScriptAnswer next = AsTheScriptRunsIt(script.Connection(), Insert(3, 30), error);
+                     const int seen = probe.Value(_T("aatxnprobe"), 3);
+
+                     String commitError;
+                     const bool committed = script.Commit(commitError);
+
+                     const int one = probe.Value(_T("aatxnprobe"), 1);
+                     const int two = probe.Value(_T("aatxnprobe"), 2);
+                     const int three = probe.Value(_T("aatxnprobe"), 3);
+
+                     Check(waited == ScriptFailed, Formatter::Format("the script's update of a row another transaction held was {0}, not failed after its lock wait timed out", ScriptAnswerName(waited)));
+
+                     if (rollbackOnTimeout)
+                     {
+                        Check(seen == -1 && three == -1,
+                           Formatter::Format("a statement the script ran after a lock wait that timed out had rolled its transaction back (innodb_rollback_on_timeout on) was saved on its own, as on 6e1a336c5: {0} before the transaction's end and {1} after it",
+                              seen, three));
+                        Check(one == 0 && two == -1, Formatter::Format("the transaction a lock wait that timed out rolled back left rows 1 and 2 at {0} and {1}, not 0 and none", one, two));
+                        Check(next == ScriptRefused && !committed,
+                           Formatter::Format("after a lock wait that timed out with innodb_rollback_on_timeout on, the script's next statement was {0} and its commit {1}, where it is refused and the commit fails",
+                              ScriptAnswerName(next), committed ? _T("reported success") : _T("failed")));
+                        probe.Say(_T("a lock wait that timed out with innodb_rollback_on_timeout on: the next statement refused, the commit failed, nothing saved"));
+                     }
+                     else
+                     {
+                        Check(next == ScriptRan && seen == -1 && committed,
+                           Formatter::Format("after a lock wait that timed out with innodb_rollback_on_timeout off, the script's next statement was {0}, seen {1} before the commit, and the commit {2}: {3}",
+                              ScriptAnswerName(next), seen, committed ? _T("succeeded") : _T("failed"), commitError));
+                        Check(one == 0 && two == 20 && three == 30, Formatter::Format("after a lock wait that timed out with innodb_rollback_on_timeout off the transaction left {0}, {1} and {2}, not 0, 20 and 30", one, two, three));
+                        probe.Say(_T("a lock wait that timed out with innodb_rollback_on_timeout off: its own statement taken back, and the transaction went on and committed"));
+                     }
+                  }
+                  catch (...)
+                  {
+                     failure = std::current_exception();
+                  }
+
+                  timing->Disconnect();
+
+                  if (failure)
+                     std::rethrow_exception(failure);
+               });
+            }
+
+            if (!failed.empty())
+            {
+               std::string all;
+               for (const std::string &one : failed)
+                  all += (all.empty() ? "" : " AND ") + one;
+               throw std::logic_error(all);
+            }
          }
 
          // The session lost in the middle of a unit of work: nothing of the attempt is

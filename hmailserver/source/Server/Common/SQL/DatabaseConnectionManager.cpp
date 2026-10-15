@@ -872,6 +872,18 @@ namespace HM
       that is not transactional, where it runs them as the pool does
       (DatabaseTransaction.h).
 
+      AFTER A FAILURE. A statement that fails inside the transaction takes back
+      itself alone on every backend, and the transaction goes on - unless the
+      failure has ended it, which DALConnection::IsTransactionFailed says: on
+      PostgreSQL any failure, on MySQL and MariaDB a deadlock and a few others, on
+      SQL Server a deadlock and some others, never on SQL Server Compact. MySQL,
+      MariaDB and SQL Server then go on in autocommit, so that every statement run
+      on the connection after it is committed on its own: InterfaceDatabase sends
+      none there once the transaction has ended - it refuses the script's
+      statements and rolls back at its commit - while PostgreSQL refuses them
+      itself, and the backends' CommitTransaction refuses one on PostgreSQL and
+      MySQL. A caller of its own must ask before it goes on.
+
       PER BACKEND:
 
       MS SQL Server (ADOConnection) - real. BEGIN/COMMIT/ROLLBACK TRANSACTION are

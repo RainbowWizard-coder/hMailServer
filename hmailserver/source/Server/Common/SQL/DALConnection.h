@@ -218,11 +218,28 @@ namespace HM
       // caller means to ignore needs a savepoint there (DatabaseTransaction).
       virtual bool GetFailedStatementEndsTransaction() const { return false; }
 
-      // Whether the transaction open now has been ended by a failure although the
-      // last statement was answered as a success: on PostgreSQL by any failure
-      // (PQTRANS_INERROR); on SQL Server by a failure the [IGNORE-ERRORS] marker
-      // let through that rolled the transaction back (ADOConnection, @@TRANCOUNT).
-      // Asked only while a transaction is open on the connection.
+      // Whether the database has ended the transaction BeginTransaction began on
+      // this connection, at a statement in it that failed - answered as a failure,
+      // or as a success where the [IGNORE-ERRORS] marker or the caller let the
+      // failure through - so that nothing of it will be committed and whatever the
+      // session runs next would run outside it. On PostgreSQL any failure does
+      // (PQTRANS_INERROR), and every later statement is refused until the
+      // rollback. On MySQL and MariaDB a deadlock (1213), MariaDB's 1020, a lock
+      // table that is full (1206), a lock wait that timed out where
+      // innodb_rollback_on_timeout is on (1205) and a lost connection do, and the
+      // session goes on in autocommit (MySQLConnection). On SQL Server a deadlock's
+      // victim (1205) and some other failures - a conversion error among them - do,
+      // and the session goes on in autocommit (ADOConnection, @@TRANCOUNT, read only
+      // after a failure). On SQL Server Compact none does. Asked after a statement
+      // of the transaction, before the next, and before its commit; false while no
+      // transaction BeginTransaction began is open. A caller that goes on in a
+      // transaction after a statement failed - the COM Database object's script -
+      // runs nothing more in it once this says true where the session goes on in
+      // autocommit (InterfaceDatabase, SQLScriptRunner), as DatabaseTransaction
+      // runs nothing more after any failure; on PostgreSQL
+      // (GetFailedStatementEndsTransaction), where the transaction is aborted and
+      // still open, the database refuses everything itself but the rollback and a
+      // ROLLBACK TO SAVEPOINT.
       virtual bool IsTransactionFailed() const { return false; }
 
    protected:

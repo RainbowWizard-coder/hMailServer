@@ -4,6 +4,8 @@
 
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
+using hMailServer;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;   // StringAssert moved here in NUnit 4
 using RegressionTests.Shared;
@@ -167,6 +169,98 @@ namespace RegressionTests.Infrastructure
 
          Assert.IsNotNull(rejected,
             "A statement naming a table that does not exist was reported as having succeeded.");
+      }
+
+      /// <summary>
+      ///    A statement that fails inside the transaction a script holds
+      ///    (Database.BeginTransaction) ends the transaction only where the database
+      ///    has ended it. Since 6.3.7 the Database object refuses every statement of a
+      ///    transaction the database has ended and rolls back at its commit, because
+      ///    MySQL, MariaDB and SQL Server go on in autocommit after a deadlock, where
+      ///    the statements after it were saved one by one (DatabaseTransactionTester
+      ///    holds that on MySQL, MariaDB and PostgreSQL). Here the failure is a
+      ///    duplicate key, which ends nothing on SQL Server Compact - the bench's
+      ///    database - nor on SQL Server or MySQL: the statement alone is taken back,
+      ///    the transaction goes on, and the commit saves the rest, as before. On
+      ///    PostgreSQL any failure aborts the transaction, the database refuses the
+      ///    rest itself and the commit fails, as before. A rollback takes back
+      ///    everything.
+      ///
+      ///    By the code the build before answers the same on SQL Server Compact (not
+      ///    run there): the test holds that the refusal is only for a transaction the
+      ///    database has ended.
+      /// </summary>
+      [Test]
+      [Description("A duplicate key inside a COM transaction leaves the transaction going on where the database keeps it, and a rollback takes back everything.")]
+      public void AFailedStatementEndsATransactionOnlyWhereTheDatabaseDoes()
+      {
+         var database = SingletonProvider<TestSetup>.Instance.GetApp().Database;
+         bool postgres = database.DatabaseType == eDBtype.hDBTypePostgreSQL;
+
+         database.ExecuteSQL("create table aatxncom (id int not null primary key, v int not null)");
+         try
+         {
+            database.BeginTransaction();
+            database.ExecuteSQL("insert into aatxncom (id, v) values (1, 10)");
+            var duplicate = Assert.Throws<COMException>(() => database.ExecuteSQL("insert into aatxncom (id, v) values (1, 11)"),
+               "a second row with the same primary key was written inside the transaction");
+
+            if (postgres)
+            {
+               // PostgreSQL refuses the statement itself, as it always did.
+               Assert.Throws<COMException>(() => database.ExecuteSQL("insert into aatxncom (id, v) values (2, 20)"),
+                  "a statement was run in a transaction PostgreSQL had aborted");
+               var commit = Assert.Throws<COMException>(() => database.CommitTransaction(),
+                  "a transaction PostgreSQL had aborted was reported as committed");
+               StringAssert.Contains("rolled back, not committed", commit.Message);
+
+               // Nothing of it was saved: both rows can be written again.
+               database.ExecuteSQL("insert into aatxncom (id, v) values (1, 0)");
+               database.ExecuteSQL("insert into aatxncom (id, v) values (2, 0)");
+            }
+            else
+            {
+               StringAssert.DoesNotContain("ended the transaction", duplicate.Message,
+                  "a duplicate key, which ends no transaction here, was said to have ended it");
+               database.ExecuteSQL("insert into aatxncom (id, v) values (2, 20)");
+               database.CommitTransaction();
+
+               // Both rows were saved: a second of either is refused.
+               Assert.IsNotNull(TryExecuteSql("insert into aatxncom (id, v) values (1, 0)"), "the transaction's first row was not committed");
+               Assert.IsNotNull(TryExecuteSql("insert into aatxncom (id, v) values (2, 0)"), "the row written after the duplicate key was not committed");
+            }
+
+            database.ExecuteSQL("delete from aatxncom");
+
+            database.BeginTransaction();
+            database.ExecuteSQL("insert into aatxncom (id, v) values (3, 30)");
+            Assert.Throws<COMException>(() => database.ExecuteSQL("insert into aatxncom (id, v) values (3, 31)"),
+               "a second row with the same primary key was written inside the transaction");
+            if (!postgres)
+               database.ExecuteSQL("insert into aatxncom (id, v) values (4, 40)");
+            database.RollbackTransaction();
+
+            // Nothing was kept: both rows can be written now.
+            Assert.IsNull(TryExecuteSql("insert into aatxncom (id, v) values (3, 0)"), "a row of a transaction that was rolled back is there");
+            Assert.IsNull(TryExecuteSql("insert into aatxncom (id, v) values (4, 0)"), "a row of a transaction that was rolled back is there");
+         }
+         finally
+         {
+            // A transaction an assertion left open; "No transaction started" otherwise.
+            TryRollback(database);
+            database.ExecuteSQL("drop table aatxncom");
+         }
+      }
+
+      private static void TryRollback(hMailServer.Database database)
+      {
+         try
+         {
+            database.RollbackTransaction();
+         }
+         catch (COMException)
+         {
+         }
       }
    }
 }

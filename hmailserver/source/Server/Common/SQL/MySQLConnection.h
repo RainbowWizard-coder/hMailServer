@@ -98,6 +98,22 @@ namespace HM
       virtual LastFailure ClassifyLastFailure(ExecutionResult result);
       virtual bool GetSupportsTransactions() const { return supports_transactions_; }
 
+      // DALConnection's: whether the database has ended the transaction
+      // BeginTransaction began, at a failure in it - MySQL and MariaDB roll the
+      // whole transaction back at a deadlock (1213), MariaDB at a row changed
+      // since the transaction read it (1020, under innodb_snapshot_isolation,
+      // which MariaDB 11.8 has on by default), both at a lock table that is full
+      // (1206) and at a lock wait that timed out (1205) when
+      // innodb_rollback_on_timeout is on, and the session goes on in autocommit,
+      // so that every statement after it is committed on its own and a COMMIT
+      // with nothing open is answered with success. A lost connection ends the
+      // transaction with the session. The client's own status flags cannot tell
+      // it: an error packet carries none, and the flags keep the last OK packet's
+      // SERVER_STATUS_IN_TRANS through the failure (measured through libmariadb
+      // on MySQL 8.4 and MariaDB 11.8, 15 October 2026). False while no
+      // transaction BeginTransaction began is open.
+      virtual bool IsTransactionFailed() const { return in_transaction_ && transaction_ended_; }
+
    private:
 
       // One attempt at the server: a fresh handle (the one before it closed), the
@@ -119,6 +135,15 @@ namespace HM
       void RunCommand_(const String &sCommand) ;
       void LoadSupportsTransactions_(const String &database);
       void SetConnectionCharacterSet_();
+
+      // innodb_rollback_on_timeout, a server variable set at the server's start,
+      // read once per connection, from Connect: whether a lock wait that timed
+      // out (1205) rolls the whole transaction back or its own statement alone.
+      void LoadRollbackOnTimeout_();
+
+      // Whether the failure CheckError reads, of a statement inside a transaction
+      // BeginTransaction began, has ended that transaction (IsTransactionFailed).
+      bool FailureEndsTransaction_(unsigned int errorCode, ExecutionResult result) const;
 
       // Works out which session variable this server understands, and in which
       // unit, and proves it by setting it. Run once per connection, from Connect().
@@ -144,6 +169,19 @@ namespace HM
       // and later and an ordinary refusal on MariaDB, so CheckError takes it for a
       // lost connection only when this is true. False until it is known.
       bool server_is_mysql_;
+
+      // The transaction BeginTransaction began: open until CommitTransaction or
+      // RollbackTransaction ends it, or a new session replaces the one it was on
+      // (Connect, Disconnect). transaction_ended_ once the database has ended it at
+      // a failure in it, which CheckError - const, and MySQLRecordset's too - sees.
+      bool in_transaction_;
+      mutable bool transaction_ended_;
+
+      // innodb_rollback_on_timeout as read at Connect; true when it could not be
+      // read, since taking a lock wait that timed out for the end of the transaction
+      // only rolls back what the caller then runs again, where the other reading
+      // would let what follows it be committed on its own.
+      bool rollback_on_timeout_;
 
       ColumnPositionCache column_position_cache_;
 

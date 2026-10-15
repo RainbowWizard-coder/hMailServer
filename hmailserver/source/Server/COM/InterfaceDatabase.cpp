@@ -38,7 +38,8 @@ InterfaceDatabase::InterfaceSupportsErrorInfo(REFIID riid)
 
 InterfaceDatabase::InterfaceDatabase() :
    config_(nullptr),
-   ini_file_settings_(nullptr)
+   ini_file_settings_(nullptr),
+   transaction_ended_(false)
 {
 
 }
@@ -262,6 +263,8 @@ STDMETHODIMP InterfaceDatabase::BeginTransaction()
    
       HM::String sErrorMessage;
       conn_ = db_manager_->BeginTransaction(sErrorMessage);
+      transaction_ended_ = false;
+      transaction_ended_by_.Empty();
    
       if (!conn_)
       {
@@ -289,10 +292,27 @@ STDMETHODIMP InterfaceDatabase::CommitTransaction()
       if (!conn_)
          return COMError::GenerateError("No transaction started");
    
-      std::shared_ptr<HM::DALConnection> pTempConn = conn_;
-      conn_.reset();
+      const bool ended = TransactionEnded_(HM::String());
+      const HM::String endedBy = transaction_ended_by_;
+      std::shared_ptr<HM::DALConnection> pTempConn = TakeTransaction_();
    
       HM::String sErrorMessage;
+      if (ended)
+      {
+         // Not committed: the database has rolled back what the transaction held,
+         // and a COMMIT now would be answered with success on MySQL and MariaDB,
+         // with nothing open. Rolled back, so that the connection goes back to the
+         // pool holding nothing, whatever is open on it; what that answers changes
+         // nothing (SQL Server refuses a ROLLBACK with nothing open, 3903).
+         db_manager_->RollbackTransaction(pTempConn, sErrorMessage);
+
+         HM::String refusal = _T("The transaction was rolled back, not committed: the database ended it at a statement in it that failed");
+         if (!endedBy.IsEmpty())
+            refusal += _T(" (") + endedBy + _T(")");
+         refusal += _T(", and rolled back what it held. Run the whole transaction again.");
+         return COMError::GenerateError(refusal);
+      }
+
       if (!db_manager_->CommitTransaction(pTempConn, sErrorMessage))
       {
          return COMError::GenerateError(sErrorMessage);
@@ -319,11 +339,14 @@ STDMETHODIMP InterfaceDatabase::RollbackTransaction()
       if (!conn_)
          return COMError::GenerateError("No transaction started");
    
-      std::shared_ptr<HM::DALConnection> pTempConn = conn_;
-      conn_.reset();
+      const bool ended = TransactionEnded_(HM::String());
+      std::shared_ptr<HM::DALConnection> pTempConn = TakeTransaction_();
    
+      // A transaction the database has ended is rolled back already, which is what
+      // the script asked for, whatever the ROLLBACK is answered with: SQL Server
+      // refuses one with nothing open (3903), and a lost connection refuses it too.
       HM::String sErrorMessage;
-      if (!db_manager_->RollbackTransaction(pTempConn, sErrorMessage))
+      if (!db_manager_->RollbackTransaction(pTempConn, sErrorMessage) && !ended)
       {
          return COMError::GenerateError(sErrorMessage);
       }
@@ -334,6 +357,49 @@ STDMETHODIMP InterfaceDatabase::RollbackTransaction()
    {
       return COMError::GenerateGenericMessage();
    }
+}
+
+bool
+InterfaceDatabase::TransactionEnded_(const HM::String &failure)
+{
+   // Not PostgreSQL's: a failure aborts the transaction there and leaves it open,
+   // the database refuses every later statement by itself - nothing is committed
+   // on its own - until the rollback or a ROLLBACK TO SAVEPOINT, which a script
+   // may send to go on, and PGConnection::CommitTransaction refuses the commit. So
+   // the script's statements go to the database as they always did.
+   if (!transaction_ended_ && conn_ && !conn_->GetFailedStatementEndsTransaction() && conn_->IsTransactionFailed())
+   {
+      transaction_ended_ = true;
+      transaction_ended_by_ = failure;
+   }
+
+   return transaction_ended_;
+}
+
+HM::String
+InterfaceDatabase::EndedTransactionAdvice_()
+{
+   return _T("The database has ended the transaction and rolled back what it held; every later statement of it is refused, and Database.CommitTransaction fails. Call Database.RollbackTransaction, and run the whole transaction again.");
+}
+
+HM::String
+InterfaceDatabase::EndedTransactionRefusal_() const
+{
+   HM::String refusal = _T("The statement was not run: the database ended this transaction at an earlier statement in it that failed");
+   if (!transaction_ended_by_.IsEmpty())
+      refusal += _T(" (") + transaction_ended_by_ + _T(")");
+   refusal += _T(", and rolled back what it held, and a statement run now would be saved on its own, outside any transaction. Call Database.RollbackTransaction, and run the whole transaction again.");
+   return refusal;
+}
+
+std::shared_ptr<HM::DALConnection>
+InterfaceDatabase::TakeTransaction_()
+{
+   std::shared_ptr<HM::DALConnection> connection = conn_;
+   conn_.reset();
+   transaction_ended_ = false;
+   transaction_ended_by_.Empty();
+   return connection;
 }
 
 STDMETHODIMP InterfaceDatabase::ExecuteSQL(BSTR sSQLStatement)
@@ -373,15 +439,29 @@ STDMETHODIMP InterfaceDatabase::ExecuteSQLWithReturn(BSTR sSQLStatement, long *u
       HM::String sErrorMessage;
       if (conn_)
       {
+         // Not sent into a transaction the database has ended: it would be saved on
+         // its own, in autocommit, on MySQL, MariaDB and SQL Server.
+         if (TransactionEnded_(HM::String()))
+            return COMError::GenerateError(EndedTransactionRefusal_());
+
          // Execute in the transaction we've started.
          __int64 value = 0;
          if (conn_->TryExecute(HM::SQLCommand(sStatement), sErrorMessage, &value, 0) == HM::DALConnection::DALSuccess)
          {
+            // A failure the [IGNORE-ERRORS] marker answered as a success may have
+            // ended the transaction all the same - a deadlock on MySQL and MariaDB,
+            // a conversion error on SQL Server - and the script is told so.
+            if (TransactionEnded_(_T("a statement marked [IGNORE-ERRORS], whose failure the marker let through")))
+               return COMError::GenerateError("Execution of SQL statement failed. Error: the statement is marked [IGNORE-ERRORS], and its failure, which the marker let through, ended the transaction. " + EndedTransactionAdvice_());
+
             if (uniqueID)
                *uniqueID = (long) value;
    
                return S_OK;
          }
+
+         if (TransactionEnded_(sErrorMessage))
+            return COMError::GenerateError("Execution of SQL statement failed. Error: " + sErrorMessage + " " + EndedTransactionAdvice_());
       }
       else
       {
@@ -422,9 +502,18 @@ STDMETHODIMP InterfaceDatabase::ExecuteSQLScript(BSTR sFilename)
       HM::String sErrorMessage;
       if (conn_)
       {
+         if (TransactionEnded_(HM::String()))
+            return COMError::GenerateError(EndedTransactionRefusal_());
+
+         // The runner stops at the first statement that fails, and after one whose
+         // failure the [IGNORE-ERRORS] marker let through when that has ended the
+         // transaction (SQLScriptRunner::ExecuteScript).
          HM::SQLScriptRunner scriptRunner;
          if (!scriptRunner.ExecuteScript(conn_, sFilename, sErrorMessage))
          {
+            if (TransactionEnded_(sErrorMessage))
+               return COMError::GenerateError("Execution of SQL statements failed. Error: " + sErrorMessage + " " + EndedTransactionAdvice_());
+
             return COMError::GenerateError("Execution of SQL statements failed. Error: " + sErrorMessage);
          }
       }
@@ -774,9 +863,15 @@ STDMETHODIMP InterfaceDatabase::EnsurePrerequisites(long DBVersion)
    
       if (conn_)
       {
+         if (TransactionEnded_(HM::String()))
+            return COMError::GenerateError(EndedTransactionRefusal_());
+
          HM::PrerequisiteList prerequisites;
          if (!prerequisites.Ensure(conn_, DBVersion, sErrorMessage))
          {
+            if (TransactionEnded_(sErrorMessage))
+               return COMError::GenerateError("Execution of SQL statements failed. Error: " + sErrorMessage + " " + EndedTransactionAdvice_());
+
             return COMError::GenerateError("Execution of SQL statements failed. Error: " + sErrorMessage);
          }
       }

@@ -53,6 +53,7 @@ namespace HM
       bConnected = false;
       failure_answered_as_success_ = false;
       last_failure_result_ = DALSuccess;
+      in_transaction_ = false;
    }
 
 
@@ -75,6 +76,8 @@ namespace HM
    bool
    ADOConnection::Disconnect()
    {
+      // The session goes, and a transaction open on it with it.
+      in_transaction_ = false;
 
       try
       {
@@ -99,6 +102,9 @@ namespace HM
    DALConnection::ConnectionResult
    ADOConnection::Connect(String &sErrorMessage)
    {
+      // A new session holds no transaction.
+      in_transaction_ = false;
+
       String sUsername = database_settings_->GetUsername();
       String sPassword = database_settings_->GetPassword();
       String sServer = database_settings_->GetServer();
@@ -656,19 +662,27 @@ namespace HM
    bool 
    ADOConnection::BeginTransaction(String &sErrorMessage)
    {
-      return TryExecute(SQLCommand("BEGIN TRANSACTION"), sErrorMessage, 0, 0) == DALSuccess;
+      in_transaction_ = false;
+
+      const bool begun = TryExecute(SQLCommand("BEGIN TRANSACTION"), sErrorMessage, 0, 0) == DALSuccess;
+      in_transaction_ = begun;
+      return begun;
    }
 
    bool 
    ADOConnection::CommitTransaction(String &sErrorMessage)
    {
-      return TryExecute(SQLCommand("COMMIT TRANSACTION"), sErrorMessage, 0, 0) == DALSuccess;
+      const bool committed = TryExecute(SQLCommand("COMMIT TRANSACTION"), sErrorMessage, 0, 0) == DALSuccess;
+      in_transaction_ = false;
+      return committed;
    }
 
    bool
    ADOConnection::RollbackTransaction(String &sErrorMessage)
    {
-      return TryExecute(SQLCommand("ROLLBACK TRANSACTION"), sErrorMessage, 0, 0) == DALSuccess;
+      const bool rolledBack = TryExecute(SQLCommand("ROLLBACK TRANSACTION"), sErrorMessage, 0, 0) == DALSuccess;
+      in_transaction_ = false;
+      return rolledBack;
    }
 
    DALConnection::LastFailure
@@ -778,16 +792,28 @@ namespace HM
    bool
    ADOConnection::IsTransactionFailed() const
    {
-      // Asked after a statement inside a transaction succeeded, or seemed to: a
-      // failure the [IGNORE-ERRORS] marker (or a caller's iIgnoreErrors) answered
-      // as a success may have ended the transaction all the same. SQL Server
-      // rolls a transaction back at some failures with XACT_ABORT off - a
-      // conversion error among them (native 245, SQLSTATE 22018: @@TRANCOUNT 0
-      // after it, measured with SQLOLEDB and with MSOLEDBSQL 18 on SQL Server
-      // 2022, 13 October 2026) - and what follows on the session then commits on
-      // its own. One round trip, only after a failure that was answered as a
-      // success; nothing otherwise.
-      if (!failure_answered_as_success_)
+      // Asked after a statement inside a transaction BeginTransaction began, or
+      // before the next: a failure, whether answered as one or - by the
+      // [IGNORE-ERRORS] marker or a caller's iIgnoreErrors - as a success, may have
+      // ended the transaction. SQL Server rolls a transaction back at some failures
+      // with XACT_ABORT off, which is how this server's sessions run - a deadlock's
+      // victim (native 1205, which the providers answer with E_FAIL) and a
+      // conversion error (native 245, SQLSTATE 22018: @@TRANCOUNT 0 after it,
+      // measured with SQLOLEDB and with MSOLEDBSQL 18 on SQL Server 2022, 13
+      // October 2026) among them - and what follows on the session then commits on
+      // its own (a victim's next INSERT measured with sqlcmd on SQL Server 2022, 15
+      // October 2026: seen by another session before any COMMIT, and the COMMIT
+      // refused with 3902). One round trip, only after such a failure: not after a
+      // success, nor after an integrity violation answered as a failure
+      // (DALErrorInSQL - a duplicate key, a foreign key's, a NULL's or a CHECK's
+      // refusal), which ends a statement and never the transaction with XACT_ABORT
+      // off; nothing at all outside a transaction BeginTransaction began, where
+      // @@TRANCOUNT is 0 with nothing failed.
+      if (!in_transaction_)
+         return false;
+
+      if (!failure_answered_as_success_ &&
+          (last_failure_result_ == DALSuccess || last_failure_result_ == DALErrorInSQL))
          return false;
 
       if (!bConnected || cADOConnection == NULL)

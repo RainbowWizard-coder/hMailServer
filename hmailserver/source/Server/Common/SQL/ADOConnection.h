@@ -88,11 +88,11 @@ namespace HM
       virtual LastFailure ClassifyLastFailure(ExecutionResult result);
       virtual void ForgetLastFailure();
 
-      // Whether the transaction open on the connection has ended under the last
-      // statement although it was answered as a success - a failure the
-      // [IGNORE-ERRORS] marker or a caller's iIgnoreErrors let through, after
-      // which SQL Server may have rolled the transaction back: @@TRANCOUNT, read
-      // only then.
+      // Whether SQL Server has ended the transaction BeginTransaction began, at the
+      // last statement's failure - answered as a failure, or as a success where the
+      // [IGNORE-ERRORS] marker or a caller's iIgnoreErrors let it through: a
+      // deadlock's victim, a conversion error. @@TRANCOUNT, read only after such a
+      // failure; false while no transaction BeginTransaction began is open.
       virtual bool IsTransactionFailed() const;
 
    private:
@@ -128,6 +128,11 @@ namespace HM
       // whose callers have no more than false. DALSuccess when it did not fail.
       bool failure_answered_as_success_;
       ExecutionResult last_failure_result_;
+
+      // A transaction BeginTransaction began is open: until CommitTransaction or
+      // RollbackTransaction ends it, or a new session replaces the one it was on.
+      // IsTransactionFailed asks nothing outside one.
+      bool in_transaction_;
 
    };
 

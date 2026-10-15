@@ -1603,7 +1603,7 @@ interface IInterfaceDatabase : IDispatch
 {
    [propget, id(1), helpstring("Required database version.")] HRESULT RequiredVersion([out, retval] long *pVal);
    [propget, id(2), helpstring("Current databaseversion.")] HRESULT CurrentVersion([out, retval] long *pVal);
-   [id(3), helpstring("Executes an SQL statement.")] HRESULT ExecuteSQL(BSTR sSQLStatement);
+   [id(3), helpstring("Executes an SQL statement: inside the transaction BeginTransaction started while one is open, and refused without being run once the database has ended that transaction at an earlier statement that failed (see BeginTransaction).")] HRESULT ExecuteSQL(BSTR sSQLStatement);
    [propget, id(4), helpstring("The type of the database.")] HRESULT DatabaseType([out, retval] eDBtype *pVal);
    [id(5), helpstring("Returns the filename for a given message id.")] HRESULT UtilGetFileNameByMessageID([in ] hyper MessageID, [out, retval] BSTR *Output);
    [propget, id(6), helpstring("Database needs to be upgraded.")] HRESULT RequiresUpgrade([out, retval] VARIANT_BOOL *pVal);
@@ -1611,16 +1611,16 @@ interface IInterfaceDatabase : IDispatch
    [id(8), helpstring("Create external database")] HRESULT CreateExternalDatabase(eDBtype ServerType, BSTR ServerName, long lPort, BSTR DatabaseName, BSTR Username, BSTR Password);
    [propget, id(9), helpstring("Checks whether an existing database exists.")] HRESULT DatabaseExists([out, retval] VARIANT_BOOL *pVal);
 
-   [id(10), helpstring("Starts a new SQL transaction. Only affects ExecuteSQL().")] HRESULT BeginTransaction();
-   [id(11), helpstring("Commits a SQL transaction. Only affects ExecuteSQL().")] HRESULT CommitTransaction();
-   [id(12), helpstring("Rollbacks a SQL transaction. Only affects ExecuteSQL().")] HRESULT RollbackTransaction();
-   [id(13), helpstring("Executes an script file containing SQL statements.")] HRESULT ExecuteSQLScript(BSTR sFilename);
+   [id(10), helpstring("Starts an SQL transaction on one connection of the server's, which ExecuteSQL, ExecuteSQLWithReturn, ExecuteSQLScript and EnsurePrerequisites run in until CommitTransaction or RollbackTransaction ends it. A statement that fails in it is an error, and the transaction goes on without it - unless the failure has ended the transaction: a deadlock (MySQL and MariaDB error 1213, SQL Server 1205), on MySQL and MariaDB a lock wait that timed out (1205) where innodb_rollback_on_timeout is on, a lock table that is full (1206) and MariaDB's error 1020, on SQL Server a conversion error among others, and a lost connection. Then the database has rolled back what the transaction held and goes on without it, the error says so, every later statement of the transaction is refused without being run, and CommitTransaction rolls back and fails: call RollbackTransaction and run the whole transaction again. On PostgreSQL any failure aborts the transaction: the database refuses every later statement itself until RollbackTransaction or a ROLLBACK TO SAVEPOINT, and CommitTransaction fails. On SQL Server Compact no failure ends it. On MySQL and MariaDB nothing is transactional where a table is not InnoDB, and DDL commits as it runs.")] HRESULT BeginTransaction();
+   [id(11), helpstring("Commits the transaction BeginTransaction started. Fails, having rolled it back, when the database ended it at a statement in it that failed: nothing it held is then committed, and the whole transaction is to be run again.")] HRESULT CommitTransaction();
+   [id(12), helpstring("Rolls back the transaction BeginTransaction started. Succeeds for one the database ended already at a statement in it that failed.")] HRESULT RollbackTransaction();
+   [id(13), helpstring("Executes a script file of SQL statements, stopping at the first that fails: inside the transaction BeginTransaction started while one is open, where it also stops after a statement whose failure its [IGNORE-ERRORS] marker let through when that failure has ended the transaction, and is refused once the database has ended it (see BeginTransaction).")] HRESULT ExecuteSQLScript(BSTR sFilename);
    [id(14), helpstring("Set default database")] HRESULT SetDefaultDatabase(eDBtype ServerType, BSTR ServerName, long lPort, BSTR DatabaseName, BSTR Username, BSTR Password);
    [propget, id(15), helpstring("Returns true if there is a database available.")] HRESULT IsConnected([out, retval] VARIANT_BOOL *pVal);
 
    [propget, id(16), helpstring("Server name.")] HRESULT ServerName([out, retval] BSTR *pVal);
    [propget, id(17), helpstring("Database name.")] HRESULT DatabaseName([out, retval] BSTR *pVal);
-   [id(18), helpstring("Executes an SQL statement and returns the unique ID.")] HRESULT ExecuteSQLWithReturn(BSTR sSQLStatement, [out, retval] long *uniqueID);
+   [id(18), helpstring("Executes an SQL statement and returns the unique ID, as ExecuteSQL does: inside the transaction BeginTransaction started while one is open, and refused without being run once the database has ended it (see BeginTransaction).")] HRESULT ExecuteSQLWithReturn(BSTR sSQLStatement, [out, retval] long *uniqueID);
    [id(19), helpstring("Ensures that the prerequisites for a specific build is fulfilled.")] HRESULT EnsurePrerequisites(long DBVersion);
 };
 

@@ -743,6 +743,38 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   a failure it ignored. The transaction is now rolled back and the commit reported as failed.
   `DatabaseTransactionTester` holds it on PostgreSQL with a duplicate ignored inside a transaction begun on a pooled
   connection, which failed on the code before.
+- **Fixed: on MySQL and MariaDB, a script that went on in a transaction after a deadlock had its later statements
+  saved one by one, and `Database.CommitTransaction` reported success.** A deadlock (error 1213) rolls the whole
+  transaction back there, as MariaDB 11.8's error 1020 (a row another session changed after the transaction read it)
+  and, where `innodb_rollback_on_timeout` is on, a lock wait that timed out (1205) do, and the session goes on in
+  autocommit. So each statement a script ran after `Database.ExecuteSQL` had failed that way was committed at once on
+  its own, `Database.RollbackTransaction` took none of them back, and `Database.CommitTransaction`, a `COMMIT` with
+  nothing open, answered success. SQL Server goes on in autocommit after a deadlock too: the statements after it were
+  saved one by one there as well, and the commit then failed without saying so. Now, once the database has ended the
+  script's transaction, the `Database` object says so in the error, with what to do - call
+  `Database.RollbackTransaction` and run the whole transaction again - refuses every later statement of the
+  transaction without running it, rolls back and fails at `Database.CommitTransaction`, and answers
+  `Database.RollbackTransaction` with success; and `Database.ExecuteSQLScript` stops after a statement whose failure
+  its `[IGNORE-ERRORS]` marker let through when that failure has ended the transaction, as the server's own upgrade
+  step (`SchemaUpgrader`) now does. Whether the transaction has ended is `DALConnection::IsTransactionFailed`:
+  `MySQLConnection` now answers it from the error (1213, 1020, 1206, 1205 where `innodb_rollback_on_timeout`, read at
+  each connection, is on, and a lost connection) and refuses the `COMMIT` of a transaction that has, as `PGConnection`
+  does; `ADOConnection` asks `@@TRANCOUNT` after any failure but an integrity violation, where it asked only after a
+  failure answered as a success. A failure that ends nothing - a duplicate key, a lock wait that timed out where
+  `innodb_rollback_on_timeout` is off, any failure on SQL Server Compact - leaves the transaction going on as before,
+  and PostgreSQL, which refuses everything after any failure until the rollback, answers as before.
+  `DatabaseTransactionTester` holds it through a transaction the pool hands out, run as the `Database` object runs its
+  script's, on MySQL 8.4 and MariaDB 11.8, each with `innodb_rollback_on_timeout` off and on, and on PostgreSQL 18: a
+  deadlock whose victim is the script's statement, beside the control that a statement sent past the refusal is
+  committed on its own; the same deadlock met by a statement marked `[IGNORE-ERRORS]` in a script; MariaDB's 1020; and
+  a lock wait that timed out. On the code before, each failed where the defect is - the statement after the failure
+  committed on its own - and PostgreSQL passed, as it does now. On SQL Server Compact, the bench's database,
+  `DatabaseTransactionTester` holds a lock wait that timed out leaving the transaction going on, and
+  `RegressionTests.Infrastructure.SqlLayerErrorHandling.AFailedStatementEndsATransactionOnlyWhereTheDatabaseDoes` the
+  `Database` object's transaction itself: a duplicate key ends nothing there, the rest is committed, and a rollback
+  takes back everything. SQL Server's part rests on the code and on SQL Server 2022's own answers (a deadlock's victim
+  at `@@TRANCOUNT` 0, its next statement committed on its own, the `COMMIT` refused with 3902). As in 6.3.6 and every
+  release before.
 - **Fixed: an entry of a trusted address list that does not parse went unreported once any other had been
   reported, and the report did not say which list held it.** The lists of the peers the server trusts - SMTP's PROXY
   protocol and `XCLIENT` lists, the IMAP and POP3 listeners' PROXY protocol lists, `WebServicesTrustedProxies` and the

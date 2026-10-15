@@ -154,6 +154,21 @@ namespace hMailServer
          throw NotOnThisServer.Skipped(NotOnThisServer.NoDatabaseObject);
       }
 
+      public void BeginTransaction()
+      {
+         NotOnThisServer.Ignore(NotOnThisServer.NoDatabaseObject);
+      }
+
+      public void CommitTransaction()
+      {
+         NotOnThisServer.Ignore(NotOnThisServer.NoDatabaseObject);
+      }
+
+      public void RollbackTransaction()
+      {
+         NotOnThisServer.Ignore(NotOnThisServer.NoDatabaseObject);
+      }
+
       public int CurrentVersion
       {
          get

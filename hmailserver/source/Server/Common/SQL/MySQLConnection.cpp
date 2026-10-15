@@ -26,6 +26,9 @@ namespace HM
       supports_transactions_ = false;
       timeout_variable_is_seconds_ = false;
       server_is_mysql_ = false;
+      in_transaction_ = false;
+      transaction_ended_ = false;
+      rollback_on_timeout_ = true;
    }
 
    MySQLConnection::~MySQLConnection()
@@ -48,6 +51,11 @@ namespace HM
    DALConnection::ConnectionResult
    MySQLConnection::Connect(String &sErrorMessage)
    {
+      // A new session holds no transaction: one begun on the session before it
+      // ended with that session.
+      in_transaction_ = false;
+      transaction_ended_ = false;
+
       if (!MySQLInterface::Instance()->IsLoaded())
       {
          // Load the MySQL interface.
@@ -223,6 +231,7 @@ namespace HM
          }
 
          LoadSupportsTransactions_(sDatabase);
+         LoadRollbackOnTimeout_();
 
          is_connected_ = true;
 
@@ -461,6 +470,10 @@ namespace HM
       // connection that had been closed. Connect sets it again on the way back up.
       is_connected_ = false;
 
+      // The session is gone, and a transaction open on it with it.
+      in_transaction_ = false;
+      transaction_ended_ = false;
+
       return true;
    }
 
@@ -691,6 +704,13 @@ namespace HM
             break;
          }
 
+         // A failure that has ended the transaction BeginTransaction began, which
+         // IsTransactionFailed says from here on: read here, where the statements
+         // TryExecute runs and the queries MySQLRecordset runs alike are answered,
+         // and whether or not the caller or the [IGNORE-ERRORS] marker then forgives
+         // the failure, since the transaction is gone either way.
+         if (in_transaction_ && FailureEndsTransaction_((unsigned int) errorCode, result))
+            transaction_ended_ = true;
 
          AnsiString sMySqlErrorAnsi = pError;
          String sMySQLErrorUnicode = sMySqlErrorAnsi;
@@ -800,7 +820,12 @@ namespace HM
    {
       if (supports_transactions_)
       {
-         return TryExecute(SQLCommand("BEGIN"), sErrorMessage, 0)  == DALSuccess;
+         in_transaction_ = false;
+         transaction_ended_ = false;
+
+         const bool begun = TryExecute(SQLCommand("BEGIN"), sErrorMessage, 0) == DALSuccess;
+         in_transaction_ = begun;
+         return begun;
       }
 
       return true;
@@ -811,7 +836,29 @@ namespace HM
    {
       if (supports_transactions_)
       {
-         return TryExecute(SQLCommand("COMMIT"), sErrorMessage, 0)  == DALSuccess;
+         if (IsTransactionFailed())
+         {
+            // The database has rolled the transaction back already, at the failure
+            // that ended it (IsTransactionFailed), and anything run on the session
+            // since was committed by itself, in autocommit. MySQL and MariaDB answer
+            // a COMMIT with nothing open with success, which every caller - COM's
+            // Database.CommitTransaction, SchemaUpgrader - read as everything saved.
+            // As PGConnection::CommitTransaction does: rolled back, so that the
+            // session holds nothing whatever was open on it, and said to be.
+            in_transaction_ = false;
+            transaction_ended_ = false;
+
+            String rollbackError;
+            TryExecute(SQLCommand("ROLLBACK"), rollbackError, 0);
+
+            sErrorMessage = "MySQL: the transaction was rolled back, not committed: a statement in it failed in a way that ends the transaction - a deadlock, for one - and the database rolled back what it held.";
+            return false;
+         }
+
+         const bool committed = TryExecute(SQLCommand("COMMIT"), sErrorMessage, 0) == DALSuccess;
+         in_transaction_ = false;
+         transaction_ended_ = false;
+         return committed;
       }
 
 
@@ -823,7 +870,10 @@ namespace HM
    {
       if (supports_transactions_)
       {
-         return TryExecute(SQLCommand("ROLLBACK"), sErrorMessage, 0)  == DALSuccess;
+         const bool rolledBack = TryExecute(SQLCommand("ROLLBACK"), sErrorMessage, 0) == DALSuccess;
+         in_transaction_ = false;
+         transaction_ended_ = false;
+         return rolledBack;
       }
       else
       {
@@ -902,6 +952,61 @@ namespace HM
       {
          // Only InnoDB tables in this database. Enable transactions.
          supports_transactions_ = true;
+      }
+   }
+
+   void
+   MySQLConnection::LoadRollbackOnTimeout_()
+   {
+      // A global variable the server reads at its start alone, on MySQL and MariaDB
+      // alike (off by default), which every account may read: 0 or 1. Not read, or
+      // read as anything else, it is taken as on (rollback_on_timeout_). TryOpen, so
+      // that a server without it reports nothing at every connection.
+      rollback_on_timeout_ = true;
+
+      MySQLRecordset rec;
+      String error;
+      if (rec.TryOpen(shared_from_this(), SQLCommand("SELECT @@innodb_rollback_on_timeout AS rollbackontimeout"), error) == DALConnection::DALSuccess && !rec.IsEOF())
+      {
+         String value = rec.GetStringValue("rollbackontimeout");
+         value.Trim();
+         rollback_on_timeout_ = !(value == _T("0") || value.CompareNoCase(_T("OFF")) == 0);
+      }
+   }
+
+   bool
+   MySQLConnection::FailureEndsTransaction_(unsigned int errorCode, ExecutionResult result) const
+   {
+      // The session is gone, and the database has rolled back what it had not
+      // committed: the client's lost connections CheckError names, and those
+      // ClassifyLastFailure names beside them.
+      if (result == DALConnection::DALConnectionProblem)
+         return true;
+
+      // The rest of the session lost, as ClassifyLastFailure names it: 2055, 1053,
+      // 1927. And the failures at which InnoDB rolls the whole transaction back,
+      // where at any other it takes back the failed statement alone, and the
+      // session goes on in autocommit: 1213, and 1205 with
+      // innodb_rollback_on_timeout on, measured on MySQL 8.4.11 and MariaDB
+      // 11.8.9, and 1020 on MariaDB 11.8.9 (14 and 15 October 2026, with the
+      // databases' own clients and through this code, DatabaseTransactionTester:
+      // the whole transaction rolled back, the next statement committed on its
+      // own, a COMMIT after it answered with success); 1206 by InnoDB's own code,
+      // which rolls the whole transaction back at a lock table that is full as
+      // at a deadlock (row_mysql_handle_errors), and not measured.
+      switch (errorCode)
+      {
+      case 2055: // CR_SERVER_LOST_EXTENDED
+      case 1053: // ER_SERVER_SHUTDOWN
+      case 1927: // ER_CONNECTION_KILLED (MariaDB)
+      case 1213: // ER_LOCK_DEADLOCK
+      case 1020: // ER_CHECKREAD: MariaDB's snapshot isolation
+      case 1206: // ER_LOCK_TABLE_FULL
+         return true;
+      case 1205: // ER_LOCK_WAIT_TIMEOUT: its own statement alone, unless the server says otherwise
+         return rollback_on_timeout_;
+      default:
+         return false;
       }
    }
 
