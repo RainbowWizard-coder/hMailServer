@@ -102,10 +102,10 @@ three: the Administrators made its owner, every entry of its own but SYSTEM's, t
 taken away, what it inherits replaced, and the Users' Read & execute and, on `Bin` and `ControlPanel` where the server
 is installed, the service's given back; and reinstalls the programs into a folder only the administrators may change
 where accounts that are not administrators could sign in while it was installed so, where anybody but SYSTEM, the
-Administrators or TrustedInstaller owned one of the three, a file directly in the program folder, or anything in `Bin`,
-`ControlPanel`, `WebAdmin`, `DBScripts`, `Addons` or `Languages`, or where one of the three had an entry of its own that
-let anybody else change it, or one the steps could not take away. Found by the project's own review (work item 78; CVE
-requested).
+Administrators or TrustedInstaller owned one of the three, a file directly in the program folder, or `WebAdmin`,
+`DBScripts`, `Addons` or `Languages` or anything in them or in `Bin` or `ControlPanel`, or where one of the three had an
+entry of its own that let anybody else change it, or one the steps could not take away. Found by the project's own
+review (work item 78; CVE requested).
 [ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "What the other users of the computer may read".
 
 - **Fixed: a credential confined to named domains could make a few changes that reach other tenants, on a

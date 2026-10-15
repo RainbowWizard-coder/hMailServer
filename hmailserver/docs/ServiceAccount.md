@@ -517,11 +517,11 @@ dir /q /s /a "C:\hMailServer\Bin" "C:\hMailServer\ControlPanel" "C:\hMailServer\
 `dir` cuts an owner's name to 23 characters (`NT SERVICE\TrustedInsta`), shows
 `...` for an owner it cannot read, and says `File Not Found` for a folder the
 installation does not have - the Control Panel alone has no `WebAdmin`, `DBScripts`
-or `Addons` - and lists the others. Each `icacls` line below must say
-`Successfully processed 1 files`: one that says 0 has changed nothing, and from
-`/remove:g` that is the only sign that it found no account for a SID or a name it
-was given. Then, as `/ProtectFolders` does, for the program folder, then `Bin`,
-then `ControlPanel`:
+or `Addons` - and lists the others. Each `icacls` line below must say that it
+processed one file - `Successfully processed 1 files` on an English Windows: one
+that says 0 has changed nothing, and from `/remove:g` that is the only sign that it
+found no account for a SID or a name it was given. Then, as `/ProtectFolders` does,
+for the program folder, then `Bin`, then `ControlPanel`:
 
 1. Make the Administrators its owner - an owner may change the permissions whatever
    they say. The folder alone: `/T` would reach the message store too.
