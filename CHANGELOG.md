@@ -6270,7 +6270,7 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   static-analysis and semgrep fail a pipeline on a new finding since 6.3.6, semgrep-sast-gate and mr-dependency-check
   hold every change, release holds a release, dependency-scan and repo-hygiene block nothing - where it said that they
   were not yet blocking; it also says that a release tag's Linux packages are built on the project's own runners only
-  while HM_RUNNER_PACKAGES and HM_RUNNER_ARM64 are unset. The OpenAPI document and SenderListsAndDigests.md say that
+  while HM_RUNNER_BUILD and HM_RUNNER_PACKAGES are unset. The OpenAPI document and SenderListsAndDigests.md say that
   GET /api/v1/quarantine answers its bare array for a q of white space alone, as it does, where they promised the page
   object for any q. EvidencePack.md no longer says that the backup runs 7-Zip 19.00; SecretsAtRest.md says that the
   stored-secrets key a process holds is not written over when a stop has to end the process at once, and goes with the
