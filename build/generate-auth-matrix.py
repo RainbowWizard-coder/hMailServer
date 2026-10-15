@@ -56,8 +56,9 @@ What is read, all of it from hmailserver/source/Server/Common:
 The steps between those lists are the script's own writing, so they are held
 to the code: STEPS carries the steps of Authorize_; of the functions whose
 lists it reads; of the four built-in roles' functions, ServerAdminPermissions
-whole and each other one but for its permission lines, and of
-RoleManager::BuiltInPermissions_, which picks one by a role's name; of the
+whole and each other one but for its permission lines, of the Bit they set a
+permission with, and of RoleManager::BuiltInPermissions_, which picks one by a
+role's name; of the
 functions Authorize_ hands its decision to - RoleManager::Allows (the overload
 with a domain) with the RoleGrant::Holds and RoleManager::IsDomainReached_ it
 asks, IsDomainAllowed_, and IsServerWideReportSection_ with the FindSection it
@@ -2432,8 +2433,9 @@ class Decision(object):
 # itself: which test comes first, what each one asks, what follows a refusal.
 # So the functions it models are held to STEPS, the steps as they were when
 # decide() was last read against them: Authorize_, the functions whose lists it
-# reads, the built-in roles' functions and the one that picks them by a role's
-# name, the functions it hands its decision to and those they ask (steps_of
+# reads, the built-in roles' functions, the Bit they set a permission with and
+# the one that picks them by a role's name, the functions it hands its decision
+# to and those they ask (steps_of
 # names each), and ProcessRequest_ from the end of the anonymous routes to the
 # handler. A list may change unseen - the readers above take it - and so may
 # prose, and nothing else of those functions may: a step added, taken out,
@@ -2670,11 +2672,11 @@ def steps_of(sources=None):
     RoleManager::IsDomainReached_ it asks, IsDomainAllowed_, and
     IsServerWideReportSection_ and the FindSection it asks, whose table
     report_sections reads; RoleManager::BuiltInPermissions_, which picks a
-    built-in role's function by the role's name, and the four functions (their
+    built-in role's function by the role's name, the four functions (their
     permission lines masked, but for ServerAdminPermissions, whose every step is
-    one); and ProcessRequest_'s try block, everything between the end of the
-    anonymous routes and the handler, the dispatch's labels and handlers
-    masked."""
+    one) and the Bit they set a permission with; and ProcessRequest_'s try
+    block, everything between the end of the anonymous routes and the handler,
+    the dispatch's labels and handlers masked."""
 
     def code(rel, qualified, params=None):
         body = body_of(read(rel, sources), qualified, params)
@@ -2714,6 +2716,7 @@ def steps_of(sources=None):
         if listed:
             body = mask_lines(body, ROLE_PERMISSION_LINE, lambda m: "set |= Bit(RolePermission::PERMISSION);")
         steps.append((function, skeleton(body)))
+    steps.append(("Bit", skeleton(code(ROLE_CPP, "Bit"))))
     steps.append(("RestApiServer::IsDomainAllowed_", skeleton(code(REST_CPP, "RestApiServer::IsDomainAllowed_"))))
     steps.append(("RestApiServer::IsServerWideReportSection_",
                   skeleton(code(REPORTS_CPP, "RestApiServer::IsServerWideReportSection_"))))
@@ -3027,6 +3030,11 @@ STEPS = {
   return set ;
 }
 """,
+    "Bit": r"""
+{
+  return 1ULL << static_cast < int > ( permission ) ;
+}
+""",
     "RestApiServer::IsDomainAllowed_": r"""
 {
   if ( domains . empty ( ) ) return true ;
@@ -3309,7 +3317,7 @@ def render(decision, records, anon, web):
       "whose `ServerAdminPermissions` sets every bit below `RolePermission::Count`, and for each other role the "
       "permissions its function sets, one a line, `set |= Bit(RolePermission::X);`. Those steps are the script's, "
       "so it holds them to the code: `Authorize_` and each function whose list it reads, "
-      "`RoleManager::BuiltInPermissions_` and the four roles' functions, "
+      "`RoleManager::BuiltInPermissions_`, the four roles' functions and the `Bit` they set a permission with, "
       "`RoleManager::Allows` and the `RoleGrant::Holds` and `RoleManager::IsDomainReached_` it asks, "
       "`IsDomainAllowed_`, `IsServerWideReportSection_` and the `FindSection` it asks, and `ProcessRequest_` from "
       "the end of the anonymous routes to the handler are compared with the steps the script was last read "
@@ -3823,6 +3831,9 @@ def self_test():
     stops("a permission's line of a built-in role given a mask stops the script", ROLE_CPP,
           "         set |= Bit(RolePermission::ManageAccounts);", "         set |= Bit(RolePermission::ManageAccounts) & 0;",
           "DomainAdminPermissions")
+    stops("the bit a built-in role's permission is set at, moved, stops the script", ROLE_CPP,
+          "         return 1ULL << static_cast<int>(permission);",
+          "         return 1ULL << (static_cast<int>(permission) + 1);", "Bit")
     stops("a built-in role's name given another role's function stops the script", ROLE_CPP,
           "      if (name.Compare(_T(\"helpdesk\")) == 0)" + nl + "         return HelpdeskPermissions();",
           "      if (name.Compare(_T(\"helpdesk\")) == 0)" + nl + "         return DomainAdminPermissions();",

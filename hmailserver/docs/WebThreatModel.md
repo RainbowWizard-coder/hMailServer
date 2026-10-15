@@ -366,9 +366,9 @@ How this stays true
   added, moved or reclassified changes the committed matrix, and a new route of
   a flagged shape is flagged the day it is written. The steps of the functions
   the matrix's answer is read from - `Authorize_`, the functions whose lists it
-  reads, the four built-in roles' functions and the
-  `RoleManager::BuiltInPermissions_` that picks one by a role's name,
-  `RoleManager::Allows` and the `RoleGrant::Holds` and
+  reads, the four built-in roles' functions, the `Bit` they set a permission
+  with and the `RoleManager::BuiltInPermissions_` that picks one by a role's
+  name, `RoleManager::Allows` and the `RoleGrant::Holds` and
   `RoleManager::IsDomainReached_` it asks, `IsDomainAllowed_`,
   `IsServerWideReportSection_` and the `FindSection` it asks, and
   `ProcessRequest_` from the end of the anonymous routes to the handler - are
