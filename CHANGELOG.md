@@ -4124,11 +4124,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `wiki_page` to the Deck and the webmail, and the Control Panel carries the same table, so it gives the wiki's names
   to a server of any version. A document no page was made from - 62 of the 124, the settings pages' reasons and the
   first-hour checklist among them - has no wiki link, rather than one to nothing. The setting is unchanged, 6.3.5's
-  address included, which GitLab redirects page by page; an address of an administrator's own gets the wiki's page
-  names too, as the Advanced page's sentence under it now says, in the seventeen languages. `build/check-help-map.py`
-  holds the table to the documents in every pipeline, and with `--wiki` to a clone of the wiki - its pages are the
-  table's, and each names the documents listed under it - at the branch GitLab serves the wiki from, which its
-  remote's HEAD names, and while that is another at `master` too, where the wiki's edits are pushed
+  address included, which GitLab redirects page by page; an address of an administrator's own gets the project wiki's
+  page names too, and a link only for the documents the project's wiki has a page for, where it got the document's own
+  name, as the Advanced page's sentence under it now says, in the seventeen languages. `build/check-help-map.py` holds
+  the table to the documents in every pipeline, and with `--wiki` to a clone of the wiki - its pages are the table's,
+  and each names the documents listed under it - at the branch GitLab serves the wiki from, which its remote's HEAD
+  names, and while that is another at `master` too, where the wiki's edits are pushed
   ([Help.md](hmailserver/docs/Help.md), "The checker" and "The wiki link"). `HelpMapTests`, `RestApiHelp`, the Deck's
   and the webmail's harnesses and the checker's self-test hold it; against the pages before the fix, the harnesses'
   checks failed on `https://wiki.test/Backup`, `.../MailFlowRules` and `.../OfflineMail`. Found by the release review

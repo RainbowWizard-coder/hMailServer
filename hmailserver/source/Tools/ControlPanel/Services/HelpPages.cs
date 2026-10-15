@@ -89,12 +89,13 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>
       /// What "Open on the wiki" opens for the document: the wiki base URL with the
-      /// wiki's page for the document added, or null - no link - when the base is
-      /// empty or not a web address (<see cref="WikiBaseUrlOrEmpty"/>) or the wiki
-      /// has no page made from the document. The page's name, never the document's:
-      /// the wiki has no page called Backup, and up to October 2026, while the link
-      /// was made of the document's name, it opened GitLab's "page does not exist"
-      /// for every document but two.
+      /// project wiki's page for the document added, whatever the base - an
+      /// administrator's own wiki gets the same names - or null - no link - when the
+      /// base is empty or not a web address (<see cref="WikiBaseUrlOrEmpty"/>) or the
+      /// project's wiki has no page made from the document. The page's name, never
+      /// the document's: the wiki has no page called Backup, and up to October 2026,
+      /// while the link was made of the document's name, it opened GitLab's "page
+      /// does not exist" for every document but two.
       /// </summary>
       public static string WikiUrl(string baseUrl, string name)
       {

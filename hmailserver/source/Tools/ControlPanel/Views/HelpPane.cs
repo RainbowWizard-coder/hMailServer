@@ -32,7 +32,7 @@ namespace hMailServer.ControlPanel.Views
    /// by <see cref="MarkdownFlow"/> into a FlowDocumentScrollViewer, scrolled
    /// to the heading, with the document's other headings as a list at the
    /// top, a search box over the open document, and two links at the foot:
-   /// the wiki's page made from the document, where the wiki has one
+   /// the project wiki's page made from the document, where it has one
    /// (<see cref="HelpPages.WikiUrl"/>), and every document by its title, grouped as
    /// the sidebar is, with Back to what a link in the pane left (HelpPane.List.cs).
    /// The shell (MainWindow) owns the pane's column, its width and whether it is
@@ -64,8 +64,8 @@ namespace hMailServer.ControlPanel.Views
       private IReadOnlyDictionary<string, Block> headingBlocks_ = new Dictionary<string, Block>();
 
       /// <summary>
-      /// The wiki base URL "Open on the wiki" is made against, with the wiki's
-      /// page for the document added; empty hides the
+      /// The wiki base URL "Open on the wiki" is made against, with the project
+      /// wiki's page for the document added, whatever the base; empty hides the
       /// link. Kept only when it is a web address (<see cref="HelpPages.WikiBaseUrlOrEmpty"/>):
       /// the value reaches ShellExecute, and the server's setters are the
       /// only other guard - a row written by SQL, or by a server of another
@@ -507,9 +507,9 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// The wiki's page for the document showing, or null: the base with the page
-      /// the wiki made from the document (HelpPages.WikiUrl), so a document the
-      /// wiki has no page for, the list of documents and a page with no guide have
+      /// The project wiki's page for the document showing, or null: the base with
+      /// the page the project's wiki made from the document (HelpPages.WikiUrl), so a
+      /// document it has no page for, the list of documents and a page with no guide have
       /// no wiki link, rather than one to GitLab's "page does not exist".
       /// </summary>
       private string WikiUrl_() => shown_ == null ? null : HelpPages.WikiUrl(wikiBaseUrl_, shown_);

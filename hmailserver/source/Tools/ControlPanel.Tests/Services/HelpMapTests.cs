@@ -387,13 +387,14 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// "Open on the wiki" opens the wiki's page made from the document, by the
-      /// wiki's own name for it - the wiki has no page called Backup, and a link
+      /// "Open on the wiki" opens the project wiki's page made from the document, by
+      /// that wiki's own name for it - the wiki has no page called Backup, and a link
       /// made of the document's name opened GitLab's "page does not exist" for
       /// every document but two - with the base the server holds, the one shipped
-      /// up to 6.3.5 included (GitLab redirects it to the group's path); and no
-      /// link at all for a document the wiki has no page for, for no base, and for
-      /// a base that is not a web address.
+      /// up to 6.3.5 included (GitLab redirects it to the group's path), and an
+      /// administrator's own base given the same names (wiki.example.test); and no
+      /// link at all for a document the project's wiki has no page for, for no base,
+      /// and for a base that is not a web address.
       /// </summary>
       [Theory]
       [InlineData("https://gitlab.com/hmailserver/hmailserver/-/wikis/", "Backup", "https://gitlab.com/hmailserver/hmailserver/-/wikis/Backup-and-Restore")]
@@ -480,6 +481,58 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
+      /// The texts that say what "Open on the wiki" opens say whose names it adds: the
+      /// project wiki's, which this program and the server carry
+      /// (build/help-wiki-pages.txt), whatever the address - an administrator's own
+      /// wiki gets the same names, and no link for a document the project's wiki has
+      /// no page for, whatever pages that wiki has, as the wiki.example.test case above
+      /// shows. The Advanced page's sentence under the setting, the COM property's two
+      /// helpstrings and the REST row's description said the link "opens the wiki's
+      /// page ... by the wiki's own name for it" and "with the wiki's page made from
+      /// the document added", which for an address of the administrator's own told of
+      /// a wiki the link never reads, and docs/Help.md's "The wiki link" said nothing
+      /// of such an address.
+      /// </summary>
+      [Fact]
+      public void TheSettingsTexts_SayTheNamesAreTheProjectWikisWhateverTheAddress()
+      {
+         string view = File.ReadAllText(Path.Combine(FindControlPanel(), "Views", "ServerSettingsView.xaml.cs"));
+         Match row = Regex.Match(view, @"Path = ""HelpWikiBaseUrl"",\s*Label = L\(""(?:[^""\\]|\\.)*""\),\s*Blurb = L\(""((?:[^""\\]|\\.)*)""\)");
+         Assert.True(row.Success, "ServerSettingsView no longer gives HelpWikiBaseUrl a Blurb of one L(...) after its Label.");
+
+         string server = FindServer_();
+         string idl = File.ReadAllText(Path.Combine(server, "hMailServer", "hMailServer.idl"));
+         List<string> helpstrings = Regex.Matches(idl, @"helpstring\(""((?:[^""\\]|\\.)*)""\)\]\s*HRESULT HelpWikiBaseUrl\(")
+            .Select(m => m.Groups[1].Value).ToList();
+         Assert.Equal(2, helpstrings.Count);
+         string rest = File.ReadAllText(Path.Combine(server, "Common", "Util", "RestApiSettings.cpp"));
+         Match description = Regex.Match(rest, @"\{ ""help_wiki_base_url"",[^\n]*\n\s*""((?:[^""\\]|\\.)*)""");
+         Assert.True(description.Success, "RestApiSettings.cpp no longer describes help_wiki_base_url on the line after its row.");
+
+         var texts = new List<(string Where, string Text)>
+         {
+            ("the Advanced page's sentence", row.Groups[1].Value),
+            ("the REST row's description", description.Groups[1].Value),
+         };
+         texts.AddRange(helpstrings.Select(text => (Where: "a helpstring of Settings.HelpWikiBaseUrl", Text: text)));
+         foreach ((string where, string text) in texts)
+         {
+            Assert.True(text.Contains("project wiki's page", StringComparison.Ordinal),
+               where + " does not say that the page whose name is added is the project wiki's: " + text);
+            Assert.True(text.Contains("whatever the address", StringComparison.Ordinal),
+               where + " does not say that the names are added whatever the address: " + text);
+            Assert.True(text.Contains("the project's wiki has no page for", StringComparison.Ordinal),
+               where + " does not say that there is no link where the project's wiki has no page: " + text);
+            Assert.False(text.Contains("the wiki's own name", StringComparison.Ordinal),
+               where + " still names the pages by the configured wiki's own names: " + text);
+         }
+
+         string section = Regex.Replace(Section_(Path.Combine(FindDocs(), "Help.md"), "The wiki link"), @"\s+", " ");
+         Assert.Contains("an address of the administrator's own", section, StringComparison.Ordinal);
+         Assert.Contains("The names are the project wiki's whatever the address", section, StringComparison.Ordinal);
+      }
+
+      /// <summary>
       /// build/help-wiki-pages.txt as build/generate-help-pages.py reads it: every
       /// line not blank or a comment, a page of the wiki and then the documents it
       /// was made from. The documents' names without .md, to the page; and every
@@ -521,6 +574,20 @@ namespace hMailServer.ControlPanel.Tests.Services
          }
 
          throw new DirectoryNotFoundException("the Control Panel's sources are not above " + AppContext.BaseDirectory);
+      }
+
+      private static string FindServer_()
+      {
+         for (var at = new DirectoryInfo(AppContext.BaseDirectory); at != null; at = at.Parent)
+         {
+            foreach (string candidate in new[] { Path.Combine(at.FullName, "Server"), Path.Combine(at.FullName, "hmailserver", "source", "Server") })
+            {
+               if (File.Exists(Path.Combine(candidate, "hMailServer", "hMailServer.idl")))
+                  return candidate;
+            }
+         }
+
+         throw new DirectoryNotFoundException("the server's sources are not above " + AppContext.BaseDirectory);
       }
 
       private static string FindDocs()

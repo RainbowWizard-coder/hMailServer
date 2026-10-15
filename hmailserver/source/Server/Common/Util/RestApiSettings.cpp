@@ -921,11 +921,12 @@ namespace
         } },
 
       // The help panes (HelpPages.h): where "Open on the wiki" points, with
-      // the wiki's page made from the document added. GET /api/v1/help answers
-      // it, and each page's wiki_page, to the two browser pages; the Control
-      // Panel reads Settings.HelpWikiBaseUrl.
+      // the project wiki's page made from the document added, whatever the
+      // address (build/help-wiki-pages.txt). GET /api/v1/help answers it, and
+      // each page's wiki_page, to the two browser pages; the Control Panel
+      // reads Settings.HelpWikiBaseUrl.
       { "help_wiki_base_url", KindString, ReadWrite, EffectNow, nullptr,
-        "The wiki the help panes' Open on the wiki link points at, with the wiki's page made from the document added (Backup-and-Restore for Backup), and no link for a document the wiki has no page for - https://gitlab.com/hmailserver/hmailserver/-/wikis/ as shipped. Absolute, beginning with http:// or https://; empty hides the link.",
+        "The wiki the help panes' Open on the wiki link points at, with the name of the project wiki's page made from the document added (Backup-and-Restore for Backup), whatever the address, and no link for a document the project's wiki has no page for - https://gitlab.com/hmailserver/hmailserver/-/wikis/ as shipped. Absolute, beginning with http:// or https://; empty hides the link.",
         ROW_TEXT(Config()->GetHelpWikiBaseUrl()),
         [] (const Value &v) { String url = v.text; url.Trim(); Config()->SetHelpWikiBaseUrl(url); return Applied(); },
         [] (const Value &v) -> String

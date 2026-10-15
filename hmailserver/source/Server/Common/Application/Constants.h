@@ -629,11 +629,12 @@
 #define PROPERTY_REPUTATION_WATCH_LISTS         _T("ReputationWatchLists")
 #define PROPERTY_REPUTATION_WATCH_ADDRESSES     _T("ReputationWatchAddresses")
 // The wiki the three help panes offer "Open on the wiki" against, with the
-// wiki's page made from the document added - its own name, not the
-// document's (Common/Util/HelpPages.h, build/help-wiki-pages.txt) - and no
-// link for a document the wiki has no page for: empty hides the link. The
-// Deck and the webmail read it from GET /api/v1/help, the Control Panel over
-// COM. An hm_settings row, seeded by EnsureSettingDefaults_.
+// project wiki's page made from the document added - that wiki's own name,
+// not the document's, whatever the address (Common/Util/HelpPages.h,
+// build/help-wiki-pages.txt) - and no link for a document the project's wiki
+// has no page for: empty hides the link. The Deck and the webmail read it
+// from GET /api/v1/help, the Control Panel over COM. An hm_settings row,
+// seeded by EnsureSettingDefaults_.
 #define PROPERTY_HELP_WIKI_BASE_URL             _T("HelpWikiBaseUrl")
 #define PROPERTY_QUOTA_GRACE_PERCENT            _T("QuotaGracePercent")
 #define PROPERTY_QUOTA_SEND_STOP_PERCENT        _T("QuotaSendStopPercent")

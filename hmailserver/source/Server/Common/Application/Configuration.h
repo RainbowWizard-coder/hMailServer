@@ -175,11 +175,12 @@ namespace HM
       String GetReputationWatchAddresses() const;
       void SetReputationWatchAddresses(const String &newVal);
 
-      // The wiki base URL the help panes link to, with the wiki's page made
-      // from the document added (HelpPages.h), and no link for a document the
-      // wiki has no page for; empty hides the link. Validated where it is set - the REST
-      // row and the COM property refuse a value that is not empty and not an
-      // absolute http or https URL - so what is stored is usable.
+      // The wiki base URL the help panes link to, with the project wiki's page
+      // made from the document added whatever the address (HelpPages.h), and
+      // no link for a document the project's wiki has no page for; empty hides
+      // the link. Validated where it is set - the REST row and the COM property
+      // refuse a value that is not empty and not an absolute http or https URL
+      // - so what is stored is usable.
       String GetHelpWikiBaseUrl() const;
       void SetHelpWikiBaseUrl(const String &newVal);
 

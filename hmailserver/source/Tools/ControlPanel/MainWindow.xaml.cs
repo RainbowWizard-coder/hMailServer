@@ -1937,8 +1937,9 @@ namespace hMailServer.ControlPanel
       /// pages read, so a server without the property (an older one) is a
       /// server whose link goes to the project's wiki rather than a failed
       /// connection. An empty value is the administrator hiding the link. The
-      /// page added to it is this program's own: the one the wiki made from the
-      /// document (HelpPages.WikiUrl), whatever the server's version.
+      /// page added to it is this program's own: the one the project's wiki
+      /// made from the document (HelpPages.WikiUrl), whatever the server's
+      /// version and whatever the address.
       /// </summary>
       private static string ReadHelpWikiBaseUrl_()
       {

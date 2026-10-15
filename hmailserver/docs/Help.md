@@ -59,7 +59,7 @@ from offering help.
 
 | Route | Answers |
 |---|---|
-| `GET /api/v1/help` | `{wiki, tag, pages:[{name, title, bytes, wiki_page, headings:[{text, level, line}]}]}`. `wiki` is the `HelpWikiBaseUrl` setting, empty when the administrator hid the link; `tag` is the build tag; each page's `name` is what the page route takes, its `title` its first heading, its `wiki_page` the wiki's page made from the document (`Backup-and-Restore` for `Backup`), which a pane adds to `wiki`, or empty when the wiki has none and there is no link, and its `headings` the level-one and level-two ones with the line each starts on, counted from 0. The wiki value rides in it, so it is answered `Cache-Control: no-cache` with an `ETag` of the build tag and a digest of that value, and `304` to an `If-None-Match` naming it: a change to the setting reaches a browser on its next page load, not a day later. |
+| `GET /api/v1/help` | `{wiki, tag, pages:[{name, title, bytes, wiki_page, headings:[{text, level, line}]}]}`. `wiki` is the `HelpWikiBaseUrl` setting, empty when the administrator hid the link; `tag` is the build tag; each page's `name` is what the page route takes, its `title` its first heading, its `wiki_page` the project wiki's page made from the document (`Backup-and-Restore` for `Backup`), which a pane adds to `wiki` whatever its address, or empty when the project's wiki has none and there is no link, and its `headings` the level-one and level-two ones with the line each starts on, counted from 0. The wiki value rides in it, so it is answered `Cache-Control: no-cache` with an `ETag` of the build tag and a digest of that value, and `304` to an `If-None-Match` naming it: a change to the setting reaches a browser on its next page load, not a day later. |
 | `GET /api/v1/help/{page}` | The page's markdown, `text/markdown; charset=utf-8`, with `Cache-Control: public, max-age=86400` and an `ETag` of the build tag and the page name; a request whose `If-None-Match` names that tag is answered `304`. `{page}` is a file name without its extension and without a path - `Backup` for `Backup.md` - matched without regard to case. A name carrying a dot, a separator or anything outside letters and digits, and a name that is not a page, are one and the same `404`, so a request that tries the path for a file learns nothing. |
 
 The answers are the same bytes for every reader, so they are on the list of
@@ -160,7 +160,7 @@ window and never a dialog, that follows the page as the navigation changes,
 with the document's headings as a list at the top, a search box over the
 open document (the two browser pages mark every match and Enter moves to
 the next; the Control Panel finds the next match), the text, and two links
-at the foot - *Open on the wiki*, for a document the wiki has a page for, and
+at the foot - *Open on the wiki*, where the project's wiki has a page, and
 *All documentation*, the second listing every document for opening in the
 same pane. A link in a document to another document of the set opens that
 document in the pane; a link to the web opens in a new tab. Its rendering is
@@ -213,16 +213,22 @@ database set up then keeps that value through an upgrade, as it keeps any
 setting; GitLab redirects the old address to the new one, page by page, so the
 link still works, and setting the new value is the administrator's choice.
 
-Each pane's *Open on the wiki* is that URL with the name of the wiki's page
-made from the document: `.../-/wikis/Backup-and-Restore` for `Backup.md`,
-`.../-/wikis/The-Webmail` for the webmail's own documents. The wiki names its
-pages its own way, and up to October 2026, while the link was the URL with the
-document's own name, it opened GitLab's "page does not exist" for every
-document but `Fuzzing.md` and `Migration.md`. A document no page of the wiki
-was made from has no link at all - about half of them, the settings pages'
-reasons and the first-hour checklist among them - since there is nothing to
-open. The pages come from one table, `build/help-wiki-pages.txt`, which lists
-every page of the wiki with the documents each was made from:
+Each pane's *Open on the wiki* is that URL with the name of the project
+wiki's page made from the document: `.../-/wikis/Backup-and-Restore` for
+`Backup.md`, `.../-/wikis/The-Webmail` for the webmail's own documents. The
+wiki names its pages its own way, and up to October 2026, while the link was
+the URL with the document's own name, it opened GitLab's "page does not
+exist" for every document but `Fuzzing.md` and `Migration.md`. A document no
+page of the wiki was made from has no link at all - about half of them, the
+settings pages' reasons and the first-hour checklist among them - since there
+is nothing to open. The names are the project wiki's whatever the address:
+an address of the administrator's own - a copy of the wiki on an intranet,
+say - gets the same page names added, and a link only for the documents the
+project's wiki has a page for, so a wiki of one's own has to name its pages
+as the project's does; up to October 2026 such an address got the
+document's own name. The pages come from one table,
+`build/help-wiki-pages.txt`, which lists every page of the wiki with the
+documents each was made from:
 
 * a page that is a document's copy, whose opening says so ("Source of truth:
   `hmailserver/docs/X.md`, kept in the repository and copied here");
@@ -293,9 +299,13 @@ What is tested
   navigation page, every tab entry against the tabs its page builds, the pages
   with no guide, the pane's heading scroll target, the embedded copy against the
   directory (the names, the two exclusions, the bytes), the wiki URL rule, and
-  the wiki link: the wiki's page for a document, never its name, no link for a
-  document the wiki has no page for, every document held to a page of the
-  table's or to none, and the program's copy of the table to the file.
+  the wiki link: the project wiki's page for a document, never its name, an
+  address of the administrator's own given the same names, no link for a
+  document the project's wiki has no page for, every document held to a page
+  of the table's or to none, the program's copy of the table to the file, and
+  the texts that describe the setting - the Advanced page's sentence, the COM
+  property's helpstrings, the REST row and "The wiki link" here - to saying
+  so.
 * `build/deck-script-test.js` and `build/portal-script-test.js`: the button,
   the fetch path, the rendering of a heading and a list, the map lookup for
   three views, and *Open on the wiki* as the wiki's page for the document

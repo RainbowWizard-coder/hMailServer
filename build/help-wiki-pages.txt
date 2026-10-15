@@ -1,7 +1,8 @@
 # The project's wiki, page by page, and the documents each page was made from: what the help panes'
 # "Open on the wiki" opens. The wiki's pages have names of their own - Backup-and-Restore, not
 # Backup - so the link is the HelpWikiBaseUrl setting with the page's name, never the document's,
-# and a document no page was made from has no link at all.
+# and a document no page was made from has no link at all. The names are this table's whatever the
+# setting's address: an administrator's own wiki gets the same ones.
 #
 # build/generate-help-pages.py reads this file into the server (HelpPagesData.cpp, which
 # GET /api/v1/help answers to the Control Deck and the webmail as each page's wiki_page) and into
