@@ -79,7 +79,9 @@ namespace HM
             if (timeout_seconds <= 0 || !engine_)
                return;
 
-            DWORD due_time = static_cast<DWORD>(timeout_seconds) * 1000UL;
+            // Clamped before it is made milliseconds: the product wrapped in 32 bits
+            // (ScriptServer::WatchdogMilliseconds).
+            DWORD due_time = static_cast<DWORD>(ScriptServer::WatchdogMilliseconds(timeout_seconds));
 
             if (!CreateTimerQueueTimer(&timer_, NULL, OnTimeout_, this, due_time, 0, WT_EXECUTEONLYONCE | WT_EXECUTELONGFUNCTION))
             {
@@ -533,6 +535,44 @@ namespace HM
       }
 
       return true;
+   }
+
+   unsigned long
+   ScriptServer::WatchdogMilliseconds(int timeout_seconds)
+   {
+      // Zero means the administrator has turned the limit off.
+      if (timeout_seconds <= 0)
+         return 0;
+
+      // 4,294,967 seconds is 4,294,967,000 ms, the most whole seconds a 32-bit count
+      // of milliseconds holds (and not INFINITE, 4,294,967,295, which no due time
+      // should be). Clamped before the product, as DNSResolverWinApi clamps its
+      // timeout before it scales it.
+      const unsigned long longest_seconds = 4294967UL;
+      unsigned long seconds = static_cast<unsigned long>(timeout_seconds);
+      if (seconds > longest_seconds)
+         seconds = longest_seconds;
+
+      return seconds * 1000UL;
+   }
+
+   void
+   ScriptWatchdogTester::Test()
+   {
+      if (ScriptServer::WatchdogMilliseconds(0) != 0 || ScriptServer::WatchdogMilliseconds(-5) != 0)
+         throw std::logic_error("ScriptWatchdogTester: a ScriptTimeout of zero or less armed a watchdog");
+
+      if (ScriptServer::WatchdogMilliseconds(60) != 60000UL || ScriptServer::WatchdogMilliseconds(1) != 1000UL)
+         throw std::logic_error("ScriptWatchdogTester: a ScriptTimeout was not made milliseconds as it is");
+
+      if (ScriptServer::WatchdogMilliseconds(4294967) != 4294967000UL)
+         throw std::logic_error("ScriptWatchdogTester: the longest ScriptTimeout a watchdog can be armed for was not armed for it");
+
+      // One second more wrapped to a 704 ms watchdog, and twice that to 408 ms.
+      if (ScriptServer::WatchdogMilliseconds(4294968) != 4294967000UL ||
+          ScriptServer::WatchdogMilliseconds(8589935) != 4294967000UL ||
+          ScriptServer::WatchdogMilliseconds(2147483647) != 4294967000UL)
+         throw std::logic_error("ScriptWatchdogTester: a ScriptTimeout past 4,294,967 seconds was not clamped to it, and its watchdog would fire in under a second");
    }
 
    void

@@ -361,6 +361,11 @@ namespace HM
       ScriptLiteralTester scriptLiteralTester;
       scriptLiteralTester.Test();
 
+      // The watchdog's due time, clamped before it is made milliseconds.
+      OutputDebugString(_T("hMailServer: Testing ScriptWatchdog\n"));
+      ScriptWatchdogTester scriptWatchdogTester;
+      scriptWatchdogTester.Test();
+
       // What a domain does to a message: the rule that decides whether a sender
       // is outside, the tag that rule produces, and the reply-chain guard on the
       // disclaimer. All three are decisions made from values, so they are tested

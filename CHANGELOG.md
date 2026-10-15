@@ -559,6 +559,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 
 ### Correctness
 
+- **Fixed: a `ScriptTimeout` of more than 4,294,967 seconds ended every VBScript and JScript event script in under a
+  second (release review finding CP-5).** The Windows engines' watchdog is armed with a 32-bit count of milliseconds,
+  and the seconds were multiplied into it unclamped, so that a timeout of 4,294,968 seconds - an administrator's
+  "about fifty days" - armed a 704 ms watchdog, and 8,589,935 seconds a 408 ms one, and every script was interrupted
+  as it began. The seconds are clamped to 4,294,967 - forty-nine days and seventeen hours, the most whole seconds the
+  count holds - before they are made milliseconds (`ScriptServer::WatchdogMilliseconds`), as the DNS timeout is
+  clamped before it is scaled. The JavaScript engine of the Linux builds counts its deadline in 64-bit time and never
+  wrapped. `ScriptWatchdogTester`, which ClassTester runs on Windows and `script-binding-tests` on Linux, holds the
+  bound, and the Control Panel's field takes no more than it.
+
 - **Fixed: on MySQL and MariaDB, the statement after the database had ended a TLS session, or after MySQL had closed
   one for being idle, failed instead of being run again on a new connection.** The database layer runs a statement
   again on a new connection when the old one turns out to be gone, which it recognised by the client's errors 2006 and

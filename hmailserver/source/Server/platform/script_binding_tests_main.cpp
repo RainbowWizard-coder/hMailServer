@@ -23,6 +23,7 @@
 #include <stdexcept>
 
 #include "../Common/Scripting/ScriptBinding.h"
+#include "../Common/Scripting/ScriptServer.h"
 
 int
 main(int /*argc*/, char * /*argv*/[])
@@ -38,6 +39,20 @@ main(int /*argc*/, char * /*argv*/[])
       return 1;
    }
 
-   printf("ok    the JavaScript event-script binding: the contract, values both ways, the timeout, the memory ceiling and the sandbox\n");
+   // The Windows engines' watchdog is not on this platform, and the bound its due
+   // time is clamped to is the same here: ScriptWatchdogTester, which ClassTester
+   // runs on Windows.
+   try
+   {
+      HM::ScriptWatchdogTester watchdog;
+      watchdog.Test();
+   }
+   catch (const std::exception &failure)
+   {
+      printf("FAIL  the event-script watchdog's due time: %s\n", failure.what());
+      return 1;
+   }
+
+   printf("ok    the JavaScript event-script binding: the contract, values both ways, the timeout, the memory ceiling and the sandbox; the watchdog's due time\n");
    return 0;
 }

@@ -98,6 +98,16 @@ namespace HM
       // refused by FireEvent before a Windows engine sees it.
       static bool IsPlainProcedureName(const String &name);
 
+      // The milliseconds the Windows engines' watchdog is armed for, for a
+      // ScriptTimeout of timeout_seconds: 0, no watchdog, for zero or less, and
+      // otherwise the seconds clamped to 4,294,967 before they are made
+      // milliseconds - the longest whole number of seconds the 32-bit count
+      // CreateTimerQueueTimer takes can hold. Unclamped, the product wrapped: a
+      // ScriptTimeout of 4,294,968 armed a 704 ms watchdog, which ended every
+      // event script (release review finding CP-5). The Control Panel holds the
+      // setting to the same bound.
+      static unsigned long WatchdogMilliseconds(int timeout_seconds);
+
       // Checks the syntax of the scripts in the
       // event directory and return the result.
       String CheckSyntax();
@@ -334,6 +344,16 @@ namespace HM
    // OnDeliveryFailed's trim keeps, and the procedure names FireEvent lets
    // through. ClassTester::DoTests runs it.
    class ScriptLiteralTester
+   {
+   public:
+      void Test();
+   };
+
+   // ScriptServer::WatchdogMilliseconds held to the bound: no watchdog for zero
+   // or less, the seconds as milliseconds up to 4,294,967 of them, and that and
+   // no less for anything longer. ClassTester::DoTests runs it on Windows and
+   // script-binding-tests on the POSIX build.
+   class ScriptWatchdogTester
    {
    public:
       void Test();
